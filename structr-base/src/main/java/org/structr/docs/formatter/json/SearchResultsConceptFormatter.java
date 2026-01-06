@@ -22,6 +22,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.docs.Documentable;
+import org.structr.docs.ontology.AnnotatedConcept;
 import org.structr.docs.ontology.Concept;
 
 import java.util.LinkedHashMap;
@@ -31,8 +32,9 @@ import java.util.Map;
 
 public class SearchResultsConceptFormatter {
 
-	public void format(final List<String> lines, final Concept concept, final Double score) {
+	public void format(final List<String> lines, final AnnotatedConcept annotatedConcept, final Double score) {
 
+		final Concept concept          = annotatedConcept.getConcept();
 		final Gson gson                = new GsonBuilder().create();
 		final Map<String, Object> data = new LinkedHashMap<>();
 
@@ -65,12 +67,13 @@ public class SearchResultsConceptFormatter {
 
 		data.put("parents", parents);
 
-		for (final Map.Entry<String, List<Concept>> parent : concept.getParents().entrySet()) {
+		for (final Map.Entry<String, List<AnnotatedConcept>> parent : concept.getParents().entrySet()) {
 
 			final List<Map<String, Object>> targets = new LinkedList<>();
 
-			for (final Concept parentConcept : parent.getValue()) {
+			for (final AnnotatedConcept annotatedParentConcept : parent.getValue()) {
 
+				final Concept parentConcept = annotatedParentConcept.getConcept();
 				final Map<String, Object> childMap = new LinkedHashMap<>();
 
 				childMap.put("id",         parentConcept.getId());

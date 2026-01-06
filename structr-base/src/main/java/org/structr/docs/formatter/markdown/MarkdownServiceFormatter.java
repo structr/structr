@@ -20,14 +20,14 @@ package org.structr.docs.formatter.markdown;
 
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
-import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.AnnotatedConcept;
 
 import java.util.List;
 
 public class MarkdownServiceFormatter extends Formatter {
 
 	@Override
-	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, String link, final int level) {
+	public void format(final List<String> lines, final AnnotatedConcept concept, final OutputSettings settings, String link, final int level) {
 
 
 

@@ -21,6 +21,7 @@ package org.structr.docs.formatter.text;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
+import org.structr.docs.ontology.AnnotatedConcept;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.Details;
@@ -30,7 +31,9 @@ import java.util.List;
 public class PlaintextTopicFormatter extends Formatter {
 
 	@Override
-	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, String link, final int level) {
+	public void format(final List<String> lines, final AnnotatedConcept annotatedConcept, final OutputSettings settings, String link, final int level) {
+
+		final Concept concept = annotatedConcept.getConcept();
 
 		if (settings.hasDetail(Details.name) && !ConceptType.Text.equals(concept.getType())) {
 

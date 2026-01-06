@@ -19,29 +19,32 @@
 package org.structr.docs;
 
 import org.apache.commons.lang3.StringUtils;
+import org.structr.docs.ontology.AnnotatedConcept;
 import org.structr.docs.ontology.Concept;
 
 import java.util.*;
 
 public abstract class Formatter {
 
-	public abstract void format(final List<String> lines, final Concept concept, final OutputSettings settings, final String link, final int level);
+	public abstract void format(final List<String> lines, final AnnotatedConcept concept, final OutputSettings settings, final String link, final int level);
 
 	/**
 	 * Walks through the whole ontology and calls formatters for all the elements.
 	 * Output generation is controlled externally by the OutputSettings instance.
 	 *
 	 * @param lines
-	 * @param concept
+	 * @param annotatedConcept
 	 * @param outputSettings
 	 * @param level
 	 */
-	public static void walkOntology(final List<String> lines, final Concept concept, final OutputSettings outputSettings, final String link, final int level, final Set<Concept> seenConcepts) {
+	public static void walkOntology(final List<String> lines, final AnnotatedConcept annotatedConcept, final OutputSettings outputSettings, final String link, final int level, final Set<AnnotatedConcept> seenConcepts) {
 
 		// max level reached, no output beyond this point
 		if (level >= outputSettings.getMaxLevels()) {
 			return;
 		}
+
+		final Concept concept = annotatedConcept.getConcept();
 
 		// type filter
 		if (concept == null) {
@@ -55,17 +58,17 @@ public abstract class Formatter {
 		}
 
 		// only output the same concept once
-		if (!seenConcepts.add(concept)) {
+		if (!seenConcepts.add(annotatedConcept)) {
 			return;
 		}
 
 		if (level >= outputSettings.getStartLevel()) {
 
 			// part1: fetch formatter for concept and call format()
-			final Formatter formatter = outputSettings.getFormatterForConcept(concept, outputSettings.getOutputMode());
+			final Formatter formatter = outputSettings.getFormatterForConcept(annotatedConcept, outputSettings.getOutputMode());
 			if (formatter != null) {
 
-				formatter.format(lines, concept, outputSettings, link, level);
+				formatter.format(lines, annotatedConcept, outputSettings, link, level);
 
 			} else {
 
@@ -74,19 +77,19 @@ public abstract class Formatter {
 		}
 
 		// part2: recurse (children are handled externally, i.e. not inside the type-specific formatters)
-		final Map<String, List<Concept>> children = concept.getChildren();
+		final Map<String, List<AnnotatedConcept>> children = concept.getChildren();
 		for (final String key : children.keySet()) {
 
 			if ("has".equals(key)) {
 
-				final List<Concept> concepts = new LinkedList<>(children.get(key));
+				final List<AnnotatedConcept> concepts = new LinkedList<>(children.get(key));
 
 				// only sort second-level topics
 				if (level > 0) {
-					Collections.sort(concepts, Comparator.comparing(Concept::getName));
+					Collections.sort(concepts, Comparator.comparing(AnnotatedConcept::getName));
 				}
 
-				for (final Concept child : concepts) {
+				for (final AnnotatedConcept child : concepts) {
 
 					walkOntology(lines, child, outputSettings, key, level + 1, seenConcepts);
 				}

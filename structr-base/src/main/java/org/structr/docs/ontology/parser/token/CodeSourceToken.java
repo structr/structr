@@ -20,14 +20,10 @@ package org.structr.docs.ontology.parser.token;
 
 import org.structr.docs.Documentable;
 import org.structr.docs.DocumentableType;
-import org.structr.docs.ontology.Concept;
-import org.structr.docs.ontology.ConceptType;
-import org.structr.docs.ontology.Ontology;
-import org.structr.docs.ontology.Verb;
+import org.structr.docs.ontology.*;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 public class CodeSourceToken extends NamedConceptToken {
 
@@ -36,15 +32,15 @@ public class CodeSourceToken extends NamedConceptToken {
 	}
 
 	@Override
-	public List<Concept> resolve(final Ontology ontology, final String sourceFile, final int lineNumber) {
+	public List<AnnotatedConcept> resolve(final Ontology ontology, final String sourceFile, final int lineNumber) {
 
-		final List<String> identifiers          = identifierToken.resolve(ontology, sourceFile, lineNumber);
+		final List<IdentifierToken> identifiers = identifierToken.resolve(ontology, sourceFile, lineNumber);
 		final List<Documentable>  documentables = new LinkedList<>();
-		final List<Concept> concepts            = new LinkedList<>();
+		final List<AnnotatedConcept> concepts   = new LinkedList<>();
 
-		for (final String identifier : identifiers) {
+		for (final IdentifierToken identifier : identifiers) {
 
-			final ConceptType type                 = Concept.forName(identifier);
+			final ConceptType type                 = Concept.forName(identifier.getName());
 			final DocumentableType documentableType = DocumentableType.forOntologyType(type);
 
 			if (documentableType != null) {
@@ -55,7 +51,7 @@ public class CodeSourceToken extends NamedConceptToken {
 
 		for (final Documentable documentable : documentables) {
 
-			for (final Concept parent : handleDocumentable(documentable, ontology, sourceFile, lineNumber)) {
+			for (final AnnotatedConcept parent : handleDocumentable(documentable, ontology, sourceFile, lineNumber)) {
 
 				concepts.add(parent);
 			}
@@ -65,13 +61,13 @@ public class CodeSourceToken extends NamedConceptToken {
 	}
 
 	// ----- private methods -----
-	private List<Concept> handleDocumentable(final Documentable documentable, final Ontology ontology, final String sourceFile, final int lineNumber) {
+	private List<AnnotatedConcept> handleDocumentable(final Documentable documentable, final Ontology ontology, final String sourceFile, final int lineNumber) {
 
-		final List<Concept> parents = new LinkedList<>();
-		ConceptType format          = ConceptType.Unknown;
+		final List<AnnotatedConcept> parents = new LinkedList<>();
+		ConceptType format                   = null;
 
-		if (formatSpecification != null) {
-			format = formatSpecification.resolve(ontology, sourceFile, lineNumber);
+		if (identifierToken != null && identifierToken.getFormat() != null) {
+			format = identifierToken.getFormat().resolve(ontology, sourceFile, lineNumber);
 		}
 
 		if (!documentable.isHidden()) {
@@ -89,11 +85,16 @@ public class CodeSourceToken extends NamedConceptToken {
 					final Concept parent = ontology.getOrCreateConcept(sourceFile, lineNumber, parentConcept.type, parentConcept.name, true);
 					if (parent != null) {
 
-						parent.createSymmetricLink(Verb.Has, mainConcept);
-						parent.setFormat(format);
+						parent.createSymmetricLink(Verb.Has, new AnnotatedConcept(mainConcept));
 
-						// link to parents
-						parents.add(parent);
+						// link to parents (and put annotation there as well!)
+						final AnnotatedConcept annotatedConcept = new AnnotatedConcept(parent);
+						if (format != null) {
+
+							annotatedConcept.getAnnotations().put("format", format);
+						}
+
+						parents.add(annotatedConcept);
 					}
 				}
 
@@ -105,13 +106,13 @@ public class CodeSourceToken extends NamedConceptToken {
 						final Verb ltr = Verb.leftToRight(link.verb);
 						if (ltr != null) {
 
-							mainConcept.createSymmetricLink(ltr, childConcept);
+							mainConcept.createSymmetricLink(ltr, new AnnotatedConcept(childConcept));
 						}
 
 						final Verb rtl = Verb.rightToLeft(link.verb);
 						if (rtl != null) {
 
-							childConcept.createSymmetricLink(rtl, mainConcept);
+							childConcept.createSymmetricLink(rtl, new AnnotatedConcept(mainConcept));
 						}
 					}
 				}
@@ -121,7 +122,7 @@ public class CodeSourceToken extends NamedConceptToken {
 					final Concept synonymConcept = ontology.getOrCreateConcept(sourceFile, lineNumber, ConceptType.Synonym, synonym, false);
 					if (synonymConcept != null) {
 
-						mainConcept.createSymmetricLink(Verb.Has, synonymConcept);
+						mainConcept.createSymmetricLink(Verb.Has, new AnnotatedConcept(synonymConcept));
 					}
 				}
 			}

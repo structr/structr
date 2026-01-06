@@ -54,4 +54,8 @@ public class ConceptToken extends Token<ConceptType> {
 	public ConceptType getType() {
 		return type;
 	}
+
+	public IdentifierToken asIdentifierToken() {
+		return new IdentifierToken(originalToken);
+	}
 }

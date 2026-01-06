@@ -18,6 +18,7 @@
  */
 package org.structr.docs.ontology.parser.token;
 
+import org.structr.docs.ontology.AnnotatedConcept;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.Ontology;
@@ -25,7 +26,7 @@ import org.structr.docs.ontology.Ontology;
 import java.util.LinkedList;
 import java.util.List;
 
-public class IsAToken extends Token<List<Concept>> {
+public class IsAToken extends Token<List<AnnotatedConcept>> {
 
 	private final NamedConceptToken namedConceptToken;
 	private final ConceptToken conceptToken;
@@ -44,20 +45,21 @@ public class IsAToken extends Token<List<Concept>> {
 	}
 
 	@Override
-	public List<Concept> resolve(final Ontology ontology, final String sourceFile, final int line) {
+	public List<AnnotatedConcept> resolve(final Ontology ontology, final String sourceFile, final int line) {
 
 		final ConceptType type    = conceptToken.resolve(ontology, sourceFile, line);
-		final List<Concept> input  = namedConceptToken.resolve(ontology,  sourceFile, line);
-		final List<Concept> output = new LinkedList<>();
+		final List<AnnotatedConcept> input  = namedConceptToken.resolve(ontology,  sourceFile, line);
+		final List<AnnotatedConcept> output = new LinkedList<>();
 
-		for (final Concept concept : input) {
+		for (final AnnotatedConcept annotatedConcept : input) {
 
+			final Concept concept  = annotatedConcept.getConcept();
 			final Concept toRefine = ontology.getOrCreateConcept(sourceFile, line, type, concept.getName(), true);
 			if (toRefine != null) {
 
 				toRefine.setType(type);
 
-				output.add(toRefine);
+				output.add(new AnnotatedConcept(toRefine));
 			}
 		}
 

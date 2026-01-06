@@ -21,7 +21,7 @@ package org.structr.docs.formatter.text;
 import org.eclipse.jetty.util.resource.Resource;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
-import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.AnnotatedConcept;
 import org.structr.docs.ontology.Details;
 
 import java.util.List;
@@ -39,7 +39,7 @@ public class PlaintextMarkdownFileFormatter extends Formatter {
 	}
 
 	@Override
-	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, String link, final int level) {
+	public void format(final List<String> lines, final AnnotatedConcept concept, final OutputSettings settings, String link, final int level) {
 
 		if (settings.getDetails().contains(Details.name)) {
 

@@ -18,6 +18,7 @@
  */
 package org.structr.docs.ontology.parser.token;
 
+import org.structr.docs.ontology.AnnotatedConcept;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.Ontology;
@@ -28,13 +29,11 @@ import java.util.List;
 /**
  * An identifier that is augmented with a type so we know what it is.
  */
-public class NamedConceptToken extends Token<List<Concept>> {
+public class NamedConceptToken extends Token<List<AnnotatedConcept>> {
 
 	protected final List<NamedConceptToken> additionalNamedConcepts = new LinkedList<>();
 	protected final ConceptToken conceptToken;
 	protected final IdentifierToken identifierToken;
-
-	protected ConceptToken formatSpecification = null;
 
 	public NamedConceptToken(final ConceptToken conceptToken, final IdentifierToken identifierToken) {
 
@@ -62,26 +61,30 @@ public class NamedConceptToken extends Token<List<Concept>> {
 	}
 
 	@Override
-	public List<Concept> resolve(final Ontology ontology, final String sourceFile, final int line) {
+	public List<AnnotatedConcept> resolve(final Ontology ontology, final String sourceFile, final int line) {
 
-		final ConceptType type         = conceptToken.resolve(ontology, sourceFile, line);
-		final List<String> identifiers = identifierToken.resolve(ontology, sourceFile, line);
-		final List<Concept> concepts   = new LinkedList<>();
+		final ConceptType type                  = conceptToken.resolve(ontology, sourceFile, line);
+		final List<IdentifierToken> identifiers = identifierToken.resolve(ontology, sourceFile, line);
+		final List<AnnotatedConcept> concepts   = new LinkedList<>();
 
-		for (final String identifier : identifiers) {
+		for (final IdentifierToken identifier : identifiers) {
 
-			final Concept concept = ontology.getOrCreateConcept(sourceFile, line, type, identifier, true);
+			ConceptType format = null;
+
+			if (identifier.getFormat() != null) {
+				format = identifier.getFormat().resolve(ontology, sourceFile, line);
+			}
+
+			final Concept concept = ontology.getOrCreateConcept(sourceFile, line, type, identifier.getName(), true);
 			if (concept != null) {
-
-				if (formatSpecification != null) {
-					concept.setFormat(formatSpecification.resolve(ontology, sourceFile, line));
-				}
 
 				// additional named concepts go into metadata of a concept
 				for (final NamedConceptToken additionalNamedConcept : additionalNamedConcepts) {
 
-					final List<Concept> additionalConcepts = additionalNamedConcept.resolve(ontology, sourceFile, line);
-					for (final Concept additionalConcept : additionalConcepts) {
+					final List<AnnotatedConcept> additionalConcepts = additionalNamedConcept.resolve(ontology, sourceFile, line);
+					for (final AnnotatedConcept additionalAnnotatedConcept : additionalConcepts) {
+
+						final Concept additionalConcept = additionalAnnotatedConcept.getConcept();
 
 						//concepts.add(additionalConcept);
 
@@ -89,14 +92,17 @@ public class NamedConceptToken extends Token<List<Concept>> {
 					}
 				}
 
-				concepts.add(concept);
+				final AnnotatedConcept annotatedConcept = new AnnotatedConcept(concept);
+
+				if (format != null) {
+
+					annotatedConcept.getAnnotations().put("format", format);
+				}
+
+				concepts.add(annotatedConcept);
 			}
 		}
 
 		return concepts;
-	}
-
-	public void setFormat(final ConceptToken format) {
-		this.formatSpecification = format;
 	}
 }

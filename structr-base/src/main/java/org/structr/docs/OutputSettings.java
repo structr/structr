@@ -18,10 +18,7 @@
  */
 package org.structr.docs;
 
-import org.structr.docs.ontology.Concept;
-import org.structr.docs.ontology.ConceptType;
-import org.structr.docs.ontology.Details;
-import org.structr.docs.ontology.Ontology;
+import org.structr.docs.ontology.*;
 
 import java.util.*;
 
@@ -50,10 +47,10 @@ public class OutputSettings {
 	 * configured in this settings object, or null if no formatter was
 	 * registered for the given combination.
 	 *
-	 * @param concept
+	 * @param annotatedConcept
 	 * @return
 	 */
-	public Formatter getFormatterForConcept(final Concept concept, final String mode) {
+	public Formatter getFormatterForConcept(final AnnotatedConcept annotatedConcept, final String mode) {
 
 		final Map<String, Map<ConceptType, Formatter>> formatters = formatterMap.get(outputFormat);
 		if (formatters != null) {
@@ -62,9 +59,9 @@ public class OutputSettings {
 			if (modeMap != null) {
 
 				// format wins
-				if (concept.getFormat() != null) {
+				if (annotatedConcept.getFormat() != null) {
 
-					final Formatter formatter = modeMap.get(concept.getFormat());
+					final Formatter formatter = modeMap.get(annotatedConcept.getFormat());
 					if (formatter != null) {
 
 						return formatter;
@@ -72,7 +69,7 @@ public class OutputSettings {
 				}
 
 				// then type
-				final Formatter formatter = modeMap.get(concept.getType());
+				final Formatter formatter = modeMap.get(annotatedConcept.getType());
 				if (formatter != null) {
 
 					return formatter;

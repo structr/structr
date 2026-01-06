@@ -41,7 +41,7 @@ Area "Widgets" has javascript-file "structr/js/widgets.js"
 "Lifecycle methods" has code-source "lifecycle-method" as table
 "Services" has code-source "service" as table
 "Built-in properties" has code-source "property" as table
-"Built-in types" has code-source "system-type" as table
+"Built-in types" has code-source "system-type"
 
 "Java internals" has topic "Classes"
 

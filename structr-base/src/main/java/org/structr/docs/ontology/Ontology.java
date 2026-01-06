@@ -38,7 +38,6 @@ import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 /**
@@ -46,32 +45,19 @@ import java.util.stream.Stream;
  */
 public final class Ontology {
 
-	private final List<Concept> concepts = new LinkedList<>();
-	private final Set<String> blacklist  = new LinkedHashSet<>();
-	private Concept currentSubject = null;
+	private final Set<ConceptType> SearchBlacklist = EnumSet.of(ConceptType.Text, ConceptType.Heading, ConceptType.MarkdownHeading);
+	private final List<Concept> concepts           = new LinkedList<>();
+	private final Set<String> blacklist            = new LinkedHashSet<>();
+	private Concept currentSubject                 = null;
 
 	public Map<String, String> getKnownVerbs() {
 
 		final Map<String, String> verbs = new LinkedHashMap<>();
 
-		// verbs must be defined in lower case!
-		verbs.put("has",        "ispartof");
-		verbs.put("uses",       "isusedby");
-		verbs.put("provides",   "isprovidedby");
-		verbs.put("opens",      "isopenedby");
-		verbs.put("closes",     "isclosedby");
-		verbs.put("contains",   "iscontainedby");
-		verbs.put("creates",    "iscreatedby");
-		verbs.put("removes",    "isremovedby");
-		verbs.put("deletes",    "isdeletedby");
-		verbs.put("configures", "isconfiguredby");
-		verbs.put("displays",   "isdisplayedby");
-		verbs.put("writesto",   "iswrittenfrom");
-		verbs.put("executes",   "isexecutedby");
+		for (final Verb verb : Verb.values()) {
 
-		// symmetrical links
-		verbs.put("matches",    "matches");
-		verbs.put("is",         "is");
+			verbs.put(verb.getLeftToRight(), verb.getRightToLeft());
+		}
 
 		return verbs;
 	}
@@ -151,7 +137,7 @@ public final class Ontology {
 
 		for (final Concept concept : concepts) {
 
-			Formatter.walkOntology(lines, concept, outputSettings, null, 0, new LinkedHashSet<>());
+			Formatter.walkOntology(lines, new AnnotatedConcept(concept), outputSettings, null, 0, new LinkedHashSet<>());
 		}
 
 		return lines;
@@ -254,10 +240,11 @@ public final class Ontology {
 		rules.add(new ResolveConceptPairsRule(this));
 		rules.add(new IdentifyVerbsRule(this));
 		rules.add(new IdentifyNamesRule(this));
+		rules.add(new ResolveAsRule(this));
 		rules.add(new IdentifyListsRule(this));
-		rules.add(new CombineConceptAndIdentifierRule(this));
+		rules.add(new IdentifyNamedConceptsRule(this));
 		rules.add(new FindUnknownIdentifiersRule(this));
-		rules.add(new CombineNamedConceptsAndPrepositionsRule(this));
+		rules.add(new ResolveWithRule(this));
 		rules.add(new IdentifyFactsRule(this));
 		rules.add(new ResolveIsARelationsRule(this));
 
@@ -317,7 +304,7 @@ public final class Ontology {
 		for  (final Concept concept : concepts) {
 
 			// do not show "text" results as they are extracted from Javascript files
-			if (ConceptType.Text.equals(concept.type)) {
+			if (SearchBlacklist.contains(concept.type)) {
 				continue;
 			}
 
@@ -482,7 +469,7 @@ public final class Ontology {
 						final Concept childConcept = getOrCreateConcept(sourceFile, 0, ConceptType.Topic, child, false);
 						if (childConcept != null) {
 
-							concept.createSymmetricLink(Verb.Has, childConcept);
+							concept.createSymmetricLink(Verb.Has, new AnnotatedConcept(childConcept));
 						}
 					}
 				}
@@ -497,7 +484,7 @@ public final class Ontology {
 						final Concept synonymConcept = getOrCreateConcept(sourceFile, 0, ConceptType.Synonym, synonym, false);
 						if (synonymConcept != null) {
 
-							concept.createSymmetricLink(Verb.Has, synonymConcept);
+							concept.createSymmetricLink(Verb.Has, new AnnotatedConcept(synonymConcept));
 						}
 					}
 				}
@@ -508,12 +495,12 @@ public final class Ontology {
 				final Concept p = getOrCreateConcept(sourceFile, 0, ConceptType.Unknown, parent, true);
 				if (p != null) {
 
-					p.createSymmetricLink(Verb.Has, concept);
+					p.createSymmetricLink(Verb.Has, new AnnotatedConcept(concept));
 				}
 
 			} else if (parentConcept != null) {
 
-				parentConcept.createSymmetricLink(Verb.Has, concept);
+				parentConcept.createSymmetricLink(Verb.Has, new AnnotatedConcept(concept));
 			}
 
 			if (clazz != null) {
@@ -540,7 +527,7 @@ public final class Ontology {
 										final Concept propertyConcept = getOrCreateConcept(sourceFile, 0, ConceptType.Property, property.getName(), false);
 										if (propertyConcept != null) {
 
-											concept.createSymmetricLink(Verb.Has, propertyConcept);
+											concept.createSymmetricLink(Verb.Has, new AnnotatedConcept(propertyConcept));
 										}
 									}
 								}
@@ -559,9 +546,13 @@ public final class Ontology {
 				// import enum constants as well
 				if (clazz.isEnum()) {
 
+					boolean hasEntries = false;
+
 					for (final Object enumConstant : clazz.getEnumConstants()) {
 
 						if (enumConstant instanceof Documentable documentable) {
+
+							hasEntries = true;
 
 							final String childName = documentable.getDisplayName();
 							if (childName != null) {
@@ -575,7 +566,7 @@ public final class Ontology {
 										childConcept.setShortDescription(documentable.getShortDescription());
 									}
 
-									concept.createSymmetricLink(Verb.Has, childConcept);
+									concept.createSymmetricLink(Verb.Has, new AnnotatedConcept(childConcept));
 								}
 							}
 						}

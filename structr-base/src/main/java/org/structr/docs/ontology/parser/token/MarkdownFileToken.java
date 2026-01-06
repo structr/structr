@@ -27,10 +27,7 @@ import com.vladsch.flexmark.util.ast.Node;
 import com.vladsch.flexmark.util.data.MutableDataSet;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.docs.formatter.markdown.MarkdownMarkdownFileFormatter;
-import org.structr.docs.ontology.Concept;
-import org.structr.docs.ontology.ConceptType;
-import org.structr.docs.ontology.Ontology;
-import org.structr.docs.ontology.Verb;
+import org.structr.docs.ontology.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -60,13 +57,14 @@ public class MarkdownFileToken extends NamedConceptToken {
 	}
 
 	@Override
-	public List<Concept> resolve(final Ontology ontology, final String sourceFile, final int line) {
+	public List<AnnotatedConcept> resolve(final Ontology ontology, final String sourceFile, final int line) {
 
-		final List<String> identifiers = identifierToken.resolve(ontology, sourceFile, line);
-		final List<Concept> concepts   = new LinkedList<>();
+		final List<IdentifierToken> identifiers = identifierToken.resolve(ontology, sourceFile, line);
+		final List<AnnotatedConcept> concepts            = new LinkedList<>();
 
-		for (final String path : identifiers) {
+		for (final IdentifierToken pathToken : identifiers) {
 
+			final String path                  = pathToken.getName();
 			final Map<String, String> metadata = getMetadata(ontology, sourceFile, line);
 			final String fileName              = StringUtils.substringAfterLast(path, "/");
 			final String cleanedName           = coalesce(metadata.get("heading"), MarkdownMarkdownFileFormatter.getNameFromFileName(fileName));
@@ -77,7 +75,7 @@ public class MarkdownFileToken extends NamedConceptToken {
 
 				markdownFile.getMetadata().put("path", path);
 
-				concepts.add(markdownFile);
+				concepts.add(new AnnotatedConcept(markdownFile));
 
 				try {
 
@@ -102,7 +100,7 @@ public class MarkdownFileToken extends NamedConceptToken {
 								final Concept headingConcept = ontology.getOrCreateConcept(sourceFile, line, ConceptType.MarkdownHeading, text, false);
 								if (headingConcept != null) {
 
-									markdownFile.createSymmetricLink(Verb.Has, headingConcept);
+									markdownFile.createSymmetricLink(Verb.Has, new AnnotatedConcept(headingConcept));
 								}
 							}
 						}
@@ -128,8 +126,10 @@ public class MarkdownFileToken extends NamedConceptToken {
 		// additional named concepts go into metadata of a concept (for now..)
 		for (final NamedConceptToken additionalNamedConcept : additionalNamedConcepts) {
 
-			final List<Concept> additionalConcepts = additionalNamedConcept.resolve(ontology, sourceFile, line);
-			for (final Concept additionalConcept : additionalConcepts) {
+			final List<AnnotatedConcept> additionalConcepts = additionalNamedConcept.resolve(ontology, sourceFile, line);
+			for (final AnnotatedConcept additionalAnnotatedConcept : additionalConcepts) {
+
+				final Concept additionalConcept = additionalAnnotatedConcept.getConcept();
 
 				metadata.put(additionalConcept.getType().getIdentifier(), additionalConcept.getName());
 			}

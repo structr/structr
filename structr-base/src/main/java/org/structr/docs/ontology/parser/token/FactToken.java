@@ -19,10 +19,7 @@
 package org.structr.docs.ontology.parser.token;
 
 import org.graalvm.collections.Pair;
-import org.structr.docs.ontology.Concept;
-import org.structr.docs.ontology.ConceptType;
-import org.structr.docs.ontology.Ontology;
-import org.structr.docs.ontology.Verb;
+import org.structr.docs.ontology.*;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -58,8 +55,8 @@ public class FactToken extends Token {
 
 	public Concept resolve(final Ontology ontology, final String sourceFile, final int line) {
 
-		final List<Concept> subjects       = new LinkedList<>();
-		final List<Concept> objects        = new LinkedList<>();
+		final List<AnnotatedConcept> subjects       = new LinkedList<>();
+		final List<AnnotatedConcept> objects        = new LinkedList<>();
 
 		if (predicateToken.isInverted()) {
 
@@ -75,7 +72,9 @@ public class FactToken extends Token {
 		final Verb verb = predicateToken.resolve(ontology, sourceFile, line);
 
 		// this resolution refines the knowledge about the three concepts
-		for (final Concept subject : subjects) {
+		for (final AnnotatedConcept annotatedSubject : subjects) {
+
+			final Concept subject = annotatedSubject.getConcept();
 
 			ontology.setCurrentSubject(subject);
 
@@ -84,7 +83,9 @@ public class FactToken extends Token {
 				continue;
 			}
 
-			for (final Concept object : objects) {
+			for (final AnnotatedConcept annotatedObject : objects) {
+
+				final Concept object = annotatedObject.getConcept();
 
 				if (object == null) {
 					System.out.println(sourceFile + ":" + line + ": object is null!");
@@ -98,7 +99,8 @@ public class FactToken extends Token {
 
 				} else {
 
-					subject.createSymmetricLink(verb, object);
+					// this line creates the parent-child relationship
+					subject.createSymmetricLink(verb, annotatedObject);
 				}
 			}
 		}

@@ -22,6 +22,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
+import org.structr.docs.ontology.AnnotatedConcept;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.ConceptType;
 
@@ -38,7 +39,9 @@ public class TableOfContentsConceptFormatter extends Formatter {
 	);
 
 	@Override
-	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, final String link, final int level) {
+	public void format(final List<String> lines, final AnnotatedConcept annotatedConcept, final OutputSettings settings, final String link, final int level) {
+
+		final Concept concept = annotatedConcept.getConcept();
 
 		// only whitelisted types here..
 		if (!whitelistedTypes.contains(concept.getType())) {
@@ -53,15 +56,16 @@ public class TableOfContentsConceptFormatter extends Formatter {
 		data.put("type",  concept.getType());
 		data.put("links", links);
 
-		for (final Map.Entry<String, List<Concept>> child : concept.getChildren().entrySet()) {
+		for (final Map.Entry<String, List<AnnotatedConcept>> child : concept.getChildren().entrySet()) {
 
 			final List<Map<String, Object>> childList = new LinkedList<>();
 			final String key                          = child.getKey();
 
 			if ("has".equals(key)) {
 
-				for (final Concept childConcept : child.getValue()) {
+				for (final AnnotatedConcept annotatedChildConcept : child.getValue()) {
 
+					final Concept childConcept = annotatedChildConcept.getConcept();
 					final Map<String, Object> childMap = new LinkedHashMap<>();
 
 					childMap.put("name", childConcept.getName());

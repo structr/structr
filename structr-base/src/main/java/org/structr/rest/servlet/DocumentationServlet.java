@@ -43,10 +43,7 @@ import org.structr.docs.formatter.json.TableOfContentsConceptFormatter;
 import org.structr.docs.formatter.markdown.*;
 import org.structr.docs.formatter.text.PlaintextMarkdownFileFormatter;
 import org.structr.docs.formatter.text.PlaintextTopicFormatter;
-import org.structr.docs.ontology.Concept;
-import org.structr.docs.ontology.ConceptType;
-import org.structr.docs.ontology.Details;
-import org.structr.docs.ontology.Ontology;
+import org.structr.docs.ontology.*;
 import org.structr.rest.service.HttpService;
 
 import java.io.*;
@@ -95,7 +92,7 @@ public class DocumentationServlet extends HttpServlet {
 					final Concept concept = entry.getKey();
 					final Double score    = entry.getValue();
 
-					searchResultsFormatter.format(lines, concept, score);
+					searchResultsFormatter.format(lines, new AnnotatedConcept(concept), score);
 				}
 
 				renderJson(response, lines);
@@ -149,7 +146,7 @@ public class DocumentationServlet extends HttpServlet {
 			final HttpService service                = Services.getInstance().getServiceImplementation(HttpService.class);
 			final ResourceHandler resourceHandler    = service.getExportedResourceHandler();
 			final Resource baseResource              = resourceHandler.getBaseResource();
-			final Resource facts                     = baseResource.resolve("facts");
+			final Resource facts                     = baseResource.resolve("docs");
 			final Path filePath                      = facts.getPath().resolve(fileName);
 
 			if (Files.exists(filePath)) {

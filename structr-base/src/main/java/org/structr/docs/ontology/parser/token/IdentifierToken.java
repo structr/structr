@@ -24,15 +24,17 @@ import org.structr.docs.ontology.Ontology;
 import java.util.LinkedList;
 import java.util.List;
 
-public class IdentifierToken extends Token<List<String>> {
+public class IdentifierToken extends Token<List<IdentifierToken>> {
 
-	private final List<String> identifiers = new LinkedList<>();
+	private final List<IdentifierToken> identifiers = new LinkedList<>();
+
+	protected ConceptToken formatSpecification = null;
 
 	public IdentifierToken(final String name) {
 
 		super(name);
 
-		identifiers.add(name);
+		identifiers.add(this);
 	}
 
 	@Override
@@ -40,15 +42,23 @@ public class IdentifierToken extends Token<List<String>> {
 		return false;
 	}
 
-	public void addIdentifier(final String identifier) {
+	public void addIdentifier(final IdentifierToken identifier) {
 		identifiers.add(identifier);
 	}
 
-	public List<String> getIdentifiers() {
+	public List<IdentifierToken> getIdentifiers() {
 		return identifiers;
 	}
 
-	public List<String> resolve(final Ontology ontology, final String sourceFile, final int line) {
+	public List<IdentifierToken> resolve(final Ontology ontology, final String sourceFile, final int line) {
 		return identifiers;
+	}
+
+	public void setFormat(final ConceptToken format) {
+		this.formatSpecification = format;
+	}
+
+	public ConceptToken getFormat() {
+		return formatSpecification;
 	}
 }

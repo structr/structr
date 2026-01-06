@@ -45,7 +45,7 @@ public interface Relation<S extends Source, T extends Target> extends Relationsh
 	 */
 	@Documentation(type=ConceptType.Constant, shortDescription = "No cascading delete", parent="Cascading Delete")
 	@Documentation(type=ConceptType.Constant, shortDescription = "No automatic creation of related nodes", parent="Automatic Creation of Related Nodes")
-	public static final int NONE              = 0;
+	int NONE              = 0;
 
 	/**
 	 * Target node will be deleted if source node
@@ -53,7 +53,7 @@ public interface Relation<S extends Source, T extends Target> extends Relationsh
 	 */
 	@Documentation(type=ConceptType.Constant, shortDescription="If source is deleted, target will be deleted automatically.", parent="Cascading Delete")
 	@Documentation(type=ConceptType.Constant, shortDescription="Target node will be created automatically if the input value is unique.", parent="Automatic Creation of Related Nodes")
-	public static final int SOURCE_TO_TARGET  = 1;
+	int SOURCE_TO_TARGET  = 1;
 
 	/**
 	 * Source node will be deleted if target node
@@ -61,7 +61,7 @@ public interface Relation<S extends Source, T extends Target> extends Relationsh
 	 */
 	@Documentation(type=ConceptType.Constant, shortDescription="If target is deleted, source will be deleted automatically.", parent="Cascading Delete")
 	@Documentation(type=ConceptType.Constant, shortDescription="Source node will be created automatically if the input value is unique.", parent="Automatic Creation of Related Nodes")
-	public static final int TARGET_TO_SOURCE  = 2;
+	int TARGET_TO_SOURCE  = 2;
 
 	/**
 	 * Both nodes will be deleted whenever one of
@@ -70,16 +70,16 @@ public interface Relation<S extends Source, T extends Target> extends Relationsh
 	 */
 	@Documentation(type=ConceptType.Constant, shortDescription="If any of the two nodes is deleted, the other will be deleted automatically.", parent="Cascading Delete")
 	@Documentation(type=ConceptType.Constant, shortDescription="Any of the two nodes will be created automatically if the input value is unique.", parent="Automatic Creation of Related Nodes")
-	public static final int ALWAYS            = 3;
+	int ALWAYS            = 3;
 
 	/**
 	 * Source and/or target nodes will be deleted
 	 * if they become invalid.
 	 */
 	@Documentation(type=ConceptType.Constant, shortDescription="If any of the two nodes is deleted, the other will be deleted automatically if the missing node would cause a validation error.", parent="Cascading Delete")
-	public static final int CONSTRAINT_BASED  = 4;
+	int CONSTRAINT_BASED  = 4;
 
-	public static final String[] CASCADING_DESCRIPTIONS = {
+	String[] CASCADING_DESCRIPTIONS = {
 		"NONE",
 		"SOURCE_TO_TARGET",
 		"TARGET_TO_SOURCE",

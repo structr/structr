@@ -20,10 +20,7 @@ package org.structr.docs.ontology.parser.token;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.core.Services;
-import org.structr.docs.ontology.Concept;
-import org.structr.docs.ontology.ConceptType;
-import org.structr.docs.ontology.Ontology;
-import org.structr.docs.ontology.Verb;
+import org.structr.docs.ontology.*;
 import org.structr.module.StructrModule;
 
 import java.io.IOException;
@@ -79,14 +76,15 @@ public class JavascriptFileToken extends NamedConceptToken {
 	}
 
 	@Override
-	public List<Concept> resolve(final Ontology ontology, final String sourceFile, final int lineNumber) {
+	public List<AnnotatedConcept> resolve(final Ontology ontology, final String sourceFile, final int lineNumber) {
 
-		final List<String> identifiers = identifierToken.resolve(ontology, sourceFile, lineNumber);
-		final List<Concept> concepts   = new LinkedList<>();
+		final List<IdentifierToken> identifiers = identifierToken.resolve(ontology, sourceFile, lineNumber);
+		final List<AnnotatedConcept> concepts            = new LinkedList<>();
 
-		for (final String fileName : identifiers) {
+		for (final IdentifierToken fileNameToken : identifiers) {
 
-			final Path path = Path.of(fileName);
+			final String fileName = fileNameToken.getName();
+			final Path path       = Path.of(fileName);
 
 			// resolve markdown folder contents and add them as topics
 			if (Files.exists(path)) {
@@ -130,7 +128,7 @@ public class JavascriptFileToken extends NamedConceptToken {
 							final Concept concept = handleConcept(ConceptType.Text, text, ontology, fileName, sourceLineNumber);
 							if (concept != null) {
 
-								concepts.add(concept);
+								concepts.add(new AnnotatedConcept(concept));
 							}
 						}
 
@@ -209,13 +207,14 @@ public class JavascriptFileToken extends NamedConceptToken {
 
 						for (final NamedConceptToken additionalNamedConcept : getAdditionalNamedConcepts()) {
 
-							for (final Concept additionalConcept : additionalNamedConcept.resolve(ontology, fileName, sourceLineNumber)) {
+							for (final AnnotatedConcept additionalConcept : additionalNamedConcept.resolve(ontology, fileName, sourceLineNumber)) {
 
 								// additional concept can resolve to null because of blacklisting
 								if (additionalConcept != null) {
 
 									if (!concept.equals(additionalConcept)) {
 
+										// FIXME: annotate link here!
 										concept.createSymmetricLink(Verb.Has, additionalConcept);
 									}
 								}

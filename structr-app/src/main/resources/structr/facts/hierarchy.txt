@@ -35,9 +35,6 @@ Structr has topics "Building Applications", "Admin User Interface", "REST Interf
         "Pages" has topics "Create page", "Import page"
 
         Topic "Elements" has topics "Rendering options" as table
-            "Rendering options" has constant "Eager" with description "moep"
-            It has constant "When page has finished loading" with description "moep2"
-            It has constant "When element becomes visible" with description "juhu"
 
         "Shared Components" has topics "Shared Component Configuration"
 
@@ -59,11 +56,10 @@ Structr has topics "Building Applications", "Admin User Interface", "REST Interf
         "Show / Hide Conditions" has texts "Show Conditions", "Hide Conditions"
 
     "Business Logic" has markdown-file "snippets/Business Logic.md" with heading "Overview"
-    "Business Logic" has topics "Dynamic types", "Relationships", "Built-in types", "Built-in properties", "Scripting contexts", "Advanced find"
-    "Business Logic" has markdown-file "snippets/Test.md" with heading "Test"
+    "Business Logic" has topics "Dynamic types", "Relationships", "Built-in types" as table, "Built-in properties", "Scripting contexts", "Advanced find"
         "Built-in types" has description "description from hierarchy.txt, but only a short description possible here.."
         "Dynamic types" has topics "Dynamic type options"
-        "Relationships" has topics "Cascading Delete", "Automatic Creation of Related Nodes" as table
+        "Relationships" has topics "Cascading Delete" as table, "Automatic Creation of Related Nodes" as table
 
     "User Input & Forms" has topics "Event Action Mapping"
         Topic "Notifications" has texts "Success notifications", "Failure notifications"
@@ -139,8 +135,8 @@ Structr has topics "Building Applications", "Admin User Interface", "REST Interf
     "Logging" has topics "Server Log", "Event Log", "Log File"
         Logging has topic "Logging Settings"
 
-    "Auditing" has "Changelog"
-        Changelog has topic "Changelog Settings"
+    "Auditing" has topic "Changelogs"
+        Changelogs has topics "Global changelog", "User changelog", "Changelog Settings"
 
 
 

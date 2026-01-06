@@ -22,6 +22,7 @@ import org.structr.docs.Documentable;
 import org.structr.docs.DocumentableType;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
+import org.structr.docs.ontology.AnnotatedConcept;
 import org.structr.docs.ontology.Concept;
 
 import java.util.*;
@@ -29,9 +30,10 @@ import java.util.*;
 public class MarkdownCodeSourceFormatter extends Formatter {
 
 	@Override
-	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, String link, final int level) {
+	public void format(final List<String> lines, final AnnotatedConcept annotatedConcept, final OutputSettings settings, String link, final int level) {
 
 		final List<Documentable> documentables  = new LinkedList<>();
+		final Concept concept                   = annotatedConcept.getConcept();
 		final DocumentableType documentableType = DocumentableType.forOntologyType(concept.getType());
 
 		if (documentableType != null) {

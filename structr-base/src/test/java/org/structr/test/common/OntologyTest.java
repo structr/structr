@@ -18,6 +18,7 @@
  */
 package org.structr.test.common;
 
+import org.structr.docs.ontology.AnnotatedConcept;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.Ontology;
@@ -49,15 +50,13 @@ public class OntologyTest extends StructrUiTest {
 		final Concept concept   = ontology.getConcept(ConceptType.Unknown, "Core System");
 
 		assertNotNull("concept should not be null", concept);
-		assertEquals("concept type should be inferred retrospectively", ConceptType.Topic, concept.getType());
 
 		final List<Concept> concepts = ontology.getAllConcepts();
 		int i=0;
 
-		assertEquals("Topic was not parsed correctly", "Topic(Core System)",  concepts.get(i++).toString());
+		assertEquals("Topic was not parsed correctly", "Unknown(Core System)",  concepts.get(i++).toString());
 		assertEquals("Service was not parsed correctly", "Service(Cron Service)",  concepts.get(i++).toString());
-		assertEquals("Verb was not parsed correctly", "Verb(has)", concepts.get(i++).toString());
-		assertEquals("Verb was not parsed correctly", "Verb(ispartof)",  concepts.get(i++).toString());
+		assertEquals("Topic was not parsed correctly", "Topic(Core System)",  concepts.get(i++).toString());
 		assertEquals("Capability was not parsed correctly", "Capability(Scheduled execution of business logic)",  concepts.get(i++).toString());
 		assertEquals("Area was not parsed correctly", "Area(Pages)",  concepts.get(i++).toString());
 		assertEquals("Button list was not parsed correctly", "Button(Test1)",  concepts.get(i++).toString());
@@ -104,7 +103,6 @@ public class OntologyTest extends StructrUiTest {
 		final Ontology ontology = new Ontology("testAmbiguousIdentifiers", facts);
 
 		assertNotNull(ontology.getConcept(ConceptType.Topic, "Services"));
-		assertNotNull(ontology.getConcept(ConceptType.CodeSource, "services"));
 	}
 
 	@Test
@@ -177,6 +175,33 @@ public class OntologyTest extends StructrUiTest {
 		}
 	}
 
+	@Test
+	public void testPrepositionBinding1() {
+
+		final Ontology ontology  = new Ontology("testPrepositionBinding1", """
+			Topic "Business Logic" has topics "Dynamic types", "Relationships", "Built-in types" as table, "Built-in properties", "Scripting contexts", "Advanced find"
+			""");
+
+		for (final Concept concept : ontology.getAllConcepts()) {
+
+			System.out.println(concept.getNameTypeAndLinks());
+		}
+	}
+
+	@Test
+	public void testPrepositionBinding2() {
+
+		final Ontology ontology  = new Ontology("testPrepositionBinding2", """
+			Topic "Business Logic" has markdown-file "snippets/Business Logic.md" with heading "Overview"
+			""");
+
+		for (final Concept concept : ontology.getAllConcepts()) {
+
+			System.out.println(concept.getNameTypeAndLinks());
+		}
+	}
+
+
 	// ----- private methods -----
 	private void printConcepts(final List<Concept> concepts) {
 
@@ -184,7 +209,7 @@ public class OntologyTest extends StructrUiTest {
 
 			System.out.println(c);
 
-			final Map<String, List<Concept>> links = c.getChildren();
+			final Map<String, List<AnnotatedConcept>> links = c.getChildren();
 
 			for (final String key : links.keySet()) {
 

@@ -21,6 +21,7 @@ package org.structr.docs.formatter.markdown;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
+import org.structr.docs.ontology.AnnotatedConcept;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.Ontology;
 
@@ -29,7 +30,7 @@ import java.util.*;
 public class MarkdownGlossaryFormatter extends Formatter {
 
 	@Override
-	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, String link, final int level) {
+	public void format(final List<String> lines, final AnnotatedConcept concept, final OutputSettings settings, String link, final int level) {
 
 		final Ontology ontology      = settings.getOntology();
 		final List<Concept> concepts = new LinkedList<>(ontology.getAllConcepts());

@@ -18,6 +18,7 @@
  */
 package org.structr.docs.ontology.parser.token;
 
+import org.structr.docs.ontology.AnnotatedConcept;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.Ontology;
 
@@ -42,12 +43,12 @@ public class AnaphoricPronounToken extends NamedConceptToken {
 	}
 
 	@Override
-	public List<Concept> resolve(final Ontology ontology, final String sourceFile, final int line) {
+	public List<AnnotatedConcept> resolve(final Ontology ontology, final String sourceFile, final int line) {
 
 		final Concept currentSubject = ontology.getCurrentSubject();
 		if (currentSubject != null) {
 
-			return List.of(ontology.getCurrentSubject());
+			return List.of(new AnnotatedConcept(ontology.getCurrentSubject()));
 		}
 
 		throw new RuntimeException("Syntax error in " + sourceFile + ":" + line + ": pronoun \"it\" has no subject to refer to.");

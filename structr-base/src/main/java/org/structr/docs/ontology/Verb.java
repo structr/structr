@@ -32,7 +32,9 @@ public enum Verb {
 	Configures("configures", "isconfiguredby"),
 	Displays("displays",     "isdisplayedby"),
 	WritesTo("writesto",     "iswrittenfrom"),
-	Executes("executes",     "isexecutedby");
+	Executes("executes",     "isexecutedby"),
+	Matches("matches",       "matches"),
+	Is("is",                 "is");
 
 	private final String leftToRight;
 	private final String rightToLeft;

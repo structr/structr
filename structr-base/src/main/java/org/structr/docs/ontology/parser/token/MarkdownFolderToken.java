@@ -27,10 +27,7 @@ import com.vladsch.flexmark.util.ast.Node;
 import com.vladsch.flexmark.util.data.MutableDataSet;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.docs.formatter.markdown.MarkdownMarkdownFileFormatter;
-import org.structr.docs.ontology.Concept;
-import org.structr.docs.ontology.ConceptType;
-import org.structr.docs.ontology.Ontology;
-import org.structr.docs.ontology.Verb;
+import org.structr.docs.ontology.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -58,14 +55,15 @@ public class MarkdownFolderToken extends NamedConceptToken {
 	}
 
 	@Override
-	public List<Concept> resolve(final Ontology ontology, final String sourceFile, final int line) {
+	public List<AnnotatedConcept> resolve(final Ontology ontology, final String sourceFile, final int line) {
 
-		final ConceptType type        = conceptToken.resolve(ontology, sourceFile, line);
-		final List<String> identifiers = identifierToken.resolve(ontology, sourceFile, line);
-		final List<Concept> concepts   = new LinkedList<>();
+		final ConceptType type                  = conceptToken.resolve(ontology, sourceFile, line);
+		final List<IdentifierToken> identifiers = identifierToken.resolve(ontology, sourceFile, line);
+		final List<AnnotatedConcept> concepts            = new LinkedList<>();
 
-		for (final String folderName : identifiers) {
+		for (final IdentifierToken folderNameToken : identifiers) {
 
+			final String folderName  = folderNameToken.getName();
 			final String cleanedName = MarkdownMarkdownFileFormatter.getNameFromFileName(folderName);
 			final Concept folder     = ontology.getOrCreateConcept(sourceFile, line, type, cleanedName, false);
 			final Path folderPath    = Path.of("structr/docs/" + folderName);
@@ -73,7 +71,7 @@ public class MarkdownFolderToken extends NamedConceptToken {
 
 			if (folder != null) {
 
-				concepts.add(folder);
+				concepts.add(new AnnotatedConcept(folder));
 
 				// resolve markdown folder contents and add them as topics
 				if (Files.exists(indexFile)) {
@@ -91,7 +89,7 @@ public class MarkdownFolderToken extends NamedConceptToken {
 
 								markdownFile.getMetadata().put("path", filePath);
 
-								folder.createSymmetricLink(Verb.Has, markdownFile);
+								folder.createSymmetricLink(Verb.Has, new AnnotatedConcept(markdownFile));
 
 								// handle children
 								final List<String> lines = Files.readAllLines(folderPath.resolve(file));
@@ -114,7 +112,7 @@ public class MarkdownFolderToken extends NamedConceptToken {
 											final Concept headingConcept = ontology.getOrCreateConcept(sourceFile, line, ConceptType.MarkdownHeading, text, false);
 											if (headingConcept != null) {
 
-												markdownFile.createSymmetricLink(Verb.Has, headingConcept);
+												markdownFile.createSymmetricLink(Verb.Has, new AnnotatedConcept(headingConcept));
 											}
 										}
 									}

@@ -24,15 +24,14 @@ import org.structr.docs.ontology.parser.token.*;
 import java.util.Deque;
 import java.util.LinkedList;
 
-public class CombineNamedConceptsAndPrepositionsRule extends Rule {
+public class ResolveWithRule extends Rule {
 
-	public CombineNamedConceptsAndPrepositionsRule(final Ontology ontology) {
+	public ResolveWithRule(final Ontology ontology) {
 		super(ontology);
 	}
 
 	@Override
 	public void apply(final Deque<Token> tokens) {
-
 
 		final Deque<Token> result = new LinkedList<>();
 
@@ -52,25 +51,6 @@ public class CombineNamedConceptsAndPrepositionsRule extends Rule {
 					if (token3 instanceof NamedConceptToken concept2) {
 
 						concept1.addAdditionalNamedConcept(concept2);
-
-						result.add(token1);
-
-					} else {
-
-						result.add(token1);
-
-						// reset tokens 2 & 3 to be evaluated again
-						tokens.push(token2);
-						tokens.push(token3);
-					}
-
-				} else if (token2 instanceof AsToken preposition && !tokens.isEmpty()) {
-
-					final Token token3 = tokens.pop();
-
-					if (token3 instanceof ConceptToken concept2) {
-
-						concept1.setFormat(concept2);
 
 						result.add(token1);
 

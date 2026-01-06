@@ -27,7 +27,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.function.BiFunction;
 
-public class CombineConceptAndIdentifierRule extends Rule {
+public class IdentifyNamedConceptsRule extends Rule {
 
 	private final Map<ConceptType, BiFunction<ConceptToken, IdentifierToken, Token>> SpecializedTokens = Map.of(
 		ConceptType.Blacklist,      DoBlacklistToken::new,
@@ -38,7 +38,7 @@ public class CombineConceptAndIdentifierRule extends Rule {
 		ConceptType.EnumSource,     EnumSourceToken::new
 	);
 
-	public CombineConceptAndIdentifierRule(final Ontology ontology) {
+	public IdentifyNamedConceptsRule(final Ontology ontology) {
 		super(ontology);
 	}
 

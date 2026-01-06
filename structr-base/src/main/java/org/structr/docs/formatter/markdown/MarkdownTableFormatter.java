@@ -21,6 +21,7 @@ package org.structr.docs.formatter.markdown;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.docs.*;
 import org.structr.docs.Formatter;
+import org.structr.docs.ontology.AnnotatedConcept;
 import org.structr.docs.ontology.Concept;
 
 import java.util.*;
@@ -28,7 +29,9 @@ import java.util.*;
 public class MarkdownTableFormatter extends Formatter {
 
 	@Override
-	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, String link, final int level) {
+	public void format(final List<String> lines, final AnnotatedConcept annotatedConcept, final OutputSettings settings, String link, final int level) {
+
+		final Concept concept = annotatedConcept.getConcept();
 
 		lines.add(formatMarkdownHeading(concept.getName(), level + 1));
 
@@ -41,14 +44,16 @@ public class MarkdownTableFormatter extends Formatter {
 		lines.add("| --- | --- |");
 
 		// format children
-		final List<Concept> children = concept.getChildren("has");
+		final List<AnnotatedConcept> children = concept.getChildren("has");
 		if (children != null) {
 
 			final List<Documentable> documentables = new LinkedList<>();
 
-			for (final Concept child : children) {
+			for (final AnnotatedConcept annotatedChild : children) {
 
+				final Concept child             = annotatedChild.getConcept();
 				final Documentable documentable = child.getDocumentable();
+
 				if (documentable != null) {
 
 					documentables.add(documentable);

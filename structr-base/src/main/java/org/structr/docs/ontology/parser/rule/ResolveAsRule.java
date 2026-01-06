@@ -23,18 +23,17 @@ import org.structr.docs.ontology.parser.token.*;
 
 import java.util.Deque;
 import java.util.LinkedList;
-import java.util.List;
 
-public class IdentifyListsRule extends Rule {
+public class ResolveAsRule extends Rule {
 
-	public IdentifyListsRule(final Ontology ontology) {
+	public ResolveAsRule(final Ontology ontology) {
 		super(ontology);
 	}
 
 	@Override
 	public void apply(final Deque<Token> tokens) {
 
-		final List<Token> result = new LinkedList<>();
+		final Deque<Token> result = new LinkedList<>();
 
 		while (!tokens.isEmpty()) {
 
@@ -42,41 +41,33 @@ public class IdentifyListsRule extends Rule {
 
 			if (token1 instanceof IdentifierToken identifier1 && !tokens.isEmpty()) {
 
+				// unresolved => check if next is existing concept
 				final Token token2 = tokens.pop();
 
-				// example: one, two and three
-
-				if (token2 instanceof ConjunctionToken && !tokens.isEmpty()) {
+				if (token2 instanceof AsToken preposition && !tokens.isEmpty()) {
 
 					final Token token3 = tokens.pop();
 
-					if (token3 instanceof IdentifierToken identifier3) {
+					if (token3 instanceof ConceptToken concept2) {
 
-						identifier1.addIdentifier(identifier3);
+						identifier1.setFormat(concept2);
 
-						tokens.push(token1);
-
-
-					} else if (token3 instanceof ConceptToken concept1) {
-
-						// If we arrive here, there was a known concept in the list
-						// that should most likely be handled as an identifier, hence
-						// we convert it back to an identifier token.
-						identifier1.addIdentifier(concept1.asIdentifierToken());
-
-						tokens.push(token1);
+						result.add(token1);
 
 					} else {
 
-						throw new RuntimeException("Syntax error: expected identifier in list, got " + token3.getName() + " with name \"" + token3.getName() + "\". Compound phrases are not supported, please use separate phrases to specify facts with different concepts.");
+						result.add(token1);
+
+						// reset tokens 2 & 3 to be evaluated again
+						tokens.push(token2);
+						tokens.push(token3);
 					}
 
 				} else {
 
-					// token1 is processed
 					result.add(token1);
 
-					// token2 needs to stay
+					// reset token2 to be evaluated again
 					tokens.push(token2);
 				}
 
@@ -86,7 +77,7 @@ public class IdentifyListsRule extends Rule {
 			}
 		}
 
-
+		// restore input
 		tokens.addAll(result);
 	}
 }

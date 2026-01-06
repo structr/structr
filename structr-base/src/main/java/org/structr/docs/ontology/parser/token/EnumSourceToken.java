@@ -21,9 +21,11 @@ package org.structr.docs.ontology.parser.token;
 import org.structr.api.util.Category;
 import org.structr.docs.Documentable;
 import org.structr.docs.DocumentableType;
+import org.structr.docs.ontology.AnnotatedConcept;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.Ontology;
+import org.structr.web.traits.definitions.html.A;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -35,16 +37,16 @@ public class EnumSourceToken extends NamedConceptToken {
 	}
 
 	@Override
-	public List<Concept> resolve(final Ontology ontology, final String sourceFile, final int lineNumber) {
+	public List<AnnotatedConcept> resolve(final Ontology ontology, final String sourceFile, final int lineNumber) {
 
-		final List<String> identifiers = identifierToken.resolve(ontology, sourceFile, lineNumber);
-		final List<Concept> concepts   = new LinkedList<>();
+		final List<IdentifierToken> identifiers = identifierToken.resolve(ontology, sourceFile, lineNumber);
+		final List<AnnotatedConcept> concepts            = new LinkedList<>();
 
-		for (final String identifier : identifiers) {
+		for (final IdentifierToken identifier : identifiers) {
 
 			try {
 
-				final Class enumType = Class.forName(identifier);
+				final Class enumType = Class.forName(identifier.getName());
 				if (enumType != null && enumType.isEnum()) {
 
 					for (final Object constant : enumType.getEnumConstants()) {
@@ -63,7 +65,7 @@ public class EnumSourceToken extends NamedConceptToken {
 										concept.setShortDescription(documentable.getShortDescription());
 									}
 
-									concepts.add(concept);
+									concepts.add(new AnnotatedConcept(concept));
 								}
 							}
 						}
@@ -81,7 +83,7 @@ public class EnumSourceToken extends NamedConceptToken {
 										concept.setShortDescription(category.getShortDescription());
 									}
 
-									concepts.add(concept);
+									concepts.add(new AnnotatedConcept(concept));
 								}
 							}
 						}

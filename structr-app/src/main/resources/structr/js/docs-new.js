@@ -409,14 +409,15 @@ let _Documentation = {
                                     if (count++ < 15) {
 
                                         let parents = _Documentation.search.extractParents(entry);
-                                        let parentsString= parents.map(parent => parent.name).join(' / ');
+                                        let contextHint = _Documentation.search.formatContextHint(entry);
 
                                         let result = _Helpers.createSingleDOMElementFromHTML(`
                                             <li class="search-result cursor-pointer">
                                                 <div class="group-aria-selected:text-sky-600">
                                                     <span>${entry.name}</span>
                                                 </div>
-                                                <div class="search-result-description">${entry.shortDescription || entry.type}<span class="sr-only">/</span></div>
+                                                <div class="search-result-type">${entry.type}</div>
+                                                <div class="search-result-description">${contextHint}<span class="sr-only">/</span></div>
                                             </li>
                                         `);
 
@@ -472,6 +473,18 @@ let _Documentation = {
             parents = parents.reverse();
 
             return parents;
+        },
+        formatContextHint: (entry) => {
+
+            if (entry?.shortDescription?.length) {
+                return entry.shortDescription;
+            }
+
+            if (entry && entry.parents && entry.parents.length) {
+                return entry.parents[0].targets.map(t => t.name).join(', ');
+            }
+
+            return '';
         }
     },
     createElementFromHTML: (html) => {

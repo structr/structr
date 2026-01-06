@@ -40,13 +40,12 @@ public final class Concept {
 	private static final AtomicLong idGenerator = new AtomicLong();
 	private final long id = idGenerator.getAndIncrement();
 
-	protected final Map<String, List<Concept>> children = new LinkedHashMap<>();
-	protected final Map<String, List<Concept>> parents  = new LinkedHashMap<>();
-	protected final Map<String, Object> metadata        = new LinkedHashMap<>();
-	protected final Set<Occurrence> occurrences         = new LinkedHashSet<>();
-	protected Documentable documentable                 = null;
-	protected String shortDescription                   = null;
-	protected ConceptType format                        = null;
+	protected final Map<String, List<AnnotatedConcept>> children = new LinkedHashMap<>();
+	protected final Map<String, List<AnnotatedConcept>> parents  = new LinkedHashMap<>();
+	protected final Map<String, Object> metadata                 = new LinkedHashMap<>();
+	protected final Set<Occurrence> occurrences                  = new LinkedHashSet<>();
+	protected Documentable documentable                          = null;
+	protected String shortDescription                            = null;
 
 	protected final String sourceFile;
 	protected final int lineNumber;
@@ -88,26 +87,27 @@ public final class Concept {
 		return name;
 	}
 
-	public void createSymmetricLink(final Verb verb, final Concept concept) {
+	public void createSymmetricLink(final Verb verb, final AnnotatedConcept annotatedConcept) {
 
-		final String ltr = verb.getLeftToRight();
-		final String rtl = verb.getRightToLeft();
+		final Concept concept = annotatedConcept.getConcept();
+		final String ltr      = verb.getLeftToRight();
+		final String rtl      = verb.getRightToLeft();
 
 		if (!this.equals(concept)) {
 
 			if (!hasChild(ltr, concept)) {
 
-				children.computeIfAbsent(ltr, key -> new LinkedList<>()).add(concept);
+				children.computeIfAbsent(ltr, key -> new LinkedList<>()).add(annotatedConcept);
 			}
 
 			if (!concept.hasParent(rtl, this)) {
 
-				concept.parents.computeIfAbsent(rtl, key -> new LinkedList<>()).add(this);
+				concept.parents.computeIfAbsent(rtl, key -> new LinkedList<>()).add(new AnnotatedConcept(this, annotatedConcept.getAnnotations()));
 			}
 		}
 	}
 
-	public Map<String, List<Concept>> getChildren() {
+	public Map<String, List<AnnotatedConcept>> getChildren() {
 		return children;
 	}
 
@@ -131,18 +131,20 @@ public final class Concept {
 		return documentable;
 	}
 
-	public List<Concept> getChildren(final String linkType) {
+	public List<AnnotatedConcept> getChildren(final String linkType) {
 		return children.get(linkType);
 	}
 
 	public List<Concept> getChildrenOfType(final String linkType, final ConceptType conceptType) {
 
-		final List<Concept> list = children.get(linkType);
+		final List<AnnotatedConcept> list = children.get(linkType);
 		if (list != null) {
 
 			final List<Concept> result = new LinkedList<>();
 
-			for (final Concept child : list) {
+			for (final AnnotatedConcept annotatedChild : list) {
+
+				final Concept child = annotatedChild.getConcept();
 
 				if (child.getType().equals(conceptType)) {
 					result.add(child);
@@ -157,17 +159,17 @@ public final class Concept {
 
 	public String getParentConceptName() {
 
-		final List<Concept> p = parents.get("ispartof");
+		final List<AnnotatedConcept> p = parents.get("ispartof");
 		if (p != null) {
 
-			return p.get(0).getName();
+			return p.get(0).getConcept().getName();
 		}
 
 		return null;
 
 	}
 
-	public Map<String, List<Concept>> getParents() {
+	public Map<String, List<AnnotatedConcept>> getParents() {
 		return parents;
 	}
 
@@ -191,17 +193,17 @@ public final class Concept {
 
 		int sum = 0;
 
-		for (final List<Concept> child : concept.getChildren().values()) {
+		for (final List<AnnotatedConcept> child : concept.getChildren().values()) {
 
 			sum++;
 
-			for (final Concept childConcept : child) {
+			for (final AnnotatedConcept childConcept : child) {
 
 				if (childConcept == null) {
 					throw new RuntimeException("Empty child concept in children of " + getName() + ".");
 				}
 
-				sum += getTotalChildCount(childConcept, new LinkedHashSet<>(visited), level + 1);
+				sum += getTotalChildCount(childConcept.getConcept(), new LinkedHashSet<>(visited), level + 1);
 			}
 		}
 
@@ -210,12 +212,12 @@ public final class Concept {
 
 	public boolean hasChild(final String has, final Concept concept) {
 
-		final List<Concept> list = children.get(has);
+		final List<AnnotatedConcept> list = children.get(has);
 		if (list != null) {
 
-			for (final Concept child : list) {
+			for (final AnnotatedConcept child : list) {
 
-				if (child.equals(concept)) {
+				if (child.getConcept().equals(concept)) {
 					return true;
 				}
 			}
@@ -226,12 +228,12 @@ public final class Concept {
 
 	public boolean hasParent(final String has, final Concept concept) {
 
-		final List<Concept> list = parents.get(has);
+		final List<AnnotatedConcept> list = parents.get(has);
 		if (list != null) {
 
-			for (final Concept parent : list) {
+			for (final AnnotatedConcept parent : list) {
 
-				if (parent.equals(concept)) {
+				if (parent.getConcept().equals(concept)) {
 					return true;
 				}
 			}
@@ -243,14 +245,6 @@ public final class Concept {
 	public void setMentions(final List<Occurrence> mentions) {
 
 		metadata.put("mentions", mentions);
-	}
-
-	public void setFormat(final ConceptType format) {
-		this.format = format;
-	}
-
-	public ConceptType getFormat() {
-		return format;
 	}
 
 	public double matches(final String searchString) {
@@ -352,16 +346,16 @@ public final class Concept {
 	 */
 	public boolean isToplevelConcept() {
 
-		final Map<String, List<Concept>> parents = getParents();
+		final Map<String, List<AnnotatedConcept>> parents = getParents();
 		if (parents.isEmpty()) {
 			return true;
 		}
 
-		for (final Map.Entry<String, List<Concept>> entry : parents.entrySet()) {
+		for (final Map.Entry<String, List<AnnotatedConcept>> entry : parents.entrySet()) {
 
-			for (final Concept parent : entry.getValue()) {
+			for (final AnnotatedConcept parent : entry.getValue()) {
 
-				if ("Structr".equals(parent.getName())) {
+				if ("Structr".equals(parent.getConcept().getName())) {
 					return true;
 				}
 			}

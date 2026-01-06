@@ -449,6 +449,15 @@ index h2, .index h3 {
     color: var(--gray-999);
 }
 
+.search-result-type {
+    font-size: .9rem;
+    margin-top: .25rem;
+    text-overflow: ellipsis;
+    whitespace: nowrap;
+    color: var(--gray-666);
+    font-style: italic;
+}
+
 .search-result-path {
     font-size: .9rem;
     margin-top: .25rem;

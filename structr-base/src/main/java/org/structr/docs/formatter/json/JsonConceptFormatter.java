@@ -23,6 +23,7 @@ import com.google.gson.GsonBuilder;
 import org.apache.commons.text.StringEscapeUtils;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
+import org.structr.docs.ontology.AnnotatedConcept;
 import org.structr.docs.ontology.Concept;
 
 import java.util.*;
@@ -30,10 +31,11 @@ import java.util.*;
 public class JsonConceptFormatter extends Formatter {
 
 	@Override
-	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, final String link, final int level) {
+	public void format(final List<String> lines, final AnnotatedConcept annotatedConcept, final OutputSettings settings, final String link, final int level) {
+
+		final Concept concept          = annotatedConcept.getConcept();
 		final Gson gson                = new GsonBuilder().create();
 		final Map<String, Object> data = new LinkedHashMap<>();
-		final List<String> c           = new LinkedList<>();
 		int childCount                 = concept.getTotalChildCount();
 
 		data.put("id",          concept.getId());
@@ -48,12 +50,13 @@ public class JsonConceptFormatter extends Formatter {
 
 		data.put("links", links);
 
-		for (final Map.Entry<String, List<Concept>> child : concept.getChildren().entrySet()) {
+		for (final Map.Entry<String, List<AnnotatedConcept>> child : concept.getChildren().entrySet()) {
 
 			final List<Map<String, Object>> childList = new LinkedList<>();
 
-			for (final Concept childConcept : child.getValue()) {
+			for (final AnnotatedConcept annotatedChildConcept : child.getValue()) {
 
+				final Concept childConcept = annotatedChildConcept.getConcept();
 				final Map<String, Object> childMap = new LinkedHashMap<>();
 
 				childMap.put("id",   childConcept.getId());
