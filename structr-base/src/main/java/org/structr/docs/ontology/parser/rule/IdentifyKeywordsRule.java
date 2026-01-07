@@ -20,15 +20,16 @@ package org.structr.docs.ontology.parser.rule;
 
 import org.structr.docs.ontology.Ontology;
 import org.structr.docs.ontology.parser.token.AsToken;
+import org.structr.docs.ontology.parser.token.NewKeywordToken;
 import org.structr.docs.ontology.parser.token.WithToken;
 import org.structr.docs.ontology.parser.token.Token;
 
 import java.util.Deque;
 import java.util.LinkedList;
 
-public class IdentifyPrepositionsRule extends Rule {
+public class IdentifyKeywordsRule extends Rule {
 
-	public IdentifyPrepositionsRule(final Ontology ontology) {
+	public IdentifyKeywordsRule(final Ontology ontology) {
 		super(ontology);
 	}
 
@@ -51,6 +52,10 @@ public class IdentifyPrepositionsRule extends Rule {
 				}  else if ("as".equals(name.toLowerCase())) {
 
 					result.add(new AsToken(name));
+
+				}  else if ("new".equals(name.toLowerCase())) {
+
+					result.add(new NewKeywordToken(name));
 
 				} else {
 

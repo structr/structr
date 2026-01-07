@@ -38,6 +38,7 @@ public class TableOfContentsConceptFormatter extends Formatter {
 		final List<Map<String, Object>> links = new LinkedList<>();
 		final Map<String, Object> data        = new LinkedHashMap<>();
 
+		data.put("id",    concept.getId());
 		data.put("name",  concept.getName());
 		data.put("type",  concept.getType());
 		data.put("links", links);
@@ -54,6 +55,7 @@ public class TableOfContentsConceptFormatter extends Formatter {
 					final Concept childConcept = annotatedChildConcept.getConcept();
 					final Map<String, Object> childMap = new LinkedHashMap<>();
 
+					childMap.put("id",   childConcept.getId());
 					childMap.put("name", childConcept.getName());
 					childMap.put("type", childConcept.getType());
 

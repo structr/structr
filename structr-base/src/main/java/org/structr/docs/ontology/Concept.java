@@ -37,13 +37,11 @@ public final class Concept implements Comparable<Concept> {
 	public static final double LONG_DESC_MATCH_SCORE  = 1.0;
 	public static final double NOTES_MATCH_SCORE      = 0.1;
 
-	private static final AtomicLong idGenerator = new AtomicLong();
-	private final long id = idGenerator.getAndIncrement();
-
 	protected final Map<String, List<AnnotatedConcept>> children = new LinkedHashMap<>();
 	protected final Map<String, List<AnnotatedConcept>> parents  = new LinkedHashMap<>();
 	protected final Map<String, Object> metadata                 = new LinkedHashMap<>();
 	protected final Set<Occurrence> occurrences                  = new LinkedHashSet<>();
+	protected final long id;
 	protected Documentable documentable                          = null;
 	protected String shortDescription                            = null;
 
@@ -52,8 +50,9 @@ public final class Concept implements Comparable<Concept> {
 	protected final String name;
 	protected ConceptType type;
 
-	protected Concept(final String sourceFile, final int lineNumber, final ConceptType type, final String name) {
+	protected Concept(final long id, final String sourceFile, final int lineNumber, final ConceptType type, final String name) {
 
+		this.id         = id;
 		this.type       = type;
 		this.name       = name;
 		this.lineNumber = lineNumber;
@@ -360,6 +359,19 @@ public final class Concept implements Comparable<Concept> {
 		return groupedChildren;
 	}
 
+	public Concept getChildWithName(final String name) {
+
+		final List<AnnotatedConcept> list = this.children.get("has");
+		for (final AnnotatedConcept child : list) {
+
+			if (child.getName().equals(name)) {
+				return child.getConcept();
+			}
+		}
+
+		return null;
+	}
+
 	// ----- private methods -----
 	public static boolean exists(final String name) {
 
@@ -385,7 +397,7 @@ public final class Concept implements Comparable<Concept> {
 		return null;
 	}
 
-	public static Concept create(final String sourceFile, final int lineNumber, final ConceptType type, final String name) {
-		return new Concept(sourceFile, lineNumber, type, name);
+	public static Concept create(final long id, final String sourceFile, final int lineNumber, final ConceptType type, final String name) {
+		return new Concept(id, sourceFile, lineNumber, type, name);
 	}
 }

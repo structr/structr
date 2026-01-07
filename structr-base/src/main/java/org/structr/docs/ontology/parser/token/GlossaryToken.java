@@ -43,33 +43,33 @@ public class GlossaryToken extends NamedConceptToken {
 
 				concepts.add(new AnnotatedConcept(glossary));
 
-				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(sourceFile, lineNumber, ConceptType.GlossaryEntry, "2")));
-				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(sourceFile, lineNumber, ConceptType.GlossaryEntry, "A")));
-				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(sourceFile, lineNumber, ConceptType.GlossaryEntry, "B")));
-				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(sourceFile, lineNumber, ConceptType.GlossaryEntry, "C")));
-				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(sourceFile, lineNumber, ConceptType.GlossaryEntry, "D")));
-				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(sourceFile, lineNumber, ConceptType.GlossaryEntry, "E")));
-				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(sourceFile, lineNumber, ConceptType.GlossaryEntry, "F")));
-				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(sourceFile, lineNumber, ConceptType.GlossaryEntry, "G")));
-				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(sourceFile, lineNumber, ConceptType.GlossaryEntry, "H")));
-				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(sourceFile, lineNumber, ConceptType.GlossaryEntry, "I")));
-				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(sourceFile, lineNumber, ConceptType.GlossaryEntry, "J")));
-				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(sourceFile, lineNumber, ConceptType.GlossaryEntry, "K")));
-				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(sourceFile, lineNumber, ConceptType.GlossaryEntry, "L")));
-				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(sourceFile, lineNumber, ConceptType.GlossaryEntry, "M")));
-				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(sourceFile, lineNumber, ConceptType.GlossaryEntry, "N")));
-				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(sourceFile, lineNumber, ConceptType.GlossaryEntry, "O")));
-				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(sourceFile, lineNumber, ConceptType.GlossaryEntry, "P")));
-				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(sourceFile, lineNumber, ConceptType.GlossaryEntry, "Q")));
-				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(sourceFile, lineNumber, ConceptType.GlossaryEntry, "R")));
-				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(sourceFile, lineNumber, ConceptType.GlossaryEntry, "S")));
-				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(sourceFile, lineNumber, ConceptType.GlossaryEntry, "T")));
-				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(sourceFile, lineNumber, ConceptType.GlossaryEntry, "U")));
-				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(sourceFile, lineNumber, ConceptType.GlossaryEntry, "V")));
-				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(sourceFile, lineNumber, ConceptType.GlossaryEntry, "W")));
-				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(sourceFile, lineNumber, ConceptType.GlossaryEntry, "X")));
-				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(sourceFile, lineNumber, ConceptType.GlossaryEntry, "Y")));
-				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(sourceFile, lineNumber, ConceptType.GlossaryEntry, "Z")));
+				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, sourceFile, lineNumber, ConceptType.GlossaryEntry, "2")));
+				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, sourceFile, lineNumber, ConceptType.GlossaryEntry, "A")));
+				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, sourceFile, lineNumber, ConceptType.GlossaryEntry, "B")));
+				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, sourceFile, lineNumber, ConceptType.GlossaryEntry, "C")));
+				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, sourceFile, lineNumber, ConceptType.GlossaryEntry, "D")));
+				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, sourceFile, lineNumber, ConceptType.GlossaryEntry, "E")));
+				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, sourceFile, lineNumber, ConceptType.GlossaryEntry, "F")));
+				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, sourceFile, lineNumber, ConceptType.GlossaryEntry, "G")));
+				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, sourceFile, lineNumber, ConceptType.GlossaryEntry, "H")));
+				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, sourceFile, lineNumber, ConceptType.GlossaryEntry, "I")));
+				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, sourceFile, lineNumber, ConceptType.GlossaryEntry, "J")));
+				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, sourceFile, lineNumber, ConceptType.GlossaryEntry, "K")));
+				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, sourceFile, lineNumber, ConceptType.GlossaryEntry, "L")));
+				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, sourceFile, lineNumber, ConceptType.GlossaryEntry, "M")));
+				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, sourceFile, lineNumber, ConceptType.GlossaryEntry, "N")));
+				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, sourceFile, lineNumber, ConceptType.GlossaryEntry, "O")));
+				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, sourceFile, lineNumber, ConceptType.GlossaryEntry, "P")));
+				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, sourceFile, lineNumber, ConceptType.GlossaryEntry, "Q")));
+				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, sourceFile, lineNumber, ConceptType.GlossaryEntry, "R")));
+				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, sourceFile, lineNumber, ConceptType.GlossaryEntry, "S")));
+				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, sourceFile, lineNumber, ConceptType.GlossaryEntry, "T")));
+				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, sourceFile, lineNumber, ConceptType.GlossaryEntry, "U")));
+				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, sourceFile, lineNumber, ConceptType.GlossaryEntry, "V")));
+				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, sourceFile, lineNumber, ConceptType.GlossaryEntry, "W")));
+				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, sourceFile, lineNumber, ConceptType.GlossaryEntry, "X")));
+				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, sourceFile, lineNumber, ConceptType.GlossaryEntry, "Y")));
+				glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, sourceFile, lineNumber, ConceptType.GlossaryEntry, "Z")));
 			}
 		}
 

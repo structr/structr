@@ -45,7 +45,8 @@ let _Documentation = {
 			Structr.subModule = Structr.subModule?.substring(0, lastIndexOfHash);
 		}
 
-		_Documentation.loadDoc(Structr.subModule || 'Getting Started', inPageHash);
+        //_Documentation.loadDoc(Structr.subModule || 'Getting Started', inPageHash);
+		_Documentation.loadDoc('concept00002', inPageHash);
 
 		Structr.setFunctionBarHTML(_Documentation.templates.searchField());
 
@@ -127,12 +128,9 @@ let _Documentation = {
 			.then(response => response.json())
 			.then(json => {
 
-                let index = 1;
-
                 for (let entry of json.data) {
 
                     let menuItem = _Documentation.createElementFromHTML(_Documentation.templates.mainNavigationItem({
-                        index: index,
                         label: entry.name
                     }));
 
@@ -141,25 +139,15 @@ let _Documentation = {
                     let sublist = document.createElement('ul');
                     menuItem.appendChild(sublist);
 
-                    const parentIndex = index;
-                    const parentLabel = entry.name;
-                    let subIndex = 1;
-
-                    index++;
-
                     for (let child of entry.links[0].targets) {
 
                         let subItem = _Documentation.createElementFromHTML(_Documentation.templates.mainNavigationSubItem({
-                            parentIndex: parentIndex,
-                            parentLabel: parentLabel,
-                            index: subIndex,
-                            type: child.type,
-                            name: child.name,
+                            id: child.id,
                             label: child.name
                         }));
 
                         subItem.addEventListener('click', e => {
-                            _Documentation.loadContext(child.type, child.name)
+                            _Documentation.loadContext(child.id)
                         });
 
                         sublist.appendChild(subItem);
@@ -168,7 +156,7 @@ let _Documentation = {
 			});
 
 	},
-	loadDoc: (rawPath, hash, parents, searchHit) => {
+	loadDoc: (id, hash, parents, searchHit) => {
         let iframe = document.querySelector('div#docs-area iframe');
         if (iframe) {
             let hash = '';
@@ -177,13 +165,13 @@ let _Documentation = {
             } else if (searchHit) {
                 hash = '#' + _Documentation.cleanStringForLink(searchHit);
             }
-            iframe.src = `/structr/docs/ontology?root=${encodeURIComponent(rawPath)}&details=all&format=markdown${hash}`;
-            _Documentation.loadContext('Unknown', rawPath);
+            iframe.src = `/structr/docs/ontology?id=${id}&details=all&format=markdown${hash}`;
+            _Documentation.loadContext(id);
         }
 	},
-    loadContext: (type, name) => {
+    loadContext: (id) => {
 
-        fetch(`/structr/docs/ontology?root=${type}:${encodeURIComponent(name)}&details=name&levels=1&format=toc&startLevel=1`)
+        fetch(`/structr/docs/ontology?id=${id}&details=name&levels=1&format=toc&startLevel=1`)
             .then(response => response.json())
             .then(json => {
 
@@ -195,8 +183,7 @@ let _Documentation = {
                 for (let entry of json.data) {
 
                     aside.appendChild(_Documentation.createElementFromHTML(_Documentation.templates.indexItem({
-                        parentName: name,
-                        type: type,
+                        id: id,
                         name: _Documentation.cleanStringForLink(entry.name),
                         label: entry.name
                     })));
@@ -320,7 +307,7 @@ let _Documentation = {
             }
         }
     },
-    cleanStringForLink: (str) => str.replaceAll(/[\W]+/g, '-').toLowerCase(),
+    cleanStringForLink: (str) => str.replace('?', '').replaceAll(/[\W]+/g, '-').toLowerCase(),
 	search: {
 		searchOverlay: undefined,
 		overlaySearchField: undefined,
@@ -404,49 +391,64 @@ let _Documentation = {
                                 let num = json.data.length;
                                 let count = 0;
 
-                                for (let entry of json.data) {
+                                if (num == 0) {
 
-                                    if (count++ < 15) {
+                                    let result = _Helpers.createSingleDOMElementFromHTML(`
+                                                <li class="search-result">
+                                                    <div class="text-gray-999 text-center">
+                                                        <span>No results</span>
+                                                    </div>
+                                                </li>
+                                            `);
 
-                                        let parents = _Documentation.search.extractParents(entry);
-                                        let contextHint = _Documentation.search.formatContextHint(entry);
-                                        let link        = parents?.[0]?.name || entry.name;
-                                        let type        = entry.type;
+                                    _Documentation.search.searchResultsList.appendChild(result);
 
-                                        if (type === 'MarkdownFile') {
-                                            type = 'Topic';
+                                } else {
+
+                                    for (let entry of json.data) {
+
+                                        if (count++ < 15) {
+
+                                            let parents = _Documentation.search.extractParents(entry);
+                                            let contextHint = _Documentation.search.formatContextHint(entry);
+                                            let id = parents?.[0]?.id || entry.id;
+                                            let type = entry.type;
+
+                                            if (type === 'MarkdownFile') {
+                                                type = 'Topic';
+                                            }
+
+                                            let result = _Helpers.createSingleDOMElementFromHTML(`
+                                                <li class="search-result cursor-pointer">
+                                                    <div class="group-aria-selected:text-sky-600">
+                                                        <span>${entry.name}</span>
+                                                    </div>
+                                                    <div class="search-result-type">${type}</div>
+                                                    <div class="search-result-description">${contextHint}<span class="sr-only">/</span></div>
+                                                </li>
+                                            `);
+
+                                            result.addEventListener('click', e => {
+                                                _Documentation.search.hideSearch();
+                                                _Documentation.loadDoc(`${id}`, null, parents, entry.name);
+                                            });
+
+                                            _Documentation.search.searchResultsList.appendChild(result);
+
+                                        } else {
+
+                                            let result = _Helpers.createSingleDOMElementFromHTML(`
+                                                <li class="search-result">
+                                                    <div class="text-gray-999 text-center">
+                                                        <span>Showing results 1 - 15 of ${num}</span>
+                                                    </div>
+                                                </li>
+                                            `);
+
+                                            _Documentation.search.searchResultsList.appendChild(result);
+
+                                            break;
                                         }
-
-                                        let result = _Helpers.createSingleDOMElementFromHTML(`
-                                            <li class="search-result cursor-pointer">
-                                                <div class="group-aria-selected:text-sky-600">
-                                                    <span>${entry.name}</span>
-                                                </div>
-                                                <div class="search-result-type">${type}</div>
-                                                <div class="search-result-description">${contextHint}<span class="sr-only">/</span></div>
-                                            </li>
-                                        `);
-
-                                        result.addEventListener('click', e => {
-                                            _Documentation.search.hideSearch();
-                                            _Documentation.loadDoc(`${link}`, null, parents, entry.name);
-                                        });
-
-                                        _Documentation.search.searchResultsList.appendChild(result);
-
-                                    } else {
-
-                                        let result = _Helpers.createSingleDOMElementFromHTML(`
-                                            <li class="search-result">
-                                                <div class="text-gray-999 text-center">
-                                                    <span>Showing results 1 - 15 of ${num}</span>
-                                                </div>
-                                            </li>
-                                        `);
-
-                                        _Documentation.search.searchResultsList.appendChild(result);
-
-                                        break;
                                     }
                                 }
                             }
@@ -517,8 +519,8 @@ let _Documentation = {
 			</div>
 		`,
 		mainNavigationItem: config => `<li class="docs-main-nav-item">${config.label}</li>`,
-        mainNavigationSubItem: config => `<li><a target="main-documentation" href="/structr/docs/ontology?root=${config.type}:${encodeURIComponent(config.name)}&details=all&startLevel=0&format=markdown">${config.label}</a></li>`,
-		indexItem: config => `<h2><a target="main-documentation" href="/structr/docs/ontology?root=${config.type}:${encodeURIComponent(config.parentName)}&details=all&startLevel=0&format=markdown#${config.name}">${config.label}</a></h2>`,
+        mainNavigationSubItem: config => `<li><a target="main-documentation" href="/structr/docs/ontology?id=${config.id}&details=all&startLevel=0&format=markdown">${config.label}</a></li>`,
+		indexItem: config => `<h2><a target="main-documentation" href="/structr/docs/ontology?id=${config.id}&details=all&startLevel=0&format=markdown#${config.name}">${config.label}</a></h2>`,
 		searchOverlay: config => `
 			<div id="search-overlay" class="hidden">
 				<div id="search-overlay-dialog">

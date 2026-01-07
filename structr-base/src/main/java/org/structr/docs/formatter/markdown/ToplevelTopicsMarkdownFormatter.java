@@ -67,7 +67,7 @@ public class ToplevelTopicsMarkdownFormatter extends Formatter {
 				buf.add(occurrence.getSourceFile() + ":" + occurrence.getLineNumber());
 			}
 
-			lines.add("<small>Sources: " + StringUtils.join(buf, ", ") + "</small>");
+			lines.add("<span class='info'>Sources: " + StringUtils.join(buf, ", ") + "</span>");
 			lines.add("");
 		}
 

@@ -38,6 +38,7 @@ import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
 /**
@@ -46,6 +47,7 @@ import java.util.stream.Stream;
 public final class Ontology {
 
 	private final Set<ConceptType> SearchBlacklist = EnumSet.of(ConceptType.Text, ConceptType.Heading, ConceptType.MarkdownHeading);
+	private final AtomicLong idGenerator           = new AtomicLong();
 	private final List<Concept> concepts           = new LinkedList<>();
 	private final Set<String> blacklist            = new LinkedHashSet<>();
 	private Concept currentSubject                 = null;
@@ -233,10 +235,11 @@ public final class Ontology {
 		int count = 0;
 
 		rules.add(new RemoveUnwantedTokensRule(this));
-		rules.add(new IdentifyPrepositionsRule(this));
+		rules.add(new IdentifyKeywordsRule(this));
 		rules.add(new IdentifyAnaphoricPronounRule(this));
 		rules.add(new IdentifyConjunctionsRule(this));
 		rules.add(new IdentifyConceptsRule(this));
+		rules.add(new ResolveKeywordsRule(this));
 		rules.add(new ResolveConceptPairsRule(this));
 		rules.add(new IdentifyVerbsRule(this));
 		rules.add(new IdentifyNamesRule(this));
@@ -282,7 +285,9 @@ public final class Ontology {
 		throw new RuntimeException("Syntax error in " + fileName + ":" + line + ": unable to parse " + source + " into facts: remaining tokens are " + remainingTokens + ". This can happen if an identifier matches a known concept, e.g. the topic \"Settings\" and the concept \"settings\". It might help to prefix the identifier with the concept, e.g. write \"topic Settings has code-source settings\" instead of \"Settings has code-source settings\".");
 	}
 
-	public Concept getConcept(final ConceptType type, final String name) {
+	public List<Concept> getConcept(final ConceptType type, final String name) {
+
+		final List<Concept> result = new LinkedList<>();
 
 		for  (final Concept concept : concepts) {
 
@@ -290,15 +295,15 @@ public final class Ontology {
 
 				if (concept.type.equals(type) || ConceptType.Unknown.equals(type) || ConceptType.Unknown.equals(concept.type)) {
 
-					return concept;
+					result.add(concept);
 				}
 			}
 		}
 
-		return null;
+		return result;
 	}
 
-	public void searchConcepts(final Map<Concept, Double> result, final String searchString) {
+	public void searchConcepts(final Map<Concept, Double> result, final String searchString, final double scoreMultiplier) {
 
 		// check exact match first
 		for  (final Concept concept : concepts) {
@@ -311,7 +316,7 @@ public final class Ontology {
 			// exact match yields a score of 100
 			if (concept.getName() != null && concept.getName().equals(searchString)) {
 
-				result.compute(concept, (k, v) -> add(v, Concept.EXACT_MATCH_SCORE));
+				result.compute(concept, (k, v) -> add(v, scoreMultiplier * Concept.EXACT_MATCH_SCORE));
 			}
 
 			final Documentable documentable = concept.getDocumentable();
@@ -321,7 +326,7 @@ public final class Ontology {
 
 				if (score > 0) {
 
-					result.compute(concept, (k, v) -> add(v, score));
+					result.compute(concept, (k, v) -> add(v, scoreMultiplier * score));
 				}
 
 			} else {
@@ -329,7 +334,7 @@ public final class Ontology {
 				final double score = concept.matches(searchString);
 				if (score > 0) {
 
-					result.compute(concept, (k, v) -> add(v, score));
+					result.compute(concept, (k, v) -> add(v, scoreMultiplier * score));
 				}
 			}
 		}
@@ -358,7 +363,7 @@ public final class Ontology {
 
 		for (final Concept concept : concepts) {
 
-			if (concept.isSame(name, type, sourceFile, line) && useExisting) {
+			if (concept.isSame(name, type, sourceFile, line) && (ConceptType.Unknown.equals(type) || useExisting)) {
 
 				// set correct type
 				if (ConceptType.Unknown.equals(concept.type) && !ConceptType.Unknown.equals(type)) {
@@ -371,7 +376,7 @@ public final class Ontology {
 			}
 		}
 
-		final Concept concept = new Concept(sourceFile, line, type, name);
+		final Concept concept = new Concept(getNextId(), sourceFile, line, type, name);
 
 		concepts.add(concept);
 
@@ -399,6 +404,17 @@ public final class Ontology {
 
 			concept.setMentions(mentions);
 		}
+	}
+
+	public Concept getConceptById(final String id) {
+
+		final List<Concept> filtered = getConcepts(c -> c.getId().equals(id));
+		if (!filtered.isEmpty()) {
+
+			return filtered.get(0);
+		}
+
+		return null;
 	}
 
 	// ----- private methods -----
@@ -442,6 +458,11 @@ public final class Ontology {
 		}
 	}
 
+	public long getNextId() {
+		return idGenerator.getAndIncrement();
+	}
+
+	// ----- private methods -----
 	private void initializeFromDocumentationAnnotations(final Class clazz, final Documentation documentation, final String typeName, final String itemName, final Concept parentConcept) {
 
 		final String sourceFile = "@Documentation on " + typeName;

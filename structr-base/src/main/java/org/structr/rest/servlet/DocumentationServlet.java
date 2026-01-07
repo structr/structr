@@ -306,18 +306,22 @@ public class DocumentationServlet extends HttpServlet {
 		final String search = request.getParameter("search");
 		if (StringUtils.isNotBlank(search)) {
 
-			ontology.searchConcepts(searchResults, search.trim().toLowerCase());
+			if (search.contains(" ")) {
 
-			for (final String part : search.split("[, ]+")) {
+				for (final String part : search.split("[ ]+")) {
 
-				ontology.searchConcepts(searchResults, part.trim().toLowerCase());
+					ontology.searchConcepts(searchResults, part.trim().toLowerCase(), 1.0);
+				}
 			}
+
+			// matching the whole search string gets 100x the score
+			ontology.searchConcepts(searchResults, search.trim().toLowerCase(), 100.0);
 
 			// do not add default set of concepts
 			hasFilter = true;
 		}
 
-		// root?
+		// root
 		final String root = request.getParameter("root");
 		if (StringUtils.isNotBlank(root)) {
 
@@ -328,7 +332,7 @@ public class DocumentationServlet extends HttpServlet {
 				final String name       = parts[1];
 				final ConceptType t     = ConceptType.valueOf(typeString);
 
-				concepts.add(ontology.getConcept(t, name));
+				concepts.addAll(ontology.getConcept(t, name));
 
 			} else {
 
@@ -336,6 +340,18 @@ public class DocumentationServlet extends HttpServlet {
 			}
 
 			// do not add default set of concepts
+			hasFilter = true;
+		}
+
+		final String id = request.getParameter("id");
+		if (StringUtils.isNotBlank(id)) {
+
+			final Concept concept = ontology.getConceptById(id);
+			if (concept != null) {
+
+				concepts.add(concept);
+			}
+
 			hasFilter = true;
 		}
 
@@ -380,6 +396,7 @@ public class DocumentationServlet extends HttpServlet {
 
 		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.Topic,          new ToplevelTopicsMarkdownFormatter());
 		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.SystemType,     new SystemTypeMarkdownFormatter());
+		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.Property,       new ToplevelTopicsMarkdownFormatter());
 		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.MarkdownFolder, new ToplevelTopicsMarkdownFormatter());
 		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.MarkdownFile,   new MarkdownMarkdownFileFormatter(baseResource));
 		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.CodeSource,     new MarkdownCodeSourceFormatter());

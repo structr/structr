@@ -18,10 +18,7 @@
  */
 package org.structr.test.common;
 
-import org.structr.docs.ontology.AnnotatedConcept;
-import org.structr.docs.ontology.Concept;
-import org.structr.docs.ontology.ConceptType;
-import org.structr.docs.ontology.Ontology;
+import org.structr.docs.ontology.*;
 import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.Test;
 
@@ -47,7 +44,7 @@ public class OntologyTest extends StructrUiTest {
 		);
 
 		final Ontology ontology = new Ontology("testOntology", facts);
-		final Concept concept   = ontology.getConcept(ConceptType.Unknown, "Core System");
+		final Concept concept   = ontology.getConcept(ConceptType.Unknown, "Core System").get(0);
 
 		assertNotNull("concept should not be null", concept);
 
@@ -66,7 +63,7 @@ public class OntologyTest extends StructrUiTest {
 		assertEquals("Button list was not parsed correctly", "Button(Test-Button-4)",  concepts.get(i++).toString());
 
 		// "It" should reference the area "Pages" in the above list of facts, hence that area should have 9 "has" links
-		assertEquals("\"It\" keyword does not reference last subject", 9, ontology.getConcept(ConceptType.Area, "Pages").getChildren().get("has").size());
+		assertEquals("\"It\" keyword does not reference last subject", 9, ontology.getConcept(ConceptType.Area, "Pages").get(0).getChildren().get("has").size());
 	}
 
 	@Test
@@ -116,8 +113,8 @@ public class OntologyTest extends StructrUiTest {
 
 		assertNotNull(ontology.getConcept(ConceptType.Type, "Test"));
 		assertNotNull(ontology.getConcept(ConceptType.Button, "Test"));
-		assertEquals("Type(Test)", ontology.getConcept(ConceptType.Button, "Test").getChildren().get("creates").get(0).toString());
-		assertEquals("Button(Test)", ontology.getConcept(ConceptType.Type, "Test").getParents().get("iscreatedby").get(0).toString());
+		assertEquals("Type(Test)", ontology.getConcept(ConceptType.Button, "Test").get(0).getChildren().get("creates").get(0).toString());
+		assertEquals("Button(Test)", ontology.getConcept(ConceptType.Type, "Test").get(0).getParents().get("iscreatedby").get(0).toString());
 	}
 
 	@Test
@@ -142,7 +139,7 @@ public class OntologyTest extends StructrUiTest {
 			System.out.println(concept.getNameTypeAndLinks());
 		}
 
-		final Concept test = ontology.getConcept(ConceptType.Topic, "Test");
+		final Concept test = ontology.getConcept(ConceptType.Topic, "Test").get(0);
 
 		assertNotNull(test);
 
@@ -207,10 +204,9 @@ public class OntologyTest extends StructrUiTest {
 		final Ontology ontology  = new Ontology("testGetGroupedChildren", "Structr has code-source \"system-type\"");
 		ontology.initializeFromDocumentationAnnotations();
 
-		final Concept root = ontology.getConcept(ConceptType.Unknown, "File");
+		final Concept root = ontology.getConcept(ConceptType.Unknown, "File").get(0);
 
 		System.out.println(root.getGroupedChildren());
-
 	}
 
 	@Test
@@ -224,9 +220,28 @@ public class OntologyTest extends StructrUiTest {
 		ontology.initializeFromDocumentationAnnotations();
 
 		System.out.println(ontology.getConceptsByName("Glossary"));
-
 	}
 
+	@Test
+	public void testExistingKeyword() {
+
+		final Ontology ontology  = new Ontology("testExistingKeyword", List.of(
+			"\"Structr\" has topics \"One\", \"Two\", \"Three\"",
+			"One has topic \"Authentication\"",
+			"Two has topic \"Authentication\"",
+			"Three has existing topic \"Authentication\""
+		));
+
+		System.out.println(ontology.getAllConcepts());
+	}
+
+	@Test
+	public void testFactsFile() {
+
+		final FactsFile factsFile = new FactsFile("/home/chrisi/Code/java/structr/structr-app/src/main/resources/structr/facts/hierarchy.txt");
+
+
+	}
 
 	// ----- private methods -----
 	private void printConcepts(final List<Concept> concepts) {

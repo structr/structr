@@ -18,24 +18,12 @@
  */
 package org.structr.docs.ontology.parser.token;
 
-import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.Ontology;
 
-/**
- * A token that resolves to a class in the ontology.
- */
-public class ConceptToken extends Token<ConceptType> {
+public class NewKeywordToken extends Token {
 
-	private boolean allowReuse = true;
-	private final String originalToken;
-	private final ConceptType type;
-
-	public ConceptToken(final ConceptType type, final String originalToken) {
-
-		super(type.getIdentifier());
-
-		this.type          = type;
-		this.originalToken = originalToken;
+	public NewKeywordToken(String name) {
+		super(name);
 	}
 
 	@Override
@@ -44,27 +32,7 @@ public class ConceptToken extends Token<ConceptType> {
 	}
 
 	@Override
-	public ConceptType resolve(final Ontology ontology, final String sourceFile, final int line) {
-		return type;
-	}
-
-	public String getOriginalToken() {
-		return originalToken;
-	}
-
-	public ConceptType getType() {
-		return type;
-	}
-
-	public IdentifierToken asIdentifierToken() {
-		return new IdentifierToken(originalToken);
-	}
-
-	public void setAllowReuse(final boolean allowReuse) {
-		this.allowReuse = allowReuse;
-	}
-
-	public boolean allowReuse() {
-		return allowReuse;
+	public Object resolve(final Ontology ontology, final String sourceFile, final int line) {
+		return null;
 	}
 }

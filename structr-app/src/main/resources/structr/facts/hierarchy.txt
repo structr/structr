@@ -56,13 +56,13 @@ Structr has topics "Building Applications", "Admin User Interface", "REST Interf
         "Show / Hide Conditions" has texts "Show Conditions", "Hide Conditions"
 
     "Business Logic" has markdown-file "snippets/Business Logic.md" with heading "Overview"
-    "Business Logic" has topics "Dynamic types", "Relationships", "Built-in types" as table, "Built-in properties", "Scripting contexts", "Advanced find"
+    "Business Logic" has topics "Dynamic types", "Relationships", "Built-in types" as table, "Built-in properties" as table, "Scripting contexts", "Advanced find"
         "Built-in types" has description "description from hierarchy.txt, but only a short description possible here.."
         "Dynamic types" has topics "Dynamic type options"
         "Relationships" has topics "Cascading Delete" as table, "Automatic Creation of Related Nodes" as table
 
     "User Input & Forms" has topics "Event Action Mapping"
-        Topic "Notifications" has texts "Success notifications", "Failure notifications"
+        "Event Action Mapping" has topics "Event Actions" as table, "Follow-up actions" as table, "Notifications" as table, "Parameter types" as table
 
     "Language localization" has topics "Translations", "Localization Settings", "Effective locale"
         Translations has topics "Translation Settings", "Translation Providers"
@@ -77,7 +77,7 @@ Structr has topics "Building Applications", "Admin User Interface", "REST Interf
 
 
 
-"REST Interface" has topics "Authentication", "Resource Access Permissions", "System endpoints", "Servlets", "Views", "Request parameters", "Request headers"
+"REST Interface" has new topics "Authentication", "Resource Access Permissions", "System endpoints", "Servlets", "Views", "Request parameters", "Request headers"
 
         "Authentication" has topics "Authentication methods for REST"
 

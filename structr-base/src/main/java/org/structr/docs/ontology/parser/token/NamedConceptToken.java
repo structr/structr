@@ -75,7 +75,7 @@ public class NamedConceptToken extends Token<List<AnnotatedConcept>> {
 				format = identifier.getFormat().resolve(ontology, sourceFile, line);
 			}
 
-			final Concept concept = ontology.getOrCreateConcept(sourceFile, line, type, identifier.getName(), true);
+			final Concept concept = ontology.getOrCreateConcept(sourceFile, line, type, identifier.getName(), conceptToken.allowReuse());
 			if (concept != null) {
 
 				// additional named concepts go into metadata of a concept

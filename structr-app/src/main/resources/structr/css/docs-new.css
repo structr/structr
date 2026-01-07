@@ -469,3 +469,8 @@ index h2, .index h3 {
 .search-result-path:hover {
     color: var(--gray-aaa);
 }
+
+.article span.info {
+    padding: .5rem;
+    display: block;
+}

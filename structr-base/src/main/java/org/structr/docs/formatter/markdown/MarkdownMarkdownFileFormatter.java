@@ -58,6 +58,17 @@ public class MarkdownMarkdownFileFormatter extends Formatter {
 
 		try {
 
+			// add parent topic here, but only at level 0
+			if (level == 0) {
+
+				final String parentConceptName = concept.getParentConceptName();
+				if (parentConceptName != null) {
+
+					lines.add(formatMarkdownHeading(parentConceptName, 0));
+					lines.add("");
+				}
+			}
+
 			lines.add("<!-- start of \"" + path + "\" -->");
 			lines.addAll(Files.readAllLines(resource.resolve(fileName).getPath()));
 			lines.add("<!-- end of \"" + path + "\" -->");

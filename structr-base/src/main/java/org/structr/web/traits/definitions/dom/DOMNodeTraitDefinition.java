@@ -63,7 +63,7 @@ import java.util.*;
 /**
  * Combines NodeInterface and org.w3c.dom.Node.
  */
-@Documentation(name="DOM node", type= ConceptType.SystemType, shortDescription="The base class for all nodes in a Page.", parent="Built-in types")
+@Documentation(name="DOMNode", type= ConceptType.SystemType, shortDescription="The base class for all nodes in a Page.", parent="Built-in types")
 public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String PARENT_PROPERTY                         = "parent";

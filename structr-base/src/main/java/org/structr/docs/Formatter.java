@@ -50,29 +50,32 @@ public abstract class Formatter {
 	 */
 	public static void walkOntology(final List<String> lines, final AnnotatedConcept annotatedConcept, final OutputSettings outputSettings, final String link, final int level, final Set<AnnotatedConcept> seenConcepts) {
 
+		final Concept concept = annotatedConcept.getConcept();
+
 		// max level reached, no output beyond this point
 		if (level >= outputSettings.getMaxLevels()) {
+			Formatter.renderComment(lines, outputSettings, concept + " not rendered because level " + level + " >= maxLevels (" + outputSettings.getMaxLevels() + ")");
 			return;
 		}
 
-		final Concept concept = annotatedConcept.getConcept();
-
 		// type filter
 		if (concept == null) {
-
-			System.out.println("Encountered null concept while processing ontology.");
+			Formatter.renderComment(lines, outputSettings, "Encountered null concept while processing ontology.");
 			return;
 		}
 
 		if (!outputSettings.renderType(concept.getType())) {
+			Formatter.renderComment(lines, outputSettings, concept + " not rendered because OutputSettings#typesToRender did not contain " + concept.getType());
 			return;
 		}
 
 		// only output the same concept once
 		if (!seenConcepts.add(annotatedConcept)) {
+			Formatter.renderComment(lines, outputSettings, concept + " not rendered because it was already rendered previously.");
 			return;
 		}
 
+		String formatterType = null;
 		boolean renderChildren = true;
 
 		if (level >= outputSettings.getStartLevel()) {
@@ -83,9 +86,11 @@ public abstract class Formatter {
 
 				renderChildren = formatter.format(lines, annotatedConcept, outputSettings, link, level, seenConcepts);
 
+				formatterType = formatter.getClass().getSimpleName();
+
 			} else {
 
-				System.out.println("No formatter registered for format " + outputSettings.getOutputFormat() + ", mode " + outputSettings.getOutputMode() + " and " + concept);
+				Formatter.renderComment(lines, outputSettings, concept + " not rendered because no formatter registered for format " + outputSettings.getOutputFormat() + ", mode " + outputSettings.getOutputMode() + " and " + concept);
 			}
 		}
 
@@ -110,6 +115,9 @@ public abstract class Formatter {
 					}
 				}
 			}
+		} else {
+
+			Formatter.renderComment(lines, outputSettings, "Children of " + concept + " not rendered because " + formatterType + " prevents rendering of children.");
 		}
 	}
 
@@ -120,5 +128,17 @@ public abstract class Formatter {
 
 	protected String formatListHeading(final String text, final int level) {
 		return StringUtils.repeat("  ", level) + "- " + text;
+	}
+
+	public static void renderComment(final List<String> lines, final OutputSettings outputSettings, final String text) {
+
+		if ("markdown".equals(outputSettings.getOutputFormat())) {
+
+			lines.add("<span class='info'>Markdown Rendering Hint: " + text + "</span>");
+
+		} else {
+
+			System.out.println(text);
+		}
 	}
 }
