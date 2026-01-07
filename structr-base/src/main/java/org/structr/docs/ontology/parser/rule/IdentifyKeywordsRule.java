@@ -18,11 +18,12 @@
  */
 package org.structr.docs.ontology.parser.rule;
 
+import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.Ontology;
 import org.structr.docs.ontology.parser.token.AsToken;
 import org.structr.docs.ontology.parser.token.NewKeywordToken;
 import org.structr.docs.ontology.parser.token.WithToken;
-import org.structr.docs.ontology.parser.token.Token;
+import org.structr.docs.ontology.parser.token.AbstractToken;
 
 import java.util.Deque;
 import java.util.LinkedList;
@@ -34,14 +35,14 @@ public class IdentifyKeywordsRule extends Rule {
 	}
 
 	@Override
-	public void apply(Deque<Token> tokens) {
+	public void apply(Deque<AbstractToken> tokens) {
 
-		final Deque<Token> result = new LinkedList<>();
+		final Deque<AbstractToken> result = new LinkedList<>();
 
 		while (!tokens.isEmpty()) {
 
-			final Token token1 = tokens.poll();
-			final String name  = token1.getName();
+			final AbstractToken token1 = tokens.poll();
+			final Token name           = token1.getToken();
 
 			if (token1.isUnresolved() && name != null) {
 

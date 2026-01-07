@@ -53,7 +53,7 @@ public class MarkdownFileToken extends NamedConceptToken {
 	}
 
 	public boolean isUnknown() {
-		return "unknown".equals(conceptToken.getName());
+		return "unknown".equals(conceptToken.getToken());
 	}
 
 	@Override
@@ -64,7 +64,7 @@ public class MarkdownFileToken extends NamedConceptToken {
 
 		for (final IdentifierToken pathToken : identifiers) {
 
-			final String path                  = pathToken.getName();
+			final String path                  = pathToken.getToken().getContent();
 			final Map<String, String> metadata = getMetadata(ontology, sourceFile, line);
 			final String fileName              = StringUtils.substringAfterLast(path, "/");
 			final String cleanedName           = coalesce(metadata.get("heading"), MarkdownMarkdownFileFormatter.getNameFromFileName(fileName));

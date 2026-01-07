@@ -36,6 +36,8 @@ public class ToplevelTopicsMarkdownFormatter extends Formatter {
 
 		final Concept concept = annotatedConcept.getConcept();
 
+		System.out.println(concept + ": " + concept.getTokens());
+
 		// do not display blacklisted entries
 		if (blacklistedTypes.contains(concept.getType())) {
 			return true;

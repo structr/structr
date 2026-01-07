@@ -18,21 +18,21 @@
  */
 package org.structr.docs.ontology.parser.token;
 
-import org.structr.docs.ontology.Concept;
+import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.Ontology;
 
 import java.util.LinkedList;
 import java.util.List;
 
-public class IdentifierToken extends Token<List<IdentifierToken>> {
+public class IdentifierToken extends AbstractToken<List<IdentifierToken>> {
 
 	private final List<IdentifierToken> identifiers = new LinkedList<>();
 
 	protected ConceptToken formatSpecification = null;
 
-	public IdentifierToken(final String name) {
+	public IdentifierToken(final Token token) {
 
-		super(name);
+		super(token);
 
 		identifiers.add(this);
 	}

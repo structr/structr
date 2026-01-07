@@ -18,15 +18,15 @@
  */
 package org.structr.docs.ontology.parser.rule;
 
+import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.Ontology;
 import org.structr.docs.ontology.parser.token.BlacklistToken;
 import org.structr.docs.ontology.parser.token.ConceptToken;
-import org.structr.docs.ontology.parser.token.Token;
+import org.structr.docs.ontology.parser.token.AbstractToken;
 
 import java.util.Deque;
 import java.util.LinkedList;
-import java.util.Set;
 
 public class IdentifyConceptsRule extends Rule {
 
@@ -35,46 +35,47 @@ public class IdentifyConceptsRule extends Rule {
 	}
 
 	@Override
-	public void apply(final Deque<Token> tokens) {
+	public void apply(final Deque<AbstractToken> tokens) {
 
-		final Deque<Token> result = new LinkedList<>();
+		final Deque<AbstractToken> result = new LinkedList<>();
 
 		while (!tokens.isEmpty()) {
 
-			final Token token = tokens.pop();
+			final AbstractToken abstractToken = tokens.pop();
 
 			// quoted tokens can never be keywords
-			if (token.isUnresolved() && !token.isInQuotes()) {
+			if (abstractToken.isUnresolved() && !abstractToken.isInQuotes()) {
 
-				final String name                  = token.getName();
+				final Token token                  = abstractToken.getToken();
+				final String name                  = token.getContent();
 				final String lowercaseName         = name.toLowerCase();
 				final String singularLowercaseName = lowercaseName.substring(0, lowercaseName.length() - 1);
 				final String singularName          = name.substring(0, lowercaseName.length() - 1);
 
 				if ("blacklist".equals(lowercaseName)) {
 
-					result.add(new BlacklistToken(name));
+					result.add(new BlacklistToken(token));
 
 				} else if (Concept.exists(lowercaseName)) {
 
 					// use original case for concept token
-					result.add(new ConceptToken(Concept.forName(lowercaseName), name));
+					result.add(new ConceptToken(Concept.forName(lowercaseName), token));
 
 				} else if (Concept.exists(singularLowercaseName)) {
 
 					// our "language" has only simple plurals with "s" at the end!
 					// use original case for concept token, but singular
-					result.add(new ConceptToken(Concept.forName(singularLowercaseName), name));
+					result.add(new ConceptToken(Concept.forName(singularLowercaseName), token));
 
 				} else {
 
-					result.add(token);
+					result.add(abstractToken);
 				}
 
 			} else {
 
 				// move to result
-				result.add(token);
+				result.add(abstractToken);
 			}
 		}
 

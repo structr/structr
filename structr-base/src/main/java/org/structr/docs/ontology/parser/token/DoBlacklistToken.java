@@ -19,7 +19,6 @@
 package org.structr.docs.ontology.parser.token;
 
 import org.structr.docs.ontology.AnnotatedConcept;
-import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.Ontology;
 
 import java.util.LinkedList;
@@ -39,7 +38,7 @@ public class DoBlacklistToken extends NamedConceptToken {
 
 		for (final IdentifierToken identifier : identifiers) {
 
-			ontology.getBlacklist().add(identifier.getName());
+			ontology.getBlacklist().add(identifier.getToken().getContent());
 		}
 
 		// empty list

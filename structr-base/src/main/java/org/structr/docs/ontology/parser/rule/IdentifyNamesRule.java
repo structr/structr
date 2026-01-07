@@ -18,9 +18,10 @@
  */
 package org.structr.docs.ontology.parser.rule;
 
+import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.Ontology;
 import org.structr.docs.ontology.parser.token.IdentifierToken;
-import org.structr.docs.ontology.parser.token.Token;
+import org.structr.docs.ontology.parser.token.AbstractToken;
 
 import java.util.Deque;
 import java.util.LinkedList;
@@ -32,32 +33,22 @@ public class IdentifyNamesRule extends Rule {
 	}
 
 	@Override
-	public void apply(final Deque<Token> tokens) {
+	public void apply(final Deque<AbstractToken> tokens) {
 
-		final Deque<Token> result = new LinkedList<>();
+		final Deque<AbstractToken> result = new LinkedList<>();
 
 		while (!tokens.isEmpty()) {
 
-			final Token token = tokens.pop();
+			final AbstractToken abstractToken = tokens.pop();
 
-			if (token.isUnresolved()) {
+			if (abstractToken.isUnresolved()) {
 
-				if (token.isInQuotes()) {
-
-					final String name         = token.getName();
-					final String unquotedName = name.substring(1, name.length() - 1);
-
-					result.add(new IdentifierToken(unquotedName));
-
-				} else {
-
-					result.add(new IdentifierToken(token.getName()));
-				}
+				result.add(new IdentifierToken(abstractToken.getToken()));
 
 			} else {
 
 				// move to result
-				result.add(token);
+				result.add(abstractToken);
 			}
 		}
 

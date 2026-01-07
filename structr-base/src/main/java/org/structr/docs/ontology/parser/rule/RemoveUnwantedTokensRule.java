@@ -18,8 +18,9 @@
  */
 package org.structr.docs.ontology.parser.rule;
 
+import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.Ontology;
-import org.structr.docs.ontology.parser.token.Token;
+import org.structr.docs.ontology.parser.token.AbstractToken;
 
 import java.util.Deque;
 import java.util.LinkedList;
@@ -32,28 +33,29 @@ public class RemoveUnwantedTokensRule extends Rule {
 	}
 
 	@Override
-	public void apply(final Deque<Token> tokens) {
+	public void apply(final Deque<AbstractToken> tokens) {
 
 		final Set<String> blacklist = ontology.getBlacklist();
-		final Deque<Token> result   = new LinkedList<>();
+		final Deque<AbstractToken> result   = new LinkedList<>();
 
 		while (!tokens.isEmpty()) {
 
-			final Token token = tokens.poll();
+			final AbstractToken abstractToken = tokens.poll();
 
-			if (token.isUnresolved() && blacklist.contains(token.getName().toLowerCase())) {
+			if (abstractToken.isUnresolved() && blacklist.contains(abstractToken.getToken().toLowerCase())) {
 
 				// ignore token
 
 			} else {
 
-				final String name = token.getName();
+				final Token token = abstractToken.getToken();
+				final String name = token.getContent();
 
 				if (name.endsWith(".")) {
-					token.setName(name.substring(0, name.length() - 1));
+					abstractToken.setToken(token);
 				}
 
-				result.add(token);
+				result.add(abstractToken);
 			}
 		}
 

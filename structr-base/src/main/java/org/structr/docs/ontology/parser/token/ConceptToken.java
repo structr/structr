@@ -18,21 +18,23 @@
  */
 package org.structr.docs.ontology.parser.token;
 
+import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.Ontology;
 
 /**
  * A token that resolves to a class in the ontology.
  */
-public class ConceptToken extends Token<ConceptType> {
+public class ConceptToken extends AbstractToken<ConceptType> {
 
 	private boolean allowReuse = true;
-	private final String originalToken;
+	private final Token originalToken;
 	private final ConceptType type;
 
-	public ConceptToken(final ConceptType type, final String originalToken) {
+	public ConceptToken(final ConceptType type, final Token originalToken) {
 
-		super(type.getIdentifier());
+		//super(type.getIdentifier());
+		super(originalToken);
 
 		this.type          = type;
 		this.originalToken = originalToken;
@@ -48,7 +50,7 @@ public class ConceptToken extends Token<ConceptType> {
 		return type;
 	}
 
-	public String getOriginalToken() {
+	public Token getOriginalToken() {
 		return originalToken;
 	}
 

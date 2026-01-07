@@ -18,13 +18,14 @@
  */
 package org.structr.docs.ontology.parser.token;
 
+import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.Ontology;
 
-public class UnresolvedToken extends Token<Concept> {
+public class UnresolvedToken extends AbstractToken<Concept> {
 
-	public UnresolvedToken(final String name) {
-		super(name);
+	public UnresolvedToken(final Token token) {
+		super(token);
 	}
 
 	@Override
@@ -34,6 +35,6 @@ public class UnresolvedToken extends Token<Concept> {
 
 	@Override
 	public Concept resolve(final Ontology ontology, final String sourceFile, final int line) {
-		throw new UnsupportedOperationException("Trying to resolve unresolved token " + name + " from " + sourceFile + ":" + line);
+		throw new UnsupportedOperationException("Trying to resolve unresolved token " + token + " from " + sourceFile + ":" + line);
 	}
 }

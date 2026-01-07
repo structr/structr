@@ -34,7 +34,7 @@ public class FactsTokenizer {
 	private int row                          = 1;
 	private boolean isSilent                 = false;
 
-	public FactsTokenizer(final boolean includeQuotesInTokens) {
+	public FactsTokenizer() {
 
 		candidates.add(new Identifier());
 		candidates.add(new HashComment());
@@ -52,17 +52,17 @@ public class FactsTokenizer {
 		candidates.add(new SingleCharacter('['));
 		candidates.add(new SingleCharacter(']'));
 
-		candidates.add(new QuotedString('\'', includeQuotesInTokens));
-		candidates.add(new QuotedString('\"', includeQuotesInTokens));
+		candidates.add(new QuotedString('\'', false));
+		candidates.add(new QuotedString('\"', false));
 		candidates.add(new Number());
 	}
 
 	public List<Token> tokenize(final String expression) {
 
 		final char[] chars = expression.toCharArray();
-		final int length = chars.length;
-		int count = 0;
-		int i = 0;
+		final int length   = chars.length;
+		int count          = 0;
+		int i              = 0;
 
 		while (i < length && count++ < 100000) {
 

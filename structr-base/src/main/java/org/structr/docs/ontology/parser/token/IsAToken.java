@@ -26,7 +26,7 @@ import org.structr.docs.ontology.Ontology;
 import java.util.LinkedList;
 import java.util.List;
 
-public class IsAToken extends Token<List<AnnotatedConcept>> {
+public class IsAToken extends AbstractToken<List<AnnotatedConcept>> {
 
 	private final NamedConceptToken namedConceptToken;
 	private final ConceptToken conceptToken;

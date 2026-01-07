@@ -40,7 +40,7 @@ public class CodeSourceToken extends NamedConceptToken {
 
 		for (final IdentifierToken identifier : identifiers) {
 
-			final ConceptType type                 = Concept.forName(identifier.getName());
+			final ConceptType type                  = Concept.forName(identifier.getToken().getContent());
 			final DocumentableType documentableType = DocumentableType.forOntologyType(type);
 
 			if (documentableType != null) {

@@ -21,7 +21,8 @@ package org.structr.docs.ontology;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.Predicate;
 import org.structr.core.app.StructrApp;
-import org.structr.core.function.Functions;
+import org.structr.core.function.tokenizer.FactsTokenizer;
+import org.structr.core.function.tokenizer.Token;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.docs.*;
@@ -29,7 +30,7 @@ import org.structr.docs.Formatter;
 import org.structr.docs.analyzer.ExistingDocs;
 import org.structr.docs.ontology.parser.rule.*;
 import org.structr.docs.ontology.parser.token.FactToken;
-import org.structr.docs.ontology.parser.token.Token;
+import org.structr.docs.ontology.parser.token.AbstractToken;
 import org.structr.docs.ontology.parser.token.UnresolvedToken;
 
 import java.io.IOException;
@@ -52,18 +53,6 @@ public final class Ontology {
 	private final Set<String> blacklist            = new LinkedHashSet<>();
 	private Concept currentSubject                 = null;
 
-	public Map<String, String> getKnownVerbs() {
-
-		final Map<String, String> verbs = new LinkedHashMap<>();
-
-		for (final Verb verb : Verb.values()) {
-
-			verbs.put(verb.getLeftToRight(), verb.getRightToLeft());
-		}
-
-		return verbs;
-	}
-
 	public Set<String> getBlacklist() {
 		return blacklist;
 	}
@@ -78,24 +67,6 @@ public final class Ontology {
 
 		initialize(pathToFactsFolder);
 		initializeFromDocumentationAnnotations();
-
-		// link concepts with the same text
-		/*
-		for (final Concept concept1 : concepts) {
-
-			for (final Concept concept2 : concepts) {
-
-				if (concept1.getName().toLowerCase().equals(concept2.getName().toLowerCase())) {
-
-					if (concept1 != concept2 && !concept1.hasChild("matches", concept2) && !concept2.hasChild("matches", concept1)) {
-
-						concept1.linkChild("matches", concept2);
-					}
-				}
-
-			}
-		}
-		*/
 	}
 
 	/**
@@ -191,13 +162,24 @@ public final class Ontology {
 		return linkTypes;
 	}
 
-	public void storeFacts(final String sourceFile, final String fact) {
+	public void storeFacts(final String sourceFile, final String facts) {
 
-		int lineNumber = 1;
+		final Deque<AbstractToken> tokens = new LinkedList<>();
+		final List<Token> input           = new FactsTokenizer().tokenize(facts);
 
-		for (final String line : fact.split("[\\n\\r]+")) {
+		for (final Token token : input) {
 
-			storeFact(sourceFile, line, lineNumber++);
+			if (token.isNotBlank() && !token.isComment()) {
+
+				tokens.add(new UnresolvedToken(token));
+			}
+		}
+
+		reduce(sourceFile, 0, sourceFile, tokens);
+
+		for (final AbstractToken token : tokens) {
+
+			token.resolve(this, sourceFile, 0);
 		}
 	}
 
@@ -213,23 +195,26 @@ public final class Ontology {
 			return;
 		}
 
-		final List<String> input  = Functions.tokenize(line, true);
-		final Deque<Token> tokens = new LinkedList<>();
+		final Deque<AbstractToken> tokens = new LinkedList<>();
+		final List<Token> input           = new FactsTokenizer().tokenize(line);
 
-		for (final String token : input) {
+		for (final Token token : input) {
 
-			tokens.add(new UnresolvedToken(token));
+			if (token.isNotBlank()) {
+
+				tokens.add(new UnresolvedToken(token));
+			}
 		}
 
 		reduce(sourceFile, lineNumber, line, tokens);
 
-		for (final Token token : tokens) {
+		for (final AbstractToken token : tokens) {
 
 			token.resolve(this, sourceFile, lineNumber);
 		}
 	}
 
-	public void reduce(final String fileName, final int line, final String source, final Deque<Token> tokens) {
+	public void reduce(final String fileName, final int line, final String source, final Deque<AbstractToken> tokens) {
 
 		final List<Rule> rules = new LinkedList<>();
 		int count = 0;
@@ -263,14 +248,19 @@ public final class Ontology {
 				return;
 			}
 
+			// all facts
+			if (tokens.stream().allMatch(token -> token instanceof FactToken)) {
+				return;
+			}
+
 			// more than one token left => error
 			if (tokens.stream().noneMatch(token -> token.isUnresolved())) {
 				break;
 			}
 		}
 
-		final List<Token> remainingTokens = new LinkedList<>();
-		for (final Token token : tokens) {
+		final List<AbstractToken> remainingTokens = new LinkedList<>();
+		for (final AbstractToken token : tokens) {
 
 			if (token instanceof FactToken) {
 

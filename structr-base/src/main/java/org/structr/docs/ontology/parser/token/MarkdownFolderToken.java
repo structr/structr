@@ -26,6 +26,7 @@ import com.vladsch.flexmark.util.ast.Document;
 import com.vladsch.flexmark.util.ast.Node;
 import com.vladsch.flexmark.util.data.MutableDataSet;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.formatter.markdown.MarkdownMarkdownFileFormatter;
 import org.structr.docs.ontology.*;
 
@@ -51,7 +52,7 @@ public class MarkdownFolderToken extends NamedConceptToken {
 	}
 
 	public boolean isUnknown() {
-		return "unknown".equals(conceptToken.getName());
+		return "unknown".equals(conceptToken.getToken());
 	}
 
 	@Override
@@ -63,7 +64,8 @@ public class MarkdownFolderToken extends NamedConceptToken {
 
 		for (final IdentifierToken folderNameToken : identifiers) {
 
-			final String folderName  = folderNameToken.getName();
+			final Token token        = folderNameToken.getToken();
+			final String folderName  = token.getContent();
 			final String cleanedName = MarkdownMarkdownFileFormatter.getNameFromFileName(folderName);
 			final Concept folder     = ontology.getOrCreateConcept(sourceFile, line, type, cleanedName, false);
 			final Path folderPath    = Path.of("structr/docs/" + folderName);

@@ -18,12 +18,13 @@
  */
 package org.structr.docs.ontology.parser.token;
 
+import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.Ontology;
 
-public class AsToken extends Token {
+public class AsToken extends AbstractToken {
 
-	public AsToken(String name) {
-		super(name);
+	public AsToken(final Token token) {
+		super(token);
 	}
 
 	@Override

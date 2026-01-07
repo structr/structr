@@ -20,7 +20,7 @@ package org.structr.docs.ontology.parser.rule;
 
 import org.structr.docs.ontology.Ontology;
 import org.structr.docs.ontology.parser.token.AnaphoricPronounToken;
-import org.structr.docs.ontology.parser.token.Token;
+import org.structr.docs.ontology.parser.token.AbstractToken;
 
 import java.util.Deque;
 import java.util.LinkedList;
@@ -33,17 +33,17 @@ public class IdentifyAnaphoricPronounRule extends Rule {
 	}
 
 	@Override
-	public void apply(final Deque<Token> tokens) {
+	public void apply(final Deque<AbstractToken> tokens) {
 
-		final List<Token> result = new LinkedList<>();
+		final List<AbstractToken> result = new LinkedList<>();
 
 		while (!tokens.isEmpty()) {
 
-			final Token token = tokens.pop();
+			final AbstractToken token = tokens.pop();
 
-			if (token.isUnresolved() && "it".equals(token.getName().toLowerCase())) {
+			if (token.isUnresolved() && "it".equals(token.getToken().toLowerCase())) {
 
-				result.add(new AnaphoricPronounToken());
+				result.add(new AnaphoricPronounToken(token.getToken()));
 
 			} else {
 

@@ -18,8 +18,6 @@
  */
 package org.structr.docs.ontology.parser.rule;
 
-import org.structr.core.graph.attribute.Name;
-import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.Ontology;
 import org.structr.docs.ontology.parser.token.*;
 
@@ -33,21 +31,21 @@ public class IdentifyFactsRule extends Rule {
 	}
 
 	@Override
-	public void apply(final Deque<Token> tokens) {
+	public void apply(final Deque<AbstractToken> tokens) {
 
-		final Deque<Token> result = new LinkedList<>();
+		final Deque<AbstractToken> result = new LinkedList<>();
 
 		while (!tokens.isEmpty()) {
 
-			final Token token1 = tokens.poll();
+			final AbstractToken token1 = tokens.poll();
 
 			if (token1 instanceof NamedConceptToken name1 && !tokens.isEmpty()) {
 
-				final Token token2 = tokens.poll();
+				final AbstractToken token2 = tokens.poll();
 
 				if (token2 instanceof VerbToken verbToken && !tokens.isEmpty()) {
 
-					final Token token3 = tokens.poll();
+					final AbstractToken token3 = tokens.poll();
 
 					if (token3 instanceof NamedConceptToken name2) {
 

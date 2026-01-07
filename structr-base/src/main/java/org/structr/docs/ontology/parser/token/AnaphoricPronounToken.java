@@ -18,6 +18,7 @@
  */
 package org.structr.docs.ontology.parser.token;
 
+import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.AnnotatedConcept;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.Ontology;
@@ -30,11 +31,11 @@ import java.util.List;
  */
 public class AnaphoricPronounToken extends NamedConceptToken {
 
-	public AnaphoricPronounToken() {
+	public AnaphoricPronounToken(final Token token) {
 
 		super(null, null);
 
-		setName("it");
+		setToken(token);
 	}
 
 	@Override

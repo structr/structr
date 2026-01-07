@@ -29,7 +29,7 @@ import java.util.List;
 /**
  * An identifier that is augmented with a type so we know what it is.
  */
-public class NamedConceptToken extends Token<List<AnnotatedConcept>> {
+public class NamedConceptToken extends AbstractToken<List<AnnotatedConcept>> {
 
 	protected final List<NamedConceptToken> additionalNamedConcepts = new LinkedList<>();
 	protected final ConceptToken conceptToken;
@@ -37,7 +37,7 @@ public class NamedConceptToken extends Token<List<AnnotatedConcept>> {
 
 	public NamedConceptToken(final ConceptToken conceptToken, final IdentifierToken identifierToken) {
 
-		super((conceptToken != null ? conceptToken.getName() : "") + "(" + (identifierToken != null ? identifierToken.getName() : "") + ")");
+		super(identifierToken != null ? identifierToken.getToken() : null);
 
 		this.identifierToken = identifierToken;
 		this.conceptToken    = conceptToken;
@@ -75,8 +75,11 @@ public class NamedConceptToken extends Token<List<AnnotatedConcept>> {
 				format = identifier.getFormat().resolve(ontology, sourceFile, line);
 			}
 
-			final Concept concept = ontology.getOrCreateConcept(sourceFile, line, type, identifier.getName(), conceptToken.allowReuse());
+			final Concept concept = ontology.getOrCreateConcept(sourceFile, line, type, identifier.getToken().getContent(), conceptToken.allowReuse());
 			if (concept != null) {
+
+				concept.storeToken(conceptToken.getToken());
+				concept.storeToken(identifier.getToken());
 
 				// additional named concepts go into metadata of a concept
 				for (final NamedConceptToken additionalNamedConcept : additionalNamedConcepts) {

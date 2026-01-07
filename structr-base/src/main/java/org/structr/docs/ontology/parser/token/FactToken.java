@@ -18,13 +18,12 @@
  */
 package org.structr.docs.ontology.parser.token;
 
-import org.graalvm.collections.Pair;
 import org.structr.docs.ontology.*;
 
 import java.util.LinkedList;
 import java.util.List;
 
-public class FactToken extends Token {
+public class FactToken extends AbstractToken {
 
 	private final NamedConceptToken subjectToken;
 	private final VerbToken predicateToken;

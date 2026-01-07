@@ -19,7 +19,7 @@ package org.structr.docs.ontology.parser.rule;
  */
 
 import org.structr.docs.ontology.Ontology;
-import org.structr.docs.ontology.parser.token.Token;
+import org.structr.docs.ontology.parser.token.AbstractToken;
 
 import java.util.Deque;
 
@@ -31,5 +31,5 @@ public abstract class Rule {
 		this.ontology = ontology;
 	}
 
-	public abstract void apply(final Deque<Token> tokens);
+	public abstract void apply(final Deque<AbstractToken> tokens);
 }

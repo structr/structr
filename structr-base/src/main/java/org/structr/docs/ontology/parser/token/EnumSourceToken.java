@@ -25,7 +25,6 @@ import org.structr.docs.ontology.AnnotatedConcept;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.Ontology;
-import org.structr.web.traits.definitions.html.A;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -46,7 +45,7 @@ public class EnumSourceToken extends NamedConceptToken {
 
 			try {
 
-				final Class enumType = Class.forName(identifier.getName());
+				final Class enumType = Class.forName(identifier.getToken().getContent());
 				if (enumType != null && enumType.isEnum()) {
 
 					for (final Object constant : enumType.getEnumConstants()) {

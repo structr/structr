@@ -19,6 +19,7 @@
 package org.structr.docs.ontology;
 
 import org.apache.commons.lang3.StringUtils;
+import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.Documentable;
 
 import java.util.*;
@@ -41,6 +42,7 @@ public final class Concept implements Comparable<Concept> {
 	protected final Map<String, List<AnnotatedConcept>> parents  = new LinkedHashMap<>();
 	protected final Map<String, Object> metadata                 = new LinkedHashMap<>();
 	protected final Set<Occurrence> occurrences                  = new LinkedHashSet<>();
+	protected final Set<Token> tokens                            = new LinkedHashSet<>();
 	protected final long id;
 	protected Documentable documentable                          = null;
 	protected String shortDescription                            = null;
@@ -89,6 +91,17 @@ public final class Concept implements Comparable<Concept> {
 
 	public String getName() {
 		return name;
+	}
+
+	public void storeToken(final Token token) {
+
+		if (token != null) {
+			tokens.add(token);
+		}
+	}
+
+	public Object getTokens() {
+		return tokens;
 	}
 
 	public void createSymmetricLink(final Verb verb, final AnnotatedConcept annotatedConcept) {

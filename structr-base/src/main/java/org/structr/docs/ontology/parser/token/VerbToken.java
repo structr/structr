@@ -18,23 +18,21 @@
  */
 package org.structr.docs.ontology.parser.token;
 
-import org.graalvm.collections.Pair;
-import org.structr.docs.ontology.Concept;
-import org.structr.docs.ontology.ConceptType;
+import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.Ontology;
 import org.structr.docs.ontology.Verb;
 
-public class VerbToken extends Token<Verb> {
+public class VerbToken extends AbstractToken<Verb> {
 
 	private final boolean isInverted;
-	private final String inverse;
+	private final Verb verb;
 
-	public VerbToken(final String name, final String inverse, final boolean isInverted) {
+	public VerbToken(final Token token, final Verb verb, final boolean isInverted) {
 
-		super(name);
+		super(token);
 
 		this.isInverted = isInverted;
-		this.inverse    = inverse;
+		this.verb       = verb;
 	}
 
 	@Override
@@ -43,19 +41,16 @@ public class VerbToken extends Token<Verb> {
 	}
 
 	public String getInverse() {
-		return inverse;
+
+		if (isInverted) {
+			return verb.getRightToLeft();
+		}
+
+		return verb.getLeftToRight();
 	}
 
 	public Verb resolve(final Ontology ontology, final String sourceFile, final int line) {
-
-		final Verb ltr = Verb.leftToRight(name);
-		final Verb rtl = Verb.rightToLeft(inverse);
-
-		if (ltr != null && rtl != null && ltr == rtl) {
-			return ltr;
-		}
-
-		return null;
+		return verb;
 	}
 
 	public boolean isInverted() {

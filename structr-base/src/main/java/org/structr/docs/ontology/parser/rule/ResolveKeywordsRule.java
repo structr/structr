@@ -21,7 +21,7 @@ package org.structr.docs.ontology.parser.rule;
 import org.structr.docs.ontology.Ontology;
 import org.structr.docs.ontology.parser.token.ConceptToken;
 import org.structr.docs.ontology.parser.token.NewKeywordToken;
-import org.structr.docs.ontology.parser.token.Token;
+import org.structr.docs.ontology.parser.token.AbstractToken;
 
 import java.util.Deque;
 import java.util.LinkedList;
@@ -34,17 +34,17 @@ public class ResolveKeywordsRule extends Rule {
 	}
 
 	@Override
-	public void apply(final Deque<Token> tokens) {
+	public void apply(final Deque<AbstractToken> tokens) {
 
-		final List<Token> result = new LinkedList<>();
+		final List<AbstractToken> result = new LinkedList<>();
 
 		while (!tokens.isEmpty()) {
 
-			final Token token1 = tokens.pop();
+			final AbstractToken token1 = tokens.pop();
 
 			if (token1 instanceof NewKeywordToken existing && !tokens.isEmpty()) {
 
-				Token token2 = tokens.pop();
+				AbstractToken token2 = tokens.pop();
 
 				if (token2 instanceof ConceptToken concept2) {
 

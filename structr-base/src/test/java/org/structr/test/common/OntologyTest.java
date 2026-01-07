@@ -229,7 +229,7 @@ public class OntologyTest extends StructrUiTest {
 			"\"Structr\" has topics \"One\", \"Two\", \"Three\"",
 			"One has topic \"Authentication\"",
 			"Two has topic \"Authentication\"",
-			"Three has existing topic \"Authentication\""
+			"Three has new topic \"Authentication\""
 		));
 
 		System.out.println(ontology.getAllConcepts());
@@ -238,7 +238,25 @@ public class OntologyTest extends StructrUiTest {
 	@Test
 	public void testFactsFile() {
 
-		final FactsFile factsFile = new FactsFile("/home/chrisi/Code/java/structr/structr-app/src/main/resources/structr/facts/hierarchy.txt");
+		final Ontology ontology  = new Ontology("testExistingKeyword", "");
+
+		final String facts = """
+			#
+			# text.txt
+			#
+			
+			"Structr" has topics "One", "Two", "Three"
+			One has topic "Authentication"
+			Two has topic "Authentication"
+			Three has new topic "Authentication"
+			""";
+
+
+		fixme: use facts file and try to do roundtrip editing etc.
+
+		ontology.storeFacts("testFactsFile", facts);
+
+		System.out.println(ontology.getAllConcepts());
 
 
 	}

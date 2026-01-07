@@ -18,9 +18,10 @@
  */
 package org.structr.docs.ontology.parser.rule;
 
+import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.Ontology;
 import org.structr.docs.ontology.parser.token.ConjunctionToken;
-import org.structr.docs.ontology.parser.token.Token;
+import org.structr.docs.ontology.parser.token.AbstractToken;
 
 import java.util.Deque;
 import java.util.LinkedList;
@@ -34,23 +35,24 @@ public class IdentifyConjunctionsRule extends Rule {
 	}
 
 	@Override
-	public void apply(final Deque<Token> tokens) {
+	public void apply(final Deque<AbstractToken> tokens) {
 
 		final Set<String> conjunctions = ontology.getConjunctions();
-		final List<Token> result       = new LinkedList<>();
+		final List<AbstractToken> result       = new LinkedList<>();
 
 		while (!tokens.isEmpty()) {
 
-			final Token token = tokens.pop();
-			final String name = token.getName();
+			final AbstractToken abstractToken = tokens.pop();
+			final Token token                 = abstractToken.getToken();
+			final String name                 = token.getContent();
 
 			if (conjunctions.contains(name)) {
 
-				result.add(new ConjunctionToken(name));
+				result.add(new ConjunctionToken(token));
 
 			} else {
 
-				result.add(token);
+				result.add(abstractToken);
 			}
 		}
 

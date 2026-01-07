@@ -29,7 +29,7 @@ import java.util.function.BiFunction;
 
 public class IdentifyNamedConceptsRule extends Rule {
 
-	private final Map<ConceptType, BiFunction<ConceptToken, IdentifierToken, Token>> SpecializedTokens = Map.of(
+	private final Map<ConceptType, BiFunction<ConceptToken, IdentifierToken, AbstractToken>> SpecializedTokens = Map.of(
 		ConceptType.Blacklist,      DoBlacklistToken::new,
 		ConceptType.CodeSource,     CodeSourceToken::new,
 		ConceptType.EnumSource,     EnumSourceToken::new,
@@ -44,18 +44,18 @@ public class IdentifyNamedConceptsRule extends Rule {
 	}
 
 	@Override
-	public void apply(final Deque<Token> tokens) {
+	public void apply(final Deque<AbstractToken> tokens) {
 
-		final Deque<Token> result = new LinkedList<>();
+		final Deque<AbstractToken> result = new LinkedList<>();
 
 		while (!tokens.isEmpty()) {
 
-			final Token token1 = tokens.pop();
+			final AbstractToken token1 = tokens.pop();
 
 			if (token1 instanceof IdentifierToken identifierToken && !tokens.isEmpty()) {
 
 				// unresolved => check if next is existing concept
-				final Token token2 = tokens.pop();
+				final AbstractToken token2 = tokens.pop();
 
 				if (token2 instanceof ConceptToken conceptToken) {
 
@@ -80,7 +80,7 @@ public class IdentifyNamedConceptsRule extends Rule {
 			} else if (token1 instanceof ConceptToken conceptToken && !tokens.isEmpty()) {
 
 				// concept => check if next is unresolved
-				final Token token2 = tokens.pop();
+				final AbstractToken token2 = tokens.pop();
 
 				if (token2 instanceof IdentifierToken identifierToken) {
 

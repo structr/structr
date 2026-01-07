@@ -18,12 +18,13 @@
  */
 package org.structr.docs.ontology.parser.token;
 
+import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.Ontology;
 
-public class ConjunctionToken extends Token<Void> {
+public class ConjunctionToken extends AbstractToken<Void> {
 
-	public ConjunctionToken(final String name) {
-		super(name);
+	public ConjunctionToken(final Token token) {
+		super(token);
 	}
 
 	@Override

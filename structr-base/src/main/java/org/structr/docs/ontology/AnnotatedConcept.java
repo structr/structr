@@ -36,6 +36,11 @@ public class AnnotatedConcept {
 		this.annotations.putAll(annotations);
 	}
 
+	@Override
+	public String toString() {
+		return concept.toString();
+	}
+
 	public Map<String, Object> getAnnotations() {
 		return annotations;
 	}

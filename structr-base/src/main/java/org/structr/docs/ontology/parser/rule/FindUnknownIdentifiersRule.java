@@ -23,7 +23,7 @@ import org.structr.docs.ontology.Ontology;
 import org.structr.docs.ontology.parser.token.ConceptToken;
 import org.structr.docs.ontology.parser.token.IdentifierToken;
 import org.structr.docs.ontology.parser.token.NamedConceptToken;
-import org.structr.docs.ontology.parser.token.Token;
+import org.structr.docs.ontology.parser.token.AbstractToken;
 
 import java.util.Deque;
 import java.util.LinkedList;
@@ -35,17 +35,17 @@ public class FindUnknownIdentifiersRule extends Rule {
 	}
 
 	@Override
-	public void apply(final Deque<Token> tokens) {
+	public void apply(final Deque<AbstractToken> tokens) {
 
-		final Deque<Token> result    = new LinkedList<>();
+		final Deque<AbstractToken> result    = new LinkedList<>();
 
 		while (!tokens.isEmpty()) {
 
-			final Token token = tokens.pop();
+			final AbstractToken token = tokens.pop();
 
 			if (token instanceof IdentifierToken identifierToken) {
 
-				result.add(new NamedConceptToken(new ConceptToken(ConceptType.Unknown, "unknown"), identifierToken));
+				result.add(new NamedConceptToken(new ConceptToken(ConceptType.Unknown, null), identifierToken));
 
 			} else {
 

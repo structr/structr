@@ -31,22 +31,22 @@ public class ResolveAsRule extends Rule {
 	}
 
 	@Override
-	public void apply(final Deque<Token> tokens) {
+	public void apply(final Deque<AbstractToken> tokens) {
 
-		final Deque<Token> result = new LinkedList<>();
+		final Deque<AbstractToken> result = new LinkedList<>();
 
 		while (!tokens.isEmpty()) {
 
-			final Token token1 = tokens.pop();
+			final AbstractToken token1 = tokens.pop();
 
 			if (token1 instanceof IdentifierToken identifier1 && !tokens.isEmpty()) {
 
 				// unresolved => check if next is existing concept
-				final Token token2 = tokens.pop();
+				final AbstractToken token2 = tokens.pop();
 
 				if (token2 instanceof AsToken preposition && !tokens.isEmpty()) {
 
-					final Token token3 = tokens.pop();
+					final AbstractToken token3 = tokens.pop();
 
 					if (token3 instanceof ConceptToken concept2) {
 

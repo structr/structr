@@ -18,9 +18,7 @@
  */
 package org.structr.docs.ontology;
 
-import org.structr.core.function.Functions;
 import org.structr.core.function.tokenizer.FactsTokenizer;
-import org.structr.core.function.tokenizer.StructrScriptTokenizer;
 import org.structr.core.function.tokenizer.Token;
 
 import java.io.BufferedReader;
@@ -53,7 +51,7 @@ public class FactsFile {
 
 			try (final BufferedReader reader = Files.newBufferedReader(p)) {
 
-				final FactsTokenizer tokenizer = new FactsTokenizer(true);
+				final FactsTokenizer tokenizer = new FactsTokenizer();
 				final List<Token> tokens       = tokenizer.tokenize(reader.readAllAsString());
 
 				for (final Token token : tokens) {

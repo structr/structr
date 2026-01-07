@@ -18,6 +18,8 @@
  */
 package org.structr.core.function.tokenizer;
 
+import org.apache.commons.lang3.StringUtils;
+
 public class Token {
 
 	private final String type;
@@ -58,5 +60,29 @@ public class Token {
 
 	public int getColumn() {
 		return column;
+	}
+
+	public boolean startsWith(final String prefix) {
+		return content.startsWith(prefix);
+	}
+
+	public boolean endsWith(final String suffix) {
+		return content.endsWith(suffix);
+	}
+
+	public String toLowerCase() {
+		return content.toLowerCase();
+	}
+
+	public Character charAt(int i) {
+		return content.charAt(i);
+	}
+
+	public boolean isNotBlank() {
+		return StringUtils.isNotBlank(content);
+	}
+
+	public boolean isComment() {
+		return "comment".equals(type);
 	}
 }

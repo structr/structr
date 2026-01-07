@@ -72,7 +72,7 @@ public class JavascriptFileToken extends NamedConceptToken {
 	}
 
 	public boolean isUnknown() {
-		return "unknown".equals(conceptToken.getName());
+		return "unknown".equals(conceptToken.getToken());
 	}
 
 	@Override
@@ -83,7 +83,7 @@ public class JavascriptFileToken extends NamedConceptToken {
 
 		for (final IdentifierToken fileNameToken : identifiers) {
 
-			final String fileName = fileNameToken.getName();
+			final String fileName = fileNameToken.getToken().getContent();
 			final Path path       = Path.of(fileName);
 
 			// resolve markdown folder contents and add them as topics

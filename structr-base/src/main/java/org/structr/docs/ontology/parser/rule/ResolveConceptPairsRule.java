@@ -18,10 +18,11 @@
  */
 package org.structr.docs.ontology.parser.rule;
 
+import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.Ontology;
 import org.structr.docs.ontology.parser.token.ConceptToken;
 import org.structr.docs.ontology.parser.token.IdentifierToken;
-import org.structr.docs.ontology.parser.token.Token;
+import org.structr.docs.ontology.parser.token.AbstractToken;
 
 import java.util.Deque;
 import java.util.LinkedList;
@@ -34,42 +35,42 @@ public class ResolveConceptPairsRule extends Rule {
 	}
 
 	@Override
-	public void apply(final Deque<Token> tokens) {
+	public void apply(final Deque<AbstractToken> tokens) {
 
-		final List<Token> result = new LinkedList<>();
+		final List<AbstractToken> result = new LinkedList<>();
 
 		while (!tokens.isEmpty()) {
 
-			final Token token1 = tokens.pop();
+			final AbstractToken token1 = tokens.pop();
 
 			if (token1 instanceof ConceptToken concept1 && !tokens.isEmpty()) {
 
-				Token token2 = tokens.pop();
+				AbstractToken token2 = tokens.pop();
 
 				if (token2 instanceof ConceptToken concept2) {
 
 					// two concepts, check case first
-					final String originalName1 = concept1.getOriginalToken();
-					final String originalName2 = concept2.getOriginalToken();
+					final Token originalToken1 = concept1.getOriginalToken();
+					final Token originalToken2 = concept2.getOriginalToken();
 
-					final Character c1 = originalName1.charAt(0);
-					final Character c2 = originalName2.charAt(0);
+					final Character c1 = originalToken1.charAt(0);
+					final Character c2 = originalToken2.charAt(0);
 
 					// uppercase is identifier, lowercase is concept
 					if (Character.isUpperCase(c1) && !Character.isUpperCase(c2)) {
 
-						result.add(new IdentifierToken(originalName1));
+						result.add(new IdentifierToken(originalToken1));
 						result.add(concept2);
 
 					} else if (!Character.isUpperCase(c1) && Character.isUpperCase(c2)) {
 
 						result.add(concept1);
-						result.add(new IdentifierToken(originalName2));
+						result.add(new IdentifierToken(originalToken2));
 
 					} else {
 
 						// both lower case or both upper case => first wins
-						result.add(new IdentifierToken(originalName1));
+						result.add(new IdentifierToken(originalToken1));
 						result.add(concept2);
 
 					}

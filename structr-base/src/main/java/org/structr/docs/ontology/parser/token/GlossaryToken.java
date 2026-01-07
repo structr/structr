@@ -18,7 +18,6 @@
  */
 package org.structr.docs.ontology.parser.token;
 
-import org.structr.api.util.html.attr.Id;
 import org.structr.docs.ontology.*;
 
 import java.util.LinkedList;
@@ -38,7 +37,7 @@ public class GlossaryToken extends NamedConceptToken {
 
 		for (final IdentifierToken identifierToken : identifiers) {
 
-			final Concept glossary = ontology.getOrCreateConcept(sourceFile, lineNumber, ConceptType.Glossary, identifierToken.getName(), true);
+			final Concept glossary = ontology.getOrCreateConcept(sourceFile, lineNumber, ConceptType.Glossary, identifierToken.getToken().getContent(), true);
 			if (glossary != null) {
 
 				concepts.add(new AnnotatedConcept(glossary));

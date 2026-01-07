@@ -32,23 +32,23 @@ public class IdentifyListsRule extends Rule {
 	}
 
 	@Override
-	public void apply(final Deque<Token> tokens) {
+	public void apply(final Deque<AbstractToken> tokens) {
 
-		final List<Token> result = new LinkedList<>();
+		final List<AbstractToken> result = new LinkedList<>();
 
 		while (!tokens.isEmpty()) {
 
-			final Token token1 = tokens.pop();
+			final AbstractToken token1 = tokens.pop();
 
 			if (token1 instanceof IdentifierToken identifier1 && !tokens.isEmpty()) {
 
-				final Token token2 = tokens.pop();
+				final AbstractToken token2 = tokens.pop();
 
 				// example: one, two and three
 
 				if (token2 instanceof ConjunctionToken && !tokens.isEmpty()) {
 
-					final Token token3 = tokens.pop();
+					final AbstractToken token3 = tokens.pop();
 
 					if (token3 instanceof IdentifierToken identifier3) {
 
@@ -68,7 +68,7 @@ public class IdentifyListsRule extends Rule {
 
 					} else {
 
-						throw new RuntimeException("Syntax error: expected identifier in list, got " + token3.getName() + " with name \"" + token3.getName() + "\". Compound phrases are not supported, please use separate phrases to specify facts with different concepts.");
+						throw new RuntimeException("Syntax error: expected identifier in list, got " + token3.getToken() + " with name \"" + token3.getToken() + "\". Compound phrases are not supported, please use separate phrases to specify facts with different concepts.");
 					}
 
 				} else {
