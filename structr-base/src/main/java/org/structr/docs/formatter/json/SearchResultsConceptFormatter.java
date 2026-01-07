@@ -55,7 +55,6 @@ public class SearchResultsConceptFormatter {
 
 		lines.add(gson.toJson(data));
 	}
-
 	// ----- private methods -----
 	private void collectParents(final Concept concept, final Map<String, Object> data, final int level) {
 
@@ -73,7 +72,7 @@ public class SearchResultsConceptFormatter {
 
 			for (final AnnotatedConcept annotatedParentConcept : parent.getValue()) {
 
-				final Concept parentConcept = annotatedParentConcept.getConcept();
+				final Concept parentConcept        = annotatedParentConcept.getConcept();
 				final Map<String, Object> childMap = new LinkedHashMap<>();
 
 				childMap.put("id",         parentConcept.getId());
@@ -91,19 +90,5 @@ public class SearchResultsConceptFormatter {
 				"targets", targets
 			));
 		}
-
-
-	}
-
-	private String coalesce(final String... str) {
-
-		for (final String s : str) {
-
-			if (StringUtils.isNotBlank(s)) {
-				return s;
-			}
-		}
-
-		return null;
 	}
 }

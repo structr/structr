@@ -27,11 +27,12 @@ import org.structr.docs.ontology.Details;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 public class MarkdownDocumentableFormatter extends Formatter {
 
 	@Override
-	public void format(final List<String> lines, final AnnotatedConcept annotatedConcept, final OutputSettings settings, String link, final int level) {
+	public boolean format(final List<String> lines, final AnnotatedConcept annotatedConcept, final OutputSettings settings, final String link, final int level, final Set<AnnotatedConcept> visited) {
 
 		final Concept concept = annotatedConcept.getConcept();
 		if (concept.getDocumentable() != null) {
@@ -40,5 +41,7 @@ public class MarkdownDocumentableFormatter extends Formatter {
 
 			lines.addAll(documentable.createMarkdownDocumentation(EnumSet.allOf(Details.class), level + 1));
 		}
+
+		return true;
 	}
 }

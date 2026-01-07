@@ -26,7 +26,18 @@ import java.util.*;
 
 public abstract class Formatter {
 
-	public abstract void format(final List<String> lines, final AnnotatedConcept concept, final OutputSettings settings, final String link, final int level);
+	/**
+	 * Formats the given annotated concept. The return value of this method determines
+	 * whether the children of this concept should be rendered or not.
+	 *
+	 * @param lines
+	 * @param concept
+	 * @param settings
+	 * @param link
+	 * @param level
+	 * @return whether the children should be rendered
+	 */
+	public abstract boolean format(final List<String> lines, final AnnotatedConcept concept, final OutputSettings settings, final String link, final int level, final Set<AnnotatedConcept> visited);
 
 	/**
 	 * Walks through the whole ontology and calls formatters for all the elements.
@@ -62,13 +73,15 @@ public abstract class Formatter {
 			return;
 		}
 
+		boolean renderChildren = true;
+
 		if (level >= outputSettings.getStartLevel()) {
 
 			// part1: fetch formatter for concept and call format()
 			final Formatter formatter = outputSettings.getFormatterForConcept(annotatedConcept, outputSettings.getOutputMode());
 			if (formatter != null) {
 
-				formatter.format(lines, annotatedConcept, outputSettings, link, level);
+				renderChildren = formatter.format(lines, annotatedConcept, outputSettings, link, level, seenConcepts);
 
 			} else {
 
@@ -76,36 +89,28 @@ public abstract class Formatter {
 			}
 		}
 
-		// part2: recurse (children are handled externally, i.e. not inside the type-specific formatters)
-		final Map<String, List<AnnotatedConcept>> children = concept.getChildren();
-		for (final String key : children.keySet()) {
+		if (renderChildren) {
 
-			if ("has".equals(key)) {
+			// part2: recurse (children are handled externally, i.e. not inside the type-specific formatters)
+			final Map<String, List<AnnotatedConcept>> children = concept.getChildren();
+			for (final String key : children.keySet()) {
 
-				final List<AnnotatedConcept> concepts = new LinkedList<>(children.get(key));
+				if ("has".equals(key)) {
 
-				// only sort second-level topics
-				if (level > 0) {
-					Collections.sort(concepts, Comparator.comparing(AnnotatedConcept::getName));
-				}
+					final List<AnnotatedConcept> concepts = new LinkedList<>(children.get(key));
 
-				for (final AnnotatedConcept child : concepts) {
+					// only sort second-level topics
+					if (level > 0) {
+						Collections.sort(concepts, Comparator.comparing(AnnotatedConcept::getName));
+					}
 
-					walkOntology(lines, child, outputSettings, key, level + 1, seenConcepts);
+					for (final AnnotatedConcept child : concepts) {
+
+						walkOntology(lines, child, outputSettings, key, level + 1, seenConcepts);
+					}
 				}
 			}
 		}
-
-		/*
-		final Map<String, List<Concept>> parents = concept.getParents();
-		for (final String key : parents.keySet()) {
-
-			for (final Concept parent : parents.get(key)) {
-
-				walkOntology(lines, parent, outputSettings, key, level + 1, seenConcepts);
-			}
-		}
-		*/
 	}
 
 	// ----- protected methods -----

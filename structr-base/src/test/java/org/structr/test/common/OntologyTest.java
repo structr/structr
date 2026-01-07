@@ -201,6 +201,32 @@ public class OntologyTest extends StructrUiTest {
 		}
 	}
 
+	@Test
+	public void testGetGroupedChildren() {
+
+		final Ontology ontology  = new Ontology("testGetGroupedChildren", "Structr has code-source \"system-type\"");
+		ontology.initializeFromDocumentationAnnotations();
+
+		final Concept root = ontology.getConcept(ConceptType.Unknown, "File");
+
+		System.out.println(root.getGroupedChildren());
+
+	}
+
+	@Test
+	public void testGlossary() {
+
+		final Ontology ontology  = new Ontology("testGlossary", List.of(
+			"Structr has topics \"Glossary\"",
+			"\"Glossary\" has glossary \"Glossary\""
+		));
+
+		ontology.initializeFromDocumentationAnnotations();
+
+		System.out.println(ontology.getConceptsByName("Glossary"));
+
+	}
+
 
 	// ----- private methods -----
 	private void printConcepts(final List<Concept> concepts) {

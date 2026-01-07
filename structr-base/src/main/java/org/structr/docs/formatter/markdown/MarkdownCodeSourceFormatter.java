@@ -30,7 +30,7 @@ import java.util.*;
 public class MarkdownCodeSourceFormatter extends Formatter {
 
 	@Override
-	public void format(final List<String> lines, final AnnotatedConcept annotatedConcept, final OutputSettings settings, String link, final int level) {
+	public boolean format(final List<String> lines, final AnnotatedConcept annotatedConcept, final OutputSettings settings, final String link, final int level, final Set<AnnotatedConcept> visited) {
 
 		final List<Documentable> documentables  = new LinkedList<>();
 		final Concept concept                   = annotatedConcept.getConcept();
@@ -48,5 +48,7 @@ public class MarkdownCodeSourceFormatter extends Formatter {
 		for (final Documentable documentable : documentables) {
 			lines.addAll(documentable.createMarkdownDocumentation(settings.getDetails(), level));
 		}
+
+		return true;
 	}
 }

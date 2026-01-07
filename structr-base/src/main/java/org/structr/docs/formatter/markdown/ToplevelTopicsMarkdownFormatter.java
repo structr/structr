@@ -32,13 +32,13 @@ public class ToplevelTopicsMarkdownFormatter extends Formatter {
 	private final Set<ConceptType> blacklistedTypes = Set.of(ConceptType.Text, ConceptType.Constant); //, ConceptType.Setting, ConceptType.Helper, ConceptType.Category, ConceptType.HttpVerb);
 
 	@Override
-	public void format(final List<String> lines, final AnnotatedConcept annotatedConcept, final OutputSettings settings, final String link, final int level) {
+	public boolean format(final List<String> lines, final AnnotatedConcept annotatedConcept, final OutputSettings settings, final String link, final int level, final Set<AnnotatedConcept> visited) {
 
 		final Concept concept = annotatedConcept.getConcept();
 
 		// do not display blacklisted entries
 		if (blacklistedTypes.contains(concept.getType())) {
-			return;
+			return true;
 		}
 
 		if (settings.hasDetail(Details.name) || settings.hasDetail(Details.all)) {
@@ -78,5 +78,7 @@ public class ToplevelTopicsMarkdownFormatter extends Formatter {
 				lines.add(concept.getShortDescription());
 			}
 		}
+
+		return true;
 	}
 }

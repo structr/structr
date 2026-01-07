@@ -31,11 +31,12 @@ public class IdentifyNamedConceptsRule extends Rule {
 
 	private final Map<ConceptType, BiFunction<ConceptToken, IdentifierToken, Token>> SpecializedTokens = Map.of(
 		ConceptType.Blacklist,      DoBlacklistToken::new,
-		ConceptType.MarkdownFolder, MarkdownFolderToken::new,
-		ConceptType.MarkdownFile,   MarkdownFileToken::new,
-		ConceptType.JavascriptFile, JavascriptFileToken::new,
 		ConceptType.CodeSource,     CodeSourceToken::new,
-		ConceptType.EnumSource,     EnumSourceToken::new
+		ConceptType.EnumSource,     EnumSourceToken::new,
+		ConceptType.Glossary,       GlossaryToken::new,
+		ConceptType.JavascriptFile, JavascriptFileToken::new,
+		ConceptType.MarkdownFolder, MarkdownFolderToken::new,
+		ConceptType.MarkdownFile,   MarkdownFileToken::new
 	);
 
 	public IdentifyNamedConceptsRule(final Ontology ontology) {

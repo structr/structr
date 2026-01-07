@@ -23,13 +23,13 @@ import org.structr.docs.OutputSettings;
 import org.structr.docs.ontology.AnnotatedConcept;
 
 import java.util.List;
+import java.util.Set;
 
 public class MarkdownServiceFormatter extends Formatter {
 
 	@Override
-	public void format(final List<String> lines, final AnnotatedConcept concept, final OutputSettings settings, String link, final int level) {
+	public boolean format(final List<String> lines, final AnnotatedConcept annotatedConcept, final OutputSettings settings, final String link, final int level, final Set<AnnotatedConcept> visited) {
 
-
-
+		return true;
 	}
 }

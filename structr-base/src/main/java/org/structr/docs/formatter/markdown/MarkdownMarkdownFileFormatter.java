@@ -28,6 +28,7 @@ import org.structr.docs.ontology.Concept;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -44,7 +45,7 @@ public class MarkdownMarkdownFileFormatter extends Formatter {
 	}
 
 	@Override
-	public void format(final List<String> lines, final AnnotatedConcept annotatedConcept, final OutputSettings settings, String link, final int level) {
+	public boolean format(final List<String> lines, final AnnotatedConcept annotatedConcept, final OutputSettings settings, final String link, final int level, final Set<AnnotatedConcept> visited) {
 
 		// concept name contains folder name
 		final Concept concept   = annotatedConcept.getConcept();
@@ -64,6 +65,8 @@ public class MarkdownMarkdownFileFormatter extends Formatter {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+
+		return true;
 	}
 
 	public static String getNameFromFileName(final String fileName) {

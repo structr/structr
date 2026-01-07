@@ -29,7 +29,7 @@ import java.util.*;
 public class MarkdownTableFormatter extends Formatter {
 
 	@Override
-	public void format(final List<String> lines, final AnnotatedConcept annotatedConcept, final OutputSettings settings, String link, final int level) {
+	public boolean format(final List<String> lines, final AnnotatedConcept annotatedConcept, final OutputSettings settings, final String link, final int level, final Set<AnnotatedConcept> visited) {
 
 		final Concept concept = annotatedConcept.getConcept();
 
@@ -50,6 +50,9 @@ public class MarkdownTableFormatter extends Formatter {
 			final List<Documentable> documentables = new LinkedList<>();
 
 			for (final AnnotatedConcept annotatedChild : children) {
+
+				// mark concept as visited so it is not rendered again
+				visited.add(annotatedChild);
 
 				final Concept child             = annotatedChild.getConcept();
 				final Documentable documentable = child.getDocumentable();
@@ -85,6 +88,8 @@ public class MarkdownTableFormatter extends Formatter {
 				lines.add("| `" + documentable.getDisplayName() + "` | " + documentable.getShortDescription() + " |");
 			}
 		}
+
+		return false;
 	}
 
 	// ----- private methods -----

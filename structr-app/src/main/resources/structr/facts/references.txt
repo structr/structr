@@ -6,7 +6,8 @@
 #
 
 # References
-Topic References has topics "Built-in keywords", "Built-in functions", "Lifecycle methods", "Built-in types", "Built-in properties", Services, "Maintenance commands", Settings, "Java internals", Glossary
+Topic References has topics "Built-in keywords", "Built-in functions", "Lifecycle methods", "Built-in types", "Built-in properties", Services, "Maintenance commands", Settings, "Java internals"
+It has glossary "Glossary"
 
 # enum constants
 "Request parameters" has enum-source "org.structr.common.RequestParameters"
@@ -38,11 +39,11 @@ Area "Widgets" has javascript-file "structr/js/widgets.js"
 "Built-in functions" has code-source "function" as table
 "Settings" has code-source "setting" as table
 "Maintenance commands" has code-source "maintenance-command" as table
-"Lifecycle methods" has code-source "lifecycle-method" as table
-"Services" has code-source "service" as table
-"Built-in properties" has code-source "property" as table
+"Lifecycle methods" has code-source "lifecycle-method"
+"Services" has code-source "service"
+"Built-in properties" has code-source "property"
 "Built-in types" has code-source "system-type"
+    "Built-in types" has "Lifecycle methods" as table
+    "Built-in types" has "Properties" as table
 
 "Java internals" has topic "Classes"
-
-"Glossary" has glossary "Glossary"

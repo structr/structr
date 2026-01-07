@@ -19,12 +19,15 @@
 package org.structr.docs.formatter.markdown;
 
 import org.apache.commons.lang3.StringUtils;
+import org.graalvm.nativeimage.AnnotationAccess;
+import org.structr.docs.Documentable;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
 import org.structr.docs.ontology.*;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class SystemTypeMarkdownFormatter extends Formatter {
@@ -32,13 +35,13 @@ public class SystemTypeMarkdownFormatter extends Formatter {
 	private final Set<ConceptType> blacklistedTypes = Set.of(ConceptType.Text, ConceptType.Constant); //, ConceptType.Setting, ConceptType.Helper, ConceptType.Category, ConceptType.HttpVerb);
 
 	@Override
-	public void format(final List<String> lines, final AnnotatedConcept annotatedConcept, final OutputSettings settings, final String link, final int level) {
+	public boolean format(final List<String> lines, final AnnotatedConcept annotatedConcept, final OutputSettings settings, final String link, final int level, final Set<AnnotatedConcept> visited) {
 
 		final Concept concept = annotatedConcept.getConcept();
 
 		// do not display blacklisted entries
 		if (blacklistedTypes.contains(concept.getType())) {
-			return;
+			return false;
 		}
 
 		if (settings.hasDetail(Details.name) || settings.hasDetail(Details.all)) {
@@ -73,10 +76,67 @@ public class SystemTypeMarkdownFormatter extends Formatter {
 
 		if (settings.hasDetail(Details.all)) {
 
-			if (concept.getShortDescription() != null) {
+			// iterate over all links
+			for (final Map.Entry<ConceptType, Set<Concept>> entry : concept.getGroupedChildren().entrySet()) {
 
-				lines.add(concept.getShortDescription());
+				final ConceptType conceptType = entry.getKey();
+				final Set<Concept> concepts   = entry.getValue();
+
+				if (!concepts.isEmpty()) {
+
+					lines.add(formatMarkdownHeading(conceptType.name(), level + 2));
+
+					lines.add("");
+					lines.add("| Name | Description |");
+					lines.add("| --- | --- |");
+
+					for (final Concept child : entry.getValue()) {
+
+						final Documentable documentable = child.getDocumentable();
+						if (documentable != null) {
+
+							lines.add("| " + documentable.getName() + " | " + documentable.getShortDescription() + " |");
+
+						} else {
+
+							lines.add("| " + child.getName() + " | " + child.getShortDescription() + " |");
+						}
+
+					}
+				}
 			}
 		}
+
+		return false;
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

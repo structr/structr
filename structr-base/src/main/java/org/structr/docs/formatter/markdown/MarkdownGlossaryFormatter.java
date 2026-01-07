@@ -21,8 +21,10 @@ package org.structr.docs.formatter.markdown;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
+import org.structr.docs.formatter.json.SearchResultsConceptFormatter;
 import org.structr.docs.ontology.AnnotatedConcept;
 import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.Details;
 import org.structr.docs.ontology.Ontology;
 
 import java.util.*;
@@ -30,7 +32,26 @@ import java.util.*;
 public class MarkdownGlossaryFormatter extends Formatter {
 
 	@Override
-	public void format(final List<String> lines, final AnnotatedConcept concept, final OutputSettings settings, String link, final int level) {
+	public boolean format(final List<String> lines, final AnnotatedConcept annotatedConcept, final OutputSettings settings, final String link, final int level, final Set<AnnotatedConcept> seenConcepts) {
+
+		final Concept concept = annotatedConcept.getConcept();
+
+		if (settings.hasDetail(Details.name) || settings.hasDetail(Details.all)) {
+
+			// add parent topic here, but only at level 0
+			if (level == 0) {
+
+				final String parentConceptName = concept.getParentConceptName();
+				if (parentConceptName != null) {
+
+					lines.add(formatMarkdownHeading(parentConceptName, level));
+					lines.add("");
+				}
+			}
+
+			lines.add(formatMarkdownHeading(concept.getName(), level + 1));
+			lines.add("");
+		}
 
 		final Ontology ontology      = settings.getOntology();
 		final List<Concept> concepts = new LinkedList<>(ontology.getAllConcepts());
@@ -53,27 +74,53 @@ public class MarkdownGlossaryFormatter extends Formatter {
 			if (firstCharacter == null || !firstCharacter.equals(first)) {
 				firstCharacter = first;
 
-				lines.add(formatMarkdownHeading(firstCharacter, level + 1));
+				lines.add(formatMarkdownHeading(firstCharacter, level + 2));
 				lines.add("");
 
 				lines.add("| Name | Parent |");
 				lines.add("| --- | --- |");
 			}
 
-			lines.add("| " + c.getName() + " | " + c.getParentConceptName() + " |");
+			lines.add("| " + c.getName() + " | " + collectParents(c) + " |");
 		}
+
+		return true;
 	}
 
 	// ----- private methods -----
-	private String coalesce(final String... strings) {
+	private String collectParents(final Concept concept) {
 
-		for (final String string : strings) {
+		final Set<String> strings = new LinkedHashSet<>();
+		final List<String> parents = new LinkedList<>();
 
-			if (StringUtils.isNotBlank(string)) {
-				return string;
-			}
+		collectParents(concept, strings, 0);
+
+		parents.addAll(strings);
+
+		return StringUtils.join(parents.reversed(), " / ");
+	}
+
+	private void collectParents(final Concept concept, final Set<String> data, final int level) {
+
+		if (level > 3) {
+			return;
 		}
 
-		return null;
+		for (final Map.Entry<String, List<AnnotatedConcept>> parent : concept.getParents().entrySet()) {
+
+			final List<Map<String, Object>> targets = new LinkedList<>();
+
+			for (final AnnotatedConcept annotatedParentConcept : parent.getValue()) {
+
+				final Concept parentConcept = annotatedParentConcept.getConcept();
+
+				if (!"Structr".equals(parentConcept.getName())) {
+
+					data.add(parentConcept.getName());
+
+					collectParents(parentConcept, data, level + 1);
+				}
+			}
+		}
 	}
 }

@@ -410,20 +410,26 @@ let _Documentation = {
 
                                         let parents = _Documentation.search.extractParents(entry);
                                         let contextHint = _Documentation.search.formatContextHint(entry);
+                                        let link        = parents?.[0]?.name || entry.name;
+                                        let type        = entry.type;
+
+                                        if (type === 'MarkdownFile') {
+                                            type = 'Topic';
+                                        }
 
                                         let result = _Helpers.createSingleDOMElementFromHTML(`
                                             <li class="search-result cursor-pointer">
                                                 <div class="group-aria-selected:text-sky-600">
                                                     <span>${entry.name}</span>
                                                 </div>
-                                                <div class="search-result-type">${entry.type}</div>
+                                                <div class="search-result-type">${type}</div>
                                                 <div class="search-result-description">${contextHint}<span class="sr-only">/</span></div>
                                             </li>
                                         `);
 
                                         result.addEventListener('click', e => {
                                             _Documentation.search.hideSearch();
-                                            _Documentation.loadDoc(`${parents[0].name}`, null, parents, entry.name);
+                                            _Documentation.loadDoc(`${link}`, null, parents, entry.name);
                                         });
 
                                         _Documentation.search.searchResultsList.appendChild(result);

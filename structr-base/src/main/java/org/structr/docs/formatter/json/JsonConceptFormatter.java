@@ -31,7 +31,7 @@ import java.util.*;
 public class JsonConceptFormatter extends Formatter {
 
 	@Override
-	public void format(final List<String> lines, final AnnotatedConcept annotatedConcept, final OutputSettings settings, final String link, final int level) {
+	public boolean format(final List<String> lines, final AnnotatedConcept annotatedConcept, final OutputSettings settings, final String link, final int level, final Set<AnnotatedConcept> visited) {
 
 		final Concept concept          = annotatedConcept.getConcept();
 		final Gson gson                = new GsonBuilder().create();
@@ -73,6 +73,8 @@ public class JsonConceptFormatter extends Formatter {
 		}
 
 		lines.add(gson.toJson(data));
+
+		return true;
 	}
 
 	// ----- private methods -----

@@ -27,11 +27,12 @@ import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.Details;
 
 import java.util.List;
+import java.util.Set;
 
 public class PlaintextTopicFormatter extends Formatter {
 
 	@Override
-	public void format(final List<String> lines, final AnnotatedConcept annotatedConcept, final OutputSettings settings, String link, final int level) {
+	public boolean format(final List<String> lines, final AnnotatedConcept annotatedConcept, final OutputSettings settings, String link, final int level, final Set<AnnotatedConcept> seenConcepts) {
 
 		final Concept concept = annotatedConcept.getConcept();
 
@@ -43,5 +44,7 @@ public class PlaintextTopicFormatter extends Formatter {
 			final String text = concept.getName();
 			lines.add(StringUtils.repeat(" ", level * 2) + text);
 		}
+
+		return true;
 	}
 }

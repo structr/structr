@@ -44,7 +44,7 @@ public enum ConceptType {
 
 	// metadata
 	Hint("hint"), Note("note"), Description("description"), Info("info"), Configuration("configuration"),
-	Synonym("synonym"), Text("text"), Glossary("glossary"),
+	Synonym("synonym"), Text("text"), Glossary("glossary"), GlossaryEntry("glossary-entry"),
 
 	// java types
 	Keyword("keyword"), Method("method"), Property("property"), UserDefinedFunction("user-defined-function"),

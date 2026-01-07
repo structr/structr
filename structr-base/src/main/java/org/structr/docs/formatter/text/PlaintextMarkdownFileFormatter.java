@@ -25,6 +25,7 @@ import org.structr.docs.ontology.AnnotatedConcept;
 import org.structr.docs.ontology.Details;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Formats the contents of an external markdown source as plaintext,
@@ -39,11 +40,13 @@ public class PlaintextMarkdownFileFormatter extends Formatter {
 	}
 
 	@Override
-	public void format(final List<String> lines, final AnnotatedConcept concept, final OutputSettings settings, String link, final int level) {
+	public boolean format(final List<String> lines, final AnnotatedConcept concept, final OutputSettings settings, String link, final int level, final Set<AnnotatedConcept> seenConcepts) {
 
 		if (settings.getDetails().contains(Details.name)) {
 
 			lines.add(concept.getName());
 		}
+
+		return true;
 	}
 }

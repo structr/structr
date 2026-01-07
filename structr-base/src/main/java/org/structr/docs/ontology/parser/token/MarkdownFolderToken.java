@@ -59,7 +59,7 @@ public class MarkdownFolderToken extends NamedConceptToken {
 
 		final ConceptType type                  = conceptToken.resolve(ontology, sourceFile, line);
 		final List<IdentifierToken> identifiers = identifierToken.resolve(ontology, sourceFile, line);
-		final List<AnnotatedConcept> concepts            = new LinkedList<>();
+		final List<AnnotatedConcept> concepts   = new LinkedList<>();
 
 		for (final IdentifierToken folderNameToken : identifiers) {
 
@@ -117,6 +117,9 @@ public class MarkdownFolderToken extends NamedConceptToken {
 										}
 									}
 								}
+
+								// store markdown content in concept
+								markdownFile.getMetadata().put("content", StringUtils.join(lines, "\n"));
 
 							} else {
 

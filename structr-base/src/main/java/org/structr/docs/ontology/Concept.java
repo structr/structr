@@ -29,7 +29,7 @@ import java.util.function.Consumer;
  * A concept in the Structr Documentation Ontology. This class
  * will store everything you add into the ontology.
  */
-public final class Concept {
+public final class Concept implements Comparable<Concept> {
 
 	public static final double EXACT_MATCH_SCORE      = 100.0;
 	public static final double NAME_MATCH_SCORE       = 10.0;
@@ -69,6 +69,11 @@ public final class Concept {
 	@Override
 	public String toString() {
 		return type + "(" + name + ")";
+	}
+
+	@Override
+	public int compareTo(final Concept o) {
+		return name.compareTo(o.getName());
 	}
 
 	public String getNameTypeAndLinks() {
@@ -315,6 +320,47 @@ public final class Concept {
 		return false;
 	}
 
+	/**
+	 * Indicates whether this concept is a toplevel concept, meaning it
+	 * has no parent, or the generic "Structr" concept as a parent.
+	 * @return whether this concept is a toplevel concept
+	 */
+	public boolean isToplevelConcept() {
+
+		final Map<String, List<AnnotatedConcept>> parents = getParents();
+		if (parents.isEmpty()) {
+			return true;
+		}
+
+		for (final Map.Entry<String, List<AnnotatedConcept>> entry : parents.entrySet()) {
+
+			for (final AnnotatedConcept parent : entry.getValue()) {
+
+				if ("Structr".equals(parent.getConcept().getName())) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	public Map<ConceptType, Set<Concept>> getGroupedChildren() {
+
+		final Map<ConceptType, Set<Concept>> groupedChildren = new HashMap<>();
+
+		for (final Map.Entry<String, List<AnnotatedConcept>> entry : children.entrySet()) {
+
+			for (final AnnotatedConcept child : entry.getValue()) {
+
+				groupedChildren.computeIfAbsent(child.getType(), k -> new TreeSet<>()).add(child.getConcept());
+			}
+		}
+
+		return groupedChildren;
+	}
+
+	// ----- private methods -----
 	public static boolean exists(final String name) {
 
 		for (final ConceptType type : ConceptType.values()) {
@@ -339,28 +385,7 @@ public final class Concept {
 		return null;
 	}
 
-	/**
-	 * Indicates whether this concept is a toplevel concept, meaning it
-	 * has no parent, or the generic "Structr" concept as a parent.
-	 * @return whether this concept is a toplevel concept
-	 */
-	public boolean isToplevelConcept() {
-
-		final Map<String, List<AnnotatedConcept>> parents = getParents();
-		if (parents.isEmpty()) {
-			return true;
-		}
-
-		for (final Map.Entry<String, List<AnnotatedConcept>> entry : parents.entrySet()) {
-
-			for (final AnnotatedConcept parent : entry.getValue()) {
-
-				if ("Structr".equals(parent.getConcept().getName())) {
-					return true;
-				}
-			}
-		}
-
-		return false;
+	public static Concept create(final String sourceFile, final int lineNumber, final ConceptType type, final String name) {
+		return new Concept(sourceFile, lineNumber, type, name);
 	}
 }

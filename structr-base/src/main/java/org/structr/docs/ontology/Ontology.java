@@ -428,7 +428,7 @@ public final class Ontology {
 		}
 	}
 
-	private void initializeFromDocumentationAnnotations() {
+	public void initializeFromDocumentationAnnotations() {
 
 		for (final Map.Entry<Class, List<Documentation>> entry : StructrApp.getConfiguration().getDocumentationAnnotations().entrySet()) {
 
@@ -527,6 +527,8 @@ public final class Ontology {
 										final Concept propertyConcept = getOrCreateConcept(sourceFile, 0, ConceptType.Property, property.getName(), false);
 										if (propertyConcept != null) {
 
+											propertyConcept.setShortDescription(property.getDescription());
+
 											concept.createSymmetricLink(Verb.Has, new AnnotatedConcept(propertyConcept));
 										}
 									}
@@ -546,13 +548,9 @@ public final class Ontology {
 				// import enum constants as well
 				if (clazz.isEnum()) {
 
-					boolean hasEntries = false;
-
 					for (final Object enumConstant : clazz.getEnumConstants()) {
 
 						if (enumConstant instanceof Documentable documentable) {
-
-							hasEntries = true;
 
 							final String childName = documentable.getDisplayName();
 							if (childName != null) {

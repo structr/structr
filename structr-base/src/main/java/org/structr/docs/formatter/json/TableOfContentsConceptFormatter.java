@@ -30,24 +30,10 @@ import java.util.*;
 
 public class TableOfContentsConceptFormatter extends Formatter {
 
-	private final Set<ConceptType> whitelistedTypes = Set.of(
-		ConceptType.Topic,
-		ConceptType.MarkdownFolder,
-		ConceptType.MarkdownFile,
-		ConceptType.MarkdownHeading,
-		ConceptType.Keyword
-	);
-
 	@Override
-	public void format(final List<String> lines, final AnnotatedConcept annotatedConcept, final OutputSettings settings, final String link, final int level) {
+	public boolean format(final List<String> lines, final AnnotatedConcept annotatedConcept, final OutputSettings settings, final String link, final int level, final Set<AnnotatedConcept> visited) {
 
-		final Concept concept = annotatedConcept.getConcept();
-
-		// only whitelisted types here..
-		if (!whitelistedTypes.contains(concept.getType())) {
-			return;
-		}
-
+		final Concept concept                 = annotatedConcept.getConcept();
 		final Gson gson                       = new GsonBuilder().create();
 		final List<Map<String, Object>> links = new LinkedList<>();
 		final Map<String, Object> data        = new LinkedHashMap<>();
@@ -82,5 +68,7 @@ public class TableOfContentsConceptFormatter extends Formatter {
 		}
 
 		lines.add(gson.toJson(data));
+
+		return false;
 	}
 }
