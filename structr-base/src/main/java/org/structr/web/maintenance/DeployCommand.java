@@ -2315,6 +2315,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					logger.warn("Exception while importing files", ioex);
 				}
 
+				fiv.importMetadataOnlyFolders();
+
 				return fiv.getFileImportProblems();
 			}
 		}

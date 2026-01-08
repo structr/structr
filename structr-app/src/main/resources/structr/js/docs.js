@@ -323,7 +323,7 @@ let _Documentation = {
 		});
 
 		// Make navigation link active and scroll into view
-		waitForElement(`#docs-area nav a[href='#docs:${decodeURI(path)}']`).then(el => {
+		_Helpers.waitForElement(`#docs-area nav a[href='#docs:${decodeURI(path)}']`).then(el => {
 			el.classList.add('active');
 			el.scrollIntoView({ block: "start" });
 		});

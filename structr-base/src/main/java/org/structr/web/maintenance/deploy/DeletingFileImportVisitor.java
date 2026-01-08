@@ -60,9 +60,9 @@ public abstract class DeletingFileImportVisitor extends FileImportVisitor {
 
 	// ----- private methods -----
 	@Override
-	protected boolean createFolder(final Path path) {
+	protected boolean createFolderFromFilesystem(final Path fsPath) {
 
-		final String folderPath = harmonizeFileSeparators("/", basePath.relativize(path).toString());
+		final String folderPath = harmonizeFileSeparators("/", basePath.relativize(fsPath).toString());
 
 		// only delete folder if it was in the export set and NOT as a required parent (meaning that it was deliberately exported and not just because it was required because a child was exported)
 		final boolean folderWasOnlyExportedAsParent = parents.contains(folderPath);
@@ -83,11 +83,11 @@ public abstract class DeletingFileImportVisitor extends FileImportVisitor {
 
 			} catch (Exception ex) {
 
-				logger.error("Error occurred while deleting folder before import: " + path, ex);
+				logger.error("Error occurred while deleting folder before import: " + fsPath, ex);
 			}
 		}
 
-		super.createFolder(path);
+		super.createFolderFromFilesystem(fsPath);
 
 		objectProcessed();
 
