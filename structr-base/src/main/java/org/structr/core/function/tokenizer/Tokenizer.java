@@ -46,8 +46,8 @@ public abstract class Tokenizer {
 		return buf.toString();
 	}
 
-	public Token getToken() {
-		return new Token(getType(), getContent(), getQuoteChar(), row, column);
+	public Token getToken(final String fileName) {
+		return new Token(fileName, getType(), getContent(), getQuoteChar(), row, column);
 	}
 
 	public void init(final int row, final int column) {

@@ -57,7 +57,7 @@ public class FactsTokenizer {
 		candidates.add(new Number());
 	}
 
-	public List<Token> tokenize(final String expression) {
+	public List<Token> tokenize(final String fileName, final String expression) {
 
 		final char[] chars = expression.toCharArray();
 		final int length   = chars.length;
@@ -88,7 +88,7 @@ public class FactsTokenizer {
 
 					if (currentToken != null) {
 
-						tokens.add(currentToken.getToken());
+						tokens.add(currentToken.getToken(fileName));
 					}
 
 					currentToken = nextToken;
@@ -107,7 +107,7 @@ public class FactsTokenizer {
 
 		if (currentToken != null) {
 
-			tokens.add(currentToken.getToken());
+			tokens.add(currentToken.getToken(fileName));
 		}
 
 		return tokens;

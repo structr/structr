@@ -51,6 +51,13 @@ public class IdentifyFactsRule extends Rule {
 
 						result.add(new FactToken(name1, verbToken, name2));
 
+					} else if (token3 instanceof NamedConceptListToken list) {
+
+						for (final NamedConceptToken conceptToken : list.getTokens()) {
+
+							result.add(new FactToken(name1, verbToken, conceptToken));
+						}
+
 					} else {
 
 						// no match => move tokens back

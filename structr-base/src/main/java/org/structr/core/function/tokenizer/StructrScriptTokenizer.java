@@ -87,7 +87,7 @@ public class StructrScriptTokenizer {
 
 					if (currentToken != null) {
 
-						tokens.add(currentToken.getToken());
+						tokens.add(currentToken.getToken(null));
 					}
 
 					currentToken = nextToken;
@@ -106,7 +106,7 @@ public class StructrScriptTokenizer {
 
 		if (currentToken != null) {
 
-			tokens.add(currentToken.getToken());
+			tokens.add(currentToken.getToken(null));
 		}
 
 		return tokens;

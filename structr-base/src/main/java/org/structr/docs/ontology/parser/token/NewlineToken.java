@@ -22,7 +22,7 @@ import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.Ontology;
 
-public class NewlineToken extends StringToken<Concept> {
+public class NewlineToken extends ConstantToken<Concept> {
 
 	public NewlineToken(final Token token) {
 		super(token);
@@ -31,10 +31,6 @@ public class NewlineToken extends StringToken<Concept> {
 	@Override
 	public Concept resolve(final Ontology ontology) {
 		return null;
-	}
-
-	public boolean isInQuotes() {
-		return token.getQuote() != null;
 	}
 
 	@Override

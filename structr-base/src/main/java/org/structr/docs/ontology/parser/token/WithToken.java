@@ -21,7 +21,7 @@ package org.structr.docs.ontology.parser.token;
 import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.Ontology;
 
-public class WithToken extends StringToken {
+public class WithToken extends ConstantToken {
 
 	public WithToken(final Token token) {
 		super(token);

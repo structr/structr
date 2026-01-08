@@ -52,65 +52,63 @@ public class MarkdownFileToken extends NamedConceptToken {
 	}
 
 	@Override
-	public List<AnnotatedConcept> resolve(final Ontology ontology) {
+	public AnnotatedConcept resolve(final Ontology ontology) {
 
-		final List<IdentifierToken> identifiers = identifierToken.resolve(ontology);
-		final List<AnnotatedConcept> concepts            = new LinkedList<>();
+		final List<AnnotatedConcept> concepts = new LinkedList<>();
+		final String path                     = identifierToken.resolve(ontology);
 
-		for (final IdentifierToken pathToken : identifiers) {
+		final Map<String, String> metadata = getMetadata(ontology);
+		final String fileName              = StringUtils.substringAfterLast(path, "/");
+		final String cleanedName           = coalesce(metadata.get("heading"), MarkdownMarkdownFileFormatter.getNameFromFileName(fileName));
+		final Path folderPath              = Path.of("structr/docs/" + path);
+		final Concept markdownFile         = ontology.getOrCreateConcept(this, ConceptType.MarkdownFile, cleanedName, false);
 
-			final String path                  = pathToken.getToken().getContent();
-			final Map<String, String> metadata = getMetadata(ontology);
-			final String fileName              = StringUtils.substringAfterLast(path, "/");
-			final String cleanedName           = coalesce(metadata.get("heading"), MarkdownMarkdownFileFormatter.getNameFromFileName(fileName));
-			final Path folderPath              = Path.of("structr/docs/" + path);
-			final Concept markdownFile         = ontology.getOrCreateConcept(this, ConceptType.MarkdownFile, cleanedName, false);
+		if (markdownFile != null) {
 
-			if (markdownFile != null) {
+			markdownFile.getMetadata().put("path", path);
 
-				markdownFile.getMetadata().put("path", path);
+			final AnnotatedConcept annotatedConcept = new AnnotatedConcept(markdownFile);
 
-				concepts.add(new AnnotatedConcept(markdownFile));
+			try {
 
-				try {
+				// handle children
+				final List<String> lines = Files.readAllLines(folderPath);
+				final MutableDataSet options = new MutableDataSet();
 
-					// handle children
-					final List<String> lines = Files.readAllLines(folderPath);
-					final MutableDataSet options = new MutableDataSet();
+				options.setAll(PegdownOptionsAdapter.flexmarkOptions(false, Extensions.ALL));
 
-					options.setAll(PegdownOptionsAdapter.flexmarkOptions(false, Extensions.ALL));
+				final Parser parser = Parser.builder(options).build();
+				final Document doc = parser.parse(StringUtils.join(lines, "\n"));
 
-					final Parser parser = Parser.builder(options).build();
-					final Document doc = parser.parse(StringUtils.join(lines, "\n"));
+				for (final Node child : doc.getChildren()) {
 
-					for (final Node child : doc.getChildren()) {
+					if (child instanceof Heading heading) {
 
-						if (child instanceof Heading heading) {
+						final int level = heading.getLevel();
+						final String text = heading.getText().unescape();
 
-							final int level = heading.getLevel();
-							final String text = heading.getText().unescape();
+						if (level == 2) {
 
-							if (level == 2) {
+							final Concept headingConcept = ontology.getOrCreateConcept(this, ConceptType.MarkdownHeading, text, false);
+							if (headingConcept != null) {
 
-								final Concept headingConcept = ontology.getOrCreateConcept(this, ConceptType.MarkdownHeading, text, false);
-								if (headingConcept != null) {
-
-									markdownFile.createSymmetricLink(Verb.Has, new AnnotatedConcept(headingConcept));
-								}
+								markdownFile.createSymmetricLink(Verb.Has, new AnnotatedConcept(headingConcept));
 							}
 						}
 					}
-
-					// store markdown content in concept
-					markdownFile.getMetadata().put("content", StringUtils.join(lines, "\n"));
-
-				} catch (IOException ioex) {
-					ioex.printStackTrace();
 				}
+
+				// store markdown content in concept
+				markdownFile.getMetadata().put("content", StringUtils.join(lines, "\n"));
+
+			} catch (IOException ioex) {
+				ioex.printStackTrace();
 			}
+
+			return annotatedConcept;
 		}
 
-		return concepts;
+		return null;
 	}
 
 	// ----- private methods -----
@@ -121,13 +119,10 @@ public class MarkdownFileToken extends NamedConceptToken {
 		// additional named concepts go into metadata of a concept (for now..)
 		for (final NamedConceptToken additionalNamedConcept : additionalNamedConcepts) {
 
-			final List<AnnotatedConcept> additionalConcepts = additionalNamedConcept.resolve(ontology);
-			for (final AnnotatedConcept additionalAnnotatedConcept : additionalConcepts) {
+			final AnnotatedConcept additionalAnnotatedConcept = additionalNamedConcept.resolve(ontology);
+			final Concept additionalConcept                   = additionalAnnotatedConcept.getConcept();
 
-				final Concept additionalConcept = additionalAnnotatedConcept.getConcept();
-
-				metadata.put(additionalConcept.getType().getIdentifier(), additionalConcept.getName());
-			}
+			metadata.put(additionalConcept.getType().getIdentifier(), additionalConcept.getName());
 		}
 
 		return metadata;

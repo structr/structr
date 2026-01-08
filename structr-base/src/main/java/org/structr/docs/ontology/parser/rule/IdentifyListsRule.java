@@ -40,7 +40,7 @@ public class IdentifyListsRule extends Rule {
 
 			final AbstractToken token1 = tokens.pop();
 
-			if (token1 instanceof IdentifierToken identifier1 && !tokens.isEmpty()) {
+			if (token1 instanceof IdentifierListToken list) {
 
 				final AbstractToken token2 = tokens.pop();
 
@@ -52,9 +52,9 @@ public class IdentifyListsRule extends Rule {
 
 					if (token3 instanceof IdentifierToken identifier3) {
 
-						identifier1.addIdentifier(identifier3);
+						list.addToken(identifier3);
 
-						tokens.push(token1);
+						tokens.push(list);
 
 
 					} else if (token3 instanceof ConceptToken concept1) {
@@ -62,9 +62,49 @@ public class IdentifyListsRule extends Rule {
 						// If we arrive here, there was a known concept in the list
 						// that should most likely be handled as an identifier, hence
 						// we convert it back to an identifier token.
-						identifier1.addIdentifier(concept1.asIdentifierToken());
 
-						tokens.push(token1);
+						list.addToken(concept1.asIdentifierToken());
+
+						tokens.push(list);
+
+					} else {
+
+						throw new RuntimeException("Syntax error: expected identifier in list, got " + token3 + ". Compound phrases are not supported, please use separate phrases to specify facts with different concepts.");
+					}
+
+				} else {
+
+					// token1 is processed
+					result.add(token1);
+
+					// token2 needs to stay
+					tokens.push(token2);
+				}
+
+			} else if (token1 instanceof IdentifierToken identifier1 && !tokens.isEmpty()) {
+
+				final AbstractToken token2 = tokens.pop();
+
+				// example: one, two and three
+
+				if (token2 instanceof ConjunctionToken && !tokens.isEmpty()) {
+
+					final AbstractToken token3 = tokens.pop();
+
+					if (token3 instanceof IdentifierToken identifier3) {
+
+						//identifier1.addIdentifier(identifier3);
+
+						tokens.push(new IdentifierListToken(identifier1, identifier3));
+						//tokens.push(token1);
+
+
+					} else if (token3 instanceof ConceptToken concept1) {
+
+						// If we arrive here, there was a known concept in the list
+						// that should most likely be handled as an identifier, hence
+						// we convert it back to an identifier token.
+						tokens.push(new IdentifierListToken(identifier1, concept1.asIdentifierToken()));
 
 					} else {
 

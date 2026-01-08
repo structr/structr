@@ -66,10 +66,13 @@ public class ToplevelTopicsMarkdownFormatter extends Formatter {
 
 			final List<String> buf = new LinkedList<>();
 
-			for (final AbstractToken token : concept.getTokens()) {
+			for (final AbstractToken abstractToken : concept.getTokens()) {
 
-				buf.add(token.toString());
-				//buf.add(token.getSourceFile() + ":" + token.getRow());
+				final Token token = abstractToken.getToken();
+				if (token != null) {
+
+					buf.add(token.toString());
+				}
 			}
 
 			lines.add("<span class='info'>Sources: " + StringUtils.join(buf, ", ") + "</span>");

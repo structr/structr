@@ -21,9 +21,6 @@ package org.structr.docs.ontology.parser.token;
 import org.structr.docs.ontology.AnnotatedConcept;
 import org.structr.docs.ontology.Ontology;
 
-import java.util.LinkedList;
-import java.util.List;
-
 public class DoBlacklistToken extends NamedConceptToken {
 
 	public DoBlacklistToken(final ConceptToken conceptToken, final IdentifierToken identifierToken) {
@@ -31,18 +28,14 @@ public class DoBlacklistToken extends NamedConceptToken {
 	}
 
 	@Override
-	public List<AnnotatedConcept> resolve(final Ontology ontology) {
+	public AnnotatedConcept resolve(final Ontology ontology) {
 
-		final List<IdentifierToken> identifiers = identifierToken.resolve(ontology);
-		final List<AnnotatedConcept> concepts            = new LinkedList<>();
+		final String identifier = identifierToken.resolve(ontology);
 
-		for (final IdentifierToken identifier : identifiers) {
-
-			ontology.getBlacklist().add(identifier.getToken().getContent());
-		}
+		ontology.getBlacklist().add(identifier);
 
 		// empty list
-		return concepts;
+		return null;
 	}
 
 	@Override

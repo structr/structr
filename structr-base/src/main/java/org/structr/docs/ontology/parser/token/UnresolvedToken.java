@@ -41,4 +41,9 @@ public class UnresolvedToken extends StringToken<Concept> {
 	public boolean isTerminal() {
 		return false;
 	}
+
+	@Override
+	public void renameTo(final String newName) {
+		throw new UnsupportedOperationException("Cannot rename unresolved token " + token);
+	}
 }

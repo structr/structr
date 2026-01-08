@@ -18,6 +18,7 @@
  */
 package org.structr.docs.ontology.parser.token;
 
+import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.AnnotatedConcept;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.ConceptType;
@@ -29,13 +30,21 @@ import java.util.List;
 /**
  * An identifier that is augmented with a type so we know what it is.
  */
-public class NamedConceptToken extends AbstractToken<List<AnnotatedConcept>> {
+public class NamedConceptToken extends AbstractToken<AnnotatedConcept> {
 
 	protected final List<NamedConceptToken> additionalNamedConcepts = new LinkedList<>();
 	protected final ConceptToken conceptToken;
 	protected final IdentifierToken identifierToken;
 
 	public NamedConceptToken(final ConceptToken conceptToken, final IdentifierToken identifierToken) {
+
+		if (identifierToken != null) {
+			identifierToken.setParent(this);
+		}
+
+		if (conceptToken != null) {
+			conceptToken.setParent(this);
+		}
 
 		this.identifierToken = identifierToken;
 		this.conceptToken    = conceptToken;
@@ -67,53 +76,69 @@ public class NamedConceptToken extends AbstractToken<List<AnnotatedConcept>> {
 	}
 
 	@Override
-	public List<AnnotatedConcept> resolve(final Ontology ontology) {
+	public AnnotatedConcept resolve(final Ontology ontology) {
 
-		final ConceptType type                  = conceptToken.resolve(ontology);
-		final List<IdentifierToken> identifiers = identifierToken.resolve(ontology);
-		final List<AnnotatedConcept> concepts   = new LinkedList<>();
+		final ConceptType type  = conceptToken.resolve(ontology);
+		final String identifier = identifierToken.resolve(ontology);
 
-		for (final IdentifierToken identifier : identifiers) {
+		ConceptType format = null;
 
-			ConceptType format = null;
-
-			if (identifier.getFormat() != null) {
-				format = identifier.getFormat().resolve(ontology);
-			}
-
-			final Concept concept = ontology.getOrCreateConcept(identifier, type, identifier.getToken().getContent(), conceptToken.allowReuse());
-			if (concept != null) {
-
-				// additional named concepts go into metadata of a concept
-				for (final NamedConceptToken additionalNamedConcept : additionalNamedConcepts) {
-
-					final List<AnnotatedConcept> additionalConcepts = additionalNamedConcept.resolve(ontology);
-					for (final AnnotatedConcept additionalAnnotatedConcept : additionalConcepts) {
-
-						final Concept additionalConcept = additionalAnnotatedConcept.getConcept();
-
-						//concepts.add(additionalConcept);
-
-						concept.getMetadata().put(additionalConcept.getType().getIdentifier(), additionalConcept.getName());
-					}
-				}
-
-				final AnnotatedConcept annotatedConcept = new AnnotatedConcept(concept);
-
-				if (format != null) {
-
-					annotatedConcept.getAnnotations().put("format", format);
-				}
-
-				concepts.add(annotatedConcept);
-			}
+		if (identifierToken.getFormat() != null) {
+			format = identifierToken.getFormat().resolve(ontology);
 		}
 
-		return concepts;
+		final Concept concept = ontology.getOrCreateConcept(identifierToken, type, identifier, conceptToken.allowReuse());
+		if (concept != null) {
+
+			/*
+			// additional named concepts go into metadata of a concept
+			for (final NamedConceptToken additionalNamedConcept : additionalNamedConcepts) {
+
+				final List<AnnotatedConcept> additionalConcepts = additionalNamedConcept.resolve(ontology);
+				for (final AnnotatedConcept additionalAnnotatedConcept : additionalConcepts) {
+
+					final Concept additionalConcept = additionalAnnotatedConcept.getConcept();
+
+					//concepts.add(additionalConcept);
+
+					concept.getMetadata().put(additionalConcept.getType().getIdentifier(), additionalConcept.getName());
+				}
+			}
+			*/
+
+			final AnnotatedConcept annotatedConcept = new AnnotatedConcept(concept);
+
+			if (format != null) {
+
+				annotatedConcept.getAnnotations().put("format", format);
+			}
+
+			return annotatedConcept;
+		}
+
+		return null;
 	}
 
 	@Override
 	public boolean isTerminal() {
 		return false;
+	}
+
+	@Override
+	public Token getToken() {
+
+		if (identifierToken != null) {
+			return identifierToken.getToken();
+		}
+
+		return null;
+	}
+
+	@Override
+	public void renameTo(final String newName) {
+
+		if (identifierToken != null) {
+			identifierToken.renameTo(newName);
+		}
 	}
 }

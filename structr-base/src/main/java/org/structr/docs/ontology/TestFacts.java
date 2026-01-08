@@ -26,6 +26,7 @@ import java.util.List;
 
 public class TestFacts extends FactsContainer {
 
+	private final List<Token> tokens = new LinkedList<>();
 	private final String facts;
 	private final String name;
 
@@ -36,11 +37,26 @@ public class TestFacts extends FactsContainer {
 	}
 
 	@Override
+	public String toString() {
+
+		final StringBuilder buf = new StringBuilder();
+
+		for (Token token : tokens) {
+
+			buf.append(token.getRawContent());
+		}
+
+		return buf.toString();
+	}
+
+	@Override
 	public List<Token> getTokens() {
 
 		final FactsTokenizer factsTokenizer = new  FactsTokenizer();
 
-		return factsTokenizer.tokenize(facts);
+		tokens.addAll(factsTokenizer.tokenize(name, facts));
+
+		return tokens;
 	}
 
 	@Override

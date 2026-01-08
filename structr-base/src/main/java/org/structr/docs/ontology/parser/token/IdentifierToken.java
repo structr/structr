@@ -18,16 +18,11 @@
  */
 package org.structr.docs.ontology.parser.token;
 
-import org.apache.commons.lang3.StringUtils;
 import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.Ontology;
 
-import java.util.LinkedList;
-import java.util.List;
+public class IdentifierToken extends AbstractToken<String> {
 
-public class IdentifierToken extends AbstractToken<List<IdentifierToken>> {
-
-	private final List<IdentifierToken> identifiers = new LinkedList<>();
 	private final Token token;
 
 	protected ConceptToken formatSpecification = null;
@@ -35,25 +30,15 @@ public class IdentifierToken extends AbstractToken<List<IdentifierToken>> {
 	public IdentifierToken(final Token token) {
 
 		this.token = token;
-
-		identifiers.add(this);
 	}
 
 	@Override
 	public String toString() {
-		return "IdentifierToken(" + StringUtils.join(identifiers.stream().map(IdentifierToken::getToken).iterator(), ',') + ")";
+		return "IdentifierToken(" + token + ")";
 	}
 
-	public void addIdentifier(final IdentifierToken identifier) {
-		identifiers.add(identifier);
-	}
-
-	public List<IdentifierToken> getIdentifiers() {
-		return identifiers;
-	}
-
-	public List<IdentifierToken> resolve(final Ontology ontology) {
-		return identifiers;
+	public String resolve(final Ontology ontology) {
+		return token.getContent();
 	}
 
 	public void setFormat(final ConceptToken format) {
@@ -71,5 +56,11 @@ public class IdentifierToken extends AbstractToken<List<IdentifierToken>> {
 	@Override
 	public boolean isTerminal() {
 		return false;
+	}
+
+	@Override
+	public void renameTo(final String newName) {
+
+		token.setContent(newName);
 	}
 }

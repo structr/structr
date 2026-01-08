@@ -22,24 +22,26 @@ import org.apache.commons.lang3.StringUtils;
 
 public class Token {
 
+	private final String sourceFile;
 	private final String type;
-	private final String content;
 	private final String quote;
 	private final int row;
 	private final int column;
+	private String content;
 
-	public Token(final String type, final String content, final String quote, final int row, final int column) {
+	public Token(final String sourceFile, final String type, final String content, final String quote, final int row, final int column) {
 
-		this.type    = type;
-		this.content = content;
-		this.row     = row;
-		this.column  = column;
-		this.quote   = quote;
+		this.sourceFile = sourceFile;
+		this.type       = type;
+		this.content    = content;
+		this.row        = row;
+		this.column     = column;
+		this.quote      = quote;
 	}
 
 	@Override
 	public String toString() {
-		return content;
+		return sourceFile + ":" + row + ":" + column;
 	}
 
 	public String getType() {
@@ -48,6 +50,16 @@ public class Token {
 
 	public String getContent() {
 		return content;
+	}
+
+	public String getRawContent() {
+
+		if (quote != null) {
+
+			return quote + content + quote;
+		}
+
+		return getContent();
 	}
 
 	public String getQuote() {
@@ -88,5 +100,9 @@ public class Token {
 
 	public boolean isComment() {
 		return "comment".equals(type);
+	}
+
+	public void setContent(String newContent) {
+		this.content = newContent;
 	}
 }

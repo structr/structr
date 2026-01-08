@@ -21,19 +21,57 @@ package org.structr.docs.ontology.parser.token;
 import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.Ontology;
 
-public class ConjunctionToken extends ConstantToken<Void> {
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 
-	public ConjunctionToken(final Token token) {
-		super(token);
+public class IdentifierListToken extends AbstractToken<List<IdentifierToken>> {
+
+	private final List<IdentifierToken> tokens = new LinkedList<>();
+
+	public IdentifierListToken(final IdentifierToken... tokens) {
+
+		for (final IdentifierToken token : tokens) {
+
+			addToken(token);
+		}
 	}
 
 	@Override
-	public Void resolve(final Ontology ontology) {
-		return null;
+	public String toString() {
+		return "IdentifierListToken(" + tokens + ")";
+	}
+
+	public void addToken(final IdentifierToken identifier) {
+
+		if (identifier != null) {
+
+			tokens.add(identifier);
+			identifier.setParent(this);
+		}
+	}
+
+	@Override
+	public List<IdentifierToken> resolve(final Ontology ontology) {
+		return tokens;
 	}
 
 	@Override
 	public boolean isTerminal() {
 		return false;
+	}
+
+	public  List<IdentifierToken> getTokens() {
+		return tokens;
+	}
+
+	@Override
+	public Token getToken() {
+		return null;
+	}
+
+	@Override
+	public void renameTo(final String newName) {
+		throw new UnsupportedOperationException("Cannot rename list.");
 	}
 }

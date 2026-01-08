@@ -71,72 +71,67 @@ public class JavascriptFileToken extends NamedConceptToken {
 	}
 
 	@Override
-	public List<AnnotatedConcept> resolve(final Ontology ontology) {
+	public AnnotatedConcept resolve(final Ontology ontology) {
 
-		final List<IdentifierToken> identifiers = identifierToken.resolve(ontology);
-		final List<AnnotatedConcept> concepts            = new LinkedList<>();
+		final String fileName     = identifierToken.resolve(ontology);
+		final Concept mainConcept = ontology.getOrCreateConcept(this, ConceptType.JavascriptFile, fileName, false);
+		final Path path           = Path.of(fileName);
 
-		for (final IdentifierToken fileNameToken : identifiers) {
+		// resolve markdown folder contents and add them as topics
+		if (Files.exists(path)) {
 
-			final String fileName = fileNameToken.getToken().getContent();
-			final Path path       = Path.of(fileName);
+			try {
+				final List<String> lines  = Files.readAllLines(path);
+				int sourceLineNumber      = 1;
+				boolean inHtml            = false;
 
-			// resolve markdown folder contents and add them as topics
-			if (Files.exists(path)) {
+				for (final String rawLine : lines) {
 
-				try {
-					final List<String> lines  = Files.readAllLines(path);
-					int sourceLineNumber      = 1;
-					boolean inHtml            = false;
+					final String line    = rawLine.trim();
+					final boolean isHtml = isHtmlLine(line);
+					final boolean isJson = isJSONLine(line);
 
-					for (final String rawLine : lines) {
+					if (isHtml || isJson || inHtml) {
 
-						final String line    = rawLine.trim();
-						final boolean isHtml = isHtmlLine(line);
-						final boolean isJson = isJSONLine(line);
+						inHtml = isHtml;
 
-						if (isHtml || isJson || inHtml) {
+						String text = line;
 
-							inHtml = isHtml;
+						if (isJson) {
 
-							String text = line;
+							final Matcher matcher = JSONToken.matcher(line);
+							if (matcher.matches()) {
 
-							if (isJson) {
+								text = matcher.group(2);
 
-								final Matcher matcher = JSONToken.matcher(line);
-								if (matcher.matches()) {
-
-									text = matcher.group(2);
-
-									if (StringUtils.isNumeric(text) || text.length() < minLength || text.matches("'[0-9]+[a-z]+'")) {
-										continue;
-									}
+								if (StringUtils.isNumeric(text) || text.length() < minLength || text.matches("'[0-9]+[a-z]+'")) {
+									continue;
 								}
-							}
-
-							text = text.replace("\\$", "$");
-							text = parseAndRemoveStyleAttribute(text);
-							text = parseAndRemoveDataComment(text, ontology, fileName, sourceLineNumber);
-							text = text.replaceAll("\\$\\{.*\\}", "");
-							text = text.replaceAll("<[^>]*>", "").trim().replaceAll("\\s+", " ");
-
-							final Concept concept = handleConcept(ConceptType.Text, text, ontology);
-							if (concept != null) {
-
-								concepts.add(new AnnotatedConcept(concept));
 							}
 						}
 
-						sourceLineNumber++;
+						text = text.replace("\\$", "$");
+						text = parseAndRemoveStyleAttribute(text);
+						text = parseAndRemoveDataComment(text, ontology, fileName, sourceLineNumber);
+						text = text.replaceAll("\\$\\{.*\\}", "");
+						text = text.replaceAll("<[^>]*>", "").trim().replaceAll("\\s+", " ");
+
+						final Concept concept = handleConcept(ConceptType.Text, text, ontology);
+						if (concept != null) {
+
+							mainConcept.createSymmetricLink(Verb.Has, new AnnotatedConcept(concept));
+						}
 					}
 
-				} catch (IOException ioex) {
-					ioex.printStackTrace();
+					sourceLineNumber++;
 				}
+
+			} catch (IOException ioex) {
+				ioex.printStackTrace();
 			}
 		}
 
-		return concepts;
+		return new AnnotatedConcept(mainConcept);
 	}
 
 	// ----- private methods -----
@@ -202,16 +197,13 @@ public class JavascriptFileToken extends NamedConceptToken {
 
 						for (final NamedConceptToken additionalNamedConcept : getAdditionalNamedConcepts()) {
 
-							for (final AnnotatedConcept additionalConcept : additionalNamedConcept.resolve(ontology)) {
+							final AnnotatedConcept additionalConcept = additionalNamedConcept.resolve(ontology);
+							if (additionalConcept != null) {
 
-								// additional concept can resolve to null because of blacklisting
-								if (additionalConcept != null) {
+								if (!concept.equals(additionalConcept)) {
 
-									if (!concept.equals(additionalConcept)) {
-
-										// FIXME: annotate link here!
-										concept.createSymmetricLink(Verb.Has, additionalConcept);
-									}
+									// FIXME: annotate link here!
+									concept.createSymmetricLink(Verb.Has, additionalConcept);
 								}
 							}
 						}

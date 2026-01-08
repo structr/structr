@@ -33,6 +33,7 @@ public abstract class StringToken<T> extends AbstractToken<T> {
 		return getClass().getSimpleName() + "(" + token + ")";
 	}
 
+	@Override
 	public Token getToken() {
 		return token;
 	}

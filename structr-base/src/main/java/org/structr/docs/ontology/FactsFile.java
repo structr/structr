@@ -58,7 +58,7 @@ public class FactsFile extends FactsContainer {
 
 		try (final BufferedReader reader = Files.newBufferedReader(path)) {
 
-			tokens.addAll(factsTokenizer.tokenize(reader.readAllAsString()));
+			tokens.addAll(factsTokenizer.tokenize(path.toString(), reader.readAllAsString()));
 		}
 	}
 }

@@ -27,6 +27,7 @@ import org.structr.docs.*;
 import org.structr.docs.Formatter;
 import org.structr.docs.analyzer.ExistingDocs;
 import org.structr.docs.ontology.parser.rule.*;
+import org.structr.docs.ontology.parser.token.DocumentationAnnotationToken;
 import org.structr.docs.ontology.parser.token.FactToken;
 import org.structr.docs.ontology.parser.token.AbstractToken;
 import org.structr.docs.ontology.parser.token.UnresolvedToken;
@@ -366,11 +367,7 @@ public final class Ontology {
 		final List<AbstractToken> remainingTokens = new LinkedList<>();
 		for (final AbstractToken token : tokens) {
 
-			if (token instanceof FactToken) {
-
-				// ignore
-
-			} else {
+			if (!token.isTerminal()) {
 
 				remainingTokens.add(token);
 			}
@@ -381,8 +378,7 @@ public final class Ontology {
 
 	private void initializeFromDocumentationAnnotations(final Class clazz, final Documentation documentation, final String typeName, final String itemName, final Concept parentConcept) {
 
-		final AbstractToken token = null;
-		final String sourceFile = "@Documentation on " + typeName;
+		final AbstractToken token = new DocumentationAnnotationToken(typeName);
 
 		// collect info from annotation and import it into the ontology
 		final ConceptType type  = documentation.type();

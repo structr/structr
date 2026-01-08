@@ -42,7 +42,7 @@ public final class Concept implements Comparable<Concept> {
 	protected final Map<String, List<AnnotatedConcept>> children = new LinkedHashMap<>();
 	protected final Map<String, List<AnnotatedConcept>> parents  = new LinkedHashMap<>();
 	protected final Map<String, Object> metadata                 = new LinkedHashMap<>();
-	protected final List<AbstractToken> tokens                   = new LinkedList<>();
+	protected final Set<AbstractToken> tokens                    = new LinkedHashSet<>();
 	protected final long id;
 	protected Documentable documentable                          = null;
 	protected String shortDescription                            = null;
@@ -91,7 +91,7 @@ public final class Concept implements Comparable<Concept> {
 		return name;
 	}
 
-	public List<AbstractToken> getTokens() {
+	public Set<AbstractToken> getTokens() {
 		return tokens;
 	}
 
@@ -362,7 +362,38 @@ public final class Concept implements Comparable<Concept> {
 		return null;
 	}
 
-	// ----- private methods -----
+	public List<Map<String, Object>> getReferences() {
+
+		final List<Map<String, Object>> references = new LinkedList<>();
+
+		for (final AbstractToken<?> abstractToken : getTokens()) {
+
+			if (abstractToken != null) {
+
+				final Token token = abstractToken.getToken();
+				if (token != null) {
+
+					references.add(Map.of(
+						"sourceFile", token.getSourceFile(),
+						"row",        token.getRow(),
+						"column",     token.getColumn()
+					));
+				}
+			}
+		}
+
+		return references;
+	}
+
+	public void renameTo(final String test) {
+
+		for (final AbstractToken token : getTokens()) {
+
+			token.renameTo(test);
+		}
+	}
+
+	// ----- public static methods -----
 	public static boolean exists(final String name) {
 
 		for (final ConceptType type : ConceptType.values()) {

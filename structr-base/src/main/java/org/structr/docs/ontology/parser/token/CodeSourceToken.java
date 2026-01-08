@@ -32,32 +32,29 @@ public class CodeSourceToken extends NamedConceptToken {
 	}
 
 	@Override
-	public List<AnnotatedConcept> resolve(final Ontology ontology) {
+	public AnnotatedConcept resolve(final Ontology ontology) {
 
-		final List<IdentifierToken> identifiers = identifierToken.resolve(ontology);
 		final List<Documentable>  documentables = new LinkedList<>();
-		final List<AnnotatedConcept> concepts   = new LinkedList<>();
+		final String identifier                 = identifierToken.resolve(ontology);
 
-		for (final IdentifierToken identifier : identifiers) {
+		final ConceptType type                  = Concept.forName(identifier);
+		final DocumentableType documentableType = DocumentableType.forOntologyType(type);
+		final Concept mainConcept               = ontology.getOrCreateConcept(this, ConceptType.CodeSource, identifier, false);
 
-			final ConceptType type                  = Concept.forName(identifier.getToken().getContent());
-			final DocumentableType documentableType = DocumentableType.forOntologyType(type);
+		if (documentableType != null) {
 
-			if (documentableType != null) {
-
-				documentables.addAll(documentableType.getDocumentables());
-			}
+			documentables.addAll(documentableType.getDocumentables());
 		}
 
 		for (final Documentable documentable : documentables) {
 
-			for (final AnnotatedConcept parent : handleDocumentable(documentable, ontology)) {
+			for (final AnnotatedConcept child : handleDocumentable(documentable, ontology)) {
 
-				concepts.add(parent);
+				mainConcept.createSymmetricLink(Verb.Has, child);
 			}
 		}
 
-		return concepts;
+		return new AnnotatedConcept(mainConcept);
 	}
 
 	// ----- private methods -----

@@ -258,7 +258,27 @@ public class OntologyTest extends StructrUiTest {
 	@Test
 	public void testFactsFile() {
 
+		final String src = """
+		Structr has topics "One", "Two", "Three"
+			Topic "One" has topic "One.1"
+			Topic "One" has topic "One.2" as table
+			Topic "Two" has topic "Two.2"
+		""";
 
+		final TestFacts facts   = new TestFacts("test", src);
+		final Ontology ontology = new Ontology(facts);
+
+
+
+
+		for (final Concept concept : ontology.getConceptsByName("One")) {
+
+			concept.renameTo("TEST");
+		}
+
+		final String dst = facts.toString();
+
+		assertEquals(src, dst);
 
 	}
 

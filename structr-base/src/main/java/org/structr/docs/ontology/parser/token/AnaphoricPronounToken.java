@@ -23,8 +23,6 @@ import org.structr.docs.ontology.AnnotatedConcept;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.Ontology;
 
-import java.util.List;
-
 /**
  * A token that references the last subject or entity mentioned
  * earlier in the text.
@@ -41,12 +39,12 @@ public class AnaphoricPronounToken extends NamedConceptToken {
 	}
 
 	@Override
-	public List<AnnotatedConcept> resolve(final Ontology ontology) {
+	public AnnotatedConcept resolve(final Ontology ontology) {
 
 		final Concept currentSubject = ontology.getCurrentSubject();
 		if (currentSubject != null) {
 
-			return List.of(new AnnotatedConcept(ontology.getCurrentSubject()));
+			return new AnnotatedConcept(ontology.getCurrentSubject());
 		}
 
 		throw new RuntimeException("Syntax error in " + token + ": pronoun \"it\" has no subject to refer to.");

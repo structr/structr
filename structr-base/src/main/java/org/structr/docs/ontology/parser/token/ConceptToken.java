@@ -69,4 +69,9 @@ public class ConceptToken extends StringToken<ConceptType> {
 	public boolean isTerminal() {
 		return false;
 	}
+
+	@Override
+	public void renameTo(final String newName) {
+		throw new UnsupportedOperationException("Not implemented yet.");
+	}
 }

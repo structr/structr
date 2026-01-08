@@ -19,23 +19,16 @@
 package org.structr.docs.ontology.parser.token;
 
 import org.structr.core.function.tokenizer.Token;
-import org.structr.docs.ontology.Ontology;
 
-public abstract class AbstractToken<T> {
+public abstract class ConstantToken<T> extends StringToken<T> {
 
-	private AbstractToken parent = null;
+	public ConstantToken(final Token token) {
 
-	public abstract T resolve(final Ontology ontology);
-	public abstract boolean isTerminal();
-	public abstract Token getToken();
-	public abstract void renameTo(final String newName);
-
-	public AbstractToken getParent() {
-		return parent;
-	}
-	public void setParent(final AbstractToken parent) {
-		this.parent = parent;
+		super(token);
 	}
 
-
+	@Override
+	public void renameTo(final String newName) {
+		throw new UnsupportedOperationException("Cannot rename constant token " + token.getContent());
+	}
 }

@@ -21,13 +21,7 @@ package org.structr.docs.ontology.parser.token;
 import org.structr.api.util.Category;
 import org.structr.docs.Documentable;
 import org.structr.docs.DocumentableType;
-import org.structr.docs.ontology.AnnotatedConcept;
-import org.structr.docs.ontology.Concept;
-import org.structr.docs.ontology.ConceptType;
-import org.structr.docs.ontology.Ontology;
-
-import java.util.LinkedList;
-import java.util.List;
+import org.structr.docs.ontology.*;
 
 public class EnumSourceToken extends NamedConceptToken {
 
@@ -36,65 +30,66 @@ public class EnumSourceToken extends NamedConceptToken {
 	}
 
 	@Override
-	public List<AnnotatedConcept> resolve(final Ontology ontology) {
+	public AnnotatedConcept resolve(final Ontology ontology) {
 
-		final List<IdentifierToken> identifiers = identifierToken.resolve(ontology);
-		final List<AnnotatedConcept> concepts            = new LinkedList<>();
+		final String identifier = identifierToken.resolve(ontology);
 
-		for (final IdentifierToken identifier : identifiers) {
+		try {
 
-			try {
 
-				final Class enumType = Class.forName(identifier.getToken().getContent());
-				if (enumType != null && enumType.isEnum()) {
+			final Class enumType = Class.forName(identifier);
+			if (enumType != null && enumType.isEnum()) {
 
-					for (final Object constant : enumType.getEnumConstants()) {
+				final Concept enumConcept = ontology.getOrCreateConcept(this, ConceptType.EnumSource, identifier, false);
 
-						// Documentable?
-						if (constant instanceof Documentable documentable) {
+				for (final Object constant : enumType.getEnumConstants()) {
 
-							final String name = documentable.getDisplayName();
-							if (name != null) {
+					// Documentable?
+					if (constant instanceof Documentable documentable) {
 
-								final DocumentableType documentableType = documentable.getDocumentableType();
-								final Concept concept = ontology.getOrCreateConcept(this, documentableType.getConcept(), name, false);
-								if (concept != null) {
+						final String name = documentable.getDisplayName();
+						if (name != null) {
 
-									if (documentable.getShortDescription() != null) {
-										concept.setShortDescription(documentable.getShortDescription());
-									}
+							final DocumentableType documentableType = documentable.getDocumentableType();
+							final Concept concept = ontology.getOrCreateConcept(this, documentableType.getConcept(), name, false);
+							if (concept != null) {
 
-									concepts.add(new AnnotatedConcept(concept));
+								if (documentable.getShortDescription() != null) {
+									concept.setShortDescription(documentable.getShortDescription());
 								}
+
+								enumConcept.createSymmetricLink(Verb.Has, new AnnotatedConcept(concept));
 							}
 						}
+					}
 
-						// or just Category?
-						if (constant instanceof Category category) {
+					// or just Category?
+					if (constant instanceof Category category) {
 
-							final String name = category.getDisplayName();
-							if (name != null) {
+						final String name = category.getDisplayName();
+						if (name != null) {
 
-								final Concept concept = ontology.getOrCreateConcept(this, ConceptType.Topic, name, true);
-								if (concept != null) {
+							final Concept concept = ontology.getOrCreateConcept(this, ConceptType.Topic, name, true);
+							if (concept != null) {
 
-									if (category.getShortDescription() != null) {
-										concept.setShortDescription(category.getShortDescription());
-									}
-
-									concepts.add(new AnnotatedConcept(concept));
+								if (category.getShortDescription() != null) {
+									concept.setShortDescription(category.getShortDescription());
 								}
+
+								enumConcept.createSymmetricLink(Verb.Has, new AnnotatedConcept(concept));
 							}
 						}
 					}
 				}
 
-			} catch (Throwable t) {
-				t.printStackTrace();
+				return new AnnotatedConcept(enumConcept);
 			}
+
+		} catch (Throwable t) {
+			t.printStackTrace();
 		}
 
-		return concepts;
+		return null;
 	}
 
 	@Override

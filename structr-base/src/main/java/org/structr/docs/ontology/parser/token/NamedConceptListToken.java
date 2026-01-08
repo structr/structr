@@ -20,53 +20,73 @@ package org.structr.docs.ontology.parser.token;
 
 import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.AnnotatedConcept;
-import org.structr.docs.ontology.Concept;
-import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.Ontology;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-public class IsAToken extends AbstractToken<AnnotatedConcept> {
+public class NamedConceptListToken extends AbstractToken<List<AnnotatedConcept>> {
 
-	private final NamedConceptToken namedConceptToken;
-	private final ConceptToken conceptToken;
+	private final List<NamedConceptToken> tokens = new LinkedList<>();
 
-	public IsAToken(final NamedConceptToken namedConceptToken, final ConceptToken conceptToken) {
+	public NamedConceptListToken(final NamedConceptToken... tokens) {
 
-		if (namedConceptToken != null) {
-			namedConceptToken.setParent(this);
+		for (NamedConceptToken token : tokens) {
+
+			addToken(token);
 		}
-
-		if (conceptToken != null) {
-			conceptToken.setParent(this);
-		}
-
-		this.namedConceptToken = namedConceptToken;
-		this.conceptToken      = conceptToken;
 	}
 
 	@Override
-	public AnnotatedConcept resolve(final Ontology ontology) {
+	public String toString() {
+		return "NamedConceptListToken(" + tokens + ")";
+	}
 
-		final ConceptType type                  = conceptToken.resolve(ontology);
-		final AnnotatedConcept annotatedConcept = namedConceptToken.resolve(ontology);
-		final Concept concept                   = annotatedConcept.getConcept();
-		final Concept toRefine                  = ontology.getOrCreateConcept(this, type, concept.getName(), true);
+	public void addToken(final NamedConceptToken identifier) {
 
-		if (toRefine != null) {
+		if (identifier != null) {
 
-			toRefine.setType(type);
+			tokens.add(identifier);
 
-			return new AnnotatedConcept(toRefine);
+			identifier.setParent(this);
+		}
+	}
+
+	@Override
+	public List<AnnotatedConcept> resolve(final Ontology ontology) {
+
+		final List<AnnotatedConcept> result = new LinkedList<>();
+
+		if (isTerminal()) {
+
+			for (final NamedConceptToken token : tokens) {
+
+				final AnnotatedConcept concept = token.resolve(ontology);
+				if (concept != null) {
+
+					result.add(concept);
+				}
+			}
 		}
 
-		return annotatedConcept;
+		return result;
 	}
 
 	@Override
 	public boolean isTerminal() {
-		return false;
+
+		boolean terminal = true;
+
+		for (NamedConceptToken token : tokens) {
+			terminal &= token.isTerminal();
+		}
+
+		return terminal;
+	}
+
+	public  List<NamedConceptToken> getTokens() {
+		return tokens;
 	}
 
 	@Override
@@ -76,6 +96,6 @@ public class IsAToken extends AbstractToken<AnnotatedConcept> {
 
 	@Override
 	public void renameTo(final String newName) {
-		throw new UnsupportedOperationException("Not implemented yet");
+		throw new UnsupportedOperationException("Cannot rename list.");
 	}
 }

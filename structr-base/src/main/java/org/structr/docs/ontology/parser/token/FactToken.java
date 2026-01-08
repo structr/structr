@@ -18,10 +18,8 @@
  */
 package org.structr.docs.ontology.parser.token;
 
+import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.*;
-
-import java.util.LinkedList;
-import java.util.List;
 
 public class FactToken extends AbstractToken {
 
@@ -30,6 +28,18 @@ public class FactToken extends AbstractToken {
 	private final NamedConceptToken objectToken;
 
 	public FactToken(final NamedConceptToken subject, final VerbToken predicate, final NamedConceptToken object) {
+
+		if (subject != null) {
+			subject.setParent(this);
+		}
+
+		if (predicate != null) {
+			predicate.setParent(this);
+		}
+
+		if (object != null) {
+			object.setParent(this);
+		}
 
 		this.subjectToken   = subject;
 		this.predicateToken = predicate;
@@ -47,54 +57,46 @@ public class FactToken extends AbstractToken {
 
 	public Concept resolve(final Ontology ontology) {
 
-		final List<AnnotatedConcept> subjects       = new LinkedList<>();
-		final List<AnnotatedConcept> objects        = new LinkedList<>();
+		AnnotatedConcept annotatedSubject = null;
+		AnnotatedConcept annotatedObject  = null;
 
 		if (predicateToken.isInverted()) {
 
-			objects.addAll(subjectToken.resolve(ontology));
-			subjects.addAll(objectToken.resolve(ontology));
+			annotatedObject = subjectToken.resolve(ontology);
+			annotatedSubject = objectToken.resolve(ontology);
 
 		} else {
 
-			subjects.addAll(subjectToken.resolve(ontology));
-			objects.addAll(objectToken.resolve(ontology));
+			annotatedSubject = subjectToken.resolve(ontology);
+			annotatedObject = objectToken.resolve(ontology);
 		}
 
-		final Verb verb = predicateToken.resolve(ontology);
-
 		// this resolution refines the knowledge about the three concepts
-		for (final AnnotatedConcept annotatedSubject : subjects) {
+		final Verb verb       = predicateToken.resolve(ontology);
+		final Concept subject = annotatedSubject.getConcept();
+		final Concept object  = annotatedObject.getConcept();
 
-			final Concept subject = annotatedSubject.getConcept();
+		ontology.setCurrentSubject(subject);
 
-			ontology.setCurrentSubject(subject);
+		if (subject == null) {
+			System.out.println(subjectToken + ": subject is null!");
+			return null;
+		}
 
-			if (subject == null) {
-				System.out.println(subjectToken + ": subject is null!");
-				continue;
-			}
+		if (object == null) {
+			System.out.println(object + ": object is null!");
+			return null;
+		}
 
-			for (final AnnotatedConcept annotatedObject : objects) {
+		// capture "has description" fact
+		if (Verb.Has.equals(verb) && ConceptType.Description.equals(object.getType())) {
 
-				final Concept object = annotatedObject.getConcept();
+			subject.setShortDescription(object.getName());
 
-				if (object == null) {
-					System.out.println(object + ": object is null!");
-					continue;
-				}
+		} else {
 
-				// capture "has description" fact
-				if (Verb.Has.equals(verb) && ConceptType.Description.equals(object.getType())) {
-
-					subject.setShortDescription(object.getName());
-
-				} else {
-
-					// this line creates the parent-child relationship
-					subject.createSymmetricLink(verb, annotatedObject);
-				}
-			}
+			// this line creates the parent-child relationship
+			subject.createSymmetricLink(verb, annotatedObject);
 		}
 
 		return null;
@@ -103,5 +105,15 @@ public class FactToken extends AbstractToken {
 	@Override
 	public boolean isTerminal() {
 		return true;
+	}
+
+	@Override
+	public Token getToken() {
+		return null;
+	}
+
+	@Override
+	public void renameTo(final String newName) {
+		throw new UnsupportedOperationException("Cannot rename fact.");
 	}
 }
