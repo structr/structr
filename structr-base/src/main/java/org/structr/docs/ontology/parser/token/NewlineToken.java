@@ -19,17 +19,26 @@
 package org.structr.docs.ontology.parser.token;
 
 import org.structr.core.function.tokenizer.Token;
-import org.structr.docs.ontology.ConceptType;
+import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.Ontology;
 
-public class BlacklistToken extends ConceptToken {
+public class NewlineToken extends StringToken<Concept> {
 
-	public BlacklistToken(final Token originalToken) {
-		super(ConceptType.Blacklist, originalToken);
+	public NewlineToken(final Token token) {
+		super(token);
 	}
 
 	@Override
-	public ConceptType resolve(final Ontology ontology) {
+	public Concept resolve(final Ontology ontology) {
 		return null;
+	}
+
+	public boolean isInQuotes() {
+		return token.getQuote() != null;
+	}
+
+	@Override
+	public boolean isTerminal() {
+		return true;
 	}
 }

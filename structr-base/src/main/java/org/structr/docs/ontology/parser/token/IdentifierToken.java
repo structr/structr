@@ -18,6 +18,7 @@
  */
 package org.structr.docs.ontology.parser.token;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.Ontology;
 
@@ -27,19 +28,20 @@ import java.util.List;
 public class IdentifierToken extends AbstractToken<List<IdentifierToken>> {
 
 	private final List<IdentifierToken> identifiers = new LinkedList<>();
+	private final Token token;
 
 	protected ConceptToken formatSpecification = null;
 
 	public IdentifierToken(final Token token) {
 
-		super(token);
+		this.token = token;
 
 		identifiers.add(this);
 	}
 
 	@Override
-	public boolean isUnresolved() {
-		return false;
+	public String toString() {
+		return "IdentifierToken(" + StringUtils.join(identifiers.stream().map(IdentifierToken::getToken).iterator(), ',') + ")";
 	}
 
 	public void addIdentifier(final IdentifierToken identifier) {
@@ -50,7 +52,7 @@ public class IdentifierToken extends AbstractToken<List<IdentifierToken>> {
 		return identifiers;
 	}
 
-	public List<IdentifierToken> resolve(final Ontology ontology, final String sourceFile, final int line) {
+	public List<IdentifierToken> resolve(final Ontology ontology) {
 		return identifiers;
 	}
 
@@ -60,5 +62,14 @@ public class IdentifierToken extends AbstractToken<List<IdentifierToken>> {
 
 	public ConceptToken getFormat() {
 		return formatSpecification;
+	}
+
+	public Token getToken() {
+		return token;
+	}
+
+	@Override
+	public boolean isTerminal() {
+		return false;
 	}
 }

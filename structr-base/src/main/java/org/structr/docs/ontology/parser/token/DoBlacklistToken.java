@@ -31,9 +31,9 @@ public class DoBlacklistToken extends NamedConceptToken {
 	}
 
 	@Override
-	public List<AnnotatedConcept> resolve(final Ontology ontology, final String sourceFile, final int line) {
+	public List<AnnotatedConcept> resolve(final Ontology ontology) {
 
-		final List<IdentifierToken> identifiers = identifierToken.resolve(ontology, sourceFile, line);
+		final List<IdentifierToken> identifiers = identifierToken.resolve(ontology);
 		final List<AnnotatedConcept> concepts            = new LinkedList<>();
 
 		for (final IdentifierToken identifier : identifiers) {
@@ -43,5 +43,10 @@ public class DoBlacklistToken extends NamedConceptToken {
 
 		// empty list
 		return concepts;
+	}
+
+	@Override
+	public boolean isTerminal() {
+		return true;
 	}
 }

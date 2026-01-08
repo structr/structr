@@ -16,20 +16,35 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.ontology.parser.token;
+package org.structr.docs.ontology;
 
+import org.structr.core.function.tokenizer.FactsTokenizer;
 import org.structr.core.function.tokenizer.Token;
-import org.structr.docs.ontology.ConceptType;
-import org.structr.docs.ontology.Ontology;
 
-public class BlacklistToken extends ConceptToken {
+import java.util.LinkedList;
+import java.util.List;
 
-	public BlacklistToken(final Token originalToken) {
-		super(ConceptType.Blacklist, originalToken);
+public class TestFacts extends FactsContainer {
+
+	private final String facts;
+	private final String name;
+
+	public TestFacts(final String name, final String facts) {
+
+		this.name = name;
+		this.facts = facts;
 	}
 
 	@Override
-	public ConceptType resolve(final Ontology ontology) {
-		return null;
+	public List<Token> getTokens() {
+
+		final FactsTokenizer factsTokenizer = new  FactsTokenizer();
+
+		return factsTokenizer.tokenize(facts);
+	}
+
+	@Override
+	public String getName() {
+		return name;
 	}
 }

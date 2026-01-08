@@ -20,10 +20,7 @@ package org.structr.docs.ontology.parser.rule;
 
 import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.Ontology;
-import org.structr.docs.ontology.parser.token.AsToken;
-import org.structr.docs.ontology.parser.token.NewKeywordToken;
-import org.structr.docs.ontology.parser.token.WithToken;
-import org.structr.docs.ontology.parser.token.AbstractToken;
+import org.structr.docs.ontology.parser.token.*;
 
 import java.util.Deque;
 import java.util.LinkedList;
@@ -42,9 +39,10 @@ public class IdentifyKeywordsRule extends Rule {
 		while (!tokens.isEmpty()) {
 
 			final AbstractToken token1 = tokens.poll();
-			final Token name           = token1.getToken();
 
-			if (token1.isUnresolved() && name != null) {
+			if (token1 instanceof UnresolvedToken unresolvedToken && unresolvedToken.getToken() != null) {
+
+				final Token name = unresolvedToken.getToken();
 
 				if ("with".equals(name.toLowerCase())) {
 

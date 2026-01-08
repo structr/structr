@@ -22,7 +22,7 @@ import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.Ontology;
 import org.structr.docs.ontology.Verb;
 
-public class VerbToken extends AbstractToken<Verb> {
+public class VerbToken extends StringToken<Verb> {
 
 	private final boolean isInverted;
 	private final Verb verb;
@@ -35,11 +35,6 @@ public class VerbToken extends AbstractToken<Verb> {
 		this.verb       = verb;
 	}
 
-	@Override
-	public boolean isUnresolved() {
-		return false;
-	}
-
 	public String getInverse() {
 
 		if (isInverted) {
@@ -49,11 +44,16 @@ public class VerbToken extends AbstractToken<Verb> {
 		return verb.getLeftToRight();
 	}
 
-	public Verb resolve(final Ontology ontology, final String sourceFile, final int line) {
+	public Verb resolve(final Ontology ontology) {
 		return verb;
 	}
 
 	public boolean isInverted() {
 		return isInverted;
+	}
+
+	@Override
+	public boolean isTerminal() {
+		return false;
 	}
 }

@@ -31,20 +31,17 @@ import java.util.List;
  */
 public class AnaphoricPronounToken extends NamedConceptToken {
 
+	private final Token token;
+
 	public AnaphoricPronounToken(final Token token) {
 
 		super(null, null);
 
-		setToken(token);
+		this.token = token;
 	}
 
 	@Override
-	public boolean isUnresolved() {
-		return false;
-	}
-
-	@Override
-	public List<AnnotatedConcept> resolve(final Ontology ontology, final String sourceFile, final int line) {
+	public List<AnnotatedConcept> resolve(final Ontology ontology) {
 
 		final Concept currentSubject = ontology.getCurrentSubject();
 		if (currentSubject != null) {
@@ -52,6 +49,6 @@ public class AnaphoricPronounToken extends NamedConceptToken {
 			return List.of(new AnnotatedConcept(ontology.getCurrentSubject()));
 		}
 
-		throw new RuntimeException("Syntax error in " + sourceFile + ":" + line + ": pronoun \"it\" has no subject to refer to.");
+		throw new RuntimeException("Syntax error in " + token + ": pronoun \"it\" has no subject to refer to.");
 	}
 }

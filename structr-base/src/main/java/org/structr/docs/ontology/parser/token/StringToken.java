@@ -19,17 +19,21 @@
 package org.structr.docs.ontology.parser.token;
 
 import org.structr.core.function.tokenizer.Token;
-import org.structr.docs.ontology.ConceptType;
-import org.structr.docs.ontology.Ontology;
 
-public class BlacklistToken extends ConceptToken {
+public abstract class StringToken<T> extends AbstractToken<T> {
 
-	public BlacklistToken(final Token originalToken) {
-		super(ConceptType.Blacklist, originalToken);
+	protected final Token token;
+
+	public StringToken(final Token token) {
+		this.token = token;
 	}
 
 	@Override
-	public ConceptType resolve(final Ontology ontology) {
-		return null;
+	public String toString() {
+		return getClass().getSimpleName() + "(" + token + ")";
+	}
+
+	public Token getToken() {
+		return token;
 	}
 }

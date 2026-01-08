@@ -68,7 +68,7 @@ public class IdentifyListsRule extends Rule {
 
 					} else {
 
-						throw new RuntimeException("Syntax error: expected identifier in list, got " + token3.getToken() + " with name \"" + token3.getToken() + "\". Compound phrases are not supported, please use separate phrases to specify facts with different concepts.");
+						throw new RuntimeException("Syntax error: expected identifier in list, got " + token3 + ". Compound phrases are not supported, please use separate phrases to specify facts with different concepts.");
 					}
 
 				} else {

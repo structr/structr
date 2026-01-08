@@ -25,48 +25,40 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 
-public class FactsFile {
+public class FactsFile extends FactsContainer {
 
-	private final List<Entry> entries = new LinkedList<>();
-	private final String path;
+	private final List<Token> tokens            = new LinkedList<>();
 
-	public FactsFile(final String path) {
+	private final Path path;
+
+	public FactsFile(final Path path) throws IOException {
 
 		this.path = path;
 
 		initialize();
 	}
 
-	// ----- private methods -----
-	private void initialize() {
-
-		final Path p = Paths.get(path);
-
-
-		if (Files.exists(p)) {
-
-			try (final BufferedReader reader = Files.newBufferedReader(p)) {
-
-				final FactsTokenizer tokenizer = new FactsTokenizer();
-				final List<Token> tokens       = tokenizer.tokenize(reader.readAllAsString());
-
-				for (final Token token : tokens) {
-					System.out.print(token.toString());
-				}
-
-			} catch (IOException e) {
-
-				e.printStackTrace();
-			}
-		}
+	@Override
+	public List<Token> getTokens() {
+		return tokens;
 	}
 
-	private class Entry {
+	@Override
+	public String getName() {
+		return path.toString();
+	}
 
+	// ----- private methods -----
+	private void initialize() throws IOException {
 
+		final FactsTokenizer factsTokenizer = new  FactsTokenizer();
+
+		try (final BufferedReader reader = Files.newBufferedReader(path)) {
+
+			tokens.addAll(factsTokenizer.tokenize(reader.readAllAsString()));
+		}
 	}
 }

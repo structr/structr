@@ -16,20 +16,33 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.ontology.parser.token;
+package org.structr.docs.ontology;
 
 import org.structr.core.function.tokenizer.Token;
-import org.structr.docs.ontology.ConceptType;
-import org.structr.docs.ontology.Ontology;
+import org.structr.docs.ontology.parser.token.AbstractToken;
+import org.structr.docs.ontology.parser.token.UnresolvedToken;
 
-public class BlacklistToken extends ConceptToken {
+import java.util.Deque;
+import java.util.LinkedList;
+import java.util.List;
 
-	public BlacklistToken(final Token originalToken) {
-		super(ConceptType.Blacklist, originalToken);
-	}
+public abstract class FactsContainer {
 
-	@Override
-	public ConceptType resolve(final Ontology ontology) {
-		return null;
+	public abstract List<Token> getTokens();
+	public abstract String getName();
+
+	public Deque<AbstractToken> getFilteredTokens() {
+
+		final Deque<AbstractToken> result = new LinkedList<>();
+
+		for (final Token token : getTokens()) {
+
+			if (token.isNotBlank() && !token.isComment()) {
+
+				result.add(new UnresolvedToken(token));
+			}
+		}
+
+		return result;
 	}
 }

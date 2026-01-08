@@ -20,10 +20,12 @@ package org.structr.docs.formatter.markdown;
 
 import org.apache.commons.lang3.StringUtils;
 import org.graalvm.nativeimage.AnnotationAccess;
+import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.Documentable;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
 import org.structr.docs.ontology.*;
+import org.structr.docs.ontology.parser.token.AbstractToken;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -65,9 +67,10 @@ public class SystemTypeMarkdownFormatter extends Formatter {
 
 			final List<String> buf = new LinkedList<>();
 
-			for (final Occurrence occurrence : concept.getOccurrences()) {
+			for (final AbstractToken token : concept.getTokens()) {
 
-				buf.add(occurrence.getSourceFile() + ":" + occurrence.getLineNumber());
+				buf.add(token.toString());
+				//buf.add(token.getSourceFile() + ":" + token.getRow());
 			}
 
 			lines.add("<small>Sources: " + StringUtils.join(buf, ", ") + "</small>");

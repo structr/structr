@@ -22,6 +22,7 @@ import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.Ontology;
 import org.structr.docs.ontology.parser.token.IdentifierToken;
 import org.structr.docs.ontology.parser.token.AbstractToken;
+import org.structr.docs.ontology.parser.token.UnresolvedToken;
 
 import java.util.Deque;
 import java.util.LinkedList;
@@ -41,9 +42,9 @@ public class IdentifyNamesRule extends Rule {
 
 			final AbstractToken abstractToken = tokens.pop();
 
-			if (abstractToken.isUnresolved()) {
+			if (abstractToken instanceof UnresolvedToken unresolved) {
 
-				result.add(new IdentifierToken(abstractToken.getToken()));
+				result.add(new IdentifierToken(unresolved.getToken()));
 
 			} else {
 

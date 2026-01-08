@@ -24,6 +24,7 @@ import org.structr.docs.ontology.Ontology;
 import org.structr.docs.ontology.parser.token.BlacklistToken;
 import org.structr.docs.ontology.parser.token.ConceptToken;
 import org.structr.docs.ontology.parser.token.AbstractToken;
+import org.structr.docs.ontology.parser.token.UnresolvedToken;
 
 import java.util.Deque;
 import java.util.LinkedList;
@@ -44,9 +45,9 @@ public class IdentifyConceptsRule extends Rule {
 			final AbstractToken abstractToken = tokens.pop();
 
 			// quoted tokens can never be keywords
-			if (abstractToken.isUnresolved() && !abstractToken.isInQuotes()) {
+			if (abstractToken instanceof UnresolvedToken unresolved && !unresolved.isInQuotes()) {
 
-				final Token token                  = abstractToken.getToken();
+				final Token token                  = unresolved.getToken();
 				final String name                  = token.getContent();
 				final String lowercaseName         = name.toLowerCase();
 				final String singularLowercaseName = lowercaseName.substring(0, lowercaseName.length() - 1);

@@ -25,7 +25,7 @@ import org.structr.docs.ontology.Ontology;
 /**
  * A token that resolves to a class in the ontology.
  */
-public class ConceptToken extends AbstractToken<ConceptType> {
+public class ConceptToken extends StringToken<ConceptType> {
 
 	private boolean allowReuse = true;
 	private final Token originalToken;
@@ -41,12 +41,7 @@ public class ConceptToken extends AbstractToken<ConceptType> {
 	}
 
 	@Override
-	public boolean isUnresolved() {
-		return false;
-	}
-
-	@Override
-	public ConceptType resolve(final Ontology ontology, final String sourceFile, final int line) {
+	public ConceptType resolve(final Ontology ontology) {
 		return type;
 	}
 
@@ -68,5 +63,10 @@ public class ConceptToken extends AbstractToken<ConceptType> {
 
 	public boolean allowReuse() {
 		return allowReuse;
+	}
+
+	@Override
+	public boolean isTerminal() {
+		return false;
 	}
 }

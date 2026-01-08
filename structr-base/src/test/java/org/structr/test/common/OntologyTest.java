@@ -34,16 +34,15 @@ public class OntologyTest extends StructrUiTest {
 	@Test
 	public void testOntology() {
 
-		final List<String> facts = List.of(
+		final String facts = """
+			"Core System" has service "Cron Service"
+			topic "Core System" has capability "Scheduled execution of business logic"
+			Area Pages has buttons Test1, Test2, "Test Button", Test3, Test-Button-4
+			It has areas "Page Tree" and "Localizations"
+			it has areas Widgets, Preview"
+		""";
 
-			"\"Core System\" has service \"Cron Service\"",
-			"topic \"Core System\" has capability \"Scheduled execution of business logic\"",
-			"Area Pages has buttons Test1, Test2, \"Test Button\", Test3, Test-Button-4",
-			"It has areas \"Page Tree\" and \"Localizations\"",
-			"it has areas Widgets, Preview"
-		);
-
-		final Ontology ontology = new Ontology("testOntology", facts);
+		final Ontology ontology = new Ontology(new TestFacts("testOntology", facts));
 		final Concept concept   = ontology.getConcept(ConceptType.Unknown, "Core System").get(0);
 
 		assertNotNull("concept should not be null", concept);
@@ -70,12 +69,12 @@ public class OntologyTest extends StructrUiTest {
 	public void testUnsupportedPhrases() {
 
 		try {
-			new Ontology("testUnsupportedPhrases1", "Auth0 button uses Auth0 provider and has hint \"Only visible if Auth0 provider is configured in structr.conf\"");
+			new Ontology(new TestFacts("testUnsupportedPhrases1", "Auth0 button uses Auth0 provider and has hint \"Only visible if Auth0 provider is configured in structr.conf\""));
 			fail("Using compound phrases should fail.");
 		} catch (RuntimeException e) { }
 
 		try {
-			new Ontology("testUnsupportedPhrases2", "Pages area has buttons one and two and has inputs three and four");
+			new Ontology(new TestFacts("testUnsupportedPhrases2", "Pages area has buttons one and two and has inputs three and four"));
 			fail("Using compound phrases should fail.");
 		} catch (RuntimeException e) { }
 
@@ -84,20 +83,20 @@ public class OntologyTest extends StructrUiTest {
 	@Test
 	public void testAmbiguousIdentifiers() {
 
-		final List<String> facts = List.of(
-			"# References",
-			"Topic References has topics Keywords, Functions, \"Lifecycle Methods\", \"System Types\", Services, \"Maintenance Commands\", Settings",
+		final String facts = """
+			# References
+			Topic References has topics Keywords, Functions, "Lifecycle Methods", "System Types", Services, "Maintenance Commands", Settings
 
-			"\"Keywords\" has code-source \"keywords\"",
-			"\"Functions\" has code-source \"functions\"",
-			"\"Lifecycle Methods\" has code-source \"lifecycle-methods\"",
-			"\"System Types\" has code-source \"system-types\"",
-			"\"Services\" has code-source \"services\"",
-			"\"Maintenance Commands\" has code-source \"maintenance-commands\"",
-			"\"Settings\" has code-source \"settings\""
-		);
+			"Keywords" has code-source "keywords"
+			"Functions" has code-source "functions"
+			"Lifecycle Methods" has code-source "lifecycle-methods"
+			"System Types" has code-source "system-types"
+			"Services" has code-source "services"
+			"Maintenance Commands" has code-source "maintenance-commands"
+			"Settings" has code-source "settings"
+		""";
 
-		final Ontology ontology = new Ontology("testAmbiguousIdentifiers", facts);
+		final Ontology ontology = new Ontology(new TestFacts("testAmbiguousIdentifiers", facts));
 
 		assertNotNull(ontology.getConcept(ConceptType.Topic, "Services"));
 	}
@@ -105,11 +104,9 @@ public class OntologyTest extends StructrUiTest {
 	@Test
 	public void testInverseVerbs() {
 
-		final List<String> facts = List.of(
-			"Type Test isCreatedBy button Test"
-		);
+		final String facts = "Type Test isCreatedBy button Test";
 
-		final Ontology ontology = new Ontology("testInverseVerbs", facts);
+		final Ontology ontology = new Ontology(new TestFacts("testInverseVerbs", facts));
 
 		assertNotNull(ontology.getConcept(ConceptType.Type, "Test"));
 		assertNotNull(ontology.getConcept(ConceptType.Button, "Test"));
@@ -120,19 +117,19 @@ public class OntologyTest extends StructrUiTest {
 	@Test
 	public void testMarkdownFolders() {
 
-		new Ontology("testMarkdownFolders", "topic Structr has markdown-folder \"1-Introduction\"");
+		new Ontology(new TestFacts("testMarkdownFolders", "topic Structr has markdown-folder \"1-Introduction\""));
 	}
 
 	@Test
 	public void testJavascriptFile() {
 
-		new Ontology("testJavascriptFile", "topic Structr has javascript-file \"structr/js/dashboard.js\"");
+		new Ontology(new TestFacts("testJavascriptFile", "topic Structr has javascript-file \"structr/js/dashboard.js\""));
 	}
 
 	@Test
 	public void testPrepositions() {
 
-		final Ontology ontology  = new Ontology("testPrepositions", "topic Structr has topic \"Test\" with topic \"Added\"");
+		final Ontology ontology  = new Ontology(new TestFacts("testPrepositions", "topic Structr has topic \"Test\" with topic \"Added\""));
 
 		for (final Concept concept : ontology.getAllConcepts()) {
 
@@ -150,21 +147,25 @@ public class OntologyTest extends StructrUiTest {
 	@Test
 	public void testBlacklist() {
 
-		final Ontology ontology  = new Ontology("testBlacklist", "blacklist One, Two, Three");
+		final Ontology ontology  = new Ontology(new TestFacts("testBlacklist", """
+			blacklist "10pt", "1rem", "80px", "8212", "300px", "500px", Action, Advanced, Boolean, Byte, Copy, Create, Date, Delete, Description, Double, Filter, Filters, Float, Integer, List, Load, Long
+			blacklist Name, None, Options, Parameters, Refresh, Save, Select, String, Style, Type, absolute, auto, black, checkbox, class, controls, crud, custom, desc, error
+			blacklist favorites, hint, href, info, input, inter, invalid, json, label, loose, monaco, name, nodeHover, number, numeric, plain, pointer, quot, right, root
+		"""));
 
 		for (final Concept concept : ontology.getAllConcepts()) {
 
 			System.out.println(concept.getNameTypeAndLinks());
 		}
 
-		assertEquals(10, ontology.getBlacklist().size());
+		assertEquals(70, ontology.getBlacklist().size());
 		assertEquals( 0, ontology.getAllConcepts().size());
 	}
 
 	@Test
 	public void testCodeSources() {
 
-		final Ontology ontology  = new Ontology("testCodeSources", "topic Structr has code-source \"rest-endpoints\"");
+		final Ontology ontology  = new Ontology(new TestFacts("testCodeSources", "topic Structr has code-source \"rest-endpoints\""));
 
 		for (final Concept concept : ontology.getAllConcepts()) {
 
@@ -175,9 +176,9 @@ public class OntologyTest extends StructrUiTest {
 	@Test
 	public void testPrepositionBinding1() {
 
-		final Ontology ontology  = new Ontology("testPrepositionBinding1", """
+		final Ontology ontology  = new Ontology(new TestFacts("testPrepositionBinding1", """
 			Topic "Business Logic" has topics "Dynamic types", "Relationships", "Built-in types" as table, "Built-in properties", "Scripting contexts", "Advanced find"
-			""");
+			"""));
 
 		for (final Concept concept : ontology.getAllConcepts()) {
 
@@ -188,9 +189,9 @@ public class OntologyTest extends StructrUiTest {
 	@Test
 	public void testPrepositionBinding2() {
 
-		final Ontology ontology  = new Ontology("testPrepositionBinding2", """
+		final Ontology ontology  = new Ontology(new TestFacts("testPrepositionBinding2", """
 			Topic "Business Logic" has markdown-file "snippets/Business Logic.md" with heading "Overview"
-			""");
+			"""));
 
 		for (final Concept concept : ontology.getAllConcepts()) {
 
@@ -201,7 +202,7 @@ public class OntologyTest extends StructrUiTest {
 	@Test
 	public void testGetGroupedChildren() {
 
-		final Ontology ontology  = new Ontology("testGetGroupedChildren", "Structr has code-source \"system-type\"");
+		final Ontology ontology  = new Ontology(new TestFacts("testGetGroupedChildren", "Structr has code-source \"system-type\""));
 		ontology.initializeFromDocumentationAnnotations();
 
 		final Concept root = ontology.getConcept(ConceptType.Unknown, "File").get(0);
@@ -212,10 +213,10 @@ public class OntologyTest extends StructrUiTest {
 	@Test
 	public void testGlossary() {
 
-		final Ontology ontology  = new Ontology("testGlossary", List.of(
-			"Structr has topics \"Glossary\"",
-			"\"Glossary\" has glossary \"Glossary\""
-		));
+		final Ontology ontology  = new Ontology(new TestFacts("testGlossary", """
+			Structr has topics "Glossary"
+			"Glossary" has glossary "Glossary"
+		"""));
 
 		ontology.initializeFromDocumentationAnnotations();
 
@@ -225,24 +226,22 @@ public class OntologyTest extends StructrUiTest {
 	@Test
 	public void testExistingKeyword() {
 
-		final Ontology ontology  = new Ontology("testExistingKeyword", List.of(
-			"\"Structr\" has topics \"One\", \"Two\", \"Three\"",
-			"One has topic \"Authentication\"",
-			"Two has topic \"Authentication\"",
-			"Three has new topic \"Authentication\""
-		));
+		final Ontology ontology  = new Ontology(new TestFacts("testExistingKeyword", """
+			"Structr" has topics "One", "Two", "Three"
+			One has topic "Authentication"
+			Two has topic "Authentication"
+			Three has new topic "Authentication"
+		"""));
 
 		System.out.println(ontology.getAllConcepts());
 	}
 
 	@Test
-	public void testFactsFile() {
-
-		final Ontology ontology  = new Ontology("testExistingKeyword", "");
+	public void testMultilineFacts() {
 
 		final String facts = """
 			#
-			# text.txt
+			# testMultilineFacts.txt
 			#
 			
 			"Structr" has topics "One", "Two", "Three"
@@ -251,12 +250,14 @@ public class OntologyTest extends StructrUiTest {
 			Three has new topic "Authentication"
 			""";
 
-
-		fixme: use facts file and try to do roundtrip editing etc.
-
-		ontology.storeFacts("testFactsFile", facts);
+		final Ontology ontology  = new Ontology(new TestFacts("testMultilineFacts", facts));
 
 		System.out.println(ontology.getAllConcepts());
+	}
+
+	@Test
+	public void testFactsFile() {
+
 
 
 	}

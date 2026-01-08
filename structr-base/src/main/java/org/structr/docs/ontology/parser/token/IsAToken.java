@@ -33,28 +33,21 @@ public class IsAToken extends AbstractToken<List<AnnotatedConcept>> {
 
 	public IsAToken(final NamedConceptToken namedConceptToken, final ConceptToken conceptToken) {
 
-		super(null);
-
 		this.namedConceptToken = namedConceptToken;
 		this.conceptToken      = conceptToken;
 	}
 
 	@Override
-	public boolean isUnresolved() {
-		return false;
-	}
+	public List<AnnotatedConcept> resolve(final Ontology ontology) {
 
-	@Override
-	public List<AnnotatedConcept> resolve(final Ontology ontology, final String sourceFile, final int line) {
-
-		final ConceptType type    = conceptToken.resolve(ontology, sourceFile, line);
-		final List<AnnotatedConcept> input  = namedConceptToken.resolve(ontology,  sourceFile, line);
+		final ConceptType type              = conceptToken.resolve(ontology);
+		final List<AnnotatedConcept> input  = namedConceptToken.resolve(ontology);
 		final List<AnnotatedConcept> output = new LinkedList<>();
 
 		for (final AnnotatedConcept annotatedConcept : input) {
 
 			final Concept concept  = annotatedConcept.getConcept();
-			final Concept toRefine = ontology.getOrCreateConcept(sourceFile, line, type, concept.getName(), true);
+			final Concept toRefine = ontology.getOrCreateConcept(this, type, concept.getName(), true);
 			if (toRefine != null) {
 
 				toRefine.setType(type);
@@ -64,5 +57,10 @@ public class IsAToken extends AbstractToken<List<AnnotatedConcept>> {
 		}
 
 		return output;
+	}
+
+	@Override
+	public boolean isTerminal() {
+		return false;
 	}
 }

@@ -21,10 +21,12 @@ package org.structr.docs.ontology.parser.rule;
 import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.Ontology;
 import org.structr.docs.ontology.parser.token.AbstractToken;
+import org.structr.docs.ontology.parser.token.UnresolvedToken;
 
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.Set;
+import java.util.function.UnaryOperator;
 
 public class RemoveUnwantedTokensRule extends Rule {
 
@@ -42,10 +44,11 @@ public class RemoveUnwantedTokensRule extends Rule {
 
 			final AbstractToken abstractToken = tokens.poll();
 
-			if (abstractToken.isUnresolved() && blacklist.contains(abstractToken.getToken().toLowerCase())) {
+			if (abstractToken instanceof UnresolvedToken unresolved && blacklist.contains(unresolved.getToken().toLowerCase())) {
 
 				// ignore token
 
+				/*
 			} else {
 
 				final Token token = abstractToken.getToken();
@@ -55,6 +58,10 @@ public class RemoveUnwantedTokensRule extends Rule {
 					abstractToken.setToken(token);
 				}
 
+				result.add(abstractToken);
+				*/
+
+			} else {
 				result.add(abstractToken);
 			}
 		}

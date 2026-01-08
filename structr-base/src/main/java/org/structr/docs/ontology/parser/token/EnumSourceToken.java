@@ -36,9 +36,9 @@ public class EnumSourceToken extends NamedConceptToken {
 	}
 
 	@Override
-	public List<AnnotatedConcept> resolve(final Ontology ontology, final String sourceFile, final int lineNumber) {
+	public List<AnnotatedConcept> resolve(final Ontology ontology) {
 
-		final List<IdentifierToken> identifiers = identifierToken.resolve(ontology, sourceFile, lineNumber);
+		final List<IdentifierToken> identifiers = identifierToken.resolve(ontology);
 		final List<AnnotatedConcept> concepts            = new LinkedList<>();
 
 		for (final IdentifierToken identifier : identifiers) {
@@ -57,7 +57,7 @@ public class EnumSourceToken extends NamedConceptToken {
 							if (name != null) {
 
 								final DocumentableType documentableType = documentable.getDocumentableType();
-								final Concept concept = ontology.getOrCreateConcept(sourceFile, lineNumber, documentableType.getConcept(), name, false);
+								final Concept concept = ontology.getOrCreateConcept(this, documentableType.getConcept(), name, false);
 								if (concept != null) {
 
 									if (documentable.getShortDescription() != null) {
@@ -75,7 +75,7 @@ public class EnumSourceToken extends NamedConceptToken {
 							final String name = category.getDisplayName();
 							if (name != null) {
 
-								final Concept concept = ontology.getOrCreateConcept(sourceFile, lineNumber, ConceptType.Topic, name, true);
+								final Concept concept = ontology.getOrCreateConcept(this, ConceptType.Topic, name, true);
 								if (concept != null) {
 
 									if (category.getShortDescription() != null) {
@@ -95,5 +95,10 @@ public class EnumSourceToken extends NamedConceptToken {
 		}
 
 		return concepts;
+	}
+
+	@Override
+	public boolean isTerminal() {
+		return false;
 	}
 }

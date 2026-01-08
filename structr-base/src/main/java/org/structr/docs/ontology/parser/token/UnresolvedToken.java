@@ -22,19 +22,23 @@ import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.Ontology;
 
-public class UnresolvedToken extends AbstractToken<Concept> {
+public class UnresolvedToken extends StringToken<Concept> {
 
 	public UnresolvedToken(final Token token) {
 		super(token);
 	}
 
 	@Override
-	public boolean isUnresolved() {
-		return true;
+	public Concept resolve(final Ontology ontology) {
+		throw new UnsupportedOperationException("Trying to resolve unresolved token " + token);
+	}
+
+	public boolean isInQuotes() {
+		return token.getQuote() != null;
 	}
 
 	@Override
-	public Concept resolve(final Ontology ontology, final String sourceFile, final int line) {
-		throw new UnsupportedOperationException("Trying to resolve unresolved token " + token + " from " + sourceFile + ":" + line);
+	public boolean isTerminal() {
+		return false;
 	}
 }

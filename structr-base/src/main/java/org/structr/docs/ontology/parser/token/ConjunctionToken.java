@@ -21,19 +21,19 @@ package org.structr.docs.ontology.parser.token;
 import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.Ontology;
 
-public class ConjunctionToken extends AbstractToken<Void> {
+public class ConjunctionToken extends StringToken<Void> {
 
 	public ConjunctionToken(final Token token) {
 		super(token);
 	}
 
 	@Override
-	public boolean isUnresolved() {
-		return false;
+	public Void resolve(final Ontology ontology) {
+		return null;
 	}
 
 	@Override
-	public Void resolve(final Ontology ontology, final String sourceFile, final int line) {
-		return null;
+	public boolean isTerminal() {
+		return false;
 	}
 }

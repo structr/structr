@@ -47,29 +47,24 @@ public class MarkdownFileToken extends NamedConceptToken {
 		super(conceptToken, identifierToken);
 	}
 
-	@Override
-	public boolean isUnresolved() {
-		return false;
-	}
-
 	public boolean isUnknown() {
 		return "unknown".equals(conceptToken.getToken());
 	}
 
 	@Override
-	public List<AnnotatedConcept> resolve(final Ontology ontology, final String sourceFile, final int line) {
+	public List<AnnotatedConcept> resolve(final Ontology ontology) {
 
-		final List<IdentifierToken> identifiers = identifierToken.resolve(ontology, sourceFile, line);
+		final List<IdentifierToken> identifiers = identifierToken.resolve(ontology);
 		final List<AnnotatedConcept> concepts            = new LinkedList<>();
 
 		for (final IdentifierToken pathToken : identifiers) {
 
 			final String path                  = pathToken.getToken().getContent();
-			final Map<String, String> metadata = getMetadata(ontology, sourceFile, line);
+			final Map<String, String> metadata = getMetadata(ontology);
 			final String fileName              = StringUtils.substringAfterLast(path, "/");
 			final String cleanedName           = coalesce(metadata.get("heading"), MarkdownMarkdownFileFormatter.getNameFromFileName(fileName));
 			final Path folderPath              = Path.of("structr/docs/" + path);
-			final Concept markdownFile         = ontology.getOrCreateConcept(fileName, line, ConceptType.MarkdownFile, cleanedName, false);
+			final Concept markdownFile         = ontology.getOrCreateConcept(this, ConceptType.MarkdownFile, cleanedName, false);
 
 			if (markdownFile != null) {
 
@@ -97,7 +92,7 @@ public class MarkdownFileToken extends NamedConceptToken {
 
 							if (level == 2) {
 
-								final Concept headingConcept = ontology.getOrCreateConcept(sourceFile, line, ConceptType.MarkdownHeading, text, false);
+								final Concept headingConcept = ontology.getOrCreateConcept(this, ConceptType.MarkdownHeading, text, false);
 								if (headingConcept != null) {
 
 									markdownFile.createSymmetricLink(Verb.Has, new AnnotatedConcept(headingConcept));
@@ -119,14 +114,14 @@ public class MarkdownFileToken extends NamedConceptToken {
 	}
 
 	// ----- private methods -----
-	private Map<String, String> getMetadata(final Ontology ontology, final String sourceFile, final int line) {
+	private Map<String, String> getMetadata(final Ontology ontology) {
 
 		final Map<String, String> metadata = new LinkedHashMap<>();
 
 		// additional named concepts go into metadata of a concept (for now..)
 		for (final NamedConceptToken additionalNamedConcept : additionalNamedConcepts) {
 
-			final List<AnnotatedConcept> additionalConcepts = additionalNamedConcept.resolve(ontology, sourceFile, line);
+			final List<AnnotatedConcept> additionalConcepts = additionalNamedConcept.resolve(ontology);
 			for (final AnnotatedConcept additionalAnnotatedConcept : additionalConcepts) {
 
 				final Concept additionalConcept = additionalAnnotatedConcept.getConcept();

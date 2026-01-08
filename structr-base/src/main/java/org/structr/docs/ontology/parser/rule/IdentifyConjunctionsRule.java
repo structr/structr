@@ -22,6 +22,7 @@ import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.Ontology;
 import org.structr.docs.ontology.parser.token.ConjunctionToken;
 import org.structr.docs.ontology.parser.token.AbstractToken;
+import org.structr.docs.ontology.parser.token.UnresolvedToken;
 
 import java.util.Deque;
 import java.util.LinkedList;
@@ -43,12 +44,20 @@ public class IdentifyConjunctionsRule extends Rule {
 		while (!tokens.isEmpty()) {
 
 			final AbstractToken abstractToken = tokens.pop();
-			final Token token                 = abstractToken.getToken();
-			final String name                 = token.getContent();
 
-			if (conjunctions.contains(name)) {
+			if (abstractToken instanceof UnresolvedToken unresolved) {
 
-				result.add(new ConjunctionToken(token));
+				final Token token = unresolved.getToken();
+				final String name = token.getContent();
+
+				if (conjunctions.contains(name)) {
+
+					result.add(new ConjunctionToken(token));
+
+				} else {
+
+					result.add(abstractToken);
+				}
 
 			} else {
 

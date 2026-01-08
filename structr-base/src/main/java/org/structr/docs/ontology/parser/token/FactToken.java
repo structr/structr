@@ -31,8 +31,6 @@ public class FactToken extends AbstractToken {
 
 	public FactToken(final NamedConceptToken subject, final VerbToken predicate, final NamedConceptToken object) {
 
-		super(null);
-
 		this.subjectToken   = subject;
 		this.predicateToken = predicate;
 		this.objectToken    = object;
@@ -43,32 +41,27 @@ public class FactToken extends AbstractToken {
 		return "FactToken(" + subjectToken + ", " + predicateToken + ", " + objectToken + ")";
 	}
 
-	@Override
-	public boolean isUnresolved() {
-		return false;
-	}
-
 	public NamedConceptToken getSubjectToken() {
 		return subjectToken;
 	}
 
-	public Concept resolve(final Ontology ontology, final String sourceFile, final int line) {
+	public Concept resolve(final Ontology ontology) {
 
 		final List<AnnotatedConcept> subjects       = new LinkedList<>();
 		final List<AnnotatedConcept> objects        = new LinkedList<>();
 
 		if (predicateToken.isInverted()) {
 
-			objects.addAll(subjectToken.resolve(ontology, sourceFile, line));
-			subjects.addAll(objectToken.resolve(ontology, sourceFile, line));
+			objects.addAll(subjectToken.resolve(ontology));
+			subjects.addAll(objectToken.resolve(ontology));
 
 		} else {
 
-			subjects.addAll(subjectToken.resolve(ontology, sourceFile, line));
-			objects.addAll(objectToken.resolve(ontology, sourceFile, line));
+			subjects.addAll(subjectToken.resolve(ontology));
+			objects.addAll(objectToken.resolve(ontology));
 		}
 
-		final Verb verb = predicateToken.resolve(ontology, sourceFile, line);
+		final Verb verb = predicateToken.resolve(ontology);
 
 		// this resolution refines the knowledge about the three concepts
 		for (final AnnotatedConcept annotatedSubject : subjects) {
@@ -78,7 +71,7 @@ public class FactToken extends AbstractToken {
 			ontology.setCurrentSubject(subject);
 
 			if (subject == null) {
-				System.out.println(sourceFile + ":" + line + ": subject is null!");
+				System.out.println(subjectToken + ": subject is null!");
 				continue;
 			}
 
@@ -87,7 +80,7 @@ public class FactToken extends AbstractToken {
 				final Concept object = annotatedObject.getConcept();
 
 				if (object == null) {
-					System.out.println(sourceFile + ":" + line + ": object is null!");
+					System.out.println(object + ": object is null!");
 					continue;
 				}
 
@@ -105,5 +98,10 @@ public class FactToken extends AbstractToken {
 		}
 
 		return null;
+	}
+
+	@Override
+	public boolean isTerminal() {
+		return true;
 	}
 }

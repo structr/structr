@@ -21,8 +21,6 @@ package org.structr.docs.ontology;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.Predicate;
 import org.structr.core.app.StructrApp;
-import org.structr.core.function.tokenizer.FactsTokenizer;
-import org.structr.core.function.tokenizer.Token;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.docs.*;
@@ -72,36 +70,17 @@ public final class Ontology {
 	/**
 	 * Constructor for testing only..
 	 *
-	 * @param sourceFile
 	 * @param facts
 	 */
-	public Ontology(final String sourceFile, final List<String> facts) {
+	public Ontology(final FactsContainer facts) {
 
 		this();
 
-		int lineNumber = 1;
-
-		for (String line : facts) {
-
-			storeFact(sourceFile, line, lineNumber++);
-		}
+		storeFacts(facts);
 	}
 
-	public Ontology() {
-
+	private Ontology() {
 		blacklist.addAll(Set.of("!", ";", ".", "the", "a", "an", "named"));
-	}
-
-	/**
-	 * Constructor for testing only..
-	 *
-	 * @param line
-	 */
-	public Ontology(final String sourceFile, final String line) {
-
-		this();
-
-		storeFact(sourceFile, line, 1);
 	}
 
 	public List<String> createDocumentation(final List<Concept> concepts, final OutputSettings outputSettings) {
@@ -162,117 +141,14 @@ public final class Ontology {
 		return linkTypes;
 	}
 
-	public void storeFacts(final String sourceFile, final String facts) {
+	public void storeFacts(final FactsContainer facts) {
 
-		final Deque<AbstractToken> tokens = new LinkedList<>();
-		final List<Token> input           = new FactsTokenizer().tokenize(facts);
-
-		for (final Token token : input) {
-
-			if (token.isNotBlank() && !token.isComment()) {
-
-				tokens.add(new UnresolvedToken(token));
-			}
-		}
-
-		reduce(sourceFile, 0, sourceFile, tokens);
+		final Deque<AbstractToken> tokens = reduce(facts);
 
 		for (final AbstractToken token : tokens) {
 
-			token.resolve(this, sourceFile, 0);
+			token.resolve(this);
 		}
-	}
-
-	public void storeFact(final String sourceFile, final String line, final int lineNumber) {
-
-		// skip empty lines
-		if (StringUtils.isBlank(line)) {
-			return;
-		}
-
-		// skip lines that start with # (comment character, can be changed if it interferes with Markdown...)
-		if (line.trim().startsWith("#")) {
-			return;
-		}
-
-		final Deque<AbstractToken> tokens = new LinkedList<>();
-		final List<Token> input           = new FactsTokenizer().tokenize(line);
-
-		for (final Token token : input) {
-
-			if (token.isNotBlank()) {
-
-				tokens.add(new UnresolvedToken(token));
-			}
-		}
-
-		reduce(sourceFile, lineNumber, line, tokens);
-
-		for (final AbstractToken token : tokens) {
-
-			token.resolve(this, sourceFile, lineNumber);
-		}
-	}
-
-	public void reduce(final String fileName, final int line, final String source, final Deque<AbstractToken> tokens) {
-
-		final List<Rule> rules = new LinkedList<>();
-		int count = 0;
-
-		rules.add(new RemoveUnwantedTokensRule(this));
-		rules.add(new IdentifyKeywordsRule(this));
-		rules.add(new IdentifyAnaphoricPronounRule(this));
-		rules.add(new IdentifyConjunctionsRule(this));
-		rules.add(new IdentifyConceptsRule(this));
-		rules.add(new ResolveKeywordsRule(this));
-		rules.add(new ResolveConceptPairsRule(this));
-		rules.add(new IdentifyVerbsRule(this));
-		rules.add(new IdentifyNamesRule(this));
-		rules.add(new ResolveAsRule(this));
-		rules.add(new IdentifyListsRule(this));
-		rules.add(new IdentifyNamedConceptsRule(this));
-		rules.add(new FindUnknownIdentifiersRule(this));
-		rules.add(new ResolveWithRule(this));
-		rules.add(new IdentifyFactsRule(this));
-		rules.add(new ResolveIsARelationsRule(this));
-
-		while (count++ < 100) {
-
-			for (final Rule rule : rules) {
-
-				rule.apply(tokens);
-			}
-
-			// all reduced
-			if (tokens.size() == 1) {
-				return;
-			}
-
-			// all facts
-			if (tokens.stream().allMatch(token -> token instanceof FactToken)) {
-				return;
-			}
-
-			// more than one token left => error
-			if (tokens.stream().noneMatch(token -> token.isUnresolved())) {
-				break;
-			}
-		}
-
-		final List<AbstractToken> remainingTokens = new LinkedList<>();
-		for (final AbstractToken token : tokens) {
-
-			if (token instanceof FactToken) {
-
-				// ignore
-
-			} else {
-
-				remainingTokens.add(token);
-			}
-		}
-
-		throw new RuntimeException("Syntax error in " + fileName + ":" + line + ": unable to parse " + source + " into facts: remaining tokens are " + remainingTokens + ". This can happen if an identifier matches a known concept, e.g. the topic \"Settings\" and the concept \"settings\". It might help to prefix the identifier with the concept, e.g. write \"topic Settings has code-source settings\" instead of \"Settings has code-source settings\".");
 	}
 
 	public List<Concept> getConcept(final ConceptType type, final String name) {
@@ -345,7 +221,7 @@ public final class Ontology {
 		return result;
 	}
 
-	public Concept getOrCreateConcept(final String sourceFile, final int line, final ConceptType type, final String name, final boolean useExisting) {
+	public Concept getOrCreateConcept(final AbstractToken token, final ConceptType type, final String name, final boolean useExisting) {
 
 		if (blacklist.contains(name)) {
 			return null;
@@ -353,20 +229,20 @@ public final class Ontology {
 
 		for (final Concept concept : concepts) {
 
-			if (concept.isSame(name, type, sourceFile, line) && (ConceptType.Unknown.equals(type) || useExisting)) {
+			if (concept.isSame(name, type) && (ConceptType.Unknown.equals(type) || useExisting)) {
 
 				// set correct type
 				if (ConceptType.Unknown.equals(concept.type) && !ConceptType.Unknown.equals(type)) {
 					concept.type = type;
 				}
 
-				concept.getOccurrences().add(new Occurrence(sourceFile, line));
+				concept.getTokens().add(token);
 
 				return concept;
 			}
 		}
 
-		final Concept concept = new Concept(getNextId(), sourceFile, line, type, name);
+		final Concept concept = new Concept(getNextId(), token, type, name);
 
 		concepts.add(concept);
 
@@ -412,21 +288,12 @@ public final class Ontology {
 
 		try (final Stream<Path> files = Files.walk(path).filter(Files::isRegularFile).sorted()) {
 
-			files.forEach(file -> {
+			for (final Path file : files.toList()) {
 
-				try {
-					final String fileName = file.getFileName().toString();
-					int lineNumber = 1;
+				final FactsFile factsFile = new FactsFile(file);
 
-					for (final String line : Files.readAllLines(file)) {
-
-						storeFact(fileName, line, lineNumber++);
-					}
-
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			});
+				storeFacts(factsFile);
+			};
 
 		} catch (IOException ioex) {
 
@@ -453,8 +320,68 @@ public final class Ontology {
 	}
 
 	// ----- private methods -----
+	private Deque<AbstractToken> reduce(final FactsContainer factsContainer) {
+
+		final List<Rule> rules = new LinkedList<>();
+		int count = 0;
+
+		rules.add(new RemoveUnwantedTokensRule(this));
+		rules.add(new IdentifyNewlinesRule(this));
+		rules.add(new IdentifyKeywordsRule(this));
+		rules.add(new IdentifyAnaphoricPronounRule(this));
+		rules.add(new IdentifyConjunctionsRule(this));
+		rules.add(new IdentifyConceptsRule(this));
+		rules.add(new ResolveKeywordsRule(this));
+		rules.add(new ResolveConceptPairsRule(this));
+		rules.add(new IdentifyVerbsRule(this));
+		rules.add(new IdentifyNamesRule(this));
+		rules.add(new ResolveAsRule(this));
+		rules.add(new IdentifyListsRule(this));
+		rules.add(new IdentifyNamedConceptsRule(this));
+		rules.add(new FindUnknownIdentifiersRule(this));
+		rules.add(new ResolveWithRule(this));
+		rules.add(new IdentifyFactsRule(this));
+		rules.add(new ResolveIsARelationsRule(this));
+
+		final Deque<AbstractToken> tokens = factsContainer.getFilteredTokens();
+
+		while (count++ < 100) {
+
+			for (final Rule rule : rules) {
+
+				rule.apply(tokens);
+			}
+
+			// all terminal
+			if (tokens.stream().allMatch(token -> token.isTerminal())) {
+				return tokens;
+			}
+
+			// more than one token left => error
+			if (tokens.stream().noneMatch(token -> token instanceof UnresolvedToken)) {
+				break;
+			}
+		}
+
+		final List<AbstractToken> remainingTokens = new LinkedList<>();
+		for (final AbstractToken token : tokens) {
+
+			if (token instanceof FactToken) {
+
+				// ignore
+
+			} else {
+
+				remainingTokens.add(token);
+			}
+		}
+
+		throw new RuntimeException("Parse error in " + factsContainer.getName() + ": remaining tokens are " + remainingTokens + ".");
+	}
+
 	private void initializeFromDocumentationAnnotations(final Class clazz, final Documentation documentation, final String typeName, final String itemName, final Concept parentConcept) {
 
+		final AbstractToken token = null;
 		final String sourceFile = "@Documentation on " + typeName;
 
 		// collect info from annotation and import it into the ontology
@@ -466,7 +393,7 @@ public final class Ontology {
 		final String[] children = documentation.children();
 
 		// allow this getOrCreate call to find existing concepts so we can combine concepts from different @Documentation annotations
-		final Concept concept = getOrCreateConcept(sourceFile, 0, type, name, true);
+		final Concept concept = getOrCreateConcept(token, type, name, true);
 		if (concept != null) {
 
 			concept.setShortDescription(desc);
@@ -477,7 +404,7 @@ public final class Ontology {
 
 					if (StringUtils.isNotBlank(child)) {
 
-						final Concept childConcept = getOrCreateConcept(sourceFile, 0, ConceptType.Topic, child, false);
+						final Concept childConcept = getOrCreateConcept(token, ConceptType.Topic, child, false);
 						if (childConcept != null) {
 
 							concept.createSymmetricLink(Verb.Has, new AnnotatedConcept(childConcept));
@@ -492,7 +419,7 @@ public final class Ontology {
 
 					if (StringUtils.isNotBlank(synonym)) {
 
-						final Concept synonymConcept = getOrCreateConcept(sourceFile, 0, ConceptType.Synonym, synonym, false);
+						final Concept synonymConcept = getOrCreateConcept(token, ConceptType.Synonym, synonym, false);
 						if (synonymConcept != null) {
 
 							concept.createSymmetricLink(Verb.Has, new AnnotatedConcept(synonymConcept));
@@ -503,7 +430,7 @@ public final class Ontology {
 
 			if (StringUtils.isNotBlank(parent)) {
 
-				final Concept p = getOrCreateConcept(sourceFile, 0, ConceptType.Unknown, parent, true);
+				final Concept p = getOrCreateConcept(token, ConceptType.Unknown, parent, true);
 				if (p != null) {
 
 					p.createSymmetricLink(Verb.Has, new AnnotatedConcept(concept));
@@ -535,7 +462,7 @@ public final class Ontology {
 									// collect properties here
 									for (final DocumentedProperty property : traits.getDocumentedProperties()) {
 
-										final Concept propertyConcept = getOrCreateConcept(sourceFile, 0, ConceptType.Property, property.getName(), false);
+										final Concept propertyConcept = getOrCreateConcept(token, ConceptType.Property, property.getName(), false);
 										if (propertyConcept != null) {
 
 											propertyConcept.setShortDescription(property.getDescription());
@@ -567,7 +494,7 @@ public final class Ontology {
 							if (childName != null) {
 
 								final DocumentableType documentableType = documentable.getDocumentableType();
-								final Concept childConcept = getOrCreateConcept(sourceFile, 0, documentableType.getConcept(), childName, false);
+								final Concept childConcept = getOrCreateConcept(token, documentableType.getConcept(), childName, false);
 
 								if (childConcept != null) {
 

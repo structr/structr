@@ -21,6 +21,7 @@ package org.structr.docs.ontology;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.Documentable;
+import org.structr.docs.ontology.parser.token.AbstractToken;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -41,26 +42,23 @@ public final class Concept implements Comparable<Concept> {
 	protected final Map<String, List<AnnotatedConcept>> children = new LinkedHashMap<>();
 	protected final Map<String, List<AnnotatedConcept>> parents  = new LinkedHashMap<>();
 	protected final Map<String, Object> metadata                 = new LinkedHashMap<>();
-	protected final Set<Occurrence> occurrences                  = new LinkedHashSet<>();
-	protected final Set<Token> tokens                            = new LinkedHashSet<>();
+	protected final List<AbstractToken> tokens                   = new LinkedList<>();
 	protected final long id;
 	protected Documentable documentable                          = null;
 	protected String shortDescription                            = null;
 
-	protected final String sourceFile;
-	protected final int lineNumber;
+	protected final AbstractToken token;
 	protected final String name;
 	protected ConceptType type;
 
-	protected Concept(final long id, final String sourceFile, final int lineNumber, final ConceptType type, final String name) {
+	protected Concept(final long id, final AbstractToken token, final ConceptType type, final String name) {
 
-		this.id         = id;
-		this.type       = type;
-		this.name       = name;
-		this.lineNumber = lineNumber;
-		this.sourceFile = sourceFile;
+		this.id    = id;
+		this.type  = type;
+		this.name  = name;
+		this.token = token;
 
-		occurrences.add(new Occurrence(sourceFile, lineNumber));
+		tokens.add(token);
 	}
 
 	public String getId() {
@@ -93,14 +91,7 @@ public final class Concept implements Comparable<Concept> {
 		return name;
 	}
 
-	public void storeToken(final Token token) {
-
-		if (token != null) {
-			tokens.add(token);
-		}
-	}
-
-	public Object getTokens() {
+	public List<AbstractToken> getTokens() {
 		return tokens;
 	}
 
@@ -188,10 +179,6 @@ public final class Concept implements Comparable<Concept> {
 
 	public Map<String, List<AnnotatedConcept>> getParents() {
 		return parents;
-	}
-
-	public Set<Occurrence> getOccurrences() {
-		return occurrences;
 	}
 
 	public boolean isTopic() {
@@ -309,23 +296,13 @@ public final class Concept implements Comparable<Concept> {
 		return score;
 	}
 
-	public boolean isSame(final String name, final ConceptType type, final String sourceFile, final int lineNumber) {
+	public boolean isSame(final String name, final ConceptType type) {
 
 		if (this.name.equals(name)) {
 
 			if (this.type.equals(type) || ConceptType.Unknown.equals(type)) {
 
 				return true;
-
-				/*
-				if (this.sourceFile.equals(sourceFile)) {
-
-					if (this.lineNumber == lineNumber) {
-
-						return true;
-					}
-				}
-				*/
 			}
 		}
 
@@ -410,7 +387,7 @@ public final class Concept implements Comparable<Concept> {
 		return null;
 	}
 
-	public static Concept create(final long id, final String sourceFile, final int lineNumber, final ConceptType type, final String name) {
-		return new Concept(id, sourceFile, lineNumber, type, name);
+	public static Concept create(final long id, final AbstractToken token, final ConceptType type, final String name) {
+		return new Concept(id, token, type, name);
 	}
 }

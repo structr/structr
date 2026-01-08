@@ -37,19 +37,25 @@ public class NamedConceptToken extends AbstractToken<List<AnnotatedConcept>> {
 
 	public NamedConceptToken(final ConceptToken conceptToken, final IdentifierToken identifierToken) {
 
-		super(identifierToken != null ? identifierToken.getToken() : null);
-
 		this.identifierToken = identifierToken;
 		this.conceptToken    = conceptToken;
 	}
 
-	@Override
-	public boolean isUnresolved() {
-		return false;
-	}
-
 	public boolean isUnknown() {
 		return conceptToken != null && ConceptType.Unknown.equals(conceptToken.getType());
+	}
+
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + "(" + conceptToken + ", " + identifierToken + ")";
+	}
+
+	public ConceptToken getConceptToken() {
+		return conceptToken;
+	}
+
+	public IdentifierToken getIdentifierToken() {
+		return identifierToken;
 	}
 
 	public void addAdditionalNamedConcept(final NamedConceptToken additionalNamedConcept) {
@@ -61,10 +67,10 @@ public class NamedConceptToken extends AbstractToken<List<AnnotatedConcept>> {
 	}
 
 	@Override
-	public List<AnnotatedConcept> resolve(final Ontology ontology, final String sourceFile, final int line) {
+	public List<AnnotatedConcept> resolve(final Ontology ontology) {
 
-		final ConceptType type                  = conceptToken.resolve(ontology, sourceFile, line);
-		final List<IdentifierToken> identifiers = identifierToken.resolve(ontology, sourceFile, line);
+		final ConceptType type                  = conceptToken.resolve(ontology);
+		final List<IdentifierToken> identifiers = identifierToken.resolve(ontology);
 		final List<AnnotatedConcept> concepts   = new LinkedList<>();
 
 		for (final IdentifierToken identifier : identifiers) {
@@ -72,19 +78,16 @@ public class NamedConceptToken extends AbstractToken<List<AnnotatedConcept>> {
 			ConceptType format = null;
 
 			if (identifier.getFormat() != null) {
-				format = identifier.getFormat().resolve(ontology, sourceFile, line);
+				format = identifier.getFormat().resolve(ontology);
 			}
 
-			final Concept concept = ontology.getOrCreateConcept(sourceFile, line, type, identifier.getToken().getContent(), conceptToken.allowReuse());
+			final Concept concept = ontology.getOrCreateConcept(identifier, type, identifier.getToken().getContent(), conceptToken.allowReuse());
 			if (concept != null) {
-
-				concept.storeToken(conceptToken.getToken());
-				concept.storeToken(identifier.getToken());
 
 				// additional named concepts go into metadata of a concept
 				for (final NamedConceptToken additionalNamedConcept : additionalNamedConcepts) {
 
-					final List<AnnotatedConcept> additionalConcepts = additionalNamedConcept.resolve(ontology, sourceFile, line);
+					final List<AnnotatedConcept> additionalConcepts = additionalNamedConcept.resolve(ontology);
 					for (final AnnotatedConcept additionalAnnotatedConcept : additionalConcepts) {
 
 						final Concept additionalConcept = additionalAnnotatedConcept.getConcept();
@@ -107,5 +110,10 @@ public class NamedConceptToken extends AbstractToken<List<AnnotatedConcept>> {
 		}
 
 		return concepts;
+	}
+
+	@Override
+	public boolean isTerminal() {
+		return false;
 	}
 }

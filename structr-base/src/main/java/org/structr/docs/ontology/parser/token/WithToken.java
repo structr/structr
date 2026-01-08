@@ -21,19 +21,19 @@ package org.structr.docs.ontology.parser.token;
 import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.Ontology;
 
-public class WithToken extends AbstractToken {
+public class WithToken extends StringToken {
 
 	public WithToken(final Token token) {
 		super(token);
 	}
 
 	@Override
-	public boolean isUnresolved() {
-		return false;
+	public Object resolve(final Ontology ontology) {
+		return null;
 	}
 
 	@Override
-	public Object resolve(final Ontology ontology, final String sourceFile, final int line) {
-		return null;
+	public boolean isTerminal() {
+		return false;
 	}
 }

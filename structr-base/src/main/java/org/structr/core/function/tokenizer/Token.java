@@ -62,6 +62,10 @@ public class Token {
 		return column;
 	}
 
+	public String getSourceFile() {
+		return "FIXME";
+	}
+
 	public boolean startsWith(final String prefix) {
 		return content.startsWith(prefix);
 	}
@@ -79,7 +83,7 @@ public class Token {
 	}
 
 	public boolean isNotBlank() {
-		return StringUtils.isNotBlank(content);
+		return StringUtils.isNotBlank(content) || content.equals("\n");
 	}
 
 	public boolean isComment() {

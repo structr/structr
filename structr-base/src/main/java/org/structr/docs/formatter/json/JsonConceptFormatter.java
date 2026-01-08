@@ -42,7 +42,7 @@ public class JsonConceptFormatter extends Formatter {
 		data.put("name",        concept.getName());
 		data.put("type",        concept.getType());
 		data.put("childCount",  childCount);
-		data.put("references",  concept.getOccurrences());
+		data.put("references",  concept.getTokens());
 
 		data.putAll(concept.getMetadata());
 

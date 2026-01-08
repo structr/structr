@@ -18,34 +18,10 @@
  */
 package org.structr.docs.ontology.parser.token;
 
-import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.Ontology;
 
 public abstract class AbstractToken<T> {
 
-	protected Token token;
-
-	public AbstractToken(final Token token) {
-		this.token = token;
-	}
-
-	@Override
-	public String toString() {
-		return getClass().getSimpleName() + "(" + token + ")";
-	}
-
-	public abstract boolean isUnresolved();
-	public abstract T resolve(final Ontology ontology, final String sourceFile, final int line);
-
-	public Token getToken() {
-		return token;
-	}
-
-	public void setToken(final Token token) {
-		this.token = token;
-	}
-
-	public boolean isInQuotes() {
-		return token.getQuote() != null;
-	}
+	public abstract T resolve(final Ontology ontology);
+	public abstract boolean isTerminal();
 }

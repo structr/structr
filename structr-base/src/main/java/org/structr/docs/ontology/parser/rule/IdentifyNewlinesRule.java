@@ -18,58 +18,39 @@
  */
 package org.structr.docs.ontology.parser.rule;
 
-import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.Ontology;
-import org.structr.docs.ontology.Verb;
 import org.structr.docs.ontology.parser.token.AbstractToken;
+import org.structr.docs.ontology.parser.token.NewlineToken;
 import org.structr.docs.ontology.parser.token.UnresolvedToken;
-import org.structr.docs.ontology.parser.token.VerbToken;
 
-import java.util.*;
+import java.util.Deque;
+import java.util.LinkedList;
 
-public class IdentifyVerbsRule extends Rule {
+public class IdentifyNewlinesRule extends Rule {
 
-	public IdentifyVerbsRule(final Ontology ontology) {
+	public IdentifyNewlinesRule(final Ontology ontology) {
 		super(ontology);
 	}
 
 	@Override
-	public void apply(final Deque<AbstractToken> tokens) {
+	public void apply(Deque<AbstractToken> tokens) {
 
 		final Deque<AbstractToken> result = new LinkedList<>();
 
 		while (!tokens.isEmpty()) {
 
-			final AbstractToken abstractToken = tokens.pop();
+			final AbstractToken abstractToken = tokens.poll();
 
-			if (abstractToken instanceof UnresolvedToken unresolved) {
+			if (abstractToken instanceof UnresolvedToken unresolved && "\n".equals(unresolved.getToken().getContent())) {
 
-				final Token token  = unresolved.getToken();
-				final String name  = token.toLowerCase();
-				final Verb verb    = Verb.leftToRight(name);
-				final Verb inverse = Verb.rightToLeft(name);
-
-				if (verb != null) {
-
-					result.add(new VerbToken(token, verb, false));
-
-				} else if (inverse != null) {
-
-					result.add(new VerbToken(token, inverse, true));
-
-				} else {
-
-					result.add(abstractToken);
-				}
+				result.add(new NewlineToken(unresolved.getToken()));
 
 			} else {
 
-				// move to result
 				result.add(abstractToken);
 			}
 		}
 
-		// restore input
 		tokens.addAll(result);
 	}
 }

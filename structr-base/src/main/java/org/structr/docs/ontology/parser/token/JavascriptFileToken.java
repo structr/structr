@@ -66,19 +66,14 @@ public class JavascriptFileToken extends NamedConceptToken {
 		}
 	}
 
-	@Override
-	public boolean isUnresolved() {
-		return false;
-	}
-
 	public boolean isUnknown() {
 		return "unknown".equals(conceptToken.getToken());
 	}
 
 	@Override
-	public List<AnnotatedConcept> resolve(final Ontology ontology, final String sourceFile, final int lineNumber) {
+	public List<AnnotatedConcept> resolve(final Ontology ontology) {
 
-		final List<IdentifierToken> identifiers = identifierToken.resolve(ontology, sourceFile, lineNumber);
+		final List<IdentifierToken> identifiers = identifierToken.resolve(ontology);
 		final List<AnnotatedConcept> concepts            = new LinkedList<>();
 
 		for (final IdentifierToken fileNameToken : identifiers) {
@@ -125,7 +120,7 @@ public class JavascriptFileToken extends NamedConceptToken {
 							text = text.replaceAll("\\$\\{.*\\}", "");
 							text = text.replaceAll("<[^>]*>", "").trim().replaceAll("\\s+", " ");
 
-							final Concept concept = handleConcept(ConceptType.Text, text, ontology, fileName, sourceLineNumber);
+							final Concept concept = handleConcept(ConceptType.Text, text, ontology);
 							if (concept != null) {
 
 								concepts.add(new AnnotatedConcept(concept));
@@ -190,7 +185,7 @@ public class JavascriptFileToken extends NamedConceptToken {
 		return false;
 	}
 
-	private Concept handleConcept(final ConceptType type, final String text, final Ontology ontology, String fileName, final int sourceLineNumber) {
+	private Concept handleConcept(final ConceptType type, final String text, final Ontology ontology) {
 
 		final String trimmed = text.trim();
 		if (StringUtils.isNotBlank(trimmed)) {
@@ -202,12 +197,12 @@ public class JavascriptFileToken extends NamedConceptToken {
 
 				if (StringUtils.isNotBlank(cleaned) && len >= minLength && len <= maxLength && !isCode(cleaned)) {
 
-					final Concept concept = ontology.getOrCreateConcept(fileName, sourceLineNumber, type, cleaned, false);
+					final Concept concept = ontology.getOrCreateConcept(this, type, cleaned, false);
 					if (concept != null) {
 
 						for (final NamedConceptToken additionalNamedConcept : getAdditionalNamedConcepts()) {
 
-							for (final AnnotatedConcept additionalConcept : additionalNamedConcept.resolve(ontology, fileName, sourceLineNumber)) {
+							for (final AnnotatedConcept additionalConcept : additionalNamedConcept.resolve(ontology)) {
 
 								// additional concept can resolve to null because of blacklisting
 								if (additionalConcept != null) {
