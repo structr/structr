@@ -47,10 +47,11 @@ public class SearchNodesCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(SearchNodesCommand.class.getName());
 
-	private static final String SEARCH_STRING_KEY = "searchString";
-	private static final String SEARCH_DOM_BOOL_KEY = "searchDOM";
-	private static final String SEARCH_FLOW_BOOL_KEY = "searchFlow";
-	private static final String SEARCH_SCHEMA_BOOL_KEY = "searchSchema";
+	private static final String SEARCH_STRING_KEY                = "searchString";
+	private static final String SEARCH_DOM_BOOL_KEY              = "searchDOM";
+	private static final String SEARCH_FLOW_BOOL_KEY             = "searchFlow";
+	private static final String SEARCH_SCHEMA_BOOL_KEY           = "searchSchema";
+	private static final String SEARCH_CASE_INSENSITIVE_BOOL_KEY = "caseInsensitive";
 
 	static {
 		StructrWebSocket.addCommand(SearchNodesCommand.class);
@@ -68,6 +69,8 @@ public class SearchNodesCommand extends AbstractCommand {
 		final boolean searchFlow   = webSocketData.getNodeDataBooleanValue(SEARCH_FLOW_BOOL_KEY);
 		final boolean searchSchema = webSocketData.getNodeDataBooleanValue(SEARCH_SCHEMA_BOOL_KEY);
 
+		final boolean caseInsensitive = webSocketData.getNodeDataBooleanValue(SEARCH_CASE_INSENSITIVE_BOOL_KEY);
+
 		try {
 
 			final Map<String, Object> obj = Map.of("searchString", searchString);
@@ -77,21 +80,23 @@ public class SearchNodesCommand extends AbstractCommand {
 			if (searchFlow)   { labels.add("n:FlowNode"); }
 			if (searchSchema) { labels.add("n:SchemaMethod"); }
 
-			if (labels.size() > 0) {
+			if (!labels.isEmpty()) {
+
+				final String containsClause = caseInsensitive ? "toLower(toString(n[prop])) CONTAINS toLower($searchString)" : "n[prop] CONTAINS $searchString";
 
 				final String cypherQuery = """
 					MATCH (n)
 						WHERE (%s)
 					AND
-						ANY(prop IN KEYS(n) WHERE n[prop] CONTAINS $searchString)
-					WITH n, [prop IN KEYS(n) WHERE n[prop] CONTAINS $searchString | prop] AS keys
+						ANY(prop IN KEYS(n) WHERE %s)
+					WITH n, [prop IN KEYS(n) WHERE %s | prop] AS keys
 					RETURN {
 						id: n.id,
 						type: n.type,
 						name: n.name,
 						keys: keys
 					}
-					""".formatted(String.join(" OR ", labels));
+					""".formatted(String.join(" OR ", labels), containsClause, containsClause);
 
 
 				final List<GraphObject> result = flatten(Iterables.toList(StructrApp.getInstance(securityContext).query(cypherQuery, obj)));

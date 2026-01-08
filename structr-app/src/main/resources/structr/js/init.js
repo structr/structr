@@ -200,7 +200,10 @@ let Structr = {
 	},
 	getRequestParameterName: (key) => (Structr.legacyRequestParameters === true) ? key : `_${key}`,
 	setFunctionBarHTML: (html) => _Helpers.setContainerHTML(Structr.functionBar, html),
-	setMainContainerHTML: (html) => _Helpers.setContainerHTML(Structr.mainContainer, html),
+	setMainContainerHTML: (html) => {
+		_Helpers.setContainerHTML(Structr.mainContainer, html);
+		_Helpers.activateCommentsInElement(Structr.mainContainer);
+	},
 
 	moveUIOffscreen: () => {
 

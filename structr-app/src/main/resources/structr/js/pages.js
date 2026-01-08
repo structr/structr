@@ -811,6 +811,12 @@ let _Pages = {
 	emptyCenterPane: () => {
 		_Helpers.fastRemoveAllChildren(_Pages.centerPane);
 	},
+	saveActiveCenterTab: (id, tab) => {
+		const activeCenterTabs = JSON.parse(LSWrapper.getItem(_Pages.activeCenterTabKey)) || {};
+
+		activeCenterTabs[id] = tab;
+		LSWrapper.setItem(_Pages.activeCenterTabKey, JSON.stringify(activeCenterTabs));
+	},
 	refreshCenterPane: (obj, urlHash) => {
 
 		const activeCenterTabs = JSON.parse(LSWrapper.getItem(_Pages.activeCenterTabKey)) || {};
@@ -819,8 +825,7 @@ let _Pages = {
 				urlHash = activeCenterTabs[obj.id];
 			}
 		} else {
-			activeCenterTabs[obj.id] = urlHash;
-			LSWrapper.setItem(_Pages.activeCenterTabKey, JSON.stringify(activeCenterTabs));
+			_Pages.saveActiveCenterTab(obj.id, urlHash);
 		}
 
 		_Entities.deselectAllElements();
@@ -3928,73 +3933,125 @@ let _Pages = {
 
 	search: {
 		init: () => {
-			let form = document.querySelector('#search-node-form');
+			let form         = document.querySelector('#search-node-form');
+			let searchField  = form.querySelector('[name="searchString"]');
+
 			form.addEventListener('submit', e => {
 				e.preventDefault();
 
-				let input        = form.querySelector('[name="searchString"]');
-				let searchString = input.value.trim();
+				let searchString = searchField.value.trim();
 
 				if (searchString.length > 0) {
-					_Pages.search.doSearch(searchString);
+					_Pages.search.doSearch(searchString, form.querySelector('[name="caseInsensitive"]').checked);
 				} else {
-					_Helpers.blinkRed(input)
+					_Helpers.blinkRed(searchField);
 				}
-			})
-		},
-		doSearch: async (searchString) => {
-
-			let results = await Command.searchNodes(searchString, {
-				searchDOM: true
 			});
 
+			searchField.addEventListener('search', () => {
+				if (searchField.value === '') {
+					_Pages.search.clear();
+				}
+			});
+		},
+		clear: () => {
 			let resultsElement = document.querySelector('#dom-search-results');
-
 			for (let oldResult of resultsElement.querySelectorAll('[data-id]')) {
 				_Helpers.fastRemoveElement(oldResult);
 			}
+		},
+		doSearch: async (searchString, caseInsensitive) => {
+
+			let results = await Command.searchNodes(searchString, {
+				searchDOM: true,
+				caseInsensitive: caseInsensitive
+			});
+
+			_Pages.search.clear();
+
+			let resultsElement = document.querySelector('#dom-search-results');
 
 			for (let result of results) {
 
-				// TODO: do we need multiple rows for the possibly multiple keys?...
-				let el = _Helpers.createSingleDOMElementFromHTML(_Pages.search.templates.result(result));
+				for (let key of result.keys) {
 
-				resultsElement.appendChild(el);
+					let el = _Helpers.createSingleDOMElementFromHTML(_Pages.search.templates.result(result, key));
 
-				el.querySelector('button').addEventListener('click', _Pages.search.goToResultButtonClicked);
+					resultsElement.appendChild(el);
+
+					el.querySelector('button').addEventListener('click', _Pages.search.goToResultButtonClicked);
+				}
 			}
 		},
 		goToResultButtonClicked: e => {
 
-			let id = e.target.closest('[data-id]').dataset.id;
+			let id  = e.target.closest('[data-id]').dataset.id;
+			let key = e.target.closest('[data-id]').dataset.key;
 
-			// TODO: select the correct tab for the key...
-			_Pages.selectAndShowArbitraryDOMElement(id);
+			let matchingTabUrlHash = '#pages:' + _Pages.search.getTabForKey(key);
+			let link = document.querySelector(`[href="${matchingTabUrlHash}"]`)
+
+			if (link && id === _Pages.centerPane.dataset['elementId']) {
+
+				_Pages.activateCenterPane(link);
+
+			} else {
+
+				// preselect tab for that element
+				_Pages.saveActiveCenterTab(id, matchingTabUrlHash);
+
+				_Pages.selectAndShowArbitraryDOMElement(id);
+			}
+		},
+		getTabForKey: (key) => {
+
+			if (key.startsWith('_html_') || key.startsWith('_custom_html_')) {
+				return 'html';
+			}
+
+			if (['functionQuery', 'cypherQuery', 'dataKey'].includes(key)) {
+				return 'repeater';
+			}
+
+			if (['content', 'contentType'].includes(key)) {
+				return 'editor';
+			}
+
+			if (['visibleToPublicUsers', 'visibleToAuthenticatedUsers'].includes(key)) {
+				return 'security';
+			}
+
+			return 'advanced';
 		},
 		templates: {
 			slideoutContent: config => `
-				<div class="mx-4 my-4">
-					<form id="search-node-form" class="flex flex-col">
-						<div class="flex gap-2">
-							<input type="search" name="searchString" placeholder="Search">
-							<button type="submit" class="action button btn focus:border-gray-666 active:border-green">Search</button>
-						</div>
-					</form>
+				<div class="overflow-y-auto max-h-full h-full">
+					<div class="mx-4 my-4">
+						<form id="search-node-form" class="flex flex-col gap-2">
+							<div class="flex gap-2">
+								<input type="search" name="searchString" placeholder="Search">
+								<button type="submit" class="action button btn focus:border-gray-666 active:border-green">Search</button>
+							</div>
+							<div class="flex gap-2">
+								<label><input type="checkbox" name="caseInsensitive">Case Insensitive</label>
+							</div>
+						</form>
 
-					<div id="dom-search-results" class="grid items-center gap-x-2 gap-y-3 mt-6" style="grid-template-columns: [ name ] minmax(0, 1fr) [ keys ] minmax(10%, max-content) [ id ] 4rem [ actions ] minmax(2rem, max-content)">
-						<div class="contents font-bold">
-							<div>Name/Type</div>
-							<div>Key(s)</div>
-							<div>ID</div>
-							<div></div>
+						<div id="dom-search-results" class="grid items-center gap-x-2 gap-y-3 mt-6" style="grid-template-columns: [ name ] minmax(0, 1fr) [ keys ] minmax(10%, max-content) [ id ] 4rem [ actions ] minmax(2rem, max-content)">
+							<div class="contents font-bold">
+								<div>Name/Type</div>
+								<div>Key</div>
+								<div>ID</div>
+								<div></div>
+							</div>
 						</div>
 					</div>
 				</div>
 			`,
-			result: result => `
-				<div class="contents" data-id="${result.id}">
+			result: (result, key) => `
+				<div class="contents" data-id="${result.id}" data-key="${key}">
 					<div>${result.name ? `${result.name} [${result.type}]` : result.type}</div>
-					<div>${result.keys.join(', ')}</div>
+					<div>${key}</div>
 					<div class="truncate">${result.id}</div>
 					<div>
 						<button class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green p-2 mr-0" title="Go to element">
