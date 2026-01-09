@@ -22,19 +22,21 @@ import org.structr.docs.Documentable;
 import org.structr.docs.DocumentableType;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
-import org.structr.docs.ontology.AnnotatedConcept;
 import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.ConceptType;
+import org.structr.docs.ontology.Link;
 
 import java.util.*;
 
 public class MarkdownCodeSourceFormatter extends Formatter {
 
 	@Override
-	public boolean format(final List<String> lines, final AnnotatedConcept annotatedConcept, final OutputSettings settings, final String link, final int level, final Set<AnnotatedConcept> visited) {
+	public boolean format(final List<String> lines, final Link link, final OutputSettings settings, final int level, final Set<Concept> seenConcepts) {
 
+		final Concept concept                   = link.getTarget();
 		final List<Documentable> documentables  = new LinkedList<>();
-		final Concept concept                   = annotatedConcept.getConcept();
-		final DocumentableType documentableType = DocumentableType.forOntologyType(concept.getType());
+		final ConceptType conceptType           = concept.getType();
+		final DocumentableType documentableType = DocumentableType.forOntologyType(conceptType);
 
 		if (documentableType != null) {
 

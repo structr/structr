@@ -53,10 +53,7 @@ public class IdentifyFactsRule extends Rule {
 
 					} else if (token3 instanceof NamedConceptListToken list) {
 
-						for (final NamedConceptToken conceptToken : list.getTokens()) {
-
-							result.add(new FactToken(name1, verbToken, conceptToken));
-						}
+						result.add(new FactsToken(name1, verbToken, list));
 
 					} else {
 

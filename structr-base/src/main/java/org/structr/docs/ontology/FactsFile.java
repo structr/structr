@@ -30,7 +30,7 @@ import java.util.List;
 
 public class FactsFile extends FactsContainer {
 
-	private final List<Token> tokens            = new LinkedList<>();
+	private final List<Token> tokens    = new LinkedList<>();
 
 	private final Path path;
 
@@ -54,11 +54,9 @@ public class FactsFile extends FactsContainer {
 	// ----- private methods -----
 	private void initialize() throws IOException {
 
-		final FactsTokenizer factsTokenizer = new  FactsTokenizer();
-
 		try (final BufferedReader reader = Files.newBufferedReader(path)) {
 
-			tokens.addAll(factsTokenizer.tokenize(path.toString(), reader.readAllAsString()));
+			tokens.addAll(tokenize(reader.readAllAsString()));
 		}
 	}
 }

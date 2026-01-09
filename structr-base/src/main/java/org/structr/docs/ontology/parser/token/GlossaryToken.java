@@ -38,37 +38,39 @@ public class GlossaryToken extends NamedConceptToken {
 		final Concept glossary = ontology.getOrCreateConcept(this, ConceptType.Glossary, identifier, true);
 		if (glossary != null) {
 
-			concepts.add(new AnnotatedConcept(glossary));
+			final AnnotatedConcept annotatedConcept = new AnnotatedConcept(glossary);
 
-			glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, this, ConceptType.GlossaryEntry, "2")));
-			glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, this, ConceptType.GlossaryEntry, "A")));
-			glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, this, ConceptType.GlossaryEntry, "B")));
-			glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, this, ConceptType.GlossaryEntry, "C")));
-			glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, this, ConceptType.GlossaryEntry, "D")));
-			glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, this, ConceptType.GlossaryEntry, "E")));
-			glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, this, ConceptType.GlossaryEntry, "F")));
-			glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, this, ConceptType.GlossaryEntry, "G")));
-			glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, this, ConceptType.GlossaryEntry, "H")));
-			glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, this, ConceptType.GlossaryEntry, "I")));
-			glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, this, ConceptType.GlossaryEntry, "J")));
-			glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, this, ConceptType.GlossaryEntry, "K")));
-			glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, this, ConceptType.GlossaryEntry, "L")));
-			glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, this, ConceptType.GlossaryEntry, "M")));
-			glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, this, ConceptType.GlossaryEntry, "N")));
-			glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, this, ConceptType.GlossaryEntry, "O")));
-			glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, this, ConceptType.GlossaryEntry, "P")));
-			glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, this, ConceptType.GlossaryEntry, "Q")));
-			glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, this, ConceptType.GlossaryEntry, "R")));
-			glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, this, ConceptType.GlossaryEntry, "S")));
-			glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, this, ConceptType.GlossaryEntry, "T")));
-			glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, this, ConceptType.GlossaryEntry, "U")));
-			glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, this, ConceptType.GlossaryEntry, "V")));
-			glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, this, ConceptType.GlossaryEntry, "W")));
-			glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, this, ConceptType.GlossaryEntry, "X")));
-			glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, this, ConceptType.GlossaryEntry, "Y")));
-			glossary.createSymmetricLink(Verb.Has, new AnnotatedConcept(Concept.create(-1, this, ConceptType.GlossaryEntry, "Z")));
+			concepts.add(annotatedConcept);
 
-			return new AnnotatedConcept(glossary);
+			ontology.createSymmetricLink(glossary, Verb.Has, Concept.create(ontology, this, ConceptType.GlossaryEntry, "2"));
+			ontology.createSymmetricLink(glossary, Verb.Has, Concept.create(ontology, this, ConceptType.GlossaryEntry, "A"));
+			ontology.createSymmetricLink(glossary, Verb.Has, Concept.create(ontology, this, ConceptType.GlossaryEntry, "B"));
+			ontology.createSymmetricLink(glossary, Verb.Has, Concept.create(ontology, this, ConceptType.GlossaryEntry, "C"));
+			ontology.createSymmetricLink(glossary, Verb.Has, Concept.create(ontology, this, ConceptType.GlossaryEntry, "D"));
+			ontology.createSymmetricLink(glossary, Verb.Has, Concept.create(ontology, this, ConceptType.GlossaryEntry, "E"));
+			ontology.createSymmetricLink(glossary, Verb.Has, Concept.create(ontology, this, ConceptType.GlossaryEntry, "F"));
+			ontology.createSymmetricLink(glossary, Verb.Has, Concept.create(ontology, this, ConceptType.GlossaryEntry, "G"));
+			ontology.createSymmetricLink(glossary, Verb.Has, Concept.create(ontology, this, ConceptType.GlossaryEntry, "H"));
+			ontology.createSymmetricLink(glossary, Verb.Has, Concept.create(ontology, this, ConceptType.GlossaryEntry, "I"));
+			ontology.createSymmetricLink(glossary, Verb.Has, Concept.create(ontology, this, ConceptType.GlossaryEntry, "J"));
+			ontology.createSymmetricLink(glossary, Verb.Has, Concept.create(ontology, this, ConceptType.GlossaryEntry, "K"));
+			ontology.createSymmetricLink(glossary, Verb.Has, Concept.create(ontology, this, ConceptType.GlossaryEntry, "L"));
+			ontology.createSymmetricLink(glossary, Verb.Has, Concept.create(ontology, this, ConceptType.GlossaryEntry, "M"));
+			ontology.createSymmetricLink(glossary, Verb.Has, Concept.create(ontology, this, ConceptType.GlossaryEntry, "N"));
+			ontology.createSymmetricLink(glossary, Verb.Has, Concept.create(ontology, this, ConceptType.GlossaryEntry, "O"));
+			ontology.createSymmetricLink(glossary, Verb.Has, Concept.create(ontology, this, ConceptType.GlossaryEntry, "P"));
+			ontology.createSymmetricLink(glossary, Verb.Has, Concept.create(ontology, this, ConceptType.GlossaryEntry, "Q"));
+			ontology.createSymmetricLink(glossary, Verb.Has, Concept.create(ontology, this, ConceptType.GlossaryEntry, "R"));
+			ontology.createSymmetricLink(glossary, Verb.Has, Concept.create(ontology, this, ConceptType.GlossaryEntry, "S"));
+			ontology.createSymmetricLink(glossary, Verb.Has, Concept.create(ontology, this, ConceptType.GlossaryEntry, "T"));
+			ontology.createSymmetricLink(glossary, Verb.Has, Concept.create(ontology, this, ConceptType.GlossaryEntry, "U"));
+			ontology.createSymmetricLink(glossary, Verb.Has, Concept.create(ontology, this, ConceptType.GlossaryEntry, "V"));
+			ontology.createSymmetricLink(glossary, Verb.Has, Concept.create(ontology, this, ConceptType.GlossaryEntry, "W"));
+			ontology.createSymmetricLink(glossary, Verb.Has, Concept.create(ontology, this, ConceptType.GlossaryEntry, "X"));
+			ontology.createSymmetricLink(glossary, Verb.Has, Concept.create(ontology, this, ConceptType.GlossaryEntry, "Y"));
+			ontology.createSymmetricLink(glossary, Verb.Has, Concept.create(ontology, this, ConceptType.GlossaryEntry, "Z"));
+
+			return annotatedConcept;
 		}
 
 		return null;

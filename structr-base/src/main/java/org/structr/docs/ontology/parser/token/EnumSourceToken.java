@@ -58,7 +58,7 @@ public class EnumSourceToken extends NamedConceptToken {
 									concept.setShortDescription(documentable.getShortDescription());
 								}
 
-								enumConcept.createSymmetricLink(Verb.Has, new AnnotatedConcept(concept));
+								ontology.createSymmetricLink(enumConcept, Verb.Has, concept);
 							}
 						}
 					}
@@ -76,7 +76,7 @@ public class EnumSourceToken extends NamedConceptToken {
 									concept.setShortDescription(category.getShortDescription());
 								}
 
-								enumConcept.createSymmetricLink(Verb.Has, new AnnotatedConcept(concept));
+								ontology.createSymmetricLink(enumConcept, Verb.Has, concept);
 							}
 						}
 					}

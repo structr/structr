@@ -25,21 +25,27 @@ import org.structr.docs.ontology.*;
 import java.util.LinkedList;
 import java.util.List;
 
-public class CodeSourceToken extends NamedConceptToken {
+public class CodeSourceToken extends NamedConceptListToken {
+
+	private final ConceptToken conceptToken;
+	private final IdentifierToken identifierToken;
 
 	public CodeSourceToken(final ConceptToken conceptToken, final IdentifierToken identifierToken) {
-		super(conceptToken, identifierToken);
+
+		super();
+
+		this.conceptToken    = conceptToken;
+		this.identifierToken = identifierToken;
 	}
 
 	@Override
-	public AnnotatedConcept resolve(final Ontology ontology) {
+	public List<AnnotatedConcept> resolve(final Ontology ontology) {
 
+		final List<AnnotatedConcept> concepts   = new LinkedList<>();
 		final List<Documentable>  documentables = new LinkedList<>();
 		final String identifier                 = identifierToken.resolve(ontology);
-
 		final ConceptType type                  = Concept.forName(identifier);
 		final DocumentableType documentableType = DocumentableType.forOntologyType(type);
-		final Concept mainConcept               = ontology.getOrCreateConcept(this, ConceptType.CodeSource, identifier, false);
 
 		if (documentableType != null) {
 
@@ -50,22 +56,17 @@ public class CodeSourceToken extends NamedConceptToken {
 
 			for (final AnnotatedConcept child : handleDocumentable(documentable, ontology)) {
 
-				mainConcept.createSymmetricLink(Verb.Has, child);
+				concepts.add(child);
 			}
 		}
 
-		return new AnnotatedConcept(mainConcept);
+		return concepts;
 	}
 
 	// ----- private methods -----
 	private List<AnnotatedConcept> handleDocumentable(final Documentable documentable, final Ontology ontology) {
 
 		final List<AnnotatedConcept> parents = new LinkedList<>();
-		ConceptType format                   = null;
-
-		if (identifierToken != null && identifierToken.getFormat() != null) {
-			format = identifierToken.getFormat().resolve(ontology);
-		}
 
 		if (!documentable.isHidden()) {
 
@@ -82,16 +83,19 @@ public class CodeSourceToken extends NamedConceptToken {
 					final Concept parent = ontology.getOrCreateConcept(this, parentConcept.type, parentConcept.name, true);
 					if (parent != null) {
 
-						parent.createSymmetricLink(Verb.Has, new AnnotatedConcept(mainConcept));
+						final AnnotatedConcept parentAnnotatedConcept = new AnnotatedConcept(parent);
 
-						// link to parents (and put annotation there as well!)
-						final AnnotatedConcept annotatedConcept = new AnnotatedConcept(parent);
-						if (format != null) {
+						ontology.createSymmetricLink(parent, Verb.Has, mainConcept);
 
-							annotatedConcept.getAnnotations().put("format", format);
+						if (identifierToken.getFormat() != null) {
+
+							final ConceptToken formatToken = identifierToken.getFormat();
+							final ConceptType format       = formatToken.resolve(ontology);
+
+							parentAnnotatedConcept.setFormatSpecification(new FormatSpecification(format, formatToken));
 						}
 
-						parents.add(annotatedConcept);
+						parents.add(parentAnnotatedConcept);
 					}
 				}
 
@@ -103,13 +107,13 @@ public class CodeSourceToken extends NamedConceptToken {
 						final Verb ltr = Verb.leftToRight(link.verb);
 						if (ltr != null) {
 
-							mainConcept.createSymmetricLink(ltr, new AnnotatedConcept(childConcept));
+							ontology.createSymmetricLink(mainConcept, ltr, childConcept);
 						}
 
 						final Verb rtl = Verb.rightToLeft(link.verb);
 						if (rtl != null) {
 
-							childConcept.createSymmetricLink(rtl, new AnnotatedConcept(mainConcept));
+							ontology.createSymmetricLink(childConcept, rtl, mainConcept);
 						}
 					}
 				}
@@ -119,7 +123,7 @@ public class CodeSourceToken extends NamedConceptToken {
 					final Concept synonymConcept = ontology.getOrCreateConcept(this, ConceptType.Synonym, synonym, false);
 					if (synonymConcept != null) {
 
-						mainConcept.createSymmetricLink(Verb.Has, new AnnotatedConcept(synonymConcept));
+						ontology.createSymmetricLink(mainConcept, Verb.Has, synonymConcept);
 					}
 				}
 			}

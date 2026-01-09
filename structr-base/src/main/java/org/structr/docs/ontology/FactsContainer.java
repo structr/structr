@@ -18,6 +18,7 @@
  */
 package org.structr.docs.ontology;
 
+import org.structr.core.function.tokenizer.FactsTokenizer;
 import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.parser.token.AbstractToken;
 import org.structr.docs.ontology.parser.token.UnresolvedToken;
@@ -44,5 +45,30 @@ public abstract class FactsContainer {
 		}
 
 		return result;
+	}
+
+	public List<Token> insertAfter(final Token reference, String text) {
+
+		final List<Token> newTokens = tokenize(text);
+		final List<Token> tokens    = getTokens();
+		final int index             = tokens.indexOf(reference);
+
+		if (index >= 0) {
+
+			tokens.addAll(index + 1, newTokens);
+
+			return newTokens;
+		}
+
+		return null;
+	}
+
+	// ----- protected methods -----
+	protected List<Token> tokenize(final String text) {
+		return new FactsTokenizer().tokenize(this, text);
+	}
+
+	public void remove(final Token token) {
+		getTokens().remove(token);
 	}
 }

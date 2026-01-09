@@ -54,6 +54,9 @@ public class IdentifyListsRule extends Rule {
 
 						list.addToken(identifier3);
 
+						// include syntactical tokens so we can edit the text later on
+						identifier3.addSyntaxToken(token2.getToken());
+
 						tokens.push(list);
 
 
@@ -63,7 +66,12 @@ public class IdentifyListsRule extends Rule {
 						// that should most likely be handled as an identifier, hence
 						// we convert it back to an identifier token.
 
-						list.addToken(concept1.asIdentifierToken());
+						final IdentifierToken id = concept1.asIdentifierToken();
+
+						// include syntactical tokens so we can edit the text later on
+						id.addSyntaxToken(token2.getToken());
+
+						list.addToken(id);
 
 						tokens.push(list);
 
@@ -96,8 +104,9 @@ public class IdentifyListsRule extends Rule {
 						//identifier1.addIdentifier(identifier3);
 
 						tokens.push(new IdentifierListToken(identifier1, identifier3));
-						//tokens.push(token1);
 
+						// include syntactical tokens so we can edit the text later on
+						identifier1.addSyntaxToken(token2.getToken());
 
 					} else if (token3 instanceof ConceptToken concept1) {
 
@@ -105,6 +114,9 @@ public class IdentifyListsRule extends Rule {
 						// that should most likely be handled as an identifier, hence
 						// we convert it back to an identifier token.
 						tokens.push(new IdentifierListToken(identifier1, concept1.asIdentifierToken()));
+
+						// include syntactical tokens so we can edit the text later on
+						identifier1.addSyntaxToken(token2.getToken());
 
 					} else {
 

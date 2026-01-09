@@ -21,20 +21,16 @@ package org.structr.docs.formatter.markdown;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
-import org.structr.docs.formatter.json.SearchResultsConceptFormatter;
-import org.structr.docs.ontology.AnnotatedConcept;
-import org.structr.docs.ontology.Concept;
-import org.structr.docs.ontology.Details;
-import org.structr.docs.ontology.Ontology;
+import org.structr.docs.ontology.*;
 
 import java.util.*;
 
 public class MarkdownGlossaryFormatter extends Formatter {
 
 	@Override
-	public boolean format(final List<String> lines, final AnnotatedConcept annotatedConcept, final OutputSettings settings, final String link, final int level, final Set<AnnotatedConcept> seenConcepts) {
+	public boolean format(final List<String> lines, final Link link, final OutputSettings settings, final int level, final Set<Concept> seenConcepts) {
 
-		final Concept concept = annotatedConcept.getConcept();
+		final Concept concept = link.getTarget();
 
 		if (settings.hasDetail(Details.name) || settings.hasDetail(Details.all)) {
 
@@ -106,19 +102,17 @@ public class MarkdownGlossaryFormatter extends Formatter {
 			return;
 		}
 
-		for (final Map.Entry<String, List<AnnotatedConcept>> parent : concept.getParents().entrySet()) {
+		for (final Map.Entry<Verb, List<Link>> parentList : concept.getParentLinks().entrySet()) {
 
-			final List<Map<String, Object>> targets = new LinkedList<>();
+			for (final Link link : parentList.getValue()) {
 
-			for (final AnnotatedConcept annotatedParentConcept : parent.getValue()) {
+				final Concept parent = link.getSource();
 
-				final Concept parentConcept = annotatedParentConcept.getConcept();
+				if (!"Structr".equals(parent.getName())) {
 
-				if (!"Structr".equals(parentConcept.getName())) {
+					data.add(parent.getName());
 
-					data.add(parentConcept.getName());
-
-					collectParents(parentConcept, data, level + 1);
+					collectParents(parent, data, level + 1);
 				}
 			}
 		}

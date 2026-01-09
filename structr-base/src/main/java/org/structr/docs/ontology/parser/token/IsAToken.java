@@ -19,10 +19,8 @@
 package org.structr.docs.ontology.parser.token;
 
 import org.structr.core.function.tokenizer.Token;
-import org.structr.docs.ontology.AnnotatedConcept;
+import org.structr.docs.ontology.*;
 import org.structr.docs.ontology.Concept;
-import org.structr.docs.ontology.ConceptType;
-import org.structr.docs.ontology.Ontology;
 
 import java.util.LinkedList;
 import java.util.List;

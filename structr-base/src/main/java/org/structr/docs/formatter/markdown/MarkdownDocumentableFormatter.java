@@ -21,9 +21,10 @@ package org.structr.docs.formatter.markdown;
 import org.structr.docs.Documentable;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
-import org.structr.docs.ontology.AnnotatedConcept;
+import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.Details;
+import org.structr.docs.ontology.Link;
 
 import java.util.EnumSet;
 import java.util.List;
@@ -32,9 +33,9 @@ import java.util.Set;
 public class MarkdownDocumentableFormatter extends Formatter {
 
 	@Override
-	public boolean format(final List<String> lines, final AnnotatedConcept annotatedConcept, final OutputSettings settings, final String link, final int level, final Set<AnnotatedConcept> visited) {
+	public boolean format(final List<String> lines, final Link link, final OutputSettings settings, final int level, final Set<Concept> seenConcepts) {
 
-		final Concept concept = annotatedConcept.getConcept();
+		final Concept concept = link.getTarget();
 		if (concept.getDocumentable() != null) {
 
 			final Documentable documentable = concept.getDocumentable();

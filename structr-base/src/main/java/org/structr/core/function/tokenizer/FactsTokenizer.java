@@ -20,13 +20,14 @@ package org.structr.core.function.tokenizer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.docs.ontology.FactsContainer;
 
 import java.util.LinkedList;
 import java.util.List;
 
 public class FactsTokenizer {
 
-	private static final Logger logger       = LoggerFactory.getLogger(StructrScriptTokenizer.class);
+	private static final Logger logger       = LoggerFactory.getLogger(FactsTokenizer.class);
 	private final List<Tokenizer> candidates = new LinkedList<>();
 	private List<Token> tokens               = new LinkedList<>();
 	private Tokenizer currentToken           = null;
@@ -57,7 +58,7 @@ public class FactsTokenizer {
 		candidates.add(new Number());
 	}
 
-	public List<Token> tokenize(final String fileName, final String expression) {
+	public List<Token> tokenize(final FactsContainer factsContainer, final String expression) {
 
 		final char[] chars = expression.toCharArray();
 		final int length   = chars.length;
@@ -88,7 +89,7 @@ public class FactsTokenizer {
 
 					if (currentToken != null) {
 
-						tokens.add(currentToken.getToken(fileName));
+						tokens.add(currentToken.getToken(factsContainer));
 					}
 
 					currentToken = nextToken;
@@ -107,7 +108,7 @@ public class FactsTokenizer {
 
 		if (currentToken != null) {
 
-			tokens.add(currentToken.getToken(fileName));
+			tokens.add(currentToken.getToken(factsContainer));
 		}
 
 		return tokens;

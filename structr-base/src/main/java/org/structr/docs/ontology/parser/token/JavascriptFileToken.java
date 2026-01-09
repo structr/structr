@@ -119,7 +119,7 @@ public class JavascriptFileToken extends NamedConceptToken {
 						final Concept concept = handleConcept(ConceptType.Text, text, ontology);
 						if (concept != null) {
 
-							mainConcept.createSymmetricLink(Verb.Has, new AnnotatedConcept(concept));
+							ontology.createSymmetricLink(mainConcept, Verb.Has, concept);
 						}
 					}
 
@@ -203,7 +203,7 @@ public class JavascriptFileToken extends NamedConceptToken {
 								if (!concept.equals(additionalConcept)) {
 
 									// FIXME: annotate link here!
-									concept.createSymmetricLink(Verb.Has, additionalConcept);
+									ontology.createSymmetricLink(concept, Verb.Has, additionalConcept.getConcept());
 								}
 							}
 						}

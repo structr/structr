@@ -29,7 +29,7 @@ public class SingleCharacter extends Tokenizer {
 
 	@Override
 	public boolean accept(final char character) {
-		return first && key == character;
+		return (first && key == character) || Character.isWhitespace(character);
 	}
 
 	@Override

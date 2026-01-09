@@ -41,10 +41,9 @@ public class ResolveAsRule extends Rule {
 
 			if (token1 instanceof IdentifierToken identifier1 && !tokens.isEmpty()) {
 
-				// unresolved => check if next is existing concept
 				final AbstractToken token2 = tokens.pop();
 
-				if (token2 instanceof AsToken preposition && !tokens.isEmpty()) {
+				if (token2 instanceof AsToken && !tokens.isEmpty()) {
 
 					final AbstractToken token3 = tokens.pop();
 

@@ -33,7 +33,6 @@ public class ConceptToken extends StringToken<ConceptType> {
 
 	public ConceptToken(final ConceptType type, final Token originalToken) {
 
-		//super(type.getIdentifier());
 		super(originalToken);
 
 		this.type          = type;
@@ -72,6 +71,6 @@ public class ConceptToken extends StringToken<ConceptType> {
 
 	@Override
 	public void renameTo(final String newName) {
-		throw new UnsupportedOperationException("Not implemented yet.");
+		originalToken.setContent(newName);
 	}
 }

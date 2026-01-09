@@ -20,9 +20,8 @@ package org.structr.docs.formatter.json;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.apache.commons.lang3.StringUtils;
 import org.structr.docs.Documentable;
-import org.structr.docs.ontology.AnnotatedConcept;
+import org.structr.docs.ontology.*;
 import org.structr.docs.ontology.Concept;
 
 import java.util.LinkedHashMap;
@@ -32,9 +31,8 @@ import java.util.Map;
 
 public class SearchResultsConceptFormatter {
 
-	public void format(final List<String> lines, final AnnotatedConcept annotatedConcept, final Double score) {
+	public void format(final List<String> lines, final Concept concept, final Double score) {
 
-		final Concept concept          = annotatedConcept.getConcept();
 		final Gson gson                = new GsonBuilder().create();
 		final Map<String, Object> data = new LinkedHashMap<>();
 
@@ -55,6 +53,7 @@ public class SearchResultsConceptFormatter {
 
 		lines.add(gson.toJson(data));
 	}
+
 	// ----- private methods -----
 	private void collectParents(final Concept concept, final Map<String, Object> data, final int level) {
 
@@ -66,13 +65,13 @@ public class SearchResultsConceptFormatter {
 
 		data.put("parents", parents);
 
-		for (final Map.Entry<String, List<AnnotatedConcept>> parent : concept.getParents().entrySet()) {
+		for (final Map.Entry<Verb, List<Link>> parent : concept.getParentLinks().entrySet()) {
 
 			final List<Map<String, Object>> targets = new LinkedList<>();
 
-			for (final AnnotatedConcept annotatedParentConcept : parent.getValue()) {
+			for (final Link parentLink : parent.getValue()) {
 
-				final Concept parentConcept        = annotatedParentConcept.getConcept();
+				final Concept parentConcept        = parentLink.getSource();
 				final Map<String, Object> childMap = new LinkedHashMap<>();
 
 				childMap.put("id",         parentConcept.getId());

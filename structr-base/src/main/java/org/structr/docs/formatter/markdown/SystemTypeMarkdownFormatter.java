@@ -37,9 +37,9 @@ public class SystemTypeMarkdownFormatter extends Formatter {
 	private final Set<ConceptType> blacklistedTypes = Set.of(ConceptType.Text, ConceptType.Constant); //, ConceptType.Setting, ConceptType.Helper, ConceptType.Category, ConceptType.HttpVerb);
 
 	@Override
-	public boolean format(final List<String> lines, final AnnotatedConcept annotatedConcept, final OutputSettings settings, final String link, final int level, final Set<AnnotatedConcept> visited) {
+	public boolean format(final List<String> lines, final Link link, final OutputSettings settings, final int level, final Set<Concept> seenConcepts) {
 
-		final Concept concept = annotatedConcept.getConcept();
+		final Concept concept = link.getTarget();
 
 		// do not display blacklisted entries
 		if (blacklistedTypes.contains(concept.getType())) {

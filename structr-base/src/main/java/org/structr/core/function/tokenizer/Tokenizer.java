@@ -18,6 +18,8 @@
  */
 package org.structr.core.function.tokenizer;
 
+import org.structr.docs.ontology.FactsContainer;
+
 public abstract class Tokenizer {
 
 	private StringBuilder buf = new StringBuilder();
@@ -46,8 +48,8 @@ public abstract class Tokenizer {
 		return buf.toString();
 	}
 
-	public Token getToken(final String fileName) {
-		return new Token(fileName, getType(), getContent(), getQuoteChar(), row, column);
+	public Token getToken(final FactsContainer factsContainer) {
+		return new Token(factsContainer, getType(), getContent(), getQuoteChar(), row, column);
 	}
 
 	public void init(final int row, final int column) {

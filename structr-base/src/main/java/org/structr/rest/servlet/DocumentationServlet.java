@@ -92,7 +92,7 @@ public class DocumentationServlet extends HttpServlet {
 					final Concept concept = entry.getKey();
 					final Double score    = entry.getValue();
 
-					searchResultsFormatter.format(lines, new AnnotatedConcept(concept), score);
+					searchResultsFormatter.format(lines, concept, score);
 				}
 
 				renderJson(response, lines);

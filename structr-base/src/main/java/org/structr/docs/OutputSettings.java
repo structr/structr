@@ -47,10 +47,12 @@ public class OutputSettings {
 	 * configured in this settings object, or null if no formatter was
 	 * registered for the given combination.
 	 *
-	 * @param annotatedConcept
+	 * @param link
 	 * @return
 	 */
-	public Formatter getFormatterForConcept(final AnnotatedConcept annotatedConcept, final String mode) {
+	public Formatter getFormatterForLink(final Link link, final String mode) {
+
+		final Concept concept = link.getTarget();
 
 		final Map<String, Map<ConceptType, Formatter>> formatters = formatterMap.get(outputFormat);
 		if (formatters != null) {
@@ -59,9 +61,9 @@ public class OutputSettings {
 			if (modeMap != null) {
 
 				// format wins
-				if (annotatedConcept.getFormat() != null) {
+				if (link.getFormatSpecification() != null) {
 
-					final Formatter formatter = modeMap.get(annotatedConcept.getFormat());
+					final Formatter formatter = modeMap.get(link.getFormatSpecification());
 					if (formatter != null) {
 
 						return formatter;
@@ -69,7 +71,7 @@ public class OutputSettings {
 				}
 
 				// then type
-				final Formatter formatter = modeMap.get(annotatedConcept.getType());
+				final Formatter formatter = modeMap.get(concept.getType());
 				if (formatter != null) {
 
 					return formatter;

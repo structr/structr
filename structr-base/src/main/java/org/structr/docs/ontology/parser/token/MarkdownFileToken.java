@@ -54,9 +54,7 @@ public class MarkdownFileToken extends NamedConceptToken {
 	@Override
 	public AnnotatedConcept resolve(final Ontology ontology) {
 
-		final List<AnnotatedConcept> concepts = new LinkedList<>();
-		final String path                     = identifierToken.resolve(ontology);
-
+		final String path                  = identifierToken.resolve(ontology);
 		final Map<String, String> metadata = getMetadata(ontology);
 		final String fileName              = StringUtils.substringAfterLast(path, "/");
 		final String cleanedName           = coalesce(metadata.get("heading"), MarkdownMarkdownFileFormatter.getNameFromFileName(fileName));
@@ -92,7 +90,7 @@ public class MarkdownFileToken extends NamedConceptToken {
 							final Concept headingConcept = ontology.getOrCreateConcept(this, ConceptType.MarkdownHeading, text, false);
 							if (headingConcept != null) {
 
-								markdownFile.createSymmetricLink(Verb.Has, new AnnotatedConcept(headingConcept));
+								ontology.createSymmetricLink(markdownFile, Verb.Has, headingConcept);
 							}
 						}
 					}

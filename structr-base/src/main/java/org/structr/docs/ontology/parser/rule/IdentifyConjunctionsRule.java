@@ -50,7 +50,7 @@ public class IdentifyConjunctionsRule extends Rule {
 				final Token token = unresolved.getToken();
 				final String name = token.getContent();
 
-				if (conjunctions.contains(name)) {
+				if (conjunctions.contains(name.trim())) {
 
 					result.add(new ConjunctionToken(token));
 

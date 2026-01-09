@@ -18,24 +18,32 @@
  */
 package org.structr.docs.ontology;
 
-public class AnnotatedConcept {
+import org.structr.docs.ontology.parser.token.ConceptToken;
 
-	private FormatSpecification formatSpecification = null;
-	private final Concept concept;
+public class FormatSpecification {
 
-	public AnnotatedConcept(Concept concept) {
-		this.concept = concept;
+	private ConceptType format;
+	private ConceptToken token;
+
+	public FormatSpecification(final ConceptType format, final ConceptToken token) {
+		this.format = format;
+		this.token = token;
 	}
 
-	public Concept getConcept() {
-		return concept;
+	public ConceptType getFormat() {
+		return format;
 	}
 
-	public FormatSpecification getFormatSpecification() {
-		return formatSpecification;
+	public ConceptToken getToken() {
+		return token;
 	}
 
-	public void setFormatSpecification(final FormatSpecification formatSpecification) {
-		this.formatSpecification = formatSpecification;
+	public void setFormat(final ConceptType format) {
+
+		token.renameTo(format.name());
+	}
+
+	public void setToken(final ConceptToken token) {
+		this.token = token;
 	}
 }

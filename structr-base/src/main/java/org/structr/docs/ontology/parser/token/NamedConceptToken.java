@@ -19,10 +19,7 @@
 package org.structr.docs.ontology.parser.token;
 
 import org.structr.core.function.tokenizer.Token;
-import org.structr.docs.ontology.AnnotatedConcept;
-import org.structr.docs.ontology.Concept;
-import org.structr.docs.ontology.ConceptType;
-import org.structr.docs.ontology.Ontology;
+import org.structr.docs.ontology.*;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -75,42 +72,36 @@ public class NamedConceptToken extends AbstractToken<AnnotatedConcept> {
 		return additionalNamedConcepts;
 	}
 
+	public NamedConceptToken copy(final IdentifierToken newIdentifierToken) {
+		return new NamedConceptToken(conceptToken, newIdentifierToken);
+	}
+
 	@Override
 	public AnnotatedConcept resolve(final Ontology ontology) {
 
 		final ConceptType type  = conceptToken.resolve(ontology);
 		final String identifier = identifierToken.resolve(ontology);
 
-		ConceptType format = null;
-
-		if (identifierToken.getFormat() != null) {
-			format = identifierToken.getFormat().resolve(ontology);
-		}
-
 		final Concept concept = ontology.getOrCreateConcept(identifierToken, type, identifier, conceptToken.allowReuse());
 		if (concept != null) {
 
-			/*
 			// additional named concepts go into metadata of a concept
 			for (final NamedConceptToken additionalNamedConcept : additionalNamedConcepts) {
 
-				final List<AnnotatedConcept> additionalConcepts = additionalNamedConcept.resolve(ontology);
-				for (final AnnotatedConcept additionalAnnotatedConcept : additionalConcepts) {
+				final AnnotatedConcept additionalAnnotatedConcept = additionalNamedConcept.resolve(ontology);
+				final Concept additionalConcept                   = additionalAnnotatedConcept.getConcept();
 
-					final Concept additionalConcept = additionalAnnotatedConcept.getConcept();
-
-					//concepts.add(additionalConcept);
-
-					concept.getMetadata().put(additionalConcept.getType().getIdentifier(), additionalConcept.getName());
-				}
+				concept.getMetadata().put(additionalConcept.getType().getIdentifier(), additionalConcept.getName());
 			}
-			*/
 
 			final AnnotatedConcept annotatedConcept = new AnnotatedConcept(concept);
 
-			if (format != null) {
+			if (identifierToken.getFormat() != null) {
 
-				annotatedConcept.getAnnotations().put("format", format);
+				final ConceptToken formatToken = identifierToken.getFormat();
+				final ConceptType format       = formatToken.resolve(ontology);
+
+				annotatedConcept.setFormatSpecification(new FormatSpecification(format, formatToken));
 			}
 
 			return annotatedConcept;
@@ -139,6 +130,18 @@ public class NamedConceptToken extends AbstractToken<AnnotatedConcept> {
 
 		if (identifierToken != null) {
 			identifierToken.renameTo(newName);
+		}
+	}
+
+	public void remove() {
+
+		if (identifierToken != null) {
+
+			identifierToken.getToken().remove();
+
+			for (final Token syntaxToken : identifierToken.getSyntaxTokens()) {
+				syntaxToken.remove();
+			}
 		}
 	}
 }

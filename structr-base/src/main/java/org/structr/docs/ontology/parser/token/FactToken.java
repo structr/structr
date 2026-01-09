@@ -96,7 +96,10 @@ public class FactToken extends AbstractToken {
 		} else {
 
 			// this line creates the parent-child relationship
-			subject.createSymmetricLink(verb, annotatedObject);
+			final Link link = ontology.createSymmetricLink(subject, verb, object);
+
+			// copy format specification
+			link.setFormatSpecification(annotatedObject.getFormatSpecification());
 		}
 
 		return null;

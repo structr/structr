@@ -22,8 +22,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.util.resource.Resource;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
-import org.structr.docs.ontology.AnnotatedConcept;
 import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.Link;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -45,10 +46,9 @@ public class MarkdownMarkdownFileFormatter extends Formatter {
 	}
 
 	@Override
-	public boolean format(final List<String> lines, final AnnotatedConcept annotatedConcept, final OutputSettings settings, final String link, final int level, final Set<AnnotatedConcept> visited) {
+	public boolean format(final List<String> lines, final Link link, final OutputSettings settings, final int level, final Set<Concept> seenConcepts) {
 
-		// concept name contains folder name
-		final Concept concept   = annotatedConcept.getConcept();
+		final Concept concept   = link.getTarget();
 		final String path       = (String) concept.getMetadata().get("path");
 		final String fileName   = StringUtils.substringAfterLast(path, "/");
 		final String folderName = StringUtils.substringBeforeLast(path, "/");

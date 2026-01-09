@@ -28,7 +28,6 @@ import org.structr.docs.Formatter;
 import org.structr.docs.analyzer.ExistingDocs;
 import org.structr.docs.ontology.parser.rule.*;
 import org.structr.docs.ontology.parser.token.DocumentationAnnotationToken;
-import org.structr.docs.ontology.parser.token.FactToken;
 import org.structr.docs.ontology.parser.token.AbstractToken;
 import org.structr.docs.ontology.parser.token.UnresolvedToken;
 
@@ -49,6 +48,7 @@ public final class Ontology {
 	private final Set<ConceptType> SearchBlacklist = EnumSet.of(ConceptType.Text, ConceptType.Heading, ConceptType.MarkdownHeading);
 	private final AtomicLong idGenerator           = new AtomicLong();
 	private final List<Concept> concepts           = new LinkedList<>();
+	private final Set<Link> links                  = new LinkedHashSet<>();
 	private final Set<String> blacklist            = new LinkedHashSet<>();
 	private Concept currentSubject                 = null;
 
@@ -90,7 +90,7 @@ public final class Ontology {
 
 		for (final Concept concept : concepts) {
 
-			Formatter.walkOntology(lines, new AnnotatedConcept(concept), outputSettings, null, 0, new LinkedHashSet<>());
+			Formatter.walkOntology(lines, new Link(null, null, concept), outputSettings, 0, new LinkedHashSet<>());
 		}
 
 		return lines;
@@ -121,25 +121,13 @@ public final class Ontology {
 
 		for (final Concept concept : concepts) {
 
-			if (concept.getParents().isEmpty()) {
+			if (concept.getParentLinks().isEmpty()) {
 
 				rootConcepts.add(concept);
 			}
 		}
 
 		return rootConcepts;
-	}
-
-	public Set<String> getOutgoingLinkTypes() {
-
-		final Set<String> linkTypes = new LinkedHashSet<>();
-
-		for (final Concept concept : concepts) {
-
-			linkTypes.addAll(concept.getChildren().keySet());
-		}
-
-		return linkTypes;
 	}
 
 	public void storeFacts(final FactsContainer facts) {
@@ -243,11 +231,82 @@ public final class Ontology {
 			}
 		}
 
-		final Concept concept = new Concept(getNextId(), token, type, name);
+		final Concept concept = new Concept(this, token, type, name);
 
 		concepts.add(concept);
 
 		return concept;
+	}
+
+	public Link createSymmetricLink(final Concept subject, final Verb verb, final Concept object) {
+
+		if (subject.equals(object)) {
+			return null;
+		}
+
+		final Link link = new Link(subject, verb, object);
+
+		links.add(link);
+
+		return link;
+	}
+
+	public Map<Verb, List<Link>> getOutgoingLinks(final Concept source) {
+
+		final Map<Verb, List<Link>> result = new LinkedHashMap<>();
+
+		for (final Link link : links) {
+
+			if (link.getSource().equals(source)) {
+
+				result.computeIfAbsent(link.getVerb(), k -> new LinkedList<>()).add(link);
+			}
+		}
+
+		return result;
+	}
+
+	public List<Link> getOutgoingLinks(final Concept source, final Verb verb) {
+
+		final List<Link> result = new LinkedList<>();
+
+		for (final Link link : links) {
+
+			if (link.getSource().equals(source) && link.getVerb().equals(verb)) {
+				result.add(link);
+			}
+		}
+
+		return result;
+	}
+
+	public Map<Verb, List<Link>> getIncomingLinks(final Concept target) {
+
+		final Map<Verb, List<Link>> result = new LinkedHashMap<>();
+
+		for (final Link link : links) {
+
+			if (link.getTarget().equals(target)) {
+
+				result.computeIfAbsent(link.getVerb(), k -> new LinkedList<>()).add(link);
+			}
+		}
+
+		return result;
+	}
+
+	public List<Link> getIncomingLinks(final Concept target, final Verb verb) {
+
+		final List<Link> result = new LinkedList<>();
+
+		for (final Link link : links) {
+
+			if (link.getTarget().equals(target) && link.getVerb().equals(verb)) {
+				result.add(link);
+			}
+		}
+
+		return result;
 	}
 
 	public Concept getCurrentSubject() {
@@ -264,7 +323,7 @@ public final class Ontology {
 
 			final List<Occurrence> mentions = existingDocs.getMentions(concept.getName());
 
-			for (final Concept synonym : concept.getChildrenOfType("has", ConceptType.Synonym)) {
+			for (final Concept synonym : concept.getChildrenOfType(Verb.Has, ConceptType.Synonym)) {
 
 				mentions.addAll(existingDocs.getMentions(synonym.getName()));
 			}
@@ -403,7 +462,7 @@ public final class Ontology {
 						final Concept childConcept = getOrCreateConcept(token, ConceptType.Topic, child, false);
 						if (childConcept != null) {
 
-							concept.createSymmetricLink(Verb.Has, new AnnotatedConcept(childConcept));
+							createSymmetricLink(concept, Verb.Has, childConcept);
 						}
 					}
 				}
@@ -418,7 +477,7 @@ public final class Ontology {
 						final Concept synonymConcept = getOrCreateConcept(token, ConceptType.Synonym, synonym, false);
 						if (synonymConcept != null) {
 
-							concept.createSymmetricLink(Verb.Has, new AnnotatedConcept(synonymConcept));
+							createSymmetricLink(concept, Verb.Has, synonymConcept);
 						}
 					}
 				}
@@ -429,12 +488,12 @@ public final class Ontology {
 				final Concept p = getOrCreateConcept(token, ConceptType.Unknown, parent, true);
 				if (p != null) {
 
-					p.createSymmetricLink(Verb.Has, new AnnotatedConcept(concept));
+					createSymmetricLink(p, Verb.Has, concept);
 				}
 
 			} else if (parentConcept != null) {
 
-				parentConcept.createSymmetricLink(Verb.Has, new AnnotatedConcept(concept));
+				createSymmetricLink(parentConcept, Verb.Has, concept);
 			}
 
 			if (clazz != null) {
@@ -463,7 +522,7 @@ public final class Ontology {
 
 											propertyConcept.setShortDescription(property.getDescription());
 
-											concept.createSymmetricLink(Verb.Has, new AnnotatedConcept(propertyConcept));
+											createSymmetricLink(concept, Verb.Has, propertyConcept);
 										}
 									}
 								}
@@ -498,7 +557,7 @@ public final class Ontology {
 										childConcept.setShortDescription(documentable.getShortDescription());
 									}
 
-									concept.createSymmetricLink(Verb.Has, new AnnotatedConcept(childConcept));
+									createSymmetricLink(concept, Verb.Has, childConcept);
 								}
 							}
 						}

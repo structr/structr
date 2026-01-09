@@ -21,17 +21,18 @@ package org.structr.docs.formatter.markdown;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.docs.*;
 import org.structr.docs.Formatter;
-import org.structr.docs.ontology.AnnotatedConcept;
 import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.Link;
+import org.structr.docs.ontology.Verb;
 
 import java.util.*;
 
 public class MarkdownTableFormatter extends Formatter {
 
 	@Override
-	public boolean format(final List<String> lines, final AnnotatedConcept annotatedConcept, final OutputSettings settings, final String link, final int level, final Set<AnnotatedConcept> visited) {
+	public boolean format(final List<String> lines, final Link link, final OutputSettings settings, final int level, final Set<Concept> seenConcepts) {
 
-		final Concept concept = annotatedConcept.getConcept();
+		final Concept concept = link.getTarget();
 
 		lines.add(formatMarkdownHeading(concept.getName(), level + 1));
 
@@ -44,19 +45,17 @@ public class MarkdownTableFormatter extends Formatter {
 		lines.add("| --- | --- |");
 
 		// format children
-		final List<AnnotatedConcept> children = concept.getChildren("has");
+		final List<Concept> children = concept.getChildren(Verb.Has);
 		if (children != null) {
 
 			final List<Documentable> documentables = new LinkedList<>();
 
-			for (final AnnotatedConcept annotatedChild : children) {
+			for (final Concept child : children) {
 
 				// mark concept as visited so it is not rendered again
-				visited.add(annotatedChild);
+				seenConcepts.add(child);
 
-				final Concept child             = annotatedChild.getConcept();
 				final Documentable documentable = child.getDocumentable();
-
 				if (documentable != null) {
 
 					documentables.add(documentable);

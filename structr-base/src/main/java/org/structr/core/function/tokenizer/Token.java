@@ -19,29 +19,32 @@
 package org.structr.core.function.tokenizer;
 
 import org.apache.commons.lang3.StringUtils;
+import org.structr.docs.ontology.FactsContainer;
+
+import java.util.List;
 
 public class Token {
 
-	private final String sourceFile;
+	private final FactsContainer source;
 	private final String type;
 	private final String quote;
 	private final int row;
 	private final int column;
 	private String content;
 
-	public Token(final String sourceFile, final String type, final String content, final String quote, final int row, final int column) {
+	public Token(final FactsContainer sourceFile, final String type, final String content, final String quote, final int row, final int column) {
 
-		this.sourceFile = sourceFile;
-		this.type       = type;
-		this.content    = content;
-		this.row        = row;
-		this.column     = column;
-		this.quote      = quote;
+		this.source  = sourceFile;
+		this.type    = type;
+		this.content = content;
+		this.row     = row;
+		this.column  = column;
+		this.quote   = quote;
 	}
 
 	@Override
 	public String toString() {
-		return sourceFile + ":" + row + ":" + column;
+		return source.getName() + ":" + row + ":" + column + " (" + content + ")";
 	}
 
 	public String getType() {
@@ -74,8 +77,8 @@ public class Token {
 		return column;
 	}
 
-	public String getSourceFile() {
-		return "FIXME";
+	public String getSource() {
+		return source.getName();
 	}
 
 	public boolean startsWith(final String prefix) {
@@ -104,5 +107,13 @@ public class Token {
 
 	public void setContent(String newContent) {
 		this.content = newContent;
+	}
+
+	public List<Token> insertAfter(final String text) {
+		return source.insertAfter(this, text);
+	}
+
+	public void remove() {
+		source.remove(this);
 	}
 }

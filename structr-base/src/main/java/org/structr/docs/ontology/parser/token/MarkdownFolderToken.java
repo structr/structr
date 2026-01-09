@@ -55,16 +55,16 @@ public class MarkdownFolderToken extends NamedConceptToken {
 
 		final ConceptType type                = conceptToken.resolve(ontology);
 		final String folderName               = identifierToken.resolve(ontology);
-		final List<AnnotatedConcept> concepts = new LinkedList<>();
+		final List<Concept> concepts = new LinkedList<>();
 
 		final String cleanedName = MarkdownMarkdownFileFormatter.getNameFromFileName(folderName);
-		final Concept folder     = ontology.getOrCreateConcept(this, type, cleanedName, false);
+		final Concept markdownFolder     = ontology.getOrCreateConcept(this, type, cleanedName, false);
 		final Path folderPath    = Path.of("structr/docs/" + folderName);
 		final Path indexFile     = folderPath.resolve("index.txt");
 
-		if (folder != null) {
+		if (markdownFolder != null) {
 
-			final AnnotatedConcept annotatedConcept = new AnnotatedConcept(folder);
+			final AnnotatedConcept annotatedConcept = new AnnotatedConcept(markdownFolder);
 
 			// resolve markdown folder contents and add them as topics
 			if (Files.exists(indexFile)) {
@@ -82,7 +82,7 @@ public class MarkdownFolderToken extends NamedConceptToken {
 
 							markdownFile.getMetadata().put("path", filePath);
 
-							folder.createSymmetricLink(Verb.Has, new AnnotatedConcept(markdownFile));
+							ontology.createSymmetricLink(markdownFolder, Verb.Has, markdownFile);
 
 							// handle children
 							final List<String> lines = Files.readAllLines(folderPath.resolve(file));
@@ -105,7 +105,7 @@ public class MarkdownFolderToken extends NamedConceptToken {
 										final Concept headingConcept = ontology.getOrCreateConcept(this, ConceptType.MarkdownHeading, text, false);
 										if (headingConcept != null) {
 
-											markdownFile.createSymmetricLink(Verb.Has, new AnnotatedConcept(headingConcept));
+											ontology.createSymmetricLink(markdownFile, Verb.Has, headingConcept);
 										}
 									}
 								}

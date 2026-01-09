@@ -29,7 +29,7 @@ import java.util.function.BiFunction;
 
 public class IdentifyNamedConceptsRule extends Rule {
 
-	private final Map<ConceptType, BiFunction<ConceptToken, IdentifierToken, NamedConceptToken>> SpecializedTokens = Map.of(
+	private final Map<ConceptType, BiFunction<ConceptToken, IdentifierToken, AbstractToken>> SpecializedTokens = Map.of(
 		ConceptType.Blacklist,      DoBlacklistToken::new,
 		ConceptType.CodeSource,     CodeSourceToken::new,
 		ConceptType.EnumSource,     EnumSourceToken::new,
@@ -105,7 +105,15 @@ public class IdentifyNamedConceptsRule extends Rule {
 
 						if (SpecializedTokens.containsKey(type)) {
 
-							namedConceptList.addToken(SpecializedTokens.get(type).apply(conceptToken, identifierToken));
+							final AbstractToken newToken = SpecializedTokens.get(type).apply(conceptToken, identifierToken);
+							if (newToken instanceof NamedConceptToken namedConceptToken) {
+
+								namedConceptList.addToken(namedConceptToken);
+
+							} else if (newToken instanceof NamedConceptListToken namedConceptListToken) {
+
+								namedConceptList.addTokens(namedConceptListToken);
+							}
 
 						} else {
 

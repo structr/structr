@@ -21,8 +21,12 @@ package org.structr.docs.ontology.parser.token;
 import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.Ontology;
 
+import java.util.LinkedList;
+import java.util.List;
+
 public class IdentifierToken extends AbstractToken<String> {
 
+	private final List<Token> syntaxTokens = new LinkedList<>();
 	private final Token token;
 
 	protected ConceptToken formatSpecification = null;
@@ -62,5 +66,13 @@ public class IdentifierToken extends AbstractToken<String> {
 	public void renameTo(final String newName) {
 
 		token.setContent(newName);
+	}
+
+	public void addSyntaxToken(final Token token) {
+		syntaxTokens.add(token);
+	}
+
+	public List<Token> getSyntaxTokens() {
+		return syntaxTokens;
 	}
 }

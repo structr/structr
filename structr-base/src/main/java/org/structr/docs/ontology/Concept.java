@@ -24,8 +24,6 @@ import org.structr.docs.Documentable;
 import org.structr.docs.ontology.parser.token.AbstractToken;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
 
 /**
  * A concept in the Structr Documentation Ontology. This class
@@ -39,24 +37,24 @@ public final class Concept implements Comparable<Concept> {
 	public static final double LONG_DESC_MATCH_SCORE  = 1.0;
 	public static final double NOTES_MATCH_SCORE      = 0.1;
 
-	protected final Map<String, List<AnnotatedConcept>> children = new LinkedHashMap<>();
-	protected final Map<String, List<AnnotatedConcept>> parents  = new LinkedHashMap<>();
-	protected final Map<String, Object> metadata                 = new LinkedHashMap<>();
-	protected final Set<AbstractToken> tokens                    = new LinkedHashSet<>();
-	protected final long id;
-	protected Documentable documentable                          = null;
-	protected String shortDescription                            = null;
+	protected final Map<String, Object> metadata = new LinkedHashMap<>();
+	protected final Set<AbstractToken> tokens    = new LinkedHashSet<>();
+	protected Documentable documentable          = null;
+	protected String shortDescription            = null;
 
 	protected final AbstractToken token;
+	protected final Ontology ontology;
 	protected final String name;
+	protected final long id;
 	protected ConceptType type;
 
-	protected Concept(final long id, final AbstractToken token, final ConceptType type, final String name) {
+	protected Concept(final Ontology ontology, final AbstractToken token, final ConceptType type, final String name) {
 
-		this.id    = id;
-		this.type  = type;
-		this.name  = name;
-		this.token = token;
+		this.ontology = ontology;
+		this.id       = ontology.getNextId();
+		this.type     = type;
+		this.name     = name;
+		this.token    = token;
 
 		tokens.add(token);
 	}
@@ -76,7 +74,7 @@ public final class Concept implements Comparable<Concept> {
 	}
 
 	public String getNameTypeAndLinks() {
-		return type + "(" + name + ") -> " + children + " <- " + parents;
+		return type + "(" + name + ")";
 	}
 
 	public ConceptType getType() {
@@ -95,7 +93,8 @@ public final class Concept implements Comparable<Concept> {
 		return tokens;
 	}
 
-	public void createSymmetricLink(final Verb verb, final AnnotatedConcept annotatedConcept) {
+	/*
+	public void createSymmetricLink(final Verb verb, final Concept annotatedConcept) {
 
 		final Concept concept = annotatedConcept.getConcept();
 		final String ltr      = verb.getLeftToRight();
@@ -105,18 +104,101 @@ public final class Concept implements Comparable<Concept> {
 
 			if (!hasChild(ltr, concept)) {
 
-				children.computeIfAbsent(ltr, key -> new LinkedList<>()).add(annotatedConcept);
+				children.computeIfAbsent(ltr, key -> new AnnotatedConceptList(null)).add(annotatedConcept);
 			}
 
 			if (!concept.hasParent(rtl, this)) {
 
-				concept.parents.computeIfAbsent(rtl, key -> new LinkedList<>()).add(new AnnotatedConcept(this, annotatedConcept.getAnnotations()));
+				//concept.parents.computeIfAbsent(rtl, key -> new LinkedList<>()).add(new Concept(this, annotatedConcept.getAnnotations()));
+				// FIXME
+				concept.parents.computeIfAbsent(rtl, key -> new AnnotatedConceptList(null)).add(new Concept(this));
 			}
 		}
 	}
 
-	public Map<String, List<AnnotatedConcept>> getChildren() {
-		return children;
+	public void createSymmetricLink(final Verb verb, final AnnotatedConceptList annotatedConcepts) {
+
+		final String ltr = verb.getLeftToRight();
+		final String rtl = verb.getRightToLeft();
+
+		if (children.containsKey(ltr)) {
+			children.get(ltr).addAll(annotatedConcepts);
+		} else {
+			children.put(ltr, annotatedConcepts);
+		}
+
+		for (final Concept annotatedConcept : annotatedConcepts) {
+
+			final Concept concept = annotatedConcept.getConcept();
+
+			if (!concept.hasParent(rtl, this)) {
+
+				concept.parents.computeIfAbsent(rtl, key -> new AnnotatedConceptList(null)).addAll(new Concept(annotatedConcepts));
+			}
+		}
+	}
+	*/
+
+	public List<Concept> getChildren(final Verb verb) {
+
+		final List<Concept> result = new LinkedList<>();
+
+		for (final Link childLink : getChildLinks(verb)) {
+
+			result.add(childLink.getTarget());
+		}
+
+		return result;
+	}
+
+	public Map<Verb, List<Link>> getChildLinks() {
+		return ontology.getOutgoingLinks(this);
+	}
+
+	public List<Link> getChildLinks(final Verb verb) {
+		return ontology.getOutgoingLinks(this, verb);
+	}
+
+	public List<Concept> getChildrenOfType(final Verb verb, final ConceptType conceptType) {
+
+		final List<Link> list = getChildLinks(verb);
+		if (list != null) {
+
+			final List<Concept> result = new LinkedList<>();
+
+			for (final Link link : list) {
+
+				final Concept child = link.getTarget();
+
+				if (child.getType().equals(conceptType)) {
+					result.add(child);
+				}
+			}
+
+			return result;
+		}
+
+		return List.of();
+	}
+
+	public List<Concept> getParents(final Verb verb) {
+
+		final List<Concept> result = new LinkedList<>();
+
+		for (final Link parentLink : getParentLinks(verb)) {
+
+			result.add(parentLink.getSource());
+		}
+
+		return result;
+	}
+
+	public Map<Verb, List<Link>> getParentLinks() {
+		return ontology.getIncomingLinks(this);
+	}
+
+	public List<Link> getParentLinks(final Verb verb) {
+		return ontology.getIncomingLinks(this, verb);
 	}
 
 	public Map<String, Object> getMetadata() {
@@ -139,46 +221,17 @@ public final class Concept implements Comparable<Concept> {
 		return documentable;
 	}
 
-	public List<AnnotatedConcept> getChildren(final String linkType) {
-		return children.get(linkType);
-	}
-
-	public List<Concept> getChildrenOfType(final String linkType, final ConceptType conceptType) {
-
-		final List<AnnotatedConcept> list = children.get(linkType);
-		if (list != null) {
-
-			final List<Concept> result = new LinkedList<>();
-
-			for (final AnnotatedConcept annotatedChild : list) {
-
-				final Concept child = annotatedChild.getConcept();
-
-				if (child.getType().equals(conceptType)) {
-					result.add(child);
-				}
-			}
-
-			return result;
-		}
-
-		return List.of();
-	}
-
 	public String getParentConceptName() {
 
-		final List<AnnotatedConcept> p = parents.get("ispartof");
+
+		final List<Link> p = getParentLinks(Verb.Has);
 		if (p != null) {
 
-			return p.get(0).getConcept().getName();
+			return p.get(0).getSource().getName();
 		}
 
 		return null;
 
-	}
-
-	public Map<String, List<AnnotatedConcept>> getParents() {
-		return parents;
 	}
 
 	public boolean isTopic() {
@@ -197,31 +250,31 @@ public final class Concept implements Comparable<Concept> {
 
 		int sum = 0;
 
-		for (final List<AnnotatedConcept> child : concept.getChildren().values()) {
+		for (final List<Link> child : concept.getChildLinks().values()) {
 
 			sum++;
 
-			for (final AnnotatedConcept childConcept : child) {
+			for (final Link childLink : child) {
 
-				if (childConcept == null) {
-					throw new RuntimeException("Empty child concept in children of " + getName() + ".");
+				if (childLink == null) {
+					throw new RuntimeException("Empty child link in children of " + getName() + ".");
 				}
 
-				sum += getTotalChildCount(childConcept.getConcept(), new LinkedHashSet<>(visited), level + 1);
+				sum += getTotalChildCount(childLink.getTarget(), new LinkedHashSet<>(visited), level + 1);
 			}
 		}
 
 		return sum;
 	}
 
-	public boolean hasChild(final String has, final Concept concept) {
+	public boolean hasChild(final Verb verb, final Concept concept) {
 
-		final List<AnnotatedConcept> list = children.get(has);
+		final List<Link> list = getChildLinks(verb);
 		if (list != null) {
 
-			for (final AnnotatedConcept child : list) {
+			for (final Link link : list) {
 
-				if (child.getConcept().equals(concept)) {
+				if (link.getTarget().equals(concept)) {
 					return true;
 				}
 			}
@@ -230,14 +283,14 @@ public final class Concept implements Comparable<Concept> {
 		return false;
 	}
 
-	public boolean hasParent(final String has, final Concept concept) {
+	public boolean hasParent(final Verb verb, final Concept concept) {
 
-		final List<AnnotatedConcept> list = parents.get(has);
+		final List<Link> list = getParentLinks(verb);
 		if (list != null) {
 
-			for (final AnnotatedConcept parent : list) {
+			for (final Link link : list) {
 
-				if (parent.getConcept().equals(concept)) {
+				if (link.getSource().equals(concept)) {
 					return true;
 				}
 			}
@@ -316,16 +369,16 @@ public final class Concept implements Comparable<Concept> {
 	 */
 	public boolean isToplevelConcept() {
 
-		final Map<String, List<AnnotatedConcept>> parents = getParents();
+		final Map<Verb, List<Link>> parents = getParentLinks();
 		if (parents.isEmpty()) {
 			return true;
 		}
 
-		for (final Map.Entry<String, List<AnnotatedConcept>> entry : parents.entrySet()) {
+		for (final Map.Entry<Verb, List<Link>> entry : parents.entrySet()) {
 
-			for (final AnnotatedConcept parent : entry.getValue()) {
+			for (final Link parentLink : entry.getValue()) {
 
-				if ("Structr".equals(parent.getConcept().getName())) {
+				if ("Structr".equals(parentLink.getSource().getName())) {
 					return true;
 				}
 			}
@@ -338,11 +391,11 @@ public final class Concept implements Comparable<Concept> {
 
 		final Map<ConceptType, Set<Concept>> groupedChildren = new HashMap<>();
 
-		for (final Map.Entry<String, List<AnnotatedConcept>> entry : children.entrySet()) {
+		for (final Map.Entry<Verb, List<Link>> entry : getChildLinks().entrySet()) {
 
-			for (final AnnotatedConcept child : entry.getValue()) {
+			for (final Link childLink : entry.getValue()) {
 
-				groupedChildren.computeIfAbsent(child.getType(), k -> new TreeSet<>()).add(child.getConcept());
+				groupedChildren.computeIfAbsent(childLink.getType(), k -> new TreeSet<>()).add(childLink.getTarget());
 			}
 		}
 
@@ -351,11 +404,11 @@ public final class Concept implements Comparable<Concept> {
 
 	public Concept getChildWithName(final String name) {
 
-		final List<AnnotatedConcept> list = this.children.get("has");
-		for (final AnnotatedConcept child : list) {
+		final List<Link> list = getChildLinks(Verb.Has);
+		for (final Link link : list) {
 
-			if (child.getName().equals(name)) {
-				return child.getConcept();
+			if (link.getTarget().getName().equals(name)) {
+				return link.getTarget();
 			}
 		}
 
@@ -374,7 +427,7 @@ public final class Concept implements Comparable<Concept> {
 				if (token != null) {
 
 					references.add(Map.of(
-						"sourceFile", token.getSourceFile(),
+						"sourceFile", token.getSource(),
 						"row",        token.getRow(),
 						"column",     token.getColumn()
 					));
@@ -418,7 +471,7 @@ public final class Concept implements Comparable<Concept> {
 		return null;
 	}
 
-	public static Concept create(final long id, final AbstractToken token, final ConceptType type, final String name) {
-		return new Concept(id, token, type, name);
+	public static Concept create(final Ontology ontology, final AbstractToken token, final ConceptType type, final String name) {
+		return new Concept(ontology, token, type, name);
 	}
 }

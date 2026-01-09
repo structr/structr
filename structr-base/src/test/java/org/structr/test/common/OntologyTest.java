@@ -23,7 +23,6 @@ import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.Test;
 
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -62,7 +61,7 @@ public class OntologyTest extends StructrUiTest {
 		assertEquals("Button list was not parsed correctly", "Button(Test-Button-4)",  concepts.get(i++).toString());
 
 		// "It" should reference the area "Pages" in the above list of facts, hence that area should have 9 "has" links
-		assertEquals("\"It\" keyword does not reference last subject", 9, ontology.getConcept(ConceptType.Area, "Pages").get(0).getChildren().get("has").size());
+		assertEquals("\"It\" keyword does not reference last subject", 9, ontology.getConcept(ConceptType.Area, "Pages").get(0).getChildLinks().get(Verb.Has).size());
 	}
 
 	@Test
@@ -110,8 +109,8 @@ public class OntologyTest extends StructrUiTest {
 
 		assertNotNull(ontology.getConcept(ConceptType.Type, "Test"));
 		assertNotNull(ontology.getConcept(ConceptType.Button, "Test"));
-		assertEquals("Type(Test)", ontology.getConcept(ConceptType.Button, "Test").get(0).getChildren().get("creates").get(0).toString());
-		assertEquals("Button(Test)", ontology.getConcept(ConceptType.Type, "Test").get(0).getParents().get("iscreatedby").get(0).toString());
+		assertEquals("Button(Test) Creates Type(Test)", ontology.getConcept(ConceptType.Button, "Test").get(0).getChildLinks().get(Verb.Creates).get(0).toString());
+		assertEquals("Button(Test) Creates Type(Test)", ontology.getConcept(ConceptType.Type, "Test").get(0).getParentLinks().get(Verb.Creates).get(0).toString());
 	}
 
 	@Test
@@ -127,9 +126,9 @@ public class OntologyTest extends StructrUiTest {
 	}
 
 	@Test
-	public void testPrepositions() {
+	public void testWithKeyword() {
 
-		final Ontology ontology  = new Ontology(new TestFacts("testPrepositions", "topic Structr has topic \"Test\" with topic \"Added\""));
+		final Ontology ontology  = new Ontology(new TestFacts("testWithKeyword", "topic Structr has topic \"Test\" with topic \"Added\""));
 
 		for (final Concept concept : ontology.getAllConcepts()) {
 
@@ -142,6 +141,23 @@ public class OntologyTest extends StructrUiTest {
 
 		// information from the prepositional clause "with <type> <name>" is stored in the concept's metadata
 		assertEquals("Added", test.getMetadata().get("topic"));
+	}
+
+	@Test
+	public void testAsKeyword() {
+
+		final Ontology ontology  = new Ontology(new TestFacts("testAsKeyword", "topic Structr has topic \"File types\" as table"));
+
+		for (final Concept concept : ontology.getAllConcepts()) {
+
+			System.out.println(concept.getNameTypeAndLinks());
+		}
+
+		final Concept test = ontology.getConcept(ConceptType.Topic, "Structr").get(0);
+
+		assertNotNull(test);
+
+		assertEquals(ConceptType.Table, test.getChildLinks(Verb.Has).get(0).getFormatSpecification());
 	}
 
 	@Test
@@ -268,33 +284,25 @@ public class OntologyTest extends StructrUiTest {
 		final TestFacts facts   = new TestFacts("test", src);
 		final Ontology ontology = new Ontology(facts);
 
-
-
-
 		for (final Concept concept : ontology.getConceptsByName("One")) {
 
 			concept.renameTo("TEST");
+			concept.getChildLinks(Verb.Has).get(0).setFormat(ConceptType.List);
 		}
 
-		final String dst = facts.toString();
+		for (final Concept concept : ontology.getConceptsByName("Structr")) {
 
-		assertEquals(src, dst);
+			final List<Link> children = concept.getChildLinks(Verb.Has);
 
-	}
-
-	// ----- private methods -----
-	private void printConcepts(final List<Concept> concepts) {
-
-		for (final Concept c : concepts) {
-
-			System.out.println(c);
-
-			final Map<String, List<AnnotatedConcept>> links = c.getChildren();
-
-			for (final String key : links.keySet()) {
-
-				System.out.println("        " + key + ": " + links.get(key));
-			}
+			/*
+			children.addChild("Juhu!");
+			children.removeChild(2);
+			children.moveChild(0, 2);
+			*/
 		}
+
+
+
+		System.out.println(facts.toString());
 	}
 }

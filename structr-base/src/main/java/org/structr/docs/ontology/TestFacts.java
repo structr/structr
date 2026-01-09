@@ -34,6 +34,8 @@ public class TestFacts extends FactsContainer {
 
 		this.name = name;
 		this.facts = facts;
+
+		initialize();
 	}
 
 	@Override
@@ -51,16 +53,19 @@ public class TestFacts extends FactsContainer {
 
 	@Override
 	public List<Token> getTokens() {
-
-		final FactsTokenizer factsTokenizer = new  FactsTokenizer();
-
-		tokens.addAll(factsTokenizer.tokenize(name, facts));
-
 		return tokens;
 	}
 
 	@Override
 	public String getName() {
 		return name;
+	}
+
+	// ----- private methods -----
+	private void initialize() {
+
+		final FactsTokenizer factsTokenizer = new  FactsTokenizer();
+
+		tokens.addAll(factsTokenizer.tokenize(this, facts));
 	}
 }

@@ -21,7 +21,6 @@ package org.structr.docs.ontology.parser.token;
 import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.Ontology;
 
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 

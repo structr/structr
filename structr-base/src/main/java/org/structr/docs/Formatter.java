@@ -19,8 +19,9 @@
 package org.structr.docs;
 
 import org.apache.commons.lang3.StringUtils;
-import org.structr.docs.ontology.AnnotatedConcept;
 import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.Link;
+import org.structr.docs.ontology.Verb;
 
 import java.util.*;
 
@@ -31,26 +32,25 @@ public abstract class Formatter {
 	 * whether the children of this concept should be rendered or not.
 	 *
 	 * @param lines
-	 * @param concept
-	 * @param settings
 	 * @param link
+	 * @param settings
 	 * @param level
 	 * @return whether the children should be rendered
 	 */
-	public abstract boolean format(final List<String> lines, final AnnotatedConcept concept, final OutputSettings settings, final String link, final int level, final Set<AnnotatedConcept> visited);
+	public abstract boolean format(final List<String> lines, final Link link, final OutputSettings settings, final int level, final Set<Concept> visited);
 
 	/**
 	 * Walks through the whole ontology and calls formatters for all the elements.
 	 * Output generation is controlled externally by the OutputSettings instance.
 	 *
 	 * @param lines
-	 * @param annotatedConcept
+	 * @param link
 	 * @param outputSettings
 	 * @param level
 	 */
-	public static void walkOntology(final List<String> lines, final AnnotatedConcept annotatedConcept, final OutputSettings outputSettings, final String link, final int level, final Set<AnnotatedConcept> seenConcepts) {
+	public static void walkOntology(final List<String> lines, final Link link, final OutputSettings outputSettings, final int level, final Set<Concept> seenConcepts) {
 
-		final Concept concept = annotatedConcept.getConcept();
+		final Concept concept = link.getTarget();
 
 		// max level reached, no output beyond this point
 		if (level >= outputSettings.getMaxLevels()) {
@@ -58,19 +58,19 @@ public abstract class Formatter {
 			return;
 		}
 
-		// type filter
 		if (concept == null) {
 			Formatter.renderComment(lines, outputSettings, "Encountered null concept while processing ontology.");
 			return;
 		}
 
+		// type filter
 		if (!outputSettings.renderType(concept.getType())) {
 			Formatter.renderComment(lines, outputSettings, concept + " not rendered because OutputSettings#typesToRender did not contain " + concept.getType());
 			return;
 		}
 
 		// only output the same concept once
-		if (!seenConcepts.add(annotatedConcept)) {
+		if (!seenConcepts.add(concept)) {
 			Formatter.renderComment(lines, outputSettings, concept + " not rendered because it was already rendered previously.");
 			return;
 		}
@@ -81,10 +81,10 @@ public abstract class Formatter {
 		if (level >= outputSettings.getStartLevel()) {
 
 			// part1: fetch formatter for concept and call format()
-			final Formatter formatter = outputSettings.getFormatterForConcept(annotatedConcept, outputSettings.getOutputMode());
+			final Formatter formatter = outputSettings.getFormatterForLink(link, outputSettings.getOutputMode());
 			if (formatter != null) {
 
-				renderChildren = formatter.format(lines, annotatedConcept, outputSettings, link, level, seenConcepts);
+				renderChildren = formatter.format(lines, link, outputSettings, level, seenConcepts);
 
 				formatterType = formatter.getClass().getSimpleName();
 
@@ -97,23 +97,10 @@ public abstract class Formatter {
 		if (renderChildren) {
 
 			// part2: recurse (children are handled externally, i.e. not inside the type-specific formatters)
-			final Map<String, List<AnnotatedConcept>> children = concept.getChildren();
-			for (final String key : children.keySet()) {
+			final List<Link> links = concept.getChildLinks(Verb.Has);
+			for (final Link child : links) {
 
-				if ("has".equals(key)) {
-
-					final List<AnnotatedConcept> concepts = new LinkedList<>(children.get(key));
-
-					// only sort second-level topics
-					if (level > 0) {
-						Collections.sort(concepts, Comparator.comparing(AnnotatedConcept::getName));
-					}
-
-					for (final AnnotatedConcept child : concepts) {
-
-						walkOntology(lines, child, outputSettings, key, level + 1, seenConcepts);
-					}
-				}
+				walkOntology(lines, child, outputSettings, level + 1, seenConcepts);
 			}
 		} else {
 
