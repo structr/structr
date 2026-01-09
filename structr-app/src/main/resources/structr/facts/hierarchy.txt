@@ -34,7 +34,11 @@ Structr has topics "Building Applications", "Admin User Interface", "REST Interf
 
         "Pages" has topics "Create page", "Import page"
 
-        Topic "Elements" has topics "Rendering options" as table
+        Topic "Elements" has topics "Rendering options"
+            "Rendering options" has topics "Load / Update Mode" as table, "Delay or Interval (ms)"
+                "Load / Update Mode" has description "This setting allows you to enable delayed rendering or lazy loading for this element."
+                "Load / Update Mode" has constant "Eager" with description "Renders the element in the initial server-side rendering run."
+                "Load / Update Mode" has constant "When page has finished loading" with description "Renders the element after the initial rendering run is done."
 
         "Shared Components" has topics "Shared Component Configuration"
 
@@ -45,9 +49,7 @@ Structr has topics "Building Applications", "Admin User Interface", "REST Interf
 
         "Authentication" has topics "Authentication methods for pages"
 
-    "Dynamic Content" has topic "Template expressions", "Repeaters", "Show / Hide Conditions"
-
-        "Template expressions" has synonym "template expression"
+    "Dynamic Content" has topics "Template expressions", "Repeaters", "Show / Hide Conditions"
 
         "Repeaters" has topic "Data key"
         "Repeaters" has texts "Function query", "Flow", "Cypher query"
@@ -153,7 +155,7 @@ Topic "Advanced Topics" has topics "Performance Optimization", "Internals"
 
     "Internals" has topics "Page Rendering Engine", "Indexing"
 
-        "Page Rendering Engine" has topics "Async rendering"
+        "Page Rendering Engine" has topics "Server-side rendering", "Async rendering"
 
         Indexing has topic "Indexing Settings"
 

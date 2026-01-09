@@ -76,4 +76,9 @@ public class IsAToken extends AbstractToken<AnnotatedConcept> {
 	public void renameTo(final String newName) {
 		throw new UnsupportedOperationException("Not implemented yet");
 	}
+
+	@Override
+	public void updateContent(final String key, final String value) {
+		throw new UnsupportedOperationException("Not supported.");
+	}
 }

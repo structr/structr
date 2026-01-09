@@ -73,4 +73,9 @@ public class ConceptToken extends StringToken<ConceptType> {
 	public void renameTo(final String newName) {
 		originalToken.setContent(newName);
 	}
+
+	@Override
+	public void updateContent(final String key, final String value) {
+		throw new UnsupportedOperationException("Not supported.");
+	}
 }

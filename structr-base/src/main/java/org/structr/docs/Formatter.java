@@ -117,6 +117,17 @@ public abstract class Formatter {
 		return StringUtils.repeat("  ", level) + "- " + text;
 	}
 
+	protected void formatEditableAttribute(final List<String> lines, final String id, final String key, final String text) {
+		formatEditableAttribute(lines, id, key, List.of(text));
+	}
+
+	protected void formatEditableAttribute(final List<String> lines, final String id, final String key, final List<String> text) {
+
+		lines.add("<!-- start of " + id + " " + key + " -->");
+		lines.addAll(text);
+		lines.add("<!-- end of " + id + " " + key + " -->");
+	}
+
 	public static void renderComment(final List<String> lines, final OutputSettings outputSettings, final String text) {
 
 		if ("markdown".equals(outputSettings.getOutputFormat())) {
@@ -125,7 +136,7 @@ public abstract class Formatter {
 
 		} else {
 
-			System.out.println(text);
+			//System.out.println(text);
 		}
 	}
 }

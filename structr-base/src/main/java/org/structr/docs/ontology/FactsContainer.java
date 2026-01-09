@@ -31,6 +31,20 @@ public abstract class FactsContainer {
 
 	public abstract List<Token> getTokens();
 	public abstract String getName();
+	public abstract void writeToDisc();
+
+	@Override
+	public String toString() {
+
+		final StringBuilder buf = new StringBuilder();
+
+		for (Token token : getTokens()) {
+
+			buf.append(token.getRawContent());
+		}
+
+		return buf.toString();
+	}
 
 	public Deque<AbstractToken> getFilteredTokens() {
 

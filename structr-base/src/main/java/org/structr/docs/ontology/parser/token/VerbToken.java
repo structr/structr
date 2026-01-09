@@ -61,4 +61,9 @@ public class VerbToken extends StringToken<Verb> {
 	public void renameTo(final String newName) {
 		throw new UnsupportedOperationException("Not implemented yet");
 	}
+
+	@Override
+	public void updateContent(final String key, final String value) {
+		throw new UnsupportedOperationException("Cannot update verb.");
+	}
 }

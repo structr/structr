@@ -38,8 +38,6 @@ public class ToplevelTopicsMarkdownFormatter extends Formatter {
 
 		final Concept concept = link.getTarget();
 
-		System.out.println(concept + ": " + concept.getTokens());
-
 		// do not display blacklisted entries
 		if (blacklistedTypes.contains(concept.getType())) {
 			return true;
@@ -60,6 +58,12 @@ public class ToplevelTopicsMarkdownFormatter extends Formatter {
 
 			lines.add(formatMarkdownHeading(concept.getName(), level + 1));
 			lines.add("");
+
+			final List<String> synonyms = concept.getSynonyms();
+			if (!synonyms.isEmpty()) {
+
+				lines.add("Synonyms: *" + StringUtils.join(synonyms, "*, *") + "*");
+			}
 		}
 
 		if (settings.hasDetail(Details.source) || settings.hasDetail(Details.all)) {
@@ -83,7 +87,7 @@ public class ToplevelTopicsMarkdownFormatter extends Formatter {
 
 			if (concept.getShortDescription() != null) {
 
-				lines.add(concept.getShortDescription());
+				formatEditableAttribute(lines, concept.getId(), "shortDescription", concept.getShortDescription());
 			}
 		}
 

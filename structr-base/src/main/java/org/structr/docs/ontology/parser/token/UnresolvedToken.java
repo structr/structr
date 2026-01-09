@@ -46,4 +46,9 @@ public class UnresolvedToken extends StringToken<Concept> {
 	public void renameTo(final String newName) {
 		throw new UnsupportedOperationException("Cannot rename unresolved token " + token);
 	}
+
+	@Override
+	public void updateContent(final String key, final String value) {
+		throw new UnsupportedOperationException("Cannot update unresolved token " + token);
+	}
 }

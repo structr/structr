@@ -19,9 +19,11 @@
 package org.structr.docs.ontology;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jetty.util.resource.Resource;
+import org.structr.core.function.tokenizer.Identifier;
 import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.Documentable;
-import org.structr.docs.ontology.parser.token.AbstractToken;
+import org.structr.docs.ontology.parser.token.*;
 
 import java.util.*;
 
@@ -65,16 +67,16 @@ public final class Concept implements Comparable<Concept> {
 
 	@Override
 	public String toString() {
-		return type + "(" + name + ")";
+		return type + "(" + getName() + ")";
 	}
 
 	@Override
 	public int compareTo(final Concept o) {
-		return name.compareTo(o.getName());
+		return getName().compareTo(o.getName());
 	}
 
 	public String getNameTypeAndLinks() {
-		return type + "(" + name + ")";
+		return type + "(" + getName() + ")";
 	}
 
 	public ConceptType getType() {
@@ -86,6 +88,18 @@ public final class Concept implements Comparable<Concept> {
 	}
 
 	public String getName() {
+
+		/*
+		if (token != null) {
+
+			final Token textToken = token.getToken();
+			if (textToken != null) {
+
+				return textToken.getContent();
+			}
+		}
+		*/
+
 		return name;
 	}
 
@@ -306,7 +320,8 @@ public final class Concept implements Comparable<Concept> {
 
 	public double matches(final String searchString) {
 
-		double score = 0.0;
+		final String name = getName();
+		double score      = 0.0;
 
 		if (name != null && name.toLowerCase().equals(searchString)) {
 
@@ -349,9 +364,10 @@ public final class Concept implements Comparable<Concept> {
 		return score;
 	}
 
-	public boolean isSame(final String name, final ConceptType type) {
+	public boolean isSame(final String otherName, final ConceptType type) {
 
-		if (this.name.equals(name)) {
+		final String name = getName();
+		if (name.equals(otherName)) {
 
 			if (this.type.equals(type) || ConceptType.Unknown.equals(type)) {
 
@@ -443,6 +459,83 @@ public final class Concept implements Comparable<Concept> {
 		for (final AbstractToken token : getTokens()) {
 
 			token.renameTo(test);
+		}
+	}
+
+	public List<String> getSynonyms() {
+
+		final List<String> synonyms = new LinkedList<>();
+
+		getChildrenOfType(Verb.Has, ConceptType.Synonym).forEach(synonym -> synonyms.add(synonym.getName()));
+
+		return synonyms;
+	}
+
+	public void updateContent(final String key, final String value) {
+
+		if ("content".equals(key)) {
+
+			if (token != null) {
+
+				token.updateContent(key, value);
+			}
+
+			return;
+		}
+
+		if ("shortDescription".equals(key)) {
+
+			for (final FactToken factToken : getFactTokens()) {
+
+				final VerbToken verb = factToken.getVerbToken();
+				if (verb != null) {
+
+					final NamedConceptToken objectToken = factToken.getObjectToken();
+					if (objectToken != null) {
+
+						if (ConceptType.Description.equals(objectToken.getConceptToken().getType())) {
+
+							final IdentifierToken description = objectToken.getIdentifierToken();
+							if (description != null) {
+
+								description.updateContent("content", value);
+							}
+						}
+					}
+				}
+
+			}
+		}
+	}
+
+	// ----- private methods -----
+	private List<FactToken> getFactTokens() {
+
+		final List<FactToken> factTokens = new LinkedList<>();
+
+		for (final AbstractToken token : getTokens()) {
+
+			collectFactParents(factTokens, token);
+		}
+
+		return factTokens;
+	}
+
+	private void collectFactParents(final List<FactToken> parents, final AbstractToken token) {
+
+		if (token != null) {
+
+			if (token instanceof FactToken factToken) {
+
+				parents.add(factToken);
+			}
+
+			final AbstractToken parent = token.getParent();
+			if (parent != null) {
+
+				collectFactParents(parents, parent);
+
+			}
 		}
 	}
 

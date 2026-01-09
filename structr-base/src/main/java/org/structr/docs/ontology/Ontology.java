@@ -45,12 +45,13 @@ import java.util.stream.Stream;
  */
 public final class Ontology {
 
-	private final Set<ConceptType> SearchBlacklist = EnumSet.of(ConceptType.Text, ConceptType.Heading, ConceptType.MarkdownHeading);
-	private final AtomicLong idGenerator           = new AtomicLong();
-	private final List<Concept> concepts           = new LinkedList<>();
-	private final Set<Link> links                  = new LinkedHashSet<>();
-	private final Set<String> blacklist            = new LinkedHashSet<>();
-	private Concept currentSubject                 = null;
+	private final Set<ConceptType> SearchBlacklist    = EnumSet.of(ConceptType.Text, ConceptType.Heading, ConceptType.MarkdownHeading);
+	private final List<FactsContainer> factContainers = new LinkedList<>();
+	private final AtomicLong idGenerator              = new AtomicLong();
+	private final List<Concept> concepts              = new LinkedList<>();
+	private final Set<Link> links                     = new LinkedHashSet<>();
+	private final Set<String> blacklist               = new LinkedHashSet<>();
+	private Concept currentSubject                    = null;
 
 	public Set<String> getBlacklist() {
 		return blacklist;
@@ -146,7 +147,7 @@ public final class Ontology {
 
 		for  (final Concept concept : concepts) {
 
-			if (concept.name.equals(name)) {
+			if (concept.getName().equals(name)) {
 
 				if (concept.type.equals(type) || ConceptType.Unknown.equals(type) || ConceptType.Unknown.equals(concept.type)) {
 
@@ -201,7 +202,7 @@ public final class Ontology {
 
 		for  (final Concept concept : concepts) {
 
-			if (concept.name.equals(name)) {
+			if (concept.getName().equals(name)) {
 
 				result.add(concept);
 			}
@@ -343,6 +344,26 @@ public final class Ontology {
 		return null;
 	}
 
+	public void removeConcept(final Concept concept) {
+
+		final List<Link> linksToRemove = new LinkedList<>();
+
+		concepts.remove(concept);
+
+		for (final Link link : links) {
+
+			if (link.getTarget().equals(concept)) {
+				linksToRemove.add(link);
+			}
+
+			if  (link.getSource().equals(concept)) {
+				linksToRemove.add(link);
+			}
+		}
+
+		links.removeAll(linksToRemove);
+	}
+
 	// ----- private methods -----
 	private void initialize(final Path path) {
 
@@ -353,6 +374,8 @@ public final class Ontology {
 				final FactsFile factsFile = new FactsFile(file);
 
 				storeFacts(factsFile);
+
+				factContainers.add(factsFile);
 			};
 
 		} catch (IOException ioex) {
@@ -377,6 +400,14 @@ public final class Ontology {
 
 	public long getNextId() {
 		return idGenerator.getAndIncrement();
+	}
+
+	public void updateFactsContainers() {
+
+		for (final FactsContainer factsContainer : factContainers) {
+
+			factsContainer.writeToDisc();
+		}
 	}
 
 	// ----- private methods -----

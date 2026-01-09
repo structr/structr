@@ -31,4 +31,9 @@ public abstract class ConstantToken<T> extends StringToken<T> {
 	public void renameTo(final String newName) {
 		throw new UnsupportedOperationException("Cannot rename constant token " + token.getContent());
 	}
+
+	@Override
+	public void updateContent(final String key, final String value) {
+		throw new UnsupportedOperationException("Cannot update constant token " + token.getContent());
+	}
 }

@@ -92,6 +92,8 @@ public class NamedConceptToken extends AbstractToken<AnnotatedConcept> {
 				final Concept additionalConcept                   = additionalAnnotatedConcept.getConcept();
 
 				concept.getMetadata().put(additionalConcept.getType().getIdentifier(), additionalConcept.getName());
+
+				ontology.removeConcept(additionalConcept);
 			}
 
 			final AnnotatedConcept annotatedConcept = new AnnotatedConcept(concept);
@@ -131,6 +133,12 @@ public class NamedConceptToken extends AbstractToken<AnnotatedConcept> {
 		if (identifierToken != null) {
 			identifierToken.renameTo(newName);
 		}
+	}
+
+	@Override
+	public void updateContent(final String key, final String value) {
+
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	public void remove() {

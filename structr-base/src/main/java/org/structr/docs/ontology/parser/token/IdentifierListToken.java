@@ -73,4 +73,9 @@ public class IdentifierListToken extends AbstractToken<List<IdentifierToken>> {
 	public void renameTo(final String newName) {
 		throw new UnsupportedOperationException("Cannot rename list.");
 	}
+
+	@Override
+	public void updateContent(final String key, final String value) {
+		throw new UnsupportedOperationException("Cannot update list.");
+	}
 }

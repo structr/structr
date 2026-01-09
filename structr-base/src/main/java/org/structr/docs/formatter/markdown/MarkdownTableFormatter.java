@@ -25,6 +25,7 @@ import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.Link;
 import org.structr.docs.ontology.Verb;
 
+import java.nio.file.Files;
 import java.util.*;
 
 public class MarkdownTableFormatter extends Formatter {
@@ -37,7 +38,7 @@ public class MarkdownTableFormatter extends Formatter {
 		lines.add(formatMarkdownHeading(concept.getName(), level + 1));
 
 		if (concept.getShortDescription() != null) {
-			lines.add(concept.getShortDescription());
+			formatEditableAttribute(lines, concept.getId(), "shortDescription", concept.getShortDescription());
 		}
 
 		lines.add("");

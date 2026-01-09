@@ -51,6 +51,14 @@ public class FactToken extends AbstractToken {
 		return "FactToken(" + subjectToken + ", " + predicateToken + ", " + objectToken + ")";
 	}
 
+	public NamedConceptToken getObjectToken() {
+		return objectToken;
+	}
+
+	public VerbToken getVerbToken() {
+		return predicateToken;
+	}
+
 	public NamedConceptToken getSubjectToken() {
 		return subjectToken;
 	}
@@ -92,6 +100,7 @@ public class FactToken extends AbstractToken {
 		if (Verb.Has.equals(verb) && ConceptType.Description.equals(object.getType())) {
 
 			subject.setShortDescription(object.getName());
+			ontology.removeConcept(object);
 
 		} else {
 
@@ -118,5 +127,10 @@ public class FactToken extends AbstractToken {
 	@Override
 	public void renameTo(final String newName) {
 		throw new UnsupportedOperationException("Cannot rename fact.");
+	}
+
+	@Override
+	public void updateContent(final String key, final String value) {
+		throw new UnsupportedOperationException("Cannot update fact.");
 	}
 }

@@ -86,6 +86,11 @@ public class FactsToken extends AbstractToken {
 		throw new UnsupportedOperationException("Cannot rename fact.");
 	}
 
+	@Override
+	public void updateContent(final String key, final String value) {
+		throw new UnsupportedOperationException("Cannot update fact.");
+	}
+
 	// ----- private methods -----
 	private void resolveLeftToRight(final Ontology ontology) {
 

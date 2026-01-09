@@ -39,16 +39,7 @@ public class TestFacts extends FactsContainer {
 	}
 
 	@Override
-	public String toString() {
-
-		final StringBuilder buf = new StringBuilder();
-
-		for (Token token : tokens) {
-
-			buf.append(token.getRawContent());
-		}
-
-		return buf.toString();
+	public void writeToDisc() {
 	}
 
 	@Override

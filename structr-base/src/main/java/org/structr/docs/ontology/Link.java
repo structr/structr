@@ -41,7 +41,15 @@ public class Link {
 
 	@Override
 	public String toString() {
-		return "Link(" + source + " " + verb + " " + target + " " + formatSpecification + ")";
+
+		if (formatSpecification != null) {
+
+			return "Link(" + source + " " + verb + " " + target + " as " + formatSpecification + ")";
+
+		} else {
+
+			return "Link(" + source + " " + verb + " " + target + ")";
+		}
 	}
 
 	@Override

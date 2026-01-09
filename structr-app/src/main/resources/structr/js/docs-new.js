@@ -210,9 +210,11 @@ let _Documentation = {
             while (node = treeWalker.nextNode()) {
 
                 let text = node.nodeValue.trim();
-                if (text.startsWith('start of')) {
+                if (text.startsWith('start of ')) {
 
-                    let fileName = text.substring(10, text.length - 1).trim();
+                    let parts = text.split(' ');
+                    let conceptId = parts[2];
+                    let attributeKey = parts[3];
                     let nodesToMove = [];
                     let currentElement = node.nextSibling;
                     let referenceElement = currentElement;
@@ -224,7 +226,7 @@ let _Documentation = {
                         text = currentElement?.nodeValue?.trim();
 
                         // start of comment
-                        if (text && text.startsWith('end of')) {
+                        if (text && text.startsWith('end of ')) {
 
                             // create move target
                             let previousContentContainer = iframe.contentDocument.createElement('div');
@@ -256,7 +258,7 @@ let _Documentation = {
                             // implement button action
                             editButton.addEventListener('click', () => {
 
-                                fetch(`/structr/docs/${fileName}`).then(response => response.text()).then((text) => {
+                                fetch(`/structr/docs/ontology?id=${conceptId}&format=raw&key=${attributeKey}`).then(response => response.text()).then((text) => {
 
                                     textarea.value = text;
                                     textarea.style.height = Math.max(300, previousContentContainer.clientHeight) + 'px';
@@ -272,12 +274,12 @@ let _Documentation = {
                             let saveDiv = iframe.contentDocument.createElement('div');
                             let saveButton = iframe.contentDocument.createElement('button');
                             saveDiv.classList.add('text-right');
-                            saveButton.innerHTML = 'Save to "' + fileName + '"';
+                            saveButton.innerHTML = 'Save to "' + conceptId + '"';
                             saveDiv.appendChild(saveButton);
                             editingContainer.appendChild(saveDiv);
 
                             saveButton.addEventListener('click', e => {
-                                fetch(`/structr/docs/ontology?fileName=${encodeURIComponent(fileName)}`, {
+                                fetch(`/structr/docs/ontology?id=${conceptId}&key=${attributeKey}`, {
                                     method: 'PUT',
                                     body: textarea.value
                                 }).then(response => response.text()).then((text) => {

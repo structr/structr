@@ -53,4 +53,9 @@ public class DocumentationAnnotationToken extends AbstractToken<Void> {
 	public void renameTo(final String newName) {
 		throw new UnsupportedOperationException("Cannot rename annotated Java elements.");
 	}
+
+	@Override
+	public void updateContent(final String key, final String value) {
+		throw new UnsupportedOperationException("Cannot update annotated Java elements.");
+	}
 }

@@ -43,6 +43,8 @@ import org.structr.docs.formatter.json.TableOfContentsConceptFormatter;
 import org.structr.docs.formatter.markdown.*;
 import org.structr.docs.formatter.text.PlaintextMarkdownFileFormatter;
 import org.structr.docs.formatter.text.PlaintextTopicFormatter;
+import org.structr.docs.formatter.text.RawConceptFormatter;
+import org.structr.docs.formatter.text.RawMarkdownFileFormatter;
 import org.structr.docs.ontology.*;
 import org.structr.rest.service.HttpService;
 
@@ -115,6 +117,10 @@ public class DocumentationServlet extends HttpServlet {
 					renderPlaintext(response, lines);
 				}
 
+				if ("raw".equals(settings.getOutputFormat())) {
+					renderRawContent(response, lines);
+				}
+
 				if ("json".equals(settings.getOutputFormat()) || "toc".equals(settings.getOutputFormat())) {
 					renderJson(response, lines);
 				}
@@ -140,27 +146,40 @@ public class DocumentationServlet extends HttpServlet {
 	protected void doPut(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
 		// update markdown file here
-		final String fileName = request.getParameter("fileName");
-		if (StringUtils.isNotBlank(fileName)) {
+		final String conceptId = request.getParameter("id");
+		if (StringUtils.isNotBlank(conceptId)) {
 
 			final HttpService service                = Services.getInstance().getServiceImplementation(HttpService.class);
 			final ResourceHandler resourceHandler    = service.getExportedResourceHandler();
 			final Resource baseResource              = resourceHandler.getBaseResource();
-			final Resource facts                     = baseResource.resolve("docs");
-			final Path filePath                      = facts.getPath().resolve(fileName);
+			final Resource facts                     = baseResource.resolve("facts");
+			final Ontology ontology                  = new Ontology(facts.getPath());
+			final Concept concept                    = ontology.getConceptById(conceptId);
 
-			if (Files.exists(filePath)) {
+			if (concept != null) {
 
 				try (final InputStream inputStream = request.getInputStream()) {
 
 					final String content = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+					final String key     = request.getParameter("key");
 
-					// store markdown content in file
-					try (final BufferedWriter writer = new BufferedWriter(new FileWriter(filePath.toFile()))) {
+					concept.updateContent(key, content);
 
-						writer.write(content);
-						writer.flush();
+					ontology.updateFactsContainers();
+
+
+					/*
+					if (ConceptType.MarkdownFile.equals(concept.getType())) {
+
+						final String fileName = concept.getName();
+
+							response.setStatus(404);
+							response.getWriter().print("File " + fileName + " does not exist.");
+
+							return;
+						}
 					}
+					*/
 
 					// send new HTML content to client
 					response.setContentType("text/html; charset=utf-8");
@@ -170,18 +189,19 @@ public class DocumentationServlet extends HttpServlet {
 					options.setAll(PegdownOptionsAdapter.flexmarkOptions(false, Extensions.ALL));
 					//options.set(HtmlRenderer.SOFT_BREAK, "<br />\n");
 
-					final Parser parser         = Parser.builder(options).build();
+					final Parser parser = Parser.builder(options).build();
 					final HtmlRenderer renderer = HtmlRenderer.builder(options).build();
-					final Document doc          = parser.parse(content);
-					final Writer writer         = response.getWriter();
+					final Document doc = parser.parse(content);
+					final Writer writer = response.getWriter();
 
 					renderer.render(doc, writer);
 				}
 
 			} else {
 
+
 				response.setStatus(404);
-				response.getWriter().print("File " + fileName + " does not exist.");
+				response.getWriter().print("Concept " + conceptId + " does not exist.");
 			}
 
 		} else {
@@ -249,6 +269,19 @@ public class DocumentationServlet extends HttpServlet {
 		writer.write("{ \"data\": [\n");
 		writer.write(StringUtils.join(lines, ",\n"));
 		writer.write("]}\n");
+	}
+
+	private void renderRawContent(final HttpServletResponse response, final List<String> lines) throws IOException {
+
+		response.setContentType("text/plain; charset=utf-8");
+
+		final Writer writer = response.getWriter();
+
+		for (final String line : lines) {
+
+			writer.write(line);
+			writer.write("\n");
+		}
 	}
 
 	private boolean handleRequestParameters(final HttpServletRequest request, final Ontology ontology, final List<Concept> concepts, final OutputSettings settings, final Map<Concept, Double> searchResults) {
@@ -403,6 +436,9 @@ public class DocumentationServlet extends HttpServlet {
 		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.Table,          new MarkdownTableFormatter());
 		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.Glossary,       new MarkdownGlossaryFormatter());
 
+		// wildcard
+		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.Unknown,        new ToplevelTopicsMarkdownFormatter());
+
 		settings.setFormatterForOutputFormatModeAndType("text", "overview", ConceptType.Unknown,            new PlaintextTopicFormatter());
 		settings.setFormatterForOutputFormatModeAndType("text", "overview", ConceptType.Topic,              new PlaintextTopicFormatter());
 		settings.setFormatterForOutputFormatModeAndType("text", "overview", ConceptType.MarkdownFolder,     new PlaintextTopicFormatter());
@@ -412,6 +448,10 @@ public class DocumentationServlet extends HttpServlet {
 
 		// table of contents for inline documentation
 		settings.setFormatterForOutputFormatModeAndType("toc", "overview", ConceptType.Unknown,            new TableOfContentsConceptFormatter());
+
+		// raw output of single attributes or content
+		settings.setFormatterForOutputFormatModeAndType("raw", "overview", ConceptType.MarkdownFile,       new RawMarkdownFileFormatter(baseResource));
+		settings.setFormatterForOutputFormatModeAndType("raw", "overview", ConceptType.Unknown,            new RawConceptFormatter());
 
 		return settings;
 	}

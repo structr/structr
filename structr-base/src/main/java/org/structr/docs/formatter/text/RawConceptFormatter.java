@@ -16,26 +16,25 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.ontology.parser.token;
+package org.structr.docs.formatter.text;
 
-import org.structr.core.function.tokenizer.Token;
-import org.structr.docs.ontology.Ontology;
+import org.structr.docs.Formatter;
+import org.structr.docs.OutputSettings;
+import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.Link;
 
-public abstract class AbstractToken<T> {
+import java.util.List;
+import java.util.Set;
 
-	private AbstractToken parent = null;
+public class RawConceptFormatter extends Formatter {
 
-	public abstract T resolve(final Ontology ontology);
-	public abstract boolean isTerminal();
-	public abstract Token getToken();
-	public abstract void renameTo(final String newName);
-	public abstract void updateContent(final String key, final String value);
+	@Override
+	public boolean format(final List<String> lines, final Link link, final OutputSettings settings, final int level, final Set<Concept> visited) {
 
-	public AbstractToken getParent() {
-		return parent;
-	}
+		final Concept concept = link.getTarget();
 
-	public void setParent(final AbstractToken parent) {
-		this.parent = parent;
+		lines.add(concept.getShortDescription());
+
+		return false;
 	}
 }

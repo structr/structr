@@ -75,4 +75,12 @@ public class IdentifierToken extends AbstractToken<String> {
 	public List<Token> getSyntaxTokens() {
 		return syntaxTokens;
 	}
+
+	@Override
+	public void updateContent(final String key, final String value) {
+
+		if ("content".equals(key)) {
+			token.setContent(value);
+		}
+	}
 }

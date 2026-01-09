@@ -103,6 +103,11 @@ public class NamedConceptListToken extends AbstractToken<List<AnnotatedConcept>>
 		throw new UnsupportedOperationException("Cannot rename list.");
 	}
 
+	@Override
+	public void updateContent(final String key, final String value) {
+		throw new UnsupportedOperationException("Not supported.");
+	}
+
 	public void addChild(final String name) {
 
 		if (!tokens.isEmpty()) {

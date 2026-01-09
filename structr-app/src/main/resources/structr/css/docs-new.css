@@ -472,6 +472,6 @@ index h2, .index h3 {
 
 .article span.info {
     padding: .5rem;
-    display: block;
+    display: none;
     margin-left: 75%;
 }

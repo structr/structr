@@ -29,6 +29,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.docs.formatter.markdown.MarkdownMarkdownFileFormatter;
 import org.structr.docs.ontology.*;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -107,6 +109,32 @@ public class MarkdownFileToken extends NamedConceptToken {
 		}
 
 		return null;
+	}
+
+	@Override
+	public void updateContent(final String key, final String value) {
+
+		if ("content".equals(key)) {
+
+			final String path   = identifierToken.getToken().getContent();
+			final Path filePath = Path.of("structr/docs/" + path);
+
+			if (Files.exists(filePath)) {
+
+				// store markdown content in file
+				try (final BufferedWriter writer = new BufferedWriter(new FileWriter(filePath.toFile()))) {
+
+					writer.write(value);
+					writer.flush();
+				} catch (IOException ioex) {
+					ioex.printStackTrace();
+				}
+			}
+
+		} else {
+
+			throw new UnsupportedOperationException("Cannot update " + key + " of " + this);
+		}
 	}
 
 	// ----- private methods -----

@@ -109,8 +109,8 @@ public class OntologyTest extends StructrUiTest {
 
 		assertNotNull(ontology.getConcept(ConceptType.Type, "Test"));
 		assertNotNull(ontology.getConcept(ConceptType.Button, "Test"));
-		assertEquals("Button(Test) Creates Type(Test)", ontology.getConcept(ConceptType.Button, "Test").get(0).getChildLinks().get(Verb.Creates).get(0).toString());
-		assertEquals("Button(Test) Creates Type(Test)", ontology.getConcept(ConceptType.Type, "Test").get(0).getParentLinks().get(Verb.Creates).get(0).toString());
+		assertEquals("Link(Button(Test) Creates Type(Test))", ontology.getConcept(ConceptType.Button, "Test").get(0).getChildLinks().get(Verb.Creates).get(0).toString());
+		assertEquals("Link(Button(Test) Creates Type(Test))", ontology.getConcept(ConceptType.Type, "Test").get(0).getParentLinks().get(Verb.Creates).get(0).toString());
 	}
 
 	@Test

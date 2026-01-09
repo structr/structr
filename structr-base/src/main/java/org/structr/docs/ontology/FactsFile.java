@@ -22,6 +22,7 @@ import org.structr.core.function.tokenizer.FactsTokenizer;
 import org.structr.core.function.tokenizer.Token;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -30,7 +31,7 @@ import java.util.List;
 
 public class FactsFile extends FactsContainer {
 
-	private final List<Token> tokens    = new LinkedList<>();
+	private final List<Token> tokens = new LinkedList<>();
 
 	private final Path path;
 
@@ -39,6 +40,21 @@ public class FactsFile extends FactsContainer {
 		this.path = path;
 
 		initialize();
+	}
+
+	@Override
+	public void writeToDisc() {
+
+		final Path newPath = Path.of(path.toAbsolutePath().toString() + ".new");
+
+		try (final BufferedWriter writer = Files.newBufferedWriter(newPath)) {
+
+			writer.write(this.toString());
+
+		} catch (IOException ioex) {
+
+			ioex.printStackTrace();
+		}
 	}
 
 	@Override
