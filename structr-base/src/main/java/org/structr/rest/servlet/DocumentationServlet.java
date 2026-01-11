@@ -265,11 +265,7 @@ public class DocumentationServlet extends HttpServlet {
 
 		final Writer writer = response.getWriter();
 
-		for (final String line : lines) {
-
-			writer.write(line);
-			writer.write("\n");
-		}
+		writer.write(StringUtils.join(lines, "\n"));
 	}
 
 	private boolean handleRequestParameters(final HttpServletRequest request, final Ontology ontology, final List<Concept> concepts, final OutputSettings settings, final Map<Concept, Double> searchResults) {
@@ -431,7 +427,7 @@ public class DocumentationServlet extends HttpServlet {
 		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.Glossary,       new MarkdownGlossaryFormatter());
 
 		// wildcard
-		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.Unknown,        new ToplevelTopicsMarkdownFormatter());
+		//settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.Unknown,        new ToplevelTopicsMarkdownFormatter());
 
 		settings.setFormatterForOutputFormatModeAndType("text", "overview", ConceptType.Unknown,            new PlaintextTopicFormatter());
 		settings.setFormatterForOutputFormatModeAndType("text", "overview", ConceptType.Topic,              new PlaintextTopicFormatter());

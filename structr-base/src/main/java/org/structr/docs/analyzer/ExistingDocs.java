@@ -113,6 +113,11 @@ public class ExistingDocs {
 
 				files.add(folder.resolve(line));
 			}
+
+		} else {
+
+			// no index.txt, use all files
+			return Files.list(folder).filter(Files::isRegularFile).toList();
 		}
 
 		return files;

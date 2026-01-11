@@ -56,7 +56,16 @@ public class ToplevelTopicsMarkdownFormatter extends Formatter {
 				}
 			}
 
-			lines.add(formatMarkdownHeading(concept.getName(), level + 1));
+			// this makes the name of the concept editable
+			if (concept.getType().equals(ConceptType.Topic)) {
+
+				formatEditableAttribute(lines, concept.getId(), "content", formatMarkdownHeading(concept.getName(), level + 1));
+
+			} else {
+
+				lines.add(formatMarkdownHeading(concept.getName(), level + 1));
+			}
+
 			lines.add("");
 
 			final List<String> synonyms = concept.getSynonyms();
@@ -87,14 +96,15 @@ public class ToplevelTopicsMarkdownFormatter extends Formatter {
 
 			if (concept.getShortDescription() != null) {
 
-				lines.add(concept.getShortDescription());
+				//lines.add(concept.getShortDescription());
+				formatEditableAttribute(lines, concept.getId(), "shortDescription", concept.getShortDescription());
 			}
 
-			// this makes the name of the concept editable
-			//formatEditableAttribute(lines, concept.getId(), "content", "");
+			if (!concept.hasChild(Verb.Has, ConceptType.MarkdownFile)) {
 
-			// special editable attribute to allow creation of new content elements
-			formatEditableAttribute(lines, concept.getId(), "insert-paragraph", "");
+				// special editable attribute to allow creation of new content elements
+				formatEditableAttribute(lines, concept.getId(), "insert-paragraph", "");
+			}
 		}
 
 		return true;

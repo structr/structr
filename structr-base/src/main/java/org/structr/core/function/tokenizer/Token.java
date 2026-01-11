@@ -44,7 +44,7 @@ public class Token {
 
 	@Override
 	public String toString() {
-		return source.getName() + ":" + row + ":" + column + " (" + content + ")";
+		return source.getName() + ":" + row + ":" + column;
 	}
 
 	public String getType() {

@@ -23,24 +23,32 @@ import org.structr.docs.Documentable;
 import org.structr.docs.DocumentableType;
 import org.structr.docs.ontology.*;
 
-public class EnumSourceToken extends NamedConceptToken {
+import java.util.LinkedList;
+import java.util.List;
+
+public class EnumSourceToken extends NamedConceptListToken {
+
+	private final ConceptToken conceptToken;
+	private final IdentifierToken identifierToken;
 
 	public EnumSourceToken(final ConceptToken conceptToken, final IdentifierToken identifierToken) {
-		super(conceptToken, identifierToken);
+
+		super();
+
+		this.conceptToken    = conceptToken;
+		this.identifierToken = identifierToken;
 	}
 
 	@Override
-	public AnnotatedConcept resolve(final Ontology ontology) {
+	public List<AnnotatedConcept> resolve(final Ontology ontology) {
 
-		final String identifier = identifierToken.resolve(ontology);
+		final List<AnnotatedConcept> concepts = new LinkedList<>();
+		final String identifier               = identifierToken.resolve(ontology);
 
 		try {
 
-
 			final Class enumType = Class.forName(identifier);
 			if (enumType != null && enumType.isEnum()) {
-
-				final Concept enumConcept = ontology.getOrCreateConcept(this, ConceptType.EnumSource, identifier, false);
 
 				for (final Object constant : enumType.getEnumConstants()) {
 
@@ -58,13 +66,11 @@ public class EnumSourceToken extends NamedConceptToken {
 									concept.setShortDescription(documentable.getShortDescription());
 								}
 
-								ontology.createSymmetricLink(enumConcept, Verb.Has, concept);
+								concepts.add(new AnnotatedConcept(concept));
 							}
 						}
-					}
 
-					// or just Category?
-					if (constant instanceof Category category) {
+					} else if (constant instanceof Category category) {
 
 						final String name = category.getDisplayName();
 						if (name != null) {
@@ -76,20 +82,19 @@ public class EnumSourceToken extends NamedConceptToken {
 									concept.setShortDescription(category.getShortDescription());
 								}
 
-								ontology.createSymmetricLink(enumConcept, Verb.Has, concept);
+								concepts.add(new AnnotatedConcept(concept));
+								//ontology.createSymmetricLink(enumConcept, Verb.Has, concept);
 							}
 						}
 					}
 				}
-
-				return new AnnotatedConcept(enumConcept);
 			}
 
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
 
-		return null;
+		return concepts;
 	}
 
 	@Override

@@ -232,7 +232,7 @@
                                 <h3>${name}</h3>
                                 <p>${result.type}</p>
                                 <h4>Defined in (${result.references.length})</h4>
-                                <p>${result.references.map(m => m.sourceFile + ':' + m.lineNumber).join('<br/>')}</p>
+                                <p>${result.references.map(m => m.sourceFile + ':' + m.row + ':' + m.column).join('<br/>')}</p>
                                 <h4>Children</h4>
                                 <p>${result.childCount}</p>
                                 <h4>Mentions in Docs (${max}${plus})</h4>

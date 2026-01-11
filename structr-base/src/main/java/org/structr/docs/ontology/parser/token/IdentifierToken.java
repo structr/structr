@@ -79,7 +79,7 @@ public class IdentifierToken extends AbstractToken<String> implements TokenColle
 	@Override
 	public void updateContent(final String key, final String value) {
 
-		if ("content".equals(key)) {
+		if ("content".equals(key) || "name".equals(key)) {
 			token.setContent(value);
 		}
 	}

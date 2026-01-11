@@ -141,14 +141,31 @@ html {
 }
 
 .article div button {
-    background-color: #eee;
+    color: #666;
     margin: .1rem 0;
 }
 
-.article div.editable button {
-    position: absolute;
-    top: 0;
-    right: 0;
+.article div.editable button.content {
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    float: right;
+    clear: both;
+}
+
+.article div.editable button.insert-paragraph {
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    float: none;
+    clear: both;
+}
+
+.article button.save-button {
+    color: #000;
+    background-color: #ddd;
+    float: none;
+    clear: both;
 }
 
 .article textarea {
@@ -473,5 +490,4 @@ index h2, .index h3 {
 .article span.info {
     padding: .5rem;
     display: none;
-    margin-left: 75%;
 }

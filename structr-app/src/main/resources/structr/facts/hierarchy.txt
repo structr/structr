@@ -11,10 +11,10 @@ Structr has topics "Building Applications", "Admin User Interface", "REST Interf
 
 
 # Admin User Interface
+"Admin User Interface" has markdown-file "4-Admin User Interface/1-Overview.md"
 "Admin User Interface" has areas "Dashboard", "Pages", "Files", "Schema", "Code", "Security", "Importer", "Data", "Virtual Types", "Widgets", "Flows", "Localizations", "Mail Templates", "Admin Console", "Configuration Editor"
 "Admin User Interface" has topic "Helpers"
 
-    "Admin User Interface" has markdown-file "4-Admin User Interface/1-Overview.md"
 
     Topic "Helpers" has helpers "Dialogs", "Editors", "Elements", "Entities", "Init", "Refactoring Helper"
 
@@ -29,16 +29,21 @@ Structr has topics "Building Applications", "Admin User Interface", "REST Interf
 
 # Building Applications
 "Building Applications" has topics "Creating Pages & Templates", "Navigation & Routing", "Dynamic Content", "Business Logic", "User Input & Forms", "Error handling", "Language localization", "Troubleshooting"
+    "Creating Pages & Templates" has markdown-file "snippets/Creating Pages & Templates - 000.md" with heading "Web applications"
 
     "Creating Pages & Templates" has topics "Pages", "Page Templates", "Elements", "Shared Components", "Widgets", "Static resources"
 
-        "Pages" has topics "Create page", "Import page"
+        Topic "Pages" has topics "Creating pages", "Importing pages", "Active Elements"
 
-        Topic "Elements" has topics "Rendering options"
+        Topic "Elements" has topics "Rendering options", "Custom properties"
             "Rendering options" has topics "Load / Update Mode" as table, "Delay or Interval (ms)"
                 "Load / Update Mode" has description "This setting allows you to enable delayed rendering or lazy loading for this element."
                 "Load / Update Mode" has constant "Eager" with description "Renders the element in the initial server-side rendering run."
                 "Load / Update Mode" has constant "When page has finished loading" with description "Renders the element after the initial rendering run is done."
+                "Load / Update Mode" has constant "With a delay after page has finished loading" with description "Renders the element after a configurable number of milliseconds after the page has finished loading."
+                "Load / Update Mode" has constant "When element becomes visible" with description "Renders the element when it is scrolled into view."
+                "Load / Update Mode" has constant "With periodic updates" with description "Renders the element and refreshes its content after a configurable number of milliseconds."
+                "Delay or Interval (ms)" has description "Configures the number of milliseconds for delayed and / or periodic refresh."
 
         "Shared Components" has topics "Shared Component Configuration"
 
@@ -60,7 +65,6 @@ Structr has topics "Building Applications", "Admin User Interface", "REST Interf
 
     "Business Logic" has markdown-file "snippets/Business Logic.md" with heading "Overview"
     "Business Logic" has topics "Dynamic types", "Relationships", "Built-in types" as table, "Built-in properties" as table, "Scripting contexts", "Advanced find"
-        "Built-in types" has description "description from hierarchy.txt, but only a short description possible here.."
         "Dynamic types" has topics "Dynamic type options"
         "Relationships" has topics "Cascading Delete" as table, "Automatic Creation of Related Nodes" as table
 
@@ -80,7 +84,7 @@ Structr has topics "Building Applications", "Admin User Interface", "REST Interf
 
 
 
-"REST Interface" has new topics "Authentication", "Resource Access Permissions", "System endpoints", "Servlets", "Views", "Request parameters", "Request headers"
+"REST Interface" has new topics "Authentication", "Resource Access Permissions", "System endpoints", "Servlets", "Views", "Request parameters" as table, "Request headers" as table
 
         "Authentication" has topics "Authentication methods for REST"
 

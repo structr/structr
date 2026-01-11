@@ -300,6 +300,22 @@ public final class Concept implements Comparable<Concept> {
 		return false;
 	}
 
+	public boolean hasChild(final Verb verb, final ConceptType type) {
+
+		final List<Link> list = getChildLinks(verb);
+		if (list != null) {
+
+			for (final Link link : list) {
+
+				if (type.equals(link.getTarget().getType())) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
 	public boolean hasParent(final Verb verb, final Concept concept) {
 
 		final List<Link> list = getParentLinks(verb);
@@ -483,12 +499,12 @@ public final class Concept implements Comparable<Concept> {
 
 			if (rootToken instanceof TokenCollection tokenCollection) {
 
-				final String folder         = "structr/facts";
+				final String folder         = "structr/docs";
 				final List<Token> allTokens = tokenCollection.getAllSourceTokens();
 				final Token lastToken        = allTokens.getLast();
 				final String fileName        = getNextSnippetName(folder);
 
-				lastToken.insertAfter("\n" + StringUtils.repeat("\t", intConsumer.getValue() - 1) + "\"" + getName() + "\" has markdown-file \"" + fileName + "\"");
+				lastToken.insertAfter("\n" + StringUtils.repeat(" ", 4 * (intConsumer.getValue() - 1)) + "\"" + getName() + "\" has markdown-file \"" + fileName + "\"");
 
 				try {
 
@@ -500,7 +516,7 @@ public final class Concept implements Comparable<Concept> {
 			}
 		}
 
-		if ("content".equals(key)) {
+		if ("content".equals(key) || "name".equals(key)) {
 
 			// update all tokens
 			for (final AbstractToken token : getTokens()) {

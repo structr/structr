@@ -91,7 +91,18 @@ public final class Ontology {
 
 		for (final Concept concept : concepts) {
 
-			Formatter.walkOntology(lines, new Link(null, null, concept), outputSettings, 0, new LinkedHashSet<>());
+			final List<Link> incomingLinks = concept.getParentLinks(Verb.Has);
+			if (!incomingLinks.isEmpty()) {
+
+				final Link link = incomingLinks.get(0);
+
+				Formatter.walkOntology(lines, link, outputSettings, 0, new LinkedHashSet<>());
+
+			} else {
+
+				// create dummy link
+				Formatter.walkOntology(lines, new Link(null, null, concept), outputSettings, 0, new LinkedHashSet<>());
+			}
 		}
 
 		return lines;

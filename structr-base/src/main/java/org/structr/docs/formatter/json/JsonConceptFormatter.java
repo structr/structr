@@ -33,9 +33,9 @@ public class JsonConceptFormatter extends Formatter {
 	@Override
 	public boolean format(final List<String> lines, final Link link, final OutputSettings settings, final int level, final Set<Concept> seenConcepts) {
 
-		final Concept concept = link.getTarget();
-		final Gson gson                = new GsonBuilder().create();
 		final Map<String, Object> data = new LinkedHashMap<>();
+		final Concept concept          = link.getTarget();
+		final Gson gson                = new GsonBuilder().create();
 		int childCount                 = concept.getTotalChildCount();
 
 		data.put("id",          concept.getId());

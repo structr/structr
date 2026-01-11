@@ -62,7 +62,7 @@ public class FactsFile extends FactsContainer {
 
 	@Override
 	public String getName() {
-		return path.toString();
+		return path.getFileName().toString();
 	}
 
 	// ----- private methods -----

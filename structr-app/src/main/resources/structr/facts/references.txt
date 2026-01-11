@@ -7,11 +7,7 @@
 
 # References
 Topic References has topics "Built-in keywords", "Built-in functions", "Lifecycle methods", "Built-in types", "Built-in properties", Services, "Maintenance commands", Settings, "Java internals"
-It has glossary "Glossary"
-
-# enum constants
-"Request parameters" has enum-source "org.structr.common.RequestParameters"
-"Request headers" has enum-source "org.structr.common.RequestHeaders"
+"References" has glossary "Glossary"
 
 # JavaScript resources
 Area "Code" has javascript-file "structr/js/code.js"

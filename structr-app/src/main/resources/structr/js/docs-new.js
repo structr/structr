@@ -252,7 +252,11 @@ let _Documentation = {
 
                             // create edit button
                             let editButton = iframe.contentDocument.createElement('button');
-                            editButton.innerHTML = 'Edit this paragraph';
+                            editButton.innerHTML = 'Edit';
+                            if (attributeKey === 'insert-paragraph') {
+                                editButton.innerHTML = 'Insert Markdown snippet';
+                            }
+                            editButton.classList.add(attributeKey);
                             previousContentContainer.appendChild(editButton);
 
                             // implement button action
@@ -275,6 +279,7 @@ let _Documentation = {
                             let saveButton = iframe.contentDocument.createElement('button');
                             saveDiv.classList.add('text-right');
                             saveButton.innerHTML = 'Save to "' + conceptId + '"';
+                            saveButton.classList.add('save-button');
                             saveDiv.appendChild(saveButton);
                             editingContainer.appendChild(saveDiv);
 
