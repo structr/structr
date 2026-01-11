@@ -21,13 +21,14 @@ package org.structr.docs.ontology.parser.token;
 import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.*;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 /**
  * An identifier that is augmented with a type so we know what it is.
  */
-public class NamedConceptToken extends AbstractToken<AnnotatedConcept> {
+public class NamedConceptToken extends AbstractToken<AnnotatedConcept> implements TokenCollection {
 
 	protected final List<NamedConceptToken> additionalNamedConcepts = new LinkedList<>();
 	protected final ConceptToken conceptToken;
@@ -151,5 +152,16 @@ public class NamedConceptToken extends AbstractToken<AnnotatedConcept> {
 				syntaxToken.remove();
 			}
 		}
+	}
+
+	@Override
+	public List<Token> getAllSourceTokens() {
+
+		final List<Token> allTokens = new ArrayList<>();
+
+		allTokens.addAll(conceptToken.getAllSourceTokens());
+		allTokens.addAll(identifierToken.getAllSourceTokens());
+
+		return allTokens;
 	}
 }

@@ -19,6 +19,7 @@
 package org.structr.docs.ontology.parser.token;
 
 import org.structr.core.function.tokenizer.Token;
+import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.Ontology;
 
@@ -29,7 +30,7 @@ public class ConceptToken extends StringToken<ConceptType> {
 
 	private boolean allowReuse = true;
 	private final Token originalToken;
-	private final ConceptType type;
+	private ConceptType type;
 
 	public ConceptToken(final ConceptType type, final Token originalToken) {
 
@@ -76,6 +77,18 @@ public class ConceptToken extends StringToken<ConceptType> {
 
 	@Override
 	public void updateContent(final String key, final String value) {
-		throw new UnsupportedOperationException("Not supported.");
+
+		if ("content".equals(key)) {
+
+			ConceptType newType = Concept.forName(value);
+			if (newType != null) {
+
+				this.type = newType;
+				originalToken.setContent(value);
+			} else {
+
+				throw new UnsupportedOperationException("ConceptType " + value + " doesn't exist.");
+			}
+		}
 	}
 }

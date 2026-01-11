@@ -24,7 +24,7 @@ import org.structr.docs.ontology.Ontology;
 import java.util.LinkedList;
 import java.util.List;
 
-public class IdentifierToken extends AbstractToken<String> {
+public class IdentifierToken extends AbstractToken<String> implements TokenCollection {
 
 	private final List<Token> syntaxTokens = new LinkedList<>();
 	private final Token token;
@@ -82,5 +82,10 @@ public class IdentifierToken extends AbstractToken<String> {
 		if ("content".equals(key)) {
 			token.setContent(value);
 		}
+	}
+
+	@Override
+	public List<Token> getAllSourceTokens() {
+		return List.of(token);
 	}
 }

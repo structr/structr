@@ -163,23 +163,11 @@ public class DocumentationServlet extends HttpServlet {
 					final String content = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
 					final String key     = request.getParameter("key");
 
+					// update content
 					concept.updateContent(key, content);
 
+					// write facts files
 					ontology.updateFactsContainers();
-
-
-					/*
-					if (ConceptType.MarkdownFile.equals(concept.getType())) {
-
-						final String fileName = concept.getName();
-
-							response.setStatus(404);
-							response.getWriter().print("File " + fileName + " does not exist.");
-
-							return;
-						}
-					}
-					*/
 
 					// send new HTML content to client
 					response.setContentType("text/html; charset=utf-8");
@@ -381,6 +369,12 @@ public class DocumentationServlet extends HttpServlet {
 
 			final Concept concept = ontology.getConceptById(id);
 			if (concept != null) {
+
+				final String key = request.getParameter("key");
+				if (StringUtils.isNotBlank(key)) {
+
+					settings.setKey(key);
+				}
 
 				concepts.add(concept);
 			}

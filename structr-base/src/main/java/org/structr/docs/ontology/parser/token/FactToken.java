@@ -21,7 +21,10 @@ package org.structr.docs.ontology.parser.token;
 import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.*;
 
-public class FactToken extends AbstractToken {
+import java.util.LinkedList;
+import java.util.List;
+
+public class FactToken extends AbstractToken implements TokenCollection {
 
 	private final NamedConceptToken subjectToken;
 	private final VerbToken predicateToken;
@@ -132,5 +135,17 @@ public class FactToken extends AbstractToken {
 	@Override
 	public void updateContent(final String key, final String value) {
 		throw new UnsupportedOperationException("Cannot update fact.");
+	}
+
+	@Override
+	public List<Token> getAllSourceTokens() {
+
+		final List<Token> allTokens = new LinkedList<>();
+
+		allTokens.addAll(subjectToken.getAllSourceTokens());
+		allTokens.addAll(predicateToken.getAllSourceTokens());
+		allTokens.addAll(objectToken.getAllSourceTokens());
+
+		return allTokens;
 	}
 }

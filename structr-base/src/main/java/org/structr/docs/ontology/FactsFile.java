@@ -45,9 +45,7 @@ public class FactsFile extends FactsContainer {
 	@Override
 	public void writeToDisc() {
 
-		final Path newPath = Path.of(path.toAbsolutePath().toString() + ".new");
-
-		try (final BufferedWriter writer = Files.newBufferedWriter(newPath)) {
+		try (final BufferedWriter writer = Files.newBufferedWriter(path)) {
 
 			writer.write(this.toString());
 

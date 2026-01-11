@@ -51,4 +51,8 @@ public class UnresolvedToken extends StringToken<Concept> {
 	public void updateContent(final String key, final String value) {
 		throw new UnsupportedOperationException("Cannot update unresolved token " + token);
 	}
+
+	public boolean isBlank() {
+		return !token.isNotBlank();
+	}
 }

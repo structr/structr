@@ -33,7 +33,17 @@ public class RawConceptFormatter extends Formatter {
 
 		final Concept concept = link.getTarget();
 
-		lines.add(concept.getShortDescription());
+		switch (settings.getKey()) {
+
+			case "content":
+				lines.add(concept.getName());
+				break;
+
+			case "shortDescription":
+				if (concept.getShortDescription() != null) {
+					lines.add(concept.getShortDescription());
+				}
+		}
 
 		return false;
 	}

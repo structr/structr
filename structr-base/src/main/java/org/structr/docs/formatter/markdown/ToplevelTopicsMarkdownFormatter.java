@@ -87,8 +87,14 @@ public class ToplevelTopicsMarkdownFormatter extends Formatter {
 
 			if (concept.getShortDescription() != null) {
 
-				formatEditableAttribute(lines, concept.getId(), "shortDescription", concept.getShortDescription());
+				lines.add(concept.getShortDescription());
 			}
+
+			// this makes the name of the concept editable
+			//formatEditableAttribute(lines, concept.getId(), "content", "");
+
+			// special editable attribute to allow creation of new content elements
+			formatEditableAttribute(lines, concept.getId(), "insert-paragraph", "");
 		}
 
 		return true;

@@ -32,6 +32,7 @@ public class OutputSettings {
 	private String outputMode                                                        = "overview";
 	private String outputFormat                                                      = "text";
 	private String baseUrl;
+	private String key;
 	private int startLevel;
 	private int maxLevels;
 
@@ -178,5 +179,13 @@ public class OutputSettings {
 
 	public Ontology getOntology() {
 		return ontology;
+	}
+
+	public void setKey(final String key) {
+		this.key = key;
+	}
+
+	public String getKey() {
+		return this.key;
 	}
 }

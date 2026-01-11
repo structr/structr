@@ -216,7 +216,7 @@ let _Documentation = {
                     let conceptId = parts[2];
                     let attributeKey = parts[3];
                     let nodesToMove = [];
-                    let currentElement = node.nextSibling;
+                    let currentElement = node;
                     let referenceElement = currentElement;
                     let parentElement = currentElement.parentElement;
 

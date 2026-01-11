@@ -19,13 +19,16 @@
 package org.structr.docs.ontology;
 
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jetty.util.resource.Resource;
-import org.structr.core.function.tokenizer.Identifier;
 import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.Documentable;
 import org.structr.docs.ontology.parser.token.*;
+import org.structr.web.common.FileHelper;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * A concept in the Structr Documentation Ontology. This class
@@ -473,9 +476,34 @@ public final class Concept implements Comparable<Concept> {
 
 	public void updateContent(final String key, final String value) {
 
+		if ("insert-paragraph".equals(key)) {
+
+			final IntConsumer intConsumer = new IntConsumer();
+			final AbstractToken rootToken = getRootToken(intConsumer);
+
+			if (rootToken instanceof TokenCollection tokenCollection) {
+
+				final String folder         = "structr/facts";
+				final List<Token> allTokens = tokenCollection.getAllSourceTokens();
+				final Token lastToken        = allTokens.getLast();
+				final String fileName        = getNextSnippetName(folder);
+
+				lastToken.insertAfter("\n" + StringUtils.repeat("\t", intConsumer.getValue() - 1) + "\"" + getName() + "\" has markdown-file \"" + fileName + "\"");
+
+				try {
+
+					Files.writeString(Path.of(folder, fileName), value);
+
+				} catch (IOException ioex) {
+					ioex.printStackTrace();
+				}
+			}
+		}
+
 		if ("content".equals(key)) {
 
-			if (token != null) {
+			// update all tokens
+			for (final AbstractToken token : getTokens()) {
 
 				token.updateContent(key, value);
 			}
@@ -493,12 +521,34 @@ public final class Concept implements Comparable<Concept> {
 					final NamedConceptToken objectToken = factToken.getObjectToken();
 					if (objectToken != null) {
 
-						if (ConceptType.Description.equals(objectToken.getConceptToken().getType())) {
+						final ConceptToken conceptToken        = objectToken.getConceptToken();
+						final IdentifierToken descriptionToken = objectToken.getIdentifierToken();
 
-							final IdentifierToken description = objectToken.getIdentifierToken();
-							if (description != null) {
+						if (conceptToken != null && descriptionToken != null) {
 
-								description.updateContent("content", value);
+							if (ConceptType.Description.equals(conceptToken.getType())) {
+
+								if (value.contains("\n")) {
+
+									try {
+
+										final String cleanedName = FileHelper.cleanFileName(getName());
+										final String fileName    = "snippets/" + cleanedName + ".md";
+
+										Files.writeString(Path.of("structr/docs/", fileName), value);
+
+										conceptToken.updateContent("content", "markdown-file");
+										descriptionToken.updateContent("content", fileName);
+
+									} catch (IOException ioex) {
+										ioex.printStackTrace();
+									}
+
+								} else {
+
+									conceptToken.updateContent("content", "description");
+									descriptionToken.updateContent("content", value);
+								}
 							}
 						}
 					}
@@ -509,6 +559,30 @@ public final class Concept implements Comparable<Concept> {
 	}
 
 	// ----- private methods -----
+	private AbstractToken getRootToken(final Consumer<Integer> levelConsumer) {
+
+		AbstractToken current = this.token;
+		int level = 0;
+
+		while (current != null) {
+
+			if (current.getParent() == null) {
+
+				if (levelConsumer != null) {
+					levelConsumer.accept(level);
+				}
+
+				return current;
+			}
+
+			current = current.getParent();
+
+			level++;
+		}
+
+		return null;
+	}
+
 	private List<FactToken> getFactTokens() {
 
 		final List<FactToken> factTokens = new LinkedList<>();
@@ -539,6 +613,25 @@ public final class Concept implements Comparable<Concept> {
 		}
 	}
 
+	public String getNextSnippetName(final String folder) {
+
+		String name = getSnippetName(0);
+		Path path   = Path.of(folder, name);
+		int index   = 0;
+
+		while (Files.exists(path)) {
+
+			name = getSnippetName(index++);
+			path = Path.of(folder, name);
+		}
+
+		return name;
+	}
+
+	public String getSnippetName(final int index) {
+		return "snippets/" + this.getName() + " - " + StringUtils.leftPad(Integer.toString(index), 3, "0") + ".md";
+	}
+
 	// ----- public static methods -----
 	public static boolean exists(final String name) {
 
@@ -566,5 +659,20 @@ public final class Concept implements Comparable<Concept> {
 
 	public static Concept create(final Ontology ontology, final AbstractToken token, final ConceptType type, final String name) {
 		return new Concept(ontology, token, type, name);
+	}
+
+	// ----- nested classes -----
+	private class IntConsumer implements Consumer<Integer> {
+
+		private Integer value = null;
+
+		@Override
+		public void accept(final Integer value) {
+			this.value = value;
+		}
+
+		public Integer getValue() {
+			return value;
+		}
 	}
 }

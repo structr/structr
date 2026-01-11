@@ -38,7 +38,7 @@ public class MarkdownTableFormatter extends Formatter {
 		lines.add(formatMarkdownHeading(concept.getName(), level + 1));
 
 		if (concept.getShortDescription() != null) {
-			formatEditableAttribute(lines, concept.getId(), "shortDescription", concept.getShortDescription());
+			lines.add(concept.getShortDescription());
 		}
 
 		lines.add("");

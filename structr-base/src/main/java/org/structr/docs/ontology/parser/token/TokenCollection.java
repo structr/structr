@@ -20,34 +20,9 @@ package org.structr.docs.ontology.parser.token;
 
 import org.structr.core.function.tokenizer.Token;
 
-import java.util.Collections;
 import java.util.List;
 
-public abstract class StringToken<T> extends AbstractToken<T> implements TokenCollection {
+public interface TokenCollection {
 
-	protected final Token token;
-
-	public StringToken(final Token token) {
-		this.token = token;
-	}
-
-	@Override
-	public String toString() {
-		return getClass().getSimpleName() + "(" + token + ")";
-	}
-
-	@Override
-	public Token getToken() {
-		return token;
-	}
-
-	@Override
-	public List<Token> getAllSourceTokens() {
-
-		if (token != null) {
-			return List.of(token);
-		}
-
-		return Collections.emptyList();
-	}
+	List<Token> getAllSourceTokens();
 }

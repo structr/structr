@@ -18,10 +18,9 @@
  */
 package org.structr.docs.ontology.parser.rule;
 
-import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.Ontology;
-import org.structr.docs.ontology.parser.token.IdentifierToken;
 import org.structr.docs.ontology.parser.token.AbstractToken;
+import org.structr.docs.ontology.parser.token.IdentifierToken;
 import org.structr.docs.ontology.parser.token.UnresolvedToken;
 
 import java.util.Deque;

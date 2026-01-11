@@ -21,9 +21,11 @@ package org.structr.docs.ontology.parser.token;
 import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.*;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
-public class FactsToken extends AbstractToken {
+public class FactsToken extends AbstractToken implements TokenCollection {
 
 	private final NamedConceptToken subjectToken;
 	private final VerbToken predicateToken;
@@ -50,7 +52,7 @@ public class FactsToken extends AbstractToken {
 
 	@Override
 	public String toString() {
-		return "FactToken(" + subjectToken + ", " + predicateToken + ", " + objectsToken + ")";
+		return "FactsToken(" + subjectToken + ", " + predicateToken + ", " + objectsToken + ")";
 	}
 
 	public NamedConceptToken getSubjectToken() {
@@ -97,7 +99,7 @@ public class FactsToken extends AbstractToken {
 		// this resolution refines the knowledge about the three concepts
 		final Verb verb                         = predicateToken.resolve(ontology);
 		final AnnotatedConcept annotatedSubject = subjectToken.resolve(ontology);
-		final List<AnnotatedConcept> objects             = objectsToken.resolve(ontology);
+		final List<AnnotatedConcept> objects    = objectsToken.resolve(ontology);
 		final Concept subject                   = annotatedSubject.getConcept();
 
 		if (subject == null) {
@@ -123,7 +125,7 @@ public class FactsToken extends AbstractToken {
 
 		// this resolution refines the knowledge about the three concepts
 		final AnnotatedConcept annotatedSubject = subjectToken.resolve(ontology);
-		final List<AnnotatedConcept> objects             = objectsToken.resolve(ontology);
+		final List<AnnotatedConcept> objects    = objectsToken.resolve(ontology);
 		final Verb verb                         = predicateToken.resolve(ontology);
 		final Concept subject                   = annotatedSubject.getConcept();
 
@@ -149,5 +151,18 @@ public class FactsToken extends AbstractToken {
 				link.setFormatSpecification(annotatedSubject.getFormatSpecification());
 			}
 		}
+	}
+
+	@Override
+	public List<Token> getAllSourceTokens() {
+
+		final List<Token> allTokens = new LinkedList<>();
+
+		allTokens.addAll(subjectToken.getAllSourceTokens());
+		allTokens.addAll(predicateToken.getAllSourceTokens());
+		allTokens.addAll(objectsToken.getAllSourceTokens());
+
+
+		return allTokens;
 	}
 }

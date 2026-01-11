@@ -20,13 +20,12 @@ package org.structr.docs.ontology.parser.token;
 
 import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.ontology.AnnotatedConcept;
-import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.Ontology;
 
 import java.util.LinkedList;
 import java.util.List;
 
-public class NamedConceptListToken extends AbstractToken<List<AnnotatedConcept>> {
+public class NamedConceptListToken extends AbstractToken<List<AnnotatedConcept>> implements TokenCollection {
 
 	private final List<NamedConceptToken> tokens = new LinkedList<>();
 
@@ -55,7 +54,7 @@ public class NamedConceptListToken extends AbstractToken<List<AnnotatedConcept>>
 
 	public void addTokens(final NamedConceptListToken tokens) {
 
-		for (final NamedConceptToken token : tokens.getTokens()) {
+		for (final NamedConceptToken token : tokens.getAllTokens()) {
 			addToken(token);
 		}
 	}
@@ -89,8 +88,20 @@ public class NamedConceptListToken extends AbstractToken<List<AnnotatedConcept>>
 		return terminal;
 	}
 
-	public  List<NamedConceptToken> getTokens() {
+	public  List<NamedConceptToken> getAllTokens() {
 		return tokens;
+	}
+
+	@Override
+	public List<Token> getAllSourceTokens() {
+
+		final List<Token> result = new LinkedList<>();
+
+		for (final NamedConceptToken token : tokens) {
+			result.addAll(token.getAllSourceTokens());
+		}
+
+		return result;
 	}
 
 	@Override
