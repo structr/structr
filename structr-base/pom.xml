@@ -537,7 +537,7 @@
                             <includes>
                                 <include>**/*Test.java</include>
                             </includes>
-                            <argLine>-Xms2g -Xmx2g -Duser.timezone=UTC -XX:+HeapDumpOnOutOfMemoryError -XX:ErrorFile=/tmp/hs_err_pid%p.log -Djava.io.tmpdir=/tmp/structr-${project.artifactId}-${surefire.forkNumber} -Xlog:exit=info -Xlog:container=debug,os=info,start=info,exit=info:stdout:time,level,tags</argLine>
+                            <argLine>-Xms2g -Xmx2g -Duser.timezone=UTC -XX:+HeapDumpOnOutOfMemoryError -XX:ErrorFile=/tmp/hs_err_pid%p.log -Djava.io.tmpdir=/tmp/structr-${project.artifactId}-${surefire.forkNumber}</argLine>
                             <reuseForks>false</reuseForks>
                             <forkCount>${test.forkCount}</forkCount>
                             <forkedProcessExitTimeoutInSeconds>120</forkedProcessExitTimeoutInSeconds>
