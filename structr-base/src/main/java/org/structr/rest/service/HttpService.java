@@ -331,7 +331,7 @@ public class HttpService implements RunnableService, StatsCallback {
 			final ResourceFactory factory = ResourceFactory.of(resourceHandler);
 			final Resource baseResource   = factory.newResource(URI.create(resourceBasePath).normalize());
 
-			resourceHandler.setDirAllowed(false);
+			resourceHandler.setDirAllowed(true);
 			resourceHandler.setWelcomeFiles("index.html");
 
 			resourceHandler.setBaseResource(baseResource);

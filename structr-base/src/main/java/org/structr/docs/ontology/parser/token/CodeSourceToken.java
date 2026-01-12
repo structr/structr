@@ -77,6 +77,11 @@ public class CodeSourceToken extends NamedConceptListToken {
 
 				mainConcept.setDocumentable(documentable);
 
+				// fetch table header specification from Documentable if present
+				if (documentable.getTableHeaders() != null) {
+					mainConcept.getMetadata().put("table-headers", documentable.getTableHeaders());
+				}
+
 				for (final Documentable.ConceptReference parentConcept : documentable.getParentConcepts()) {
 
 					// every documentable has a list of parent concepts

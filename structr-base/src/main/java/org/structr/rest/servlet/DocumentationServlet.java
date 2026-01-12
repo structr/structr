@@ -40,18 +40,22 @@ import org.structr.docs.analyzer.ExistingDocs;
 import org.structr.docs.formatter.json.JsonConceptFormatter;
 import org.structr.docs.formatter.json.SearchResultsConceptFormatter;
 import org.structr.docs.formatter.json.TableOfContentsConceptFormatter;
+import org.structr.docs.formatter.json.TableOfContentsMarkdownFileFormatter;
 import org.structr.docs.formatter.markdown.*;
 import org.structr.docs.formatter.text.PlaintextMarkdownFileFormatter;
 import org.structr.docs.formatter.text.PlaintextTopicFormatter;
 import org.structr.docs.formatter.text.RawConceptFormatter;
 import org.structr.docs.formatter.text.RawMarkdownFileFormatter;
-import org.structr.docs.ontology.*;
+import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.ConceptType;
+import org.structr.docs.ontology.Details;
+import org.structr.docs.ontology.Ontology;
 import org.structr.rest.service.HttpService;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Writer;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
 
 @Documentation(name="DocumentationServlet", parent="Servlets", children={ "DocumentationServlet Settings" })
@@ -437,6 +441,7 @@ public class DocumentationServlet extends HttpServlet {
 		settings.setFormatterForOutputFormatModeAndType("json", "overview", ConceptType.Unknown,            new JsonConceptFormatter());
 
 		// table of contents for inline documentation
+		settings.setFormatterForOutputFormatModeAndType("toc", "overview", ConceptType.MarkdownFile,       new TableOfContentsMarkdownFileFormatter());
 		settings.setFormatterForOutputFormatModeAndType("toc", "overview", ConceptType.Unknown,            new TableOfContentsConceptFormatter());
 
 		// raw output of single attributes or content

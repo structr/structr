@@ -23,10 +23,7 @@ import org.structr.docs.Documentable;
 import org.structr.docs.DocumentableType;
 import org.structr.docs.Documentation;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  */
@@ -45,14 +42,14 @@ public enum RequestParameters implements Documentable {
 	Inexact("inexact", "Search type", "Request parameter that activates inexact search."),
 
 	// distance search
-	LatLon("latlon", "Latitude/Longitude", "Request parameter used for distance search, specifies the center point of the distance search in the form `latitude, longitude`."),
-	Location("location", "Location (country, city, street)", "Request parameter used for distance search, specifies the center point of the distance search in the form `country, city, street`."),
+	LatLon("latlon", "Latitude/Longitude", "Request parameter used for distance search, specifies the center point of the distance search in the form `latitude,longitude`."),
+	Location("location", "Location (country, city, street)", "Request parameter used for distance search, specifies the center point of the distance search in the form `country,city,street`."),
 	State("state", null, null),
 	House("house", null, null),
-	Country("country", "Country", "Request parameter used for distance search, specifies the center point of the search circle together with `postalCode`, `city`, `street`."),
-	PostalCode("postalCode", "Postal code", "Request parameter used for distance search, specifies the center point of the search circle together with `country`, `city`, `street`."),
-	City("city", "City", "Request parameter used for distance search, specifies the center point of the search circle together with `country`, `postalCode`, `street`."),
-	Street("street", "Street", "Request parameter used for distance search, specifies the center point of the search circle together with `country`, `postalCode`, `city`."),
+	Country("country", "Country", "Request parameter used for distance search, specifies the center point of the search circle together with `_postalCode`, `_city`, `_street`."),
+	PostalCode("postalCode", "Postal code", "Request parameter used for distance search, specifies the center point of the search circle together with `_country`, `_city`, `_street`."),
+	City("city", "City", "Request parameter used for distance search, specifies the center point of the search circle together with `_country`, `_postalCode`, `_street`."),
+	Street("street", "Street", "Request parameter used for distance search, specifies the center point of the search circle together with `_country`, `_postalCode`, `_city`."),
 	Distance("distance", "Distance in kilometers", "Request parameter used for distance search, specifies the **radius** of the search circle."),
 
 	// special settings
@@ -83,11 +80,11 @@ public enum RequestParameters implements Documentable {
 	private final String displayName;
 	private final String shortDescription;
 
-	RequestParameters(final String keyword, final String displayName, final String shortDescription) {
+	RequestParameters(final String identifier, final String displayName, final String shortDescription) {
 
 		this.shortDescription = shortDescription;
 		this.displayName      = displayName;
-		this.identifier       = keyword;
+		this.identifier       = identifier;
 	}
 
 	@Override
@@ -120,6 +117,18 @@ public enum RequestParameters implements Documentable {
 	@Override
 	public String getShortDescription() {
 		return shortDescription;
+	}
+
+	@Override
+	public Map<String, String> getTableHeaders() {
+
+		final Map<String, String> headers = new LinkedHashMap<>();
+
+		headers.put("Key", "`name`");
+		headers.put("Name", "displayName");
+		headers.put("Description", "shortDescription");
+
+		return headers;
 	}
 
 	public static Set<String> getIdentifiers() {

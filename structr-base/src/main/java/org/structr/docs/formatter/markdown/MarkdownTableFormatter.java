@@ -19,13 +19,14 @@
 package org.structr.docs.formatter.markdown;
 
 import org.apache.commons.lang3.StringUtils;
-import org.structr.docs.*;
+import org.structr.docs.Documentable;
+import org.structr.docs.DocumentableType;
 import org.structr.docs.Formatter;
+import org.structr.docs.OutputSettings;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.Link;
 import org.structr.docs.ontology.Verb;
 
-import java.nio.file.Files;
 import java.util.*;
 
 public class MarkdownTableFormatter extends Formatter {
@@ -33,7 +34,8 @@ public class MarkdownTableFormatter extends Formatter {
 	@Override
 	public boolean format(final List<String> lines, final Link link, final OutputSettings settings, final int level, final Set<Concept> seenConcepts) {
 
-		final Concept concept = link.getTarget();
+		final Map<String, String> headers = new LinkedHashMap<>(Map.of("Name", "`displayName`", "Description", "shortDescription"));
+		final Concept concept             = link.getTarget();
 
 		lines.add(formatMarkdownHeading(concept.getName(), level + 1));
 
@@ -41,9 +43,19 @@ public class MarkdownTableFormatter extends Formatter {
 			lines.add(concept.getShortDescription());
 		}
 
+		if (concept.getMetadata().containsKey("table-headers")) {
+
+			final Map<String, String> tableHeaders = (Map<String, String>) concept.getMetadata().get("table-headers");
+			if (!tableHeaders.isEmpty()) {
+
+				headers.clear();
+				headers.putAll(tableHeaders);
+			}
+		}
+
 		lines.add("");
-		lines.add("| Name | Description |");
-		lines.add("| --- | --- |");
+		lines.add("| " + StringUtils.join(headers.keySet(), " | ") + " |");
+		lines.add("| " + StringUtils.repeat("--- | ---", headers.size() - 1) + " |");
 
 		// format children
 		final List<Concept> children = concept.getChildren(Verb.Has);
@@ -85,7 +97,36 @@ public class MarkdownTableFormatter extends Formatter {
 			Collections.sort(documentables, Comparator.comparing(Documentable::getDisplayName));
 
 			for (final Documentable documentable : documentables) {
-				lines.add("| `" + documentable.getDisplayName() + "` | " + documentable.getShortDescription() + " |");
+
+				final List<String> row = new LinkedList<>();
+
+				for (final String value : headers.values()) {
+
+					switch (value) {
+
+						case "`name`":
+							row.add("`" + documentable.getName() + "`");
+							break;
+
+						case "name":
+							row.add(documentable.getName());
+							break;
+
+						case "`displayName`":
+							row.add("`" + documentable.getDisplayName() + "`");
+							break;
+
+						case "displayName":
+							row.add(documentable.getDisplayName());
+							break;
+
+						case "shortDescription":
+							row.add(documentable.getShortDescription());
+							break;
+					}
+				}
+
+				lines.add("| " + StringUtils.join(row, " | ") + " |");
 			}
 		}
 

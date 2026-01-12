@@ -66,7 +66,13 @@ public class EnumSourceToken extends NamedConceptListToken {
 									concept.setShortDescription(documentable.getShortDescription());
 								}
 
-								concepts.add(new AnnotatedConcept(concept));
+								final AnnotatedConcept annotatedConcept = new AnnotatedConcept(concept);
+
+								if (documentable.getTableHeaders() != null) {
+									System.out.println(concept);
+								}
+
+								concepts.add(annotatedConcept);
 							}
 						}
 

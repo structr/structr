@@ -228,7 +228,7 @@ public final class Ontology {
 			return null;
 		}
 
-		for (final Concept concept : concepts) {
+		for (final Concept concept : concepts.reversed()) {
 
 			if (concept.isSame(name, type) && (ConceptType.Unknown.equals(type) || useExisting)) {
 
@@ -595,8 +595,19 @@ public final class Ontology {
 
 								if (childConcept != null) {
 
+									childConcept.setDocumentable(documentable);
+
 									if (documentable.getShortDescription() != null) {
 										childConcept.setShortDescription(documentable.getShortDescription());
+									}
+
+									// store desired table format in parent
+									if (documentable.getTableHeaders() != null) {
+
+										// Enum constants are instances of the enum class, so they all have the
+										// same implementation of getTableHeaders(), and the table format must
+										// be stored in the parent, not in the children, hence the below code.
+										concept.getMetadata().put("table-headers", documentable.getTableHeaders());
 									}
 
 									createSymmetricLink(concept, Verb.Has, childConcept);

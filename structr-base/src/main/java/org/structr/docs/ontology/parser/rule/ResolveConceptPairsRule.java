@@ -53,26 +53,34 @@ public class ResolveConceptPairsRule extends Rule {
 					final Token originalToken1 = concept1.getOriginalToken();
 					final Token originalToken2 = concept2.getOriginalToken();
 
-					final Character c1 = originalToken1.charAt(0);
-					final Character c2 = originalToken2.charAt(0);
+					if (!originalToken1.isCapitalized() || !originalToken2.isCapitalized()) {
 
-					// uppercase is identifier, lowercase is concept
-					if (Character.isUpperCase(c1) && !Character.isUpperCase(c2)) {
+						final Character c1 = originalToken1.charAt(0);
+						final Character c2 = originalToken2.charAt(0);
 
-						result.add(new IdentifierToken(originalToken1));
-						result.add(concept2);
+						// uppercase is identifier, lowercase is concept
+						if (Character.isUpperCase(c1) && !Character.isUpperCase(c2)) {
 
-					} else if (!Character.isUpperCase(c1) && Character.isUpperCase(c2)) {
+							result.add(new IdentifierToken(originalToken1));
+							result.add(concept2);
 
-						result.add(concept1);
-						result.add(new IdentifierToken(originalToken2));
+						} else if (!Character.isUpperCase(c1) && Character.isUpperCase(c2)) {
+
+							result.add(concept1);
+							result.add(new IdentifierToken(originalToken2));
+
+						} else {
+
+							// both lower case => no change
+							result.add(concept1);
+							result.add(concept2);
+						}
 
 					} else {
 
-						// both lower case or both upper case => first wins
-						result.add(new IdentifierToken(originalToken1));
-						result.add(concept2);
-
+						// both capitalized and probably not concepts but identifiers!
+						result.add(concept1.asIdentifierToken());
+						result.add(concept2.asIdentifierToken());
 					}
 
 				} else {

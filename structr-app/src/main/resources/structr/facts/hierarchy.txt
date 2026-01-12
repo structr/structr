@@ -28,12 +28,12 @@ Structr has topics "Building Applications", "Admin User Interface", "REST Interf
 
 
 # Building Applications
-"Building Applications" has topics "Creating Pages & Templates", "Navigation & Routing", "Dynamic Content", "Business Logic", "User Input & Forms", "Error handling", "Language localization", "Troubleshooting"
-    "Creating Pages & Templates" has markdown-file "snippets/Creating Pages & Templates - 000.md" with heading "Web applications"
+"Building Applications" has topics "Pages & Templates", "Navigation & Routing", "Dynamic Content", "Business Logic", "User Input & Forms", "Error handling", "Language localization", "Troubleshooting"
+    "Pages & Templates" has markdown-file "snippets/Creating Pages & Templates - 000.md"
 
-    "Creating Pages & Templates" has topics "Pages", "Page Templates", "Elements", "Shared Components", "Widgets", "Static resources"
+    "Pages & Templates" has topics "Pages", "Templates", "Page Templates", "Elements", "Shared Components", "Widgets", "Static resources", "Active Elements"
 
-        Topic "Pages" has topics "Creating pages", "Importing pages", "Active Elements"
+        Topic "Pages" has topics "Creating pages", "Importing pages"
 
         Topic "Elements" has topics "Rendering options", "Custom properties"
             "Rendering options" has topics "Load / Update Mode" as table, "Delay or Interval (ms)"
@@ -50,9 +50,9 @@ Structr has topics "Building Applications", "Admin User Interface", "REST Interf
         "Static resources" has topic "File download", "Dynamic files"
             "Dynamic files" has topics "Replace template expressions"
 
-    "Navigation & Routing" has topics "Access levels", "Visibility", "Authentication", "Navigation", "Error pages", "Page position", "URL routing", "URI object resolution"
-
-        "Authentication" has topics "Authentication methods for pages"
+    "Navigation & Routing" has topics "Permission levels", "Visibility", "Authentication", "Navigation", "Error pages", "Page position", "URL routing", "URI object resolution"
+        "Permission levels" has markdown-file "snippets/Access levels - 000.md"
+        "Authentication" has markdown-file "snippets/Authentication - 000.md"
 
 
     "Dynamic Content" has topics "Template expressions", "Repeaters", "Show / Hide Conditions"
@@ -84,9 +84,8 @@ Structr has topics "Building Applications", "Admin User Interface", "REST Interf
 
 
 
-"REST Interface" has new topics "Authentication", "Resource Access Permissions", "System endpoints", "Servlets", "Views", "Request parameters" as table, "Request headers" as table
-
-        "Authentication" has topics "Authentication methods for REST"
+"REST Interface" has markdown-file "3-Advanced Topics/6-Authentication.md"
+"REST Interface" has topics "Resource Access Permissions", "System endpoints", "Servlets", "Views", "Request parameters" as table, "Request headers" as table
 
 
 
@@ -116,8 +115,10 @@ Structr has topics "Building Applications", "Admin User Interface", "REST Interf
 
     Deployment has topics "Deployment Settings"
 
-    "User Management" has topics "Users & Groups", "Superuser", "Service principals", "Two-factor authentication", "User self-registration"
+    "User Management" has topics "Users & Groups", "Superuser", "Service principals", "Two-factor authentication", "User self-registration", "Password reset"
         "Users & Groups" has topics "Creating users", "Creating groups", "Passwords"
+        "Users & Groups" has markdown-file "snippets/Users & Groups - 000.md" with heading "Accessing the Admin User Interface"
+
         "Superuser" has topics "Superuser Settings", "Initial Admin User Settings"
         "Two-factor authentication" has topics "Two-factor authentication Settings"
         "User self-registration" has topic "User self-registration Settings"

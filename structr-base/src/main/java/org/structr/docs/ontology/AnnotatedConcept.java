@@ -18,6 +18,9 @@
  */
 package org.structr.docs.ontology;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 public class AnnotatedConcept {
 
 	private FormatSpecification formatSpecification = null;
@@ -25,6 +28,11 @@ public class AnnotatedConcept {
 
 	public AnnotatedConcept(Concept concept) {
 		this.concept = concept;
+	}
+
+	@Override
+	public String toString() {
+		return concept.toString();
 	}
 
 	public Concept getConcept() {

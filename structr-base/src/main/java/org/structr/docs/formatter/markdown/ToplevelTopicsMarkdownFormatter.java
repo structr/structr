@@ -88,7 +88,7 @@ public class ToplevelTopicsMarkdownFormatter extends Formatter {
 				}
 			}
 
-			lines.add("<span class='info'>Sources: " + StringUtils.join(buf, ", ") + "</span>");
+			//lines.add("<span class='info'>Sources: " + StringUtils.join(buf, ", ") + "</span>");
 			lines.add("");
 		}
 

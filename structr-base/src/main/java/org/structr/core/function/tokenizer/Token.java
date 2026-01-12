@@ -116,4 +116,16 @@ public class Token {
 	public void remove() {
 		source.remove(this);
 	}
+
+	public boolean isCapitalized() {
+
+		if (StringUtils.isNotBlank(content)) {
+
+			final char c = content.charAt(0);
+
+			return Character.isUpperCase(c);
+		}
+
+		return false;
+	}
 }

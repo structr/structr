@@ -83,7 +83,19 @@ public class Link {
 	}
 
 	public void setFormatSpecification(final FormatSpecification format) {
-		this.formatSpecification = format;
+
+		if (format != null) {
+
+			if (this.formatSpecification == null) {
+
+				this.formatSpecification = format;
+
+			} else {
+
+				this.formatSpecification.setToken(format.getToken());
+				this.formatSpecification.setFormat(format.getFormat());
+			}
+		}
 	}
 
 	public void setFormat(final ConceptType format) {
@@ -113,14 +125,8 @@ public class Link {
 		}
 	}
 
-	public ConceptType getFormatSpecification() {
-
-		if (formatSpecification != null) {
-
-			return formatSpecification.getFormat();
-		}
-
-		return null;
+	public FormatSpecification getFormatSpecification() {
+		return formatSpecification;
 	}
 
 	public ConceptType getType() {

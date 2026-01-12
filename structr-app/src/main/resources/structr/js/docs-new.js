@@ -67,6 +67,14 @@ let _Documentation = {
 				checkIndexLinks(e.target);
 			});
 		});
+
+        document.querySelector('#function-bar').insertAdjacentHTML('beforeend', `
+            <div><button id="make-docs-editable">Edit documentation</button>
+        `);
+
+        document.querySelector('#make-docs-editable').addEventListener('click', e => {
+            _Documentation.makeEditable();
+        })
 	},
 	hashChangeHandler: e => {
 
@@ -118,8 +126,9 @@ let _Documentation = {
         if (iframe){
 
             iframe.addEventListener('load', e => {
-                _Documentation.makeEditable();
+                //_Documentation.makeEditable();
             });
+
         } else {
             console.log('iframe not found');
         }

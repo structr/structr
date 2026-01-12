@@ -337,6 +337,10 @@ public interface Documentable {
 		return null;
 	}
 
+	default Map<String, String> getTableHeaders() {
+		return null;
+	}
+
 	// ----- "private" methods, don't override
 	default boolean isDynamic() {
 		return false;

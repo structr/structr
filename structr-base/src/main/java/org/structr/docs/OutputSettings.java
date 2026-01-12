@@ -64,7 +64,8 @@ public class OutputSettings {
 				// format wins
 				if (link.getFormatSpecification() != null) {
 
-					final Formatter formatter = modeMap.get(link.getFormatSpecification());
+					final ConceptType format  = link.getFormatSpecification().getFormat();
+					final Formatter formatter = modeMap.get(format);
 					if (formatter != null) {
 
 						return formatter;
