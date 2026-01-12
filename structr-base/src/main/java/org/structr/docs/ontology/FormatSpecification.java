@@ -30,6 +30,11 @@ public class FormatSpecification {
 		this.token = token;
 	}
 
+	@Override
+	public String toString() {
+		return format.toString();
+	}
+
 	public ConceptType getFormat() {
 		return format;
 	}

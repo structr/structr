@@ -30,7 +30,7 @@ public class OnAcmeChallenge extends LifecycleBase {
 
 	@Override
 	public String getShortDescription() {
-		return "Called when... ??";
+		return "Called when...";
 	}
 
 	@Override

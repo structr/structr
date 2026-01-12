@@ -157,7 +157,7 @@ public class OntologyTest extends StructrUiTest {
 
 		assertNotNull(test);
 
-		assertEquals(ConceptType.Table, test.getChildLinks(Verb.Has).get(0).getFormatSpecification());
+		assertEquals(ConceptType.Table, test.getChildLinks(Verb.Has).get(0).getFormatSpecification().getFormat());
 	}
 
 	@Test

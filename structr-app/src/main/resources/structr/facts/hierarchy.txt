@@ -5,15 +5,19 @@
 #
 
 # The word "Structr" is the root of the ontology
-Structr has markdown-folders "1-Introduction"
-Structr has topics "Building Applications", "Admin User Interface", "REST Interface", "APIs & Integrations", "Operations", "Advanced Topics", References
+Structr has markdown-folder "1-Introduction"
+Structr has topic "Building Applications"
+Structr has markdown-folder "4-Admin User Interface"
+Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Advanced Topics", References
+
+    "Admin User Interface" has topics "Admin Console"
 
 
 
-# Admin User Interface
-"Admin User Interface" has markdown-file "4-Admin User Interface/1-Overview.md"
-"Admin User Interface" has areas "Dashboard", "Pages", "Files", "Schema", "Code", "Security", "Importer", "Data", "Virtual Types", "Widgets", "Flows", "Localizations", "Mail Templates", "Admin Console", "Configuration Editor"
-"Admin User Interface" has topic "Helpers"
+# Admin User Interface (new)
+#"Admin User Interface" has markdown-file "4-Admin User Interface/2-Dashboard.md"
+#"Admin User Interface" has areas "Dashboard", "Pages", "Files", "Schema", "Code", "Security", "Importer", "Data", "Virtual Types", "Widgets", "Flows", "Localizations", "Mail Templates", "Admin Console", "Configuration Editor"
+#"Admin User Interface" has topic "Helpers"
 
 
     Topic "Helpers" has helpers "Dialogs", "Editors", "Elements", "Entities", "Init", "Refactoring Helper"

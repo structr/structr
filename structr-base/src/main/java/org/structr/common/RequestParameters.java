@@ -65,8 +65,8 @@ public enum RequestParameters implements Documentable {
 
 	// HtmlServlet
 	// link to "File download"
-	DownloadAsFilename("filename", "Download filename", "Request parameter that sets the 'filename' part of the `Content-Disposition: attachment` response header."),
-	DownloadAsDataUrl("as-data-url", "Download as data URL", "Request parameter that controls the response format of a file download. If set (with any value), it causes the file data to be returned in Base64 format ready to be used in a data URL."),
+	DownloadAsFilename("filename", "Download filename", "Request parameter that sets the 'filename' part of the `Content-Disposition: attachment` response header.", false),
+	DownloadAsDataUrl("as-data-url", "Download as data URL", "Request parameter that controls the response format of a file download. If set (with any value), it causes the file data to be returned in Base64 format ready to be used in a data URL.", false),
 
 	// edit mode
 	EditMode("edit", null, null),
@@ -76,12 +76,18 @@ public enum RequestParameters implements Documentable {
 
 	;
 
+	private final boolean noPrefix;
 	private final String identifier;
 	private final String displayName;
 	private final String shortDescription;
 
 	RequestParameters(final String identifier, final String displayName, final String shortDescription) {
+		this(identifier, displayName, shortDescription, false);
+	}
 
+	RequestParameters(final String identifier, final String displayName, final String shortDescription, final boolean noPrefix) {
+
+		this.noPrefix         = noPrefix;
 		this.shortDescription = shortDescription;
 		this.displayName      = displayName;
 		this.identifier       = identifier;
@@ -100,7 +106,7 @@ public enum RequestParameters implements Documentable {
 	@Override
 	public String getName() {
 
-		if (Settings.RequestParameterLegacyMode.getValue(false)) {
+		if (Settings.RequestParameterLegacyMode.getValue(false) || noPrefix) {
 			return identifier;
 		}
 
