@@ -36,7 +36,7 @@ public class MailSendFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getName() {
-		return "mail_send";
+		return "mailSend";
 	}
 
 	@Override
@@ -80,7 +80,7 @@ public class MailSendFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mail_send()}"),
+			Usage.structrScript("Usage: ${mailSend()}"),
 			Usage.javaScript("Usage: ${{ $.mailSend() }}")
 		);
 	}
@@ -97,7 +97,7 @@ public class MailSendFunction extends AdvancedMailModuleFunction {
 
 				If not all pre-conditions are met or the sending of the mail fails, an empty string will be returned and an error message is logged.
 				
-				A possible error message can be retrieved via `mail_get_error()` and the presence of an error can be checked via `mail_has_error()`.
+				A possible error message can be retrieved via `mailGetError()` and the presence of an error can be checked via `mailHasError()`.
 				
 				Before attempting to send the mail, the last error (if any) is cleared automatically.
 				""";
@@ -107,7 +107,7 @@ public class MailSendFunction extends AdvancedMailModuleFunction {
 	public List<String> getNotes() {
 		return List.of(
 				"Will result in an error if no `To:`, `Cc:` or `Bcc:` addresses are configured.",
-				"Will result in an error if `mail_begin()` was not called"
+				"Will result in an error if `mailBegin()` was not called"
 		);
 	}
 }

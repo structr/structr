@@ -78,7 +78,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 		if (!basePath.equals(dir)) {
 
-			processSubtree = createFolder(dir);
+			processSubtree = createFolderFromFilesystem(dir);
 		}
 
 		if (processSubtree) {
@@ -112,6 +112,17 @@ public class FileImportVisitor implements FileVisitor<Path> {
 	@Override
 	public FileVisitResult postVisitDirectory(final Path dir, final IOException exc) throws IOException {
 		return FileVisitResult.CONTINUE;
+	}
+
+	public void importMetadataOnlyFolders() {
+
+		final Set<String> configuredButNotEncounteredPaths = new HashSet<>(metadata.keySet());
+		encounteredPaths.forEach(configuredButNotEncounteredPaths::remove);
+
+		for (final String pathString : configuredButNotEncounteredPaths) {
+
+			createFolderFromMetadata(pathString);
+		}
 	}
 
 	public FileImportProblems getFileImportProblems() {
@@ -149,37 +160,55 @@ public class FileImportVisitor implements FileVisitor<Path> {
 		return null;
 	}
 
-	protected boolean createFolder(final Path path) {
+	protected boolean createFolderFromFilesystem(final Path fsPath) {
 
-		final String fullPath = harmonizeFileSeparators("/", basePath.relativize(path).toString());
-		final Traits traits     = Traits.of(StructrTraits.FOLDER);
+		final String appPath = harmonizeFileSeparators("/", basePath.relativize(fsPath).toString());
 
-		encounteredPaths.add(fullPath);
+		encounteredPaths.add(appPath);
+
+		return createFolder(appPath, fsPath);
+	}
+
+	protected void createFolderFromMetadata(final String appPath) {
+
+		final Path fsPath     = Path.of(harmonizeFileSeparators(basePath.toString(), appPath));
+		final boolean success = createFolder(appPath, fsPath);
+
+		if (success) {
+
+			// only add it to encounteredPaths if it was successfully created
+			encounteredPaths.add(appPath);
+		}
+	}
+
+	protected boolean createFolder(final String appPath, final Path fsPath) {
+
+		final Traits traits = Traits.of(StructrTraits.FOLDER);
 
 		try (final Tx tx = app.tx(true, false, false)) {
 
 			tx.disableChangelog();
 
-			final NodeInterface existingFolder = getExistingFolder(fullPath);
-			final PropertyMap folderProperties = new PropertyMap(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), path.getFileName().toString());
+			final NodeInterface existingFolder = getExistingFolder(appPath);
+			final PropertyMap folderProperties = new PropertyMap(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), fsPath.getFileName().toString());
 
-			if (!basePath.equals(path.getParent())) {
+			if (!basePath.equals(fsPath.getParent())) {
 
-				final String parentPath = harmonizeFileSeparators("/", basePath.relativize(path.getParent()).toString());
+				final String parentPath = harmonizeFileSeparators("/", basePath.relativize(fsPath.getParent()).toString());
 				folderProperties.put(traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY), getExistingFolder(parentPath));
 			}
 
 			// load properties from files.json
-			final PropertyMap properties = getConvertedPropertiesForFileOrFolder(fullPath);
+			final PropertyMap properties = getConvertedPropertiesForFileOrFolder(appPath);
 			if (properties != null) {
 
 				folderProperties.putAll(properties);
 
 			} else {
 
-				logger.info("Ignoring folder and subtree: {} (not in files.json)", fullPath);
+				logger.info("Ignoring folder and subtree: {} (not in files.json)", appPath);
 
-				encounteredButNotConfiguredPaths.add(path.toString());
+				encounteredButNotConfiguredPaths.add(fsPath.toString());
 
 				return false;
 			}
@@ -188,7 +217,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 				final NodeInterface newFolder = app.create(StructrTraits.FOLDER, folderProperties);
 
-				this.folderCache.put(fullPath, newFolder);
+				this.folderCache.put(appPath, newFolder);
 
 			} else {
 
@@ -200,10 +229,10 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 		} catch (Exception ex) {
 
-			logger.error("Error occurred while importing folder " + path, ex);
+			logger.error("Error occurred while importing folder " + fsPath, ex);
 		}
 
-		checkIfFileOrFolderWasForceRenamed(traits, fullPath, path.getFileName().toString());
+		checkIfFileOrFolderWasForceRenamed(traits, appPath, fsPath.getFileName().toString());
 
 		return true;
 	}

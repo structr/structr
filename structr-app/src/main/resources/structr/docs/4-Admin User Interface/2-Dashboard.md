@@ -27,6 +27,7 @@ The Deployment section offers comprehensive tools for managing application deplo
 ![Deployment](../dashboard_deployment.png)
 
 **Deployment features:**
+
 - **Export functionality**: Export a Structr application with schema, pages, files, or custom data, to a server directory or ZIP file
 - **Import functionality**: Import a Structr application from a ZIP file or server directory
 - **Selective deployment**: Choose specific components to export/import
@@ -41,6 +42,7 @@ You can temporarily stop the auto-refresh by focusing the log area by clicking o
 ![Server Log](../dashboard_server-log.png)
 
 **Features:**
+
 - Real-time log streaming
 - Refresh interval from 1s to 10s and manual (no automatic refresh)
 - Select log file to view in case of log rotation
@@ -53,6 +55,7 @@ The Event Log tracks important system events, user actions, and security-related
 ![Event Log](../dashboard_event-log.png)
 
 **Filterable event types:**
+
 - All events
 - Authentication events
 - Cron events
@@ -79,6 +82,7 @@ Customize the Admin UI appearance and behavior to match your preferences and org
 ![UI Configuration](../dashboard_ui-config.png)
 
 **Configuration options:**
+
 - **Theme settings**: Choose between light and dark themes
 - **Language preferences**: Select interface language
 - **Layout options**: Customize sidebar and panel arrangements
@@ -89,24 +93,28 @@ Customize the Admin UI appearance and behavior to match your preferences and org
 ## Best Practices
 
 ### Monitoring
+
 - Regularly check the Server Log for errors or warnings
 - Monitor Running Threads for performance issues
 - Review Event Log for security-related activities
 - Keep track of system uptime and performance metrics
 
 ### Deployment
+
 - Always test deployments in a staging environment first
 - Create backups before major deployments
 - Use selective deployment for incremental updates
 - Document deployment procedures and rollback plans
 
 ### System Maintenance
+
 - Regularly review and archive old log files
 - Monitor memory usage and thread performance
 - Keep system configuration up to date
 - Schedule regular maintenance windows for updates
 
 ### Security
+
 - Monitor the Event Log for suspicious activities
 - Regular review of user sessions and access patterns
 - Keep track of administrative actions
@@ -117,17 +125,20 @@ Customize the Admin UI appearance and behavior to match your preferences and org
 ### Common Issues
 
 **High Memory Usage**
+
 - Check Running Threads for memory-intensive processes
 - Review Server Log for memory-related warnings
 - Consider adjusting JVM heap settings
 
 **Performance Problems**
+
 - Monitor active thread counts
 - Check for long-running processes
 - Review system resource utilization
 - Analyze log patterns for bottlenecks
 
 **Deployment Failures**
+
 - Check Server Log for deployment error details
 - Verify target environment compatibility
 - Ensure sufficient disk space and permissions
@@ -136,6 +147,7 @@ Customize the Admin UI appearance and behavior to match your preferences and org
 ### Diagnostic Tools
 
 The Dashboard provides several diagnostic capabilities:
+
 - Real-time system metrics
 - Historical performance data
 - Error tracking and analysis
@@ -144,6 +156,7 @@ The Dashboard provides several diagnostic capabilities:
 ## Integration with External Tools
 
 The Dashboard can integrate with external monitoring and management tools:
+
 - **Log aggregation**: Forward logs to external systems (ELK stack, Splunk)
 - **Monitoring**: Export metrics to monitoring platforms (Prometheus, Grafana)
 - **Alerting**: Configure notifications for critical events
@@ -152,6 +165,7 @@ The Dashboard can integrate with external monitoring and management tools:
 ## Next Steps
 
 After familiarizing yourself with the Dashboard:
+
 1. Explore the [Pages](5-Pages.md) section for application development
 2. Review [Schema](3-Schema.md) design capabilities
 3. Learn about [Security](6-Security.md) management

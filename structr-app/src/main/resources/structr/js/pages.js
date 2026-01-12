@@ -24,6 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
 let _Pages = {
 	_moduleName: 'pages',
 	urlHashKey: 'structrUrlHashKey_' + location.port,
+	activeCenterTabKey: 'structrActiveCenterTabKey_' + location.port,
 	activeTabRightKey: 'structrActiveTabRight_' + location.port,
 	activeTabLeftKey: 'structrActiveTabLeft_' + location.port,
 	leftTabMinWidth: 410,
@@ -228,6 +229,20 @@ let _Pages = {
 
 			_Pages.refresh();
 		});
+
+	},
+	cleanActiveTabsFromLocalStorage: () => {
+
+		// Delete entries for DOM nodes that don't exist anymore
+		const activeCenterTabs = JSON.parse(LSWrapper.getItem(_Pages.activeCenterTabKey)) || {};
+		for (const id of Object.keys(activeCenterTabs)) {
+			Command.get(id, 'id', obj => {
+				if (!obj) {
+					delete activeCenterTabs[id];
+					LSWrapper.setItem(_Pages.activeCenterTabKey, JSON.stringify(activeCenterTabs));
+				}
+			});
+		}
 	},
 	getContextMenuElements: (div, entity) => {
 
@@ -876,6 +891,11 @@ let _Pages = {
 				}
 			});
 		}
+
+		window.setTimeout(() => {
+			_Pages.cleanActiveTabsFromLocalStorage();
+		}, 500);
+
 	},
 	removePage: (page) => {
 		Structr.removeExpandedNode(page.id);
@@ -983,6 +1003,16 @@ let _Pages = {
 		_Helpers.fastRemoveAllChildren(_Pages.centerPane);
 	},
 	refreshCenterPane: (obj, urlHash) => {
+
+		const activeCenterTabs = JSON.parse(LSWrapper.getItem(_Pages.activeCenterTabKey)) || {};
+		if (!urlHash) {
+			if (activeCenterTabs.hasOwnProperty(obj.id)) {
+				urlHash = activeCenterTabs[obj.id];
+			}
+		} else {
+			activeCenterTabs[obj.id] = urlHash;
+			LSWrapper.setItem(_Pages.activeCenterTabKey, JSON.stringify(activeCenterTabs));
+		}
 
 		_Entities.deselectAllElements();
 
@@ -1311,19 +1341,33 @@ let _Pages = {
 
 		return div;
 	},
-	expandTreeNode: (id, stack, lastId) => {
+	expandTreeNode: (id) => {
 		if (!id) {
 			return;
 		}
-		lastId = lastId || id;
-		stack = stack || [];
-		stack.push(id);
-		Command.get(id, 'id,parent', (obj) => {
+
+		_Pages.getParentsRecursively(id).then(parents => {
+			_Entities.expandAll(parents.reverse(), id);
+		});
+	},
+	getParentsRecursively: async (id, stack = []) => {
+
+		let obj = await Command.getPromise(id, 'id,parent');
+		if (obj) {
+
+			stack.push(id);
+
 			if (obj.parent) {
-				_Pages.expandTreeNode(obj.parent.id, stack, lastId);
-			} else {
-				_Entities.expandAll(stack.reverse(), lastId);
+				stack = _Pages.getParentsRecursively(obj.parent.id, stack);
 			}
+		}
+
+		return stack;
+	},
+	selectAndShowArbitraryDOMElement: (id) => {
+
+		_Pages.getParentsRecursively(id).then(parents => {
+			_Entities.expandAll(parents.reverse(), id, true);
 		});
 	},
 	highlight: (id) => {
@@ -2928,7 +2972,7 @@ let _Pages = {
 
 			parentElement = (parentElement && parentElement.length) ? parentElement[0] : _Pages.centerPane;
 
-			if (pageId) {
+			if (pageId && pageId !== _Pages.shadowPage.id) {
 
 				let innerFn = () => {
 

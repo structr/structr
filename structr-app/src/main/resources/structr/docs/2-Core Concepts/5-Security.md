@@ -21,6 +21,7 @@ Structr's permission system operates on multiple levels to ensure secure and fle
 Users can be created through the Admin UI or programmatically via the REST API.
 
 **Via Admin UI:**
+
 1. Navigate to Users and Groups section in the main menu
 2. Click "Add User"
 3. A new user will be created with a random default name
@@ -28,6 +29,7 @@ Users can be created through the Admin UI or programmatically via the REST API.
 5. Configure user properties through the Edit Properties dialog
 
 **Via REST API:**
+
 ```bash
 curl --request POST \
   --url http://localhost:8082/structr/rest/User \
@@ -68,12 +70,14 @@ To set or change a user password:
 Groups provide a way to organize users and manage permissions collectively.
 
 **Creating a Group:**
+
 1. Navigate to Users and Groups view
 2. Click "Add Group"
 3. A new group will be created with a random default name
 4. Rename the group as appropriate
 
 **Adding Users to Groups:**
+
 - Use drag-and-drop to move users into groups
 - Groups can contain both users and other groups
 - This allows creation of hierarchical group structures
@@ -81,6 +85,7 @@ Groups provide a way to organize users and manage permissions collectively.
 ### Group Inheritance
 
 Access rights granted to a group are automatically inherited by all users in that group. This includes:
+
 - Direct group members
 - Users in nested subgroups
 - Permissions flow down the group hierarchy
@@ -117,6 +122,7 @@ While the security system focuses on user context and database entity access, Re
 ### Permission Structure
 
 Each Resource Permission defines:
+
 - **Signature** - The resource path pattern (e.g., `Project`, `_login`, `SchemaType`)
 - **HTTP Methods** - Which operations are allowed (GET, POST, PUT, DELETE)
 - **User Categories** - Who can access (public users, authenticated users, specific groups)
@@ -136,6 +142,7 @@ Each Resource Permission defines:
 ### Configuration Requirements
 
 **For Authentication Endpoints:**
+
 ```
 _login - Allow POST for public users
 _logout - Allow POST for authenticated users
@@ -145,6 +152,7 @@ _resetPassword - Allow POST for public users
 ```
 
 **For Data Types:**
+
 ```
 TypeName - Configure based on application requirements
 TypeName/_Public - For public views (older versions)
@@ -157,6 +165,7 @@ TypeName/_Public - For public views (older versions)
 Permissions can be granted directly on individual nodes to specific users or groups. These grants override inherited permissions and provide the most specific access control.
 
 **Permission Hierarchy:**
+
 1. Direct user permissions (highest priority)
 2. Direct group permissions
 3. Inherited group permissions
@@ -293,18 +302,21 @@ curl --request PUT \
 ### Common Permission Issues
 
 **"Access denied" errors:**
+
 - Check Resource Permissions for the specific endpoint
 - Verify user authentication status
 - Confirm user has appropriate node-level permissions
 - Review group memberships and inherited permissions
 
 **Graph permission resolution failures:**
+
 - Verify active relationships are properly configured
 - Check for broken permission paths
 - Ensure target objects exist and have correct visibility flags
 - Test with admin user to isolate permission vs. data issues
 
 **Authentication problems:**
+
 - Verify Resource Permissions for authentication endpoints
 - Check configuration settings (autocreate, autologin)
 - Review mail configuration for registration/reset features
@@ -313,6 +325,7 @@ curl --request PUT \
 ### Debugging Tools
 
 **Admin Console REST Mode:**
+
 Use the REST console to test endpoint access:
 ```
 Mode set to 'REST'
@@ -322,12 +335,14 @@ admin@Structr> get /User
 ```
 
 **Log Analysis:**
+
 Monitor log files for permission-related messages:
 ```
 INFO org.structr.web.auth.UiAuthenticator - Resource permission found for signature 'User', but method 'GET' not allowed for public users.
 ```
 
 **Permission Path Testing:**
+
 Create test scenarios with known user/group/node configurations to verify expected behavior.
 
 This multi-layered permission system provides both security and flexibility, enabling you to implement sophisticated access control models that match your application's requirements while maintaining clear and manageable permission structures.

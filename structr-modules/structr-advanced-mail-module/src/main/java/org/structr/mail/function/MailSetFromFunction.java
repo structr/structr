@@ -35,7 +35,7 @@ public class MailSetFromFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getName() {
-		return "mail_set_from";
+		return "mailSetFrom";
 	}
 
 	@Override
@@ -67,7 +67,7 @@ public class MailSetFromFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mail_set_from(address [, name])}"),
+			Usage.structrScript("Usage: ${mailSetFrom(address [, name])}"),
 			Usage.javaScript("Usage: ${{ $.mailSetFrom(address [, name]) }}")
 		);
 	}

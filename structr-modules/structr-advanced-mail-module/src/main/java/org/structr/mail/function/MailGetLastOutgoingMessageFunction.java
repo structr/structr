@@ -52,7 +52,7 @@ public class MailGetLastOutgoingMessageFunction extends AdvancedMailModuleFuncti
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mailGet_last_outgoing_message()}"),
+			Usage.structrScript("Usage: ${mailGetLastOutgoingMessage()}"),
 			Usage.javaScript("Usage: ${{ $.mailGetLastOutgoingMessage() }}")
 		);
 	}
@@ -70,7 +70,7 @@ public class MailGetLastOutgoingMessageFunction extends AdvancedMailModuleFuncti
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-				"This method will only yield a result if `mail_save_outgoing_message()` was active when sending the mail."
+				"This method will only yield a result if `mailSaveOutgoingMessage()` was active when sending the mail."
 		);
 	}
 }

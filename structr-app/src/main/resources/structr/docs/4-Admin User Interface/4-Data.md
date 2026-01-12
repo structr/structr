@@ -11,6 +11,7 @@ The Data section combines the power of a graph database with an intuitive interf
 ## Key Features
 
 ### Object Management
+
 - Create, read, update, and delete operations (CRUD)
 - Bulk data operations and transformations
 - Real-time data validation and integrity checks
@@ -25,12 +26,14 @@ Create new instances of your schema types with proper validation.
 ![Objects Created](../data_objects-created.png)
 
 **Object creation process:**
+
 1. **Type selection**: Choose the schema type to instantiate
 2. **Property values**: Set initial property values
 3. **Validation**: Automatic validation against schema constraints
 4. **Relationships**: Establish connections to related objects
 
 **Creation methods:**
+
 - **Manual creation**: Individual object creation through the UI
 - **Bulk creation**: Create multiple objects simultaneously
 - **Import creation**: Create objects from external data sources
@@ -39,6 +42,7 @@ Create new instances of your schema types with proper validation.
 ### Object Properties
 
 **Property management:**
+
 - **Direct editing**: In-line property value editing
 - **Type validation**: Automatic validation based on property type
 - **Constraint checking**: Enforcement of schema constraints
@@ -51,12 +55,14 @@ Create new instances of your schema types with proper validation.
 Navigate through your data using the hierarchical object browser:
 
 **Navigation features:**
+
 - **Type-based browsing**: View objects organized by type
 - **Relationship traversal**: Follow connections between objects
 - **Search integration**: Find objects quickly by property values
 - **Filtering**: Display only objects meeting specific criteria
 
 **View options:**
+
 - **List view**: Tabular display with sortable columns
 - **Graph view**: Visual relationship network (see [Graph](9-Graph.md))
 - **Detail view**: Comprehensive object information
@@ -64,15 +70,18 @@ Navigate through your data using the hierarchical object browser:
 ### Search and Filtering
 
 **Advanced search capabilities:**
+
 - **Property-based search**: Find objects by specific property values
 - **Full-text search**: Search across all text properties
 
 ### Sorting and Pagination
 
 **Sorting options:**
+
 - **Property-based sorting**: Sort by any object property
 
 **Pagination features:**
+
 - **Configurable page sizes**: Adjust objects per page
 - **Quick navigation**: Jump to specific pages
 - **Performance optimization**: Efficient loading of large datasets
@@ -83,12 +92,14 @@ Navigate through your data using the hierarchical object browser:
 The referential integrity is ensured by Structr.
 
 **Relationship integrity:**
+
 - **Orphan prevention**: Prevent creation of invalid references
 - **Cascade operations**: Automatic cleanup of related data can be defined in the schema
 - **Constraint enforcement**: Cardinality restrictions are always respeceted
 - **Circular reference detection**: Prevent infinite loops
 
 **Data consistency:**
+
 - **Transaction support**: Atomic operations for data consistency
 - **Rollback capability**: Inconsistent operations are rolled back automatically
 - **Conflict resolution**: Concurrent data modifications are handled automatically
@@ -99,12 +110,14 @@ The referential integrity is ensured by Structr.
 ### Data Security
 
 **Access control:**
+
 - **Object-level permissions**: Control access to individual objects
 - **Property-level security**: Restrict access to specific properties by defining schema views
 - **Relationship security**: Control relationship traversal by defining schema-based permissions (see [Security](6-Security.md))
 - **Dynamic permissions**: Context-based access control based on custom code (see [Code](7-Code.md))
 
 **Data protection:**
+
 - **Encryption**: Protect sensitive data at rest and in transit, e.g. by using Encrypted String as data type in the schema
 - **Anonymization**: Remove or mask personal information, e.g. by using Funciton Properties
 - **Audit logging**: Track all data access and modifications
@@ -113,12 +126,14 @@ The referential integrity is ensured by Structr.
 ## Integration with Other Sections
 
 ### Pages Integration
+
 - **Data binding**: Display data objects in web pages
 - **Form integration**: Create and edit objects through web forms
 - **Dynamic content**: Generate content from data objects
 - **User interaction**: Enable user data manipulation through pages
 
 ### API Integration
+
 - **REST endpoints**: Access data through automatically generated APIs
 - **CRUD operations**: Perform data operations via API calls
 - **Query API**: Execute complex queries through API endpoints
@@ -129,18 +144,21 @@ The referential integrity is ensured by Structr.
 ### Common Issues
 
 **Data Validation Errors**
+
 - Review schema constraints and validation rules
 - Check property types and format requirements
 - Verify required field completion
 - Validate relationship constraints
 
 **Performance Problems**
+
 - Analyze query patterns and add appropriate indexes
 - Review large dataset handling and pagination
 - Optimize relationship traversals
 - Monitor resource usage and caching effectiveness
 
 **Import/Export Issues**
+
 - Verify file formats and data structure compatibility
 - Check field mapping and data transformation rules
 - Validate data quality before import
@@ -149,6 +167,7 @@ The referential integrity is ensured by Structr.
 ## Next Steps
 
 After mastering the Data section:
+
 1. Design effective [Schema](3-Schema.md) structures for your data
 2. Create [Pages](5-Pages.md) that display and interact with your data
 3. Implement [Security](6-Security.md) controls for data protection

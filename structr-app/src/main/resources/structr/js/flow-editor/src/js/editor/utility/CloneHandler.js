@@ -149,7 +149,7 @@ export class CloneHandler {
 
 
 		// TODO: Filter already connected rels
-		rest.post('/structr/rest/FlowContainer/' + editor._flowContainer.id + "/getFlowRelationships").then((res) => {
+		rest.post(`${Structr.rootUrl}FlowContainer/${editor._flowContainer.id}/getFlowRelationships`).then((res) => {
 			let result = res.result;
 
 			for (let rel of result) {

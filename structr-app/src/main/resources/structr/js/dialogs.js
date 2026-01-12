@@ -114,7 +114,7 @@ let _Dialogs = {
 				iconId: _Icons.iconLogoKeycloak
 			}
 		],
-		getSSOUriForURIPart: (uripart) => `/oauth/${uripart}/login?isBackendOAuthLogin`,
+		getSSOUriForURIPart: (uripart) => _Helpers.getPrefixedRootUrl(`/oauth/${uripart}/login?isBackendOAuthLogin`),
 		getLoginDialogElement: () => document.querySelector('#login'),
 		isOpen: () => {
 			let loginElement = _Dialogs.loginDialog.getLoginDialogElement();
@@ -344,12 +344,23 @@ let _Dialogs = {
 	readUUIDFromUser: {
 		defaultUUIDValidationPromise: async (uuid) => {
 
-			let isValidUUID = _Helpers.isUUID(uuid);
-			return {
-				allow: isValidUUID,
-				value: uuid,
-				invalidMessage: 'Given value is not a valid UUID'
+			let result = {
+				allow: true,
+				value: uuid
 			};
+
+			if (!_Helpers.isUUID(uuid)) {
+				result.allow = false;
+				result.invalidMessage = 'Given value is not a valid UUID';
+			}
+
+			let obj = await Command.getPromise(uuid, 'id');
+			if (!obj) {
+				result.allow = false;
+				result.invalidMessage = 'No node found for given UUID';
+			}
+
+			return result;
 		},
 		showPromise: (text, validationPromise = _Dialogs.readUUIDFromUser.defaultUUIDValidationPromise) => {
 
@@ -427,6 +438,11 @@ let _Dialogs = {
 				_Helpers.activateCommentsInElement(messageDiv);
 
 				uuidInput.addEventListener('keyup', (e) => {
+
+					// reset custom validity in case of previous errors
+					uuidInput.setCustomValidity('');
+					uuidInput.reportValidity();
+
 					if (e.key === 'Enter' || e.code === 'Enter' || e.keyCode === 13) {
 						answerFunction(e, runActionOption);
 					}

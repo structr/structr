@@ -111,6 +111,7 @@ public class ConfigServlet extends AbstractServletBase {
 
 						// reset to default
 						setting.setValue(setting.getDefaultValue());
+						setting.setIsModified(false);
 					}
 				}
 
