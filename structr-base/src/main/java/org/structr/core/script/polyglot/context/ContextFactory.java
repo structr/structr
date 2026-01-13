@@ -31,10 +31,12 @@ import org.structr.core.script.polyglot.StructrBinding;
 import org.structr.schema.action.ActionContext;
 
 import java.sql.Struct;
+import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
+import java.util.stream.Collectors;
 
 public abstract class ContextFactory {
 
@@ -227,7 +229,8 @@ public abstract class ContextFactory {
 	}
 
 	public static class LockedContext {
-		private final ReentrantLock lock = new ReentrantLock();
+		private static final boolean DEBUG_ENABLED = true;
+		private final ReentrantLock lock = new PolyglotReentrantLock();
 		private final Context context;
 		private StructrBinding binding = null;
 
@@ -256,6 +259,29 @@ public abstract class ContextFactory {
 				return context;
 			}
 			throw new IllegalStateException("Lock for context is not held by current thread.");
+		}
+
+		public static class PolyglotReentrantLock extends ReentrantLock {
+
+			@Override
+			public void lock() {
+				if (DEBUG_ENABLED) {
+					LoggerFactory.getLogger(PolyglotReentrantLock.class).info("lock(" + this.getHoldCount() + "): Thread(" + Thread.currentThread() + ")\nStackTrace => \n\t" + getCurrentStackTrace());
+				}
+				super.lock();
+			}
+
+			@Override
+			public void unlock() {
+				if (DEBUG_ENABLED) {
+					LoggerFactory.getLogger(PolyglotReentrantLock.class).info("unlock(" + this.getHoldCount() + "): Thread(" + Thread.currentThread() + ")\nStackTrace => \n\t" + getCurrentStackTrace());
+				}
+				super.unlock();
+			}
+
+			public static String getCurrentStackTrace() {
+				return Arrays.stream(Thread.currentThread().getStackTrace()).skip(2).filter(s -> s.toString().contains("structr")).limit(7).map(StackTraceElement::toString).collect(Collectors.joining("\n\t"));
+			}
 		}
 	}
 }
