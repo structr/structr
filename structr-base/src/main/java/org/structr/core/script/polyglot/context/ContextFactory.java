@@ -229,7 +229,7 @@ public abstract class ContextFactory {
 	}
 
 	public static class LockedContext {
-		private static final boolean DEBUG_ENABLED = true;
+		private static final boolean DEBUG_ENABLED = false;
 		private final ReentrantLock lock = new PolyglotReentrantLock();
 		private final Context context;
 		private StructrBinding binding = null;
