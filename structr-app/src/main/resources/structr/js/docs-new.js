@@ -123,7 +123,7 @@ let _Documentation = {
 		const docsElement = document.getElementById('docs-main-navigation');
         const iframe = document.querySelector('iframe');
 
-        if (iframe){
+        if (iframe) {
 
             iframe.addEventListener('load', e => {
                 //_Documentation.makeEditable();
@@ -151,6 +151,7 @@ let _Documentation = {
                     for (let child of entry.links[0].targets) {
 
                         let subItem = _Documentation.createElementFromHTML(_Documentation.templates.mainNavigationSubItem({
+                            parent: entry.id,
                             id: child.id,
                             label: child.name
                         }));
@@ -535,7 +536,7 @@ let _Documentation = {
 			</div>
 		`,
 		mainNavigationItem: config => `<li class="docs-main-nav-item">${config.label}</li>`,
-        mainNavigationSubItem: config => `<li><a target="main-documentation" href="/structr/docs/ontology?id=${config.id}&details=all&startLevel=0&format=markdown">${config.label}</a></li>`,
+        mainNavigationSubItem: config => `<li><a target="main-documentation" href="/structr/docs/ontology?id=${config.id}&parent=${config.parent}&details=all&startLevel=0&format=markdown">${config.label}</a></li>`,
 		indexItem: config => `<h2><a target="main-documentation" href="/structr/docs/ontology?id=${config.id}&details=all&startLevel=0&format=markdown#${config.name}">${config.label}</a></h2>`,
 		searchOverlay: config => `
 			<div id="search-overlay" class="hidden">

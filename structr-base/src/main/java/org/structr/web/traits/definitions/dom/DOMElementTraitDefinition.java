@@ -992,7 +992,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Boolean> dataInsertProperty          = new BooleanProperty(DATA_STRUCTR_INSERT_PROPERTY);
 		final Property<Boolean> dataFromWidgetProperty      = new BooleanProperty(DATA_STRUCTR_FROM_WIDGET_PROPERTY);
 
-		final Property<String> eventMappingProperty        = new StringProperty(EVENT_MAPPING_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY).description("A mapping between the desired Javascript event (click, drop, dragOver, ...) and the server-side event that should be triggered: (create | update | delete | <method name>).");
+		final Property<String> eventMappingProperty        = new StringProperty(EVENT_MAPPING_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY);//.description("A mapping between the desired Javascript event (click, drop, dragOver, ...) and the server-side event that should be triggered: (create | update | delete | <method name>).");
 		// probably useless ATM because EAM does not support trees yet
 		final Property<String> dataTreeChildrenProperty    = new StringProperty(DATA_STRUCTR_TREE_CHILDREN_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY).description("Toggles automatic visibility for tree child items when the 'toggle-tree-item' event is mapped. This field must contain the data key on which the tree is based, e.g. 'item'.");
 		final Property<String> dataReloadTargetProperty    = new StringProperty(DATA_STRUCTR_RELOAD_TARGET_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY).description("CSS selector that specifies which partials to reload.");

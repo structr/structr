@@ -648,6 +648,18 @@ public final class Concept implements Comparable<Concept> {
 		return "snippets/" + this.getName() + " - " + StringUtils.leftPad(Integer.toString(index), 3, "0") + ".md";
 	}
 
+	public Link getLinkTo(final Verb verb, final Concept concept) {
+
+		for (final Link link : getChildLinks(verb)) {
+
+			if (link.getTarget().equals(concept)) {
+				return link;
+			}
+		}
+
+		return null;
+	}
+
 	// ----- public static methods -----
 	public static boolean exists(final String name) {
 

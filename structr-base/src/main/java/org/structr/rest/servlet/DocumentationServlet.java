@@ -111,7 +111,14 @@ public class DocumentationServlet extends HttpServlet {
 					ontology.countConcepts(new ExistingDocs("structr/docs"));
 				}
 
-				final List<String> lines = ontology.createDocumentation(concepts, settings);
+				Concept parent = null;
+
+				// parent set?
+				if (request.getParameter("parent") != null) {
+					parent = ontology.getConceptById(request.getParameter("parent"));
+				}
+
+				final List<String> lines = ontology.createDocumentation(parent, concepts, settings);
 
 				if ("markdown".equals(settings.getOutputFormat())) {
 					renderMarkdown(response, lines, settings);

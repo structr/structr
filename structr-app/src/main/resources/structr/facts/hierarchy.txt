@@ -8,7 +8,7 @@
 Structr has markdown-folder "1-Introduction"
 Structr has topic "Building Applications"
 Structr has markdown-folder "4-Admin User Interface"
-Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Advanced Topics", References
+Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Expert Topics", References
 
     "Admin User Interface" has topics "Admin Console"
 
@@ -32,10 +32,32 @@ Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Advan
 
 
 # Building Applications
-"Building Applications" has topics "Pages & Templates", "Navigation & Routing", "Dynamic Content", "Business Logic", "User Input & Forms", "Error handling", "Language localization", "Troubleshooting"
-    "Pages & Templates" has markdown-file "snippets/Creating Pages & Templates - 000.md"
+"Building Applications" has new topics "Data Model", "Pages & Templates", "Navigation & Routing", "Dynamic Content", "Business Logic", "User Input & Forms", "Error handling", "Language localization", "Troubleshooting"
+        "Navigation & Routing" has markdown-file "snippets/Navigation & Routing - 000.md"
+
+    "Data Model" has markdown-file "snippets/Data Model - 000.md" with heading "Data Model"
+    "The process of creating a Structr application usually begins with the data model. This chapter focuses on the various steps required to create the data model and serves as a guide to help you navigate the multitude of possibilities.
+
+## A Simple Type
+
+In the simplest case, a data model consists of exactly one type with no additional attributes other than those already defined in the base class. Unless otherwise specified, the newly created type inherits from the base class `AbstractNode`, which already provides some attributes..
+
+### Default attributes
+
+Next:
+- default attributes
+- adding attributes
+- attribute types
+- indexing
+
+- relationships
+- ...." has topics "Relationships", "Built-in types" as table, "Built-in properties" as table
+        "Relationships" has topics "Cascading Delete" as table, "Automatic Creation of Related Nodes" as table
+
+    "Pages & Templates" has markdown-file "snippets/Pages & Templates - 000.md"
 
     "Pages & Templates" has topics "Pages", "Templates", "Page Templates", "Elements", "Shared Components", "Widgets", "Static resources", "Active Elements"
+        "Pages" has markdown-file "snippets/Pages - 000.md"
 
         Topic "Pages" has topics "Creating pages", "Importing pages"
 
@@ -54,12 +76,15 @@ Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Advan
         "Static resources" has topic "File download", "Dynamic files"
             "Dynamic files" has topics "Replace template expressions"
 
-    "Navigation & Routing" has topics "Permission levels", "Visibility", "Authentication", "Navigation", "Error pages", "Page position", "URL routing", "URI object resolution"
+    "Navigation & Routing" has topics "Permission levels", "Visibility", "Authentication", "Navigation", "Error pages", "URL routing", "URI object resolution", "Page position"
+        "URL routing" has markdown-file "snippets/URL routing - 000.md"
+        "URL routing" has topics "URI parts"
+        "URL routing" has new topic "Request parameter handling"
         "Permission levels" has markdown-file "snippets/Access levels - 000.md"
         "Authentication" has markdown-file "snippets/Authentication - 000.md"
 
 
-    "Dynamic Content" has topics "Template expressions", "Repeaters", "Show / Hide Conditions"
+    "Dynamic Content" has topics "Template expressions", "Repeaters", "Show / Hide Conditions", "Scripting contexts", "Advanced find"
 
         "Repeaters" has topic "Data key"
         "Repeaters" has texts "Function query", "Flow", "Cypher query"
@@ -68,9 +93,6 @@ Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Advan
         "Show / Hide Conditions" has texts "Show Conditions", "Hide Conditions"
 
     "Business Logic" has markdown-file "snippets/Business Logic.md" with heading "Overview"
-    "Business Logic" has topics "Dynamic types", "Relationships", "Built-in types" as table, "Built-in properties" as table, "Scripting contexts", "Advanced find"
-        "Dynamic types" has topics "Dynamic type options"
-        "Relationships" has topics "Cascading Delete" as table, "Automatic Creation of Related Nodes" as table
 
     "User Input & Forms" has topics "Event Action Mapping"
         "Event Action Mapping" has topics "Event Actions" as table, "Follow-up actions" as table, "Notifications" as table, "Parameter types" as table
@@ -96,13 +118,16 @@ Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Advan
 
 
 # Interfaces
-"APIs & Integrations" has topics "OpenAPI", "Cron jobs", "Geocoding", "oAuth", "SMTP", "FTP", "SSH", "JDBC", "MongoDB"
+"APIs & Integrations" has topics "OpenAPI", "Cron jobs", "Geocoding", "oAuth", "Kafka", "MQTT", "Pulsar", "SMTP", "FTP", "SSH", "JDBC", "MongoDB"
 
     "OpenAPI" has topic "OpenAPI Settings"
     "Cron jobs" has topic "CronService Settings"
     "Geocoding" has topic "Geocoding Settings"
     "oAuth" has topic "oAuth Settings"
-    "SMTP" has topic "Sending emails", "SMTP Settings"
+    "Kafka" has topic "Kafka Settings"
+    "MQTT" has topic "MQTT Settings"
+    "Pulsar" has topic "Pulsar Settings"
+    "SMTP" has topic "Sending emails", "Receiving emails", "SMTP Settings"
     "FTP" has topic "FTP Settings"
     "SSH" has topic "SSH Settings"
     "JDBC" has topic "JDBC Settings"
@@ -112,7 +137,7 @@ Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Advan
 
 # Operations
 
-"Operations" has topics "Configuration", "Deployment", "User Management", "Filesystem", "Data Management", "SSL / TLS", "Debugging", "Maintenance", "Monitoring", "Logging", "Auditing", "Statistics"
+"Operations" has topics "Configuration", "Deployment", "User Management", "Backup & Recovery", "Filesystem", "Data Management", "SSL / TLS", "Debugging", "Maintenance", "Monitoring", "Logging", "Auditing", "Statistics"
 
     Topic "Configuration" has topics "Path Settings", "Application Settings", "HTTP Settings"
         "HTTP Settings" has topics "Outbound Connection Settings", "Proxy Settings"
@@ -120,6 +145,7 @@ Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Advan
     Deployment has topics "Deployment Settings"
 
     "User Management" has topics "Users & Groups", "Superuser", "Service principals", "Two-factor authentication", "User self-registration", "Password reset"
+        "Superuser" has synonym "Superadmin"
         "Users & Groups" has topics "Creating users", "Creating groups", "Passwords"
         "Users & Groups" has markdown-file "snippets/Users & Groups - 000.md" with heading "Accessing the Admin User Interface"
 
@@ -152,8 +178,8 @@ Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Advan
 
 
 
-# Advanced Topics
-Topic "Advanced Topics" has topics "Performance Optimization", "Internals"
+# Expert Topics
+Topic "Expert Topics" has topics "Performance Optimization", "Internals"
 
     "Performance Optimization" has topics "Prefetching", "Partial rendering", "Relationship naming", "Supernodes"
 

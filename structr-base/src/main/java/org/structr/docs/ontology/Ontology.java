@@ -85,18 +85,24 @@ public final class Ontology {
 		blacklist.addAll(Set.of("!", ";", ".", "the", "a", "an", "named"));
 	}
 
-	public List<String> createDocumentation(final List<Concept> concepts, final OutputSettings outputSettings) {
+	public List<String> createDocumentation(final Concept parent, final List<Concept> concepts, final OutputSettings outputSettings) {
 
 		final List<String> lines = new LinkedList<>();
 
 		for (final Concept concept : concepts) {
 
-			final List<Link> incomingLinks = concept.getParentLinks(Verb.Has);
-			if (!incomingLinks.isEmpty()) {
+			if (parent != null) {
 
-				final Link link = incomingLinks.get(0);
+				final Link link = parent.getLinkTo(Verb.Has, concept);
+				if (link != null) {
 
-				Formatter.walkOntology(lines, link, outputSettings, 0, new LinkedHashSet<>());
+					Formatter.walkOntology(lines, link, outputSettings, 0, new LinkedHashSet<>());
+
+				} else {
+
+					// create dummy link
+					Formatter.walkOntology(lines, new Link(null, null, concept), outputSettings, 0, new LinkedHashSet<>());
+				}
 
 			} else {
 
@@ -525,17 +531,18 @@ public final class Ontology {
 				}
 			}
 
-			if (StringUtils.isNotBlank(parent)) {
+
+			if (parentConcept != null) {
+
+				createSymmetricLink(parentConcept, Verb.Has, concept);
+
+			} else if (StringUtils.isNotBlank(parent)) {
 
 				final Concept p = getOrCreateConcept(token, ConceptType.Unknown, parent, true);
 				if (p != null) {
 
 					createSymmetricLink(p, Verb.Has, concept);
 				}
-
-			} else if (parentConcept != null) {
-
-				createSymmetricLink(parentConcept, Verb.Has, concept);
 			}
 
 			if (clazz != null) {

@@ -17,6 +17,20 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+html {
+    background-color: white;
+}
+
+body {
+    min-width: 16rem;
+}
+
+@media (max-width: 1000px) {
+    aside {
+        display: none;
+    }
+}
+
 #docs-area {
     display: flex;
     flex-direction: row;
@@ -122,10 +136,6 @@
     line-height: 1.5rem;
 }
 
-html {
-    background-color: white;
-}
-
 .article h1 a, .article h2 a, .article h3 a, .article h4 a, .article h5 a, .article h6 a {
     padding-top: 1rem;
     text-decoration: none;
@@ -134,6 +144,7 @@ html {
 
 .article div.editable {
     position: relative;
+    min-height: 1rem;
 }
 
 .article div.editable:has(button:hover) {

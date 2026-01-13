@@ -53,14 +53,12 @@ public class MarkdownFolderToken extends NamedConceptToken {
 	@Override
 	public AnnotatedConcept resolve(final Ontology ontology) {
 
-		final ConceptType type                = conceptToken.resolve(ontology);
-		final String folderName               = identifierToken.resolve(ontology);
-		final List<Concept> concepts = new LinkedList<>();
-
-		final String cleanedName = MarkdownMarkdownFileFormatter.getNameFromFileName(folderName);
-		final Concept markdownFolder     = ontology.getOrCreateConcept(this, type, cleanedName, false);
-		final Path folderPath    = Path.of("structr/docs/" + folderName);
-		final Path indexFile     = folderPath.resolve("index.txt");
+		final ConceptType type       = conceptToken.resolve(ontology);
+		final String folderName      = identifierToken.resolve(ontology);
+		final String cleanedName     = MarkdownMarkdownFileFormatter.getNameFromFileName(folderName);
+		final Concept markdownFolder = ontology.getOrCreateConcept(this, type, cleanedName, false);
+		final Path folderPath        = Path.of("structr/docs/" + folderName);
+		final Path indexFile         = folderPath.resolve("index.txt");
 
 		if (markdownFolder != null) {
 

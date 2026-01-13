@@ -1,0 +1,1 @@
+Structr uses a classic approach for page routing and object lookup by splitting the URL path into parts and interpreting the first part as the page name and the second part as the object identifier which can be a type-4 UUID or any other unique object attribute value.

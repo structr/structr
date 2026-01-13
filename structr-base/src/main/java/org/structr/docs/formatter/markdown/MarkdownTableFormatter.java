@@ -34,7 +34,7 @@ public class MarkdownTableFormatter extends Formatter {
 	@Override
 	public boolean format(final List<String> lines, final Link link, final OutputSettings settings, final int level, final Set<Concept> seenConcepts) {
 
-		final Map<String, String> headers = new LinkedHashMap<>(Map.of("Name", "`displayName`", "Description", "shortDescription"));
+		final Map<String, String> headers = mapOf("Name", "`displayName`", "Description", "shortDescription");
 		final Concept concept             = link.getTarget();
 
 		lines.add(formatMarkdownHeading(concept.getName(), level + 1));

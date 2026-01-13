@@ -128,6 +128,21 @@ public abstract class Formatter {
 		lines.add("<!-- end of " + id + " " + key + " -->");
 	}
 
+	protected Map<String, String> mapOf(final String... keyValue) {
+
+		final Map<String, String> map = new LinkedHashMap<>();
+
+		for (int i = 0; i < keyValue.length; i += 2) {
+
+			final String key   = keyValue[i];
+			final String value = keyValue[i + 1];
+
+			map.put(key, value);
+		}
+
+		return map;
+	}
+
 	public static void renderComment(final List<String> lines, final OutputSettings outputSettings, final String text) {
 
 		if ("markdown".equals(outputSettings.getOutputFormat())) {

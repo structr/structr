@@ -42,7 +42,7 @@ public class ResolveKeywordsRule extends Rule {
 
 			final AbstractToken token1 = tokens.pop();
 
-			if (token1 instanceof NewKeywordToken existing && !tokens.isEmpty()) {
+			if (token1 instanceof NewKeywordToken && !tokens.isEmpty()) {
 
 				AbstractToken token2 = tokens.pop();
 
