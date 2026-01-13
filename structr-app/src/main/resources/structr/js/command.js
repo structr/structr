@@ -317,15 +317,12 @@ let Command = {
 	/**
 	 * Send SEARCH_NODES command to the server.
 	 *
-	 * The server will search for nodes with the given searchString in ANY of their keys
+	 * The server will search for nodes with the given queryString in ANY of their keys
 	 */
-	searchNodes: async (searchString, config) => {
+	searchNodes: async (config) => {
 		let obj = {
 			command: 'SEARCH_NODES',
-			data: {
-				searchString: searchString,
-				...config
-			}
+			data: config
 		};
 		return new Promise((resolve, reject) => {
 			StructrWS.sendObj(obj, resolve);

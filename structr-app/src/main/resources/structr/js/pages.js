@@ -3933,18 +3933,19 @@ let _Pages = {
 
 	search: {
 		init: () => {
-			let form         = document.querySelector('#search-node-form');
-			let searchField  = form.querySelector('[name="searchString"]');
+			let form         = document.querySelector('#pages-search-node-form');
+			let searchField  = form.querySelector('[name="queryString"]');
 
 			form.addEventListener('submit', e => {
 				e.preventDefault();
 
-				let searchString = searchField.value.trim();
+				let data = Structr.globalSearch.getBasicFormData(form);
+				data.searchDOM = true;
 
-				if (searchString.length > 0) {
-					_Pages.search.doSearch(searchString, form.querySelector('[name="caseInsensitive"]').checked);
+				if (data.queryString.length > 0) {
+					_Pages.search.doSearch(data);
 				} else {
-					_Helpers.blinkRed(searchField);
+					form.reportValidity();
 				}
 			});
 
@@ -3955,21 +3956,18 @@ let _Pages = {
 			});
 		},
 		clear: () => {
-			let resultsElement = document.querySelector('#dom-search-results');
+			let resultsElement = document.querySelector('#pages-search-results');
 			for (let oldResult of resultsElement.querySelectorAll('[data-id]')) {
 				_Helpers.fastRemoveElement(oldResult);
 			}
 		},
-		doSearch: async (searchString, caseInsensitive) => {
+		doSearch: async (data) => {
 
-			let results = await Command.searchNodes(searchString, {
-				searchDOM: true,
-				caseInsensitive: caseInsensitive
-			});
+			let results = await Command.searchNodes(data);
 
 			_Pages.search.clear();
 
-			let resultsElement = document.querySelector('#dom-search-results');
+			let resultsElement = document.querySelector('#pages-search-results');
 
 			for (let result of results) {
 
@@ -4027,17 +4025,17 @@ let _Pages = {
 			slideoutContent: config => `
 				<div class="overflow-y-auto max-h-full h-full">
 					<div class="mx-4 my-4">
-						<form id="search-node-form" class="flex flex-col gap-2">
+						<form id="pages-search-node-form" class="flex flex-col gap-2">
 							<div class="flex gap-2">
-								<input type="search" name="searchString" placeholder="Search">
+								<input type="search" name="queryString" required placeholder="Search term...">
 								<button type="submit" class="action button btn focus:border-gray-666 active:border-green">Search</button>
 							</div>
-							<div class="flex gap-2">
-								<label><input type="checkbox" name="caseInsensitive">Case Insensitive</label>
+							<div>
+								<label class="flex items-center"><input type="checkbox" name="caseInsensitive" value="true">Case Insensitive</label>
 							</div>
 						</form>
 
-						<div id="dom-search-results" class="grid items-center gap-x-2 gap-y-3 mt-6" style="grid-template-columns: [ name ] minmax(0, 1fr) [ keys ] minmax(10%, max-content) [ id ] 4rem [ actions ] minmax(2rem, max-content)">
+						<div id="pages-search-results" class="grid items-center gap-x-2 gap-y-3 mt-6" style="grid-template-columns: [ name ] minmax(0, 1fr) [ keys ] minmax(10%, max-content) [ id ] 4rem [ actions ] minmax(2rem, max-content)">
 							<div class="contents font-bold">
 								<div>Name/Type</div>
 								<div>Key</div>

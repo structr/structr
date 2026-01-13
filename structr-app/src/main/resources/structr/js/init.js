@@ -276,6 +276,8 @@ let Structr = {
 	},
 	init: () => {
 		_Helpers.fastRemoveAllChildren(document.querySelector('#errorText'));
+
+		Structr.globalSearch.init();
 	},
 	clearMain: () => {
 
@@ -1917,6 +1919,151 @@ let Structr = {
 		});
 	},
 
+	globalSearch: {
+		init: () => {
+			let form         = document.querySelector('#global-search-node-form');
+			let searchField  = form.querySelector('[name="queryString"]');
+
+			form.addEventListener('submit', e => {
+				e.preventDefault();
+
+				let data = Structr.globalSearch.getBasicFormData(form);
+
+				if (data.queryString.length > 0) {
+					Structr.globalSearch.doSearch(data);
+				} else {
+					form.reportValidity();
+				}
+			});
+
+			searchField.addEventListener('search', () => {
+				if (searchField.value === '') {
+					Structr.globalSearch.clear();
+				}
+			});
+		},
+		clear: () => {
+			let resultsElement = document.querySelector('#global-search-results');
+			for (let oldResult of resultsElement.querySelectorAll('[data-id]')) {
+				_Helpers.fastRemoveElement(oldResult);
+			}
+		},
+		doSearch: async (data) => {
+
+			let results = await Command.searchNodes(data);
+
+			Structr.globalSearch.clear();
+
+			let resultsElement = document.querySelector('#global-search-results');
+
+			for (let result of results) {
+
+				for (let key of result.keys) {
+
+					let el = _Helpers.createSingleDOMElementFromHTML(Structr.globalSearch.templates.result(result, key));
+
+					resultsElement.appendChild(el);
+
+					el.querySelector('button').addEventListener('click', Structr.globalSearch.goToResultButtonClicked);
+				}
+			}
+		},
+		goToResultButtonClicked: e => {
+
+			let id  = e.target.closest('[data-id]').dataset.id;
+			let key = e.target.closest('[data-id]').dataset.key;
+
+			let matchingTabUrlHash = '#pages:' + _Pages.search.getTabForKey(key);
+			let link = document.querySelector(`[href="${matchingTabUrlHash}"]`)
+
+			if (link && id === _Pages.centerPane.dataset['elementId']) {
+
+				_Pages.activateCenterPane(link);
+
+			} else {
+
+				// preselect tab for that element
+				_Pages.saveActiveCenterTab(id, matchingTabUrlHash);
+
+				_Pages.selectAndShowArbitraryDOMElement(id);
+			}
+		},
+		getBasicFormData: (form) => {
+			let data = {};
+
+			for (let el of form.elements) {
+				switch(el.type) {
+					case 'checkbox':
+						data[el.name] = el.checked;
+						break;
+					default:
+						data[el.name] = el.value;
+						break;
+				}
+			}
+
+			return data;
+		},
+		templates: {
+			popover: config => `
+				<div popover id="global-search-popover" class="absolute" style="
+					position-anchor: --global-search;
+					position-area: x-start y-end;
+					width: 500px;
+					height: 700px;
+					overflow: auto;
+					border: 1px solid var(--input-field-border);
+					box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+					border-radius: .25rem;
+					font-size: 1rem;
+					resize: both;
+				">
+				
+					<div class="overflow-y-auto max-h-full h-full">
+						<div class="mx-4 my-4">
+							<form id="global-search-node-form" class="flex flex-col gap-2">
+								<div class="flex gap-2">
+									<input type="search" name="queryString" required placeholder="Search term...">
+									<button type="submit" class="action button btn focus:border-gray-666 active:border-green">Search</button>
+								</div>
+								<div>
+									<label class="flex items-center"><input type="checkbox" checked name="searchDOM">Search Page Elements</label>
+									<label class="flex items-center"><input type="checkbox" checked name="searchSchema">Search Schema Code</label>
+									<label class="flex items-center"><input type="checkbox" checked name="searchFlow">Search Flow Nodes</label>
+								</div>
+
+								<div>
+									<label class="flex items-center"><input type="checkbox" name="caseInsensitive">Case Insensitive</label>
+								</div>
+							</form>
+	
+							<div id="global-search-results" class="grid items-center gap-x-2 gap-y-3 mt-6" style="grid-template-columns: [ name ] minmax(0, 1fr) [ keys ] minmax(10%, max-content) [ id ] 4rem [ actions ] minmax(2rem, max-content)">
+								<div class="contents font-bold">
+									<div>Name/Type</div>
+									<div>Key</div>
+									<div>ID</div>
+									<div></div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			`,
+			result: (result, key) => `
+				<div class="contents" data-id="${result.id}" data-key="${key}">
+					<div>${result.name ? `${result.name} [${result.type}]` : result.type}</div>
+					<div>${key}</div>
+					<div class="truncate">${result.id}</div>
+					<div>
+						<button class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green p-2 mr-0" title="Go to element">
+							${_Icons.getSvgIcon(_Icons.iconOpenInNewPage, 16, 16, [..._Icons.getSvgIconClassesNonColorIcon(), 'pointer-events-none'])}
+						</button>
+					</div>
+				</div>
+			`
+		}
+	},
+
 	/* basically only exists to get rid of repeating strings. is also used to filter out internal keys from dialogs */
 	internalKeys: {
 		name: 'name',
@@ -1978,14 +2125,29 @@ let Structr = {
 					</div>
 				</div>
 
-				<div class="flex gap-4 ml-2 mr-6">
+				<div class="flex gap-4 items-center mr-6">
 
-					<a target="_blank" href="${_Helpers.getPrefixedRootUrl('/structr/config')}">${_Icons.getSvgIconWithID('settings-icon', _Icons.iconSettingsWrench, 20,20,_Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1.5']), 'System Settings')}</a>
+					<div style="target-name: --global-search;">
+					
+						<button class="m-0 p-0 border-0" popovertarget="global-search-popover" style="anchor-name: --global-search;">
+							${_Icons.getSvgIcon(_Icons.iconSearch, 24, 24, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), 'Global Search')}
+						</button>
 
-					${_Icons.getSvgIconWithID('terminal-icon', _Icons.iconTerminal, 26,26,_Icons.getSvgIconClassesForColoredIcon(['text-white']), 'Toggle Console')}
+						${Structr.globalSearch.templates.popover(config)}
+					</div>
+
+					<div>
+						<a target="_blank" href="${_Helpers.getPrefixedRootUrl('/structr/config')}">
+							${_Icons.getSvgIconWithID('settings-icon', _Icons.iconSettingsWrench, 20,20, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), 'System Settings')}
+						</a>
+					</div>
+
+					<div>
+						${_Icons.getSvgIconWithID('terminal-icon', _Icons.iconTerminal, 26,26, _Icons.getSvgIconClassesForColoredIcon(['text-white']), 'Toggle Console')}
+					</div>
 
 					<div id="${Structr.notificationIconId}" class="relative">
-						${_Icons.getSvgIcon(_Icons.iconNotificationBell, 20,20,_Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), 'Show notifications')}
+						${_Icons.getSvgIcon(_Icons.iconNotificationBell, 20,20, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), 'Show notifications')}
 						<div class="absolute flex items-center rounded-full h-4 -top-1 -right-3 text-white bg-red">
 							<div data-notification-count class="px-2 text-xs empty:hidden"></div>
 						</div>

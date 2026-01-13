@@ -18,20 +18,13 @@
  */
 package org.structr.websocket.command;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -47,7 +40,7 @@ public class SearchNodesCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(SearchNodesCommand.class.getName());
 
-	private static final String SEARCH_STRING_KEY                = "searchString";
+	private static final String QUERY_STRING_KEY                 = "queryString";
 	private static final String SEARCH_DOM_BOOL_KEY              = "searchDOM";
 	private static final String SEARCH_FLOW_BOOL_KEY             = "searchFlow";
 	private static final String SEARCH_SCHEMA_BOOL_KEY           = "searchSchema";
@@ -63,8 +56,8 @@ public class SearchNodesCommand extends AbstractCommand {
 		setDoTransactionNotifications(false);
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		final String searchString = webSocketData.getNodeDataStringValue(SEARCH_STRING_KEY);
 
+		final String queryString   = webSocketData.getNodeDataStringValue(QUERY_STRING_KEY);
 		final boolean searchDOM    = webSocketData.getNodeDataBooleanValue(SEARCH_DOM_BOOL_KEY);
 		final boolean searchFlow   = webSocketData.getNodeDataBooleanValue(SEARCH_FLOW_BOOL_KEY);
 		final boolean searchSchema = webSocketData.getNodeDataBooleanValue(SEARCH_SCHEMA_BOOL_KEY);
@@ -73,7 +66,7 @@ public class SearchNodesCommand extends AbstractCommand {
 
 		try {
 
-			final Map<String, Object> obj = Map.of("searchString", searchString);
+			final Map<String, Object> obj = Map.of("queryString", queryString);
 
 			final ArrayList<String> labels = new ArrayList<>();
 			if (searchDOM)    { labels.add("n:DOMNode"); }
@@ -82,7 +75,7 @@ public class SearchNodesCommand extends AbstractCommand {
 
 			if (!labels.isEmpty()) {
 
-				final String containsClause = caseInsensitive ? "toLower(toString(n[prop])) CONTAINS toLower($searchString)" : "n[prop] CONTAINS $searchString";
+				final String containsClause = caseInsensitive ? "toLower(toString(n[prop])) CONTAINS toLower($queryString)" : "n[prop] CONTAINS $queryString";
 
 				final String cypherQuery = """
 					MATCH (n)
@@ -105,6 +98,11 @@ public class SearchNodesCommand extends AbstractCommand {
 				webSocketData.setRawResultCount(resultCountBeforePaging);
 
 				webSocketData.setResult(result);
+
+			} else {
+
+				webSocketData.setRawResultCount(0);
+				webSocketData.setResult(List.of());
 			}
 
 			getWebSocket().send(webSocketData, true);
