@@ -7673,6 +7673,70 @@ public class ScriptingTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testContextLockingInNestedCalls() {
+
+		final ActionContext actionContext = new ActionContext(securityContext);
+
+		// schema setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonType serviceClass = schema.addType("T").setIsServiceClass();
+
+			serviceClass.addMethod("t1",
+				"""
+				${{
+					$.log("t1 called");
+					$.T.t2();
+				}}
+				"""
+			);
+
+			serviceClass.addMethod("t2",
+				"""
+				${{
+					$.log("t2 called");
+					$.doInNewTransaction(() => {
+						$.log("t2 doInNewTx func called");
+						$.T.t3();
+					});
+				}}
+				"""
+			);
+
+			serviceClass.addMethod("t3",
+				"""
+				${{
+					$.log("t3 called");
+					$.applicationStore.testResult = "structr123";
+				}}
+				"""
+			);
+
+			StructrSchema.replaceDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+			logger.error("", t);
+			fail("Unexpected exception during test setup.");
+		}
+
+		// test
+		try (final Tx tx = app.tx()) {
+
+			final String result1 = Scripting.evaluate(actionContext, null, "${{$.T.t1(); $.applicationStore.testResult;}}", "test1").toString();
+
+			assertEquals("structr123", result1);
+			tx.success();
+
+		} catch (FrameworkException t) {
+			t.printStackTrace();
+			fail("Unexpected exception during test setup.");
+		}
+	}
+
 	// ----- private methods ----
 	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource) {
 

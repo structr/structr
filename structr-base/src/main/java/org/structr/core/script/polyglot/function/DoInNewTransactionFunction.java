@@ -71,6 +71,8 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 				lockedContext.getLock().lock();
 				try {
 					lockedContext.getContext().leave();
+				} catch (IllegalStateException e) {
+					logger.error("Could not leave locked context", e);
 				} finally {
 					lockedContext.getLock().unlock();
 				}
