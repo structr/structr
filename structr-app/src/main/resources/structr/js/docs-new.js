@@ -275,7 +275,7 @@ let _Documentation = {
                                 fetch(`/structr/docs/ontology?id=${conceptId}&format=raw&key=${attributeKey}`).then(response => response.text()).then((text) => {
 
                                     textarea.value = text;
-                                    textarea.style.height = Math.max(300, previousContentContainer.clientHeight) + 'px';
+                                    textarea.style.height = Math.min(800, Math.max(300, previousContentContainer.clientHeight)) + 'px';
 
                                     previousContentContainer.classList.add('hidden');
                                     editingContainer.classList.remove('hidden');
@@ -536,8 +536,8 @@ let _Documentation = {
 			</div>
 		`,
 		mainNavigationItem: config => `<li class="docs-main-nav-item">${config.label}</li>`,
-        mainNavigationSubItem: config => `<li><a target="main-documentation" href="/structr/docs/ontology?id=${config.id}&parent=${config.parent}&details=all&startLevel=0&format=markdown">${config.label}</a></li>`,
-		indexItem: config => `<h2><a target="main-documentation" href="/structr/docs/ontology?id=${config.id}&details=all&startLevel=0&format=markdown#${config.name}">${config.label}</a></h2>`,
+        mainNavigationSubItem: config => `<li><a target="main-documentation" href="/structr/docs/ontology?id=${config.id}&parent=${config.parent}">${config.label}</a></li>`,
+		indexItem: config => `<h2><a target="main-documentation" href="/structr/docs/ontology?id=${config.id}#${config.name}">${config.label}</a></h2>`,
 		searchOverlay: config => `
 			<div id="search-overlay" class="hidden">
 				<div id="search-overlay-dialog">

@@ -32,26 +32,12 @@ Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Exper
 
 
 # Building Applications
-"Building Applications" has new topics "Data Model", "Pages & Templates", "Navigation & Routing", "Dynamic Content", "Business Logic", "User Input & Forms", "Error handling", "Language localization", "Troubleshooting"
-        "Navigation & Routing" has markdown-file "snippets/Navigation & Routing - 000.md"
-
+"Building Applications" has new topics "Overview", "Data Model", "Pages & Templates", "Navigation & Routing", "Dynamic Content", "Business Logic", "User Input & Forms", "Error handling", "Language localization", "Troubleshooting"
+    "Overview" has markdown-file "snippets/Overview - 000.md"
+    "Navigation & Routing" has markdown-file "snippets/Navigation & Routing - 000.md"
     "Data Model" has markdown-file "snippets/Data Model - 000.md" with heading "Data Model"
-    "The process of creating a Structr application usually begins with the data model. This chapter focuses on the various steps required to create the data model and serves as a guide to help you navigate the multitude of possibilities.
 
-## A Simple Type
-
-In the simplest case, a data model consists of exactly one type with no additional attributes other than those already defined in the base class. Unless otherwise specified, the newly created type inherits from the base class `AbstractNode`, which already provides some attributes..
-
-### Default attributes
-
-Next:
-- default attributes
-- adding attributes
-- attribute types
-- indexing
-
-- relationships
-- ...." has topics "Relationships", "Built-in types" as table, "Built-in properties" as table
+    "Data Model" has topics "Relationships", "Built-in types" as table, "Built-in properties" as table
         "Relationships" has topics "Cascading Delete" as table, "Automatic Creation of Related Nodes" as table
 
     "Pages & Templates" has markdown-file "snippets/Pages & Templates - 000.md"
@@ -95,6 +81,7 @@ Next:
     "Business Logic" has markdown-file "snippets/Business Logic.md" with heading "Overview"
 
     "User Input & Forms" has topics "Event Action Mapping"
+    "Event Action Mapping" has markdown-file "snippets/Event Action Mapping - 000.md"
         "Event Action Mapping" has topics "Event Actions" as table, "Follow-up actions" as table, "Notifications" as table, "Parameter types" as table
 
     "Language localization" has topics "Translations", "Localization Settings", "Effective locale"

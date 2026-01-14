@@ -46,10 +46,7 @@ import org.structr.docs.formatter.text.PlaintextMarkdownFileFormatter;
 import org.structr.docs.formatter.text.PlaintextTopicFormatter;
 import org.structr.docs.formatter.text.RawConceptFormatter;
 import org.structr.docs.formatter.text.RawMarkdownFileFormatter;
-import org.structr.docs.ontology.Concept;
-import org.structr.docs.ontology.ConceptType;
-import org.structr.docs.ontology.Details;
-import org.structr.docs.ontology.Ontology;
+import org.structr.docs.ontology.*;
 import org.structr.rest.service.HttpService;
 
 import java.io.IOException;
@@ -75,7 +72,7 @@ public class DocumentationServlet extends HttpServlet {
 			final Map<Concept, Double> searchResults = new LinkedHashMap<>();
 			final List<Concept> concepts             = new LinkedList<>();
 
-			handleRequestParameters(request, ontology, concepts, settings, searchResults);
+			handleRequest(request, ontology, concepts, settings, searchResults);
 
 			if (isSearch(request)) {
 
@@ -279,146 +276,174 @@ public class DocumentationServlet extends HttpServlet {
 		writer.write(StringUtils.join(lines, "\n"));
 	}
 
-	private boolean handleRequestParameters(final HttpServletRequest request, final Ontology ontology, final List<Concept> concepts, final OutputSettings settings, final Map<Concept, Double> searchResults) {
+	private boolean handleRequest(final HttpServletRequest request, final Ontology ontology, final List<Concept> concepts, final OutputSettings settings, final Map<Concept, Double> searchResults) {
 
-		boolean hasFilter = false;
+		final String path = request.getPathInfo();
+		if (StringUtils.isNotBlank(path)) {
 
-		// format?
-		final String format = request.getParameter("format");
-		if (StringUtils.isNotBlank(format)) {
+			final String[] parts = path.split("/");
+			if (parts.length == 2) {
 
-			settings.setOutputFormat(format);
-		}
+				// parent exists
+				final List<Concept> parents = ontology.getConceptsByName(parts[1]);
+				if (!parents.isEmpty()) {
 
-		// types filter?
-		final String types = request.getParameter("types");
-		if (StringUtils.isNotBlank(types)) {
+					for (final Concept parent : parents) {
 
-			final Set<ConceptType> typeSet = new LinkedHashSet<>();
-			for (final String type : types.split(",")) {
+						for (final Link link : parent.getChildLinks(Verb.Has)) {
 
-				final String trimmed = type.trim();
-				if (StringUtils.isNotBlank(trimmed)) {
 
-					typeSet.add(ConceptType.valueOf(trimmed));
+
+						}
+					}
 				}
-			}
-
-			settings.setTypesToRender(typeSet);
-
-			// clear link types (only one level)
-			settings.setLinkTypes(Map.of());
-
-			// do not add default set of concepts
-			hasFilter = true;
-		}
-
-		// type filter?
-		final String type = request.getParameter("type");
-		if (StringUtils.isNotBlank(type)) {
-
-			if ("*".equals(type)) {
-
-				concepts.addAll(ontology.getAllConcepts());
 
 			} else {
 
-				concepts.addAll(ontology.getConcepts(c -> c.getType().equals(type)));
+
 			}
 
-			// do not add default set of concepts
-			hasFilter = true;
-		}
+		} else {
 
-		// search
-		final String search = request.getParameter("search");
-		if (StringUtils.isNotBlank(search)) {
+			boolean hasFilter = false;
 
-			if (search.contains(" ")) {
+			// format?
+			final String format = request.getParameter("format");
+			if (StringUtils.isNotBlank(format)) {
 
-				for (final String part : search.split("[ ]+")) {
+				settings.setOutputFormat(format);
+			}
 
-					ontology.searchConcepts(searchResults, part.trim().toLowerCase(), 1.0);
+			// types filter?
+			final String types = request.getParameter("types");
+			if (StringUtils.isNotBlank(types)) {
+
+				final Set<ConceptType> typeSet = new LinkedHashSet<>();
+				for (final String type : types.split(",")) {
+
+					final String trimmed = type.trim();
+					if (StringUtils.isNotBlank(trimmed)) {
+
+						typeSet.add(ConceptType.valueOf(trimmed));
+					}
+				}
+
+				settings.setTypesToRender(typeSet);
+
+				// clear link types (only one level)
+				settings.setLinkTypes(Map.of());
+
+				// do not add default set of concepts
+				hasFilter = true;
+			}
+
+			// type filter?
+			final String type = request.getParameter("type");
+			if (StringUtils.isNotBlank(type)) {
+
+				if ("*".equals(type)) {
+
+					concepts.addAll(ontology.getAllConcepts());
+
+				} else {
+
+					concepts.addAll(ontology.getConcepts(c -> c.getType().equals(type)));
+				}
+
+				// do not add default set of concepts
+				hasFilter = true;
+			}
+
+			// search
+			final String search = request.getParameter("search");
+			if (StringUtils.isNotBlank(search)) {
+
+				if (search.contains(" ")) {
+
+					for (final String part : search.split("[ ]+")) {
+
+						ontology.searchConcepts(searchResults, part.trim().toLowerCase(), 1.0);
+					}
+				}
+
+				// matching the whole search string gets 100x the score
+				ontology.searchConcepts(searchResults, search.trim().toLowerCase(), 100.0);
+
+				// do not add default set of concepts
+				hasFilter = true;
+			}
+
+			// root
+			final String root = request.getParameter("root");
+			if (StringUtils.isNotBlank(root)) {
+
+				if (root.contains(":")) {
+
+					final String[] parts = root.split(":");
+					final String typeString = parts[0];
+					final String name = parts[1];
+					final ConceptType t = ConceptType.valueOf(typeString);
+
+					concepts.addAll(ontology.getConcept(t, name));
+
+				} else {
+
+					concepts.addAll(ontology.getConceptsByName(root));
+				}
+
+				// do not add default set of concepts
+				hasFilter = true;
+			}
+
+			final String id = request.getParameter("id");
+			if (StringUtils.isNotBlank(id)) {
+
+				final Concept concept = ontology.getConceptById(id);
+				if (concept != null) {
+
+					final String key = request.getParameter("key");
+					if (StringUtils.isNotBlank(key)) {
+
+						settings.setKey(key);
+					}
+
+					concepts.add(concept);
+				}
+
+				hasFilter = true;
+			}
+
+			final String startLevel = request.getParameter("startLevel");
+			if (StringUtils.isNotBlank(startLevel) && StringUtils.isNumeric(startLevel)) {
+
+				settings.setStartLevel(Integer.parseInt(startLevel));
+			}
+
+			final String levels = request.getParameter("levels");
+			if (StringUtils.isNotBlank(levels) && StringUtils.isNumeric(levels)) {
+
+				settings.setMaxLevels(Integer.parseInt(levels));
+			}
+
+			// default behaviour: add all root concepts
+			if (concepts.isEmpty() && !hasFilter) {
+
+				concepts.addAll(ontology.getRootConcepts());
+			}
+
+			// details?
+			final String details = request.getParameter("details");
+			if (StringUtils.isNotBlank(details)) {
+
+				final String[] parts = details.split(",");
+				for (final String part : parts) {
+
+					settings.getDetails().add(Details.valueOf(part.trim()));
 				}
 			}
 
-			// matching the whole search string gets 100x the score
-			ontology.searchConcepts(searchResults, search.trim().toLowerCase(), 100.0);
-
-			// do not add default set of concepts
-			hasFilter = true;
+			return hasFilter;
 		}
-
-		// root
-		final String root = request.getParameter("root");
-		if (StringUtils.isNotBlank(root)) {
-
-			if (root.contains(":")) {
-
-				final String[] parts    = root.split(":");
-				final String typeString = parts[0];
-				final String name       = parts[1];
-				final ConceptType t     = ConceptType.valueOf(typeString);
-
-				concepts.addAll(ontology.getConcept(t, name));
-
-			} else {
-
-				concepts.addAll(ontology.getConceptsByName(root));
-			}
-
-			// do not add default set of concepts
-			hasFilter = true;
-		}
-
-		final String id = request.getParameter("id");
-		if (StringUtils.isNotBlank(id)) {
-
-			final Concept concept = ontology.getConceptById(id);
-			if (concept != null) {
-
-				final String key = request.getParameter("key");
-				if (StringUtils.isNotBlank(key)) {
-
-					settings.setKey(key);
-				}
-
-				concepts.add(concept);
-			}
-
-			hasFilter = true;
-		}
-
-		final String startLevel = request.getParameter("startLevel");
-		if (StringUtils.isNotBlank(startLevel) && StringUtils.isNumeric(startLevel)) {
-
-			settings.setStartLevel(Integer.parseInt(startLevel));
-		}
-
-		final String levels = request.getParameter("levels");
-		if (StringUtils.isNotBlank(levels) && StringUtils.isNumeric(levels)) {
-
-			settings.setMaxLevels(Integer.parseInt(levels));
-		}
-
-		// default behaviour: add all root concepts
-		if (concepts.isEmpty() && !hasFilter) {
-
-			concepts.addAll(ontology.getRootConcepts());
-		}
-
-		// details?
-		final String details = request.getParameter("details");
-		if (StringUtils.isNotBlank(details)) {
-
-			final String[] parts = details.split(",");
-			for (final String part : parts) {
-
-				settings.getDetails().add(Details.valueOf(part.trim()));
-			}
-		}
-
-		return hasFilter;
 	}
 
 	private OutputSettings setupOutputSettings(final Ontology ontology, final Resource baseResource) {

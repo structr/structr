@@ -59,25 +59,28 @@ public class MarkdownGlossaryFormatter extends Formatter {
 
 		for (final Concept c : concepts) {
 
-			final String name  = c.getName();
-			final String first = name.substring(0, 1).toUpperCase();
+			final String name = c.getName();
+			if (StringUtils.isNotBlank(name)) {
 
-			// show duplicates only once
-			if (!visited.add(name.toLowerCase())) {
-				continue;
+				final String first = name.substring(0, 1).toUpperCase();
+
+				// show duplicates only once
+				if (!visited.add(name.toLowerCase())) {
+					continue;
+				}
+
+				if (firstCharacter == null || !firstCharacter.equals(first)) {
+					firstCharacter = first;
+
+					lines.add(formatMarkdownHeading(firstCharacter, level + 2));
+					lines.add("");
+
+					lines.add("| Name | Parent |");
+					lines.add("| --- | --- |");
+				}
+
+				lines.add("| " + c.getName() + " | " + collectParents(c) + " |");
 			}
-
-			if (firstCharacter == null || !firstCharacter.equals(first)) {
-				firstCharacter = first;
-
-				lines.add(formatMarkdownHeading(firstCharacter, level + 2));
-				lines.add("");
-
-				lines.add("| Name | Parent |");
-				lines.add("| --- | --- |");
-			}
-
-			lines.add("| " + c.getName() + " | " + collectParents(c) + " |");
 		}
 
 		return true;

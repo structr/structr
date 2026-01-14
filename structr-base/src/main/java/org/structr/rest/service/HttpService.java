@@ -331,7 +331,7 @@ public class HttpService implements RunnableService, StatsCallback {
 			final ResourceFactory factory = ResourceFactory.of(resourceHandler);
 			final Resource baseResource   = factory.newResource(URI.create(resourceBasePath).normalize());
 
-			resourceHandler.setDirAllowed(true);
+			resourceHandler.setDirAllowed(false);
 			resourceHandler.setWelcomeFiles("index.html");
 
 			resourceHandler.setBaseResource(baseResource);
@@ -429,6 +429,7 @@ public class HttpService implements RunnableService, StatsCallback {
 		}
 
 		// docs
+		servletContext.addServlet(DocumentationServlet.class, "/structr/docs/ontology/*");
 		servletContext.addServlet(DocumentationServlet.class, "/structr/docs/ontology");
 
 		// Always add servletContext last because it's terminal in the resource chain

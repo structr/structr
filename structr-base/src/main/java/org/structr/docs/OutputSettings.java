@@ -27,10 +27,10 @@ public class OutputSettings {
 	private final Map<String, Map<String, Map<ConceptType, Formatter>>> formatterMap = new LinkedHashMap<>();
 	private final Map<Integer, Set<String>> linkTypesPerLevel                        = new LinkedHashMap<>();
 	private final Set<ConceptType> typesToRender                                     = new LinkedHashSet<>();
-	private final Set<Details> details                                               = new LinkedHashSet<>();
+	private final Set<Details> details                                               = new LinkedHashSet<>(Set.of(Details.all));
 	private final Ontology ontology;
 	private String outputMode                                                        = "overview";
-	private String outputFormat                                                      = "text";
+	private String outputFormat                                                      = "markdown";
 	private String baseUrl;
 	private String key;
 	private int startLevel;
