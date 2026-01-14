@@ -43,8 +43,12 @@ body {
     background-color: transparent;
     overflow: auto;
     height: calc(100vh - 8rem);
-    width: 20%;
+    width: 30%;
     min-width: 16rem;
+}
+
+#docs-area aside {
+    width: 30%;
 }
 
 #docs-area nav a {

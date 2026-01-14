@@ -70,9 +70,9 @@ public class DocumentationServlet extends HttpServlet {
 			final Ontology ontology                  = new Ontology(facts.getPath());
 			final OutputSettings settings            = setupOutputSettings(ontology, baseResource);
 			final Map<Concept, Double> searchResults = new LinkedHashMap<>();
-			final List<Concept> concepts             = new LinkedList<>();
+			final List<Link> links                   = new LinkedList<>();
 
-			handleRequest(request, ontology, concepts, settings, searchResults);
+			handleRequest(request, ontology, links, settings, searchResults);
 
 			if (isSearch(request)) {
 
@@ -115,7 +115,7 @@ public class DocumentationServlet extends HttpServlet {
 					parent = ontology.getConceptById(request.getParameter("parent"));
 				}
 
-				final List<String> lines = ontology.createDocumentation(parent, concepts, settings);
+				final List<String> lines = ontology.createDocumentation(links, settings);
 
 				if ("markdown".equals(settings.getOutputFormat())) {
 					renderMarkdown(response, lines, settings);
@@ -276,31 +276,37 @@ public class DocumentationServlet extends HttpServlet {
 		writer.write(StringUtils.join(lines, "\n"));
 	}
 
-	private boolean handleRequest(final HttpServletRequest request, final Ontology ontology, final List<Concept> concepts, final OutputSettings settings, final Map<Concept, Double> searchResults) {
+	private void handleRequest(final HttpServletRequest request, final Ontology ontology, final List<Link> links, final OutputSettings settings, final Map<Concept, Double> searchResults) {
 
 		final String path = request.getPathInfo();
 		if (StringUtils.isNotBlank(path)) {
 
-			final String[] parts = path.split("/");
+			final String[] parts = StringUtils.split(path, '/');
 			if (parts.length == 2) {
 
 				// parent exists
-				final List<Concept> parents = ontology.getConceptsByName(parts[1]);
+				final List<Concept> parents = ontology.getConceptsByName(parts[0]);
 				if (!parents.isEmpty()) {
 
 					for (final Concept parent : parents) {
 
 						for (final Link link : parent.getChildLinks(Verb.Has)) {
 
+							if (parts[1].equals(link.getTarget().getName())) {
 
-
+								links.add(link);
+							}
 						}
 					}
 				}
 
 			} else {
 
+				final List<Concept> parents = ontology.getConceptsByName(parts[0]);
+				for (final Concept parent : parents) {
 
+					links.add(new Link(null, null, parent));
+				}
 			}
 
 		} else {
@@ -343,11 +349,11 @@ public class DocumentationServlet extends HttpServlet {
 
 				if ("*".equals(type)) {
 
-					concepts.addAll(ontology.getAllConcepts());
+					links.addAll(ontology.getAllConcepts().stream().map(c -> new Link(null, null, c)).toList());
 
 				} else {
 
-					concepts.addAll(ontology.getConcepts(c -> c.getType().equals(type)));
+					links.addAll(ontology.getConcepts(c -> c.getType().equals(type)).stream().map(c -> new Link(null, null, c)).toList());
 				}
 
 				// do not add default set of concepts
@@ -384,11 +390,11 @@ public class DocumentationServlet extends HttpServlet {
 					final String name = parts[1];
 					final ConceptType t = ConceptType.valueOf(typeString);
 
-					concepts.addAll(ontology.getConcept(t, name));
+					links.addAll(ontology.getConcept(t, name).stream().map(c -> new Link(null, null, c)).toList());
 
 				} else {
 
-					concepts.addAll(ontology.getConceptsByName(root));
+					links.addAll(ontology.getConceptsByName(root).stream().map(c -> new Link(null, null, c)).toList());
 				}
 
 				// do not add default set of concepts
@@ -407,7 +413,7 @@ public class DocumentationServlet extends HttpServlet {
 						settings.setKey(key);
 					}
 
-					concepts.add(concept);
+					links.add(new Link(null, null, concept));
 				}
 
 				hasFilter = true;
@@ -426,9 +432,9 @@ public class DocumentationServlet extends HttpServlet {
 			}
 
 			// default behaviour: add all root concepts
-			if (concepts.isEmpty() && !hasFilter) {
+			if (links.isEmpty() && !hasFilter) {
 
-				concepts.addAll(ontology.getRootConcepts());
+				links.addAll(ontology.getRootConcepts().stream().map(c -> new Link(null, null, c)).toList());
 			}
 
 			// details?
@@ -441,8 +447,6 @@ public class DocumentationServlet extends HttpServlet {
 					settings.getDetails().add(Details.valueOf(part.trim()));
 				}
 			}
-
-			return hasFilter;
 		}
 	}
 

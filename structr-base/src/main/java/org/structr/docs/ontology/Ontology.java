@@ -85,30 +85,13 @@ public final class Ontology {
 		blacklist.addAll(Set.of("!", ";", ".", "the", "a", "an", "named"));
 	}
 
-	public List<String> createDocumentation(final Concept parent, final List<Concept> concepts, final OutputSettings outputSettings) {
+	public List<String> createDocumentation(final List<Link> links, final OutputSettings outputSettings) {
 
 		final List<String> lines = new LinkedList<>();
 
-		for (final Concept concept : concepts) {
+		for (final Link link : links) {
 
-			if (parent != null) {
-
-				final Link link = parent.getLinkTo(Verb.Has, concept);
-				if (link != null) {
-
-					Formatter.walkOntology(lines, link, outputSettings, 0, new LinkedHashSet<>());
-
-				} else {
-
-					// create dummy link
-					Formatter.walkOntology(lines, new Link(null, null, concept), outputSettings, 0, new LinkedHashSet<>());
-				}
-
-			} else {
-
-				// create dummy link
-				Formatter.walkOntology(lines, new Link(null, null, concept), outputSettings, 0, new LinkedHashSet<>());
-			}
+			Formatter.walkOntology(lines, link, outputSettings, 0, new LinkedHashSet<>());
 		}
 
 		return lines;

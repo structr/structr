@@ -32,7 +32,7 @@ Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Exper
 
 
 # Building Applications
-"Building Applications" has new topics "Overview", "Data Model", "Pages & Templates", "Navigation & Routing", "Dynamic Content", "Business Logic", "User Input & Forms", "Error handling", "Language localization", "Troubleshooting"
+"Building Applications" has new topics "Overview", "Data Model", "Pages & Templates", "Navigation & Routing", "Dynamic Content", "User Input & Forms", "Business Logic", "Error handling", "Language localization", "Troubleshooting"
     "Overview" has markdown-file "snippets/Overview - 000.md"
     "Navigation & Routing" has markdown-file "snippets/Navigation & Routing - 000.md"
     "Data Model" has markdown-file "snippets/Data Model - 000.md" with heading "Data Model"
@@ -62,12 +62,14 @@ Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Exper
         "Static resources" has topic "File download", "Dynamic files"
             "Dynamic files" has topics "Replace template expressions"
 
-    "Navigation & Routing" has topics "Permission levels", "Visibility", "Authentication", "Navigation", "Error pages", "URL routing", "URI object resolution", "Page position"
-        "URL routing" has markdown-file "snippets/URL routing - 000.md"
-        "URL routing" has topics "URI parts"
-        "URL routing" has new topic "Request parameter handling"
-        "Permission levels" has markdown-file "snippets/Access levels - 000.md"
+    "Navigation & Routing" has topics "Access Levels", "Visibility", "Authentication", "Navigation", "URI object resolution"
+
+        "Access Levels" has markdown-file "snippets/Access levels - 000.md"
         "Authentication" has markdown-file "snippets/Authentication - 000.md"
+        "Navigation" has topics "URL routing", "Error pages", "Page position"
+            "URL routing" has markdown-file "snippets/URL routing - 000.md"
+            "URL routing" has topics "URI parts"
+            "URL routing" has new topic "Request parameter handling"
 
 
     "Dynamic Content" has topics "Template expressions", "Repeaters", "Show / Hide Conditions", "Scripting contexts", "Advanced find"
@@ -78,11 +80,11 @@ Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Exper
 
         "Show / Hide Conditions" has texts "Show Conditions", "Hide Conditions"
 
-    "Business Logic" has markdown-file "snippets/Business Logic.md" with heading "Overview"
-
     "User Input & Forms" has topics "Event Action Mapping"
     "Event Action Mapping" has markdown-file "snippets/Event Action Mapping - 000.md"
         "Event Action Mapping" has topics "Event Actions" as table, "Follow-up actions" as table, "Notifications" as table, "Parameter types" as table
+        
+    "Business Logic" has markdown-file "snippets/Business Logic.md" with heading "Overview"
 
     "Language localization" has topics "Translations", "Localization Settings", "Effective locale"
         Translations has topics "Translation Settings", "Translation Providers"
