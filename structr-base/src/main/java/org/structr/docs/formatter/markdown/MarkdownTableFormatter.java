@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -94,7 +94,7 @@ public class MarkdownTableFormatter extends Formatter {
 				}
 			}
 
-			Collections.sort(documentables, Comparator.comparing(Documentable::getDisplayName));
+			Collections.sort(documentables, Comparator.comparing(documentable1 -> documentable1.getDisplayName()));
 
 			for (final Documentable documentable : documentables) {
 
@@ -113,11 +113,11 @@ public class MarkdownTableFormatter extends Formatter {
 							break;
 
 						case "`displayName`":
-							row.add("`" + documentable.getDisplayName() + "`");
+							row.add("`" + documentable.getDisplayName(false) + "`");
 							break;
 
 						case "displayName":
-							row.add(documentable.getDisplayName());
+							row.add(documentable.getDisplayName(false));
 							break;
 
 						case "shortDescription":

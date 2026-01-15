@@ -153,7 +153,7 @@ public abstract class AbstractHintProvider {
 			if (!hint.isHidden()) {
 
 				final String functionName = getFunctionName(hint.getName());
-				final String displayName  = getFunctionName(hint.getDisplayName());
+				final String displayName  = getFunctionName(hint.getDisplayName(true));
 
 				if ((unrestricted || displayName.startsWith(lastToken)) && ( (!script.endsWith(functionName)) || (script.endsWith(functionName) && hint instanceof Function) )) {
 
@@ -442,7 +442,7 @@ public abstract class AbstractHintProvider {
 
 		final GraphObjectMap item = new GraphObjectMap();
 
-		item.put(text,             documentable.getDisplayName());
+		item.put(text,             documentable.getDisplayName(false));
 		item.put(documentationKey, getDocumentation(documentable));
 		item.put(replacementKey,   documentable.getName());
 		item.put(typeKey,          documentable.getDocumentableType().getDisplayName());

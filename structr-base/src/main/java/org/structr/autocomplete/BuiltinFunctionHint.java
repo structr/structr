@@ -27,10 +27,15 @@ import java.util.List;
 public abstract class BuiltinFunctionHint extends AbstractHint {
 
 	@Override
-	public String getDisplayName() {
+	public String getDisplayName(boolean includeParameters) {
 
-		// show method with signature right away
-		return getName() + "(" + getFirstSignature() + ")";
+		if (includeParameters) {
+
+			// show method with signature right away
+			return getName() + "(" + getFirstSignature() + ")";
+		}
+
+		return getName() + "()";
 	}
 
 	@Override

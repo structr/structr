@@ -33,11 +33,6 @@ The Schema editor allows you to create sophisticated data models using a drag-an
 
 ## Creating Schema Types
 
-### Basic Type Creation
-
-Start by creating a new schema type to represent your data entities.
-
-![Create Project Type](../schema_create-type_Project.png)
 
 ### Type Properties
 

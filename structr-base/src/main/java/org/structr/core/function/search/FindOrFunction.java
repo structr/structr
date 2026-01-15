@@ -35,7 +35,7 @@ public class FindOrFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getDisplayName() {
+	public String getDisplayName(boolean includeParameters) {
 		return "predicate.or";
 	}
 

@@ -114,7 +114,7 @@ public enum RequestParameters implements Documentable {
 	}
 
 	@Override
-	public String getDisplayName() {
+	public String getDisplayName(boolean includeParameters) {
 		// we always return the same format and do not change it based on the legacy parameters setting
 		//return "_" + identifier;
 		return displayName;

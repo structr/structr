@@ -61,7 +61,7 @@ public class MethodHint extends AbstractHint {
 	}
 
 	@Override
-	public String getDisplayName() {
+	public String getDisplayName(boolean includeParameters) {
 		return getName() + "()";
 	}
 

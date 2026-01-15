@@ -35,7 +35,7 @@ public class FindEqualsFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getDisplayName() {
+	public String getDisplayName(boolean includeParameters) {
 		return "predicate.equals";
 	}
 

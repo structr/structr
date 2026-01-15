@@ -35,7 +35,7 @@ public class FindSortFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getDisplayName() {
+	public String getDisplayName(boolean includeParameters) {
 		return "predicate.sort";
 	}
 

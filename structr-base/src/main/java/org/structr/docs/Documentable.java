@@ -19,19 +19,15 @@
 package org.structr.docs;
 
 import org.apache.commons.lang3.StringUtils;
-import org.structr.api.search.Operation;
 import org.structr.api.util.Category;
-import org.structr.core.Value;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.Details;
 
 import java.io.IOException;
-import java.lang.ref.Reference;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.function.Consumer;
 
 /**
  * Base interface for all things that are documentable. Implement this
@@ -351,6 +347,10 @@ public interface Documentable {
 	}
 
 	default String getDisplayName() {
+		return getDisplayName(true);
+	}
+
+	default String getDisplayName(boolean includeParameters) {
 
 		switch (getDocumentableType()) {
 
@@ -486,7 +486,7 @@ public interface Documentable {
 		DocumentableType.collectAllDocumentables(documentables);
 
 		// sort by name
-		Collections.sort(documentables, Comparator.comparing(Documentable::getDisplayName));
+		Collections.sort(documentables, Comparator.comparing(documentable -> documentable.getDisplayName()));
 
 		// check style and content and generate Markdown docs
 		for (final Documentable item : documentables) {

@@ -32,16 +32,17 @@ Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Exper
 
 
 # Building Applications
-"Building Applications" has new topics "Overview", "Data Model", "Pages & Templates", "Navigation & Routing", "Dynamic Content", "User Input & Forms", "Business Logic", "Error handling", "Language localization", "Troubleshooting"
-    "Overview" has markdown-file "snippets/Overview - 000.md"
-    "Navigation & Routing" has markdown-file "snippets/Navigation & Routing - 000.md"
-    "Data Model" has markdown-file "snippets/Data Model - 000.md" with heading "Data Model"
+"Building Applications" has new topics "Overview", "Data Model", "Data Creation & Import", "Pages & Templates", "Navigation & Routing", "Dynamic Content", "User Input & Forms", "Business Logic", "Error handling", "Language localization", "Troubleshooting"
 
-    "Data Model" has topics "Relationships", "Built-in types" as table, "Built-in properties" as table
+    "Overview" has markdown-file "snippets/Overview - 000.md"
+
+    "Data Model" has markdown-file "snippets/Data Model - 000.md" with heading "Data Model"
+    "Data Model" has topics "Built-in properties" as table, "Relationships", "Built-in types" as table
         "Relationships" has topics "Cascading Delete" as table, "Automatic Creation of Related Nodes" as table
 
-    "Pages & Templates" has markdown-file "snippets/Pages & Templates - 000.md"
+    "Data Creation & Import" has markdown-file "snippets/Data Creation & Import - 000.md"
 
+    "Pages & Templates" has markdown-file "snippets/Pages & Templates - 000.md"
     "Pages & Templates" has topics "Pages", "Templates", "Page Templates", "Elements", "Shared Components", "Widgets", "Static resources", "Active Elements"
         "Pages" has markdown-file "snippets/Pages - 000.md"
 
@@ -62,6 +63,8 @@ Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Exper
         "Static resources" has topic "File download", "Dynamic files"
             "Dynamic files" has topics "Replace template expressions"
 
+
+    "Navigation & Routing" has markdown-file "snippets/Navigation & Routing - 000.md"
     "Navigation & Routing" has topics "Access Levels", "Visibility", "Authentication", "Navigation", "URI object resolution"
 
         "Access Levels" has markdown-file "snippets/Access levels - 000.md"
@@ -107,7 +110,8 @@ Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Exper
 
 
 # Interfaces
-"APIs & Integrations" has topics "OpenAPI", "Cron jobs", "Geocoding", "oAuth", "Kafka", "MQTT", "Pulsar", "SMTP", "FTP", "SSH", "JDBC", "MongoDB"
+"APIs & Integrations" has topics "Server-sent Events", "OpenAPI", "Cron jobs", "Geocoding", "oAuth", "Kafka", "MQTT", "Pulsar", "SMTP", "FTP", "SSH", "JDBC", "MongoDB"
+        "OpenAPI" has markdown-file "snippets/OpenAPI - 000.md"
 
     "OpenAPI" has topic "OpenAPI Settings"
     "Cron jobs" has topic "CronService Settings"

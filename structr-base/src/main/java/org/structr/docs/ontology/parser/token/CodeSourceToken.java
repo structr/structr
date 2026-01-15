@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -71,7 +71,7 @@ public class CodeSourceToken extends NamedConceptListToken {
 		if (!documentable.isHidden()) {
 
 			final DocumentableType conceptType = documentable.getDocumentableType();
-			final Concept mainConcept          = ontology.getOrCreateConcept(this, conceptType.getConcept(), documentable.getDisplayName(), true);
+			final Concept mainConcept          = ontology.getOrCreateConcept(this, conceptType.getConcept(), documentable.getDisplayName(false), true);
 
 			if (mainConcept != null) {
 
