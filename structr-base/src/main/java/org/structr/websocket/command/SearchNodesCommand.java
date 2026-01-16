@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -44,7 +44,6 @@ public class SearchNodesCommand extends AbstractCommand {
 	private static final String SEARCH_DOM_BOOL_KEY              = "searchDOM";
 	private static final String SEARCH_FLOW_BOOL_KEY             = "searchFlow";
 	private static final String SEARCH_SCHEMA_BOOL_KEY           = "searchSchema";
-	private static final String SEARCH_CASE_INSENSITIVE_BOOL_KEY = "caseInsensitive";
 
 	static {
 		StructrWebSocket.addCommand(SearchNodesCommand.class);
