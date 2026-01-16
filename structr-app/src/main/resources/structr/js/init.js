@@ -2010,23 +2010,9 @@ let Structr = {
 		},
 		templates: {
 			popover: config => `
-				<div popover id="global-search-popover" class="absolute" style="
-					position-anchor: --global-search;
-					position-area: x-start y-end;
-					width: 500px;
-					height: 700px;
-					overflow: hidden;
-					border: 1px solid var(--input-field-border);
-					box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
-					border-radius: .25rem;
-					font-size: 1rem;
-					resize: both;
-				" dir="rtl">
+				<div popover id="global-search-popover" class="absolute direction-rtl overflow-hidden rounded">
 					<!-- dir=rtl shows the resize element in the bottom left corner, afterwards we set dir=ltr again -->
-					<div dir="ltr" style="
-						overflow: auto;
-						height: 100%;
-					">
+					<div id="global-search-popover-inner" class="overflow-auto h-full direction-ltr">
 				
 						<div class="overflow-y-auto max-h-full h-full">
 							<div class="mx-4 my-4">
@@ -2037,7 +2023,7 @@ let Structr = {
 									<div>
 										<label class="flex items-center"><input type="checkbox" checked name="searchDOM">Page Elements</label>
 										<label class="flex items-center"><input type="checkbox" checked name="searchSchema">Schema</label>
-<!--										<label class="flex items-center"><input type="checkbox" checked name="searchFlow">Flow Nodes</label>-->
+										<!--	<label class="flex items-center"><input type="checkbox" checked name="searchFlow">Flow Nodes</label>-->
 									</div>
 								</form>
 		

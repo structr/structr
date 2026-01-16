@@ -3632,6 +3632,22 @@ ul.combined-input-select-field li:hover {
 	background-color: var(--input-invalid-bg-color);
 }
 
+
+#global-search-popover {
+	position-anchor: --global-search;
+	position-area: x-start y-end;
+	width: 500px;
+	height: 700px;
+	border: 1px solid var(--input-field-border);
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+	font-size: 1rem;
+	resize: both;
+}
+
+#global-search-popover::backdrop {
+	background: rgba(0, 0, 0, 0.25);
+}
+
 /**
  * BEGIN Tailwind classes
  */
@@ -4765,6 +4781,12 @@ ul.combined-input-select-field li:hover {
 }
 .-rotate-180 {
 	transform: rotate(-180deg);
+}
+.direction-rtl {
+	direction: rtl;
+}
+.direction-ltr {
+	direction: ltr;
 }
 /**
  * END Tailwind classes
