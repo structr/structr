@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -71,6 +71,8 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 				lockedContext.getLock().lock();
 				try {
 					lockedContext.getContext().leave();
+				} catch (IllegalStateException e) {
+					logger.error("Could not leave locked context", e);
 				} finally {
 					lockedContext.getLock().unlock();
 				}

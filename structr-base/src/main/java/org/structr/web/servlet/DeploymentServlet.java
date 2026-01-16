@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -60,6 +60,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Servlet to handle upload and download of application and data deployment files.
@@ -471,13 +472,22 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 			unzip(file, directoryPath);
 
 			String deploymentFolderSourcePath = null;
-
-			final List<String> folderNamesInZip = Files.list(Paths.get(directoryPath)).filter(p -> p.toFile().isDirectory()).map(p -> p.toFile().getName()).collect(Collectors.toList());
+			final Path rootPath = Paths.get(directoryPath);
 
 			if (StringUtils.isNotBlank(zipContentPath)) {
 
-				if (!folderNamesInZip.contains(zipContentPath)) {
+				final Path zipPath       = Path.of(zipContentPath);
+				final Path requestedPath = rootPath.resolve(zipPath);
 
+				if (zipPath.isAbsolute()) {
+					throw new FrameworkException(422, "Absolute paths are not allowed");
+				}
+
+				if (!requestedPath.toFile().getCanonicalPath().startsWith(rootPath.toFile().getCanonicalPath())) {
+					throw new FrameworkException(422, "Directory traversal not allowed");
+				}
+
+				if (!requestedPath.toFile().exists()) {
 					throw new FrameworkException(422, "Given folder does not exist in provided zip file!");
 				}
 
@@ -485,11 +495,16 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 			} else {
 
-				deploymentFolderSourcePath = switch (folderNamesInZip.size()) {
-					case 1 -> directoryPath + "/" + folderNamesInZip.get(0);
-					case 0 -> throw new IOException("Zip is empty. It should contain exactly one folder (unless folder name is explicitly specified).");
-					default -> throw new IOException("Zip has multiple folders. It should contain exactly one folder (unless folder name is explicitly specified).");
-				};
+				try (final Stream<Path> fileList = Files.list(rootPath)) {
+
+					final List<String> folderNamesInZip = fileList.filter(p -> p.toFile().isDirectory()).map(p -> p.toFile().getName()).toList();
+
+					deploymentFolderSourcePath = switch (folderNamesInZip.size()) {
+						case 1 -> directoryPath + "/" + folderNamesInZip.getFirst();
+						case 0 -> throw new IOException("Zip is empty. It should contain exactly one folder (unless folder name is explicitly specified).");
+						default -> throw new IOException("Zip has multiple folders. It should contain exactly one folder (unless folder name is explicitly specified).");
+					};
+				}
 			}
 
 			deployCommand.execute(Map.of(
