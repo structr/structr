@@ -1,6 +1,6 @@
-# Authentication
+# Authentication Methods
 
-Authentication in Structr provides multiple methods for securing your applications and managing user access. This guide covers the various authentication mechanisms available, from traditional session-based login to modern JWT tokens and OAuth integration.
+Structr provides multiple methods for securing your applications and managing user access. This chapter covers the various authentication mechanisms available, from traditional session-based login to modern JWT tokens and OAuth integration.
 
 ## Overview
 

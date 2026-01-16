@@ -34,7 +34,7 @@ Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Exper
 # Building Applications
 "Building Applications" has new topics "Overview", "Data Model", "Data Creation & Import", "Pages & Templates", "Navigation & Routing", "Dynamic Content", "User Input & Forms", "Business Logic", "Error handling", "Language localization", "Troubleshooting"
 
-    "Overview" has markdown-file "snippets/Overview - 000.md"
+    "Overview" has markdown-file "articles/Building Applications/Overview.md"
 
     "Data Model" has markdown-file "snippets/Data Model - 000.md" with heading "Data Model"
     "Data Model" has topics "Built-in properties" as table, "Relationships", "Built-in types" as table
@@ -102,8 +102,10 @@ Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Exper
 
 
 
-"REST Interface" has markdown-file "3-Advanced Topics/6-Authentication.md"
-"REST Interface" has topics "Resource Access Permissions", "System endpoints", "Servlets", "Views", "Request parameters" as table, "Request headers" as table
+"REST Interface" has markdown-file "articles/REST Interface/Overview.md" with heading "Overview"
+"REST Interface" has markdown-file "articles/REST Interface/Authentication.md" with heading "Authentication"
+"REST Interface" has markdown-file "articles/REST Interface/Data Access.md" with heading "Data Access"
+"REST Interface" has topics "System endpoints", "Servlets", "Views", "Request parameters" as table, "Request headers" as table
 
 
 
@@ -130,7 +132,8 @@ Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Exper
 
 # Operations
 
-"Operations" has topics "Configuration", "Deployment", "User Management", "Backup & Recovery", "Filesystem", "Data Management", "SSL / TLS", "Debugging", "Maintenance", "Monitoring", "Logging", "Auditing", "Statistics"
+"Operations" has markdown-file "articles/Operations/Authentication Methods.md" with heading "Authentication Methods"
+"Operations" has topics "Configuration", "Deployment", "Backup & Recovery", "Filesystem", "Data Management", "SSL / TLS", "Debugging", "Maintenance", "Monitoring", "Logging", "Auditing", "Statistics"
 
     Topic "Configuration" has topics "Path Settings", "Application Settings", "HTTP Settings"
         "HTTP Settings" has topics "Outbound Connection Settings", "Proxy Settings"

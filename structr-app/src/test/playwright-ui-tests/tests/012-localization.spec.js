@@ -61,7 +61,7 @@ test('localization', async ({ page }) => {
   // Importer
   await page.locator('.submenu-trigger').hover();
   await page.locator('#localization_').waitFor({state: 'visible'});
-  await page.locator('#localization_').click();
+  await page.locator('#localization_').click({ force: true });
 
   // Wait for Code UI to load all components
   await page.waitForTimeout(1000);

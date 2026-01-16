@@ -6,11 +6,11 @@ First things first - there are some things you need to know before you start.
 
 ### Admin User Interface
 
-Only administrators can use the Structr Admin User Interface. Regular users cannot log in, and attempting to do so produces the error message `User has no backend access`. That means every Structr application with a user interface needs a Login page to allow non-admin users to use it. There is no built-in login option for normal users.
+Only administrators can use the Structr Admin User Interface. Regular users cannot log in, and attempting to do so produces the error message `User has no backend access`. That means every Structr application with a user interface needs a Login page to allow non-admin users to use it. There is no built-in login option for non-admin users.
 
-### Permission Levels
+### Access Levels
 
-Access to every object in Structr must be explicitly granted - this also applies to pages and their elements. There are different permission levels that play a role in application development.
+Access to every object in Structr must be explicitly granted - this also applies to pages and their elements. There are different access levels that play a role in application development.
 
 1. Administrators (indicated by `isAdmin = true`) have unrestricted access to all database data and REST endpoints.
 2. Each object has two visibility flags that can be set separately.
@@ -64,7 +64,7 @@ You can import CSV data in two different ways:
 
 This is the preferred option, although it is somewhat difficult to find. To use it, you first have to upload a CSV file to Structr. An icon will then appear in the context menu of this file, which you can use to open the import wizard.
 
-##### Using the Simple Import Dialog in the Data Section.
+##### Using the Simple Import Dialog in the Data Section
 
 This importer is limited to a single type and can only process inputs of up to 100,000 lines, but it is a good option for getting started.
 
@@ -106,6 +106,9 @@ A Page is accessible at a URL path matching its name. For example, a page named 
 
 Dynamic content is generated on the server and sent to the client as HTML. Individual values can be inserted into the page using template expressions. Database objects and HTML elements are combined using repeaters, which usually execute a database query and repeatedly write the element to the HTML output for each result.
 
+#### Partial Reload
+Individual elements can be addressed separately to render their content as HTML, making it easy to reload parts of the page without a complete page reload.
+
 [Read more about Dynamic Content.](/structr/docs/ontology/Building%20Applications/Dynamic%20Content)
 
 ### User Input & Forms
@@ -116,6 +119,8 @@ User input and form data can be stored in database objects through Event Action 
 
 ## Implement Business Logic
 
+<img src="http://localhost:8082/structr/docs/code_project-to-openapi.png" class="small-image" />
+
 Structr offers a wide range of options for implementing business logic in your application. These include time-controlled processes like scheduled imports, event-driven processes triggered through external interfaces or the application front end, and lifecycle methods that respond to data creation, modification, and deletion in the database.
 
 ### Methods
@@ -123,9 +128,11 @@ Structr offers a wide range of options for implementing business logic in your a
 You can define methods on your custom types to encapsulate type-specific logic. These methods come in two forms: instance methods and static methods.
 
 #### Instance Methods
+
 Instance methods work on individual objects of a type and access their data through the `this` keyword. You can use them to calculate values, generate documents, or perform operations on specific instances. For example, an instance method on a `Customer` type can calculate the total value of all orders for that particular customer, or a method on an `Invoice` type can generate a PDF document for that specific invoice.
 
 #### Static Methods
+
 Static methods operate at the type level rather than on individual instances. They do not have access to `this` because they are not associated with a specific object. They are used for operations that affect multiple objects, such as finding all customers in a specific region, performing batch operations, or implementing factory patterns that create new instances with specific configurations.
 
 ### Functions
@@ -133,15 +140,48 @@ Static methods operate at the type level rather than on individual instances. Th
 Structr provides two categories of application-wide functions: built-in functions and user-defined functions.
 
 #### Built-in Functions
+
 Built-in functions offer ready-to-use functionality for common tasks like sending emails, making HTTP requests, parsing JSON and XML, working with files, and querying the database. These functions are available throughout the platform wherever you write script code.
+
+[Read more about Built-in functions.](/structr/docs/ontology/References/Built-in%20functions)
 
 #### User-defined Functions
 You can also create user-defined functions for custom application-wide logic. These functions can be called from anywhere in your application and can be scheduled for automatic execution using the cron service, useful for maintenance tasks, periodic imports, or automated reports.
 
 ### Cron Jobs
 
+User-defined functions can be scheduled for automatic execution at defined intervals using the cron service. Structr uses an extended cron syntax that supports second-precision scheduling, allowing for more granular control than standard cron expressions. This is useful for regular maintenance tasks such as data cleanup, periodic imports, report generation, or automated backups.
+
+[Read more about Cron jobs.](/structr/docs/ontology/APIs%20&%20Integrations/Cron%20jobs)
+
 ### Lifecycle Methods
+
+Lifecycle methods are optional instance methods that execute automatically in response to specific database events such as object creation, modification, or deletion. They must be added explicitly to a type in order to be executed. You can use them to validate data before it is saved, update related objects when changes occur, send notifications when specific conditions are met, or trigger workflows based on data changes. 
+
+Lifecycle methods have access to the object being modified through the `this` keyword, making them suitable for enforcing business rules and maintaining data consistency.
 
 [Read more about Business Logic.](/structr/docs/ontology/Building%20Applications/Business%20Logic)
 
+
+<a onclick="window.parent.location.hash='#pages'">Go to pages</a>
+
 ## Integrate With Other Systems
+
+### OAuth
+
+### Emails & SMTP
+
+### REST API
+
+### Message Queues
+
+#### Kafka
+
+#### MQTT
+
+#### Pulsar
+
+### JDBC
+
+### MongoDB
+

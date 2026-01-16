@@ -26,12 +26,12 @@ export default defineConfig({
     use: {
         viewport: { width: 1920, height: 1080 },
         deviceScaleFactor: 2,
-        video: {
-            mode: 'on',
+        //video: {
+            //mode: 'on',
             //size: { width: 3840, height: 2160 }
-            size: { width: 1920, height: 1080 }
-        },
-        showUserInput: true
+            //size: { width: 1920, height: 1080 }
+        //},
+        trace: 'on'
     },
 
     workers: process.env.CI ? 1 : undefined,

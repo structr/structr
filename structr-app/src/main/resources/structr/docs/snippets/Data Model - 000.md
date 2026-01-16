@@ -8,7 +8,7 @@ Note that node types are the primary objects in the data model, while relationsh
 
 ### Basic Type Creation
 
-<img src="../schema_create-type_Project.png" class="small-image-60" />
+![The Create Type Dialog](../schema_type-edit_Project.png)
 
 #### Name & Traits
 
@@ -34,11 +34,13 @@ All types for which you activate the “Include in OpenAPI output” checkbox an
 
 #### Permissions
 
+When editing an existing type, you will see an additional "Permissions" section below the OpenAPI settings with a table that allows you to link user groups with access rights for all instances of the current type.
+
+If groups exist in the system, you can configure access rights individually for each group, controlling what all members of that group (and its subgroups) can do with instances of the current type.
+
 ### Other Ways to Create Types in The Schema
 
-Like all other parts of the application, the schema definition itself is stored in the database, so you can also create new types by adding objects of type `SchemaNode´ with the name of the desired type in the `name` attribute.
-
-You can also do this from a script or method using the `create()` function.
+Like all other parts of the application, the schema definition itself is stored in the database, so you can also create new types by adding objects of type `SchemaNode` with the name of the desired type in the `name` attribute, and You can also do this from a script or method using the `create()` function.
 
 ### Default Attributes
 

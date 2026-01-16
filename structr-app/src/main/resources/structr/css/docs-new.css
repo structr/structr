@@ -22,11 +22,19 @@ html {
 
 body {
     min-width: 16rem;
+    font-size: 11pt;
 }
 
 @media (max-width: 1000px) {
     aside {
         display: none;
+    }
+    nav {
+        font-size: 8pt;
+    }
+    .article {
+        padding: 0 5% 1rem 5% !important;
+        margin: 0;
     }
 }
 
@@ -125,7 +133,7 @@ body {
 
 .article {
     background-color: white;
-    padding: 0 2rem 2rem 2rem;
+    padding: 0 10% 2rem 10%;
     height: 100%;
 }
 
