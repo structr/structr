@@ -34,7 +34,7 @@ Defining the data model is usually the first step in developing a Structr applic
 
 ### Types
 
-The data model consists of data types that can have relationships between them. Types have attributes to store your data, and methods to implement business logic.
+The data model consists of data types that can have relationships between them. Types can have attributes to store your data, and methods to implement business logic.
 
 ### Relationships
 
@@ -86,25 +86,25 @@ A Structr application's user interface consists of one or more HTML pages. Each 
 
 ### Pages and Elements
 
-Individual pages consist of either larger template blocks or nested HTML elements, or a combination of both. In addition, it is possible to use reusable elements called Shared Components, and insertable templates, known as Widgets.
+Individual pages consist of larger template blocks, nested HTML elements, or a combination of both. You can also use reusable elements called Shared Components and insertable templates known as Widgets to build your interface.
 
 [Read more about Pages & Templates.](/structr/docs/ontology/Building%20Applications/Pages%20&%20Templates)
 
 ### CSS, Javascript, Images
 
-Static resources like CSS files, JavaScript files, images and videos are stored in the integrated filesystem in the [Files](/structr/docs/ontology/Admin%20User%20Interface/Files) area and can be accessed directly via their full path. Please note that the visibility restrictions also apply to files and folders.
+Static resources like CSS files, JavaScript files, images and videos are stored in the integrated filesystem in the [Files](/structr/docs/ontology/Admin%20User%20Interface/Files) area and can be accessed directly via their full path, allowing you to reference them in your pages using standard HTML tags or CSS. Please note that the visibility restrictions also apply to files and folders.
 
 [Read more about the Filesystem.](/structr/docs/ontology/Operations/Filesystem)
 
 ### Navigation, Start Page and Error Pages
 
-A Page is accessible at a URL path matching its name. For example, a page named "index" is available at `/index`. By default, navigating to a non-existent page returns a 404 Not Found error. To display a different page instead, set the `showOnErrorCodes` attribute of that page to "404". This also ensures that this page is displayed when someone navigates to the root URL of your application, but note that the page must be made visible to public users for this to work.
+Pages in Structr are accessible at URLs that match their names. For example, a page named "index" is available at `/index`. When a user navigates to a non-existent page, Structr returns a 404 Not Found error by default. To provide a custom error page instead, set its showOnErrorCodes attribute to "404" and Structr will display this page for any 404 errors. The page also serves as your application's start page when users navigate to the root URL. Note that this page must be visible to public users, otherwise they will receive an access denied error instead of seeing your start page.
 
 [Read more about Navigation & Routing.](/structr/docs/ontology/Building%20Applications/Navigation%20&%20Routing)
 
 ### Dynamic Content
 
-Dynamic content is generated on the server and sent to the client as HTML. Individual values can be inserted into the page using template expressions. Database objects and HTML elements are combined using repeaters, which usually execute a database query and repeatedly write the element to the HTML output for each result.
+All content is rendered on the server and sent to the client as HTML. To create dynamic content based on your data, you can insert values from database objects into pages using template expressions. To display multiple database objects, you use repeaters, which execute a database query and render the element once for each result. For more complex logic, you can embed larger script blocks directly in your page code to perform calculations or manipulate data before rendering
 
 #### Partial Reload
 Individual elements can be addressed separately to render their content as HTML, making it easy to reload parts of the page without a complete page reload.
@@ -146,11 +146,7 @@ Built-in functions offer ready-to-use functionality for common tasks like sendin
 [Read more about Built-in functions.](/structr/docs/ontology/References/Built-in%20functions)
 
 #### User-defined Functions
-You can also create user-defined functions for custom application-wide logic. These functions can be called from anywhere in your application and can be scheduled for automatic execution using the cron service, useful for maintenance tasks, periodic imports, or automated reports.
-
-### Cron Jobs
-
-User-defined functions can be scheduled for automatic execution at defined intervals using the cron service. Structr uses an extended cron syntax that supports second-precision scheduling, allowing for more granular control than standard cron expressions. This is useful for regular maintenance tasks such as data cleanup, periodic imports, report generation, or automated backups.
+You can also create user-defined functions for custom application-wide logic. These functions can be called from anywhere in your application and can be scheduled for automatic execution using the cron service, useful for maintenance tasks, periodic imports, or automated reports. For scheduling, Structr uses an extended cron syntax that supports second-precision scheduling, allowing for more granular control than standard cron expressions.
 
 [Read more about Cron jobs.](/structr/docs/ontology/APIs%20&%20Integrations/Cron%20jobs)
 
@@ -162,26 +158,44 @@ Lifecycle methods have access to the object being modified through the `this` ke
 
 [Read more about Business Logic.](/structr/docs/ontology/Building%20Applications/Business%20Logic)
 
-
-<a onclick="window.parent.location.hash='#pages'">Go to pages</a>
-
 ## Integrate With Other Systems
+
+Structr provides integration options for external systems, including built-in authentication interfaces that you can configure. For other integrations, you can write custom business logic and interface code to connect to APIs, databases, message brokers, or other services based on your requirements.
 
 ### OAuth
 
+Structr supports OAuth 2.0 for user authentication, enabling integration with external identity providers such as Microsoft Entra ID, Google, Auth0, and other OAuth-compliant services. This allows users to authenticate using their existing organizational or social media credentials instead of maintaining separate login credentials for Structr.
+
+[Read more about oAuth.](/structr/docs/ontology/APIs%20&%20Integrations/oAuth)
+
 ### Emails & SMTP
 
-### REST API
+Structr allows you to send plain text or HTML emails with attachments from any business logic method. You can also retrieve emails from IMAP mailboxes and trigger automated responses to incoming messages through lifecycle methods or custom workflows.
 
-### Message Queues
+[Read more about Emails & SMTP.](/structr/docs/ontology/APIs%20&%20Integrations/SMTP)
 
-#### Kafka
+### REST Interface
 
-#### MQTT
+The REST interface allows you to exchange data with external systems and expose business logic methods as REST endpoints. Methods accept arbitrary JSON input and return structured JSON output, making it easy to build custom APIs and integrate Structr into existing workflows or architectures.
 
-#### Pulsar
+[Read more about the REST Interface.](/structr/docs/ontology/REST%20Interface/Overview)
 
-### JDBC
+### Message Brokers
 
-### MongoDB
+You can connect Structr to MQTT, Kafka, or Apache Pulsar by creating a custom type that extends one of Structr's built-in client types (MQTTClient, KafkaClient, or PulsarClient) and implementing an onMessage lifecycle method to handle incoming messages.
 
+When configured and activated, the client automatically connects to the message broker and executes your `onMessage` method whenever a new message arrives on the subscribed topics. This allows you to build event-driven applications that react to external events in real-time, process streaming data, or integrate with IoT devices and microservices architectures.
+
+[Read more about Message Brokers.](/structr/docs/ontology/APIs%20&%20Integrations/Message%20Brokers)
+
+### Other Databases
+
+#### JDBC
+
+The built-in `jdbc()` function allows you to execute SQL queries directly against external JDBC-compatible databases. Query results are automatically transformed into objects that can be used in any scripting context. Results can be displayed dynamically in frontend views, used in business logic for calculations and transformations, or imported and stored as Structr objects for further processing.
+
+#### MongoDB
+
+Similar to jdbc(), the built-in `mongodb()` function enables direct access to collections in external MongoDB databases.
+
+[Read more about Built-in functions.](/structr/docs/ontology/References/Built-in%20functions)

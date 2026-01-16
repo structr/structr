@@ -112,16 +112,17 @@ Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Exper
 
 
 # Interfaces
-"APIs & Integrations" has topics "Server-sent Events", "OpenAPI", "Cron jobs", "Geocoding", "oAuth", "Kafka", "MQTT", "Pulsar", "SMTP", "FTP", "SSH", "JDBC", "MongoDB"
+"APIs & Integrations" has topics "Server-sent Events", "OpenAPI", "Cron jobs", "Geocoding", "oAuth", "Message Brokers", "SMTP", "FTP", "SSH", "JDBC", "MongoDB"
         "OpenAPI" has markdown-file "snippets/OpenAPI - 000.md"
 
     "OpenAPI" has topic "OpenAPI Settings"
     "Cron jobs" has topic "CronService Settings"
     "Geocoding" has topic "Geocoding Settings"
     "oAuth" has topic "oAuth Settings"
-    "Kafka" has topic "Kafka Settings"
-    "MQTT" has topic "MQTT Settings"
-    "Pulsar" has topic "Pulsar Settings"
+    "Message Brokers" has topics "Kafka", "MQTT", "Pulsar"
+        "Kafka" has topic "Kafka Settings"
+        "MQTT" has topic "MQTT Settings"
+        "Pulsar" has topic "Pulsar Settings"
     "SMTP" has topic "Sending emails", "Receiving emails", "SMTP Settings"
     "FTP" has topic "FTP Settings"
     "SSH" has topic "SSH Settings"
