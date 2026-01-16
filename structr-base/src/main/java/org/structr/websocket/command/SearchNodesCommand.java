@@ -62,8 +62,6 @@ public class SearchNodesCommand extends AbstractCommand {
 		final boolean searchFlow   = webSocketData.getNodeDataBooleanValue(SEARCH_FLOW_BOOL_KEY);
 		final boolean searchSchema = webSocketData.getNodeDataBooleanValue(SEARCH_SCHEMA_BOOL_KEY);
 
-		final boolean caseInsensitive = webSocketData.getNodeDataBooleanValue(SEARCH_CASE_INSENSITIVE_BOOL_KEY);
-
 		try {
 
 			final Map<String, Object> obj = Map.of("queryString", queryString);
@@ -71,26 +69,39 @@ public class SearchNodesCommand extends AbstractCommand {
 			final ArrayList<String> labels = new ArrayList<>();
 			if (searchDOM)    { labels.add("n:DOMNode"); }
 			if (searchFlow)   { labels.add("n:FlowNode"); }
-			if (searchSchema) { labels.add("n:SchemaMethod"); }
+			if (searchSchema) { labels.add("n:AbstractSchemaNode"); labels.add("n:SchemaReloadingNode"); }
 
 			if (!labels.isEmpty()) {
-
-				final String containsClause = caseInsensitive ? "toLower(toString(n[prop])) CONTAINS toLower($queryString)" : "n[prop] CONTAINS $queryString";
 
 				final String cypherQuery = """
 					MATCH (n)
 						WHERE (%s)
-					AND
-						ANY(prop IN KEYS(n) WHERE %s)
-					WITH n, [prop IN KEYS(n) WHERE %s | prop] AS keys
+					WITH
+						n,
+						toLower($queryString) as queryString
+					WITH
+						n,
+						[prop IN keys(n)
+							WHERE
+								CASE
+									WHEN n[prop] IS NULL THEN false
+									WHEN n[prop] IS :: STRING THEN toLower(n[prop]) CONTAINS queryString
+									WHEN n[prop] IS :: LIST<STRING> THEN ANY (v IN n[prop] WHERE toLower(v) CONTAINS queryString)
+									ELSE toLower(toString(n[prop])) CONTAINS queryString
+								END
+							| prop] AS matchedKeys,
+						labels(n) as labels
+					WHERE
+						size(matchedKeys) > 0
 					RETURN {
-						id: n.id,
-						type: n.type,
-						name: n.name,
-						keys: keys
+						id:              n.id,
+						type:            n.type,
+						name:            n.name,
+						keys:            matchedKeys,
+						isDOMElement:    ("DOMNode" IN labels),
+						isSchemaElement: ("AbstractSchemaNode" IN labels OR "SchemaReloadingNode" IN labels)
 					}
-					""".formatted(String.join(" OR ", labels), containsClause, containsClause);
-
+					""".formatted(String.join(" OR ", labels));
 
 				final List<GraphObject> result = flatten(Iterables.toList(StructrApp.getInstance(securityContext).query(cypherQuery, obj)));
 

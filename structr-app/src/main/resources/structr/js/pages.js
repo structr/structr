@@ -3933,65 +3933,77 @@ let _Pages = {
 
 	search: {
 		init: () => {
-			let form         = document.querySelector('#pages-search-node-form');
-			let searchField  = form.querySelector('[name="queryString"]');
+			let form                    = document.querySelector('#pages-search-node-form');
+			let searchField             = form.querySelector('[name="queryString"]');
 
 			form.addEventListener('submit', e => {
 				e.preventDefault();
-
-				let data = Structr.globalSearch.getBasicFormData(form);
-				data.searchDOM = true;
-
-				if (data.queryString.length > 0) {
-					_Pages.search.doSearch(data);
-				} else {
-					form.reportValidity();
-				}
+				_Pages.search.doSearch();
 			});
 
-			searchField.addEventListener('search', () => {
+			searchField.addEventListener('input', _Helpers.debounce(_Pages.search.doSearch, 300));
+
+			searchField.addEventListener('search', e => {
 				if (searchField.value === '') {
 					_Pages.search.clear();
 				}
 			});
 		},
 		clear: () => {
+
 			let resultsElement = document.querySelector('#pages-search-results');
 			for (let oldResult of resultsElement.querySelectorAll('[data-id]')) {
 				_Helpers.fastRemoveElement(oldResult);
 			}
 		},
-		doSearch: async (data) => {
+		doSearch: async () => {
 
-			let results = await Command.searchNodes(data);
+			let form = document.querySelector('#pages-search-node-form');
+			let data = Structr.globalSearch.getBasicFormData(form);
+			data.searchDOM = true;
 
 			_Pages.search.clear();
 
-			let resultsElement = document.querySelector('#pages-search-results');
+			if (data.queryString.length > 0) {
 
-			for (let result of results) {
+				let results        = await Command.searchNodes(data);
+				let resultsElement = document.querySelector('#pages-search-results');
 
-				for (let key of result.keys) {
+				for (let result of results) {
 
-					let el = _Helpers.createSingleDOMElementFromHTML(_Pages.search.templates.result(result, key));
+					for (let key of result.keys) {
 
-					resultsElement.appendChild(el);
+						let el = _Helpers.createSingleDOMElementFromHTML(_Pages.search.templates.result(result, key));
 
-					el.querySelector('button').addEventListener('click', _Pages.search.goToResultButtonClicked);
+						resultsElement.appendChild(el);
+
+						el.querySelector('button').addEventListener('click', () => {
+							_Pages.search.goTo(result, key, data);
+						});
+					}
 				}
 			}
 		},
-		goToResultButtonClicked: e => {
+		goTo: (result, key, searchData) => {
 
-			let id  = e.target.closest('[data-id]').dataset.id;
-			let key = e.target.closest('[data-id]').dataset.key;
+			let { id } = result;
+			let tabName     = _Pages.search.getTabForKey(key);
 
-			let matchingTabUrlHash = '#pages:' + _Pages.search.getTabForKey(key);
+			if (tabName === 'editor' || tabName === 'repeater') {
+				_Editors.highlightTextInNextEditor(searchData.queryString);
+			}
+
+			let matchingTabUrlHash = '#pages:' + tabName;
 			let link = document.querySelector(`[href="${matchingTabUrlHash}"]`)
 
 			if (link && id === _Pages.centerPane.dataset['elementId']) {
 
 				_Pages.activateCenterPane(link);
+
+				let container = _Editors.getContainerForIdAndProperty(id, key);
+				if (container && container.instance) {
+					_Editors.autoHighlightText(container.instance);
+				}
 
 			} else {
 
@@ -4027,11 +4039,7 @@ let _Pages = {
 					<div class="mx-4 my-4">
 						<form id="pages-search-node-form" class="flex flex-col gap-2">
 							<div class="flex gap-2">
-								<input type="search" name="queryString" required placeholder="Search term...">
-								<button type="submit" class="action button btn focus:border-gray-666 active:border-green">Search</button>
-							</div>
-							<div>
-								<label class="flex items-center"><input type="checkbox" name="caseInsensitive" value="true">Case Insensitive</label>
+								<input type="search" name="queryString" required placeholder="Search term..." autocomplete="off">
 							</div>
 						</form>
 

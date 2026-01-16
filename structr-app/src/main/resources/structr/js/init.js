@@ -338,7 +338,7 @@ let Structr = {
 
 		let activeMenuEntry = Structr.mainMenu.getActiveEntry()?.dataset['name'] ?? '';
 		let displayName     = Structr.getInstanceDisplayName();
-		let instance        = (displayName === '') ? '' : ` - ${displayName})`;
+		let instance        = (displayName === '') ? '' : ` - ${displayName}`;
 
 		document.title = `Structr ${activeMenuEntry}${instance}`;
 	},
@@ -1921,74 +1921,78 @@ let Structr = {
 
 	globalSearch: {
 		init: () => {
-			let form         = document.querySelector('#global-search-node-form');
-			let searchField  = form.querySelector('[name="queryString"]');
+
+			let form        = document.querySelector('#global-search-node-form');
+			let searchField = form.querySelector('[name="queryString"]');
 
 			form.addEventListener('submit', e => {
 				e.preventDefault();
 
-				let data = Structr.globalSearch.getBasicFormData(form);
-
-				if (data.queryString.length > 0) {
-					Structr.globalSearch.doSearch(data);
-				} else {
-					form.reportValidity();
-				}
+				Structr.globalSearch.doSearch();
 			});
+
+			searchField.addEventListener('input', _Helpers.debounce(Structr.globalSearch.doSearch, 300));
 
 			searchField.addEventListener('search', () => {
 				if (searchField.value === '') {
 					Structr.globalSearch.clear();
 				}
 			});
+
+			for (let checkbox of form.querySelectorAll('input[type="checkbox"]')) {
+				checkbox.addEventListener('change', Structr.globalSearch.doSearch);
+			}
 		},
 		clear: () => {
+
 			let resultsElement = document.querySelector('#global-search-results');
 			for (let oldResult of resultsElement.querySelectorAll('[data-id]')) {
 				_Helpers.fastRemoveElement(oldResult);
 			}
 		},
-		doSearch: async (data) => {
+		doSearch: async () => {
 
-			let results = await Command.searchNodes(data);
+			let form = document.querySelector('#global-search-node-form');
+			let data = Structr.globalSearch.getBasicFormData(form);
 
 			Structr.globalSearch.clear();
 
-			let resultsElement = document.querySelector('#global-search-results');
+			if (data.queryString.length > 0) {
 
-			for (let result of results) {
+				let results        = await Command.searchNodes(data);
+				let resultsElement = document.querySelector('#global-search-results');
 
-				for (let key of result.keys) {
+				for (let result of results) {
 
-					let el = _Helpers.createSingleDOMElementFromHTML(Structr.globalSearch.templates.result(result, key));
+					for (let key of result.keys) {
 
-					resultsElement.appendChild(el);
+						let el = _Helpers.createSingleDOMElementFromHTML(Structr.globalSearch.templates.result(result, key));
 
-					el.querySelector('button').addEventListener('click', Structr.globalSearch.goToResultButtonClicked);
+						resultsElement.appendChild(el);
+
+						el.querySelector('button').addEventListener('click', () => {
+							Structr.globalSearch.goTo(result, key, data);
+						});
+					}
 				}
 			}
 		},
-		goToResultButtonClicked: e => {
+		goTo: (result, key, searchData) => {
 
-			let id  = e.target.closest('[data-id]').dataset.id;
-			let key = e.target.closest('[data-id]').dataset.key;
+			if (result.isDOMElement) {
 
-			let matchingTabUrlHash = '#pages:' + _Pages.search.getTabForKey(key);
-			let link = document.querySelector(`[href="${matchingTabUrlHash}"]`)
+				_Pages.search.goTo(result, key, searchData);
 
-			if (link && id === _Pages.centerPane.dataset['elementId']) {
+			} else if (result.isSchemaElement) {
 
-				_Pages.activateCenterPane(link);
+				_Code.search.goToResult(result, key, searchData);
 
 			} else {
-
-				// preselect tab for that element
-				_Pages.saveActiveCenterTab(id, matchingTabUrlHash);
-
-				_Pages.selectAndShowArbitraryDOMElement(id);
+				console.log('not yet implemented to jump to: ', result);
 			}
 		},
 		getBasicFormData: (form) => {
+
 			let data = {};
 
 			for (let el of form.elements) {
@@ -2011,38 +2015,39 @@ let Structr = {
 					position-area: x-start y-end;
 					width: 500px;
 					height: 700px;
-					overflow: auto;
+					overflow: hidden;
 					border: 1px solid var(--input-field-border);
 					box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 					border-radius: .25rem;
 					font-size: 1rem;
 					resize: both;
-				">
+				" dir="rtl">
+					<!-- dir=rtl shows the resize element in the bottom left corner, afterwards we set dir=ltr again -->
+					<div dir="ltr" style="
+						overflow: auto;
+						height: 100%;
+					">
 				
-					<div class="overflow-y-auto max-h-full h-full">
-						<div class="mx-4 my-4">
-							<form id="global-search-node-form" class="flex flex-col gap-2">
-								<div class="flex gap-2">
-									<input type="search" name="queryString" required placeholder="Search term...">
-									<button type="submit" class="action button btn focus:border-gray-666 active:border-green">Search</button>
-								</div>
-								<div>
-									<label class="flex items-center"><input type="checkbox" checked name="searchDOM">Search Page Elements</label>
-									<label class="flex items-center"><input type="checkbox" checked name="searchSchema">Search Schema Code</label>
-									<label class="flex items-center"><input type="checkbox" checked name="searchFlow">Search Flow Nodes</label>
-								</div>
-
-								<div>
-									<label class="flex items-center"><input type="checkbox" name="caseInsensitive">Case Insensitive</label>
-								</div>
-							</form>
-	
-							<div id="global-search-results" class="grid items-center gap-x-2 gap-y-3 mt-6" style="grid-template-columns: [ name ] minmax(0, 1fr) [ keys ] minmax(10%, max-content) [ id ] 4rem [ actions ] minmax(2rem, max-content)">
-								<div class="contents font-bold">
-									<div>Name/Type</div>
-									<div>Key</div>
-									<div>ID</div>
-									<div></div>
+						<div class="overflow-y-auto max-h-full h-full">
+							<div class="mx-4 my-4">
+								<form id="global-search-node-form" class="flex flex-col gap-2">
+									<div class="flex gap-2">
+										<input type="search" name="queryString" required placeholder="Search term..." autocomplete="off">
+									</div>
+									<div>
+										<label class="flex items-center"><input type="checkbox" checked name="searchDOM">Page Elements</label>
+										<label class="flex items-center"><input type="checkbox" checked name="searchSchema">Schema</label>
+<!--										<label class="flex items-center"><input type="checkbox" checked name="searchFlow">Flow Nodes</label>-->
+									</div>
+								</form>
+		
+								<div id="global-search-results" class="grid items-start gap-x-2 gap-y-3 mt-6" style="grid-template-columns: [ name ] minmax(0, 1fr) [ keys ] minmax(10%, max-content) [ id ] 4rem [ actions ] minmax(2rem, max-content)">
+									<div class="contents font-bold">
+										<div>Name/Type</div>
+										<div>Key</div>
+										<div>ID</div>
+										<div></div>
+									</div>
 								</div>
 							</div>
 						</div>
@@ -2051,8 +2056,8 @@ let Structr = {
 			`,
 			result: (result, key) => `
 				<div class="contents" data-id="${result.id}" data-key="${key}">
-					<div>${result.name ? `${result.name} [${result.type}]` : result.type}</div>
-					<div>${key}</div>
+					<div class="break-word">${result.name ? `${result.name} [${result.type}]` : result.type}</div>
+					<div class="break-word">${key}</div>
 					<div class="truncate">${result.id}</div>
 					<div>
 						<button class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green p-2 mr-0" title="Go to element">
