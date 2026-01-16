@@ -324,14 +324,6 @@ index h2, .index h3 {
     margin: -.25rem auto;
 }
 
-#search-field svg, #search-overlay svg {
-    position: absolute;
-    left: .75rem;
-    top: .5rem;
-    height: 1.5rem;
-    color: var(--gray-555);
-}
-
 #search-field input, #search-overlay input {
     width: 25rem;
     height: 1.5rem;

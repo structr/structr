@@ -37,6 +37,7 @@ let _Code = {
 	additionalDirtyChecks: [],
 	defaultPageSize: 10000,
 	defaultPage: 1,
+	classIndicatorEverythingReady: 'code-area-ready',
 
 	init: () => {
 	},
@@ -128,6 +129,9 @@ let _Code = {
 
 			_Code.codeTree.on('select_node.jstree', _Code.tree.handleTreeClick);
 			_Code.codeTree.on('refresh.jstree', _Code.tree.activateLastClicked);
+			_Code.codeTree.on('ready.jstree', () => {
+				_Code.codeMain[0].classList.add(_Code.classIndicatorEverythingReady);
+			});
 
 			_Code.recentElements.loadRecentlyUsedElements(() => {
 				_TreeHelper.initTree(_Code.codeTree, _Code.tree.treeInitFunction, 'structr-ui-code');
@@ -247,7 +251,7 @@ let _Code = {
 						data: {
 							key: 'searchresults',
 							path: path + '/searchresults',
-							svgIcon: _Icons.getSvgIcon(_Icons.iconSearch, 16, 24)
+							svgIcon: _Icons.getSvgIcon(_Icons.iconSearch, 20, 24)
 						},
 						state: {
 							opened: true
@@ -851,7 +855,7 @@ let _Code = {
 					_Code.tree.findAndOpenNodeRecursive(tree, newParent, path, depth + 1, updateLocationStack);
 				});
 			}
-		},
+		}
 	},
 	mainArea: {
 		clearMainArea: () => {
@@ -1835,7 +1839,7 @@ let _Code = {
 
 				let activateTab = (tabName) => {
 
-					LSWrapper.setItem(`${_Entities.activeEditTabPrefix}_${data.id}`, tabName);
+					_Code.mainArea.saveActiveTabForMethod(data.id, tabName);
 
 					$('.method-tab-content', _Code.codeContents).hide();
 					$('li[data-name]', _Code.codeContents).removeClass('active');
@@ -1860,6 +1864,9 @@ let _Code = {
 
 				_Editors.focusEditor(sourceEditor);
 			});
+		},
+		saveActiveTabForMethod: (methodId, tabName) => {
+			LSWrapper.setItem(`${_Entities.activeEditTabPrefix}_${methodId}`, tabName);
 		},
 		schemaMethodParametersChanged: (parameters) => {
 
@@ -2093,10 +2100,23 @@ let _Code = {
 			} else {
 
 				let firstSubFolder = (obj.schemaNode?.isServiceClass === true) ? 'services' : 'custom';
-				let typeFolder     = (obj.type === 'SchemaProperty') ? 'properties' : 'methods';
+				let typeFolder     = _Code.helpers.getTypeFolderForNode(obj);
 
-				return (obj.schemaNode) ? `/root/${firstSubFolder}/${obj.schemaNode.id}/${typeFolder}/${obj.id}` : `/globals/${obj.id}`;
+				if (obj.schemaNode) {
+					return `/root/${firstSubFolder}/${obj.schemaNode.id}/${typeFolder}/${obj.id}`
+				} else if (obj.type === 'SchemaRelationshipNode') {
+					return `/root/${firstSubFolder}/${obj.targetId}/${typeFolder}/${obj.id}`;
+				} else {
+					return `/globals/${obj.id}`;
+				}
 			}
+		},
+		getTypeFolderForNode:(node) => {
+
+			if (node.type === 'SchemaProperty') return 'properties';
+			if (node.type === 'SchemaView') return 'views';
+			if (node.type === 'SchemaRelationshipNode') return 'remoteproperties';
+			return 'methods';
 		},
 		navigateToSchemaObjectFromAnywhere: (obj, updateLocationStack = false) => {
 
@@ -2184,6 +2204,17 @@ let _Code = {
 		},
 		getElementForKey: (key) => {
 			return document.querySelector(`#code-contents [data-property=${key}]`);
+		},
+		ensureCodeAreaIsActive: async () => {
+
+			if (!location.hash.startsWith('#code')) {
+
+				location.hash = 'code';
+			}
+
+			await _Helpers.waitForElement('.' + _Code.classIndicatorEverythingReady);
+
+			return true;
 		},
 	},
 	persistence: {
@@ -2527,6 +2558,46 @@ let _Code = {
 			_Code.search.getSearchInputElement().value = '';
 			_Code.search.doSearch();
 		},
+
+		// search from global search widget
+		goToResult: (result, key, searchData) => {
+
+			_Code.helpers.ensureCodeAreaIsActive().then(() => Command.getPromise(result.id)).then(node => {
+
+				// console.log(node);
+				let path = _Code.search.getPathForNode(node);
+				// console.log(path);
+
+				if (result.type === 'SchemaMethod' && key === 'source') {
+
+					_Editors.highlightTextInNextEditor(searchData.queryString);
+				}
+
+				_Code.search.prepareTabForNodeAndKey(node, key);
+				_Code.tree.findAndOpenNode(path);
+			});
+		},
+		getPathForNode: (node) => {
+
+			if (node.type === 'SchemaMethodParameter') {
+				return _Code.helpers.getPathToOpenForSchemaObject(node.schemaMethod);
+			}
+
+			return _Code.helpers.getPathToOpenForSchemaObject(node);
+		},
+		prepareTabForNodeAndKey: (node, key) => {
+
+			if (node.type === 'SchemaMethod') {
+				if (key === 'source') {
+					_Code.mainArea.saveActiveTabForMethod(node.id, 'code');
+				} else {
+					_Code.mainArea.saveActiveTabForMethod(node.id, 'api');
+				}
+
+			} else if (node.type === 'SchemaMethodParameter') {
+				_Code.mainArea.saveActiveTabForMethod(node.schemaMethod.id, 'api');
+			}
+		}
 	},
 	recentElements: {
 		codeRecentElementsKey: 'structrCodeRecentElements_' + location.port,

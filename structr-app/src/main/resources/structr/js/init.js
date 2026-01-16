@@ -200,7 +200,10 @@ let Structr = {
 	},
 	getRequestParameterName: (key) => (Structr.legacyRequestParameters === true) ? key : `_${key}`,
 	setFunctionBarHTML: (html) => _Helpers.setContainerHTML(Structr.functionBar, html),
-	setMainContainerHTML: (html) => _Helpers.setContainerHTML(Structr.mainContainer, html),
+	setMainContainerHTML: (html) => {
+		_Helpers.setContainerHTML(Structr.mainContainer, html);
+		_Helpers.activateCommentsInElement(Structr.mainContainer);
+	},
 
 	moveUIOffscreen: () => {
 
@@ -273,6 +276,8 @@ let Structr = {
 	},
 	init: () => {
 		_Helpers.fastRemoveAllChildren(document.querySelector('#errorText'));
+
+		Structr.globalSearch.init();
 	},
 	clearMain: () => {
 
@@ -333,7 +338,7 @@ let Structr = {
 
 		let activeMenuEntry = Structr.mainMenu.getActiveEntry()?.dataset['name'] ?? '';
 		let displayName     = Structr.getInstanceDisplayName();
-		let instance        = (displayName === '') ? '' : ` - ${displayName})`;
+		let instance        = (displayName === '') ? '' : ` - ${displayName}`;
 
 		document.title = `Structr ${activeMenuEntry}${instance}`;
 	},
@@ -669,9 +674,10 @@ let Structr = {
 		return entity;
 	},
 	slideouts: {
-		leftSlideoutTrigger: (triggerEl, slideoutElement, otherSlideouts, openCallback, closeCallback) => {
+		leftSlideoutTrigger: (triggerEl, slideoutElement, allLeftSlideouts, openCallback, closeCallback) => {
 
 			let selectedSlideoutWasOpen = slideoutElement.hasClass('open');
+			let otherSlideouts          = allLeftSlideouts.filter(s => s !== slideoutElement);
 
 			document.querySelector('.column-resizer-left')?.classList.toggle('hidden', selectedSlideoutWasOpen);
 
@@ -718,9 +724,10 @@ let Structr = {
 
 			document.querySelector('.slideout-activator.left.active')?.classList.remove('active');
 		},
-		rightSlideoutClickTrigger: (triggerEl, slideoutElement, otherSlideouts, openCallback, closeCallback) => {
+		rightSlideoutClickTrigger: (triggerEl, slideoutElement, allRightSlideouts, openCallback, closeCallback) => {
 
 			let selectedSlideoutWasOpen = slideoutElement.hasClass('open');
+			let otherSlideouts          = allRightSlideouts.filter(s => s !== slideoutElement);
 
 			document.querySelector('.column-resizer-right')?.classList.toggle('hidden', selectedSlideoutWasOpen);
 
@@ -1912,6 +1919,142 @@ let Structr = {
 		});
 	},
 
+	globalSearch: {
+		init: () => {
+
+			let form        = document.querySelector('#global-search-node-form');
+			let searchField = form.querySelector('[name="queryString"]');
+
+			form.addEventListener('submit', e => {
+				e.preventDefault();
+
+				Structr.globalSearch.doSearch();
+			});
+
+			searchField.addEventListener('input', _Helpers.debounce(Structr.globalSearch.doSearch, 300));
+
+			searchField.addEventListener('search', () => {
+				if (searchField.value === '') {
+					Structr.globalSearch.clear();
+				}
+			});
+
+			for (let checkbox of form.querySelectorAll('input[type="checkbox"]')) {
+				checkbox.addEventListener('change', Structr.globalSearch.doSearch);
+			}
+		},
+		clear: () => {
+
+			let resultsElement = document.querySelector('#global-search-results');
+			for (let oldResult of resultsElement.querySelectorAll('[data-id]')) {
+				_Helpers.fastRemoveElement(oldResult);
+			}
+		},
+		doSearch: async () => {
+
+			let form = document.querySelector('#global-search-node-form');
+			let data = Structr.globalSearch.getBasicFormData(form);
+
+			Structr.globalSearch.clear();
+
+			if (data.queryString.length > 0) {
+
+				let results        = await Command.searchNodes(data);
+				let resultsElement = document.querySelector('#global-search-results');
+
+				for (let result of results) {
+
+					for (let key of result.keys) {
+
+						let el = _Helpers.createSingleDOMElementFromHTML(Structr.globalSearch.templates.result(result, key));
+
+						resultsElement.appendChild(el);
+
+						el.querySelector('button').addEventListener('click', () => {
+							Structr.globalSearch.goTo(result, key, data);
+						});
+					}
+				}
+			}
+		},
+		goTo: (result, key, searchData) => {
+
+			if (result.isDOMElement) {
+
+				_Pages.search.goTo(result, key, searchData);
+
+			} else if (result.isSchemaElement) {
+
+				_Code.search.goToResult(result, key, searchData);
+
+			} else {
+				console.log('not yet implemented to jump to: ', result);
+			}
+		},
+		getBasicFormData: (form) => {
+
+			let data = {};
+
+			for (let el of form.elements) {
+				switch(el.type) {
+					case 'checkbox':
+						data[el.name] = el.checked;
+						break;
+					default:
+						data[el.name] = el.value;
+						break;
+				}
+			}
+
+			return data;
+		},
+		templates: {
+			popover: config => `
+				<div popover id="global-search-popover" class="absolute direction-rtl overflow-hidden rounded">
+					<!-- dir=rtl shows the resize element in the bottom left corner, afterwards we set dir=ltr again -->
+					<div id="global-search-popover-inner" class="overflow-auto h-full direction-ltr">
+				
+						<div class="overflow-y-auto max-h-full h-full">
+							<div class="mx-4 my-4">
+								<form id="global-search-node-form" class="flex flex-col gap-2">
+									<div class="flex gap-2">
+										<input type="search" name="queryString" required placeholder="Search term..." autocomplete="off">
+									</div>
+									<div>
+										<label class="flex items-center"><input type="checkbox" checked name="searchDOM">Page Elements</label>
+										<label class="flex items-center"><input type="checkbox" checked name="searchSchema">Schema</label>
+										<!--	<label class="flex items-center"><input type="checkbox" checked name="searchFlow">Flow Nodes</label>-->
+									</div>
+								</form>
+		
+								<div id="global-search-results" class="grid items-start gap-x-2 gap-y-3 mt-6" style="grid-template-columns: [ name ] minmax(0, 1fr) [ keys ] minmax(10%, max-content) [ id ] 4rem [ actions ] minmax(2rem, max-content)">
+									<div class="contents font-bold">
+										<div>Name/Type</div>
+										<div>Key</div>
+										<div>ID</div>
+										<div></div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			`,
+			result: (result, key) => `
+				<div class="contents" data-id="${result.id}" data-key="${key}">
+					<div class="break-word">${result.name ? `${result.name} [${result.type}]` : result.type}</div>
+					<div class="break-word">${key}</div>
+					<div class="truncate">${result.id}</div>
+					<div>
+						<button class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green p-2 mr-0" title="Go to element">
+							${_Icons.getSvgIcon(_Icons.iconOpenInNewPage, 16, 16, [..._Icons.getSvgIconClassesNonColorIcon(), 'pointer-events-none'])}
+						</button>
+					</div>
+				</div>
+			`
+		}
+	},
+
 	/* basically only exists to get rid of repeating strings. is also used to filter out internal keys from dialogs */
 	internalKeys: {
 		name: 'name',
@@ -1973,14 +2116,29 @@ let Structr = {
 					</div>
 				</div>
 
-				<div class="flex gap-4 ml-2 mr-6">
+				<div class="flex gap-4 items-center mr-6">
 
-					<a target="_blank" href="${_Helpers.getPrefixedRootUrl('/structr/config')}">${_Icons.getSvgIconWithID('settings-icon', _Icons.iconSettingsWrench, 20,20,_Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1.5']), 'System Settings')}</a>
+					<div style="target-name: --global-search;">
+					
+						<button class="m-0 p-0 border-0" popovertarget="global-search-popover" style="anchor-name: --global-search;">
+							${_Icons.getSvgIcon(_Icons.iconSearch, 24, 24, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), 'Global Search')}
+						</button>
 
-					${_Icons.getSvgIconWithID('terminal-icon', _Icons.iconTerminal, 26,26,_Icons.getSvgIconClassesForColoredIcon(['text-white']), 'Toggle Console')}
+						${Structr.globalSearch.templates.popover(config)}
+					</div>
+
+					<div>
+						<a target="_blank" href="${_Helpers.getPrefixedRootUrl('/structr/config')}">
+							${_Icons.getSvgIconWithID('settings-icon', _Icons.iconSettingsWrench, 20,20, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), 'System Settings')}
+						</a>
+					</div>
+
+					<div>
+						${_Icons.getSvgIconWithID('terminal-icon', _Icons.iconTerminal, 26,26, _Icons.getSvgIconClassesForColoredIcon(['text-white']), 'Toggle Console')}
+					</div>
 
 					<div id="${Structr.notificationIconId}" class="relative">
-						${_Icons.getSvgIcon(_Icons.iconNotificationBell, 20,20,_Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), 'Show notifications')}
+						${_Icons.getSvgIcon(_Icons.iconNotificationBell, 20,20, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), 'Show notifications')}
 						<div class="absolute flex items-center rounded-full h-4 -top-1 -right-3 text-white bg-red">
 							<div data-notification-count class="px-2 text-xs empty:hidden"></div>
 						</div>

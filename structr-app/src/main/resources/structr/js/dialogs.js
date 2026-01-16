@@ -127,6 +127,8 @@ let _Dialogs = {
 
 				Structr.clearMain();
 
+				Structr.globalSearch.clear();
+
 				// show login box
 				let element = _Dialogs.basic.append(Structr.templates.loginDialogMarkup, {
 					width: ''
