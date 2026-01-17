@@ -2010,7 +2010,7 @@ let Structr = {
 		},
 		templates: {
 			popover: config => `
-				<div popover id="global-search-popover" class="absolute direction-rtl overflow-hidden rounded">
+				<div popover id="global-search-popover" class="direction-rtl overflow-hidden rounded">
 					<!-- dir=rtl shows the resize element in the bottom left corner, afterwards we set dir=ltr again -->
 					<div id="global-search-popover-inner" class="overflow-auto h-full direction-ltr">
 				
@@ -2018,7 +2018,7 @@ let Structr = {
 							<div class="mx-4 my-4">
 								<form id="global-search-node-form" class="flex flex-col gap-2">
 									<div class="flex gap-2">
-										<input type="search" name="queryString" required placeholder="Search term..." autocomplete="off">
+										<input type="search" name="queryString" required placeholder="Search term..." autocomplete="off" autofocus>
 									</div>
 									<div>
 										<label class="flex items-center"><input type="checkbox" checked name="searchDOM">Page Elements</label>
