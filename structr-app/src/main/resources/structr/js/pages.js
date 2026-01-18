@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -123,113 +123,103 @@ let _Pages = {
 		_Pages.unusedElementsTree      = $('#elementsArea', _Pages.unusedElementsSlideout);
 		_Pages.previewSlideout         = $('#previewSlideout');
 
-		_Pages.ensureShadowPageExists().then(() => {
+		_Pages.localizations.init();
+		_Pages.search.init();
 
-			let pagesTab = document.getElementById('pagesTab');
-			let pagesTabSlideoutAction = (e) => {
-				Structr.slideouts.leftSlideoutTrigger(pagesTab, _Pages.pagesSlideout, [_Pages.localizationsSlideout], () => {
-					LSWrapper.setItem(_Pages.activeTabLeftKey, pagesTab.id);
-					Structr.resize();
-					_Entities.highlightSelectedElementOnSlideoutOpen();
-				}, _Pages.leftSlideoutClosedCallback);
-			};
+		_Pages.ensureShadowPageExists().then(_Pages.initSlideouts).then(() => {
 
-			pagesTab.addEventListener('click', pagesTabSlideoutAction);
+			Structr.setFunctionBarHTML(_Pages.templates.pagesActions() + _Pages.templates.functions());
 
-			$(pagesTab).droppable({
-				tolerance: 'touch',
-				//over: pagesTabSlideoutAction
-			});
+			UISettings.showSettingsForCurrentModule();
 
-			let localizationsTab = document.getElementById('localizationsTab');
-			localizationsTab.addEventListener('click', () => {
-				Structr.slideouts.leftSlideoutTrigger(localizationsTab, _Pages.localizationsSlideout, [_Pages.pagesSlideout], () => {
-					LSWrapper.setItem(_Pages.activeTabLeftKey, localizationsTab.id);
-					_Pages.localizations.refreshPagesForLocalizationPreview();
-					Structr.resize();
-					_Entities.highlightSelectedElementOnSlideoutOpen();
-				}, _Pages.leftSlideoutClosedCallback);
-			});
+			Structr.resize();
 
-			document.querySelector('#localizations input.locale').addEventListener('keydown', (e) => {
-				if (e.which === 13) {
-					_Pages.localizations.refreshLocalizations();
-				}
-			});
+			Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer-left'), _Pages.getLeftResizerKey(), _Pages.leftTabMinWidth, _Pages.moveLeftResizer);
+			Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer-right'), _Pages.getRightResizerKey(), _Pages.rightTabMinWidth, _Pages.moveRightResizer, true);
 
-			let refreshLocalizationsButton = document.querySelector('#localizations button.refresh');
-			refreshLocalizationsButton.addEventListener('click', _Pages.localizations.refreshLocalizations);
+			Structr.mainMenu.unblock(500);
 
-			_Helpers.appendInfoTextToElement({
-				element: refreshLocalizationsButton,
-				text: "On this tab you can load the localizations requested for the given locale on the currently previewed page (including the UUID of the details object and the query parameters which are also used for the preview).<br><br>The retrieval process works just as rendering the page. If you request the locale \"en_US\" you might get Localizations for \"en\" as a fallback if no exact match is found.<br><br>If no Localization could be found, an empty input field is rendered where you can quickly create the missing Localization.",
-				insertAfter: true,
-				helpElementCss: { width: "300px" },
-				offsetX: -20,
-				offsetY: 10
-			});
+			document.getElementById(_Pages.getActiveTabLeft())?.click();
+			document.getElementById(_Pages.getActiveTabRight())?.click();
 
-			let widgetsTab = document.getElementById('widgetsTab');
-			widgetsTab.addEventListener('click', () => {
-				Structr.slideouts.rightSlideoutClickTrigger(widgetsTab, _Pages.widgetsSlideout, [_Pages.componentsSlideout, _Pages.unusedElementsSlideout, _Pages.previewSlideout], (params) => {
-					LSWrapper.setItem(_Pages.activeTabRightKey, widgetsTab.id);
-					_Widgets.reloadWidgets();
-					Structr.resize();
-				}, _Pages.rightSlideoutClosedCallback);
-			});
+			_Pages.adaptFunctionBarTabs();
 
-			let componentsTab = document.getElementById('componentsTab');
-			let componentsTabSlideoutAction = (isDragOpen = false) => {
-				Structr.slideouts.rightSlideoutClickTrigger(componentsTab, _Pages.componentsSlideout, [_Pages.widgetsSlideout, _Pages.unusedElementsSlideout, _Pages.previewSlideout], (params) => {
-					LSWrapper.setItem(_Pages.activeTabRightKey, componentsTab.id);
-					_Pages.sharedComponents.reload(isDragOpen);
-					Structr.resize();
-				}, () => {
-					_Helpers.fastRemoveAllChildren(_Pages.componentsSlideout[0]);
-					_Pages.rightSlideoutClosedCallback();
-				});
-			};
-			componentsTab.addEventListener('click', componentsTabSlideoutAction);
+			for (const menuLink of document.querySelectorAll('#function-bar .tabs-menu li a')) {
+				menuLink.onclick = (event) => _Pages.activateCenterPane(menuLink);
+			}
 
-			$(componentsTab).droppable({
-				tolerance: 'touch',
-				over: (e, ui) => {
-
-					let isComponentsSlideoutOpen = _Pages.componentsSlideout.hasClass('open');
-					let isColumnResizer          = $(ui.draggable).hasClass('column-resizer');
-
-					if (!isComponentsSlideoutOpen && !isColumnResizer) {
-						componentsTabSlideoutAction(true);
-					}
-				}
-			});
-
-			let elementsTab = document.getElementById('elementsTab');
-			elementsTab.addEventListener('click', () => {
-				Structr.slideouts.rightSlideoutClickTrigger(elementsTab, _Pages.unusedElementsSlideout, [_Pages.widgetsSlideout, _Pages.componentsSlideout, _Pages.previewSlideout], (params) => {
-					LSWrapper.setItem(_Pages.activeTabRightKey, elementsTab.id);
-					_Pages.unattachedNodes.reload();
-					Structr.resize();
-				}, () => {
-					_Pages.unattachedNodes.removeElementsFromUI();
-					_Pages.rightSlideoutClosedCallback();
-				});
-			});
-
-			let previewTab = document.getElementById('previewTab');
-			previewTab.addEventListener('click', () => {
-				Structr.slideouts.rightSlideoutClickTrigger(previewTab, _Pages.previewSlideout, [_Pages.widgetsSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout], (params) => {
-					LSWrapper.setItem(_Pages.activeTabRightKey, previewTab.id);
-					_Pages.previews.updatePreviewSlideout();
-					Structr.resize();
-				}, () => {
-					_Pages.rightSlideoutClosedCallback();
-				});
-			});
-
-			_Pages.refresh();
+			// always init page tree - we never clear it
+			_Pages.pageTree.init();
 		});
 
+	},
+	initSlideouts: () => {
+
+		let initSlideout = (slideoutActivatorTab, allSlideouts) => {
+
+			let tabId                 = slideoutActivatorTab.id;
+			let correspondingSlideout = $(slideoutActivatorTab.dataset.forSlideout);
+			let subSection            = slideoutActivatorTab.dataset.subSection;
+			let isLeft                = slideoutActivatorTab.classList.contains('left');
+			let triggerFn             = isLeft ? Structr.slideouts.leftSlideoutTrigger : Structr.slideouts.rightSlideoutClickTrigger;
+			let innerOpenCallback     = isLeft ? _Pages.leftSlideoutOpenedCallback : _Pages.rightSlideoutOpenedCallback;
+			let innerCloseCallback    = isLeft ? _Pages.leftSlideoutClosedCallback : _Pages.rightSlideoutClosedCallback;
+
+			let slideoutAction = (eventOrData) => {
+
+				triggerFn(slideoutActivatorTab, correspondingSlideout, allSlideouts, () => {
+
+					_Pages[subSection]?.onSlideoutOpen?.(eventOrData);
+
+					innerOpenCallback(tabId);
+
+					Structr.resize();
+
+				}, () => {
+
+					_Pages[subSection]?.onSlideoutClose?.();
+
+					innerCloseCallback();
+
+					Structr.resize();
+				});
+			};
+
+			slideoutActivatorTab.addEventListener('click', slideoutAction);
+
+			_Pages[subSection]?.onSlideoutInit?.(slideoutActivatorTab, slideoutAction);
+		}
+
+		let allLeftSlideoutTabs = document.querySelectorAll('.slideout-activator.left');
+		let allLeftSlideouts    = [...allLeftSlideoutTabs].map(tab => $(tab.dataset.forSlideout));
+
+		for (let slideoutActivatorTabLeft of allLeftSlideoutTabs) {
+			initSlideout(slideoutActivatorTabLeft, allLeftSlideouts);
+		}
+
+		let allRightSlideoutTabs = document.querySelectorAll('.slideout-activator.right');
+		let allRightSlideouts    = [...allRightSlideoutTabs].map(tab => $(tab.dataset.forSlideout));
+
+		for (let slideoutActivatorTabRight of allRightSlideoutTabs) {
+			initSlideout(slideoutActivatorTabRight, allRightSlideouts);
+		}
+	},
+	leftSlideoutOpenedCallback: (tabId) => {
+
+		LSWrapper.setItem(_Pages.activeTabLeftKey, tabId);
+		_Entities.highlightSelectedElementOnSlideoutOpen();
+	},
+	leftSlideoutClosedCallback: () => {
+
+		LSWrapper.setItem(_Pages.activeTabLeftKey, 'NONE');
+	},
+	rightSlideoutOpenedCallback: (tabId) => {
+
+		LSWrapper.setItem(_Pages.activeTabRightKey, tabId);
+	},
+	rightSlideoutClosedCallback: () => {
+
+		LSWrapper.removeItem(_Pages.activeTabRightKey);
 	},
 	cleanActiveTabsFromLocalStorage: () => {
 
@@ -716,187 +706,6 @@ let _Pages = {
 
 		_Editors.resizeVisibleEditors();
 	},
-	refresh: () => {
-
-		_Helpers.fastRemoveAllChildren(_Pages.pagesTree[0]);
-
-		Structr.setFunctionBarHTML(_Pages.templates.pagesActions() + _Pages.templates.functions());
-
-		UISettings.showSettingsForCurrentModule();
-
-		Structr.resize();
-
-		Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer-left'), _Pages.getLeftResizerKey(), _Pages.leftTabMinWidth, _Pages.moveLeftResizer);
-		Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer-right'), _Pages.getRightResizerKey(), _Pages.rightTabMinWidth, _Pages.moveRightResizer, true);
-
-		Structr.mainMenu.unblock(500);
-
-		document.getElementById(_Pages.getActiveTabLeft())?.click();
-		document.getElementById(_Pages.getActiveTabRight())?.click();
-
-		_Pages.adaptFunctionBarTabs();
-
-		for (const menuLink of document.querySelectorAll('#function-bar .tabs-menu li a')) {
-			menuLink.onclick = (event) => _Pages.activateCenterPane(menuLink);
-		}
-
-		let pagerElement = document.querySelector('#pagesPager');
-		let pPager = _Pager.addPager('pages', pagerElement, true, 'Page', null, null, null, null, true);
-
-		pPager.cleanupFunction = () => {
-			_Helpers.fastRemoveAllChildren(_Pages.pagesTree[0]);
-		};
-
-		pagerElement.insertAdjacentHTML('beforeend', `
-			<div id="pagesPagerFilters">
-				Filters: <input type="text" class="filter" data-attribute="name" placeholder="Name" title="Here you can filter the pages list by page name" autocomplete="new-password"/>
-				<input type="text" class="filter page-label category-filter" data-attribute="category" placeholder="Category">
-			</div>
-		`);
-		let filerEl = pagerElement.querySelector('#pagesPagerFilters');
-		pPager.activateFilterElements(filerEl);
-		pPager.setIsPaused(false);
-		pPager.refresh();
-
-		fetch(`${Structr.rootUrl}Page`, {
-			headers: _Helpers.getHeadersForCustomView(['category'])
-		}).then(response => {
-			if (response.ok) {
-				return response.json();
-			}
-		}).then(data => {
-
-			let categories = new Set(data.result.map(p => p.category).filter(c => c).sort());
-
-			let helpText = 'Filter pages by page category.';
-			if (categories.size > 0) {
-				helpText += 'Available categories: \n\n' + [...categories].join('\n');
-			} else {
-				helpText += '\nNo categories available - these can be set in the "General" tab of a page.';
-			}
-
-			filerEl.querySelector('input.category-filter').title = helpText;
-		});
-
-		$('#import_page').on('click', (e) => {
-			e.stopPropagation();
-
-			let { dialogText } = _Dialogs.custom.openDialog('Import Template');
-
-			dialogText.insertAdjacentHTML('beforeend', `
-				<h3>Create page from source code ...</h3>
-				<textarea id="_code" name="code" cols="40" rows="5" placeholder="Paste HTML code here"></textarea>
-
-				<h3>... or fetch page from URL: <input id="_address" name="address" size="40" value="http://"></h3>
-				<table class="props">
-					<tr>
-						<td><label for="name">Name of new page:</label></td>
-						<td><input id="_name" name="name" size="20"></td></tr>
-					<tr>
-						<td><label for="publicVisibility">Visible to public</label></td>
-						<td><input type="checkbox" id="_publicVisible" name="publicVisibility"></td></tr>
-					<tr>
-						<td><label for="authVisibilty">Visible to authenticated users</label></td>
-						<td><input type="checkbox" id="_authVisible" name="authVisibilty"></td></tr>
-					<tr>
-						<td><label for="includeInExport">Include imported files in deployment export</label></td>
-						<td><input type="checkbox" id="_includeInExport" name="includeInExport" checked="checked"></td></tr>
-					<tr>
-						<td><label for="processDeploymentInfo">Process deployment annotations</label></td>
-						<td><input type="checkbox" id="_processDeploymentInfo" name="processDeploymentInfo"></td></tr>
-				</table>
-			`);
-
-			$('#_address', $(dialogText)).on('blur', function() {
-				let addr = $(this).val().replace(/\/+$/, "");
-				$('#_name', $(dialogText)).val(addr.substring(addr.lastIndexOf("/") + 1));
-			});
-
-			let startImportButton = _Dialogs.custom.appendCustomDialogButton('<button class="action" id="startImport">Start Import</button>');
-
-			startImportButton.addEventListener('click', (e) => {
-				e.stopPropagation();
-
-				let code                  = $('#_code', $(dialogText)).val();
-				let address               = $('#_address', $(dialogText)).val();
-				let name                  = $('#_name', $(dialogText)).val();
-				let publicVisible         = $('#_publicVisible', $(dialogText)).prop('checked');
-				let authVisible           = $('#_authVisible', $(dialogText)).prop('checked');
-				let includeInExport       = $('#_includeInExport', $(dialogText)).prop('checked');
-				let processDeploymentInfo = $('#_processDeploymentInfo', $(dialogText)).prop('checked');
-
-				if (code.length > 0) {
-					address = null;
-				}
-
-				return Command.importPage(code, address, name, publicVisible, authVisible, includeInExport, processDeploymentInfo);
-			});
-		});
-
-		// Display 'Create Page' dialog
-		let smallTransparentGIF = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
-		let createPageButton = document.querySelector('#create_page');
-		createPageButton.addEventListener('click', async (e) => {
-
-			e.stopPropagation();
-
-			let pageTemplates = await _Widgets.fetchAllPageTemplateWidgets();
-
-			if (pageTemplates.length === 0) {
-
-				Command.createSimplePage();
-
-			} else {
-
-				let { dialogText } = _Dialogs.custom.openDialog('Select Template to Create New Page');
-
-				let container = _Helpers.createSingleDOMElementFromHTML('<div id="template-tiles"></div>');
-				dialogText.appendChild(container);
-
-				for (let widget of pageTemplates) {
-
-					let id = 'create-from-' + widget.id;
-					let tile = _Helpers.createSingleDOMElementFromHTML(`<div id="${id}" class="app-tile"><div class="app-thumbnail-frame"><img src="${widget.newThumbnailPath ?? widget.thumbnailPath ?? smallTransparentGIF}"/><h4>${widget.name}</h4><p>${(widget.description || '')}</p></div></div>`);
-					container.append(tile);
-
-					tile.addEventListener('click', () => {
-						Command.create({ type: 'Page' }, (page) => {
-							Structr.removeExpandedNode(page.id);
-							Command.appendWidget(widget.source, page.id, page.id, null, {}, true);
-							_Dialogs.custom.dialogCancelBaseAction();
-						});
-					});
-
-				}
-
-				// default page
-				let defaultTile = _Helpers.createSingleDOMElementFromHTML('<div id="create-simple-page" class="app-tile"><div class="app-thumbnail-frame"><img src="https://apps.structr.com/assets/images/simple-new.png"/><h4>Simple Page</h4><p>Creates a simple page with a minimal set of HTML elements.</p></div></div>');
-				container.append(defaultTile);
-
-				let createSimplePageButton = container.querySelector('#create-simple-page');
-				createSimplePageButton.addEventListener('click', () => {
-					Command.createSimplePage();
-					_Dialogs.custom.dialogCancelBaseAction();
-				});
-			}
-		});
-
-		let selectedObjectId = LSWrapper.getItem(_Entities.selectedObjectIdKey);
-		if (selectedObjectId) {
-
-			fetch(Structr.rootUrl + selectedObjectId).then(response => {
-				if (!response.ok) {
-					// looks like element was deleted
-					LSWrapper.removeItem(_Entities.selectedObjectIdKey);
-				}
-			});
-		}
-
-		window.setTimeout(() => {
-			_Pages.cleanActiveTabsFromLocalStorage();
-		}, 500);
-
-	},
 	removePage: (page) => {
 		Structr.removeExpandedNode(page.id);
 	},
@@ -1002,6 +811,12 @@ let _Pages = {
 	emptyCenterPane: () => {
 		_Helpers.fastRemoveAllChildren(_Pages.centerPane);
 	},
+	saveActiveCenterTab: (id, tab) => {
+		const activeCenterTabs = JSON.parse(LSWrapper.getItem(_Pages.activeCenterTabKey)) || {};
+
+		activeCenterTabs[id] = tab;
+		LSWrapper.setItem(_Pages.activeCenterTabKey, JSON.stringify(activeCenterTabs));
+	},
 	refreshCenterPane: (obj, urlHash) => {
 
 		const activeCenterTabs = JSON.parse(LSWrapper.getItem(_Pages.activeCenterTabKey)) || {};
@@ -1010,8 +825,7 @@ let _Pages = {
 				urlHash = activeCenterTabs[obj.id];
 			}
 		} else {
-			activeCenterTabs[obj.id] = urlHash;
-			LSWrapper.setItem(_Pages.activeCenterTabKey, JSON.stringify(activeCenterTabs));
+			_Pages.saveActiveCenterTab(obj.id, urlHash);
 		}
 
 		_Entities.deselectAllElements();
@@ -1405,17 +1219,6 @@ let _Pages = {
 	getRightResizerKey: () => {
 		return _Pages.pagesResizerRightKey;
 	},
-	leftSlideoutClosedCallback: () => {
-
-		LSWrapper.setItem(_Pages.activeTabLeftKey, 'NONE');
-		Structr.resize();
-	},
-	rightSlideoutClosedCallback: () => {
-
-		LSWrapper.removeItem(_Pages.activeTabRightKey);
-		Structr.resize();
-	},
-
 	openAndSelectTreeObjectById: (id) => {
 
 		_Entities.deselectAllElements();
@@ -2349,10 +2152,205 @@ let _Pages = {
 
 	},
 
+	pageTree: {
+		clear: () => {
+			_Helpers.fastRemoveAllChildren(_Pages.pagesTree[0]);
+		},
+		init: () => {
+
+			_Pages.pageTree.clear();
+
+			let pagerElement = document.querySelector('#pagesPager');
+			let pPager = _Pager.addPager('pages', pagerElement, true, 'Page', null, null, null, null, true);
+
+			pPager.cleanupFunction = () => {
+				_Pages.pageTree.clear();
+			};
+
+			pagerElement.insertAdjacentHTML('beforeend', `
+				<div id="pagesPagerFilters">
+					Filters: <input type="text" class="filter" data-attribute="name" placeholder="Name" title="Here you can filter the pages list by page name" autocomplete="new-password"/>
+					<input type="text" class="filter page-label category-filter" data-attribute="category" placeholder="Category">
+				</div>
+			`);
+			let filerEl = pagerElement.querySelector('#pagesPagerFilters');
+			pPager.activateFilterElements(filerEl);
+			pPager.setIsPaused(false);
+			pPager.refresh();
+
+			fetch(`${Structr.rootUrl}Page`, {
+				headers: _Helpers.getHeadersForCustomView(['category'])
+			}).then(response => {
+				if (response.ok) {
+					return response.json();
+				}
+			}).then(data => {
+
+				let categories = new Set(data.result.map(p => p.category).filter(c => c).sort());
+
+				let helpText = 'Filter pages by page category.';
+				if (categories.size > 0) {
+					helpText += 'Available categories: \n\n' + [...categories].join('\n');
+				} else {
+					helpText += '\nNo categories available - these can be set in the "General" tab of a page.';
+				}
+
+				filerEl.querySelector('input.category-filter').title = helpText;
+			});
+
+			$('#import_page').on('click', (e) => {
+				e.stopPropagation();
+
+				let { dialogText } = _Dialogs.custom.openDialog('Import Template');
+
+				dialogText.insertAdjacentHTML('beforeend', `
+					<h3>Create page from source code ...</h3>
+					<textarea id="_code" name="code" cols="40" rows="5" placeholder="Paste HTML code here"></textarea>
+
+					<h3>... or fetch page from URL: <input id="_address" name="address" size="40" value="http://"></h3>
+					<table class="props">
+						<tr>
+							<td><label for="name">Name of new page:</label></td>
+							<td><input id="_name" name="name" size="20"></td></tr>
+						<tr>
+							<td><label for="publicVisibility">Visible to public</label></td>
+							<td><input type="checkbox" id="_publicVisible" name="publicVisibility"></td></tr>
+						<tr>
+							<td><label for="authVisibilty">Visible to authenticated users</label></td>
+							<td><input type="checkbox" id="_authVisible" name="authVisibilty"></td></tr>
+						<tr>
+							<td><label for="includeInExport">Include imported files in deployment export</label></td>
+							<td><input type="checkbox" id="_includeInExport" name="includeInExport" checked="checked"></td></tr>
+						<tr>
+							<td><label for="processDeploymentInfo">Process deployment annotations</label></td>
+							<td><input type="checkbox" id="_processDeploymentInfo" name="processDeploymentInfo"></td></tr>
+					</table>
+				`);
+
+				$('#_address', $(dialogText)).on('blur', function() {
+					let addr = $(this).val().replace(/\/+$/, "");
+					$('#_name', $(dialogText)).val(addr.substring(addr.lastIndexOf("/") + 1));
+				});
+
+				let startImportButton = _Dialogs.custom.appendCustomDialogButton('<button class="action" id="startImport">Start Import</button>');
+
+				startImportButton.addEventListener('click', (e) => {
+					e.stopPropagation();
+
+					let code                  = $('#_code', $(dialogText)).val();
+					let address               = $('#_address', $(dialogText)).val();
+					let name                  = $('#_name', $(dialogText)).val();
+					let publicVisible         = $('#_publicVisible', $(dialogText)).prop('checked');
+					let authVisible           = $('#_authVisible', $(dialogText)).prop('checked');
+					let includeInExport       = $('#_includeInExport', $(dialogText)).prop('checked');
+					let processDeploymentInfo = $('#_processDeploymentInfo', $(dialogText)).prop('checked');
+
+					if (code.length > 0) {
+						address = null;
+					}
+
+					return Command.importPage(code, address, name, publicVisible, authVisible, includeInExport, processDeploymentInfo);
+				});
+			});
+
+			// Display 'Create Page' dialog
+			let smallTransparentGIF = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+			let createPageButton = document.querySelector('#create_page');
+			createPageButton.addEventListener('click', async (e) => {
+
+				e.stopPropagation();
+
+				let pageTemplates = await _Widgets.fetchAllPageTemplateWidgets();
+
+				if (pageTemplates.length === 0) {
+
+					Command.createSimplePage();
+
+				} else {
+
+					let { dialogText } = _Dialogs.custom.openDialog('Select Template to Create New Page');
+
+					let container = _Helpers.createSingleDOMElementFromHTML('<div id="template-tiles"></div>');
+					dialogText.appendChild(container);
+
+					for (let widget of pageTemplates) {
+
+						let id = 'create-from-' + widget.id;
+						let tile = _Helpers.createSingleDOMElementFromHTML(`<div id="${id}" class="app-tile"><div class="app-thumbnail-frame"><img src="${widget.newThumbnailPath ?? widget.thumbnailPath ?? smallTransparentGIF}"/><h4>${widget.name}</h4><p>${(widget.description || '')}</p></div></div>`);
+						container.append(tile);
+
+						tile.addEventListener('click', () => {
+							Command.create({ type: 'Page' }, (page) => {
+								Structr.removeExpandedNode(page.id);
+								Command.appendWidget(widget.source, page.id, page.id, null, {}, true);
+								_Dialogs.custom.dialogCancelBaseAction();
+							});
+						});
+					}
+
+					// default page
+					let defaultTile = _Helpers.createSingleDOMElementFromHTML('<div id="create-simple-page" class="app-tile"><div class="app-thumbnail-frame"><img src="https://apps.structr.com/assets/images/simple-new.png"/><h4>Simple Page</h4><p>Creates a simple page with a minimal set of HTML elements.</p></div></div>');
+					container.append(defaultTile);
+
+					let createSimplePageButton = container.querySelector('#create-simple-page');
+					createSimplePageButton.addEventListener('click', () => {
+						Command.createSimplePage();
+						_Dialogs.custom.dialogCancelBaseAction();
+					});
+				}
+			});
+
+			let selectedObjectId = LSWrapper.getItem(_Entities.selectedObjectIdKey);
+			if (selectedObjectId) {
+
+				fetch(Structr.rootUrl + selectedObjectId).then(response => {
+					if (!response.ok) {
+						// looks like element was deleted
+						LSWrapper.removeItem(_Entities.selectedObjectIdKey);
+					}
+				});
+			}
+
+			window.setTimeout(() => {
+				_Pages.cleanActiveTabsFromLocalStorage();
+			}, 500);
+		},
+		onSlideoutInit: (tab, slideoutAction) => {
+
+			tab.addEventListener('dragenter', (e) => {
+
+				let isOpen = _Pages.pagesSlideout.hasClass('open');
+
+				if (!isOpen) {
+					slideoutAction();
+				}
+			});
+		}
+	},
 	localizations: {
 		lastSelectedPageKey: 'structrLocalizationsLastSelectedPageKey_' + location.port,
 		lastUsedLocaleKey: 'structrLocalizationsLastUsedLocale_' + location.port,
 		wrapperTypeForContextMenu: 'WrappedLocalizationForPreview',
+		init: () => {
+
+			document.querySelector('#localizations input.locale').addEventListener('keydown', (e) => {
+				if (e.which === 13) {
+					_Pages.localizations.refreshLocalizations();
+				}
+			});
+
+			let refreshLocalizationsButton = document.querySelector('#localizations button.refresh');
+			refreshLocalizationsButton.addEventListener('click', _Pages.localizations.refreshLocalizations);
+
+			_Helpers.appendInfoTextToElement({
+				element: refreshLocalizationsButton,
+				text: "On this tab you can load the localizations requested for the given locale on the currently previewed page (including the UUID of the details object and the query parameters which are also used for the preview).<br><br>The retrieval process works just as rendering the page. If you request the locale \"en_US\" you might get Localizations for \"en\" as a fallback if no exact match is found.<br><br>If no Localization could be found, an empty input field is rendered where you can quickly create the missing Localization.",
+				insertAfter: true,
+				helpElementCss: { width: "300px" },
+				offsetX: -20,
+				offsetY: 10
+			});
+		},
 		getContextMenuElements: (div, wrappedEntity) => {
 
 			let entity         = wrappedEntity.entity;
@@ -2375,7 +2373,9 @@ let _Pages = {
 
 			return elements;
 		},
-
+		onSlideoutOpen: () => {
+			_Pages.localizations.refreshPagesForLocalizationPreview();
+		},
 		refreshPagesForLocalizationPreview: async () => {
 
 			let pageSelect       = document.getElementById('localization-preview-page');
@@ -2618,6 +2618,9 @@ let _Pages = {
 		activePreviewPageId: null,
 		activePreviewHighlightElementId: null,
 		wrapperTypeForContextMenu: 'PreviewElement',
+		onSlideoutOpen: () => {
+			_Pages.previews.updatePreviewSlideout();
+		},
 		getContextMenuElements: (div, entityWrapper) => {
 
 			const entity = entityWrapper.entity;
@@ -3120,14 +3123,39 @@ let _Pages = {
 		},
 	},
 
+	widgets: {
+		onSlideoutOpen: () => {
+			_Widgets.reloadWidgets();
+		}
+	},
 	sharedComponents: {
+		onSlideoutInit: (tab, slideoutAction) => {
+
+			tab.addEventListener('dragenter', (e) => {
+
+				let isOpen = _Pages.componentsSlideout.hasClass('open');
+
+				if (!isOpen) {
+					slideoutAction(true);
+				}
+			});
+		},
+		onSlideoutOpen: (isDragOpen = false) => {
+			_Pages.sharedComponents.reload(isDragOpen);
+		},
+		onSlideoutClose: () => {
+			_Pages.sharedComponents.clear();
+		},
+		clear: () => {
+			_Helpers.fastRemoveAllChildren(_Pages.componentsSlideout[0]);
+		},
 		reload: (isReloadFromDragEvent = false) => {
 
 			if (!_Pages.componentsSlideout) return;
 
 			Command.listComponents(1000, 1, 'name', 'asc', (result) => {
 
-				_Helpers.fastRemoveAllChildren(_Pages.componentsSlideout[0]);
+				_Pages.sharedComponents.clear();
 
 				_Pages.componentsSlideout[0].insertAdjacentHTML('beforeend', `
 					<div id="newComponentDropzone" class="element-dropzone">
@@ -3185,13 +3213,16 @@ let _Pages = {
 			if (!modelObj) {
 				return false;
 			}
-			let previousValue  = modelObj[key];
-			if (newValue == previousValue) {
-				return false;
-			}
-			let doNotAskForKeys = ['id', 'name', 'syncedNodeIds', 'syncedNodes', 'sharedComponent', 'sharedComponentId'];
-			if (doNotAskForKeys.includes(key) || ((modelObj instanceof StructrContent) && (key === 'content' || key === 'contentType'))) {
-				return false;
+
+			if (key) {
+				let previousValue  = modelObj[key];
+				if (newValue == previousValue) {
+					return false;
+				}
+				let doNotAskForKeys = ['id', 'name', 'syncedNodeIds', 'syncedNodes', 'sharedComponent', 'sharedComponentId'];
+				if (doNotAskForKeys.includes(key) || ((modelObj instanceof StructrContent) && (key === 'content' || key === 'contentType'))) {
+					return false;
+				}
 			}
 
 			let isDOMNode      = (modelObj.isDOMNode === true);
@@ -3241,6 +3272,12 @@ let _Pages = {
 	},
 
 	unattachedNodes: {
+		onSlideoutOpen: () => {
+			_Pages.unattachedNodes.reload();
+		},
+		onSlideoutClose: () => {
+			_Pages.unattachedNodes.removeElementsFromUI();
+		},
 		reload: () => {
 
 			if (_Pages.unusedElementsSlideout.hasClass('open')) {
@@ -3894,29 +3931,167 @@ let _Pages = {
 		}
 	},
 
-	templates: {
-		pagesActions: config => `
-					<div id="pages-actions" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
-						<button class="action button btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
-							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Create Page
-						</button>
-						<div class="dropdown-menu-container">
+	search: {
+		init: () => {
+			let form                    = document.querySelector('#pages-search-node-form');
+			let searchField             = form.querySelector('[name="queryString"]');
 
-							<div class="flex flex-col divide-x-0 divide-y">
-								<a id="create_page" title="Create Page" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
-									${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'mr-2')} Create Page
-								</a>
+			form.addEventListener('submit', e => {
+				e.preventDefault();
+				_Pages.search.doSearch();
+			});
 
-								<a id="import_page" title="Import Template" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
-									${_Icons.getSvgIcon(_Icons.iconCreateFile, 16, 16, 'mr-2')} Import Page
-								</a>
+			searchField.addEventListener('input', _Helpers.debounce(_Pages.search.doSearch, 300));
 
-								<!--a id="add_template" title="Add Template" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
-									${_Icons.getSvgIcon(_Icons.iconMagicWand)} Add Template
-								</a-->
+			searchField.addEventListener('search', e => {
+				if (searchField.value === '') {
+					_Pages.search.clear();
+				}
+			});
+		},
+		clear: () => {
+
+			let resultsElement = document.querySelector('#pages-search-results');
+			for (let oldResult of resultsElement.querySelectorAll('[data-id]')) {
+				_Helpers.fastRemoveElement(oldResult);
+			}
+		},
+		doSearch: async () => {
+
+			let form = document.querySelector('#pages-search-node-form');
+			let data = Structr.globalSearch.getBasicFormData(form);
+			data.searchDOM = true;
+
+			_Pages.search.clear();
+
+			if (data.queryString.length > 0) {
+
+				let results        = await Command.searchNodes(data);
+				let resultsElement = document.querySelector('#pages-search-results');
+
+				for (let result of results) {
+
+					for (let key of result.keys) {
+
+						let el = _Helpers.createSingleDOMElementFromHTML(_Pages.search.templates.result(result, key));
+
+						resultsElement.appendChild(el);
+
+						el.querySelector('button').addEventListener('click', () => {
+							_Pages.search.goTo(result, key, data);
+						});
+					}
+				}
+			}
+		},
+		goTo: (result, key, searchData) => {
+
+			let { id } = result;
+			let tabName     = _Pages.search.getTabForKey(key);
+
+			if (tabName === 'editor' || tabName === 'repeater') {
+				_Editors.highlightTextInNextEditor(searchData.queryString);
+			}
+
+			let matchingTabUrlHash = '#pages:' + tabName;
+			let link = document.querySelector(`[href="${matchingTabUrlHash}"]`)
+
+			if (link && id === _Pages.centerPane.dataset['elementId']) {
+
+				_Pages.activateCenterPane(link);
+
+				let container = _Editors.getContainerForIdAndProperty(id, key);
+				if (container && container.instance) {
+					_Editors.autoHighlightText(container.instance);
+				}
+
+			} else {
+
+				// preselect tab for that element
+				_Pages.saveActiveCenterTab(id, matchingTabUrlHash);
+
+				_Pages.selectAndShowArbitraryDOMElement(id);
+			}
+		},
+		getTabForKey: (key) => {
+
+			if (key.startsWith('_html_') || key.startsWith('_custom_html_')) {
+				return 'html';
+			}
+
+			if (['functionQuery', 'cypherQuery', 'dataKey'].includes(key)) {
+				return 'repeater';
+			}
+
+			if (['content', 'contentType'].includes(key)) {
+				return 'editor';
+			}
+
+			if (['visibleToPublicUsers', 'visibleToAuthenticatedUsers'].includes(key)) {
+				return 'security';
+			}
+
+			return 'advanced';
+		},
+		templates: {
+			slideoutContent: config => `
+				<div class="overflow-y-auto max-h-full h-full">
+					<div class="mx-4 my-4">
+						<form id="pages-search-node-form" class="flex flex-col gap-2">
+							<div class="flex gap-2">
+								<input type="search" name="queryString" required placeholder="Search term..." autocomplete="off">
+							</div>
+						</form>
+
+						<div id="pages-search-results" class="grid items-center gap-x-2 gap-y-3 mt-6" style="grid-template-columns: [ name ] minmax(0, 1fr) [ keys ] minmax(10%, max-content) [ id ] 4rem [ actions ] minmax(2rem, max-content)">
+							<div class="contents font-bold">
+								<div>Name/Type</div>
+								<div>Key</div>
+								<div>ID</div>
+								<div></div>
 							</div>
 						</div>
 					</div>
+				</div>
+			`,
+			result: (result, key) => `
+				<div class="contents" data-id="${result.id}" data-key="${key}">
+					<div>${result.name ? `${result.name} [${result.type}]` : result.type}</div>
+					<div>${key}</div>
+					<div class="truncate">${result.id}</div>
+					<div>
+						<button class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green p-2 mr-0" title="Go to element">
+							${_Icons.getSvgIcon(_Icons.iconOpenInNewPage, 16, 16, [..._Icons.getSvgIconClassesNonColorIcon(), 'pointer-events-none'])}
+						</button>
+					</div>
+				</div>
+			`
+		}
+	},
+
+	templates: {
+		pagesActions: config => `
+			<div id="pages-actions" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
+				<button class="action button btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
+					${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Create Page
+				</button>
+				<div class="dropdown-menu-container">
+
+					<div class="flex flex-col divide-x-0 divide-y">
+						<a id="create_page" title="Create Page" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
+							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'mr-2')} Create Page
+						</a>
+
+						<a id="import_page" title="Import Template" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
+							${_Icons.getSvgIcon(_Icons.iconCreateFile, 16, 16, 'mr-2')} Import Page
+						</a>
+
+						<!--a id="add_template" title="Add Template" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
+							${_Icons.getSvgIcon(_Icons.iconMagicWand)} Add Template
+						</a-->
+					</div>
+				</div>
+			</div>
 		`,
 		main: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/pages.css">
@@ -3925,31 +4100,13 @@ let _Pages = {
 			<div class="column-resizer column-resizer-left hidden"></div>
 			<div class="column-resizer column-resizer-right hidden"></div>
 
-			<div class="slideout-activator left" id="pagesTab">
-				<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 28 28" width="24" height="24">
-					<g transform="matrix(1,0,0,1,0,0)">
-						<path d="M9.750 18.748 L23.250 18.748 L23.250 23.248 L9.750 23.248 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M9.750 11.248 L23.250 11.248 L23.250 15.748 L9.750 15.748 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M0.750 0.748 L14.250 0.748 L14.250 5.248 L0.750 5.248 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.75,5.248v1.5a1.5,1.5,0,0,0,1.5,1.5h4.5a1.5,1.5,0,0,1,1.5,1.5v1.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.25 15.748L17.25 18.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
-					</g>
-				</svg>
-				<br>
-				Page Tree
-			</div>
+			${_Pages.templates.slideoutActivators.left()}
 
 			<div id="pages" class="slideOut slideOutLeft">
 				<div id="pages-controls">
 					<div id="pagesPager"></div>
 				</div>
 				<div id="pagesTree"></div>
-			</div>
-
-			<div class="slideout-activator left" id="localizationsTab">
-				<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 28 28" width="24" height="24">
-					<g transform="matrix(1,0,0,1,0,0)">
-						<path d="M19.652 0.748L15.902 2.998 18.152 6.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M23.25,8.187A6.749,6.749,0,0,0,16.366,3.77" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M4.348 23.248L8.098 20.998 5.848 17.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M.75,15.808a6.749,6.749,0,0,0,6.884,4.417" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M0.750 0.748 L12.750 0.748 L12.750 12.748 L0.750 12.748 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M15.75,11.248h6a1.5,1.5,0,0,1,1.5,1.5v9a1.5,1.5,0,0,1-1.5,1.5h-9a1.5,1.5,0,0,1-1.5-1.5v-6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M15.75,20.248v-4.5a1.5,1.5,0,0,1,3,0v4.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M15.75 18.748L18.75 18.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.75 3.748L6.75 5.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M3.75 5.248L9.75 5.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M8.25,5.248s-1.5,4.5-4.5,4.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.749,8.014a3.933,3.933,0,0,0,3,1.734" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
-					</g>
-				</svg>
-				<br>
-				Trans-<br>lations
 			</div>
 
 			<div id="localizations" class="slideOut slideOutLeft">
@@ -3966,73 +4123,116 @@ let _Pages = {
 
 			<div id="center-pane"></div>
 
-			<div class="slideout-activator right" id="widgetsTab">
-				<svg viewBox="0 0 28 28" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
-					<g transform="matrix(1.1666666666666667,0,0,1.1666666666666667,0,0)">
-						<path d="M16.5,23.248H21a.75.75,0,0,0,.75-.75V17.559a.75.75,0,0,0-.219-.53l-1.06-1.061a.749.749,0,0,0-.53-.22H16.5a.75.75,0,0,0-.75.75v6A.75.75,0,0,0,16.5,23.248Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M16.5,9.748H21A.75.75,0,0,0,21.75,9V4.059a.75.75,0,0,0-.219-.53l-1.06-1.061a.749.749,0,0,0-.53-.22H16.5a.75.75,0,0,0-.75.75V9A.75.75,0,0,0,16.5,9.748Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M2.25 0.748L2.25 2.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M2.25 5.248L2.25 8.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M2.25 11.248L2.25 14.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M2.25,17.248v1.5a1.5,1.5,0,0,0,1.5,1.5h1.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M8.25 20.248L11.25 20.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.25 20.248L15.75 20.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M2.25 6.748L5.25 6.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M8.25 6.748L11.25 6.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.25 6.748L15.75 6.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
-					</g>
-				</svg>
-				<br>
-				Widgets
-			</div>
+			${_Pages.templates.slideoutActivators.right()}
 
 			<div id="widgetsSlideout" class="slideOut slideOutRight">
 			</div>
 
-			<div class="slideout-activator right" id="componentsTab">
-				<svg viewBox="0 0 28 28" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
-					<g transform="matrix(1.1666666666666667,0,0,1.1666666666666667,0,0)">
-						<path d="M6.750 3.001 A5.25 2.25 0 1 0 17.250 3.001 A5.25 2.25 0 1 0 6.750 3.001 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.75,3V6c0,1.242,2.351,2.25,5.25,2.25S17.25,7.243,17.25,6V3" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.75,6V9c0,1.242,2.351,2.25,5.25,2.25S17.25,10.243,17.25,9V6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M0.750 14.251 L9.750 14.251 L9.750 20.251 L0.750 20.251 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M5.25 20.251L5.25 23.251" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M3 23.251L7.5 23.251" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.250 14.251 L23.250 14.251 L23.250 20.251 L14.250 20.251 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M18.75 20.251L18.75 23.251" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M16.5 23.251L21 23.251" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M2.251,11.251v-1.5a1.5,1.5,0,0,1,1.5-1.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M21.751,11.251v-1.5a1.5,1.5,0,0,0-1.5-1.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
-					</g>
-				</svg>
-				<br>
-				Shared Comp.
-			</div>
-
 			<div id="components" class="slideOut slideOutRight">
-			</div>
-
-			<div class="slideout-activator right" id="elementsTab">
-				<svg viewBox="0 0 28 28" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
-					<g transform="matrix(1.1666666666666667,0,0,1.1666666666666667,0,0)">
-						<path d="M22.9,1.3A1.5,1.5,0,0,0,21.75.764H2.25A1.5,1.5,0,0,0,.772,2.521l3.387,19.5a1.5,1.5,0,0,0,1.478,1.243H18.363a1.5,1.5,0,0,0,1.478-1.243l3.387-19.5A1.5,1.5,0,0,0,22.9,1.3Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M10.125 13.514L6.375 13.514 6.375 17.264" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.792,14.247a5.572,5.572,0,0,1-10.74-.733" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.625 10.514L18.375 10.514 18.375 6.764" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.958,9.781a5.572,5.572,0,0,1,10.74.733" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
-					</g>
-				</svg>
-				<br>
-				Recycle Bin
 			</div>
 
 			<div id="elements" class="slideOut slideOutRight">
 				<div id="elementsArea"></div>
 			</div>
 
-			<div class="slideout-activator right" id="previewTab">
-				<svg viewBox="0 0 28 28" height="24" width="24" xmlns="http://www.w3.org/2000/svg" stroke-width="1.5px">
-					<g transform="matrix(1.1666666666666667,0,0,1.1666666666666667,0,0)">
-						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M21.25 1.0061H2.75C1.64543 1.0061 0.75 1.90153 0.75 3.0061V16.9041C0.75 18.0087 1.64543 18.9041 2.75 18.9041H21.25C22.3546 18.9041 23.25 18.0087 23.25 16.9041V3.0061C23.25 1.90153 22.3546 1.0061 21.25 1.0061Z"></path>
-						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M9.95501 18.9031L8.93201 22.9941"></path>
-						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M8.93201 22.9939H14.557"></path>
-						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M14.046 18.9031L15.068 22.9941"></path>
-						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M16.602 22.9939H7.39801"></path>
-						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M0.75 15.312H23.25"></path>
-						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M3.935 5.15308H6.201"></path>
-						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M8.46701 5.15308H9.82701"></path>
-						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M3.935 8.20996H5.294"></path>
-						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M7.561 8.20996H9.827"></path>
-						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M3.935 11.2671H9.827"></path>
-						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M13.023 1.0061V15.3121"></path>
-						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M13.023 12.0169L16.075 9.04089C16.5729 8.64889 17.1845 8.42882 17.818 8.41368C18.4516 8.39854 19.0729 8.58913 19.589 8.95689L23.25 12.0169"></path>
-						<path stroke="currentColor" d="M16.597 5.65308C16.3208 5.65308 16.097 5.42922 16.097 5.15308C16.097 4.87693 16.3208 4.65308 16.597 4.65308"></path>
-						<path stroke="currentColor" d="M16.597 5.65308C16.8731 5.65308 17.097 5.42922 17.097 5.15308C17.097 4.87693 16.8731 4.65308 16.597 4.65308"></path>
-					</g>
-				</svg>
-				<br>
-				Preview
-			</div>
-
 			<div id="previewSlideout" class="slideOut slideOutRight">
 			</div>
+
+			<div id="searchSlideout" class="slideOut slideOutRight">
+				${_Pages.search.templates.slideoutContent()}
+			</div>
 		`,
+		slideoutActivators: {
+			left: config => `
+				<div class="flex flex-col gap-5 absolute left-0 top-8">
+
+					<div class="slideout-activator left" id="pagesTab" data-for-slideout="#pages" data-sub-section="pageTree">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" width="24" height="24">
+							<g transform="matrix(1,0,0,1,0,0)">
+								<path d="M9.750 18.748 L23.250 18.748 L23.250 23.248 L9.750 23.248 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M9.750 11.248 L23.250 11.248 L23.250 15.748 L9.750 15.748 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M0.750 0.748 L14.250 0.748 L14.250 5.248 L0.750 5.248 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.75,5.248v1.5a1.5,1.5,0,0,0,1.5,1.5h4.5a1.5,1.5,0,0,1,1.5,1.5v1.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.25 15.748L17.25 18.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
+							</g>
+						</svg>
+						<br>
+						Page Tree
+					</div>
+
+					<div class="slideout-activator left" id="localizationsTab" data-for-slideout="#localizations" data-sub-section="localizations">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" width="24" height="24">
+							<g transform="matrix(1,0,0,1,0,0)">
+								<path d="M19.652 0.748L15.902 2.998 18.152 6.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M23.25,8.187A6.749,6.749,0,0,0,16.366,3.77" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M4.348 23.248L8.098 20.998 5.848 17.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M.75,15.808a6.749,6.749,0,0,0,6.884,4.417" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M0.750 0.748 L12.750 0.748 L12.750 12.748 L0.750 12.748 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M15.75,11.248h6a1.5,1.5,0,0,1,1.5,1.5v9a1.5,1.5,0,0,1-1.5,1.5h-9a1.5,1.5,0,0,1-1.5-1.5v-6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M15.75,20.248v-4.5a1.5,1.5,0,0,1,3,0v4.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M15.75 18.748L18.75 18.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.75 3.748L6.75 5.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M3.75 5.248L9.75 5.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M8.25,5.248s-1.5,4.5-4.5,4.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.749,8.014a3.933,3.933,0,0,0,3,1.734" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
+							</g>
+						</svg>
+						<br>
+						Trans-<br>lations
+					</div>
+				</div>
+			`,
+			right: config => `
+				<div class="flex flex-col gap-5 absolute right-0 top-8">
+
+					<div class="slideout-activator right" id="widgetsTab" data-for-slideout="#widgetsSlideout" data-sub-section="widgets">
+						<svg viewBox="0 0 28 28" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
+							<g transform="matrix(1.1666666666666667,0,0,1.1666666666666667,0,0)">
+								<path d="M16.5,23.248H21a.75.75,0,0,0,.75-.75V17.559a.75.75,0,0,0-.219-.53l-1.06-1.061a.749.749,0,0,0-.53-.22H16.5a.75.75,0,0,0-.75.75v6A.75.75,0,0,0,16.5,23.248Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M16.5,9.748H21A.75.75,0,0,0,21.75,9V4.059a.75.75,0,0,0-.219-.53l-1.06-1.061a.749.749,0,0,0-.53-.22H16.5a.75.75,0,0,0-.75.75V9A.75.75,0,0,0,16.5,9.748Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M2.25 0.748L2.25 2.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M2.25 5.248L2.25 8.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M2.25 11.248L2.25 14.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M2.25,17.248v1.5a1.5,1.5,0,0,0,1.5,1.5h1.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M8.25 20.248L11.25 20.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.25 20.248L15.75 20.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M2.25 6.748L5.25 6.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M8.25 6.748L11.25 6.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.25 6.748L15.75 6.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
+							</g>
+						</svg>
+						<br>
+						Widgets
+					</div>
+
+					<div class="slideout-activator right" id="componentsTab" data-for-slideout="#components" data-sub-section="sharedComponents">
+						<svg viewBox="0 0 28 28" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
+							<g transform="matrix(1.1666666666666667,0,0,1.1666666666666667,0,0)">
+								<path d="M6.750 3.001 A5.25 2.25 0 1 0 17.250 3.001 A5.25 2.25 0 1 0 6.750 3.001 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.75,3V6c0,1.242,2.351,2.25,5.25,2.25S17.25,7.243,17.25,6V3" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.75,6V9c0,1.242,2.351,2.25,5.25,2.25S17.25,10.243,17.25,9V6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M0.750 14.251 L9.750 14.251 L9.750 20.251 L0.750 20.251 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M5.25 20.251L5.25 23.251" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M3 23.251L7.5 23.251" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.250 14.251 L23.250 14.251 L23.250 20.251 L14.250 20.251 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M18.75 20.251L18.75 23.251" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M16.5 23.251L21 23.251" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M2.251,11.251v-1.5a1.5,1.5,0,0,1,1.5-1.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M21.751,11.251v-1.5a1.5,1.5,0,0,0-1.5-1.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
+							</g>
+						</svg>
+						<br>
+						Shared Comp.
+					</div>
+
+					<div class="slideout-activator right" id="elementsTab" data-for-slideout="#elements" data-sub-section="unattachedNodes">
+						<svg viewBox="0 0 28 28" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
+							<g transform="matrix(1.1666666666666667,0,0,1.1666666666666667,0,0)">
+								<path d="M22.9,1.3A1.5,1.5,0,0,0,21.75.764H2.25A1.5,1.5,0,0,0,.772,2.521l3.387,19.5a1.5,1.5,0,0,0,1.478,1.243H18.363a1.5,1.5,0,0,0,1.478-1.243l3.387-19.5A1.5,1.5,0,0,0,22.9,1.3Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M10.125 13.514L6.375 13.514 6.375 17.264" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.792,14.247a5.572,5.572,0,0,1-10.74-.733" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.625 10.514L18.375 10.514 18.375 6.764" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.958,9.781a5.572,5.572,0,0,1,10.74.733" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
+							</g>
+						</svg>
+						<br>
+						Recycle Bin
+					</div>
+
+					<div class="slideout-activator right" id="previewTab" data-for-slideout="#previewSlideout" data-sub-section="previews">
+						<svg viewBox="0 0 28 28" height="24" width="24" xmlns="http://www.w3.org/2000/svg" stroke-width="1.5px">
+							<g transform="matrix(1.1666666666666667,0,0,1.1666666666666667,0,0)">
+								<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M21.25 1.0061H2.75C1.64543 1.0061 0.75 1.90153 0.75 3.0061V16.9041C0.75 18.0087 1.64543 18.9041 2.75 18.9041H21.25C22.3546 18.9041 23.25 18.0087 23.25 16.9041V3.0061C23.25 1.90153 22.3546 1.0061 21.25 1.0061Z"></path>
+								<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M9.95501 18.9031L8.93201 22.9941"></path>
+								<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M8.93201 22.9939H14.557"></path>
+								<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M14.046 18.9031L15.068 22.9941"></path>
+								<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M16.602 22.9939H7.39801"></path>
+								<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M0.75 15.312H23.25"></path>
+								<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M3.935 5.15308H6.201"></path>
+								<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M8.46701 5.15308H9.82701"></path>
+								<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M3.935 8.20996H5.294"></path>
+								<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M7.561 8.20996H9.827"></path>
+								<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M3.935 11.2671H9.827"></path>
+								<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M13.023 1.0061V15.3121"></path>
+								<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M13.023 12.0169L16.075 9.04089C16.5729 8.64889 17.1845 8.42882 17.818 8.41368C18.4516 8.39854 19.0729 8.58913 19.589 8.95689L23.25 12.0169"></path>
+								<path stroke="currentColor" d="M16.597 5.65308C16.3208 5.65308 16.097 5.42922 16.097 5.15308C16.097 4.87693 16.3208 4.65308 16.597 4.65308"></path>
+								<path stroke="currentColor" d="M16.597 5.65308C16.8731 5.65308 17.097 5.42922 17.097 5.15308C17.097 4.87693 16.8731 4.65308 16.597 4.65308"></path>
+							</g>
+						</svg>
+						<br>
+						Preview
+					</div>
+
+					<div class="slideout-activator right" id="searchTab" data-for-slideout="#searchSlideout" data-sub-section="search">
+						${_Icons.getSvgIcon(_Icons.iconSearch, 24, 24, ['icon-grey'])}
+						<br>
+						Search
+					</div>
+
+				</div>
+			`
+		},
 		functions: config => `
 			<div class="flex-grow">
 				<ul class="tabs-menu hidden">

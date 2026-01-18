@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -126,6 +126,8 @@ let _Dialogs = {
 				_Console.logoutAction();
 
 				Structr.clearMain();
+
+				Structr.globalSearch.clear();
 
 				// show login box
 				let element = _Dialogs.basic.append(Structr.templates.loginDialogMarkup, {

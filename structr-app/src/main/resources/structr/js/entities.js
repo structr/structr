@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -2201,7 +2201,7 @@ let _Entities = {
 					_Entities.highlightElement(el);
 
 					if (clickLast === true) {
-						el.find('.node-container').click();
+						el[0].querySelector(':scope > .node-container')?.click();
 					}
 				}
 

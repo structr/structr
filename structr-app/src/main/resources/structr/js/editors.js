@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -804,7 +804,36 @@ let _Editors = {
 			}
 		}));
 
+		_Editors.autoHighlightText(monacoInstance);
+
 		return monacoInstance;
+	},
+	textToHighlightInNextEditor: undefined,
+	highlightTextInNextEditor: (text) => {
+		_Editors.textToHighlightInNextEditor = text;
+	},
+	autoHighlightText: (monacoInstance) => {
+		_Editors.highlightTextInEditor(_Editors.textToHighlightInNextEditor, monacoInstance);
+		_Editors.textToHighlightInNextEditor = undefined;
+	},
+	highlightTextInEditor: (text, monacoInstance) => {
+
+		if (text) {
+
+			let matches = monacoInstance.getModel().findMatches(text);
+			let ranges  = matches.map(x => x.range).map(r => new monaco.Selection(
+				r.startLineNumber,
+				r.startColumn,
+				r.endLineNumber,
+				r.endColumn
+			));
+
+			if (ranges.length > 0) {
+				monacoInstance.setSelections(ranges);
+				monacoInstance.revealRangeInCenter(ranges[0]);
+			}
+		}
+
 	},
 	toggleFullscreen: (editor) => {
 

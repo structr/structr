@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -279,6 +279,9 @@ button:hover:not(.disabled), button:focus:not(.disabled) {
 }
 .icon-white {
 	color: var(--solid-white);
+}
+.icon-black {
+    color: var(--solid-black);
 }
 
 .fill-none {
@@ -587,7 +590,6 @@ img.disabled {
 	width: 3rem;
 	font-size: .75rem;
 	z-index: 1000;
-	position: absolute;
 	padding: .5rem;
 	overflow: visible ! important;
 	transform-style: preserve-3d;
@@ -614,52 +616,14 @@ img.disabled {
 .slideout-activator.left:not(.active):hover {
 	border-right: .25rem solid var(--structr-light-green);
 }
+.slideout-activator.right {
+    border-left: .25rem solid transparent;
+}
 .slideout-activator.active.right {
 	border-left: .25rem solid var(--structr-green);
 }
 .slideout-activator.right:not(.active):hover {
 	border-left: .25rem solid var(--structr-light-green);
-}
-
-/*
- * Pages: Left slideout activators
- */
-#pagesTab,
-#widgetsTab {
-	top: 2rem;
-}
-
-#localizationsTab {
-	top: 8rem;
-}
-
-#componentsTab {
-	top: 7rem;
-}
-
-#elementsTab {
-	top: 13rem;
-}
-
-#previewTab {
-	top: 19rem;
-}
-
-#activeElementsTab {
-	top: 33rem;
-}
-
-
-/*
- * Pages: Right slideout activators
- */
-#widgetsTab,
-#paletteTab,
-#componentsTab,
-#elementsTab,
-#previewTab,
-#activeElementsTab {
-	right: 0;
 }
 
 .slideOut {
@@ -3341,15 +3305,6 @@ div#custom-properties-container table td:nth-child(3) {
 	padding: 0;
 }
 
-button.icon-button {
-	background-color: transparent;
-	padding: 1px 4px 2px 4px;
-}
-
-button.icon-button i {
-	margin: 0;
-}
-
 /* routing dialog */
 .routing-container select,
 .routing-container input[type="text"],
@@ -3675,6 +3630,22 @@ ul.combined-input-select-field li:hover {
 .form-input.input-invalid {
 	border: 1px solid var(--input-invalid-border-color);
 	background-color: var(--input-invalid-bg-color);
+}
+
+
+#global-search-popover {
+	position-anchor: --global-search;
+	position-area: x-start y-end;
+	width: 500px;
+	height: 700px;
+	border: 1px solid var(--input-field-border);
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+	font-size: 1rem;
+	resize: both;
+}
+
+#global-search-popover::backdrop {
+	background: rgba(0, 0, 0, 0.25);
 }
 
 /**
@@ -4482,6 +4453,9 @@ ul.combined-input-select-field li:hover {
 .gap-y-2 {
 	row-gap: .5rem;
 }
+.gap-y-3 {
+    row-gap: .75rem;
+}
 .gap-y-4 {
 	row-gap: 1rem;
 }
@@ -4508,6 +4482,9 @@ ul.combined-input-select-field li:hover {
 }
 .gap-4 {
 	gap: 1rem;
+}
+.gap-5 {
+    gap: 1.25rem;
 }
 .gap-8 {
 	gap: 2rem;
@@ -4804,6 +4781,12 @@ ul.combined-input-select-field li:hover {
 }
 .-rotate-180 {
 	transform: rotate(-180deg);
+}
+.direction-rtl {
+	direction: rtl;
+}
+.direction-ltr {
+	direction: ltr;
 }
 /**
  * END Tailwind classes
