@@ -40,8 +40,6 @@ import java.util.Map;
  */
 public class StructrStringProperty extends StructrPropertyDefinition implements JsonStringProperty {
 
-	private String contentType;
-
 	public StructrStringProperty(final StructrTypeDefinition parent, final String name) {
 		super(parent, name);
 	}
@@ -56,10 +54,6 @@ public class StructrStringProperty extends StructrPropertyDefinition implements 
 
 		super.deserialize(source);
 
-		if (source.containsKey(JsonSchema.KEY_CONTENT_TYPE)) {
-			this.contentType = (String) source.get(JsonSchema.KEY_CONTENT_TYPE);
-		}
-
 		if (source.containsKey(JsonSchema.KEY_FORMAT)) {
 			this.format = (String) source.get(JsonSchema.KEY_FORMAT);
 		}
@@ -71,17 +65,12 @@ public class StructrStringProperty extends StructrPropertyDefinition implements 
 		super.deserialize(schemaNodes, property);
 
 		setFormat(property.getFormat());
-		setContentType(property.getContentType());
 	}
 
 	@Override
 	Map<String, Object> serialize() {
 
 		final Map<String, Object> map = super.serialize();
-
-		if (contentType != null) {
-			map.put(JsonSchema.KEY_CONTENT_TYPE, contentType);
-		}
 
 		if (format != null) {
 			map.put(JsonSchema.KEY_FORMAT, format);
@@ -99,24 +88,10 @@ public class StructrStringProperty extends StructrPropertyDefinition implements 
 
 		properties.put(traits.key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), getTypeToSerialize().name());
 		properties.put(traits.key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY), getFormat());
-		properties.put(traits.key(SchemaPropertyTraitDefinition.CONTENT_TYPE_PROPERTY), getContentType());
 
 		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
 
 		return property;
-	}
-
-	@Override
-	public JsonStringProperty setContentType(final String contentType) {
-
-		this.contentType = contentType;
-
-		return this;
-	}
-
-	@Override
-	public String getContentType() {
-		return contentType;
 	}
 
 	// ----- protected methods -----

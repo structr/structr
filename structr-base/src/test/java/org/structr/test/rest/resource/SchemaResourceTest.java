@@ -284,7 +284,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 	@Test
 	public void testCustomSchema7() {
 
-		createEntity("/SchemaNode", "{ \"name\": \"TestType7\", \"schemaProperties\": [ { \"name\": \"foo\", \"propertyType\": \"String\", \"contentType\": \"text/html\" } ] }");
+		createEntity("/SchemaNode", "{ \"name\": \"TestType7\", \"schemaProperties\": [ { \"name\": \"foo\", \"propertyType\": \"String\" } ] }");
 
 		RestAssured
 
@@ -309,7 +309,6 @@ public class SchemaResourceTest extends StructrRestTestBase {
 				.body("result[2].dbName", equalTo("name"))
 				.body("result[2].declaringClass", equalTo(StructrTraits.NODE_INTERFACE))
 				.body("result[3].dbName", equalTo("foo"))
-				.body("result[3].contentType", equalTo("text/html"))
 
 			.when()
 				.get("/_schema/TestType7/custom");
@@ -319,7 +318,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 	@Test
 	public void testCustomSchema8() {
 
-		createEntity("/SchemaNode", "{ \"name\": \"TestType8\", \"schemaProperties\": [ { \"name\": \"foo\", \"propertyType\": \"String\", \"unique\": true, \"contentType\": \"text/html\" } ] }");
+		createEntity("/SchemaNode", "{ \"name\": \"TestType8\", \"schemaProperties\": [ { \"name\": \"foo\", \"propertyType\": \"String\", \"unique\": true } ] }");
 
 		RestAssured
 
@@ -344,7 +343,6 @@ public class SchemaResourceTest extends StructrRestTestBase {
 				.body("result[2].dbName", equalTo("name"))
 				.body("result[2].declaringClass", equalTo(StructrTraits.NODE_INTERFACE))
 				.body("result[3].dbName", equalTo("foo"))
-				.body("result[3].contentType", equalTo("text/html"))
 				.body("result[3].unique", equalTo(true))
 
 			.when()
@@ -355,7 +353,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 	@Test
 	public void testCustomSchema9() {
 
-		createEntity("/SchemaNode", "{ \"name\": \"TestType9\", \"schemaProperties\": [ { \"name\": \"foo\", \"propertyType\": \"String\", \"unique\": true, \"notNull\": true, \"contentType\": \"text/html\" } ] }");
+		createEntity("/SchemaNode", "{ \"name\": \"TestType9\", \"schemaProperties\": [ { \"name\": \"foo\", \"propertyType\": \"String\", \"unique\": true, \"notNull\": true } ] }");
 
 		RestAssured
 
@@ -380,7 +378,6 @@ public class SchemaResourceTest extends StructrRestTestBase {
 				.body("result[2].dbName", equalTo("name"))
 				.body("result[2].declaringClass", equalTo(StructrTraits.NODE_INTERFACE))
 				.body("result[3].dbName", equalTo("foo"))
-				.body("result[3].contentType", equalTo("text/html"))
 				.body("result[3].notNull", equalTo(true))
 
 			.when()
@@ -392,7 +389,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 	@Test
 	public void testCustomSchema10() {
 
-		createEntity("/SchemaNode", "{ \"name\": \"TestType10\", \"schemaProperties\": [ { \"name\": \"foo\", \"propertyType\": \"String\", \"notNull\": true, \"contentType\": \"text/html\" } ] }");
+		createEntity("/SchemaNode", "{ \"name\": \"TestType10\", \"schemaProperties\": [ { \"name\": \"foo\", \"propertyType\": \"String\", \"notNull\": true } ] }");
 
 		RestAssured
 
@@ -417,7 +414,6 @@ public class SchemaResourceTest extends StructrRestTestBase {
 				.body("result[2].dbName", equalTo("name"))
 				.body("result[2].declaringClass", equalTo(StructrTraits.NODE_INTERFACE))
 				.body("result[3].dbName", equalTo("foo"))
-				.body("result[3].contentType", equalTo("text/html"))
 				.body("result[3].notNull", equalTo(true))
 
 			.when()
@@ -428,7 +424,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 	@Test
 	public void testCustomSchema11() {
 
-		createEntity("/SchemaNode", "{ \"name\": \"TestType11\", \"schemaProperties\": [ { \"name\": \"foo\", \"propertyType\": \"String\", \"unique\": true, \"notNull\": true, \"format\": \"[a-f0-9]{32}\", \"contentType\": \"text/html\", \"defaultValue\": \"xyz\" } ] }");
+		createEntity("/SchemaNode", "{ \"name\": \"TestType11\", \"schemaProperties\": [ { \"name\": \"foo\", \"propertyType\": \"String\", \"unique\": true, \"notNull\": true, \"format\": \"[a-f0-9]{32}\", \"defaultValue\": \"xyz\" } ] }");
 
 		RestAssured
 
@@ -453,7 +449,6 @@ public class SchemaResourceTest extends StructrRestTestBase {
 				.body("result[2].dbName", equalTo("name"))
 				.body("result[2].declaringClass", equalTo(StructrTraits.NODE_INTERFACE))
 				.body("result[3].dbName", equalTo("foo"))
-				.body("result[3].contentType", equalTo("text/html"))
 				.body("result[3].notNull", equalTo(true))
 				.body("result[3].format", equalTo("[a-f0-9]{32}"))
 				.body("result[3].defaultValue", equalTo("xyz"))
@@ -503,7 +498,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 	@Test
 	public void testCustomSchema13() {
 
-		createEntity("/SchemaNode", "{ \"name\": \"TestType13\", \"schemaProperties\": [ { \"name\": \"foo\", \"propertyType\": \"String\", \"dbName\": \"fooDb\", \"contentType\": \"text/html\", \"notNull\": true, \"format\": \"[a-f0-9]{32}\", \"unique\": true, \"defaultValue\": \"xyz\" } ] }");
+		createEntity("/SchemaNode", "{ \"name\": \"TestType13\", \"schemaProperties\": [ { \"name\": \"foo\", \"propertyType\": \"String\", \"dbName\": \"fooDb\", \"notNull\": true, \"format\": \"[a-f0-9]{32}\", \"unique\": true, \"defaultValue\": \"xyz\" } ] }");
 
 		RestAssured
 
@@ -529,7 +524,6 @@ public class SchemaResourceTest extends StructrRestTestBase {
 				.body("result[2].declaringClass", equalTo(StructrTraits.NODE_INTERFACE))
 				.body("result[3].jsonName", equalTo("foo"))
 				.body("result[3].dbName", equalTo("fooDb"))
-				.body("result[3].contentType", equalTo("text/html"))
 				.body("result[3].notNull", equalTo(true))
 				.body("result[3].format", equalTo("[a-f0-9]{32}"))
 				.body("result[3].defaultValue", equalTo("xyz"))
@@ -542,7 +536,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 	@Test
 	public void testCustomSchema14() {
 
-		createEntity("/SchemaNode", "{ \"name\": \"TestType14\", \"schemaProperties\": [ { \"name\": \"foo\", \"propertyType\": \"String\", \"dbName\": \"fooDb\", \"contentType\": \"text/html\", \"format\": \"multi-line\", \"notNull\": true, \"defaultValue\": \"xyz\", \"unique\": true } ] }");
+		createEntity("/SchemaNode", "{ \"name\": \"TestType14\", \"schemaProperties\": [ { \"name\": \"foo\", \"propertyType\": \"String\", \"dbName\": \"fooDb\", \"format\": \"multi-line\", \"notNull\": true, \"defaultValue\": \"xyz\", \"unique\": true } ] }");
 
 		RestAssured
 
@@ -568,7 +562,6 @@ public class SchemaResourceTest extends StructrRestTestBase {
 				.body("result[2].declaringClass", equalTo(StructrTraits.NODE_INTERFACE))
 				.body("result[3].jsonName", equalTo("foo"))
 				.body("result[3].dbName", equalTo("fooDb"))
-				.body("result[3].contentType", equalTo("text/html"))
 				.body("result[3].notNull", equalTo(true))
 				.body("result[3].format", equalTo("multi-line"))
 				.body("result[3].defaultValue", equalTo("xyz"))
@@ -581,7 +574,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 	@Test
 	public void testCustomSchema15() {
 
-		createEntity("/SchemaNode", "{ \"name\": \"TestType15\", \"schemaProperties\": [ { \"name\": \"foo\", \"propertyType\": \"String\", \"dbName\": \"fooDb\", \"contentType\": \"text/html\", \"format\": \"some-format with | pipe in it\", \"notNull\": true, \"defaultValue\": \"xyz\", \"unique\": true } ] }");
+		createEntity("/SchemaNode", "{ \"name\": \"TestType15\", \"schemaProperties\": [ { \"name\": \"foo\", \"propertyType\": \"String\", \"dbName\": \"fooDb\", \"format\": \"some-format with | pipe in it\", \"notNull\": true, \"defaultValue\": \"xyz\", \"unique\": true } ] }");
 
 		RestAssured
 
@@ -607,7 +600,6 @@ public class SchemaResourceTest extends StructrRestTestBase {
 				.body("result[2].declaringClass", equalTo(StructrTraits.NODE_INTERFACE))
 				.body("result[3].jsonName", equalTo("foo"))
 				.body("result[3].dbName", equalTo("fooDb"))
-				.body("result[3].contentType", equalTo("text/html"))
 				.body("result[3].notNull", equalTo(true))
 				.body("result[3].format", equalTo("some-format with | pipe in it"))
 				.body("result[3].defaultValue", equalTo("xyz"))
@@ -621,7 +613,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 	@Test
 	public void testCustomSchema16() {
 
-		createEntity("/SchemaNode", "{ \"name\": \"TestType16\", \"schemaProperties\": [ { \"name\": \"foo\", \"propertyType\": \"String\", \"contentType\": \"text/html\", \"format\": \"some-format with no pipe in it\", \"notNull\": true, \"defaultValue\": \"xyz\", \"unique\": true } ] }");
+		createEntity("/SchemaNode", "{ \"name\": \"TestType16\", \"schemaProperties\": [ { \"name\": \"foo\", \"propertyType\": \"String\", \"format\": \"some-format with no pipe in it\", \"notNull\": true, \"defaultValue\": \"xyz\", \"unique\": true } ] }");
 
 		RestAssured
 
@@ -646,7 +638,6 @@ public class SchemaResourceTest extends StructrRestTestBase {
 				.body("result[2].dbName", equalTo("name"))
 				.body("result[2].declaringClass", equalTo(StructrTraits.NODE_INTERFACE))
 				.body("result[3].jsonName", equalTo("foo"))
-				.body("result[3].contentType", equalTo("text/html"))
 				.body("result[3].notNull", equalTo(true))
 				.body("result[3].format", equalTo("some-format with no pipe in it"))
 				.body("result[3].defaultValue", equalTo("xyz"))
@@ -659,7 +650,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 	@Test
 	public void testCustomSchema17() {
 
-		createEntity("/SchemaNode", "{ \"name\": \"TestType17\", \"schemaProperties\": [ { \"name\": \"foo\", \"propertyType\": \"String\", \"contentType\": \"text/html\", \"format\": \"some-format with a | pipe in it\", \"notNull\": true, \"defaultValue\": \"xyz\", \"unique\": true } ] }");
+		createEntity("/SchemaNode", "{ \"name\": \"TestType17\", \"schemaProperties\": [ { \"name\": \"foo\", \"propertyType\": \"String\", \"format\": \"some-format with a | pipe in it\", \"notNull\": true, \"defaultValue\": \"xyz\", \"unique\": true } ] }");
 
 		RestAssured
 
@@ -684,7 +675,6 @@ public class SchemaResourceTest extends StructrRestTestBase {
 				.body("result[2].dbName", equalTo("name"))
 				.body("result[2].declaringClass", equalTo(StructrTraits.NODE_INTERFACE))
 				.body("result[3].jsonName", equalTo("foo"))
-				.body("result[3].contentType", equalTo("text/html"))
 				.body("result[3].notNull", equalTo(true))
 				.body("result[3].format", equalTo("some-format with a | pipe in it"))
 				.body("result[3].defaultValue", equalTo("xyz"))

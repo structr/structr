@@ -64,10 +64,6 @@ public class StringPropertyGenerator extends PropertyGenerator<String> {
 
 		final StringProperty propertyKey = new StringProperty(name);
 
-		if (StringUtils.isNotBlank(source.getContentType())) {
-			propertyKey.contentType(source.getContentType());
-		}
-
 		return propertyKey;
 	}
 

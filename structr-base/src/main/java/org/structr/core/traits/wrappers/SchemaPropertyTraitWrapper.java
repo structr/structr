@@ -93,11 +93,6 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 	}
 
 	@Override
-	public String getContentType() {
-		return wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.CONTENT_TYPE_PROPERTY));
-	}
-
-	@Override
 	public boolean isNotNull() {
 
 		final Boolean isNotNull = wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.NOT_NULL_PROPERTY));
@@ -320,7 +315,6 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 
 		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.DEFAULT_VALUE_PROPERTY),        _contentHash);
 		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY),        _contentHash);
-		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.CONTENT_TYPE_PROPERTY),         _contentHash);
 		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.DB_NAME_PROPERTY),              _contentHash);
 		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY),               _contentHash);
 		_contentHash = addContentHash(traits.key(SchemaPropertyTraitDefinition.TYPE_HINT_PROPERTY),            _contentHash);

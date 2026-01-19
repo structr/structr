@@ -42,10 +42,4 @@ public interface JsonFunctionProperty extends JsonDynamicProperty {
 	public JsonFunctionProperty setOpenAPIReturnType(final String openAPIReturnType);
 	public String getOpenAPIReturnType();
 
-	@Override
-	public JsonFunctionProperty setContentType(final String contentType);
-
-	@Override
-	public String getContentType();
-
 }
