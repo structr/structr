@@ -1,37 +1,7 @@
 This chapter provides an overview of the different ways in which data can be created or imported into Structr.
 
-## Prerequisites
-
+#### Please Note
 Before you can import data into Structr, you need to define a schema. Structr can only access and manage objects that it can **identify** (using a UUID in the `id` property) and **map to a type** in the schema (using the `type` property).
-
-### A Primer on Data Modeling
-
-The schema should be kept as close as possible to the attributes and relationships that the objects have in the real world. There are some very basic rules you can use to determine whether an object should be modeled as a node, a relationship or a property.
-
-#### When To Use Nodes?
-
-Most things that you would use a *noun* to describe should be modeled as nodes.
-
-- real-world objects like people, companies, documents, products
-- abstract objects that are distinct entities with a unique identity and one or more attributes
-- properties that several objects can have in common, like an address or a category
-- collections of property values (the items of a list, etc.)
-- relationships between **more than two** objects (hyper-relationships)
-
-#### When To Use Properties?
-
-Most things that you would use an *adjective* to describe should be modeled as a properties.
-
-- single values like an ID, a name, a color, etc.
-- time or date values (if you are not using a time tree index)
-
-#### When To Use Relationships?
-
-Most things that you would use a verb to describe should be modeled as relationships.
-
-- relationships between objects that are not based on a single property
-- actions or activities
-- facts
 
 ## Import from CSV
 

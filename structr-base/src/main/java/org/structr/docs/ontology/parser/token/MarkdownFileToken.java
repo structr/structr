@@ -19,6 +19,8 @@
 package org.structr.docs.ontology.parser.token;
 
 import com.vladsch.flexmark.ast.Heading;
+import com.vladsch.flexmark.ast.Paragraph;
+import com.vladsch.flexmark.ext.wikilink.WikiLink;
 import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.profile.pegdown.Extensions;
 import com.vladsch.flexmark.profile.pegdown.PegdownOptionsAdapter;
@@ -26,18 +28,19 @@ import com.vladsch.flexmark.util.ast.Document;
 import com.vladsch.flexmark.util.ast.Node;
 import com.vladsch.flexmark.util.data.MutableDataSet;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.docs.Documentable;
 import org.structr.docs.formatter.markdown.MarkdownMarkdownFileFormatter;
 import org.structr.docs.ontology.*;
 
+import javax.print.Doc;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * An identifier that is augmented with a type so we know what it is.
@@ -72,7 +75,7 @@ public class MarkdownFileToken extends NamedConceptToken {
 			try {
 
 				// handle children
-				final List<String> lines = Files.readAllLines(folderPath);
+				final List<String> lines     = Files.readAllLines(folderPath);
 				final MutableDataSet options = new MutableDataSet();
 
 				options.setAll(PegdownOptionsAdapter.flexmarkOptions(false, Extensions.ALL));

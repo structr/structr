@@ -64,7 +64,7 @@ public interface Documentable {
 		final String startHeading                 = StringUtils.repeat("#", startLevel);
 
 		if (details.contains(Details.name) || details.contains(Details.all)) {
-			lines.add(startHeading + " " + getDisplayName());
+			lines.add(startHeading + " " + getDisplayName(false));
 		}
 
 		if (details.contains(Details.shortDescription) || details.contains(Details.all)) {

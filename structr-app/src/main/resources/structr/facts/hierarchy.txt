@@ -32,15 +32,11 @@ Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Exper
 
 
 # Building Applications
-"Building Applications" has new topics "Overview", "Data Model", "Data Creation & Import", "Pages & Templates", "Navigation & Routing", "Dynamic Content", "User Input & Forms", "Business Logic", "Error handling", "Language localization", "Troubleshooting"
+"Building Applications" has new topics "Overview", "Data Model", "Data Creation & Import", "Pages & Templates", "Navigation & Routing", "Dynamic Content", "Event Action Mapping", "Business Logic", "Error handling", "Language localization", "Troubleshooting"
 
-    "Overview" has markdown-file "articles/Building Applications/Overview.md"
-
-    "Data Model" has markdown-file "snippets/Data Model - 000.md" with heading "Data Model"
-    "Data Model" has topics "Built-in properties" as table, "Relationships", "Built-in types" as table
-        "Relationships" has topics "Cascading Delete" as table, "Automatic Creation of Related Nodes" as table
-
-    "Data Creation & Import" has markdown-file "snippets/Data Creation & Import - 000.md"
+    "Overview" has markdown-file "articles/Building Applications/Overview.md" with heading "Overview"
+    "Data Model" has markdown-file "articles/Building Applications/Data Model.md" with heading "Data Model"
+    "Data Creation & Import" has markdown-file "articles/Building Applications/Data Creation & Import.md"
 
     "Pages & Templates" has markdown-file "snippets/Pages & Templates - 000.md"
     "Pages & Templates" has topics "Pages", "Templates", "Page Templates", "Elements", "Shared Components", "Widgets", "Static resources", "Active Elements"
@@ -83,9 +79,8 @@ Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Exper
 
         "Show / Hide Conditions" has texts "Show Conditions", "Hide Conditions"
 
-    "User Input & Forms" has topics "Event Action Mapping"
     "Event Action Mapping" has markdown-file "snippets/Event Action Mapping - 000.md"
-        "Event Action Mapping" has topics "Event Actions" as table, "Follow-up actions" as table, "Notifications" as table, "Parameter types" as table
+    "Event Action Mapping" has topics "Event Actions" as table, "Follow-up actions" as table, "Notifications" as table, "Parameter types" as table
         
     "Business Logic" has markdown-file "snippets/Business Logic.md" with heading "Overview"
 

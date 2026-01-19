@@ -452,7 +452,7 @@ public abstract class AbstractHintProvider {
 
 	private String getDocumentation(final Documentable documentable) {
 
-		final List<String> lines = documentable.createMarkdownDocumentation(EnumSet.allOf(Details.class), 0);
+		final List<String> lines = documentable.createMarkdownDocumentation(EnumSet.allOf(Details.class), 2);
 
 		return StringUtils.join(lines, "\n");
 	}

@@ -6,7 +6,7 @@
 #
 
 # References
-Topic References has topics "Built-in keywords", "Built-in functions", "Lifecycle methods", "Built-in types", "Built-in properties", Services, "Maintenance commands", Settings, "Java internals"
+Topic References has topics "Built-in keywords", "Built-in functions", "Lifecycle methods", "Built-in types", "Property types", Services, "Maintenance commands", Settings, "Java internals"
 "References" has glossary "Glossary"
 
 # JavaScript resources
@@ -37,7 +37,7 @@ Area "Widgets" has javascript-file "structr/js/widgets.js"
 "Maintenance commands" has code-source "maintenance-command" as table
 "Lifecycle methods" has code-source "lifecycle-method"
 "Services" has code-source "service"
-"Built-in properties" has code-source "property"
+"Property types" has code-source "property"
 "Built-in types" has code-source "system-type"
 
 "Java internals" has topic "Classes"

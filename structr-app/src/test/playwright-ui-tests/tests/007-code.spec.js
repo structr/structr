@@ -117,6 +117,24 @@ test('user-defined-functions', async ({ page }) => {
   await page.waitForTimeout(1000);
   await page.screenshot({ path: 'screenshots/code_project-to-openapi.png' });
 
+  // Create example method for screenshot
+  await page.locator('li li li .jstree-ocl').first().click();
+  await page.waitForTimeout(100);
+  await page.getByRole('link', {name: 'Methods', exact: true}).click();
+  await page.locator('div.schema-grid button.dropdown-select').click();
+  await page.waitForTimeout(100);
+  await page.getByText('Add method').click();
+  await page.locator('#methods-grid-container .property-name').first().click();
+  await page.keyboard.type('sendEMail');
+  await page.locator('.monaco-editor').nth(0).click();
+  await page.keyboard.type('{');
+  await page.waitForTimeout(100);
+  await page.keyboard.press('Enter');
+  await page.keyboard.press('Tab');
+  await page.keyboard.type('$.sendPlain');
+  await page.waitForTimeout(1000);
+  await page.screenshot({ path: 'screenshots/code_project-method-autocomplete.png' });
+
   // Logout
   await page.locator('.submenu-trigger').hover();
   await page.waitForTimeout(500);

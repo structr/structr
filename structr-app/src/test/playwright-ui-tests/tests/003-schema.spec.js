@@ -86,6 +86,8 @@ test('schema', async ({ page }) => {
   await page.getByPlaceholder('Type Name...').fill('Project');
   await page.getByRole('button', { name: ' Create ', exact: true }).click();
   await page.waitForTimeout(1000);
+  await page.screenshot({ path: 'screenshots/schema_created-type_Project.png' });
+  await page.getByText('General').screenshot({ path: 'screenshots/schema_edit-type_general-tab.png' });
 
   // Add custom String property 'projectId'
   await page.getByText('Direct properties', { exact: true }).click();

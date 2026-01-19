@@ -36,6 +36,9 @@ Defining the data model is usually the first step in developing a Structr applic
 
 The data model consists of data types that can have relationships between them. Types can have attributes to store your data, and methods to implement business logic.
 
+#### Data Modeling
+If you are unsure how best to design your data model, the chapter on the [Data Model](/structr/docs/ontology/Building%20Applications/Data%20Model) provides a short introduction to this topic.
+
 ### Relationships
 
 When you define a relationship between two types, it serves as a blueprint for the structures created in the database. Each type automatically receives a special attribute that manages the connections between instances of these types.
@@ -56,17 +59,25 @@ There are currently two different areas in the Structr Admin User Interface wher
 
 If you are building an application to work with existing data, there are several ways to bring that data into the system.
 
+### Create Data Manually
+
+You can create data in any scripting context using the built-in `create()` function, in the [Admin Console](/structr/docs/ontology/User%20Interface/Admin%20Console), via [REST](/structr/docs/ontology/REST%20Interface/Overview) and in the [Data](/structr/docs/ontology/Admin%20User%20Interface/Data) area.
+
+#### Using the Create Function
+This JavaScript example assumes that you already have a data model with Project and Task linked together. You could put this code into a user-defined function or a method on the `Project` type.
+
+    {
+        let project = $.create('Project', { name: 'My first project' });
+
+        $.create('Task', { name: 'A task', project: project });
+    }
+
 ### CSV
 
 You can import CSV data in two different ways:
 
-##### Using the CSV Import Wizard in the Files Section
-
-This is the preferred option, although it is somewhat difficult to find. To use it, you first have to upload a CSV file to Structr. An icon will then appear in the context menu of this file, which you can use to open the import wizard.
-
-##### Using the Simple Import Dialog in the Data Section
-
-This importer is limited to a single type and can only process inputs of up to 100,000 lines, but it is a good option for getting started.
+1. Using the CSV Import Wizard in the Files Section. This is the preferred option, although it is somewhat difficult to find. To use it, you first have to upload a CSV file to Structr. An icon will then appear in the context menu of this file, which you can use to open the import wizard.
+2. Using the Simple Import Dialog in the Data Section. This importer is limited to a single type and can only process inputs of up to 100,000 lines, but it is a good option for getting started.
 
 ### XML
 
@@ -96,15 +107,25 @@ Static resources like CSS files, JavaScript files, images and videos are stored 
 
 [Read more about the Filesystem.](/structr/docs/ontology/Operations/Filesystem)
 
-### Navigation, Start Page and Error Pages
+### Navigation and Error Handling
 
-Pages in Structr are accessible at URLs that match their names. For example, a page named "index" is available at `/index`. When a user navigates to a non-existent page, Structr returns a 404 Not Found error by default. To provide a custom error page instead, set its showOnErrorCodes attribute to "404" and Structr will display this page for any 404 errors. The page also serves as your application's start page when users navigate to the root URL. Note that this page must be visible to public users, otherwise they will receive an access denied error instead of seeing your start page.
+Pages in Structr are accessible at URLs that match their names. For example, a page named "index" is available at `/index`.
+
+#### Error Page
+When a user navigates to a non-existent page, Structr returns a 404 Not Found error by default. To provide a custom error page instead, set its `showOnErrorCodes` attribute to "404" and Structr will display this page for any 404 errors.
+
+#### Start Page
+The page configured in this way will then automatically be displayed as your application's start page when users navigate to the root URL. Note that this page must be visible to public users, otherwise they will receive an Access Denied error instead of seeing your start page.
 
 [Read more about Navigation & Routing.](/structr/docs/ontology/Building%20Applications/Navigation%20&%20Routing)
 
 ### Dynamic Content
 
 All content is rendered on the server and sent to the client as HTML. To create dynamic content based on your data, you can insert values from database objects into pages using template expressions. To display multiple database objects, you use repeaters, which execute a database query and render the element once for each result. For more complex logic, you can embed larger script blocks directly in your page code to perform calculations or manipulate data before rendering
+
+#### Template Expressions
+
+    <h2 title="${project.description}">${project.id}</h2>
 
 #### Partial Reload
 Individual elements can be addressed separately to render their content as HTML, making it easy to reload parts of the page without a complete page reload.
@@ -113,9 +134,9 @@ Individual elements can be addressed separately to render their content as HTML,
 
 ### User Input & Forms
 
-User input and form data can be stored in database objects through Event Action Mapping. User interface elements like buttons can also create or delete database objects directly, or execute business logic methods.
+To handle user input in a Structr application, you can configure Event Action Mappings (EAM) that connect DOM events to backend operations. For example, you can configure a click event on a button to create a new `Project` object. EAM passes values from input fields to the backend, so you can execute business logic with user input, create and update database objects with form data, or trigger custom workflows based on form submissions.
 
-[Read more about User Input & Forms.](/structr/docs/ontology/Building%20Applications/User%20Input%20&%20Forms)
+[Read more about Event Action Mapping.](/structr/docs/ontology/Building%20Applications/Event%20Action%20Mapping)
 
 ## Implement Business Logic
 
@@ -170,7 +191,22 @@ Structr supports OAuth 2.0 for user authentication, enabling integration with ex
 
 ### Emails & SMTP
 
+<img src="http://localhost:8082/structr/docs/code_project-method-autocomplete.png" class="small-image" />
+
 Structr allows you to send plain text or HTML emails with attachments from any business logic method. You can also retrieve emails from IMAP mailboxes and trigger automated responses to incoming messages through lifecycle methods or custom workflows.
+
+#### Example
+
+    {
+        let fromAddress = 'info@example.com';
+        let fromName    = 'Example Sender';
+        let toAddress   = 'recipient@example.com';
+        let toName      = 'Example Recipient';
+        let subject     = 'Hello world.';
+        let content     = 'Example plaintext content';
+
+        $.sendPlaintextMail(fromAddress, fromName, toAddress, toName, subject, content);
+    }
 
 [Read more about Emails & SMTP.](/structr/docs/ontology/APIs%20&%20Integrations/SMTP)
 
@@ -182,7 +218,7 @@ The REST interface allows you to exchange data with external systems and expose 
 
 ### Message Brokers
 
-You can connect Structr to MQTT, Kafka, or Apache Pulsar by creating a custom type that extends one of Structr's built-in client types (MQTTClient, KafkaClient, or PulsarClient) and implementing an onMessage lifecycle method to handle incoming messages.
+You can connect Structr to MQTT, Kafka, or Apache Pulsar by creating a custom type that extends one of Structr's built-in client types (MQTTClient, KafkaClient, or PulsarClient) and implementing an `onMessage` lifecycle method to handle incoming messages.
 
 When configured and activated, the client automatically connects to the message broker and executes your `onMessage` method whenever a new message arrives on the subscribed topics. This allows you to build event-driven applications that react to external events in real-time, process streaming data, or integrate with IoT devices and microservices architectures.
 
@@ -193,6 +229,18 @@ When configured and activated, the client automatically connects to the message 
 #### JDBC
 
 The built-in `jdbc()` function allows you to execute SQL queries directly against external JDBC-compatible databases. Query results are automatically transformed into objects that can be used in any scripting context. Results can be displayed dynamically in frontend views, used in business logic for calculations and transformations, or imported and stored as Structr objects for further processing.
+
+#### Example
+
+    {
+        // get JDBC URL from structr.conf
+        let url  = $.config('mysql.connection.string');
+        let rows = $.jdbc(url, 'SELECT * from Project');
+
+        for (let row of rows) {
+
+            // handle rows..
+        }
 
 #### MongoDB
 

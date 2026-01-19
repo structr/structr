@@ -543,3 +543,9 @@ index h2, .index h3 {
     float: right;
     margin: 0 0 2rem 2rem;"
 }
+
+.article img.tab-image {
+    width: auto;
+    height: 3rem;
+    margin: 0;
+}

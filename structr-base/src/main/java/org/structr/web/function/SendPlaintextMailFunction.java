@@ -102,6 +102,7 @@ public class SendPlaintextMailFunction extends UiAdvancedFunction {
 	@Override
 	public List<String> getNotes() {
 		return List.of(
+				"The return value of this function is the message ID of the delivered message, or null",
 				"`textContent` is typically generated using the `template()` function.",
 				"Emails are sent based on the SMTP configuration defined in structr.conf.",
 				"For advanced scenarios, refer to the extended mail functions prefixed with `mail`, beginning with `mailBegin()`."
@@ -119,6 +120,8 @@ public class SendPlaintextMailFunction extends UiAdvancedFunction {
 				Parameter.mandatory("textContent", "text content")
 		);
 	}
+
+
 
 	@Override
 	public List<Example> getExamples() {

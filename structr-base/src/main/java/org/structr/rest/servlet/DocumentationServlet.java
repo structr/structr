@@ -33,8 +33,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.util.resource.Resource;
 import org.structr.core.Services;
+import org.structr.core.function.tokenizer.StructrScriptTokenizer;
+import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.Documentable;
 import org.structr.docs.Documentation;
+import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
 import org.structr.docs.analyzer.ExistingDocs;
 import org.structr.docs.formatter.json.JsonConceptFormatter;
@@ -54,6 +57,8 @@ import java.io.InputStream;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Documentation(name="DocumentationServlet", parent="Servlets", children={ "DocumentationServlet Settings" })
 public class DocumentationServlet extends HttpServlet {
@@ -118,6 +123,9 @@ public class DocumentationServlet extends HttpServlet {
 				final List<String> lines = ontology.createDocumentation(links, settings);
 
 				if ("markdown".equals(settings.getOutputFormat())) {
+
+					replaceWikiLinks(ontology, lines, settings);
+
 					renderMarkdown(response, lines, settings);
 				}
 
@@ -490,6 +498,77 @@ public class DocumentationServlet extends HttpServlet {
 
 	private boolean isSearch(final HttpServletRequest request) {
 		return request.getParameter("search") != null;
+	}
+
+	private void replaceWikiLinks(final Ontology ontology, final List<String> lines, final OutputSettings settings) {
+
+		final Map<Integer, List<String>> insert = new LinkedHashMap<>();
+		final Pattern pattern                   = Pattern.compile("!\\[\\[(.*?)\\]\\]");
+		int lastLevel                           = 1;
+		int row = 0;
+
+		for (final String line : lines) {
+
+			if (line.startsWith("#")) {
+
+				lastLevel = StringUtils.countMatches(line, "#");
+			}
+
+			final Matcher matcher = pattern.matcher(line);
+			if (matcher.matches()) {
+
+				final String content         = matcher.group(1);
+				final List<Token> tokens     = new StructrScriptTokenizer(false).tokenize(content);
+
+				if (!tokens.isEmpty()) {
+
+					final String name            = tokens.get(0).getContent();
+					final List<Concept> concepts = ontology.getConceptsByName(name);
+
+					if (!concepts.isEmpty()) {
+
+						final Concept concept  = concepts.get(0);
+						final Documentable doc = concept.getDocumentable();
+
+						if (doc != null) {
+
+							insert.put(row, doc.createMarkdownDocumentation(EnumSet.allOf(Details.class), 1));
+
+						} else {
+
+							final Link link         = new Link(null, null, concept);
+							final List<String> list = new LinkedList<>();
+
+							if (tokens.size() == 5) {
+
+								final String as   = tokens.get(2).getContent();
+								final String what = tokens.get(4).getContent();
+
+								if ("as".equals(as)) {
+
+									link.setFormat(Concept.forName(what));
+								}
+							}
+
+							Formatter.walkOntology(list, link, settings, lastLevel, new LinkedHashSet<>());
+
+							insert.put(row, list);
+						}
+					}
+				}
+			}
+
+			row++;
+		}
+
+		for (final Map.Entry<Integer, List<String>> entry : insert.entrySet()) {
+
+			final Integer position    = entry.getKey();
+			final List<String> values = entry.getValue();
+
+			lines.remove(position.intValue());
+			lines.addAll(position, values);
+		}
 	}
 }
 
