@@ -24,6 +24,4 @@ package org.structr.api.schema;
  */
 public interface JsonStringProperty extends JsonProperty {
 	
-	public JsonStringProperty setContentType(final String contentType);
-	public String getContentType();
 }

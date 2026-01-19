@@ -40,7 +40,6 @@ public interface PropertyDefinition {
 	boolean isCachingEnabled();
 	boolean isAbstract();
 	String getDefaultValue();
-	String getContentType();
 	String getReadFunction();
 	String getWriteFunction();
 	boolean getReadFunctionWrapJS();

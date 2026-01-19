@@ -57,7 +57,6 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String DECLARING_CLASS_PROPERTY            = "declaringClass";
 	public static final String DEFAULT_VALUE_PROPERTY              = "defaultValue";
 	public static final String PROPERTY_TYPE_PROPERTY              = "propertyType";
-	public static final String CONTENT_TYPE_PROPERTY               = "contentType";
 	public static final String DB_NAME_PROPERTY                    = "dbName";
 	public static final String FQCN_PROPERTY                       = "fqcn";
 	public static final String FORMAT_PROPERTY                     = "format";
@@ -147,7 +146,6 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String>             declaringClass          = new StringProperty(DECLARING_CLASS_PROPERTY);
 		final Property<String>             defaultValue            = new StringProperty(DEFAULT_VALUE_PROPERTY);
 		final Property<String>             propertyType            = new StringProperty(PROPERTY_TYPE_PROPERTY).indexed();
-		final Property<String>             contentType             = new StringProperty(CONTENT_TYPE_PROPERTY);
 		final Property<String>             dbName                  = new StringProperty(DB_NAME_PROPERTY);
 		final Property<String>             fqcn                    = new StringProperty(FQCN_PROPERTY);
 		final Property<String>             format                  = new StringProperty(FORMAT_PROPERTY);
@@ -185,7 +183,6 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 			declaringClass,
 			defaultValue,
 			propertyType,
-			contentType,
 			dbName,
 			fqcn,
 			format,
@@ -223,7 +220,7 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 				PropertyView.Public,
 				newSet(
 						DB_NAME_PROPERTY, SCHEMA_NODE_PROPERTY, SCHEMA_VIEWS_PROPERTY, EXCLUDED_VIEWS_PROPERTY, PROPERTY_TYPE_PROPERTY,
-						CONTENT_TYPE_PROPERTY, FORMAT_PROPERTY, FQCN_PROPERTY, TYPE_HINT_PROPERTY, HINT_PROPERTY, CATEGORY_PROPERTY,
+						FORMAT_PROPERTY, FQCN_PROPERTY, TYPE_HINT_PROPERTY, HINT_PROPERTY, CATEGORY_PROPERTY,
 						NOT_NULL_PROPERTY, COMPOUND_PROPERTY, UNIQUE_PROPERTY, INDEXED_PROPERTY, FULLTEXT_PROPERTY, READ_ONLY_PROPERTY,
 						DEFAULT_VALUE_PROPERTY, IS_BUILTIN_PROPERTY_PROPERTY, DECLARING_CLASS_PROPERTY, IS_ABSTRACT_PROPERTY, IS_DYNAMIC_PROPERTY,
 						READ_FUNCTION_PROPERTY, WRITE_FUNCTION_PROPERTY, READ_FUNCTION_WRAP_JS_PROPERTY, WRITE_FUNCTION_WRAP_JS_PROPERTY,
@@ -233,7 +230,7 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 				PropertyView.Ui,
 				newSet(
 						DB_NAME_PROPERTY, SCHEMA_NODE_PROPERTY, SCHEMA_VIEWS_PROPERTY, EXCLUDED_VIEWS_PROPERTY, PROPERTY_TYPE_PROPERTY,
-						CONTENT_TYPE_PROPERTY, FORMAT_PROPERTY, FQCN_PROPERTY, TYPE_HINT_PROPERTY, HINT_PROPERTY, CATEGORY_PROPERTY,
+						FORMAT_PROPERTY, FQCN_PROPERTY, TYPE_HINT_PROPERTY, HINT_PROPERTY, CATEGORY_PROPERTY,
 						NOT_NULL_PROPERTY, COMPOUND_PROPERTY, UNIQUE_PROPERTY, INDEXED_PROPERTY, FULLTEXT_PROPERTY, READ_ONLY_PROPERTY,
 						DEFAULT_VALUE_PROPERTY, IS_BUILTIN_PROPERTY_PROPERTY, DECLARING_CLASS_PROPERTY, IS_ABSTRACT_PROPERTY, IS_DYNAMIC_PROPERTY,
 						READ_FUNCTION_PROPERTY, WRITE_FUNCTION_PROPERTY, READ_FUNCTION_WRAP_JS_PROPERTY, WRITE_FUNCTION_WRAP_JS_PROPERTY,
@@ -244,7 +241,7 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 				newSet(
 						GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
 						DB_NAME_PROPERTY, SCHEMA_NODE_PROPERTY, SCHEMA_VIEWS_PROPERTY, EXCLUDED_VIEWS_PROPERTY, PROPERTY_TYPE_PROPERTY,
-						CONTENT_TYPE_PROPERTY, FORMAT_PROPERTY, FQCN_PROPERTY, TYPE_HINT_PROPERTY, HINT_PROPERTY, CATEGORY_PROPERTY,
+						FORMAT_PROPERTY, FQCN_PROPERTY, TYPE_HINT_PROPERTY, HINT_PROPERTY, CATEGORY_PROPERTY,
 						NOT_NULL_PROPERTY, COMPOUND_PROPERTY, UNIQUE_PROPERTY, INDEXED_PROPERTY, FULLTEXT_PROPERTY, READ_ONLY_PROPERTY,
 						DEFAULT_VALUE_PROPERTY, IS_BUILTIN_PROPERTY_PROPERTY, DECLARING_CLASS_PROPERTY, IS_ABSTRACT_PROPERTY, IS_DYNAMIC_PROPERTY,
 						READ_FUNCTION_PROPERTY, WRITE_FUNCTION_PROPERTY, READ_FUNCTION_WRAP_JS_PROPERTY, WRITE_FUNCTION_WRAP_JS_PROPERTY,

@@ -3151,10 +3151,6 @@ let _Code = {
 						<label class="block mb-1 font-semibold">Default value</label>
 						<input type="text" id="property-default-input" data-property="defaultValue" value="${config.property.defaultValue || ''}">
 					</div>
-					<div class="col-span-1" data-is-property-attribute-container>
-						<label class="block mb-1 font-semibold">Content type</label>
-						<input type="text" id="property-content-type-input" data-property="contentType" value="${config.property.contentType || ''}">
-					</div>
 					<div class="col-span-2" data-is-property-attribute-container>
 						<label class="block mb-1 font-semibold">Format</label>
 						<input type="text" id="property-format-input" data-property="format" value="${config.property.format || ''}">

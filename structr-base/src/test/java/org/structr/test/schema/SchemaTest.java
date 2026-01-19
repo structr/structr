@@ -78,7 +78,7 @@ public class SchemaTest extends StructrTest {
 			customer.addLongProperty("loong", "public", "ui").setMinimum(20, true).setMaximum(50);
 			customer.addBooleanProperty("isCustomer", "public", "ui");
 			customer.addFunctionProperty("displayName", "public", "ui").setReadFunction("concat(this.name, '.', this.id)");
-			customer.addStringProperty("description", "public", "ui").setContentType("text/plain").setFormat("multi-line");
+			customer.addStringProperty("description", "public", "ui").setFormat("multi-line");
 			customer.addStringArrayProperty("stringArray", "public", "ui");
 			customer.addIntegerArrayProperty("intArray", "public", "ui").setMinimum(0, true).setMaximum(100, true);
 			customer.addLongArrayProperty("longArray", "public", "ui").setMinimum(1, true).setMaximum(101, true);
@@ -128,7 +128,6 @@ public class SchemaTest extends StructrTest {
 			mapPathValue(map, "definitions.Customer.properties.intArray.items.minimum",             0.0);
 			mapPathValue(map, "definitions.Customer.properties.isCustomer.type",                    "boolean");
 			mapPathValue(map, "definitions.Customer.properties.description.type",                   "string");
-			mapPathValue(map, "definitions.Customer.properties.description.contentType",            "text/plain");
 			mapPathValue(map, "definitions.Customer.properties.description.format",                 "multi-line");
 			mapPathValue(map, "definitions.Customer.properties.displayName.type",                   "function");
 			mapPathValue(map, "definitions.Customer.properties.displayName.readFunction",           "concat(this.name, '.', this.id)");
@@ -153,7 +152,7 @@ public class SchemaTest extends StructrTest {
 			mapPathValue(map, "definitions.Customer.views.public.7",                                "doubleArray");
 			mapPathValue(map, "definitions.Customer.views.public.8",                                "intArray");
 			mapPathValue(map, "definitions.Customer.views.public.9",                                "isCustomer");
-			mapPathValue(map, "definitions.Customer.views.public.10",                                "longArray");
+			mapPathValue(map, "definitions.Customer.views.public.10",                               "longArray");
 			mapPathValue(map, "definitions.Customer.views.public.11",                               "loong");
 			mapPathValue(map, "definitions.Customer.views.public.12",                               "name");
 			mapPathValue(map, "definitions.Customer.views.public.13",                               "number");
@@ -169,7 +168,7 @@ public class SchemaTest extends StructrTest {
 			mapPathValue(map, "definitions.Customer.views.ui.7",                                    "doubleArray");
 			mapPathValue(map, "definitions.Customer.views.ui.8",                                    "intArray");
 			mapPathValue(map, "definitions.Customer.views.ui.9",                                    "isCustomer");
-			mapPathValue(map, "definitions.Customer.views.ui.10",                                    "longArray");
+			mapPathValue(map, "definitions.Customer.views.ui.10",                                   "longArray");
 			mapPathValue(map, "definitions.Customer.views.ui.11",                                   "loong");
 			mapPathValue(map, "definitions.Customer.views.ui.12",                                   "name");
 			mapPathValue(map, "definitions.Customer.views.ui.13",                                   "number");
@@ -281,7 +280,7 @@ public class SchemaTest extends StructrTest {
 
 			// test function property
 			task.addFunctionProperty("displayName", "public", "ui").setReadFunction("this.name");
-			task.addFunctionProperty("javascript", "public", "ui").setReadFunction("{ var x = 'test'; return x; }").setContentType("application/x-structr-javascript");
+			task.addFunctionProperty("javascript", "public", "ui").setReadFunction("{ var x = 'test'; return x; }");
 
 
 			// a project

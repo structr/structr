@@ -54,20 +54,9 @@ public class StructrPasswordProperty extends StructrPropertyDefinition implement
 
 		properties.put(traits.key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), Type.Password.name());
 		properties.put(traits.key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY), getFormat());
-		properties.put(traits.key(SchemaPropertyTraitDefinition.CONTENT_TYPE_PROPERTY), getContentType());
 
 		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
 
 		return property;
-	}
-
-	@Override
-	public JsonStringProperty setContentType(final String contentType) {
-		return this;
-	}
-
-	@Override
-	public String getContentType() {
-		return "text/plain";
 	}
 }

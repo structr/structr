@@ -1630,7 +1630,7 @@ let _Schema = {
 
 			let gridConfig = {
 				class: 'local schema-props grid',
-				style: 'grid-template-columns: [ name ] minmax(0, 1fr) ' +  ((showDatabaseName) ? '[ dbName ] minmax(0, 1fr) ' : '') + '[ type ] minmax(10%, max-content) [ format ] minmax(10%, max-content) [ notNull ] minmax(5%, max-content) [ compositeUnique ] minmax(5%, max-content) [ unique ] minmax(5%, max-content) [ indexed ] minmax(5%, max-content) [ fulltext ] minmax(5%, max-content) [ defaultValue ] minmax(0, 1fr) [ actions ] 4rem',
+				style: 'grid-template-columns: [ name ] minmax(0, 1fr) ' +  ((showDatabaseName) ? '[ dbName ] minmax(0, 1fr) ' : '') + '[ type ] minmax(min-content, max-content) [ format ] minmax(10%, max-content) [ notNull ] minmax(5%, max-content) [ compositeUnique ] minmax(5%, max-content) [ unique ] minmax(5%, max-content) [ indexed ] minmax(5%, max-content) [ fulltext ] minmax(5%, max-content) [ defaultValue ] minmax(0, 1fr) [ actions ] 4rem',
 				cols: [
 					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'JSON Name' },
 					{ class: 'py-2 px-1 font-bold items-center justify-center ' + dbNameClass, title: 'DB Name' },
@@ -1835,10 +1835,6 @@ let _Schema = {
 
 			$('.property-type option[value=""]', gridRow).remove();
 
-			if (property.propertyType === 'String' && !property.isBuiltinProperty) {
-				$('.content-type', gridRow).val(property.contentType).on('keyup', propertyInfoChangeHandler).prop('disabled', null);
-			}
-
 			$('.property-name',    gridRow).on('keyup', propertyInfoChangeHandler).prop('disabled', isProtected);
 			$('.property-dbname',  gridRow).on('keyup', propertyInfoChangeHandler).prop('disabled', isProtected);
 			$('.caching-enabled',  gridRow).on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
@@ -1947,7 +1943,6 @@ let _Schema = {
 				name:             gridRow.querySelector('.property-name').value,
 				dbName:           gridRow.querySelector('.property-dbname').value,
 				propertyType:     gridRow.querySelector('.property-type',).value,
-				contentType:      gridRow.querySelector('.content-type')?.value ?? null,
 				format:           gridRow.querySelector('.property-format')?.value ?? null,
 				notNull:          gridRow.querySelector('.not-null').checked,
 				compound:         gridRow.querySelector('.compound').checked,
@@ -1970,7 +1965,6 @@ let _Schema = {
 			$('.property-name', gridRow).val(property.name);
 			$('.property-dbname', gridRow).val(property.dbName);
 			$('.property-type', gridRow).val(property.propertyType);
-			$('.content-type', gridRow).val(property.contentType);
 			$('.property-format', gridRow).val(property.format);
 			$('.not-null', gridRow).prop('checked', property.notNull);
 			$('.compound', gridRow).prop('checked', property.compound);
@@ -2086,7 +2080,7 @@ let _Schema = {
 			let codeKey = `${key}Function`;
 			let wrapKey = `${key}FunctionWrapJS`;
 
-			Command.get(id, `id,name,contentType,${codeKey},${wrapKey}`, (entity) => {
+			Command.get(id, `id,name,${codeKey},${wrapKey}`, (entity) => {
 
 				let { dialogText, dialogMeta } = _Dialogs.custom.openDialog(`Edit ${key} function of ${entity.name}`, closeCallback, ['popup-dialog-with-editor']);
 				dialogText.insertAdjacentHTML('beforeend', '<div class="editor h-full"></div>');
@@ -2339,7 +2333,6 @@ let _Schema = {
 					</div>
 					<div class="flex items-center">
 						${config.typeOptions}
-						${(config.property.propertyType === 'String' && !config.property.isBuiltinProperty) ? '<input type="text" class="content-type w-12" title="Content-Type">' : ''}
 					</div>
 					<div class="p-2 flex items-center">
 						${(() => {
@@ -2432,7 +2425,7 @@ let _Schema = {
 				</select>
 			`,
 			typeOptions: config => `
-				<select class="property-type pr-6 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+				<select class="property-type w-full hover:bg-gray-100 focus:border-gray-666 active:border-green">
 					<option value="">--Select--</option>
 					<option value="Boolean">Boolean</option>
 					<option value="BooleanArray">Boolean[]</option>

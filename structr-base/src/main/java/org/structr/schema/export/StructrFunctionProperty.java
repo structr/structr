@@ -45,7 +45,6 @@ public class StructrFunctionProperty extends StructrDynamicProperty implements J
 	protected String writeFunction 		                   = null;
 	protected boolean writeFunctionWrapJS                  = true;
 	protected boolean readFunctionWrapJS                   = true;
-	protected String contentType                           = null;
 	protected String openAPIReturnType	                   = null;
 
 	public StructrFunctionProperty(final StructrTypeDefinition parent, final String name) {
@@ -125,18 +124,6 @@ public class StructrFunctionProperty extends StructrDynamicProperty implements J
 	@Override
 	public String getOpenAPIReturnType() {
 		return this.openAPIReturnType;
-	}
-
-	@Override
-	public JsonFunctionProperty setContentType(String contentType) {
-
-		this.contentType = contentType;
-		return this;
-	}
-
-	@Override
-	public String getContentType() {
-		return contentType;
 	}
 
 	@Override
@@ -220,19 +207,6 @@ public class StructrFunctionProperty extends StructrDynamicProperty implements J
 			}
 
 		}
-
-		final Object contentTypeValue = source.get(JsonSchema.KEY_CONTENT_TYPE);
-		if (contentTypeValue != null) {
-
-			if (contentTypeValue instanceof String) {
-
-				this.contentType = (String)contentTypeValue;
-
-			} else {
-
-				throw new IllegalStateException("Invalid contentType for property " + name + ", expected string.");
-			}
-		}
 	}
 
 	@Override
@@ -246,7 +220,6 @@ public class StructrFunctionProperty extends StructrDynamicProperty implements J
 		setWriteFunctionWrapJS(property.getWriteFunctionWrapJS());
 
 		setIsCachingEnabled(property.isCachingEnabled());
-		setContentType(property.getSourceContentType());
 		setOpenAPIReturnType(property.getOpenAPIReturnType());
 	}
 
@@ -269,20 +242,6 @@ public class StructrFunctionProperty extends StructrDynamicProperty implements J
 	// ----- protected methods -----
 	@Override
 	protected Type getTypeToSerialize() {
-
-		if (contentType != null) {
-
-			switch (contentType) {
-
-				case "application/x-structr-javascript":
-				case "application/x-structr-script":
-					return Type.Function;
-
-				case "application/x-cypher":
-					return Type.Cypher;
-
-			}
-		}
 
 		return Type.Function;
 	}
