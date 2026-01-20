@@ -75,4 +75,9 @@ public abstract class JavaMethod extends AbstractMethod {
 	public String getFullMethodName() {
 		return "Java method ‛" + name + "‛";
 	}
+
+	@Override
+	public String getDeclaringTrait() {
+		return null;
+	}
 }

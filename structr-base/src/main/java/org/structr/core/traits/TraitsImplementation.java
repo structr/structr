@@ -551,11 +551,6 @@ public class TraitsImplementation implements Traits {
 	}
 
 	@Override
-	public List<ConceptReference> getParentConcepts() {
-		return List.of(ConceptReference.of(ConceptType.Topic, "Built-in types"));
-	}
-
-	@Override
 	public List<DocumentedProperty> getDocumentedProperties() {
 
 		final List<DocumentedProperty> properties = new LinkedList<>();

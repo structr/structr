@@ -162,7 +162,7 @@ public class MailboxTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public String getShortDescription() {
-		return "This type is part of the MailService, which you can use to import emails from different mailboxes into Structr.";
+		return "This trait is part of the MailService, which you can use to import emails from different mailboxes into Structr.";
 	}
 
 	@Override

@@ -18,6 +18,7 @@
  */
 package org.structr.docs;
 
+import jnr.ffi.annotations.Out;
 import org.structr.docs.ontology.*;
 
 import java.util.*;
@@ -112,6 +113,11 @@ public class OutputSettings {
 	}
 
 	public boolean hasDetail(final Details detail) {
+
+		if (details.contains(Details.all)) {
+			return true;
+		}
+
 		return details.contains(detail);
 	}
 
@@ -188,5 +194,18 @@ public class OutputSettings {
 
 	public String getKey() {
 		return this.key;
+	}
+
+	public static OutputSettings withDetails(final Ontology ontology, final Details... details) {
+
+		final OutputSettings settings = new OutputSettings(ontology, 0, 6);
+
+		settings.getDetails().clear();
+
+		for (final Details detail : details) {
+			settings.getDetails().add(detail);
+		}
+
+		return settings;
 	}
 }

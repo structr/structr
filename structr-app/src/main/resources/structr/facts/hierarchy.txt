@@ -36,6 +36,7 @@ Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Exper
 
     "Overview" has markdown-file "articles/Building Applications/Overview.md" with heading "Overview"
     "Data Model" has markdown-file "articles/Building Applications/Data Model.md" with heading "Data Model"
+        Topic "Built-in traits" has description "Structr provides the following built-in traits that you can select when creating or editing a type to inherit their functionality."
     "Data Creation & Import" has markdown-file "articles/Building Applications/Data Creation & Import.md"
 
     "Pages & Templates" has markdown-file "snippets/Pages & Templates - 000.md"
@@ -173,11 +174,14 @@ Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Exper
 # Expert Topics
 Topic "Expert Topics" has topics "Performance Optimization", "Internals"
 
-    "Performance Optimization" has topics "Prefetching", "Partial rendering", "Relationship naming", "Supernodes"
+    "Performance Optimization" has topics "Indexing", "Prefetching", "Partial rendering", "Relationship naming", "Supernodes"
+
+        "Indexing" has topics "Uniqueness validation will massively benefit from an index on the property"
 
         "Prefetching" has topics "Prefetching Settings"
 
         "Partial rendering" has topics "Partials"
+
 
 
 

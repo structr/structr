@@ -53,7 +53,7 @@ import org.structr.web.entity.User;
 import java.util.Map;
 import java.util.Set;
 
-@Documentation(name="User", type=ConceptType.SystemType, shortDescription="The User type", parent="Built-in types")
+@Documentation(name="User", type=ConceptType.SystemType, shortDescription="The User trait", parent="Built-in traits")
 public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String HOME_DIRECTORY_PROPERTY              = "homeDirectory";
@@ -251,7 +251,7 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public String getShortDescription() {
-		return "The type `User` is one of the base classes for Structr's access control and permissions system.";
+		return "The `User` trait is one of the base traits for Structr's access control and permissions system.";
 	}
 
 	@Override

@@ -1312,7 +1312,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			typeDefinition.setIcon(icon.toString());
 		}
 
-		// do not create empty built-in types
+		// do not create empty built-in traits
 		if (Boolean.TRUE.equals(source.get("isBuiltinType"))) {
 
 			if (MigrationService.typeShouldBeRemoved(name)) {

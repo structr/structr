@@ -24,5 +24,6 @@ public enum Details {
 	source,
 	shortDescription,
 	longDescription,
+	children,
 	all
 }

@@ -4033,7 +4033,7 @@ let _Schema = {
 			`,
 			addMethodsDropdown: config => `
 				<div class="dropdown-menu darker-shadow-dropdown dropdown-menu-large relative">
-					<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-wants-fixed="false">
+					<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-wants-fixed="false" data-test-purpose="create-schema-method">
 						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['icon-green', 'mr-2'])}
 					</button>
 					<div class="dropdown-menu-container ml-px w-64">

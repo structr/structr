@@ -63,6 +63,7 @@ public class ActionContext {
 	private final StringBuilder outputBuffer                                  = new StringBuilder();
 	private ErrorBuffer errorBuffer                                           = new ErrorBuffer();
 	private Locale locale                                                     = Locale.getDefault();
+	private GraphObject currentEntity                                         = null;
 	private AbstractMethod currentMethod                                      = null;
 	private SecurityContext securityContext                                   = null;
 	private Predicate predicate                                               = null;
@@ -608,7 +609,9 @@ public class ActionContext {
 		return false;
 	}
 
-	public void setCurrentMethod(final AbstractMethod currentMethod) {
+	public void setCurrentMethod(final GraphObject currentEntity, final AbstractMethod currentMethod) {
+
+		this.currentEntity = currentEntity;
 		this.currentMethod = currentMethod;
 	}
 
@@ -663,5 +666,32 @@ public class ActionContext {
 		}
 
 		return remoteAddress;
+	}
+
+	/**
+	 * If the given method is a super, this method returns the current entity
+	 * on which the super call can be executed, otherwise it returns null.
+	 *
+	 * @param method
+	 * @return
+	 */
+	public GraphObject isSuperCall(final AbstractMethod method) {
+
+		if (currentMethod != null) {
+
+			final String declaringTrait = currentMethod.getDeclaringTrait();
+			if (declaringTrait != null && Traits.exists(declaringTrait)) {
+
+				final Traits traits              = Traits.of(declaringTrait);
+				final AbstractMethod superMethod = Methods.resolveMethod(traits, method.getName());
+
+				if (superMethod != null) {
+
+					return currentEntity;
+				}
+			}
+		}
+
+		return null;
 	}
 }

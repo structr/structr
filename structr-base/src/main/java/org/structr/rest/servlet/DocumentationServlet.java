@@ -33,7 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.util.resource.Resource;
 import org.structr.core.Services;
-import org.structr.core.function.tokenizer.StructrScriptTokenizer;
+import org.structr.core.function.tokenizer.FactsTokenizer;
 import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.Documentable;
 import org.structr.docs.Documentation;
@@ -124,7 +124,7 @@ public class DocumentationServlet extends HttpServlet {
 
 				if ("markdown".equals(settings.getOutputFormat())) {
 
-					replaceWikiLinks(ontology, lines, settings);
+					replaceIncludes(ontology, lines, settings);
 
 					renderMarkdown(response, lines, settings);
 				}
@@ -500,75 +500,174 @@ public class DocumentationServlet extends HttpServlet {
 		return request.getParameter("search") != null;
 	}
 
-	private void replaceWikiLinks(final Ontology ontology, final List<String> lines, final OutputSettings settings) {
+	private void replaceIncludes(final Ontology ontology, final List<String> lines, final OutputSettings settings) {
 
-		final Map<Integer, List<String>> insert = new LinkedHashMap<>();
-		final Pattern pattern                   = Pattern.compile("!\\[\\[(.*?)\\]\\]");
-		int lastLevel                           = 1;
+		final Map<Integer, List<String>> insert = new TreeMap<>(Collections.reverseOrder());
+		final Pattern pattern                   = Pattern.compile("\\{\\{(.*?)\\}\\}");
 		int row = 0;
 
-		for (final String line : lines) {
 
-			if (line.startsWith("#")) {
+		String content          = StringUtils.join(lines, "\n");
+		final Matcher matcher   = pattern.matcher(content);
 
-				lastLevel = StringUtils.countMatches(line, "#");
+		while (matcher.find()) {
+
+			final Map<String, String> data = parseIncludeLink("markdown output", row, matcher.group(1));
+			final List<Concept> concepts   = new LinkedList<>();
+			final String conceptName       = data.get("concept");
+
+			if (data.containsKey("type")) {
+
+				final ConceptType type = Concept.forName(data.get("type"));
+				concepts.addAll(ontology.getConcept(type, conceptName));
+
+			} else {
+
+				concepts.addAll(ontology.getConceptsByName(conceptName));
 			}
 
-			final Matcher matcher = pattern.matcher(line);
-			if (matcher.matches()) {
+			if (!concepts.isEmpty()) {
 
-				final String content         = matcher.group(1);
-				final List<Token> tokens     = new StructrScriptTokenizer(false).tokenize(content);
+				final List<String> list = new LinkedList<>();
+				final Concept concept   = concepts.get(0);
 
-				if (!tokens.isEmpty()) {
+				if (data.containsKey("h1")) { list.add("# " + concept.getName()); }
+				if (data.containsKey("h2")) { list.add("## " + concept.getName()); }
+				if (data.containsKey("h3")) { list.add("### " + concept.getName()); }
+				if (data.containsKey("h4")) { list.add("#### " + concept.getName()); }
+				if (data.containsKey("h5")) { list.add("##### " + concept.getName()); }
+				if (data.containsKey("h6")) { list.add("###### " + concept.getName()); }
 
-					final String name            = tokens.get(0).getContent();
-					final List<Concept> concepts = ontology.getConceptsByName(name);
-
-					if (!concepts.isEmpty()) {
-
-						final Concept concept  = concepts.get(0);
-						final Documentable doc = concept.getDocumentable();
-
-						if (doc != null) {
-
-							insert.put(row, doc.createMarkdownDocumentation(EnumSet.allOf(Details.class), 1));
-
-						} else {
-
-							final Link link         = new Link(null, null, concept);
-							final List<String> list = new LinkedList<>();
-
-							if (tokens.size() == 5) {
-
-								final String as   = tokens.get(2).getContent();
-								final String what = tokens.get(4).getContent();
-
-								if ("as".equals(as)) {
-
-									link.setFormat(Concept.forName(what));
-								}
-							}
-
-							Formatter.walkOntology(list, link, settings, lastLevel, new LinkedHashSet<>());
-
-							insert.put(row, list);
-						}
-					}
+				if (data.containsKey("shortDescription")) {
+					list.addAll(split(concept.getShortDescription()));
 				}
+
+				if (data.containsKey("table")) {
+
+					list.add("");
+
+					final OutputSettings tableSettings = OutputSettings.withDetails(ontology, Details.children);
+					new MarkdownTableFormatter().format(list, new Link(null, null, concept), tableSettings, 0, new LinkedHashSet<>());
+				}
+
+				if (data.containsKey("list")) {
+
+					list.add("");
+
+					final OutputSettings listSettings = OutputSettings.withDetails(ontology, Details.children);
+					new MarkdownListFormatter().format(list, new Link(null, null, concept), listSettings, 0, new LinkedHashSet<>());
+				}
+
+				final String insertText = StringUtils.join(list, "\n");
+
+				content = matcher.replaceFirst(insertText);
+				matcher.reset(content);
+			}
+		}
+
+		lines.clear();
+		lines.addAll(split(content));
+	}
+
+	/**
+	 * A include link is a string of text that contains the name of the concept
+	 * and a comma-separated list of keywords that control the rendering, like
+	 * list, table, h1, h2, shortDescription etc.
+	 * @param sourceFile
+	 * @param row
+	 * @param source
+	 * @return
+	 */
+	private Map<String, String> parseIncludeLink(final String sourceFile, final int row, final String source) {
+
+		final List<Token> tokens         = new FactsTokenizer().tokenize(null, source);
+		final Map<String, String> result = new LinkedHashMap<>();
+
+		while (!tokens.isEmpty()) {
+
+			final Token token         = getNextToken(tokens);
+			final String tokenContent = token.getContent();
+
+			// remove empty tokens and commas
+			if (StringUtils.isBlank(tokenContent) || tokenContent.trim().equals(","	)) {
+				continue;
 			}
 
-			row++;
+			// first token is the concept to be included
+			if (!result.containsKey("concept")) {
+
+				final String content = token.getContent();
+
+				if (content.contains(":")) {
+
+					final String[] parts = content.split(":");
+					final String type = parts[0];
+					final String name = parts[1];
+
+					result.put("type", type);
+					result.put("concept", name);
+
+				} else {
+
+					result.put("concept", token.getContent());
+				}
+
+			} else {
+
+				result.put(tokenContent, token.getContent());
+			}
 		}
 
-		for (final Map.Entry<Integer, List<String>> entry : insert.entrySet()) {
+		return result;
+	}
 
-			final Integer position    = entry.getKey();
-			final List<String> values = entry.getValue();
+	private List<String> split(final String input) {
 
-			lines.remove(position.intValue());
-			lines.addAll(position, values);
+		final List<String> result = new LinkedList<>();
+
+		if (input != null) {
+
+			result.addAll(Arrays.asList(input.split("\n")));
 		}
+
+		return result;
+	}
+
+	private Token getNextToken(final List<Token> tokens) {
+
+		Token token = tokens.remove(0);
+
+		while (StringUtils.isBlank(token.getContent()) && !tokens.isEmpty()) {
+
+			token = tokens.remove(0);
+		}
+
+		return token;
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

@@ -245,6 +245,10 @@ public final class Ontology {
 			return null;
 		}
 
+		if (subject.hasChild(verb, object)) {
+			return subject.getLinkTo(verb, object);
+		}
+
 		final Link link = new Link(subject, verb, object);
 
 		links.add(link);
@@ -478,7 +482,6 @@ public final class Ontology {
 		final String[] synonyms = documentation.synonyms();
 		final String[] children = documentation.children();
 
-		// allow this getOrCreate call to find existing concepts so we can combine concepts from different @Documentation annotations
 		final Concept concept = getOrCreateConcept(token, type, name, true);
 		if (concept != null) {
 
@@ -491,7 +494,7 @@ public final class Ontology {
 					if (StringUtils.isNotBlank(child)) {
 
 						final Concept childConcept = getOrCreateConcept(token, ConceptType.Topic, child, false);
-						if (childConcept != null) {
+						if (childConcept != null && !concept.hasChild(Verb.Has, childConcept)) {
 
 							createSymmetricLink(concept, Verb.Has, childConcept);
 						}
@@ -514,18 +517,17 @@ public final class Ontology {
 				}
 			}
 
+			if (StringUtils.isNotBlank(parent)) {
 
-			if (parentConcept != null) {
-
-				createSymmetricLink(parentConcept, Verb.Has, concept);
-
-			} else if (StringUtils.isNotBlank(parent)) {
-
-				final Concept p = getOrCreateConcept(token, ConceptType.Unknown, parent, true);
-				if (p != null) {
+				final Concept p = getOrCreateConcept(token, ConceptType.Topic, parent, true);
+				if (p != null && !p.hasChild(Verb.Has, concept)) {
 
 					createSymmetricLink(p, Verb.Has, concept);
 				}
+
+			} else if (parentConcept != null && !parentConcept.hasChild(Verb.Has, concept)) {
+
+				createSymmetricLink(parentConcept, Verb.Has, concept);
 			}
 
 			if (clazz != null) {

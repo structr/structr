@@ -130,7 +130,6 @@ test('user-defined-functions', async ({ page }) => {
   await page.keyboard.type('{');
   await page.waitForTimeout(100);
   await page.keyboard.press('Enter');
-  await page.keyboard.press('Tab');
   await page.keyboard.type('$.sendPlain');
   await page.waitForTimeout(1000);
   await page.screenshot({ path: 'screenshots/code_project-method-autocomplete.png' });

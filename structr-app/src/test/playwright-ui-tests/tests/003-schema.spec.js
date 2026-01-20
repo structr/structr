@@ -87,7 +87,18 @@ test('schema', async ({ page }) => {
   await page.getByRole('button', { name: ' Create ', exact: true }).click();
   await page.waitForTimeout(1000);
   await page.screenshot({ path: 'screenshots/schema_created-type_Project.png' });
-  await page.getByText('General').screenshot({ path: 'screenshots/schema_edit-type_general-tab.png' });
+
+    // Add custom method and take a screenshot
+    await page.getByText('Methods', { exact: true }).click();
+    await page.locator('button[data-test-purpose="create-schema-method"]').click();
+    await page.getByText('Add method', { exact: true}).click();
+    await page.getByRole('textbox', { name: 'Enter method name' }).click();
+    await page.keyboard.type("sendEMail");
+    await page.locator('.monaco-editor').nth(0).click();
+    await page.keyboard.type("{");
+    await page.keyboard.press("Enter");
+    await page.keyboard.type("$.sendPlaintextMail(...);");
+    await page.screenshot({ path: 'screenshots/schema_method-added_sendEMail.png' });
 
   // Add custom String property 'projectId'
   await page.getByText('Direct properties', { exact: true }).click();

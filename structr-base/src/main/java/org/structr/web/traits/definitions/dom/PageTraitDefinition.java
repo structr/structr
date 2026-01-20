@@ -54,7 +54,7 @@ import static org.structr.web.entity.dom.DOMNode.PAGE_CATEGORY;
 /**
  * Represents a page resource.
  */
-@Documentation(name="Page", type= ConceptType.SystemType, shortDescription="The base class for all nodes in a Page.", parent="Built-in types")
+@Documentation(name="Page", type= ConceptType.SystemType, shortDescription="The base class for all nodes in a Page.", parent="System types")
 public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String ELEMENTS_PROPERTY              = "elements";
@@ -250,7 +250,7 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public String getShortDescription() {
-		return "This type is the main entry point for Structr's Page Rendering Engine.";
+		return "This trait is the main entry point for Structr's Page Rendering Engine.";
 	}
 
 	@Override

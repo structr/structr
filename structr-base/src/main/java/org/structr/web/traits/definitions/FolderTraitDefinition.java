@@ -49,7 +49,7 @@ import org.structr.web.traits.wrappers.FolderTraitWrapper;
 import java.util.Map;
 import java.util.Set;
 
-@Documentation(name="Folder", type= ConceptType.SystemType, parent="Built-in types")
+@Documentation(name="Folder", type= ConceptType.SystemType, parent="Built-in traits")
 public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String WORK_FOLDER_OF_USERS_PROPERTY       = "workFolderOfUsers";
@@ -222,7 +222,7 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public String getShortDescription() {
-		return "This type is one of Structr's built-in types for organizing files and creating hierarchical structures within your application.";
+		return "This trait is one of Structr's built-in traits for organizing files and creating hierarchical structures within your application.";
 	}
 
 	@Override

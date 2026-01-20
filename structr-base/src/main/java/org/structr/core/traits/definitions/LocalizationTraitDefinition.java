@@ -153,7 +153,7 @@ public final class LocalizationTraitDefinition extends AbstractNodeTraitDefiniti
 
 	@Override
 	public String getShortDescription() {
-		return "This type represents translations for text snippets.";
+		return "This trait represents translations for text snippets.";
 	}
 
 	@Override

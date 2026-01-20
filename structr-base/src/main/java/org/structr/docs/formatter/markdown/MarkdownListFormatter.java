@@ -30,13 +30,12 @@ import org.structr.docs.ontology.Verb;
 
 import java.util.*;
 
-public class MarkdownTableFormatter extends Formatter {
+public class MarkdownListFormatter extends Formatter {
 
 	@Override
 	public boolean format(final List<String> lines, final Link link, final OutputSettings settings, final int level, final Set<Concept> seenConcepts) {
 
-		final Map<String, String> headers = mapOf("Name", "`displayName`", "Description", "shortDescription");
-		final Concept concept             = link.getTarget();
+		final Concept concept = link.getTarget();
 
 		if (settings.hasDetail(Details.name)) {
 			lines.add(formatMarkdownHeading(concept.getName(), level + 1));
@@ -47,20 +46,6 @@ public class MarkdownTableFormatter extends Formatter {
 		}
 
 		if (settings.hasDetail(Details.children)) {
-
-			if (concept.getMetadata().containsKey("table-headers")) {
-
-				final Map<String, String> tableHeaders = (Map<String, String>) concept.getMetadata().get("table-headers");
-				if (!tableHeaders.isEmpty()) {
-
-					headers.clear();
-					headers.putAll(tableHeaders);
-				}
-			}
-
-			lines.add("");
-			lines.add("| " + StringUtils.join(headers.keySet(), " | ") + " |");
-			lines.add("| " + StringUtils.repeat("--- | ---", headers.size() - 1) + " |");
 
 			// format children
 			final List<Concept> children = concept.getChildren(Verb.Has);
@@ -103,35 +88,7 @@ public class MarkdownTableFormatter extends Formatter {
 
 				for (final Documentable documentable : documentables) {
 
-					final List<String> row = new LinkedList<>();
-
-					for (final String value : headers.values()) {
-
-						switch (value) {
-
-							case "`name`":
-								row.add("`" + documentable.getName() + "`");
-								break;
-
-							case "name":
-								row.add(documentable.getName());
-								break;
-
-							case "`displayName`":
-								row.add("`" + documentable.getDisplayName(false) + "`");
-								break;
-
-							case "displayName":
-								row.add(documentable.getDisplayName(false));
-								break;
-
-							case "shortDescription":
-								row.add(documentable.getShortDescription());
-								break;
-						}
-					}
-
-					lines.add("| " + StringUtils.join(row, " | ") + " |");
+					lines.add("- " + documentable.getShortDescription());
 				}
 			}
 		}

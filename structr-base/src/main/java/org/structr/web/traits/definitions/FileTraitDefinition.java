@@ -68,7 +68,7 @@ import java.util.Set;
  *
  *
  */
-@Documentation(name="File", type=ConceptType.SystemType, parent="Built-in types")
+@Documentation(name="File", type=ConceptType.SystemType, parent="Built-in traits")
 public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String FILE_PARENT_PROPERTY               = "fileParent";
@@ -380,7 +380,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public String getShortDescription() {
-		return "This type is one of Structr's built-in types for managing uploaded files and file system resources within your application.";
+		return "This trait is one of Structr's built-in traits for managing uploaded files and file system resources within your application.";
 	}
 
 	@Override

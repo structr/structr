@@ -140,7 +140,7 @@ public class Actions {
 		store.setTemporaryParameters(new HashMap<>());
 
 		final ActionContext context = new ActionContext(securityContext, parameters);
-		context.setCurrentMethod(scriptConfig.getCurrentMethod());
+		context.setCurrentMethod(entity, scriptConfig.getCurrentMethod());
 
 		try {
 

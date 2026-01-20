@@ -54,7 +54,7 @@ public enum RequestParameters implements Documentable {
 
 	// special settings
 	// link to JSON output
-	OutputDepth("outputNestingDepth", null, null),
+	OutputDepth("outputNestingDepth", "JSON Nesting Depth", "You can control how deeply nested objects are serialized in REST responses using the `_outputNestingDepth` request parameter. By default, Structr serializes nested objects to a depth of three levels, but increasing the nesting depth includes more levels of related objects in the response. This is useful when you need to access deeply nested relationships without making multiple requests."),
 	DebugLogging("debugLoggingEnabled", null, null),
 	ForceResultCount("forceResultCount", null, null),
 	DisableSoftLimit("disableSoftLimit", null, null),
