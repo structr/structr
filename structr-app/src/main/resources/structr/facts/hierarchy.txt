@@ -32,7 +32,7 @@ Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Exper
 
 
 # Building Applications
-"Building Applications" has new topics "Overview", "Data Model", "Data Creation & Import", "Pages & Templates", "Navigation & Routing", "Dynamic Content", "Event Action Mapping", "Business Logic", "Error handling", "Language localization", "Troubleshooting"
+"Building Applications" has new topics "Overview", "Data Model", "Data Creation & Import", "Pages & Templates", "Navigation & Routing", "Dynamic Content", "Event Action Mapping", "Business Logic", "Error handling", "Language localization", "Best practices", "Troubleshooting"
 
     "Overview" has markdown-file "articles/Building Applications/Overview.md" with heading "Overview"
     "Data Model" has markdown-file "articles/Building Applications/Data Model.md" with heading "Data Model"

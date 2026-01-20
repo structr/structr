@@ -214,6 +214,30 @@ Structr allows you to send plain text or HTML emails with attachments from any b
 
 The REST interface allows you to exchange data with external systems and expose business logic methods as REST endpoints. Methods accept arbitrary JSON input and return structured JSON output, making it easy to build custom APIs and integrate Structr into existing workflows or architectures.
 
+#### Views
+Views control the JSON representation of types in the REST API. By default, the REST API uses the `public` view, which you can customize by adding or removing attributes to match your requirements. For advanced use cases, you can create additional custom views and access them via separate URLs.
+
+##### Example
+For example, if you create a `summary` view for your Article type, you can access it with:
+
+    GET /Article/a3f8b2c1d4e5f6a7b8c9d0e1f2a3b4c5/summary
+
+This returns a JSON document with only the attributes defined in that view, e.g. `title`, `author` and `publishDate`.
+
+    {
+        "result": {
+            "title": "Introduction to Structr",
+            "author": "Christian Morgner",
+            "publishDate": "2025-01-15"
+        },
+        "query_time": "0.008205901",
+        "result_count": 1,
+        "page_count": 1,
+        "result_count_time": "0.000136110",
+        "serialization_time": "0.000554177"
+}
+
+
 [Read more about the REST Interface.](/structr/docs/ontology/REST%20Interface/Overview)
 
 ### Message Brokers

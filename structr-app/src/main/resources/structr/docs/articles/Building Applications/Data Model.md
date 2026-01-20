@@ -65,47 +65,51 @@ The General tab is similar to the Create Type dialog and provides configuration 
 
 The Direct Properties tab displays a table where you add and edit attributes for the type. Each row represents an attribute with the following configuration options.
 
-##### JSON Name & DB Name¹
+#### JSON Name & DB Name¹
 JSON Name specifies the attribute name used to access the attribute in code, REST APIs, and other interfaces.
 
 <small>¹ There is an additional setting that is hidden by default: DB Name, which allows you to specify a different database name when working with a database schema you don't control. Enable this setting through the "Show database name for direct properties" checkbox in the configuration menu in the upper right corner of the Schema area.</small>
 
-##### Type
+#### Type
 Type specifies the attribute's data type. Common types include String for text values, Integer for whole numbers, and Date for timestamps and date values. Additional types are available, including array versions of these primitive data types.
 
 The type controls what values are accepted as input. For example, an integer attribute only accepts numeric input. A date attribute accepts string values in ISO-8601 format or according to a custom date pattern specified in the format column. Structr stores dates as long values with millisecond precision in the database.
 
 [Read more about Property Types.](/structr/docs/ontology/References/Built-in%20properties)
 
-##### Format
+#### Format
 The Format field is optional and has different meanings depending on the attribute type.
 
 {{"Value-based schema constraints", list}}
 
-##### Notnull
+#### Notnull
 If you activate the not-null checkbox, the attribute becomes a mandatory attribute for this type, and the creation of objects without a value for this attribute is prevented with a validation error.
 
 Please note that this only applies to newly created objects. If existing objects are modified after this change, the change can only be saved successfully if the mandatory attribute is also set.
 
-##### Comp.
+#### Comp.
 Comp. stands for Compound Uniqueness, which validates uniqueness across multiple attributes. When you activate the compound uniqueness checkbox on multiple attributes, the system ensures their combined values form a unique combination. For example, if you enable composite uniqueness on both firstName and lastName, the system allows multiple people named "John" and multiple people named "Smith", but prevents creating two entries with the same combination of "John Smith".
 
-##### Uniq.
+#### Uniq.
 Uniq. stands for Unique, which validates that an attribute's value is unique across all instances of the type. When you activate the uniqueness checkbox on an attribute, the system ensures no two instances have the same value for that attribute. For example, if you enable uniqueness on an email attribute, the system prevents creating two User instances with the same e-mail address.
 
-##### Idx
+#### Idx
 Idx. stands for Indexed. When you activate the indexed checkbox on an attribute, the system creates a database index that improves query performance for that attribute. Indexing also speeds up uniqueness validation - not having an index on a unique property will massively impact object creation performance.
 
-##### Fulltext
+#### Fulltext
 Fulltext stands for fulltext indexing. When you activate the fulltext checkbox on a string attribute, the system creates a fulltext index with advanced search capabilities and scoring.
 
 You can query fulltext indexed attributes by passing the index name to the `searchFulltext()` function. The index name is automatically generated from the type and attribute name plus the string "fulltext", e.g. `Project_projectId_fulltext`.
 
-##### Default Value
+#### Default Value
 The default value field specifies a value that is returned when an attribute has no value in the database. You can use default values to ensure attributes always return a meaningful value, even for newly created objects or when values have not been set.
 
+
+
+
+
 ### Linked Properties
-This section displays special attributes that are automatically created from relationships between types. These are called contextual or linked properties.
+The Linked Properties tab displays a table with one row per relationship. Each row shows the property name for this side of the relationship, the relationship details, and the target type. You can edit the property name directly in the table and navigate to the target type by clicking it.
 
 ### Inherited Properties
 This section displays attributes inherited from traits or base classes along with their settings.
@@ -114,16 +118,16 @@ This section displays attributes inherited from traits or base classes along wit
 The Views tab allows you to configure views for each type. {{"topic:View", shortDescription}} Structr provides the following four default views.
 
 #### public
-The public view is the default view for REST responses when no view is specified in the request. By default, it contains only the attributes id, type, and name, but you can extend or modify it as needed.
+The public view is the default view for REST responses when no view is specified in the request. By default, it contains only the attributes `id`, `type`, and `name`, but you can extend or modify it as needed.
 
 #### custom
 The custom view is automatically managed and contains all attributes of the type and its base classes or traits that you have added manually.
 
 #### all
-The all view is automatically managed by Structr and contains all attributes of the type and its base classes or traits. You cannot modify this view, and it displays only one level of properties while restricting the output of nested objects to id, type, and name. The all view is intended for internal use and diagnostic purposes such as checking object completeness, and its use should generally be avoided in production applications.
+The all view is automatically managed by Structr and contains all attributes of the type and its base classes or traits. You cannot modify this view, and it displays only one level of properties while restricting the output of nested objects to `id`, `type`, and `name` to prevent recursion. The all view is intended for internal use and diagnostic purposes such as checking object completeness, and its use should generally be avoided in production applications.
 
 #### ui
-The ui view is an internal view used by the Structr Admin interface and cannot be modified. Like the all view, it displays only one level of properties and restricts the output of nested objects to id, type, and name.
+The ui view is an internal view used by the Structr Admin interface and cannot be modified. Like the all view, it displays only one level of properties and restricts the output of nested objects to `id`, `type`, and `name`.
 
 #### Custom Views
 You can create additional views beyond these default views and populate them with any attributes you need. Custom views allow you to tailor the REST output to specific use cases, such as creating a minimal view for list endpoints or a detailed view for single-object requests. You can access each view as its own endpoint by appending the view name to the REST URL of a type.
@@ -217,37 +221,37 @@ Cypher properties are read-only computed properties that execute Cypher queries 
 ## Linking Two Types
 To create a relationship between two types, click the lower dot on the start type and drag the green connector to the upper dot on the target type. This will open the Create Relationship dialog.
 
-### Using the Create Relationship Dialog
-
 ![The Create Relationship Dialog](../../schema_relationship-project-task-created.png)
 
-#### Basic Relationship Properties
-When you create a relationship, you are asked to configure the source cardinality, the relationship type, and the target cardinality. Below the cardinality selectors, you define the property names that determine how you access the relationship from each type in your code.
+The Create Relationship Dialog consists of four areas.
 
-##### Cardinality
+### Basic Relationship Properties
+At the top of the dialog, you can configure the source cardinality, the relationship type, and the target cardinality. Below the cardinality selectors, you define the property names that determine how you access the relationship from each type in your code.
+
+#### Cardinality
 Select 1 or * from the dropdown for source and target cardinality to define how many objects can connect. Use 1 for single connections and * for multiple connections. For example, if each Project contains multiple Tasks but each Task belongs to one Project, select 1 for the source cardinality (Project side) and * for the target cardinality (Task side).
 
-##### Relationship Type
+#### Relationship Type
 Enter a name in the center input field that describes the relationship in your database schema. This is typically an action or connection like "OWNS", "MANAGES", or "BELONGS_TO".
 
 >**Note:** Please be as specific as possible and try not to reuse existing relationship types, as this can lead to performance issues later on. For example, do not use “HAS” for everything, as you will then lose the advantage of being able to query different relationship types separately, and all data from the database will have to be filtered via the target type.
 
-##### Property Names
-Specify property names in the input fields below each cardinality selector to define the attribute names you use to retrieve related objects from each type. The property name on the Project side (e.g., "tasks") lets you retrieve all tasks for a project, while the property name on the Task side (e.g., "project") lets you access the parent project.
+#### Property Names
+Specify property names in the input fields below each cardinality selector to define the attribute names you use to retrieve related objects from each type. The property name on the Project side (e.g., `tasks`) lets you retrieve all tasks for a project, while the property name on the Task side (e.g., `project`) lets you access the parent project.
 
 Structr suggests names automatically based on the type names and cardinalities - plural names for *-cardinality and singular names for 1-cardinality. You can change these suggestions to match your domain model.
 
-#### Cascading Delete
+### Cascading Delete
 The Cascading Delete dropdown controls deletion behavior for related objects. When you delete an object that has relationships to other objects, this setting determines whether those related objects are also deleted and how the deletion propagates through the relationship chain. When resolving cascading deletes, the system evaluates the access rights of each object to ensure that only objects you have permission to delete are affected.
 
-{{"topic:Cascading Delete Options", h5, shortDescription, table}}
+{{"topic:Cascading Delete Options", h4, shortDescription, table}}
 
-#### Automatic Creation of Related Nodes
+### Automatic Creation of Related Nodes
 The dropdown controls the automatic creation of related nodes. This feature allows Structr to function as a document database, transforming JSON documents into graph database structures based on your data model. When you send a JSON document that matches your schema, Structr creates the necessary objects and relationships in the graph database.
 
-You can reference objects in your JSON using stub objects with a unique property such as `name` or any property with a uniqueness constraint. The dropdown controls whether Structr creates the object if it doesn't exist. Within a single document, the first reference to a unique property value creates the object and subsequent references to the same value use the newly created object. The dropdown determines how this automatic creation behavior propagates through nested relationships.
+You can reference objects in your JSON using stub objects with any property that has a uniqueness constraint. The dropdown controls whether Structr creates the object if it doesn't exist. Within a single document, the first reference to a unique property value creates the object and subsequent references to the same value use the newly created object. The dropdown determines how this automatic creation behavior propagates through nested relationships.
 
-##### Example
+#### Example
 
     {
         "name": "John Doe",
@@ -272,25 +276,31 @@ You can reference objects in your JSON using stub objects with a unique property
 
 This example shows a person with basic properties, a company referenced by name (stub object), and multiple projects. The second project also references "Acme Corp" - the first reference creates it, and the second reference uses the already-created company object.
 
-{{"topic:Autocreation Options", h5, shortDescription, table}}
+{{"topic:Autocreation Options", h4, shortDescription, table}}
 
 [Read more about the REST Interface.](/structr/docs/ontology/REST%20Interface/Overview)
 
-#### Permission Resolution
+### Permission Resolution
 Permission Resolution controls how access rights propagate between objects through relationships. This lets users access objects indirectly through relationships without needing direct permissions on those objects.
 
-You configure each permission type (read, write, delete, and access control) separately to control which permissions propagate and in which direction. For example, you can allow read access to propagate while restricting write and delete permissions, creating read-only access paths through your data model.
+#### Propagation Direction
+The Permission Resolution section begins with a dropdown showing the current propagation direction (initially `NONE`). This dropdown controls the flow of permissions through the relationship. You can configure permissions to propagate from source to target, from target to source, in both directions, or not at all. This determines which objects inherit access rights through the relationship.
 
-You can hide properties that should not be visible during indirect access—Structr removes these properties from the view. This is useful when you want to grant access to an object but restrict visibility of sensitive attributes like internal IDs or administrative fields.
+#### Permission Types
+You configure each permission type (read, write, delete, and access control) separately to control which permissions propagate in the configured direction. For example, you can keep read access while removing write and delete permissions, creating read-only access paths through your data model.
 
+#### Hidden Properties
+You can hide properties that should not be visible during indirect access: Structr removes these properties from the view. This is useful when you want to grant access to an object but restrict visibility of sensitive attributes like internal IDs or administrative fields.
+
+#### Visual Indication in The Schema Editor
 The schema editor displays relationships with permission resolution in orange instead of green, making it easy to identify which relationships include permission propagation rules.
 
 
-## Inheritance & Traits
-Structr supports multiple inheritance through traits. When you create a type, you select one or more traits that the type inherits from. You can modify the trait selection later when editing the type.
+## Inheritance
+Structr supports multiple inheritance through traits. When you create a type, you select one or more traits for it to inherit from, or leave the selection empty to inherit from the base trait `AbstractNode` by default. You can change the trait selection later when editing the type.
 
 ### Order of Inherited Traits
-The inheritance order is determined by the order in which you specify the traits.
+The inheritance order is determined by the order in which you specify the traits. This is especially important when resolving properties or methods that exist on both traits.
 
 ### Property Inheritance
 Inherited properties are automatically visible on subtypes. All properties defined in parent traits become available on the inheriting type. You can override inherited properties by defining a property with the same name, which replaces the inherited property definition. The system detects conflicting properties and prevents their creation.
@@ -312,19 +322,35 @@ Every node in Structr has at least the following attributes that it inherits fro
 Views are inherited from parent traits to child types. All views defined in parent traits become available on the child type. You can override inherited views by defining a view with the same name, which replaces the inherited view definition.
 
 ### Method Inheritance
-Schema methods are inherited from parent traits to child types. All methods defined in parent traits become available on the child type. You can override inherited methods by defining a method with the same name. Overridden methods are not called automatically—only your override executes.
+Schema methods are inherited from parent traits to child types. All methods defined in parent traits become available on the child type. You can override inherited methods by defining a method with the same name. Overridden methods are not called automatically, only your override executes.
 
 You can call parent methods from child implementations using the syntax `$.SuperType.methodName()`, where `SuperType` is the name of the parent trait. For example, if your type `Article` inherits from a trait `Content` with a `validate()` method, you call `$.Content.validate()` from your `Article.validate()` method to execute the parent validation before adding your own.
 
 ### Lifecycle Method Inheritance
 Lifecycle methods follow different inheritance rules than regular methods. All lifecycle methods in the type hierarchy are called automatically, regardless of whether child types override them. This ensures that initialization, validation, and cleanup logic defined in parent traits always executes.
 
-![["Built-in traits" as table on level 2]]
+{{"Built-in traits", h3, shortDescription, table}}
 
-## Transactions
+## Transactions & Indexing
+All database operations in Structr follow ACID principles, ensuring your data remains consistent even in complex scenarios.
 
-## Indexing
+### All-or-Nothing Operations
+Transactions in Structr follow an all-or-nothing model. Either all changes within a transaction are committed to the database, or the entire transaction is rolled back and no changes are persisted. This prevents partial updates that could leave your data in an inconsistent state.
+
+### Thread-Level Transaction Handling
+Structr handles each incoming request in a top-level transaction per thread. All operations performed during request processing occur within this transaction context, ensuring related changes are grouped together atomically.
+
+### Transaction Isolation
+Structr transactions provide _read-your-own-writes_ isolation. Within a transaction, you immediately see changes you've made, but you cannot see uncommitted changes from other concurrent transactions. Data from other transactions only becomes visible after those transactions are committed successfully. This isolation ensures concurrent operations don't interfere with each other.
+
+### Two-Step Transaction Process
+Structr uses a two-step transaction model:
+
+#### Step 1: Pre-Commit Lifecycle Methods and Validation
+During the transaction, the lifecycle methods `onCreate`, `onSave`, and `onDelete` are executed as objects are created, modified, or deleted. These methods are executed before validation occurs. If an object is created and then modified in the same transaction, only onCreate is executed. If an object is created, modified, and deleted in the same transaction, no lifecycle methods are executed. After all operations are completed, Structr validates all changes according to your schema constraints. If validation fails, the transaction is rolled back automatically and no changes are persisted. If validation succeeds, the transaction is committed.
+
+#### Step 2: Post-Commit Lifecycle Methods
+After the transaction is committed successfully and data is securely stored in the database, the lifecycle methods `afterCreate`, `afterModify`, and `afterDelete` are executed in a separate follow-up transaction. These methods are guaranteed to be executed only when data has been safely persisted, which makes them the best place for notifications like sending emails etc.
 
 ### Passive Indexing
 Passive indexing is the term for reading a dynamic value from a property (e.g. Function Property or Boolean Property) at application level, and writing it into the database at the end of each transaction, so the value is visible to Cypher. This is important for BooleanProperty, because its getProperty() method returns false instead of null even if there is no actual value in the database. Hence a Cypher query for this property with the value false would not return any results. Structr resolves this by reading all passively indexed properties of an entity, and writing them into the database at the end of a transaction.
-
