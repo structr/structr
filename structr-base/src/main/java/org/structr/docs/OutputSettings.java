@@ -29,9 +29,10 @@ public class OutputSettings {
 	private final Set<ConceptType> typesToRender                                     = new LinkedHashSet<>();
 	private final Set<Details> details                                               = new LinkedHashSet<>(Set.of(Details.all));
 	private boolean renderComments                                                   = true;
-	private final Ontology ontology;
 	private String outputMode                                                        = "overview";
 	private String outputFormat                                                      = "markdown";
+	private int levelOffset                                                          = 0;
+	private final Ontology ontology;
 	private String baseUrl;
 	private String key;
 	private int startLevel;
@@ -215,5 +216,13 @@ public class OutputSettings {
 
 	public void setRenderComments(final boolean value) {
 		this.renderComments = value;
+	}
+
+	public void setLevelOffset(final int levelOffset) {
+		this.levelOffset = levelOffset;
+	}
+
+	public int getLevelOffset() {
+		return levelOffset;
 	}
 }

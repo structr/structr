@@ -28,6 +28,8 @@ import org.structr.docs.ontology.Link;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -71,13 +73,43 @@ public class MarkdownMarkdownFileFormatter extends Formatter {
 
 			// dont allow editing of markdown content
 			//formatEditableAttribute(lines, concept.getId(), "content", Files.readAllLines(resource.resolve(fileName).getPath()));
-			lines.add(Files.readString(resource.resolve(fileName).getPath()));
+			lines.add(adaptHeadings(Files.readAllLines(resource.resolve(fileName).getPath()), settings.getLevelOffset()));
 
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
 		return true;
+	}
+
+	public String adaptHeadings(final List<String> lines, final int offset) {
+
+		final List<String> result = new LinkedList<>();
+
+		for (final String line : lines) {
+
+			if (line.startsWith("#")) {
+
+				result.add(StringUtils.repeat("#", offset) + line);
+
+			} else {
+
+				result.add(line);
+			}
+		}
+
+		return StringUtils.join(result, "\n");
+	}
+
+	public int countHashes(final String line) {
+
+		int index = 0;
+
+		while (index < line.length() && line.charAt(index) == '#') {
+			index++;
+		}
+
+		return index;
 	}
 
 	public static String getNameFromFileName(final String fileName) {

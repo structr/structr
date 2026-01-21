@@ -502,8 +502,7 @@ public class DocumentationServlet extends HttpServlet {
 
 	private void replaceIncludes(final Ontology ontology, final List<String> lines, final OutputSettings settings) {
 
-		final Map<Integer, List<String>> insert = new TreeMap<>(Collections.reverseOrder());
-		final Pattern pattern                   = Pattern.compile("\\{\\{(.*?)\\}\\}");
+		final Pattern pattern = Pattern.compile("\\{\\{(.*?)\\}\\}");
 		int row = 0;
 
 
@@ -530,6 +529,7 @@ public class DocumentationServlet extends HttpServlet {
 
 				final List<String> list = new LinkedList<>();
 				final Concept concept   = concepts.get(0);
+				int levelOffset            = 1;
 
 				if (data.containsKey("h1")) { list.add("# " + concept.getName()); }
 				if (data.containsKey("h2")) { list.add("## " + concept.getName()); }
@@ -537,6 +537,13 @@ public class DocumentationServlet extends HttpServlet {
 				if (data.containsKey("h4")) { list.add("#### " + concept.getName()); }
 				if (data.containsKey("h5")) { list.add("##### " + concept.getName()); }
 				if (data.containsKey("h6")) { list.add("###### " + concept.getName()); }
+
+				if (data.containsKey("+1")) { levelOffset = 1; }
+				if (data.containsKey("+2")) { levelOffset = 2; }
+				if (data.containsKey("+3")) { levelOffset = 3; }
+				if (data.containsKey("+4")) { levelOffset = 4; }
+				if (data.containsKey("+5")) { levelOffset = 5; }
+				if (data.containsKey("+6")) { levelOffset = 6; }
 
 				if (data.containsKey("shortDescription")) {
 					list.addAll(split(concept.getShortDescription()));
@@ -563,6 +570,7 @@ public class DocumentationServlet extends HttpServlet {
 					final OutputSettings topicSettings = OutputSettings.withDetails(ontology, Details.all);
 
 					topicSettings.setRenderComments(false);
+					topicSettings.setLevelOffset(levelOffset);
 					topicSettings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.MarkdownFile, new MarkdownMarkdownFileFormatter(ontology.getBaseResource()));
 
 					// walk ontology

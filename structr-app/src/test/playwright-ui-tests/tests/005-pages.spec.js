@@ -82,6 +82,13 @@ test('pages', async ({ page }) => {
   await page.locator('#template-tiles .app-tile:nth-child(2)').click();
   await page.waitForTimeout(2000);
 
+    // Open Access Control dialog to create a screenshot
+    await page.getByRole('img', { name: 'Access Control' }).first().click();
+    await page.waitForTimeout(1000);
+    await page.screenshot({ path: 'screenshots/pages_access-control-dialog.png' });
+    await page.getByRole('button', { name: 'Close'}).click();
+    await page.waitForTimeout(1000);
+
   await page.locator('#pagesTree .node-container:nth-child(1)').waitFor({ state: 'visible' });
   await page.locator('#pagesTree .node-container:nth-child(1)').click();
   await page.getByRole('link', { name: 'General' }).click();
@@ -99,6 +106,20 @@ test('pages', async ({ page }) => {
   await page.getByText('Expand subtree recursively').click();
   await page.waitForTimeout(1000);
   await page.screenshot({ path: 'screenshots/pages_page-expanded.png' });
+
+  // click through the different tabs and take a screenshot of each tab
+  await page.getByRole('link', { name: 'Advanced' }).click();
+  await page.waitForTimeout(200);
+  await page.screenshot({ path: 'screenshots/pages_page-details-advanced.png' });
+  await page.getByRole('link', { name: 'Security' }).nth(1).click();
+  await page.waitForTimeout(200);
+  await page.screenshot({ path: 'screenshots/pages_page-details-security.png' });
+  await page.getByRole('link', { name: 'Active Elements' }).click();
+  await page.waitForTimeout(200);
+  await page.screenshot({ path: 'screenshots/pages_page-details-active-elements.png' });
+  await page.getByRole('link', { name: 'URL Routing' }).click();
+  await page.waitForTimeout(200);
+  await page.screenshot({ path: 'screenshots/pages_page-details-url-routing.png' });
 
   await page.getByRole('link', { name: 'Preview' }).click();
   //await page.locator('.previewBox').waitFor({ state: 'visible' });

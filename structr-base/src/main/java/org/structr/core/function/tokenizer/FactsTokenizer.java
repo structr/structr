@@ -37,7 +37,7 @@ public class FactsTokenizer {
 
 	public FactsTokenizer() {
 
-		candidates.add(new Identifier());
+		candidates.add(new IdentifierWithPlus());
 		candidates.add(new HashComment());
 		candidates.add(new MultipleCharacters((char) 9));  // tab
 		candidates.add(new MultipleCharacters((char) 10)); // newline
