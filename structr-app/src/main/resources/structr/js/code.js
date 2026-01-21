@@ -2212,7 +2212,7 @@ let _Code = {
 				location.hash = 'code';
 			}
 
-			await _Helpers.waitForElement('.' + _Code.classIndicatorEverythingReady);
+			await _Helpers.waitForElement('.' + _Code.classIndicatorEverythingReady, { childList: true, subtree: true, attributes: true });
 
 			return true;
 		},

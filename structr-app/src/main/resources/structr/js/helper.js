@@ -733,7 +733,7 @@ let _Helpers = {
 		document.body.removeChild(link);
 		window.URL.revokeObjectURL(url);
 	},
-	waitForElement: selector => {
+	waitForElement: (selector, mutationObserverConfig = { childList: true, subtree: true }) => {
 		// Wait for element to appear. Usage example:
 		// _Helpers.waitForElement('#main div.foo a.bar').then(el => {
 		//     el.classList.add('active');
@@ -751,7 +751,7 @@ let _Helpers = {
 				}
 			});
 
-			observer.observe(document.body, { childList: true, subtree: true });
+			observer.observe(document.body, mutationObserverConfig);
 		});
 	},
 	waitForNode: id => {

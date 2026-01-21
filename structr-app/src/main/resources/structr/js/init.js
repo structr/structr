@@ -82,6 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	});
 
 	StructrWS.init();
+	Structr.globalSearch.init();
 
 	document.body.addEventListener('keyup', async (event) => {
 
@@ -276,8 +277,6 @@ let Structr = {
 	},
 	init: () => {
 		_Helpers.fastRemoveAllChildren(document.querySelector('#errorText'));
-
-		Structr.globalSearch.init();
 	},
 	clearMain: () => {
 
