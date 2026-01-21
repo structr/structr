@@ -24,13 +24,14 @@ import org.structr.api.util.html.Tag;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * A named group of configuration settings.
  */
 public class SettingsGroup implements Category {
 
-	private final List<Setting> settings = new LinkedList<>();
+	private final List<Setting> settings = Collections.synchronizedList(new LinkedList<>());
 	private String name                  = null;
 	private String key                   = null;
 
@@ -61,15 +62,24 @@ public class SettingsGroup implements Category {
 	}
 
 	public void registerSetting(final Setting setting) {
-		settings.add(setting);
+
+		synchronized (settings) {
+			settings.add(setting);
+		}
 	}
 
 	public void unregisterSetting(final Setting setting) {
-		settings.remove(setting);
+
+		synchronized (settings) {
+			settings.remove(setting);
+		}
 	}
 
 	public List<Setting> getSettings() {
-		return settings;
+
+		synchronized (settings) {
+			return new LinkedList<>(settings);
+		}
 	}
 
 	public void render(final Tag menu, final Tag tabContainer) {
@@ -88,7 +98,7 @@ public class SettingsGroup implements Category {
 		final Tag div                           = parent.block("div");
 
 		// sort / categorize settings
-		for (final Setting setting : settings) {
+		for (final Setting setting : getSettings()) {
 
 			final String group = setting.getCategory();
 

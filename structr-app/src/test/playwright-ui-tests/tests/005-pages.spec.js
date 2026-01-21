@@ -66,9 +66,16 @@ test('pages', async ({ page }) => {
   await page.waitForTimeout(1000);
   await page.screenshot({ path: 'screenshots/pages.png' });
 
-  // Create new page
+  // Open import dialog and create a screenshot
   await page.locator('#pages-actions .dropdown-select').click();
   await page.locator('#create_page').waitFor({ state: 'visible' });
+  await page.locator('#import_page').click();
+  await page.waitForTimeout(1000);
+  await page.screenshot({ path: 'screenshots/pages_import-page.png' });
+  await page.getByRole('button', { name: 'Close'}).click();
+  await page.waitForTimeout(200);
+
+  // Create new page (dropdown stays open from previous action!)
   await page.locator('#create_page').click();
   await page.waitForTimeout(1000);
   await page.screenshot({ path: 'screenshots/pages_create-page.png' });

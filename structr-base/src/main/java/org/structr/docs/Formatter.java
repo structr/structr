@@ -145,7 +145,7 @@ public abstract class Formatter {
 
 	public static void renderComment(final List<String> lines, final OutputSettings outputSettings, final String text) {
 
-		if ("markdown".equals(outputSettings.getOutputFormat())) {
+		if ("markdown".equals(outputSettings.getOutputFormat()) && outputSettings.renderComments()) {
 
 			lines.add("<span class='info'>Markdown Rendering Hint: " + text + "</span>");
 

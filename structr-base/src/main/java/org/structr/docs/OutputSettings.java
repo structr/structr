@@ -18,7 +18,6 @@
  */
 package org.structr.docs;
 
-import jnr.ffi.annotations.Out;
 import org.structr.docs.ontology.*;
 
 import java.util.*;
@@ -29,6 +28,7 @@ public class OutputSettings {
 	private final Map<Integer, Set<String>> linkTypesPerLevel                        = new LinkedHashMap<>();
 	private final Set<ConceptType> typesToRender                                     = new LinkedHashSet<>();
 	private final Set<Details> details                                               = new LinkedHashSet<>(Set.of(Details.all));
+	private boolean renderComments                                                   = true;
 	private final Ontology ontology;
 	private String outputMode                                                        = "overview";
 	private String outputFormat                                                      = "markdown";
@@ -207,5 +207,13 @@ public class OutputSettings {
 		}
 
 		return settings;
+	}
+
+	public boolean renderComments() {
+		return renderComments;
+	}
+
+	public void setRenderComments(final boolean value) {
+		this.renderComments = value;
 	}
 }

@@ -69,7 +69,9 @@ public class MarkdownMarkdownFileFormatter extends Formatter {
 				}
 			}
 
-			formatEditableAttribute(lines, concept.getId(), "content", Files.readAllLines(resource.resolve(fileName).getPath()));
+			// dont allow editing of markdown content
+			//formatEditableAttribute(lines, concept.getId(), "content", Files.readAllLines(resource.resolve(fileName).getPath()));
+			lines.add(Files.readString(resource.resolve(fileName).getPath()));
 
 		} catch (IOException e) {
 			e.printStackTrace();

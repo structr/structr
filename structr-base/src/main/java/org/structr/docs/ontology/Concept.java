@@ -240,11 +240,16 @@ public final class Concept implements Comparable<Concept> {
 
 	public String getParentConceptName() {
 
+		final List<Link> parentLinks = getParentLinks(Verb.Has);
+		if (parentLinks != null && !parentLinks.isEmpty()) {
 
-		final List<Link> p = getParentLinks(Verb.Has);
-		if (p != null) {
+			final Link link      = parentLinks.get(0);
+			final Concept source = link.getSource();
 
-			return p.get(0).getSource().getName();
+			if (source != null) {
+
+				return source.getName();
+			}
 		}
 
 		return null;

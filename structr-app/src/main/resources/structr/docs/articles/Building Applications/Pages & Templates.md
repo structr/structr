@@ -50,7 +50,7 @@ When you hover over the Page element with your mouse, two additional icons appea
 Clicking the Page element opens the detail settings in the main area of the screen in the center.
 
 #### Access Control
-Clicking the access control icon (the lock symbol) opens the access control
+Clicking the lock icon on the page element opens the access control dialog for that page. {{"Access Control Dialog",children}}
 
 #### General Settings
 #### Advanced Settings

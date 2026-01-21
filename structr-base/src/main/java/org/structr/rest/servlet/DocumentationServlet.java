@@ -558,6 +558,17 @@ public class DocumentationServlet extends HttpServlet {
 					new MarkdownListFormatter().format(list, new Link(null, null, concept), listSettings, 0, new LinkedHashSet<>());
 				}
 
+				if (data.containsKey("children")) {
+
+					final OutputSettings topicSettings = OutputSettings.withDetails(ontology, Details.all);
+
+					topicSettings.setRenderComments(false);
+					topicSettings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.MarkdownFile, new MarkdownMarkdownFileFormatter(ontology.getBaseResource()));
+
+					// walk ontology
+					Formatter.walkOntology(list, new Link(null, null, concept), topicSettings, 0, new LinkedHashSet<>());
+				}
+
 				final String insertText = StringUtils.join(list, "\n");
 
 				content = matcher.replaceFirst(insertText);
@@ -645,29 +656,3 @@ public class DocumentationServlet extends HttpServlet {
 		return token;
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
