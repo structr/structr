@@ -37,6 +37,8 @@ let _Pages = {
 	pagesResizerRightKey: 'structrPagesResizerRightKey_' + location.port,
 	functionBarSwitchKey: 'structrFunctionBarSwitchKey_' + location.port,
 
+	classIndicatorEverythingReady: 'pages-area-ready',
+
 	dropzoneDropAllowedClass: 'allow-drop',
 
 	shadowPage: undefined,
@@ -2310,6 +2312,8 @@ let _Pages = {
 					}
 				});
 			}
+
+			_Pages.pagesTree[0].classList.add(_Pages.classIndicatorEverythingReady);
 
 			window.setTimeout(() => {
 				_Pages.cleanActiveTabsFromLocalStorage();
