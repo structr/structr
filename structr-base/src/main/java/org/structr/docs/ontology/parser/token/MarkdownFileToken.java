@@ -28,6 +28,7 @@ import com.vladsch.flexmark.util.ast.Document;
 import com.vladsch.flexmark.util.ast.Node;
 import com.vladsch.flexmark.util.data.MutableDataSet;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jetty.util.resource.Resource;
 import org.structr.docs.Documentable;
 import org.structr.docs.formatter.markdown.MarkdownMarkdownFileFormatter;
 import org.structr.docs.ontology.*;
@@ -60,10 +61,12 @@ public class MarkdownFileToken extends NamedConceptToken {
 	public AnnotatedConcept resolve(final Ontology ontology) {
 
 		final String path                  = identifierToken.resolve(ontology);
+		final Resource baseResource        = ontology.getBaseResource();
 		final Map<String, String> metadata = getMetadata(ontology);
 		final String fileName              = StringUtils.substringAfterLast(path, "/");
 		final String cleanedName           = coalesce(metadata.get("heading"), MarkdownMarkdownFileFormatter.getNameFromFileName(fileName));
-		final Path folderPath              = Path.of("structr/docs/" + path);
+		final Resource docsResource        = baseResource.resolve("docs");
+		final Path folderPath              = docsResource.resolve(path).getPath();
 		final Concept markdownFile         = ontology.getOrCreateConcept(this, ConceptType.MarkdownFile, cleanedName, false);
 
 		if (markdownFile != null) {

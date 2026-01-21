@@ -1,4 +1,4 @@
-## Fundamentals
+## Basics
 
 Navigating to the URL of a page with the browser starts a multi-step process that determines if the page can be rendered. A page can only be rendered if it exists, and if it is visible for the current user. If there is no session, the user is considered _anonymous_ or _public user_.
 

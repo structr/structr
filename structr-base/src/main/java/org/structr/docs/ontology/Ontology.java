@@ -18,7 +18,9 @@
  */
 package org.structr.docs.ontology;
 
+import groovyjarjarantlr4.runtime.BaseRecognizer;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jetty.util.resource.Resource;
 import org.structr.api.Predicate;
 import org.structr.core.app.StructrApp;
 import org.structr.core.traits.Traits;
@@ -31,6 +33,7 @@ import org.structr.docs.ontology.parser.token.DocumentationAnnotationToken;
 import org.structr.docs.ontology.parser.token.AbstractToken;
 import org.structr.docs.ontology.parser.token.UnresolvedToken;
 
+import javax.sql.rowset.BaseRowSet;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -52,6 +55,7 @@ public final class Ontology {
 	private final Set<Link> links                     = new LinkedHashSet<>();
 	private final Set<String> blacklist               = new LinkedHashSet<>();
 	private Concept currentSubject                    = null;
+	private final Resource baseResource;
 
 	public Set<String> getBlacklist() {
 		return blacklist;
@@ -61,9 +65,9 @@ public final class Ontology {
 		return Set.of(",", "and");
 	}
 
-	public Ontology(final Path pathToFactsFolder) {
+	public Ontology(final Resource baseResource, final Path pathToFactsFolder) {
 
-		this();
+		this(baseResource);
 
 		initialize(pathToFactsFolder);
 		initializeFromDocumentationAnnotations();
@@ -74,14 +78,17 @@ public final class Ontology {
 	 *
 	 * @param facts
 	 */
-	public Ontology(final FactsContainer facts) {
+	public Ontology(FactsContainer facts) {
 
-		this();
+		this((Resource)null);
 
 		storeFacts(facts);
 	}
 
-	private Ontology() {
+	private Ontology(final Resource baseResource) {
+
+		this.baseResource = baseResource;
+
 		blacklist.addAll(Set.of("!", ";", ".", "the", "a", "an", "named"));
 	}
 
@@ -412,6 +419,10 @@ public final class Ontology {
 
 			factsContainer.writeToDisc();
 		}
+	}
+
+	public Resource getBaseResource() {
+		return baseResource;
 	}
 
 	// ----- private methods -----

@@ -39,11 +39,8 @@ Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Exper
         Topic "Built-in traits" has description "Structr provides the following built-in traits that you can select when creating or editing a type to inherit their functionality."
     "Data Creation & Import" has markdown-file "articles/Building Applications/Data Creation & Import.md"
 
-    "Pages & Templates" has markdown-file "snippets/Pages & Templates - 000.md"
-    "Pages & Templates" has topics "Pages", "Templates", "Page Templates", "Elements", "Shared Components", "Widgets", "Static resources", "Active Elements"
+    "Pages & Templates" has markdown-file "articles/Building Applications/Pages & Templates.md"
         "Pages" has markdown-file "snippets/Pages - 000.md"
-
-        Topic "Pages" has topics "Creating pages", "Importing pages"
 
         Topic "Elements" has topics "Rendering options", "Custom properties"
             "Rendering options" has topics "Load / Update Mode" as table, "Delay or Interval (ms)"
@@ -54,11 +51,6 @@ Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Exper
                 "Load / Update Mode" has constant "When element becomes visible" with description "Renders the element when it is scrolled into view."
                 "Load / Update Mode" has constant "With periodic updates" with description "Renders the element and refreshes its content after a configurable number of milliseconds."
                 "Delay or Interval (ms)" has description "Configures the number of milliseconds for delayed and / or periodic refresh."
-
-        "Shared Components" has topics "Shared Component Configuration"
-
-        "Static resources" has topic "File download", "Dynamic files"
-            "Dynamic files" has topics "Replace template expressions"
 
 
     "Navigation & Routing" has markdown-file "snippets/Navigation & Routing - 000.md"
@@ -88,6 +80,7 @@ Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Exper
     "Language localization" has topics "Translations", "Localization Settings", "Effective locale"
         Translations has topics "Translation Settings", "Translation Providers"
 
+    "Best practices" has markdown-file "articles/Building Applications/Best practices.md" with heading "Best practices"
 
 
 
@@ -173,6 +166,7 @@ Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Exper
 
 # Expert Topics
 Topic "Expert Topics" has topics "Performance Optimization", "Internals"
+        "Internals" has markdown-file "articles/Expert Topics/Internals.md"
 
     "Performance Optimization" has topics "Indexing", "Prefetching", "Partial rendering", "Relationship naming", "Supernodes"
 

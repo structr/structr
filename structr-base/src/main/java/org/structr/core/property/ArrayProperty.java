@@ -51,9 +51,13 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 	private final Class<T> componentType;
 	private final Method valueOfMethod;
 
-	public ArrayProperty(String name, Class<T> componentType) {
+	public ArrayProperty(final String name, final Class<T> componentType) {
 
 		super(name);
+
+		if (componentType.isArray()) {
+			throw new IllegalArgumentException("Component type of ArrayProperty must be the non-array base type, e.g. String.class, not String[].class!");
+		}
 
 		this.componentType = componentType;
 		this.valueOfMethod = methodOrNull();
@@ -104,7 +108,7 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 		try {
 			// This trick results in returning the proper array class for array properties.
 			// Neccessary because of and since commit 1db80071543018a0766efa2dc895b7bc3e9a0e34
-			return Class.forName("[L" + componentType.getName() + ";");
+			return Class.forName(componentType.getName());
 
 		} catch (ClassNotFoundException e) {}
 

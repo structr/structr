@@ -1,6 +1,6 @@
 This chapter provides an overview of the individual steps involved in creating a Structr application.
 
-## Fundamentals
+## Basics
 
 First things first - there are some things you need to know before you start.
 

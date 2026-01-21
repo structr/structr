@@ -248,7 +248,7 @@ body {
 
 .article img:not([src*="svg"]) {
     margin: 1rem auto;
-    width: 70%;
+    width: 100%;
     box-shadow: 0 .5rem 2rem .25rem #bbb;
 }
 

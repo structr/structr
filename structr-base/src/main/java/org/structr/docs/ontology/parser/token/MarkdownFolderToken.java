@@ -26,6 +26,7 @@ import com.vladsch.flexmark.util.ast.Document;
 import com.vladsch.flexmark.util.ast.Node;
 import com.vladsch.flexmark.util.data.MutableDataSet;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jetty.util.resource.Resource;
 import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.formatter.markdown.MarkdownMarkdownFileFormatter;
 import org.structr.docs.ontology.*;
@@ -54,10 +55,12 @@ public class MarkdownFolderToken extends NamedConceptToken {
 	public AnnotatedConcept resolve(final Ontology ontology) {
 
 		final ConceptType type       = conceptToken.resolve(ontology);
+		final Resource baseResource  = ontology.getBaseResource();
 		final String folderName      = identifierToken.resolve(ontology);
 		final String cleanedName     = MarkdownMarkdownFileFormatter.getNameFromFileName(folderName);
 		final Concept markdownFolder = ontology.getOrCreateConcept(this, type, cleanedName, false);
-		final Path folderPath        = Path.of("structr/docs/" + folderName);
+		final Resource docsResource  = baseResource.resolve("docs");
+		final Path folderPath        = docsResource.resolve(folderName).getPath();
 		final Path indexFile         = folderPath.resolve("index.txt");
 
 		if (markdownFolder != null) {

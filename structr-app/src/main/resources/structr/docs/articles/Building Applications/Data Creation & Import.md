@@ -3,7 +3,7 @@ This chapter provides an overview of the different ways in which data can be cre
 #### Please Note
 Before you can import data into Structr, you need to define a schema. Structr can only access and manage objects that it can **identify** (using a UUID in the `id` property) and **map to a type** in the schema (using the `type` property).
 
-## Import from CSV
+## Importing CSV Data
 
 You can import CSV data in two different ways:
 
@@ -14,7 +14,7 @@ You can import CSV data in two different ways:
 
 The simple CSV import dialog in the Data section is a tool to quickly import a limited dataset, based on very simple rules. The import is limited to a single type, the input can have a maximum size of 100,000 characters, and the columns in the CSV file must exactly match the property names of the target type. If you need more options, you can use the CSV Import Wizard in the Files section.
 
-TODO: create image!
+![The Simple Import Dialog](../../data_import-csv.png)
 
 ### Import Wizard
 
@@ -22,11 +22,11 @@ The CSV Import Wizard allows you to import large and complex CSV files by mappin
 
 The import wizard can be found in the Files section, because it is based on files in Structr Filesystem. This means that you need to upload the CSV file to Structr before you can import the data. The reason for that is that it is not possible to handle large amounts of data using copy & paste in your browser.
 
-Once you uploaded a CSV file, you can open the Import Wizard by clicking on the "CSV Import Button".
+Once you uploaded a CSV file, you can open the Import Wizard by clicking on the "Import CSV" button in the context menu of the file. If the menu item is not there, you probably need to change the content type of the file to `text/csv` in the "General" settings.
 
-#### The Import Dialog
+#### The Import Wizard
 
-TODO: create image!
+![The CSV Import Wizard](../../files_import-csv-dialog.png)
 
 ##### Data Sample
 
@@ -50,8 +50,6 @@ The other configuration options are special settings that allow you to fine-tune
 
 In the select target type box, you can select a target type for your data. After a target type is selected, the import wizard displays a table that allows you to configure the mapping from input column to target property.
 
-TODO: create image!
-
 ##### Start Import
 
 When you are finished configuring the mapping between CSV columns and properties, you can click the "Start Import Button" to start the import. Structr will show status update notifications for the import progress in the upper right corner.
@@ -64,17 +62,17 @@ The Mixed Import Mode is a special mode that allows you to distribute the input 
 
 At the bottom of the CSV import dialog is a row of buttons that allow you to save the current configuration and to load or delete a saved configuration. If a saved configurations exist, you can select one from the list and click the "Load" button to restore the saved settings.
 
-To save the current configuration you can enter the desired name in the input field next to the
-
-## Import From XML
+## Importing XML Data
 
 Structr also offers an import wizard for XML documents, with a configurable mapping of XML structures to database objects. The XML Importer allows mapping of XML attributes to fields of the data model, but also allows mapping of entire XML elements (tags) to schema types. A nested object structure stored in an XML element can be transferred directly to a corresponding graph structure. The same applies to RDF triples stored in an XML document; these can be imported very easily with the appropriate data model.
 
-### The Import Dialog
+### The XML Import Wizard
 
-The following screenshot shows the import dialog for an XML file that contains a sample customer database. You can see and navigate the document structure on the left side, and configure the mapping actions on the right.
+The following screenshot shows the import dialog for an XML file that contains some sample projects. You can see and navigate the document structure on the left side, and configure the mapping actions on the right.
 
-TODO: create image!
+>**Note**: Just like for CSV, the XML Import Wizard can be found in the context menu of XML files in the Files section, but only if the content type is `text/xml` or `application/xml`.
+
+![The XML Import Wizard](../../files_import-xml-dialog.png)
 
 You can click on an element in the structure of the XML file to select one of the following actions.
 
@@ -90,8 +88,6 @@ If you select `Create node`, you will see a select box with a list of target typ
 #### Set Properties
 
 The `Set property` action allows you to import the text content of an element into a property of a schema type. If you select this action, you will see a select box with the properties of the target type you chose **for the enclosing element**.
-
-TODO: create image!
 
 If the element has attributes you want to import, you should consider using the `Create node` action instead.
 
@@ -109,7 +105,7 @@ At the bottom of the XML import dialog is a row of buttons that allow you to sav
 
 To save the current configuration you can enter the desired name in the input field next to the "Save" button and click "Save".
 
-## Import From JSON
+## Importing JSON Data
 
 Since Javascript Object Notation (JSON) is the default format for all data going over the REST interface, you can import JSON data very easily using REST. You can find more information about that in the REST Guide and in the REST API section of the Fundamental Concepts document.
 
@@ -284,7 +280,7 @@ ${{
 
 Contextual properties use information from the data model to automatically create relationship in the database when objects are assigned.
 
-## Import From Webservices
+## Importing Data From Webservices
 
 Structr provides a number of built-in functions to access external data sources and transform the data: `GET`, `PUT`, `POST`, `from_csv`, `from_json`, `from_xml`. You can then use JavaScript to process the results and create objects using the create() function mentioned in the previous section.
 
@@ -314,7 +310,7 @@ Please note that the data will not be visible immediately, because it first need
 
 To initialize the data for use with Structr, please refer to the next section, "Initializing existing data in Neo4j".
 
-## Existing Data in neo4j
+## Accessing Existing Data in Neo4j
 
 Data in a Neo4j database is available in Structr if the following requirements are met:
 
@@ -322,8 +318,6 @@ Data in a Neo4j database is available in Structr if the following requirements a
 2. The `type` attribute of every node instance is set to the primary type (=simple class name). This is necessary because Neo4j labels don't have a reliable order.
 3. Nodes and relationships have an `id` String property with a UUID as value. Use the "Add UUIDs" function from Schema section -> Admin -> Indexing.
 4. The primary type (simple class name) as well as the supertypes and implementing interfaces have to be set as labels in Neo4j. Use the maintenance command "Create Labels" from Schema -> Admin -> Indexing to set all necessary labels.
-
-TODO: create image!
 
 It is recommended to rebuild the index and flush the caches after running the above maintenance commands.
 
