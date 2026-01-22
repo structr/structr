@@ -4517,15 +4517,15 @@ let _Pages = {
 						</div>
 						
 						<div class="col-span-2 hidden em-action-element em-action-create em-action-update em-action-delete em-action-method em-action-flow">
-							<h3>Dialog Settings</h3>
+							<h3>Confirmation Dialog</h3>
 							<div class="grid grid-cols-2 gap-8">
 							
 								<div>
 									<label class="block mb-2" data-comment="Select type of dialog for confirming action">Dialog Type</label>
 		
 									<select class="select2" id="dialog-select">
-										<option value="none">None</option>
-										<option value="okcancel">Confirm Dialog (window.confirm)</option>
+										<option value="none">No confirmation</option>
+										<option value="okcancel">Use window.confirm</option>
 									</select>
 								</div>
 

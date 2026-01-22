@@ -198,10 +198,29 @@ test('pages', async ({ page }) => {
   await page.locator('.repeater-datakey').fill('project');
   await page.waitForTimeout(1000);
   await page.locator('.save-repeater-datakey').click();
+  await page.screenshot({ path: 'screenshots/pages_element-details_repeater.png' });
   await page.getByRole('link', { name: 'Preview' }).click();
   await page.waitForTimeout(1000);
-
   await page.screenshot({ path: 'screenshots/pages_repeater.png' });
+  await page.getByRole('link', { name: 'General' }).click();
+  await page.waitForTimeout(1000);
+  await page.screenshot({ path: 'screenshots/pages_element-details_general.png' });
+  await page.getByRole('link', { name: 'HTML' }).click();
+  await page.waitForTimeout(1000);
+  await page.screenshot({ path: 'screenshots/pages_element-details_html.png' });
+  await page.getByRole('link', { name: 'Events' }).click();
+  await page.waitForTimeout(1000);
+  await page.getByRole('textbox', { name: 'Browser event (click, keydown' }).click();
+  await page.keyboard.type('click');
+  await page.keyboard.press('Tab');
+  await page.waitForTimeout(200);
+  await page.locator('#action-select').selectOption('Create new object');
+  await page.waitForTimeout(200);
+  await page.locator('.m-2 > svg > use').first().click();
+  await page.waitForTimeout(200);
+  await page.getByRole('textbox', { name: 'Name', exact: true }).fill('name');
+  await page.getByRole('combobox').nth(5).selectOption('User Input');
+  await page.screenshot({ path: 'screenshots/pages_element-details_events.png' });
 
   // Logout
   await page.locator('.submenu-trigger').hover();

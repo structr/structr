@@ -91,11 +91,11 @@ Download the GraalVM binaries from [https://www.graalvm.org/downloads/](https://
 
 **Example for x64_64 (X86-64/AMD64) architecture**
 
-    $ wget https://download.oracle.com/graalvm/25/latest/graalvm-jdk-25_linux-x64_bin.tar.gz && tar xvzf graalvm-jdk-25_linux-x64_bin.tar.gz && mkdir -p /usr/lib/jvm && mv graalvm-jdk-25+37.1 /usr/lib/jvm && update-alternatives --install /usr/bin/java java /usr/lib/jvm/graalvm-jdk-25+37.1/bin/java 25 && update-alternatives --auto java
+    $ wget https://download.oracle.com/graalvm/25/latest/graalvm-jdk-25_linux-x64_bin.tar.gz && tar xvzf graalvm-jdk-25_linux-x64_bin.tar.gz && mkdir -p /usr/lib/jvm && mv graalvm-jdk-25+37.1 /usr/lib/jvm && update-alternatives --install /usr/bin/java java /usr/lib/jvm/graalvm-jdk-25+37.1/bin/java 2537 && update-alternatives --auto java
 
 **Example for aarch64 (ARM) architecture**
 
-    $ wget https://download.oracle.com/graalvm/25/latest/graalvm-jdk-25_linux-aarch64_bin.tar.gz && tar xvf graalvm-jdk-25_linux-aarch64_bin.tar.gz && mkdir -p /usr/lib/jvm && mv graalvm-jdk-25+37.1 /usr/lib/jvm && update-alternatives --install /usr/bin/java java /usr/lib/jvm/graalvm-jdk-25+37.1/bin/java 25 && update-alternatives --auto java
+    $ wget https://download.oracle.com/graalvm/25/latest/graalvm-jdk-25_linux-aarch64_bin.tar.gz && tar xvf graalvm-jdk-25_linux-aarch64_bin.tar.gz && mkdir -p /usr/lib/jvm && mv graalvm-jdk-25+37.1 /usr/lib/jvm && update-alternatives --install /usr/bin/java java /usr/lib/jvm/graalvm-jdk-25+37.1/bin/java 2537 && update-alternatives --auto java
 
 If the installation was successful, running `java -version` should result in the following output:
 
@@ -141,7 +141,7 @@ You can check the status of the Neo4j process with the following command:
 
 #### Troubleshooting: Conflicting Java Versions
 
->**Note:** If Structr can't be started with `systemctl start structr`, it's probably because you installed the GraalVM JDK for the wrong architecture, or there's en existing Java version configured.
+>**Note:** If Structr can't be started with `systemctl start structr`, it's probably because you installed the GraalVM JDK for the wrong architecture, or there's an existing Java version configured.
 
 Check which Java version is currently active with `java -version`.
 
@@ -152,7 +152,7 @@ If the result doesn't show JDK version 25 you installed earlier, run `update-alt
       Selection    Path                                         Priority   Status
     ------------------------------------------------------------
     * 0            /usr/lib/jvm/java-17-openjdk-arm64/bin/java   1711      auto mode
-      1            /usr/lib/jvm/graalvm-jdk-25+37.1/bin/java     25        manual mode
+      1            /usr/lib/jvm/graalvm-jdk-25+37.1/bin/java     2537      manual mode
       2            /usr/lib/jvm/java-17-openjdk-arm64/bin/java   1711      manual mode
 
 In this example, you have to press `1` to select and configure the correct version. 

@@ -1,6 +1,4 @@
-# HTTPS Setup
-
-Setting up HTTPS in Structr ensures secure communication between your web browser and the Structr server. This guide walks you through the complete process of configuring SSL/TLS certificates using Let's Encrypt, a free certificate authority.
+This guide walks you through the complete process of configuring SSL/TLS certificates using Let's Encrypt, a free certificate authority.
 
 ## Overview
 

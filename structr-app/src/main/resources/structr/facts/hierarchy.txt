@@ -32,7 +32,7 @@ Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Exper
 
 
 # Building Applications
-"Building Applications" has new topics "Overview", "Data Model", "Data Creation & Import", "Pages & Templates", "Navigation & Routing", "Dynamic Content", "Event Action Mapping", "Business Logic", "Error handling", "Language localization", "Best practices", "Troubleshooting"
+"Building Applications" has new topics "Overview", "Data Model", "Data Creation & Import", "Pages & Templates", "Navigation & Routing", "Dynamic Content", "Event Action Mapping", "Business Logic", "Language localization", "Best practices", "Troubleshooting"
 
     "Overview" has markdown-file "articles/Building Applications/Overview.md" with heading "Overview"
     "Data Model" has markdown-file "articles/Building Applications/Data Model.md" with heading "Data Model"
@@ -50,7 +50,7 @@ Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Exper
                 "Load / Update Mode" has constant "With a delay after page has finished loading" with description "Renders the element after a configurable number of milliseconds after the page has finished loading."
                 "Load / Update Mode" has constant "When element becomes visible" with description "Renders the element when it is scrolled into view."
                 "Load / Update Mode" has constant "With periodic updates" with description "Renders the element and refreshes its content after a configurable number of milliseconds."
-                "Delay or Interval (ms)" has description "Configures the number of milliseconds for delayed and / or periodic refresh."
+                "Delay or Interval (ms)" has description "Configures the number of milliseconds for delayed and / or periodic refresh according to the load / update mode setting above."
 
 
     "Navigation & Routing" has markdown-file "snippets/Navigation & Routing - 000.md"
@@ -146,9 +146,8 @@ Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Exper
     "Data Management" has topics "Indexing"
         "Indexing" has topics "Passive Indexing"
 
-    Topic "SSL / TLS" has topic "HTTPS", "Letsencrypt"
-        Letsencrypt has topic "Letsencrypt Settings"
-        HTTPS has topic "HTTPS Settings", "Interfaces Settings"
+    Topic "SSL / TLS" has markdown-file "articles/Operations/SSL.md"
+        "SSL / TLS" has topics "HTTPS Settings", "Interfaces Settings"
 
     "Debugging" has topic "Debugging Settings"
 
