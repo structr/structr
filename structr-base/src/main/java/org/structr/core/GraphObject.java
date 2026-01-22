@@ -151,12 +151,18 @@ public interface GraphObject {
 
 			if (key.isPropertyTypeIndexable() && !key.isReadOnly() && !key.isSystemInternal() && !key.isUnvalidated()) {
 
-				// value can be set directly, move to creation container
-				key.setProperty(securityContext, indexable, value);
-				iterator.remove();
+				try {
+					// value can be set directly, move to creation container
+					key.setProperty(securityContext, indexable, value);
+					iterator.remove();
 
-				// store value to do notifications later
-				filtered.put(key, value);
+					// store value to do notifications later
+					filtered.put(key, value);
+
+				} catch (ClassCastException e) {
+
+					throw new FrameworkException(422, "Invalid JSON input for key " + key.jsonName() + ", expected a JSON " + key.typeName() + ".");
+				}
 			}
 		}
 	}

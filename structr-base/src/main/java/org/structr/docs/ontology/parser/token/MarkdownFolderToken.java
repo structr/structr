@@ -59,70 +59,75 @@ public class MarkdownFolderToken extends NamedConceptToken {
 		final String folderName      = identifierToken.resolve(ontology);
 		final String cleanedName     = MarkdownMarkdownFileFormatter.getNameFromFileName(folderName);
 		final Concept markdownFolder = ontology.getOrCreateConcept(this, type, cleanedName, false);
-		final Resource docsResource  = baseResource.resolve("docs");
-		final Path folderPath        = docsResource.resolve(folderName).getPath();
-		final Path indexFile         = folderPath.resolve("index.txt");
 
 		if (markdownFolder != null) {
 
 			final AnnotatedConcept annotatedConcept = new AnnotatedConcept(markdownFolder);
 
-			// resolve markdown folder contents and add them as topics
-			if (Files.exists(indexFile)) {
+			// baseResource can be null in the tests
+			if (baseResource != null) {
 
-				try {
-					final List<String> files = Files.readAllLines(indexFile);
-					for (final String file : files) {
+				final Resource docsResource = baseResource.resolve("docs");
+				final Path folderPath       = docsResource.resolve(folderName).getPath();
+				final Path indexFile        = folderPath.resolve("index.txt");
 
-						final String cleanedFileName = MarkdownMarkdownFileFormatter.getNameFromFileName(file);
-						final Concept markdownFile = ontology.getOrCreateConcept(this, ConceptType.MarkdownFile, cleanedFileName, false);
+				// resolve markdown folder contents and add them as topics
+				if (Files.exists(indexFile)) {
 
-						if (markdownFile != null) {
+					try {
+						final List<String> files = Files.readAllLines(indexFile);
+						for (final String file : files) {
 
-							final String filePath = folderName + "/" + file;
+							final String cleanedFileName = MarkdownMarkdownFileFormatter.getNameFromFileName(file);
+							final Concept markdownFile = ontology.getOrCreateConcept(this, ConceptType.MarkdownFile, cleanedFileName, false);
 
-							markdownFile.getMetadata().put("path", filePath);
+							if (markdownFile != null) {
 
-							ontology.createSymmetricLink(markdownFolder, Verb.Has, markdownFile);
+								final String filePath = folderName + "/" + file;
 
-							// handle children
-							final List<String> lines = Files.readAllLines(folderPath.resolve(file));
-							final MutableDataSet options = new MutableDataSet();
+								markdownFile.getMetadata().put("path", filePath);
 
-							options.setAll(PegdownOptionsAdapter.flexmarkOptions(false, Extensions.ALL));
+								ontology.createSymmetricLink(markdownFolder, Verb.Has, markdownFile);
 
-							final Parser parser         = Parser.builder(options).build();
-							final Document doc          = parser.parse(StringUtils.join(lines, "\n"));
+								// handle children
+								final List<String> lines     = Files.readAllLines(folderPath.resolve(file));
+								final MutableDataSet options = new MutableDataSet();
 
-							for (final Node child : doc.getChildren()) {
+								options.setAll(PegdownOptionsAdapter.flexmarkOptions(false, Extensions.ALL));
 
-								if (child instanceof Heading heading) {
+								final Parser parser = Parser.builder(options).build();
+								final Document doc = parser.parse(StringUtils.join(lines, "\n"));
 
-									final int level   = heading.getLevel();
-									final String text = heading.getText().unescape();
+								for (final Node child : doc.getChildren()) {
 
-									if (level == 2) {
+									if (child instanceof Heading heading) {
 
-										final Concept headingConcept = ontology.getOrCreateConcept(this, ConceptType.MarkdownHeading, text, false);
-										if (headingConcept != null) {
+										final int level = heading.getLevel();
+										final String text = heading.getText().unescape();
 
-											ontology.createSymmetricLink(markdownFile, Verb.Has, headingConcept);
+										if (level == 2) {
+
+											final Concept headingConcept = ontology.getOrCreateConcept(this, ConceptType.MarkdownHeading, text, false);
+											if (headingConcept != null) {
+
+												ontology.createSymmetricLink(markdownFile, Verb.Has, headingConcept);
+											}
 										}
 									}
 								}
+
+								// store markdown content in concept
+								markdownFile.getMetadata().put("content", StringUtils.join(lines, "\n"));
+
+							} else {
+
+								System.out.println("Markdown file " + cleanedFileName + " not created, probably blacklisted..");
 							}
-
-							// store markdown content in concept
-							markdownFile.getMetadata().put("content", StringUtils.join(lines, "\n"));
-
-						} else {
-
-							System.out.println("Markdown file " + cleanedFileName + " not created, probably blacklisted..");
 						}
-					}
 
-				} catch (IOException ioex) {
-					ioex.printStackTrace();
+					} catch (IOException ioex) {
+						ioex.printStackTrace();
+					}
 				}
 			}
 

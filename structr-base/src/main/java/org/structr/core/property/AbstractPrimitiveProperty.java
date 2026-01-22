@@ -146,7 +146,14 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> implement
 
 		if (converter != null) {
 
-			convertedValue = converter.convert(value);
+			try {
+
+				convertedValue = converter.convert(value);
+
+			} catch (ClassCastException cce) {
+
+				throw new FrameworkException(422, "Invalid JSON input for key " + jsonName() + ", expected a JSON " + typeName() + ".");
+			}
 		}
 
 		// use transformators from property
@@ -236,8 +243,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> implement
 			} catch (Throwable t) {
 
 				// throw FrameworkException with the given cause
-				final FrameworkException fex = new FrameworkException(500, "Unable to set property " + jsonName() + " on entity with ID " + obj.getUuid() + ": " + t.toString());
-				fex.initCause(t);
+				final FrameworkException fex = new FrameworkException(500, "Unable to set property " + jsonName() + " on entity with ID " + obj.getUuid() + ": " + t);
 
 				throw fex;
 			}

@@ -7783,13 +7783,13 @@ public class ScriptingTest extends StructrTest {
 			${{
 				let extendedProject = $.create('ExtendedProject', { name: 'Test' });
 			
-				extendedProject.doTest();
+				extendedProject.doTest({ name: 'TEST' });
 			
 				extendedProject.name;
 			}}
 			""", "testSuperCall");
 
-			assertEquals("Super implementation of instance method was not called correctly", "TestProjectExtendedProject", result);
+			assertEquals("Super implementation of instance method was not called correctly", "TestProjectTESTExtendedProjectTEST", result);
 
 			tx.success();
 

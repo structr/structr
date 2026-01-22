@@ -65,8 +65,6 @@ public class MarkdownFileToken extends NamedConceptToken {
 		final Map<String, String> metadata = getMetadata(ontology);
 		final String fileName              = StringUtils.substringAfterLast(path, "/");
 		final String cleanedName           = coalesce(metadata.get("heading"), MarkdownMarkdownFileFormatter.getNameFromFileName(fileName));
-		final Resource docsResource        = baseResource.resolve("docs");
-		final Path folderPath              = docsResource.resolve(path).getPath();
 		final Concept markdownFile         = ontology.getOrCreateConcept(this, ConceptType.MarkdownFile, cleanedName, false);
 
 		if (markdownFile != null) {
@@ -75,40 +73,47 @@ public class MarkdownFileToken extends NamedConceptToken {
 
 			final AnnotatedConcept annotatedConcept = new AnnotatedConcept(markdownFile);
 
-			try {
+			// baseResource can be null in the tests
+			if (baseResource != null) {
 
-				// handle children
-				final List<String> lines     = Files.readAllLines(folderPath);
-				final MutableDataSet options = new MutableDataSet();
+				final Resource docsResource = baseResource.resolve("docs");
+				final Path folderPath       = docsResource.resolve(path).getPath();
 
-				options.setAll(PegdownOptionsAdapter.flexmarkOptions(false, Extensions.ALL));
+				try {
 
-				final Parser parser = Parser.builder(options).build();
-				final Document doc = parser.parse(StringUtils.join(lines, "\n"));
+					// handle children
+					final List<String> lines = Files.readAllLines(folderPath);
+					final MutableDataSet options = new MutableDataSet();
 
-				for (final Node child : doc.getChildren()) {
+					options.setAll(PegdownOptionsAdapter.flexmarkOptions(false, Extensions.ALL));
 
-					if (child instanceof Heading heading) {
+					final Parser parser = Parser.builder(options).build();
+					final Document doc = parser.parse(StringUtils.join(lines, "\n"));
 
-						final int level = heading.getLevel();
-						final String text = heading.getText().unescape();
+					for (final Node child : doc.getChildren()) {
 
-						if (level == 2) {
+						if (child instanceof Heading heading) {
 
-							final Concept headingConcept = ontology.getOrCreateConcept(this, ConceptType.MarkdownHeading, text, false);
-							if (headingConcept != null) {
+							final int level = heading.getLevel();
+							final String text = heading.getText().unescape();
 
-								ontology.createSymmetricLink(markdownFile, Verb.Has, headingConcept);
+							if (level == 2) {
+
+								final Concept headingConcept = ontology.getOrCreateConcept(this, ConceptType.MarkdownHeading, text, false);
+								if (headingConcept != null) {
+
+									ontology.createSymmetricLink(markdownFile, Verb.Has, headingConcept);
+								}
 							}
 						}
 					}
+
+					// store markdown content in concept
+					markdownFile.getMetadata().put("content", StringUtils.join(lines, "\n"));
+
+				} catch (IOException ioex) {
+					ioex.printStackTrace();
 				}
-
-				// store markdown content in concept
-				markdownFile.getMetadata().put("content", StringUtils.join(lines, "\n"));
-
-			} catch (IOException ioex) {
-				ioex.printStackTrace();
 			}
 
 			return annotatedConcept;
