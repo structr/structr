@@ -106,7 +106,7 @@ public class AssertFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-			Example.javaScript("$.assert($.me.name == 'admin', 422, 'Only admin users are allowed to access this resource.')", "Make sure only admin users can continue here")
+			Example.javaScript("$.assert(($.me?.isAdmin === true), 422, 'Only admin users are allowed to access this resource.')", "Make sure only admin users can continue here")
 		);
 	}
 
