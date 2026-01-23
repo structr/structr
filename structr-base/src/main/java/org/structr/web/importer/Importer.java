@@ -609,7 +609,7 @@ public class Importer {
 						}
 					}
 
-					// remove attribute so we do not write it in the database
+					// remove attribute so we don't write it in the database
 					node.removeAttr("#text");
 				}
 			}
