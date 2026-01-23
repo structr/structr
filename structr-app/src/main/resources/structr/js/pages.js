@@ -1324,10 +1324,26 @@ let _Pages = {
 
 		let actionMapping;
 
-		Command.query('SchemaNode', 2000, 1, 'name', 'asc', { isServiceClass: false }, (schemaNodes) => {
-			dataTypeSelect.insertAdjacentHTML('beforeend', schemaNodes.map(typeObj => `<option>${typeObj.name}</option>`).join(''));
-			dataTypeSelectUl.insertAdjacentHTML('beforeend', schemaNodes.map(typeObj => `<li data-value="${typeObj.name}">${typeObj.name}</li>`).join(''));
-		}, false, null, 'id,name,isBuiltinType');
+		Command.getSchemaInfo(null, types => {
+
+			types = types.filter(t => !t.isServiceClass);
+			_Helpers.sort(types);
+
+			let builtinTypes = types.filter(t => t.isBuiltin);
+			let customTypes  = types.filter(t => !t.isBuiltin);
+
+			let customTypesOptGroup  = dataTypeSelect.querySelector('optgroup[data-custom-types]');
+			let builtinTypesOptGroup = dataTypeSelect.querySelector('optgroup[data-builtin-types]');
+
+			customTypesOptGroup.insertAdjacentHTML('beforeend', customTypes.map((type) => `<option>${type.name}</option>`).join(''));
+			builtinTypesOptGroup.insertAdjacentHTML('beforeend', builtinTypes.map((type) => `<option>${type.name}</option>`).join(''));
+
+			let customTypesUl  = dataTypeSelectUl.querySelector('ul[data-custom-types]');
+			let builtinTypesUl = dataTypeSelectUl.querySelector('ul[data-builtin-types]');
+
+			customTypesUl.insertAdjacentHTML('beforeend', customTypes.map(type => `<li data-value="${type.name}">${type.name}</li>`).join(''));
+			builtinTypesUl.insertAdjacentHTML('beforeend', builtinTypes.map(type => `<li data-value="${type.name}">${type.name}</li>`).join(''));
+		});
 
 		Command.query('FlowContainer', 2000, 1, 'name', 'asc', null, (flows) => {
 			flowSelect.insertAdjacentHTML('beforeend', flows.map(flow => `<option>${flow.name}</option>`).join(''));
@@ -1461,10 +1477,16 @@ let _Pages = {
 					return;
 				}
 
-				for (let child of dataTypeSelectUl.children) {
+				for (let childUl of dataTypeSelectUl.querySelectorAll('ul')) {
 
-					let shouldHide = !(child.dataset.value && child.dataset.value.match(el.value));
-					child.classList.toggle('hidden', shouldHide);
+					for (let child of childUl.children) {
+
+						let shouldHide = !(child.dataset.value && child.dataset.value.match(el.value));
+						child.classList.toggle('hidden', shouldHide);
+					}
+
+					let visibleCount = childUl.querySelectorAll('li:not(.hidden)').length;
+					childUl.parentElement.classList.toggle('hidden', (visibleCount === 0));
 				}
 
 				showDataTypeList();
@@ -4438,8 +4460,19 @@ let _Pages = {
 								<input type="text" class="combined-input-select-field" id="data-type-input" placeholder="Custom type or script expression">
 								<select class="required combined-input-select-field" id="data-type-select">
 									<option value="">Select type from schema</option>
+									<optgroup label="Custom Types" data-custom-types></optgroup>
+									<optgroup label="Builtin Types" data-builtin-types></optgroup>
 								</select>
-								<ul class="combined-input-select-field hidden"></ul>
+								<ul class="combined-input-select-field hidden">
+									<li class="nohover">
+										<div class="font-bold pb-2">Custom Types</div>
+										<ul class="pl-4" data-custom-types></ul>
+									</li>
+									<li class="nohover">
+										<div class="font-bold pb-2">Builtin Types</div>
+										<ul class="pl-4" data-builtin-types></ul>
+									</li>
+								</ul>
 							</div>
 						</div>
 
