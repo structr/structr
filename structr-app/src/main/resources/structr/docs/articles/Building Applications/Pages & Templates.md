@@ -1,6 +1,46 @@
 
 After defining a first version of the data model, the next step is usually to build a user interface. This can be done in the `Pages` area.
 
+
+
+## Working with Pages
+
+<img src="../../Structr_6.jpg" class="small-image-50" />
+
+A page in Structr consists of HTML elements, template blocks, content elements, or a combination of these. Pages are rendered on the server, so the browser receives fully rendered HTML rather than JavaScript that builds the page client-side. This simplifies development, improves initial load times, and ensures pages are accessible to search engines.
+
+### From Design to Application
+
+The Structr way of building applications is to start with an HTML structure or design template and make it dynamic by adding repeaters and data bindings. This approach lets you convert a page layout directly into a working application - the design stays intact while you add functionality. It works especially well with professionally designed web application templates from sources like ThemeForest.
+
+### Modifying the Page Tree
+
+Once you have created a page, you can modify it by adding and arranging elements in the page tree. Add elements by right-clicking and selecting from the context menu, or by dragging widgets from the Widgets flyout into the page.
+
+### Element Types
+HTML elements provide the familiar tag-based structure - `<div>`, `<section>`, `<article>`, and other standard tags. Template elements contain larger blocks of markup and can include logic that pre-processes data for use further down the page. Content elements insert text or dynamic values wherever text appears: in headings, labels, table cells, or paragraphs. Widgets are pre-built page fragments that you can drag into your page to add common functionality. Shared components are reusable elements that you define once and reference across multiple pages. Changes to a shared component are reflected everywhere it is used.
+
+### Static Resources
+Static resources like CSS files, JavaScript files, and images are stored in the Structr file system and can be included in your pages by referencing their path. For details on how to work with files, including dynamic file content with template expressions, see the Files chapter.
+
+### Dynamic Content
+Pages can produce static output or dynamic content that changes based on data, user permissions, or request parameters. Template expressions let you insert dynamic values in content elements, HTML attributes, or template markup.
+
+### Repeaters
+To display collections of database objects - such as a list of users or a product catalog - configure an element as a repeater. The repeater retrieves a collection of objects and renders the element once for each result. For example, a `<tr>` element configured as a repeater produces one table row for each object in the collection. You can call methods on your types to retrieve the data, or call flows if you use Flows.
+
+### Partial Reload
+For updates without full page reloads, you can configure individual elements to refresh independently - after a delay, when they become visible, or at regular intervals. Event action mappings can also trigger partial reloads in response to user interactions, updating specific parts of the page while keeping the rest intact.
+
+### Controlling Visibility
+Show and hide conditions determine whether a part of the page appears in the output, based on runtime data or user state. Visibility flags and permissions offer another layer of control - you can make entire branches of the page tree visible only to specific users or groups, for example an admin menu that only administrators can see.
+
+### Preview and Testing
+The preview tab shows how your page is rendered. You can assign a preview detail object and request parameters in the page settings to test how your page behaves with different data. The preview also allows you to edit content directly - clicking on text in the preview selects the corresponding content element, where you can modify it in place.
+
+
+
+
 ## Creating a Page
 When you click the green "Create Page" button in the upper left corner of the Pages section, you can choose whether to create a page from a template or import one from a URL.
 
@@ -36,25 +76,20 @@ Deployment annotations are special markers that Structr inserts when exporting H
 
 
 
-## Working With Pages
-A page in Structr consists of HTML elements, template blocks, content elements, or a combination of these. The following sections explain each type of page element and how they work together to build your pages.
-
-![Working With Pages](../../pages_page-expanded.png)
 
 
 
+## The Page Element
 
+![Page Elements](../../pages_page-expanded.png)
 
-## Page Elements
-The Page element sits at the top of a page's element tree and represents the page itself. Below the Page element, there is either a single Template element (the Main Page Template) or an `<html>` element containing `<head>` and `<body>` elements.
+The Page element sits at the top of a page's element tree and represents the page itself. Below the Page element, there is either a single Template element (the Main Page Template) or an `<html>` element containing `<head>` and `<body>` elements. Templates can also be used to create non-HTML pages: by setting the content type to `application/json`, `text/xml`, or `text/plain`, you can make the page return any content you want.
 
 ### Appearance
 Page elements appear as an expandable tree item with a little window icon, the page name and optional position attribute on the left, and a lock icon on the right. Click the lock icon to open the Access Control dialog. The icon's appearance indicates the visibility settings: no icon means both visibility flags are enabled, while a lock icon with a key means only one flag is enabled.
 
 ### Interaction
-When you hover over the Page element with your mouse, two additional icons appear: one opens the context menu (described below) and one opens the live page in a new tab. Note that you can also open the context menu by right-clicking the page element.
-
-Left-clicking the Page element opens the detail settings in the main area of the screen in the center.
+When you hover over the Page element with your mouse, two additional icons appear: one opens the context menu (described below) and one opens the live page in a new tab. Note that you can also open the context menu by right-clicking the page element. Left-clicking the Page element opens the detail settings in the main area of the screen in the center.
 
 ### Access Control Dialog
 Clicking the lock icon on the page element opens the access control dialog for that page. {{"Access Control Dialog",+3,children}}
@@ -134,22 +169,18 @@ The arguments are optional, meaning empty path segments (e.g., `/projects//my-ex
 
 
 
-## HTML Elements
-HTML elements form the structured content of a page. An element always has a tag and can include both global attributes like `id`, `class`, and `style`, additional tag-specific attributes defined by the HTML specification, and custom data attributes. HTML elements can be inserted anywhere in the page tree, as Structr does not strictly enforce valid HTML.
+## The HTML Element
+HTML elements form the structured content of a page. An element always has a tag and can include both global attributes like id, class, and style, additional tag-specific attributes defined by the HTML specification, and custom data attributes. HTML elements can be inserted anywhere in the page tree, as Structr does not strictly enforce valid HTML.
 
 HTML elements automatically render their tag, all attributes with non-null values, and their children. An empty string causes the attribute to be output as a boolean attribute without a value (e.g., `<option selected>`).
 
 ### Appearance
-HTML elements appear as expandable tree items with a little box icon, showing their tag name and CSS classes. You can rename HTML elements to better communicate their purpose - when renamed, the custom name is displayed in the tree instead of the tag. HTML elements also have a lock icon on the right that opens the Access Control dialog. As with pages, the icon's appearance indicates the visibility settings: no icon means both visibility flags are enabled, while a lock icon with a key means only one flag is enabled.
+HTML elements appear as expandable tree items with a box icon, showing their tag name and CSS classes. You can rename HTML elements to better communicate their purpose - when renamed, the custom name is displayed in the tree instead of the tag. Elements configured as repeaters display a colored box icon with red, green, and yellow instead of the standard box. The lock icon on the right indicates visibility settings: no icon means both visibility flags are enabled, a lock icon with a key means only one flag is enabled.
 
 ### Interaction
-When you hover over an HTML element with your mouse, the context menu icon appears. You can also open the context menu by right-clicking the element. Left-clicking the HTML element selects it in the page tree and opens the detail settings in the main area of the screen in the center.
-
-### Access Control Dialog
-Clicking the lock icon on the page element opens the access control dialog for that element.
+When you hover over an HTML element with your mouse, the context menu icon appears. You can also open the context menu by right-clicking the element. Left-clicking the HTML element selects it in the page tree and opens the detail settings in the main area of the screen in the center. Clicking the lock icon opens the Access Control dialog.
 
 ### The General Tab
-
 The General tab of an HTML element contains important settings that affect how the element is rendered and displayed in the page tree.
 
 ![General Settings](../../pages_element-details_general.png)
@@ -158,7 +189,7 @@ The General tab of an HTML element contains important settings that affect how t
 The name is used to identify the element in the page tree and can help communicate the element's purpose in your page structure.
 
 #### CSS Class
-You can specify one or more CSS classes (separated by spaces) that will be applied to the element when rendered. You can also create dynamic CSS classes by inserting template expressions—this is the primary use case for StructrScript expressions. For example: `button ${current.status}` to apply a class based on the current data object's status.
+You can specify one or more CSS classes (separated by spaces) that will be applied to the element when rendered. You can also create dynamic CSS classes by inserting template expressions - this is the primary use case for StructrScript expressions. For example: `button ${current.status}` to apply a class based on the current data object's status.
 
 #### HTML ID
 This sets the element's unique identifier in the DOM, which can be used for styling, scripting, or linking.
@@ -255,34 +286,41 @@ The Active Elements tab displays the same structural overview as its counterpart
 
 
 
-## Templates & Content Elements
+## Templates and Content Elements
 Template and content elements contain text or markup that is output directly into the page, instead of building structure from nested HTML elements. They have a content type setting that controls how the text is processed before rendering - Markdown, AsciiDoc, and several other markup dialects are automatically converted to HTML, while plaintext, XML, JSON, and other formats are output as-is.
 
 Content elements are the simpler variant: they output their text and cannot have children. Template elements can have children, but this is where they differ fundamentally from HTML elements.
 
 Note that when using a template element as the root of a page, it must include the `DOCTYPE` declaration that an HTML element would output automatically.
 
-
 ### Composable Page Structures
 Unlike HTML elements, templates do not render their children automatically. If you don't explicitly call `render(children)`, the children exist in the page tree but produce no output. This is intentional as it gives you full control over placement rather than forcing a fixed parent-child rendering order.
 
-The result is a composable system. A template can define a layout with multiple insertion points - a sidebar, a navigation area, a main content section - and then render specific children into each slot. Using the render() function, you control exactly where each child appears in the output. This lets you build complex page structures from reusable, composable building blocks.
+The result is a composable system. A template can define a layout with multiple insertion points - a sidebar, a navigation area, a main content section - and then render specific children into each slot. Using the `render()` function, you control exactly where each child appears in the output. This lets you build complex page structures from reusable, composable building blocks.
 
 ### Including External Content
 You can also use `include()` or `includeChild()` in a template to pull content from other parts of the page tree or from objects in the database.
 
 ### Appearance
-Template elements appear as expandable tree items with an application icon, showing their name or `#template` when unnamed. Content elements are not expandable because they cannot have children. They display a document icon and show the first few words of their content, or `#content` when empty.
+Template elements appear as expandable tree items with an application icon, showing their name or `#template` when unnamed. Content elements are not expandable because they cannot have children - they display a document icon and show the first few words of their content, or `#content` when empty. Elements configured as repeaters display a yellow icon. Rename template elements to better communicate their purpose.
 
-Template elements can be renamed to better communicate their purpose. Both element types have a lock icon on the right that opens the Access Control dialog. As with other element types, the icon's appearance indicates visibility settings: no icon means both visibility flags are enabled, a lock icon with a key means only one flag is enabled.
-
-### Access Control Dialog
-Clicking the lock icon on the page element opens the access control dialog for that element.
+### Interaction
+The lock icon on the right indicates visibility settings: no icon means both visibility flags are enabled, a lock icon with a key means only one flag is enabled. When you hover over a template or content element, the context menu icon appears. You can also open the context menu by right-clicking the element. Left-clicking selects it in the page tree and opens the detail settings in the main area. Clicking the lock icon opens the Access Control dialog.
 
 ### The General Tab
+The General tab of template and content elements contains the name field and the following four configuration options, which work the same as on HTML elements:
 
+#### Function Query
+An auto-script field for defining repeater queries. This allows you to write a script expression that retrieves data to be iterated over by the repeater.
 
-TODO
+#### Data Key
+Specifies the data key for the repeater. This defines the variable name under which each item from the Function Query result will be available during iteration. Note that data keys with the same names in nested repeaters overwrite each other.
+
+#### Show Conditions
+Defines when the element should be shown. The element is rendered only when this expression evaluates to true. Show conditions are evaluated at rendering time, before the page rendering engine starts rendering the element. For example: `me.isAdmin` to show the element only to admin users. This is an auto-script field.
+
+#### Hide Conditions
+Like Show Conditions, but defines when the element should be hidden. The element is not rendered when this expression evaluates to true. This is also an auto-script field evaluated at rendering time.
 
 
 ### The Advanced Tab
@@ -292,8 +330,10 @@ Like the Advanced tab for HTML elements, this tab provides a raw view of the cur
 Like the Preview tab for Page elements, this tab displays the same rendered output for all elements within a page, as the preview always renders from the root of the page hierarchy. This means whether you are viewing the Page element itself or any child element, you will see the complete page output here.
 
 ### The Editor Tab
+The Editor tab is where you edit the actual content of template and content elements. It provides a full-featured code editor based on Monaco (the editor from VS Code) with syntax highlighting and autocompletion. At the bottom of the tab, the content type selector controls how the text is processed before rendering. Select Markdown or AsciiDoc to have your content converted to HTML, or choose plaintext, XML, JSON, or other formats for direct output. For HTML templates like the Main Page Template, set the content type to `text/html` to output the markup directly.
 
 ### The Repeater Tab
+The Repeater tab provides the same configuration options as on HTML elements, allowing you to configure the element as a repeater with a data source and data key.
 
 ### The Security Tab
 The Security tab contains the Access Control settings for the current element, with owner, visibility flags and individual user / group access rights.
@@ -302,48 +342,111 @@ The Security tab contains the Access Control settings for the current element, w
 The Active Elements tab displays the same structural overview as its counterpart on page elements, but scoped to the current element and its descendants.
 
 
-## Context Menu
-### Suggested Widgets
+## The Context Menu
+The context menu provides quick access to common operations on page elements. Open it by right-clicking an element in the page tree or by clicking the context menu icon that appears when hovering over an element.
+
+The context menu varies depending on the element type. For page elements, it only allows inserting an `<html>` element or a template element, cloning the page, expanding or collapsing the tree, and deleting the page. For content elements, the insert options are limited to Insert Before and Insert After, since content elements cannot have children. The following sections describe the full context menu available for HTML and template elements.
+
+### Suggested Widgets (when available)
+This menu item appears when a local or remote Widget exists whose `selectors` property matches the current element. Selectors are written like CSS selectors, for example `table` to match table elements or `div.container` to match div elements with the `container` class. This provides quick access to Widgets that are designed to work with the selected element type, allowing you to insert them directly as children.
+
+### Suggested Elements (when available)
+This menu item appears for elements that have commonly used child elements. For example, when you open the context menu on a `<table>` element, Structr suggests `<thead>`, `<tbody>`, `<tr>`, and other table-related elements. Similarly, a `<ul>` element suggests `<li>`, a `<select>` suggests `<option>`, and so on. This speeds up page building by offering the most relevant elements for your current context.
+
 ### Insert HTML Element
+This submenu lets you insert an HTML element as a child of the selected element. It contains submenus with alphabetically grouped tag names and includes an option to insert a custom element with a tag name you specify.
+
 ### Insert Content Element
-### Suggested Elements
+This submenu lets you insert a template or content element as a child of the selected element.
+
 ### Insert Div Element
+Quickly inserts a `<div>` element as a child of the selected element.
+
 ### Insert Before
+This submenu lets you insert a new element as a sibling before the selected element. It contains the same options as the main insert menu: Insert HTML Element, Insert Content Element, and Insert Div Element.
+
 ### Insert After
+This submenu lets you insert a new element as a sibling after the selected element. It contains the same options as the main insert menu: Insert HTML Element, Insert Content Element, and Insert Div Element.
+
 ### Clone
+Creates a copy of the selected element including all its children and inserts it immediately after the original.
+
 ### Wrap Element In
+This submenu lets you wrap the selected element in a new parent element. It contains Insert HTML Element, Insert Template Element, and Insert Div Element options. Content elements are not available here because they cannot have children. The selected element becomes a child of the newly created element.
+
 ### Replace Element With
-### Select Element
+This submenu lets you replace the selected element with a different element type while preserving its children. It contains Insert HTML Element, Insert Template Element, and Insert Div Element options. Content elements are not available here because they cannot have children.
+
+### Select / Deselect Element
+Selects or deselects the element. A selected element displays a dashed border in the page tree and can be cloned or moved to a different location using the context menu.
+
+### Clone Selected Element Here (when available)
+This menu item appears when an element is selected. It clones the selected element and inserts the copy as a child of the element where you opened the context menu.
+
+### Move Selected Element Here (when available)
+This menu item appears when an element is selected. It moves the selected element from its current position and inserts it as a child of the element where you opened the context menu.
+
+### Convert to Shared Component (when available)
+This menu item appears for HTML and template elements. It converts the element and its children into a Shared Component that can be reused across multiple pages. Changes to the Shared Component are reflected everywhere it is used.
+
 ### Expand / Collapse
+This submenu controls the visibility of children in the page tree. It offers three options: expand subtree, expand subtree recursively, and collapse subtree.
+
 ### Remove Node
-
-
-## Static Resources
-
-### File download
-### Dynamic files
-#### Replace template expressions"
-
-
+Removes the selected element and all its children from the page. Removed elements are moved to the Recycle Bin and can be restored from there.
 
 
 
 ## Translations
+Structr supports building localized frontends, allowing you to serve content in multiple languages. Instead of hardcoded text, you use the `localize()` function in content elements or templates to reference translations stored in the database. Structr then looks up the translation for the current locale and displays it. If no translation is found, the key itself is returned.
+
+The typical workflow is to first add `localize()` calls in your page, then open the Translations flyout to create the corresponding translations for each language.
+
+For example, to translate a table header for a list of database objects, create a content element inside the `<th>` element with the following content:
+```
+${localize('column_name')}
+```
+
+### Using domains
+If the same key needs different translations in different contexts, add a domain as second parameter:
+
+```
+${localize('title', 'movies')}
+${localize('title', 'books')}
+```
+
+### Managing translations
+The Structr Admin UI provides two places to manage translations: the Translations flyout in the Pages area and the dedicated Localization area. The Translations flyout allows you to manage translations per page and shows which translations are used in a specific page. The Localization area is for managing translations independent of pages.
+
+### Using the Translations flyout
+Select a page from the dropdown at the top, enter a language code, and click the refresh button to load the translations. Structr scans the selected page for occurrences of the `localize()` function and lists them. For each translation, the flyout shows the key, domain, locale, and the localized text. You can create, edit, and delete translations directly here. When you change the page or language, click the refresh button to update the list.
+
+Note that the list is empty until you use the `localize()` function in your page.
+
+### How it works
+Translations are stored as `Localization` objects in the database. Each object has four values: the key, the domain, the locale, and the translated text.
+
+When you call `localize()`, Structr searches for a matching translation in the following order:
+
+1. Key, domain, and full locale (e.g. `en_US`)
+2. Key and full locale, without domain
+3. Key, domain, and language only (e.g. `en`)
+4. Key and language only, without domain
+
+Structr stops searching as soon as it finds a match. If no translation is found, Structr can try again with a fallback locale (configurable in structr.conf). If there is still no match, the function returns the key itself.
+
+### Locale resolution
+Structr determines the current locale in the following order of priority:
+
+1. Request parameter `locale`
+2. User locale
+3. Cookie `locale`
+4. Browser locale
+5. Default locale of the Java process
 
 
-## Widgets
-### Local Widgets
-#### Creating a Widget
-#### Widget Configuration
-##### Source
-##### Configuration
-##### Description
-##### Options
-###### Selectors
-###### Is Page Template
 
-### Remote Widgets
-#### Widget Servers
+
 
 
 ## Shared Components
