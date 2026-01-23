@@ -19,12 +19,19 @@
 package org.structr.test.web.advanced;
 
 import io.restassured.RestAssured;
+import java.util.Iterator;
+import java.util.Map;
 import org.hamcrest.Matchers;
+import org.structr.api.DatabaseService;
+import org.structr.api.NativeQuery;
+import org.structr.api.graph.Relationship;
+import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Group;
+import org.structr.core.graph.GraphDatabaseCommand;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -734,6 +741,66 @@ public class Deployment5Test extends DeploymentTestBase {
 
 			final NodeInterface n2 = app.getNodeById(template3UUID);
 			assertEquals("Template node should not be exported if it is in the trash as a child of another node", null, n2);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void test61ContentElementHasNoUselessTextAttributes() {
+
+		try (final Tx tx = app.tx()) {
+
+			final Page page = Page.createNewPage(securityContext,   "test42");
+			final DOMElement html = createElement(page, page, "html");
+			final DOMElement head = createElement(page, html, "head");
+			createElement(page, head, "title", "test42");
+
+			final DOMElement body = createElement(page, html, "body");
+			final DOMElement div1 = createElement(page, body, "div");
+			final DOMElement div2 = createElement(page, body, "div");
+			final DOMElement div3 = createElement(page, body, "div");
+
+			createContent(page,  div1, "my content text");
+			createComment(page,  div2, "my comment text");
+			createTemplate(page, div3, "my template text");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// run deployment
+		compare(calculateHash(), true);
+
+		DatabaseService graphDb = app.command(GraphDatabaseCommand.class).execute();
+
+		try (final Tx tx = app.tx()) {
+
+			/* _html_#text on Content elements */
+			final NativeQuery<Iterable> query1     = graphDb.query("MATCH (n:DOMNode:" + randomTenantId + ") WHERE n.`_html_#text` IS NOT NULL RETURN n", Iterable.class);
+			Iterable<Map<String, Object>> result1  = graphDb.execute(query1);
+			final List shouldBeEmpty1              = Iterables.toList(result1);
+
+			assertEquals("After a deployment, no DOMNode should have an '_html_#text' attribute!", 0, shouldBeEmpty1.size());
+
+			/* _html_#comment on Comment elements */
+			final NativeQuery<Iterable> query2     = graphDb.query("MATCH (n:DOMNode:" + randomTenantId + ") WHERE n.`_html_#comment` IS NOT NULL RETURN n", Iterable.class);
+			Iterable<Map<String, Object>> result2  = graphDb.execute(query2);
+			final List shouldBeEmpty2              = Iterables.toList(result2);
+
+			assertEquals("After a deployment, no DOMNode node should have an '_html_#comment' attribute!", 0, shouldBeEmpty2.size());
+
+			/* _html_src on Template elements */
+			final NativeQuery<Iterable> query3     = graphDb.query("MATCH (n:Template:" + randomTenantId + ") WHERE n.`_html_src` IS NOT NULL RETURN n", Iterable.class);
+			Iterable<Map<String, Object>> result3  = graphDb.execute(query3);
+			final List shouldBeEmpty3              = Iterables.toList(result3);
+
+			assertEquals("After a deployment, no Template node should have an '_html_src' attribute!", 0, shouldBeEmpty3.size());
 
 			tx.success();
 
