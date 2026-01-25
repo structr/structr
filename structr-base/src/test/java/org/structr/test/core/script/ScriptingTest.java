@@ -7737,6 +7737,47 @@ public class ScriptingTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testConfigNullValues() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.addType("Test");
+
+			type.addMethod("readConfig", "{ return $.config('testKey', 123); }");
+			type.addMethod("isConfigNull", "{ return ($.config('testKey') === null); }");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final String type        = "Test";
+			final NodeInterface test = app.create(type, "test1");
+
+			assertEquals("true", Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.isConfigNull();}"));
+			assertEquals("123", Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.readConfig();}"));
+			Settings.getOrCreateStringSetting("testKey").setValue("abc");
+			assertEquals("false", Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.isConfigNull();}"));
+			assertEquals("abc", Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.readConfig();}"));
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
 	// ----- private methods ----
 	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource) {
 
