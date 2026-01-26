@@ -82,6 +82,16 @@ public class FactToken extends AbstractToken implements TokenCollection {
 			annotatedObject = objectToken.resolve(ontology);
 		}
 
+		if (annotatedSubject == null) {
+			System.out.println(subjectToken + ": subject is null!");
+			return null;
+		}
+
+		if (annotatedObject == null) {
+			System.out.println(objectToken + ": object is null!");
+			return null;
+		}
+
 		// this resolution refines the knowledge about the three concepts
 		final Verb verb       = predicateToken.resolve(ontology);
 		final Concept subject = annotatedSubject.getConcept();
@@ -95,7 +105,7 @@ public class FactToken extends AbstractToken implements TokenCollection {
 		}
 
 		if (object == null) {
-			System.out.println(object + ": object is null!");
+			System.out.println(objectToken + ": object is null!");
 			return null;
 		}
 
