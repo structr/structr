@@ -18,6 +18,7 @@
  */
 package org.structr.web.traits.definitions.dom;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.api.AbstractMethod;
@@ -27,6 +28,7 @@ import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
@@ -37,6 +39,7 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.traits.definitions.LinkableTraitDefinition;
 import org.structr.web.traits.operations.CheckHierarchy;
+import org.structr.web.traits.operations.GetContextName;
 import org.structr.web.traits.operations.HandleNewChild;
 import org.structr.web.traits.operations.Render;
 import org.structr.web.traits.wrappers.dom.PageTraitWrapper;
@@ -140,6 +143,18 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 
 						throw new FrameworkException(422, DOMNode.HIERARCHY_REQUEST_ERR_MESSAGE_ELEMENT);
 					}
+				}
+			},
+
+			GetContextName.class,
+			new GetContextName() {
+
+				@Override
+				public String getContextName(final NodeInterface node) {
+
+					final Traits traits = node.getTraits();
+
+					return StringUtils.defaultString(node.getProperty(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)), "#page");
 				}
 			}
 		);

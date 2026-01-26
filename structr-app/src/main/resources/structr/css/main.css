@@ -3587,7 +3587,11 @@ ul.combined-input-select-field li {
 	cursor: pointer;
 }
 
-ul.combined-input-select-field li:hover {
+ul.combined-input-select-field li.nohover {
+	cursor: initial;
+}
+
+ul.combined-input-select-field li:not(.nohover):hover {
 	background-color: var(--input-background);
 }
 
