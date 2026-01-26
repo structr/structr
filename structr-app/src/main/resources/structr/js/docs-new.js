@@ -147,19 +147,21 @@ let _Documentation = {
                     let sublist = document.createElement('ul');
                     menuItem.appendChild(sublist);
 
-                    for (let child of entry.links[0].targets) {
+                    if (entry && entry.links && entry.links.length) {
+                        for (let child of entry.links[0].targets) {
 
-                        let subItem = _Documentation.createElementFromHTML(_Documentation.templates.mainNavigationSubItem({
-                            parent: entry.id,
-                            id: child.id,
-                            label: child.name
-                        }));
+                            let subItem = _Documentation.createElementFromHTML(_Documentation.templates.mainNavigationSubItem({
+                                parent: entry.id,
+                                id: child.id,
+                                label: child.name
+                            }));
 
-                        subItem.addEventListener('click', e => {
-                            _Documentation.loadContext(child.id)
-                        });
+                            subItem.addEventListener('click', e => {
+                                _Documentation.loadContext(child.id)
+                            });
 
-                        sublist.appendChild(subItem);
+                            sublist.appendChild(subItem);
+                        }
                     }
 				}
 			});
@@ -430,7 +432,7 @@ let _Documentation = {
                                             let id = parents?.[0]?.id || entry.id;
                                             let type = entry.type;
 
-                                            if (type === 'MarkdownFile') {
+                                            if (type === 'MarkdownFile' || type === 'MarkdownTopic') {
                                                 type = 'Topic';
                                             }
 

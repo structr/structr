@@ -2,7 +2,7 @@
 
 Virtual Types provide a powerful abstraction layer for data transformation and integration in Structr. Unlike regular schema types that persist data directly to the database, Virtual Types act as dynamic data processors that can transform, aggregate, or reshape data on-the-fly.
 
-![Virtual Types](../virtual-types.png)
+![Virtual Types](virtual-types.png)
 
 ## Overview
 

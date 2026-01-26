@@ -32,17 +32,18 @@ Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Exper
 
 
 # Building Applications
-"Building Applications" has new topics "Overview", "Data Model", "Data Creation & Import", "Pages & Templates", "Navigation & Routing", "Dynamic Content", "Event Action Mapping", "Business Logic", "Language localization", "Best practices", "Troubleshooting"
+#"Building Applications" has new topics "Overview", "Data Model", "Data Creation & Import", "Pages & Templates", "Navigation & Routing", "Dynamic Content", "Event Action Mapping", "Business Logic", "Language localization", "Best practices", "Troubleshooting"
 
-    "Overview" has markdown-file "articles/Building Applications/Overview.md" with heading "Overview"
-    "Data Model" has markdown-file "articles/Building Applications/Data Model.md" with heading "Data Model"
-        Topic "Built-in traits" has description "Structr provides the following built-in traits that you can select when creating or editing a type to inherit their functionality."
-    "Data Creation & Import" has markdown-file "articles/Building Applications/Data Creation & Import.md"
+#"Building Applications" has markdown-files "articles/Building Applications/Overview.md" with heading "Overview", "articles/Building Applications/Data Model.md" with heading "Data Model, "articles/Building Applications/Data Creation & Import.md"
 
-    "Pages & Templates" has markdown-file "articles/Building Applications/Pages & Templates.md"
-        "Pages" has markdown-file "snippets/Pages - 000.md"
+"Building Applications" has markdown-file "articles/Building Applications/Overview.md"
+"Building Applications" has markdown-file "articles/Building Applications/Data Model.md"
+"Building Applications" has markdown-file "articles/Building Applications/Data Creation & Import.md"
+"Building Applications" has markdown-file "articles/Building Applications/Pages & Templates.md"
+"Building Applications" has markdown-file "articles/Building Applications/Navigation & Routing.md"
+"Building Applications" has markdown-file "articles/Building Applications/Dynamic Content.md"
+"Building Applications" has markdown-file "articles/Building Applications/Event Action Mapping.md"
 
-        Topic "Elements" has topics "Rendering options", "Custom properties"
             "Rendering options" has topics "Load / Update Mode" as table, "Delay or Interval (ms)"
                 "Load / Update Mode" has description "This setting allows you to enable delayed rendering or lazy loading for this element."
                 "Load / Update Mode" has constant "Eager" with description "Renders the element in the initial server-side rendering run."
@@ -52,25 +53,6 @@ Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Exper
                 "Load / Update Mode" has constant "With periodic updates" with description "Renders the element and refreshes its content after a configurable number of milliseconds."
                 "Delay or Interval (ms)" has description "Configures the number of milliseconds for delayed and / or periodic refresh according to the load / update mode setting above."
 
-
-    "Navigation & Routing" has markdown-file "snippets/Navigation & Routing - 000.md"
-    "Navigation & Routing" has topics "Access Levels", "Visibility", "Authentication", "Navigation", "URI object resolution"
-
-        "Access Levels" has markdown-file "snippets/Access levels - 000.md"
-        "Authentication" has markdown-file "snippets/Authentication - 000.md"
-        "Navigation" has topics "URL routing", "Error pages", "Page position"
-            "URL routing" has markdown-file "snippets/URL routing - 000.md"
-            "URL routing" has topics "URI parts"
-            "URL routing" has new topic "Request parameter handling"
-
-
-    "Dynamic Content" has topics "Template expressions", "Repeaters", "Show / Hide Conditions", "Scripting contexts", "Advanced find"
-
-        "Repeaters" has topic "Data key"
-        "Repeaters" has texts "Function query", "Flow", "Cypher query"
-        "Data key" has texts "Repeater Keyword"
-
-        "Show / Hide Conditions" has texts "Show Conditions", "Hide Conditions"
 
     "Event Action Mapping" has markdown-file "snippets/Event Action Mapping - 000.md"
     "Event Action Mapping" has topics "Event Actions" as table, "Follow-up actions" as table, "Notifications" as table, "Parameter types" as table
@@ -88,13 +70,13 @@ Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Exper
 
 
 
+topic "REST Interface" has new topics "Overview", "Authentication", "Data Access"
 
+    topic "Overview" has markdown-file "articles/REST Interface/Overview.md" with heading "Overview"
+    topic "Authentication" has markdown-file "articles/REST Interface/Authentication.md" with heading "Authentication"
+    topic "Data Access" has markdown-file "articles/REST Interface/Data Access.md" with heading "Data Access"
 
-
-"REST Interface" has markdown-file "articles/REST Interface/Overview.md" with heading "Overview"
-"REST Interface" has markdown-file "articles/REST Interface/Authentication.md" with heading "Authentication"
-"REST Interface" has markdown-file "articles/REST Interface/Data Access.md" with heading "Data Access"
-"REST Interface" has topics "System endpoints", "Servlets", "Views", "Request parameters" as table, "Request headers" as table
+#topic "REST Interface" has topics "System endpoints", "Servlets", "Views", "Request parameters" as table, "Request headers" as table
 
 
 

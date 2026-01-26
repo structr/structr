@@ -23,21 +23,15 @@ import org.eclipse.jetty.util.resource.Resource;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
 import org.structr.docs.ontology.Concept;
-import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.Link;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Formats the contents of an external markdown source as plaintext,
- * but only the name. This is mainly used to build the navigation index.
+ *
  */
 public class MarkdownMarkdownFileFormatter extends Formatter {
 
@@ -52,64 +46,11 @@ public class MarkdownMarkdownFileFormatter extends Formatter {
 
 		final Concept concept   = link.getTarget();
 		final String path       = (String) concept.getMetadata().get("path");
-		final String fileName   = StringUtils.substringAfterLast(path, "/");
 		final String folderName = StringUtils.substringBeforeLast(path, "/");
-		final Resource resource = baseResource.resolve("docs/" + folderName);
 
 		settings.setBaseUrl("/structr/docs/" + folderName + "/");
 
-		try {
-
-			// add parent topic here, but only at level 0
-			if (level == 0) {
-
-				final String parentConceptName = concept.getParentConceptName();
-				if (parentConceptName != null) {
-
-					lines.add(formatMarkdownHeading(parentConceptName, 0));
-					lines.add("");
-				}
-			}
-
-			// dont allow editing of markdown content
-			//formatEditableAttribute(lines, concept.getId(), "content", Files.readAllLines(resource.resolve(fileName).getPath()));
-			lines.add(adaptHeadings(Files.readAllLines(resource.resolve(fileName).getPath()), settings.getLevelOffset()));
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
 		return true;
-	}
-
-	public String adaptHeadings(final List<String> lines, final int offset) {
-
-		final List<String> result = new LinkedList<>();
-
-		for (final String line : lines) {
-
-			if (line.startsWith("#")) {
-
-				result.add(StringUtils.repeat("#", offset) + line);
-
-			} else {
-
-				result.add(line);
-			}
-		}
-
-		return StringUtils.join(result, "\n");
-	}
-
-	public int countHashes(final String line) {
-
-		int index = 0;
-
-		while (index < line.length() && line.charAt(index) == '#') {
-			index++;
-		}
-
-		return index;
 	}
 
 	public static String getNameFromFileName(final String fileName) {

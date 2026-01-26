@@ -65,6 +65,10 @@ public class Token {
 		return getContent();
 	}
 
+	public Token copy(final String newContent) {
+		return new Token(source, type, newContent, quote, row, column);
+	}
+
 	public String getQuote() {
 		return quote;
 	}

@@ -12,19 +12,19 @@ The Dashboard provides real-time insights into your Structr instance, including 
 
 The "About Me" section displays information about the currently logged-in user, including user details, session information, and personal settings.
 
-![About Me](../dashboard_about-me.png)
+![About Me](dashboard_about-me.png)
 
 ### About Structr
 
 This section provides detailed information about the Structr server instance, including version information, system configuration, and licensing details. It also shows some information about hardware configuration and access statistics.
 
-![About Structr](../dashboard_about-structr.png)
+![About Structr](dashboard_about-structr.png)
 
 ### Deployment
 
 The Deployment section offers comprehensive tools for managing application deployment, including export/import functionality and environment synchronization.
 
-![Deployment](../dashboard_deployment.png)
+![Deployment](dashboard_deployment.png)
 
 **Deployment features:**
 
@@ -39,7 +39,7 @@ The Server Log provides real-time access to server log messages, allowing admini
 
 You can temporarily stop the auto-refresh by focusing the log area by clicking on it. To restart automatic updates, click somewhere outside the log area.
 
-![Server Log](../dashboard_server-log.png)
+![Server Log](dashboard_server-log.png)
 
 **Features:**
 
@@ -52,7 +52,7 @@ You can temporarily stop the auto-refresh by focusing the log area by clicking o
 
 The Event Log tracks important system events, user actions, and security-related activities within the Structr application. It can be filtered by different event types, and the number of events to show can be configured (default: 100).
 
-![Event Log](../dashboard_event-log.png)
+![Event Log](dashboard_event-log.png)
 
 **Filterable event types:**
 
@@ -73,13 +73,13 @@ The Threads monitor lists active threads and processes running within the Struct
 
 You can interrupt or kill a thread by clicking on the corresponding button.
 
-![Running Threads](../dashboard_running-threads.png)
+![Running Threads](dashboard_running-threads.png)
 
 ### UI Configuration
 
 Customize the Admin UI appearance and behavior to match your preferences and organizational requirements.
 
-![UI Configuration](../dashboard_ui-config.png)
+![UI Configuration](dashboard_ui-config.png)
 
 **Configuration options:**
 

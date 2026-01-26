@@ -5,7 +5,7 @@ After defining a first version of the data model, the next step is usually to bu
 
 ## Working with Pages
 
-<img src="../../Structr_6.jpg" class="small-image-50" />
+<img src="Structr_6.jpg" class="small-image-50" />
 
 A page in Structr consists of HTML elements, template blocks, content elements, or a combination of these. Pages are rendered on the server, so the browser receives fully rendered HTML rather than JavaScript that builds the page client-side. This simplifies development, improves initial load times, and ensures pages are accessible to search engines.
 
@@ -46,7 +46,7 @@ When you click the green "Create Page" button in the upper left corner of the Pa
 
 ### Create Page Dialog
 
-![Create Page Dialog](../../pages_create-page.png)
+![Create Page Dialog](pages_create-page.png)
 
 #### Templates
 When you select "Create Page", you will see a list of templates that are used to create the structure of the new page. Templates are based on the Tailwind CSS framework and range from simple layouts like the Empty Page to more complex structures with sidebars and navigation menus, as well as specialized templates like the Sign-In Page.
@@ -59,7 +59,7 @@ Page templates are widgets with the `isPageTemplate` flag enabled. Structr looks
 ### Import Page Dialog
 The Import Page dialog lets you create pages from HTML source code or by importing from external URLs.
 
-![Import Page Dialog](../../pages_import-page.png)
+![Import Page Dialog](pages_import-page.png)
 
 #### Create Page From Source Code
 Paste your HTML code into the textarea. You can then configure the import options below before creating the page.
@@ -81,7 +81,7 @@ Deployment annotations are special markers that Structr inserts when exporting H
 
 ## The Page Element
 
-![Page Elements](../../pages_page-expanded.png)
+![Page Elements](pages_page-expanded.png)
 
 The Page element sits at the top of a page's element tree and represents the page itself. Below the Page element, there is either a single Template element (the Main Page Template) or an `<html>` element containing `<head>` and `<body>` elements. Templates can also be used to create non-HTML pages: by setting the content type to `application/json`, `text/xml`, or `text/plain`, you can make the page return any content you want.
 
@@ -92,7 +92,7 @@ Page elements appear as an expandable tree item with a little window icon, the p
 When you hover over the Page element with your mouse, two additional icons appear: one opens the context menu (described below) and one opens the live page in a new tab. Note that you can also open the context menu by right-clicking the page element. Left-clicking the Page element opens the detail settings in the main area of the screen in the center.
 
 ### Access Control Dialog
-Clicking the lock icon on the page element opens the access control dialog for that page. {{"Access Control Dialog",+3,children}}
+Clicking the lock icon on the page element opens the access control dialog for that page. {{"Access Control Dialog",+1,shortDescription,children}}
 
 ### Permissions Influence Rendering
 Visibility flags and permissions don't just control database access, they also determine what renders in the page output. You can make entire branches of the HTML tree visible only to specific user groups or administrators, allowing you to create permission-based page structures. For example, an admin navigation menu can be visible only to users with administrative permissions.
@@ -102,7 +102,7 @@ For conditional rendering based on runtime conditions, see the Show and Hide Con
 ### The General Tab
 The General tab of a page contains important settings that affect how the page is rendered for users and displayed in the preview.
 
-![General Settings](../../pages_page-expanded.png)
+![General Settings](pages_page-expanded.png)
 
 #### Name
 The page name identifies the page in the page tree and determines its URL. A page named "about" is accessible at `/about`.
@@ -140,7 +140,7 @@ The preview request parameters field allows you to provide fixed parameters that
 ### The Advanced Tab
 The Advanced tab provides a raw view of the current object, showing all its attributes grouped by category, in an editable table for quick access. This tab includes the base attributes like `id`, `type`, `createdBy`, `createdDate`, `lastModifiedDate`, and `hidden` that are not available elsewhere.
 
-![Advanced Settings](../../pages_page-details-advanced.png)
+![Advanced Settings](pages_page-details-advanced.png)
 
 #### Hidden Flag
 The `hidden` flag prevents rendering of the element and all its children. When you enable this flag, Structr excludes the element from the page output entirely, making it useful for temporarily disabling parts of your page structure without deleting them.
@@ -157,7 +157,7 @@ The Security tab contains the Access Control settings for the current page, with
 ### The Active Elements Tab
 The Active Elements tab provides a structural overview of the page. Key page components are highlighted, such as templates, repeaters and elements with event action mappings. Clicking a component jumps directly to its location in the page tree.
 
-![Active Elements](../../pages_page-details-active-elements.png)
+![Active Elements](pages_page-details-active-elements.png)
 
 ### The URL Routing Tab
 The URL Routing tab allows you to configure additional URL paths under which the page is made available. You can define typed parameters in the path that Structr automatically validates and makes available in the page under the corresponding key.
@@ -183,7 +183,7 @@ When you hover over an HTML element with your mouse, the context menu icon appea
 ### The General Tab
 The General tab of an HTML element contains important settings that affect how the element is rendered and displayed in the page tree.
 
-![General Settings](../../pages_element-details_general.png)
+![General Settings](pages_element-details_general.png)
 
 #### Name
 The name is used to identify the element in the page tree and can help communicate the element's purpose in your page structure.
@@ -236,7 +236,7 @@ Like the Preview tab for Page elements, this tab displays the same rendered outp
 ### The Repeater Tab
 The Repeater tab allows you to configure an element to render dynamically based on a data source, repeating its output for each object in a collection.
 
-![Repeater Settings](../../pages_element-details_repeater.png)
+![Repeater Settings](pages_element-details_repeater.png)
 
 #### Result Collection
 At the top, you select the repeater source: Flow, Cypher Query, or Function Query (a scripting expression).
@@ -252,7 +252,7 @@ For example, a repeater with the Function Query `find('Project')` and data key `
 
 ### The Events Tab
 
-![Event Action Mappings](../../pages_element-details_events.png)
+![Event Action Mappings](pages_element-details_events.png)
 
 The Events tab allows you to configure Event Action Mappings for individual elements.
 
@@ -403,17 +403,14 @@ Structr supports building localized frontends, allowing you to serve content in 
 The typical workflow is to first add `localize()` calls in your page, then open the Translations flyout to create the corresponding translations for each language.
 
 For example, to translate a table header for a list of database objects, create a content element inside the `<th>` element with the following content:
-```
-${localize('column_name')}
-```
+
+    ${localize('column_name')}
 
 ### Using domains
 If the same key needs different translations in different contexts, add a domain as second parameter:
 
-```
-${localize('title', 'movies')}
-${localize('title', 'books')}
-```
+    ${localize('title', 'movies')}
+    ${localize('title', 'books')}
 
 ### Managing translations
 The Structr Admin UI provides two places to manage translations: the Translations flyout in the Pages area and the dedicated Localization area. The Translations flyout allows you to manage translations per page and shows which translations are used in a specific page. The Localization area is for managing translations independent of pages.
@@ -446,16 +443,229 @@ Structr determines the current locale in the following order of priority:
 
 
 
+## Widgets
+Widgets are reusable building blocks for your pages. They can range from simple HTML snippets to complete, configurable components with their own logic and styling. You can use Widgets in several ways:
 
+- Drag Widgets from the flyout to insert them into your pages
+- Create page templates from Widgets to provide starting points for new pages
+- Configure Widgets with variables that are filled in when inserting them
+- Make Widgets appear as suggestions in the context menu for specific element types
+- Share Widgets across applications using remote Widget servers
+
+### Using Widgets
+To add a Widget to your page, drag it from the Widgets flyout into the page tree. If the Widget has configuration options, a dialog appears where you can fill in the required values before the Widget is inserted.
+
+Widgets can also appear in the context menu as suggested Widgets. When a Widget's selector matches the current element, it appears under "Suggested Widgets" and can be inserted directly as a child element.
+
+#### Page Templates
+Widgets with the "Is Page Template" flag enabled appear in the "Create Page" dialog. When you create a page from a template, Structr imports the complete Widget structure including content, repeaters, permissions, and shared components. This provides a quick starting point for common page layouts.
+
+### How it works
+Widgets are stored as objects in the database with an HTML source code field. When you insert a Widget into a page, Structr parses the source code and creates the corresponding page elements. If the Widget contains template expressions in square brackets like `[variableName]`, Structr checks the configuration for matching entries and displays a dialog where you fill in the values before insertion.
+
+Widgets can contain deployment annotations that preserve Structr-specific attributes like content types and visibility settings. Enable `processDeploymentInfo` in the Widget configuration to use this feature.
+
+### The Widgets flyout
+The Widgets flyout is divided into two sections: local Widgets stored in the database, and remote Widgets fetched from external servers.
+
+#### Local Widgets
+Local Widgets are stored in your application's database. Click the plus button in the upper right corner of the flyout to create a new Widget. The Widget appears in the list and can be dragged into the page tree. Right-click a Widget to open the context menu, where you can edit the Widget or select "Advanced" to access all attributes, including paths for thumbnails and icons.
+
+##### Categorizing Widgets
+Use the `treePath` attribute to organize Widgets into categories. The attribute contains a slash-separated path that defines nested categories. The string must begin with a slash, and categories can contain spaces. For example: `/Forms/Input Elements` creates a category "Forms" with a subcategory "Input Elements".
+
+#### Remote Widgets
+Remote Widgets are fetched from external Structr servers. The Widgets on the remote server must be publicly visible. Use the "Configure Servers" dialog to add servers. The dialog shows a list of configured servers, with the default server that cannot be removed. Below the list, enter a name and URL for a new server and click save.
+
+### Editing Widgets
+The Widget editor has five tabs: Source, Configuration, Description, Options, and Help.
+
+#### Source
+The Source tab contains the HTML source code of the Widget, which can include Structr expressions.
+
+The easiest way to create this source is to build the functionality in a Structr page and then export it. Add the `edit=1` URL parameter to view the page source with Structr expressions and configuration attributes intact, without evaluation. For example:
+
+1. Create your Widget in the page "myWidgetPage"
+2. Go to `http://localhost:8082/myWidgetPage?edit=1`
+3. View and copy the source code of that page
+4. Paste it into the Source tab
+
+#### Configuration
+The Configuration tab allows you to make Widgets configurable by inserting template expressions in the Widget source. Template expressions use square brackets like `[configSwitch]` and can contain any characters except the closing bracket. When a corresponding entry exists in the configuration, Structr displays a dialog when adding the Widget to a page.
+
+Elements that look like template expressions are only treated as such if a corresponding entry is found in the configuration. This allows the use of square brackets in the Widget source without interpretation as template expressions.
+
+The configuration must be a valid JSON string. Here is an example:
+
+    {
+        "configSwitch": {
+            "position": 2,
+            "default": "This is the default text"
+        },
+        "selectArray": {
+            "position": 3,
+            "type": "select",
+            "options": [
+                "choice_one",
+                "choice_two",
+                "choice_three"
+            ],
+            "default": "choice_two"
+        },
+        "selectObject": {
+            "position": 1,
+            "type": "select",
+            "options": {
+                "choice_one": "First choice",
+                "choice_two": "Second choice",
+                "choice_three": "Third choice"
+            },
+            "default": "choice_two"
+        },
+        "processDeploymentInfo": true
+    }
+
+The reserved top-level key `processDeploymentInfo` (boolean, default: false) allows Widgets to contain deployment annotations.
+
+Configuration elements support the following attributes:
+
+| Attribute | Applies to | Description |
+|-----------|------------|-------------|
+| `title` | all | The title displayed in the dialog. If omitted, the template expression name is used. |
+| `placeholder` | input, textarea | The placeholder text displayed when the field is empty. If omitted, the title is used. |
+| `default` | all | The default value. For input and textarea, this value is prefilled. For select, this value is preselected. |
+| `position` | all | A numeric value for sorting options. Elements without a position appear after those with a position, in natural key order. |
+| `help` | all | Help text displayed when hovering over the information icon. |
+| `type` | all | The input type. Supported values are `input` (default), `textarea`, and `select`. |
+| `options` | select | An array of strings or an object with value-label pairs. Arrays render as simple options. Objects use the key as the value and the object value as the displayed text. |
+| `dynamicOptionsFunction` | select | A function body that populates the options array. The function receives a `callback` parameter that must be called with the resulting options. If provided, the `options` key is ignored. |
+| `rows` | textarea | The number of rows. Defaults to 5. |
+
+#### Description
+The Description tab contains text that is displayed when the user adds the Widget to a page. It can contain HTML and is typically used to explain what the Widget does and how to use the configuration options. The description is only displayed when the Widget is a page template.
+
+#### Options
+The Options tab contains two settings:
+
+- `Selectors`: Controls under which elements the Widget appears as a suggested Widget in the context menu. Selectors are written like CSS selectors.
+- `Is Page Template`: Check this box to make the Widget available as a page template when creating a new page.
+
+### Widgets can define Shared Components
+Widgets can define reusable Shared Components that are created when the Widget is inserted. Use `<structr:shared-template name="...">` to define a Shared Component, and `<structr:template src="...">` to insert a reference to it.
+
+The Widget source has two parts: first the definitions of the Shared Components, then the structure that references them.
+
+Example:
+
+    <!-- Define Shared Components -->
+    <structr:shared-template name="Layout">
+        <div class="layout">
+            ${render(children)}
+        </div>
+    </structr:shared-template>
+    
+    <structr:shared-template name="Header">
+        <header>
+            ${render(children)}
+        </header>
+    </structr:shared-template>
+    
+    <!-- Reference and nest them -->
+    <structr:template src="Layout">
+	    <structr:template src="Header">
+		    <h1>Welcome</h1>
+	    </structr:template>
+    </structr:template>
+
+This Widget defines two Shared Components: "Layout" and "Header". At the bottom, it references them and nests "Header" inside "Layout". When you insert this Widget again, Structr reuses the existing Shared Components instead of creating duplicates.
 
 
 ## Shared Components
+A Shared Component is a reusable structure of HTML elements that you can insert into any page via drag and drop. Unlike a Widget, where Structr copies the content into the page, inserting a Shared Component creates a reference to the original. When you edit a Shared Component, the changes are immediately visible on all pages that use it. A typical example is the Main Page Template, which defines the overall layout and is shared across all pages of an application.
+
+### How it works
+When you drag a Shared Component onto a page, Structr creates a copy of the root element that is linked to the original via a SYNC relationship. This link ensures that changes to the original Shared Component are automatically propagated to all copies.
+
+This has two important consequences:
+
+1. **Single source of truth**: The Shared Component exists only once. Any changes you make to it are immediately reflected everywhere it is used.
+
+2. **Smaller page trees**: Pages that use Shared Components contain only the linked root element, not copies of the entire element structure.
+
+### Creating Shared Components
+To create a Shared Component, select an element in the page tree, right-click, and select "Create Shared Component". Structr moves the element and all its children into a new Shared Component and replaces it with a reference.
+
+Alternatively, you can drag an element from the page tree into the Shared Components area to convert it into a Shared Component.
+
+Once created, you can work with Shared Components the same way you work with elements in the page tree, including context menus and all editing features.
+
+### Deleting Shared Components
+To delete a Shared Component, remove it in the Shared Components area. The reference elements on the pages where it was used are converted into regular elements and keep their children.
+
+To remove a Shared Component from a page without deleting the original, simply delete the reference element in the page tree.
+
+### Rendering children
+Like templates, Shared Components do not automatically render their children. You must call `render(children)` to define where child elements appear. This gives you full control over the layout and lets you create components with multiple insertion points.
+
+```html
+<header>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/about">About</a>
+    </nav>
+    <div class="page-title">
+        ${render(children)}
+    </div>
+</header>
+```
+
+This Shared Component defines a header with navigation. The `render(children)` call marks where child elements appear when the component is used on a page.
+
+### Customization at render time
+To customize a Shared Component before rendering, you can use the `sharedComponentConfiguration` property on the reference element. If present, Structr evaluates this expression before rendering continues with the Shared Component.
+
+This is useful when you need to adapt a Shared Component based on the context where it is used. For example, you can pass data to a generic table component:
+
+```javascript
+$.store('data', $.find('Customer', $.predicate.sort('name')));
+```
+
+The Shared Component retrieves the data with `$.retrieve('data')` and displays the results. This way, the same table component can show different data on each page.
+
+### Synchronization of Attributes
+The SYNC relationship connects the reference element in the page with the root element of the Shared Component. When you rename a reference element in a page, the change is automatically applied to the original Shared Component. When you change the visibility of a Shared Component, Structr asks whether the changes should be applied to the reference elements as well.
+
+Note that Widgets reference Shared Components by name. If you rename a Shared Component, Widgets that use the old name will create a new Shared Component instead of reusing the existing one.
+
+### Shared Components vs. Widgets
+
+| Aspect | Widget | Shared Component |
+|--------|--------|------------------|
+| Storage | External source code | Part of your application |
+| Insertion | Creates a copy | Creates a reference |
+| Changes | Only affect new insertions | Immediately visible everywhere |
+| Use case | Starting points, boilerplate | Consistent layouts, headers, footers |
 
 
-## Recycle Bin
-
-## Preview
 
 
-## Search
+## Additional Tools
+The Pages area includes several additional tools for managing and searching page elements.
+
+### Recycle Bin
+When you remove an element from a page, Structr does not delete it permanently. Instead, it moves the element to the Recycle Bin. This soft-delete approach allows you to restore elements that were removed by accident.
+
+Pages are not soft-deleted. When you delete a page, Structr removes the page itself but moves all its child elements to the Recycle Bin.
+
+The Recycle Bin flyout shows all elements that have been removed from pages, including their children. To restore an element, drag it back into the page tree on the left. The context menu lets you permanently delete individual elements. At the top of the flyout, the "Delete All" button permanently deletes all elements in the Recycle Bin.
+
+The Recycle Bin is not cleared automatically, but its contents are not included in deployment exports. The flyout is located on the right side of the Pages area.
+
+### Preview
+The Preview flyout shows a preview of the current page, just like the Preview tab in the center panel. This allows you to keep the preview visible while working with other tabs in the center panel. The flyout is located on the right side of the Pages area.
+
+### Search
+The Search flyout lets you search for elements across all pages based on any of their attributes. This includes CSS classes, CSS IDs, variable names in template expressions or function queries, text content, and more. The flyout is located on the right side of the Pages area.
+
+
 

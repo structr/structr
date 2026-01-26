@@ -6,7 +6,7 @@ The Schema section is the heart of Structr's data modeling capabilities, providi
 
 The Schema editor allows you to create sophisticated data models using a drag-and-drop interface. It automatically generates the underlying database schema, REST API endpoints, and provides the foundation for all data operations in your Structr application.
 
-![Schema Overview](../schema.png)
+![Schema Overview](schema.png)
 
 ## Key Features
 
@@ -38,7 +38,7 @@ The Schema editor allows you to create sophisticated data models using a drag-an
 
 Once a type is created, you can see it in the schema designer and begin adding properties.
 
-![Project Type Created](../schema_type-created_Project.png)
+![Project Type Created](schema_type-created_Project.png)
 
 **Core type configuration:**
 
@@ -50,7 +50,7 @@ Once a type is created, you can see it in the schema designer and begin adding p
 
 Add properties to define the data structure of your types.
 
-![Property Added - Project ID](../schema_property-added_projectId.png)
+![Property Added - Project ID](schema_property-added_projectId.png)
 
 **Property configuration:**
 
@@ -64,7 +64,7 @@ Add properties to define the data structure of your types.
 
 Create more sophisticated types like the Milestone type with date properties.
 
-![Create Milestone Type](../schema_create-type_Milestone.png)
+![Create Milestone Type](schema_create-type_Milestone.png)
 
 **Advanced property types:**
 
@@ -74,13 +74,13 @@ Create more sophisticated types like the Milestone type with date properties.
 - **Computed**: Calculated properties
 - **Binary**: File and media attachments
 
-![Milestone Type Created](../schema_type-created_Milestone.png)
+![Milestone Type Created](schema_type-created_Milestone.png)
 
 ### Date Properties
 
 Add time-based properties for scheduling and tracking.
 
-![Due Date Property Added](../schema_property-added_dueDate.png)
+![Due Date Property Added](schema_property-added_dueDate.png)
 
 **Date property features:**
 
@@ -97,7 +97,7 @@ Define connections between your schema types to model complex data structures.
 
 Just drag a connection from the bottom dot to the top dot of another schema node.
 
-![Relationship Created](../schema_relationship-project-milestone-created.png)
+![Relationship Created](schema_relationship-project-milestone-created.png)
 
 **Relationship configuration:**
 

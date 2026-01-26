@@ -6,7 +6,7 @@ The Code section provides a comprehensive development environment for creating c
 
 The Code section enables developers to extend Structr's capabilities through custom Java-like methods, StructrScript functions, and JavaScript implementations. It provides syntax highlighting, code completion, debugging tools, and integrated testing capabilities.
 
-![Code](../code.png)
+![Code](code.png)
 
 ## Key Features
 

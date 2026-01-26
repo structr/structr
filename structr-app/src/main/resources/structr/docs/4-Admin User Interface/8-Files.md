@@ -1,6 +1,6 @@
 # Files
 
-![Files](../files_renamed-folder.png)
+![Files](files_renamed-folder.png)
 
 The Files section provides comprehensive management of Structr's virtual file system, offering powerful tools for organizing, uploading, editing, and transforming various types of digital assets. It serves as the central hub for all file-related operations in your Structr application.
 

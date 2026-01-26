@@ -1,5 +1,3 @@
-# Data Access
-
 There are two different endpoint types in the REST API:
 
 - Collection Endpoints

@@ -6,7 +6,7 @@ The Data section provides comprehensive management of database objects and their
 
 The Data section combines the power of a graph database with an intuitive interface for data management. It allows you to work with individual objects, manage relationships, perform bulk operations, and maintain data integrity across your entire application.
 
-![Data Overview](../data.png)
+![Data Overview](data.png)
 
 ## Key Features
 
@@ -23,7 +23,7 @@ The Data section combines the power of a graph database with an intuitive interf
 
 Create new instances of your schema types with proper validation.
 
-![Objects Created](../data_objects-created.png)
+![Objects Created](data_objects-created.png)
 
 **Object creation process:**
 

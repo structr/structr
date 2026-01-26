@@ -36,7 +36,6 @@ public class TableOfContentsMarkdownFileFormatter extends Formatter {
 		final Concept markdownFile = link.getTarget();
 		final Gson gson            = new GsonBuilder().create();
 
-
 		// A markdown file can have headings as children, and we want those
 		// headings to appear in the table of contents on the right.
 		for (final Link childLink : markdownFile.getChildLinks(Verb.Has)) {

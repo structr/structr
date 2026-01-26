@@ -1,6 +1,3 @@
-
-# Overview
-
 The REST interface is the universal application programming interface (API) in Structr. It provides access to all types in the data model, including the internal types that power Structr. The REST API allows you to create, read, update and delete any object in the database, as well as create and run business logic methods and maintenance tasks.
 
 ## Basics

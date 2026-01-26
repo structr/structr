@@ -91,7 +91,7 @@ If your data is in JSON format, you can easily import individual objects or even
 
 ## Create the User Interface
 
-<img src="http://localhost:8082/structr/docs/pages_simple-table-added.png" class="small-image" />
+<img src="pages_simple-table-added.png" class="small-image" />
 
 A Structr application's user interface consists of one or more HTML pages. Each page is rendered by the page rendering engine and served at a specific URL. The [Pages](/structr/docs/ontology/Admin%20User%20Interface/Pages) area provides a visual editor for those pages and allows you to configure all aspects of the user interface.
 
@@ -235,7 +235,7 @@ This returns a JSON document with only the attributes defined in that view, e.g.
         "page_count": 1,
         "result_count_time": "0.000136110",
         "serialization_time": "0.000554177"
-}
+    }
 
 
 [Read more about the REST Interface.](/structr/docs/ontology/REST%20Interface/Overview)
@@ -265,6 +265,7 @@ The built-in `jdbc()` function allows you to execute SQL queries directly agains
 
             // handle rows..
         }
+    }
 
 #### MongoDB
 

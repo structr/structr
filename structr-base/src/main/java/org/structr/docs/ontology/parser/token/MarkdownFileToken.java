@@ -19,27 +19,31 @@
 package org.structr.docs.ontology.parser.token;
 
 import com.vladsch.flexmark.ast.Heading;
+import com.vladsch.flexmark.ast.IndentedCodeBlock;
 import com.vladsch.flexmark.ast.Paragraph;
-import com.vladsch.flexmark.ext.wikilink.WikiLink;
 import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.profile.pegdown.Extensions;
 import com.vladsch.flexmark.profile.pegdown.PegdownOptionsAdapter;
+import com.vladsch.flexmark.util.ast.Block;
 import com.vladsch.flexmark.util.ast.Document;
 import com.vladsch.flexmark.util.ast.Node;
 import com.vladsch.flexmark.util.data.MutableDataSet;
+import com.vladsch.flexmark.util.sequence.BasedSequence;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.util.resource.Resource;
-import org.structr.docs.Documentable;
+import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.formatter.markdown.MarkdownMarkdownFileFormatter;
 import org.structr.docs.ontology.*;
 
-import javax.print.Doc;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -57,66 +61,54 @@ public class MarkdownFileToken extends NamedConceptToken {
 		return "unknown".equals(conceptToken.getToken());
 	}
 
+	public void addAdditionalNamedConcept(final NamedConceptToken conceptToken) {
+
+	}
+
 	@Override
 	public AnnotatedConcept resolve(final Ontology ontology) {
 
-		final String path                  = identifierToken.resolve(ontology);
-		final Resource baseResource        = ontology.getBaseResource();
-		final Map<String, String> metadata = getMetadata(ontology);
-		final String fileName              = StringUtils.substringAfterLast(path, "/");
-		final String cleanedName           = coalesce(metadata.get("heading"), MarkdownMarkdownFileFormatter.getNameFromFileName(fileName));
-		final Concept markdownFile         = ontology.getOrCreateConcept(this, ConceptType.MarkdownFile, cleanedName, false);
+		final Resource baseResource = ontology.getBaseResource();
+		final String path           = identifierToken.resolve(ontology);
 
-		if (markdownFile != null) {
+		// baseResource can be null in the tests
+		if (baseResource != null) {
 
-			markdownFile.getMetadata().put("path", path);
+			final Resource docsResource = baseResource.resolve("docs");
+			final Path folderPath       = docsResource.resolve(path).getPath();
+			final String fileName       = StringUtils.substringAfterLast(path, "/");
+			final String cleanedName    = cleanName(StringUtils.substringBeforeLast(fileName, "."));
 
-			final AnnotatedConcept annotatedConcept = new AnnotatedConcept(markdownFile);
+			try {
 
-			// baseResource can be null in the tests
-			if (baseResource != null) {
+				// handle children
+				final List<String> lines = Files.readAllLines(folderPath);
+				final MutableDataSet options = new MutableDataSet();
 
-				final Resource docsResource = baseResource.resolve("docs");
-				final Path folderPath       = docsResource.resolve(path).getPath();
+				options.setAll(PegdownOptionsAdapter.flexmarkOptions(false, Extensions.ALL));
 
-				try {
+				final Parser parser    = Parser.builder(options).build();
+				final Document doc     = parser.parse(StringUtils.join(lines, "\n"));
+				final TreeItem root    = new TreeItem(null, cleanedName, 0);
 
-					// handle children
-					final List<String> lines = Files.readAllLines(folderPath);
-					final MutableDataSet options = new MutableDataSet();
+				// the current tree item, will be changed during evaluation
+				TreeItem current = root;
 
-					options.setAll(PegdownOptionsAdapter.flexmarkOptions(false, Extensions.ALL));
+				for (final Node child : doc.getChildren()) {
 
-					final Parser parser = Parser.builder(options).build();
-					final Document doc = parser.parse(StringUtils.join(lines, "\n"));
-
-					for (final Node child : doc.getChildren()) {
-
-						if (child instanceof Heading heading) {
-
-							final int level = heading.getLevel();
-							final String text = heading.getText().unescape();
-
-							if (level == 2) {
-
-								final Concept headingConcept = ontology.getOrCreateConcept(this, ConceptType.MarkdownHeading, text, false);
-								if (headingConcept != null) {
-
-									ontology.createSymmetricLink(markdownFile, Verb.Has, headingConcept);
-								}
-							}
-						}
-					}
-
-					// store markdown content in concept
-					markdownFile.getMetadata().put("content", StringUtils.join(lines, "\n"));
-
-				} catch (IOException ioex) {
-					ioex.printStackTrace();
+					current = handleNode(child, current);
 				}
-			}
 
-			return annotatedConcept;
+				// resolve content and put it into the ontology
+				final Concept concept = root.resolve(ontology);
+				if (concept != null) {
+
+					return new AnnotatedConcept(concept);
+				}
+
+			} catch (IOException ioex) {
+				ioex.printStackTrace();
+			}
 		}
 
 		return null;
@@ -176,5 +168,238 @@ public class MarkdownFileToken extends NamedConceptToken {
 		}
 
 		return null;
+	}
+
+	private String trimNewline(final String input) {
+
+		if (input != null && input.endsWith("\n")) {
+
+			return input.substring(0, input.length() - 1);
+		}
+
+		return input;
+	}
+
+	private String cleanName(final String name) {
+
+		final Pattern pattern = Pattern.compile("^[0-9]+\\-(.*?)(\\.md)?");
+		final Matcher matcher = pattern.matcher(name);
+
+		if (matcher.matches()) {
+
+			return matcher.group(1);
+		}
+
+		return name;
+	}
+
+	private TreeItem handleNode(final Node node, final TreeItem current) {
+
+		if (node instanceof Heading newHeading) {
+
+			final int newHeadingLevel     = newHeading.getLevel() - 1;
+			final int currentHeadingLevel = current.getLevel();
+			final String name             = newHeading.getText().unescape();
+
+			if (newHeadingLevel > currentHeadingLevel) {
+
+				// another level => add as child
+				final TreeItem newChild = new TreeItem(current, name, newHeadingLevel);
+				current.addChild(newChild);
+
+				return newChild;
+			}
+
+			if (newHeadingLevel == currentHeadingLevel) {
+
+				// same level => add new child to parent
+				final TreeItem sameParent = current.getParent();
+				if (sameParent != null) {
+
+					final TreeItem newChild = new TreeItem(sameParent, name, newHeadingLevel);
+					sameParent.addChild(newChild);
+
+					return newChild;
+
+				} else {
+
+					// No common parent => this heading is likely a
+					// toplevel headline or the document title.
+					current.setTitle(name);
+				}
+			}
+
+			if (newHeadingLevel < currentHeadingLevel) {
+
+				// new higher level heading
+				TreeItem parent = current.getParent();
+
+				if (parent != null) {
+
+					while (parent != null && parent.getLevel() >= newHeadingLevel) {
+						parent = parent.getParent();
+					}
+
+					if (parent != null) {
+
+						final TreeItem newChild = new TreeItem(parent, name, newHeadingLevel);
+
+						parent.addChild(newChild);
+
+						return newChild;
+
+					} else {
+
+						throw new IllegalStateException("Parent was null.");
+					}
+				}
+			}
+
+		} else if (node instanceof IndentedCodeBlock codeBlock) {
+
+			current.addParagraph("");
+
+			for (final BasedSequence line : codeBlock.getContentLines()) {
+
+				current.addParagraph("    " + trimNewline(line.unescape()));
+			}
+
+			// current is unchanged
+			return current;
+
+		} else if (node instanceof Block paragraph) {
+
+			current.addParagraph("");
+
+			for (final String line : paragraph.getChars().unescape().split("\n")) {
+
+				current.addParagraph(line);
+			}
+
+			// current is unchanged
+			return current;
+
+		} else {
+
+			System.out.println(node.getNodeName() + ": " + node.getClass().getSimpleName());
+		}
+
+		// no change in hierarchy => return same parent
+		return current;
+	}
+
+
+	private class TreeItem extends AbstractToken<Concept> {
+
+		private final List<TreeItem> children = new LinkedList<>();
+		private final List<String> paragraphs = new LinkedList<>();
+		private final TreeItem parent;
+		private final int level;
+		private final String name;
+		private String title = null;
+
+		public TreeItem(final TreeItem parent, final String name, final int level) {
+
+			this.parent = parent;
+			this.name   = name;
+			this.level  = level;
+		}
+
+		@Override
+		public String toString() {
+
+			final StringBuilder builder = new StringBuilder();
+
+			builder.append(StringUtils.repeat(" ", level * 4) + name);
+
+			for (final String paragraph : paragraphs) {
+
+				builder.append(StringUtils.repeat(" ", level * 4) + paragraph);
+			}
+
+			builder.append("\n");
+
+			for (final TreeItem child : children) {
+
+				builder.append(child.toString());
+				builder.append("\n");
+			}
+
+			return builder.toString();
+		}
+
+		public TreeItem getParent() {
+			return parent;
+		}
+
+		public void addChild(final TreeItem child) {
+			children.add(child);
+		}
+
+		public int getLevel() {
+			return level;
+		}
+
+		public void addParagraph(final String text) {
+			paragraphs.add(text);
+		}
+
+		public List<TreeItem> getChildren() {
+			return children;
+		}
+
+		// ----- AbstractToken -----
+		@Override
+		public Concept resolve(final Ontology ontology) {
+
+			final Concept concept = ontology.getOrCreateConcept(this, ConceptType.MarkdownTopic, name, false);
+			if (concept != null) {
+
+				concept.setShortDescription(StringUtils.join(paragraphs, "\n"));
+
+				if (title != null) {
+					concept.getMetadata().put("title", title);
+				}
+
+				for (final TreeItem child : children) {
+
+					final Concept childConcept = child.resolve(ontology);
+					if (childConcept != null) {
+
+						ontology.createSymmetricLink(concept, Verb.Has, childConcept);
+					}
+				}
+			}
+
+			return concept;
+		}
+
+		@Override
+		public boolean isTerminal() {
+			return false;
+		}
+
+		@Override
+		public Token getToken() {
+			return null;
+		}
+
+		@Override
+		public void renameTo(final String newName) {
+			throw new UnsupportedOperationException("Not supported");
+		}
+
+		@Override
+		public void updateContent(final String key, final String value) {
+			throw new UnsupportedOperationException("Not supported");
+		}
+
+		public void setTitle(final String title) {
+			this.title = title;
+		}
+
+		public String getTitle() {
+			return title;
+		}
 	}
 }

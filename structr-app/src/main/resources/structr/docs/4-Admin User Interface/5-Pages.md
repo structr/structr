@@ -6,7 +6,7 @@ The Pages section is Structr's integrated development environment (IDE) for crea
 
 The Pages area combines the power of a traditional web IDE with the simplicity of visual page builders. It allows developers and content creators to build everything from simple static pages to complex, data-driven web applications without extensive coding knowledge.
 
-![Pages Overview](../pages.png)
+![Pages Overview](pages.png)
 
 ## Key Features
 

@@ -30,7 +30,7 @@ public enum ConceptType {
 
 	// external sources
 	MarkdownFolder("markdown-folder"), MarkdownFile("markdown-file"), MarkdownHeading("markdown-heading"),
-	CodeSource("code-source"), EnumSource("enum-source"), JavascriptFile("javascript-file"),
+	MarkdownTopic("markdown-topic"), CodeSource("code-source"), EnumSource("enum-source"), JavascriptFile("javascript-file"),
 
 	// concepts for user interface elements
 	Screen("screen"), Form("form"), Area("area"), Tab("tab"), Flyout("flyout"), Menu("menu"), Dialog("dialog"),

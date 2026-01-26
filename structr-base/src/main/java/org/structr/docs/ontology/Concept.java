@@ -91,18 +91,6 @@ public final class Concept implements Comparable<Concept> {
 	}
 
 	public String getName() {
-
-		/*
-		if (token != null) {
-
-			final Token textToken = token.getToken();
-			if (textToken != null) {
-
-				return textToken.getContent();
-			}
-		}
-		*/
-
 		return name;
 	}
 

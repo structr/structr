@@ -1,5 +1,3 @@
-# Authentication
-
 The REST API supports the following authentication methods, including no authentication at all (anonymous access).
 
 - HTTP headers

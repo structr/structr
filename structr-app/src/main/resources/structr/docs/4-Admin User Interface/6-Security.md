@@ -1,6 +1,6 @@
 # Security
 
-![Security](../security_user-dragged-on-group.png)
+![Security](security_user-dragged-on-group.png)
 
 The Security section provides comprehensive user management, authentication, authorization, and access control capabilities for your Structr application. It enables administrators to create secure, multi-user environments with granular permission controls.
 

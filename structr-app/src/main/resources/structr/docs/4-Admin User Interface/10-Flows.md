@@ -4,7 +4,7 @@ The Flows section provides a visual workflow designer for creating automated bus
 
 ## Overview
 
-![Flows](../flows_run-flow.png)
+![Flows](flows_run-flow.png)
 
 Flows in Structr combine the simplicity of visual workflow design with the power of a complete automation engine. Create everything from simple data processing tasks to complex multi-step business processes that integrate with external systems and respond to events.
 

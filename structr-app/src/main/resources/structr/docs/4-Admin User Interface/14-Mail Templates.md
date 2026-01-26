@@ -2,7 +2,7 @@
 
 Mail Templates provide a centralized system for creating, managing, and organizing email templates used throughout your Structr application. Whether for transactional emails, notifications, or marketing communications, Mail Templates combine HTML-based design with dynamic content capabilities to produce personalized, professional emails.
 
-![Mail Templates](../mail-templates.png)
+![Mail Templates](mail-templates.png)
 
 ## Overview
 

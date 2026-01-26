@@ -117,17 +117,6 @@ public abstract class Formatter {
 		return StringUtils.repeat("  ", level) + "- " + text;
 	}
 
-	protected void formatEditableAttribute(final List<String> lines, final String id, final String key, final String text) {
-		formatEditableAttribute(lines, id, key, List.of(text));
-	}
-
-	protected void formatEditableAttribute(final List<String> lines, final String id, final String key, final List<String> text) {
-
-		lines.add("<!-- start of " + id + " " + key + " -->");
-		lines.addAll(text);
-		lines.add("<!-- end of " + id + " " + key + " -->");
-	}
-
 	protected Map<String, String> mapOf(final String... keyValue) {
 
 		final Map<String, String> map = new LinkedHashMap<>();

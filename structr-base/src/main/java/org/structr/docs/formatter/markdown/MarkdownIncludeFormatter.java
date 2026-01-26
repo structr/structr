@@ -22,7 +22,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
-import org.structr.docs.ontology.*;
+import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.ConceptType;
+import org.structr.docs.ontology.Details;
+import org.structr.docs.ontology.Link;
 import org.structr.docs.ontology.parser.token.AbstractToken;
 
 import java.util.Arrays;
@@ -30,7 +33,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-public class ToplevelTopicsMarkdownFormatter extends Formatter {
+public class MarkdownIncludeFormatter extends Formatter {
 
 	private final Set<ConceptType> blacklistedTypes = Set.of(ConceptType.Text, ConceptType.Constant); //, ConceptType.Setting, ConceptType.Helper, ConceptType.Category, ConceptType.HttpVerb);
 
@@ -44,32 +47,17 @@ public class ToplevelTopicsMarkdownFormatter extends Formatter {
 			return true;
 		}
 
-		if (settings.hasDetail(Details.name) || settings.hasDetail(Details.all)) {
-
-			// add parent topic here, but only at level 0
-			if (level == 0) {
-
-				final String parentConceptName = concept.getParentConceptName();
-				if (parentConceptName != null) {
-
-					lines.add(formatMarkdownHeading(parentConceptName, level));
-				}
-			}
-
-			String title = concept.getName();
-
-			if (concept.getMetadata().containsKey("title")) {
-				title = (String) concept.getMetadata().get("title");
-			}
+		// included markdown snippets should not output their (toplevel) heading
+		if (level > 1 && (settings.hasDetail(Details.name) || settings.hasDetail(Details.all))) {
 
 			// this makes the name of the concept editable
 			if (concept.getType().equals(ConceptType.Topic)) {
 
-				lines.add(formatMarkdownHeading(title, level + 1));
+				lines.add(formatMarkdownHeading(concept.getName(), level + 1));
 
 			} else {
 
-				lines.add(formatMarkdownHeading(title, level + 1));
+				lines.add(formatMarkdownHeading(concept.getName(), level + 1));
 			}
 
 			lines.add("");

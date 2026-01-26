@@ -30,6 +30,7 @@ import org.eclipse.jetty.util.resource.Resource;
 import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.formatter.markdown.MarkdownMarkdownFileFormatter;
 import org.structr.docs.ontology.*;
+import org.structr.web.traits.definitions.html.I;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -78,50 +79,13 @@ public class MarkdownFolderToken extends NamedConceptToken {
 						final List<String> files = Files.readAllLines(indexFile);
 						for (final String file : files) {
 
-							final String cleanedFileName = MarkdownMarkdownFileFormatter.getNameFromFileName(file);
-							final Concept markdownFile = ontology.getOrCreateConcept(this, ConceptType.MarkdownFile, cleanedFileName, false);
+							final Token token                  = identifierToken.getToken().copy(folderName + "/" + file);
+							final MarkdownFileToken fileToken  = new MarkdownFileToken(new ConceptToken(ConceptType.MarkdownFile, null), new IdentifierToken(token));
+							final AnnotatedConcept fileConcept = fileToken.resolve(ontology);
 
-							if (markdownFile != null) {
+							if (fileConcept != null) {
 
-								final String filePath = folderName + "/" + file;
-
-								markdownFile.getMetadata().put("path", filePath);
-
-								ontology.createSymmetricLink(markdownFolder, Verb.Has, markdownFile);
-
-								// handle children
-								final List<String> lines     = Files.readAllLines(folderPath.resolve(file));
-								final MutableDataSet options = new MutableDataSet();
-
-								options.setAll(PegdownOptionsAdapter.flexmarkOptions(false, Extensions.ALL));
-
-								final Parser parser = Parser.builder(options).build();
-								final Document doc = parser.parse(StringUtils.join(lines, "\n"));
-
-								for (final Node child : doc.getChildren()) {
-
-									if (child instanceof Heading heading) {
-
-										final int level = heading.getLevel();
-										final String text = heading.getText().unescape();
-
-										if (level == 2) {
-
-											final Concept headingConcept = ontology.getOrCreateConcept(this, ConceptType.MarkdownHeading, text, false);
-											if (headingConcept != null) {
-
-												ontology.createSymmetricLink(markdownFile, Verb.Has, headingConcept);
-											}
-										}
-									}
-								}
-
-								// store markdown content in concept
-								markdownFile.getMetadata().put("content", StringUtils.join(lines, "\n"));
-
-							} else {
-
-								System.out.println("Markdown file " + cleanedFileName + " not created, probably blacklisted..");
+								ontology.createSymmetricLink(markdownFolder, Verb.Has, fileConcept.getConcept());
 							}
 						}
 

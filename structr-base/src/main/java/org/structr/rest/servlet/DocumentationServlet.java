@@ -113,13 +113,6 @@ public class DocumentationServlet extends HttpServlet {
 					ontology.countConcepts(new ExistingDocs("structr/docs"));
 				}
 
-				Concept parent = null;
-
-				// parent set?
-				if (request.getParameter("parent") != null) {
-					parent = ontology.getConceptById(request.getParameter("parent"));
-				}
-
 				final List<String> lines = ontology.createDocumentation(links, settings);
 
 				if ("markdown".equals(settings.getOutputFormat())) {
@@ -193,10 +186,10 @@ public class DocumentationServlet extends HttpServlet {
 					options.setAll(PegdownOptionsAdapter.flexmarkOptions(false, Extensions.ALL));
 					//options.set(HtmlRenderer.SOFT_BREAK, "<br />\n");
 
-					final Parser parser = Parser.builder(options).build();
+					final Parser parser         = Parser.builder(options).build();
 					final HtmlRenderer renderer = HtmlRenderer.builder(options).build();
-					final Document doc = parser.parse(content);
-					final Writer writer = response.getWriter();
+					final Document doc          = parser.parse(content);
+					final Writer writer         = response.getWriter();
 
 					renderer.render(doc, writer);
 				}
@@ -471,6 +464,7 @@ public class DocumentationServlet extends HttpServlet {
 		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.MarkdownFolder, new ToplevelTopicsMarkdownFormatter());
 		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.RestEndpoint,   new ToplevelTopicsMarkdownFormatter());
 		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.MarkdownFile,   new MarkdownMarkdownFileFormatter(baseResource));
+		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.MarkdownTopic,  new ToplevelTopicsMarkdownFormatter());
 		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.CodeSource,     new MarkdownCodeSourceFormatter());
 		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.Table,          new MarkdownTableFormatter());
 		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.Glossary,       new MarkdownGlossaryFormatter());
@@ -506,10 +500,11 @@ public class DocumentationServlet extends HttpServlet {
 		int row = 0;
 
 
-		String content          = StringUtils.join(lines, "\n");
-		final Matcher matcher   = pattern.matcher(content);
+		String content        = StringUtils.join(lines, "\n");
+		final Matcher matcher = pattern.matcher(content);
+		int replacements      = 0;
 
-		while (matcher.find()) {
+		while (matcher.find() && replacements++ < 100) {
 
 			final Map<String, String> data = parseIncludeLink("markdown output", row, matcher.group(1));
 			final List<Concept> concepts   = new LinkedList<>();
@@ -522,14 +517,14 @@ public class DocumentationServlet extends HttpServlet {
 
 			} else {
 
-				concepts.addAll(ontology.getConceptsByName(conceptName));
+				concepts.addAll(ontology.getConcept(ConceptType.Topic, conceptName));
 			}
 
 			if (!concepts.isEmpty()) {
 
 				final List<String> list = new LinkedList<>();
 				final Concept concept   = concepts.get(0);
-				int levelOffset            = 1;
+				int levelOffset         = 1;
 
 				if (data.containsKey("h1")) { list.add("# " + concept.getName()); }
 				if (data.containsKey("h2")) { list.add("## " + concept.getName()); }
@@ -571,10 +566,12 @@ public class DocumentationServlet extends HttpServlet {
 
 					topicSettings.setRenderComments(false);
 					topicSettings.setLevelOffset(levelOffset);
-					topicSettings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.MarkdownFile, new MarkdownMarkdownFileFormatter(ontology.getBaseResource()));
+					topicSettings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.MarkdownTopic, new MarkdownIncludeFormatter());
 
 					// walk ontology
 					Formatter.walkOntology(list, new Link(null, null, concept), topicSettings, 0, new LinkedHashSet<>());
+
+					adaptHeadings(list, levelOffset);
 				}
 
 				final String insertText = StringUtils.join(list, "\n");
@@ -662,5 +659,35 @@ public class DocumentationServlet extends HttpServlet {
 		}
 
 		return token;
+	}
+
+	private void adaptHeadings(final List<String> lines, final int offset) {
+
+		final List<String> result = new LinkedList<>();
+		boolean hasNonBlankLines     = false;
+
+		for (final String line : lines) {
+
+			if (StringUtils.isBlank(line) && !hasNonBlankLines) {
+
+				// ignore leading blank lines so we can include content directly in a paragraph.
+
+			} else {
+
+				hasNonBlankLines = true;
+
+				if (line.startsWith("#")) {
+
+					result.add(StringUtils.repeat("#", offset) + line);
+
+				} else {
+
+					result.add(line);
+				}
+			}
+		}
+
+		lines.clear();
+		lines.addAll(result);
 	}
 }
