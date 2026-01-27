@@ -725,11 +725,11 @@ let _Files = {
 		let parentIsRoot           = (parentId === '#');
 		let listModeActive         = _Files.isViewModeActive('list');
 
-		_Files.updateFunctionBarStatus();
 		_Files.insertLayoutSwitches(id, parentId, nodePath, parents);
 
 		// store current folder id so we can filter slow requests
 		_Files.getFolderContentsElement().dataset['currentFolder'] = id;
+		_Files.updateFunctionBarStatus();
 
 		let handleFileChildren = (children) => {
 

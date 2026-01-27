@@ -524,23 +524,23 @@ let _Crud = {
 			dialogText.appendChild(importArea);
 
 			dialogMeta.insertAdjacentHTML('beforeend', `
-			<div class="flex gap-2 items-center">
-				<label>Field Separator: </label>
-				<select id="csv-import-field-separator" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-					<option selected="">;</option>
-					<option>,</option>
-				</select>
-				<label>Quote Character: </label>
-				<select id="csv-import-quote-character" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-					<option selected="">"</option>
-					<option>'</option>
-				</select>
-				<label>Periodic Commit?</label>
-				<input id="csv-import-periodic-commit" type="checkbox">
-				<div id="csv-import-commit-interval-container" style="display: none;">
-					(Interval: <input id="csv-import-commit-interval" type="text" value="1000" size="5"> lines)
+				<div class="flex gap-2 items-center">
+					<label>Field Separator: </label>
+					<select id="csv-import-field-separator" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+						<option selected="">;</option>
+						<option>,</option>
+					</select>
+					<label>Quote Character: </label>
+					<select id="csv-import-quote-character" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+						<option selected="">"</option>
+						<option>'</option>
+					</select>
+					<label>Periodic Commit?</label>
+					<input id="csv-import-periodic-commit" type="checkbox">
+					<div id="csv-import-commit-interval-container" style="display: none;">
+						(Interval: <input id="csv-import-commit-interval" type="text" value="1000" size="5"> lines)
+					</div>
 				</div>
-			</div>
 			`);
 
 			let separatorSelect                 = dialogMeta.querySelector('#csv-import-field-separator');
