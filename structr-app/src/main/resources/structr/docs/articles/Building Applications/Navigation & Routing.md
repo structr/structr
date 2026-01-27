@@ -1,4 +1,19 @@
-Pages in Structr are accessible at URLs that match their names. A page named "about" is available at `/about`, a page named "products" at `/products`. This chapter explains how Structr resolves URLs to pages, how to work with detail objects, and how to build navigation in your application.
+
+Pages in Structr are accessible at URLs that match their names. A page named "about" is available at `/about`, a page named "products" at `/products`. This simplicity is intentional: in Structr, the URL is not just an address – it determines what is displayed and which data is available.
+
+## Why URLs Matter in Structr
+
+In client-side frameworks, URLs are often an afterthought. The application manages its own state, and the URL is updated to reflect it – or sometimes ignored entirely. This leads to applications where the back button breaks, bookmarks don't work, and sharing a link doesn't show the same content.
+
+Structr takes the opposite approach. The URL is the source of truth. When a user navigates to `/projects/a3f8b2c1-...`, Structr resolves that UUID, makes the object available under `current`, and renders the page with that context. No client-side state management, no hydration, no synchronization problems.
+
+This has practical benefits: every application state has a unique, shareable URL. The back button works as expected. Users can bookmark any page, including detail views. And because the server knows exactly what to render from the URL alone, debugging becomes straightforward – you can see the entire application state in the address bar.
+
+## URLs as Entry Points
+
+Because Structr resolves objects directly from URLs, every page can serve as an entry point. Users don't have to navigate through your application to reach a specific record – they can go there directly. This is particularly valuable for applications where users share links, receive notifications with deep links, or return to specific items via bookmarks.
+
+The `current` keyword makes this seamless. You build your detail pages using `current.name`, `current.price`, or any other attribute, and Structr populates them automatically based on the URL. The same page works whether the user clicked through from a list or arrived via a direct link.
 
 ## How Structr resolves pages
 

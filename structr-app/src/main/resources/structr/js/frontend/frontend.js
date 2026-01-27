@@ -806,7 +806,7 @@ export class Frontend {
 	handlePagination(event, target, options) {
 
 		//let target       = event.target;
-		let data         = target.dataset;
+		let data  = target.dataset;
 		let selector     = data.structrTarget;
 		let reloadTarget = data.structrSuccessTargets;
 

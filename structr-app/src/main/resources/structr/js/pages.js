@@ -4740,8 +4740,10 @@ let _Pages = {
 							<option value="pagesize-param">Request parameter for page size</option>
 							<option value="constant-value">Constant value</option>
 							<option value="script-expression">Eval. expression</option>
+							<!-- not implemented in backend
 							<option value="method-result">Result of method call</option>
 							<option value="flow-result">Result of flow</option>
+							-->
 						</select>
 					</div>
 

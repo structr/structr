@@ -1,7 +1,6 @@
 This chapter provides an overview of the different ways in which data can be created or imported into Structr.
 
-#### Please Note
-Before you can import data into Structr, you need to define a schema. Structr can only access and manage objects that it can **identify** (using a UUID in the `id` property) and **map to a type** in the schema (using the `type` property).
+> **Note**: Before you can import data into Structr, you need to define a schema. Structr can only access and manage objects that it can **identify** (using a UUID in the `id` property) and **map to a type** in the schema (using the `type` property).
 
 ## Importing CSV Data
 

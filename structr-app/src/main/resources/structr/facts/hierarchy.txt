@@ -32,10 +32,6 @@ Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Exper
 
 
 # Building Applications
-#"Building Applications" has new topics "Overview", "Data Model", "Data Creation & Import", "Pages & Templates", "Navigation & Routing", "Dynamic Content", "Event Action Mapping", "Business Logic", "Language localization", "Best practices", "Troubleshooting"
-
-#"Building Applications" has markdown-files "articles/Building Applications/Overview.md" with heading "Overview", "articles/Building Applications/Data Model.md" with heading "Data Model, "articles/Building Applications/Data Creation & Import.md"
-
 "Building Applications" has markdown-file "articles/Building Applications/Overview.md"
 "Building Applications" has markdown-file "articles/Building Applications/Data Model.md"
 "Building Applications" has markdown-file "articles/Building Applications/Data Creation & Import.md"
@@ -43,26 +39,20 @@ Structr has topics "REST Interface", "APIs & Integrations", "Operations", "Exper
 "Building Applications" has markdown-file "articles/Building Applications/Navigation & Routing.md"
 "Building Applications" has markdown-file "articles/Building Applications/Dynamic Content.md"
 "Building Applications" has markdown-file "articles/Building Applications/Event Action Mapping.md"
+"Building Applications" has markdown-file "articles/Building Applications/Business Logic.md"
+"Building Applications" has markdown-file "articles/Building Applications/Best Practices.md"
+"Building Applications" has markdown-file "articles/Building Applications/Troubleshooting.md"
 
-            "Rendering options" has topics "Load / Update Mode" as table, "Delay or Interval (ms)"
-                "Load / Update Mode" has description "This setting allows you to enable delayed rendering or lazy loading for this element."
-                "Load / Update Mode" has constant "Eager" with description "Renders the element in the initial server-side rendering run."
-                "Load / Update Mode" has constant "When page has finished loading" with description "Renders the element after the initial rendering run is done."
-                "Load / Update Mode" has constant "With a delay after page has finished loading" with description "Renders the element after a configurable number of milliseconds after the page has finished loading."
-                "Load / Update Mode" has constant "When element becomes visible" with description "Renders the element when it is scrolled into view."
-                "Load / Update Mode" has constant "With periodic updates" with description "Renders the element and refreshes its content after a configurable number of milliseconds."
-                "Delay or Interval (ms)" has description "Configures the number of milliseconds for delayed and / or periodic refresh according to the load / update mode setting above."
+    "Rendering options" has topics "Load / Update Mode" as table, "Delay or Interval (ms)"
+        "Load / Update Mode" has description "This setting allows you to enable delayed rendering or lazy loading for this element."
+        "Load / Update Mode" has constant "Eager" with description "Renders the element in the initial server-side rendering run."
+        "Load / Update Mode" has constant "When page has finished loading" with description "Renders the element after the initial rendering run is done."
+        "Load / Update Mode" has constant "With a delay after page has finished loading" with description "Renders the element after a configurable number of milliseconds after the page has finished loading."
+        "Load / Update Mode" has constant "When element becomes visible" with description "Renders the element when it is scrolled into view."
+        "Load / Update Mode" has constant "With periodic updates" with description "Renders the element and refreshes its content after a configurable number of milliseconds."
+        "Delay or Interval (ms)" has description "Configures the number of milliseconds for delayed and / or periodic refresh according to the load / update mode setting above."
 
 
-    "Event Action Mapping" has markdown-file "snippets/Event Action Mapping - 000.md"
-    "Event Action Mapping" has topics "Event Actions" as table, "Follow-up actions" as table, "Notifications" as table, "Parameter types" as table
-        
-    "Business Logic" has markdown-file "snippets/Business Logic.md" with heading "Overview"
-
-    "Language localization" has topics "Translations", "Localization Settings", "Effective locale"
-        Translations has topics "Translation Settings", "Translation Providers"
-
-    "Best practices" has markdown-file "articles/Building Applications/Best practices.md" with heading "Best practices"
 
 
 
@@ -94,7 +84,7 @@ topic "REST Interface" has new topics "Overview", "Authentication", "Data Access
         "Kafka" has topic "Kafka Settings"
         "MQTT" has topic "MQTT Settings"
         "Pulsar" has topic "Pulsar Settings"
-    "SMTP" has topic "Sending emails", "Receiving emails", "SMTP Settings"
+    "SMTP" has markdown-file "articles/APIs & Integrations/SMTP.md"
     "FTP" has topic "FTP Settings"
     "SSH" has topic "SSH Settings"
     "JDBC" has topic "JDBC Settings"

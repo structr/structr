@@ -1,3 +1,5 @@
+# Dynamic Content
+
 Structr renders all page content on the server. To display data from the database or other sources, you use template expressions and scripting. Template expressions let you insert dynamic values into your pages, while scripting gives you full control over data retrieval and processing. This chapter builds on the concepts introduced in the Pages & Templates chapter.
 
 ## How Structr Differs from Client-Side Frameworks
@@ -24,15 +26,57 @@ Structr brings data and frontend closer together than traditional frameworks. Yo
 
 ## Template Expressions
 
+<img src="pages_single-repeater-element.png" class="small-image-50" />
+
 Template expressions allow you to insert dynamic values anywhere in your pages. You can use them in content elements, template elements, and HTML attributes.
 
-### Syntax
+### StructrScript vs. JavaScript
 
-A template expression is enclosed in `${...}` and uses StructrScript, which is concise for simple expressions. For more complex logic, use JavaScript with double braces `${{...}}`, which opens a full JavaScript context for calculations, loops, and more complex operations.
+Structr supports two scripting syntaxes: StructrScript and JavaScript.
 
-### Auto-Script Fields
+#### StructrScript
+StructrScript uses single braces `${...}` and is designed for simple, one-line expressions. It works well in HTML attributes, show conditions, and simple function queries. Typical uses include property access and function calls:
 
-Some input fields in the Structr UI are marked as auto-script fields. These fields automatically interpret their content as script expressions, so you do not need the `${...}` wrapper. Auto-script fields include Function Query, Show Conditions, and Hide Conditions. You can recognize auto-script fields in the Admin User Interface by their characteristic `${}` or `${{}}` prefixes displayed next to the input field.
+```
+${current.name}
+${project.status}
+${empty(current)}
+${is(current.isActive, 'active')}
+${if(equal(current.status, 'draft'), 'Draft', 'Published')}
+```
+
+StructrScript is purely functional – you cannot declare variables or perform arithmetic operations directly. It also supports default values using the `!` syntax:
+
+```
+${request.page!1}
+```
+
+This returns the value of the `page` request parameter, or `1` if the parameter is not set.
+
+#### JavaScript
+JavaScript uses double braces `${{...}}` and opens a full scripting context. Use it when you need calculations, intermediate values, or more complex logic:
+
+```
+${{ current.price * current.quantity }}
+```
+
+```
+${{ 
+    let total = 0;
+    for (let item of items) {
+        total += item.amount;
+    }
+    return total;
+}}
+```
+
+In JavaScript, you handle missing values with standard JavaScript syntax, for example using the nullish coalescing operator:
+
+```
+${{ $.request.page || 1 }}
+```
+
+As a rule of thumb: if it fits in a single-line input field, use StructrScript. If you need variables, loops, or calculations, switch to JavaScript.
 
 ### Keywords
 
@@ -46,49 +90,47 @@ Template expressions have access to built-in keywords that provide context about
 
 For a complete list of available keywords, see the Keyword Reference.
 
-### Calling Methods
+### Functions
 
-In addition to built-in functions and keywords, you can call methods defined on your types. This connects your pages to the business logic in your data model.
+Structr provides a wide range of built-in functions for string manipulation, date formatting, collections, logic, and more. Some commonly used functions include:
 
-Static methods are called on the type itself:
+- `empty()` – checks if a value is null or empty
+- `is()` – returns a value if a condition is true, null otherwise
+- `equal()` – compares two values
+- `if()` – conditional expression
+- `find()` – queries the database
+- `dateFormat()` – formats dates
 
-`${Project.getActiveProjects()}`
+For a complete list of available functions, see the Function Reference.
 
-Instance methods are called on objects you have access to, such as `current`, `me`, or objects retrieved via `find()`:
+### Dynamic Attribute Values
 
-`${current.calculateTotal()}`
+You can use template expressions in any HTML attribute. This allows you to create elements that change their appearance or behavior based on data, such as dynamic CSS classes, inline styles, or link URLs.
 
-This allows you to keep complex logic in your data model and call it from your pages as needed. For details on defining methods, see the Business Logic chapter.
-
-### Error Handling
-
-When accessing properties on objects that might be null, use the `if()` or `empty()` functions to avoid errors. For example, instead of `${current.name}`, use `${if(empty(current), '', current.name)}` to return an empty string when no object is available.
-
-### Example: A Page Template
-
-This example shows a typical page template that uses several template expressions:
-
-```html
-<!doctype html>
-<html class="h-full bg-gray-100">
-	<head>
-		<title>Structr - ${localize(titleize(page.name, '-'))}</title>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-		<script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp"></script>
-		<script type="module" defer src="/structr/js/frontend/frontend.js"></script>
-	</head>
-	<body class="h-full antialiased font-sans">
-		${render(children)}
-	</body>
-</html>
+```
+<a href="/projects/${project.id}">${project.name}</a>
 ```
 
-The title combines several functions: `titleize()` converts the page name to title case (replacing dashes with spaces), and `localize()` looks up a translation for the result. The `render(children)` call in the body marks where child elements will appear. For details on `render()` and other page functions, see the Page Functions section at the end of this chapter.
+The `is()` function is useful for conditionally adding values. It returns null when the condition is false, which means the value is omitted from the output.
 
-Note the include of `/structr/js/frontend/frontend.js`. This is an internal JavaScript file provided by Structr that is required for Event Action Mapping to work.
+```
+<tr class="project-row ${is(project.isUrgent, 'urgent')}">
+```
 
-## Working with Data
+Structr handles attribute values as follows: attributes with null values are not rendered at all, and attributes with an empty string are rendered as boolean attributes without a value.
+
+The examples above show complete HTML markup as you would write it in a Template element. For regular HTML elements like Div or Link, you enter only the expression (e.g., `/projects/${project.id}`) in the attribute field in the properties panel.
+
+
+### Auto-Script Fields
+
+Some input fields in the Structr UI are marked as auto-script fields. These fields automatically interpret their content as script expressions, so you do not need the `${...}` wrapper. Auto-script fields include Function Query, Show Conditions, and Hide Conditions. You can recognize auto-script fields in the Admin User Interface by their characteristic `${}` prefix displayed next to the input field.
+
+Auto-script fields are a natural fit for StructrScript expressions since they are typically single-line inputs.
+
+## Repeaters
+
+<img src="pages_element-details_repeater.png" class="small-image-50" />
 
 To display collections of data, you configure an element as a repeater. The repeater executes a query and renders the element once for each result. This is the primary way to display lists, tables, and other data-driven content in Structr.
 
@@ -104,17 +146,49 @@ For the data source, you can choose one of three options:
 
 Only one data source can be active at a time.
 
-A Function Query can return data from the database, but you can also return static data directly by defining a JavaScript object or array:
-
-`${{ [{ name: 'Draft' }, { name: 'Active' }, { name: 'Completed' }] }}`
-
 ### Filtering and Sorting
 
 In JavaScript, you can refine your query by passing an object with filter criteria to `$.find()`. For sorting, use the `$.predicate.sort()` function.
 
-`$.find('Project', { status: 'active' }, $.predicate.sort('name'))`
+```
+$.find('Project', { status: 'active' }, $.predicate.sort('name'))
+```
 
 This returns all projects with status "active", sorted by name.
+
+### Pagination
+
+For large result sets, use pagination to limit the number of items displayed. Structr provides a `page()` predicate that works with request parameters.
+
+In StructrScript:
+
+```
+find('Project', page(1, 25))
+```
+
+In JavaScript:
+
+```
+$.find('Project', $.predicate.sort('name'), $.predicate.page(1, 25))
+```
+
+The first argument is the page number (starting at 1), the second is the page size. You can make the page number dynamic using request parameters:
+
+```
+find('Project', sort('name'), page(request.page!1))
+```
+
+This reads the page number from the URL (e.g., `/projects?page=2`) and defaults to page 1 if not set.
+
+### Performance Considerations
+
+Structr can render thousands of objects and generate several megabytes of HTML without problems. However, displaying large amounts of data rarely makes sense for users. A page with thousands of table rows is difficult to navigate and slow to load in the browser.
+
+Best practices:
+
+- Always limit result sets with pagination or a reasonable maximum
+- Use filtering to show only relevant data
+- Consider whether users really need to see all data at once, or whether search and filters are more appropriate
 
 ### Nested Repeaters
 
@@ -124,28 +198,55 @@ For example, to display a list of projects with their tasks, you create an outer
 
 Note that data keys in nested repeaters must be unique. If you use the same data key in a nested repeater, the inner value overwrites the outer one.
 
-### Dynamic Attribute Values
+### Empty Results
 
-You can use template expressions in any HTML attribute. This allows you to create elements that change their appearance or behavior based on data, such as dynamic CSS classes, inline styles, or link URLs.
+When a repeater query returns no results, the element is not rendered at all. If you want to display a message when there are no results, add a sibling element with a show condition that checks for empty results:
 
-`<tr class="project-row ${project.status}">`
+```
+empty(find('Project', { status: 'active' }))
+```
 
-The `is()` function is useful for conditionally adding values. It returns null when the condition is false, which means the value is omitted from the output.
+This element only appears when there are no active projects.
 
-`<tr class="project-row ${is(project.isUrgent, 'urgent')}">`
+### Static Data
 
-Structr handles attribute values as follows: attributes with null values are not rendered at all, and attributes with an empty string are rendered as boolean attributes without a value.
+A Function Query can also return static data directly by defining a JavaScript object or array. This is useful for prototyping or for data that does not come from the database:
 
+```
+${{ [{ name: 'Draft' }, { name: 'Active' }, { name: 'Completed' }] }}
+```
 
 ## Show and Hide Conditions
 
 Show and hide conditions control whether an element appears in the page output. Structr evaluates these conditions at render time, before the element and its children are rendered.
 
-### How it works
+### How It Works
 
 Each element can have a show condition, a hide condition, or both. The element is rendered only when the show condition evaluates to true (if set) and the hide condition evaluates to false (if set). If both are set, both must be satisfied for the element to render.
 
 Show and hide conditions are auto-script fields. You write the expression directly without the `${...}` wrapper.
+
+### Complex Conditions
+
+For conditions with multiple criteria, use the `and()` and `or()` functions:
+
+```
+and(not(empty(current)), equal(current.status, 'active'))
+```
+
+This shows the element only when `current` exists AND has status "active".
+
+```
+or(equal(me.role, 'admin'), equal(current.owner, me))
+```
+
+This shows the element when the user is an admin OR is the owner of the current object.
+
+You can nest these functions for more complex logic:
+
+```
+and(not(empty(current)), or(equal(me.role, 'admin'), equal(current.owner, me)))
+```
 
 ### Show Conditions vs. Permissions
 
@@ -159,49 +260,15 @@ When a user navigates to `/projects`, no object is resolved and `current` is emp
 
 To implement this, you create two sibling elements: one for the list view with a show condition of `empty(current)`, and one for the detail view with a show condition of `not(empty(current))`. Only one of them is rendered, depending on whether an object was resolved from the URL.
 
-#### Side-by-Side Layout
+### Side-by-Side Layout
 
 A more advanced version displays both views side by side, similar to an email inbox. The list remains visible on the left, and the detail view appears on the right when an item is selected. You can highlight the selected item in the list by adding a dynamic CSS class that compares each item with `current`:
 
-`${is(equal(project, current), 'selected')}`
+```
+${is(equal(project, current), 'selected')}
+```
 
 This layout is easy to build using card components or similar block-level elements. Each card has a header and content area, one for the project list and one for the project details. This eliminates the need for separate pages and routing logic that you would typically write in other frameworks.
-
-## Form Data
-
-To build a form for editing an object, you bind the form fields to the object's properties using template expressions. The form displays the current values, and the user can modify them.
-
-### Input Fields
-
-An input field that displays the current project's name:
-
-`<input type="text" name="name" value="${current.name}">`
-
-A textarea with the project description:
-
-`<textarea name="description">${current.description}</textarea>`
-
-### Select Fields with Enum Values
-
-For properties with a predefined set of values, you can use the `enumInfo()` function to get the possible values. Configure the `<option>` element as a repeater over the enum values, and use the `is()` function to mark the current value as selected.
-
-`<option value="${opt}" ${is(equal(current.status, opt), 'selected')}>${opt}</option>`
-
-### Connecting Objects
-
-A common pattern is to display related objects in a select field. For example, to show which Project a Task belongs to, you create a select field and configure the `<option>` element as a repeater over the available projects.
-
-The `<option>` repeater iterates over `find('Project')`. Each option has its value set to `${project.id}` and displays `${project.name}`. The current selection is marked with `${is(equal(current.project, project), 'selected')}`.
-
-This displays all available projects in the dropdown and highlights the one that is currently assigned to the task.
-
-## User Input
-
-To handle user input – submitting forms, clicking buttons, and other interactions – you use Event Action Mappings. They connect DOM events to backend operations and allow you to create, update, and delete data based on user actions.
-
-When a form is submitted, Structr can automatically resolve IDs to objects and create relationships. For example, updating a Task with `{ "project": "a3f8b2c1-..." }` automatically links the Task to that Project.
-
-For details on handling user input, see the Event Action Mapping chapter.
 
 ## Page Functions
 
@@ -222,3 +289,9 @@ The `includeChild()` function works like `include()`, but specifically for child
 ### localize()
 
 The `localize()` function returns a translated string for the current locale. You pass a key and optionally a domain. For details on translations, see the Translations section in the Pages & Templates chapter.
+
+## Next Steps
+
+This chapter covered how to display dynamic content: template expressions for values, repeaters for collections, and show/hide conditions for conditional rendering.
+
+To handle user input – forms, button clicks, and other interactions – see the Event Action Mapping chapter.

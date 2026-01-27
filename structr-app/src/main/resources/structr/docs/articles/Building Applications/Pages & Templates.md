@@ -1,20 +1,20 @@
-
-After defining a first version of the data model, the next step is usually to build a user interface. This can be done in the `Pages` area.
-
-
+After defining a first version of the data model, the next step is usually to build a user interface. This can be done in the Pages area.
 
 ## Working with Pages
 
 <img src="Structr_6.jpg" class="small-image-50" />
 
-A page in Structr consists of HTML elements, template blocks, content elements, or a combination of these. Pages are rendered on the server, so the browser receives fully rendered HTML rather than JavaScript that builds the page client-side. This simplifies development, improves initial load times, and ensures pages are accessible to search engines.
+A page in Structr consists of HTML elements, template blocks, content elements, or a combination of these. Pages are rendered on the server, so the browser receives fully rendered HTML rather than JavaScript that builds the page client-side.
+
+### Why Server-Side Rendering
+Modern web development often defaults to client-side frameworks where JavaScript builds the page in the browser. This approach has trade-offs: users wait for JavaScript to load and execute before seeing content, build pipelines add complexity, and search engines may not index pages correctly.
+
+In Structr, the server renders complete HTML and sends it to the browser, ready to display. There is no build step, no hydration, no waiting for JavaScript to construct the page. When something looks wrong, you debug in one place rather than tracing through client-side state management and component lifecycles.
 
 ### From Design to Application
-
-The Structr way of building applications is to start with an HTML structure or design template and make it dynamic by adding repeaters and data bindings. This approach lets you convert a page layout directly into a working application - the design stays intact while you add functionality. It works especially well with professionally designed web application templates from sources like ThemeForest.
+The Structr way of building applications is to start with an HTML structure or design template and make it dynamic by adding repeaters and data bindings. This approach lets you convert a page layout directly into a working application – the design stays intact while you add functionality. It works especially well with professionally designed web application templates from sources like ThemeForest.
 
 ### Modifying the Page Tree
-
 Once you have created a page, you can modify it by adding and arranging elements in the page tree. Add elements by right-clicking and selecting from the context menu, or by dragging widgets from the Widgets flyout into the page.
 
 ### Element Types
@@ -251,10 +251,9 @@ The repeater and its children are rendered once for each object returned by the 
 For example, a repeater with the Function Query `find('Project')` and data key `project` would render once for each Project object returned by the query. Within the repeater's children, you could use `${project.name}` to display each project's name.
 
 ### The Events Tab
+The Events tab allows you to configure Event Action Mappings for individual elements.
 
 ![Event Action Mappings](pages_element-details_events.png)
-
-The Events tab allows you to configure Event Action Mappings for individual elements.
 
 #### How it works
 You start by selecting the DOM event that the Event Action Mapping should respond to in the Event field. After selecting an event, the Action field appears where you select the action to perform.

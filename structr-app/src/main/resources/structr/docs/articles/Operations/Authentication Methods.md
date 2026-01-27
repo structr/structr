@@ -1,4 +1,33 @@
 
+
+
+
+
+
+
+
+
+
+
+
+
+This chapter needs to be refined!!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Structr provides multiple methods for securing your applications and managing user access. This chapter covers the various authentication mechanisms available, from traditional session-based login to modern JWT tokens and OAuth integration.
 
 ## Overview
@@ -388,3 +417,46 @@ Ensure these configurations are properly set:
 - Ensure client ID and secret are correct
 
 This authentication system provides flexible options for securing your Structr applications while maintaining ease of use for both developers and end users.
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Two-Factor Authentication
+
+Structr supports two-factor authentication (2FA) for user login. When a user is configured for two-factor authentication, the login process requires an additional verification step.
+
+### Configuration
+
+To enable two-factor authentication, set the `security.twofactorauthentication.loginpage` configuration option to the path of a dedicated 2FA login page.
+
+### How it Works
+
+The two-factor login process consists of two steps:
+
+1. **Initial Sign In**: The user enters their username/email and password on the regular login page. If the user is configured for two-factor authentication and the `security.twofactorauthentication.loginpage` setting is configured, Structr redirects to the specified 2FA page instead of completing the login. The redirect includes a `twoFactorToken` as a request parameter.
+
+2. **Second Factor Verification**: The 2FA page displays a form where the user enters their verification code. This form submits a second Sign In action with two parameters:
+    - `twoFactorToken` – the token from the redirect (typically stored in a hidden input field with its value set from the request parameter)
+    - `twoFactorCode` – the verification code entered by the user
+
+After successful verification, the user is logged in. Use a page reload as the follow-up action to complete the login process.
+
+### Setting Up the 2FA Page
+
+The 2FA page requires:
+
+1. A hidden input field for the `twoFactorToken`, with its value set from the request parameter: `${request.twoFactorToken}`
+2. An input field for the `twoFactorCode` where the user enters their verification code
+3. An Event Action Mapping with the Sign In action that maps both parameters
+4. A follow-up action to reload the page after successful authentication
+
+
