@@ -2119,7 +2119,7 @@ let Structr = {
 
 					<div style="target-name: --global-search;">
 					
-						<button class="m-0 p-0 border-0" popovertarget="global-search-popover" style="anchor-name: --global-search;">
+						<button class="m-0 p-0 border-0 bg-transparent" popovertarget="global-search-popover" style="anchor-name: --global-search;">
 							${_Icons.getSvgIcon(_Icons.iconSearch, 24, 24, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), 'Global Search')}
 						</button>
 
@@ -2133,7 +2133,7 @@ let Structr = {
 					</div>
 
 					<div>
-						${_Icons.getSvgIconWithID('terminal-icon', _Icons.iconTerminal, 26,26, _Icons.getSvgIconClassesForColoredIcon(['text-white']), 'Toggle Console')}
+						${_Icons.getSvgIconWithID('terminal-icon', _Icons.iconTerminal, 26,26, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), 'Toggle Console')}
 					</div>
 
 					<div id="${Structr.notificationIconId}" class="relative">

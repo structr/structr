@@ -206,34 +206,33 @@ let _Files = {
 				_Files.getFilesTree().jstree().refresh_node(node.id);
 			}
 
-		} else {
+		}
 
-			let listModeActive  = _Files.isViewModeActive('list');
-			let tilesModeActive = _Files.isViewModeActive('tiles');
-			let imageModeActive = _Files.isViewModeActive('img');
-			let container       = document.querySelector('#' + (listModeActive ? 'row' : 'tile') + node.id);
+		let listModeActive  = _Files.isViewModeActive('list');
+		let tilesModeActive = _Files.isViewModeActive('tiles');
+		let imageModeActive = _Files.isViewModeActive('img');
+		let container       = document.querySelector('#' + (listModeActive ? 'row' : 'tile') + node.id);
 
-			if (container) {
+		if (container) {
 
-				let size         = node.isFolder ? (node.foldersCount + node.filesCount) : node.size;
-				let modifiedDate = _Files.getFormattedDate(node.lastModifiedDate);
-				let name         = node.name ?? '[unnamed]';
-				let iconSize     = (tilesModeActive || imageModeActive) ? 40 : 16;
-				let fileIcon     = (node.isFolder ? _Icons.getFolderIconSVG(node) : _Icons.getFileIconSVG(node));
-				let fileIconHTML = _Icons.getSvgIcon(fileIcon, iconSize, iconSize);
-				let ownerString  = (node.owner ? (node.owner.name ? node.owner.name : '[unnamed]') : '');
+			let size         = node.isFolder ? (node.foldersCount + node.filesCount) : node.size;
+			let modifiedDate = _Files.getFormattedDate(node.lastModifiedDate);
+			let name         = node.name ?? '[unnamed]';
+			let iconSize     = (tilesModeActive || imageModeActive) ? 40 : 16;
+			let fileIcon     = (node.isFolder ? _Icons.getFolderIconSVG(node) : _Icons.getFileIconSVG(node));
+			let fileIconHTML = _Icons.getSvgIcon(fileIcon, iconSize, iconSize);
+			let ownerString  = (node.owner ? (node.owner.name ? node.owner.name : '[unnamed]') : '');
 
-				container.querySelector('[data-key=name]')?.replaceChildren(name);
-				container.querySelector('[data-key=name]')?.setAttribute('title', name);
-				container.querySelector('[data-key=lastModifiedDate]')?.replaceChildren(modifiedDate);
-				container.querySelector('[data-key=size]')?.replaceChildren(size);
-				container.querySelector('[data-key=contentType]')?.replaceChildren(node.contentType);
-				container.querySelector('[data-key=owner]')?.replaceChildren(ownerString);
+			container.querySelector('[data-key=name]')?.replaceChildren(name);
+			container.querySelector('[data-key=name]')?.setAttribute('title', name);
+			container.querySelector('[data-key=lastModifiedDate]')?.replaceChildren(modifiedDate);
+			container.querySelector('[data-key=size]')?.replaceChildren(size);
+			container.querySelector('[data-key=contentType]')?.replaceChildren(node.contentType);
+			container.querySelector('[data-key=owner]')?.replaceChildren(ownerString);
 
-				let svgIcon = container.querySelector('.file-icon a svg');
-				if (svgIcon) {
-					_Icons.replaceSvgElementWithRawSvg(svgIcon, fileIconHTML);
-				}
+			let svgIcon = container.querySelector('.file-icon a svg');
+			if (svgIcon) {
+				_Icons.replaceSvgElementWithRawSvg(svgIcon, fileIconHTML);
 			}
 		}
 	},
@@ -869,7 +868,7 @@ let _Files = {
 		let checkmark = _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green mr-2');
 
 		_Files.getFolderContentsElement().insertAdjacentHTML('afterbegin',`
-			<div id="switches" class="absolute flex top-4 right-2">
+			<div id="switches" class="absolute flex top-6 right-2">
 				<button class="switch ${(_Files.isViewModeActive('list') ? 'active' : 'inactive')} inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green" id="switch-list" data-view-mode="list">${(_Files.isViewModeActive('list') ? checkmark : '')} List</button>
 				<button class="switch ${(_Files.isViewModeActive('tiles') ? 'active' : 'inactive')} inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green" id="switch-tiles" data-view-mode="tiles">${(_Files.isViewModeActive('tiles') ? checkmark : '')} Tiles</button>
 				<button class="switch ${(_Files.isViewModeActive('img') ? 'active' : 'inactive')} inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green" id="switch-img" data-view-mode="img">${(_Files.isViewModeActive('img') ? checkmark : '')} Images</button>
@@ -980,7 +979,7 @@ let _Files = {
 					${getIconColumnHTML()}
 					<td data-name-col>
 						<div id="id_${d.id}" class="node ${d.isFolder ? 'folder' : 'file'} flex items-center justify-between relative" draggable="true">
-							<b class="name_ leading-8 truncate" data-key="name"></b>
+							<b class="name_ leading-8 ml-8 truncate" data-key="name"></b>
 							<div class="icons-container flex items-end"></div>
 							${d.isFolder ? '' : progressIndicatorHTML}
 						</div>
@@ -2029,7 +2028,7 @@ let _Files = {
 							<td class="is-folder file-icon" data-target-id="${config.parentId}">${_Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 16)}</td>
 							<td>
 								<div class="node folder flex items-center justify-between">
-									<b class="name_ leading-8 truncate">..</b>
+									<b class="name_ leading-8 ml-8 truncate">..</b>
 								</div>
 							</td>
 							<td></td>

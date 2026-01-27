@@ -245,7 +245,7 @@ select {
 
 button {
 	margin: 0 1rem 0 0;
-	background-color: transparent;
+	background-color: white;
 	white-space: nowrap;
 }
 
@@ -2514,6 +2514,7 @@ input.tree-search-input {
 }
 
 .tree-contents, .tree-context {
+	min-width: 44rem;
 	height: 100%;
 	vertical-align: top;
 	background-color: var(--solid-white);
@@ -4692,6 +4693,9 @@ ul.combined-input-select-field li:not(.nohover):hover {
 	right: 0px;
 	bottom: 0px;
 	left: 0px;
+}
+.bg-transparent {
+	background-color: transparent;
 }
 .bg-black {
 	background-color: var(--solid-black);
