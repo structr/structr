@@ -128,6 +128,8 @@
 	--link-color-active: #a5a5a5;
 	--input-background: #f0f0f0;
 	--header-bg-dark: #1f242d;
+	--header-bg-medium: #2b313c;
+	--header-bg-light: #313743;
 	--warning-bg: #feefb3;
 	--input-invalid-bg-color: #fee;
 	--input-invalid-border-color: #935;
@@ -3440,6 +3442,34 @@ table.props td.__value {
 	padding: 0.25rem;
 }
 
+/**
+ * Global search in header
+ */
+.global-search-input {
+	width: 100%;
+	padding: 1rem;
+	font-size: 1.15rem;
+	box-shadow: 0 0 0 0 transparent;
+}
+.global-search-input:focus {
+	border: 1px solid var(--structr-green);
+	box-shadow: 0 0 0 1px var(--structr-green);
+	outline: none;
+}
+#global-search-results {
+	margin-top: 2rem;
+	width: 100%;
+}
+#global-search-results td, #global-search-results th {
+	padding: 1rem;
+}
+#global-search-results th {
+	text-align: left;
+}
+#global-search-results tbody tr:hover {
+	background-color: var(--structr-light-green-transparent);
+}
+
 /*
  * Search Box in function bar
  */
@@ -4547,6 +4577,27 @@ ul.combined-input-select-field li:not(.nohover):hover {
 }
 .min-h-20 {
 	min-height: 5rem;
+}
+.max-w-8 {
+	max-width: 2rem;
+}
+.max-w-12 {
+	max-width: 3rem;
+}
+.max-w-16 {
+	max-width: 4rem;
+}
+.max-w-20 {
+	max-width: 5rem;
+}
+.max-w-24 {
+	max-width: 6rem;
+}
+.max-w-28 {
+	max-width: 7rem;
+}
+.max-w-32 {
+	max-width: 8rem;
 }
 .max-w-64 {
 	max-width: 16rem;

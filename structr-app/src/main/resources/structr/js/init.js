@@ -1959,7 +1959,7 @@ let Structr = {
 			if (data.queryString.length > 0) {
 
 				let results        = await Command.searchNodes(data);
-				let resultsElement = document.querySelector('#global-search-results');
+				let resultsElement = document.querySelector('#global-search-results tbody');
 
 				for (let result of results) {
 
@@ -1969,7 +1969,7 @@ let Structr = {
 
 						resultsElement.appendChild(el);
 
-						el.querySelector('button').addEventListener('click', () => {
+						el.addEventListener('click', () => {
 							Structr.globalSearch.goTo(result, key, data);
 						});
 					}
@@ -2017,39 +2017,36 @@ let Structr = {
 							<div class="mx-4 my-4">
 								<form id="global-search-node-form" class="flex flex-col gap-2">
 									<div class="flex gap-2">
-										<input type="search" name="queryString" required placeholder="Search term..." autocomplete="off" autofocus>
+										<input class="global-search-input" type="search" name="queryString" required placeholder="Search across selected areas..." autocomplete="off" autofocus>
 									</div>
-									<div>
+									<div class="flex gap-8">
 										<label class="flex items-center"><input type="checkbox" checked name="searchDOM">Page Elements</label>
-										<label class="flex items-center"><input type="checkbox" checked name="searchSchema">Schema</label>
+										<label class="flex items-center"><input type="checkbox" checked name="searchSchema">Schema/Code</label>
 										<!--	<label class="flex items-center"><input type="checkbox" checked name="searchFlow">Flow Nodes</label>-->
 									</div>
 								</form>
 		
-								<div id="global-search-results" class="grid items-start gap-x-2 gap-y-3 mt-6" style="grid-template-columns: [ name ] minmax(0, 1fr) [ keys ] minmax(10%, max-content) [ id ] 4rem [ actions ] minmax(2rem, max-content)">
-									<div class="contents font-bold">
-										<div>Name/Type</div>
-										<div>Key</div>
-										<div>ID</div>
-										<div></div>
-									</div>
-								</div>
+								<table id="global-search-results">
+									<thead>
+										<tr>
+											<th class="min-w-12">Name/Type</th>
+											<th class="min-w-8">Attribute Key</th>
+											<th class="min-w-4 max-w-12">ID</th>
+										</tr>
+									</thead>
+									<tbody></tbody>
+								</table>
 							</div>
 						</div>
 					</div>
 				</div>
 			`,
 			result: (result, key) => `
-				<div class="contents" data-id="${result.id}" data-key="${key}">
-					<div class="break-word">${result.name ? `${result.name} [${result.type}]` : result.type}</div>
-					<div class="break-word">${key}</div>
-					<div class="truncate">${result.id}</div>
-					<div>
-						<button class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green p-2 mr-0" title="Go to element">
-							${_Icons.getSvgIcon(_Icons.iconOpenInNewPage, 16, 16, [..._Icons.getSvgIconClassesNonColorIcon(), 'pointer-events-none'])}
-						</button>
-					</div>
-				</div>
+				<tr class="cursor-pointer" data-id="${result.id}" data-key="${key}">
+					<td class="min-w-12 break-word">${result.name ? `${result.name} [${result.type}]` : result.type}</td>
+					<td class="min-w-8 whitespace-nowrap break-word">${key}</td>
+					<td class="min-w-4 max-w-12 truncate">${result.id}</td>
+				</tr>
 			`
 		}
 	},
