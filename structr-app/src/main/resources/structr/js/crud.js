@@ -541,7 +541,7 @@ let _Crud = {
 					(Interval: <input id="csv-import-commit-interval" type="text" value="1000" size="5"> lines)
 				</div>
 			</div>
-		`);
+			`);
 
 			let separatorSelect                 = dialogMeta.querySelector('#csv-import-field-separator');
 			let quoteCharacterSelect            = dialogMeta.querySelector('#csv-import-quote-character');
