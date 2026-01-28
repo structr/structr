@@ -1,212 +1,147 @@
 # Pages
 
-The Pages section is Structr's integrated development environment (IDE) for creating web-based applications. It provides a visual, drag-and-drop interface for building responsive web pages, managing content, and creating dynamic user interfaces.
-
-## Overview
-
-The Pages area combines the power of a traditional web IDE with the simplicity of visual page builders. It allows developers and content creators to build everything from simple static pages to complex, data-driven web applications without extensive coding knowledge.
+The Pages area is where you build your application's user interface. It's a visual editor that combines a page tree, property panels, and live preview in one workspace. You'll spend a lot of time here – designing layouts, wiring up data bindings, configuring interactions, and previewing the results.
 
 ![Pages Overview](pages.png)
 
-## Key Features
+## The Workspace
 
-### Visual Page Builder
+The screen is divided into three parts: a left sidebar with the page tree and localization tools, a main area showing properties and preview, and a right sidebar with widgets, shared components, the recycle bin, and preview panel. All sidebars are collapsible, so you can expand your workspace when you need more room.
 
-- Drag-and-drop interface for adding HTML elements
-- Real-time preview and editing
-- Responsive design tools
-- Component-based development
+## Left Sidebar
 
-### Template System
+### The Page Tree
 
-- Reusable page templates
-- Dynamic content integration
-- StructrScript templating language
-- JavaScript integration
+The left sidebar's Pages panel shows all your pages as expandable trees. Each page reveals its structure when expanded: HTML elements, templates, content nodes, and their nesting relationships.
 
-### Content Management
+#### Element Icons
 
-- In-line content editing
-- Media asset management (see [Files](8-Files.md))
-- Multi-language support (see [Localization](12-Localization.md))
+Different element types have different icons. Page elements show a window icon. HTML elements show a box – or a colored box (red, green, yellow) when configured as repeaters. Template elements show an application icon. Content elements show a document icon and can't be expanded because they can't have children.
 
-## Page Creation Workflow
+#### Visibility Indicators
 
-### 1. Creating a New Page
+A lock icon on the right of each element indicates visibility settings. No icon means the element is visible to both public and authenticated users. A lock with a key means only one visibility flag is enabled.
 
-Start by creating a new page using the page creation dialog.
+#### Interaction
 
-![Create Page](../pages_create-page.png)
+Click any element to select it and see its properties in the main area. Right-click (or hover and click the menu icon) to open the context menu. Drag elements to reorder them or move them between parents.
 
-**Page creation options:**
+### Localization
 
-- **Page name**: Unique identifier for the page
-- **URL path**: (Optional) URL for the page, default URL path is the name of the page
-- **Template**: Choose from existing templates or start blank
-- **Visibility**: Set public/private access permissions
+The Localization panel in the left sidebar manages translations for the current page. Select a page, enter a language code, and click refresh to see all `localize()` calls used in that page. You can create, edit, and delete translations directly here.
 
-### 2. Page Structure
+## Right Sidebar
 
-Once created, you can see the page structure in the tree view and begin building your content.
+### Widgets
 
-![Page Created](../pages_page-created.png)
+The Widgets panel contains reusable page fragments – from simple HTML snippets to complete configurable components. Drag a widget onto your page tree to insert it. If the widget has configuration options, a dialog appears where you fill in values before insertion.
 
-**Page components:**
+#### Suggested Widgets
 
-- **HTML structure**: Standard HTML5 document structure
-- **Head section**: Meta tags, CSS, and JavaScript includes
-- **Body content**: Visual content and layout elements
-- **Navigation**: Menu and link structures
+Widgets can also appear as suggestions in the context menu when their selector matches the element you've right-clicked. This speeds up common patterns – right-click a table and see table-related widgets offered automatically.
 
-### 3. Adding Content Elements
+#### Local and Remote Widgets
 
-Use the visual editor to add and configure content elements. You can add element using the right-click menu.
-
-![Page Expanded](../pages_page-expanded.png)
-
-**Available elements:**
-
-- **HTML element**: Any HTML5 element
-- **Text content**: Content, template or comment nodes
-
-### 4. Content Tables and Data Display
-
-Create dynamic tables and data displays that connect to your schema.
-
-![Simple Table Added](../pages_simple-table-added.png)
-
-**Table features:**
-
-- **Data binding**: Define repeaters to connect to schema types and queries
-- **Formatting**: Custom cell formatting and styling by using template expressions like `${...}`
-
-### 5. Dynamic Content with Expressions
-
-Use StructrScript or JavaScript expressions to create dynamic, data-driven content.
-
-![Output Expression](../pages_output-expression.png)
-
-**Expression capabilities:**
-
-- **Data access**: Retrieve and display database content
-- **Calculations**: Perform mathematical operations
-- **Conditional logic**: Show/hide content based on conditions
-- **User context**: Access current user and session information
-- **Date/time**: Format and manipulate dates and times
-
-### 6. Live Preview
-
-Test your pages with the built-in preview functionality.
-
-![Page Preview](../pages_page-preview.png)
-
-**Preview features:**
-
-- **Real-time rendering**: See changes immediately
-- **Responsive testing**: Test different screen sizes
-- **Interactive testing**: Test forms and user interactions
-- **Debug mode**: Identify and resolve issues
-
-## Advanced Features
-
-### StructrScript Integration
-Embed dynamic functionality using StructrScript:
-
-```javascript
-// Display current user name
-${me.name}
-
-// Conditional content
-${if(me.isAdmin, 'Admin Panel', 'User Dashboard')}
-```
+The panel shows both local widgets (stored in your database) and remote widgets (fetched from configured servers). Click the plus button to create new local widgets.
 
 ### Shared Components
 
-Create reusable components for common functionality, e.g.:
+Shared components are different from widgets. When you insert a widget, Structr copies its content into your page. When you insert a shared component, Structr creates a reference to the original. Edit the shared component, and every page using it updates automatically.
 
-- Navigation menus
-- Contact forms
-- Image galleries
-- Social media widgets
+Create a shared component by dragging an element from the page tree into the Shared Components panel. Headers, footers, and navigation menus are ideal candidates – anything that should look and behave the same across multiple pages.
 
-You can create Shared Components by dragging existing elements from the page tree to the top of the shared components area on the right-hand side. 
+### Recycle Bin
 
-## Page Security and Permissions
+When you delete an element from a page, it goes to the recycle bin rather than disappearing forever. Drag elements back into the page tree to restore them. This safety net is especially valuable when restructuring complex pages.
 
-### Access Control
+Note that pages themselves aren't soft-deleted – when you delete a page, only its child elements go to the recycle bin.
 
-- Public/private page settings
-- User-based access restrictions
-- Group/role-based permissions
+### Preview
 
-### Content Security
+The Preview panel shows your page as users will see it. You can keep the preview visible while working with other tabs in the main area, watching your changes take effect in real time.
 
-- CORS settings (see [Security](6-Security.md))
-- CSRF prevention
-- Input validation using lifecycle methods
+## Editing Elements
 
-## Best Practices
+When you select an element in the page tree, the main area shows its properties organized in tabs. The available tabs depend on the element type.
 
-### Page Organization
+### General Tab
 
-- Use meaningful page names and URLs
-- Organize pages in logical hierarchies
-- Implement consistent navigation
-- Maintain clear page structures
+Contains basic settings: name, CSS classes, HTML ID, inline styles. For repeaters, you'll find the Function Query and Data Key fields here. Show and Hide Conditions control whether the element appears in the output.
 
-### Content Strategy
+### HTML Tab
 
-- Plan content structure before building
-- Use templates for consistent layouts
-- Optimize images for web delivery
-- Write SEO-friendly content
+Available for HTML elements. Manages HTML-specific attributes – both global attributes and tag-specific ones. Click "Show all attributes" to reveal event handlers like `onclick`. Add custom attributes with the plus button.
 
-### Performance
+### Editor Tab
 
-- Minimize HTTP requests
-- Optimize database queries
-- Use appropriate caching strategies
-- Test on various devices and connections
+Available for templates and content elements. Provides a Monaco-based code editor with syntax highlighting and autocompletion. The content type selector at the bottom controls processing – Markdown and AsciiDoc convert to HTML, while plaintext, XML, and JSON output directly.
 
-### Security
+### Repeater Tab
 
-- Validate all user inputs
-- Implement proper access controls
-- Use HTTPS for sensitive content
-- Regular security audits
+Configures data-driven rendering. Select a source (Flow, Cypher Query, or Function Query), define the data key, and the element renders once for each object in the result.
 
-## Troubleshooting
+### Events Tab
 
-### Common Issues
+Sets up Event Action Mappings – what happens when users interact with the element. Select a DOM event, choose an action, configure parameters, and define follow-up behaviors.
 
-**Page Not Loading**
+### Security Tab
 
-- Check page permissions and visibility settings
-- Verify URL configuration
-- Review server logs for errors
-- Test with different user accounts
+Shows access control settings: owner, visibility flags, and individual permissions.
 
-**Dynamic Content Not Displaying**
+### Advanced Tab
 
-- Verify database connections
-- Check StructrScript syntax
-- Review data permissions
-- Test queries in the Data section
+Provides a raw view of all attributes in an editable table – useful for properties not exposed elsewhere.
 
-**Performance Issues**
+### Preview Tab
 
-- Optimize database queries
-- Enable appropriate caching
-- Compress large images
-- Minimize HTTP requests
+Shows the rendered page. Hover over elements to highlight them in both the preview and tree. Click to select for editing.
 
-## Next Steps
+### Active Elements Tab
 
-After mastering the Pages section:
+Gives you an overview of key components: templates, repeaters, and elements with event action mappings. Click any item to jump to its location in the tree.
 
-1. Learn advanced [Schema](3-Schema.md) design for better data integration
-2. Explore [Files](8-Files.md) management for media assets
-3. Understand [Security](6-Security.md) for user access control
-4. Review [Data](4-Data.md) management for content creation
+### URL Routing Tab
 
-The Pages section is where your Structr applications come to life, providing the tools to create engaging, dynamic web experiences that seamlessly integrate with your data model and business logic.
+Available for pages. Configures additional URL paths with typed parameters. See the Navigation & Routing chapter for details.
+
+## The Context Menu
+
+Right-click any element to open the context menu. What you see depends on the element type, but common options include:
+
+### Insert Options
+
+Let you add new elements as children or siblings. Suggested Widgets appear when widgets match the current element's selector. Suggested Elements offer common children for the current tag – `<tr>` for tables, `<li>` for lists.
+
+### Edit Options
+
+Include Clone (copy and insert after), Wrap Element In (wrap with a new parent), Replace Element With (swap while keeping children), and Convert to Shared Component.
+
+### Select/Deselect
+
+Marks elements for move or clone operations. Once selected, you can right-click elsewhere and choose "Clone Selected Element Here" or "Move Selected Element Here."
+
+### Remove Node
+
+Sends the element to the recycle bin.
+
+## Creating Pages
+
+The Create Page button in the secondary menu offers two options:
+
+### Create
+
+Opens a dialog with templates based on Tailwind CSS – from empty pages to complex layouts with sidebars and navigation. Templates are actually widgets with the "Is Page Template" flag enabled.
+
+### Import
+
+Lets you create pages from HTML source code or by fetching from an external URL. This is how you bring existing designs into Structr and make them dynamic.
+
+## Learning More
+
+The Pages area is deeply connected to other parts of the documentation:
+
+- Pages & Templates – explains how to build page structures, work with templates, and create widgets and shared components
+- Dynamic Content – covers data binding, template expressions, and repeaters
+- Event Action Mapping – details how to handle user interactions
+- Navigation & Routing – describes URL configuration and the `current` keyword
+- Security – explains visibility flags and access control

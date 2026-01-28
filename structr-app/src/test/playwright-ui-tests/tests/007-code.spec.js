@@ -133,6 +133,15 @@ test('user-defined-functions', async ({ page }) => {
   await page.keyboard.type('$.sendPlain');
   await page.waitForTimeout(1000);
   await page.screenshot({ path: 'screenshots/code_project-method-autocomplete.png' });
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('();');
+  await page.getByRole('button', { name: 'Save all' }).click();
+  await page.waitForTimeout(1000);
+  await page.getByRole('link', {name: 'Methods', exact: true}).dblclick();
+  await page.waitForTimeout(1000);
+  await page.getByRole('link', { name: 'Custom method sendEMail()' }).click();
+  await page.waitForTimeout(200);
+  await page.screenshot({ path: 'screenshots/code_project-method.png' });
 
   // Logout
   await page.locator('.submenu-trigger').hover();

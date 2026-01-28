@@ -1,136 +1,103 @@
-# Admin User Interface Overview
+# Admin User Interface
 
-The Structr Admin User Interface is a comprehensive web-based administration console that provides full control over your Structr application. It offers intuitive access to all tools for application development, from schema design to frontend development and system administration.
+The Structr Admin User Interface is a web-based console for building and managing Structr applications. From here, you design your data model, build pages, manage users, and monitor your running application – all without leaving the browser.
 
-## Interface Layout
+## Finding Your Way Around
 
-The Admin UI features a clean, modern design with a navigation bar at the top that provides access to all major functional areas. The main content area displays the selected functionality with context-appropriate tools and options.
+The interface is organized around a header bar that stays visible across all areas. The main navigation on the left side of the header takes you to the different functional areas: Dashboard, Pages, Files, Security, Schema, Code, Data, and more. Less frequently used items are tucked into the burger menu, which also contains the logout link. You can customize which items appear in the main navigation and which go into the burger menu through the UI Settings on the Dashboard.
 
-![Login Screen](login.png)
+On the right side of the header, you'll find tools that are useful regardless of where you are in the application:
 
-## Main Navigation Areas
+### Search
 
-The Admin UI is organized into the following main sections:
+The magnifying glass icon opens a global search across all your data.
+
+### Configuration
+
+The wrench icon takes you to the configuration interface.
+
+### Admin Console
+
+The terminal icon opens the Structr Admin Console for direct command execution.
+
+### Notifications
+
+The bell icon shows notifications and system alerts.
+
+## The Main Areas
 
 ### Dashboard
-System overview, monitoring, and administrative functions including server status, logs, deployment tools, and configuration options.
+
+Your starting point. It shows system information, server logs, and deployment tools. This is where you go to check if everything is running smoothly, export your application, or adjust UI settings.
 
 ![Dashboard](dashboard_about-me.png)
 
 ### Pages
-Visual page editor and development environment for creating web applications, managing templates, and building user interfaces.
+
+Where you build your user interface. It's a visual editor for creating web pages, with a tree view of your page structure, drag-and-drop widgets, and live preview.
 
 ![Pages](pages.png)
 
-[Pages](5-Pages.md)
-
 ### Files
-Virtual file system management for uploading, organizing, and managing static assets, documents, and media files.
+
+Manages your static assets – CSS, JavaScript, images, documents. It works like a virtual file system where you can upload, organize, and reference files in your pages.
 
 ![Files](files_renamed-folder.png)
 
 ### Security
-User management, authentication, authorization, and access control configuration.
+
+Handles users, groups, and permissions. You create accounts here, organize users into groups, and configure which API endpoints are accessible to whom.
 
 ![Security](security.png)
 
 ### Schema
-Visual schema editor for designing data models, creating custom types, defining relationships, and managing database structure.
 
-![Schema](schema_type-created_Project.png)
+The visual data modeler. Types appear as boxes, relationships as connecting lines. Drag to arrange, click to edit. This is where you define what your application knows about.
+
+![Schema](schema.png)
 
 ### Code
-Code editor and development tools for creating custom methods, scripts, and advanced functionality.
+
+Focuses on business logic. It shows the same types as the Schema area, but organized for writing and editing methods rather than visualizing relationships.
 
 ![Code](code.png)
 
 ### Data
-Database management interface for viewing, creating, editing, and managing data objects and their relationships.
+
+Lets you browse and edit the actual data in your application. Select a type, see all instances in a table, edit values directly.
 
 ![Data](data.png)
 
 ### Flows
-Visual workflow designer for creating automated business processes and data transformation pipelines.
+
+A visual workflow designer for creating automated processes and data transformations.
 
 ![Flows](flows_run-flow.png)
 
 ### Importer
-Data import tools and utilities for migrating content from external sources and file formats.
+
+Despite its name, shows scheduled jobs and background tasks. Jobs created with `$.schedule()` appear here and can be monitored or cancelled.
 
 ![Importer](importer.png)
 
 ### Localization
-Multi-language support configuration for creating internationalized applications.
+
+Manages translations for multi-language applications.
 
 ![Localization](localization_created.png)
 
 ### Graph
-Visual graph database explorer for visualizing data relationships and performing graph-based analysis.
+
+Visualizes your data as an interactive graph, showing objects and their relationships.
 
 ### Virtual Types
-Advanced type system configuration for creating dynamic and computed data types.
+
+Configures dynamic types that transform or aggregate data from other sources.
 
 ### Mail Templates
-Email template management for automated communications and notifications.
 
-## Key Features
-
-### Real-Time Updates
-The Admin UI provides real-time updates and notifications, ensuring you always have current information about your application state.
-
-### Responsive Design
-The interface is fully responsive and most functions work seamlessly across desktop and mobile devices.
-
-### Context-Sensitive Help
-Built-in help and documentation are available throughout the interface to guide users through complex operations.
-
-### Collaborative Features
-Multiple administrators can work simultaneously with conflict resolution and change tracking.
-
-### Customizable Interface
-The UI can be customized to meet specific requirements e.g. by setting set a custom label in the header to mark a production or stating environment.
-Also, there are a couple of settings in the Dashboard section to configure the UI behaviour.
-
-
-## Getting Started
-
-1. **Login**: Access the Admin UI through your Structr server URL (typically `http://localhost:8082/structr/`)
-2. **Dashboard**: Start with the Dashboard to get an overview of your system status
-3. **Schema**: Begin building your application by designing the data schema
-4. **Pages**: Create your first pages and user interfaces
-5. **Data**: Add and manage your application data
-
-## Best Practices
-
-### Navigation
-
-- Use the left sidebar for primary navigation between functional areas
-- Utilize breadcrumbs and back buttons for efficient navigation within sections
-- Take advantage of keyboard shortcuts for faster operation
-
-### Performance
-
-- Close unused tabs and panels to optimize browser performance
-- Use filters and search functionality to work with large datasets efficiently
-- Regular browser cache clearing may be needed for optimal performance
-
-### Security
-
-- Always log out when finished working
-- Use appropriate user permissions and roles
-- Regularly review and update access controls
+An editor for email templates used in automated notifications.
 
 ## Browser Compatibility
 
-The Admin UI is optimized for modern web browsers:
-
-- **Chrome** (recommended): Full feature support
-- **Firefox**: Full feature support
-- **Safari**: Full feature support
-- **Edge**: Full feature support
-
-For the best experience, ensure your browser is updated to the latest version and has JavaScript enabled.
-
-## Next Steps
-
-Explore each section of this Admin UI guide to learn about the specific functionality and capabilities available in each area. Start with the [Dashboard](2-Dashboard.md) for system monitoring and configuration, then move on to [Schema](3-Schema.md) design and [Pages](5-Pages.md) development for building your application.
+The Admin UI works in all modern browsers – Chrome, Firefox, Safari, and Edge are fully supported. For the best experience, keep your browser updated to the latest version.

@@ -1,176 +1,67 @@
 # Data
 
-The Data section provides comprehensive management of database objects and their relationships, offering powerful tools for creating, viewing, editing, and organizing your application's data. It serves as the primary interface for working with instances of your schema types.
-
-## Overview
-
-The Data section combines the power of a graph database with an intuitive interface for data management. It allows you to work with individual objects, manage relationships, perform bulk operations, and maintain data integrity across your entire application.
+The Data area is where you work with the actual objects in your database. It's a generic interface that works with any type – select a type from the list, see all its instances in a table, and edit values directly. For quick data fixes, bulk reviews, or just exploring what's in your database, this is the place.
 
 ![Data Overview](data.png)
 
-## Key Features
+## Browsing Your Data
 
-### Object Management
+The left sidebar shows a list of all your custom types. Click one to see its instances in a paginated table on the right.
 
-- Create, read, update, and delete operations (CRUD)
-- Bulk data operations and transformations
-- Real-time data validation and integrity checks
-- Advanced search and filtering capabilities
+### Type Filter
 
-## Object Creation and Management
+A filter button above the list lets you expand what's shown – you can include Custom Relationship Types, Built-In Relationship Types, HTML Types, Flow Types, and Other Types. Most of the time you'll just work with custom types, but the other categories are there when you need them.
 
-### Creating Objects
+### Recently Used Types
 
-Create new instances of your schema types with proper validation.
+Below the type list, Recently Used Types provides quick access to types you've worked with recently.
 
-![Objects Created](data_objects-created.png)
+## The Data Table
 
-**Object creation process:**
+When you select a type, the main area shows all objects of that type in a table. Each row is an object, each column is a property. System properties like `id` and `type` are read-only, but you can edit other properties directly in the table cells.
 
-1. **Type selection**: Choose the schema type to instantiate
-2. **Property values**: Set initial property values
-3. **Validation**: Automatic validation against schema constraints
-4. **Relationships**: Establish connections to related objects
+### Pagination and Views
 
-**Creation methods:**
+Above the table, pager controls let you navigate through large datasets. You can set the page size and choose which view to display – views control which properties appear as columns.
 
-- **Manual creation**: Individual object creation through the UI
-- **Bulk creation**: Create multiple objects simultaneously
-- **Import creation**: Create objects from external data sources
-- **API creation**: Programmatic object creation via REST API
+### Navigating Related Objects
 
-### Object Properties
+Properties that reference other objects are clickable. Click one to open a dialog showing the related object, where you can view and edit it. From that dialog, you can navigate further to other related objects, traversing your entire data graph without leaving the Data area.
 
-**Property management:**
+### Creating Relationships
 
-- **Direct editing**: In-line property value editing
-- **Type validation**: Automatic validation based on property type
-- **Constraint checking**: Enforcement of schema constraints
-- **Default values**: Automatic application of default values
+For relationship properties (properties representing one side of a relationship), you'll see a plus button in the table cell. Click it to open a search dialog limited to the target type. Select an object to create the relationship. The dialog respects cardinality – for one-to-one or many-to-one relationships, selecting a new object replaces any existing one.
 
-## Data Browsing and Navigation
+## Creating and Deleting Objects
 
-### Object Browser
+### Create Button
 
-Navigate through your data using the hierarchical object browser:
+The Create button in the header creates a new object of the currently selected type. The button label changes to reflect which type you're working with.
 
-**Navigation features:**
+### Delete All
 
-- **Type-based browsing**: View objects organized by type
-- **Relationship traversal**: Follow connections between objects
-- **Search integration**: Find objects quickly by property values
-- **Filtering**: Display only objects meeting specific criteria
+Delete All Objects of This Type does what it says – use with caution. A checkbox lets you restrict deletion to exactly this type; otherwise, objects of derived types are also deleted.
 
-**View options:**
+## Import and Export
 
-- **List view**: Tabular display with sortable columns
-- **Graph view**: Visual relationship network (see [Graph](9-Graph.md))
-- **Detail view**: Comprehensive object information
+### Export as CSV
 
-### Search and Filtering
+Downloads the current table view as a CSV file – useful for quick data extraction or sharing with tools that understand spreadsheets.
 
-**Advanced search capabilities:**
+### Import CSV
 
-- **Property-based search**: Find objects by specific property values
-- **Full-text search**: Search across all text properties
+Opens the Simple CSV Import dialog for bringing data into Structr. See the Importing Data chapter for details on the import process.
 
-### Sorting and Pagination
+## Search
 
-**Sorting options:**
+The search box in the header searches across your entire database, not just the currently selected type. Results are grouped by type, making it easy to find objects when you're not sure where they are. Click the small "x" at the end of the search field to clear the search and return to the normal type-based view.
 
-- **Property-based sorting**: Sort by any object property
+## The REST Endpoint Link
 
-**Pagination features:**
+In the top right corner of the content area, you'll find a link to the REST endpoint for the current type. This opens the HTML REST View – a special feature of Structr.
 
-- **Configurable page sizes**: Adjust objects per page
-- **Quick navigation**: Jump to specific pages
-- **Performance optimization**: Efficient loading of large datasets
-- **Lazy loading**: Load data as needed
+### HTML REST View
 
-### Referential Integrity
+When you access a REST URL with a browser, Structr detects the `text/html` content type and returns a formatted HTML page instead of raw JSON. Objects appear with collapsible JSON structures you can expand and navigate. A status bar at the top lets you switch between views.
 
-The referential integrity is ensured by Structr.
-
-**Relationship integrity:**
-
-- **Orphan prevention**: Prevent creation of invalid references
-- **Cascade operations**: Automatic cleanup of related data can be defined in the schema
-- **Constraint enforcement**: Cardinality restrictions are always respeceted
-- **Circular reference detection**: Prevent infinite loops
-
-**Data consistency:**
-
-- **Transaction support**: Atomic operations for data consistency
-- **Rollback capability**: Inconsistent operations are rolled back automatically
-- **Conflict resolution**: Concurrent data modifications are handled automatically
-- **Audit trails**: Audit log to track all data changes for accountability available
-
-## Security and Access Control
-
-### Data Security
-
-**Access control:**
-
-- **Object-level permissions**: Control access to individual objects
-- **Property-level security**: Restrict access to specific properties by defining schema views
-- **Relationship security**: Control relationship traversal by defining schema-based permissions (see [Security](6-Security.md))
-- **Dynamic permissions**: Context-based access control based on custom code (see [Code](7-Code.md))
-
-**Data protection:**
-
-- **Encryption**: Protect sensitive data at rest and in transit, e.g. by using Encrypted String as data type in the schema
-- **Anonymization**: Remove or mask personal information, e.g. by using Funciton Properties
-- **Audit logging**: Track all data access and modifications
-- **Backup security**: Secure data backup and recovery by using the data deployment feature (see [Dashboard](2-Dashboard.md))
-
-## Integration with Other Sections
-
-### Pages Integration
-
-- **Data binding**: Display data objects in web pages
-- **Form integration**: Create and edit objects through web forms
-- **Dynamic content**: Generate content from data objects
-- **User interaction**: Enable user data manipulation through pages
-
-### API Integration
-
-- **REST endpoints**: Access data through automatically generated APIs
-- **CRUD operations**: Perform data operations via API calls
-- **Query API**: Execute complex queries through API endpoints
-- **Bulk operations**: Perform mass operations via API
-
-## Troubleshooting
-
-### Common Issues
-
-**Data Validation Errors**
-
-- Review schema constraints and validation rules
-- Check property types and format requirements
-- Verify required field completion
-- Validate relationship constraints
-
-**Performance Problems**
-
-- Analyze query patterns and add appropriate indexes
-- Review large dataset handling and pagination
-- Optimize relationship traversals
-- Monitor resource usage and caching effectiveness
-
-**Import/Export Issues**
-
-- Verify file formats and data structure compatibility
-- Check field mapping and data transformation rules
-- Validate data quality before import
-- Review error logs for specific failure details
-
-## Next Steps
-
-After mastering the Data section:
-
-1. Design effective [Schema](3-Schema.md) structures for your data
-2. Create [Pages](5-Pages.md) that display and interact with your data
-3. Implement [Security](6-Security.md) controls for data protection
-4. Monitor data operations through the [Dashboard](2-Dashboard.md)
-
-The Data section is where your application's information comes to life, providing the tools to create, manage, and maintain the data that powers your Structr application. Effective data management ensures application performance, data integrity, and user satisfaction.
+This makes it easy to explore your data and debug API responses directly in the browser, without needing external tools like Postman or curl.

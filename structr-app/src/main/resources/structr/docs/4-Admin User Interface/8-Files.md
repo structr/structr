@@ -1,305 +1,190 @@
 # Files
 
-![Files](files_renamed-folder.png)
+The Files area is Structr's virtual file system – a familiar file browser interface for managing your application's static assets. CSS, JavaScript, images, documents, and any other files live here. Structr's content management heritage shows in features like automatic thumbnail generation, full-text search across file contents, and the ability to make files dynamic with template expressions.
 
-The Files section provides comprehensive management of Structr's virtual file system, offering powerful tools for organizing, uploading, editing, and transforming various types of digital assets. It serves as the central hub for all file-related operations in your Structr application.
+![Files](files.png)
 
-## Overview
+## How Files Work in Structr
 
-The Files area combines traditional file management capabilities with advanced features like image transformation, video transcoding, and content search. It provides a familiar file explorer interface while offering web-based editing and processing capabilities.
+Unlike a traditional file system, Structr stores file metadata as nodes in the graph database while keeping binary content in the file system. This separation enables powerful features: files have the same permission system as any other object, they can participate in relationships, and you can extend the File type with custom properties.
 
-## Key Features
+Binary data is stored in a UUID-indexed directory structure under the `files` folder in Structr's runtime directory. Four levels of single-character directories distribute files evenly, preventing any single folder from becoming too large.
 
-### Virtual File System
+## Secondary Menu
 
-- Hierarchical directory structure
-- Web-based file explorer interface
-- Drag-and-drop file operations
-- Bulk file management tools
+### Create Folder
 
-### File Upload and Management
+Creates a new folder in the currently selected directory. If you've created types that extend Folder, a dropdown lets you choose which type to create.
 
-- Single and multiple file uploads
-- Progress tracking for large uploads
-- File versioning and history
-- Metadata management
+### Create File
 
-### Advanced Processing
+Creates a new empty file in the current directory. Like with folders, a dropdown appears if you have custom file types.
 
-- Image transformation and resizing
-- Video transcoding and optimization
-- Document conversion
-- Content indexing and search
+### Mount Folder
 
-## File System Structure
+Opens the Mount Dialog for connecting external storage locations to Structr's virtual file system.
 
-### Directory Management
+#### The Mount Dialog
 
-Create and organize directories to structure your file system:
+Mounting lets you integrate external directories or storage providers into Structr. When you mount a folder, Structr monitors it for changes and automatically updates metadata when files are added or modified.
 
-**Directory operations:**
+The dialog includes:
 
-- **Create folders**: Organize files in logical hierarchies
-- **Rename directories**: Update folder names and structure
-- **Move directories**: Reorganize file system layout
-- **Delete directories**: Remove unused folders (with safety checks)
+- Storage Provider dropdown – Select the storage backend (currently local file system; S3 and others may be available through modules)
+- Folder name – The name for the new mounted folder in Structr
+- Mount target – The path or location to mount
+- Scan settings – Configure how Structr detects changes: either through file system events (Unix-based systems only) or periodic scanning with a configurable interval
 
-**Best practices for directory structure:**
+### Search
 
-```
-/assets/
-  /images/
-    /products/
-    /banners/
-    /icons/
-  /videos/
-  /documents/
-    /legal/
-    /manuals/
-  /scripts/
-  /styles/
-```
+The search field on the right searches across all files, including their contents. This full-text search is powered by Apache Tika and can index text from PDFs, images (via OCR), Office documents, and many other formats. Type your query and press Enter to see results.
 
-### File Operations
+## Left Sidebar
 
-Standard file management operations with web-based convenience:
+### Favorites
 
-**Basic operations:**
+At the top of the directory tree, Favorite Files provides quick access to frequently used files. Drag any file here during development to keep it handy – useful for JavaScript files, stylesheets, or configuration files you edit often.
 
-- **Upload**: Single files or batch uploads with progress tracking by drag'n drop
-- **Download**: Individual files or compressed archives
-- **Copy**: Duplicate files within the system
-- **Move**: Relocate files between directories by drag'n drop
-- **Rename**: Update file names and extensions
-- **Delete**: Remove files with confirmation dialogs
+### Directory Tree
 
-**Advanced operations:**
+Below Favorites, the familiar folder hierarchy shows your file system structure. Click a folder to view its contents on the right. Click a file or folder name to rename it inline.
 
-- **File properties**: View and edit metadata
-- **Permission management**: Control access and visibility
-- **Version control**: Track file changes and revisions
-- **Link management**: Create and manage file references
+## Main Area
 
-## File Types and Support
+The main area shows the contents of the selected folder.
 
-### Text Files
+### View Controls
 
-- **Formats**: All text formats are supported, e.g. TXT, MD, HTML, CSS, JS, JSON, XML, CSV
-- **Features**: Syntax highlighting, auto-completion, line numbering
-- **Editing**: Real-time collaborative editing
-- **Validation**: Format validation and error checking
+At the top right, three buttons switch between view modes:
 
-### Images
+- List – Compact rows with detailed information
+- Tiles – Medium-sized previews with thumbnails
+- Images – Larger previews, ideal for browsing image folders
 
-- **Formats**: All image types are supported, e.g. JPEG, PNG, GIF, SVG, WebP, TIFF, BMP
-- **Transformations**: Resize, crop, rotate, flip
-- **Optimization**: Compression and format conversion
-- **Metadata**: EXIF data viewing and editing
+A pager on the left handles large directories, and a filter box lets you narrow down the displayed files.
 
-### Videos
+### The File Table
 
-- **Formats**: All video formats are supported, e.g. MP4, AVI, MOV, WMV, FLV, WebM
-- **Transcoding**: Format conversion and optimization
-- **Thumbnails**: Automatic preview generation
-- **Streaming**: Optimized delivery options
+In list view, each row shows:
 
-### Documents
+- Icon – Click to download or open the file (depending on content type)
+- Name – The file name
+- Lock icon – Opens the Access Control dialog
+- Export checkbox – Marks the file for inclusion in deployment exports (only available below the top level)
+- UUID – The file's unique identifier
+- Modified – Last modification timestamp
+- Size – File size
+- Type – Both the Structr type and MIME type
+- Owner – The file's owner
 
-- **Formats**: E.g. PDF, DOC/DOCX, XLS/XLSX, PPT/PPTX
-- **Preview**: Built-in document viewers
-- **Conversion**: Format transformation capabilities
-- **Text extraction**: Content indexing for search
+Hold Ctrl while clicking to select multiple files for bulk operations.
 
-### Code Files
+### Uploading Files
 
-- **Languages**: E.g. JavaScript, CSS, HTML, JSON, XML, SQL
-- **Syntax highlighting**: Language-specific formatting
-- **Code completion**: Intelligent suggestions
-- **Error detection**: Real-time syntax validation
+Drag files from your desktop onto the right side of the Files area to upload them. Files are Base64-encoded and uploaded in chunks via WebSocket. This works well for smaller files; for large files or bulk uploads, consider using the REST API or deployment import.
 
-## Image Transformation
+### Search Results
 
-### Automatic Transformations
-Configure automatic image processing for uploaded images:
+When you search, results appear in a table similar to the file list. A magnifying glass icon at the start of each row shows the search context – click it to see where your search term appears within the file.
 
-**Resize operations:**
+## Context Menu
 
-- **Thumbnail generation**: Automatic creation of preview images
-- **Multiple sizes**: Generate various dimensions for responsive design
-- **Aspect ratio preservation**: Maintain image proportions
-- **Quality optimization**: Balance file size and image quality
+Right-click a file or hover and click the menu icon to open the context menu.
 
-**Format conversion:**
+### Edit File
 
-- **WebP conversion**: Modern format for better compression
-- **Progressive JPEG**: Improved loading experience
-- **PNG optimization**: Lossless compression
-- **Format selection**: Choose optimal format based on content
+Opens the file in a built-in editor. The editor warns you before opening binary files or files that are too large. For text files, you get syntax highlighting based on the file type.
 
-### Manual Transformations
+If the file has the isTemplate flag enabled, a checkbox in the editor lets you preview the rendered output with template expressions evaluated.
 
-Perform on-demand image editing:
+### General
 
-**Basic editing:**
+Opens the file's property dialog with:
 
-- **Crop**: Select specific image areas
-- **Resize**: Adjust dimensions with various algorithms
-- **Rotate**: 90-degree rotations and custom angles
-- **Flip**: Horizontal and vertical mirroring
+- Name – The file name
+- Content Type – The MIME type (affects how browsers handle the file)
+- Cache for Seconds – Controls HTTP cache headers when serving the file
+- isTemplate – When enabled, Structr evaluates template expressions in the file content before serving it, allowing you to mix static and dynamic content
+- Caching disabled – Prevents browser caching
+- Include in Frontend Export – Marks the file for deployment export
 
-## Video Transcoding
+### Advanced
 
-### Automatic Processing
+The raw attribute table, same as in other areas.
 
-Configure video processing pipelines:
+### Add to Favorites
 
-**Format optimization:**
+Adds the file to the Favorites section for quick access.
 
-- **Web-optimized formats**: MP4, WebM for browser compatibility
-- **Resolution scaling**: Generate multiple quality versions
-- **Compression**: Balance quality and file size
-- **Progressive loading**: Enable streaming capabilities
+### Copy Download URL
 
-**Thumbnail generation:**
+Copies the file's download URL to your clipboard.
 
-- **Multiple thumbnails**: Various time points in the video
-- **Custom timing**: Specify exact frames for thumbnails
-- **Animated previews**: GIF generation from video clips
-- **Poster frames**: High-quality still images
+### Download File
 
-### Manual Processing
-
-On-demand video operations:
-
-**Conversion options:**
-
-- **Format selection**: Choose target video formats
-- **Quality settings**: Adjust bitrate and resolution
-- **Audio processing**: Extract or modify audio tracks
-- **Trimming**: Cut video segments
-
-## Content Search
-
-### Full-Text Search
-
-Search within file contents across all supported formats:
-
-**Search capabilities:**
-
-- **Document content**: Search within PDF, Word, and text files
-- **Metadata search**: Find files by properties and tags
-
-**Search results:**
-
-- **Relevance ranking**: Score-based result ordering
-- **Content preview**: Highlighted search terms in context
-
-### Indexing
-
-Automatic content indexing for fast searching:
-
-**Indexed content:**
-
-- **Text files**: Full content indexing
-- **Documents**: Extracted text from PDFs and Office files
-- **Images**: EXIF data and embedded text
-- **Metadata**: File properties and custom tags
-
-## File Permissions and Security
-
-### Access Control
-
-Manage file access with granular permissions:
-
-**Permission levels:**
-
-- **Read**: View and download files
-- **Write**: Edit and update file content
-- **Delete**: Remove files and directories
-- **Admin**: Full control including permission management
-
-**Permission inheritance:**
-
-- **Directory permissions**: Apply to contained files
-- **Role-based access**: Assign permissions to user groups
-- **User-specific access**: Individual user permissions
-- **Public access**: Anonymous user access control
-
-## Integration with Pages
-
-### File Linking
-
-Connect files to your web pages:
-
-**Direct linking:**
-
-- **Static assets**: CSS, JavaScript, and image files
-- **Download links**: Documents and media files
-- **Embedded content**: Videos and interactive media
-- **Dynamic galleries**: Automated image collections
-
-**Content management:**
-
-- **Media libraries**: Organized asset collections
-- **File browsers**: User-friendly file selection
-- **Upload widgets**: In-page file upload functionality
-- **Preview components**: File preview and thumbnails
-
-## Best Practices
-
-### File Organization
-
-- **Logical structure**: Create intuitive directory hierarchies
-- **Naming conventions**: Use consistent, descriptive file names
-- **File categorization**: Group related files together
-- **Regular cleanup**: Remove obsolete and unused files
-
-### Performance
-
-- **Image optimization**: Compress images for web delivery
-- **Format selection**: Choose appropriate file formats
-- **Bulk operations**: Use batch processing for efficiency
-- **Monitor storage**: Track disk usage and growth
+Downloads the file directly.
 
 ### Security
 
-- **Access reviews**: Regularly audit file permissions
-- **Upload restrictions**: Limit file types and sizes
-- **Backup strategy**: Implement regular file backups
-- **Security updates**: Keep file processing libraries updated
+A submenu with:
 
-## Troubleshooting
+- Access Control / Visibility – Opens the full access control dialog
+- Quick toggles – Make the file visible to authenticated users, public users, or both
 
-### Common Issues
+### Delete File
 
-**Upload Failures**
+Removes the file. When multiple files are selected, this becomes "Delete Files" and removes all selected items.
 
-- Check file size limits and server configuration
-- Verify file type restrictions
-- Ensure sufficient disk space
-- Review upload permissions
+## Folder Context Menu
 
-**Processing Errors**
+Folders have a simpler context menu with General (just name and export checkbox), Advanced, Security, and Delete Folder.
 
-- Verify file format compatibility
-- Check server resources (memory, CPU)
-- Review error logs for specific issues
-- Test with smaller files
+## Content Type Features
 
-**Access Problems**
+Some content types unlock additional functionality:
 
-- Review file and directory permissions
-- Check user roles and group memberships
-- Verify authentication status
-- Test with administrative accounts
+### CSV and XML Files
 
-## Next Steps
+Files with `text/csv` or `text/xml` content type show an "Import CSV" or "Import XML" menu entry that opens the import wizard documented in the Importing Data chapter.
 
-After mastering the Files section:
+### ZIP Archives
 
-1. Learn how to integrate files with [Pages](5-Pages.md)
-2. Understand [Security](6-Security.md) for proper access control
-3. Explore [Schema](3-Schema.md) for file metadata management
-4. Review [Dashboard](2-Dashboard.md) for system monitoring
+ZIP files show two additional options:
 
-The Files section provides the foundation for managing all digital assets in your Structr application, enabling rich media experiences and efficient content workflows.
+- Extract Archive Here – Extracts contents into the current folder
+- Extract Archive to New Folder – Creates a new folder and extracts there
+
+### Images
+
+Images get special treatment:
+
+#### Automatic Thumbnails
+
+Structr generates thumbnails on first access, stored in a hidden `._structr_thumbnails` folder. Two thumbnail sizes are created automatically and linked to the original image via database relationships.
+
+#### Metadata Extraction
+
+EXIF data like camera settings, GPS coordinates, and timestamps are automatically extracted and stored as properties. Width and height are also read and stored.
+
+#### Edit Image
+
+Opens a simple editor for cropping images.
+
+### Checksums
+
+Structr automatically calculates checksums for all files. By default, a fast xxHash is computed; you can configure additional algorithms like MD5 in structr.conf.
+
+## Working with Files in Code
+
+Files and folders can be created and manipulated from scripts. You can create entire folder hierarchies, read and write binary content, and work with files programmatically. This is especially powerful when combined with custom types that have the File trait.
+
+## Naming Conflicts
+
+If you create a file with a name that already exists in the folder, Structr automatically appends a timestamp to make the name unique.
+
+## Related Topics
+
+- Importing Data – CSV and XML import wizards
+- Data Model – Creating custom file types with the File trait
+- Security – File permissions and visibility
+- Pages & Templates – Using files in pages, the isTemplate feature

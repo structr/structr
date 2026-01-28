@@ -1,203 +1,103 @@
 # Code
 
-The Code section provides a comprehensive development environment for creating custom methods, scripts, and advanced functionality within Structr. It serves as an integrated development environment (IDE) for implementing business logic, data processing, and custom behaviors.
-
-## Overview
-
-The Code section enables developers to extend Structr's capabilities through custom Java-like methods, StructrScript functions, and JavaScript implementations. It provides syntax highlighting, code completion, debugging tools, and integrated testing capabilities.
+The Code area is where you write and organize your application's business logic. While the Schema area gives you a visual overview of types and relationships, the Code area focuses on what those types *do* – their methods, computed properties, and API configuration.
 
 ![Code](code.png)
 
-## Key Features
+## Working with the Code Area
 
-### Integrated Development Environment
+The screen is divided into a navigation tree on the left and a context-sensitive editor on the right. The tree organizes your code by type: expand a type to see its properties, views, and methods. Click any item to edit it.
 
-- Syntax highlighting for multiple languages
-- Auto-completion
-- Integrated debugging tools
+Most of your time here will be spent in the method editor. When you click on a method, the editor expands to fill the screen, giving you a full-featured coding environment with syntax highlighting, autocompletion, and integrated documentation.
 
-### Multiple Language Support
+The Code area also provides access to user-defined functions (global utilities available throughout your application) and service classes (containers for business logic that doesn't belong to a specific type). You'll find the OpenAPI output here too, which is useful for verifying how your methods appear to API consumers.
 
-- Javascript
-- StructrScript expressions
+## The Navigation Tree
 
-## Method Types
+The tree contains three main sections:
 
-### Schema Methods
+### User Defined Functions
 
-Implement custom behavior for schema types:
+Shows global functions in a table format – the same view available in the Schema area. These functions are callable from anywhere in your application.
 
-**Instance Methods**
+### OpenAPI
 
-Methods that operate on individual object instances.
+Displays your application's API specification. Use this to verify endpoints, check parameter definitions, and copy documentation for external consumers.
 
-**Static Methods**
+![OpenAPI Output](code_openapi-placeholder.png)
 
-Class-level operations that don't require an instance.
+### Types
 
-### User-defined Methods
+Lists all your custom types and service classes. Expand a type to see its contents:
 
-System-wide utility functions available throughout the application:
+- Direct Properties – properties defined on this type
+- Linked Properties – properties from relationships
+- Views – property sets for different contexts (API responses, UI display)
+- Methods – the business logic attached to this type
+- Inherited Properties – properties from parent types or traits
 
-**Utility Functions**
+This structure mirrors what you see in the Schema type editor, but organized for code navigation rather than visual modeling.
 
-Common operations and calculations.
+### Services
 
-**Integration Methods**
+A special category under Types. Service classes can only contain methods, not properties. They're useful for grouping related business logic that doesn't belong to a specific data type – report generators, external integrations, utility functions.
 
-Connect with external systems and APIs.
+## The Method Editor
 
-### Lifecycle Methods
+Click any method to open a full-screen editor. This is where the real work happens.
 
-Methods that execute automatically during object lifecycle events, e.g. onCreate, afterSave, afterDelete.
+### Writing Code
 
-## StructrScript Integration
+The editor is based on Monaco (the same engine as VS Code), with syntax highlighting for JavaScript and StructrScript, autocompletion, and all the features you'd expect from a modern code editor.
 
-### Expression Syntax
+At the bottom of the screen, a settings dropdown lets you configure the editor to your preferences: word wrap, indentation style, tab size, code folding, and more.
 
-Use StructrScript for dynamic content and logic:
+### Method Configuration
 
-**Data Access**
+Above the editor, several options control how the method behaves:
 
-```javascript
-// Access current object properties
-${this.name}
-${this.project.title}
-${size(this.milestones)}
+#### Method is static
 
-// User context
-${me.name}
-${me.groups}
+Means the method can be called without an object instance – it's a class-level function rather than an instance method.
 
-// Date formatting
-${date(this.dueDate, 'yyyy-MM-dd')}
-```
+#### Not callable via HTTP
 
-**Conditional Logic**
+Hides the method from the REST API. Use this for internal utilities that shouldn't be exposed.
 
-```javascript
-// Simple conditions
-${if(this.isOverdue, 'OVERDUE', 'ON_TRACK')}
+#### Wrap JavaScript in main
 
-// Complex conditions
-${if(and(this.status == 'ACTIVE', lt(this.dueDate, now())), 
-    'Project is overdue!', 
-    'Project is on track')}
-```
+Wraps your code in a main function, which affects scoping and is sometimes needed for compatibility.
 
-### Built-in Functions
+#### Return result object only
 
-Leverage Structr's extensive function library:
+Strips metadata from the response, returning just the result.
 
-**Data Manipulation**
+#### HTTP verb dropdown
 
-```javascript
-// Finding and filtering
-find('Project', 'status', 'ACTIVE')
-filter(find('Task'), equal(data.assignee, me))
-sort(this.projects, 'dueDate')
+Specifies which HTTP method triggers this function when called via REST API – GET for read operations, POST for creating things, PUT for updates, DELETE for removals.
 
-// Aggregation
-add(this.expenses, 2.5)
-mult(this.ratings, data.score)
-count(filter(this.tasks, eq(data.status, 'COMPLETED')))
-```
+### Testing Your Code
 
-**String Operations**
+For static methods, a Run Dialog button appears in the action bar (alongside Save, Revert, and Delete). Click it to open a testing interface where you can enter parameters and execute the method immediately. The return value displays in the dialog, making it easy to test and debug without leaving the editor.
 
-```javascript
-// Text processing
-concat(this.firstName, ' ', this.lastName)
-upper(this.status)
-replace(this.description, 'old', 'new')
-substring(this.title, 0, 50)
-```
+### API Tab
 
-**Date Operations**
+Lets you define typed parameters for your method. Structr validates incoming requests against these definitions before your code runs – catching type mismatches and missing required parameters automatically. This also generates accurate OpenAPI documentation.
 
-```javascript
-// Date calculations
-date_format(now(), 'yyyy-MM-dd HH:mm:ss')
-```
+### Usage Tab
 
-## Best Practices
+Shows how to call this method from different contexts: JavaScript, StructrScript, and REST API. These examples use your actual method name and parameters, so you can copy them directly into your code.
 
-### Code Organization
+## Searching Your Code
 
-- **Modular design**: Break complex logic into smaller methods
-- **Clear naming**: Use descriptive method and variable names
-- **Documentation**: Comment complex logic and business rules
-- **Consistent style**: Follow coding conventions
+The search field in the secondary menu searches across all code in your application – schema methods, user-defined functions, and service classes. This is invaluable when you need to find where something is defined or used.
 
-### Performance
+Note that the search doesn't include page content. For that, use the Pages area.
 
-- **Efficient queries**: Minimize database operations
-- **Caching**: Cache expensive calculations
-- **Batch operations**: Group multiple operations when possible
-- **Resource management**: Properly handle connections and resources
+## Two Views, One Model
 
-### Security
+The Code area and Schema area are two perspectives on the same underlying data. Changes you make in one immediately appear in the other.
 
-- **Input validation**: Validate all input parameters
-- **Access control**: Check permissions before operations
-- **Error handling**: Don't expose sensitive information in errors
-- **Logging**: Log security-relevant events
+Use the Schema area when you're thinking about structure – what types exist, how they relate to each other, what properties they have. Use the Code area when you're thinking about behavior – what methods do, how they're implemented, how they're called.
 
-### Maintainability
-
-- **Version control**: Track code changes
-- **Testing**: Write comprehensive tests
-- **Documentation**: Maintain current documentation
-- **Refactoring**: Regularly improve code quality
-
-## Troubleshooting
-
-### Common Issues
-
-**Compilation Errors**
-
-- Check syntax and method signatures
-- Verify import statements and dependencies
-- Validate parameter types and return values
-- Review scope and visibility modifiers
-
-**Runtime Errors**
-
-- Add proper error handling and logging
-- Validate input parameters and data
-- Check for null pointer exceptions
-- Verify database connectivity and permissions
-
-**Performance Issues**
-
-- Profile slow methods and queries
-- Optimize database operations
-- Implement appropriate caching
-- Review algorithm complexity
-
-### Debugging Techniques
-
-**Logging Strategy**
-
-- Use appropriate log levels
-- Include relevant context information
-- Avoid logging sensitive data
-- Monitor log output for patterns
-
-**Testing Approach**
-
-- Write unit tests for individual methods
-- Test edge cases and error conditions
-- Use integration tests for complex workflows
-- Automate testing where possible
-
-## Next Steps
-
-After mastering the Code section:
-
-1. Implement custom logic for your [Schema](3-Schema.md) types
-2. Create dynamic behavior for [Pages](5-Pages.md)
-3. Integrate with [Data](4-Data.md) management operations
-4. Monitor code performance through the [Dashboard](2-Dashboard.md)
-
-The Code section empowers you to extend Structr's capabilities and implement sophisticated business logic tailored to your specific requirements. Well-written custom code enhances application functionality while maintaining performance and security standards.
+Many developers keep both open in different tabs, switching based on the task at hand.

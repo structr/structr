@@ -1,174 +1,118 @@
 # Dashboard
 
-The Dashboard is the central command center of the Structr Admin UI, providing a comprehensive overview of your system's status, performance metrics, and administrative tools. It serves as the starting point for monitoring and managing your Structr application.
+The Dashboard is your control center. When you log in, this is where you land – and it's where you return when you need to check on your system, export your application, or dig into logs to figure out why something isn't working.
 
-## Overview
+## What You'll Find Here
 
-The Dashboard provides real-time insights into your Structr instance, including system information, user activity, server performance, and administrative controls. It's designed to give administrators quick access to critical information and commonly used system management functions.
-
-## Dashboard Sections
+The Dashboard is organized into tabs, each focused on a different aspect of system management.
 
 ### About Me
 
-The "About Me" section displays information about the currently logged-in user, including user details, session information, and personal settings.
+This tab shows who you're logged in as. You'll see your username, UUID, email address, working directory, session IDs, and group memberships. It's useful when you're troubleshooting permission issues or when you're working with multiple accounts and need to verify which one you're using.
 
 ![About Me](dashboard_about-me.png)
 
 ### About Structr
 
-This section provides detailed information about the Structr server instance, including version information, system configuration, and licensing details. It also shows some information about hardware configuration and access statistics.
+Everything about your Structr installation lives here.
 
 ![About Structr](dashboard_about-structr.png)
 
+#### Version and Modules
+
+The version number tells you exactly which build you're running, with indicators showing whether newer releases or snapshots are available. Below that, you'll see which modules are active – these extend Structr's capabilities with features like PDF generation, Excel import/export, or advanced scripting.
+
+#### License and Database
+
+The license section shows your licensee name, host ID (which you'll need when requesting a license), and the validity period. Database information tells you which driver you're using – Structr supports both embedded and external Neo4j databases. You'll also see the UUID format in use; Structr supports both dashed and non-dashed formats, configured at installation time.
+
+#### Runtime Information
+
+Runtime information gives you a quick health check: number of processors, free memory, total memory, and maximum memory. Keep an eye on these if your application feels sluggish.
+
+#### Scripting Debugger
+
+The scripting debugger status shows whether the GraalVM debugger is active. If you need to step through JavaScript code with Chrome DevTools, enable it by setting `application.scripting.debugger = true` in `structr.conf`. See [Debugging JavaScript Code](#placeholder-debugging) for details.
+
+#### Access Statistics
+
+At the bottom, access statistics show request patterns over time – when requests came in, how many, and which HTTP methods were used. This helps you understand how your application is being used and can reveal unusual access patterns.
+
 ### Deployment
 
-The Deployment section offers comprehensive tools for managing application deployment, including export/import functionality and environment synchronization.
+This is where you back up your work and move it between environments. Deployment in Structr means exporting your application – schema, pages, files, configuration – to a portable format that can be imported into another Structr instance. This enables version control, backup, and migration between development, staging, and production.
 
 ![Deployment](dashboard_deployment.png)
 
-**Deployment features:**
+#### Export and Import Options
 
-- **Export functionality**: Export a Structr application with schema, pages, files, or custom data, to a server directory or ZIP file
-- **Import functionality**: Import a Structr application from a ZIP file or server directory
-- **Selective deployment**: Choose specific components to export/import
-- **Environment sync**: Synchronize configurations between development, staging, and production
+Six options combine export/import, application/data, and server directory/ZIP file:
+
+- Export Application to Server Directory
+- Export Application to ZIP File
+- Import Application from Server Directory
+- Import Application from ZIP File
+- Export Data to Server Directory
+- Import Data from Server Directory
+
+#### What Gets Exported
+
+Application exports include everything needed to recreate your application structure. Data exports include the actual objects in your database. For a complete backup, you need both.
+
+#### Selective Deployment
+
+When exporting, you can select which components to include – schema, files, pages, or specific data types. This allows selective deployment when you only want to update certain parts. Store your exports in version control to maintain a history of your application state.
+
+### User-Defined Functions
+
+This tab lists functions you've marked as maintenance tools. Instead of writing a script or calling the API, you can execute these functions directly from the Dashboard with a single click.
+
+To make a function appear here, set the `includeInFrontendMenu` flag on the function in the Schema or Code area. Common uses include data cleanup, report generation, cache invalidation, or any administrative task you run regularly.
 
 ### Server Log
 
-The Server Log provides real-time access to server log messages, allowing administrators to monitor system events, debug issues, and track application behavior.
-
-You can temporarily stop the auto-refresh by focusing the log area by clicking on it. To restart automatic updates, click somewhere outside the log area.
+The server log is your primary debugging tool. It shows what Structr is doing in real-time: startup messages, errors, warnings, request processing, and transaction details. When something breaks, this is usually the first place to look.
 
 ![Server Log](dashboard_server-log.png)
 
-**Features:**
+#### Controls
 
-- Real-time log streaming
-- Refresh interval from 1s to 10s and manual (no automatic refresh)
-- Select log file to view in case of log rotation
-- Number of lines to show and position to truncate at
+The log refreshes every second by default. Click inside the log area to pause auto-refresh when you need to read a specific message. You can copy the content to your clipboard, download the file, adjust the refresh interval, change how many lines are displayed, or switch between log files if you have rotation enabled.
 
 ### Event Log
 
-The Event Log tracks important system events, user actions, and security-related activities within the Structr application. It can be filtered by different event types, and the number of events to show can be configured (default: 100).
+While the server log shows technical details in free-form text, the event log provides a structured view of what's happening: API requests, authentication events, transactions, and more. Each event appears as a row with consistent columns, making it easy to filter and analyze.
 
 ![Event Log](dashboard_event-log.png)
 
-**Filterable event types:**
+#### Using the Event Log
 
-- All events
-- Authentication events
-- Cron events
-- HTTP requests
-- Maintenance
-- Scripting events
-- REST requests
-- ResourceAccess events
-- Transactions
-- System info
+The event log doesn't auto-refresh – click the refresh button to update it. Use it to trace user activity, debug permission issues, or analyze performance. Transaction events include timing breakdowns that can help identify bottlenecks.
 
 ### Threads
 
-The Threads monitor lists active threads and processes running within the Structr server to track system performance and identify potential bottlenecks.
-
-You can interrupt or kill a thread by clicking on the corresponding button.
+This tab shows all threads running in the Java Virtual Machine. Most of the time you won't need it, but when a request hangs or your application becomes unresponsive, this is where you look.
 
 ![Running Threads](dashboard_running-threads.png)
 
-### UI Configuration
+#### Thread Management
 
-Customize the Admin UI appearance and behavior to match your preferences and organizational requirements.
+You can interrupt a thread (asking it to stop gracefully) or kill it (forcing immediate termination – use with caution). Long-running threads might indicate infinite loops or deadlocks in your code.
+
+### UI Settings
+
+Customize how the Admin UI looks and behaves. Changes take effect immediately and are stored per user.
 
 ![UI Configuration](dashboard_ui-config.png)
 
-**Configuration options:**
+#### Menu Configuration
 
-- **Theme settings**: Choose between light and dark themes
-- **Language preferences**: Select interface language
-- **Layout options**: Customize sidebar and panel arrangements
-- **Notification settings**: Configure alert preferences
-- **Performance settings**: Adjust refresh rates and update intervals
-- **Accessibility options**: Enable accessibility features
+Menu configuration lets you choose which items appear in the main navigation bar and which are hidden in the burger menu.
 
-## Best Practices
+#### Font Settings
 
-### Monitoring
+Font settings control the main font, font size, and monospace font used in code editors and log displays.
 
-- Regularly check the Server Log for errors or warnings
-- Monitor Running Threads for performance issues
-- Review Event Log for security-related activities
-- Keep track of system uptime and performance metrics
+#### Behavior Settings
 
-### Deployment
-
-- Always test deployments in a staging environment first
-- Create backups before major deployments
-- Use selective deployment for incremental updates
-- Document deployment procedures and rollback plans
-
-### System Maintenance
-
-- Regularly review and archive old log files
-- Monitor memory usage and thread performance
-- Keep system configuration up to date
-- Schedule regular maintenance windows for updates
-
-### Security
-
-- Monitor the Event Log for suspicious activities
-- Regular review of user sessions and access patterns
-- Keep track of administrative actions
-- Ensure proper audit trails are maintained
-
-## Troubleshooting
-
-### Common Issues
-
-**High Memory Usage**
-
-- Check Running Threads for memory-intensive processes
-- Review Server Log for memory-related warnings
-- Consider adjusting JVM heap settings
-
-**Performance Problems**
-
-- Monitor active thread counts
-- Check for long-running processes
-- Review system resource utilization
-- Analyze log patterns for bottlenecks
-
-**Deployment Failures**
-
-- Check Server Log for deployment error details
-- Verify target environment compatibility
-- Ensure sufficient disk space and permissions
-- Validate export package integrity
-
-### Diagnostic Tools
-
-The Dashboard provides several diagnostic capabilities:
-
-- Real-time system metrics
-- Historical performance data
-- Error tracking and analysis
-- Resource utilization monitoring
-
-## Integration with External Tools
-
-The Dashboard can integrate with external monitoring and management tools:
-
-- **Log aggregation**: Forward logs to external systems (ELK stack, Splunk)
-- **Monitoring**: Export metrics to monitoring platforms (Prometheus, Grafana)
-- **Alerting**: Configure notifications for critical events
-- **Backup systems**: Integrate with enterprise backup solutions
-
-## Next Steps
-
-After familiarizing yourself with the Dashboard:
-
-1. Explore the [Pages](5-Pages.md) section for application development
-2. Review [Schema](3-Schema.md) design capabilities
-3. Learn about [Security](6-Security.md) management
-4. Understand [Data](4-Data.md) management features
-
-The Dashboard serves as your primary tool for system oversight and administration, providing the foundation for effective Structr application management.
+The settings section contains checkboxes grouped by area – Global, Dashboard, Pages, Security, Importer, Schema/Code, Code, and Data. These control details like notification display, inheritance behavior when creating elements, and how certain data types are shown.

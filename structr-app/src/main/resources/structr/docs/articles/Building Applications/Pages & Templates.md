@@ -663,8 +663,4 @@ The Recycle Bin is not cleared automatically, but its contents are not included 
 ### Preview
 The Preview flyout shows a preview of the current page, just like the Preview tab in the center panel. This allows you to keep the preview visible while working with other tabs in the center panel. The flyout is located on the right side of the Pages area.
 
-### Search
-The Search flyout lets you search for elements across all pages based on any of their attributes. This includes CSS classes, CSS IDs, variable names in template expressions or function queries, text content, and more. The flyout is located on the right side of the Pages area.
-
-
 
