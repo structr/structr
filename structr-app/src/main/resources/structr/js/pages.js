@@ -126,7 +126,6 @@ let _Pages = {
 		_Pages.previewSlideout         = $('#previewSlideout');
 
 		_Pages.localizations.init();
-		_Pages.search.init();
 
 		_Pages.ensureShadowPageExists().then(_Pages.initSlideouts).then(() => {
 
@@ -3958,62 +3957,10 @@ let _Pages = {
 	},
 
 	search: {
-		init: () => {
-			let form                    = document.querySelector('#pages-search-node-form');
-			let searchField             = form.querySelector('[name="queryString"]');
-
-			form.addEventListener('submit', e => {
-				e.preventDefault();
-				_Pages.search.doSearch();
-			});
-
-			searchField.addEventListener('input', _Helpers.debounce(_Pages.search.doSearch, 300));
-
-			searchField.addEventListener('search', e => {
-				if (searchField.value === '') {
-					_Pages.search.clear();
-				}
-			});
-		},
-		clear: () => {
-
-			let resultsElement = document.querySelector('#pages-search-results');
-			for (let oldResult of resultsElement.querySelectorAll('[data-id]')) {
-				_Helpers.fastRemoveElement(oldResult);
-			}
-		},
-		doSearch: async () => {
-
-			let form = document.querySelector('#pages-search-node-form');
-			let data = Structr.globalSearch.getBasicFormData(form);
-			data.searchDOM = true;
-
-			_Pages.search.clear();
-
-			if (data.queryString.length > 0) {
-
-				let results        = await Command.searchNodes(data);
-				let resultsElement = document.querySelector('#pages-search-results');
-
-				for (let result of results) {
-
-					for (let key of result.keys) {
-
-						let el = _Helpers.createSingleDOMElementFromHTML(_Pages.search.templates.result(result, key));
-
-						resultsElement.appendChild(el);
-
-						el.querySelector('button').addEventListener('click', () => {
-							_Pages.search.goTo(result, key, data);
-						});
-					}
-				}
-			}
-		},
 		goTo: (result, key, searchData) => {
 
-			let { id } = result;
-			let tabName     = _Pages.search.getTabForKey(key);
+			let { id }  = result;
+			let tabName = _Pages.search.getTabForKey(key);
 
 			if (tabName === 'editor' || tabName === 'repeater') {
 				_Editors.highlightTextInNextEditor(searchData.queryString);
@@ -4058,40 +4005,6 @@ let _Pages = {
 			}
 
 			return 'advanced';
-		},
-		templates: {
-			slideoutContent: config => `
-				<div class="overflow-y-auto max-h-full h-full">
-					<div class="mx-4 my-4">
-						<form id="pages-search-node-form" class="flex flex-col gap-2">
-							<div class="flex gap-2">
-								<input type="search" name="queryString" required placeholder="Search term..." autocomplete="off">
-							</div>
-						</form>
-
-						<div id="pages-search-results" class="grid items-center gap-x-2 gap-y-3 mt-6" style="grid-template-columns: [ name ] minmax(0, 1fr) [ keys ] minmax(10%, max-content) [ id ] 4rem [ actions ] minmax(2rem, max-content)">
-							<div class="contents font-bold">
-								<div>Name/Type</div>
-								<div>Key</div>
-								<div>ID</div>
-								<div></div>
-							</div>
-						</div>
-					</div>
-				</div>
-			`,
-			result: (result, key) => `
-				<div class="contents" data-id="${result.id}" data-key="${key}">
-					<div>${result.name ? `${result.name} [${result.type}]` : result.type}</div>
-					<div>${key}</div>
-					<div class="truncate">${result.id}</div>
-					<div>
-						<button class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green p-2 mr-0" title="Go to element">
-							${_Icons.getSvgIcon(_Icons.iconOpenInNewPage, 16, 16, [..._Icons.getSvgIconClassesNonColorIcon(), 'pointer-events-none'])}
-						</button>
-					</div>
-				</div>
-			`
 		}
 	},
 
@@ -4162,10 +4075,6 @@ let _Pages = {
 			</div>
 
 			<div id="previewSlideout" class="slideOut slideOutRight">
-			</div>
-
-			<div id="searchSlideout" class="slideOut slideOutRight">
-				${_Pages.search.templates.slideoutContent()}
 			</div>
 		`,
 		slideoutActivators: {
@@ -4248,12 +4157,6 @@ let _Pages = {
 						</svg>
 						<br>
 						Preview
-					</div>
-
-					<div class="slideout-activator right" id="searchTab" data-for-slideout="#searchSlideout" data-sub-section="search">
-						${_Icons.getSvgIcon(_Icons.iconSearch, 24, 24, ['icon-grey'])}
-						<br>
-						Search
 					</div>
 
 				</div>
