@@ -3437,8 +3437,15 @@ table.props td.__value {
 	margin-top: 2rem;
 	width: 100%;
 }
+#global-search-results tbody tr:nth-child(2n) {
+	background-color: var(--solid-white);
+}
+#global-search-results tbody tr:nth-child(2n+1) {
+	background-color: var(--light-gray-bg-f7);
+}
+
 #global-search-results td, #global-search-results th {
-	padding: 1rem;
+	padding: .75rem;
 }
 #global-search-results th {
 	text-align: left;
