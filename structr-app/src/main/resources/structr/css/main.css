@@ -363,29 +363,6 @@ input[type="checkbox"].mr-0 {
 	content:")";
 }
 
-#header .structr-version {
-	font-size: .75rem;
-}
-
-#header .structr-version:empty:before {
-	content: "No version info available.";
-}
-
-#header .structr-version a,
-#header .structr-version a:visited,
-#header .structr-version a:hover {
-	color: var(--solid-white);
-	text-decoration: none;
-}
-
-#header .structr-version a, #header .structr-version span {
-	vertical-align: top;
-}
-
-#header .structr-version .edition-icon {
-	margin-left: 5px;
-}
-
 #function-bar {
 	display: flex;
 	align-items: center;

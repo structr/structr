@@ -2066,7 +2066,8 @@ let Structr = {
 	templates: {
 		mainBody: config => `
 
-			<div class="structr-version text-gray-999 text-xs absolute bottom-2 right-8 z-1"></div>
+			<div class="structr-version text-gray-999 text-xs absolute bottom-2 right-8 z-100"></div>
+
 			<div id="info-area">
 				<div id="close-all-button" class="mt-4 mb-2 mx-2 text-right">
 					<button class="confirm hover:border-gray-666 bg-white mr-0">Close All</button>
