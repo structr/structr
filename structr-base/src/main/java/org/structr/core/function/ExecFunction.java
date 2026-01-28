@@ -47,7 +47,7 @@ import java.util.concurrent.Executors;
 
 public class ExecFunction extends AdvancedScriptingFunction {
 
-	public static final String SCRIPTS_FOLDER = "scripts";
+	public static final String SCRIPTS_FOLDER = Settings.ScriptsPath.getValue();
 
 	@Override
 	public String getName() {
@@ -259,13 +259,13 @@ public class ExecFunction extends AdvancedScriptingFunction {
 
 				logger.warn("{}(): No file found for script key '{}' = '{}' ({}), nothing executed.", getName(), scriptKey, scriptName, absolutePath);
 
-			} else if (!pathIsRegularFile) {
+			} else if (!Settings.LaxScriptPathResolution.getValue() && !pathIsRegularFile) {
 
-				logger.warn("{}(): Script key '{}' = '{}' points to script file '{}' which is either not a file (or a symlink) and not allowed, nothing executed.", getName(), scriptKey, scriptName, absolutePath);
+				logger.warn("{}(): Script key '{}' = '{}' points to script file '{}' which is either not a file (or a symlink) and not allowed, nothing executed. Set '{}' to true to disable this check.", getName(), scriptKey, scriptName, absolutePath, Settings.LaxScriptPathResolution.getKey());
 
-			} else if (!pathIsAllowed) {
+			} else if (!Settings.LaxScriptPathResolution.getValue() && !pathIsAllowed) {
 
-				logger.warn("{}(): Script key '{}' = '{}' resolves to '{}' which seems to contain a directory traversal attack, nothing executed.", getName(), scriptKey, scriptName, absolutePath);
+				logger.warn("{}(): Script key '{}' = '{}' resolves to '{}' which seems to contain a directory traversal attack, nothing executed. Set '{}' to true to disable this check.", getName(), scriptKey, scriptName, absolutePath, Settings.LaxScriptPathResolution.getKey());
 
 			} else {
 
