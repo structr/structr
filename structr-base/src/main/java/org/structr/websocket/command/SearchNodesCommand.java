@@ -66,7 +66,7 @@ public class SearchNodesCommand extends AbstractCommand {
 			final Map<String, Object> obj = Map.of("queryString", queryString);
 
 			final ArrayList<String> labels = new ArrayList<>();
-			if (searchDOM)    { labels.add("n:DOMNode"); }
+			if (searchDOM)    { labels.add("(n:DOMNode AND NOT n:ShadowDocument)"); }
 			if (searchFlow)   { labels.add("n:FlowNode"); }
 			if (searchSchema) { labels.add("n:AbstractSchemaNode"); labels.add("n:SchemaReloadingNode"); }
 
