@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -732,6 +732,48 @@ let _Helpers = {
 
 		document.body.removeChild(link);
 		window.URL.revokeObjectURL(url);
+	},
+	waitForElement: (selector, mutationObserverConfig = { childList: true, subtree: true }) => {
+		// Wait for element to appear. Usage example:
+		// _Helpers.waitForElement('#main div.foo a.bar').then(el => {
+		//     el.classList.add('active');
+		// });
+
+		return new Promise(resolve => {
+			if (document.querySelector(selector)) {
+				return resolve(document.querySelector(selector));
+			}
+
+			const observer = new MutationObserver(mutations => {
+				if (document.querySelector(selector)) {
+					observer.disconnect();
+					resolve(document.querySelector(selector));
+				}
+			});
+
+			observer.observe(document.body, mutationObserverConfig);
+		});
+	},
+	waitForNode: id => {
+
+		return new Promise(resolve => {
+			let node = Structr.node(id);
+			if (node) {
+				resolve(node);
+
+			} else {
+
+				const observer = new MutationObserver(mutations => {
+					let node = Structr.node(id);
+					if (node) {
+						observer.disconnect();
+						resolve(node);
+					}
+				});
+
+				observer.observe(document.body, { childList: true, subtree: true });
+			}
+		});
 	}
 };
 
@@ -1315,14 +1357,14 @@ let AsyncObjectCache = function(fetchFunction) {
 
 			_cache[cacheId].callbacks = [];
 		}
-	};
+	}
 
 	function _runSingleCallback(cacheId, callback, cacheHit) {
 
 		if (typeof callback === "function") {
 			callback(_cache[cacheId].value, cacheHit);
 		}
-	};
+	}
 };
 
 
@@ -1353,23 +1395,3 @@ this.Element && function(ElementPrototype) {
 			return !!nodes[i];
 		}
 }(Element.prototype);
-// Wait for element to appear. Usage example:
-// waitForElement('#main div.foo a.bar').then(el => {
-//     el.classList.add('active');
-// });
-const waitForElement = selector => {
-	return new Promise(resolve => {
-		if (document.querySelector(selector)) {
-			return resolve(document.querySelector(selector));
-		}
-
-		const observer = new MutationObserver(mutations => {
-			if (document.querySelector(selector)) {
-				observer.disconnect();
-				resolve(document.querySelector(selector));
-			}
-		});
-
-		observer.observe(document.body, { childList: true, subtree: true });
-	});
-}

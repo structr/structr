@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -2135,7 +2135,6 @@ let _Entities = {
 		let node = el.closest('.node');
 		if (node) {
 			node.removeClass('nodeHover');
-			node.find('i.button').not('.donthide').hide().css('display', 'none');
 		}
 		let page = node.closest('.page');
 		if (page.length) {
@@ -2181,30 +2180,89 @@ let _Entities = {
 			icon.removeClass(_Icons.collapsedClass).addClass(_Icons.expandedClass);
 		}
 	},
-	expandAll: (ids, lastId) => {
+	expandAll: (ids, lastId, clickLast = false, depth = 0) => {
 
 		if (!ids || ids.length === 0) {
 			return;
 		}
 
-		// top-level object
 		let firstId = ids[0];
-		let el      = Structr.node(firstId);
 
-		// if top-level element is not present, we can not do anything
-		if (el) {
+		let promise = (depth === 0) ? _Entities.ensurePagesIsActiveAndCorrectSlideoutIsOpen(firstId) : Promise.resolve(true);
+		promise.then(ignore => {
 
-			if (firstId === lastId) {
+			let el = Structr.node(firstId);
+			if (el) {
 
-				// finally highlight last element
-				_Entities.deselectAllElements();
-				_Entities.highlightElement(el);
+				if (firstId === lastId) {
+
+					// finally highlight last element
+					_Entities.deselectAllElements();
+					_Entities.highlightElement(el);
+
+					if (clickLast === true) {
+						el[0].querySelector(':scope > .node-container')?.click();
+					}
+				}
+
+				_Entities.ensureExpanded(el, (childNodes) => {
+					_Entities.expandAll(ids.slice(1), lastId, clickLast, depth+1);
+				}, true);
+
+			} else {
+
+				Command.get(firstId, 'id,name,type,parent,pageId,isPage', obj => {
+
+					if (obj.isPage === true) {
+
+						// clear potential category filter
+						let categoryFilterEl = document.querySelector('#pagesPagerFilters .filter[data-attribute="category"]');
+						categoryFilterEl.value = '';
+						_Pager.pagerFilters['pages']['category'] = null;
+
+						// filter page name
+						let nameFilterEl   = document.querySelector('#pagesPagerFilters .filter[data-attribute="name"]');
+						nameFilterEl.value = obj.name;
+
+						nameFilterEl.dispatchEvent(new Event('blur'));
+
+						_Helpers.waitForNode(firstId).then(node => {
+							_Entities.expandAll(ids, lastId, clickLast, depth+1);
+						});
+
+					} else {
+
+						_Helpers.waitForNode(firstId).then(node => {
+							_Entities.expandAll(ids, lastId, clickLast, depth+1);
+						});
+					}
+				})
 			}
 
-			_Entities.ensureExpanded(el, (childNodes) => {
-				_Entities.expandAll(ids.slice(1), lastId);
-			}, true);
+		});
+	},
+	ensurePagesIsActiveAndCorrectSlideoutIsOpen: async (id) => {
+
+		let obj   = await Command.getPromise(id, 'id,name,type,parent,pageId,isPage');
+		let tabId = (obj.isPage === true) ? 'pagesTab' : ((!obj.pageId) ? 'elementsTab' : 'componentsTab');
+
+		if (!location.hash.startsWith('#pages')) {
+
+			// set correct slideout before navigation to prevent load-behaviour
+			let lsKey = (obj.isPage === true) ? _Pages.activeTabLeftKey : _Pages.activeTabRightKey;
+			LSWrapper.setItem(lsKey, tabId);
+
+			location.hash = 'pages';
 		}
+
+		await _Helpers.waitForElement('.' + _Pages.classIndicatorEverythingReady, { childList: true, subtree: true, attributes: true });
+
+		let tab = await _Helpers.waitForElement('#' + tabId);
+		if (!tab.classList.contains('active')) {
+			tab.click();
+		}
+
+		return true;
 	},
 	expandRecursively: (ids) => {
 		if (!ids || ids.length === 0) {

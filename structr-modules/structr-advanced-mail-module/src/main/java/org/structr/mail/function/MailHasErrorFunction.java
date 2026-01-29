@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -55,7 +55,7 @@ public class MailHasErrorFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mail_has_error()}"),
+			Usage.structrScript("Usage: ${mailHasError()}"),
 			Usage.javaScript("Usage: ${{ $.mailHasError() }}")
 		);
 	}
@@ -76,11 +76,11 @@ public class MailHasErrorFunction extends AdvancedMailModuleFunction {
 				Example.javaScript("""
 						${{
 						
-							$.mail_begin('user@example.com', 'User', 'Test Mail', '<b>HTML</b> message', 'plain text message');
-							$.mail_add_to('another-user@example.com');
-							$.mail_send();
+							$.mailBegin('user@example.com', 'User', 'Test Mail', '<b>HTML</b> message', 'plain text message');
+							$.mailAddTo('another-user@example.com');
+							$.mailSend();
 
-							$.log($.mail_has_error());
+							$.log($.mailHasError());
 						}}""", "Log true/false depending on message sending outcome")
 		);
 	}

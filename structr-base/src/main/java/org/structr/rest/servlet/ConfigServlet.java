@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -111,6 +111,7 @@ public class ConfigServlet extends AbstractServletBase {
 
 						// reset to default
 						setting.setValue(setting.getDefaultValue());
+						setting.setIsModified(false);
 					}
 				}
 

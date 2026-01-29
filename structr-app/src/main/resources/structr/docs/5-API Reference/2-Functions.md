@@ -2994,7 +2994,7 @@ POST(url, body [, contentType, charset, username, password, configMap ])
 ```
 
 
-### POST_multiPart()
+### POSTMultiPart()
 Sends a multi-part HTTP POST request to the given URL and returns the response body.
 #### Parameters
 
@@ -3024,7 +3024,7 @@ The configMap parameter can be used to configure the timeout and redirect behavi
 #### Signatures
 
 ```
-POST_multiPart(url, partsMap [, responseContentType])
+POSTMultiPart(url, partsMap [, responseContentType])
 ```
 
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 .file-icon svg {
 	color: var(--solid-black);
 }
@@ -134,7 +133,7 @@
 
 #files-table th[data-icon-col]     { width: 16px; }
 #files-table th.with-search-icon[data-icon-col] { width: 40px; }
-#files-table th[data-name-col]     { width: calc(100% - (24px + 3rem + 5% + 14rem + 14rem + 5% + 10% + 10%)); }
+#files-table th[data-name-col]     { width: calc(100% - (24px + 3rem + 5% + 14rem + 14rem + 5% + 10% + 10%)); padding-left: 2rem; }
 #files-table th[data-export-col]   { width: 3rem; }
 #files-table th[data-uuid-col]     { width: 5%; }
 #files-table th[data-created-col]  { width: 12rem; }
@@ -176,7 +175,6 @@
 }
 
 #files-table {
-	table-layout: fixed;
 	margin-bottom: 1rem;
 }
 
@@ -198,13 +196,19 @@
 
 #files-table th:first-of-type,
 #files-table td:first-of-type {
-    padding-left: 1rem;
+    padding-left: .5rem;
+	padding-right: .5rem;
 }
 #files-table th,
 #files-table td {
 	padding-right: 1.5rem;
 }
 
+#files-table input.new-name {
+	margin-left: 2rem;
+	padding: 0;
+	width: 100%;
+}
 
 #files-table tbody tr td .editable {
 	min-width: 100px;

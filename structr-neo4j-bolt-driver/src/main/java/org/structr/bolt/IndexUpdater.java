@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -59,12 +59,20 @@ public abstract class IndexUpdater {
 
 			// 1. fetch existing indexes
 			final Map<String, ExistingIndexInfo> existingIndexes = getExistingIndexes();
+			final int existingIndexCount = existingIndexes.size();
 
 			// 2. create indexes that don't exist and reduce list so that indexes to drop remain
-			createIndexes(indexesToBeCreated, existingIndexes);
+			final int newIndexCount = createIndexes(indexesToBeCreated, existingIndexes);
 
 			// 3. drop indexes that exist but are not to be created
-			dropIndexes(existingIndexes);
+			final int droppedIndexCount = dropIndexes(existingIndexes);
+
+			if (newIndexCount > 0 || droppedIndexCount > 0) {
+
+				logger.info("Found {} existing indexes", existingIndexCount);
+				logger.info("Created {} new indexes", newIndexCount);
+				logger.info("Dropped {} indexes", droppedIndexCount);
+			}
 
 		} finally {
 
@@ -99,12 +107,10 @@ public abstract class IndexUpdater {
 			tx.success();
 		}
 
-		logger.info("Found {} existing indexes", existingIndexes.size());
-
 		return existingIndexes;
 	}
 
-	private void createIndexes(final List<NewIndexConfig> newIndexes, final Map<String, ExistingIndexInfo> existingIndexes) {
+	private int createIndexes(final List<NewIndexConfig> newIndexes, final Map<String, ExistingIndexInfo> existingIndexes) {
 
 		int newIndexCount = 0;
 
@@ -134,10 +140,10 @@ public abstract class IndexUpdater {
 			tx.success();
 		}
 
-		logger.info("Created {} new indexes", newIndexCount);
+		return newIndexCount;
 	}
 
-	private void dropIndexes(final Map<String, ExistingIndexInfo> existingIndexes) {
+	private int dropIndexes(final Map<String, ExistingIndexInfo> existingIndexes) {
 
 		try (final Transaction tx = db.beginTx()) {
 
@@ -150,6 +156,6 @@ public abstract class IndexUpdater {
 			tx.success();
 		}
 
-		logger.info("Dropped {} indexes", existingIndexes.size());
+		return existingIndexes.size();
 	}
 }

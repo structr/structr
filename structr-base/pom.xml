@@ -348,6 +348,29 @@
             <groupId>org.antlr</groupId>
             <artifactId>antlr4-runtime</artifactId>
         </dependency>
+        <!-- Storage Provider -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>netty-nio-client</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>apache-client</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>url-connection-client</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>netty-nio-client</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.eclipse.elk</groupId>
             <artifactId>org.eclipse.elk.core</artifactId>
@@ -389,11 +412,6 @@
         <dependency>
             <groupId>org.eclipse.elk</groupId>
             <artifactId>org.eclipse.elk.alg.disco</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.shredzone.acme4j</groupId>
-            <artifactId>acme4j-client</artifactId>
-            <version>3.4.0</version>
         </dependency>
         <dependency>
             <groupId>org.shredzone.acme4j</groupId>
@@ -627,7 +645,7 @@
             <name>GNU Affero General Public License, Version 3</name>
             <url>http://www.gnu.org/licenses/agpl-3.0-standalone.html</url>
             <comments>
-                Copyright (C) 2010-2025 Structr GmbH
+                Copyright (C) 2010-2026 Structr GmbH
 
                 This file is part of Structr &lt;http://structr.org&gt;.
 

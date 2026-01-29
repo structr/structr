@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -36,7 +36,7 @@ public class MailAddHeaderFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getName() {
-		return "mail_add_header";
+		return "mailAddHeader";
 	}
 
 	@Override
@@ -68,7 +68,7 @@ public class MailAddHeaderFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mail_add_header(name, value)}"),
+			Usage.structrScript("Usage: ${mailAddHeader(name, value)}"),
 			Usage.javaScript("Usage: ${{ $.mailAddHeader(name, value) }}")
 		);
 	}
@@ -81,9 +81,9 @@ public class MailAddHeaderFunction extends AdvancedMailModuleFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-			Email headers (according to RFC 822) must contain only US-ASCII characters. A header that contains non US-ASCII characters must be encoded as per the rules of RFC 2047 (see `mail_encode_text()`).
+			Email headers (according to RFC 822) must contain only US-ASCII characters. A header that contains non US-ASCII characters must be encoded as per the rules of RFC 2047 (see `mailEncodeText()`).
 
-			Adding a non-compliant header will result in an error upon calling the `mail_send()` function.
+			Adding a non-compliant header will result in an error upon calling the `mailSend()` function.
 			""";
 	}
 
@@ -105,8 +105,8 @@ public class MailAddHeaderFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${mail_add_header('X-Mailer', 'Structr')}", "US-ASCII only header"),
-				Example.structrScript("${mail_add_header('X-Mailer', mail_encode_text('Umlaut Mail Dämon'))}", "Encoded header with non US-ASCII characters")
+				Example.structrScript("${mailAddHeader('X-Mailer', 'Structr')}", "US-ASCII only header"),
+				Example.structrScript("${mailAddHeader('X-Mailer', mailEncodeText('Umlaut Mail Dämon'))}", "Encoded header with non US-ASCII characters")
 		);
 	}
 }

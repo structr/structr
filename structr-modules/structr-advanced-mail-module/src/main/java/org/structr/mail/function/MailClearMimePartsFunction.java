@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -53,7 +53,7 @@ public class MailClearMimePartsFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mailClearMime_parts()}"),
+			Usage.structrScript("Usage: ${mailClearMimeParts()}"),
 			Usage.javaScript("Usage: ${{ $.mailClearMimeParts() }}")
 		);
 	}

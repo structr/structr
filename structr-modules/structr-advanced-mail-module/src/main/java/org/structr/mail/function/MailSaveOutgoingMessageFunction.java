@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -64,7 +64,7 @@ public class MailSaveOutgoingMessageFunction extends AdvancedMailModuleFunction 
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mailSave_outgoing_message(doSave)}"),
+			Usage.structrScript("Usage: ${mailSaveOutgoingMessage(doSave)}"),
 			Usage.javaScript("Usage: ${{ $.mailSaveOutgoingMessage(doSave) }}")
 		);
 	}
@@ -77,9 +77,9 @@ public class MailSaveOutgoingMessageFunction extends AdvancedMailModuleFunction 
 	@Override
 	public String getLongDescription() {
 		return """
-				Configures the Advanced Mail Module that the next invocation of `mail_send()` should save the outgoing email as an `EMailMessage` node.
+				Configures the Advanced Mail Module that the next invocation of `mailSend()` should save the outgoing email as an `EMailMessage` node.
 				Configured attachments are *copied* and attached to the `EMailMessage` node. For attached dynamic files the evaluated result is saved as a static file.
-				After the `mail_send()` command is finished, the outgoing message can be accessed via `mail_get_last_outgoing_message()`.
+				After the `mailSend()` command is finished, the outgoing message can be accessed via `mailGetLastOutgoingMessage()`.
 				""";
 	}
 

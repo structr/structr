@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -36,7 +36,7 @@ public class MailGetErrorFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getName() {
-		return "mail_get_error";
+		return "mailGetError";
 	}
 
 	@Override
@@ -55,7 +55,7 @@ public class MailGetErrorFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mail_get_error()}"),
+			Usage.structrScript("Usage: ${mailGetError()}"),
 			Usage.javaScript("Usage: ${{ $.mailGetError() }}")
 		);
 	}
@@ -76,13 +76,13 @@ public class MailGetErrorFunction extends AdvancedMailModuleFunction {
 				Example.javaScript("""
 						${{
 						
-							$.mail_begin('user@example.com', 'User', 'Test Mail', '<b>HTML</b> message', 'plain text message');
-							$.mail_add_to('another-user@example.com');
-							$.mail_send();
+							$.mailBegin('user@example.com', 'User', 'Test Mail', '<b>HTML</b> message', 'plain text message');
+							$.mailAddTo('another-user@example.com');
+							$.mailSend();
 
-							if ($.mail_has_error()) {
+							if ($.mailHasError()) {
 								// react to error here
-								$.log($.mail_get_error());
+								$.log($.mailGetError());
 							}
 						}}
 						""", "Log the error message when sending a mail failed")

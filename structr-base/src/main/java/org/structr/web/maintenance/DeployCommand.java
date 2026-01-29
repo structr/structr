@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -2314,6 +2314,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					logger.warn("Exception while importing files", ioex);
 				}
+
+				fiv.importMetadataOnlyFolders();
 
 				return fiv.getFileImportProblems();
 			}

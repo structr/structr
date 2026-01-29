@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 document.addEventListener("DOMContentLoaded", () => {
 	Structr.registerModule(_Documentation);
 });
@@ -323,7 +322,7 @@ let _Documentation = {
 		});
 
 		// Make navigation link active and scroll into view
-		waitForElement(`#docs-area nav a[href='#docs:${decodeURI(path)}']`).then(el => {
+		_Helpers.waitForElement(`#docs-area nav a[href='#docs:${decodeURI(path)}']`).then(el => {
 			el.classList.add('active');
 			el.scrollIntoView({ block: "start" });
 		});
@@ -472,9 +471,8 @@ let _Documentation = {
 			</div>`,
 		searchField: config => `
 			<div id="search-field">
-				<svg aria-hidden="true" viewBox="0 0 20 20">
-					<path fill="#555" d="M16.293 17.707a1 1 0 0 0 1.414-1.414l-1.414 1.414ZM9 14a5 5 0 0 1-5-5H2a7 7 0 0 0 7 7v-2ZM4 9a5 5 0 0 1 5-5V2a7 7 0 0 0-7 7h2Zm5-5a5 5 0 0 1 5 5h2a7 7 0 0 0-7-7v2Zm8.707 12.293-3.757-3.757-1.414 1.414 3.757 3.757 1.414-1.414ZM14 9a4.98 4.98 0 0 1-1.464 3.536l1.414 1.414A6.98 6.98 0 0 0 16 9h-2Zm-1.464 3.536A4.98 4.98 0 0 1 9 14v2a6.98 6.98 0 0 0 4.95-2.05l-1.414-1.414Z"></path>
-				</svg>
+				${_Icons.getSvgIcon(_Icons.iconSearch, 20, 20, ['icon-grey', 'absolute', 'left-3', 'top-2'])}
+
 				<input type="text" placeholder="Search docs">
 			</div>
 		`,
@@ -483,9 +481,8 @@ let _Documentation = {
 		searchOverlay: config => `
 			<div id="search-overlay" class="hidden">
 				<div id="search-overlay-dialog">
-					<svg aria-hidden="true" viewbox="0 0 20 20">
-						<path d="M16.293 17.707a1 1 0 0 0 1.414-1.414l-1.414 1.414ZM9 14a5 5 0 0 1-5-5H2a7 7 0 0 0 7 7v-2ZM4 9a5 5 0 0 1 5-5V2a7 7 0 0 0-7 7h2Zm5-5a5 5 0 0 1 5 5h2a7 7 0 0 0-7-7v2Zm8.707 12.293-3.757-3.757-1.414 1.414 3.757 3.757 1.414-1.414ZM14 9a4.98 4.98 0 0 1-1.464 3.536l1.414 1.414A6.98 6.98 0 0 0 16 9h-2Zm-1.464 3.536A4.98 4.98 0 0 1 9 14v2a6.98 6.98 0 0 0 4.95-2.05l-1.414-1.414Z"></path>
-					</svg>
+					${_Icons.getSvgIcon(_Icons.iconSearch, 20, 20, ['icon-black', 'absolute', 'left-3', 'top-2'])}
+
 					<input spellcheck="false" id="overlay-search-field" autocomplete="off" type="search" maxlength="512" placeholder="Search docs" autofocus="autofocus" aria-autocomplete="both" aria-labelledby=":R2dja:-label" data-autofocus="true">
 					<div id="search-results">
 						<ul></ul>

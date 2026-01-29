@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -52,7 +52,7 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 
 	@Override
 	public String getName() {
-		return "POST_multiPart";
+		return "POSTMultiPart";
 	}
 
 	@Override
@@ -180,7 +180,7 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${POST_multiPart(URL, partsMap [, responseContentType])}. Example: ${POST_multiPart('http://localhost:8082/structr/upload', { name: \"Test\", file: first(find(\"AbstractFile\", \"name\", \"TestFile.txt\")) })}"),
+			Usage.structrScript("Usage: ${POSTMultiPart(URL, partsMap [, responseContentType])}. Example: ${POSTMultiPart('http://localhost:8082/structr/upload', { name: \"Test\", file: first(find(\"AbstractFile\", \"name\", \"TestFile.txt\")) })}"),
 			Usage.javaScript("Usage: ${{ $.POSTMultiPart(URL, partsMap[, responseContentType]) }}. Example: ${{ $.POSTMultiPart('http://localhost:8082/structr/rest/folders', { name: \"Test\", file: find(\"AbstractFile\", \"name\", \"TestFile.txt\")[0] }) }}")
 		);
 	}

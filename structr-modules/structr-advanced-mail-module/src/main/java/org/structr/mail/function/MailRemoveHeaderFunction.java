@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -35,7 +35,7 @@ public class MailRemoveHeaderFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getName() {
-		return "mail_remove_header";
+		return "mailRemoveHeader";
 	}
 
 	@Override
@@ -64,7 +64,7 @@ public class MailRemoveHeaderFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mail_remove_header(name)}"),
+			Usage.structrScript("Usage: ${mailRemoveHeader(name)}"),
 			Usage.javaScript("Usage: ${{ $.mailRemoveHeader(name) }}")
 		);
 	}

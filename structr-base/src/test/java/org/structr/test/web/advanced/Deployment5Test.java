@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,6 +20,7 @@ package org.structr.test.web.advanced;
 
 import io.restassured.RestAssured;
 import org.hamcrest.Matchers;
+import org.structr.api.util.ResultStream;
 import org.structr.common.AccessMode;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
@@ -734,6 +735,67 @@ public class Deployment5Test extends DeploymentTestBase {
 
 			final NodeInterface n2 = app.getNodeById(template3UUID);
 			assertEquals("Template node should not be exported if it is in the trash as a child of another node", null, n2);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void test61ContentElementHasNoUselessTextAttributes() {
+
+		try (final Tx tx = app.tx()) {
+
+			final Page page = Page.createNewPage(securityContext,   "test42");
+			final DOMElement html = createElement(page, page, "html");
+			final DOMElement head = createElement(page, html, "head");
+			createElement(page, head, "title", "test42");
+
+			final DOMElement body = createElement(page, html, "body");
+			final DOMElement div1 = createElement(page, body, "div");
+			final DOMElement div2 = createElement(page, body, "div");
+			final DOMElement div3 = createElement(page, body, "div");
+
+			createContent(page,  div1, "my content text");
+			createComment(page,  div2, "my comment text");
+			createTemplate(page, div3, "my template text");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// run deployment
+		compare(calculateHash(), true);
+
+		try (final Tx tx = app.tx()) {
+
+			try (final ResultStream<NodeInterface> results = app.nodeQuery(StructrTraits.CONTENT).getResultStream()) {
+
+				for (NodeInterface content : results) {
+
+					assertFalse("After a deployment, no Content node should have an '_html_#text' attribute!", content.getPropertyContainer().hasProperty("_html_#text"));
+				}
+			}
+
+			try (final ResultStream<NodeInterface> results = app.nodeQuery(StructrTraits.COMMENT).getResultStream()) {
+
+				for (NodeInterface comment : results) {
+
+					assertFalse("After a deployment, no Comment node should have an '_html_#comment' attribute!", comment.getPropertyContainer().hasProperty("_html_#comment"));
+				}
+			}
+
+			try (final ResultStream<NodeInterface> results = app.nodeQuery(StructrTraits.TEMPLATE).getResultStream()) {
+
+				for (NodeInterface template : results) {
+
+					assertFalse("After a deployment, no Template node should have an '_html_src' attribute!", template.getPropertyContainer().hasProperty("_html_src"));
+				}
+			}
 
 			tx.success();
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -7664,6 +7664,111 @@ public class ScriptingTest extends StructrTest {
 
 			assertEquals("123", Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.writeToStore()}"));
 			assertEquals("", Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.clearStoreEntry()}"));
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testContextLockingInNestedCalls() {
+
+		final ActionContext actionContext = new ActionContext(securityContext);
+
+		// schema setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonType serviceClass = schema.addType("T").setIsServiceClass();
+
+			serviceClass.addMethod("t1",
+				"""
+				${{
+					$.log("t1 called");
+					$.T.t2();
+				}}
+				"""
+			);
+
+			serviceClass.addMethod("t2",
+				"""
+				${{
+					$.log("t2 called");
+					$.doInNewTransaction(() => {
+						$.log("t2 doInNewTx func called");
+						$.T.t3();
+					});
+				}}
+				"""
+			);
+
+			serviceClass.addMethod("t3",
+				"""
+				${{
+					$.log("t3 called");
+					$.applicationStore.testResult = "structr123";
+				}}
+				"""
+			);
+
+			StructrSchema.replaceDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+			logger.error("", t);
+			fail("Unexpected exception during test setup.");
+		}
+
+		// test
+		try (final Tx tx = app.tx()) {
+
+			final String result1 = Scripting.evaluate(actionContext, null, "${{$.T.t1(); $.applicationStore.testResult;}}", "test1").toString();
+
+			assertEquals("structr123", result1);
+			tx.success();
+
+		} catch (FrameworkException t) {
+			t.printStackTrace();
+			fail("Unexpected exception during test setup.");
+		}
+	}
+
+	@Test
+	public void testConfigNullValues() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.addType("Test");
+
+			type.addMethod("readConfig", "{ return $.config('testKey', 123); }");
+			type.addMethod("isConfigNull", "{ return ($.config('testKey') === null); }");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final String type        = "Test";
+			final NodeInterface test = app.create(type, "test1");
+
+			assertEquals("true", Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.isConfigNull();}"));
+			assertEquals("123", Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.readConfig();}"));
+			Settings.getOrCreateStringSetting("testKey").setValue("abc");
+			assertEquals("false", Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.isConfigNull();}"));
+			assertEquals("abc", Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.readConfig();}"));
 
 			tx.success();
 

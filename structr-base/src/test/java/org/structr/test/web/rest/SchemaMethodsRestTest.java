@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,6 +19,9 @@
 package org.structr.test.web.rest;
 
 import io.restassured.RestAssured;
+import io.restassured.filter.log.ResponseLoggingFilter;
+import java.util.Set;
+import java.util.function.BiFunction;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeAttribute;
@@ -348,5 +351,120 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 			assertEquals("Wrong token in error response", "already_exists",                                        token.getToken());
 			assertEquals("Wrong detail message in error response", "A view with name 'test' already exists, cannot create method with the same name", token.getDetail());
 		}
+	}
+
+	@Test
+	public void test007AssertFunctionInfoFunctionWorksViaREST() {
+
+		createAdminUser();
+
+		final String testTypeName          = "TestType";
+		final String userDefinedMethodName = "userDefinedMethod";
+		final String staticMethodName      = "staticMethod";
+		final String instanceMethodName    = "instanceMethod";
+
+		final BiFunction<String, String, String> getFunctionBody = (String name, String context) -> """
+		{
+			let info = $.functionInfo();
+			$.assert((info != null),       422, "functionInfo() should not return null in %s '%s'");
+			$.assert((info.name === '%s'), 422, "functionInfo() should return the correct name in %s '%s'");
+		}""".formatted(context, name, name, context, name);
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(StructrTraits.SCHEMA_METHOD,
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),   userDefinedMethodName),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), getFunctionBody.apply(userDefinedMethodName, "user-defined method"))
+			);
+
+			final NodeInterface testType = app.create(StructrTraits.SCHEMA_NODE, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), testTypeName));
+
+			final Set<String> lifecycleMethods = Set.of("onNodeCreation", "onCreate", "afterCreate", "onSave", "afterSave", "onDelete", "afterDelete");
+			for (final String methodName : lifecycleMethods) {
+
+				app.create(StructrTraits.SCHEMA_METHOD,
+						new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),       methodName),
+						new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY),      getFunctionBody.apply(methodName, "lifecycle method")),
+						new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), testType)
+				);
+			}
+
+			app.create(StructrTraits.SCHEMA_METHOD,
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),       staticMethodName),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.IS_STATIC_PROPERTY),   true),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY),      getFunctionBody.apply(staticMethodName, "static method")),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), testType)
+			);
+
+			app.create(StructrTraits.SCHEMA_METHOD,
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),       instanceMethodName),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY),      getFunctionBody.apply(instanceMethodName, "instance method")),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), testType)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test user-defined function
+		RestAssured
+				.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+				.expect()
+				.statusCode(200)
+				.when()
+				.post("/" + userDefinedMethodName);
+
+		// test static method
+		RestAssured
+				.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+				.expect()
+				.statusCode(200)
+				.when()
+				.post("/" + testTypeName + "/" + staticMethodName);
+
+		// test onNodeCreation/onCreate/afterCreate
+		final String uuid = createEntityAsUser(ADMIN_USERNAME, ADMIN_PASSWORD, "/" + testTypeName, "{ name: 'teeest' }");
+
+		// test instance method
+		RestAssured
+				.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+				.expect()
+				.statusCode(200)
+				.when()
+				.post("/" + testTypeName + "/" + uuid + "/" + instanceMethodName);
+
+		// test onSave/afterSave
+		RestAssured
+				.given()
+				.contentType("application/json; charset=UTF-8")
+				.body("{ name: 'newName' }")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+				.expect()
+				.statusCode(200)
+				.when()
+				.put("/" + testTypeName + "/" + uuid);
+
+		// test onDelete/afterDelete
+		RestAssured
+				.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+				.expect()
+				.statusCode(200)
+				.when()
+				.delete("/" + testTypeName + "/" + uuid);
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -322,6 +322,10 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 				logger.warn(uclex.getMessage());
 
 			} catch (Throwable t) {
+
+				if (t instanceof NullPointerException) {
+					t.printStackTrace();
+				}
 
 				if (!(t instanceof SyntaxErrorException) && !(t instanceof AlreadyLoggedAssertException)) {
 

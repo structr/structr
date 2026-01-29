@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -36,7 +36,7 @@ public class MailAddReplyToFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getName() {
-		return "mail_add_reply_to";
+		return "mailAddReplyTo";
 	}
 
 	@Override
@@ -68,7 +68,7 @@ public class MailAddReplyToFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mail_add_reply_to(address [, name])}"),
+			Usage.structrScript("Usage: ${mailAddReplyTo(address [, name])}"),
 			Usage.javaScript("Usage: ${{ $.mailAddReplyTo(address [, name]) }}")
 		);
 	}

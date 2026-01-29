@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -103,7 +103,6 @@ public class Importer {
 
 	}
 
-	private final StringBuilder commentSource    = new StringBuilder();
 	private final SecurityContext securityContext;
 	private final boolean includeInExport;
 	private final boolean publicVisible;
@@ -560,9 +559,6 @@ public class Importer {
 					continue;
 				}
 
-				// store for later use
-				commentSource.append(comment).append("\n");
-
 				// check if comment contains instructions
 				if (commentHandler != null && commentHandler.containsInstructions(comment)) {
 
@@ -575,6 +571,9 @@ public class Importer {
 					instructions = comment;
 					continue;
 				}
+
+				// remove attribute so we don't write it in the database
+				node.removeAttr("#comment");
 
 			} else if (type.equals("#data")) {
 
@@ -609,6 +608,9 @@ public class Importer {
 							continue;
 						}
 					}
+
+					// remove attribute so we don't write it in the database
+					node.removeAttr("#text");
 				}
 			}
 
@@ -650,6 +652,9 @@ public class Importer {
 
 				final String src = node.attr("src");
 				if (src != null) {
+
+					// remove attribute so we don't write it in the database
+					node.removeAttr("src");
 
 					NodeInterface template = null;
 

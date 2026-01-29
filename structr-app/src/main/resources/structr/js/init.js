@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -82,6 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	});
 
 	StructrWS.init();
+	Structr.globalSearch.init();
 
 	document.body.addEventListener('keyup', async (event) => {
 
@@ -129,6 +130,13 @@ document.addEventListener("DOMContentLoaded", () => {
 			event.preventDefault();
 
 			Structr.openPropertiesDialogForUserProvidedUUID();
+		}
+
+		// Ctrl-Alt-o
+		if ((code === 'KeyO' || keyCode === 79) && event.altKey && event.ctrlKey) {
+			event.preventDefault();
+
+			Structr.navigateToDOMElementDialogForUserProvidedUUID();
 		}
 
 		// Ctrl-Alt-m
@@ -193,7 +201,10 @@ let Structr = {
 	},
 	getRequestParameterName: (key) => (Structr.legacyRequestParameters === true) ? key : `_${key}`,
 	setFunctionBarHTML: (html) => _Helpers.setContainerHTML(Structr.functionBar, html),
-	setMainContainerHTML: (html) => _Helpers.setContainerHTML(Structr.mainContainer, html),
+	setMainContainerHTML: (html) => {
+		_Helpers.setContainerHTML(Structr.mainContainer, html);
+		_Helpers.activateCommentsInElement(Structr.mainContainer);
+	},
 
 	moveUIOffscreen: () => {
 
@@ -326,7 +337,7 @@ let Structr = {
 
 		let activeMenuEntry = Structr.mainMenu.getActiveEntry()?.dataset['name'] ?? '';
 		let displayName     = Structr.getInstanceDisplayName();
-		let instance        = (displayName === '') ? '' : ` - ${displayName})`;
+		let instance        = (displayName === '') ? '' : ` - ${displayName}`;
 
 		document.title = `Structr ${activeMenuEntry}${instance}`;
 	},
@@ -662,9 +673,10 @@ let Structr = {
 		return entity;
 	},
 	slideouts: {
-		leftSlideoutTrigger: (triggerEl, slideoutElement, otherSlideouts, openCallback, closeCallback) => {
+		leftSlideoutTrigger: (triggerEl, slideoutElement, allLeftSlideouts, openCallback, closeCallback) => {
 
 			let selectedSlideoutWasOpen = slideoutElement.hasClass('open');
+			let otherSlideouts          = allLeftSlideouts.filter(s => s !== slideoutElement);
 
 			document.querySelector('.column-resizer-left')?.classList.toggle('hidden', selectedSlideoutWasOpen);
 
@@ -711,9 +723,10 @@ let Structr = {
 
 			document.querySelector('.slideout-activator.left.active')?.classList.remove('active');
 		},
-		rightSlideoutClickTrigger: (triggerEl, slideoutElement, otherSlideouts, openCallback, closeCallback) => {
+		rightSlideoutClickTrigger: (triggerEl, slideoutElement, allRightSlideouts, openCallback, closeCallback) => {
 
 			let selectedSlideoutWasOpen = slideoutElement.hasClass('open');
+			let otherSlideouts          = allRightSlideouts.filter(s => s !== slideoutElement);
 
 			document.querySelector('.column-resizer-right')?.classList.toggle('hidden', selectedSlideoutWasOpen);
 
@@ -1554,7 +1567,6 @@ let Structr = {
 								builder.specialInteractionButton(`Go to code`, () => {
 
 									_Code.helpers.navigateToSchemaObjectFromAnywhere(obj);
-
 								});
 
 							} else {
@@ -1575,15 +1587,14 @@ let Structr = {
 									}
 
 									_Pages.openAndSelectTreeObjectById(obj.id);
-
 								});
 							}
 
-							// show message
 							builder.show();
 						});
 
 					} else {
+
 						new WarningMessage().title('Server-side Scripting Error').text(getLocationTable(data)).requiresConfirmation().show();
 					}
 				}
@@ -1862,6 +1873,16 @@ let Structr = {
 			}
 		});
 	},
+	navigateToDOMElementDialogForUserProvidedUUID: () => {
+
+		_Dialogs.readUUIDFromUser.showPromise('Enter the UUID of the DOM element which you want to select.<br>The pages section and the appropriate elements will be loaded.').then(uuid => {
+			_Pages.selectAndShowArbitraryDOMElement(uuid);
+		}).catch(e => {
+			if (typeof e !== 'string') {
+				console.warn(e);
+			}
+		});
+	},
 	openEditorDialogForUserProvidedUUID: () => {
 
 		_Dialogs.readUUIDFromUser.showPromise('Enter the UUID for which you want to open the content/template edit dialog', async (uuid) => {
@@ -1897,6 +1918,139 @@ let Structr = {
 		});
 	},
 
+	globalSearch: {
+		init: () => {
+
+			let form        = document.querySelector('#global-search-node-form');
+			let searchField = form.querySelector('[name="queryString"]');
+
+			form.addEventListener('submit', e => {
+				e.preventDefault();
+
+				Structr.globalSearch.doSearch();
+			});
+
+			searchField.addEventListener('input', _Helpers.debounce(Structr.globalSearch.doSearch, 300));
+
+			searchField.addEventListener('search', () => {
+				if (searchField.value === '') {
+					Structr.globalSearch.clear();
+				}
+			});
+
+			for (let checkbox of form.querySelectorAll('input[type="checkbox"]')) {
+				checkbox.addEventListener('change', Structr.globalSearch.doSearch);
+			}
+		},
+		clear: () => {
+
+			let resultsElement = document.querySelector('#global-search-results');
+			for (let oldResult of resultsElement.querySelectorAll('[data-id]')) {
+				_Helpers.fastRemoveElement(oldResult);
+			}
+		},
+		doSearch: async () => {
+
+			let form = document.querySelector('#global-search-node-form');
+			let data = Structr.globalSearch.getBasicFormData(form);
+
+			Structr.globalSearch.clear();
+
+			if (data.queryString.length > 0) {
+
+				let results        = await Command.searchNodes(data);
+				let resultsElement = document.querySelector('#global-search-results tbody');
+
+				for (let result of results) {
+
+					for (let key of result.keys) {
+
+						let el = _Helpers.createSingleDOMElementFromHTML(Structr.globalSearch.templates.result(result, key));
+
+						resultsElement.appendChild(el);
+
+						el.addEventListener('click', () => {
+							Structr.globalSearch.goTo(result, key, data);
+						});
+					}
+				}
+			}
+		},
+		goTo: (result, key, searchData) => {
+
+			if (result.isDOMElement) {
+
+				_Pages.search.goTo(result, key, searchData);
+
+			} else if (result.isSchemaElement) {
+
+				_Code.search.goToResult(result, key, searchData);
+
+			} else {
+				console.log('not yet implemented to jump to: ', result);
+			}
+		},
+		getBasicFormData: (form) => {
+
+			let data = {};
+
+			for (let el of form.elements) {
+				switch(el.type) {
+					case 'checkbox':
+						data[el.name] = el.checked;
+						break;
+					default:
+						data[el.name] = el.value;
+						break;
+				}
+			}
+
+			return data;
+		},
+		templates: {
+			popover: config => `
+				<div popover id="global-search-popover" class="direction-rtl overflow-hidden rounded">
+					<!-- dir=rtl shows the resize element in the bottom left corner, afterwards we set dir=ltr again -->
+					<div id="global-search-popover-inner" class="overflow-auto h-full direction-ltr">
+				
+						<div class="overflow-y-auto max-h-full h-full">
+							<div class="mx-4 my-4">
+								<form id="global-search-node-form" class="flex flex-col gap-2">
+									<div class="flex gap-2">
+										<input class="global-search-input" type="search" name="queryString" required placeholder="Search across selected areas..." autocomplete="off" autofocus>
+									</div>
+									<div class="flex gap-8">
+										<label class="flex items-center"><input type="checkbox" checked name="searchDOM">Page Elements</label>
+										<label class="flex items-center"><input type="checkbox" checked name="searchSchema">Schema/Code</label>
+										<!--	<label class="flex items-center"><input type="checkbox" checked name="searchFlow">Flow Nodes</label>-->
+									</div>
+								</form>
+		
+								<table id="global-search-results">
+									<thead>
+										<tr>
+											<th class="min-w-12">Name/Type</th>
+											<th class="min-w-8">Attribute Key</th>
+											<th class="min-w-4 max-w-12">ID</th>
+										</tr>
+									</thead>
+									<tbody></tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+				</div>
+			`,
+			result: (result, key) => `
+				<tr class="cursor-pointer" data-id="${result.id}" data-key="${key}">
+					<td class="min-w-12 break-word">${result.name ? `${result.name} [${result.type}]` : result.type}</td>
+					<td class="min-w-8 whitespace-nowrap break-word">${key}</td>
+					<td class="min-w-4 max-w-12 truncate">${result.id}</td>
+				</tr>
+			`
+		}
+	},
+
 	/* basically only exists to get rid of repeating strings. is also used to filter out internal keys from dialogs */
 	internalKeys: {
 		name: 'name',
@@ -1912,7 +2066,8 @@ let Structr = {
 	templates: {
 		mainBody: config => `
 
-			<div class="structr-version text-gray-999 text-xs absolute bottom-2 right-8 z-1"></div>
+			<div class="structr-version text-gray-999 text-xs absolute bottom-2 right-8 z-100"></div>
+
 			<div id="info-area">
 				<div id="close-all-button" class="mt-4 mb-2 mx-2 text-right">
 					<button class="confirm hover:border-gray-666 bg-white mr-0">Close All</button>
@@ -1958,14 +2113,29 @@ let Structr = {
 					</div>
 				</div>
 
-				<div class="flex gap-4 ml-2 mr-6">
+				<div class="flex gap-4 items-center mr-6">
 
-					<a target="_blank" href="${_Helpers.getPrefixedRootUrl('/structr/config')}">${_Icons.getSvgIconWithID('settings-icon', _Icons.iconSettingsWrench, 20,20,_Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1.5']), 'System Settings')}</a>
+					<div style="target-name: --global-search;">
+					
+						<button class="m-0 p-0 border-0 bg-transparent" popovertarget="global-search-popover" style="anchor-name: --global-search;">
+							${_Icons.getSvgIcon(_Icons.iconSearch, 24, 24, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), 'Global Search')}
+						</button>
 
-					${_Icons.getSvgIconWithID('terminal-icon', _Icons.iconTerminal, 26,26,_Icons.getSvgIconClassesForColoredIcon(['text-white']), 'Toggle Console')}
+						${Structr.globalSearch.templates.popover(config)}
+					</div>
+
+					<div>
+						<a target="_blank" href="${_Helpers.getPrefixedRootUrl('/structr/config')}">
+							${_Icons.getSvgIconWithID('settings-icon', _Icons.iconSettingsWrench, 20,20, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), 'System Settings')}
+						</a>
+					</div>
+
+					<div>
+						${_Icons.getSvgIconWithID('terminal-icon', _Icons.iconTerminal, 26,26, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), 'Toggle Console')}
+					</div>
 
 					<div id="${Structr.notificationIconId}" class="relative">
-						${_Icons.getSvgIcon(_Icons.iconNotificationBell, 20,20,_Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), 'Show notifications')}
+						${_Icons.getSvgIcon(_Icons.iconNotificationBell, 20,20, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), 'Show notifications')}
 						<div class="absolute flex items-center rounded-full h-4 -top-1 -right-3 text-white bg-red">
 							<div data-notification-count class="px-2 text-xs empty:hidden"></div>
 						</div>

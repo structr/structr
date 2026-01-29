@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -123,6 +123,10 @@ public class Settings {
 	public static final Setting<String> FilesPath                      = new StringSetting(generalGroup,             "Paths",       "files.path",                            System.getProperty("user.dir").concat(File.separator + "files"), "Path to the Structr file storage folder");
 	public static final Setting<String> ChangelogPath                  = new StringSetting(generalGroup,             "Paths",       "changelog.path",                        System.getProperty("user.dir").concat(File.separator + "changelog"), "Path to the Structr changelog storage folder");
 	public static final Setting<String> DataExchangePath               = new StringSetting(generalGroup,             "Paths",       "data.exchange.path",                    "exchange" + File.separator, "IMPORTANT: Path is relative to base.path");
+	public static final Setting<String> ScriptsPath                    = new StringSetting(generalGroup,             "Paths",       "scripts.path",                          "scripts", "Path to the Structr scripts folder. IMPORTANT: Path is relative to base.path");
+
+	public static final Setting<Boolean> AllowSymbolicLinksInScriptPaths = new BooleanSetting(generalGroup,          "Scripts",     "scripts.path.allowsymboliclinks",       false, "Setting to true disables an additional check that disallows symbolic links in script paths.");
+	public static final Setting<Boolean> AllowPathTraversalInScriptPaths = new BooleanSetting(generalGroup,          "Scripts",     "scripts.path.allowpathtraversal",       false, "Setting to true disables an additional check that disallows path traversals (.. in path).");
 
 	public static final Setting<String> LogLevel                       = new ChoiceSetting(generalGroup,             "Logging",     "log.level",                             "INFO", Settings.getAvailableLogLevels(), "Configures the default log level. Takes effect immediately.");
 	public static final Setting<Integer> QueryTimeLoggingThreshold     = new IntegerSetting(generalGroup,            "Logging",     "log.querytime.threshold",               3000, "Milliseconds after which a long-running query will be logged.");
@@ -789,12 +793,14 @@ public class Settings {
 			}
 
 			final PropertiesConfiguration config = builder.getConfiguration();
-			final FileHandler fileHandler        = builder.getFileHandler();
+
+			// clear data loaded from disk, so we can delete keys
+			config.clear();
 
 			for (final Setting setting : settings.values()) {
 
-				// store only modified settings and the superuser password
-				if (setting.isModified() || "superuser.password".equals(setting.getKey())) {
+				// store only modified/dynamic settings and the superuser password
+				if (setting.isModified() || setting.isDynamic() || "superuser.password".equals(setting.getKey())) {
 
 					config.setProperty(setting.getKey(), setting.getValue());
 
@@ -802,14 +808,15 @@ public class Settings {
 				}
 			}
 
-			final long freeSpace = fileHandler.getFile().getFreeSpace();
+			final FileHandler fileHandler = builder.getFileHandler();
+			final long freeSpace          = fileHandler.getFile().getFreeSpace();
 
 			if (freeSpace < 1024 * 1024){
 				logger.error("Refusing to start with less than 1 MB of disk space.");
 				System.exit(1);
 			}
 
-			fileHandler.save();
+			builder.save();
 
 			checkConfigurationFilePermissions(builder, warnForNotRecommendedPermissions);
 

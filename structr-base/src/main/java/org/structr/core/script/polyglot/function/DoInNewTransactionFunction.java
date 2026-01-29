@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -61,15 +61,26 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 
 			ContextFactory.LockedContext lockedContext = null;
 
+			boolean shouldRestoreLock = false;
+
 			try {
 
 				lockedContext = ContextFactory.getContext("js", actionContext, entity);
 
+				// When function is called, lock is already acquired. Unlock for inner context and lock after.
 				lockedContext.getLock().lock();
 				try {
 					lockedContext.getContext().leave();
+				} catch (IllegalStateException e) {
+					logger.error("Could not leave locked context", e);
 				} finally {
 					lockedContext.getLock().unlock();
+				}
+
+				// If lock is held by current thread through previous lock call, unlock it for the worker thread
+				if (lockedContext.getLock().isHeldByCurrentThread()) {
+					lockedContext.getLock().unlock();
+					shouldRestoreLock = true;
 				}
 
 				final Thread workerThread = new Thread(() -> {
@@ -169,12 +180,20 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 
 				workerThread.start();
 
+				try {
+					workerThread.join();
+				} catch (InterruptedException ex) {
+					logger.warn("Thread was interrupted - breaking out of doInNewTransaction() worker thread.");
+				}
+
 			} catch (FrameworkException ex) {
 
 				logger.error("Exception in DoInNewTransactionFunction.", ex);
 
 			} finally {
 
+
+				// Lock and enter context again after inner worker thread is done
 				if (lockedContext != null) {
 
 					lockedContext.getLock().lock();
@@ -182,6 +201,11 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 						lockedContext.getContext().enter();
 					} finally {
 						lockedContext.getLock().unlock();
+					}
+
+					// Restore lock condition to match the state at the beginning of the function call.
+					if (shouldRestoreLock)	{
+						lockedContext.getLock().lock();
 					}
 				}
 			}

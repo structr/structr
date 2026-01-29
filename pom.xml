@@ -597,6 +597,31 @@
 				<artifactId>antlr4-runtime</artifactId>
 				<version>4.9.3</version>
 			</dependency>
+			<!-- Storage Provider -->
+			<dependency>
+				<groupId>software.amazon.awssdk</groupId>
+				<artifactId>s3</artifactId>
+				<version>2.41.14</version>
+				<exclusions>
+					<exclusion>
+						<groupId>software.amazon.awssdk</groupId>
+						<artifactId>netty-nio-client</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>software.amazon.awssdk</groupId>
+						<artifactId>apache-client</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>software.amazon.awssdk</groupId>
+						<artifactId>url-connection-client</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>software.amazon.awssdk</groupId>
+				<artifactId>netty-nio-client</artifactId>
+				<version>2.41.14</version>
+			</dependency>
 			<dependency>
 				<groupId>org.eclipse.elk</groupId>
 				<artifactId>org.eclipse.elk.core</artifactId>
@@ -718,7 +743,7 @@
 						<java>SLASHSTAR_STYLE</java>
 					</mapping>
 					<properties>
-						<year>2025</year>
+						<year>2026</year>
 						<owner>Structr GmbH</owner>
 					</properties>
 				</configuration>

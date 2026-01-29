@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -96,87 +96,79 @@ public abstract class AbstractMethod {
 
 						// Important: getContext is called with allowEntityOverride=false to prevent entity automatically being overridden in the case of an existent context
 						final ContextFactory.LockedContext lockedContext = ContextFactory.getContext(engineName, actionContext, entity, false);
-						lockedContext.getLock().lock();
-						try {
 
-							final Context context = lockedContext.getContext();
-							final SecurityContext securityContext = actionContext.getSecurityContext();
-							final Value bindings = context.getBindings(engineName).getMember("Structr");
-							final StructrBinding binding = bindings.asProxyObject();
-							final GraphObject previousEntity = binding.getEntity();
-							final ActionContext previousContext = binding.getActionContext();
-							final Value previousMethodParameters = binding.getMethodParameters();
-							final Map<String, Object> tmp = securityContext.getContextStore().getTemporaryParameters();
-							Locale effectiveLocale = actionContext.getLocale();
+                        final Context context = lockedContext.getContext();
+                        final SecurityContext securityContext = actionContext.getSecurityContext();
+                        final Value bindings = context.getBindings(engineName).getMember("Structr");
+                        final StructrBinding binding = bindings.asProxyObject();
+                        final GraphObject previousEntity = binding.getEntity();
+                        final ActionContext previousContext = binding.getActionContext();
+                        final Value previousMethodParameters = binding.getMethodParameters();
+                        final Map<String, Object> tmp = securityContext.getContextStore().getTemporaryParameters();
+                        Locale effectiveLocale = actionContext.getLocale();
 
-							ActionContext inner = null;
-							try {
+                        ActionContext inner = null;
+                        try {
 
-								final Arguments args = NamedArguments.fromValues(actionContext, arguments);
-								final Arguments converted = checkAndConvertArguments(securityContext, args, true);
-								inner = new ActionContext(securityContext, converted.toMap());
-								inner.setLocale(effectiveLocale);
+                            final Arguments args = NamedArguments.fromValues(actionContext, arguments);
+                            final Arguments converted = checkAndConvertArguments(securityContext, args, true);
+                            inner = new ActionContext(securityContext, converted.toMap());
+                            inner.setLocale(effectiveLocale);
 
-								inner.setScriptingContexts(actionContext.getScriptingContexts());
+                            inner.setScriptingContexts(actionContext.getScriptingContexts());
 
-								if (arguments.length == 1) {
-									binding.setMethodParameters(arguments[0]);
-								}
+                            if (arguments.length == 1) {
+                                binding.setMethodParameters(arguments[0]);
+                            }
 
-								binding.setEntity(entity);
-								binding.setActionContext(inner);
+                            binding.setEntity(entity);
+                            binding.setActionContext(inner);
 
-								// store current AbstractMethod object in ActionContext
-								inner.setCurrentMethod(this);
+                            // store current AbstractMethod object in ActionContext
+                            inner.setCurrentMethod(this);
 
-								// Context reference count handling
-								ContextHelper.incrementReferenceCount(context);
-								context.enter();
+                            // Context reference count handling
+                            ContextHelper.incrementReferenceCount(context);
 
-								final Value result = Scripting.evaluatePolyglot(inner, engineName, context, entity, snippet);
+                            final Value result = Scripting.evaluatePolyglot(inner, engineName, context, entity, snippet);
 
-								// Context reference count handling
-								context.leave();
-								ContextHelper.decrementReferenceCount(context);
+                            // Context reference count handling
+                            ContextHelper.decrementReferenceCount(context);
 
-								if (ContextHelper.getReferenceCount(context) <= 0) {
+                            if (ContextHelper.getReferenceCount(context) <= 0) {
 
-									context.close();
-									actionContext.putScriptingContext(engineName, null);
-								}
+                                context.close();
+                                actionContext.putScriptingContext(engineName, null);
+                            }
 
-								effectiveLocale = inner.getLocale();
+                            effectiveLocale = inner.getLocale();
 
-								return result;
+                            return result;
 
-							} catch (IllegalArgumentTypeException iaex) {
+                        } catch (IllegalArgumentTypeException iaex) {
 
-								iaex.printStackTrace();
+                            iaex.printStackTrace();
 
-								throwIllegalArgumentExceptionForMapBasedArguments();
+                            throwIllegalArgumentExceptionForMapBasedArguments();
 
-							} finally {
+                        } finally {
 
-								// pass on error tokens
-								if (inner != null && inner.hasError()) {
-									for (ErrorToken token : inner.getErrorBuffer().getErrorTokens()) {
-										actionContext.getErrorBuffer().add(token);
-									}
-								}
+                            // pass on error tokens
+                            if (inner != null && inner.hasError()) {
+                                for (ErrorToken token : inner.getErrorBuffer().getErrorTokens()) {
+                                    actionContext.getErrorBuffer().add(token);
+                                }
+                            }
 
-								// restore state before this method call
-								binding.setEntity(previousEntity);
-								binding.setActionContext(previousContext);
-								binding.setMethodParameters(previousMethodParameters);
-								securityContext.getContextStore().setTemporaryParameters(tmp);
-								// take over inner locale, in case it changed
-								actionContext.setLocale(effectiveLocale);
-							}
-						} finally {
-
-							lockedContext.getLock().unlock();
-						}
-					}
+                            // restore state before this method call
+                            binding.setEntity(previousEntity);
+                            binding.setActionContext(previousContext);
+                            binding.setMethodParameters(previousMethodParameters);
+                            securityContext.getContextStore().setTemporaryParameters(tmp);
+                            // take over inner locale, in case it changed
+                            actionContext.setLocale(effectiveLocale);
+                        }
+                    }
 				}
 
 				// fallback => normal scripting

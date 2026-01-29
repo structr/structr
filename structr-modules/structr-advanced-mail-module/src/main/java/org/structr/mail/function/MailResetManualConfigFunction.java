@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -61,7 +61,7 @@ public class MailResetManualConfigFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${ mailResetManual_config() }"),
+			Usage.structrScript("Usage: ${ mailResetManualConfig() }"),
 			Usage.javaScript("Usage: ${{ $.mailResetManualConfig() }}")
 		);
 	}
@@ -73,6 +73,6 @@ public class MailResetManualConfigFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "This function removes the configuration change made by using the `mail_set_manual_config(...)`.";
+		return "This function removes the configuration change made by using the `mailSetManualConfig(...)`.";
 	}
 }

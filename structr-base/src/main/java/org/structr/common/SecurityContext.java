@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -80,21 +80,32 @@ public class SecurityContext {
 	private int serializationDepth                        = -1;
 
 
-	private final Map<String, QueryRange> ranges   = new ConcurrentHashMap<>();
-	private final Map<String, Object> attrs        = new ConcurrentHashMap<>();
-	private AccessMode accessMode                  = AccessMode.Frontend;
-	private final List<Object> creationDetails     = new LinkedList<>();
-	private Authenticator authenticator            = null;
-	private Principal cachedUser                   = null;
-	private HttpServletRequest request             = null;
-	private HttpServletResponse response           = null;
-	private Set<String> customView                 = null;
-	private String cachedUserName                  = null;
-	private String cachedUserId                    = null;
-	private String sessionId                       = null;
-	private ContextStore contextStore              = null;
+	private final Map<String, List<String>> requestParameters = new LinkedHashMap<>();
+	private final Map<String, List<String>> requestHeaders    = new LinkedHashMap<>();
+	private final Map<String, QueryRange> ranges              = new ConcurrentHashMap<>();
+	private final Map<String, Object> attrs                   = new ConcurrentHashMap<>();
+	private AccessMode accessMode                             = AccessMode.Frontend;
+	private final List<Object> creationDetails                = new LinkedList<>();
+	private Authenticator authenticator                       = null;
+	private Principal cachedUser                              = null;
+	private HttpServletRequest internalRequest                = null;
+	private HttpServletResponse response                      = null;
+	private Set<String> customView                            = null;
+	private String cachedUserName                             = null;
+	private String cachedUserId                               = null;
+	private String sessionId                                  = null;
+	private String requestScheme                              = null;
+	private String requestServerName                          = null;
+	private int requestServerPort                             = -1;
+	private String requestContextPath                         = null;
+	private String requestServletPath                         = null;
+	private String requestURI                                 = null;
+	private String requestQueryString                         = null;
+	private ContextStore contextStore                         = null;
+	private Locale effectiveLocale;
 
 	private SecurityContext() {
+		determineEffectiveLocale(null);
 	}
 
 	/*
@@ -104,6 +115,9 @@ public class SecurityContext {
 
 		this.cachedUser     = user;
 		this.accessMode     = accessMode;
+
+		// request can be null
+		determineEffectiveLocale(null);
 	}
 
 	/*
@@ -115,134 +129,173 @@ public class SecurityContext {
 
 		this.cachedUser = user;
 		this.accessMode = accessMode;
+
+		// request can be null
+		determineEffectiveLocale(request);
 	}
 
 	private SecurityContext(final HttpServletRequest request) {
 
-		this.request = request;
+		this.internalRequest = request;
 
-		initializeCustomView(request);
-		initializeQueryRanges(request);
-		initializeHttpParameters(request);
+		if (request != null) {
+
+			initializeRequestInfos(request);
+			initializeCustomView(request);
+			initializeQueryRanges(request);
+			initializeHttpParameters(request);
+		}
+
+		// request can be null
+		determineEffectiveLocale(request);
+	}
+
+	private void initializeRequestInfos(final HttpServletRequest request) {
+
+		// initialize request parameters
+		this.requestParameters.clear();
+
+		for (final Map.Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
+
+			this.requestParameters.put(entry.getKey(), Arrays.asList(entry.getValue()));
+		}
+
+		// initialize request headers
+		this.requestHeaders.clear();
+
+		final Enumeration<String> headerNames = request.getHeaderNames();
+		if (headerNames != null) {
+
+			for (final String headerName : Collections.list(headerNames)) {
+
+				final Enumeration<String> headerValues = request.getHeaders(headerName);
+				if (headerValues != null) {
+
+					this.requestHeaders.put(headerName, Collections.list(headerValues));
+				}
+			}
+		}
+
+		requestScheme      = request.getScheme();
+		requestServerName  = request.getServerName();
+		requestServerPort  = request.getServerPort();
+		requestContextPath = request.getContextPath();
+		requestServletPath = request.getServletPath();
+		requestURI         = request.getRequestURI();
+		requestQueryString = request.getQueryString();
+
+		determineEffectiveLocale(request);
 	}
 
 	private void initializeHttpParameters(final HttpServletRequest request) {
 
-		if (request != null) {
+		if ("true".equals(request.getHeader("Structr-Return-Details-For-Created-Objects"))) {
+			this.returnDetailedCreationResults = true;
+		}
 
-			if ("true".equals(request.getHeader("Structr-Return-Details-For-Created-Objects"))) {
-				this.returnDetailedCreationResults = true;
-			}
+		if ("disabled".equals(request.getHeader("Structr-Websocket-Broadcast"))) {
+			this.doTransactionNotifications = false;
+		}
 
-			if ("disabled".equals(request.getHeader("Structr-Websocket-Broadcast"))) {
-				this.doTransactionNotifications = false;
-			}
+		if ("enabled".equals(request.getHeader("Structr-Websocket-Broadcast"))) {
+			this.doTransactionNotifications = true;
+		}
 
-			if ("enabled".equals(request.getHeader("Structr-Websocket-Broadcast"))) {
-				this.doTransactionNotifications = true;
-			}
+		if ("disabled".equals(request.getHeader("Structr-Cascading-Delete"))) {
+			this.doCascadingDelete = false;
+		}
 
-			if ("disabled".equals(request.getHeader("Structr-Cascading-Delete"))) {
-				this.doCascadingDelete = false;
-			}
+		if ("enabled".equals(request.getHeader("Structr-Force-Merge-Of-Nested-Properties"))) {
+			this.forceMergeOfNestedProperties = true;
+		}
 
-			if ("enabled".equals(request.getHeader("Structr-Force-Merge-Of-Nested-Properties"))) {
-				this.forceMergeOfNestedProperties = true;
-			}
+		if (request.getParameter(RequestKeywords.ForceResultCount.keyword()) != null) {
+			this.forceResultCount = true;
+		}
 
-			if (request.getParameter(RequestKeywords.ForceResultCount.keyword()) != null) {
-				this.forceResultCount = true;
-			}
+		if (request.getParameter(RequestKeywords.DisableSoftLimit.keyword()) != null) {
+			this.disableSoftLimit = true;
+		}
 
-			if (request.getParameter(RequestKeywords.DisableSoftLimit.keyword()) != null) {
-				this.disableSoftLimit = true;
-			}
-
-			if (request.getParameter(RequestKeywords.ParallelizeJsonOutput.keyword()) != null) {
-				this.doMultiThreadedJsonOutput = true;
-			}
+		if (request.getParameter(RequestKeywords.ParallelizeJsonOutput.keyword()) != null) {
+			this.doMultiThreadedJsonOutput = true;
 		}
 	}
 
 	private void initializeCustomView(final HttpServletRequest request) {
 
 		// check for custom view attributes
-		if (request != null) {
 
-			try {
-				final String acceptedContentType = request.getHeader("Accept");
-				final Matcher matcher            = customViewPattern.matcher(acceptedContentType);
+		try {
+			final String acceptedContentType = request.getHeader("Accept");
+			final Matcher matcher            = customViewPattern.matcher(acceptedContentType);
 
-				if (matcher.matches()) {
+			if (matcher.matches()) {
 
-					customView = new LinkedHashSet<>();
+				customView = new LinkedHashSet<>();
 
-					final String properties = matcher.group(1);
-					final String[] parts    = StringUtils.split(properties, ",");
+				final String properties = matcher.group(1);
+				final String[] parts    = StringUtils.split(properties, ",");
 
-					for (final String part : parts) {
+				for (final String part : parts) {
 
-						final String p = part.trim();
-						if (p.length() > 0) {
+					final String p = part.trim();
+					if (p.length() > 0) {
 
-							customView.add(p);
-						}
+						customView.add(p);
 					}
 				}
-
-			} catch (Throwable ignore) {
 			}
+
+		} catch (Throwable ignore) {
 		}
 	}
 
 	private void initializeQueryRanges(final HttpServletRequest request) {
 
-		if (request != null) {
+		final String rangeSource = request.getHeader("Range");
+		if (rangeSource != null) {
 
-			final String rangeSource = request.getHeader("Range");
-			if (rangeSource != null) {
+			final String[] rangeParts = StringUtils.split(rangeSource, ";");
+			final int rangeCount      = rangeParts.length;
 
-				final String[] rangeParts = StringUtils.split(rangeSource, ";");
-				final int rangeCount      = rangeParts.length;
+			for (int i = 0; i < rangeCount; i++) {
 
-				for (int i = 0; i < rangeCount; i++) {
+				final String[] parts = StringUtils.split(rangeParts[i], "=");
+				if (parts.length == 2) {
 
-					final String[] parts = StringUtils.split(rangeParts[i], "=");
-					if (parts.length == 2) {
+					final String identifier = parts[0].trim();
+					final String valueRange = parts[1].trim();
 
-						final String identifier = parts[0].trim();
-						final String valueRange = parts[1].trim();
+					if (StringUtils.isNotBlank(identifier) && StringUtils.isNotBlank(valueRange)) {
 
-						if (StringUtils.isNotBlank(identifier) && StringUtils.isNotBlank(valueRange)) {
+						if (valueRange.contains(",")) {
 
-							if (valueRange.contains(",")) {
+							logger.warn("Unsupported Range header specification {}, multiple ranges are not supported.", valueRange);
 
-								logger.warn("Unsupported Range header specification {}, multiple ranges are not supported.", valueRange);
+						} else {
 
-							} else {
+							final String[] valueParts = StringUtils.split(valueRange, "-");
+							if (valueParts.length == 2) {
 
-								final String[] valueParts = StringUtils.split(valueRange, "-");
-								if (valueParts.length == 2) {
+								String startString = valueParts[0].trim();
+								String endString = valueParts[1].trim();
 
-									String startString = valueParts[0].trim();
-									String endString = valueParts[1].trim();
+								// remove optional total size indicator
+								if (endString.contains("/")) {
+									endString = endString.substring(0, endString.indexOf("/"));
+								}
 
-									// remove optional total size indicator
-									if (endString.contains("/")) {
-										endString = endString.substring(0, endString.indexOf("/"));
-									}
+								try {
 
-									try {
+									final int start    = Integer.parseInt(startString);
+									final int end      = Integer.parseInt(endString);
 
-										final int start    = Integer.parseInt(startString);
-										final int end      = Integer.parseInt(endString);
+									ranges.put(identifier, new QueryRange(start, end));
 
-										ranges.put(identifier, new QueryRange(start, end));
+								} catch (Throwable t) {
 
-									} catch (Throwable t) {
-
-										logger.warn("", t);
-									}
+									logger.warn("", t);
 								}
 							}
 						}
@@ -251,24 +304,6 @@ public class SecurityContext {
 			}
 		}
 	}
-
-	/*
-	public static void clearResourceFlag(final String resource, long flag) {
-
-		final String name     = SchemaHelper.normalizeEntityName(resource);
-		final Long flagObject = resourceFlags.get(name);
-		long flags            = 0;
-
-		if (flagObject != null) {
-
-			flags = flagObject;
-		}
-
-		flags &= ~flag;
-
-		resourceFlags.put(name, flags);
-	}
-	*/
 
 	public static SecurityContext getSuperUserInstance(HttpServletRequest request) {
 		return new SuperUserSecurityContext(request);
@@ -311,16 +346,16 @@ public class SecurityContext {
 
 	public HttpSession getSession() {
 
-		if (request != null) {
+		if (internalRequest != null) {
 
-			return request.getSession(false);
+			return internalRequest.getSession(false);
 		}
 
 		return null;
 	}
 
 	public HttpServletRequest getRequest() {
-		return request;
+		return internalRequest;
 	}
 
 	public HttpServletResponse getResponse() {
@@ -380,7 +415,7 @@ public class SecurityContext {
 
 		try {
 
-			cachedUser = authenticator.getUser(request, tryLogin);
+			cachedUser = authenticator.getUser(internalRequest, tryLogin);
 			if (cachedUser != null) {
 
 				cachedUserId   = cachedUser.getUuid();
@@ -401,20 +436,31 @@ public class SecurityContext {
 	}
 
 	public boolean hasParameter(final String name) {
-		return request != null && request.getParameter(name) != null;
+		return getRequestParameter(name) != null;
+	}
+
+	public String getRequestParameter(final String name) {
+
+		final List<String> values = requestParameters.get(name);
+		if (values != null && !values.isEmpty()) {
+
+			return values.get(0);
+		}
+
+		return null;
 	}
 
 	public StringBuilder getBaseURI() {
 
 		final StringBuilder uriBuilder = new StringBuilder(200);
 
-		uriBuilder.append(request.getScheme());
+		uriBuilder.append(requestScheme);
 		uriBuilder.append("://");
-		uriBuilder.append(request.getServerName());
+		uriBuilder.append(requestServerName);
 		uriBuilder.append(":");
-		uriBuilder.append(request.getServerPort());
-		uriBuilder.append(request.getContextPath());
-		uriBuilder.append(request.getServletPath());
+		uriBuilder.append(requestServerPort);
+		uriBuilder.append(requestContextPath);
+		uriBuilder.append(requestServletPath);
 		uriBuilder.append("/");
 
 		return uriBuilder;
@@ -617,7 +663,12 @@ public class SecurityContext {
 	}
 
 	public void setRequest(HttpServletRequest request) {
-		this.request = request;
+
+		this.internalRequest = request;
+
+		if (request != null) {
+			initializeRequestInfos(request);
+		}
 	}
 
 	public void setResponse(HttpServletResponse response) {
@@ -690,6 +741,10 @@ public class SecurityContext {
 		return ranges.get(key);
 	}
 
+	public Locale getEffectiveLocale() {
+		return effectiveLocale;
+	}
+
 	/**
 	 * Determine the effective locale for this request.
 	 *
@@ -701,7 +756,7 @@ public class SecurityContext {
 	 *
 	 * @return locale
 	 */
-	public Locale getEffectiveLocale() {
+	private void determineEffectiveLocale(final HttpServletRequest request) {
 
 		// Priority 5: Default locale
 		Locale locale = Locale.getDefault();
@@ -755,24 +810,19 @@ public class SecurityContext {
 			}
 		}
 
-		return locale;
+		this.effectiveLocale = locale;
 	}
 
 	public String getCompoundRequestURI() {
 
-		if (request != null) {
+		if (requestQueryString != null) {
 
-			if (request.getQueryString() != null) {
+			return requestURI.concat("?").concat(requestQueryString);
 
-				return request.getRequestURI().concat("?").concat(request.getQueryString());
+		} else {
 
-			} else {
-
-				return request.getRequestURI();
-			}
+			return requestURI;
 		}
-
-		return "[No request available]";
 	}
 
 	public void enableDetailedCreationResults() {

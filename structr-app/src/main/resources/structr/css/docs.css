@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 #docs-area {
     display: flex;
     flex-direction: row;
@@ -323,14 +322,6 @@ index h2, .index h3 {
 #search-field {
     position: relative;
     margin: -.25rem auto;
-}
-
-#search-field svg, #search-overlay svg {
-    position: absolute;
-    left: .75rem;
-    top: .5rem;
-    height: 1.5rem;
-    color: var(--gray-555);
 }
 
 #search-field input, #search-overlay input {

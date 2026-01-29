@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,6 +22,7 @@ import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
 import org.structr.docs.Example;
@@ -49,10 +50,14 @@ public class ConfigFunction extends AdvancedScriptingFunction {
 
 		try {
 
-			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2);
+			try {
+				assert (sources.length >= 1 && sources.length <= 2);
+			} catch (AssertionError e) {
+				throw new ArgumentCountException("Expected 1 or 2 arguments, but got " + sources.length + ".");
+			}
 
 			final String configKey    = sources[0].toString();
-			final String defaultValue = sources.length >= 2 ? sources[1].toString() : "";
+			final String defaultValue = sources.length >= 2 ? sources[1].toString() : null;
 			Setting setting           = Settings.getSetting(configKey);
 
 			if (setting == null) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -38,7 +38,7 @@ public class MailDecodeTextFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getName() {
-		return "mail_decode_text";
+		return "mailDecodeText";
 	}
 
 	@Override
@@ -73,7 +73,7 @@ public class MailDecodeTextFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mail_decode_text(text)}"),
+			Usage.structrScript("Usage: ${mailDecodeText(text)}"),
 			Usage.javaScript("Usage: ${{ $.mailDecodeText(text) }}")
 		);
 	}
@@ -102,7 +102,7 @@ public class MailDecodeTextFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${mail_decode_text('=?utf-8?Q?h=C3=A4llo?=')}", "Decoding encoded string \"hällo\"")
+				Example.structrScript("${mailDecodeText('=?utf-8?Q?h=C3=A4llo?=')}", "Decoding encoded string \"hällo\"")
 		);
 	}
 }

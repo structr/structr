@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -34,7 +34,7 @@ public class MailClearCcFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getName() {
-		return "mail_clear_cc";
+		return "mailClearCc";
 	}
 
 	@Override
@@ -53,7 +53,7 @@ public class MailClearCcFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mail_clear_cc()}"),
+			Usage.structrScript("Usage: ${mailClearCc()}"),
 			Usage.javaScript("Usage: ${{ $.mailClearCc() }}")
 		);
 	}

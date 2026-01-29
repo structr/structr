@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2025 Structr GmbH
+ * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -101,7 +101,7 @@ public abstract class StorageProviderFactory {
 				try {
 
 					// Try to instantiate requested provider with given file and config
-					return storageProviderClass.getDeclaredConstructor(AbstractFile.class, StorageConfiguration.class).newInstance(file, config);
+					return storageProviderClass.getDeclaredConstructor(AbstractFile.class, StorageConfiguration.class).newInstance(file, config.as(StorageConfiguration.class));
 
 				} catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException ex) {
 
