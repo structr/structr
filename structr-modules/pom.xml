@@ -3,12 +3,12 @@
 	<name>Structr Modules</name>
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>structr-modules</artifactId>
-	<version>6.1-SNAPSHOT</version>
+	<version>6.0.2</version>
 
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr</artifactId>
-		<version>6.1-SNAPSHOT</version>
+		<version>6.0.2</version>
 	</parent>
 
 	<packaging>pom</packaging>

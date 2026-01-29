@@ -7,12 +7,12 @@
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr</artifactId>
-		<version>6.1-SNAPSHOT</version>
+		<version>6.0.2</version>
 	</parent>
 
 	<artifactId>structr-db-driver-api</artifactId>
 	<packaging>jar</packaging>
-	<version>6.1-SNAPSHOT</version>
+	<version>6.0.2</version>
 
 	<dependencies>
 		<dependency>
