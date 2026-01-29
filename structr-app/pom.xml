@@ -4,13 +4,13 @@
 
     <name>Structr App</name>
     <artifactId>structr-app</artifactId>
-    <version>6.1-SNAPSHOT</version>
+    <version>6.2-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>6.1-SNAPSHOT</version>
+        <version>6.2-SNAPSHOT</version>
     </parent>
 
     <properties>
