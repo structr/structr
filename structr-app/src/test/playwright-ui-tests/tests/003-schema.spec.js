@@ -112,7 +112,7 @@ test('schema', async ({ page }) => {
   await page.waitForTimeout(1000);
 
   // Add custom String property 'milestoneId', custom Date property 'dueDate' and custom Function property 'projectId'
-  // The Function property is needed for the Importer test (009-importer.spec.js) later on.
+  // The Function property is needed for the JobQueue test (011-job-queue.spec.js) later on.
   await page.getByText('Direct properties', { exact: true }).click();
   await page.getByRole('button', { name: 'Add direct property', exact: true }).click();
   await page.getByPlaceholder('JSON name').click();
@@ -176,7 +176,7 @@ test('schema', async ({ page }) => {
   await page.waitForTimeout(500);
 
   // Add custom String property 'taskId' and custom Function property 'projectId'
-  // The Function property is needed for the Importer test (009-importer.spec.js) later on.
+  // The Function property is needed for the JobQueue test (011-job-queue.spec.js) later on.
   await page.getByText('Direct properties', { exact: true }).click();
   await page.getByRole('button', { name: 'Add direct property', exact: true }).click();
   await page.getByPlaceholder('JSON name').click();

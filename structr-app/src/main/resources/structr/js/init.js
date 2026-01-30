@@ -1136,7 +1136,7 @@ let Structr = {
 	},
 	handleGenericMessage: (data) => {
 
-		let showScheduledJobsNotifications = Importer.isShowNotifications();
+		let showScheduledJobsNotifications = _JobQueue.isShowNotifications();
 		let showScriptingErrorPopups       = UISettings.getValueForSetting(UISettings.settingGroups.global.settings.showScriptingErrorPopupsKey);
 		let showResourceAccessPopups       = UISettings.getValueForSetting(UISettings.settingGroups.global.settings.showResourceAccessPermissionWarningPopupsKey);
 		let showDeprecationWarningPopups   = UISettings.getValueForSetting(UISettings.settingGroups.global.settings.showDeprecationWarningPopupsKey);
@@ -1217,8 +1217,8 @@ let Structr = {
 					messageBuilder.show();
 				}
 
-				if (Structr.isModuleActive(Importer)) {
-					Importer.updateJobTable();
+				if (Structr.isModuleActive(_JobQueue)) {
+					_JobQueue.updateJobTable();
 				}
 				break;
 
@@ -1234,8 +1234,8 @@ let Structr = {
 					new ErrorMessage().title(`Exception while importing ${data.jobtype}`).text(`File: ${data.filepath}<br>${text}`).requiresConfirmation().show();
 				}
 
-				if (Structr.isModuleActive(Importer)) {
-					Importer.updateJobTable();
+				if (Structr.isModuleActive(_JobQueue)) {
+					_JobQueue.updateJobTable();
 				}
 				break;
 
@@ -1264,8 +1264,8 @@ let Structr = {
 					messageBuilder.show();
 				}
 
-				if (Structr.isModuleActive(Importer)) {
-					Importer.updateJobTable();
+				if (Structr.isModuleActive(_JobQueue)) {
+					_JobQueue.updateJobTable();
 				}
 				break;
 
@@ -2095,7 +2095,7 @@ let Structr = {
 								<li data-name="Code"><a id="code_" href="#code" data-activate-module="code">Code</a></li>
 								<li data-name="Flows"><a id="flows_" href="#flows" data-activate-module="flows">Flows</a></li>
 								<li data-name="Data"><a id="crud_" href="#crud" data-activate-module="crud">Data</a></li>
-								<li data-name="Importer"><a id="importer_" href="#importer" data-activate-module="importer">Importer</a></li>
+								<li data-name="Job Queue"><a id="job-queue_" href="#job-queue" data-activate-module="job-queue">Job Queue</a></li>
 								<li data-name="Localization"><a id="localization_" href="#localization" data-activate-module="localization">Localization</a></li>
 								<li data-name="Virtual Types"><a id="virtual-types_" href="#virtual-types" data-activate-module="virtual-types">Virtual Types</a></li>
 								<li data-name="Mail Templates"><a id="mail-templates_" href="#mail-templates" data-activate-module="mail-templates">Mail Templates</a></li>
@@ -3407,12 +3407,12 @@ let UISettings = {
 				}
 			}
 		},
-		importer: {
-			title: 'Importer',
+		'job-queue': {
+			title: 'Job Queue',
 			settings: {
 				showNotificationsKey: {
 					text: 'Show notifications for scheduled jobs',
-					storageKey: 'structrImporterShowNotifications_' + location.port,
+					storageKey: 'structrJobQueueShowNotifications_' + location.port,
 					defaultValue: true,
 					type: 'checkbox'
 				}

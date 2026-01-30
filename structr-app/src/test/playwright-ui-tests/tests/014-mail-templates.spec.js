@@ -58,7 +58,6 @@ test('mail-templates', async ({ page }) => {
   await page.locator('#loginButton').click();
   await page.waitForTimeout(1000);
 
-  // Importer
   await page.locator('.submenu-trigger').hover();
   await page.locator('#mail-templates_').waitFor({state: 'visible'});
   await page.locator('#mail-templates_').click();
