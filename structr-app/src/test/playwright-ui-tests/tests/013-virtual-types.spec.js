@@ -58,7 +58,6 @@ test('virtual-types', async ({ page }) => {
   await page.locator('#loginButton').click();
   await page.waitForTimeout(1000);
 
-  // Importer
   await page.locator('.submenu-trigger').hover();
   await page.locator('#virtual-types_').waitFor({state: 'visible'});
   await page.locator('#virtual-types_').click();

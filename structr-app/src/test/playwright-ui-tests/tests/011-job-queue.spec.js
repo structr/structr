@@ -74,7 +74,7 @@ test.beforeAll(async ({ playwright }) => {
 
 });
 
-test('importer', async ({ page }) => {
+test('job-queue', async ({ page }) => {
 
   test.setTimeout(240_000);
 
@@ -98,10 +98,9 @@ test('importer', async ({ page }) => {
   await page.locator('#loginButton').click();
   await page.waitForTimeout(1000);
 
-  // Importer
   await page.locator('.submenu-trigger').hover();
-  await page.locator('#importer_').waitFor({state: 'visible'});
-  await page.locator('#importer_').click();
+  await page.locator('#job_queue_').waitFor({state: 'visible'});
+  await page.locator('#job_queue_').click();
 
   // Wait for Code UI to load all components
   await page.waitForTimeout(1000);
@@ -180,10 +179,10 @@ test('importer', async ({ page }) => {
 
   // Check import processes
   await page.locator('.submenu-trigger').hover();
-  await page.locator('#importer_').waitFor({state: 'visible'});
-  await page.locator('#importer_').click();
-  await page.locator('#importer-jobs-table').click();
-  await page.locator('#importer-jobs-table tbody tr').isVisible();
+  await page.locator('#job_queue_').waitFor({state: 'visible'});
+  await page.locator('#job_queue_').click();
+  await page.locator('#job-queue-jobs-table').click();
+  await page.locator('#job-queue-jobs-table tbody tr').isVisible();
   await page.screenshot({ path: 'screenshots/importer_check-import-process.png' });
   await page.locator('.close-message-button').click();
 

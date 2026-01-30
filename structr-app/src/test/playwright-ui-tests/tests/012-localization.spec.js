@@ -58,7 +58,6 @@ test('localization', async ({ page }) => {
   await page.locator('#loginButton').click();
   await page.waitForTimeout(1000);
 
-  // Importer
   await page.locator('.submenu-trigger').hover();
   await page.locator('#localization_').waitFor({state: 'visible'});
   await page.locator('#localization_').click();

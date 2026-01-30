@@ -408,7 +408,7 @@ let _Files = {
 						icon: _Icons.getMenuSvgIcon(_Icons.iconFileTypeCSV),
 						name: 'Import CSV',
 						clickHandler: () => {
-							Importer.importCSVDialog(entity, false);
+							_JobQueue.importCSVDialog(entity, false);
 						}
 					});
 				}
@@ -420,7 +420,7 @@ let _Files = {
 						icon: _Icons.getMenuSvgIcon(_Icons.iconFileTypeXML),
 						name: 'Import XML',
 						clickHandler: () => {
-							Importer.importXMLDialog(entity, false);
+							_JobQueue.importXMLDialog(entity, false);
 						}
 					});
 				}

@@ -5796,7 +5796,7 @@ Schedules a script or a function to be executed in a separate thread.
 Allows the user to insert a script snippet into the import queue for later execution.
 Useful in situations where a script should run after a long-running import job, or if the script should run in
 a separate transaction that is independent of the calling transaction.
-The `title` parameter is optional and is displayed in the Structr admin UI in the Importer section and in the
+The `title` parameter is optional and is displayed in the Structr admin UI in the Job Queue section and in the
 notification messages when a script is started or finished.
 The `onFinish` parameter is a script snippet which will be called when the process finishes (successfully or with an exception).
 A parameter `jobInfo` is injected in the context of the `onFinish` function (see `job_info()` for more information on this object).

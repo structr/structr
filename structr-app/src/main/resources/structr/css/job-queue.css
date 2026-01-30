@@ -16,26 +16,20 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-#importer-main {
+#job-queue-main {
 	width: calc(100% - 4rem);
 	height: calc(100% - 2rem);
 	padding-top: 1rem;
 	margin: 0 0 0 2rem;
+    overflow: auto;
 }
 
-#log-output {
-	background-color: var(--solid-white);
-	border: 1px solid var(--gray-ddd);
-	padding: 2px;
-	overflow: auto;
-}
-
-#importer-jobs-table {
+#job-queue-jobs-table {
 	display: table;
 	width: 100%;
 }
 
-#importer-jobs-table tr th {
-	padding: 1rem 2rem;
+#job-queue-jobs-table tr th {
+	padding: 1rem;
 	background-color: white;
 }

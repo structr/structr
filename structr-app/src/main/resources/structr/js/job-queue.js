@@ -18,7 +18,7 @@
  */
 document.addEventListener("DOMContentLoaded", () => {
 
-	Structr.registerModule(Importer);
+	Structr.registerModule(_JobQueue);
 
 	$(document).on('click', '.import-job-action', function (e) {
 		e.preventDefault();
@@ -26,15 +26,14 @@ document.addEventListener("DOMContentLoaded", () => {
 		let mode  = $(this).data('action');
 		let jobId = $(this).data('jobId');
 
-		Command.fileImport(mode, jobId, Importer.updateJobTable);
+		Command.fileImport(mode, jobId, _JobQueue.updateJobTable);
 
 		return false;
 	});
-
 });
 
-let Importer = {
-	_moduleName: 'importer',
+let _JobQueue = {
+	_moduleName: 'job-queue',
 	appDataXMLKey: 'xml-import-config',
 	appDataCSVKey: 'csv-import-config',
 	timeout: undefined,
@@ -49,51 +48,65 @@ let Importer = {
 	resize: () => {},
 	onload: () => {
 
-		Importer.init();
+		_JobQueue.init();
 
-		Structr.setMainContainerHTML(Importer.templates.main());
-		Structr.setFunctionBarHTML(Importer.templates.functions());
+		Structr.setMainContainerHTML(_JobQueue.templates.main());
+		Structr.setFunctionBarHTML(_JobQueue.templates.functions());
 
 		UISettings.showSettingsForCurrentModule();
 
-		$('#importer-main .refresh').click(function () {
-			Importer.updateJobTable();
+		$('#job-queue-main .refresh').click(function () {
+			_JobQueue.updateJobTable();
 		});
+
+		let jobIdInput = $('#cancel-all-queued-after-job-id');
 
 		$('#cancel-all-queued-after').click(function () {
 
-			let jobId = parseInt($('#cancel-all-queued-after-job-id').val());
+			let val = jobIdInput.val();
+			if (!val) {
 
-			if (isNaN(jobId)) {
-				new WarningMessage().text("Unable to parse job id").show();
+				_Helpers.blinkRed(jobIdInput);
+
 			} else {
-				Command.fileImport('cancelAllAfter', jobId, () => {
 
-					$('#cancel-all-queued-after-job-id').val('');
-					Importer.updateJobTable();
-				});
+				let jobId = parseInt(val);
+
+				if (isNaN(jobId)) {
+
+					_Helpers.blinkRed(jobIdInput);
+					new WarningMessage().text("Unable to parse job id").show();
+
+				} else {
+
+					Command.fileImport('cancelAllAfter', jobId, () => {
+
+						jobIdInput.val('');
+						_JobQueue.updateJobTable();
+					});
+				}
 			}
 		});
 
-		Importer.updateJobTable();
+		_JobQueue.updateJobTable();
 
 		Structr.mainMenu.unblock(100);
 	},
 	unload: () => {
-		Importer.schemaTypeCachePopulated = false;
+		_JobQueue.schemaTypeCachePopulated = false;
 	},
 	isShowNotifications: () => {
-		return UISettings.getValueForSetting(UISettings.settingGroups.importer.settings.showNotificationsKey);
+		return UISettings.getValueForSetting(UISettings.settingGroups['job-queue'].settings.showNotificationsKey);
 	},
 	updateJobTable: () => {
 
-		window.clearTimeout(Importer.timeout);
+		window.clearTimeout(_JobQueue.timeout);
 
 		window.setTimeout(function () {
 
 			Command.fileImport('list', null, function (jobs) {
 
-				let table = $('#importer-jobs-table');
+				let table = $('#job-queue-jobs-table');
 				let tbody = $('tbody', table);
 				tbody.empty();
 
@@ -102,7 +115,7 @@ let Importer = {
 				if (imports.length) {
 
 					imports.forEach(function (job) {
-						tbody.append(Importer.createRowForJob(job));
+						tbody.append(_JobQueue.createRowForJob(job));
 					});
 
 				} else {
@@ -111,13 +124,13 @@ let Importer = {
 
 			});
 
-			window.clearTimeout(Importer.timeout);
+			window.clearTimeout(_JobQueue.timeout);
 
 		}, 250);
 
 	},
 	createRowForJob: (job) => {
-		return $(`<tr><td>${job.jobId}</td><td>${job.jobtype}</td><td>${job.username}</td>${Importer.createJobInfoHTML(job)}<td>${job.status}</td><td>${Importer.createActionButtons(job)}</td></tr>`);
+		return $(`<tr><td>${job.jobId}</td><td>${job.jobtype}</td><td>${job.username}</td>${_JobQueue.createJobInfoHTML(job)}<td>${job.status}</td><td>${_JobQueue.createActionButtons(job)}</td></tr>`);
 	},
 	createJobInfoHTML: (job) => {
 		switch (job.jobtype) {
@@ -140,25 +153,25 @@ let Importer = {
 			case 'CSV':
 				switch (job.status) {
 					case 'QUEUED':
-						actionHtml += Importer.createActionButton('start', job.jobId, 'Start');
-						actionHtml += Importer.createActionButton('cancel', job.jobId, 'Cancel');
+						actionHtml += _JobQueue.createActionButton('start', job.jobId, 'Start');
+						actionHtml += _JobQueue.createActionButton('cancel', job.jobId, 'Cancel');
 						break;
 
 					case 'PAUSED':
-						actionHtml += Importer.createActionButton('resume', job.jobId, 'Resume');
-						actionHtml += Importer.createActionButton('abort', job.jobId, 'Abort');
+						actionHtml += _JobQueue.createActionButton('resume', job.jobId, 'Resume');
+						actionHtml += _JobQueue.createActionButton('abort', job.jobId, 'Abort');
 						break;
 
 					case 'RUNNING':
-						actionHtml += Importer.createActionButton('pause', job.jobId, 'Pause');
-						actionHtml += Importer.createActionButton('abort', job.jobId, 'Abort');
+						actionHtml += _JobQueue.createActionButton('pause', job.jobId, 'Pause');
+						actionHtml += _JobQueue.createActionButton('abort', job.jobId, 'Abort');
 						break;
 				}
 				break;
 
 			default:
 				if (job.status === 'QUEUED') {
-					actionHtml += Importer.createActionButton('cancel', job.jobId, 'Cancel');
+					actionHtml += _JobQueue.createActionButton('cancel', job.jobId, 'Cancel');
 				}
 		}
 
@@ -177,7 +190,7 @@ let Importer = {
 				${grouped.map(group => `<optgroup label="${group.label}">${group.configs.map(cfg => `<option value="${cfg.id}">${cfg.name}</option>`).join('')}</optgroup>`).join('')}
 			`);
 
-			Importer.configSelectorChangeHandler(elem, importType);
+			_JobQueue.configSelectorChangeHandler(elem, importType);
 		});
 
 	},
@@ -194,7 +207,7 @@ let Importer = {
 
 					new SuccessMessage().text('Import Configuration saved').show();
 
-					Importer.updateConfigSelector(elem, importType);
+					_JobQueue.updateConfigSelector(elem, importType);
 					inputElem.val('');
 
 					_Helpers.blinkGreen(elem);
@@ -257,7 +270,7 @@ let Importer = {
 	deleteImportConfiguration: (elem, importType) => {
 
 		Command.deleteNode(elem.val(), false, () => {
-			Importer.updateConfigSelector(elem, importType);
+			_JobQueue.updateConfigSelector(elem, importType);
 			_Helpers.blinkGreen(elem);
 		});
 	},
@@ -269,25 +282,25 @@ let Importer = {
 			mappedTypes: {}
 		};
 
-		Importer.clearSchemaTypeCache();
+		_JobQueue.clearSchemaTypeCache();
 
-		let { dialogText, dialogMeta } = _Dialogs.custom.openDialog(`Import CSV from ${file.name}`, Importer.unload);
+		let { dialogText, dialogMeta } = _Dialogs.custom.openDialog(`Import CSV from ${file.name}`, _JobQueue.unload);
 
 		let startButton = _Dialogs.custom.prependCustomDialogButton('<button class="action disabled" disabled id="start-import">Start import</button>');
 
-		dialogMeta.insertAdjacentHTML('beforeend', Importer.templates.dialogConfigurations({type: 'csv'}));
+		dialogMeta.insertAdjacentHTML('beforeend', _JobQueue.templates.dialogConfigurations({type: 'csv'}));
 
 		let importConfigSelector = $('#load-csv-config-selector');
 		importConfigSelector.on('change', function () {
-			Importer.configSelectorChangeHandler(importConfigSelector, 'csv');
+			_JobQueue.configSelectorChangeHandler(importConfigSelector, 'csv');
 		});
-		Importer.configSelectorChangeHandler(importConfigSelector, 'csv');
+		_JobQueue.configSelectorChangeHandler(importConfigSelector, 'csv');
 
-		Importer.updateConfigSelector(importConfigSelector, 'csv');
+		_JobQueue.updateConfigSelector(importConfigSelector, 'csv');
 
 		$('#load-csv-config-button').on('click', function() {
 
-			Importer.loadImportConfiguration(importConfigSelector, function(data) {
+			_JobQueue.loadImportConfiguration(importConfigSelector, function(data) {
 
 				if (data && data.content) {
 
@@ -327,19 +340,19 @@ let Importer = {
 
 					let importType = config.importType || "node";
 
-					let typeInfo = Importer.schemaTypeCache[importType + 'Types'].filter((t) => {
+					let typeInfo = _JobQueue.schemaTypeCache[importType + 'Types'].filter((t) => {
 						return t.name === config.targetType;
 					});
 					if (importType !== 'graph') {
 
 						if (typeInfo.length > 0) {
 
-							Importer.customTypesOnly = !typeInfo[0].isBuiltinType;
+							_JobQueue.customTypesOnly = !typeInfo[0].isBuiltinType;
 
 						} else {
 
 							new WarningMessage().text(`Type ${config.targetType} from loaded configuration does not exist. This may be due to an outdated configuration.`).show();
-							Importer.customTypesOnly = true;
+							_JobQueue.customTypesOnly = true;
 						}
 					}
 
@@ -357,7 +370,7 @@ let Importer = {
 
 		$('#update-csv-config-button').on('click', function() {
 
-			let configInfo = Importer.collectCSVImportConfigurationInfo(mixedMappingConfig.mappedTypes);
+			let configInfo = _JobQueue.collectCSVImportConfigurationInfo(mixedMappingConfig.mappedTypes);
 
 			if (configInfo.errors.length > 0) {
 
@@ -367,13 +380,13 @@ let Importer = {
 
 			} else {
 
-				Importer.updateImportConfiguration(importConfigSelector, configInfo);
+				_JobQueue.updateImportConfiguration(importConfigSelector, configInfo);
 			}
 		});
 
 		$('#save-csv-config-button').on('click', function() {
 
-			let configInfo = Importer.collectCSVImportConfigurationInfo(mixedMappingConfig.mappedTypes);
+			let configInfo = _JobQueue.collectCSVImportConfigurationInfo(mixedMappingConfig.mappedTypes);
 
 			if (configInfo.errors.length > 0) {
 
@@ -383,12 +396,12 @@ let Importer = {
 
 			} else {
 
-				Importer.saveImportConfiguration(importConfigSelector, 'csv', configInfo);
+				_JobQueue.saveImportConfiguration(importConfigSelector, 'csv', configInfo);
 			}
 		});
 
 		$('#delete-csv-config-button').on('click', function() {
-			Importer.deleteImportConfiguration(importConfigSelector, 'csv');
+			_JobQueue.deleteImportConfiguration(importConfigSelector, 'csv');
 		});
 
 		// load first lines to display a sample of the data
@@ -399,14 +412,14 @@ let Importer = {
 				let results   = Papa.parse(data.result.lines);
 				let delim     = results.meta.delimiter;
 				let qc        = data.result.lines.substring(0,1);
-				dialogText.insertAdjacentHTML('beforeend', Importer.templates.dialogCSV({ data: data, delim: delim, qc: qc, importType: "node" }));
+				dialogText.insertAdjacentHTML('beforeend', _JobQueue.templates.dialogCSV({ data: data, delim: delim, qc: qc, importType: "node" }));
 
-				Importer.formatImportTypeSelectorDialog(file, mixedMappingConfig);
+				_JobQueue.formatImportTypeSelectorDialog(file, mixedMappingConfig);
 
 				$('input[name=import-type]').off('change').on('change', function() {
 
 					// call self on change
-					Importer.formatImportTypeSelectorDialog(file, mixedMappingConfig);
+					_JobQueue.formatImportTypeSelectorDialog(file, mixedMappingConfig);
 				});
 			}
 		});
@@ -416,17 +429,17 @@ let Importer = {
 		let importType = $('input[name=import-type]:checked').val();
 
 		$('#import-dialog-type-container').empty();
-		$('#import-dialog-type-container').append(Importer.templates['dialogTargetTypeSelect_' + importType]());
+		$('#import-dialog-type-container').append(_JobQueue.templates['dialogTargetTypeSelect_' + importType]());
 
 		switch (importType) {
 
 			case 'node':
 			case 'rel':
-				Importer.formatNodeOrRelImportDialog(file);
+				_JobQueue.formatNodeOrRelImportDialog(file);
 				break;
 
 			case 'graph':
-				Importer.formatMixedImportDialog(file, mixedMappingConfig);
+				_JobQueue.formatMixedImportDialog(file, mixedMappingConfig);
 				break;
 		}
 	},
@@ -434,16 +447,16 @@ let Importer = {
 
 		let targetTypeSelector = $('#target-type-select');
 
-		Importer.updateSchemaTypeCache().then(ignore => {
-			Importer.updateSchemaTypeSelector(targetTypeSelector);
+		_JobQueue.updateSchemaTypeCache().then(ignore => {
+			_JobQueue.updateSchemaTypeSelector(targetTypeSelector);
 		});
 
-		targetTypeSelector.off('change').on('change', function(e, data) { Importer.updateMapping(file, data); });
-		$(".import-option").off('change').on('change', function(e, data) { Importer.updateMapping(file, data); });
+		targetTypeSelector.off('change').on('change', function(e, data) { _JobQueue.updateMapping(file, data); });
+		$(".import-option").off('change').on('change', function(e, data) { _JobQueue.updateMapping(file, data); });
 
 		let customOnlyCheckbox = $('input#target-type-custom-only');
 
-		if (Importer.customTypesOnly) {
+		if (_JobQueue.customTypesOnly) {
 			customOnlyCheckbox.prop('checked', true);
 		}
 
@@ -451,24 +464,24 @@ let Importer = {
 		$('#start-import').off('click');
 
 		customOnlyCheckbox.off('change').on('change', function() {
-			Importer.customTypesOnly = $(this).prop('checked');
-			Importer.updateSchemaTypeSelector(targetTypeSelector);
+			_JobQueue.customTypesOnly = $(this).prop('checked');
+			_JobQueue.updateSchemaTypeSelector(targetTypeSelector);
 			$('#property-select').empty();
 			$('#start-import').off('click');
 		});
 
-		Importer.updateSchemaTypeSelector(targetTypeSelector);
+		_JobQueue.updateSchemaTypeSelector(targetTypeSelector);
 
 	},
 	updateSchemaTypeCache: async () => {
 
 		return new Promise((resolve) => {
 
-			if (!Importer.schemaTypeCachePopulated) {
+			if (!_JobQueue.schemaTypeCachePopulated) {
 
 				_Helpers.getSchemaInformationPromise().then(schemaData => {
 
-					Importer.clearSchemaTypeCache();
+					_JobQueue.clearSchemaTypeCache();
 
 					for (let res of schemaData) {
 
@@ -476,17 +489,17 @@ let Importer = {
 
 							if (res.isRel) {
 
-								Importer.schemaTypeCache['relTypes'].push(res);
+								_JobQueue.schemaTypeCache['relTypes'].push(res);
 
 							} else {
 
-								Importer.schemaTypeCache['graphTypes'].push(res);
-								Importer.schemaTypeCache['nodeTypes'].push(res);
+								_JobQueue.schemaTypeCache['graphTypes'].push(res);
+								_JobQueue.schemaTypeCache['nodeTypes'].push(res);
 							}
 						}
 					}
 
-					Importer.schemaTypeCachePopulated = true;
+					_JobQueue.schemaTypeCachePopulated = true;
 
 					resolve('success');
 				});
@@ -504,15 +517,15 @@ let Importer = {
 		$('option[disabled!=disabled]', typeSelect).remove();
 		typeSelect.val("");
 
-		let data = Importer.getSchemaTypeSelectorData(importType);
+		let data = _JobQueue.getSchemaTypeSelectorData(importType);
 
 		typeSelect.append(data.map(name => `<option value="${name}">${name}</option>`).join(''));
 	},
 	getSchemaTypeSelectorData: (importType = '') => {
 
-		let allTypeData = Importer.schemaTypeCache[importType + 'Types'];
+		let allTypeData = _JobQueue.schemaTypeCache[importType + 'Types'];
 
-		if (Importer.customTypesOnly === true) {
+		if (_JobQueue.customTypesOnly === true) {
 			allTypeData = allTypeData.filter(t => t.isBuiltin === false);
 		}
 
@@ -520,7 +533,7 @@ let Importer = {
 	},
 	clearSchemaTypeCache: () => {
 
-		Importer.schemaTypeCache = {
+		_JobQueue.schemaTypeCache = {
 			nodeTypes: [],
 			relTypes: [],
 			graphTypes: []
@@ -571,12 +584,12 @@ let Importer = {
 					typeConfig['mappings']   = data.transforms;
 				};
 
-				Importer.displayImportPropertyMapping(type, csvHeaders.result.headers, $('#row-container'), names, true, typeConfig, () => {
+				_JobQueue.displayImportPropertyMapping(type, csvHeaders.result.headers, $('#row-container'), names, true, typeConfig, () => {
 
 					_Helpers.enableElement($('#start-import')[0]);
 					$('#start-import').off('click').on('click', function() {
 
-						let configInfo = Importer.collectCSVImportConfigurationInfo();
+						let configInfo = _JobQueue.collectCSVImportConfigurationInfo();
 						let allowImport = (configInfo.errors.length === 0);
 
 						if (!allowImport) {
@@ -672,7 +685,7 @@ let Importer = {
 			displayMatchingPropertiesOnly: true
 		};
 
-		Importer.displayImportPropertyMappingWithConfig(config);
+		_JobQueue.displayImportPropertyMappingWithConfig(config);
 	},
 	displayImportPropertyMappingWithConfig: (config) => {
 
@@ -707,7 +720,7 @@ let Importer = {
 						if (blacklist.indexOf(info.jsonName) === -1) {
 
 							// match with longest target property wins
-							if (Importer.checkSelection(config.typeConfig, inputPropertyName, info.jsonName) && info.jsonName.length > longestMatch) {
+							if (_JobQueue.checkSelection(config.typeConfig, inputPropertyName, info.jsonName) && info.jsonName.length > longestMatch) {
 
 								selectedString             = ' selected="selected"';
 								longestMatch               = info.jsonName.length;
@@ -765,26 +778,26 @@ let Importer = {
 
 		let configuration = {};
 
-		let { dialogText, dialogMeta } = _Dialogs.custom.openDialog(`Import XML from ${file.name}`, Importer.unload);
+		let { dialogText, dialogMeta } = _Dialogs.custom.openDialog(`Import XML from ${file.name}`, _JobQueue.unload);
 
 		let prevButton = _Dialogs.custom.prependCustomDialogButton('<button id="prev-element">Previous</button>');
 		let nextButton = _Dialogs.custom.prependCustomDialogButton('<button id="next-element">Next</button>');
 		let startButton = _Dialogs.custom.prependCustomDialogButton('<button class="action" id="start-import">Start import</button>');
 
-		let html = Importer.templates.dialogConfigurations({type: 'xml'});
+		let html = _JobQueue.templates.dialogConfigurations({type: 'xml'});
 		dialogMeta.insertAdjacentHTML('beforeend', html);
 
 		let importConfigSelector = $('#load-xml-config-selector');
 		importConfigSelector.on('change', () => {
-			Importer.configSelectorChangeHandler(importConfigSelector, 'xml');
+			_JobQueue.configSelectorChangeHandler(importConfigSelector, 'xml');
 		});
-		Importer.configSelectorChangeHandler(importConfigSelector, 'xml');
+		_JobQueue.configSelectorChangeHandler(importConfigSelector, 'xml');
 
-		Importer.updateConfigSelector(importConfigSelector, 'xml');
+		_JobQueue.updateConfigSelector(importConfigSelector, 'xml');
 
 		$('#load-xml-config-button').on('click', function() {
 
-			Importer.loadImportConfiguration(importConfigSelector, (data) => {
+			_JobQueue.loadImportConfiguration(importConfigSelector, (data) => {
 
 				if (data && data.content) {
 
@@ -795,11 +808,11 @@ let Importer = {
 
 						switch (configuration[k]?.action) {
 							case 'createNode':
-								Importer.updateStructureSelector('', k, configuration[k].type);
+								_JobQueue.updateStructureSelector('', k, configuration[k].type);
 								break;
 
 							case 'setProperty':
-								Importer.updateStructureSelectorForSetProperty('', k, configuration[k].propertyName);
+								_JobQueue.updateStructureSelectorForSetProperty('', k, configuration[k].propertyName);
 								break;
 
 							default:
@@ -859,15 +872,15 @@ let Importer = {
 		});
 
 		$('#save-xml-config-button').on('click', () => {
-			Importer.saveImportConfiguration(importConfigSelector, 'xml', configuration);
+			_JobQueue.saveImportConfiguration(importConfigSelector, 'xml', configuration);
 		});
 
 		$('#update-xml-config-button').on('click', () => {
-			Importer.updateImportConfiguration(importConfigSelector, configuration);
+			_JobQueue.updateImportConfiguration(importConfigSelector, configuration);
 		});
 
 		$('#delete-xml-config-button').on('click', () => {
-			Importer.deleteImportConfiguration(importConfigSelector, 'xml');
+			_JobQueue.deleteImportConfiguration(importConfigSelector, 'xml');
 		});
 
 		let xmlConfig = $('#xml-config');
@@ -936,20 +949,20 @@ let Importer = {
 
 									switch ($(this).val()) {
 										case "createNode":
-											Importer.showCreateNodeOptions(options, key, localPath, structure, configuration, attributes, hasChildren);
+											_JobQueue.showCreateNodeOptions(options, key, localPath, structure, configuration, attributes, hasChildren);
 											break;
 										case "setProperty":
-											Importer.showSetPropertyOptions(options, key, localPath, structure, configuration, attributes);
+											_JobQueue.showSetPropertyOptions(options, key, localPath, structure, configuration, attributes);
 											break;
 										case "ignore":
 											// reset configuration
 											configuration[localPath] = { action: 'ignore' };
-											Importer.updateStructureSelector(localPath);
+											_JobQueue.updateStructureSelector(localPath);
 											break;
 
 										default:
 											configuration[localPath] = {};
-											Importer.updateStructureSelector(localPath);
+											_JobQueue.updateStructureSelector(localPath);
 											break;
 									}
 								});
@@ -1019,11 +1032,11 @@ let Importer = {
 
 		configuration[path].action = 'createNode';
 
-		let isRoot  = Importer.isRoot(configuration, path);
-		let hasRoot = Importer.hasRoot(configuration);
+		let isRoot  = _JobQueue.isRoot(configuration, path);
+		let hasRoot = _JobQueue.hasRoot(configuration);
 
 		if (!hasRoot) {
-			Importer.setRoot(configuration, path);
+			_JobQueue.setRoot(configuration, path);
 			isRoot = true;
 		}
 
@@ -1049,11 +1062,11 @@ let Importer = {
 			let type  = $(this).val();
 			let names = [];
 
-			Importer.updateStructureSelector(key, path, type);
+			_JobQueue.updateStructureSelector(key, path, type);
 
 			if (!isRoot) {
 
-				let parentType = Importer.getParentType(path, configuration);
+				let parentType = _JobQueue.getParentType(path, configuration);
 				if (parentType) {
 
 					let nonRoot    = $('#non-root-options');
@@ -1064,7 +1077,7 @@ let Importer = {
 					let nameSelect    = $('#name-select');
 
 					//fetchPropertyList(type, typeConfig, key, select, loadCallback, changeCallback, appendCallback) {
-					Importer.fetchPropertyList(parentType, typeConfig, '', nameSelect, function() {
+					_JobQueue.fetchPropertyList(parentType, typeConfig, '', nameSelect, function() {
 
 						// trigger select event when an element is already configured
 						if (typeConfig && typeConfig.propertyName) {
@@ -1101,7 +1114,7 @@ let Importer = {
 						let contentSelect = $('#content-select');
 
 						//fetchPropertyList(type, typeConfig, key, select, loadCallback, changeCallback, appendCallback) {
-						Importer.fetchPropertyList(type, typeConfig, '', contentSelect, function() {
+						_JobQueue.fetchPropertyList(type, typeConfig, '', contentSelect, function() {
 
 							// trigger select event when an element is already configured
 							if (typeConfig && typeConfig.content) {
@@ -1158,7 +1171,7 @@ let Importer = {
 				inputProperties = Object.keys(attributes[key]);
 			}
 
-			Importer.displayImportPropertyMapping(type, inputProperties, rowContainer, names, false, configuration[path], (mapping) => {
+			_JobQueue.displayImportPropertyMapping(type, inputProperties, rowContainer, names, false, configuration[path], (mapping) => {
 
 				let typeConfig = configuration[path];
 				if (!typeConfig) {
@@ -1193,13 +1206,13 @@ let Importer = {
 
 		let showOnlyCustomTypesCheckbox = el[0].querySelector('#target-type-custom-only');
 
-		Importer.updateSchemaTypeCache().then(ignore => {
+		_JobQueue.updateSchemaTypeCache().then(ignore => {
 
 			showOnlyCustomTypesCheckbox.addEventListener('change', () => {
 
 				let showOnlyCustomTypes                 = showOnlyCustomTypesCheckbox.checked;
 				configuration[path].showOnlyCustomTypes = showOnlyCustomTypes;
-				let list                                = Importer.schemaTypeCache.nodeTypes;
+				let list                                = _JobQueue.schemaTypeCache.nodeTypes;
 				let prevSelected                        = typeSelector.val();
 
 				if (showOnlyCustomTypes) {
@@ -1217,7 +1230,7 @@ let Importer = {
 				}
 			});
 
-			typeSelector.html(defaultSelectEntry + Importer.schemaTypeCache.nodeTypes.map(n => `<option value="${n.name}">${n.name}</option>`).sort().join(''));
+			typeSelector.html(defaultSelectEntry + _JobQueue.schemaTypeCache.nodeTypes.map(n => `<option value="${n.name}">${n.name}</option>`).sort().join(''));
 
 			if (typeConfig) {
 
@@ -1241,7 +1254,7 @@ let Importer = {
 
 		configuration[path].action = 'setProperty';
 
-		let parentType = Importer.getParentType(path, configuration);
+		let parentType = _JobQueue.getParentType(path, configuration);
 		if (!parentType) {
 
 			el.append('<p class="hint">Action &laquo;setProperty&raquo; cannot be used without enclosing &laquo;createNode&raquo; action.</p>');
@@ -1254,7 +1267,7 @@ let Importer = {
 			let textSelect = $('#text-select');
 			let typeConfig = configuration[path];
 
-			Importer.fetchPropertyList(parentType, typeConfig, '', textSelect, () => {
+			_JobQueue.fetchPropertyList(parentType, typeConfig, '', textSelect, () => {
 
 				// trigger select event when an element is already configured
 				if (typeConfig && typeConfig.propertyName) {
@@ -1267,7 +1280,7 @@ let Importer = {
 
 				if (value && value.length) {
 					configuration[path].propertyName = value;
-					Importer.updateStructureSelector(key, path, value);
+					_JobQueue.updateStructureSelector(key, path, value);
 				}
 			});
 		}
@@ -1295,7 +1308,7 @@ let Importer = {
 					if (blacklist.indexOf(info.jsonName) === -1) {
 
 						// match with longest target property wins
-						if (Importer.checkSelection(typeConfig, key, info.jsonName) && info.jsonName.length > longestMatch) {
+						if (_JobQueue.checkSelection(typeConfig, key, info.jsonName) && info.jsonName.length > longestMatch) {
 
 							selectedString = ' selected="selected"';
 							longestMatch   = info.jsonName.length;
@@ -1362,12 +1375,12 @@ let Importer = {
 		let targetTypeSelector = $('#target-type-select');
 		let customOnlyCheckbox = $('input#target-type-custom-only');
 
-		if (Importer.customTypesOnly) {
+		if (_JobQueue.customTypesOnly) {
 			customOnlyCheckbox.prop('checked', true);
 		}
 
-		Importer.updateSchemaTypeCache().then(ignore => {
-			Importer.updateSchemaTypeSelector(targetTypeSelector);
+		_JobQueue.updateSchemaTypeCache().then(ignore => {
+			_JobQueue.updateSchemaTypeSelector(targetTypeSelector);
 		});
 
 		$('#types-container').empty();
@@ -1375,14 +1388,14 @@ let Importer = {
 		_Helpers.disableElement($('#start-import')[0]);
 
 		customOnlyCheckbox.off('change').on('change', function() {
-			Importer.customTypesOnly = $(this).prop('checked');
-			Importer.updateSchemaTypeSelector(targetTypeSelector);
+			_JobQueue.customTypesOnly = $(this).prop('checked');
+			_JobQueue.updateSchemaTypeSelector(targetTypeSelector);
 			$('#types-container').empty();
 			$('#start-import').off('click');
 			_Helpers.disableElement($('#start-import')[0]);
 		});
 
-		Importer.updateSchemaTypeSelector(targetTypeSelector);
+		_JobQueue.updateSchemaTypeSelector(targetTypeSelector);
 
 		// collect CSV headers to use
 		fetch(`${Structr.rootUrl}File/${file.id}/getCSVHeaders`, {
@@ -1403,14 +1416,14 @@ let Importer = {
 					}
 				}
 
-				Importer.displayMixedMappingConfiguration(mixedMappingConfig);
+				_JobQueue.displayMixedMappingConfiguration(mixedMappingConfig);
 
 				// what happens when the user selects a type
 				targetTypeSelector.off('change').on('change', function(e, data) {
 
 					let selectedType = $('select[name=targetType]').val();
 
-					Importer.updateMixedMapping(selectedType, file, data, mixedMappingConfig);
+					_JobQueue.updateMixedMapping(selectedType, file, data, mixedMappingConfig);
 
 					targetTypeSelector.val('');
 				});
@@ -1426,7 +1439,7 @@ let Importer = {
 
 		delete mixedMapping.mappedTypes[id];
 
-		Importer.displayMixedMappingConfiguration(mixedMapping);
+		_JobQueue.displayMixedMappingConfiguration(mixedMapping);
 	},
 	updateMixedMapping: (id, file, data, mixedMappingConfig) => {
 
@@ -1471,7 +1484,7 @@ let Importer = {
 				_Helpers.enableElement($('#start-import')[0]);
 				$('#start-import').off('click').on('click', function() {
 
-					let configInfo = Importer.collectCSVImportConfigurationInfo();
+					let configInfo = _JobQueue.collectCSVImportConfigurationInfo();
 					let allowImport = (configInfo.errors.length === 0);
 
 					if (!allowImport) {
@@ -1493,7 +1506,7 @@ let Importer = {
 			}
 		};
 
-		Importer.updateAdvancedImportPropertyMapping(config);
+		_JobQueue.updateAdvancedImportPropertyMapping(config);
 	},
 	updateAdvancedImportPropertyMapping: (config) => {
 
@@ -1528,7 +1541,7 @@ let Importer = {
 						if (blacklist.indexOf(info.jsonName) === -1) {
 
 							// match with longest target property wins
-							if (Importer.checkSelection(config.typeConfig, inputPropertyName, info.jsonName) && info.jsonName.length > longestMatch) {
+							if (_JobQueue.checkSelection(config.typeConfig, inputPropertyName, info.jsonName) && info.jsonName.length > longestMatch) {
 
 								let mappedType = mapping.mappedTypes[config.type];
 
@@ -1548,7 +1561,7 @@ let Importer = {
 				});
 
 				// update display
-				Importer.displayMixedMappingConfiguration(mapping);
+				_JobQueue.displayMixedMappingConfiguration(mapping);
 
 				if (config.onLoadComplete && typeof config.onLoadComplete === "function") {
 					config.onLoadComplete(mapping);
@@ -1582,16 +1595,16 @@ let Importer = {
 
 			let mappedType = mixedMapping.mappedTypes[key];
 
-			mappedTypes.append(Importer.templates.snippetTypeContainer({ type: mappedType.name, id: mappedType.name }));
+			mappedTypes.append(_JobQueue.templates.snippetTypeContainer({ type: mappedType.name, id: mappedType.name }));
 
 			let propertyContainer     = $('#matching-properties-' + mappedType.name);
 			let relationshipContainer = $('#relationships-' + mappedType.name);
 
-			propertyContainer.append(Object.keys(mappedType.properties).map(propertyName => Importer.templates.snippetMappingRow({ name: propertyName })).join(''));
-			relationshipContainer.append(mappedType.relationships.map(propertyName => Importer.templates.snippetMappingRow({ name: propertyName })).join(''));
+			propertyContainer.append(Object.keys(mappedType.properties).map(propertyName => _JobQueue.templates.snippetMappingRow({ name: propertyName })).join(''));
+			relationshipContainer.append(mappedType.relationships.map(propertyName => _JobQueue.templates.snippetMappingRow({ name: propertyName })).join(''));
 
 			$('#remove-button-' + mappedType.name).off('click').on('click', () => {
-				Importer.removeMixedTypeMapping(mappedType.name, mixedMapping);
+				_JobQueue.removeMixedTypeMapping(mappedType.name, mixedMapping);
 			});
 
 			let addRelationshipContainer = $('#add-relationship-' + mappedType.name);
@@ -1601,7 +1614,7 @@ let Importer = {
 			$(`#${mappedType.name}-related-to`).off('change').on('change', function(e) {
 
 				mappedType.relationships.push($(this).val());
-				Importer.displayMixedMappingConfiguration(mixedMapping);
+				_JobQueue.displayMixedMappingConfiguration(mixedMapping);
 			});
 		}
 	},
@@ -1609,15 +1622,15 @@ let Importer = {
 	templates: {
 		main: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/crud.css">
-			<link rel="stylesheet" type="text/css" media="screen" href="css/importer.css">
+			<link rel="stylesheet" type="text/css" media="screen" href="css/job-queue.css">
 			
-			<div id="importer-main" class="resourceBox">
-				<table id="importer-jobs-table">
+			<div id="job-queue-main" class="resourceBox">
+				<table id="job-queue-jobs-table">
 					<thead><tr>
 						<th>Job ID</th>
 						<th>Job Type</th>
 						<th>User</th>
-						<th>File UUID</th>
+						<th>File UUID / Job Title</th>
 						<th>File path</th>
 						<th>File size</th>
 						<th>Processed Chunks</th>

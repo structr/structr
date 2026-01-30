@@ -54,10 +54,10 @@ Visual workflow designer for creating automated business processes and data tran
 
 ![Flows](../flows_run-flow.png)
 
-### Importer
+### Job Queue
 Data import tools and utilities for migrating content from external sources and file formats.
 
-![Importer](../importer.png)
+![Job Queue](../importer.png)
 
 ### Localization
 Multi-language support configuration for creating internationalized applications.
