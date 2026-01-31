@@ -31,50 +31,20 @@ test.beforeAll(async ({ playwright }) => {
   });
 
   // Clear database
-  await context.delete(process.env.BASE_URL + '/structr/rest/File');
-  await context.delete(process.env.BASE_URL + '/structr/rest/Project');
-  await context.delete(process.env.BASE_URL + '/structr/rest/Milestone');
-  await context.delete(process.env.BASE_URL + '/structr/rest/Task');
+  await context.post(process.env.BASE_URL + '/structr/rest/maintenance/clearDatabase');
 
-
-
-  // Upload import files using multipart/form-data
-  let csv = fs.readFileSync('1000-tasks.csv');
-  await context.post(process.env.BASE_URL + '/structr/upload', {
-    multipart: {
-      file: {
-        name: '1000-tasks.csv',
-        mimeType: 'text/csv',
-        buffer: csv
-      }
-    }
-  });
-
-  csv = fs.readFileSync('100-milestones.csv');
-  await context.post(process.env.BASE_URL + '/structr/upload', {
-    multipart: {
-      file: {
-        name: '100-milestones.csv',
-        mimeType: 'text/csv',
-        buffer: csv
-      }
-    }
-  });
-
-  csv = fs.readFileSync('10-projects.csv');
-  await context.post(process.env.BASE_URL + '/structr/upload', {
-    multipart: {
-      file: {
-        name: '10-projects.csv',
-        mimeType: 'text/csv',
-        buffer: csv
-      }
+  // Create new admin user
+  await context.post(process.env.BASE_URL + '/structr/rest/User',  {
+    data: {
+      name: 'admin',
+      password: 'admin',
+      isAdmin: true
     }
   });
 
 });
 
-test('importer', async ({ page }) => {
+test('graph', async ({ page }) => {
 
   test.setTimeout(240_000);
 
@@ -98,93 +68,54 @@ test('importer', async ({ page }) => {
   await page.locator('#loginButton').click();
   await page.waitForTimeout(1000);
 
+  // Pages
+  await page.locator('#pages_').waitFor({ state: 'visible' });
+  await page.locator('#pages_').click();
+
+  // Wait for Pages UI to load all components
+  await page.waitForTimeout(1000);
+  //await page.screenshot({ path: 'screenshots/pages.png' });
+
+  // Create new page
+  await page.locator('#pages-actions .dropdown-select').click();
+  await page.locator('#create_page').waitFor({ state: 'visible' });
+  await page.locator('#create_page').click();
+  await page.waitForTimeout(1000);
+  //await page.screenshot({ path: 'screenshots/pages_create-page.png' });
+  await page.locator('#template-tiles .app-tile:nth-child(2)').click();
+  await page.waitForTimeout(2000);
+
   await page.locator('.submenu-trigger').hover();
-  await page.locator('#job_queue_').waitFor({state: 'visible'});
-  await page.locator('#job_queue_').click();
+  await page.locator('#graph_').waitFor({state: 'visible'});
+  await page.locator('#graph_').click();
 
-  // Wait for Code UI to load all components
+  // Wait for Graph UI to load all components
+  await page.waitForTimeout(500);
+  await page.screenshot({ path: 'screenshots/graph.png' });
+
+  // Enter Cypher query to show all nodes and relationships
+  await page.getByPlaceholder('Cypher query').click();
+  await page.keyboard.type('MATCH (n)-[r]-(m) RETURN n,r,m');
+  await page.locator('#exec-cypher').click();
   await page.waitForTimeout(1000);
-  await page.screenshot({ path: 'screenshots/importer.png' });
+  await page.screenshot({ path: 'screenshots/graph_show-nodes.png' });
 
-  // Create CSV document to import
-  await page.locator('#files_').waitFor({state: 'visible'});
-  await page.locator('#files_').click();
-  await page.locator('#add-file-button').waitFor({ state: 'visible' });
-  await page.locator('#add-file-button').click();
-  await page.waitForTimeout(500);
-  await page.screenshot({ path: 'screenshots/importer_created-file.png' });
-  await page.getByText('New File').first().click();
-  await page.waitForTimeout(500);
-  await page.keyboard.type('import-file.csv');
-  await page.keyboard.press('Enter');
-  await page.waitForTimeout(1000);
-  await page.screenshot({ path: 'screenshots/importer_renamed-file.png' });
-  await page.getByText('import-file.csv').first().click({button: 'right'});
-  await page.getByText('General').first().waitFor({state: 'visible'});
-  await page.getByText('General').first().click();
-  await page.waitForTimeout(500);
-  await page.keyboard.press('Tab');
-  await page.keyboard.type('text/csv');
-  await page.keyboard.press('Enter');
-  await page.waitForTimeout(1000);
-  await page.screenshot({ path: 'screenshots/importer_set-content-type.png' });
-  await page.getByRole('button', {name: 'Close'}).click();
+  const canvasNode = await page.evaluate('_Graph.graphBrowser.getNodes()[0]');
+  const x = parseFloat(canvasNode['renderer1:x']);
+  const y = parseFloat(canvasNode['renderer1:y']) + 128;
 
-  /*
-  // Edit file and add CSV lines
-  await page.getByText('import-file.csv').first().click({button: 'right'});
-  await page.getByText('Edit File').first().waitFor({state: 'visible'});
-  await page.getByText('Edit File').first().click();
-  await page.waitForTimeout(500);
-  await page.keyboard.type(csv);
-  await page.waitForTimeout(1000);
-  await page.getByRole('button', {name: 'Save and Close'}).click();
-  await page.screenshot({ path: 'screenshots/importer_typed-csv-text.png' });
-*/
+  // Hover over first node
+  await page.mouse.move(x, y);
 
-  await page.locator('#file-tree-container').getByText('structr_uploads').first().click();
-  await page.getByText('10-projects.csv').first().click({button: 'right'});
   await page.waitForTimeout(500);
-  await page.getByText('Import CSV').first().waitFor({state: 'visible'});
-  await page.getByText('Import CSV').first().click();
-  await page.waitForTimeout(500);
-  await page.locator('select#target-type-select').selectOption({ label: 'Project' });
-  await page.waitForTimeout(500);
-  await page.getByRole('button', {name: 'Start import'}).click();
-  await page.waitForTimeout(500);
-  await page.getByRole('button', {name: 'Close'}).click();
+  await page.screenshot({ path: 'screenshots/graph_node-hover.png' });
 
-  await page.getByText('100-milestones.csv').first().click({button: 'right'});
+  // Click on first node to open properties dialog
+  await page.mouse.click(x,y);
   await page.waitForTimeout(500);
-  await page.getByText('Import CSV').first().waitFor({state: 'visible'});
-  await page.getByText('Import CSV').first().click();
-  await page.waitForTimeout(500);
+  await page.screenshot({ path: 'screenshots/graph_node-properties-opened.png' });
 
-  await page.locator('select#target-type-select option[value]').first().waitFor({ state: 'attached', timeout: 30000 });
-  await page.locator('select#target-type-select').selectOption({ label: 'Milestone' }, { timeout: 30000 });
-  await page.waitForTimeout(500);
-  await page.getByRole('button', {name: 'Start import'}).click();
-  await page.getByRole('button', {name: 'Close'}).click();
-
-  await page.getByText('1000-tasks.csv').first().click({button: 'right'});
-  await page.waitForTimeout(500);
-  await page.getByText('Import CSV').first().waitFor({state: 'visible'});
-  await page.getByText('Import CSV').first().click();
-  await page.waitForTimeout(500);
-  await page.locator('select#target-type-select').selectOption({ label: 'Task' });
-  await page.waitForTimeout(500);
-  await page.getByRole('button', {name: 'Start import'}).click();
   await page.getByRole('button', {name: 'Close', exact: true}).click();
-  await page.locator('#close-all-button').click();
-
-  // Check import processes
-  await page.locator('.submenu-trigger').hover();
-  await page.locator('#job_queue_').waitFor({state: 'visible'});
-  await page.locator('#job_queue_').click();
-  await page.locator('#job-queue-jobs-table').click();
-  await page.locator('#job-queue-jobs-table tbody tr').isVisible();
-  await page.screenshot({ path: 'screenshots/importer_check-import-process.png' });
-  await page.locator('.close-message-button').click();
 
   // Logout
   await page.locator('.submenu-trigger').hover();
