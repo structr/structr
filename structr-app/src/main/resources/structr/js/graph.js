@@ -913,7 +913,11 @@ let _Graph = {
 		}
 
 		_Graph.clickTimeout = window.setTimeout(() => {
-			_Entities.showProperties(node);
+			let fixedNode = {
+				type: node.nodeType,
+				...node
+			};
+			_Entities.showProperties(fixedNode);
 		}, _Graph.doubleClickTime);
 
 		window.setTimeout(() => {
