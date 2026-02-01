@@ -1,231 +1,138 @@
 publiccodeYmlVersion: "0.5"
 
-name: "Structr"
-applicationSuite: "Structr Low-Code Platform"
+name: Structr
+softwareVersion: "6.1.0"
+releaseDate: "2026-01-29"
 
 url: "https://github.com/structr/structr"
 landingURL: "https://structr.org"
 
-softwareVersion: "6.1.0"
-releaseDate: "2026-01-29"
-
 platforms:
   - web
-  - linux
-  - mac
-  - windows
 
 categories:
-  - application-framework
-  - low-code-platform
+  - application-development
   - content-management
-  - data-management
-  - graph-database
   - middleware
+  - data-management
 
 developmentStatus: stable
-softwareType: "standalone/backend"
+softwareType: "standalone/web"
 
 intendedAudience:
-  - developers
-  - enterprise-architects
-  - digital-transformation-teams
-
-scope:
-  - information-technology
-  - enterprise-software
+  countries:
+    - DE
 
 description:
   en:
-    localisedName: "Structr"
+    genericName: "Low-code development and runtime platform"
     shortDescription: >
-      Open source low-code platform with a Java backend and web-based frontend.
+      Generic open source low-code development and runtime platform based on graph
+      technology for building fully custom applications.
     longDescription: >
-      Structr is a fully open source low-code development and runtime platform based
-      on graph technology. It consists of a Java-based backend and a web-based frontend
-      for modeling, development, and administration. Structr supports the development
-      and operation of web applications with transparent data models, extensible
-      business logic, and self-hosted deployment. In addition to structured data,
-      Structr provides a virtual filesystem for managing files and binary content
-      together with custom metadata, while allowing binary data to be stored on
-      external storage systems. The platform provides APIs that enable both human
-      users and AI-based systems to create applications and interact with managed
-      data via the Model Context Protocol (MCP). The project is developed openly with
-      community-driven documentation and discussion forums, while commercial services
-      such as professional support and custom development are provided by Structr
-      GmbH, a company based in Germany.
-  de:
-    localisedName: "Structr"
-    shortDescription: >
-      Open-Source-Low-Code-Plattform mit Java-Backend und webbasiertem Frontend.
-    longDescription: >
-      Structr ist eine vollständig quelloffene Low-Code-Entwicklungs- und
-      Laufzeitplattform auf Basis von Graphtechnologie. Sie besteht aus einem
-      Java-basierten Backend und einem webbasierten Frontend für Modellierung,
-      Entwicklung und Administration. Neben strukturierten Daten stellt Structr
-      ein virtuelles Dateisystem zur Verwaltung von Dateien und binären Inhalten
-      mit frei definierbaren Metadaten bereit, wobei die eigentlichen Binärdaten
-      auch auf externen Speichersystemen abgelegt werden können. Über APIs können
-      sowohl menschliche Nutzer als auch KI-basierte Systeme Anwendungen erstellen
-      und mit den verwalteten Daten über das Model Context Protocol (MCP)
-      interagieren. Die Entwicklung erfolgt offen mit Community-Dokumentation und
-      Diskussionsforen, während kommerzielle Leistungen wie professioneller Support
-      und individuelle Entwicklung durch die in Deutschland ansässige Structr GmbH
-      angeboten werden.
+      Structr is a generic low-code development and runtime platform built on a graph
+      database. It is not tied to any specific domain or predefined use case and
+      provides full flexibility and extensibility to create custom applications within
+      its scope (web apps, graph-backed backends, middleware/integration components).
 
-features:
-  - Java-based backend
-  - Web-based frontend
-  - Graph database integration
-  - Virtual filesystem with metadata support
-  - External binary storage integration
-  - Low-code and pro-code extensibility
-  - REST and JSON APIs
-  - Middleware capabilities
-  - Event-driven and pub/sub integration
-  - AI-assisted application development via MCP
-  - Enterprise-grade security features
-  - GDPR-compliant deployment options
+      Graph database foundation:
+      Structr uses a graph database to store both (a) application components (schema,
+      types, UI building blocks, templates, scripts, flows) and (b) the default
+      application/user data. This provides schema flexibility, fast graph traversals,
+      and high performance for complex domains.
 
-architecture:
-  type: "monolithic"
-  modularity: "modular and extensible"
-  description: >
-    Structr follows a monolithic core architecture with a modular and extensible
-    design. Functionality can be extended through configuration, scripting, and
-    custom modules. The platform includes an internal virtual filesystem that
-    manages files and binary assets together with structured metadata, while
-    allowing the physical storage of binary data to be delegated to external
-    storage providers. Individual Structr instances can be operated as small,
-    independently deployed services and integrated with other systems via RESTful
-    APIs or event-driven and publish/subscribe messaging patterns.
+      Dual UI model (developer/admin vs end-user):
+      Structr provides a web-based Developer/Admin UI (Structr IDE) with no-code,
+      low-code and pro-code tools to modify the “application graph” (the part of the
+      database that defines the application). Developers typically do not edit a raw
+      application source tree; they edit schemas, isolated script expressions/methods,
+      HTML templates, and virtual files stored in the graph. Using these tools,
+      developers create the end-user facing web UI.
 
-architectureDiagram:
-  description: >
-    A typical Structr deployment consists of a Java-based backend runtime connected
-    to a Neo4j graph database and exposing REST, messaging, MCP, and file management
-    APIs. A web-based frontend provides administrative and development tooling.
-    Binary content can be stored either locally or in external storage systems such
-    as object storage services, while metadata is managed within the graph database.
-  documentation: "https://structr.org/docs"
+      JSON Schema interoperability:
+      The database schema can be represented as JSON Schema (json-schema.org) and
+      supports import/export.
 
-dependsOn:
-  open:
-    - name: "GraalVM JDK"
-      version: "25"
-    - name: "Neo4j"
-      version: ">= 4.4"
-  optional:
-    - name: "Docker"
-      description: "Optional container runtime for containerised deployment."
-    - name: "Podman"
-      description: "Alternative OCI-compatible container runtime."
-    - name: "Kubernetes"
-      description: "Optional platform for container orchestration and lifecycle management."
-    - name: "SMTP Server"
-      description: "Optional dependency for outbound email delivery."
-    - name: "IMAP Server"
-      description: "Optional integration for inbound email processing."
-    - name: "OAuth 2.0 / OpenID Connect Provider"
-      description: "Optional identity provider for single sign-on authentication."
-    - name: "LDAP-compatible Directory Service"
-      description: "Optional integration with enterprise identity management systems."
-    - name: "S3-compatible Object Storage"
-      description: "Optional external storage backend for binary content."
+      Polyglot development:
+      Structr supports multiple programming languages via GraalVM: application logic
+      and dynamic content can be implemented using any language supported by GraalVM.
 
-interoperability:
-  supportedStandards:
-    - REST
-    - JSON
-    - OAuth 2.0
-    - OpenID Connect
-    - LDAP
-    - SMTP
-    - IMAP
-    - AMQP
-    - XMPP
-    - Apache Kafka Protocol
-    - Apache Pulsar Protocol
-    - Model Context Protocol (MCP)
-    - S3 API
-  description: >
-    Structr provides interoperable interfaces based on open standards and widely
-    adopted protocols. Integration is possible via synchronous APIs and
-    asynchronous messaging, identity federation, email protocols, object storage
-    APIs, and machine-oriented APIs for AI-based systems using MCP.
+      Files & content:
+      Structr provides an internal virtual filesystem for managing images, videos and
+      binary content with custom metadata. Binary data can be stored externally using
+      file storage providers; S3 repositories are supported. Structr also supports
+      “dynamic files”: virtual files whose content is generated in real time via
+      scripts that evaluate graph data and may integrate external data sources or
+      user input. Files can be accessed through supported protocols (e.g. HTTP, FTP,
+      SSH/SCP) depending on deployment/configuration.
 
-aiCapabilities:
-  description: >
-    Structr exposes structured, machine-readable APIs that allow AI-based systems
-    to assist in application development and interact with running applications
-    and managed data. Using the Model Context Protocol (MCP), AI tools can query
-    schemas, create or modify application components, manage files and metadata,
-    and perform controlled operations on data and workflows.
-  protocols:
-    - Model Context Protocol (MCP)
+      Integration & protocols (selected):
+      - APIs: REST/JSON
+      - Messaging / pub-sub: AMQP (e.g. RabbitMQ), Kafka, Pulsar, XMPP
+      - Mail: SMTP (outbound), IMAP
+      - File access / storage: HTTP, S3, FTP, SSH/SCP
+      - Optional integrations: OAuth providers (SSO), LDAP-compatible services
 
-security:
-  responsibleDisclosure:
-    email: "security@structr.com"
-  description: >
-    Structr follows established security practices for backend and web applications.
-    Security vulnerabilities can be reported responsibly via the provided contact
-    address. Commercial offerings include security consulting and support for
-    hardened, enterprise-grade deployments.
+      AI & automation:
+      Structr can be used with AI to create apps and to interact with Structr
+      applications and managed data through MCP.
 
-dataProtection:
-  gdprCompliant: true
-  description: >
-    Structr is designed to support deployments in compliance with the EU General
-    Data Protection Regulation (GDPR). The platform can be operated in fully
-    self-hosted environments and does not require the use of external cloud
-    services. Structr GmbH is based in Germany and offers commercial services,
-    including hosting and support, using Germany- or EU-based infrastructure
-    providers. This enables data processing and storage within the European Union
-    and supports data sovereignty requirements.
+      Support & websites:
+      Community site, forum and documentation are available at https://structr.org.
+      Commercial offerings (including commercial support and custom development) are
+      available from Structr GmbH at https://structr.com.
+
+      Licensing:
+      Structr is dual-licensed: open source (GPLv3/AGPLv3) and commercial/individual
+      licensing options.
+
+      Data protection & hosting:
+      Structr GmbH is based in Germany (EU). Deployments can be aligned with GDPR
+      requirements depending on configuration and operational context; standard
+      hosting on German/EU-based providers is available.
+    documentation: "https://structr.org"
+    features:
+      - "Generic low-code platform (no-code / low-code / pro-code) for fully custom applications"
+      - "Graph-native application model and default data storage (Neo4j 4.4+)"
+      - "Web-based Developer/Admin UI (Structr IDE) for schema, data, UI, scripts and operations"
+      - "End-user web UI creation via templates, schema-defined types and scripts"
+      - "Polyglot scripting via GraalVM (any GraalVM-supported language)"
+      - "Schema representation as JSON Schema with import/export"
+      - "REST/JSON APIs for integration"
+      - "Event-driven / pub-sub integration (AMQP/RabbitMQ, Kafka, Pulsar, XMPP)"
+      - "Virtual filesystem with custom metadata; optional external binary storage (S3)"
+      - "Dynamic files generated at runtime via scripts"
+      - "File access via HTTP, FTP and SSH/SCP (depending on deployment/configuration)"
+      - "Email integration via SMTP and IMAP (depending on configuration)"
+      - "Optional identity/SSO integration (OAuth providers, LDAP-compatible services)"
+      - "AI-assisted creation and interaction via MCP"
 
 legal:
-  licenses:
-    - "AGPL-3.0-or-later"
-    - "GPL-3.0-or-later"
-  alternativeLicense:
-    name: "Commercial / Individual License"
-    website: "https://structr.com"
+  license: "AGPL-3.0-or-later OR GPL-3.0-or-later"
+  mainCopyrightOwner: "Structr GmbH"
 
 maintenance:
-  type: "community_and_commercial"
+  type: internal
   contacts:
-    - name: "Structr GmbH"
-      email: "info@structr.com"
-      website: "https://structr.com"
-
-support:
-  type: "commercial"
-  name: "Structr GmbH"
-  email: "info@structr.com"
-  website: "https://structr.com"
-  description: >
-    Commercial support, professional services, and custom development for Structr
-    are provided by Structr GmbH.
-
-community:
-  website: "https://structr.org"
-  forum: "https://structr.org/forum"
-  documentation: "https://structr.org/docs"
-
-documentation:
-  - name: "Structr Documentation"
-    url: "https://structr.org/docs"
-
-usedBy:
-  - "Independent Developers"
-  - "Enterprises"
-  - "Public Sector Organisations"
-
-roadmap: "https://structr.org/docs/release-notes"
+    - name: "Axel Morgner"
+      email: "axel.morgner@structr.com"
+      affiliation: "Structr GmbH"
 
 localisation:
   localisationReady: true
   availableLanguages:
     - en
-    - de
+
+dependsOn:
+  open:
+    - name: "Neo4j"
+      versionMin: "4.4"
+    - name: "GraalVM JDK"
+      version: "25"
+  optional:
+    - name: "Docker or Podman"
+    - name: "Kubernetes"
+    - name: "SMTP server"
+    - name: "IMAP server"
+    - name: "OAuth provider"
+    - name: "LDAP-compatible identity provider"
