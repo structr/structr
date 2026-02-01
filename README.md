@@ -26,91 +26,230 @@
 **Structr** is an open source **generic low-code development and runtime platform** built on graph
 technology. It is **not limited to any predefined use case** and supports the creation of
 **fully custom applications** — including web applications, graph-database-backed backends,
-data-centric systems, middleware, and integration components. Structr provides both a developer
-IDE and an end-user application runtime UI.  [oai_citation:1‡GitHub](https://raw.githubusercontent.com/structr/structr/refs/heads/main/README.md)
+data-centric systems, middleware, and integration components.
 
-All application components and data are stored in a **graph database**, providing flexible
-schema evolution, fast graph traversals, and powerful modeling without join constraints.  [oai_citation:2‡GitHub](https://raw.githubusercontent.com/structr/structr/refs/heads/main/README.md)
+At its core, Structr uses a **graph database** to store both application components (schema,
+UI definitions, templates, scripts, workflows) and application/user data. This provides schema
+flexibility, fast graph traversals, and expressive data modeling without join-heavy queries.
 
-Structr can represent its database schema as **JSON Schema** and supports both import and export.
+Structr supports representing its database schema as **JSON Schema**, including **import/export**
+(see https://json-schema.org).
 
-Structr also provides an internal **virtual filesystem** with metadata and optional external
-storage support (e.g., S3), as well as access via common protocols (HTTP, FTP, SSH/SCP).
+Structr includes an internal **virtual filesystem** for managing files and binary content with
+custom metadata. Binary data can be stored externally on file storage providers (e.g., S3).
 
 ---
 
 ## What Structr is not
 
-To set expectations, Structr is **not**:
-- A prebuilt business application (CMS, CRM, ERP)
-- A fixed template or domain-specific framework
-- A simple website builder
+To set clear expectations, Structr is **not**:
+
+- A prebuilt business application (e.g., CMS, CRM, ERP)
+- A fixed-purpose framework with predefined domain logic
+- A website builder with limited customization options
+- A collection of templates tied to a specific industry
 - A replacement for general-purpose programming languages
 
-It is a **generic application platform** where you design and operate your app at a high level
-using structured tools.
+Instead, Structr is a **generic application platform** providing the building blocks,
+abstractions, and runtime needed to **design, build, and operate your own applications**
+within a controlled and extensible environment.
 
 ---
 
 ## Frontends and Development Model
 
+Structr separates **application development** from **application usage** through two different
+web-based user interfaces.
+
 ### Structr Developer / Admin UI (IDE)
 
-The web-based “Structr IDE” exposes schema, data, workflows, scripts, UIs, and operational tools.
-Developers edit high-level artifacts (schemas, templates, scripts, virtual files) stored in the
-graph rather than a traditional source tree.
+Structr provides a web-based **Developer and Administration UI** that acts as an integrated
+development environment (IDE). It exposes the platform’s capabilities through structured tools
+for modeling, configuration, extension, and operation of applications defined in the graph.
 
-### End-User Application UI
+The Admin UI is used to modify the **application graph**: the part of the database that defines
+the application.
 
-Using the Admin tools, you define the pages, bindings, layouts, and logic that form the
-**end-user application UI**, which Structr serves directly.
+As a Structr developer, you typically **do not create or edit a raw source code tree** for your
+app. Instead, development happens by editing high-level artifacts stored in the graph, such as:
+
+- schemas, types, properties and relationships
+- isolated script expressions and methods
+- HTML templates and UI definitions
+- virtual files with custom metadata
+- configuration and operational settings
+
+Structr supports **polyglot scripting via GraalVM** — i.e., you can use any language supported by
+GraalVM for scripts and methods.
+
+### End-User Application UI (Built with Structr)
+
+Using the tools of the Structr IDE, developers create an end-user facing web UI that is served
+directly by Structr. Pages, templates, bindings, and workflows are defined in the graph and can
+be evolved at runtime.
 
 ---
 
 ## Developer & Admin Tools
-<!-- list preserved from the merged version (omitted here for brevity) -->
+
+Structr provides a comprehensive, web-based Developer and Administration UI that exposes
+the platform’s core capabilities through structured tools. These tools are used to design,
+configure, extend, and operate applications defined in the graph database.
+
+### Platform & Operations
+- Dashboard with system information and runtime status
+- Server log and event log viewer
+- Thread and job queue inspection
+- Deployment and environment information
+- UI configuration and settings
+
+### Schema & Data Modeling
+- Graph-based schema editor
+- Type, property, and relationship management
+- Function properties with read/write scripting
+- Runtime schema evolution
+- Virtual types management
+
+### Data Management
+- Graph-aware data browser and editor
+- Spreadsheet-style CRUD editing
+- Relationship linking and navigation
+- Bulk data import (e.g. CSV)
+
+### Page & UI Development
+- Page and template editor
+- Drag-and-drop UI components
+- Dynamic repeaters bound to graph queries
+- Templating expressions and localization
+- Live preview of end-user pages
+
+### Application Logic & Code
+- Script editor for user-defined functions and methods
+- Polyglot scripting via GraalVM
+- Runtime execution and result inspection
+- OpenAPI exposure configuration for types and methods
+
+### Files & Assets
+- Virtual filesystem browser
+- Folder and file management
+- Custom metadata for files and folders
+- Binary files (images, videos, arbitrary content) with optional external storage (e.g. S3)
+- Dynamic virtual files generated in real time via scripts
+- File access via HTTP, FTP, and SSH/SCP (depending on deployment/configuration)
+- Integration with background jobs (e.g. CSV imports)
+
+### Graph Exploration
+- Visual graph browser
+- Cypher query execution
+- Interactive node and relationship inspection
+
+### Workflows & Automation
+- Flow editor for orchestration logic
+- Node-based workflow modeling
+- Execution and result inspection
+
+### Security & Access Control
+- User and group management
+- Role-based and resource-based permissions
+- REST API access control
+- CORS configuration
+
+### Localization & Communication
+- Localization key and translation management
+- Mail template management
 
 ---
 
 ## AI, LLMs, and Low-Code as Guardrails
-<!-- preserved from merged version -->
+
+Structr’s combination of **no-code, low-code, and pro-code tools** makes it a strong foundation
+for **AI- and LLM-assisted application development**.
+
+Instead of allowing AI systems to generate unconstrained source code, Structr limits interaction
+to **explicit schemas, structured tools, isolated scripts, and well-defined APIs**.
+
+This means:
+- AI operates within well-defined boundaries
+- Changes are applied through structured models and tools
+- Errors and unintended side effects are reduced
+
+In this sense, **low-code provides guardrails for AI**. Structr allows AI systems to assist in
+designing, extending, and operating applications while keeping full control over structure,
+behavior, and security.
+
+Structr can be used with AI to create apps and interact with the Structr application and the
+data it manages through **MCP (Model Context Protocol)**.
 
 ---
 
 ## Architecture
-<!-- preserved from merged version -->
+
+- Java-based backend with a web frontend (admin IDE and end-user UI)
+- Runtime: **GraalVM JDK 25**
+- Graph database: **Neo4j 4.4+** (including 5.x and 2025.x)
+- Monolithic core with modular/extensible design
+- REST/JSON APIs for integration
+- Virtual filesystem with custom metadata and optional external binary storage (S3)
+- Optional containerized deployments (Docker/Podman), Kubernetes orchestration
+
+Structr instances can be operated as small services that interact via REST APIs or through
+event-driven / pub-sub protocols.
 
 ---
 
 ## Integration & Interoperability
-<!-- preserved from merged version -->
+
+- REST / JSON APIs
+- JSON Schema import/export for schema representation
+- Pub/sub and messaging: AMQP (RabbitMQ), Kafka, Pulsar, XMPP
+- Email: SMTP (outbound), IMAP
+- Identity & SSO: OAuth providers, LDAP-compatible services
+- File access: HTTP, FTP, SSH / SCP
+- Storage: S3-compatible repositories
+- AI integration: MCP
 
 ---
 
 ## Licensing
 
 Structr is **dual-licensed**:
-- **Open Source** – GNU AGPL v3 or later; GNU GPL v3 or later
-- **Commercial / Individual License** – available from Structr GmbH
 
-See [LICENSE.md](LICENSE.md) and [COPYING.txt](COPYING.txt) for details.  [oai_citation:3‡GitHub](https://raw.githubusercontent.com/structr/structr/refs/heads/main/README.md)
+- **Open Source**: GNU AGPL v3 or later and GNU GPL v3 or later
+- **Commercial / Individual License**: available from Structr GmbH
+
+See [LICENSE.md](LICENSE.md) and [COPYING.txt](COPYING.txt) for details.
+
+---
+
+## Security
+
+Security policy and supported versions are documented in [SECURITY.md](SECURITY.md).
+
+---
+
+## Contributing
+
+Questions and general discussions should go to the forum first:
+
+- Questions and discussions: https://structr.org/forum
+- GitHub issues: confirmed bug reports only
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
 ---
 
 ## Support
 
 ### Community
-
 - Documentation
 - Community forum
-- Public issue tracking  [oai_citation:4‡GitHub](https://raw.githubusercontent.com/structr/structr/refs/heads/main/README.md)
+- Public issue tracking
 
 ### Commercial (Structr GmbH)
-
 - Professional support and maintenance
 - Custom development
 - Architecture and integration consulting
-- Hosting and managed services on Germany- or EU-based infrastructure  [oai_citation:5‡GitHub](https://raw.githubusercontent.com/structr/structr/refs/heads/main/README.md)
+- Hosting and managed services on Germany- or EU-based infrastructure
 
 ---
 
@@ -120,19 +259,23 @@ See [LICENSE.md](LICENSE.md) and [COPYING.txt](COPYING.txt) for details.  [oai_c
 - **Documentation:** https://structr.org/docs
 - **Forum:** https://structr.org/forum
 
-Contributions, feedback, and discussions are welcome.  [oai_citation:6‡GitHub](https://raw.githubusercontent.com/structr/structr/refs/heads/main/README.md)
+Contributions, feedback, and discussions are welcome.
 
 ---
 
 ## Data Protection & GDPR
 
-Structr is designed to support **GDPR-compliant deployments**:
+Structr supports GDPR-compliant deployments:
 - Fully self-hosted operation
 - No mandatory external cloud services
-- Support for Germany- and EU-based hosting providers  [oai_citation:7‡GitHub](https://raw.githubusercontent.com/structr/structr/refs/heads/main/README.md)
+- Standard hosting on Germany- or EU-based providers available
 
 ---
 
-© Structr GmbH
+## Metadata
+
+- **publiccode.yml:** [publiccode.yml](publiccode.yml)
+
+---
 
 Created with ❤️ by Structr GmbH and the Structr community.

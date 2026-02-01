@@ -29,7 +29,7 @@ description:
     shortDescription: >
       Generic open source low-code development and runtime platform based on graph
       technology for building fully custom applications.
-    longDescription: >
+    longDescription: |
       Structr is a generic low-code development and runtime platform built on a graph
       database. It is not tied to any specific domain or predefined use case and
       provides full flexibility and extensibility to create custom applications within
@@ -50,8 +50,8 @@ description:
       developers create the end-user facing web UI.
 
       JSON Schema interoperability:
-      The database schema can be represented as JSON Schema (json-schema.org) and
-      supports import/export.
+      The database schema can be represented as JSON Schema (https://json-schema.org)
+      and supports import/export.
 
       Polyglot development:
       Structr supports multiple programming languages via GraalVM: application logic
