@@ -1,51 +1,177 @@
+# Structr
 [![Structr CI Pipeline](https://github.com/structr/structr/actions/workflows/main.yaml/badge.svg)](https://github.com/structr/structr/actions/workflows/main.yaml)
 [![Hits-of-Code](https://hitsofcode.com/github/structr/structr?branch=main)](https://hitsofcode.com/github/structr/structr/view?branch=main)
 ![Docker Pulls](https://img.shields.io/docker/pulls/structr/structr)
+[![publiccode.yml](https://img.shields.io/badge/publiccode.yml-present-brightgreen)](publiccode.yml)
 
-# What is Structr?
+![License: AGPL v3 / GPL v3](https://img.shields.io/badge/license-AGPLv3%20%2F%20GPLv3-blue.svg)
+![Java](https://img.shields.io/badge/Java-GraalVM%20JDK%2025-orange)
+![Graph Database](https://img.shields.io/badge/Database-Graph%20(Neo4j)-brightgreen)
+![Low Code](https://img.shields.io/badge/Low--Code-Platform-blueviolet)
+![REST API](https://img.shields.io/badge/API-REST%20%2F%20JSON-informational)
+![Event Driven](https://img.shields.io/badge/Integration-Event--Driven-yellow)
+![AI Ready](https://img.shields.io/badge/AI-MCP%20Enabled-ff69b4)
+![GDPR](https://img.shields.io/badge/GDPR-Compliant-success)
+![EU Based](https://img.shields.io/badge/Hosting-EU%20%2F%20Germany-blue)
 
-Structr is an integrated low-code development and runtime environment that uses a graph database. With Structr, you can build enterprise web applications many times faster than with traditional development methods and run them directly on the Structr server in the same environment.
+**Structr** is an open source low-code development and runtime platform built on graph technology.  
+It combines a Java-based backend with a web-based frontend to enable the development and operation of data-driven web applications with transparent data models, extensible business logic, and self-hosted deployment.
 
-Structr provides low-code capabilities that allow users without extensive development skills to create simple applications, while experienced developers can create sophisticated, state-of-the-art enterprise solutions with 100% flexibility in all areas.
+**TL;DR**
+- Graph-native low-code platform
+- Java backend, web-based frontend
+- Graph database for application components *and* user data
+- REST + event-driven integration
+- Self-hosted, GDPR-friendly, EU-based support available
 
-This unique combination of low-code and pro-code capabilities makes Structr an exceptionally useful and productive tool for application development, and its graph technology makes it the perfect platform for all connected data use cases.
+---
 
-## Benefits
+## Why Structr (Key Benefits)
 
-See [https://structr.com/product/benefits](https://structr.com/product/benefits).
+- **Graph-native application model**  
+  All application components and data are stored in a graph database, enabling schema flexibility and efficient handling of highly connected data.
+
+- **High performance for complex domains**  
+  Direct relationship traversal, index-free adjacency, and avoidance of join-heavy queries enable fast applications even with complex data models.
+
+- **Low-code and pro-code combined**  
+  Rapid development using modeling and configuration, with full extensibility via scripting and custom modules.
+
+- **Middleware and integration hub**  
+  Designed to integrate cleanly into existing system landscapes via APIs and messaging.
+
+- **Self-hosted and data-sovereign**  
+  Suitable for on-premises and private cloud deployments, including EU- and Germany-based infrastructure.
+
+---
+
+## Architecture
+
+Structr follows a **monolithic core architecture** with a **modular and extensible design**.
+
+Key characteristics:
+
+- Java-based backend runtime with web-based frontend
+- Central graph database (Neo4j) used for:
+    - High-level abstraction of all application components
+    - Default storage for application and user data
+- Schema-flexible data modeling
+- Efficient graph traversals instead of expensive table joins
+- Internal virtual filesystem with metadata stored in the graph
+- Optional external storage for binary data (e.g. S3-compatible object storage)
+
+Structr instances can be deployed as standalone services or as part of distributed system landscapes.
+
+---
 
 ## Features
 
-See [https://structr.com/product/features](https://structr.com/product/features).
+- Java-based backend and web-based frontend
+- Graph database integration (Neo4j)
+- Low-code application modeling
+- Pro-code extensibility (scripting, custom modules)
+- REST and JSON APIs
+- Event-driven and pub/sub integration
+- Virtual filesystem with custom metadata
+- External binary storage support (S3-compatible)
+- Authentication and identity integration:
+    - OAuth 2.0
+    - OpenID Connect
+    - LDAP
+- AI-assisted application development via Model Context Protocol (MCP)
+- Container-ready (Docker, Podman)
+- Kubernetes-compatible
+- Enterprise-grade security features
 
-## Installation
+---
 
-There are docker images available on [https://hub.docker.com/r/structr/structr/](https://hub.docker.com/r/structr/structr/).
+## Integration & Interoperability
 
-The mostly automatized installation is found here: [https://github.com/structr/docker-setup](https://github.com/structr/docker-setup)
+Structr integrates with other systems using open standards and widely adopted protocols:
+
+- REST, JSON
+- OAuth 2.0, OpenID Connect
+- LDAP
+- SMTP, IMAP
+- AMQP (e.g. RabbitMQ)
+- Apache Kafka
+- Apache Pulsar
+- XMPP
+- S3 API
+- Model Context Protocol (MCP)
+
+This enables both synchronous API-based integration and asynchronous, event-driven architectures.
+
+---
+
+## AI & Automation
+
+Structr exposes APIs that allow **AI-based systems** to assist in application development and interact with running applications and managed data.
+
+Using the **Model Context Protocol (MCP)**, AI tools can:
+
+- Inspect schemas and application models
+- Create or modify application components
+- Interact with data and workflows
+- Manage files and metadata
+
+All AI-driven interactions follow the same authentication and authorization rules as human users.
+
+---
 
 ## Licensing
 
-Structr is dual licensed under the GPLv3/AGPLv3 and a commercial license. To use Structr without the restrictions of the Open Source licenses and get vendor support, please contact us at [https://structr.com/contact](https://structr.com/contact).
+Structr is **dual-licensed**:
 
-## Documentation
+### Open Source
+- GNU AGPL v3 or later
+- GNU GPL v3 or later
 
-The documentation can be found at [https://docs.structr.com/docs](https://docs.structr.com/docs).
+### Commercial / Individual License
+- Available from Structr GmbH
+- Includes alternative licensing models, professional support, and custom agreements
 
-## First Login
+See the `LICENSE` file for details.
 
-Login with the default credentials admin/admin at: [http://localhost:8082/structr/](http://localhost:8082/structr/)
+---
 
-## Community Support
+## Support
 
-For general questions and discussions please use the [Structr Google Group](https://groups.google.com/forum/#!forum/structr) or send an e-mail to [structr@googlegroups.com](structr@googlegroups.com).
+### Community
+- Documentation
+- Community forum
+- Public issue tracking
 
-Technical questions should be asked on stackoverflow: [https://stackoverflow.com/questions/tagged/structr](https://stackoverflow.com/questions/tagged/structr)
+### Commercial (Structr GmbH)
+- Professional support and maintenance
+- Custom development
+- Architecture and integration consulting
+- Hosting and managed services on Germany- or EU-based infrastructure
 
-## Report Bugs
+---
 
-You can submit issues (bugs, feature requests etc.) on the [issue-tracker](https://github.com/structr/structr/issues). Please don't ask questions or discuss general topics in the issue system.
+## Community & Documentation
 
-## Copyright and License
+- **Community site:** https://structr.org
+- **Documentation:** https://structr.org/docs
+- **Forum:** https://structr.org/forum
 
-Copyright 2010-2025 Structr GmbH
+Contributions, feedback, and discussions are welcome.
+
+---
+
+## Data Protection & GDPR
+
+Structr is designed to support **GDPR-compliant deployments**:
+
+- Fully self-hosted operation
+- No mandatory external cloud services
+- Support for Germany- and EU-based infrastructure providers
+- Clear separation of metadata, application data, and binary content
+
+---
+
+## Copyright
+
+© Structr GmbH  
+Structr is developed and maintained by Structr GmbH and the open source community.
