@@ -13,8 +13,10 @@ platforms:
 categories:
   - application-development
   - content-management
-  - middleware
-  - data-management
+  - digital-asset-management
+  - data-collection
+  - document-management
+  - knowledge-management
 
 developmentStatus: stable
 softwareType: "standalone/web"
@@ -25,7 +27,6 @@ intendedAudience:
 
 description:
   en:
-    genericName: "Low-code development and runtime platform"
     shortDescription: >
       Generic open source low-code development and runtime platform based on graph
       technology for building fully custom applications.
@@ -129,10 +130,3 @@ dependsOn:
       versionMin: "4.4"
     - name: "GraalVM JDK"
       version: "25"
-  optional:
-    - name: "Docker or Podman"
-    - name: "Kubernetes"
-    - name: "SMTP server"
-    - name: "IMAP server"
-    - name: "OAuth provider"
-    - name: "LDAP-compatible identity provider"
