@@ -26,11 +26,9 @@ import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
 import org.structr.docs.ontology.*;
 import org.structr.docs.ontology.parser.token.AbstractToken;
+import org.structr.docs.ontology.parser.token.MarkdownFileToken;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class SystemTypeMarkdownFormatter extends Formatter {
 
@@ -63,19 +61,34 @@ public class SystemTypeMarkdownFormatter extends Formatter {
 			lines.add("");
 		}
 
-		if (settings.hasDetail(Details.source) || settings.hasDetail(Details.all)) {
+		if (settings.hasDetail(Details.shortDescription)) {
 
-			final List<String> buf = new LinkedList<>();
+			if (concept.getShortDescription() != null) {
 
-			for (final AbstractToken token : concept.getTokens()) {
-
-				buf.add(token.toString());
-				//buf.add(token.getSourceFile() + ":" + token.getRow());
+				lines.addAll(split(concept.getShortDescription()));
+				lines.add("");
 			}
 
-			lines.add("<small>Sources: " + StringUtils.join(buf, ", ") + "</small>");
-			lines.add("");
+			for (final Link childLink : concept.getChildLinks(Verb.Has)) {
+
+				// use markdown file as description for this type
+				if (childLink.getFormatSpecification() != null && ConceptType.Description.equals(childLink.getFormatSpecification().getFormat())) {
+
+					final Concept description = childLink.getTarget();
+					if (description != null) {
+
+						final OutputSettings topicSettings = OutputSettings.withDetails(concept.getOntology(), Details.all);
+
+						topicSettings.setRenderComments(false);
+						topicSettings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.MarkdownTopic, new MarkdownIncludeFormatter());
+
+						// walk ontology
+						Formatter.walkOntology(lines, new Link(null, null, concept), topicSettings, 0, new LinkedHashSet<>());
+					}
+				}
+			}
 		}
+
 
 		if (settings.hasDetail(Details.all)) {
 
@@ -85,9 +98,17 @@ public class SystemTypeMarkdownFormatter extends Formatter {
 				final ConceptType conceptType = entry.getKey();
 				final Set<Concept> concepts   = entry.getValue();
 
-				if (!concepts.isEmpty()) {
+				// do not output markdown files as children here
+				if (!concepts.isEmpty() && !ConceptType.MarkdownTopic.equals(conceptType)) {
 
-					lines.add(formatMarkdownHeading(conceptType.name(), level + 2));
+					if (ConceptType.Property.equals(conceptType)) {
+
+						lines.add(formatMarkdownHeading("Properties", level + 2));
+
+					} else {
+
+						lines.add(formatMarkdownHeading(concept.getName(), level + 2));
+					}
 
 					lines.add("");
 					lines.add("| Name | Description |");

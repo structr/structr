@@ -31,6 +31,7 @@ Topic References has topics "Built-in keywords", "Built-in functions", "Built-in
 #Area "Virtual Types" has javascript-file "structr/js/virtual-types.js"
 #Area "Widgets" has javascript-file "structr/js/widgets.js"
 
+
 # resources from Java
 "Built-in keywords" has code-source "keyword" as table
 "Built-in functions" has code-source "function" as table
@@ -43,3 +44,11 @@ Topic References has topics "Built-in keywords", "Built-in functions", "Built-in
 # Settings description
 "Settings" has description "The following table lists all configuration settings available in Structr. You can view and modify these settings in the Configuration Interface, which opens in a separate browser tab when you click the wrench icon in the Admin UI header bar. The Configuration Interface requires authentication with the superuser password from `structr.conf`. Alternatively, you can edit the `structr.conf` file directly and restart the server."
 
+# Markdown-based descriptions for internal classes
+System-type "User" has markdown-file "snippets/User.md" as description
+System-type "Group" has markdown-file "snippets/Group.md" as description
+System-type "Folder" has markdown-file "snippets/Folder.md" as description
+System-type "File" has markdown-file "snippets/File.md" as description
+System-type "Image" has markdown-file "snippets/Image.md" as description
+System-type "Location" has markdown-file "snippets/Location.md" as description
+System-type "MailTemplate" has markdown-file "snippets/MailTemplate.md" as description

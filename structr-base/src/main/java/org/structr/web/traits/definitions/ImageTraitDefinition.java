@@ -40,6 +40,8 @@ import org.structr.core.traits.operations.accesscontrollable.IsGranted;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.operations.propertycontainer.SetProperties;
 import org.structr.core.traits.operations.propertycontainer.SetProperty;
+import org.structr.docs.Documentation;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.Image;
 import org.structr.web.property.ImageDataProperty;
@@ -52,6 +54,7 @@ import java.util.Set;
 /**
  * An image whose binary data will be stored on disk.
  */
+@Documentation(name="Image", type= ConceptType.SystemType, parent="Built-in traits")
 public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String IMAGE_PARENT_PROPERTY              = "imageParent";

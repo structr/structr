@@ -98,16 +98,4 @@ public class MarkdownIncludeFormatter extends Formatter {
 
 		return true;
 	}
-
-	private List<String> split(final String source) {
-
-		final List<String> result = new LinkedList<>();
-
-		if (source != null) {
-
-			result.addAll(Arrays.asList(source.split("\n")));
-		}
-
-		return result;
-	}
 }

@@ -29,12 +29,15 @@ import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.docs.Documentation;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.web.entity.Site;
 import org.structr.web.traits.wrappers.SiteTraitWrapper;
 
 import java.util.Map;
 import java.util.Set;
 
+@Documentation(name="Site", type= ConceptType.SystemType, parent="Built-in traits")
 public class SiteTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String PAGES_PROPERTY    = "pages";

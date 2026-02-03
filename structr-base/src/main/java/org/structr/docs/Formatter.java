@@ -132,6 +132,18 @@ public abstract class Formatter {
 		return map;
 	}
 
+	protected List<String> split(final String source) {
+
+		final List<String> result = new LinkedList<>();
+
+		if (source != null) {
+
+			result.addAll(Arrays.asList(source.split("\n")));
+		}
+
+		return result;
+	}
+
 	public static void renderComment(final List<String> lines, final OutputSettings outputSettings, final String text) {
 
 		if ("markdown".equals(outputSettings.getOutputFormat()) && outputSettings.renderComments()) {

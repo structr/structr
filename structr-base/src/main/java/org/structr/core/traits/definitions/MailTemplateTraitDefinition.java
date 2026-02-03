@@ -28,6 +28,8 @@ import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.wrappers.MailTemplateTraitWrapper;
+import org.structr.docs.Documentation;
+import org.structr.docs.ontology.ConceptType;
 
 import java.util.Map;
 import java.util.Set;
@@ -35,6 +37,7 @@ import java.util.Set;
 /**
  *
  */
+@Documentation(name="MailTemplate", type= ConceptType.SystemType, parent="Built-in traits")
 public final class MailTemplateTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String TEXT_PROPERTY        = "text";

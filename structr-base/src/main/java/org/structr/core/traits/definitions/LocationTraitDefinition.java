@@ -27,6 +27,8 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.TraitsInstance;
+import org.structr.docs.Documentation;
+import org.structr.docs.ontology.ConceptType;
 
 import java.util.Map;
 import java.util.Set;
@@ -34,6 +36,7 @@ import java.util.Set;
 /**
  * The Location entity.
  */
+@Documentation(name="Location", type= ConceptType.SystemType, parent="Built-in traits")
 public final class LocationTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String LATITUDE_PROPERTY       = "latitude";
