@@ -70,6 +70,7 @@ public class Settings {
 
 	public static final SettingsGroup generalGroup            = new SettingsGroup("general",     "General Settings");
 	public static final SettingsGroup serverGroup             = new SettingsGroup("server",      "Server Settings");
+	public static final SettingsGroup dosFilterGroup          = new SettingsGroup("dosfilter",   "DoS Filter Settings");
 	public static final SettingsGroup databaseGroup           = new SettingsGroup("database",    "Database Configuration");
 	public static final SettingsGroup applicationGroup        = new SettingsGroup("application", "Application Configuration");
 	public static final SettingsGroup smtpGroup               = new SettingsGroup("smtp",        "Mail Configuration");
@@ -219,6 +220,20 @@ public class Settings {
 	public static final Setting<String> AccessControlAllowCredentials = new StringSetting(serverGroup, "CORS Settings", "access.control.allow.credentials", "", "Sets the value of the <code>Access-Control-Allow-Credentials</code> header.");
 	public static final Setting<String> AccessControlExposeHeaders    = new StringSetting(serverGroup, "CORS Settings", "access.control.expose.headers",    "", "Sets the value of the <code>Access-Control-Expose-Headers</code> header.");
 
+	// Rate limiting / DoSFilter settings
+	public static final Setting<Boolean> RateLimiting             = new BooleanSetting(dosFilterGroup, "DoS Filter Settings", "httpservice.dosfilter.ratelimiting",          false, "Enables rate limiting using Jetty's DoSFilter.");
+	public static final Setting<Integer> MaxRequestsPerSec        = new IntegerSetting(dosFilterGroup, "DoS Filter Settings", "httpservice.dosfilter.maxrequestspersec",     10, "The maximum number of requests from a connection per second. Requests in excess of this are first delayed, then throttled.");
+	public static final Setting<Integer> DelayMs                  = new IntegerSetting(dosFilterGroup, "DoS Filter Settings", "httpservice.dosfilter.delayMs",               100, "The delay given to all requests over the rate limit, before they are considered at all. -1 means just reject request, 0 means no delay, otherwise it is the delay.");
+	public static final Setting<Integer> MaxWaitMs                = new IntegerSetting(dosFilterGroup, "DoS Filter Settings", "httpservice.dosfilter.maxwaitms",             50, "How long to blocking wait for the throttle semaphore in milliseconds.");
+	public static final Setting<Integer> ThrottledRequests        = new IntegerSetting(dosFilterGroup, "DoS Filter Settings", "httpservice.dosfilter.throttledrequests",     5, "The number of requests over the rate limit able to be considered at once.");
+	public static final Setting<Integer> ThrottleMs               = new IntegerSetting(dosFilterGroup, "DoS Filter Settings", "httpservice.dosfilter.throttlems",            30000, "How long to async wait for semaphore in milliseconds.");
+	public static final Setting<Integer> MaxRequestMs             = new IntegerSetting(dosFilterGroup, "DoS Filter Settings", "httpservice.dosfilter.maxrequestms",          30000, "How long to allow a request to run in milliseconds.");
+	public static final Setting<Integer> MaxIdleTrackerMs         = new IntegerSetting(dosFilterGroup, "DoS Filter Settings", "httpservice.dosfilter.maxidletrackerms",      30000, "How long to keep track of request rates for a connection before deciding that the user has gone away and discarding it, in milliseconds.");
+	public static final Setting<Boolean> InsertHeaders            = new BooleanSetting(dosFilterGroup, "DoS Filter Settings", "httpservice.dosfilter.insertheaders",         true, "If true, insert the DoSFilter headers into the response.");
+	public static final Setting<Boolean> RemotePort               = new BooleanSetting(dosFilterGroup, "DoS Filter Settings", "httpservice.dosfilter.remoteport",            false, "If true then rate is tracked by IP+port (effectively connection). If false, rate is tracked by IP address only.");
+	public static final Setting<String> IpWhitelist               = new StringSetting(dosFilterGroup,  "DoS Filter Settings", "httpservice.dosfilter.ipwhitelist",           "", "A comma-separated list of IP addresses that will not be rate limited.");
+	public static final Setting<Boolean> ManagedAttr              = new BooleanSetting(dosFilterGroup, "DoS Filter Settings", "httpservice.dosfilter.managedattr",           true, "If set to true, this servlet is set as a ServletContext attribute with the filter name as the attribute name. This allows context external mechanisms (e.g. JMX via ContextHandler managed attribute) to manage the configuration of the filter.");
+	public static final Setting<Integer> TooManyCode              = new IntegerSetting(dosFilterGroup, "DoS Filter Settings", "httpservice.dosfilter.toomanycode",           429, "The HTTP status code to send if there are too many requests. By default is 429 (too many requests), but 503 (service unavailable) is another option.");
 
 	// database settings
 	public static final Setting<String> DatabaseAvailableConnections = new StringSetting(databaseGroup,  "hidden",                  "database.available.connections",   null);
