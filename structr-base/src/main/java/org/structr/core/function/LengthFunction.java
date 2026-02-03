@@ -25,6 +25,7 @@ import org.structr.docs.Language;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -98,5 +99,10 @@ public class LengthFunction extends CoreFunction {
 		return List.of(
 			"**Do not** use this function on collections, it will return a result, but not the result you expect, because the collection will be converted to a string and the length of that string will be returned."
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.String;
 	}
 }

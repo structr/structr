@@ -26,6 +26,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -133,5 +134,10 @@ public class EncryptFunction extends AdvancedScriptingFunction {
 			Example.structrScript("${set(this, 'encryptedString', encrypt('example string'))}", "Encrypt a string with the global encryption key from structr.conf"),
 			Example.structrScript("${set(this, 'encryptedString', encrypt('example string', 'secret key'))}", "Encrypt a string with the key 'secret key'")
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.InputOutput;
 	}
 }

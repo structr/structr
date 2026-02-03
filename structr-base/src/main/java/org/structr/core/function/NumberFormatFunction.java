@@ -23,6 +23,7 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.text.DecimalFormat;
@@ -115,5 +116,10 @@ public class NumberFormatFunction extends CoreFunction {
 		return List.of(
 			"In general, if you want a formatted number to be visible all the time, use \"0\" in the pattern, otherwise use \"#\"."
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Conversion;
 	}
 }

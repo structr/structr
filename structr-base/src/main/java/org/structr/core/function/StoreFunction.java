@@ -25,6 +25,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -97,8 +98,8 @@ public class StoreFunction extends CoreFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${store('users', find('User'))}"),
-				Example.javaScript("${{ $.store('users', $.find('User')) }}")
+			Example.structrScript("${store('users', find('User'))}"),
+			Example.javaScript("${{ $.store('users', $.find('User')) }}")
 		);
 	}
 
@@ -106,8 +107,13 @@ public class StoreFunction extends CoreFunction {
 	public List<Parameter> getParameters() {
 
 		return List.of(
-				Parameter.mandatory("key", "given key"),
-				Parameter.mandatory("value", "value to store")
-				);
+			Parameter.mandatory("key", "given key"),
+			Parameter.mandatory("value", "value to store")
+		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.System;
 	}
 }

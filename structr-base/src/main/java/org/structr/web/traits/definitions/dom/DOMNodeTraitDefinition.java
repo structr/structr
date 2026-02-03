@@ -45,6 +45,8 @@ import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.operations.nodeinterface.VisitForUsage;
+import org.structr.docs.Documentation;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
@@ -61,6 +63,7 @@ import java.util.*;
 /**
  * Combines NodeInterface and org.w3c.dom.Node.
  */
+@Documentation(name="DOMNode", type= ConceptType.SystemType, shortDescription="The base class for all nodes in a Page.", parent="System types")
 public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String PARENT_PROPERTY                         = "parent";
@@ -710,10 +713,10 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> functionQueryProperty                               = new StringProperty(FUNCTION_QUERY_PROPERTY).category(DOMNode.QUERY_CATEGORY);
 		final Property<String> showForLocalesProperty                              = new StringProperty(SHOW_FOR_LOCALES_PROPERTY).indexed().category(GraphObject.VISIBILITY_CATEGORY);
 		final Property<String> hideForLocalesProperty                              = new StringProperty(HIDE_FOR_LOCALES_PROPERTY).indexed().category(GraphObject.VISIBILITY_CATEGORY);
-		final Property<String> showConditionsProperty                              = new StringProperty(SHOW_CONDITIONS_PROPERTY).indexed().category(GraphObject.VISIBILITY_CATEGORY).hint("Conditions which have to be met in order for the element to be shown.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}");
-		final Property<String> hideConditionsProperty                              = new StringProperty(HIDE_CONDITIONS_PROPERTY).indexed().category(GraphObject.VISIBILITY_CATEGORY).hint("Conditions which have to be met in order for the element to be hidden.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}");
-		final Property<String> sharedComponentConfigurationProperty                = new StringProperty(SHARED_COMPONENT_CONFIGURATION_PROPERTY).format("multi-line").category(DOMNode.PAGE_CATEGORY).hint("The contents of this field will be evaluated before rendering this component. This is usually used to customize shared components to make them more flexible.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}");
-		final Property<String> dataStructrIdProperty                               = new StringProperty(DATA_STRUCTR_ID_PROPERTY).hint("Set to ${current.id} most of the time").category(DOMNode.PAGE_CATEGORY);
+		final Property<String> showConditionsProperty                              = new StringProperty(SHOW_CONDITIONS_PROPERTY).indexed().category(GraphObject.VISIBILITY_CATEGORY).description("Conditions which have to be met in order for the element to be shown.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}");
+		final Property<String> hideConditionsProperty                              = new StringProperty(HIDE_CONDITIONS_PROPERTY).indexed().category(GraphObject.VISIBILITY_CATEGORY).description("Conditions which have to be met in order for the element to be hidden.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}");
+		final Property<String> sharedComponentConfigurationProperty                = new StringProperty(SHARED_COMPONENT_CONFIGURATION_PROPERTY).format("multi-line").category(DOMNode.PAGE_CATEGORY).description("The contents of this field will be evaluated before rendering this component. This is usually used to customize shared components to make them more flexible.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with ${}");
+		final Property<String> dataStructrIdProperty                               = new StringProperty(DATA_STRUCTR_ID_PROPERTY).description("Set to ${current.id} most of the time").category(DOMNode.PAGE_CATEGORY);
 		final Property<String> dataStructrHashProperty                             = new StringProperty(DATA_STRUCTR_HASH_PROPERTY).category(DOMNode.PAGE_CATEGORY);
 		final Property<Boolean> dontCacheProperty                                  = new BooleanProperty(DONT_CACHE_PROPERTY).defaultValue(false);
 		final Property<Boolean> isDOMNodeProperty                                  = new ConstantBooleanProperty(IS_DOM_NODE_PROPERTY, true).category(DOMNode.PAGE_CATEGORY);

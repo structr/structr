@@ -37,20 +37,20 @@ import org.structr.core.script.polyglot.config.ScriptConfig;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
+import org.structr.docs.Documentable;
+import org.structr.docs.DocumentableType;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  *
  *
  */
-public class FunctionProperty<T> extends Property<T> {
+public class FunctionProperty<T> extends Property<T> implements Documentable {
 
 	private static final Logger logger             = LoggerFactory.getLogger(FunctionProperty.class.getName());
 	private static final Map<String, String> cache = new ConcurrentHashMap<>();
@@ -453,6 +453,42 @@ public class FunctionProperty<T> extends Property<T> {
 		}
 
 		return Collections.EMPTY_MAP;
+	}
+
+	// ----- interface Documentable -----
+	@Override
+	public DocumentableType getDocumentableType() {
+		return DocumentableType.Property;
+	}
+
+	@Override
+	public String getName() {
+		return "FunctionProperty";
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "A property type that runs a script to create the return value at runtime.";
+	}
+
+	@Override
+	public List<ConceptReference> getParentConcepts() {
+
+		final List<ConceptReference> concepts = Documentable.super.getParentConcepts();
+
+		concepts.add(ConceptReference.of(ConceptType.Topic, "Built-in properties"));
+
+		return concepts;
+	}
+
+	@Override
+	public List<Link> getLinkedConcepts() {
+
+		final List<Link> links = Documentable.super.getLinkedConcepts();
+
+		links.add(Link.to("isconfiguredby", ConceptReference.of(ConceptType.Topic, "Type hint")));
+
+		return links;
 	}
 
 	// ----- private methods -----

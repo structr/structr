@@ -66,14 +66,28 @@ test('pages', async ({ page }) => {
   await page.waitForTimeout(1000);
   await page.screenshot({ path: 'screenshots/pages.png' });
 
-  // Create new page
+  // Open import dialog and create a screenshot
   await page.locator('#pages-actions .dropdown-select').click();
   await page.locator('#create_page').waitFor({ state: 'visible' });
+  await page.locator('#import_page').click();
+  await page.waitForTimeout(1000);
+  await page.screenshot({ path: 'screenshots/pages_import-page.png' });
+  await page.getByRole('button', { name: 'Close'}).click();
+  await page.waitForTimeout(200);
+
+  // Create new page (dropdown stays open from previous action!)
   await page.locator('#create_page').click();
   await page.waitForTimeout(1000);
   await page.screenshot({ path: 'screenshots/pages_create-page.png' });
   await page.locator('#template-tiles .app-tile:nth-child(2)').click();
   await page.waitForTimeout(2000);
+
+    // Open Access Control dialog to create a screenshot
+    await page.getByRole('img', { name: 'Access Control' }).first().click();
+    await page.waitForTimeout(1000);
+    await page.screenshot({ path: 'screenshots/pages_access-control-dialog.png' });
+    await page.getByRole('button', { name: 'Close'}).click();
+    await page.waitForTimeout(1000);
 
   await page.locator('#pagesTree .node-container:nth-child(1)').waitFor({ state: 'visible' });
   await page.locator('#pagesTree .node-container:nth-child(1)').click();
@@ -92,6 +106,20 @@ test('pages', async ({ page }) => {
   await page.getByText('Expand subtree recursively').click();
   await page.waitForTimeout(1000);
   await page.screenshot({ path: 'screenshots/pages_page-expanded.png' });
+
+  // click through the different tabs and take a screenshot of each tab
+  await page.getByRole('link', { name: 'Advanced' }).click();
+  await page.waitForTimeout(200);
+  await page.screenshot({ path: 'screenshots/pages_page-details-advanced.png' });
+  await page.getByRole('link', { name: 'Security' }).nth(1).click();
+  await page.waitForTimeout(200);
+  await page.screenshot({ path: 'screenshots/pages_page-details-security.png' });
+  await page.getByRole('link', { name: 'Active Elements' }).click();
+  await page.waitForTimeout(200);
+  await page.screenshot({ path: 'screenshots/pages_page-details-active-elements.png' });
+  await page.getByRole('link', { name: 'URL Routing' }).click();
+  await page.waitForTimeout(200);
+  await page.screenshot({ path: 'screenshots/pages_page-details-url-routing.png' });
 
   await page.getByRole('link', { name: 'Preview' }).click();
   //await page.locator('.previewBox').waitFor({ state: 'visible' });
@@ -170,10 +198,29 @@ test('pages', async ({ page }) => {
   await page.locator('.repeater-datakey').fill('project');
   await page.waitForTimeout(1000);
   await page.locator('.save-repeater-datakey').click();
+  await page.screenshot({ path: 'screenshots/pages_element-details_repeater.png' });
   await page.getByRole('link', { name: 'Preview' }).click();
   await page.waitForTimeout(1000);
-
   await page.screenshot({ path: 'screenshots/pages_repeater.png' });
+  await page.getByRole('link', { name: 'General' }).click();
+  await page.waitForTimeout(1000);
+  await page.screenshot({ path: 'screenshots/pages_element-details_general.png' });
+  await page.getByRole('link', { name: 'HTML' }).click();
+  await page.waitForTimeout(1000);
+  await page.screenshot({ path: 'screenshots/pages_element-details_html.png' });
+  await page.getByRole('link', { name: 'Events' }).click();
+  await page.waitForTimeout(1000);
+  await page.getByRole('textbox', { name: 'Browser event (click, keydown' }).click();
+  await page.keyboard.type('click');
+  await page.keyboard.press('Tab');
+  await page.waitForTimeout(200);
+  await page.locator('#action-select').selectOption('Create new object');
+  await page.waitForTimeout(200);
+  await page.locator('.m-2 > svg > use').first().click();
+  await page.waitForTimeout(200);
+  await page.getByRole('textbox', { name: 'Name', exact: true }).fill('name');
+  await page.getByRole('combobox').nth(5).selectOption('User Input');
+  await page.screenshot({ path: 'screenshots/pages_element-details_events.png' });
 
   // Logout
   await page.locator('.submenu-trigger').hover();

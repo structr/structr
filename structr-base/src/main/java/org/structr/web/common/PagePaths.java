@@ -59,11 +59,13 @@ public class PagePaths {
 					}
 
 					final Page resolvedPage = pathCandidate.getPage();
+					if (resolvedPage != null) {
 
-					// only return resolved page if it is visible for the current user (or public)
-					if (renderContext.getSecurityContext().isReadable(resolvedPage, false, false)) {
+						// only return resolved page if it is visible for the current user (or public)
+						if (renderContext.getSecurityContext().isReadable(resolvedPage, false, false)) {
 
-						return resolvedPage;
+							return resolvedPage;
+						}
 					}
 				}
 			}

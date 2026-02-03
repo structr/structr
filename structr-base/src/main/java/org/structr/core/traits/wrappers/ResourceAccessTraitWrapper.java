@@ -26,12 +26,15 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.ResourceAccessTraitDefinition;
+import org.structr.docs.Documentation;
+import org.structr.docs.ontology.ConceptType;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Documentation(name="Resource Access Permissions", type=ConceptType.Topic, synonyms={ "Resource Access Grants", "Resource Access Grant" })
 public class ResourceAccessTraitWrapper extends AbstractNodeTraitWrapper implements ResourceAccess {
 
 	private static final Map<String, List<ResourceAccess>> permissionsCache = new ConcurrentHashMap<>();

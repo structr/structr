@@ -28,6 +28,7 @@ import org.structr.core.graph.RelationshipFactory;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -115,5 +116,10 @@ public class OutgoingFunction extends CoreFunction {
 			Parameter.mandatory("entity", "entity to fetch relationships for"),
 			Parameter.optional("relType", "relationship type")
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Database;
 	}
 }

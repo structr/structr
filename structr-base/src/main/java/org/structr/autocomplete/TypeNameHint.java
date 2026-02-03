@@ -19,8 +19,10 @@
 package org.structr.autocomplete;
 
 import org.structr.docs.*;
+import org.structr.docs.ontology.Details;
 
 import java.util.List;
+import java.util.Set;
 
 public class TypeNameHint extends AbstractHint {
 
@@ -79,12 +81,12 @@ public class TypeNameHint extends AbstractHint {
 	}
 
 	@Override
-	public List<String> createMarkdownDocumentation() {
+	public List<String> createMarkdownDocumentation(final Set<Details> details, final int startLevel) {
 		return List.of(getShortDescription());
 	}
 
 	@Override
 	public DocumentableType getDocumentableType() {
-		return DocumentableType.TypeName;
+		return DocumentableType.SystemType;
 	}
 }

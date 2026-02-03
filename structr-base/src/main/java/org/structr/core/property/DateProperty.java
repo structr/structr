@@ -28,11 +28,13 @@ import org.structr.common.error.PropertyInputParsingException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.converter.TemporalDateConverter;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.schema.parser.DatePropertyGenerator;
 
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -234,6 +236,27 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
 		return null;
+	}
+
+	// ----- interface Documentable -----
+	@Override
+	public String getShortDescription() {
+		return "A property for date values.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "You can configure this property with an additional date format pattern that will be used to format the value of the property in JSON REST output.";
+	}
+
+	@Override
+	public List<Link> getLinkedConcepts() {
+
+		final List<Link> links = super.getLinkedConcepts();
+
+		links.add(Link.to("isconfiguredby", ConceptReference.of(ConceptType.Topic, "Date format pattern")));
+
+		return links;
 	}
 
 	// ----- OpenAPI -----

@@ -30,6 +30,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.graph.Tx;
+import org.structr.docs.Documentation;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.servlet.AbstractDataServlet;
 import org.structr.web.auth.UiAuthenticator;
@@ -40,6 +41,7 @@ import java.nio.charset.StandardCharsets;
 /**
  * Simple login servlet, acts as a bridge for form-base HTTP login.
  */
+@Documentation(name="LogoutServlet", parent="Servlets", children={ "LogoutServlet Settings" })
 public class LogoutServlet extends AbstractDataServlet implements HttpServiceServlet {
 
 	private static final Logger logger = LoggerFactory.getLogger(LogoutServlet.class.getName());

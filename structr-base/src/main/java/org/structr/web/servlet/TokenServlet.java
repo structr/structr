@@ -21,9 +21,11 @@ package org.structr.web.servlet;
 import jakarta.servlet.http.HttpServletRequest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Documentation;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.RESTEndpoints;
 
+@Documentation(name="TokenServlet", parent="Servlets", shortDescription="JWT token endpoint", children={ "TokenServlet Settings" })
 public class TokenServlet extends LoginServlet {
 
 	@Override

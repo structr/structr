@@ -53,7 +53,7 @@ public class PlaintextHintProvider extends AbstractHintProvider {
 		try {
 
 			// parse function but ignore exceptions, we're only interested in the expression structure
-			Functions.parse(ctx, currentNode, new Snippet("hint", editorText), result, true);
+			Functions.parse(new Snippet("hint", editorText), result, true);
 
 		} catch (FrameworkException ignore) { }
 

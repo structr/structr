@@ -33,7 +33,7 @@ import org.structr.api.RetryException;
 import org.structr.api.UnknownClientException;
 import org.structr.api.util.ResultStream;
 import org.structr.common.PropertyView;
-import org.structr.common.RequestKeywords;
+import org.structr.common.RequestParameters;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
@@ -50,6 +50,7 @@ import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Documentation;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.RESTEndpoints;
@@ -62,6 +63,7 @@ import java.util.*;
 /**
  * Implements the structr REST API.
  */
+@Documentation(name="JsonRestServlet", parent="Servlets", children={ "JsonRestServlet Settings" })
 public class JsonRestServlet extends AbstractDataServlet {
 
 	private static final Logger logger = LoggerFactory.getLogger(JsonRestServlet.class.getName());
@@ -811,14 +813,14 @@ public class JsonRestServlet extends AbstractDataServlet {
 			tx.prefetchHint("REST GET " + handler.getURL());
 
 			// add sorting && pagination
-			final String pageSizeParameter          = request.getParameter(RequestKeywords.PageSize.keyword());
-			final String pageParameter              = request.getParameter(RequestKeywords.PageNumber.keyword());
-			final String outputDepth                = request.getParameter(RequestKeywords.OutputDepth.keyword());
+			final String pageSizeParameter          = request.getParameter(RequestParameters.PageSize.getName());
+			final String pageParameter              = request.getParameter(RequestParameters.PageNumber.getName());
+			final String outputDepth                = request.getParameter(RequestParameters.OutputDepth.getName());
 			final int pageSize                      = Services.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
 			final int page                          = Services.parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
 			final int depth                         = Services.parseInt(outputDepth, config.getOutputNestingDepth());
-			final String[] sortKeyNames             = request.getParameterValues(RequestKeywords.SortKey.keyword());
-			final String[] sortOrders               = request.getParameterValues(RequestKeywords.SortOrder.keyword());
+			final String[] sortKeyNames             = request.getParameterValues(RequestParameters.SortKey.getName());
+			final String[] sortOrders               = request.getParameterValues(RequestParameters.SortOrder.getName());
 			final String type                       = handler.getEntityClassOrDefault(securityContext);
 
 			// evaluate constraints and measure query time

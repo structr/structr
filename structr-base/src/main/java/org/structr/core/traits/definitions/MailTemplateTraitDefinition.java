@@ -91,7 +91,7 @@ public final class MailTemplateTraitDefinition extends AbstractNodeTraitDefiniti
 
 	@Override
 	public String getShortDescription() {
-		return "This type represents customizable email templates.";
+		return "This trait represents customizable email templates.";
 	}
 
 	@Override

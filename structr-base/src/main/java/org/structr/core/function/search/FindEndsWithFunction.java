@@ -22,6 +22,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -31,6 +32,11 @@ public class FindEndsWithFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getName() {
 		return "find.endsWith";
+	}
+
+	@Override
+	public String getDisplayName(boolean includeParameters) {
+		return "predicate.endsWith";
 	}
 
 	@Override
@@ -89,7 +95,7 @@ public class FindEndsWithFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public boolean isHidden() {
-		return true;
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Predicate;
 	}
 }

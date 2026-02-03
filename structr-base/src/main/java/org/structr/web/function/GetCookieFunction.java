@@ -26,6 +26,7 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -104,5 +105,10 @@ public class GetCookieFunction extends UiAdvancedFunction {
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Http;
 	}
 }

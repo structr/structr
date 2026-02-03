@@ -21,6 +21,7 @@ package org.structr.web.function;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -120,5 +121,10 @@ public class HttpHeadFunction extends UiAdvancedFunction {
 			"The `HEAD()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `addHeader()` (see the related articles for more information).",
 			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls."
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Http;
 	}
 }

@@ -27,6 +27,7 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.operations.graphobject.IsValid;
+import org.structr.docs.Documentation;
 import org.structr.schema.SchemaHelper.Type;
 
 import java.util.List;
@@ -35,6 +36,7 @@ import java.util.List;
  *
  *
  */
+@Documentation(name="Numeric property validation", parent="Value-based schema constraints", shortDescription="For numeric attributes, the format specifies a valid range using mathematical interval notation, allowing you to enforce that input values fall within a certain interval. For example, [2,100[ accepts values from 2 (inclusive) to 100 (exclusive).")
 public class IntegerPropertyGenerator extends NumericalPropertyGenerator<Integer> {
 
 	public IntegerPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {

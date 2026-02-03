@@ -150,6 +150,17 @@ public class StringProperty extends AbstractPrimitiveProperty<String> {
 		return false;
 	}
 
+	// ----- interface Documentable -----
+	@Override
+	public String getShortDescription() {
+		return "A property type for string values.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return null;
+	}
+
 	// ----- private methods -----
 	private static ContentType parse(final String contentTypeString) {
 

@@ -76,6 +76,22 @@ test('data', async ({ page }) => {
     await page.getByRole('button', { name: ' Create Project ', exact: true }).click();
     await page.waitForTimeout(1000);
   }
+  // create screenshot of CSV import dialog
+  await page.getByRole('button', { name: ' Import CSV' }).click();
+  await page.waitForTimeout(1000);
+  await page.locator('textarea.importArea').click();
+  await page.keyboard.type('Name;Project ID');
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('Project 1;prj0001');
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('Project 2;prj0002');
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('Project 3;prj0003');
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(200);
+  await page.screenshot({ path: 'screenshots/data_import-csv.png' });
+  await page.getByRole('button', { name: 'Close' }).click();
+  await page.waitForTimeout(200);
 
   // Set name
   await page.locator('.crud-table tbody tr:nth-child(1) td[data-key="name"]').click();

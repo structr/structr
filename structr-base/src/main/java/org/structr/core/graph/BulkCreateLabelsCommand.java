@@ -24,6 +24,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.TypeProperty;
 import org.structr.docs.*;
+import org.structr.docs.ontology.ConceptType;
 
 import java.util.Collections;
 import java.util.List;
@@ -153,5 +154,10 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 	@Override
 	public List<Usage> getUsages() {
 		return List.of();
+	}
+
+	@Override
+	public final List<ConceptReference> getParentConcepts() {
+		return List.of(ConceptReference.of(ConceptType.Topic, "Maintenance commands"));
 	}
 }

@@ -26,6 +26,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.docs.DocumentableType;
 
 import javax.mail.internet.ContentType;
 import javax.mail.internet.ParseException;
@@ -164,6 +165,17 @@ public class LowercaseStringProperty extends AbstractPrimitiveProperty<String> {
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+		return null;
+	}
+
+	// ----- interface Documentable -----
+	@Override
+	public String getShortDescription() {
+		return "A property for string values that converts all values to lowercase.";
+	}
+
+	@Override
+	public String getLongDescription() {
 		return null;
 	}
 

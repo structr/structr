@@ -21,6 +21,7 @@ package org.structr.rest.api;
 import jakarta.servlet.http.HttpServletRequest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.traits.Traits;
+import org.structr.docs.Documentable;
 import org.structr.rest.resource.*;
 import org.structr.web.resource.*;
 

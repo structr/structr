@@ -42,6 +42,8 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.ConceptType;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.io.IOException;
@@ -175,6 +177,16 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public List<Link> getLinkedConcepts() {
+
+		final List<Link> links = super.getLinkedConcepts();
+
+		links.add(Link.to("provides", ConceptReference.of(ConceptType.Topic, "Changelog")));
+
+		return links;
+	}
+
+	@Override
 	public List<Signature> getSignatures() {
 		return List.of(
 			Signature.structrScript("entity [, resolve=false [, filterKey, filterValue ]... ]"),
@@ -214,6 +226,12 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 		);
 	}
 
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.System;
+	}
+
+	// ----- private methods -----
 	private String getChangelogForObject (final Object obj) throws IOException {
 
 		if (obj instanceof GraphObject) {

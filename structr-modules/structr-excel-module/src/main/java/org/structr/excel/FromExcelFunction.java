@@ -34,6 +34,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.storage.StorageProviderFactory;
@@ -130,6 +131,11 @@ public class FromExcelFunction extends Function<Object, Object> {
 	@Override
 	public String getShortDescription() {
 		return "Reads data from a given Excel sheet.";
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.InputOutput;
 	}
 
 	@Override

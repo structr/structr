@@ -22,7 +22,7 @@ import io.restassured.RestAssured;
 import org.structr.api.config.Settings;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
-import org.structr.common.RequestKeywords;
+import org.structr.common.RequestParameters;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
@@ -402,7 +402,7 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 					.body("result.oneToOneTestFive.oneToOneTestThree.name",             equalTo("TestThree"))
 
 				.when()
-					.get("/TestThree/" + testThreeUUID + "/all?" + RequestKeywords.OutputReductionDepth.keyword() + "=1");
+					.get("/TestThree/" + testThreeUUID + "/all?" + RequestParameters.OutputReductionDepth.getName() + "=1");
 
 		// remove redundancy reduction, so that TestThree.TestFive.TestThree is not limited by that and can contain TestFive again
 		Settings.JsonRedundancyReduction.setValue(false);
@@ -426,7 +426,7 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 				.body("result.oneToOneTestFive.oneToOneTestThree.oneToOneTestFive.name",             equalTo("TestFive"))
 
 				.when()
-				.get("/TestThree/" + testThreeUUID + "/all?" + RequestKeywords.OutputReductionDepth.keyword() + "=2");
+				.get("/TestThree/" + testThreeUUID + "/all?" + RequestParameters.OutputReductionDepth.getName() + "=2");
 
 
 		Settings.JsonRedundancyReduction.getValue(true);

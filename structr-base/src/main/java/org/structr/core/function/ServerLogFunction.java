@@ -25,6 +25,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.ConceptType;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.io.File;
@@ -103,6 +105,21 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 		return List.of(
 				"The `getAvailableServerlogs()` function can be used for the `logFile` parameter"
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.System;
+	}
+
+	@Override
+	public List<Link> getLinkedConcepts() {
+
+		final List<Link> linkedConcepts = super.getLinkedConcepts();
+
+		linkedConcepts.add(Link.to("ispartof", ConceptReference.of(ConceptType.Topic, "Logging")));
+
+		return linkedConcepts;
 	}
 
 	public static String getServerLog(final int numberOfLines, final Integer truncateLinesAfter, final String requestedLogfileName) {

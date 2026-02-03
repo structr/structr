@@ -361,8 +361,8 @@ public class AuthHelper {
 
 			Actions.callAsSuperUser(Actions.NOTIFICATION_LOGIN, params, request);
 
-		} catch (UnlicensedScriptException ex) {
-			ex.log(logger);
+		} catch (Throwable t) {
+			t.printStackTrace();
 		}
 	}
 
@@ -375,8 +375,8 @@ public class AuthHelper {
 
 			Actions.callAsSuperUser(Actions.NOTIFICATION_LOGOUT, params, request);
 
-		} catch (UnlicensedScriptException ex) {
-				ex.log(logger);
+		} catch (Throwable t) {
+			t.printStackTrace();
 		}
 	}
 

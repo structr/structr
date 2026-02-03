@@ -89,8 +89,8 @@ public class WrappingHint extends AbstractHint {
 	}
 
 	@Override
-	public List<Property> getProperties() {
-		return documentable.getProperties();
+	public List<DocumentedProperty> getDocumentedProperties() {
+		return documentable.getDocumentedProperties();
 	}
 
 	@Override

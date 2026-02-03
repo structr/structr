@@ -1,0 +1,45 @@
+#
+# references.txt
+#
+# This file defines references to the internal data sources that are implemented in Java
+# and links the to the hierarchical structure defined in hierarchy.txt
+#
+
+# References
+Topic References has topics "Built-in keywords", "Built-in functions", "Built-in traits", "Property types", Services, "Maintenance commands", Settings
+
+"References" has glossary "Glossary"
+
+# JavaScript resources (uncomment to allow gap analysis)
+#Area "Code" has javascript-file "structr/js/code.js"
+#Area "Data" has javascript-file "structr/js/crud.js"
+#Area "Dashboard" has javascript-file "structr/js/dashboard.js"
+# Helper "Dialogs" has javascript-file "structr/js/dialogs.js"
+# Helper "Editors" has javascript-file "structr/js/editors.js"
+#Helper "Elements" has javascript-file "structr/js/elements.js"
+#Helper "Entities" has javascript-file "structr/js/entities.js"
+#Area "Files" has javascript-file "structr/js/files.js"
+#Area "Flows" has javascript-file "structr/js/flows.js"
+#Area "Importer" has javascript-file "structr/js/importer.js"
+#Helper "Init" has javascript-file "structr/js/init.js"
+#Area "Localizations" has javascript-file "structr/js/localization.js"
+#Area "Mail Templates" has javascript-file "structr/js/mail-templates.js"
+#Area "Pages" has javascript-file "structr/js/pages.js"
+#Helper "Refactoring Helper" has javascript-file "structr/js/refactoring-helper.js"
+#Area "Schema" has javascript-file "structr/js/schema.js"
+#Area "Security" has javascript-file "structr/js/security.js"
+#Area "Virtual Types" has javascript-file "structr/js/virtual-types.js"
+#Area "Widgets" has javascript-file "structr/js/widgets.js"
+
+# resources from Java
+"Built-in keywords" has code-source "keyword" as table
+"Built-in functions" has code-source "function" as table
+"Settings" has code-source "setting" as table
+"Maintenance commands" has code-source "maintenance-command" as table
+"Services" has code-source "service" as table
+"Property types" has code-source "property"
+"Built-in traits" has code-source "system-type"
+
+# Settings description
+"Settings" has description "The following table lists all configuration settings available in Structr. You can view and modify these settings in the Configuration Interface, which opens in a separate browser tab when you click the wrench icon in the Admin UI header bar. The Configuration Interface requires authentication with the superuser password from `structr.conf`. Alternatively, you can edit the `structr.conf` file directly and restart the server."
+

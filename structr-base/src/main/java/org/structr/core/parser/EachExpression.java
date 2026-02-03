@@ -28,6 +28,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.docs.*;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 
@@ -218,5 +219,10 @@ public class EachExpression extends Expression {
 		return List.of(
 			Usage.structrScript("Usage: ${each(list, expression)}. Example: ${each(user.groups, print(data.name))}")
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Collection;
 	}
 }

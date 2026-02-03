@@ -136,6 +136,11 @@ public class ScriptMethod extends AbstractMethod {
 	}
 
 	@Override
+	public String getDeclaringTrait() {
+		return declaringClass;
+	}
+
+	@Override
 	public boolean shouldReturnRawResult() {
 		return this.returnRawResult;
 	}

@@ -28,6 +28,7 @@ import org.structr.core.traits.Traits;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.FileHelper;
@@ -134,5 +135,10 @@ public class CopyFileContentsFunction extends UiAdvancedFunction {
 			Parameter.mandatory("sourceFile", "source file to copy content from"),
 			Parameter.mandatory("targetFile", "target file to copy content to")
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.InputOutput;
 	}
 }

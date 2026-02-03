@@ -28,7 +28,8 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
-import org.structr.common.RequestKeywords;
+import org.structr.common.RequestHeaders;
+import org.structr.common.RequestParameters;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.JsonException;
@@ -80,8 +81,8 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 	// ----- protected methods -----
 	protected void commitResponse(final SecurityContext securityContext, final HttpServletRequest request, final HttpServletResponse response, final RestMethodResult result, final String view, final boolean wrapSingleResultInArray) {
 
-		final String serializeNullsSrc    = request.getParameter(RequestKeywords.SerializeNulls.keyword());
-		final String outputDepthSrc       = request.getParameter(RequestKeywords.OutputDepth.keyword());
+		final String serializeNullsSrc    = request.getParameter(RequestParameters.SerializeNulls.getName());
+		final String outputDepthSrc       = request.getParameter(RequestParameters.OutputDepth.getName());
 		final int outputDepth             = Services.parseInt(outputDepthSrc, config.getOutputNestingDepth());
 		final boolean serializeNulls      = Services.parseBoolean(serializeNullsSrc, true);
 		final String baseUrl              = request.getRequestURI();
@@ -147,13 +148,13 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 
 	protected void processResult(final SecurityContext securityContext, final HttpServletRequest request, final HttpServletResponse response, final ResultStream result, final String view, final int outputDepth, final boolean wrapSingleResultInArray) throws ServletException, IOException {
 
-		final String serializeNullsSrc = request.getParameter(RequestKeywords.SerializeNulls.keyword());
+		final String serializeNullsSrc = request.getParameter(RequestParameters.SerializeNulls.getName());
 		final boolean serializeNulls   = Services.parseBoolean(serializeNullsSrc, true);
 		final String baseUrl           = request.getRequestURI();
 
 		try {
 
-			final String accept = request.getHeader("Accept");
+			final String accept = request.getHeader(RequestHeaders.Accept.getName());
 
 			if (accept != null && accept.contains("text/html")) {
 

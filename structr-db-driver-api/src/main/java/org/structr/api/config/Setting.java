@@ -36,6 +36,7 @@ public abstract class Setting<T> {
 	protected String key                         = null;
 	protected T value                            = null;
 	protected String comment                     = null;
+	protected String longDescription             = null;
 	protected SettingChangeHandler changeHandler = null;
 
 	public abstract void render(final Tag parent);
@@ -112,6 +113,11 @@ public abstract class Setting<T> {
 		}
 
 		return value;
+	}
+
+	public Setting<T> setLongDescription(final String longDescription) {
+		this.longDescription = longDescription;
+		return this;
 	}
 
 	public Setting<T> getPrefixedSetting(final String prefix) {

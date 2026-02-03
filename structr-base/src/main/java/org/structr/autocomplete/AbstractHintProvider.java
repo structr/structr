@@ -49,6 +49,8 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.docs.Documentable;
+import org.structr.docs.Documentation;
+import org.structr.docs.ontology.Details;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -59,7 +61,7 @@ import java.io.IOException;
 import java.util.*;
 
 
-
+@Documentation(name="Built-in keywords", shortDescription="Predefined keywords that can be used in scripting contexts to access internal objects and contextual information.")
 public abstract class AbstractHintProvider {
 
 	private static final Logger logger                    = LoggerFactory.getLogger(AbstractHintProvider.class);
@@ -151,7 +153,7 @@ public abstract class AbstractHintProvider {
 			if (!hint.isHidden()) {
 
 				final String functionName = getFunctionName(hint.getName());
-				final String displayName  = getFunctionName(hint.getDisplayName());
+				final String displayName  = getFunctionName(hint.getDisplayName(true));
 
 				if ((unrestricted || displayName.startsWith(lastToken)) && ( (!script.endsWith(functionName)) || (script.endsWith(functionName) && hint instanceof Function) )) {
 
@@ -202,7 +204,7 @@ public abstract class AbstractHintProvider {
 		// If you change something here, make sure to change AutocompleteTest.java accordingly.
 
 		// add keywords, keep in sync and include everything from StructrBinding.getMemberKeys()
-		AbstractHintProvider.addKeywordHints(hints);
+		AbstractHintProvider.addBuiltInKeywordHints(hints);
 
 		// add global schema methods to show at the start of the list
 		try (final Tx tx = StructrApp.getInstance().tx()) {
@@ -440,7 +442,7 @@ public abstract class AbstractHintProvider {
 
 		final GraphObjectMap item = new GraphObjectMap();
 
-		item.put(text,             documentable.getDisplayName());
+		item.put(text,             documentable.getDisplayName(false));
 		item.put(documentationKey, getDocumentation(documentable));
 		item.put(replacementKey,   documentable.getName());
 		item.put(typeKey,          documentable.getDocumentableType().getDisplayName());
@@ -450,13 +452,14 @@ public abstract class AbstractHintProvider {
 
 	private String getDocumentation(final Documentable documentable) {
 
-		final List<String> lines = documentable.createMarkdownDocumentation();
+		final List<String> lines = documentable.createMarkdownDocumentation(EnumSet.allOf(Details.class), 2);
 
 		return StringUtils.join(lines, "\n");
 	}
 
-	public static void addKeywordHints(final List<Documentable> hints) {
+	public static void addBuiltInKeywordHints(final List<Documentable> hints) {
 
+		hints.add(0, new ValueHint());
 		hints.add(0, new ThisHint());
 		hints.add(0, new TenantIdentifierHint());
 		hints.add(0, new SessionHint());

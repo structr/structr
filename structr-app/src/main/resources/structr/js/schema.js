@@ -4026,7 +4026,7 @@ let _Schema = {
 			`,
 			addMethodsDropdown: config => `
 				<div class="dropdown-menu darker-shadow-dropdown dropdown-menu-large relative">
-					<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-wants-fixed="false">
+					<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-wants-fixed="false" data-test-purpose="create-schema-method">
 						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['icon-green', 'mr-2'])}
 					</button>
 					<div class="dropdown-menu-container ml-px w-64">
@@ -5023,10 +5023,17 @@ let _Schema = {
 					}
 				};
 
-				let nodeResponse = await fetch(`${Structr.rootUrl}SchemaNode/ui?${Structr.getRequestParameterName('sort')}=hierarchyLevel&${Structr.getRequestParameterName('order')}=asc&isServiceClass=false`);
+				//let nodeResponse = await fetch(`${Structr.rootUrl}SchemaNode/ui?${Structr.getRequestParameterName('sort')}=hierarchyLevel&${Structr.getRequestParameterName('order')}=asc&isServiceClass=false`);
+                let nodeResponse = await fetch(`${Structr.rootUrl}_schema`);
 				let nodes = await nodeResponse.json();
-
+                
 				for (let n of nodes.result) {
+
+                    if (n.isRel || n.traits.includes('DOMNode')) {
+                        continue;
+                    }
+
+                    n.id = n.className;
 
 					_Schema.caches.nodeData[n.id] = n;
 
@@ -5106,7 +5113,19 @@ let _Schema = {
 
 				} else {
 
-					for (let res of data.result) {
+                    //for (let res of data.result) {
+					for (let n of nodes.result) {
+
+                        if (!n.relInfo || !n.isRel) {
+                            continue;
+                        }
+
+                        let res = {
+                            id: n.name,
+                            sourceId: n.relInfo.sourceType,
+                            targetId: n.relInfo.targetType,
+                            relationshipType: n.relInfo.relationshipType
+                        }
 
 						if (index[res.sourceId] === true && index[res.targetId] === true) {
 
@@ -5133,9 +5152,28 @@ let _Schema = {
 					}
 				}
 
-				let container = document.querySelector('#schema-graph');
+                /*
+				let main = document.querySelector('#main');
 
-				_Helpers.fastRemoveAllChildren(container);
+				_Helpers.fastRemoveAllChildren(main);
+
+
+                //<link rel="stylesheet" type="text/css" media="screen" href="css/schema.css">
+                let style = document.createElement('link');
+                style.type = 'text/css';
+                style.rel = 'stylesheet';
+                style.href = 'css/schema.css';
+                main.appendChild(style);
+
+                let container = document.createElement('div');
+                container.id = 'schema-graph';
+                container.style.width = '100%';
+                container.style.height = '100%';
+
+                main.appendChild(container);
+                 */
+
+                let container = document.querySelector('#schema-graph');
 
 				_Pages.layout.createSVGDiagram(container, input, new SchemaNodesFormatter(inheritanceRels), () => {
 

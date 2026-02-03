@@ -22,6 +22,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -31,6 +32,11 @@ public class FindStartsWithFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getName() {
 		return "find.startsWith";
+	}
+
+	@Override
+	public String getDisplayName(boolean includeParameters) {
+		return "predicate.startsWith";
 	}
 
 	@Override
@@ -84,12 +90,12 @@ public class FindStartsWithFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public boolean isHidden() {
-		return true;
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("key, value");
 	}
 
 	@Override
-	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("key, value");
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Database;
 	}
 }

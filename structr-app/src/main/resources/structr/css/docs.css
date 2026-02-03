@@ -16,6 +16,28 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+html {
+    background-color: white;
+}
+
+body {
+    min-width: 16rem;
+    font-size: 11pt;
+}
+
+@media (max-width: 1000px) {
+    aside {
+        display: none;
+    }
+    nav {
+        font-size: 8pt;
+    }
+    .article {
+        padding: 0 5% 1rem 5% !important;
+        margin: 0;
+    }
+}
+
 #docs-area {
     display: flex;
     flex-direction: row;
@@ -28,8 +50,13 @@
     background-color: transparent;
     overflow: auto;
     height: calc(100vh - 8rem);
-    width: 20%;
+    width: 30%;
     min-width: 16rem;
+}
+
+#docs-area aside {
+    width: 30%;
+    font-size: 11pt;
 }
 
 #docs-area nav a {
@@ -104,15 +131,69 @@
     font-weight: 500;
 }
 
-/* Article */
+.article {
+    background-color: white;
+    padding: 0 10% 2rem 10%;
+    height: 100%;
+}
 
-#docs-area article {
+#docs-area iframe {
+    border: none;
     background-color: white;
     overflow: auto;
     height: calc(100vh - 10rem);
-    padding: 0 2rem 2rem 2rem;
+    margin: 0;
+    padding: 1rem 0;
     width: 80%;
     line-height: 1.5rem;
+}
+
+.article h1 a, .article h2 a, .article h3 a, .article h4 a, .article h5 a, .article h6 a {
+    padding-top: 1rem;
+    text-decoration: none;
+    color: inherit;
+}
+
+.article div.editable {
+    position: relative;
+    min-height: 1rem;
+}
+
+.article div.editable:has(button:hover) {
+    background-color: var(--structr-light-green-transparent);
+}
+
+.article div button {
+    color: #999;
+    margin: .1rem 0;
+}
+
+.article div.editable button.content {
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    float: right;
+    clear: both;
+}
+
+.article div.editable button.insert-paragraph {
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    float: none;
+    clear: both;
+}
+
+.article button.save-button {
+    color: #000;
+    background-color: #ddd;
+    float: none;
+    clear: both;
+}
+
+.article textarea {
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .article .subtitle {
@@ -122,34 +203,41 @@
 }
 
 .article h1 {
-    font-size: 2rem;
-    padding: .5rem 0;
-    /*color: #90d01e;*/
-    font-weight: 300;
+    font-size: 3rem;
+    font-weight: 500;
+    padding: .5rem  0 0 0;
+    margin: 1rem 0 .5rem 0;
     color: var(--structr-green);
 }
 
 .article h2 {
-    font-size: 1.5rem;
-    padding: 1rem 0 0 0;
+    font-size: 2.3rem;
+    padding: 2.5rem 0 0 0;
+    margin: 1rem 0 .5rem 0;
 }
 
 .article h3 {
-    font-size: 1.1rem;
+    font-size: 1.7rem;
     padding: 1rem 0 0 0;
-    /*color: #90d01e;*/
+    margin: 1rem 0 .5rem 0;
     /*color: #ffcc33;*/
     /*color: #333;*/
-    font-weight: 700;
 }
 
 .article h4 {
-    font-size: 1rem;
-    padding: 1rem 0 .5rem 0;
-    color: #90d01e;
+    font-size: 1.2rem;
+    padding: 1rem 0 0 0;
+    margin: .5rem 0;
     /*color: #ffcc33;*/
     /*color: #333;*/
-    font-weight: 700;
+}
+
+.article h5 {
+    font-size: 1rem;
+    padding: 1rem 0 0 0;
+    margin: .5rem 0;
+    /*color: #ffcc33;*/
+    /*color: #333;*/
 }
 
 .article p {
@@ -160,7 +248,7 @@
 
 .article img:not([src*="svg"]) {
     margin: 1rem auto;
-    width: 70%;
+    width: 100%;
     box-shadow: 0 .5rem 2rem .25rem #bbb;
 }
 
@@ -189,6 +277,11 @@
     background-color: #f7f7f7;
     font-size: .9rem;
     overflow-x: auto;
+    border: 1px solid #eee;
+}
+
+.article pre > code {
+    border: none;
 }
 
 .article pre {
@@ -197,7 +290,6 @@
 }
 
 .article code {
-    margin: 0 .25rem;
     padding: .125rem;
 }
 
@@ -206,13 +298,15 @@
     padding: 0;
 }
 
-.article ol li {
-    list-style-type: decimal;
-    margin-left: 2rem;
+.article ul,
+.article ol {
+    margin: .5rem 0 .5rem 1rem;
 }
 
-.article ul {
-    margin: .5rem 0 .5rem 1rem;
+.article ol li {
+    list-style-type: decimal;
+    margin-left: 1rem;
+    line-height: 1.75rem;
 }
 
 .article ul li {
@@ -223,6 +317,23 @@
 
 .article li li {
     list-style-type: circle;
+}
+
+.article table {
+    margin: .5rem 0;
+}
+
+.article table th {
+    border-bottom: 2px solid var(--gray-ccc);
+}
+
+.article table th, td {
+    text-align: left;
+    padding: 1rem .5rem;
+}
+
+.article tr {
+    border-bottom: 1px solid var(--gray-eee);
 }
 
 .index {
@@ -300,20 +411,6 @@ index h2, .index h3 {
     font-size: 1rem;
 }
 
-.article table {
-    border: 1px solid var(--gray-ccc);
-    margin: .5rem 0;
-}
-
-.article table th,td {
-    padding: .25rem .5rem;
-    border-right: 1px solid var(--gray-ccc);
-}
-
-.article tr {
-    border-bottom: 1px solid var(--gray-ccc);
-}
-
 .index table {
     display: none;
 }
@@ -322,6 +419,14 @@ index h2, .index h3 {
 #search-field {
     position: relative;
     margin: -.25rem auto;
+}
+
+#search-field svg, #search-overlay svg {
+    position: absolute;
+    left: .75rem;
+    top: .5rem;
+    height: 1.5rem;
+    color: var(--gray-555);
 }
 
 #search-field input, #search-overlay input {
@@ -372,7 +477,7 @@ index h2, .index h3 {
 .search-result {
     overflow: hidden;
     display: block;
-    padding: 1rem;
+    padding: .75rem 1rem;
     margin: 0;
     background-color: white;
     border-bottom-left-radius: .25rem;
@@ -387,6 +492,23 @@ index h2, .index h3 {
     overflow: hidden;
 }
 
+.search-result-description {
+    font-size: .9rem;
+    margin-top: .25rem;
+    text-overflow: ellipsis;
+    whitespace: nowrap;
+    color: var(--gray-999);
+}
+
+.search-result-type {
+    font-size: .9rem;
+    margin-top: .25rem;
+    text-overflow: ellipsis;
+    whitespace: nowrap;
+    color: var(--gray-666);
+    font-style: italic;
+}
+
 .search-result-path {
     font-size: .9rem;
     margin-top: .25rem;
@@ -397,4 +519,33 @@ index h2, .index h3 {
 
 .search-result-path:hover {
     color: var(--gray-aaa);
+}
+
+.article span.info {
+    padding: .5rem;
+    display: none;
+}
+
+.article img.small-image {
+    width: 40%;
+    float: right;
+    margin: 0 0 2rem 2rem;"
+}
+
+.article img.small-image-50 {
+    width: 50%;
+    float: right;
+    margin: 0 0 2rem 2rem;"
+}
+
+.article img.small-image-60 {
+    width: 60%;
+    float: right;
+    margin: 0 0 2rem 2rem;"
+}
+
+.article img.tab-image {
+    width: auto;
+    height: 3rem;
+    margin: 0;
 }

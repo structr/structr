@@ -1,0 +1,6 @@
+#
+# internals.txt
+#
+# Definitions of internal concepts that are not (yet) documented anywhere in the code or have no equivalent in code.
+#
+

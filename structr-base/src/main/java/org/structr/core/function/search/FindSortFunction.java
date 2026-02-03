@@ -22,6 +22,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -31,6 +32,11 @@ public class FindSortFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getName() {
 		return "find.sort";
+	}
+
+	@Override
+	public String getDisplayName(boolean includeParameters) {
+		return "predicate.sort";
 	}
 
 	@Override
@@ -80,16 +86,25 @@ public class FindSortFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
-	}
-
-	@Override
-	public boolean isHidden() {
-		return true;
+		return """
+		This predicate sorts the results of a query by the given key. It supports "transitive sorting", i.e. you can sort nodes by properties of related nodes:
+		
+		```
+		{
+			// fetch the list of projects sorted by their owner's names
+			let projects = $.find('Project', $.predicate.sort('owner.name'));
+		}
+		```
+		""";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
 		return Signature.forAllScriptingLanguages("key, value");
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Database;
 	}
 }

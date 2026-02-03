@@ -25,6 +25,7 @@ import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -83,15 +84,20 @@ public class UpperFunction extends CoreFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${upper(this.nickName)}"),
-				Example.javaScript("${{ $.upper($.this.nickName) }}")
+			Example.structrScript("${upper(this.nickName)}"),
+			Example.javaScript("${{ $.upper($.this.nickName) }}")
 		);
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 		return List.of(
-				Parameter.mandatory("str", "given string")
-				);
+			Parameter.mandatory("str", "given string")
+		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.String;
 	}
 }

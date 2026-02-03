@@ -31,7 +31,7 @@ import org.structr.api.RetryException;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.ResultStream;
 import org.structr.common.PropertyView;
-import org.structr.common.RequestKeywords;
+import org.structr.common.RequestParameters;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
@@ -49,6 +49,7 @@ import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.property.DateProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Documentation;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.RESTEndpoints;
@@ -68,6 +69,7 @@ import java.util.*;
  * This servlet produces CSV (comma separated value) lists out of a search
  * result.
  */
+@Documentation(name="CsvServlet", parent="Servlets", children={ "CsvServlet Settings" })
 public class CsvServlet extends AbstractDataServlet implements HttpServiceServlet {
 
 	private static final Logger logger = LoggerFactory.getLogger(CsvServlet.class.getName());
@@ -143,10 +145,10 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 				authenticator.checkResourceAccess(securityContext, request, resourceSignature, handler.getRequestedView());
 
 				// add sorting & paging
-				final String pageSizeParameter          = request.getParameter(RequestKeywords.PageSize.keyword());
-				final String pageParameter              = request.getParameter(RequestKeywords.PageNumber.keyword());
-				final String[] sortOrders               = request.getParameterValues(RequestKeywords.SortOrder.keyword());
-				final String[] sortKeyNames             = request.getParameterValues(RequestKeywords.SortKey.keyword());
+				final String pageSizeParameter          = request.getParameter(RequestParameters.PageSize.getName());
+				final String pageParameter              = request.getParameter(RequestParameters.PageNumber.getName());
+				final String[] sortOrders               = request.getParameterValues(RequestParameters.SortOrder.getName());
+				final String[] sortKeyNames             = request.getParameterValues(RequestParameters.SortKey.getName());
 				final int pageSize                      = Services.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
 				final int page                          = Services.parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
 				final String type                       = handler.getEntityClassOrDefault(securityContext);

@@ -33,6 +33,7 @@ import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.Tx;
 import org.structr.docs.*;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.rest.resource.MaintenanceResource;
 import org.structr.schema.action.ActionContext;
 
@@ -171,7 +172,7 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${maintenance(command [, key, value [, ... ]])}. Example: ${maintenance('rebuildIndex', 'mode', 'nodesOnly'))')}"),
-			Usage.javaScript("Usage: ${{Structr.maintenance(command [, key, value [, ... ]])}}. Example: ${{Structr.maintenance('rebuildIndex', { mode: 'nodesOnly' })}}")
+			Usage.javaScript("Usage: ${{ $.maintenance(command [, key, value [, ... ]])}}. Example: ${{ $.maintenance('rebuildIndex', { mode: 'nodesOnly' })}}")
 		);
 	}
 
@@ -190,7 +191,7 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 		lines.add("|Name|Description|");
 		lines.add("|---|---|");
 
-		for (final Documentable cmd : MaintenanceResource.getMaintenanceCommands()) {
+		for (final Documentable cmd : DocumentableType.MaintenanceCommand.getDocumentables()) {
 
 			if (!DocumentableType.Hidden.equals(cmd.getDocumentableType())) {
 
@@ -231,6 +232,11 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 		);
 	}
 
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.System;
+	}
+
 	public List<Documentable> getContextHints(final String lastToken) {
 
 		final List<Documentable> hints = new LinkedList<>();
@@ -239,9 +245,9 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 			return hints;
 		}
 
-		final String quoteChar         = lastToken.startsWith("'") ? "'" : lastToken.startsWith("\"") ? "\"" : "'";
+		final String quoteChar = lastToken.startsWith("'") ? "'" : lastToken.startsWith("\"") ? "\"" : "'";
 
-		for (final Documentable documentable : MaintenanceResource.getMaintenanceCommands()) {
+		for (final Documentable documentable : DocumentableType.MaintenanceCommand.getDocumentables()) {
 
 			if (!DocumentableType.Hidden.equals(documentable.getDocumentableType())) {
 

@@ -26,6 +26,9 @@ import org.structr.agent.Agent;
 import org.structr.api.service.LicenseManager;
 import org.structr.api.service.Service;
 import org.structr.core.Services;
+import org.structr.docs.Documentable;
+import org.structr.docs.Documentation;
+import org.structr.docs.Documentations;
 import org.structr.schema.ConfigurationProvider;
 
 import java.io.ByteArrayOutputStream;
@@ -48,16 +51,18 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 	private static final Logger logger = LoggerFactory.getLogger(JarConfigurationProvider.class.getName());
 
-	private final Map<String, Class<? extends Agent>> agentClassCache                              = new ConcurrentHashMap<>(100);
-	private final Map<String, StructrModule> modules                                               = new ConcurrentHashMap<>(100);
-	private final Set<String> agentPackages                                                        = new LinkedHashSet<>();
-	private final String fileSep                                                                   = System.getProperty("file.separator");
-	private final String pathSep                                                                   = System.getProperty("path.separator");
-	private final String fileSepEscaped                                                            = fileSep.replaceAll("\\\\", "\\\\\\\\");
-	private final String testClassesDir                                                            = fileSep.concat("test-classes");
-	private final String classesDir                                                                = fileSep.concat("classes");
+	private final Map<String, Class<? extends Agent>> agentClassCache      = new ConcurrentHashMap<>(100);
+	private final Map<Class, List<Documentation>> documentationAnnotations = new LinkedHashMap<>();
+	private final Map<String, StructrModule> modules                       = new ConcurrentHashMap<>(100);
+	private final Set<String> classNames                                   = new LinkedHashSet<>();
+	private final Set<String> agentPackages                                = new LinkedHashSet<>();
+	private final String fileSep                                           = System.getProperty("file.separator");
+	private final String pathSep                                           = System.getProperty("path.separator");
+	private final String fileSepEscaped                                    = fileSep.replaceAll("\\\\", "\\\\\\\\");
+	private final String testClassesDir                                    = fileSep.concat("test-classes");
+	private final String classesDir                                        = fileSep.concat("classes");
 
-	private LicenseManager licenseManager                                                          = null;
+	private LicenseManager licenseManager                                  = null;
 
 	// ----- interface ConfigurationProvider -----
 	@Override
@@ -90,49 +95,19 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		return agentClassCache;
 	}
 
-	public Class<? extends Agent> getAgentClass(final String name) {
-
-		Class agentClass = null;
-
-		if ((name != null) && (name.length() > 0)) {
-
-			agentClass = agentClassCache.get(name);
-
-			if (agentClass == null) {
-
-				for (String possiblePath : agentPackages) {
-
-					if (possiblePath != null) {
-
-						try {
-
-							Class nodeClass = Class.forName(possiblePath + "." + name);
-
-							agentClassCache.put(name, nodeClass);
-
-							// first match wins
-							return nodeClass;
-
-						} catch (ClassNotFoundException ex) {
-
-							// ignore
-						}
-
-					}
-
-				}
-
-			}
-
-		}
-
-		return agentClass;
-
-	}
-
 	@Override
 	public Map<String, StructrModule> getModules() {
 		return modules;
+	}
+
+	@Override
+	public Set<String> getClassNames() {
+		return classNames;
+	}
+
+	@Override
+	public Map<Class, List<Documentation>> getDocumentationAnnotations() {
+		return documentationAnnotations;
 	}
 
 	// ----- private methods -----
@@ -237,11 +212,27 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 			String className = StringUtils.removeStart(name, ".");
 
+			classNames.add(className);
+
 			try {
 
 				// instantiate class..
-				final Class clazz   = Class.forName(className);
-				final int modifiers = clazz.getModifiers();
+				final Class clazz    = Class.forName(className);
+				final int modifiers  = clazz.getModifiers();
+
+				// capture documentations annotation (repeatable / multiple annotations on the same target)
+				final Documentations documentations = (Documentations) clazz.getAnnotation(Documentations.class);
+				if (documentations != null) {
+
+					documentationAnnotations.computeIfAbsent(clazz, k -> new LinkedList<>()).addAll(Arrays.asList(documentations.value()));
+				}
+
+				// single documentation annotation
+				final Documentation documentation = (Documentation) clazz.getAnnotation(Documentation.class);
+				if (documentation != null) {
+
+					documentationAnnotations.computeIfAbsent(clazz, k -> new LinkedList<>()).add(documentation);
+				}
 
 				// register services
 				if (Service.class.isAssignableFrom(clazz) && !(Modifier.isAbstract(modifiers))) {

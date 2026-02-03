@@ -25,6 +25,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
+import org.structr.docs.Documentation;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 
@@ -37,6 +39,7 @@ import java.util.Comparator;
  * Properties with null values (not existing properties) are always handled
  * as "lower than", so that any not-null value ranks higher.
  */
+@Documentation(name="Transitive sorting", type=ConceptType.Feature, shortDescription="Sort a list of nodes by property of related nodes.", parent="Advanced find")
 public class PathResolvingComparator implements Comparator<GraphObject> {
 
 	private static final Logger logger    = LoggerFactory.getLogger(PathResolvingComparator.class.getName());

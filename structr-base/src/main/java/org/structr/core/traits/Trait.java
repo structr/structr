@@ -103,6 +103,7 @@ public class Trait implements TypeInfo {
 
 		// dynamic methods
 		for (final AbstractMethod method : traitDefinition.getDynamicMethods()) {
+
 			this.dynamicMethods.put(method.getName(), method);
 		}
 

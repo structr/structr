@@ -23,6 +23,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -106,5 +107,10 @@ public class SetEncryptionKeyFunction extends AdvancedScriptingFunction {
 				"Please note that this function overwrites the encryption key that is stored in structr.conf.",
 				"The overwritten key can be restored by using `null` as a parameter to this function, as shown in the example below."
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.System;
 	}
 }

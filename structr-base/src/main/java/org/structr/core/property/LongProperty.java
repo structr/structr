@@ -28,6 +28,7 @@ import org.structr.common.error.NumberFormatToken;
 import org.structr.common.error.PropertyInputParsingException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.docs.DocumentableType;
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -163,6 +164,17 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 	@Override
 	public Object getIndexValue(final Object value) {
 		return fixDatabaseProperty(value);
+	}
+
+	// ----- interface Documentable -----
+	@Override
+	public String getShortDescription() {
+		return "A property for long integer values.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return null;
 	}
 
 	// ----- OpenAPI -----

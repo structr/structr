@@ -30,6 +30,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
 
@@ -192,5 +193,10 @@ public class HttpPostFunction extends UiAdvancedFunction {
 			"`contentType` is the expected response content type. If you need to define the request content type, use `addHeader('Content-Type', 'your-content-type-here')`",
 			"If the `contentType` is `application/json`, the response body is automatically parsed and the `body` key of the returned object is a map"
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Http;
 	}
 }

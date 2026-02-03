@@ -18,6 +18,7 @@
  */
 package org.structr.api.service;
 
+
 public interface Feature {
 
 	/**

@@ -56,7 +56,7 @@ public class PageHAS_PATHPagePath extends AbstractRelationshipTraitDefinition im
 
 	@Override
 	public int getCascadingDeleteFlag() {
-		return Relation.NONE;
+		return Relation.SOURCE_TO_TARGET;
 	}
 
 	@Override

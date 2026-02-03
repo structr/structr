@@ -31,6 +31,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.MailTemplateTraitDefinition;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
@@ -151,5 +152,10 @@ public class TemplateFunction extends AdvancedScriptingFunction {
 				"This function is quite similar to the `replace()` function which serves a similar purpose but works on any string rather than on a mail template.",
 				"The third parameter 'source' expects a node or relationship object fetched from the database. If the third parameter is an arbitrary design JavaScript object, it has to be wrapped with the `toGraphObject()` function, before being passed as the parameter."
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Rendering;
 	}
 }

@@ -166,14 +166,14 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final PropertyKey<String> typeProperty                  = new TypeProperty().category(GraphObject.SYSTEM_CATEGORY).description("type of this entity");
-		final PropertyKey<String> idProperty                    = new UuidProperty().category(GraphObject.SYSTEM_CATEGORY).description("UUID of this entity");
-		final PropertyKey<Date> createdDateProperty             = new ISO8601DateProperty(CREATED_DATE_PROPERTY).readOnly().systemInternal().indexed().unvalidated().writeOnce().category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly().description("when this entity was created");
+		final PropertyKey<String> typeProperty                  = new TypeProperty().category(GraphObject.SYSTEM_CATEGORY);
+		final PropertyKey<String> idProperty                    = new UuidProperty().category(GraphObject.SYSTEM_CATEGORY);
+		final PropertyKey<Date> createdDateProperty             = new ISO8601DateProperty(CREATED_DATE_PROPERTY).readOnly().systemInternal().indexed().unvalidated().writeOnce().category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
 		final PropertyKey<String> createdByProperty             = new StringProperty(CREATED_BY_PROPERTY).readOnly().writeOnce().unvalidated().category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
-		final PropertyKey<Date> lastModifiedDateProperty        = new ISO8601DateProperty(LAST_MODIFIED_DATE_PROPERTY).readOnly().systemInternal().passivelyIndexed().unvalidated().category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly().description("when this entity was last modified");
+		final PropertyKey<Date> lastModifiedDateProperty        = new ISO8601DateProperty(LAST_MODIFIED_DATE_PROPERTY).readOnly().systemInternal().passivelyIndexed().unvalidated().category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
 		final PropertyKey<String> lastModifiedByProperty        = new StringProperty(LAST_MODIFIED_BY_PROPERTY).readOnly().systemInternal().unvalidated().category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
-		final PropertyKey<Boolean> visibleToPublicUsersProperty = new BooleanProperty(VISIBLE_TO_PUBLIC_USERS_PROPERTY).passivelyIndexed().category(GraphObject.VISIBILITY_CATEGORY).category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly().description("whether this entity is visible to public users");
-		final Property<Boolean> visibleToAuthenticatedUsers     = new BooleanProperty(VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY).passivelyIndexed().category(GraphObject.VISIBILITY_CATEGORY).category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly().description("whether this entity is visible to authenticated users");
+		final PropertyKey<Boolean> visibleToPublicUsersProperty = new BooleanProperty(VISIBLE_TO_PUBLIC_USERS_PROPERTY).passivelyIndexed().category(GraphObject.VISIBILITY_CATEGORY).category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
+		final Property<Boolean> visibleToAuthenticatedUsers     = new BooleanProperty(VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY).passivelyIndexed().category(GraphObject.VISIBILITY_CATEGORY).category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
 
 		return newSet(
 			idProperty,

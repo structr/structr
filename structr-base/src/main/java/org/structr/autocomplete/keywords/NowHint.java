@@ -18,12 +18,12 @@
  */
 package org.structr.autocomplete.keywords;
 
-import org.structr.autocomplete.KeywordHint;
+import org.structr.autocomplete.GeneralKeywordHint;
 import org.structr.docs.Example;
 
 import java.util.List;
 
-public class NowHint extends KeywordHint {
+public class NowHint extends GeneralKeywordHint {
 
 	@Override
 	public String getName() {
@@ -44,12 +44,6 @@ public class NowHint extends KeywordHint {
 	public List<Example> getExamples() {
 		return List.of(
 			Example.structrScript("${date_format(now, 'dd.MM.yyyy')}", "Display the current date, for example in an HTML attribute")
-		);
-	}
-
-	@Override
-	public List<String> getNotes() {
-		return List.of(
 		);
 	}
 }

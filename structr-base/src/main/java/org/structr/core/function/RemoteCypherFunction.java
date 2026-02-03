@@ -35,6 +35,7 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.property.GenericProperty;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.*;
@@ -119,6 +120,10 @@ public class RemoteCypherFunction extends CoreFunction {
 		return "";
 	}
 
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Database;
+	}
 
 	// ----- private methods -----
 	private Driver getDriver(final String url, final String username, final String password) {

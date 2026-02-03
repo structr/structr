@@ -25,6 +25,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -88,5 +89,10 @@ public class CapitalizeFunction extends CoreFunction {
 			Example.structrScript("${capitalize('cAT DOG BIRD')}", "Results in \"CAT DOG BIRD\""),
 			Example.structrScript("${capitalize('\"cat dog bird\"')}", "Only the first character is capitalized, so quoted strings are not changed")
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.String;
 	}
 }

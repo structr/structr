@@ -44,6 +44,8 @@ import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnDeletion;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.wrappers.UserTraitWrapper;
+import org.structr.docs.Documentation;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.rest.auth.TimeBasedOneTimePasswordHelper;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
@@ -51,6 +53,7 @@ import org.structr.web.entity.User;
 import java.util.Map;
 import java.util.Set;
 
+@Documentation(name="User", type=ConceptType.SystemType, shortDescription="The User trait", parent="Built-in traits")
 public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String HOME_DIRECTORY_PROPERTY              = "homeDirectory";
@@ -102,12 +105,12 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> homeDirectoryProperty       = new EndNode(traitsInstance, HOME_DIRECTORY_PROPERTY, StructrTraits.USER_HOME_DIR_FOLDER);
-		final Property<NodeInterface> workingDirectoryProperty    = new EndNode(traitsInstance, WORKING_DIRECTORY_PROPERTY, StructrTraits.USER_WORKING_DIR_FOLDER);
+		final Property<NodeInterface> homeDirectoryProperty       = new EndNode(traitsInstance, HOME_DIRECTORY_PROPERTY, StructrTraits.USER_HOME_DIR_FOLDER).description("The home directory of this user, if `application.filesystem.enabled` is set to `true` in `structr.conf`.");
+		final Property<NodeInterface> workingDirectoryProperty    = new EndNode(traitsInstance, WORKING_DIRECTORY_PROPERTY, StructrTraits.USER_WORKING_DIR_FOLDER).description("The work directory of this user, if `application.filesystem.enabled` is set to `true` in `structr.conf`.");
 		final Property<NodeInterface> imgProperty                 = new StartNode(traitsInstance, IMG_PROPERTY, StructrTraits.IMAGE_PICTURE_OF_USER);
-		final Property<String> confirmationKeyProperty            = new StringProperty(CONFIRMATION_KEY_PROPERTY).indexed();
+		final Property<String> confirmationKeyProperty            = new StringProperty(CONFIRMATION_KEY_PROPERTY).indexed().description("Confirmation key");
 		final Property<String> localStorageProperty               = new StringProperty(LOCAL_STORAGE_PROPERTY);
-		final Property<Boolean> skipSecurityRelationshipsProperty = new BooleanProperty(SKIP_SECURITY_RELATIONSHIPS_PROPERTY).defaultValue(false).indexed();
+		final Property<Boolean> skipSecurityRelationshipsProperty = new BooleanProperty(SKIP_SECURITY_RELATIONSHIPS_PROPERTY).defaultValue(false).indexed().description("Skip security relationships");
 		final Property<Boolean> isUserProperty                    = new ConstantBooleanProperty(IS_USER_PROPERTY, true);
 
 		return Set.of(
@@ -248,7 +251,7 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public String getShortDescription() {
-		return "The type `User` is one of the base classes for Structr's access control and permissions system.";
+		return "The `User` trait is one of the base traits for Structr's access control and permissions system.";
 	}
 
 	@Override

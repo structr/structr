@@ -118,6 +118,16 @@ test('dashboard', async ({ page }) => {
   await page.waitForTimeout(1000);
   await page.screenshot({ path: 'screenshots/dashboard_ui-config.png' });
 
+  // show admin console here
+  await page.locator('#terminal-icon > use').click();
+  await page.waitForTimeout(200);
+  await page.keyboard.type('$.find("Project");');
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(1000);
+  await page.screenshot({ path: 'screenshots/dashboard_admin-console.png' });
+  await page.locator('#terminal-icon > use').click();
+  await page.waitForTimeout(200);
+
   // Logout
   await page.locator('.submenu-trigger').hover();
   await page.waitForTimeout(250);

@@ -30,6 +30,8 @@ import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.docs.Documentation;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
@@ -42,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+@Documentation(name="Template", type=ConceptType.SystemType, shortDescription="Templates are special elements that may be inserted into a page's DOM tree at any position.", synonyms={"Template element", "Main Page Template"}, parent="System types")
 public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public TemplateTraitDefinition() {

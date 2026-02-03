@@ -26,6 +26,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.text.ParseException;
@@ -178,5 +179,10 @@ public class DateFormatFunction extends CoreFunction {
 				Example.structrScript("${dateFormat(toDate(1585504800000), 'EEEE')}", "Sunday"),
 				Example.structrScript("${(setLocale('de'), dateFormat(toDate(1585504800000), 'EEEE'))}", "Sonntag")
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Conversion;
 	}
 }

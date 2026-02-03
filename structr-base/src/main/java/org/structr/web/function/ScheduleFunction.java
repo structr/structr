@@ -26,6 +26,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.importer.ScriptJob;
 
@@ -142,5 +143,10 @@ public class ScheduleFunction extends UiAdvancedFunction {
 				Parameter.optional("title", "title of scheduled function to be shown in job queue"),
 				Parameter.optional("onFinish", "function to be called when main expression finished")
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Scripting;
 	}
 }

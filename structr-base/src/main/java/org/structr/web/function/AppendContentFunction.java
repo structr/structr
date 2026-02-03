@@ -27,6 +27,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.File;
 
@@ -142,5 +143,10 @@ public class AppendContentFunction extends UiAdvancedFunction {
 		return List.of(
 			"The `encoding` parameter is used when writing the data to the file. By default the input is not encoded, but when given an encoding such as `UTF-8` the content is transformed before being written to the file."
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.InputOutput;
 	}
 }

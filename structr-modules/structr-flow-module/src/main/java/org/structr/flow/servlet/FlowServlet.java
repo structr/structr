@@ -29,7 +29,7 @@ import org.structr.api.config.Settings;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
 import org.structr.common.PropertyView;
-import org.structr.common.RequestKeywords;
+import org.structr.common.RequestParameters;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
@@ -42,6 +42,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.docs.Documentation;
 import org.structr.flow.impl.FlowContainer;
 import org.structr.flow.traits.definitions.FlowContainerTraitDefinition;
 import org.structr.rest.RestMethodResult;
@@ -56,6 +57,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+@Documentation(name="FlowServlet", parent="Servlets", children={ "FlowServlet Settings" })
 public class FlowServlet extends JsonRestServlet {
 
 	private static final Logger logger = LoggerFactory.getLogger(FlowServlet.class);
@@ -71,7 +73,7 @@ public class FlowServlet extends JsonRestServlet {
 		try {
 
 			final Map<String, Object> flowParameters = new HashMap<>();
-			final int depth = Services.parseInt(request.getParameter(RequestKeywords.OutputDepth.keyword()), config.getOutputNestingDepth());
+			final int depth = Services.parseInt(request.getParameter(RequestParameters.OutputDepth.getName()), config.getOutputNestingDepth());
 
 			// first thing to do!
 			request.setCharacterEncoding("UTF-8");
@@ -200,7 +202,7 @@ public class FlowServlet extends JsonRestServlet {
 
 		try {
 
-			final int depth = Services.parseInt(request.getParameter(RequestKeywords.OutputDepth.keyword()), config.getOutputNestingDepth());
+			final int depth = Services.parseInt(request.getParameter(RequestParameters.OutputDepth.getName()), config.getOutputNestingDepth());
 
 			// first thing to do!
 			request.setCharacterEncoding("UTF-8");

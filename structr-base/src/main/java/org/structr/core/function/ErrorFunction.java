@@ -25,6 +25,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -43,6 +44,8 @@ public class ErrorFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
+
+		assertArrayHasMinLengthAndTypes(sources, 2, String.class, String.class);
 
 		String type = StructrTraits.GRAPH_OBJECT;
 
@@ -128,5 +131,10 @@ public class ErrorFunction extends AdvancedScriptingFunction {
 		return List.of(
 			"See also `getErrors()`, `clearError()`, `clearErrors()` and `assert()`."
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Validation;
 	}
 }

@@ -20,9 +20,11 @@ package org.structr.autocomplete;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.docs.*;
+import org.structr.docs.ontology.Details;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 public class MethodHint extends AbstractHint {
 
@@ -44,7 +46,7 @@ public class MethodHint extends AbstractHint {
 	}
 
 	@Override
-	public List<String> createMarkdownDocumentation() {
+	public List<String> createMarkdownDocumentation(final Set<Details> details, final int startLevel) {
 
 		// this is the place where we assemble the hint text
 		final List<String> buf = new LinkedList<>();
@@ -59,7 +61,7 @@ public class MethodHint extends AbstractHint {
 	}
 
 	@Override
-	public String getDisplayName() {
+	public String getDisplayName(boolean includeParameters) {
 		return getName() + "()";
 	}
 

@@ -33,6 +33,7 @@ import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -199,5 +200,10 @@ public class SetFunction extends CoreFunction {
 				"In a JavaScript environment, the function can be used just as in a StructrScript environment. Alternatively it can take a map as the second parameter.",
 				"When using the `set()` method on an entity that is not writable by the current user, a 403 Forbidden HTTP error will be thrown. In this case, use `set_privileged()` which will execute the `set()` operation with elevated privileges."
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Database;
 	}
 }

@@ -718,6 +718,7 @@
 								<exclude>src/main/resources/**/*.ttf</exclude>
 								<exclude>src/main/resources/**/*.otf</exclude>
 								<exclude>src/main/resources/**/*.svg</exclude>
+								<exclude>src/main/resources/**/*.txt</exclude>
 								<exclude>src/main/resources/**/*.properties</exclude>
 								<exclude>src/main/resources/bin/**</exclude>
 								<exclude>src/main/resources/mime.types</exclude>
@@ -731,7 +732,8 @@
 								<exclude>src/test/**/*.html</exclude>
 								<exclude>src/test/**/*.xml</exclude>
 								<exclude>src/test/**/*.csv</exclude>
-								<exclude>src/test/**/selenium/**/*</exclude>
+                                <exclude>src/test/**/selenium/**/*</exclude>
+								<exclude>src/test/**/test-results/**/*</exclude>
 								<exclude>src/main/resources/deb/**</exclude>
 								<exclude>src/main/resources/structr/js/flow-editor/**/*</exclude>
 								<exclude>src/main/resources/structr/swagger/**/*</exclude>

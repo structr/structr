@@ -23,6 +23,7 @@ import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
 
@@ -89,12 +90,11 @@ public class SetDetailsObjectFunction extends UiCommunityFunction {
 		return "";
 	}
 
-
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${setDetailsObject(first(find('User')))}"),
-				Example.javaScript("${{ $.setDetailsObject($.first($.find('User')))}")
+			Example.structrScript("${setDetailsObject(first(find('User')))}"),
+			Example.javaScript("${{ $.setDetailsObject($.first($.find('User')))}")
 		);
 	}
 
@@ -102,7 +102,12 @@ public class SetDetailsObjectFunction extends UiCommunityFunction {
 	public List<Parameter> getParameters() {
 
 		return List.of(
-				Parameter.mandatory("entity", "entity to be linked to `current`")
-				);
+			Parameter.mandatory("entity", "entity to be linked to `current`")
+		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Rendering;
 	}
 }

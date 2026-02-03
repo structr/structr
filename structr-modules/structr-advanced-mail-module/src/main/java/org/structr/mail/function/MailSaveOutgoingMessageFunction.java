@@ -93,7 +93,7 @@ public class MailSaveOutgoingMessageFunction extends AdvancedMailModuleFunction 
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-				"By default, mails are not saved"
+		"By default, mails are not saved"
 		);
 	}
 }

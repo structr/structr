@@ -26,6 +26,7 @@ import org.structr.docs.Usage;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Arrays;
@@ -114,5 +115,10 @@ public class SplitRegexFunction extends CoreFunction {
 				Parameter.mandatory("string", "string to split"),
 				Parameter.optional("separator", "separator regex")
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.String;
 	}
 }

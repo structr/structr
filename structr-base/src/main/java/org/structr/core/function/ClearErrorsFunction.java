@@ -21,6 +21,7 @@ package org.structr.core.function;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -67,5 +68,10 @@ public class ClearErrorsFunction extends CoreFunction {
 		return List.of(
 			"See also `getErrors()`, `clearError()`, `error()` and `assert()`."
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Validation;
 	}
 }

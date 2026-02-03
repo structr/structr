@@ -18,12 +18,9 @@
  */
 package org.structr.autocomplete.keywords;
 
-import org.structr.autocomplete.KeywordHint;
-import org.structr.docs.Example;
+import org.structr.autocomplete.GeneralKeywordHint;
 
-import java.util.List;
-
-public class ParameterMapHint extends KeywordHint {
+public class ParameterMapHint extends GeneralKeywordHint {
 
 	@Override
 	public String getName() {
@@ -38,18 +35,5 @@ public class ParameterMapHint extends KeywordHint {
 	@Override
 	public String getLongDescription() {
 		return "The `parameterMap` keyword allows you to access the HTTP request parameters of the current request as a map, similar to the `request` keyword.";
-	}
-
-	@Override
-	public List<Example> getExamples() {
-
-		return List.of(
-		);
-	}
-
-	@Override
-	public List<String> getNotes() {
-		return List.of(
-		);
 	}
 }

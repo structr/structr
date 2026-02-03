@@ -23,6 +23,7 @@ import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -32,6 +33,11 @@ public class FindWithinDistanceFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getName() {
 		return "find.withinDistance";
+	}
+
+	@Override
+	public String getDisplayName(boolean includeParameters) {
+		return "predicate.withinDistance";
 	}
 
 	@Override
@@ -79,11 +85,6 @@ public class FindWithinDistanceFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public boolean isHidden() {
-		return true;
-	}
-
-	@Override
 	public List<Signature> getSignatures() {
 		return Signature.forAllScriptingLanguages("latitude, longitude, distance");
 	}
@@ -95,5 +96,10 @@ public class FindWithinDistanceFunction extends AdvancedScriptingFunction {
 			Parameter.mandatory("longitude", "longitude of the center point"),
 			Parameter.mandatory("distance", "circumference of the circle around the center point")
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Database;
 	}
 }

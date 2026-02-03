@@ -42,6 +42,7 @@ import org.structr.core.script.Snippet;
 import org.structr.core.script.polyglot.config.ScriptConfig;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.TraitsManager;
+import org.structr.docs.Documentation;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.util.CommandLineUtils;
@@ -50,7 +51,7 @@ import org.structr.util.Writable;
 import java.io.IOException;
 import java.util.*;
 
-
+@Documentation(name="Admin Console")
 public class Console {
 
 	private static Logger logger = LoggerFactory.getLogger(Console.class);

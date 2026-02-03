@@ -30,6 +30,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedHashMap;
@@ -163,5 +164,10 @@ public class CypherFunction extends CoreFunction {
 			"In a StructrScript environment parameters are passed as pairs of `'key1', 'value1'`.",
 			"In a JavaScript environment, the function can be used just as in a StructrScript environment. Alternatively it can take a map as the second parameter."
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Database;
 	}
 }

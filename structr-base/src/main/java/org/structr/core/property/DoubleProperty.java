@@ -28,6 +28,7 @@ import org.structr.common.error.PropertyInputParsingException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.traits.definitions.LocationTraitDefinition;
+import org.structr.docs.DocumentableType;
 
 import java.util.Map;
 
@@ -54,13 +55,16 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 
 		super(jsonName, dbName, defaultValue);
 
-		if (jsonName.equals(LocationTraitDefinition.LATITUDE_PROPERTY) || jsonName.equals(LocationTraitDefinition.LONGITUDE_PROPERTY)) {
+		if (jsonName != null) {
 
-			// add layer node index and make
-			// this property be indexed at the
-			// end of the transaction instead
-			// of on setProperty
-			passivelyIndexed();
+			if (jsonName.equals(LocationTraitDefinition.LATITUDE_PROPERTY) || jsonName.equals(LocationTraitDefinition.LONGITUDE_PROPERTY)) {
+
+				// add layer node index and make
+				// this property be indexed at the
+				// end of the transaction instead
+				// of on setProperty
+				passivelyIndexed();
+			}
 		}
 	}
 
@@ -193,6 +197,17 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 	@Override
 	public Object getIndexValue(final Object value) {
 		return fixDatabaseProperty(value);
+	}
+
+	// ----- interface Documentable -----
+	@Override
+	public String getShortDescription() {
+		return "A property for double-precision floating point values.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return null;
 	}
 
 	// ----- OpenAPI -----

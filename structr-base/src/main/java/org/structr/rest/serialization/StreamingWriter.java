@@ -26,7 +26,7 @@ import org.structr.api.config.Settings;
 import org.structr.api.util.ProgressWatcher;
 import org.structr.api.util.ResultStream;
 import org.structr.common.QueryRange;
-import org.structr.common.RequestKeywords;
+import org.structr.common.RequestParameters;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
@@ -351,7 +351,7 @@ public abstract class StreamingWriter {
 		this.reduceNestedObjectsInRestrictedViewsDepth = Settings.JsonReduceNestedObjectsDepth.getValue();
 		HttpServletRequest request = securityContext.getRequest();
 		if (request != null) {
-			this.reduceNestedObjectsInRestrictedViewsDepth = Services.parseInt(request.getParameter(RequestKeywords.OutputReductionDepth.keyword()), this.reduceNestedObjectsInRestrictedViewsDepth);
+			this.reduceNestedObjectsInRestrictedViewsDepth = Services.parseInt(request.getParameter(RequestParameters.OutputReductionDepth.getName()), this.reduceNestedObjectsInRestrictedViewsDepth);
 		}
 	}
 

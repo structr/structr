@@ -45,8 +45,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
-import org.structr.core.script.polyglot.config.ScriptConfig;
-import org.structr.core.script.polyglot.config.ScriptConfigBuilder;
 import org.structr.core.traits.*;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
@@ -55,6 +53,8 @@ import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.operations.propertycontainer.GetPropertyKeys;
+import org.structr.docs.Documentation;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.servlet.AbstractDataServlet;
 import org.structr.schema.action.ActionContext;
@@ -64,6 +64,10 @@ import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.EventContext;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
+import org.structr.web.eam.EventAction;
+import org.structr.web.eam.EventBehaviour;
+import org.structr.web.eam.EventNotification;
+import org.structr.web.eam.ParameterType;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -89,6 +93,7 @@ import static org.structr.web.entity.dom.DOMElement.lowercaseBodyName;
 import static org.structr.web.entity.dom.DOMNode.EVENT_ACTION_MAPPING_CATEGORY;
 import static org.structr.web.entity.dom.DOMNode.PAGE_CATEGORY;
 
+@Documentation(name="DOMElement", type=ConceptType.SystemType, shortDescription="The base class for all elements in a Page.", parent="System types")
 public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String RELOAD_SOURCES_PROPERTY                    = "reloadSources";
@@ -655,19 +660,20 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 									for (final ParameterMapping parameterMapping : triggeredAction.getParameterMappings()) {
 
 										final NodeInterface parameterMappingNode = parameterMapping;
-										final String parameterType = parameterMappingNode.getProperty(parameterTypeKey);
-										final String parameterName = parameterMappingNode.getPropertyWithVariableReplacement(renderContext, parameterNameKey);
+										final String parameterTypeString         = parameterMappingNode.getProperty(parameterTypeKey);
+										final String parameterName               = parameterMappingNode.getPropertyWithVariableReplacement(renderContext, parameterNameKey);
 
-										if (parameterType == null || parameterName == null) {
+										if (parameterTypeString == null || parameterName == null) {
 											// Ignore incomplete parameter mapping
 											continue;
 										}
 
 										final String nameAttributeHyphenated = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, parameterName);
+										final ParameterType parameterType    = ParameterType.forName(parameterTypeString);
 
 										switch (parameterType) {
 
-											case "user-input":
+											case ParameterType.UserInput:
 
 												final DOMElement element = parameterMapping.getInputElement();
 												if (element != null) {
@@ -686,43 +692,44 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 												}
 												break;
 
-											case "constant-value":
+											case ParameterType.ConstantValue:
 												final String constantValue = parameterMapping.getConstantValue();
 												// Could be 'json(...)' or a simple value
 												out.append(" data-").append(nameAttributeHyphenated).append("=\"").append(DOMNode.escapeForHtmlAttributes(constantValue)).append("\"");
 												break;
 
-											case "script-expression":
+											case ParameterType.ScriptExpression:
 												final String scriptExpression = parameterMappingNode.getPropertyWithVariableReplacement(renderContext, scriptExpressionKey);
 												out.append(" data-").append(nameAttributeHyphenated).append("=\"").append(DOMNode.escapeForHtmlAttributes(scriptExpression)).append("\"");
 												break;
 
-											case "page-param":
+											case ParameterType.PageParam:
 												// Name of the request parameter for pager 'page'
-												final String action = triggeredAction.getAction();
-												final String value = renderContext.getRequestParameter(parameterName);
+												final String actionString = triggeredAction.getAction();
+												final String value        = renderContext.getRequestParameter(parameterName);
+												final EventAction action  = EventAction.forName(actionString);
+
 												// special handling for pagination (migrated code)
 												switch (action) {
 
-													case "prev-page":
-													case "previous-page":
+													case EventAction.PrevPage:
 														out.append(" data-structr-target=\"").append(parameterName).append("\"");
 														final int prev = DOMElement.intOrOne(value);
 														out.append(" data-").append(parameterName).append("=\"").append(String.valueOf(Math.max(1, prev - 1))).append("\"");
 														break;
 
-													case "next-page":
+													case EventAction.NextPage:
 														out.append(" data-structr-target=\"").append(parameterName).append("\"");
 														final int next = DOMElement.intOrOne(value);
 														out.append(" data-").append(parameterName).append("=\"").append(String.valueOf(next + 1)).append("\"");
 														break;
 
-													case "first-page":
+													case EventAction.FirstPage:
 														out.append(" data-structr-target=\"").append(parameterName).append("\"");
 														out.append(" data-").append(parameterName).append("=\"1\"");
 														break;
 
-													case "last-page":
+													case EventAction.LastPage:
 														// should we really count all objects?
 														out.append(" data-structr-target=\"").append(parameterName).append("\"");
 														out.append(" data-").append(parameterName).append("=\"1000\"");
@@ -733,7 +740,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 												}
 
 												break;
-											case "pagesize-param":
+											case ParameterType.PageSizeParam:
 												// TODO: Implement additional parameter for page size
 												// Name of the request parameter for pager 'pageSize'
 												break;
@@ -867,12 +874,11 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 					final RenderContext renderContext = new RenderContext(securityContext);
 					final EventContext  eventContext  = new EventContext();
-					final String        action;
 
-					final NodeInterface domElementNode         = StructrApp.getInstance().getNodeById(StructrTraits.DOM_ELEMENT, entity.getUuid());
-					final DOMElement domElement                = domElementNode.as(DOMElement.class);
-
-					action = getActionMapping(domElement).getAction();
+					final NodeInterface domElementNode = StructrApp.getInstance().getNodeById(StructrTraits.DOM_ELEMENT, entity.getUuid());
+					final DOMElement domElement        = domElementNode.as(DOMElement.class);
+					final String actionString          = getActionMapping(domElement).getAction();
+					final EventAction action           = EventAction.forName(actionString);
 
 					// store event context in object
 					renderContext.setConstant("eventContext", eventContext);
@@ -882,29 +888,29 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 						// Note: if you add new actions here, please also add them to MigrationService.EventActionMappingActions so
 						// they are not migrated accidentially..
 
-						case "create":
+						case EventAction.Create:
 							return handleCreateAction(renderContext, domElementNode, parameters, eventContext);
 
-						case "update":
+						case EventAction.Update:
 							handleUpdateAction(renderContext, domElementNode, parameters, eventContext);
 							break;
 
-						case "delete":
+						case EventAction.Delete:
 							handleDeleteAction(renderContext, domElementNode, parameters, eventContext);
 							break;
 
-						case "append-child":
+						case EventAction.AppendChild:
 							handleAppendChildAction(renderContext, domElementNode, parameters, eventContext);
 							break;
 
-						case "remove-child":
+						case EventAction.RemoveChild:
 							handleRemoveChildAction(renderContext, domElementNode, parameters, eventContext);
 							break;
 
-						case "insert-html":
+						case EventAction.InsertHtml:
 							return handleInsertHtmlAction(renderContext, domElementNode, parameters, eventContext);
 
-						case "replace-html":
+						case EventAction.ReplaceHtml:
 							return handleReplaceHtmlAction(renderContext, domElementNode, parameters, eventContext);
 
 						/*
@@ -915,24 +921,24 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 							break;
 						*/
 
-						case "sign-in":
+						case EventAction.SignIn:
 							return handleSignInAction(renderContext, domElementNode, parameters, eventContext);
 
-						case "sign-out":
+						case EventAction.SignOut:
 							return handleSignOutAction(renderContext, domElementNode, parameters, eventContext);
 
-						case "sign-up":
+						case EventAction.SignUp:
 							return handleSignUpAction(renderContext, domElementNode, parameters, eventContext);
 
-						case "reset-password":
+						case EventAction.ResetPassword:
 							return handleResetPasswordAction(renderContext, domElementNode, parameters, eventContext);
 
-						case "flow":
+						case EventAction.Flow:
 							final String flow = getActionMapping(entity.as(DOMElement.class)).getFlow();
 							return handleFlowAction(renderContext, domElementNode, parameters, eventContext, flow);
 
-						case "method":
-						default:
+						case EventAction.Method:
+						case EventAction.Unknown:
 							// execute custom method (and return the result directly)
 							final String method = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRMETHOD);
 							return handleCustomAction(renderContext, domElementNode, parameters, eventContext, method);
@@ -981,17 +987,17 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> pathProperty                 = new StringProperty(PATH_PROPERTY).indexed();
 		final Property<String> partialUpdateKeyProperty     = new StringProperty(PARTIAL_UPDATE_KEY_PROPERTY).indexed();
 
-		final Property<Boolean> manualReloadTargetProperty  = new BooleanProperty(DATA_STRUCTR_MANUAL_RELOAD_TARGET_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY).hint("Identifies this element as a manual reload target, this is necessary when using repeaters as reload targets.");
+		final Property<Boolean> manualReloadTargetProperty  = new BooleanProperty(DATA_STRUCTR_MANUAL_RELOAD_TARGET_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY).description("Identifies this element as a manual reload target, this is necessary when using repeaters as reload targets.");
 		final Property<Boolean> fromWidgetProperty          = new BooleanProperty(FROM_WIDGET_PROPERTY);
 		final Property<Boolean> dataInsertProperty          = new BooleanProperty(DATA_STRUCTR_INSERT_PROPERTY);
 		final Property<Boolean> dataFromWidgetProperty      = new BooleanProperty(DATA_STRUCTR_FROM_WIDGET_PROPERTY);
 
-		final Property<String> eventMappingProperty        = new StringProperty(EVENT_MAPPING_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY).hint("A mapping between the desired Javascript event (click, drop, dragOver, ...) and the server-side event that should be triggered: (create | update | delete | <method name>).");
+		final Property<String> eventMappingProperty        = new StringProperty(EVENT_MAPPING_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY);//.description("A mapping between the desired Javascript event (click, drop, dragOver, ...) and the server-side event that should be triggered: (create | update | delete | <method name>).");
 		// probably useless ATM because EAM does not support trees yet
-		final Property<String> dataTreeChildrenProperty    = new StringProperty(DATA_STRUCTR_TREE_CHILDREN_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY).hint("Toggles automatic visibility for tree child items when the 'toggle-tree-item' event is mapped. This field must contain the data key on which the tree is based, e.g. 'item'.");
-		final Property<String> dataReloadTargetProperty    = new StringProperty(DATA_STRUCTR_RELOAD_TARGET_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY).hint("CSS selector that specifies which partials to reload.");
-		final Property<String> renderingModeProperty       = new StringProperty(DATA_STRUCTR_RENDERING_MODE_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY).hint("Rendering mode, possible values are empty (default for eager rendering), 'load' to render when the DOM document has finished loading, 'delayed' like 'load' but with a fixed delay, 'visible' to render when the element comes into view and 'periodic' to render the element with periodic updates with a given interval");
-		final Property<String> delayOrIntervalProperty     = new StringProperty(DATA_STRUCTR_DELAY_OR_INTERVAL_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY).hint("Delay or interval in milliseconds for 'delayed' or 'periodic' rendering mode");
+		final Property<String> dataTreeChildrenProperty    = new StringProperty(DATA_STRUCTR_TREE_CHILDREN_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY).description("Toggles automatic visibility for tree child items when the 'toggle-tree-item' event is mapped. This field must contain the data key on which the tree is based, e.g. 'item'.");
+		final Property<String> dataReloadTargetProperty    = new StringProperty(DATA_STRUCTR_RELOAD_TARGET_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY).description("CSS selector that specifies which partials to reload.");
+		final Property<String> renderingModeProperty       = new StringProperty(DATA_STRUCTR_RENDERING_MODE_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY).description("Rendering mode, possible values are empty (default for eager rendering), 'load' to render when the DOM document has finished loading, 'delayed' like 'load' but with a fixed delay, 'visible' to render when the element comes into view and 'periodic' to render the element with periodic updates with a given interval");
+		final Property<String> delayOrIntervalProperty     = new StringProperty(DATA_STRUCTR_DELAY_OR_INTERVAL_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY).description("Delay or interval in milliseconds for 'delayed' or 'periodic' rendering mode");
 		final Property<String> onAbortProperty             = new StringProperty(_HTML_ONABORT_PROPERTY);
 		final Property<String> onBlurProperty              = new StringProperty(_HTML_ONBLUR_PROPERTY);
 		final Property<String> onCanPlayProperty           = new StringProperty(_HTML_ONCANPLAY_PROPERTY);
@@ -1601,7 +1607,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final String dataTarget = getDataTargetFromParameters(parameters, "custom", false);
 
-		// Empty dataTarget means no database object and no type, so it can only be a global (schema) method
+		// Empty dataTarget means no database object and no type, so it can only be a user-defined function
 		if (StringUtils.isNotBlank(methodName) && StringUtils.isBlank(dataTarget)) {
 
 			removeInternalDataBindingKeys(parameters);
@@ -1774,22 +1780,24 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 	public void renderSuccessNotificationAttributes(final RenderContext renderContext, final AsyncBuffer out, final ActionMapping triggeredAction) {
 
 		// Possible values for success notifications are none, system-alert, inline-text-message, custom-dialog-element, fire-event
-		final String successNotifications = triggeredAction.getSuccessNotifications();
-		if (StringUtils.isNotBlank(successNotifications)) {
+		final String successNotificationsString = triggeredAction.getSuccessNotifications();
 
-			out.append(" data-structr-success-notifications=\"").append(successNotifications).append("\"");
+		if (StringUtils.isNotBlank(successNotificationsString)) {
 
+			out.append(" data-structr-success-notifications=\"").append(successNotificationsString).append("\"");
+
+			final EventNotification successNotifications = EventNotification.forName(successNotificationsString);
 			switch (successNotifications) {
 
-				case "custom-dialog-linked":
+				case EventNotification.CustomDialogLinked:
 					out.append(" data-structr-success-notifications-custom-dialog-element=\"").append(generateDataAttributesForIdList(renderContext, triggeredAction, ActionMappingTraitDefinition.SUCCESS_NOTIFICATION_ELEMENTS_PROPERTY)).append("\"");
 					break;
 
-				case "fire-event":
+				case EventNotification.FireEvent:
 					out.append(" data-structr-success-notifications-event=\"").append(triggeredAction.getSuccessNotificationsEvent()).append("\"");
 					break;
 
-				case "inline-text-message":
+				case EventNotification.InlineTextMessage:
 					final Integer delay = triggeredAction.getSuccessNotificationsDelay();
 					out.append(" data-structr-success-notifications-delay=\"").append(delay.toString()).append("\"");
 					break;
@@ -1810,25 +1818,23 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 	public void renderFailureNotificationAttributes(final RenderContext renderContext, final AsyncBuffer out, final ActionMapping triggeredAction) {
 
 		// Possible values for failure notifications are none, system-alert, inline-text-message, custom-dialog-element, fire-event
-		final String failureNotifications = triggeredAction.getFailureNotifications();
-		if (StringUtils.isNotBlank(failureNotifications)) {
+		final String failureNotificationsString = triggeredAction.getFailureNotifications();
+		if (StringUtils.isNotBlank(failureNotificationsString)) {
 
-			out.append(" data-structr-failure-notifications=\"").append(failureNotifications).append("\"");
-		}
+			out.append(" data-structr-failure-notifications=\"").append(failureNotificationsString).append("\"");
 
-		if (StringUtils.isNotBlank(failureNotifications)) {
-
+			final EventNotification failureNotifications = EventNotification.forName(failureNotificationsString);
 			switch (failureNotifications) {
 
-				case "custom-dialog-linked":
+				case EventNotification.CustomDialogLinked:
 					out.append(" data-structr-failure-notifications-custom-dialog-element=\"").append(generateDataAttributesForIdList(renderContext, triggeredAction, ActionMappingTraitDefinition.FAILURE_NOTIFICATION_ELEMENTS_PROPERTY)).append("\"");
 					break;
 
-				case "fire-event":
+				case EventNotification.FireEvent:
 					out.append(" data-structr-failure-notifications-event=\"").append(triggeredAction.getFailureNotificationsEvent()).append("\"");
 					break;
 
-				case "inline-text-message":
+				case EventNotification.InlineTextMessage:
 					final Integer delay = triggeredAction.getFailureNotificationsDelay();
 					out.append(" data-structr-failure-notifications-delay=\"").append(delay.toString()).append("\"");
 					break;
@@ -1851,38 +1857,37 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		final Traits traits = triggeredAction.getTraits();
 
 		// Possible values for the success behaviour are nothing, full-page-reload, partial-refresh, navigate-to-url, fire-event
-		final String successBehaviour = triggeredAction.getSuccessBehaviour();
-		final String successPartial   = triggeredAction.getSuccessPartial();
-		final String successURL       = triggeredAction.getPropertyWithVariableReplacement(renderContext, traits.key(ActionMappingTraitDefinition.SUCCESS_URL_PROPERTY));
-		final String successEvent     = triggeredAction.getSuccessEvent();
+		final String successBehaviourString   = triggeredAction.getSuccessBehaviour();
+		final String successPartial           = triggeredAction.getSuccessPartial();
+		final String successURL               = triggeredAction.getPropertyWithVariableReplacement(renderContext, traits.key(ActionMappingTraitDefinition.SUCCESS_URL_PROPERTY));
+		final String successEvent             = triggeredAction.getSuccessEvent();
+		final EventBehaviour successBehaviour = EventBehaviour.forName(successBehaviourString);
 
 		String successTargetString = null;
 
-		if (StringUtils.isNotBlank(successBehaviour)) {
-
-			switch (successBehaviour) {
-				case "partial-refresh":
-					successTargetString = successPartial;
-					break;
-				case "partial-refresh-linked":
-					successTargetString = generateDataAttributesForIdList(renderContext, triggeredAction, ActionMappingTraitDefinition.SUCCESS_TARGETS_PROPERTY);
-					break;
-				case "navigate-to-url":
-					successTargetString = "url:" + successURL;
-					break;
-				case "fire-event":
-					successTargetString = "event:" + successEvent;
-					break;
-				case "full-page-reload":
-					successTargetString = "url:";
-					break;
-				case "sign-out":
-					successTargetString = "sign-out";
-					break;
-				case "none":
-				default:
-					successTargetString = null;
-			}
+		switch (successBehaviour) {
+			case EventBehaviour.PartialRefresh:
+				successTargetString = successPartial;
+				break;
+			case EventBehaviour.PartialRefreshLinked:
+				successTargetString = generateDataAttributesForIdList(renderContext, triggeredAction, ActionMappingTraitDefinition.SUCCESS_TARGETS_PROPERTY);
+				break;
+			case EventBehaviour.NavigateToUrl:
+				successTargetString = "url:" + successURL;
+				break;
+			case EventBehaviour.FireEvent:
+				successTargetString = "event:" + successEvent;
+				break;
+			case EventBehaviour.FullPageReload:
+				successTargetString = "url:";
+				break;
+			case EventBehaviour.SignOut:
+				successTargetString = "sign-out";
+				break;
+			case EventBehaviour.None:
+			case EventBehaviour.Unknown:
+			default:
+				successTargetString = null;
 		}
 
 		final String idExpression = triggeredAction.getIdExpression();
@@ -1909,38 +1914,37 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		final Traits traits = triggeredAction.getTraits();
 
 		// Possible values for the failure behaviour are nothing, full-page-reload, partial-refresh, navigate-to-url, fire-event
-		final String failureBehaviour = triggeredAction.getFailureBehaviour();
-		final String failurePartial   = triggeredAction.getFailurePartial();
-		final String failureURL       = triggeredAction.getPropertyWithVariableReplacement(renderContext, traits.key(ActionMappingTraitDefinition.FAILURE_URL_PROPERTY));
-		final String failureEvent     = triggeredAction.getFailureEvent();
+		final String failureBehaviourString   = triggeredAction.getFailureBehaviour();
+		final String failurePartial           = triggeredAction.getFailurePartial();
+		final String failureURL               = triggeredAction.getPropertyWithVariableReplacement(renderContext, traits.key(ActionMappingTraitDefinition.FAILURE_URL_PROPERTY));
+		final String failureEvent             = triggeredAction.getFailureEvent();
+		final EventBehaviour failureBehaviour = EventBehaviour.forName(failureBehaviourString);
 
 		String failureTargetString = null;
 
-		if (StringUtils.isNotBlank(failureBehaviour)) {
-
-			switch (failureBehaviour) {
-				case "partial-refresh":
-					failureTargetString = failurePartial;
-					break;
-				case "partial-refresh-linked":
-					failureTargetString = generateDataAttributesForIdList(renderContext, triggeredAction, ActionMappingTraitDefinition.FAILURE_TARGETS_PROPERTY);
-					break;
-				case "navigate-to-url":
-					failureTargetString = "url:" + failureURL;
-					break;
-				case "fire-event":
-					failureTargetString = "event:" + failureEvent;
-					break;
-				case "full-page-reload":
-					failureTargetString = "url:";
-					break;
-				case "sign-out":
-					failureTargetString = "sign-out";
-					break;
-				case "none":
-				default:
-					failureTargetString = null;
-			}
+		switch (failureBehaviour) {
+			case EventBehaviour.PartialRefresh:
+				failureTargetString = failurePartial;
+				break;
+			case EventBehaviour.PartialRefreshLinked:
+				failureTargetString = generateDataAttributesForIdList(renderContext, triggeredAction, ActionMappingTraitDefinition.FAILURE_TARGETS_PROPERTY);
+				break;
+			case EventBehaviour.NavigateToUrl:
+				failureTargetString = "url:" + failureURL;
+				break;
+			case EventBehaviour.FireEvent:
+				failureTargetString = "event:" + failureEvent;
+				break;
+			case EventBehaviour.FullPageReload:
+				failureTargetString = "url:";
+				break;
+			case EventBehaviour.SignOut:
+				failureTargetString = "sign-out";
+				break;
+			case EventBehaviour.None:
+			case EventBehaviour.Unknown:
+			default:
+				failureTargetString = null;
 		}
 
 		if (StringUtils.isNotBlank(failureTargetString)) {

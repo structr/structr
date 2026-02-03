@@ -26,6 +26,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.function.BatchableFunction;
 import org.structr.core.graph.Tx;
 import org.structr.docs.*;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
@@ -181,5 +182,10 @@ public class FunctionExpression extends Expression {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of();
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return null;
 	}
 }

@@ -23,6 +23,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.DateProperty;
 import org.structr.core.property.Property;
+import org.structr.docs.Documentation;
 import org.structr.schema.SchemaHelper.Type;
 
 import java.text.ParseException;
@@ -35,6 +36,7 @@ import java.util.Date;
  *
  *
  */
+@Documentation(name="Date property validation", parent="Value-based schema constraints", shortDescription="For date attributes, the format specifies a date pattern following Java's SimpleDateFormat specification. This allows you to accept date strings in custom formats beyond the default ISO-8601 format while still writing the millisecond-precision `long` value into the database.")
 public class DatePropertyGenerator extends PropertyGenerator<Date> {
 
 	private static final SimpleDateFormat[] SupportedISOFormats = new SimpleDateFormat[] {

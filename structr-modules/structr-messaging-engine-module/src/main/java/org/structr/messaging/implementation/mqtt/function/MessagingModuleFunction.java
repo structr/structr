@@ -18,6 +18,7 @@
  */
 package org.structr.messaging.implementation.mqtt.function;
 
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.Function;
 
 public abstract class MessagingModuleFunction extends Function<Object, Object> {
@@ -25,5 +26,10 @@ public abstract class MessagingModuleFunction extends Function<Object, Object> {
 	@Override
 	public String getRequiredModule() {
         	return "messaging-module";
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.MQTT;
 	}
 }

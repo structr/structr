@@ -242,7 +242,7 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 				boolean editModeActive = false;
 				if (securityContext.getRequest() != null) {
 
-					final String editParameter = securityContext.getRequest().getParameter(RequestKeywords.EditMode.keyword());
+					final String editParameter = securityContext.getRequest().getParameter(RequestParameters.EditMode.getName());
 					if (editParameter != null) {
 
 						editModeActive = !RenderContext.EditMode.NONE.equals(RenderContext.getValidatedEditMode(securityContext.getUser(false), editParameter));

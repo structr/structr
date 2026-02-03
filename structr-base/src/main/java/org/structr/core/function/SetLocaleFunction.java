@@ -24,6 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -95,5 +96,10 @@ public class SetLocaleFunction extends CoreFunction {
 		return List.of(
 				Example.structrScript("${ (setLocale('de_DE'), dateFormat(now, 'E')) }", "Get name of current weekday in german.")
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Rendering;
 	}
 }

@@ -25,6 +25,7 @@ import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -99,7 +100,12 @@ public class StripHtmlFunction extends UiCommunityFunction {
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-				"Similar results can be produced by `strReplace(source, \"\\\\<[a-zA-Z].*?>\", \"\")`"
+			"Similar results can be produced by `strReplace(source, \"\\\\<[a-zA-Z].*?>\", \"\")`"
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.String;
 	}
 }

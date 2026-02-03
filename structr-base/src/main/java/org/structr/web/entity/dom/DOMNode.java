@@ -49,26 +49,20 @@ import java.util.Set;
 //public interface DOMNode extends NodeTrait, LinkedTreeNode, Node, Renderable, DOMAdoptable, DOMImportable, ContextAwareEntity {
 public interface DOMNode extends NodeInterface, LinkedTreeNode {
 
-	String PAGE_CATEGORY = "Page Structure";
-	String EDIT_MODE_BINDING_CATEGORY = "Edit Mode Binding";
+	String PAGE_CATEGORY                 = "Page Structure";
+	String EDIT_MODE_BINDING_CATEGORY    = "Edit Mode Binding";
 	String EVENT_ACTION_MAPPING_CATEGORY = "Event Action Mapping";
-	String QUERY_CATEGORY = "Query and Data Binding";
+	String QUERY_CATEGORY                = "Query and Data Binding";
 
 	// ----- error messages for DOMExceptions -----
-	String NO_MODIFICATION_ALLOWED_MESSAGE = "Permission denied.";
-	String INVALID_ACCESS_ERR_MESSAGE = "Permission denied.";
-	String INDEX_SIZE_ERR_MESSAGE = "Index out of range.";
-	String CANNOT_SPLIT_TEXT_WITHOUT_PARENT = "Cannot split text element without parent and/or owner document.";
-	String WRONG_DOCUMENT_ERR_MESSAGE = "Node does not belong to this document.";
+	String NO_MODIFICATION_ALLOWED_MESSAGE         = "Permission denied.";
+	String INVALID_ACCESS_ERR_MESSAGE              = "Permission denied.";
+	String INDEX_SIZE_ERR_MESSAGE                  = "Index out of range.";
+	String WRONG_DOCUMENT_ERR_MESSAGE              = "Node does not belong to this document.";
 	String HIERARCHY_REQUEST_ERR_MESSAGE_SAME_NODE = "A node cannot accept itself as a child.";
-	String HIERARCHY_REQUEST_ERR_MESSAGE_ANCESTOR = "A node cannot accept its own ancestor as child.";
-	String HIERARCHY_REQUEST_ERR_MESSAGE_DOCUMENT = "A document may only have one html element.";
-	String HIERARCHY_REQUEST_ERR_MESSAGE_ELEMENT = "A document may only accept an html element as its document element.";
-	String NOT_SUPPORTED_ERR_MESSAGE = "Node type not supported.";
-	String NOT_FOUND_ERR_MESSAGE = "Node is not a child.";
-	String NOT_SUPPORTED_ERR_MESSAGE_IMPORT_DOC = "Document nodes cannot be imported into another document.";
-	String NOT_SUPPORTED_ERR_MESSAGE_ADOPT_DOC = "Document nodes cannot be adopted by another document.";
-	String NOT_SUPPORTED_ERR_MESSAGE_RENAME = "Renaming of nodes is not supported by this implementation.";
+	String HIERARCHY_REQUEST_ERR_MESSAGE_ANCESTOR  = "A node cannot accept its own ancestor as child.";
+	String HIERARCHY_REQUEST_ERR_MESSAGE_ELEMENT   = "A document may only accept an html element as its document element.";
+	String NOT_FOUND_ERR_MESSAGE                   = "Node is not a child.";
 
 	Set<String> cloneBlacklist = new LinkedHashSet<>(Arrays.asList(GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, DOMNodeTraitDefinition.OWNER_DOCUMENT_PROPERTY,
 		DOMNodeTraitDefinition.PAGE_ID_PROPERTY, DOMNodeTraitDefinition.PARENT_PROPERTY, DOMNodeTraitDefinition.PARENT_ID_PROPERTY,
@@ -80,9 +74,9 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 
 	static void collectNodesByPredicate(final SecurityContext securityContext, DOMNode startNode, List<DOMNode> results, Predicate<DOMNode> predicate, int depth, boolean stopOnFirstHit) throws FrameworkException {
 
-		if (predicate instanceof Filter) {
+		if (predicate instanceof Filter filter) {
 
-			((Filter)predicate).setSecurityContext(securityContext);
+			filter.setSecurityContext(securityContext);
 		}
 
 		if (predicate.accept(startNode)) {

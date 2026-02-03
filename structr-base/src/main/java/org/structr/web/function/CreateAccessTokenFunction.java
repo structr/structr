@@ -25,6 +25,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.rest.auth.JWTHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.User;
@@ -130,5 +131,10 @@ public class CreateAccessTokenFunction extends UiAdvancedFunction {
 			"You can configure the timeouts for access and refresh tokens in your structr.conf by setting `" + Settings.JWTExpirationTimeout.getKey() + "` and `" + Settings.JWTRefreshTokenExpirationTimeout.getKey() + "` respectively.",
 			"The refresh token is stored in the `refreshTokens` property in the given User entity."
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Security;
 	}
 }

@@ -25,6 +25,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.io.StringReader;
@@ -144,5 +145,10 @@ public class GetCsvHeadersFunction extends CsvFunction {
 				Parameter.optional("quoteChar", "CSV field quotechar, default: '\"'"),
 				Parameter.optional("recordSeparator", "CSV record separator, default: '\\n'")
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.InputOutput;
 	}
 }

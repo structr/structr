@@ -27,6 +27,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NativeQueryCommand;
+import org.structr.docs.Documentation;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
@@ -42,6 +44,7 @@ import java.util.Set;
 /**
  *
  */
+@Documentation(name="Direct Cypher query endpoint", type= ConceptType.RestEndpoint, parent="System endpoints")
 public class CypherQueryResource extends ExactMatchEndpoint {
 
 	public CypherQueryResource() {

@@ -30,6 +30,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedList;
@@ -169,5 +170,10 @@ public class MongoDBFunction extends AdvancedScriptingFunction {
 			"The records in a result are also not native JS objects, so the dot notation (i.e. `record.name`) does not work - the `record.get('name')` syntax applies.",
 			"All examples assume a MongoDB instance has been locally started via Docker with the following command: docker run -ti -p 27017:27017 mongo"
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Database;
 	}
 }

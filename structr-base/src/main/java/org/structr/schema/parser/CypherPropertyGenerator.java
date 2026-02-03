@@ -22,6 +22,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.CypherQueryProperty;
 import org.structr.core.property.Property;
+import org.structr.docs.Documentation;
 import org.structr.schema.SchemaHelper.Type;
 
 /**
