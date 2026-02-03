@@ -16,15 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-html {
-    background-color: white;
-}
-
-body {
-    min-width: 16rem;
-    font-size: 11pt;
-}
-
 @media (max-width: 1000px) {
     aside {
         display: none;
@@ -39,6 +30,9 @@ body {
 }
 
 #docs-area {
+    background-color: white;
+    min-width: 16rem;
+    font-size: 11pt;
     display: flex;
     flex-direction: row;
     position: relative;
