@@ -23,10 +23,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Settings;
+import org.structr.common.RequestHeaders;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.entity.Principal;
+import org.structr.docs.Documentation;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
@@ -38,7 +41,7 @@ import org.structr.schema.action.ActionContext;
 
 import java.util.Map;
 
-
+@Documentation(name="JWT token endpoint", type=ConceptType.RestEndpoint, parent="System endpoints")
 public class TokenResource extends ExactMatchEndpoint {
 
 	public TokenResource() {
@@ -135,7 +138,7 @@ public class TokenResource extends ExactMatchEndpoint {
 
 				for (Cookie cookie : request.getCookies()) {
 
-					if (StringUtils.equals(cookie.getName(), "refresh_token")) {
+					if (StringUtils.equals(cookie.getName(), RequestHeaders.RefreshToken.getName())) {
 
 						return cookie.getValue();
 					}
@@ -143,7 +146,7 @@ public class TokenResource extends ExactMatchEndpoint {
 			}
 
 			if (refreshToken == null) {
-				return request.getHeader("refresh_token");
+				return request.getHeader(RequestHeaders.RefreshToken.getName());
 			}
 
 			return refreshToken;
@@ -157,7 +160,7 @@ public class TokenResource extends ExactMatchEndpoint {
 			final HttpServletResponse response = securityContext.getResponse();
 			if (response != null) {
 
-				final int tokenMaxAge = Settings.JWTExpirationTimeout.getValue();
+				final int tokenMaxAge   = Settings.JWTExpirationTimeout.getValue();
 				final int refreshMaxAge = Settings.JWTRefreshTokenExpirationTimeout.getValue();
 
 				final Cookie tokenCookie = new Cookie("access_token", tokenMap.get("access_token"));

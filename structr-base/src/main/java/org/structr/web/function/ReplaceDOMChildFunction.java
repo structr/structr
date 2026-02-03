@@ -22,6 +22,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.DOMNodeContent;
 import org.structr.web.entity.dom.DOMElement;
@@ -72,6 +73,11 @@ public class ReplaceDOMChildFunction extends UiAdvancedFunction {
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Rendering;
 	}
 
 	public static DOMNode apply(final SecurityContext securityContext, final DOMElement parent, final DOMNode child, final String htmlSource) throws FrameworkException {

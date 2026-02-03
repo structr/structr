@@ -25,6 +25,8 @@ import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
+import org.structr.docs.Documentation;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
@@ -41,6 +43,7 @@ import java.util.Set;
  *
  *
  */
+@Documentation(name="HTTP access statistics endpoint", type= ConceptType.RestEndpoint, parent="System endpoints")
 public class StatsResource extends ExactMatchEndpoint {
 
 	public StatsResource() {

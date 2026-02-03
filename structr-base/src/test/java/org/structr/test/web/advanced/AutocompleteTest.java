@@ -60,7 +60,7 @@ public class AutocompleteTest extends StructrUiTest {
 		assertEmptyResult(AbstractHintProvider.getHints(actionContext, false, null, "<html><head><title>${page.name}this.", "", 0, 0));
 
 		// StructrScript in the second script block
-		assertFirstResult("text", "titleize(str)", AbstractHintProvider.getHints(actionContext, false, null, "<html><head><title>${page.name}</title></head><body><h1>${titl", "", 0, 0));
+		assertFirstResult("text", "titleize()", AbstractHintProvider.getHints(actionContext, false, null, "<html><head><title>${page.name}</title></head><body><h1>${titl", "", 0, 0));
 
 		// Javascript in the third script block
 		assertFullResult(AbstractHintProvider.getHints(actionContext, false, null, "<html><head><title>${page.name}</title></head><body><h1>${titleize(page.name)}</h1><div>${{\n\n\tlet self = $.", "", 0, 0));
@@ -78,7 +78,7 @@ public class AutocompleteTest extends StructrUiTest {
 		final ActionContext actionContext = new ActionContext(securityContext);
 
 		assertFullResult(AbstractHintProvider.getHints(actionContext, false, null, "${", "", 0, 0));
-		assertFirstResult("text", "localize(keyOrKeys [, domain ])", AbstractHintProvider.getHints(actionContext, false, null, "${locali", "", 0, 0));
+		assertFirstResult("text", "localize()", AbstractHintProvider.getHints(actionContext, false, null, "${locali", "", 0, 0));
 
 		// patterns that should produce the full list of autocomplete results
 		assertFullResult(AbstractHintProvider.getHints(actionContext, false, null, "${\n\t", "", 0, 0));
@@ -337,12 +337,13 @@ public class AutocompleteTest extends StructrUiTest {
 		assertEquals("Invalid autocomplete result", "session",                               ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "tenantIdentifier",                      ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "this",                                  ((GraphObjectMap)result.get(i++)).toMap().get("text"));
-		assertEquals("Invalid autocomplete result", "abbr(string, maxLength[, abbr = '…'])", ((GraphObjectMap)result.get(i++)).toMap().get("text"));
-		assertEquals("Invalid autocomplete result", "add(values...)",                        ((GraphObjectMap)result.get(i++)).toMap().get("text"));
-		assertEquals("Invalid autocomplete result", "addHeader(name, value)",                ((GraphObjectMap)result.get(i++)).toMap().get("text"));
-		assertEquals("Invalid autocomplete result", "addLabels(node, labels)",               ((GraphObjectMap)result.get(i++)).toMap().get("text"));
-		assertEquals("Invalid autocomplete result", "addToGroup(group, user)",               ((GraphObjectMap)result.get(i++)).toMap().get("text"));
-		assertEquals("Invalid autocomplete result", "ancestorTypes(type [, blacklist ])",    ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		assertEquals("Invalid autocomplete result", "value",                                 ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		assertEquals("Invalid autocomplete result", "abbr()",                                ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		assertEquals("Invalid autocomplete result", "add()",                                 ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		assertEquals("Invalid autocomplete result", "addHeader()",                           ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		assertEquals("Invalid autocomplete result", "addLabels()",                           ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		assertEquals("Invalid autocomplete result", "addToGroup()",                          ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		assertEquals("Invalid autocomplete result", "ancestorTypes()",                       ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 	}
 
 	void assertFirstResult(final String key, final String value, final List<GraphObject> result) {

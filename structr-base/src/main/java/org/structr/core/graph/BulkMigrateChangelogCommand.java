@@ -30,6 +30,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.function.ChangelogFunction;
 import org.structr.docs.*;
+import org.structr.docs.ontology.ConceptType;
 
 import java.io.File;
 import java.io.IOException;
@@ -188,5 +189,10 @@ public class BulkMigrateChangelogCommand extends NodeServiceCommand implements M
 	@Override
 	public List<Usage> getUsages() {
 		return List.of();
+	}
+
+	@Override
+	public final List<ConceptReference> getParentConcepts() {
+		return List.of(ConceptReference.of(ConceptType.Topic, "Maintenance commands"));
 	}
 }

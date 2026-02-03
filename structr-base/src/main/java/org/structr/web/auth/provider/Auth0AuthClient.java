@@ -30,38 +30,40 @@ import java.util.HashMap;
 
 public class Auth0AuthClient extends AbstractOAuth2Client {
 
-    private static final Logger logger = LoggerFactory.getLogger(Auth0AuthClient.class);
+	private static final Logger logger = LoggerFactory.getLogger(Auth0AuthClient.class);
 
-    private final static String authServer = "auth0";
-    protected String audience = null;
+	private final static String authServer = "auth0";
+	protected String audience = null;
 
-    public Auth0AuthClient(final HttpServletRequest request) {
+	public Auth0AuthClient(final HttpServletRequest request) {
 
-        super(request, authServer);
+		super(request, authServer);
 
-        this.audience = Settings.getOrCreateStringSetting("oauth", provider, "audience").getValue("");
+		this.audience = Settings.getOrCreateStringSetting("oauth", provider, "audience").getValue("");
 
-        service = new ServiceBuilder(clientId)
-                .apiSecret(clientSecret)
-                .callback(redirectUri)
-                .defaultScope(scope)
-                .build(new DefaultApi20() {
+		service = new ServiceBuilder(clientId)
+			.apiSecret(clientSecret)
+			.callback(redirectUri)
+			.defaultScope(scope)
+			.build(new DefaultApi20() {
 
-                    @Override
-                    public String getAccessTokenEndpoint() { return tokenLocation; }
+				@Override
+				public String getAccessTokenEndpoint() {
+					return tokenLocation;
+				}
 
-                    @Override
-                    protected String getAuthorizationBaseUrl() {
-                        return authLocation;
-                    }
-                });
-    }
+				@Override
+				protected String getAuthorizationBaseUrl() {
+					return authLocation;
+				}
+			});
+	}
 
-    @Override
-    public String getAuthorizationURL(final String state) {
-        HashMap parameters = new HashMap<String, String>();
-        parameters.put("audience", this.audience);
+	@Override
+	public String getAuthorizationURL(final String state) {
+		HashMap parameters = new HashMap<String, String>();
+		parameters.put("audience", this.audience);
 
-        return service.createAuthorizationUrlBuilder().state(state).additionalParams(parameters).build();
-    }
+		return service.createAuthorizationUrlBuilder().state(state).additionalParams(parameters).build();
+	}
 }

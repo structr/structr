@@ -1,0 +1,1 @@
+The following table lists all configuration settings available in Structr. You can modify these settings either through the Configuration Interface in the Admin UI (accessible via the wrench icon in the header bar) or by editing the `structr.conf` file directly.

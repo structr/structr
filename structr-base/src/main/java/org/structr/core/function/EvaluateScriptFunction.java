@@ -25,6 +25,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -100,5 +101,10 @@ public class EvaluateScriptFunction extends AdvancedScriptingFunction {
 			"The function runs in an auto-script context, i.e. you don't need to put ${ ... } around the script.",
 			"If you want to run a JavaScript snippet, put curly braces around the script: { ... }."
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.System;
 	}
 }

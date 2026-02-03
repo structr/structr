@@ -29,6 +29,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import javax.imageio.ImageIO;
@@ -212,5 +213,10 @@ public class BarcodeFunction extends UiAdvancedFunction {
 			""", "Example usage in a dynamic file"),
 			Example.structrScript("<img src=\"data:image/png;base64, ${base64encode(barcode('QR_CODE', 'My testcode', 200, 200, 'MARGIN', 0, 'ERROR_CORRECTION', 'Q'), 'basic', 'ISO-8859-1')}\" />", "Usage in an HTML IMG element")
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.InputOutput;
 	}
 }

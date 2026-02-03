@@ -23,6 +23,7 @@ import org.structr.core.graph.NodeServiceCommand;
 import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -76,6 +77,8 @@ public class RandomUUIDFunction extends CoreFunction {
 		);
 	}
 
-
-
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.System;
+	}
 }

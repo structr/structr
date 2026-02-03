@@ -33,6 +33,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.docs.Documentation;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.servlet.AbstractDataServlet;
@@ -51,6 +52,7 @@ import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 /**
  * Simple login servlet, acts as a bridge for form-base HTTP login.
  */
+@Documentation(name="LoginServlet", parent="Servlets", children={ "LoginServlet Settings" })
 public class LoginServlet extends AbstractDataServlet implements HttpServiceServlet {
 
 	private static final Logger logger = LoggerFactory.getLogger(LoginServlet.class.getName());

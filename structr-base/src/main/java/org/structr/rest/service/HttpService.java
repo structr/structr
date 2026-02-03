@@ -55,6 +55,7 @@ import org.structr.rest.auth.SessionHelper;
 import org.structr.rest.common.MetricsFilter;
 import org.structr.rest.common.Stats;
 import org.structr.rest.common.StatsCallback;
+import org.structr.rest.servlet.DocumentationServlet;
 import org.structr.rest.servlet.MetricsServlet;
 import org.structr.schema.SchemaService;
 import org.structr.websocket.servlet.WebSocketConfigurator;
@@ -84,6 +85,7 @@ public class HttpService implements RunnableService, StatsCallback {
 	}
 
 	private final Map<String, Map<String, Stats>> stats = new ConcurrentHashMap<>();
+	private ResourceHandler exportedResourceHandler     = null;
 	private SslContextFactory.Server sslContextFactory  = null;
 	private DefaultSessionCache sessionCache            = null;
 	private GzipHandler gzipHandler                     = null;
@@ -202,6 +204,14 @@ public class HttpService implements RunnableService, StatsCallback {
 
 	@Override
 	public void injectArguments(Command command) {
+	}
+
+	public Server getServer() {
+		return server;
+	}
+
+	public ResourceHandler getExportedResourceHandler() {
+		return exportedResourceHandler;
 	}
 
 	@Override
@@ -334,6 +344,8 @@ public class HttpService implements RunnableService, StatsCallback {
 			context.addAliasCheck((pathInContext, resource) -> resource.exists());
 
 			contexts.addHandler(context);
+
+			exportedResourceHandler = resourceHandler;
 		}
 
 		if (Settings.ConfigServletEnabled.getValue()) {
@@ -415,6 +427,10 @@ public class HttpService implements RunnableService, StatsCallback {
 		if (Settings.Servlets.getValue("").contains(MetricsServlet.class.getSimpleName())) {
 			servletContext.addFilter(MetricsFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
 		}
+
+		// docs
+		servletContext.addServlet(DocumentationServlet.class, "/structr/docs/ontology/*");
+		servletContext.addServlet(DocumentationServlet.class, "/structr/docs/ontology");
 
 		// Always add servletContext last because it's terminal in the resource chain
 		contexts.addHandler(servletContext);

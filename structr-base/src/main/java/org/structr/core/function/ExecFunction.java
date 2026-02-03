@@ -28,6 +28,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.util.AbstractProcess;
@@ -230,6 +231,11 @@ public class ExecFunction extends AdvancedScriptingFunction {
 						}}
 						""", "Execute a script with 2 parameters, where one is being masked in the log output")
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.InputOutput;
 	}
 
 	protected String getSanityCheckedPathForScriptSetting(final String scriptKey) throws IOException {

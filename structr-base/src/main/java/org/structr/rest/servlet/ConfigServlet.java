@@ -40,6 +40,7 @@ import org.structr.core.Services;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.ManageDatabasesCommand;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.docs.Documentation;
 import org.structr.schema.action.ActionContext;
 
 import java.io.IOException;
@@ -50,6 +51,7 @@ import java.util.Map.Entry;
 /**
  *
  */
+@Documentation(name="ConfigServlet", parent="Servlets", children={ "ConfigServlet Settings" })
 public class ConfigServlet extends AbstractServletBase {
 
 	private static final Logger logger                = LoggerFactory.getLogger(ConfigServlet.class);

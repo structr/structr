@@ -27,6 +27,7 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.operations.graphobject.IsValid;
+import org.structr.docs.Documentation;
 import org.structr.schema.SchemaHelper.Type;
 
 import java.util.List;
@@ -35,6 +36,7 @@ import java.util.List;
  *
  *
  */
+@Documentation(name="String property validation", parent="Value-based schema constraints", shortDescription="For string attributes, the format is interpreted as a regular expression that validates input. All values written to the attribute must match this regular expression pattern.")
 public class StringPropertyGenerator extends PropertyGenerator<String> {
 
 	public StringPropertyGenerator(final ErrorBuffer errorBuffer, final String entity, final PropertyDefinition params) {

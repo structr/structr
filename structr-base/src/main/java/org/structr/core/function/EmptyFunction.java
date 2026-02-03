@@ -24,6 +24,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Collection;
@@ -122,5 +123,10 @@ public class EmptyFunction extends CoreFunction {
 			Example.structrScript("${empty(find('Project'))}", "Returns `false` if there are Project entites in the database"),
 			Example.structrScript("${empty(find('NonExistentType'))}", "WARNING: the call in this example returns `false`  because the error message returned by the `find()` call is non-empty.")
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Logic;
 	}
 }

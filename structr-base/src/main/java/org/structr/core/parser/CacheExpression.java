@@ -24,6 +24,7 @@ import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.docs.*;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 
@@ -261,5 +262,10 @@ public class CacheExpression extends Expression {
 			Usage.structrScript("Usage: ${cache(key, timeout, valueExpression)}. Example: ${cache('data', 3600, GET('http://api.myservice.com/get-external-result'))}"),
 			Usage.javaScript("Usage: ${{ $.cache(key, timeout, valueExpression) }}. Example: ${{ $.cache('data', 3600, () => $.GET('http://api.myservice.com/get-external-result')); }}")
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Miscellaneous;
 	}
 }

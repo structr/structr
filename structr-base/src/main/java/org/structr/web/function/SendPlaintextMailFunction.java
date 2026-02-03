@@ -27,6 +27,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -101,6 +102,7 @@ public class SendPlaintextMailFunction extends UiAdvancedFunction {
 	@Override
 	public List<String> getNotes() {
 		return List.of(
+				"The return value of this function is the message ID of the delivered message, or null",
 				"`textContent` is typically generated using the `template()` function.",
 				"Emails are sent based on the SMTP configuration defined in structr.conf.",
 				"For advanced scenarios, refer to the extended mail functions prefixed with `mail`, beginning with `mailBegin()`."
@@ -119,10 +121,17 @@ public class SendPlaintextMailFunction extends UiAdvancedFunction {
 		);
 	}
 
+
+
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
 				Example.structrScript("${sendPlaintextMail('info@structr.com', 'Structr', 'user@domain.com', 'Test User', 'Welcome to Structr', 'Hi User, welcome to Structr!')}")
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.EMail;
 	}
 }

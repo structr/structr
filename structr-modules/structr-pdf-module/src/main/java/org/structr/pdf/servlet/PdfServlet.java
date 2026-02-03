@@ -34,6 +34,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
+import org.structr.docs.Documentation;
 import org.structr.rest.common.StatsCallback;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.web.common.RenderContext;
@@ -50,6 +51,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+@Documentation(name="PdfServlet", parent="Servlets", children={ "PdfServlet Settings" })
 public class PdfServlet extends HtmlServlet {
 
 	private static final Logger logger = LoggerFactory.getLogger(HtmlServlet.class.getName());

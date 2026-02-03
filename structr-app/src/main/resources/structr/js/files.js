@@ -1980,7 +1980,7 @@ let _Files = {
 						${config.folderTypes.map(type => '<option value="' + type + '">' + type + '</option>').join('')}
 					</select>
 
-					<button class="action button inline-flex items-center combined-select-create" id="add-folder-button">
+					<button class="action button inline-flex items-center combined-select-create" id="add-folder-button" data-test-purpose="create-folder">
 						${_Icons.getSvgIcon(_Icons.iconCreateFolder, 16, 16, ['mr-2'])}
 						<span>Create</span>
 					</button>
@@ -1990,7 +1990,7 @@ let _Files = {
 						${config.fileTypes.map(type => '<option value="' + type + '">' + type + '</option>').join('')}
 					</select>
 
-					<button class="action button inline-flex items-center combined-select-create" id="add-file-button">
+					<button class="action button inline-flex items-center combined-select-create" id="add-file-button" data-test-purpose="create-file">
 						${_Icons.getSvgIcon(_Icons.iconCreateFile, 16, 16, ['mr-2'])}
 						<span>Create</span>
 					</button>

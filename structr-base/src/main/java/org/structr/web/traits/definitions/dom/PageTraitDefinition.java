@@ -34,6 +34,8 @@ import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.docs.Documentation;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -52,6 +54,7 @@ import static org.structr.web.entity.dom.DOMNode.PAGE_CATEGORY;
 /**
  * Represents a page resource.
  */
+@Documentation(name="Page", type= ConceptType.SystemType, shortDescription="The base class for all nodes in a Page.", parent="System types")
 public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String ELEMENTS_PROPERTY              = "elements";
@@ -247,7 +250,7 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public String getShortDescription() {
-		return "This type is the main entry point for Structr's Page Rendering Engine.";
+		return "This trait is the main entry point for Structr's Page Rendering Engine.";
 	}
 
 	@Override

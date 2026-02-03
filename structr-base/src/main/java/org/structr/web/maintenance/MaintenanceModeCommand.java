@@ -28,11 +28,10 @@ import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.docs.*;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.schema.action.ActionContext;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class MaintenanceModeCommand extends NodeServiceCommand implements MaintenanceCommand {
 
@@ -150,5 +149,15 @@ public class MaintenanceModeCommand extends NodeServiceCommand implements Mainte
 	@Override
 	public List<Usage> getUsages() {
 		return List.of();
+	}
+
+	@Override
+	public List<Link> getLinkedConcepts() {
+
+		final List<Link> links = new LinkedList<>();
+
+		links.add(Link.to("configures", ConceptReference.of(ConceptType.Topic, "Maintenance mode")));
+
+		return links;
 	}
 }

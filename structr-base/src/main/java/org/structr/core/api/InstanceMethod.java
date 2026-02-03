@@ -72,6 +72,11 @@ public abstract class InstanceMethod extends AbstractMethod {
 	}
 
 	@Override
+	public String getDeclaringTrait() {
+		return declaringTrait;
+	}
+
+	@Override
 	public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
 		return execute(securityContext, entity, arguments.toMap());
 	}

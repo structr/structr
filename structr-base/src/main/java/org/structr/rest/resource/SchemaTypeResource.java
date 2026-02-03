@@ -26,6 +26,8 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.traits.Traits;
+import org.structr.docs.Documentation;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
@@ -38,6 +40,7 @@ import java.util.Set;
  *
  *
  */
+@Documentation(name="Schema information endpoint", type= ConceptType.RestEndpoint, parent="System endpoints")
 public class SchemaTypeResource extends ExactMatchEndpoint {
 
 	public enum UriPart {

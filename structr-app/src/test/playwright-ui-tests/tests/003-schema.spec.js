@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 // @ts-check
 import { test, expect, defineConfig } from '@playwright/test';
 //import { setBrowserZoom, testWithZoomExtension as test } from "playwright-zoom";
@@ -85,6 +86,19 @@ test('schema', async ({ page }) => {
   await page.getByPlaceholder('Type Name...').fill('Project');
   await page.getByRole('button', { name: ' Create ', exact: true }).click();
   await page.waitForTimeout(1000);
+  await page.screenshot({ path: 'screenshots/schema_created-type_Project.png' });
+
+    // Add custom method and take a screenshot
+    await page.getByText('Methods', { exact: true }).click();
+    await page.locator('button[data-test-purpose="create-schema-method"]').click();
+    await page.getByText('Add method', { exact: true}).click();
+    await page.getByRole('textbox', { name: 'Enter method name' }).click();
+    await page.keyboard.type("sendEMail");
+    await page.locator('.monaco-editor').nth(0).click();
+    await page.keyboard.type("{");
+    await page.keyboard.press("Enter");
+    await page.keyboard.type("$.sendPlaintextMail(...);");
+    await page.screenshot({ path: 'screenshots/schema_method-added_sendEMail.png' });
 
   // Add custom String property 'projectId'
   await page.getByText('Direct properties', { exact: true }).click();
@@ -204,6 +218,13 @@ test('schema', async ({ page }) => {
   await page.getByRole('button', { name: 'Close', exact: true }).click();
   await page.waitForTimeout(1000);
   await page.screenshot({ path: 'screenshots/schema_type-created_Project.png' });
+  await page.getByText('Project Edit type Delete type').hover();
+  await page.getByText('Project Edit type Delete type').locator('svg.edit-type-icon').click();
+  await page.getByText('General', { exact: true }).click();
+  await page.waitForTimeout(100);
+  await page.screenshot({ path: 'screenshots/schema_type-edit_Project.png' });
+  await page.getByRole('button', { name: 'Close', exact: true }).click();
+  await page.waitForTimeout(1000);
 
   // Create relationship between 'Project' and 'Task'
   await page.locator('.schema.node[data-type="Task"] + div + div').hover();

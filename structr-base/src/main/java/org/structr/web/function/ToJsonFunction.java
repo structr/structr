@@ -28,6 +28,7 @@ import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.rest.serialization.StreamingJsonWriter;
 import org.structr.schema.action.ActionContext;
 
@@ -169,5 +170,8 @@ public class ToJsonFunction extends UiCommunityFunction {
 		);
 	}
 
-
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.InputOutput;
+	}
 }

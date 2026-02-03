@@ -38,6 +38,7 @@ import org.structr.api.RetryException;
 import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
 import org.structr.common.Permission;
+import org.structr.common.RequestHeaders;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.PathHelper;
@@ -59,6 +60,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.docs.Documentation;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.service.HttpServiceServlet;
@@ -80,6 +82,7 @@ import java.util.*;
 /**
  * Simple upload servlet.
  */
+@Documentation(name="UploadServlet", parent="Servlets", shortDescription="File upload endpoint.", children={ "UploadServlet Settings"})
 public class UploadServlet extends AbstractServletBase implements HttpServiceServlet {
 
 	private static final Set<String> AllowedProperties = Set.of(
@@ -617,9 +620,9 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 			response.setContentType("application/json; charset=utf-8");
 
 			// check if this is a CORS preflight request
-			final String origin      = request.getHeader("Origin");
-			final String corsHeaders = request.getHeader("Access-Control-Request-Headers");
-			final String corsMethod  = request.getHeader("Access-Control-Request-Method");
+			final String origin      = request.getHeader(RequestHeaders.Origin.getName());
+			final String corsHeaders = request.getHeader(RequestHeaders.AccessControlRequestHeaders.getName());
+			final String corsMethod  = request.getHeader(RequestHeaders.AccessControlRequestMethod.getName());
 			int statusCode           = HttpServletResponse.SC_OK;
 
 			if (origin != null && corsHeaders != null && corsMethod != null) {

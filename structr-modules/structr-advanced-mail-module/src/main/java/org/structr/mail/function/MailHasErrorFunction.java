@@ -73,12 +73,12 @@ public class MailHasErrorFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.javaScript("""
-						${{
-						
-							$.mailBegin('user@example.com', 'User', 'Test Mail', '<b>HTML</b> message', 'plain text message');
-							$.mailAddTo('another-user@example.com');
-							$.mailSend();
+			Example.javaScript("""
+				${{
+					
+					$.mailBegin('user@example.com', 'User', 'Test Mail', '<b>HTML</b> message', 'plain text message');
+					$.mailAddTo('another-user@example.com');
+					$.mailSend();
 
 							$.log($.mailHasError());
 						}}""", "Log true/false depending on message sending outcome")

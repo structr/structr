@@ -18,19 +18,46 @@
  */
 package org.structr.autocomplete;
 
+import org.structr.api.util.Category;
 import org.structr.docs.DocumentableType;
+import org.structr.docs.ontology.ConceptType;
+
+import java.util.List;
 
 public abstract class BuiltinFunctionHint extends AbstractHint {
 
 	@Override
-	public String getDisplayName() {
+	public String getDisplayName(boolean includeParameters) {
 
-		// show method with signature right away
-		return getName() + "(" + getFirstSignature() + ")";
+		if (includeParameters) {
+
+			// show method with signature right away
+			return getName() + "(" + getFirstSignature() + ")";
+		}
+
+		return getName() + "()";
 	}
 
 	@Override
 	public DocumentableType getDocumentableType() {
 		return DocumentableType.BuiltInFunction;
+	}
+
+	@Override
+	public List<ConceptReference> getParentConcepts() {
+
+		final List<ConceptReference> concepts = super.getParentConcepts();
+
+		final Category category = getCategory();
+		if (category != null) {
+
+			final String displayName = category.getDisplayName();
+			if (displayName != null) {
+
+				concepts.add(ConceptReference.of(ConceptType.Topic, displayName + " functions"));
+			}
+		}
+
+		return concepts;
 	}
 }

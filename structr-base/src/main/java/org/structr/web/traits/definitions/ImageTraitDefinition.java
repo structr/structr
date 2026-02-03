@@ -291,7 +291,7 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public String getShortDescription() {
-		return "This type allows you to handle images within your application.";
+		return "This trait allows you to handle images within your application.";
 	}
 
 	@Override

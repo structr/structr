@@ -21,13 +21,13 @@ package org.structr.schema.action;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
-import org.graalvm.polyglot.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.ContextStore;
+import org.structr.common.RequestHeaders;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.ErrorToken;
@@ -63,6 +63,7 @@ public class ActionContext {
 	private final StringBuilder outputBuffer                                  = new StringBuilder();
 	private ErrorBuffer errorBuffer                                           = new ErrorBuffer();
 	private Locale locale                                                     = Locale.getDefault();
+	private GraphObject currentEntity                                         = null;
 	private AbstractMethod currentMethod                                      = null;
 	private SecurityContext securityContext                                   = null;
 	private Predicate predicate                                               = null;
@@ -608,7 +609,9 @@ public class ActionContext {
 		return false;
 	}
 
-	public void setCurrentMethod(final AbstractMethod currentMethod) {
+	public void setCurrentMethod(final GraphObject currentEntity, final AbstractMethod currentMethod) {
+
+		this.currentEntity = currentEntity;
 		this.currentMethod = currentMethod;
 	}
 
@@ -656,12 +659,39 @@ public class ActionContext {
 
 	public static String getRemoteAddr(HttpServletRequest request) {
 
-		final String remoteAddress = request.getHeader("X-FORWARDED-FOR");
+		final String remoteAddress = request.getHeader(RequestHeaders.XForwardedFor.getName());
 
 		if (remoteAddress == null) {
 			return request.getRemoteAddr();
 		}
 
 		return remoteAddress;
+	}
+
+	/**
+	 * If the given method is a super, this method returns the current entity
+	 * on which the super call can be executed, otherwise it returns null.
+	 *
+	 * @param method
+	 * @return
+	 */
+	public GraphObject isSuperCall(final AbstractMethod method) {
+
+		if (currentMethod != null) {
+
+			final String declaringTrait = currentMethod.getDeclaringTrait();
+			if (declaringTrait != null && Traits.exists(declaringTrait)) {
+
+				final Traits traits              = Traits.of(declaringTrait);
+				final AbstractMethod superMethod = Methods.resolveMethod(traits, method.getName());
+
+				if (superMethod != null) {
+
+					return currentEntity;
+				}
+			}
+		}
+
+		return null;
 	}
 }

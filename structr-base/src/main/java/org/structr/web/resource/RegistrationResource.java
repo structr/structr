@@ -20,6 +20,8 @@ package org.structr.web.resource;
 
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Documentation;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
@@ -28,6 +30,7 @@ import org.structr.rest.api.parameter.RESTParameter;
 /**
  * A resource to register new users.
  */
+@Documentation(name="User self-registration endpoint", type= ConceptType.RestEndpoint, parent="System endpoints")
 public class RegistrationResource extends ExactMatchEndpoint {
 
 	public RegistrationResource() {

@@ -26,7 +26,7 @@ import org.structr.api.util.html.Document;
 import org.structr.api.util.html.Tag;
 import org.structr.api.util.html.attr.*;
 import org.structr.common.PropertyView;
-import org.structr.common.RequestKeywords;
+import org.structr.common.RequestParameters;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractRelationship;
@@ -408,14 +408,14 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 		final ArrayList<String> paramList = new ArrayList<>();
 
-		final String pageSizeKeyword = RequestKeywords.PageSize.keyword();
+		final String pageSizeKeyword = RequestParameters.PageSize.getName();
 		final String requestPageSize = securityContext.getRequest().getParameter(pageSizeKeyword);
 
 		if (requestPageSize != null) {
 			paramList.add(pageSizeKeyword + "=" + requestPageSize);
 		}
 
-		final String pageNumberKeyword = RequestKeywords.PageNumber.keyword();
+		final String pageNumberKeyword = RequestParameters.PageNumber.getName();
 		final String requestPageNumber = securityContext.getRequest().getParameter(pageNumberKeyword);
 
 		if (requestPageNumber != null) {

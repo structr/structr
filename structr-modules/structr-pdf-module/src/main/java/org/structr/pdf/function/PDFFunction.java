@@ -31,6 +31,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.rest.auth.JWTHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -318,5 +319,10 @@ public class PDFFunction extends Function<Object, Object> {
 				Parameter.optional("runWithXServer", "forces the usage of xvfb"),
 				Parameter.optional("xServerSettings", "parameters for xvfb")
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.InputOutput;
 	}
 }

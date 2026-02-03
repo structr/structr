@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
+import org.structr.common.RequestHeaders;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
@@ -184,7 +185,7 @@ public class UiAuthenticator implements Authenticator {
 
 		securityContext.setAuthenticator(this);
 
-		if (StringUtils.isNotBlank(request.getHeader("Origin"))) {
+		if (StringUtils.isNotBlank(request.getHeader(RequestHeaders.Origin.getName()))) {
 
 			checkCORS(securityContext, request, response);
 		}
@@ -196,12 +197,12 @@ public class UiAuthenticator implements Authenticator {
 		securityContext.setResponse(response);
 
 		// expose Structr edition
-		response.setHeader("X-Structr-Edition", Services.getInstance().getEdition());
+		response.setHeader(RequestHeaders.XStructrEdition.getName(), Services.getInstance().getEdition());
 
 		// expose cluster node replica number
 		if (Settings.ClusterModeEnabled.getValue(false)) {
 
-			response.setHeader("X-Structr-Cluster-Node", Services.getInstance().getNodeName());
+			response.setHeader(RequestHeaders.XStructrClusterNode.getName(), Services.getInstance().getNodeName());
 		}
 
 		return securityContext;
@@ -217,9 +218,9 @@ public class UiAuthenticator implements Authenticator {
 		final Traits traits = Traits.of(StructrTraits.CORS_SETTING);
 
 		// Check CORS settings (Cross-origin resource sharing, see http://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
-		final String origin           = request.getHeader("Origin");
-		final String requestedHeaders = request.getHeader("Access-Control-Request-Headers");
-		final String requestedMethod  = request.getHeader("Access-Control-Request-Method");
+		final String origin           = request.getHeader(RequestHeaders.Origin.getName());
+		final String requestedHeaders = request.getHeader(RequestHeaders.AccessControlRequestHeaders.getName());
+		final String requestedMethod  = request.getHeader(RequestHeaders.AccessControlRequestMethod.getName());
 		final String requestUri       = request.getRequestURI();
 
 		String acceptedOriginsString  = Settings.AccessControlAcceptedOrigins.getValue();
@@ -551,7 +552,7 @@ public class UiAuthenticator implements Authenticator {
 			}
 		}
 
-		final String authorizationHeader = request.getHeader("Authorization");
+		final String authorizationHeader = request.getHeader(RequestHeaders.Authorization.getName());
 
 		if (authorizationHeader == null) {
 			return null;
@@ -888,9 +889,9 @@ public class UiAuthenticator implements Authenticator {
 		if (user == null) {
 
 			// Second, check X-Headers
-			String userName = request.getHeader("X-User");
-			String password = request.getHeader("X-Password");
-			String token    = request.getHeader("X-StructrSessionToken");
+			String userName = request.getHeader(RequestHeaders.XUser.getName());
+			String password = request.getHeader(RequestHeaders.XPassword.getName());
+			String token    = request.getHeader(RequestHeaders.XStructrSessionToken.getName());
 
 			// Try to authorize with a session token first
 			if (token != null) {

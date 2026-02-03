@@ -37,10 +37,13 @@ import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.FunctionProperty;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.core.script.polyglot.config.ScriptConfig;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.docs.Signature;
 
 import java.util.Collections;
@@ -58,8 +61,12 @@ public class Actions {
 	private static final Logger logger                         = LoggerFactory.getLogger(Actions.class.getName());
 	private static final Map<String, CachedMethod> methodCache = new ConcurrentHashMap<>();
 
-	public static final String NOTIFICATION_LOGIN  = "onStructrLogin";
-	public static final String NOTIFICATION_LOGOUT = "onStructrLogout";
+	// if you add notifications / callbacks here, please add them at the bottom of class LifecycleBase as well!
+	public static final String NOTIFICATION_DOWNLOAD       = "onDownload";
+	public static final String NOTIFICATION_LOGIN          = "onStructrLogin";
+	public static final String NOTIFICATION_LOGOUT         = "onStructrLogout";
+	public static final String NOTIFICATION_ACME_CHALLENGE = "onAcmeChallenge";
+	public static final String NOTIFICATION_OAUTH_LOGIN    = "onOAuthLogin";
 
 	public enum Type {
 
@@ -133,7 +140,7 @@ public class Actions {
 		store.setTemporaryParameters(new HashMap<>());
 
 		final ActionContext context = new ActionContext(securityContext, parameters);
-		context.setCurrentMethod(scriptConfig.getCurrentMethod());
+		context.setCurrentMethod(entity, scriptConfig.getCurrentMethod());
 
 		try {
 
@@ -171,7 +178,10 @@ public class Actions {
 		CachedMethod cachedSource = methodCache.get(key);
 		if (cachedSource == null) {
 
-			final List<NodeInterface> methods = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).name(key).getAsList();
+			// CHM 2025-12-17: Changed this to a node query with empty SchemaNode because we only care for user-defined functions here!
+			final PropertyKey<NodeInterface> schemaNodeKey = Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY);
+			final List<NodeInterface> methods              = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).name(key).key(schemaNodeKey, null).getAsList();
+
 			if (methods.isEmpty()) {
 
 				if (!NOTIFICATION_LOGIN.equals(key) && !NOTIFICATION_LOGOUT.equals(key)) {

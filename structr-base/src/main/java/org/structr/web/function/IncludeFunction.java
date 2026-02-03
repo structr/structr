@@ -35,6 +35,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.RenderContext;
@@ -283,5 +284,10 @@ public class IncludeFunction extends UiCommunityFunction {
 			// output needs to be returned as a function result
 			return StringUtils.join(innerCtx.getBuffer().getQueue(), "");
 		}
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Rendering;
 	}
 }

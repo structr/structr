@@ -64,8 +64,11 @@ test('virtual-types', async ({ page }) => {
 
   // Wait for Code UI to load all components
   await page.waitForTimeout(1000);
+  await page.getByRole('textbox', { name: 'Enter a name for the virtual' }).fill('VirtualProject');
+  await page.getByRole('textbox', { name: 'Enter the name of the source' }).fill('Project');
+  await page.getByRole('button', { name: 'Create Virtual Type' }).click();
+  await page.waitForTimeout(1000);
   await page.screenshot({ path: 'screenshots/virtual-types.png' });
-
 
   // Logout
   await page.locator('.submenu-trigger').hover();

@@ -3007,7 +3007,7 @@ let _Code = {
 				<div class="flex flex-wrap gap-8">
 
 					<div class="min-w-48">
-						<label class="block mb-5">Enable/include this type</label>
+						<label class="block mb-5">&nbsp;</label>
 						<label class="flex"><input type="checkbox" data-property="includeInOpenAPI"> Include in OpenAPI output</label>
 					</div>
 

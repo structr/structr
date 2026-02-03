@@ -18,12 +18,12 @@
  */
 package org.structr.autocomplete.keywords;
 
-import org.structr.autocomplete.KeywordHint;
+import org.structr.autocomplete.PageKeywordHint;
 import org.structr.docs.Example;
 
 import java.util.List;
 
-public class IdHint extends KeywordHint {
+public class IdHint extends PageKeywordHint {
 
 	@Override
 	public String getName() {

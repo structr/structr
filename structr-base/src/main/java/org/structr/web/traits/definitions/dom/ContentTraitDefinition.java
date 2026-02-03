@@ -44,6 +44,8 @@ import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
+import org.structr.docs.Documentation;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
@@ -63,6 +65,7 @@ import java.util.Set;
  * Represents a content node. This class implements the org.w3c.dom.Text interface.
  * All methods in the W3C Text interface are based on the raw database content.
  */
+@Documentation(name="Content", type= ConceptType.SystemType, shortDescription="The base class for content nodes in a Page.", parent="System types")
 public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String CONTENT_PROPERTY      = "content";

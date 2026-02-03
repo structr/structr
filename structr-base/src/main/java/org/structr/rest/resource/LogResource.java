@@ -39,6 +39,8 @@ import org.structr.core.property.*;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.docs.Documentation;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
@@ -67,6 +69,7 @@ import java.util.regex.Pattern;
  *
  *
  */
+@Documentation(name="Statistics Log endpoint", type= ConceptType.RestEndpoint, parent="System endpoints")
 public class LogResource extends ExactMatchEndpoint {
 
 	private static final Logger logger                          = LoggerFactory.getLogger(LogResource.class.getName());

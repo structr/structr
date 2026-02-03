@@ -25,6 +25,7 @@ import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -97,15 +98,15 @@ public class SubstringFunction extends CoreFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("""
-						${substring('This is my test', 2)}
-						> is is my test
-						${substring('This is my test', 8, 2)}
-						> my
-						${substring('This is my test', 8, 100)}
-						> my test
-						"""),
-				Example.javaScript("${{ $.substring('This is my test', 2) }}")
+			Example.structrScript("""
+				${substring('This is my test', 2)}
+				> is is my test
+				${substring('This is my test', 8, 2)}
+				> my
+				${substring('This is my test', 8, 100)}
+				> my test
+				"""),
+		Example.javaScript("${{ $.substring('This is my test', 2) }}")
 		);
 	}
 
@@ -113,9 +114,14 @@ public class SubstringFunction extends CoreFunction {
 	public List<Parameter> getParameters() {
 
 		return List.of(
-				Parameter.mandatory("string", "URL to connect to"),
-				Parameter.mandatory("start", "URL to connect to"),
-				Parameter.optional("length", "length of string from start")
-				);
+			Parameter.mandatory("string", "URL to connect to"),
+			Parameter.mandatory("start", "URL to connect to"),
+			Parameter.optional("length", "length of string from start")
+		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.String;
 	}
 }

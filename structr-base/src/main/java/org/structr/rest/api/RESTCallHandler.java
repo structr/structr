@@ -29,7 +29,7 @@ import org.structr.api.util.Iterables;
 import org.structr.api.util.ResultStream;
 import org.structr.common.Permission;
 import org.structr.common.PropertyView;
-import org.structr.common.RequestKeywords;
+import org.structr.common.RequestParameters;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.CaseHelper;
@@ -312,11 +312,11 @@ public abstract class RESTCallHandler {
 
 		if (request != null) {
 
-			final String distance = request.getParameter(RequestKeywords.Distance.keyword());
+			final String distance = request.getParameter(RequestParameters.Distance.getName());
 
 			if (!request.getParameterMap().isEmpty() && StringUtils.isNotBlank(distance)) {
 
-				final String latlon   = request.getParameter(RequestKeywords.LatLon.keyword());
+				final String latlon   = request.getParameter(RequestParameters.LatLon.getName());
 				if (latlon != null) {
 
 					final String[] parts = latlon.split("[,]+");
@@ -337,14 +337,14 @@ public abstract class RESTCallHandler {
 				} else {
 
 					final double dist     = Double.parseDouble(distance);
-					final String location = request.getParameter(RequestKeywords.Location.keyword());
+					final String location = request.getParameter(RequestParameters.Location.getName());
 
-					String street     = request.getParameter(RequestKeywords.Street.keyword());
-					String house      = request.getParameter(RequestKeywords.House.keyword());
-					String postalCode = request.getParameter(RequestKeywords.PostalCode.keyword());
-					String city       = request.getParameter(RequestKeywords.City.keyword());
-					String state      = request.getParameter(RequestKeywords.State.keyword());
-					String country    = request.getParameter(RequestKeywords.Country.keyword());
+					String street     = request.getParameter(RequestParameters.Street.getName());
+					String house      = request.getParameter(RequestParameters.House.getName());
+					String postalCode = request.getParameter(RequestParameters.PostalCode.getName());
+					String city       = request.getParameter(RequestParameters.City.getName());
+					String state      = request.getParameter(RequestParameters.State.getName());
+					String country    = request.getParameter(RequestParameters.Country.getName());
 
 					// if location, use city and street, else use all fields that are there!
 					if (location != null) {
@@ -377,15 +377,15 @@ public abstract class RESTCallHandler {
 
 		if (type != null && request != null && !request.getParameterMap().isEmpty()) {
 
-			if (request.getParameter(RequestKeywords.Inexact_Deprecated.keyword()) != null) {
+			if (request.getParameter(RequestParameters.Inexact_Deprecated.getName()) != null) {
 
 				logger.warn("Usage of deprecated request keyword {} detected. This keyword is deprecated and will be removed in the future. Please use {} instead.",
-					RequestKeywords.Inexact_Deprecated.keyword(),
-					RequestKeywords.Inexact.keyword()
+					RequestParameters.Inexact_Deprecated.getName(),
+					RequestParameters.Inexact.getName()
 				);
 			}
 
-			boolean exactSearch                = !getTruthyValueFromRequestParameters(request, RequestKeywords.Inexact_Deprecated, RequestKeywords.Inexact);
+			boolean exactSearch                = !getTruthyValueFromRequestParameters(request, RequestParameters.Inexact_Deprecated, RequestParameters.Inexact);
 			final List<PropertyKey> searchKeys = new LinkedList<>();
 			final Traits traits                = Traits.of(type);
 
@@ -399,7 +399,7 @@ public abstract class RESTCallHandler {
 					// add to list of searchable keys
 					searchKeys.add(key);
 
-				} else if (!RequestKeywords.keywords().contains(name)) {
+				} else if (!RequestParameters.getIdentifiers().contains(name)) {
 
 					// exclude common request parameters here (should not throw exception)
 					throw new FrameworkException(400, "Unknown search key " + name);
@@ -558,7 +558,7 @@ public abstract class RESTCallHandler {
 		final RestMethodResult result                = new RestMethodResult(HttpServletResponse.SC_OK);
 		final App app                                = StructrApp.getInstance(securityContext);
 		final Iterator<Map<String, Object>> iterator = propertySets.iterator();
-		final int batchSize                          = intOrDefault(RequestKeywords.BatchSize.keyword(), 1000);
+		final int batchSize                          = intOrDefault(RequestParameters.BatchSize.getName(), 1000);
 		int overallCount                             = 0;
 
 		while (iterator.hasNext()) {
@@ -668,11 +668,11 @@ public abstract class RESTCallHandler {
 		return defaultValue;
 	}
 
-	private boolean getTruthyValueFromRequestParameters(final HttpServletRequest request, final RequestKeywords... requestKeywords) {
+	private boolean getTruthyValueFromRequestParameters(final HttpServletRequest request, final RequestParameters... requestKeywords) {
 
-		for (final RequestKeywords k : requestKeywords) {
+		for (final RequestParameters k : requestKeywords) {
 
-			final String value = request.getParameter(k.keyword());
+			final String value = request.getParameter(k.getName());
 			if (value != null) {
 
 				if (parseInteger(value) == 1) {

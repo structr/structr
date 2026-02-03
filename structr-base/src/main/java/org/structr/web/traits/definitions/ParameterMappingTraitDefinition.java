@@ -103,12 +103,12 @@ public class ParameterMappingTraitDefinition extends AbstractNodeTraitDefinition
 		final Property<NodeInterface> inputElement          = new StartNode(traitsInstance, INPUT_ELEMENT_PROPERTY, StructrTraits.DOM_ELEMENT_INPUT_ELEMENT_PARAMETER_MAPPING);
 
 		// user-input, constant-value, page-param, pagesize-param, script-expression, method-result, flow-result
-		final Property<String> parameterType    = new StringProperty(PARAMETER_TYPE_PROPERTY).hint("Type of this parameter, e.g. user input, constant value, page-param, pagesize-param, result of a script expression, method call or flow...");
-		final Property<String> parameterName    = new StringProperty(PARAMETER_NAME_PROPERTY).hint("Parameter name");
-		final Property<String> constantValue    = new StringProperty(CONSTANT_VALUE_PROPERTY).hint("Constant value");
-		final Property<String> scriptExpression = new StringProperty(SCRIPT_EXPRESSION_PROPERTY).hint("Script expression to be evaluated to result value");
-		final Property<String> methodResult     = new StringProperty(METHOD_RESULT_PROPERTY).hint("Method to be evaluated to result value");
-		final Property<String> flowResult       = new StringProperty(FLOW_RESULT_PROPERTY).hint("Flow to be evaluated to result value");
+		final Property<String> parameterType    = new StringProperty(PARAMETER_TYPE_PROPERTY).description("Type of this parameter, e.g. user input, constant value, page-param, pagesize-param, result of a script expression, method call or flow...");
+		final Property<String> parameterName    = new StringProperty(PARAMETER_NAME_PROPERTY).description("Parameter name");
+		final Property<String> constantValue    = new StringProperty(CONSTANT_VALUE_PROPERTY).description("Constant value");
+		final Property<String> scriptExpression = new StringProperty(SCRIPT_EXPRESSION_PROPERTY).description("Script expression to be evaluated to result value");
+		final Property<String> methodResult     = new StringProperty(METHOD_RESULT_PROPERTY).description("Method to be evaluated to result value");
+		final Property<String> flowResult       = new StringProperty(FLOW_RESULT_PROPERTY).description("Flow to be evaluated to result value");
 
 		return Set.of(
 			actionMappingProperty,

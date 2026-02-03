@@ -88,7 +88,7 @@ public class WidgetTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> thumbnailPathProperty   = new StringProperty(THUMBNAIL_PATH_PROPERTY);
 		final Property<String> treePathProperty        = new StringProperty(TREE_PATH_PROPERTY);
 		final Property<Boolean> isWidgetProperty       = new ConstantBooleanProperty(IS_WIDGET_PROPERTY, true);
-		final Property<String[]> selectorsProperty     = new ArrayProperty(SELECTORS_PROPERTY, String[].class);
+		final Property<String[]> selectorsProperty     = new ArrayProperty(SELECTORS_PROPERTY, String.class);
 		final Property<Boolean> isPageTemplateProperty = new BooleanProperty(IS_PAGE_TEMPLATE_PROPERTY);
 
 		return Set.of(

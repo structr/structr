@@ -38,6 +38,8 @@ import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.core.traits.operations.propertycontainer.SetProperty;
 import org.structr.core.traits.wrappers.GroupTraitWrapper;
+import org.structr.docs.Documentation;
+import org.structr.docs.ontology.ConceptType;
 
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -45,6 +47,7 @@ import java.util.Set;
 
 /**
  */
+@Documentation(name="Group", type= ConceptType.SystemType, shortDescription="The Group trait", parent="Built-in traits")
 public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String MEMBERS_PROPERTY           = "members";
@@ -158,7 +161,7 @@ public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public String getShortDescription() {
-		return "This type is one of the base classes for Structr's access control and permissions system.";
+		return "This trait is one of the base traits for Structr's access control and permissions system.";
 	}
 
 	@Override

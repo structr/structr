@@ -30,6 +30,7 @@ import org.structr.core.property.*;
 import org.structr.core.script.polyglot.context.ContextFactory;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.maintenance.DeployCommand;
 
@@ -69,6 +70,11 @@ public class StructrEnvFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.System;
 	}
 
 	public static GraphObjectMap getStructrEnv() throws FrameworkException {

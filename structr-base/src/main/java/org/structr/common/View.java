@@ -20,14 +20,13 @@ package org.structr.common;
 
 import org.structr.core.GraphObject;
 import org.structr.core.property.Property;
+import org.structr.docs.Documentation;
 
 /**
  * Defines a named set of {@link Property} keys for a given type. This class is
- * needed for the REST server to define inheritable "views" for an entity. See
- * the example archetype for more information.
- *
- *
+ * needed for the REST server to define inheritable "views" for an entity.
  */
+@Documentation(name="View", shortDescription="A view is a named collection of attributes that can be accessed via REST and from within the scripting environment, controlling which attributes are included in REST interface output.")
 public class View {
 
 	private Property[] properties = null;

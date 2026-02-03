@@ -24,6 +24,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedList;
@@ -96,5 +97,10 @@ public class SearchRelationshipsFulltextFunction extends CoreFunction implements
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Database;
 	}
 }

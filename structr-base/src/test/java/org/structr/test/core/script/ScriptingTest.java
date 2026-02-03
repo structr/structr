@@ -7738,6 +7738,70 @@ public class ScriptingTest extends StructrTest {
 	}
 
 	@Test
+	public void testSuperCallInScriptMethod() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonObjectType baseProject     = schema.addType("Project");
+			final JsonObjectType extendedProject = schema.addType("ExtendedProject");
+
+			extendedProject.addTrait("Project");
+
+			baseProject.addMethod("doTest", """
+			{
+				$.this.name += 'Project' + $.arguments.name;
+			}
+			""");
+
+			extendedProject.addMethod("doTest", """
+			{
+				// call super method with same arguments
+				$.Project.doTest($.arguments);
+			
+				$.this.name += 'ExtendedProject' + $.arguments.name;
+			}
+			""");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final String result = (String) Actions.execute(securityContext, null, """
+			${{
+				let extendedProject = $.create('ExtendedProject', { name: 'Test' });
+			
+				extendedProject.doTest({ name: 'TEST' });
+			
+				extendedProject.name;
+			}}
+			""", "testSuperCall");
+
+			assertEquals("Super implementation of instance method was not called correctly", "TestProjectTESTExtendedProjectTEST", result);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+	}
+
+	@Test
 	public void testConfigNullValues() {
 
 		// setup

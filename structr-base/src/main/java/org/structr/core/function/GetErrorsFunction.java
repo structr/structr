@@ -21,6 +21,7 @@ package org.structr.core.function;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -58,5 +59,10 @@ public class GetErrorsFunction extends CoreFunction {
 			Usage.javaScript("Usage: ${{$.getErrors()}}. Example: ${{$.getErrors()}}"),
 			Usage.structrScript("Usage: ${getErrors()}. Example: ${getErrors()}")
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Validation;
 	}
 }
