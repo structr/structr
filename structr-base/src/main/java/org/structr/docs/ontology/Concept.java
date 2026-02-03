@@ -98,6 +98,10 @@ public final class Concept implements Comparable<Concept> {
 		return tokens;
 	}
 
+	public Ontology getOntology() {
+		return ontology;
+	}
+
 	/*
 	public void createSymmetricLink(final Verb verb, final Concept annotatedConcept) {
 
@@ -215,7 +219,14 @@ public final class Concept implements Comparable<Concept> {
 	}
 
 	public void setShortDescription(final String shortDescription) {
-		this.shortDescription = shortDescription;
+
+		if (StringUtils.isNotBlank(shortDescription)) {
+
+			if (StringUtils.isBlank(this.shortDescription)) {
+
+				this.shortDescription = shortDescription;
+			}
+		}
 	}
 
 	public void setDocumentable(final Documentable documentable) {

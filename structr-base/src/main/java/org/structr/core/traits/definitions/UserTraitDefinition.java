@@ -53,7 +53,7 @@ import org.structr.web.entity.User;
 import java.util.Map;
 import java.util.Set;
 
-@Documentation(name="User", type=ConceptType.SystemType, shortDescription="The User trait", parent="Built-in traits")
+@Documentation(name="User", type=ConceptType.SystemType, parent="Built-in traits")
 public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String HOME_DIRECTORY_PROPERTY              = "homeDirectory";

@@ -34,6 +34,7 @@ import org.eclipse.jetty.util.resource.Resource;
 import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.formatter.markdown.MarkdownMarkdownFileFormatter;
 import org.structr.docs.ontology.*;
+import org.structr.web.traits.definitions.html.Form;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -103,7 +104,17 @@ public class MarkdownFileToken extends NamedConceptToken {
 				final Concept concept = root.resolve(ontology);
 				if (concept != null) {
 
-					return new AnnotatedConcept(concept);
+					final AnnotatedConcept annotatedConcept = new AnnotatedConcept(concept);
+
+					if (identifierToken.getFormat() != null) {
+
+						final ConceptToken formatToken = identifierToken.getFormat();
+						final ConceptType format       = formatToken.resolve(ontology);
+
+						annotatedConcept.setFormatSpecification(new FormatSpecification(format, formatToken));
+					}
+
+					return annotatedConcept;
 				}
 
 			} catch (IOException ioex) {

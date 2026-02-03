@@ -28,6 +28,8 @@ import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.docs.Documentation;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.web.entity.Widget;
 import org.structr.web.traits.wrappers.WidgetTraitWrapper;
 
@@ -38,6 +40,7 @@ import java.util.Set;
  *
  *
  */
+@Documentation(name="Widget", type= ConceptType.SystemType, parent="Built-in traits")
 public class WidgetTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String DESCRIPTION_PROPERTY      = "description";

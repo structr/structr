@@ -1,1 +1,0 @@
-**Important**: the event action mapping functionality depends on the JavaScript file `/structr/js/frontend/frontend.js`, so make sure to include it in your page / page template!
