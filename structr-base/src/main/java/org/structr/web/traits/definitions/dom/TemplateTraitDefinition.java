@@ -44,7 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-@Documentation(name="Template", type=ConceptType.SystemType, shortDescription="Templates are special elements that may be inserted into a page's DOM tree at any position.", synonyms={"Template element", "Main Page Template"}, parent="System types")
 public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public TemplateTraitDefinition() {
@@ -176,5 +175,10 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Relation getRelation() {
 		return null;
+	}
+
+	@Override
+	public boolean includeInDocumentation() {
+		return true;
 	}
 }

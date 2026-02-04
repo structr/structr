@@ -163,19 +163,21 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 
 	@Override
 	public String getShortDescription() {
-		return "Tries to fix properties in the database that have been stored with the wrong type.";
+		return "Converts property values that were stored with an incorrect type.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "This command can be used to convert property values whose property type was changed, e.g. from String to Integer.";
+		return """
+        Use this command after changing a property's type in the schema, for example from String to Integer.
+        """;
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 		return List.of(
-			Parameter.mandatory("type", "type of nodes to fix"),
-			Parameter.optional("name", "name of property to fix (defaults to \"all properties\" if omitted)")
+			Parameter.mandatory("type", "Node type to fix"),
+			Parameter.optional("name", "Specific property to fix (default: all properties)")
 		);
 	}
 
@@ -206,6 +208,6 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 
 	@Override
 	public final List<ConceptReference> getParentConcepts() {
-		return List.of(ConceptReference.of(ConceptType.Topic, "Maintenance commands"));
+		return List.of(ConceptReference.of(ConceptType.Topic, "Maintenance Commands"));
 	}
 }

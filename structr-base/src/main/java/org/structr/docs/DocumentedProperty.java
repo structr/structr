@@ -18,21 +18,49 @@
  */
 package org.structr.docs;
 
+import org.structr.core.property.PropertyKey;
+
 public class DocumentedProperty {
 
 	private final String name;
+	private final String propertyType;
 	private final String description;
 
-	public DocumentedProperty(final String name, final String description) {
+	private DocumentedProperty(final String name, final String propertyType, final String description) {
 
-		this.name        = name;
-		this.description = description;
+		this.name         = name;
+		this.propertyType = propertyType;
+		this.description  = description;
 	}
 
 	public String getName() {
 		return name;
 	}
+
+	public String getPropertyType() {
+		return propertyType;
+	}
+
 	public String getDescription() {
 		return description;
+	}
+
+	public static DocumentedProperty of(final PropertyKey propertyKey) {
+
+		final String name        = propertyKey.jsonName();
+		final String description = propertyKey.getDescription();
+		String type              = propertyKey.typeName();
+
+		if (propertyKey.relatedType() != null) {
+
+			type = propertyKey.relatedType();
+
+			if ("collection".equals(propertyKey.typeName())) {
+
+				type += "[]";
+			}
+		}
+
+		return new DocumentedProperty(name, type, description);
 	}
 }

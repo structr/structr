@@ -18,9 +18,12 @@
  */
 package org.structr.core.traits;
 
+import com.google.common.collect.Comparators;
 import org.structr.docs.Documentable;
 
 import java.text.SimpleDateFormat;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class TraitsManager {

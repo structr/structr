@@ -934,21 +934,21 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 	@Override
 	public String getShortDescription() {
-		return "Triggers creation or update of an SSL certificate using Let’s Encrypt.";
+		return "Creates or renews an SSL certificate using Let's Encrypt.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return null;
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 		return List.of(
-			Parameter.mandatory("server", "`staging` or `production`, `staging` mode is meant for testing and will generate invalid dummy certificates only, while `production` creates real, valid certificates but is throttled."),
-			Parameter.optional("challenge", "overwrite the default challenge method as set in structr.conf. This is convenient to test an alternative challenge type without the need to restart the Structr instance."),
-			Parameter.optional("wait", "let the client wait for the given number of seconds in order to have enough time to prepare the DNS TXT record in case of the dns challenge type, or the HTTP response in case of the http challenge."),
-			Parameter.optional("reload", "`true` or `false`, reload the HTTPS certificate after updating it. Allows using the new certificate without restarting, defaults to `false`.")
+			Parameter.mandatory("server", "`staging` (test certificates) or `production` (valid certificates)"),
+			Parameter.optional("challenge", "Override the challenge method from structr.conf"),
+			Parameter.optional("wait", "Seconds to wait for DNS or HTTP challenge preparation"),
+			Parameter.optional("reload", "Reload HTTPS certificate without restart (default: false)")
 		);
 	}
 
@@ -960,7 +960,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-			"Please note that the configuration setting `letsencrypt.domains` must contain the full domain name of the server you want to create the certificate for."
+			"The `letsencrypt.domains` setting must contain the full domain name for the certificate."
 		);
 	}
 

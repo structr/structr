@@ -23,11 +23,11 @@ import org.structr.docs.ontology.ConceptType;
 
 import java.util.List;
 
-@Documentation(name="General keywords", shortDescription="Built-in keywords that are available in all scripting contexts.")
+@Documentation(name="General Keywords", shortDescription="Built-in keywords that are available in all scripting contexts.")
 public abstract class GeneralKeywordHint extends KeywordHint {
 
 	@Override
 	public List<ConceptReference> getParentConcepts() {
-		return List.of(ConceptReference.of(ConceptType.Topic, "General keywords"));
+		return List.of(ConceptReference.of(ConceptType.Topic, "General Keywords"));
 	}
 }

@@ -36,7 +36,6 @@ import java.util.Set;
 /**
  * The Location entity.
  */
-@Documentation(name="Location", type= ConceptType.SystemType, parent="Built-in traits")
 public final class LocationTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String LATITUDE_PROPERTY       = "latitude";

@@ -18,17 +18,15 @@
  */
 package org.structr.docs.formatter.markdown;
 
-import org.apache.commons.lang3.StringUtils;
-import org.graalvm.nativeimage.AnnotationAccess;
-import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.Documentable;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
 import org.structr.docs.ontology.*;
-import org.structr.docs.ontology.parser.token.AbstractToken;
-import org.structr.docs.ontology.parser.token.MarkdownFileToken;
 
-import java.util.*;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class SystemTypeMarkdownFormatter extends Formatter {
 
@@ -89,7 +87,6 @@ public class SystemTypeMarkdownFormatter extends Formatter {
 			}
 		}
 
-
 		if (settings.hasDetail(Details.all)) {
 
 			// iterate over all links
@@ -101,18 +98,14 @@ public class SystemTypeMarkdownFormatter extends Formatter {
 				// do not output markdown files as children here
 				if (!concepts.isEmpty() && !ConceptType.MarkdownTopic.equals(conceptType)) {
 
-					if (ConceptType.Property.equals(conceptType)) {
+					if (ConceptType.Property.equals(conceptType)) { lines.add(formatMarkdownHeading("Properties", level + 2)); }
+					if (ConceptType.Method.equals(conceptType)) { lines.add(formatMarkdownHeading("Methods", level + 2)); }
 
-						lines.add(formatMarkdownHeading("Properties", level + 2));
-
-					} else {
-
-						lines.add(formatMarkdownHeading(concept.getName(), level + 2));
-					}
+					//lines.add(formatMarkdownHeading(conceptType.name(), level + 2));
 
 					lines.add("");
-					lines.add("| Name | Description |");
-					lines.add("| --- | --- |");
+					lines.add("| Name | Type | Description |");
+					lines.add("| --- | --- | --- |");
 
 					for (final Concept child : entry.getValue()) {
 
@@ -120,10 +113,15 @@ public class SystemTypeMarkdownFormatter extends Formatter {
 						if (documentable != null) {
 
 							lines.add("| " + documentable.getName() + " | " + documentable.getShortDescription() + " |");
+							throw new RuntimeException("Code path still in use but should be removed.");
 
 						} else {
 
-							lines.add("| " + child.getName() + " | " + child.getShortDescription() + " |");
+							final String name = child.getName();
+							final String type = (String) child.getMetadata().get("propertyType");
+							final String desc = child.getShortDescription();
+
+							lines.add("| `" + name + "` | `" + type + "` | " + desc + " |");
 						}
 
 					}
@@ -131,36 +129,6 @@ public class SystemTypeMarkdownFormatter extends Formatter {
 			}
 		}
 
-		return false;
+		return true;
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

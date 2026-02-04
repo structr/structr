@@ -111,12 +111,14 @@ public class DeleteSpatialIndexCommand extends NodeServiceCommand implements Mai
 
 	@Override
 	public String getShortDescription() {
-		return "Removes a (broken) spatial index from the database.";
+		return "Removes legacy spatial index nodes from the database.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "This command deletes all Structr nodes with the properties `bbox` and `gtype`.";
+		return """
+        Deletes all nodes with `bbox` and `gtype` properties.
+        """;
 	}
 
 	@Override
@@ -132,7 +134,7 @@ public class DeleteSpatialIndexCommand extends NodeServiceCommand implements Mai
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-			"This is a legacy command which you will probably never need."
+			"This is a legacy command for cleaning up old spatial indexes. You will probably never need it."
 		);
 	}
 

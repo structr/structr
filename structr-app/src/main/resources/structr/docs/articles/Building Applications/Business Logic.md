@@ -108,6 +108,16 @@ Instance methods operate on a single object. Create one by clicking "Add method"
 }
 ```
 
+You can then call this method on any Invoice object:
+
+```javascript
+{
+    let invoice = $.first($.find('Invoice', { number: '2026-001' }));
+    let total = invoice.calculateTotal();
+}
+```
+
+
 #### Static Methods
 
 Static methods operate at the type level rather than on individual objects. Enable the "Method is Static" checkbox when creating the method. Use them for operations that work with multiple objects:
@@ -147,9 +157,41 @@ To create a service class, go to the Code area and click "Create Service Class".
 }
 ```
 
-#### Calling Methods from the Frontend
+#### Calling Methods on Objects
 
-The most common way to trigger schema methods is through Event Action Mapping. You configure a DOM event (like a button click) to call a method, and Structr handles the REST call automatically. The Event Action Mapping passes input values to the method and handles the response – displaying results, showing notifications, or triggering follow-up actions.
+You can call methods on any Structr object, not just `$.this`. When you retrieve objects with `$.find()` or access them through relationships, they have all the methods defined on their type.
+
+```javascript
+{
+    // Call a method on a found object
+    let invoice = $.first($.find('Invoice', { number: '2026-001' }));
+    let total = invoice.calculateTotal();
+    
+    // Call methods in a loop
+    for (let project of $.find('Project', { status: 'overdue' })) {
+        project.sendReminder();
+    }
+    
+    // Call methods through relationships
+    $.this.customer.sendNotification('Your order has shipped');
+}
+```
+
+This works because Structr objects are full objects with their schema methods attached. Any method you define on a type is available on every instance of that type, regardless of how you obtained the reference.
+
+#### Calling Methods on System Types
+Built-in types also come with methods. For example, Mailbox has a method to discover available folders on the mail server:
+```javascript
+{
+    let mailbox = $.first($.find('Mailbox', { name: 'Support Inbox' }));
+    let folders = mailbox.getAvailableFoldersOnServer();
+}
+```
+
+See the System Types reference for all methods available on built-in types.
+
+#### Calling Methods from the Frontend
+The examples above show how to call methods from within Structr code. To trigger methods from HTML pages, use Event Action Mapping. You configure a DOM event (like a button click) to call a method, and Structr handles the REST call automatically. The Event Action Mapping passes input values to the method and handles the response – displaying results, showing notifications, or triggering follow-up actions.
 
 For details on configuring Event Action Mappings, see the [Event Action Mapping](/structr/docs/ontology/Building%20Applications/Event%20Action%20Mapping) chapter.
 
@@ -164,12 +206,13 @@ To run a function on a schedule, configure a cron expression for the function in
 ```javascript
 {
     // User-defined function with cron expression "0 0 2 * * *" (daily at 2 AM)
-    let thirtyDaysAgo = $.dateAdd(new Date(), -30, 'days');
-    let oldEntries = $.find('LogEntry', { createdDate: $.predicate.lt(thirtyDaysAgo) });
     
-    for (let entry of oldEntries) {
-        $.delete(entry);
-    }
+    // Syntax: dateAdd(date, years[, months[, days[, hours[, minutes[, seconds]]]]])
+    let thirtyDaysAgo = $.dateAdd(new Date(), 0, 0, -30);
+    let oldEntries    = $.find('LogEntry', { createdDate: $.predicate.lt(thirtyDaysAgo) });
+    
+    // delete() can take both collections and single elements
+    $.delete(oldEntries);
     
     $.log('Deleted ' + oldEntries.length + ' old log entries');
 }
@@ -304,7 +347,8 @@ These functions create a new context. You can't use object references from the o
     let id = this.id;  // Get the ID in the outer context
     
     $.doPrivileged(() => {
-        let obj = $.find('MyType', { id: id })[0];  // Retrieve in inner context
+        // find() can be used to get a single object by ID
+        let obj = $.find('MyType', id);  // Retrieve in inner context
         // ...
     });
 }
@@ -341,7 +385,7 @@ To handle errors without aborting the transaction:
 ```javascript
 {
     try {
-        $.httpPost('https://external-api.example.com/notify', data);
+        $.POST('https://external-api.example.com/notify', JSON.stringify(data));
     } catch (e) {
         $.log('Notification failed: ' + e.message);
     }

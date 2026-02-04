@@ -86,12 +86,12 @@ public class ClearDatabase extends NodeServiceCommand implements MaintenanceComm
 
 	@Override
 	public String getShortDescription() {
-		return "Clears the database, i.e. removes all nodes and relationships from the database.";
+		return "Removes all nodes and relationships from the database.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return null;
 	}
 
 	@Override
@@ -107,7 +107,7 @@ public class ClearDatabase extends NodeServiceCommand implements MaintenanceComm
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-			"Warning: this action cannot be reversed, it will delete your application and everything else in the database, even non-Structr nodes and relationships."
+			"Warning: This action cannot be reversed. It deletes your entire application and all data, including non-Structr nodes and relationships."
 		);
 	}
 
@@ -128,6 +128,6 @@ public class ClearDatabase extends NodeServiceCommand implements MaintenanceComm
 
 	@Override
 	public final List<ConceptReference> getParentConcepts() {
-		return List.of(ConceptReference.of(ConceptType.Topic, "Maintenance commands"));
+		return List.of(ConceptReference.of(ConceptType.Topic, "Maintenance Commands"));
 	}
 }

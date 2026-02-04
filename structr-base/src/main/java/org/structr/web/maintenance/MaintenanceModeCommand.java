@@ -86,6 +86,7 @@ public class MaintenanceModeCommand extends NodeServiceCommand implements Mainte
 		return DocumentableType.MaintenanceCommand;
 	}
 
+
 	@Override
 	public String getName() {
 		return "maintenanceMode";
@@ -99,22 +100,23 @@ public class MaintenanceModeCommand extends NodeServiceCommand implements Mainte
 	@Override
 	public String getLongDescription() {
 		return """
-		When the maintenance mode is started, the following services are shut down:
+        When the maintenance mode is started, the following services are shut down:
 
-		- FtpService
-		- HttpService
-		- SSHService
-		- AgentService
-		- CronService
-		- DirectoryWatchService
-		- LDAPService
-		- MailService
+        - FtpService
+        - HttpService
+        - SSHService
+        - AgentService
+        - CronService
+        - DirectoryWatchService
+        - LDAPService
+        - MailService
 
-		After a short delay, the following services are restarted on different ports:
-		- FtpService
-		- HttpService
-		- SSHService
-		""";
+        After a short delay, the following services are restarted on different ports:
+
+        - FtpService
+        - HttpService
+        - SSHService
+        """;
 	}
 
 	@Override
@@ -132,7 +134,7 @@ public class MaintenanceModeCommand extends NodeServiceCommand implements Mainte
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-			"Active processes will keep running until they are finished. If for example a cron job is running, it will not be halted. Only the services are stopped so no NEW processes are started."
+			"Active processes will keep running until they are finished. If for example a cron job is running, it will not be halted. Only the services are stopped so no new processes are started."
 		);
 	}
 

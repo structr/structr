@@ -93,7 +93,6 @@ import static org.structr.web.entity.dom.DOMElement.lowercaseBodyName;
 import static org.structr.web.entity.dom.DOMNode.EVENT_ACTION_MAPPING_CATEGORY;
 import static org.structr.web.entity.dom.DOMNode.PAGE_CATEGORY;
 
-@Documentation(name="DOMElement", type=ConceptType.SystemType, shortDescription="The base class for all elements in a Page.", parent="System types")
 public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String RELOAD_SOURCES_PROPERTY                    = "reloadSources";

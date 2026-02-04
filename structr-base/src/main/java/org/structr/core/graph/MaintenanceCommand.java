@@ -56,7 +56,7 @@ public interface MaintenanceCommand extends Documentable {
 
 		final List<ConceptReference> parentConcepts = new LinkedList<>();
 
-		parentConcepts.add(ConceptReference.of(ConceptType.Topic, "Maintenance commands"));
+		parentConcepts.add(ConceptReference.of(ConceptType.Topic, "Maintenance Commands"));
 
 		return parentConcepts;
 	}

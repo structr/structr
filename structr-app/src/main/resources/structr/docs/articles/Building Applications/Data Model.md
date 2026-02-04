@@ -75,7 +75,30 @@ Type specifies the attribute's data type. Common types include String for text v
 
 The type controls what values are accepted as input. For example, an integer attribute only accepts numeric input. A date attribute accepts string values in ISO-8601 format or according to a custom date pattern specified in the format column. Structr stores dates as long values with millisecond precision in the database.
 
-[Read more about Property Types.](/structr/docs/ontology/References/Built-in%20properties)
+| Type | Description |
+|------|-------------|
+| `Boolean` | True/false values. Returns false instead of null when empty. |
+| `Boolean[]` | Array of boolean values. |
+| `Byte[]` | Binary data stored directly on the node. |
+| `Cypher` | Read-only computed property that executes a Cypher query. |
+| `Date` | Date and time, stored as milliseconds. Accepts ISO-8601 or custom format patterns. |
+| `Date[]` | Array of date values. |
+| `Double` | Floating point numbers with decimal precision. |
+| `Double[]` | Array of double values. |
+| `Encrypted` | String stored with AES encryption. Automatically encrypted on write and decrypted on read with key from structr.conf. |
+| `Enum` | String constrained to allowed values defined in the Format field. |
+| `Enum[]` | Array of enum values, each constrained to the allowed values. |
+| `Function` | Computed property with read and write functions. Configure a type hint for proper indexing. |
+| `Integer` | 32-bit whole numbers. |
+| `Integer[]` | Array of integer values. |
+| `Long` | 64-bit whole numbers, for large values or identifiers. |
+| `Long[]` | Array of long values. |
+| `String` | Text values. Supports fulltext indexing for advanced search. |
+| `String[]` | Array of strings. |
+| `Thumbnail` | Read-only property that returns a scaled version of an image. Configure dimensions in Format field as "width, height" or "width, height, crop". |
+| `ZonedDateTime` | Date and time with timezone information preserved. |
+
+For Boolean properties, Structr uses passive indexing – the value is written to the database at transaction end, ensuring Cypher queries can find objects with false values. Function properties also use passive indexing when indexed is enabled.
 
 #### Format
 The Format field is optional and has different meanings depending on the attribute type.

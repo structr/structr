@@ -543,47 +543,7 @@ public final class Ontology {
 
 			if (clazz != null) {
 
-				// import properties and important methods from system types, maybe longDescription as well...?
-				if (AbstractNodeTraitDefinition.class.isAssignableFrom(clazz)) {
-
-					try {
-
-						final Constructor constructor = clazz.getConstructor();
-						if (constructor != null) {
-
-							final AbstractNodeTraitDefinition def = (AbstractNodeTraitDefinition) constructor.newInstance();
-							if (def != null) {
-
-								final String dynamicTypeName = def.getName();
-								if (Traits.exists(dynamicTypeName)) {
-
-									final Traits traits = Traits.of(dynamicTypeName);
-
-									// collect properties here
-									for (final DocumentedProperty property : traits.getDocumentedProperties()) {
-
-										final Concept propertyConcept = getOrCreateConcept(token, ConceptType.Property, property.getName(), false);
-										if (propertyConcept != null) {
-
-											propertyConcept.setShortDescription(property.getDescription());
-
-											createSymmetricLink(concept, Verb.Has, propertyConcept);
-										}
-									}
-								}
-							}
-
-						} else {
-
-							System.out.println("Cannot instantiate " + clazz.getSimpleName() + " because it has no no-args constructor.");
-						}
-					} catch (Throwable t) {
-						t.printStackTrace();
-					}
-
-				}
-
-				// import enum constants as well
+				// import enum constants
 				if (clazz.isEnum()) {
 
 					for (final Object enumConstant : clazz.getEnumConstants()) {

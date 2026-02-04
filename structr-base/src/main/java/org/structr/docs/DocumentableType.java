@@ -35,21 +35,21 @@ import java.util.function.Consumer;
 
 public enum DocumentableType {
 
-	BuiltInFunction("Built-in function", ConceptType.Function, true, true, Functions::addFunctionsAndExpressions),
+	BuiltInFunction("Built-in Function", ConceptType.Function, true, true, Functions::addFunctionsAndExpressions),
 	EventAction("Event Action", ConceptType.EventAction, false, false, null),
 	EventNotification("Event Notification", ConceptType.EventNotification, false, false, null),
 	EventBehaviour("Event Behaviour", ConceptType.EventBehaviour, false, false, null),
-	Keyword("Built-in keyword", ConceptType.Keyword, true, true, AbstractHintProvider::addBuiltInKeywordHints),
+	Keyword("System Keyword", ConceptType.Keyword, true, true, AbstractHintProvider::addBuiltInKeywordHints),
 	Method("Method", ConceptType.Method, true, true, null),
 	Property("Property", ConceptType.Property, false, false, AbstractPrimitiveProperty::addProperties),
-	UserDefinedFunction("User-defined function", ConceptType.UserDefinedFunction, false, false, null),
-	MaintenanceCommand("Maintenance command", ConceptType.MaintenanceCommand, false, false, MaintenanceResource::getMaintenanceCommands),
-	SystemType("System type", ConceptType.SystemType, false, false, TraitsManager::addAllSystemTypes),
-	LifecycleMethod("Lifecycle method", ConceptType.LifecycleMethod, false, true, LifecycleBase::addAllLifecycleMethods),
+	UserDefinedFunction("User-defined Function", ConceptType.UserDefinedFunction, false, false, null),
+	MaintenanceCommand("Maintenance Command", ConceptType.MaintenanceCommand, false, false, MaintenanceResource::getMaintenanceCommands),
+	SystemType("System Type", ConceptType.SystemType, false, false, TraitsManager::addAllSystemTypes),
+	LifecycleMethod("Lifecycle Method", ConceptType.LifecycleMethod, false, true, LifecycleBase::addAllLifecycleMethods),
 	Service("Service", ConceptType.Service, false, false, Services::collectDocumentation),
 	Setting("Setting", ConceptType.Setting, false, false, SettingDocumentable::collectAllSettings),
-	RequestKeyword("Request parameter", ConceptType.RequestParameter, false, false, null),
-	RequestHeader("Request header", ConceptType.RequestHeader, false, false, null),
+	RequestKeyword("Request Parameter", ConceptType.RequestParameter, false, false, null),
+	RequestHeader("Request Header", ConceptType.RequestHeader, false, false, null),
 	Constant("Constant", ConceptType.Constant, false, false, null),
 	Hidden(null, null, false, false, null);
 

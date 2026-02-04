@@ -3238,21 +3238,25 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	@Override
 	public String getShortDescription() {
-		return "Creates a Deployment Export or Import of the Structr application.";
+		return "Exports or imports a Structr application without data.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "This command reads or writes a text-based export of the application (without its data!) that can be stored in a version control system. The maintenance command is used internally in the Dashboard section.";
+		return """
+        Exports or imports the schema, pages, files, and security configuration. The export creates a text-based format suitable for version control.
+        
+        This is the same mechanism used by the Dashboard deployment feature.
+        """;
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 		return List.of(
-			Parameter.mandatory("mode", "deployment mode, `import` or `export`"),
-			Parameter.optional("source", "source folder for `import` mode"),
-			Parameter.optional("target", "target folder for `export` mode"),
-			Parameter.optional("extendExistingApp", "`import` only: if set to `true`, the import will be incremental, i.e. the existing Structr app will not be removed before importing the new application")
+			Parameter.mandatory("mode", "`import` or `export`"),
+			Parameter.optional("source", "Source folder path (required for import)"),
+			Parameter.optional("target", "Target folder path (required for export)"),
+			Parameter.optional("extendExistingApp", "If true, import merges with existing application instead of replacing it")
 		);
 	}
 

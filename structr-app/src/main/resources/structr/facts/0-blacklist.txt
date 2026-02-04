@@ -5,8 +5,3 @@
 # It should be loaded first.
 #
 
-blacklist "10pt", "1rem", "80px", "8212", "300px", "500px", Action, Advanced, Boolean, Byte, Copy, Create, Date, Delete, Description, Double, Filter, Filters, Float, Integer, List, Load, Long
-blacklist Name, None, Options, Parameters, Refresh, Save, Select, String, Style, Type, absolute, auto, black, checkbox, class, controls, crud, custom, desc, error
-blacklist favorites, hint, href, info, input, inter, invalid, json, label, loose, monaco, name, nodeHover, number, numeric, plain, pointer, quot, right, root
-blacklist searchresults, select, "show()", signature, sourceId, success, targetId, type, warning, null_attr, touch, internalTimestamp, "has traits", skip
-blacklist "(Interval: lines)", "11px", "12px", "CR+LF"

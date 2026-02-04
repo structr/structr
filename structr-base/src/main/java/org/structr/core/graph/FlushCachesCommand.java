@@ -86,7 +86,7 @@ public class FlushCachesCommand extends NodeServiceCommand implements Maintenanc
 
 	@Override
 	public String getName() {
-		return "flushCashes";
+		return "flushCaches";
 	}
 
 	@Override
@@ -96,7 +96,9 @@ public class FlushCachesCommand extends NodeServiceCommand implements Maintenanc
 
 	@Override
 	public String getLongDescription() {
-		return "This command can be used to reduce the amount of memory consumed by Structr, or to fix possible cache invalidation errors.";
+		return """
+        Use this command to reduce memory consumption or resolve cache invalidation issues.
+        """;
 	}
 
 	@Override
@@ -131,6 +133,6 @@ public class FlushCachesCommand extends NodeServiceCommand implements Maintenanc
 
 	@Override
 	public final List<ConceptReference> getParentConcepts() {
-		return List.of(ConceptReference.of(ConceptType.Topic, "Maintenance commands"));
+		return List.of(ConceptReference.of(ConceptType.Topic, "Maintenance Commands"));
 	}
 }

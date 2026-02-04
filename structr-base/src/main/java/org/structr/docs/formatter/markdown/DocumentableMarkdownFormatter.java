@@ -22,7 +22,6 @@ import org.structr.docs.Documentable;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
 import org.structr.docs.ontology.Concept;
-import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.Details;
 import org.structr.docs.ontology.Link;
 
@@ -30,7 +29,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-public class MarkdownDocumentableFormatter extends Formatter {
+public class DocumentableMarkdownFormatter extends Formatter {
 
 	@Override
 	public boolean format(final List<String> lines, final Link link, final OutputSettings settings, final int level, final Set<Concept> seenConcepts) {

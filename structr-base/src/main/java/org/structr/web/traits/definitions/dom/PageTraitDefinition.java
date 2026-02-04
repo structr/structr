@@ -54,7 +54,6 @@ import static org.structr.web.entity.dom.DOMNode.PAGE_CATEGORY;
 /**
  * Represents a page resource.
  */
-@Documentation(name="Page", type= ConceptType.SystemType, shortDescription="The base class for all nodes in a Page.", parent="System types")
 public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String ELEMENTS_PROPERTY              = "elements";
@@ -249,27 +248,7 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public String getShortDescription() {
-		return "This trait is the main entry point for Structr's Page Rendering Engine.";
-	}
-
-	@Override
-	public String getLongDescription() {
-		return """
-		### How It Works
-		When a user accesses the URL of a Page with their browser, a process is started that runs through this tree structure from top to bottom and generates the HTML representation for each element. This process is called page rendering. Because of this sequential processing, it is possible to run through the same element more than once without additional effort (e.g. for each result of a database query) or to hide the content of specific elements depending on certain conditions (for access control).
-		
-		### Keywords
-		The following keywords are valid in the context of the page rendering process: `page`, `this`, `request`, ...
-		
-		### Common Use Cases
-		- Pages can be used to server static content, like text, images etc. from Structr's filesystem.
-		- Pages are also the main element of a dynamic web application.
-		
-		### Additional Information
-		- A Page either consist of HTML elements or a single Template element (a so-called "Main Page Template")
-		- HTML elements be configured to execute a database query (or a script) and loop over the results, creating a Repeater
-		- The information that comes with the request URL (path elements, request parameters, etc.) are also available in the Page Rendering process.
-		""";
+	public boolean includeInDocumentation() {
+		return true;
 	}
 }

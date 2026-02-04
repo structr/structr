@@ -20,6 +20,7 @@ package org.structr.docs;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.Link;
 import org.structr.docs.ontology.Verb;
 
@@ -98,6 +99,17 @@ public abstract class Formatter {
 
 			// part2: recurse (children are handled externally, i.e. not inside the type-specific formatters)
 			final List<Link> links = concept.getChildLinks(Verb.Has);
+			boolean sortChildren   = true;
+
+			// check if children want to be sorted
+			for (final Link child : links) {
+				sortChildren &= ConceptType.SortedChildren.equals(child.getFormat());
+			}
+
+			if (sortChildren) {
+				Collections.sort(links, Comparator.comparing(c -> c.getTarget().getName()));
+			}
+
 			for (final Link child : links) {
 
 				walkOntology(lines, child, outputSettings, level + 1, seenConcepts);
