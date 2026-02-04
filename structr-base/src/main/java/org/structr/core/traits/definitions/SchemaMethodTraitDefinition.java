@@ -59,7 +59,6 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 	public static final String PARAMETERS_PROPERTY                 = "parameters";
 	public static final String SCHEMA_NODE_PROPERTY                = "schemaNode";
 	public static final String STATIC_SCHEMA_NODE_NAME_PROPERTY    = "staticSchemaNodeName";
-	public static final String SIGNATURE_PROPERTY                  = "signature";
 	public static final String VIRTUAL_FILE_NAME_PROPERTY          = "virtualFileName";
 	public static final String RETURN_TYPE_PROPERTY                = "returnType";
 	public static final String OPEN_API_RETURN_TYPE_PROPERTY       = "openAPIReturnType";
@@ -218,7 +217,6 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 		final Property<Iterable<NodeInterface>> parameters         = new EndNodes(traitsInstance, PARAMETERS_PROPERTY, StructrTraits.SCHEMA_METHOD_PARAMETERS);
 		final Property<NodeInterface>      schemaNode              = new StartNode(traitsInstance, SCHEMA_NODE_PROPERTY, StructrTraits.SCHEMA_NODE_METHOD, new PropertySetNotion<>(newSet(GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY, AbstractSchemaNodeTraitDefinition.IS_SERVICE_CLASS_PROPERTY)));
 		final Property<String>             staticSchemaNodeName    = new StringProperty(STATIC_SCHEMA_NODE_NAME_PROPERTY);
-		final Property<String>             signature               = new StringProperty(SIGNATURE_PROPERTY).indexed();
 		final Property<String>             virtualFileName         = new StringProperty(VIRTUAL_FILE_NAME_PROPERTY).indexed();
 		final Property<String>             returnType              = new StringProperty(RETURN_TYPE_PROPERTY).indexed();
 		final Property<String>             openAPIReturnType       = new StringProperty(OPEN_API_RETURN_TYPE_PROPERTY).indexed();
@@ -244,7 +242,6 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 			parameters,
 			schemaNode,
 			staticSchemaNodeName,
-			signature,
 			virtualFileName,
 			returnType,
 			openAPIReturnType,

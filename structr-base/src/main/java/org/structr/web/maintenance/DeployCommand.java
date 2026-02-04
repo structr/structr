@@ -2399,7 +2399,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			// remove all DOMNodes from the database (clean webapp for import, but only
 			// if the actual import directories exist, don't delete web components if
-			// an empty directory was specified accidentially).
+			// an empty directory was specified accidentally).
 			if (!extendExistingApp && Files.exists(templates) && Files.exists(components) && Files.exists(pages)) {
 
 				try (final Tx tx = app.tx()) {

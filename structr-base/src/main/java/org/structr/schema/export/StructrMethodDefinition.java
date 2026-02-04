@@ -90,12 +90,12 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 	@Override
 	public String toString() {
-		return getSignature();
+		return getName();
 	}
 
 	@Override
 	public int hashCode() {
-		return getSignature().hashCode();
+		return getName().hashCode();
 	}
 
 	@Override
@@ -363,7 +363,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 		for (final SchemaMethod m : schemaNode.getSchemaMethodsByName(getName())) {
 
-			if (getSignature().equals(m.getSignature())) {
+			if (getName().equals(m.getName())) {
 
 				method = m;
 				break;
@@ -374,11 +374,10 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 			final PropertyMap getOrCreateProperties = new PropertyMap();
 			getOrCreateProperties.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                  getName());
-			getOrCreateProperties.put(traits.key(SchemaMethodTraitDefinition.SIGNATURE_PROPERTY),             getSignature());
 			getOrCreateProperties.put(traits.key(SchemaMethodTraitDefinition.CODE_TYPE_PROPERTY),              getCodeType());
 			getOrCreateProperties.put(traits.key(SchemaMethodTraitDefinition.RETURN_TYPE_PROPERTY),            getReturnType());
 			getOrCreateProperties.put(traits.key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY),            schemaNode);
-			getOrCreateProperties.put(traits.key(SchemaMethodTraitDefinition.EXCEPTIONS_PROPERTY),            listToArray(getExceptions()));
+			getOrCreateProperties.put(traits.key(SchemaMethodTraitDefinition.EXCEPTIONS_PROPERTY),             listToArray(getExceptions()));
 			getOrCreateProperties.put(traits.key(SchemaMethodTraitDefinition.OVERRIDES_EXISTING_PROPERTY),     overridesExisting());
 			getOrCreateProperties.put(traits.key(SchemaMethodTraitDefinition.CALL_SUPER_PROPERTY),             callSuper());
 			getOrCreateProperties.put(traits.key(SchemaMethodTraitDefinition.DO_EXPORT_PROPERTY),              doExport());
@@ -386,16 +385,16 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 			method = app.create(StructrTraits.SCHEMA_METHOD, getOrCreateProperties).as(SchemaMethod.class);
 		}
 
-		updateProperties.put(traits.key(SchemaMethodTraitDefinition.SUMMARY_PROPERTY),               getSummary());
-		updateProperties.put(traits.key(SchemaMethodTraitDefinition.DESCRIPTION_PROPERTY),           getDescription());
-		updateProperties.put(traits.key(SchemaMethodTraitDefinition.SOURCE_PROPERTY),                getSource());
+		updateProperties.put(traits.key(SchemaMethodTraitDefinition.SUMMARY_PROPERTY),                    getSummary());
+		updateProperties.put(traits.key(SchemaMethodTraitDefinition.DESCRIPTION_PROPERTY),                getDescription());
+		updateProperties.put(traits.key(SchemaMethodTraitDefinition.SOURCE_PROPERTY),                     getSource());
 		updateProperties.put(traits.key(SchemaMethodTraitDefinition.IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY), true);
-		updateProperties.put(traits.key(SchemaMethodTraitDefinition.IS_STATIC_PROPERTY),              isStatic());
-		updateProperties.put(traits.key(SchemaMethodTraitDefinition.IS_PRIVATE_PROPERTY),             isPrivate());
-		updateProperties.put(traits.key(SchemaMethodTraitDefinition.RETURN_RAW_RESULT_PROPERTY),       returnRawResult());
-		updateProperties.put(traits.key(SchemaMethodTraitDefinition.HTTP_VERB_PROPERTY),              getHttpVerb());
-		updateProperties.put(traits.key(SchemaMethodTraitDefinition.INCLUDE_IN_OPEN_API_PROPERTY),      includeInOpenAPI());
-		updateProperties.put(traits.key(SchemaMethodTraitDefinition.OPEN_API_RETURN_TYPE_PROPERTY),     getOpenAPIReturnType());
+		updateProperties.put(traits.key(SchemaMethodTraitDefinition.IS_STATIC_PROPERTY),                  isStatic());
+		updateProperties.put(traits.key(SchemaMethodTraitDefinition.IS_PRIVATE_PROPERTY),                 isPrivate());
+		updateProperties.put(traits.key(SchemaMethodTraitDefinition.RETURN_RAW_RESULT_PROPERTY),          returnRawResult());
+		updateProperties.put(traits.key(SchemaMethodTraitDefinition.HTTP_VERB_PROPERTY),                  getHttpVerb());
+		updateProperties.put(traits.key(SchemaMethodTraitDefinition.INCLUDE_IN_OPEN_API_PROPERTY),        includeInOpenAPI());
+		updateProperties.put(traits.key(SchemaMethodTraitDefinition.OPEN_API_RETURN_TYPE_PROPERTY),       getOpenAPIReturnType());
 
 		final Set<String> mergedTags     = new LinkedHashSet<>(this.tags);
 		final String[] existingTagsArray = method.getTags();
@@ -638,25 +637,6 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		}
 
 		return map;
-	}
-
-	String getSignature() {
-
-		final StringBuilder buf = new StringBuilder();
-
-		buf.append(getReturnType());
-		buf.append(" ");
-		buf.append(getName());
-		buf.append("(");
-		buf.append(StringUtils.join(parameters, ", "));
-		buf.append(")");
-
-		if (!exceptions.isEmpty()) {
-			buf.append(" throws ");
-			buf.append(StringUtils.join(exceptions, ", "));
-		}
-
-		return buf.toString();
 	}
 
 	void diff(final StructrMethodDefinition other) {
