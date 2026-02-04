@@ -836,7 +836,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 			String path;
 
-			if (filesystemEnabled && user != null) {
+			if (filesystemEnabled && user != null && !securityContext.isSuperUser()) {
 				path = addFinalSlash(user.as(User.class).getOrCreateHomeDirectory().getPath());
 			} else {
 				path = getDefaultUploadFolderPathValueFromSetting();
