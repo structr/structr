@@ -476,7 +476,7 @@ public class FunctionProperty<T> extends Property<T> implements Documentable {
 
 		final List<ConceptReference> concepts = Documentable.super.getParentConcepts();
 
-		concepts.add(ConceptReference.of(ConceptType.Topic, "Built-in properties"));
+		concepts.add(ConceptReference.of(ConceptType.Topic, "Property Types"));
 
 		return concepts;
 	}

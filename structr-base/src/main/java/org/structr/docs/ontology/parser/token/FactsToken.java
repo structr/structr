@@ -116,7 +116,10 @@ public class FactsToken extends AbstractToken implements TokenCollection {
 
 			if (link != null) {
 
-				link.setFormatSpecification(annotatedObject.getFormatSpecification());
+				if (annotatedObject.getFormatSpecification() != null) {
+
+					link.setFormatSpecification(annotatedObject.getFormatSpecification());
+				}
 			}
 		}
 	}

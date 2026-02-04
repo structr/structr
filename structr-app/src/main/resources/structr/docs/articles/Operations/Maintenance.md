@@ -1,6 +1,79 @@
 # Maintenance
 
-This chapter covers routine maintenance tasks for keeping your Structr instance running smoothly, including the maintenance mode for planned downtime and the process for updating to new versions.
+This chapter covers routine maintenance tasks for keeping your Structr instance running smoothly, including maintenance commands for database operations, the maintenance mode for planned downtime, and the process for updating to new versions.
+
+## Maintenance Commands
+
+Maintenance commands perform administrative operations on the database and application, such as rebuilding indexes, migrating data, or clearing caches. You can execute them through the Admin UI, the REST API, or programmatically in scripts.
+
+### Executing via Admin UI
+
+The Schema area provides access to common maintenance commands through the Admin menu:
+
+#### Indexing – Nodes
+
+- Rebuild Index – Recreates indexes for all or selected node types
+- Add UUIDs – Adds UUIDs to nodes that lack one
+- Create Labels – Creates Neo4j labels based on the type property
+
+#### Indexing – Relationships
+
+- Rebuild Index – Recreates indexes for relationships
+- Add UUIDs – Adds UUIDs to relationships
+
+#### Maintenance
+
+- Flush Caches – Clears internal caches
+- Clear Schema – Removes all custom types (use with caution)
+
+### Executing via REST API
+
+Send a POST request to the maintenance endpoint:
+
+```
+POST /structr/rest/maintenance/<command>
+Content-Type: application/json
+
+{
+    "parameter1": "value1",
+    "parameter2": "value2"
+}
+```
+
+For example, to rebuild the index for a specific type:
+
+```
+POST /structr/rest/maintenance/rebuildIndex
+Content-Type: application/json
+
+{
+    "type": "Article"
+}
+```
+
+### Executing via Script
+
+Use the `maintenance()` function to run commands from StructrScript or JavaScript. This requires admin privileges.
+
+#### JavaScript
+
+```javascript
+{
+    $.maintenance('rebuildIndex', { type: 'Article' });
+}
+```
+
+#### StructrScript
+
+```
+${maintenance('rebuildIndex', 'type', 'Article')}
+```
+
+In StructrScript, pass parameters as alternating key-value pairs. In JavaScript, pass a map as the second argument.
+
+### Available Commands
+
+For a complete list of maintenance commands and their parameters, see the Maintenance Commands reference.
 
 ## Maintenance Mode
 

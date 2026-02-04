@@ -394,21 +394,21 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 	@Override
 	public String getShortDescription() {
-		return "Imports files from a local directory into the Structr filesystem.";
+		return "Imports files from a server filesystem directory into Structr's virtual filesystem.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "The files can either be copied or moved (i.e. deleted after copying into Structr), depending on the mode parameter. The existing parameter determines how Structr handles existing files in the Structr Filesystem. The index parameter allows you to enable or disable indexing for the imported files.";
+		return null;
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 		return List.of(
-			Parameter.mandatory("source", "source directory to import files from"),
-			Parameter.mandatory("mode", "import mode (`copy` or `move`)"),
-			Parameter.optional("existing", "how to handle existing files in the destination (`skip`, `overwrite` or `rename`, default is `skip`)"),
-			Parameter.optional("index", "whether to index the copied files (`true` or `false`, default is `true`)")
+			Parameter.mandatory("source", "Source directory path on the server"),
+			Parameter.mandatory("mode", "`copy` (keep originals) or `move` (delete after import)"),
+			Parameter.optional("existing", "Handle duplicates: `skip`, `overwrite`, or `rename` (default: skip)"),
+			Parameter.optional("index", "Enable fulltext indexing for imported files (default: true)")
 		);
 	}
 
@@ -420,7 +420,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-			"When using Docker, you first have to copy the files to the Docker container, or use a files volume."
+			"When using Docker, copy files into the container first or use a mounted volume."
 		);
 	}
 

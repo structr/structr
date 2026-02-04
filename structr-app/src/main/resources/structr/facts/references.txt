@@ -6,7 +6,7 @@
 #
 
 # References
-Topic References has topics "Built-in keywords", "Built-in functions", "Built-in traits", "Property types", Services, "Maintenance commands", Settings
+Topic References has topics "System Keywords", "Built-in Functions", "System Types", "Services", "Maintenance Commands", "Settings"
 
 "References" has glossary "Glossary"
 
@@ -33,22 +33,39 @@ Topic References has topics "Built-in keywords", "Built-in functions", "Built-in
 
 
 # resources from Java
-"Built-in keywords" has code-source "keyword" as table
-"Built-in functions" has code-source "function" as table
+"System Keywords" has code-source "keyword" as table
+"Built-in Functions" has code-source "function" as table
 "Settings" has code-source "setting" as table
-"Maintenance commands" has code-source "maintenance-command" as table
-"Services" has code-source "service" as table
-"Property types" has code-source "property"
-"Built-in traits" has code-source "system-type"
+"Maintenance Commands" has code-source "maintenance-command" as table
+"Services" has code-source "service" as sorted-children
+"System Types" has code-source "system-type" as sorted-children
+
+"Maintenance Commands" has description "Maintenance commands perform administrative operations on the database and application. They run with full privileges and are available only to admin users. You can execute maintenance commands through the Admin UI (Schema → Admin menu), the REST API (`POST /structr/rest/maintenance/<command>`), or programmatically using the `maintenance()` function. For details on execution methods, see the Maintenance chapter."
 
 # Settings description
 "Settings" has description "The following table lists all configuration settings available in Structr. You can view and modify these settings in the Configuration Interface, which opens in a separate browser tab when you click the wrench icon in the Admin UI header bar. The Configuration Interface requires authentication with the superuser password from `structr.conf`. Alternatively, you can edit the `structr.conf` file directly and restart the server."
 
+Topic "System Types" has description "System types are built-in types that provide core functionality in Structr. They include types for users and groups, files and folders, pages and templates, email handling, and more. Each system type comes with predefined properties and methods. You can use these types directly or extend them in your schema to add custom properties and behavior. For details on extending types, see the Data Model chapter."
+
 # Markdown-based descriptions for internal classes
-System-type "User" has markdown-file "snippets/User.md" as description
-System-type "Group" has markdown-file "snippets/Group.md" as description
-System-type "Folder" has markdown-file "snippets/Folder.md" as description
-System-type "File" has markdown-file "snippets/File.md" as description
-System-type "Image" has markdown-file "snippets/Image.md" as description
-System-type "Location" has markdown-file "snippets/Location.md" as description
-System-type "MailTemplate" has markdown-file "snippets/MailTemplate.md" as description
+System-type "File" has markdown-file "snippets/System Types/File.md" as description
+System-type "Folder" has markdown-file "snippets/System Types/Folder.md" as description
+System-type "Group" has markdown-file "snippets/System Types/Group.md" as description
+System-type "Image" has markdown-file "snippets/System Types/Image.md" as description
+System-type "Location" has markdown-file "snippets/System Types/Location.md" as description
+System-type "MailTemplate" has markdown-file "snippets/System Types/MailTemplate.md" as description
+System-type "Mailbox" has markdown-file "snippets/System Types/Mailbox.md" as description
+System-type "EMailMessage" has markdown-file "snippets/System Types/EMailMessage.md" as description
+System-type "Site" has markdown-file "snippets/System Types/Site.md" as description
+System-type "User" has markdown-file "snippets/System Types/User.md" as description
+System-type "Widget" has markdown-file "snippets/System Types/Widget.md" as description
+System-type "Page" has markdown-file "snippets/System Types/Page.md" as description
+System-type "Template" has markdown-file "snippets/System Types/Template.md" as description
+System-type "VideoFile" has markdown-file "snippets/System Types/VideoFile.md" as description
+
+
+"CronService" has markdown-file "snippets/Services/CronService.md" as description
+"DirectoryWatchService" has markdown-file "snippets/Services/DirectoryWatchService.md" as description
+"FtpService" has markdown-file "snippets/Services/FtpService.md" as description
+"SSHService" has markdown-file "snippets/Services/SSHService.md" as description
+"MailService" has markdown-file "snippets/Services/MailService.md" as description

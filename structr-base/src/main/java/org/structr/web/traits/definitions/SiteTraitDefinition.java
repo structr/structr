@@ -37,7 +37,6 @@ import org.structr.web.traits.wrappers.SiteTraitWrapper;
 import java.util.Map;
 import java.util.Set;
 
-@Documentation(name="Site", type= ConceptType.SystemType, parent="Built-in traits")
 public class SiteTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String PAGES_PROPERTY    = "pages";
@@ -75,8 +74,8 @@ public class SiteTraitDefinition extends AbstractNodeTraitDefinition {
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
 		final Property<Iterable<NodeInterface>> pagesProperty = new EndNodes(traitsInstance, PAGES_PROPERTY, StructrTraits.SITE_CONTAINS_PAGE);
-		final Property<String> hostnameProperty               = new StringProperty(HOSTNAME_PROPERTY).indexed();
-		final Property<Integer> portProperty                  = new IntProperty(PORT_PROPERTY).indexed();
+		final Property<String> hostnameProperty               = new StringProperty(HOSTNAME_PROPERTY).indexed().description("Domain name used to match incoming requests to this site. Requests with a matching Host header are routed to pages assigned to this site.");
+		final Property<Integer> portProperty                  = new IntProperty(PORT_PROPERTY).indexed().description("Port number used together with hostname to match incoming requests. Allows hosting multiple sites on different ports of the same domain.");
 
 		return Set.of(
 			pagesProperty,
@@ -104,5 +103,10 @@ public class SiteTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Relation getRelation() {
 		return null;
+	}
+
+	@Override
+	public boolean includeInDocumentation() {
+		return true;
 	}
 }

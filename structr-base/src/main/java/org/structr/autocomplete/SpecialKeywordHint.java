@@ -23,11 +23,11 @@ import org.structr.docs.ontology.ConceptType;
 
 import java.util.List;
 
-@Documentation(name="Special keywords", shortDescription="Built-in keywords that are only available in special contexts.")
+@Documentation(name="Special Keywords", shortDescription="Built-in keywords that are only available in special contexts.")
 public abstract class SpecialKeywordHint extends KeywordHint {
 
 	@Override
 	public List<ConceptReference> getParentConcepts() {
-		return List.of(ConceptReference.of(ConceptType.Topic, "Special keywords"));
+		return List.of(ConceptReference.of(ConceptType.Topic, "Special Keywords"));
 	}
 }

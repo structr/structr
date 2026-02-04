@@ -35,15 +35,12 @@ import org.structr.core.api.NamedArguments;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.Traits;
-import org.structr.docs.*;
-import org.structr.docs.ontology.ConceptType;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.Actions;
 import org.structr.schema.action.EvaluationHints;
 
 import java.util.Collections;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -264,111 +261,6 @@ public class CronService extends Thread implements RunnableService {
 	@Override
 	public boolean waitAndRetry() {
 		return false;
-	}
-
-	public static Documentable getDocumentation() {
-
-		return new Documentable() {
-
-			@Override
-			public DocumentableType getDocumentableType() {
-				return DocumentableType.Service;
-			}
-
-			@Override
-			public String getName() {
-				return "CronService";
-			}
-
-			@Override
-			public String getShortDescription() {
-				return "This service allows you to schedule periodic execution of built-in functions based on a pattern similar to the \"cron\" daemon on UNIX systems.";
-			}
-
-			@Override
-			public String getLongDescription() {
-				return """
-				### How It Works
-				Scheduled tasks for the CronService are configured in `structr.conf`. The main configuration key is `CronService.tasks`. It accepts a whitespace-separated list of user-defined function names. These are the tasks that are registered with the CronService.
-
-				For each of those tasks, a `cronExpression` entry has to be configured which determines the execution time/date of the task. It consists of seven fields and looks similar to crontab entries in Unix-based operating systems:
-				
-				```
-				<methodName>.cronExpression = <s> <m> <h> <dom> <m> <dow>
-				```
-				
-				| Field | Explanation | Value Range |
-				| --- | --- | --- |
-				| `<methodName>` | name of the user-defined function | any existing user-defined function |
-				| `<s>` | seconds of the minute | 0-59 |
-				| `<m>` | minute of the hour | 0-59 |
-				| `<h>` | hour of the day | 0-23 |
-				| `<dom>` | day of the month | 0-31 |
-				| `<m>` | month of the year | 1-12 |
-				| `<dow>` | day of the week | 0-6 (0 = Sunday) |
-				
-				There are several supported notations for the fields:
-				
-				| Notation | Meaning |
-				| --- | --- |
-				| * | Execute for every possible value of the field. |
-				| x | Execute at the given field value. |
-				| x-y | Execute for value x up to value y of the field. |
-				| */x | Execute for every multiple of x in the field (in relation to the next bigger field). |
-				
-				Examples:
-				
-				| Example | Meaning |
-				| --- | --- |
-				| Hours = * | Execute at every full hour. |
-				| Hours = 12| Execute at 12 o’clock. |
-				| Hours = 12-16 | Execute at 12, 13, 14, 15, 16 o’clock. |
-				| Seconds = */15 | In every minute, execute at 0, 15, 30, 45 seconds. |
-				| Seconds = */23 | Special case: In every minute, execute at 0, 23, 46 seconds. If the unit is not evenly divisible by the given number the last interval is shorter than the others. |
-
-				### Notes
-				- The scheduled functions are executed in the context of an admin user.
-				- The CronService must be included in the structr.conf setting `configured.services` to be activated.
-				- When a cronExpression is added, deleted or edited, the CronService has to be restarted for the changes to take effect. This can be done at runtime via the configuration tool or by restarting Structr.
-				- By default, Structr prevents the same cron task to run run while the previous execution is still running. This can be changed via the setting `CronService.allowparallelexecution` in structr.conf.
-				""";
-			}
-
-			@Override
-			public List<Parameter> getParameters() {
-				return null;
-			}
-
-			@Override
-			public List<Example> getExamples() {
-				return null;
-			}
-
-			@Override
-			public List<String> getNotes() {
-				return null;
-			}
-
-			@Override
-			public List<Signature> getSignatures() {
-				return null;
-			}
-
-			@Override
-			public List<Language> getLanguages() {
-				return null;
-			}
-
-			@Override
-			public List<Usage> getUsages() {
-				return null;
-			}
-
-			@Override
-			public List<ConceptReference> getParentConcepts() {
-				return List.of(ConceptReference.of(ConceptType.Topic, "Services"));
-			}
-		};
 	}
 
 	// ----- private methods -----

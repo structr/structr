@@ -20,8 +20,12 @@ package org.structr.docs.ontology.parser.token;
 
 import org.structr.docs.Documentable;
 import org.structr.docs.DocumentableType;
+import org.structr.docs.DocumentedMethod;
+import org.structr.docs.DocumentedProperty;
 import org.structr.docs.ontology.*;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -130,6 +134,56 @@ public class CodeSourceToken extends NamedConceptListToken {
 
 						ontology.createSymmetricLink(mainConcept, Verb.Has, synonymConcept);
 					}
+				}
+
+				final List<DocumentedProperty> properties = documentable.getDocumentedProperties();
+				if (properties != null) {
+
+					for (final DocumentedProperty property : properties) {
+
+						final Concept propertyConcept = ontology.getOrCreateConcept(this, ConceptType.Property, property.getName(), false);
+						if (propertyConcept != null) {
+
+							propertyConcept.getMetadata().put("propertyType", property.getPropertyType());
+							propertyConcept.setShortDescription(property.getDescription());
+
+							ontology.createSymmetricLink(mainConcept, Verb.Has, propertyConcept);
+						}
+					}
+				}
+
+				final List<DocumentedMethod> methods = documentable.getDocumentedMethods();
+				if (methods != null) {
+
+					for (final DocumentedMethod method : methods) {
+
+						final Concept propertyConcept = ontology.getOrCreateConcept(this, ConceptType.Method, method.getName(), false);
+						if (propertyConcept != null) {
+
+							propertyConcept.setShortDescription(method.getDescription());
+
+							ontology.createSymmetricLink(mainConcept, Verb.Has, propertyConcept);
+						}
+					}
+				}
+
+				// There are two use-cases in this method: if the documentables are grouped by category,
+				// the categories are returned so the ontology connects parent and category, which is
+				// basically a second layer in between. If the documentables are not grouped, the main
+				// concept must be returned so the ontology can connect the parent to the child.
+				if (parents.isEmpty()) {
+
+					final AnnotatedConcept annotatedConcept = new AnnotatedConcept(mainConcept);
+
+					if (identifierToken.getFormat() != null) {
+
+						final ConceptToken formatToken = identifierToken.getFormat();
+						final ConceptType format       = formatToken.resolve(ontology);
+
+						annotatedConcept.setFormatSpecification(new FormatSpecification(format, formatToken));
+					}
+
+					parents.add(annotatedConcept);
 				}
 			}
 		}

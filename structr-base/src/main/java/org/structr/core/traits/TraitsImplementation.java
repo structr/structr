@@ -459,7 +459,16 @@ public class TraitsImplementation implements Traits {
 	@Override
 	public DocumentableType getDocumentableType() {
 
-		if (getShortDescription() != null) {
+		final List<Trait> reverseList = new LinkedList<>(getTraits());
+
+		// we need to reverse the list so we get information about the toplevel trait
+		Collections.reverse(reverseList);
+
+		// the first trait decides everything, i.e. ShadowPage should not be visible
+		final Trait trait                = reverseList.getFirst();
+		final TraitDefinition definition = trait.getDefinition();
+
+		if (definition != null && definition.includeInDocumentation()) {
 
 			return DocumentableType.SystemType;
 		}
@@ -474,49 +483,11 @@ public class TraitsImplementation implements Traits {
 
 	@Override
 	public String getShortDescription() {
-
-		final List<Trait> reverseList = new LinkedList<>(getTraits());
-
-		// we need to reverse the list so we get information about the toplevel trait
-		Collections.reverse(reverseList);
-
-		for (final Trait trait : reverseList) {
-
-			final TraitDefinition definition = trait.getDefinition();
-			if (definition != null) {
-
-				final String description = definition.getShortDescription();
-				if (description != null) {
-
-					return description;
-				}
-			}
-		}
-
 		return null;
 	}
 
 	@Override
 	public String getLongDescription() {
-
-		final List<Trait> reverseList = new LinkedList<>(getTraits());
-
-		// we need to reverse the list so we get information about the toplevel trait
-		Collections.reverse(reverseList);
-
-		for (final Trait trait : reverseList) {
-
-			final TraitDefinition definition = trait.getDefinition();
-			if (definition != null) {
-
-				final String description = definition.getLongDescription();
-				if (description != null) {
-
-					return description;
-				}
-			}
-		}
-
 		return null;
 	}
 
@@ -561,7 +532,25 @@ public class TraitsImplementation implements Traits {
 			final String description = key.getDescription();
 			if (description != null) {
 
-				properties.add(new DocumentedProperty(key.jsonName(), description));
+				properties.add(DocumentedProperty.of(key));
+			}
+		}
+
+		return properties;
+	}
+
+	@Override
+	public List<DocumentedMethod> getDocumentedMethods() {
+
+		final List<DocumentedMethod> properties = new LinkedList<>();
+
+		for (final AbstractMethod method : getDynamicMethods().values()) {
+
+			// only include methods that have a description
+			final String description = method.getDescription();
+			if (description != null) {
+
+				properties.add(DocumentedMethod.of(method));
 			}
 		}
 

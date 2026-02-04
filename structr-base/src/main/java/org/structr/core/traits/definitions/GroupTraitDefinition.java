@@ -38,8 +38,6 @@ import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.core.traits.operations.propertycontainer.SetProperty;
 import org.structr.core.traits.wrappers.GroupTraitWrapper;
-import org.structr.docs.Documentation;
-import org.structr.docs.ontology.ConceptType;
 
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -47,7 +45,6 @@ import java.util.Set;
 
 /**
  */
-@Documentation(name="Group", type= ConceptType.SystemType, parent="Built-in traits")
 public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String MEMBERS_PROPERTY           = "members";
@@ -119,7 +116,7 @@ public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> createPropertyKeys(final TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> membersProperty = new EndNodes(traitsInstance, MEMBERS_PROPERTY, StructrTraits.GROUP_CONTAINS_PRINCIPAL).description("members of the group, can be User or Group");
+		final Property<Iterable<NodeInterface>> membersProperty = new EndNodes(traitsInstance, MEMBERS_PROPERTY, StructrTraits.GROUP_CONTAINS_PRINCIPAL).description("Members of the group, can be User or Group.");
 		final Property<String> jwksReferenceIdProperty          = new StringProperty(JWKS_REFERENCE_ID_PROPERTY).indexed().unique();
 		final Property<String> nameProperty                     = new StringProperty(NodeInterfaceTraitDefinition.NAME_PROPERTY).indexed().notNull().unique();
 		final Property<Boolean> isGroupProperty                 = new ConstantBooleanProperty(IS_GROUP_PROPERTY, true);
@@ -152,27 +149,9 @@ public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 		return null;
 	}
 
-	/*
 	@Override
-	public boolean shouldSkipSecurityRelationships() {
-		return isAdmin();
-	}
-	*/
-
-	@Override
-	public String getShortDescription() {
-		return "This trait is one of the base traits for Structr's access control and permissions system.";
-	}
-
-	@Override
-	public String getLongDescription() {
-		return """
-		### How It Works
-		Groups enable collective permission management by allowing administrators to grant access rights to multiple users simultaneously rather than configuring permissions individually.
-		
-		### Applying Groups to Schema Types
-		When defining custom types in Structr's schema, you can specify which groups have permission to work with instances of that type. For example, if you create a `Product` type and grant the "ProductManagers" group write permission on it, members of that group automatically get the configured permissions on `Product` nodes. This allows you to build applications where different user roles have different levels of access to your data model.
-		""";
+	public boolean includeInDocumentation() {
+		return true;
 	}
 
 	// ----- public static methods -----

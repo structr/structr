@@ -23,7 +23,7 @@ import org.structr.docs.ontology.ConceptType;
 
 import java.util.List;
 
-@Documentation(name="Page keywords", shortDescription="Built-in keywords that are available in page rendering contexts.")
+@Documentation(name="Page Keywords", shortDescription="Built-in keywords that are available in page rendering contexts.")
 public abstract class PageKeywordHint extends KeywordHint {
 
 	@Override
@@ -35,6 +35,6 @@ public abstract class PageKeywordHint extends KeywordHint {
 
 	@Override
 	public List<ConceptReference> getParentConcepts() {
-		return List.of(ConceptReference.of(ConceptType.Topic, "Page keywords"));
+		return List.of(ConceptReference.of(ConceptType.Topic, "Page Keywords"));
 	}
 }

@@ -146,15 +146,16 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 
 	@Override
 	public String getLongDescription() {
-		return "This command can for example be used to move all name values to a description property.";
+		return """
+	        Use this command when you rename a property in your schema and need to move existing data to the new key.
+	        """;
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-
 		return List.of(
-			Parameter.mandatory("oldKey", "source key"),
-			Parameter.mandatory("newKey", "target key")
+			Parameter.mandatory("oldKey", "Source property key"),
+			Parameter.mandatory("newKey", "Target property key")
 		);
 	}
 
@@ -185,6 +186,6 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 
 	@Override
 	public final List<ConceptReference> getParentConcepts() {
-		return List.of(ConceptReference.of(ConceptType.Topic, "Maintenance commands"));
+		return List.of(ConceptReference.of(ConceptType.Topic, "Maintenance Commands"));
 	}
 }

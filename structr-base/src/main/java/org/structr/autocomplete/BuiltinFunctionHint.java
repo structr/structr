@@ -54,7 +54,7 @@ public abstract class BuiltinFunctionHint extends AbstractHint {
 			final String displayName = category.getDisplayName();
 			if (displayName != null) {
 
-				concepts.add(ConceptReference.of(ConceptType.Topic, displayName + " functions"));
+				concepts.add(ConceptReference.of(ConceptType.Topic, displayName + " Functions"));
 			}
 		}
 

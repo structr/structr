@@ -44,8 +44,6 @@ import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnDeletion;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.wrappers.UserTraitWrapper;
-import org.structr.docs.Documentation;
-import org.structr.docs.ontology.ConceptType;
 import org.structr.rest.auth.TimeBasedOneTimePasswordHelper;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
@@ -53,7 +51,6 @@ import org.structr.web.entity.User;
 import java.util.Map;
 import java.util.Set;
 
-@Documentation(name="User", type=ConceptType.SystemType, parent="Built-in traits")
 public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String HOME_DIRECTORY_PROPERTY              = "homeDirectory";
@@ -108,9 +105,9 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> homeDirectoryProperty       = new EndNode(traitsInstance, HOME_DIRECTORY_PROPERTY, StructrTraits.USER_HOME_DIR_FOLDER).description("The home directory of this user, if `application.filesystem.enabled` is set to `true` in `structr.conf`.");
 		final Property<NodeInterface> workingDirectoryProperty    = new EndNode(traitsInstance, WORKING_DIRECTORY_PROPERTY, StructrTraits.USER_WORKING_DIR_FOLDER).description("The work directory of this user, if `application.filesystem.enabled` is set to `true` in `structr.conf`.");
 		final Property<NodeInterface> imgProperty                 = new StartNode(traitsInstance, IMG_PROPERTY, StructrTraits.IMAGE_PICTURE_OF_USER);
-		final Property<String> confirmationKeyProperty            = new StringProperty(CONFIRMATION_KEY_PROPERTY).indexed().description("Confirmation key");
+		final Property<String> confirmationKeyProperty            = new StringProperty(CONFIRMATION_KEY_PROPERTY).indexed().description("Temporary token for email verification during self-registration. Set automatically when a user registers and cleared after successful confirmation.");
 		final Property<String> localStorageProperty               = new StringProperty(LOCAL_STORAGE_PROPERTY);
-		final Property<Boolean> skipSecurityRelationshipsProperty = new BooleanProperty(SKIP_SECURITY_RELATIONSHIPS_PROPERTY).defaultValue(false).indexed().description("Skip security relationships");
+		final Property<Boolean> skipSecurityRelationshipsProperty = new BooleanProperty(SKIP_SECURITY_RELATIONSHIPS_PROPERTY).defaultValue(false).indexed().description("When true, excludes this user from relationship-based permission checks. Useful for system users or service accounts that should bypass normal access control evaluation.");
 		final Property<Boolean> isUserProperty                    = new ConstantBooleanProperty(IS_USER_PROPERTY, true);
 
 		return Set.of(
@@ -250,19 +247,7 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public String getShortDescription() {
-		return "The `User` trait is one of the base traits for Structr's access control and permissions system.";
-	}
-
-	@Override
-	public String getLongDescription() {
-		return """
-		### How It Works
-		All requests to Structr are evaluated in the context of the user making the request.
-		
-		You can also impersonate other users if you need to, using the built-in function `doAs()`.
-		
-		If you want to execute a script in the context of an admin user, you can use the `doPrivileged()` function.
-		""";
+	public boolean includeInDocumentation() {
+		return true;
 	}
 }

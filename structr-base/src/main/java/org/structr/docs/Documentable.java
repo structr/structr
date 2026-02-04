@@ -301,6 +301,16 @@ public interface Documentable {
 	}
 
 	/**
+	 * Returns the methods of this Documentable, or null if no
+	 * methods are defined.
+	 *
+	 * @return the methods or null
+	 */
+	default List<DocumentedMethod> getDocumentedMethods() {
+		return null;
+	}
+
+	/**
 	 * Returns the settings of this Documentable, or null if no
 	 * settings are defined.
 	 *

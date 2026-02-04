@@ -26,13 +26,23 @@ public class AnnotatedConcept {
 	private FormatSpecification formatSpecification = null;
 	private final Concept concept;
 
-	public AnnotatedConcept(Concept concept) {
+	public AnnotatedConcept(final Concept concept) {
 		this.concept = concept;
+	}
+
+	public AnnotatedConcept(final Concept concept, final FormatSpecification formatSpecification) {
+
+		this.formatSpecification = formatSpecification;
+		this.concept             = concept;
 	}
 
 	@Override
 	public String toString() {
 		return concept.toString();
+	}
+
+	public String getName() {
+		return concept.getName();
 	}
 
 	public Concept getConcept() {
