@@ -224,7 +224,7 @@ public class DocumentationServlet extends HttpServlet {
 		final Writer writer         = response.getWriter();
 
 		writer.write("<!DOCTYPE html>\n");
-		writer.write("<html>\n");
+		writer.write("<html class=\"documentation\">\n");
 		writer.write("<head>\n");
 		writer.write("    <link rel=\"stylesheet\" href=\"/structr/css/main.css\" />\n");
 		writer.write("    <link rel=\"stylesheet\" href=\"/structr/css/docs.css\" />\n");
