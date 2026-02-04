@@ -60,7 +60,6 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 	public static final String SCHEMA_NODE_PROPERTY                = "schemaNode";
 	public static final String STATIC_SCHEMA_NODE_NAME_PROPERTY    = "staticSchemaNodeName";
 	public static final String VIRTUAL_FILE_NAME_PROPERTY          = "virtualFileName";
-	public static final String RETURN_TYPE_PROPERTY                = "returnType";
 	public static final String OPEN_API_RETURN_TYPE_PROPERTY       = "openAPIReturnType";
 	public static final String SOURCE_PROPERTY                     = "source";
 	public static final String EXCEPTIONS_PROPERTY                 = "exceptions";
@@ -218,7 +217,6 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 		final Property<NodeInterface>      schemaNode              = new StartNode(traitsInstance, SCHEMA_NODE_PROPERTY, StructrTraits.SCHEMA_NODE_METHOD, new PropertySetNotion<>(newSet(GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY, AbstractSchemaNodeTraitDefinition.IS_SERVICE_CLASS_PROPERTY)));
 		final Property<String>             staticSchemaNodeName    = new StringProperty(STATIC_SCHEMA_NODE_NAME_PROPERTY);
 		final Property<String>             virtualFileName         = new StringProperty(VIRTUAL_FILE_NAME_PROPERTY).indexed();
-		final Property<String>             returnType              = new StringProperty(RETURN_TYPE_PROPERTY).indexed();
 		final Property<String>             openAPIReturnType       = new StringProperty(OPEN_API_RETURN_TYPE_PROPERTY).indexed();
 		final Property<String>             source                  = new StringProperty(SOURCE_PROPERTY);
 		final Property<String[]>           exceptions              = new ArrayProperty<>(EXCEPTIONS_PROPERTY, String.class).indexed();
@@ -243,7 +241,6 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 			schemaNode,
 			staticSchemaNodeName,
 			virtualFileName,
-			returnType,
 			openAPIReturnType,
 			source,
 			exceptions,
@@ -272,7 +269,7 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 
 			PropertyView.Public,
 			newSet(
-					SCHEMA_NODE_PROPERTY, STATIC_SCHEMA_NODE_NAME_PROPERTY, SOURCE_PROPERTY, RETURN_TYPE_PROPERTY,
+					SCHEMA_NODE_PROPERTY, STATIC_SCHEMA_NODE_NAME_PROPERTY, SOURCE_PROPERTY,
 					EXCEPTIONS_PROPERTY, CALL_SUPER_PROPERTY, OVERRIDES_EXISTING_PROPERTY, DO_EXPORT_PROPERTY, CODE_TYPE_PROPERTY,
 					IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY, TAGS_PROPERTY, SUMMARY_PROPERTY, DESCRIPTION_PROPERTY, IS_STATIC_PROPERTY,
 					INCLUDE_IN_OPEN_API_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY,
@@ -281,7 +278,7 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 
 			PropertyView.Ui,
 			newSet(
-					SCHEMA_NODE_PROPERTY, STATIC_SCHEMA_NODE_NAME_PROPERTY, SOURCE_PROPERTY, RETURN_TYPE_PROPERTY,
+					SCHEMA_NODE_PROPERTY, STATIC_SCHEMA_NODE_NAME_PROPERTY, SOURCE_PROPERTY,
 					EXCEPTIONS_PROPERTY, CALL_SUPER_PROPERTY, OVERRIDES_EXISTING_PROPERTY, DO_EXPORT_PROPERTY, CODE_TYPE_PROPERTY,
 					IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY, TAGS_PROPERTY, SUMMARY_PROPERTY, DESCRIPTION_PROPERTY, IS_STATIC_PROPERTY,
 					INCLUDE_IN_OPEN_API_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY,
@@ -291,7 +288,7 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 			PropertyView.Schema,
 			newSet(
 					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
-					SCHEMA_NODE_PROPERTY, STATIC_SCHEMA_NODE_NAME_PROPERTY, SOURCE_PROPERTY, RETURN_TYPE_PROPERTY,
+					SCHEMA_NODE_PROPERTY, STATIC_SCHEMA_NODE_NAME_PROPERTY, SOURCE_PROPERTY,
 					EXCEPTIONS_PROPERTY, CALL_SUPER_PROPERTY, OVERRIDES_EXISTING_PROPERTY, DO_EXPORT_PROPERTY, CODE_TYPE_PROPERTY,
 					IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY, TAGS_PROPERTY, SUMMARY_PROPERTY, DESCRIPTION_PROPERTY, IS_STATIC_PROPERTY,
 					INCLUDE_IN_OPEN_API_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY,

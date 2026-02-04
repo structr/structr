@@ -74,7 +74,6 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	private boolean returnRawResult                           = false;
 	private JsonType parent                                   = null;
 	private String httpVerb                                   = "POST";
-	private String returnType                                 = null;
 	private String openAPIReturnType                          = null;
 	private String codeType                                   = null;
 	private String name                                       = null;
@@ -195,17 +194,6 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 		parameters.add(param);
 
-		return this;
-	}
-
-	@Override
-	public String getReturnType() {
-		return returnType;
-	}
-
-	@Override
-	public JsonMethod setReturnType(final String returnType) {
-		this.returnType = returnType;
 		return this;
 	}
 
@@ -375,7 +363,6 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 			final PropertyMap getOrCreateProperties = new PropertyMap();
 			getOrCreateProperties.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                  getName());
 			getOrCreateProperties.put(traits.key(SchemaMethodTraitDefinition.CODE_TYPE_PROPERTY),              getCodeType());
-			getOrCreateProperties.put(traits.key(SchemaMethodTraitDefinition.RETURN_TYPE_PROPERTY),            getReturnType());
 			getOrCreateProperties.put(traits.key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY),            schemaNode);
 			getOrCreateProperties.put(traits.key(SchemaMethodTraitDefinition.EXCEPTIONS_PROPERTY),             listToArray(getExceptions()));
 			getOrCreateProperties.put(traits.key(SchemaMethodTraitDefinition.OVERRIDES_EXISTING_PROPERTY),     overridesExisting());
@@ -447,12 +434,6 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		if (_codeType != null && _codeType instanceof String) {
 
 			this.codeType = (String)_codeType;
-		}
-
-		final Object _returnType = source.get(JsonSchema.KEY_RETURN_TYPE);
-		if (_returnType != null && _returnType instanceof String) {
-
-			this.returnType = (String)_returnType;
 		}
 
 		final Object _openAPIReturnType = source.get(JsonSchema.KEY_OPENAPI_RETURN_TYPE);
@@ -564,7 +545,6 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		setSummary(method.getSummary());
 		setDescription(method.getDescription());
 		setCodeType(method.getCodeType());
-		setReturnType(method.getReturnType());
 		setCallSuper(method.callSuper());
 		setIsStatic(method.isStaticMethod());
 		setIsPrivate(method.isPrivateMethod());
@@ -612,7 +592,6 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		map.put(JsonSchema.KEY_SUMMARY, summary);
 		map.put(JsonSchema.KEY_DESCRIPTION, description);
 		map.put(JsonSchema.KEY_CODE_TYPE, codeType);
-		map.put(JsonSchema.KEY_RETURN_TYPE, returnType);
 		map.put(JsonSchema.KEY_EXCEPTIONS, exceptions);
 		map.put(JsonSchema.KEY_CALL_SUPER, callSuper);
 		map.put(JsonSchema.KEY_IS_STATIC, isStatic);

@@ -271,8 +271,7 @@ public class OpenAPITest extends StructrUiTest {
 					new NodeAttribute<>(methodTraits.key(SchemaMethodTraitDefinition.PARAMETERS_PROPERTY), List.of(
 							app.create(StructrTraits.SCHEMA_METHOD_PARAMETER, new NodeAttribute<>(paramTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "id"), new NodeAttribute<>(paramTraits.key(SchemaMethodParameterTraitDefinition.PARAMETER_TYPE_PROPERTY), "string")),
 							app.create(StructrTraits.SCHEMA_METHOD_PARAMETER, new NodeAttribute<>(paramTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "index"), new NodeAttribute<>(paramTraits.key(SchemaMethodParameterTraitDefinition.PARAMETER_TYPE_PROPERTY), "integer"))
-					)),
-					new NodeAttribute<>(methodTraits.key(SchemaMethodTraitDefinition.RETURN_TYPE_PROPERTY), returnTypeJson)
+					))
 			);
 
 			app.create(StructrTraits.SCHEMA_METHOD,

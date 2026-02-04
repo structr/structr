@@ -44,9 +44,6 @@ public interface JsonMethod extends Comparable<JsonMethod> {
 	List<JsonParameter> getParameters();
 	JsonMethod addParameter(final String name, final String type);
 
-	String getReturnType();
-	JsonMethod setReturnType(final String returnType);
-
 	boolean overridesExisting();
 	JsonMethod setOverridesExisting(final boolean overridesExisting);
 
