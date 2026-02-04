@@ -40,7 +40,6 @@ public interface SchemaMethod extends NodeInterface {
 	String getSummary();
 	String getDescription();
 	String getCodeType();
-	String getReturnType();
 	String getOpenAPIReturnType();
 	String getVirtualFileName();
 

@@ -82,7 +82,6 @@ public interface JsonSchema {
 	String KEY_SOURCE                   = "source";
 	String KEY_CODE_TYPE                = "codeType";
 	String KEY_OVERRIDES_EXISTING       = "overridesExisting";
-	String KEY_RETURN_TYPE              = "returnType";
 	String KEY_OPENAPI_RETURN_TYPE      = "openAPIReturnType";
 	String KEY_EXCEPTIONS               = "exceptions";
 	String KEY_CALL_SUPER               = "callSuper";

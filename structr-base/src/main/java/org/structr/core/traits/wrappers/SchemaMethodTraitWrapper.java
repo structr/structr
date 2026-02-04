@@ -93,11 +93,6 @@ public class SchemaMethodTraitWrapper extends AbstractNodeTraitWrapper implement
 	}
 
 	@Override
-	public String getReturnType() {
-		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.RETURN_TYPE_PROPERTY));
-	}
-
-	@Override
 	public String getOpenAPIReturnType() {
 		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.OPEN_API_RETURN_TYPE_PROPERTY));
 	}
