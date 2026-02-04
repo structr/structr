@@ -322,7 +322,8 @@ html.documentation {
     border-bottom: 2px solid var(--gray-ccc);
 }
 
-.article table th, td {
+.article table th,
+.article table td {
     text-align: left;
     padding: 1rem .5rem;
 }
