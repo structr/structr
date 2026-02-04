@@ -108,11 +108,6 @@ public class SchemaMethodTraitWrapper extends AbstractNodeTraitWrapper implement
 	}
 
 	@Override
-	public String getSignature() {
-		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.SIGNATURE_PROPERTY));
-	}
-
-	@Override
 	public String[] getExceptions() {
 		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.EXCEPTIONS_PROPERTY));
 	}
