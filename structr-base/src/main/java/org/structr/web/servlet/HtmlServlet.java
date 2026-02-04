@@ -1521,7 +1521,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					}
 
 				} catch (ParseException ex) {
-					logger.warn("Could not parse If-Modified-Since header", ex);
+					// silently ignore invalid date as per RFC 7232 section 3.3
 				}
 			}
 		}
