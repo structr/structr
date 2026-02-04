@@ -94,6 +94,8 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 		GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY
 	);
 
+	private static final String MULTIPART_FORM_DATA = "multipart/form-data";
+
 	private static final Logger logger                             = LoggerFactory.getLogger(UploadServlet.class.getName());
 	private static final String REDIRECT_AFTER_UPLOAD_PARAMETER    = "redirectOnSuccess";
 	private static final String APPEND_UUID_ON_REDIRECT_PARAMETER  = "appendUuidOnRedirect";
@@ -153,7 +155,10 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 		try {
 
-			if (!request.getContentType().startsWith("multipart/form-data") || request.getParts().size() <= 0) {
+			final String contentType  = request.getContentType();
+			final boolean isMultipart = contentType != null && contentType.regionMatches(true, 0, MULTIPART_FORM_DATA, 0, MULTIPART_FORM_DATA.length());
+
+			if (!isMultipart || request.getParts().size() <= 0) {
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 				response.getOutputStream().write("ERROR (400): Request does not contain multipart content.\n".getBytes(StandardCharsets.UTF_8));
 				return;
