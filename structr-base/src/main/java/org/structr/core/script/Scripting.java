@@ -54,6 +54,8 @@ import org.structr.schema.parser.DatePropertyGenerator;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Scripting {
 
@@ -618,6 +620,17 @@ public class Scripting {
 			buf.append(")");
 
 			return buf.toString();
+
+		} else if (value instanceof Throwable throwable) {
+
+			final Stream<String> lines = Stream.concat(
+				Stream.of(String.valueOf(throwable.getMessage())),
+				Arrays.stream(throwable.getStackTrace())
+						.takeWhile(ste -> !ste.getClassName().startsWith("org.graalvm"))
+						.map(ste -> "\tat " + ste.toString())
+			);
+
+			return lines.collect(Collectors.joining(System.lineSeparator()));
 
 		} else {
 
