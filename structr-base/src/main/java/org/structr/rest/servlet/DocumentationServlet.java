@@ -228,6 +228,7 @@ public class DocumentationServlet extends HttpServlet {
 		writer.write("<head>\n");
 		writer.write("    <link rel=\"stylesheet\" href=\"/structr/css/main.css\" />\n");
 		writer.write("    <link rel=\"stylesheet\" href=\"/structr/css/docs.css\" />\n");
+		writer.write("    <script src=\"/structr/js/docs_helper.js\"></script>\n");
 
 		if (settings.getBaseUrl() != null) {
 			writer.write("<base href='" + settings.getBaseUrl() + "'/>\n");
