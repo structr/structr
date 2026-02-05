@@ -149,7 +149,7 @@ let _Documentation = {
                             }));
 
                             subItem.addEventListener('click', e => {
-                                _Documentation.loadContext(child.id)
+                                _Documentation.loadContext(child.id);
                             });
 
                             sublist.appendChild(subItem);
@@ -174,6 +174,9 @@ let _Documentation = {
 	},
     loadContext: (id) => {
 
+        document.querySelectorAll('a[target="main-documentation"]').forEach(el => el.classList.remove('active'));
+        document.querySelector(`a[target="main-documentation"][href*="id=${id}"]`)?.classList.add('active');
+
         fetch(`/structr/docs/ontology?id=${id}&details=name&levels=1&format=toc&startLevel=1`)
             .then(response => response.json())
             .then(json => {
@@ -185,11 +188,18 @@ let _Documentation = {
 
                 for (let entry of json.data) {
 
+                    const cleanStringForLink = _Documentation.cleanStringForLink(entry.name);
+
                     aside.appendChild(_Documentation.createElementFromHTML(_Documentation.templates.indexItem({
                         id: id,
-                        name: _Documentation.cleanStringForLink(entry.name),
+                        name: cleanStringForLink,
                         label: entry.name
                     })));
+
+                    aside.querySelector(`a[href*="#${cleanStringForLink}"]`)?.addEventListener('click', e => {
+                        aside.querySelectorAll('a[target="main-documentation"]').forEach(el => el.classList.remove('active'));
+                        e.target.classList.add('active');
+                    });
                 }
             });
     },
