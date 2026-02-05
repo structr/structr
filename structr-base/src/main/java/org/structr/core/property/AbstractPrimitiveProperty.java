@@ -372,7 +372,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> implement
 
 		final List<ConceptReference> concepts = new LinkedList<>();
 
-		concepts.add(ConceptReference.of(ConceptType.Topic, "Property types"));
+		concepts.add(ConceptReference.of(ConceptType.Topic, "Property Types"));
 
 		return concepts;
 	}

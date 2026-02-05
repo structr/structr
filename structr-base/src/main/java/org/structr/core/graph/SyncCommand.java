@@ -950,7 +950,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 	@Override
 	public final List<ConceptReference> getParentConcepts() {
-		return List.of(ConceptReference.of(ConceptType.Topic, "Maintenance commands"));
+		return List.of(ConceptReference.of(ConceptType.Topic, "Maintenance Commands"));
 	}
 
 	static class NodeCreation extends EntityCreation {

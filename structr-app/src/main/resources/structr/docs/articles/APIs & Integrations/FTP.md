@@ -1,3 +1,4 @@
+# FTP
 
 Structr includes a built-in FTP server that provides file access to the virtual filesystem. Users can connect with any FTP client and browse, upload, or download files according to their permissions.
 

@@ -43,19 +43,3 @@ When an error occurs, Structr returns an HTTP status code and an error response 
 | 500 | Server error – check the server log for details |
 
 ## Common Problems
-
-### "Access Denied" for Logged-In Users
-
-*[Placeholder – Resource Access Permissions, Visibility Flags]*
-
-### Page Shows No Data
-
-*[Placeholder – Repeater configuration, Function Query syntax, Permissions on data]*
-
-### Lifecycle Method Not Executing
-
-*[Placeholder – Method naming, transaction boundaries]*
-
-### Schema Changes Not Taking Effect
-
-*[Placeholder – Schema recompilation, browser cache]*

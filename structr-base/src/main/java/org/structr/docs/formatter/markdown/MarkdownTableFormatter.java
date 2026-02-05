@@ -58,89 +58,66 @@ public class MarkdownTableFormatter extends Formatter {
 				}
 			}
 
-			lines.add("");
-			lines.add("| " + StringUtils.join(headers.keySet(), " | ") + " |");
-			lines.add("| " + StringUtils.repeat("--- | ---", headers.size() - 1) + " |");
-
 			// format children
-			final List<Concept> children = concept.getChildren(Verb.Has);
-			if (children != null) {
+			final List<Map<String, String>> documentables = new LinkedList<>();
 
-				final List<Documentable> documentables = new LinkedList<>();
+			for (final Concept child : concept.getChildren(Verb.Has)) {
 
-				for (final Concept child : children) {
+				final Documentable documentable = child.getDocumentable();
+				if (documentable != null) {
 
-					// mark concept as visited so it is not rendered again
-					seenConcepts.add(child);
+					documentables.add(mapOf(
+						"name", documentable.getName(),
+						"displayName", documentable.getDisplayName(false),
+						"shortDescription", documentable.getShortDescription(),
+						"longDescription", documentable.getLongDescription()
+					));
 
-					final Documentable documentable = child.getDocumentable();
-					if (documentable != null) {
+				} else {
 
-						documentables.add(documentable);
-
-					} else {
-
-						documentables.add(new Documentable() {
-							@Override
-							public DocumentableType getDocumentableType() {
-								return DocumentableType.Constant;
-							}
-
-							@Override
-							public String getName() {
-								return child.getName();
-							}
-
-							@Override
-							public String getShortDescription() {
-								return coalesce(child.getShortDescription(), (String) child.getMetadata().get("description"));
-							}
-						});
-					}
-				}
-
-				Collections.sort(documentables, Comparator.comparing(documentable1 -> documentable1.getDisplayName()));
-
-				for (final Documentable documentable : documentables) {
-
-					final List<String> row = new LinkedList<>();
-
-					for (final String value : headers.values()) {
-
-						switch (value) {
-
-							case "`name`":
-								row.add("`" + documentable.getName() + "`");
-								break;
-
-							case "name":
-								row.add(documentable.getName());
-								break;
-
-							case "`displayName`":
-								row.add("`" + documentable.getDisplayName(false) + "`");
-								break;
-
-							case "displayName":
-								row.add(documentable.getDisplayName(false));
-								break;
-
-							case "shortDescription":
-								row.add(documentable.getShortDescription());
-								break;
-						}
-					}
-
-					lines.add("| " + StringUtils.join(row, " | ") + " |");
+					documentables.add(mapOf(
+						"name", child.getName(),
+						"displayName", child.getName(),
+						"shortDescription", MarkdownTableFormatter.coalesce(child.getShortDescription(), (String) child.getMetadata().get("description"))
+					));
 				}
 			}
+
+			MarkdownTableFormatter.formatMarkdownTable(lines, headers, documentables);
 		}
 
 		return false;
 	}
 
+	public static void formatMarkdownTable(final List<String> lines, final Map<String, String> headers, final List<Map<String, String>> documentables) {
+
+		lines.add("");
+		lines.add("| " + StringUtils.join(headers.keySet(), " | ") + " |");
+		lines.add("| " + StringUtils.repeat("--- | ---", headers.size() - 1) + " |");
+
+		for (final Map<String, String> documentable : documentables) {
+
+			final List<String> row = new LinkedList<>();
+
+			for (final String headerName : headers.values()) {
+
+				if (headerName.startsWith("`") && headerName.endsWith("`")) {
+
+					final String name = headerName.substring(1, headerName.length() - 1);
+					row.add("`" + documentable.get(name) + "`");
+
+				} else {
+
+					row.add(documentable.get(headerName));
+				}
+			}
+
+			lines.add("| " + StringUtils.join(row, " | ") + " |");
+		}
+	}
+
 	// ----- private methods -----
-	private String coalesce(final String... strings) {
+	protected static String coalesce(final String... strings) {
 
 		for (final String string : strings) {
 
@@ -150,5 +127,24 @@ public class MarkdownTableFormatter extends Formatter {
 		}
 
 		return null;
+	}
+
+	protected Map<String, String> mapOf(final String... strings) {
+
+		final Map<String, String> map = new LinkedHashMap<>();
+		int len                       = strings.length;
+
+		for (int i=0; i<len; i+=2) {
+
+			final String key   = strings[i];
+			final String value = strings[i+1];
+
+			if (StringUtils.isNotBlank(key) && StringUtils.isNotBlank(value)) {
+
+				map.put(key, value);
+			}
+		}
+
+		return map;
 	}
 }

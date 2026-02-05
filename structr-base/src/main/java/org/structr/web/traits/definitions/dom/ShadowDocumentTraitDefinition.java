@@ -77,4 +77,9 @@ public class ShadowDocumentTraitDefinition extends AbstractNodeTraitDefinition {
 	public Relation getRelation() {
 		return null;
 	}
+
+	@Override
+	public boolean includeInDocumentation() {
+		return false;
+	}
 }

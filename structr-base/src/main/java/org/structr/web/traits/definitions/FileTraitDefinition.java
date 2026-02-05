@@ -48,8 +48,6 @@ import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.operations.nodeinterface.OnNodeDeletion;
 import org.structr.core.traits.operations.propertycontainer.SetProperty;
-import org.structr.docs.Documentation;
-import org.structr.docs.ontology.ConceptType;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.FileHelper;
@@ -68,7 +66,6 @@ import java.util.Set;
  *
  *
  */
-@Documentation(name="File", type=ConceptType.SystemType, parent="Built-in traits")
 public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String FILE_PARENT_PROPERTY               = "fileParent";
@@ -310,23 +307,23 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
 		final Property<NodeInterface> fileParentProperty  = new StartNode(traitsInstance, FILE_PARENT_PROPERTY, StructrTraits.FOLDER_CONTAINS_FILE);
-		final Property<String> contentTypeProperty        = new StringProperty(CONTENT_TYPE_PROPERTY).description("content type of the file");
+		final Property<String> contentTypeProperty        = new StringProperty(CONTENT_TYPE_PROPERTY).description("Content type of the file.");
 		final Property<Boolean> dontCacheProperty         = new BooleanProperty(DONT_CACHE_PROPERTY).defaultValue(false);
 		final Property<Boolean> indexedProperty           = new BooleanProperty(INDEXED_PROPERTY);
 		final Property<String> extractedContentProperty   = new StringProperty(EXTRACTED_CONTENT_PROPERTY).fulltextIndexed().disableSerialization(true);
 		final Property<Boolean> isFileProperty            = new ConstantBooleanProperty(IS_FILE_PROPERTY, true).readOnly();
-		final Property<Boolean> isTemplateProperty        = new BooleanProperty(IS_TEMPLATE_PROPERTY).readOnly().description("when checked, the content of this file is evaluated as a script and the resulting content is returned");
+		final Property<Boolean> isTemplateProperty        = new BooleanProperty(IS_TEMPLATE_PROPERTY).readOnly().description("When checked, the content of this file is evaluated as a script and the resulting content is returned.");
 		final Property<Integer> cacheForSecondsProperty   = new IntProperty(CACHE_FOR_SECONDS_PROPERTY);
 		final Property<Integer> positionProperty          = new IntProperty(POSITION_PROPERTY).indexed();
 		final Property<Integer> versionProperty           = new IntProperty(VERSION_PROPERTY).indexed();
-		final Property<String> md5Property                = new StringProperty(MD5_PROPERTY).description("MD5 checksum of the file's content (optional, see below)");
-		final Property<String> sha1Property               = new StringProperty(SHA1_PROPERTY).description("SHA1 checksum of the file's content (optional, see below)");
-		final Property<String> sha512Property             = new StringProperty(SHA512_PROPERTY).description("SHA512 checksum of the file's content (optional, see below)");
+		final Property<String> md5Property                = new StringProperty(MD5_PROPERTY).description("MD5 checksum of the file's content (optional, see below).");
+		final Property<String> sha1Property               = new StringProperty(SHA1_PROPERTY).description("SHA1 checksum of the file's content (optional, see below).");
+		final Property<String> sha512Property             = new StringProperty(SHA512_PROPERTY).description("SHA512 checksum of the file's content (optional, see below).");
 		final Property<String> urlProperty                = new StringProperty(URL_PROPERTY);
-		final Property<Long> checksumProperty             = new LongProperty(CHECKSUM_PROPERTY).indexed().description("xxHash checksum of the file's content (generated automatically)");
-		final Property<Long> crc32Property                = new LongProperty(CRC32_PROPERTY).indexed().description("CRC32 checksum of the file's content (optional, see below)");
+		final Property<Long> checksumProperty             = new LongProperty(CHECKSUM_PROPERTY).indexed().description("xxHash checksum of the file's content (generated automatically).");
+		final Property<Long> crc32Property                = new LongProperty(CRC32_PROPERTY).indexed().description("CRC32 checksum of the file's content (optional, see below).");
 		final Property<Long> fileModificationDateProperty = new LongProperty(FILE_MODIFICATION_DATE_PROPERTY);
-		final Property<Long> sizeProperty                 = new LongProperty(SIZE_PROPERTY).indexed().description("size of this file");
+		final Property<Long> sizeProperty                 = new LongProperty(SIZE_PROPERTY).indexed().description("Size of this file.");
 		final Property<String> base64DataProperty         = new FileDataProperty(BASE64_DATA_PROPERTY).typeHint("String").disableSerialization(true);
 
 		return Set.of(
@@ -379,26 +376,8 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public String getShortDescription() {
-		return "This trait is one of Structr's built-in traits for managing uploaded files and file system resources within your application.";
-	}
-
-	@Override
-	public String getLongDescription() {
-		return """
-		### How Files Work
-		File nodes represent individual files stored in Structr's file system and provide access to file content, metadata, and permissions. Files are stored as nodes in the database with associated binary content stored on disk. Each File node contains metadata about the file (name, size, content type, etc.) and can be queried, secured, and manipulated like any other node type. Files can be uploaded through the Structr UI, via the REST API, or created programmatically.
-
-		### File Organization
-		Files can be organized into folders using the Folder type. The relationship between folders and files creates a hierarchical file system structure within Structr, similar to a traditional file system.
-
-		### Common Use Cases
-		- Files are used for storing user uploads, application assets (images, CSS, JavaScript), downloadable documents, and any other binary content your application needs to manage.
-		- Files in Structr can also be configured to generate dynamic content, so that a script is executed creates the content of the file at the time of access.
-		
-		### Checksums
-		By default, only the (fast) xxHash checksum is calculated for a file. You can configure additional checksums in the `application.filesystem.checksums.default` setting in structr.conf.
-		""";
+	public boolean includeInDocumentation() {
+		return true;
 	}
 
 	// ----- private static methods -----

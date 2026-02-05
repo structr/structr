@@ -18,15 +18,10 @@
  */
 package org.structr.docs.formatter.markdown;
 
-import org.apache.commons.lang3.StringUtils;
-import org.graalvm.nativeimage.AnnotationAccess;
-import org.structr.core.function.tokenizer.Token;
 import org.structr.docs.Documentable;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
 import org.structr.docs.ontology.*;
-import org.structr.docs.ontology.parser.token.AbstractToken;
-import org.structr.docs.ontology.parser.token.MarkdownFileToken;
 
 import java.util.*;
 
@@ -89,7 +84,6 @@ public class SystemTypeMarkdownFormatter extends Formatter {
 			}
 		}
 
-
 		if (settings.hasDetail(Details.all)) {
 
 			// iterate over all links
@@ -101,18 +95,25 @@ public class SystemTypeMarkdownFormatter extends Formatter {
 				// do not output markdown files as children here
 				if (!concepts.isEmpty() && !ConceptType.MarkdownTopic.equals(conceptType)) {
 
+					final List<Map<String, String>> rows = new LinkedList<>();
+					final Map<String, String> headers    = new LinkedHashMap<>();
+
 					if (ConceptType.Property.equals(conceptType)) {
 
 						lines.add(formatMarkdownHeading("Properties", level + 2));
 
-					} else {
-
-						lines.add(formatMarkdownHeading(concept.getName(), level + 2));
+						headers.put("Name", "`name`");
+						headers.put("Type", "`type`");
+						headers.put("Description", "description");
 					}
 
-					lines.add("");
-					lines.add("| Name | Description |");
-					lines.add("| --- | --- |");
+					if (ConceptType.Method.equals(conceptType)) {
+
+						lines.add(formatMarkdownHeading("Methods", level + 2));
+
+						headers.put("Name", "`name`");
+						headers.put("Description", "description");
+					}
 
 					for (final Concept child : entry.getValue()) {
 
@@ -120,47 +121,26 @@ public class SystemTypeMarkdownFormatter extends Formatter {
 						if (documentable != null) {
 
 							lines.add("| " + documentable.getName() + " | " + documentable.getShortDescription() + " |");
+							throw new RuntimeException("Code path still in use but should be removed.");
 
 						} else {
 
-							lines.add("| " + child.getName() + " | " + child.getShortDescription() + " |");
-						}
+							final Map<String, String> row = new LinkedHashMap<>();
 
+							row.put("name", child.getName());
+							row.put("type", (String) child.getMetadata().get("propertyType"));
+							row.put("description", child.getShortDescription());
+
+							rows.add(row);
+						}
 					}
+
+					MarkdownTableFormatter.formatMarkdownTable(lines, headers, rows);
 				}
 			}
 		}
 
+		// dont render children
 		return false;
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -133,4 +133,14 @@ public class Link {
 		final Concept concept = target;
 		return concept.getType();
 	}
+
+	public ConceptType getFormat() {
+
+		if (formatSpecification != null) {
+
+			return formatSpecification.getFormat();
+		}
+
+		return null;
+	}
 }

@@ -65,7 +65,6 @@ import java.util.Set;
  * Represents a content node. This class implements the org.w3c.dom.Text interface.
  * All methods in the W3C Text interface are based on the raw database content.
  */
-@Documentation(name="Content", type= ConceptType.SystemType, shortDescription="The base class for content nodes in a Page.", parent="System types")
 public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String CONTENT_PROPERTY      = "content";

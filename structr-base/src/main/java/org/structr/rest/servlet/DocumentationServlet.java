@@ -475,18 +475,21 @@ public class DocumentationServlet extends HttpServlet {
 		// sensible default
 		settings.getDetails().add(Details.name);
 
-		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.Topic,            new ToplevelTopicsMarkdownFormatter());
-		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.SystemType,       new SystemTypeMarkdownFormatter());
-		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.Property,         new ToplevelTopicsMarkdownFormatter());
-		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.MarkdownFolder,   new ToplevelTopicsMarkdownFormatter());
-		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.RestEndpoint,     new ToplevelTopicsMarkdownFormatter());
-		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.RequestParameter, new ToplevelTopicsMarkdownFormatter());
-		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.RequestHeader,    new ToplevelTopicsMarkdownFormatter());
-		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.MarkdownFile,     new MarkdownMarkdownFileFormatter(baseResource));
-		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.MarkdownTopic,    new ToplevelTopicsMarkdownFormatter());
-		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.CodeSource,       new MarkdownCodeSourceFormatter());
-		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.Table,            new MarkdownTableFormatter());
-		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.Glossary,         new MarkdownGlossaryFormatter());
+		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.Topic,              new ToplevelTopicsMarkdownFormatter());
+		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.SystemType,         new SystemTypeMarkdownFormatter());
+		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.MaintenanceCommand, new DocumentableMarkdownFormatter());
+		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.Service,            new ServiceMarkdownFormatter());
+		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.Property,           new ToplevelTopicsMarkdownFormatter());
+		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.MarkdownFolder,     new ToplevelTopicsMarkdownFormatter());
+		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.RestEndpoint,       new ToplevelTopicsMarkdownFormatter());
+		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.RequestParameter,   new ToplevelTopicsMarkdownFormatter());
+		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.RequestHeader,      new ToplevelTopicsMarkdownFormatter());
+		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.MarkdownFile,       new MarkdownMarkdownFileFormatter(baseResource));
+		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.MarkdownTopic,      new ToplevelTopicsMarkdownFormatter());
+		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.CodeSource,         new MarkdownCodeSourceFormatter());
+		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.TableWithDetails,   new MarkdownTableWithDetailsFormatter());
+		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.Table,              new MarkdownTableFormatter());
+		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.Glossary,           new MarkdownGlossaryFormatter());
 
 		// wildcard
 		//settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.Unknown,        new ToplevelTopicsMarkdownFormatter());

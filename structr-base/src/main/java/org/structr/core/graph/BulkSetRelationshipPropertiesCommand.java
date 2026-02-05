@@ -133,22 +133,20 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 
 	@Override
 	public String getShortDescription() {
-		return "Sets a given set of property values on all relationships of a certain type.";
+		return "Sets property values on all relationships of a given type.";
 	}
 
 	@Override
 	public String getLongDescription() {
 		return """
-		This command takes all arguments other than `type` for input properties and sets the given values on all nodes of the given type.
-		
-		Please note that you can not set the `type` property of a relationship with this command. Relationship types can only be changed by removing and re-creating the relationship.
-		""";
+        All parameters except `type` are treated as property key-value pairs to set on matching relationships.
+        """;
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 		return List.of(
-			Parameter.mandatory("type", "type of relationships to set properties on")
+			Parameter.mandatory("type", "Relationship type to modify")
 		);
 	}
 
@@ -159,7 +157,9 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 
 	@Override
 	public List<String> getNotes() {
-		return List.of();
+		return List.of(
+			"You cannot change a relationship's type with this command. To change the type, delete and recreate the relationship."
+		);
 	}
 
 	@Override
@@ -179,6 +179,6 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 
 	@Override
 	public final List<ConceptReference> getParentConcepts() {
-		return List.of(ConceptReference.of(ConceptType.Topic, "Maintenance commands"));
+		return List.of(ConceptReference.of(ConceptType.Topic, "Maintenance Commands"));
 	}
 }

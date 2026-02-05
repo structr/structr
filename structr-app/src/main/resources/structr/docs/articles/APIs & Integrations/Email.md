@@ -352,11 +352,11 @@ Fetched emails are stored with these properties:
 
 ### Listing Available Folders
 
-To discover which folders are available on a mail server, use the FetchFoldersCommand:
+To discover which folders are available on a mail server, call the method `getAvailableFoldersOnServer`:
 
 ```javascript
 let mailbox = $.first($.find('Mailbox', 'name', 'Support Inbox'));
-let folders = $.execute('FetchFoldersCommand', mailbox);
+let folders = mailbox.getAvailableFoldersOnServer();
 
 for (let folder of folders) {
     $.log('Available folder: ' + folder);
@@ -369,7 +369,7 @@ While the MailService fetches automatically, you can trigger an immediate fetch:
 
 ```javascript
 let mailbox = $.first($.find('Mailbox', 'name', 'Support Inbox'));
-$.execute('FetchMailsCommand', mailbox);
+mailbox.fetchMails();
 ```
 
 ### Custom Email Types

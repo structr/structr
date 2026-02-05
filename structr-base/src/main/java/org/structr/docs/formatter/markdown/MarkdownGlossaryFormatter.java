@@ -59,8 +59,9 @@ public class MarkdownGlossaryFormatter extends Formatter {
 
 		for (final Concept c : concepts) {
 
-			final String name = c.getName();
-			if (StringUtils.isNotBlank(name)) {
+			final String name = clean(c.getName());
+
+			if (StringUtils.isNotBlank(name) && wordCount(name) < 4) {
 
 				final String first = name.substring(0, 1).toUpperCase();
 
@@ -119,5 +120,18 @@ public class MarkdownGlossaryFormatter extends Formatter {
 				}
 			}
 		}
+	}
+
+	private int wordCount(final String name) {
+		return name.split(" ").length;
+	}
+
+	private String clean(final String name) {
+
+		if (name.startsWith("\"") && name.endsWith("\"")) {
+			return name.substring(1, name.length() - 1);
+		}
+
+		return name;
 	}
 }

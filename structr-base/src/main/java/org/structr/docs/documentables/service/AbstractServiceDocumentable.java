@@ -18,45 +18,13 @@
  */
 package org.structr.docs.documentables.service;
 
-import org.structr.docs.*;
-import org.structr.docs.ontology.ConceptType;
-
-import java.util.List;
+import org.structr.docs.Documentable;
+import org.structr.docs.DocumentableType;
 
 public abstract class AbstractServiceDocumentable implements Documentable {
 
 	@Override
-	public List<Parameter> getParameters() {
-		return List.of();
-	}
-
-	@Override
-	public List<Example> getExamples() {
-		return List.of();
-	}
-
-	@Override
-	public List<String> getNotes() {
-		return List.of();
-	}
-
-	@Override
-	public List<Signature> getSignatures() {
-		return List.of();
-	}
-
-	@Override
-	public List<Language> getLanguages() {
-		return List.of();
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-		return List.of();
-	}
-
-	@Override
-	public final List<ConceptReference> getParentConcepts() {
-		return List.of(ConceptReference.of(ConceptType.Topic, "Services"));
+	public DocumentableType getDocumentableType() {
+		return DocumentableType.Service;
 	}
 }

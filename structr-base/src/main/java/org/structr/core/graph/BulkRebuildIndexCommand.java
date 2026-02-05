@@ -218,20 +218,22 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 	@Override
 	public String getShortDescription() {
-		return "Rebuilds the internal indexes, either for nodes, or for relationships, or for both.";
+		return "Rebuilds database indexes by removing and re-adding all indexed properties.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "Rebuilding the index means that all objects are first removed from the index and then added to the index again with all properties that have the `indexed` flag set.";
+		return """
+        Use this command after bulk imports or when search results are inconsistent.
+        """;
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 		return List.of(
-			Parameter.optional("type", "limit the execution to the given node type"),
-			Parameter.optional("relType", "limit the execution to the given relationship"),
-			Parameter.optional("mode", "`nodesOnly` or `relsOnly` to rebuild the index only for nodes or relationships")
+			Parameter.optional("type", "Limit to this node type"),
+			Parameter.optional("relType", "Limit to this relationship type"),
+			Parameter.optional("mode", "`nodesOnly` or `relsOnly`")
 		);
 	}
 
@@ -262,6 +264,6 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 	@Override
 	public final List<ConceptReference> getParentConcepts() {
-		return List.of(ConceptReference.of(ConceptType.Topic, "Maintenance commands"));
+		return List.of(ConceptReference.of(ConceptType.Topic, "Maintenance Commands"));
 	}
 }
