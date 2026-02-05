@@ -152,9 +152,9 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 						id,
 						node.getProperty(traits.key(SessionDataNodeTraitDefinition.CONTEXT_PATH_PROPERTY)),
 						node.getProperty(traits.key(SessionDataNodeTraitDefinition.VHOST_PROPERTY)),
-						node.getCreatedDate().getTime(),
-						node.getLastModifiedDate().getTime(),
-						node.getLastModifiedDate().getTime(),
+						node.getCreatedDate() != null ? node.getCreatedDate().getTime() : null,
+						node.getLastModifiedDate() != null ? node.getLastModifiedDate().getTime() : null,
+						node.getLastModifiedDate() != null ? node.getLastModifiedDate().getTime() : null,
 						-1
 				);
 			}
