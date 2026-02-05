@@ -242,6 +242,12 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
 					return entity.as(File.class).doCSVImport(securityContext, arguments.toMap());
 				}
+
+				@Override
+				public String getDescription() {
+					return "Starts an asynchronous CSV import job and returns the job ID.";
+				}
+
 			},
 
 			new JavaMethod("doXMLImport", false, false) {
@@ -250,6 +256,12 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
 					return entity.as(File.class).doXMLImport(securityContext, arguments.toMap());
 				}
+
+				@Override
+				public String getDescription() {
+					return "Starts an asynchronous CSV import job and returns the job ID.";
+				}
+
 			},
 
 			new JavaMethod("getFirstLines", false, false) {
@@ -258,6 +270,12 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
 					return entity.as(File.class).getFirstLines(securityContext, arguments.toMap());
 				}
+
+				@Override
+				public String getDescription() {
+					return "Returns the first lines of the file along with the detected line separator (LF, CR, or CR+LF).";
+				}
+
 			},
 
 			new JavaMethod("getCSVHeaders", false, false) {
@@ -266,6 +284,12 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
 					return entity.as(File.class).getCSVHeaders(securityContext, arguments.toMap());
 				}
+
+				@Override
+				public String getDescription() {
+					return "Extracts and returns the column headers from a CSV file.";
+				}
+
 			},
 
 			new JavaMethod("getXMLStructure", false, false) {
@@ -274,6 +298,12 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
 					return entity.as(File.class).getXMLStructure(securityContext);
 				}
+
+				@Override
+				public String getDescription() {
+					return "Analyzes the structure of an XML file and returns it as a JSON representation.";
+				}
+
 			},
 
 			new JavaMethod("getSearchContext", false, false) {
@@ -286,6 +316,12 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 
 					return entity.as(File.class).getSearchContext(securityContext, searchString, contextLength.intValue());
 				}
+
+				@Override
+				public String getDescription() {
+					return "Searches for a term in the file's extracted text content and returns the surrounding context.";
+				}
+
 			}
 		);
 	}
