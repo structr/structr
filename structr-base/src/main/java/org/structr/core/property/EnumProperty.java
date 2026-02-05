@@ -27,10 +27,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.docs.DocumentableType;
 
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * A property that stores and retrieves a simple enum value of the given type.
@@ -80,6 +78,11 @@ public class EnumProperty extends AbstractPrimitiveProperty<String> {
 
 	public Set<String> getEnumConstants() {
 		return enumConstants;
+	}
+
+	@Override
+	public String format() {
+		return (format != null) ? format : String.join(", ", new TreeSet<>(enumConstants));
 	}
 
 	@Override
