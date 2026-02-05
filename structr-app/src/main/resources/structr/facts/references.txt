@@ -48,6 +48,7 @@ Topic References has topics "System Keywords", "Built-in Functions", "System Typ
 Topic "System Types" has description "System types are built-in types that provide core functionality in Structr. They include types for users and groups, files and folders, pages and templates, email handling, and more. Each system type comes with predefined properties and methods. You can use these types directly or extend them in your schema to add custom properties and behavior. For details on extending types, see the Data Model chapter."
 
 # Markdown-based descriptions for internal classes
+System-type "DataFeed" has markdown-file "snippets/System Types/DataFeed.md" as description
 System-type "File" has markdown-file "snippets/System Types/File.md" as description
 System-type "Folder" has markdown-file "snippets/System Types/Folder.md" as description
 System-type "Group" has markdown-file "snippets/System Types/Group.md" as description

@@ -71,6 +71,12 @@ public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 
 					return entity.as(MessageClient.class).sendMessage(securityContext, topic, message);
 				}
+
+				@Override
+				public String getDescription() {
+					return "Sends a message to the specified topic.";
+				}
+
 			},
 
 			new JavaMethod("subscribeTopic", false, false) {
@@ -82,6 +88,12 @@ public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 
 					return entity.as(MessageClient.class).subscribeTopic(securityContext, topic);
 				}
+
+				@Override
+				public String getDescription() {
+					return "Subscribes the client to the specified topic to receive messages.";
+				}
+
 			},
 
 			new JavaMethod("unsubscribeTopic", false, false) {
@@ -93,6 +105,12 @@ public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 
 					return entity.as(MessageClient.class).unsubscribeTopic(securityContext, topic);
 				}
+
+				@Override
+				public String getDescription() {
+					return "Unsubscribes the client from the specified topic.";
+				}
+
 			}
 		);
 	}
@@ -201,5 +219,10 @@ public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Relation getRelation() {
 		return null;
+	}
+
+	@Override
+	public boolean includeInDocumentation() {
+		return true;
 	}
 }
