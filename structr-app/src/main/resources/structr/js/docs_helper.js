@@ -39,7 +39,7 @@ async function showBuiltinFunctionDetails(e) {
 		return;
 	}
 
-	let res = await fetch('/structr/docs/ontology?format=markdown&id=' + conceptId);
+	let res = await fetch('/structr/docs/ontology?format=html&id=' + conceptId);
 
 	if (res.ok) {
 
