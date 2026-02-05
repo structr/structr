@@ -23,10 +23,7 @@ import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
 import org.structr.docs.ontology.*;
 
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class SystemTypeMarkdownFormatter extends Formatter {
 
@@ -98,14 +95,25 @@ public class SystemTypeMarkdownFormatter extends Formatter {
 				// do not output markdown files as children here
 				if (!concepts.isEmpty() && !ConceptType.MarkdownTopic.equals(conceptType)) {
 
-					if (ConceptType.Property.equals(conceptType)) { lines.add(formatMarkdownHeading("Properties", level + 2)); }
-					if (ConceptType.Method.equals(conceptType)) { lines.add(formatMarkdownHeading("Methods", level + 2)); }
+					final List<Map<String, String>> rows = new LinkedList<>();
+					final Map<String, String> headers    = new LinkedHashMap<>();
 
-					//lines.add(formatMarkdownHeading(conceptType.name(), level + 2));
+					if (ConceptType.Property.equals(conceptType)) {
 
-					lines.add("");
-					lines.add("| Name | Type | Description |");
-					lines.add("| --- | --- | --- |");
+						lines.add(formatMarkdownHeading("Properties", level + 2));
+
+						headers.put("Name", "`name`");
+						headers.put("Type", "`type`");
+						headers.put("Description", "description");
+					}
+
+					if (ConceptType.Method.equals(conceptType)) {
+
+						lines.add(formatMarkdownHeading("Methods", level + 2));
+
+						headers.put("Name", "`name`");
+						headers.put("Description", "description");
+					}
 
 					for (final Concept child : entry.getValue()) {
 
@@ -117,18 +125,22 @@ public class SystemTypeMarkdownFormatter extends Formatter {
 
 						} else {
 
-							final String name = child.getName();
-							final String type = (String) child.getMetadata().get("propertyType");
-							final String desc = child.getShortDescription();
+							final Map<String, String> row = new LinkedHashMap<>();
 
-							lines.add("| `" + name + "` | `" + type + "` | " + desc + " |");
+							row.put("name", child.getName());
+							row.put("type", (String) child.getMetadata().get("propertyType"));
+							row.put("description", child.getShortDescription());
+
+							rows.add(row);
 						}
-
 					}
+
+					MarkdownTableFormatter.formatMarkdownTable(lines, headers, rows);
 				}
 			}
 		}
 
-		return true;
+		// dont render children
+		return false;
 	}
 }

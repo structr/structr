@@ -20,7 +20,6 @@ package org.structr.docs.formatter.markdown;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.docs.Documentable;
-import org.structr.docs.DocumentableType;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
 import org.structr.docs.ontology.Concept;
@@ -30,12 +29,12 @@ import org.structr.docs.ontology.Verb;
 
 import java.util.*;
 
-public class MarkdownTableFormatter extends Formatter {
+public class MarkdownTableWithDetailsFormatter extends Formatter {
 
 	@Override
 	public boolean format(final List<String> lines, final Link link, final OutputSettings settings, final int level, final Set<Concept> seenConcepts) {
 
-		final Map<String, String> headers = mapOf("Name", "`displayName`", "Description", "shortDescription");
+		final Map<String, String> headers = mapOf("Name", "`displayName`", "Description", "shortDescription", "", "details");
 		final Concept concept             = link.getTarget();
 
 		if (settings.hasDetail(Details.name)) {
@@ -70,7 +69,8 @@ public class MarkdownTableFormatter extends Formatter {
 						"name", documentable.getName(),
 						"displayName", documentable.getDisplayName(false),
 						"shortDescription", documentable.getShortDescription(),
-						"longDescription", documentable.getLongDescription()
+						"longDescription", documentable.getLongDescription(),
+						"details", "<a href=\"javascript:void(0)\" class=\"open-details\" data-concept-id=\"" + child.getId() + "\">Open details</a>"
 					));
 
 				} else {
@@ -78,12 +78,13 @@ public class MarkdownTableFormatter extends Formatter {
 					documentables.add(mapOf(
 						"name", child.getName(),
 						"displayName", child.getName(),
-						"shortDescription", MarkdownTableFormatter.coalesce(child.getShortDescription(), (String) child.getMetadata().get("description"))
+						"shortDescription", MarkdownTableWithDetailsFormatter.coalesce(child.getShortDescription(), (String) child.getMetadata().get("description")),
+						"details", ""
 					));
 				}
 			}
 
-			MarkdownTableFormatter.formatMarkdownTable(lines, headers, documentables);
+			MarkdownTableWithDetailsFormatter.formatMarkdownTable(lines, headers, documentables);
 		}
 
 		return false;
@@ -139,7 +140,7 @@ public class MarkdownTableFormatter extends Formatter {
 			final String key   = strings[i];
 			final String value = strings[i+1];
 
-			if (StringUtils.isNotBlank(key) && StringUtils.isNotBlank(value)) {
+			if (key != null && StringUtils.isNotBlank(value)) {
 
 				map.put(key, value);
 			}

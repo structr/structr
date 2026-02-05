@@ -325,7 +325,13 @@ html.documentation {
 .article table th,
 .article table td {
     text-align: left;
-    padding: 1rem .5rem;
+    padding: 1rem 4rem 1rem 0;
+}
+
+.article table td:has(a.open-details) {
+    text-align: right;
+    padding-right: 1rem;
+    white-space: nowrap;
 }
 
 .article tr {

@@ -50,6 +50,24 @@ On the server filesystem, protect sensitive files:
 
 For sensitive data like API keys or personal information, use the `EncryptedString` property type. Data is encrypted using AES with a key configured in `structr.conf` or set via `$.set_encryption_key()`.
 
+### Use Parameterized Cypher Queries
+
+Always use parameters instead of string concatenation when building Cypher queries. This protects against injection attacks and improves readability.
+
+#### Recommended
+
+```javascript
+$.cypher('MATCH (n) WHERE n.name CONTAINS $searchTerm RETURN n', { searchTerm: 'Admin' })
+```
+
+#### Not recommended
+
+```javascript
+$.cypher('MATCH (n) WHERE n.name CONTAINS "' + searchTerm + '" RETURN n')
+```
+
+The parameterized version passes values safely to the database regardless of special characters or malicious input.
+
 ### Use Group-Based Permissions for Type Access
 
 Grant groups access to all instances of a type directly in the schema. This is simpler than managing individual object permissions.
