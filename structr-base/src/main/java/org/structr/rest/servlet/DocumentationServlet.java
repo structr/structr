@@ -122,6 +122,10 @@ public class DocumentationServlet extends HttpServlet {
 					renderMarkdown(response, lines, settings);
 				}
 
+				if ("html".equals(settings.getOutputFormat())) {
+					renderHtml(response, lines, settings);
+				}
+
 				if ("text".equals(settings.getOutputFormat())) {
 					renderPlaintext(response, lines);
 				}
@@ -209,6 +213,22 @@ public class DocumentationServlet extends HttpServlet {
 	}
 
 	// ----- private methods -----
+	private void renderHtml(final HttpServletResponse response, final List<String> lines, final OutputSettings settings) throws IOException {
+
+		response.setContentType("text/html; charset=utf-8");
+
+		final MutableDataSet options = new MutableDataSet();
+
+		options.setAll(PegdownOptionsAdapter.flexmarkOptions(false, Extensions.ALL));
+
+		final Parser parser         = Parser.builder(options).build();
+		final HtmlRenderer renderer = HtmlRenderer.builder(options).build();
+		final Document doc          = parser.parse(StringUtils.join(lines, "\n"));
+		final Writer writer         = response.getWriter();
+
+		renderer.render(doc, writer);
+	}
+
 	private void renderMarkdown(final HttpServletResponse response, final List<String> lines, final OutputSettings settings) throws IOException {
 
 		response.setContentType("text/html; charset=utf-8");
@@ -491,6 +511,8 @@ public class DocumentationServlet extends HttpServlet {
 		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.TableWithDetails,   new MarkdownTableWithDetailsFormatter());
 		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.Table,              new MarkdownTableFormatter());
 		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.Glossary,           new MarkdownGlossaryFormatter());
+
+		settings.setFormatterForOutputFormatModeAndType("html", "overview", ConceptType.Function, new MarkdownFunctionDetailsFormatter());
 
 		// wildcard
 		//settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.Unknown,        new ToplevelTopicsMarkdownFormatter());
