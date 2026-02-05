@@ -51,7 +51,7 @@ async function showBuiltinFunctionDetails(e) {
 		let detailsDocument = new DOMParser().parseFromString(html, "text/html");
 		let body            = detailsDocument.querySelector('body');
 
-		for (let child of body.children) {
+		for (let child of [...body.children]) {
 			nextTd.appendChild(child);
 		}
 	}
