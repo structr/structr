@@ -565,6 +565,10 @@
                         <groupId>io.fabric8</groupId>
                         <artifactId>docker-maven-plugin</artifactId>
                         <version>${docker.maven.plugin.version}</version>
+                        <configuration>
+                            <skip>${skipDockerTestDB}</skip>
+                            <skipRun>${skipDockerTestDB}</skipRun>
+                        </configuration>
                         <executions>
                             <execution>
                                 <id>prepare-database</id>
@@ -594,7 +598,6 @@
                                             </run>
                                         </image>
                                     </images>
-                                    <skip>${skipDockerTestDB}</skip>
                                 </configuration>
                             </execution>
                             <execution>
@@ -605,7 +608,6 @@
                                 </goals>
                                 <configuration>
                                     <executeStopOnVMShutdown>true</executeStopOnVMShutdown>
-                                    <skip>${skipDockerTestDB}</skip>
                                 </configuration>
                             </execution>
                         </executions>

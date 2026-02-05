@@ -53,6 +53,7 @@
 		<test.neo4j.version>neo4j:2025</test.neo4j.version>
 		<structr.lib.directory>${structr.root.directory}/structr-app/target/lib</structr.lib.directory>
 		<maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
+		<structr.build.timestamp>${maven.build.timestamp}</structr.build.timestamp>
 		<maven.plugin.jar.version>3.4.2</maven.plugin.jar.version>
 		<test.forkCount>4</test.forkCount>
 		<slf4j.version>2.0.0</slf4j.version>
@@ -66,6 +67,7 @@
 		<graal.version>25.0.1</graal.version>
 		<apache.sshd.version>2.7.0</apache.sshd.version>
         <docker.maven.plugin.version>0.48.0</docker.maven.plugin.version>
+		<skipDockerTestDB>false</skipDockerTestDB>
 	</properties>
 
 	<modules>
@@ -75,7 +77,7 @@
 		<module>structr-base</module>
 		<module>structr-modules</module>
 		<module>structr-app</module>
-		<module>structr-test-configuration</module>
+		<!--module>structr-test-configuration</module-->
 	</modules>
 
 	<repositories>

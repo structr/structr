@@ -9,10 +9,6 @@
 		<version>6.2-SNAPSHOT</version>
 	</parent>
 
-    <properties>
-        <skipDockerTestDB>true</skipDockerTestDB>
-    </properties>
-
 	<artifactId>structr-test-configuration</artifactId>
 	<packaging>pom</packaging>
 	<name>Structr Test Configuration</name>
@@ -73,6 +69,8 @@
 						<artifactId>docker-maven-plugin</artifactId>
                         <version>${docker.maven.plugin.version}</version>
 						<configuration>
+							<skip>${skipDockerTestDB}</skip>
+							<skipRun>${skipDockerTestDB}</skipRun>
 						    <autoCreateCustomNetworks>true</autoCreateCustomNetworks>
 						    <removeMode>all</removeMode>
 						    <keepContainer>false</keepContainer>
@@ -107,7 +105,6 @@
 											</run>
 										</image>
 									</images>
-									<skip>${skipDockerTestDB}</skip>
 								</configuration>
 							</execution>
 							<execution>
@@ -117,7 +114,6 @@
 									<goal>stop</goal>
 								</goals>
 								<configuration>
-									<skip>${skipDockerTestDB}</skip>
                                     <executeStopOnVMShutdown>true</executeStopOnVMShutdown>
 								</configuration>
 							</execution>
