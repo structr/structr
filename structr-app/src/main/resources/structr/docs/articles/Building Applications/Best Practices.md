@@ -54,16 +54,16 @@ For sensitive data like API keys or personal information, use the `EncryptedStri
 
 Always use parameters instead of string concatenation when building Cypher queries. This protects against injection attacks and improves readability.
 
-#### Recommended
+**Recommended:**
 
 ```javascript
-$.cypher('MATCH (n) WHERE n.name CONTAINS $searchTerm RETURN n', { searchTerm: 'Admin' })
+$.cypher('MATCH (n) WHERE n.name CONTAINS $searchTerm', { searchTerm: 'Admin' })
 ```
 
-#### Not recommended
+**Not recommended:**
 
 ```javascript
-$.cypher('MATCH (n) WHERE n.name CONTAINS "' + searchTerm + '" RETURN n')
+$.cypher('MATCH (n) WHERE n.name CONTAINS "' + searchTerm + '"')
 ```
 
 The parameterized version passes values safely to the database regardless of special characters or malicious input.
@@ -100,7 +100,7 @@ A type can have a relationship to itself – for example, a `Folder` type with a
 
 ## Business Logic
 
-### Use "After" Methods for Side Effects
+### Use "After" Lifecycle Methods for Side Effects
 
 Email notifications, external API calls, and other side effects belong in `afterCreate` or `afterSave`, not in `onCreate` or `onSave`. The "after" methods run in a separate transaction after data is safely persisted.
 
@@ -147,6 +147,34 @@ The default `public` view contains only `id`, `type`, and `name`. Create dedicat
 ### Use Cypher for Complex Graph Traversals
 
 For queries that traverse multiple relationship levels, `$.cypher()` is often faster than nested `$.find()` calls. Results are automatically instantiated as Structr entities.
+
+### Handle Long-Running Operations Gracefully
+
+Backend operations that involve complex database queries or iterate over large datasets can delay page rendering. Use one of these strategies to keep pages responsive:
+
+**Lazy Loading**
+
+Load data asynchronously after the initial page render. The page displays immediately, and results appear once the query completes. This works well for dashboard widgets or secondary content that users don't need instantly.
+
+**Caching**
+
+Use the `cache()` function to compute expensive results once and reuse them for a configurable period:
+
+```javascript
+${cache('my-cache-key', 3600, () => expensive_query())}
+```
+
+This is ideal for data that changes infrequently, such as aggregated statistics or reports.
+
+**System Context Queries**
+
+Permission resolution adds overhead to every query. For backend operations where you already control access, running queries in the system context bypasses these checks:
+
+```javascript
+${do_as_admin(do_privileged(() => find('Project')))}
+```
+
+Use this only when the surrounding logic already enforces appropriate access control.
 
 ## What You Don't Need to Do
 

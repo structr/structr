@@ -101,6 +101,11 @@ public class DataFeedTraitDefinition extends AbstractNodeTraitDefinition {
 					entity.as(DataFeed.class).cleanUp(securityContext);
 					return null;
 				}
+
+				@Override
+				public String getDescription() {
+					return "Removes old feed items based on the configured maxItems and maxAge properties.";
+				}
 			},
 
 			new JavaMethod("updateIfDue", false, false) {
@@ -109,6 +114,11 @@ public class DataFeedTraitDefinition extends AbstractNodeTraitDefinition {
 				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
 					entity.as(DataFeed.class).updateIfDue(securityContext);
 					return null;
+				}
+
+				@Override
+				public String getDescription() {
+					return "Checks if an update is due based on lastUpdated and updateInterval, and fetches new items if necessary.";
 				}
 			},
 
@@ -119,17 +129,12 @@ public class DataFeedTraitDefinition extends AbstractNodeTraitDefinition {
 					entity.as(DataFeed.class).updateFeed(securityContext);
 					return null;
 				}
-			}
 
-			// FIXME: why was that here twice?
-//			new JavaMethod("updateFeed", false, false) {
-//
-//				@Override
-//				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
-//					entity.as(DataFeed.class).updateFeed(securityContext);
-//					return null;
-//				}
-//			}
+				@Override
+				public String getDescription() {
+					return "Fetches new entries from the remote feed URL and runs cleanUp afterward.";
+				}
+			}
 		);
 	}
 
@@ -184,5 +189,10 @@ public class DataFeedTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Relation getRelation() {
 		return null;
+	}
+
+	@Override
+	public boolean includeInDocumentation() {
+		return true;
 	}
 }
