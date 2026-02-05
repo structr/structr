@@ -27,6 +27,7 @@ public enum ConceptType {
 
 	// output formats
 	Table("table"), List("list"), Heading("heading"), SortedChildren("sorted-children"),
+	TableWithDetails("table-with-details"),
 
 	// external sources
 	MarkdownFolder("markdown-folder"), MarkdownFile("markdown-file"), MarkdownHeading("markdown-heading"),

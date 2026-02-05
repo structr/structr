@@ -96,7 +96,7 @@ public interface Documentable {
 				lines.add("|---|---|");
 
 				for (final DocumentedProperty property : properties) {
-					lines.add("|" + property.getName() + "|" + property.getDescription() + "|");
+					lines.add("|`" + property.getName() + "`|" + property.getDescription() + "|");
 				}
 
 				lines.add("");
@@ -111,7 +111,7 @@ public interface Documentable {
 				lines.add("|---|---|");
 
 				for (final Setting setting : settings) {
-					lines.add("|" + setting.getName() + "|" + setting.getDescription() + "|");
+					lines.add("|`" + setting.getName() + "`|" + setting.getDescription() + "|");
 				}
 
 				lines.add("");
@@ -126,7 +126,7 @@ public interface Documentable {
 				lines.add("|---|---|---|");
 
 				for (final Parameter parameter : parameters) {
-					lines.add("|" + parameter.getName() + "|" + parameter.getDescription() + "|" + (parameter.isOptional() ? "yes" : "no") + "|");
+					lines.add("|`" + parameter.getName() + "`|" + parameter.getDescription() + "|" + (parameter.isOptional() ? "yes" : "no") + "|");
 				}
 
 				lines.add("");

@@ -41,7 +41,7 @@ public class DocumentedMethod {
 
 	public static DocumentedMethod of(final AbstractMethod method) {
 
-		final String name        = method.getName();
+		final String name        = method.getName() + "()";
 		final String description = method.getDescription();
 
 		return new DocumentedMethod(name, description);
