@@ -1,0 +1,36 @@
+concurrent = {{CONCURRENT_JOBS}}
+check_interval = 3
+log_level = "info"
+log_format = "text"
+connection_max_age = "15m0s"
+shutdown_timeout = 0
+
+[session_server]
+  session_timeout = 1800
+
+[[runners]]
+  name = "{{RUNNER_NAME}}"
+  url = "{{GITLAB_URL}}"
+  id = 1
+  token = ""
+  token_obtained_at = 2025-01-01T00:00:00Z
+  token_expires_at = 0001-01-01T00:00:00Z
+  executor = "docker"
+  cache_dir = "/cache"
+  output_limit = 51200
+  [runners.docker]
+	privileged = false
+	wait_for_services_timeout = 90
+	network_per_build = true
+	pull_policy = "if-not-present"
+	tls_verify = false
+	image = "{{RUNNER_IMAGE}}"
+	disable_entrypoint_overwrite = false
+	oom_kill_disable = false
+	disable_cache = false
+	volumes = [
+	  "/var/run/docker.sock:/var/run/docker.sock",
+	  "{{RUNNER_BASE_DIR}}/volumes/cache:/cache"
+	]
+	shm_size = 0
+	network_mtu = 0
