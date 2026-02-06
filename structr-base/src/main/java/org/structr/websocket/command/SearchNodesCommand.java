@@ -18,11 +18,14 @@
  */
 package org.structr.websocket.command;
 
+import groovyjarjarantlr4.v4.misc.Graph;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.Services;
+import org.structr.core.property.GenericProperty;
 import org.structr.web.function.UiFunction;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -78,34 +81,32 @@ public class SearchNodesCommand extends AbstractCommand {
 
 	public static List<GraphObject> executeSearch(final String query, final boolean searchDOM, final boolean searchSchema, final boolean searchFlow) {
 
-		final DatabaseService db       = Services.getInstance().getDatabaseService();
-		final List<Object> rawResults  = db.globalSearch(query, searchDOM, searchSchema, searchFlow);
+		final DatabaseService db = Services.getInstance().getDatabaseService();
+		final Set<String> types  = new LinkedHashSet<>();
 
-		return flatten(rawResults);
-	}
+		if (searchDOM)    { types.add("(n:DOMNode AND NOT n:ShadowDocument)"); }
+		if (searchFlow)   { types.add("n:FlowNode"); }
+		if (searchSchema) { types.add("(n:AbstractSchemaNode OR n:SchemaReloadingNode)"); }
 
-	// ----- private methods -----
-	private static List<GraphObject> flatten(final List src) {
+		final List<Map<String, Object>> rawResults = db.globalSearch(types, query);
+		final List<GraphObject> results            = new LinkedList<>();
 
-		final List<GraphObject> list = new LinkedList<>();
+		for (final Map<String, Object> result : rawResults) {
 
-		flatten(list, src);
+			final Map<String, Object> tmp = new LinkedHashMap<>(result);
+			final List<String> labels     = (List) result.get("labels");
 
-		return list;
-	}
-
-	private static void flatten(final List<GraphObject> list, final Object o) {
-
-		if (o instanceof Iterable) {
-
-			for (final Object obj : (Iterable)o) {
-
-				flatten(list, obj);
+			if (labels.contains("DOMNode")) {
+				tmp.put("isDOMElement", true);
 			}
 
-		} else {
+			if (labels.contains("AbstractSchemaNode") || labels.contains("SchemaReloadingNode")) {
+				tmp.put("isSchemaElement", true);
+			}
 
-			list.add((GraphObject) UiFunction.toGraphObject(o, 1));
+			results.add(GraphObjectMap.fromMap(tmp));
 		}
+
+		return results;
 	}
 }
