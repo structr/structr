@@ -3436,6 +3436,7 @@ table.props td.__value {
 #global-search-results {
 	margin-top: 2rem;
 	width: 100%;
+	table-layout: fixed;
 }
 #global-search-results tbody tr:nth-child(2n) {
 	background-color: var(--solid-white);
@@ -3656,6 +3657,7 @@ ul.combined-input-select-field li:not(.nohover):hover {
 	position-anchor: --global-search;
 	position-area: x-start y-end;
 	width: 500px;
+    min-width: 500px;
 	height: 700px;
 	border: 1px solid var(--input-field-border);
 	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);

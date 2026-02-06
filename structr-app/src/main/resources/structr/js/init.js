@@ -2029,9 +2029,9 @@ let Structr = {
 								<table id="global-search-results">
 									<thead>
 										<tr>
-											<th class="min-w-12">Name/Type</th>
-											<th class="min-w-8">Attribute Key</th>
-											<th class="min-w-4 max-w-12">ID</th>
+											<th style="width: 30%;">Name/Type</th>
+											<th style="width: calc(100% - 30% - 5rem);">Attribute Key</th>
+											<th style="width: 5rem;">ID</th>
 										</tr>
 									</thead>
 									<tbody></tbody>
@@ -2042,10 +2042,10 @@ let Structr = {
 				</div>
 			`,
 			result: (result, key) => `
-				<tr class="cursor-pointer" data-id="${result.id}" data-key="${key}">
-					<td class="min-w-12 break-word">${result.name ? `${result.name} [${result.type}]` : result.type}</td>
-					<td class="min-w-8 whitespace-nowrap break-word">${key}</td>
-					<td class="min-w-4 max-w-12 truncate">${result.id}</td>
+				<tr class="cursor-pointer" data-id="${result.id}" data-key="${key}" title="${key}">
+					<td class="break-word">${result.name ? `${result.name} [${result.type}]` : result.type}</td>
+					<td class="truncate">${key}</td>
+					<td class="truncate">${result.id}</td>
 				</tr>
 			`
 		}
