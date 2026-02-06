@@ -1,6 +1,6 @@
 # Structr
 
-[![Structr CI Pipeline](https://github.com/structr/structr/actions/workflows/main.yaml/badge.svg)](https://github.com/structr/structr/actions/workflows/main.yaml)
+[![pipeline status](https://gitlab.structr.com/structr/structr/badges/main/pipeline.svg)](https://gitlab.structr.com/structr/structr/-/commits/main)
 [![Hits-of-Code](https://hitsofcode.com/github/structr/structr?branch=main)](https://hitsofcode.com/github/structr/structr/view?branch=main)
 ![Docker Pulls](https://img.shields.io/docker/pulls/structr/structr)
 [![publiccode.yml](https://img.shields.io/badge/publiccode.yml-present-brightgreen)](publiccode.yml)
