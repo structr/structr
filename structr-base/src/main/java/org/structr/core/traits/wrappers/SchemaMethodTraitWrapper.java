@@ -93,11 +93,6 @@ public class SchemaMethodTraitWrapper extends AbstractNodeTraitWrapper implement
 	}
 
 	@Override
-	public String getReturnType() {
-		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.RETURN_TYPE_PROPERTY));
-	}
-
-	@Override
 	public String getOpenAPIReturnType() {
 		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.OPEN_API_RETURN_TYPE_PROPERTY));
 	}
@@ -105,11 +100,6 @@ public class SchemaMethodTraitWrapper extends AbstractNodeTraitWrapper implement
 	@Override
 	public String getVirtualFileName() {
 		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.VIRTUAL_FILE_NAME_PROPERTY));
-	}
-
-	@Override
-	public String getSignature() {
-		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.SIGNATURE_PROPERTY));
 	}
 
 	@Override
