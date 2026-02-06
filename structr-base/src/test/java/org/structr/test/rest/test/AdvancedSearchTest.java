@@ -22,7 +22,9 @@ import io.restassured.RestAssured;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseFeature;
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
@@ -39,6 +41,8 @@ import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.core.traits.definitions.SchemaViewTraitDefinition;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.structr.test.rest.common.TestEnum;
+import org.structr.web.entity.dom.Page;
+import org.structr.websocket.command.SearchNodesCommand;
 import org.testng.annotations.Test;
 
 import java.util.LinkedList;
@@ -46,8 +50,7 @@ import java.util.List;
 import java.util.Random;
 
 import static org.hamcrest.Matchers.*;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.fail;
+import static org.testng.AssertJUnit.*;
 
 public class AdvancedSearchTest extends StructrRestTestBase {
 
@@ -1304,5 +1307,41 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 			.when()
 				.get(concat("/TestSix?_sort=name&testSevenName=test09"));
+	}
+
+	@Test
+	public void testGlobalSearch() {
+
+		try (final Tx tx = app.tx()) {
+
+			Page.createSimplePage(securityContext, "testPage");
+
+			tx.success();
+
+		} catch (Exception ex) {
+			logger.warn("", ex);
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final List<GraphObject> resultsWithoutTenantIdentifier = SearchNodesCommand.executeSearch("capitalize", true, true, true);
+
+			assertEquals(2, resultsWithoutTenantIdentifier.size());
+
+			Settings.TenantIdentifier.setValue("TEST");
+
+			final List<GraphObject> resultsWithTenantIdentifier = SearchNodesCommand.executeSearch("capitalize", true, true, true);
+
+			assertEquals("Global search (with a tenant identifier that did not have any nodes created) should yield no results",0, resultsWithTenantIdentifier.size());
+
+			Settings.TenantIdentifier.setValue(null);
+
+			tx.success();
+
+		} catch (Exception ex) {
+			logger.warn("", ex);
+			fail("Unexpected exception");
+		}
 	}
 }
