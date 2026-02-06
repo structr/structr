@@ -298,12 +298,12 @@ let _Elements = {
 		let nodeContainer  = $('.node-container', div);
 		let iconsContainer = $('.icons-container', div);
 
-		_Dragndrop.enableDraggable(entity, div[0], _Dragndrop.dropActions.domElement, true, _Dragndrop.pages.dragStart, _Dragndrop.pages.dragEnd);
-		_Dragndrop.pages.enableDroppable(entity, div[0], nodeContainer[0]);
-
 		if (!div) {
 			return false;
 		}
+
+		_Dragndrop.enableDraggable(entity, div[0], _Dragndrop.dropActions.domElement, true, _Dragndrop.pages.dragStart, _Dragndrop.pages.dragEnd);
+		_Dragndrop.pages.enableDroppable(entity, div[0], nodeContainer[0]);
 
 		_Elements.contextMenu.enableContextMenuOnElement(div[0], entity);
 		_Entities.appendExpandIcon(nodeContainer, entity, hasChildren);
