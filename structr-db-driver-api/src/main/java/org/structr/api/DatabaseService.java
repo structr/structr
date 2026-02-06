@@ -93,6 +93,7 @@ public interface DatabaseService {
 
 	// utils
 	CountResult getNodeAndRelationshipCount();
+	List<Object> globalSearch(final String query, final boolean searchDOM, final boolean searchSchema, final boolean searchFlow);
 
 	// native
 	<T> T execute(final NativeQuery<T> nativeQuery);
