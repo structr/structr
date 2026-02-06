@@ -41,7 +41,6 @@ import org.structr.docs.Documentation;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.operation.*;
 import org.structr.schema.openapi.parameter.OpenAPIPropertyQueryParameter;
-import org.structr.util.UrlUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -1088,8 +1087,8 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 	void diffMethods(final Traits nodeType, final StructrTypeDefinition other) throws FrameworkException {
 
-		final Map<String, StructrMethodDefinition> databaseMethods = getMappedMethodsBySignature();
-		final Map<String, StructrMethodDefinition> structrMethods  = other.getMappedMethodsBySignature();
+		final Map<String, StructrMethodDefinition> databaseMethods = getMappedMethodsByName();
+		final Map<String, StructrMethodDefinition> structrMethods  = other.getMappedMethodsByName();
 		final Set<String> methodsOnlyInDatabase                    = new TreeSet<>(databaseMethods.keySet());
 		final Set<String> methodsOnlyInStructrSchema               = new TreeSet<>(structrMethods.keySet());
 		final Set<String> bothMethods                              = new TreeSet<>(databaseMethods.keySet());
@@ -1414,13 +1413,13 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		return mapped;
 	}
 
-	private Map<String, StructrMethodDefinition> getMappedMethodsBySignature() {
+	private Map<String, StructrMethodDefinition> getMappedMethodsByName() {
 
 		final LinkedHashMap<String, StructrMethodDefinition> mapped = new LinkedHashMap<>();
 
 		for (final StructrMethodDefinition def : this.methods) {
 
-			mapped.put(def.getSignature(), def);
+			mapped.put(def.getName(), def);
 		}
 
 		return mapped;
