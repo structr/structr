@@ -18,8 +18,10 @@
  */
 package org.structr.websocket.command;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -63,21 +65,24 @@ public class SearchNodesCommand extends AbstractCommand {
 
 		try {
 
-			final Map<String, Object> obj = Map.of("queryString", queryString);
+			final Map<String, Object> obj = Map.of("queryString", queryString.toLowerCase());
 
 			final ArrayList<String> labels = new ArrayList<>();
 			if (searchDOM)    { labels.add("(n:DOMNode AND NOT n:ShadowDocument)"); }
 			if (searchFlow)   { labels.add("n:FlowNode"); }
-			if (searchSchema) { labels.add("n:AbstractSchemaNode"); labels.add("n:SchemaReloadingNode"); }
+			if (searchSchema) { labels.add("(n:AbstractSchemaNode OR n:SchemaReloadingNode)"); }
 
 			if (!labels.isEmpty()) {
+
+				final String searchLabels = String.join(" OR ", labels);
+				final String tenantId     = Settings.TenantIdentifier.getValue();
+				final String labelsClause = StringUtils.isBlank(tenantId) ? searchLabels : String.format("n:`%s` AND (%s)", tenantId, searchLabels);
 
 				final String cypherQuery = """
 					MATCH (n)
 						WHERE (%s)
 					WITH
-						n,
-						toLower($queryString) as queryString
+						n, $queryString as queryString
 					WITH
 						n,
 						[prop IN keys(n)
@@ -100,7 +105,7 @@ public class SearchNodesCommand extends AbstractCommand {
 						isDOMElement:    ("DOMNode" IN labels),
 						isSchemaElement: ("AbstractSchemaNode" IN labels OR "SchemaReloadingNode" IN labels)
 					}
-					""".formatted(String.join(" OR ", labels));
+					""".formatted(labelsClause);
 
 				final List<GraphObject> result = flatten(Iterables.toList(StructrApp.getInstance(securityContext).query(cypherQuery, obj)));
 
