@@ -43,6 +43,8 @@ import org.structr.api.util.NodeWithOwnerResult;
 
 import java.time.Duration;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  *
@@ -693,6 +695,59 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 		}
 
 		return new CountResult(nodeCount, relCount, userCount);
+	}
+
+	@Override
+	public List<Object> globalSearch(final String query, final boolean searchDOM, final boolean searchSchema, final boolean searchFlow) {
+
+		final Map<String, Object> parameters = Map.of("queryString", query.toLowerCase());
+
+		final ArrayList<String> labels = new ArrayList<>();
+		if (searchDOM)    { labels.add("(n:DOMNode AND NOT n:ShadowDocument)"); }
+		if (searchFlow)   { labels.add("n:FlowNode"); }
+		if (searchSchema) { labels.add("(n:AbstractSchemaNode OR n:SchemaReloadingNode)"); }
+
+		if (!labels.isEmpty()) {
+
+			final String searchLabels = String.join(" OR ", labels);
+			final String tenantId     = getTenantIdentifier();
+			final String labelsClause = (tenantId == null) ? searchLabels : String.format("n:`%s` AND (%s)", tenantId, searchLabels);
+
+			final String cypherQuery = """
+				MATCH (n)
+					WHERE (%s)
+				WITH
+					n, $queryString as queryString
+				WITH
+					n,
+					[prop IN keys(n)
+						WHERE
+							CASE
+								WHEN n[prop] IS NULL THEN false
+								WHEN n[prop] IS :: STRING THEN toLower(n[prop]) CONTAINS queryString
+								WHEN n[prop] IS :: LIST<STRING> THEN ANY (v IN n[prop] WHERE toLower(v) CONTAINS queryString)
+								ELSE toLower(toString(n[prop])) CONTAINS queryString
+							END
+						| prop] AS matchedKeys,
+					labels(n) as labels
+				WHERE
+					size(matchedKeys) > 0
+				RETURN {
+					id:              n.id,
+					type:            n.type,
+					name:            n.name,
+					keys:            matchedKeys,
+					isDOMElement:    ("DOMNode" IN labels),
+					isSchemaElement: ("AbstractSchemaNode" IN labels OR "SchemaReloadingNode" IN labels)
+				} as searchResult
+				""".formatted(labelsClause);
+
+			return StreamSupport.stream(getCurrentTransaction().run(new SimpleCypherQuery(cypherQuery, parameters)).spliterator(), false)
+						   .map(res -> res.get("searchResult"))
+						   .collect(Collectors.toList());
+		}
+
+		return List.of();
 	}
 
 	@Override
