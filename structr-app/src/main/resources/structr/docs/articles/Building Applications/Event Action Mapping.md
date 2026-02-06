@@ -12,7 +12,7 @@ Elements with Event Action Mappings are marked with an orange icon in the Active
 
 In traditional web development, handling user interactions requires multiple layers: JavaScript event listeners on the client, API endpoints on the server, and code to connect them. Frameworks help manage this complexity, but you still need to understand their abstractions, maintain the code, and keep client and server in sync.
 
-Event Action Mapping takes a different approach. You configure what should happen when an event fires, and Structr handles the communication between client and server. This keeps the simplicity of server-side rendering while adding the interactivity users expect from modern web applications. Because the configuration is declarative, you can see at a glance what each element does – the behavior is defined directly on the element in the Pages area, not scattered across separate code files.
+Event Action Mapping takes a different approach. You configure what should happen when an event fires, and Structr handles the communication between client and server. This keeps the simplicity of server-side rendering while adding the interactivity users expect from modern web applications. Because the configuration is declarative, you can see at a glance what each element does - the behavior is defined directly on the element in the Pages area, not scattered across separate code files.
 
 ### Debouncing
 
@@ -34,42 +34,23 @@ Events are DOM events that trigger an action. You configure which event to liste
 
 ### Configuring an Event
 
-To add an Event Action Mapping, select an element in the page tree and open the Event Action Mapping panel. Select the event you want to react to – for example `click` for a button or `submit` for a form. Then configure the action, parameters, and follow-up behavior.
+To add an Event Action Mapping, select an element in the page tree and open the Event Action Mapping panel. Select the event you want to react to - for example `click` for a button or `submit` for a form. Then configure the action, parameters, and follow-up behavior.
 
 ![Event Action Mappings](pages_element-details_events.png)
 
-#### Example: Delete Button in a List
-
-Consider a list of projects rendered by a repeater. The repeater has a data key like `project`, and each row contains a delete button.
-
-To make the delete button work:
-
-1. Select the button element in the page tree
-2. Open the Event Action Mapping tab
-3. Set the event to `click`
-4. Set the action to "Delete Object"
-5. In the "UUID of data object to delete" field, enter `${project.id}` – inside a repeater, the data key gives you access to the current object
-6. Set the success follow-up action to "Refresh Page Sections Based on CSS Selectors"
-7. Enter `#project-list` as the selector – this matches the `id` attribute of the element that contains the repeater
-
-When a user clicks the delete button, Structr deletes the project and reloads the list. The container element needs an `id` attribute so the partial reload can find and refresh it.
-
-Note that the "UUID of data object to delete" field is not an auto-script field, so you need the `${...}` wrapper to access the project's ID.
-
 ### Available Events
 
-The input field provides suggestions for commonly used events like `click`, `submit`, `change`, `input`, `keydown`, and `mouseover`. You are not limited to these suggestions – the event field accepts any DOM event name, giving you full flexibility to react to any event the browser supports.
+The input field provides suggestions for commonly used events like `click`, `submit`, `change`, `input`, `keydown`, and `mouseover`. You are not limited to these suggestions - the event field accepts any DOM event name, giving you full flexibility to react to any event the browser supports.
 
 ### Choosing the Right Event
 
-The choice of event depends on the element and the desired behavior. For buttons, `click` is the typical choice. For forms, you usually listen for `submit` on the form element rather than `click` on the submit button. For checkboxes and radio buttons, use `change` instead of `click` – the value only updates after the click event completes.
+The choice of event depends on the element and the desired behavior. For buttons, `click` is the typical choice. For forms, you usually listen for `submit` on the form element rather than `click` on the submit button. For checkboxes and radio buttons, use `change` instead of `click` - the value only updates after the click event completes.
 
-### Forms Without Form Elements
+### Auto-Save Input Fields
 
 Event Action Mapping does not require a `<form>` element. You can wire up individual input fields to save their values independently, for example by listening for `change` on each field and triggering an update action. This allows for auto-save interfaces where each field saves immediately when the user makes a change.
 
-#### Input Fields with Auto-Save
-When you bind an Event Action Mapping directly to an input field, you don't need to configure parameter mapping. If the field has a `name` attribute, it automatically sends its current value with that name as the parameter. This makes auto-save setups particularly simple – just set the field's name to match the property you want to update.
+When you bind an Event Action Mapping directly to an input field, you do not need to configure parameter mapping. If the field has a `name` attribute, it automatically sends its current value with that name as the parameter. This makes auto-save setups particularly simple - just set the field's name to match the property you want to update.
 
 ## Actions
 
@@ -83,35 +64,107 @@ Data operations create, modify, or delete objects in the database.
 
 Creates a new object in the database. You specify the type to create in the "Enter or select type of data object" field and map input fields to the object's properties using the parameter mapping. Each parameter name corresponds to a property on the new object.
 
-After a successful create, the server returns the new object's public view:
+##### Example: Create Form
 
-```json
-{
-    "result": {
-        "id": "12c54d5259e94357876c668927a63e8d",
-        "type": "Project",
-        "name": null
-    }
-}
+The following example shows how to configure a simple form that creates a new Project. The figure below illustrates the form's element hierarchy in the page tree and the corresponding HTML.
+
+<div class="html-example">
+<img src="pages_create-form-element.png" class="small-image-left"/>
+
+```html
+<form id="create-project-form">
+    <input type="text" name="name" required>
+    <button type="submit">Create Project</button>
+</form>
 ```
+</div>
+<div style="clear: both;"></div>
 
-The result contains all properties included in the type's public view, as defined in your schema. For details on configuring views, see the Data Model chapter. A common pattern is to navigate to the detail page of the newly created object by configuring a "Navigate to a New Page" follow-up action with a URL like `/project/{result.id}`. See the section "Accessing Result Properties" for details on this syntax.
+The page tree shows the structure, but not the behavior. To make the form actually create a Project, you need to configure an Event Action Mapping on the `<form>` element.
 
-You can also enter `AbstractNode` as the type and pass a parameter named `type` to determine the actual type at runtime. This is useful when a form can create different types of objects depending on user input.
+Select the form element in the page tree and open the Event Action Mapping panel. Then configure the mapping step by step:
+
+1. Set the **Event** to `submit`. This triggers the action when the user submits the form.
+2. Select "Create new object" as the **Action**.
+3. In the type field, enter `Project`. This is the type of object that will be created.
+4. Under **Parameter Mapping**, click the plus button to add a parameter. Set the name to `name` and the type to "User Input". A drop area appears - drag the input field from the page tree onto it. This links the parameter to the input field, so the value the user enters becomes the `name` property of the new Project.
+5. Under **Behavior on Success**, select "Navigate to a new page" and enter `/project/{result.id}` in the "Success URL" input field.
+
+The completed configuration looks like this:
+
+![Event Action Mapping configuration for the create form](pages_create-form_event-action-mapping-configuration.png)
+
+When a user fills in the form and clicks "Create Project", Structr creates a new Project object with the entered name and redirects the browser to the edit page of the project.
+
+##### Dynamic Type Selection
+Note that you can also enter `AbstractNode` as the type and pass a parameter named `type` to determine the actual type at runtime. This is useful when a form can create different types of objects depending on user input.
 
 #### Update Object
+The Update Object action updates an existing object in the database. You enter a template expression in the "UUID of data object to update" field that resolves to the UUID of the object you want to update, for example `${current.id}`. Note that this field is not an auto-script field, so you need to include the `${...}` wrapper. The configured parameter mapping determines which properties are updated. Each parameter name corresponds to a property on the object - only the mapped properties are modified, other properties remain unchanged. 
 
-Updates an existing object in the database. You enter a template expression in the "UUID of data object to update" field that resolves to the object's ID, for example `${current.id}`. Note that this field is not an auto-script field, so you need to include the `${...}` wrapper.
+##### Example: Edit Form
+To let users modify existing data, you build an edit form. With the Event Action Mapping in Structr, you simply add an input field for each property you want to edit and set each input field's `value` to the corresponding property using a template expression, for example `${current.name}`. When the user submits the form, the Event Action Mapping sends the modified values back to the server. For details on dynamic attribute values, see the Dynamic Content chapter.
 
-The parameter mapping determines which properties are updated. Each parameter name corresponds to a property on the object – only the mapped properties are modified, other properties remain unchanged. After a successful update, the server returns the updated object's public view, just like with Create New Object.
+The following example shows the configuration of an edit form for a Project with multiple field types. The page is accessible at `/project/{id}` where `{id}` is the project's UUID. Structr automatically resolves the UUID and makes the project available as `current`. For details on URL resolution, see the Navigation & Routing chapter.
 
-A common pattern is to combine Update Object with a form that displays the current values. You set each input field's `value` attribute to the corresponding property using a template expression, for example `${current.name}`. When the user submits the form, the Event Action Mapping sends the modified values back to the server. For details on dynamic attribute values, see the Dynamic Content chapter.
+<div class="html-example">
+<img src="pages_edit-form-element.png" class="small-image-left"/>
+
+```html
+<form id="create-project-form">
+    <input type="text" name="name" value="${current.name}">
+    <input type="text" name="description" value="${current.description}">
+    <input type="date" name="dueDate" value="${dateFormat(current.dueDate, 'yyyy-MM-dd')}">
+    <button type="submit">Save Project</button>
+</form>
+```
+</div>
+<div style="clear: both;"></div>
+
+Select the form element in the page tree and open the Event Action Mapping panel. Then configure the mapping step by step:
+
+1. Set the **Event** to `submit`. This triggers the action when the user submits the form.
+2. Select "Update object" as the **Action**.
+3. In the UUID of data object field, enter '${current.id}'. This is the UUID of the object we want to edit.
+3. In the type field, enter `Project`. This is the type of object that we expect to edit.
+4. Under **Parameter Mapping**, click the plus button to add parameters for each of the properties. Set the name to the name of the property, and the type to "User Input". A drop area appears - drag the input field from the page tree onto it. This links the parameter to the input field.
+5. Under **Behavior on Success**, select "Reload the current page".
+
+The Action Mapping configuration looks like this:
+
+![Event Action Mapping configuration for the edit form](pages_edit-form_event-action-mapping-configuration.png)
+
+Each input has a `value` attribute with a template expression that loads the current value. The date field uses `dateFormat()` to convert to the HTML date input format.
+
+The configuration of a single input field looks like this:
+
+![Event Action Mapping configuration for the edit form](pages_edit-form_input-configuration.png)
 
 #### Delete Object
 
 Deletes an object from the database. You enter a template expression in the "UUID of data object to delete" field that resolves to the object's ID, for example `${current.id}`. Note that this field is not an auto-script field, so you need to include the `${...}` wrapper.
 
-The delete operation removes only the specified object. Related objects are not automatically deleted – relationships are removed, but the related objects remain in the database.
+The delete operation removes only the specified object. Related objects are not automatically deleted - relationships are removed, but the related objects remain in the database.
+
+##### Example: Delete Button in a List
+
+Consider a list of projects rendered by a repeater. The repeater has a data key like `project`, and each row contains a delete button:
+
+```html
+<button class="delete-btn" title="Delete Project">🗑</button>
+```
+
+To make the delete button work:
+
+1. Select the button element in the page tree
+2. Open the Event Action Mapping tab
+3. Set the event to `click`
+4. Set the action to "Delete Object"
+5. In the "UUID of data object to delete" field, enter `${project.id}` - inside a repeater, the data key gives you access to the current object
+6. Set the success follow-up action to "Refresh Page Sections Based on CSS Selectors"
+7. Enter `#project-list` as the selector - this matches the `id` attribute of the element that contains the repeater
+
+When a user clicks the delete button, Structr deletes the project and reloads the list. The container element needs an `id` attribute so the partial reload can find and refresh it.
 
 ### Authentication
 
@@ -191,20 +244,33 @@ When the action fires, Structr reads the current value from the input field. If 
 
 A fixed value that is always sent with the action. Template expressions are not supported here, but you can use special keywords to send structured data:
 
-- `json(...)` – sends a JSON object, for example `json({"status": "active", "count": 5})`
-- `data()` – sends data from the DataTransfer object of a drag and drop event, useful when handling `drop` events where the dragged element has attached JSON data
+- `json(...)` - sends a JSON object, for example `json({"status": "active", "count": 5})`
+- `data()` - sends data from the DataTransfer object of a drag and drop event, useful when handling `drop` events where the dragged element has attached JSON data
 
 ### Evaluate Expression
 
-A template expression that is evaluated on the server when the page renders. This allows you to include data that was already known at page render time – for example, the ID of the current object or request parameters. The field supports mixed content, so you need to use the `${...}` syntax for expressions.
+A template expression that is evaluated on the server when the page renders. This allows you to include data that was already known at page render time - for example, the ID of the current object or request parameters. The field supports mixed content, so you need to use the `${...}` syntax for expressions.
 
 ### Request Parameter for Page
 
 Used for pagination actions. When you select this type, the parameter name specifies which request parameter controls the page number. This works together with the pagination actions (Next Page, Previous Page, First Page, Last Page) to navigate through paged data.
 
+### When Parameters Are Evaluated
+
+Understanding when each parameter type is evaluated is important for choosing the right type:
+
+| Parameter Type | Evaluated | Use Case |
+|----------------|-----------|----------|
+| User Input | When action fires | Form fields, user-entered data |
+| Constant Value | Never (static) | Fixed values, JSON data |
+| Evaluate Expression | When page renders | Object IDs, request parameters |
+| Request Parameter for Page | When action fires | Pagination |
+
+This distinction explains why the object UUID uses `${current.id}` in the "UUID of object to update" field (evaluated at render time) while field values use "User Input" (evaluated at submit time).
+
 ## Notifications
 
-Notifications provide visual feedback to the user about whether an action succeeded or failed. You configure success notifications and failure notifications separately – each can use a different notification type, or none at all. If you don't configure a failure notification, failed actions fail silently without any feedback to the user.
+Notifications provide visual feedback to the user about whether an action succeeded or failed. You configure success notifications and failure notifications separately - each can use a different notification type, or none at all. If you do not configure a failure notification, failed actions fail silently without any feedback to the user.
 
 ### None
 
@@ -239,9 +305,9 @@ Additionally, the input element for each invalid property receives a red border 
 
 Shows an element selected by a CSS selector by removing its `hidden` class. The element is hidden again after 5 seconds. You need to define the `hidden` class in your CSS, for example with `display: none`.
 
-You can specify multiple selectors separated by commas – each selector is processed separately. Note that for each selector, only the first matching element is shown. If you use a class selector like `.my-dialog` and multiple elements have this class, only the first one will be displayed.
+You can specify multiple selectors separated by commas - each selector is processed separately. Note that for each selector, only the first matching element is shown. If you use a class selector like `.my-dialog` and multiple elements have this class, only the first one will be displayed.
 
->**Note:** This option does not have access to the result data – it simply shows and hides the element. Result placeholders like `{result.id}` are not available in the selector.
+This option does not have access to the result data - it simply shows and hides the element. Result placeholders like `{result.id}` are not available in the selector.
 
 ### Custom Dialog Element Defined by Linked Element
 
@@ -253,14 +319,14 @@ Dispatches a custom DOM event that you can handle with JavaScript. You specify t
 
 ### Notifications Display Fixed Messages
 
-The built-in notification types (system alert, inline text message, custom dialog) display fixed messages and cannot include data from the action result. If you need to show result data in a notification – for example, displaying the name of a newly created object – use "Raise a Custom Event" and handle the display logic in JavaScript.
+The built-in notification types (system alert, inline text message, custom dialog) display fixed messages and cannot include data from the action result. If you need to show result data in a notification - for example, displaying the name of a newly created object - use "Raise a Custom Event" and handle the display logic in JavaScript.
 
 In contrast, follow-up actions support result placeholders like `{result.id}`. See the section "Accessing Result Properties" for details.
 
 
 ## Follow-up Actions
 
-Follow-up actions define what happens after an action completes. In the UI, these are labeled "Behavior on Success" and "Behavior on Failure". You configure success and failure behavior separately – each can use a different follow-up action type, or none at all.
+Follow-up actions define what happens after an action completes. In the UI, these are labeled "Behavior on Success" and "Behavior on Failure". You configure success and failure behavior separately - each can use a different follow-up action type, or none at all.
 
 ### None
 
@@ -274,22 +340,23 @@ Reloads the entire page. This is the simplest way to ensure the page reflects an
 
 Reloads specific parts of the page selected by CSS selectors. Only the matched elements are re-rendered on the server and replaced in the browser. This is useful for updating a list after creating or deleting an item without reloading the entire page.
 
-You can specify multiple selectors separated by commas. Unlike notifications, all matching elements are reloaded – if you use a class selector like `.my-list` and multiple elements have this class, all of them will be refreshed.
+You can specify multiple selectors separated by commas. Unlike notifications, all matching elements are reloaded - if you use a class selector like `.my-list` and multiple elements have this class, all of them will be refreshed.
 
-Result placeholders like `{result.id}` are not available here – the selectors are static and cannot depend on the action result.
+Result placeholders like `{result.id}` are not available here - the selectors are static and cannot depend on the action result.
 
 ### Refresh Page Sections Based on Linked Elements
 
 Same as above, but instead of entering CSS selectors, you drag and drop elements from the page tree onto the drop target that appears when this option is selected.
 
 ### Navigate to a New Page
+
 Navigates to another page. You enter a URL which can include result placeholders like `{result.id}`. A common pattern is to navigate to the detail page of a newly created object with a URL like `/project/{result.id}`.
 
-#### Result Placeholders
+#### Accessing Result Properties
 
 You access properties from the action result using simple curly braces: `{result.id}`, `{result.name}`, and so on. Nested paths are also supported. The result contains all properties included in the type's public view. For details on configuring views, see the Data Model chapter.
 
-This syntax differs from template expressions, which use `${...}` with a dollar sign. The distinction is intentional. Template expressions are evaluated on the server when the page renders – before the action runs and before any result exists. The curly brace placeholders are resolved on the client after the action completes.
+This syntax differs from template expressions, which use `${...}` with a dollar sign. The distinction is intentional. Template expressions are evaluated on the server when the page renders - before the action runs and before any result exists. The curly brace placeholders are resolved on the client after the action completes.
 
 Note that this placeholder syntax is only available in "Navigate to a New Page". For "Refresh Page Sections", result properties are passed as request parameters but cannot be used in the CSS selector. For "Raise a Custom Event", the result is available in the event's `detail.result` object.
 
@@ -299,7 +366,7 @@ Dispatches a custom DOM event that you can handle with JavaScript. You specify t
 
 ### Sign Out
 
-Ends the current user session and reloads the page. This is useful as a failure follow-up action when an action requires authentication – if the session has expired, the user is signed out and can log in again.
+Ends the current user session and reloads the page. This is useful as a failure follow-up action when an action requires authentication - if the session has expired, the user is signed out and can log in again.
 
 ### How Partial Reload Works
 
@@ -308,30 +375,38 @@ When you use "Refresh Page Sections", only the selected elements are re-rendered
 After a partial reload, the element dispatches a `structr-reload` event. You can listen for this event to run custom JavaScript after the content updates. If an input field had focus before the reload, Structr attempts to restore focus to the same field in the new content.
 
 
-
-
 ## Validation
 
 There are two approaches to validating user input: client-side validation before the request is sent, and server-side validation when the data is processed.
 
 ### Client-Side Validation
 
-For client-side validation, you can use standard HTML5 validation attributes on your form fields. Event Action Mapping automatically checks these constraints before sending the request – if validation fails, the browser shows an error message and the action is not executed.
+For client-side validation, you can use standard HTML5 validation attributes on your form fields. Event Action Mapping automatically checks these constraints before sending the request - if validation fails, the browser shows an error message and the action is not executed.
 
 #### HTML5 Validation Attributes
 
-- `required` – the field must have a value
-- `pattern` – the value must match a regular expression
-- `min` and `max` – for numeric ranges
-- `minlength` and `maxlength` – for text length
+The following attributes are available:
+
+- `required` - the field must have a value
+- `pattern` - the value must match a regular expression
+- `min` and `max` - for numeric ranges
+- `minlength` and `maxlength` - for text length
+
+Example:
+
+```html
+<input type="text" name="name" required minlength="3" maxlength="100">
+<input type="email" name="email" required>
+<input type="number" name="budget" min="0" max="1000000">
+```
 
 #### Validation Events
 
 HTML provides events that you can use to extend validation behavior:
 
-- `invalid` – fires when a field fails validation
-- `input` – fires when the value changes, useful for live validation
-- `change` – fires when the field loses focus after the value changed
+- `invalid` - fires when a field fails validation
+- `input` - fires when the value changes, useful for live validation
+- `change` - fires when the field loses focus after the value changed
 
 You can use these events with Event Action Mapping to trigger custom validation logic or display custom error messages.
 
@@ -339,10 +414,10 @@ You can use these events with Event Action Mapping to trigger custom validation 
 
 The browser automatically applies CSS pseudo-classes to form fields based on their validation state:
 
-- `:valid` – the field value meets all constraints
-- `:invalid` – the field value fails validation
-- `:required` – the field is required
-- `:optional` – the field is not required
+- `:valid` - the field value meets all constraints
+- `:invalid` - the field value fails validation
+- `:required` - the field is required
+- `:optional` - the field is not required
 
 You can use these pseudo-classes to style fields differently based on their validation state, for example showing a red border on invalid fields or a green checkmark on valid ones.
 
@@ -356,11 +431,11 @@ Server-side validation happens when the data reaches the backend. Structr valida
 
 The data model provides several validation options:
 
-- **Not-null constraints**: Properties marked as not-null must have a value. Creating or updating an object without a required property fails with a validation error.
-- **Uniqueness constraints**: Properties marked as unique must have a value that no other object of the same type has. This is useful for email addresses, usernames, or other identifiers.
-- **Compound uniqueness**: Multiple properties can be marked for compound uniqueness, ensuring their combined values are unique across all objects of the type.
-- **Format patterns**: String properties can have a format pattern that the value must match, defined as a regular expression.
-- **Value ranges**: Numeric properties can have minimum and maximum values.
+- Properties marked as not-null must have a value. Creating or updating an object without a required property fails with a validation error.
+- Properties marked as unique must have a value that no other object of the same type has. This is useful for email addresses, usernames, or other identifiers.
+- Multiple properties can be marked for compound uniqueness, ensuring their combined values are unique across all objects of the type.
+- String properties can have a format pattern that the value must match, defined as a regular expression.
+- Numeric properties can have minimum and maximum values.
 
 #### Lifecycle Methods
 
@@ -384,9 +459,9 @@ The "Raise a Custom Event" option in notifications and follow-up actions allows 
 
 You specify the event name in an input field. The event bubbles up through the DOM and includes a `detail` object with three properties:
 
-- `result` – the result returned by the action
-- `status` – the HTTP status code
-- `element` – the DOM element that triggered the action
+- `result` - the result returned by the action
+- `status` - the HTTP status code
+- `element` - the DOM element that triggered the action
 
 Example:
 
@@ -397,7 +472,7 @@ document.addEventListener('project-created', (event) => {
 });
 ```
 
-This lets you combine the simplicity of Event Action Mapping with custom logic – for example, using Event Action Mapping to handle form submission and data creation, then raising a custom event to trigger a complex animation, update a third-party component, or perform additional client-side processing.
+This lets you combine the simplicity of Event Action Mapping with custom logic - for example, using Event Action Mapping to handle form submission and data creation, then raising a custom event to trigger a complex animation, update a third-party component, or perform additional client-side processing.
 
 ### Built-in Events
 
@@ -435,7 +510,7 @@ document.addEventListener('structr-reload', (event) => {
 
 ### CSS Class During Execution
 
-While an action is running, the triggering element receives the CSS class `structr-action-running`. This class is added when the action starts and removed when it finishes. You can use this to style elements during execution – for example, to show a loading indicator or disable a button:
+While an action is running, the triggering element receives the CSS class `structr-action-running`. This class is added when the action starts and removed when it finishes. You can use this to style elements during execution - for example, to show a loading indicator or disable a button:
 
 ```css
 .structr-action-running {

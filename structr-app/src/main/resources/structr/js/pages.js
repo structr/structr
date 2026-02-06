@@ -1553,7 +1553,6 @@ let _Pages = {
 			});
 		}
 
-
 		addParameterMappingButton.addEventListener('click', e => {
 
 			Command.get(entity.id, 'id,type,triggeredActions', (result) => {
@@ -1561,6 +1560,7 @@ let _Pages = {
 				let nextParameterIndex = document.querySelectorAll('.em-parameter-mappings-container .em-parameter-mapping').length + 1;
 
 				Command.create({ type: 'ParameterMapping', actionMapping: actionMapping.id, parameterName: 'parameter_' + nextParameterIndex }, (parameterMapping) => {
+
 					getAndAppendParameterMapping(parameterMapping.id);
 				});
 			});
