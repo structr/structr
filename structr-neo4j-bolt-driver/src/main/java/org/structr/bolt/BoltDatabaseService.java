@@ -39,6 +39,7 @@ import org.structr.api.index.Index;
 import org.structr.api.index.NewIndexConfig;
 import org.structr.api.search.*;
 import org.structr.api.util.CountResult;
+import org.structr.api.util.Iterables;
 import org.structr.api.util.NodeWithOwnerResult;
 
 import java.time.Duration;
@@ -698,18 +699,13 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
-	public List<Object> globalSearch(final String query, final boolean searchDOM, final boolean searchSchema, final boolean searchFlow) {
+	public List<Map<String, Object>> globalSearch(final Set<String> types, final String searchString) {
 
-		final Map<String, Object> parameters = Map.of("queryString", query.toLowerCase());
+		final Map<String, Object> parameters = Map.of("searchString", searchString.toLowerCase());
 
-		final ArrayList<String> labels = new ArrayList<>();
-		if (searchDOM)    { labels.add("(n:DOMNode AND NOT n:ShadowDocument)"); }
-		if (searchFlow)   { labels.add("n:FlowNode"); }
-		if (searchSchema) { labels.add("(n:AbstractSchemaNode OR n:SchemaReloadingNode)"); }
+		if (!types.isEmpty()) {
 
-		if (!labels.isEmpty()) {
-
-			final String searchLabels = String.join(" OR ", labels);
+			final String searchLabels = String.join(" OR ", types);
 			final String tenantId     = getTenantIdentifier();
 			final String labelsClause = (tenantId == null) ? searchLabels : String.format("n:`%s` AND (%s)", tenantId, searchLabels);
 
@@ -717,16 +713,16 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 				MATCH (n)
 					WHERE (%s)
 				WITH
-					n, $queryString as queryString
+					n, $searchString as searchString
 				WITH
 					n,
 					[prop IN keys(n)
 						WHERE
 							CASE
 								WHEN n[prop] IS NULL THEN false
-								WHEN n[prop] IS :: STRING THEN toLower(n[prop]) CONTAINS queryString
-								WHEN n[prop] IS :: LIST<STRING> THEN ANY (v IN n[prop] WHERE toLower(v) CONTAINS queryString)
-								ELSE toLower(toString(n[prop])) CONTAINS queryString
+								WHEN n[prop] IS :: STRING THEN toLower(n[prop]) CONTAINS searchString
+								WHEN n[prop] IS :: LIST<STRING> THEN ANY (v IN n[prop] WHERE toLower(v) CONTAINS searchString)
+								ELSE toLower(toString(n[prop])) CONTAINS searchString
 							END
 						| prop] AS matchedKeys,
 					labels(n) as labels
@@ -737,14 +733,19 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 					type:            n.type,
 					name:            n.name,
 					keys:            matchedKeys,
-					isDOMElement:    ("DOMNode" IN labels),
-					isSchemaElement: ("AbstractSchemaNode" IN labels OR "SchemaReloadingNode" IN labels)
-				} as searchResult
+					labels:          labels
+				} AS searchResult
 				""".formatted(labelsClause);
 
-			return StreamSupport.stream(getCurrentTransaction().run(new SimpleCypherQuery(cypherQuery, parameters)).spliterator(), false)
-						   .map(res -> res.get("searchResult"))
-						   .collect(Collectors.toList());
+			final Iterable<Map<String, Object>> rawResults = getCurrentTransaction().run(new SimpleCypherQuery(cypherQuery, parameters));
+			final List<Map<String, Object>> results        = new LinkedList<>();
+
+			for (final Map<String, Object> result : rawResults) {
+
+				results.add((Map) result.get("searchResult"));
+			}
+
+			return results;
 		}
 
 		return List.of();
