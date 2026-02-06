@@ -16,7 +16,7 @@ Data deployment exports the actual objects stored in your database. You select w
 
 Application deployment enables collaborative development of Structr applications. Whether you work alone or in a team, the recommended workflow is based on a code repository such as Git.
 
-The typical development cycle:
+This is the typical development cycle. It is very important to do these steps in exactly the following order:
 
 1. Develop and test changes on a local Structr instance
 2. Export the application to a repository folder

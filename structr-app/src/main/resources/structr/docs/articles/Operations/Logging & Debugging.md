@@ -144,28 +144,49 @@ Structr includes a JavaScript debugger based on GraalVM that integrates with Chr
 
 Set `application.scripting.debugger` to `true` in `structr.conf` or the Configuration Interface, then restart Structr.
 
-When enabled, the debugger URL appears in:
+When enabled, Structr generates a unique debugger URL on each startup. This URL is intentionally unpredictable for security reasons. You can find it in:
 
 - The server log at startup
 - The Dashboard in the "About Structr" tab under "Scripting Debugger"
 
 ### Connecting Chrome DevTools
 
-1. Open Chrome and navigate to `chrome://inspect`
-2. Click "Configure" and add the debugger host and port
-3. Your Structr instance appears under "Remote Target"
-4. Click "inspect" to open DevTools
+1. Copy the debugger URL from the Dashboard or server log
+2. Open a new Chrome tab and paste the URL directly into the address bar
+3. Press Enter to open DevTools
 
-### Using the Debugger
+Note that you must manually paste the URL – clicking links to `chrome://` URLs is blocked by the browser for security reasons.
 
-Once connected, you can:
+### Setting Breakpoints
 
-- Set breakpoints in your JavaScript code
+Chrome DevTools does not display your complete application code upfront. Instead, code snippets appear only when execution reaches them. This makes setting breakpoints through the DevTools interface impractical.
+
+To pause execution at a specific point, insert the `debugger` statement directly in your code:
+
+```javascript
+{
+    let orders = $.find('Order', { status: 'pending' });
+    
+    debugger;  // Execution pauses here
+    
+    for (let order of orders) {
+        // process order
+    }
+}
+```
+
+When execution hits the `debugger` statement, Chrome DevTools pauses and displays the surrounding code. From there you can:
+
 - Step through code line by line
 - Inspect variables and the call stack
 - Evaluate expressions in the console
+- Continue to the next `debugger` statement or until completion
 
-Note that the debugger pauses the entire request thread, so use it only in development environments.
+Remove `debugger` statements before deploying to production.
+
+### Limitations
+
+The debugger pauses the entire request thread while waiting at a breakpoint. Use it only in development environments where blocking requests is acceptable.
 
 ## JVM Remote Debugging
 

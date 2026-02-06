@@ -141,8 +141,8 @@ To create a service class, go to the Code area and click "Create Service Class".
 ```javascript
 {
     // Static method "generateMonthlyReport" on service class "ReportingService"
-    let startDate = $.getOrNull('startDate');
-    let endDate = $.getOrNull('endDate');
+    let startDate = $.arguments.startDate;
+    let endDate = $.arguments.endDate;
     
     let orders = $.find('Order', {
         orderDate: $.predicate.between(startDate, endDate),

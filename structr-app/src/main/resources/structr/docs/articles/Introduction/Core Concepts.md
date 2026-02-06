@@ -73,7 +73,12 @@ Unlike traditional databases that require migrations and downtime for schema cha
 
 This works because the schema itself is stored as nodes and relationships in the graph database. When you modify the schema, you're updating data like any other operation – and the new constraints apply immediately to all subsequent operations.
 
-This enables a development workflow where you can model your domain incrementally: start with a basic structure, build features against it, then extend the schema as requirements evolve. There's no migration step, no deployment process for schema changes, and no risk of schema drift between environments.
+### Schema and Data Are Loosely Coupled
+However, the schema is loosely coupled to your data. When you rename a property, change a type, or restructure relationships, existing data is not automatically migrated. The old data remains as it was – a renamed property simply means existing nodes still have the old property name while new nodes get the new one. You need to migrate existing data manually, either through a script that updates all affected nodes or by handling both old and new structures in your application logic until the migration is complete.
+
+### Incremental Development
+This enables a development workflow where you can model your domain incrementally: start with a basic structure, build features against it, then extend the schema as requirements evolve. There's no migration step and no deployment process for schema changes. But keep in mind that while the schema changes instantly, bringing your existing data in line with the new schema is your responsibility.
+
 
 ## Accessing Data
 

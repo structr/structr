@@ -36,7 +36,7 @@ When you create a new data type, you will first be asked to enter a name for the
 #### Changelog
 The Disable Changelog checkbox allows you to exclude this type from the changelog - if the changelog is activated in the Structr settings.
 
-[Read more about the Changelog.](/structr/docs/ontology/Operations/Auditing)
+[Read more about the Changelog.](/structr/docs/ontology/Operations/Changelog)
 
 #### Default Visibility
 The two visibility checkboxes allow you to automatically make all instances of the new type public or visible to logged-in users. This is useful, for example, if the data is used in the application, such as the topics in a forum.

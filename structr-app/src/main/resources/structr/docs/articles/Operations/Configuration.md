@@ -47,6 +47,48 @@ httpservice.maxfilesize = 1000
 
 After editing the file manually, changes take effect after restarting Structr or using the reload function in the Configuration Interface.
 
+## Configuration via Environment Variables (Docker)
+
+When running Structr in a Docker container, you can pass configuration settings as environment variables instead of editing `structr.conf`. This is particularly useful with `docker-compose.yml` files, as it keeps configuration visible and allows different settings per environment without modifying the image.
+
+### Naming Convention
+
+To convert a `structr.conf` setting to an environment variable:
+
+1. Replace any existing underscores with double underscores (`_` → `__`)
+2. Replace all dots with single underscores (`.` → `_`)
+3. Add `STRUCTR_` as a prefix
+
+### Examples
+
+| structr.conf Setting | Environment Variable |
+|----------------------|----------------------|
+| `application.http.port` | `STRUCTR_application_http_port` |
+| `superuser.password` | `STRUCTR_superuser_password` |
+| `application.instance.name` | `STRUCTR_application_instance_name` |
+| `application.heap.min_size` | `STRUCTR_application_heap_min__size` |
+
+Note how `min_size` becomes `min__size` – the double underscore preserves the original underscore, distinguishing it from underscores that replace dots.
+
+### Docker Compose Example
+
+```yaml
+services:
+  structr:
+    image: structr/structr:latest
+    ports:
+      - "8082:8082"
+    environment:
+      - STRUCTR_superuser_password=mysecretpassword
+      - STRUCTR_application_instance_name=Production
+      - STRUCTR_application_instance_stage=PROD
+      - STRUCTR_application_heap_max__size=8g
+    volumes:
+      - structr-data:/var/lib/structr/files
+```
+
+Environment variables take precedence over settings in `structr.conf`.
+
 ## Essential Settings
 
 While Structr has many configuration options, these are the settings you are most likely to need when setting up and running an instance.
