@@ -25,6 +25,7 @@ let StructrWS = {
 	user: undefined,
 	userId: undefined,
 	me: undefined,
+	ignoreEmptyCallbacksForCommands: ['CREATE_SIMPLE_PAGE', 'INSERT_RELATIVE_TO_DOM_NODE', 'WRAP_DOM_NODE', 'REPLACE_WITH'],
 
 	init: () => {
 
@@ -500,9 +501,12 @@ let StructrWS = {
 
 		} else if (command === 'INSERT_BEFORE' || command === 'APPEND_CHILD' || command === 'APPEND_MEMBER') {
 
-			StructrModel.create(result[0], data.data.refId);
+			if (result) {
 
-			StructrModel.callCallback(data.callback, result[0]);
+				StructrModel.create(result[0], data.data.refId);
+
+				StructrModel.callCallback(data.callback, result[0]);
+			}
 
 		} else if (command.startsWith('APPEND_FILE')) {
 
@@ -636,9 +640,13 @@ let StructrWS = {
 
 			_Files.handleUnarchiveMessage(data.data);
 
+		} else if (StructrWS.ignoreEmptyCallbacksForCommands.includes(command)) {
+
+			// silently ignore callback data for this command. do not output "unknown command" message
+
 		} else {
 
-			console.log('Received unknown command: ' + command);
+			console.log('No handler registered for command: ' + command);
 
 			if (sessionValid === false) {
 
