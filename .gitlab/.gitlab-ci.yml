@@ -106,6 +106,7 @@ snapshot-build:
         # Build with sources but skip tests (already completed)
         mvn -U clean install -Pwith-sources -DskipTests -DskipDockerTestDB=true -Ddocker.skip.push -Dstructr.build.timestamp="$BUILD_TIMESTAMP" \
 
+
         # Configure glab for HTTP GitLab instance
         glab config set host "http://$CI_SERVER_HOST" 
         glab config set api_protocol http
@@ -119,7 +120,7 @@ snapshot-build:
 
         # Create new SNAPSHOT release with build artifacts
         echo "Creating SNAPSHOT release with glab..."
-        glab release create $STRUCTR_VERSION structr-app/target/*.deb structr-app/target/*.zip \
+        glab release create $STRUCTR_VERSION structr-app/target/structr-$STRUCTR_VERSION-$BUILD_TIMESTAMP.$COMMIT_SHORT.deb structr-app/target/*.zip \
         --name "structr-$STRUCTR_VERSION-$BUILD_TIMESTAMP.$COMMIT_SHORT" \
         --notes "## Latest SNAPSHOT Build
 
@@ -168,7 +169,7 @@ release-build:
         
         # Create versioned release with build artifacts
         echo "Creating release with glab..."
-        glab release create "$STRUCTR_VERSION" structr-app/target/*.deb structr-binaries/target/*.zip \
+        glab release create "$STRUCTR_VERSION" structr-app/target/structr-$STRUCTR_VERSION-$BUILD_TIMESTAMP.$COMMIT_SHORT.deb structr-app/target/*.zip \
          --name "$STRUCTR_VERSION" \
          --notes "## Release $STRUCTR_VERSION
 

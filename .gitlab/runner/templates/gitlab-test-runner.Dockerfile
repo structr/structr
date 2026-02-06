@@ -9,7 +9,7 @@ WORKDIR /setup
 
 ARG TARGETARCH
 ARG MAVEN_VERSION="3.9.12"
-ARG GLAB_VERSION="1.80.4"
+ARG GLAB_VERSION="1.82.0"
 
 RUN echo "TARGETARCH is: $TARGETARCH" \
     && echo "Full URL: https://gitlab.com/gitlab-org/cli/-/releases/v${GLAB_VERSION}/downloads/glab_${GLAB_VERSION}_linux_${TARGETARCH}.rpm"
@@ -28,7 +28,7 @@ WORKDIR /structr-runner
 
 ARG TARGETARCH
 ARG MAVEN_VERSION="3.9.12"
-ARG GLAB_VERSION="1.80.4"
+ARG GLAB_VERSION="1.82.0"
 
 COPY --from=setup /setup/glab_${GLAB_VERSION}_linux_${TARGETARCH}.rpm /structr-runner/
 COPY --from=setup /opt/apache-maven-${MAVEN_VERSION} /opt/maven
