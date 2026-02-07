@@ -1963,9 +1963,11 @@ let Structr = {
 
 				for (let result of results) {
 
-					for (let key of result.keys) {
+					for (let i=0; i<result.keys.length; i++) {
 
-						let el = _Helpers.createSingleDOMElementFromHTML(Structr.globalSearch.templates.result(result, key));
+						const key = result.keys[i], value = result.values[i];
+
+						let el = _Helpers.createSingleDOMElementFromHTML(Structr.globalSearch.templates.result(result, key, Structr.globalSearch.htmlCodeForKey(key), value, data.queryString));
 
 						resultsElement.appendChild(el);
 
@@ -2029,9 +2031,10 @@ let Structr = {
 								<table id="global-search-results">
 									<thead>
 										<tr>
-											<th style="width: 30%;">Name/Type</th>
-											<th style="width: calc(100% - 30% - 5rem);">Attribute Key</th>
-											<th style="width: 5rem;">ID</th>
+											<th>ID</th>
+											<th>Name/Type</th>
+											<th>Attribute Key</th>
+											<th>Value</th>
 										</tr>
 									</thead>
 									<tbody></tbody>
@@ -2041,13 +2044,38 @@ let Structr = {
 					</div>
 				</div>
 			`,
-			result: (result, key) => `
+			result: (result, key, htmlCodeForKey, value, searchString) => `
 				<tr class="cursor-pointer" data-id="${result.id}" data-key="${key}" title="${key}">
-					<td class="break-word">${result.name ? `${result.name} [${result.type}]` : result.type}</td>
-					<td class="truncate">${key}</td>
-					<td class="truncate">${result.id}</td>
+					<td title="${result.id}">${result.id.substring(1, 5)}&hellip;</td>
+					<td>${result.name ? `${result.name} [${result.type}]` : result.type}</td>
+					<td class="key">${htmlCodeForKey}</td>
+					<td>${value?.before?.length > 23 ? '&hellip;' : ''}${value?.before||''}${Structr.globalSearch.highlightText(value.match, searchString)}${value?.after||''}${value?.after?.length > 23 ? '&hellip;' : ''}</td>
 				</tr>
 			`
+		},
+		htmlCodeForKey: key => {
+
+			if (key.startsWith('_custom_html_data-')) {
+				return `${key.substring(18)} <div class="attr custom-html-data-attr">custom html data</div>`;
+			} else if (key.startsWith('_custom_html_')) {
+				return `${key.substring(13)}<div class="attr custom-html-attr">Custom HTML</div>`;
+			} else if (key === '_html_id') {
+				return `<div class="attr id-attr">id</div>`;
+			} else if (key === '_html_class') {
+				return `<div class="attr class-attr">class</div>`;
+			} else if (key.startsWith('_html_')) {
+				return `${key.substring(6)} <div class="attr html-attr">html</div>`;
+			} else if (key === 'content') {
+				return `<div class="attr content-attr">${key}</div>`;
+			} else {
+				return `${key}`;
+			}
+		},
+		highlightText: (str, searchString) => {
+			const escaped = searchString.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+			return str.replace(new RegExp(escaped, 'gi'), (match) => {
+				return `<mark>${match}</mark>`;
+			});
 		}
 	},
 
