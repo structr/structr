@@ -3436,7 +3436,6 @@ table.props td.__value {
 #global-search-results {
 	margin-top: 2rem;
 	width: 100%;
-	table-layout: fixed;
 }
 #global-search-results tbody tr:nth-child(2n) {
 	background-color: var(--solid-white);
@@ -3453,6 +3452,46 @@ table.props td.__value {
 }
 #global-search-results tbody tr:hover {
 	background-color: var(--structr-light-green-transparent);
+}
+
+#global-search-results td.key {
+	display: flex;
+	flex-wrap: wrap;
+	gap: .25rem;
+}
+
+#global-search-results .attr {
+	font-size: .75rem;
+	padding: .25rem .5rem;
+	display: inline-block;
+	border-radius: 1rem;
+}
+
+#global-search-results .custom-html-data-attr {
+	background-color: var(--solid-blue);
+	color: white;
+}
+
+#global-search-results .custom-html-attr {
+	background-color: var(--light-blue);
+	color: white;
+}
+#global-search-results .html-attr {
+	background-color: var(--medium-blue);
+	color: white;
+}
+#global-search-results .id-attr {
+	background-color: var(--light-red);
+	color: white;
+}
+#global-search-results .class-attr {
+	background-color: var(--structr-green);
+	color: white;
+}
+#global-search-results .content-attr {
+	background-color: white;
+	color: #1b1b1b;
+	border: 1px solid #ccc;
 }
 
 /*
@@ -3656,9 +3695,9 @@ ul.combined-input-select-field li:not(.nohover):hover {
 #global-search-popover {
 	position-anchor: --global-search;
 	position-area: x-start y-end;
-	width: 500px;
-    min-width: 500px;
-	height: 700px;
+	width: 600px;
+	min-width: 420px;
+	height: 720px;
 	border: 1px solid var(--input-field-border);
 	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 	font-size: 1rem;
