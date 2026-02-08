@@ -17,502 +17,610 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 // @ts-check
-import { test, expect } from '@playwright/test';
+import {test, expect} from '@playwright/test';
+import {login, logout} from "./helpers/auth";
+import {
+    collapsePageTree,
+    configureFunctionQuery,
+    configureHTMLAttributes,
+    createAndRenamePage, expandOrCollapseElement,
+    expandPageTree,
+    getPageContainer,
+    insertFrontendJs, insertInputWithLabel,
+    resizePagesTree, setNodeContent, useContextMenu
+} from "./helpers/pages";
 
-test.beforeAll(async ({ playwright }) => {
+test.beforeAll(async ({playwright}) => {
 
-  const context = await playwright.request.newContext({
-    extraHTTPHeaders: {
-      'Accept': 'application/json',
-      'X-User': 'superadmin',
-      'X-Password': process.env.SUPERUSER_PASSWORD,
+    const context = await playwright.request.newContext({
+        extraHTTPHeaders: {
+            'Accept': 'application/json',
+            'X-User': 'superadmin',
+            'X-Password': process.env.SUPERUSER_PASSWORD,
+        }
+    });
+
+    // Clear all data
+    await context.delete(process.env.BASE_URL + '/structr/rest/Page');
+    await context.delete(process.env.BASE_URL + '/structr/rest/ActionMapping');
+    await context.delete(process.env.BASE_URL + '/structr/rest/ParameterMapping');
+    await context.delete(process.env.BASE_URL + '/structr/rest/SchemaNode');
+
+    // create schema
+    await context.post(process.env.BASE_URL + '/structr/rest/SchemaNode', {
+        data: JSON.stringify([
+            {
+                name: 'Project',
+                schemaProperties: [
+                    { name: 'description', propertyType: 'String' },
+                    { name: 'dueDate', propertyType: 'Date', format: 'yyyy-MM-dd' },
+                ]
+            },
+            { name: 'Employee' },
+            { name: 'Client' },
+            { name: 'Tag' },
+            { name: 'Task' }
+        ])
+    });
+
+    // remove existing data
+    await context.delete(process.env.BASE_URL + '/structr/rest/Employee');
+    await context.delete(process.env.BASE_URL + '/structr/rest/Client');
+    await context.delete(process.env.BASE_URL + '/structr/rest/Tag');
+    await context.delete(process.env.BASE_URL + '/structr/rest/Task');
+
+    // create test data
+    await context.post(process.env.BASE_URL + '/structr/rest/Employee', {
+        data: JSON.stringify([ { name: 'Employee #1' }, { name: 'Employee #2' }, { name: 'Employee #3' } ])
+    });
+
+    await context.post(process.env.BASE_URL + '/structr/rest/Client', {
+        data: JSON.stringify([ { name: 'Client #1' }, { name: 'Client #2' }, { name: 'Client #3' } ])
+    });
+
+    await context.post(process.env.BASE_URL + '/structr/rest/Tag', {
+        data: JSON.stringify([ { name: 'Tag #1' }, { name: 'Tag #2' }, { name: 'Tag #3' } ])
+    });
+
+    await context.post(process.env.BASE_URL + '/structr/rest/Task', {
+        data: JSON.stringify([ { name: 'Task #1' }, { name: 'Task #2' }, { name: 'Task #3' } ])
+    });
+
+
+    await context.post(process.env.BASE_URL + '/structr/rest/SchemaRelationshipNode', {
+        data: JSON.stringify([
+            {
+                sourceNode: { name: 'Project'},
+                targetNode: { name: 'Task' },
+                relationshipType: 'HAS_TASK',
+                sourceMultiplicity: '1',
+                targetMultiplicity: '*',
+                sourceJsonName: 'project',
+                targetJsonName: 'tasks',
+            },
+            {
+                sourceNode: { name: 'Employee'},
+                targetNode: { name: 'Project' },
+                relationshipType: 'MANAGES',
+                sourceMultiplicity: '1',
+                targetMultiplicity: '*',
+                sourceJsonName: 'manager',
+                targetJsonName: 'project',
+            },
+            {
+                sourceNode: { name: 'Client'},
+                targetNode: { name: 'Project' },
+                relationshipType: 'HAS_CLIENT',
+                sourceMultiplicity: '1',
+                targetMultiplicity: '1',
+                sourceJsonName: 'client',
+                targetJsonName: 'project',
+            },
+            {
+                sourceNode: { name: 'Project'},
+                targetNode: { name: 'Tag' },
+                relationshipType: 'HAS_TAGS',
+                sourceMultiplicity: '*',
+                targetMultiplicity: '*',
+                sourceJsonName: 'projects',
+                targetJsonName: 'tags',
+            },
+        ])
+    });
+
+});
+
+test('pages', async ({page}) => {
+
+    test.setTimeout(2_000);
+
+    let wait = 100;
+
+    await login(page);
+
+    // Pages
+    await page.locator('#pages_').waitFor({state: 'visible'});
+    await page.locator('#pages_').click();
+
+    // Wait for Pages UI to load all components
+    await page.waitForTimeout(wait);
+
+    await resizePagesTree(page, -200);
+
+    await page.waitForTimeout(1000);
+
+    // create projects page
+    {
+
+        await createAndRenamePage(page, 4, 'projects');
+        await expandPageTree(page, 'projects');
+        await insertFrontendJs(page, 'projects');
+
+        let pageContainer = getPageContainer(page, 'projects');
+
+        // remove Initial body text
+        let removeNode = pageContainer.getElement('Initial body text');
+        await useContextMenu(page, removeNode, 'Remove Node');
+
+        // insert form
+        let divContainer = pageContainer.getElement('div');
+        await useContextMenu(page, divContainer, 'Insert HTML element', 'e-f', 'form');
+        await useContextMenu(page, divContainer, 'Insert div element');
+
+        // insert label with input field and text
+        let formContainer = divContainer.getElement('form');
+        await insertInputWithLabel(page, formContainer, 'Name', 'input');
+
+        let input = formContainer.getElement('input', 0);
+        await configureHTMLAttributes(page, input, { type: 'text', name: 'name' });
+
+        // insert button element
+        await useContextMenu(page, formContainer, 'Insert HTML element', 'b', 'button');
+
+        let buttonContainer = formContainer.getElement('Initial text for button');
+        await setNodeContent(page, buttonContainer, 'Create Project');
+        await page.waitForTimeout(wait);
+
+        // build repeater config for projects div
+        let repeaterDiv = pageContainer.getElement('div', 1);
+        await useContextMenu(page, repeaterDiv, 'Insert content element', '#content');
+        let content = repeaterDiv.getElement('#text');
+        await setNodeContent(page, content, '${project.name}')
+
+        await configureFunctionQuery(page, repeaterDiv, 'find(\'Project\')', 'project');
+
+        // build event action mapping for form
+        await page.locator('span').filter({hasText: 'form'}).click();
+        await page.waitForTimeout(wait);
+        await page.getByRole('link', {name: 'HTML'}).click();
+        await page.waitForTimeout(wait);
+        await page.locator('input[name="_html_method"]').fill('post');
+        await page.waitForTimeout(wait);
+        await page.getByRole('link', {name: 'General'}).click();
+        await page.locator('input[name="_html_id"]').fill('create-project-form');
+        await page.waitForTimeout(wait);
+        await page.getByRole('link', {name: 'Events'}).click();
+        await page.waitForTimeout(wait);
+        await page.getByRole('textbox', {name: 'Browser event (click, keydown'}).fill('submit');
+        await page.waitForTimeout(wait);
+        await page.keyboard.press('Tab');
+        await page.waitForTimeout(wait);
+        await page.locator('#action-select').selectOption('Create new object');
+        await page.waitForTimeout(wait);
+        await page.getByRole('textbox', {name: 'Custom type or script'}).fill('Project');
+        await page.waitForTimeout(wait);
+        await page.keyboard.press('Tab');
+        await page.waitForTimeout(wait);
+        await page.getByRole('img', {name: 'Add parameter', exact: true}).click();
+        await page.waitForTimeout(wait);
+        await page.locator('input.parameter-name-input').first().fill('name');
+        await page.waitForTimeout(wait);
+        await page.getByRole('combobox').nth(5).selectOption('User Input');
+        await page.waitForTimeout(wait);
+        await page.locator('span').filter({hasText: /^input$/}).hover();
+        await page.waitForTimeout(wait);
+        await page.mouse.down();
+        await page.waitForTimeout(wait);
+        await page.getByText('Drag and drop existing form').first().hover();
+        await page.waitForTimeout(wait);
+        await page.mouse.up();
+        await page.getByLabel('Behaviour on success Define').selectOption('Navigate to a new page');
+        await page.keyboard.press('Tab');
+        await page.waitForTimeout(wait);
+        await page.getByRole('textbox', {name: 'Success URL'}).fill('/project/{result.id}');
+        await page.keyboard.press('Tab');
+        await page.waitForTimeout(2000);
+        await page.screenshot({path: 'screenshots/pages_create-form_event-action-mapping-configuration.png'});
+
+        await page.reload();
+        await page.waitForTimeout(5000);
+
+        // click on a different element to disable highlighting for the element we want to screenshot
+        await page.locator('span').filter({hasText: 'body'}).click();
+        await page.waitForTimeout(wait);
+        await page.locator('span').filter({hasText: 'script'}).hover();
+        await page.waitForTimeout(2000);
+
+        // take a screenshot of the form element
+        await page.locator('div.node:has(b[title="form"])').nth(4).screenshot({path: 'screenshots/pages_create-form-element.png'});
+
+        await collapsePageTree(page, 'projects');
     }
-  });
-
-  // Clear all data
-  await context.delete(process.env.BASE_URL + '/structr/rest/Page');
-  await context.delete(process.env.BASE_URL + '/structr/rest/ActionMapping');
-  await context.delete(process.env.BASE_URL + '/structr/rest/ParameterMapping');
-  await context.delete(process.env.BASE_URL + '/structr/rest/Project');
-
-});
-
-test('pages', async ({ page }) => {
-
-  test.setTimeout(240_000);
-
-  let wait = 100;
-
-  //await page.setViewportSize({ width: 3840, height: 2160 });
-  await page.goto(process.env.BASE_URL + '/structr/');
-  //await page.evaluate('document.body.style.zoom="2.0"');
-
-  await expect(page).toHaveTitle(/Structr/);
-  await expect(page.locator('#usernameField')).toBeVisible();
-  await expect(page.locator('#passwordField')).toBeVisible();
-  await expect(page.locator('#loginButton')).toBeVisible();
-
-  await page.waitForTimeout(wait);
-
-  //await page.screenshot({ path: 'screenshots/login.png' });
-
-  // Login with admin/admin
-  await page.locator('#usernameField').fill('admin');
-  await page.locator('#passwordField').fill('admin');
-  await page.waitForTimeout(500);
-  await page.locator('#loginButton').click();
-  await page.waitForTimeout(1000);
-
-  // Pages
-  await page.locator('#pages_').waitFor({ state: 'visible' });
-  await page.locator('#pages_').click();
-
-  // Wait for Pages UI to load all components
-  await page.waitForTimeout(wait);
-
-  // Open import dialog and create a new page
-  await page.locator('#pages-actions .dropdown-select').click();
-  await page.locator('#create_page').click();
-  await page.waitForTimeout(wait);
-  await page.locator('#template-tiles .app-tile:nth-child(4)').click();
-  await page.waitForTimeout(2000);
-
-  await page.locator('#pagesTree .node-container:nth-child(1)').waitFor({ state: 'visible' });
-  await page.locator('#pagesTree .node-container:nth-child(1)').click();
-  await page.getByRole('link', { name: 'General' }).click();
-  await page.waitForTimeout(wait);
-  await page.locator('#name-input').fill('projects');
-  await page.locator('#pagesTree').click();
-  await page.waitForTimeout(wait);
-
-  // resize pages tree flyout
-  await page.locator('.column-resizer').first().hover();
-  await page.mouse.down();
-  await page.waitForTimeout(wait);
-  await page.mouse.move(-200, 0);
-  await page.waitForTimeout(wait);
-  await page.mouse.up();
-
-  await page.locator('#pagesTree .node-container:nth-child(1)').click({ button: 'right' });
-  await page.getByText('Expand / Collapse').waitFor({ state: 'visible' });
-  await page.getByText('Expand / Collapse').hover();
-  await page.waitForTimeout(wait);
-  await page.getByText('Expand subtree recursively').waitFor({ state: 'visible' });
-  await page.getByText('Expand subtree recursively').click();
-  await page.waitForTimeout(wait);
-
-  // insert frontend.js
-  await page.locator('#pagesTree').getByText('head').click({ button: 'right' });
-  await page.getByText('Suggested HTML element').waitFor({ state: 'visible' });
-  await page.getByText('Suggested HTML element').hover();
-  await page.getByRole('listitem').filter({ hasText: /^script$/ }).waitFor({ state: 'visible' });
-  await page.getByRole('listitem').filter({ hasText: /^script$/ }).click();
-  await page.waitForTimeout(wait);
-  await page.locator('#pagesTree').getByText('script').click();
-  await page.waitForTimeout(wait);
-  await page.getByRole('link', { name: 'HTML' }).click();
-  await page.waitForTimeout(wait);
-  await page.locator('input[name="_html_type"]').fill('module');
-  await page.locator('input[name="_html_src"]').fill('/structr/js/frontend/frontend.js');
-
-  // remove Initial body text content
-  await page.locator('#pagesTree').getByText('Initial body text').click({ button: 'right' });
-  await page.getByText('Remove Node').waitFor({ state: 'visible' });
-  await page.getByText('Remove Node').click();
-  await page.waitForTimeout(wait);
-
-  // insert form element
-  await page.locator('#pagesTree').getByText('div').click({ button: 'right' });
-  await page.getByText('Insert HTML element').waitFor({ state: 'visible' });
-  await page.getByText('Insert HTML element').hover();
-  await page.getByText('e-f').first().waitFor({ state: 'visible' });
-  await page.getByText('e-f').first().hover();
-  await page.getByText('form').first().waitFor({ state: 'visible' });
-  await page.getByText('form').first().click();
-  await page.waitForTimeout(wait);
-
-  // insert div element for projects
-  await page.locator('#pagesTree').getByText('div').click({ button: 'right' });
-  await page.getByText('Insert div element').first().waitFor({ state: 'visible' });
-  await page.getByText('Insert div element').first().click();
-  await page.waitForTimeout(wait);
-
-  // insert input element
-  await page.locator('#pagesTree').getByText('form').click({ button: 'right' });
-  await page.getByText('Suggested HTML element').first().waitFor({ state: 'visible' });
-  await page.getByText('Suggested HTML element').first().hover();
-  await page.getByRole('listitem').filter({ hasText: /^input$/ }).waitFor({ state: 'visible' });
-  await page.getByRole('listitem').filter({ hasText: /^input$/ }).click();
-  await page.waitForTimeout(wait);
-  await page.locator('span').filter({ hasText: /^input$/ }).click();
-  await page.waitForTimeout(wait);
-  await page.getByRole('link', { name: 'HTML' }).click();
-  await page.locator('input[name="_html_type"]').fill('text');
-  await page.locator('input[name="_html_name"]').fill('name');
-  await page.waitForTimeout(wait);
-
-  // insert button element
-  await page.locator('#pagesTree').getByText('form').click({ button: 'right' });
-  await page.getByText('Suggested HTML element').first().waitFor({ state: 'visible' });
-  await page.getByText('Suggested HTML element').first().hover();
-  await page.getByRole('listitem').filter({ hasText: /^button$/ }).waitFor({ state: 'visible' });
-  await page.getByRole('listitem').filter({ hasText: /^button$/ }).click();
-  await page.waitForTimeout(wait);
-  await page.locator('#pagesTree').getByText('Initial text for button').click();
-  await page.waitForTimeout(wait);
-  await page.keyboard.down('Control');
-  await page.keyboard.press('A');
-  await page.keyboard.up('Control');
-  await page.keyboard.type('Create Project');
-  await page.waitForTimeout(200);
-  await page.getByRole('button', { name: 'Save' }).click();
-  await page.waitForTimeout(wait);
-
-  // second div, add
-  await page.locator('span').filter({ hasText: 'div' }).nth(1).click({ button: 'right' });
-  await page.getByText('Insert content element').first().waitFor({ state: 'visible' });
-  await page.getByText('Insert content element').first().hover();
-  await page.getByRole('listitem').filter({ hasText: /^#content$/ }).waitFor({ state: 'visible' });
-  await page.getByRole('listitem').filter({ hasText: /^#content$/ }).click();
-  await page.waitForTimeout(wait);
-  await page.locator('#pagesTree').getByText('#text').click();
-  await page.waitForTimeout(wait);
-  await page.keyboard.down('Control');
-  await page.keyboard.press('A');
-  await page.keyboard.up('Control');
-  await page.keyboard.type('${project.name}');
-  await page.waitForTimeout(200);
-  await page.getByRole('button', { name: 'Save' }).click();
-  await page.waitForTimeout(wait);
-
-  // build repeater config for projects div
-  await page.locator('span').filter({ hasText: 'div' }).nth(1).click();
-  await page.waitForTimeout(wait);
-  await page.getByRole('link', { name: 'Repeater' }).click();
-  await page.waitForTimeout(wait);
-  await page.getByText('Function Query').click();
-  await page.waitForTimeout(wait);
-  await page.locator('.monaco-editor').nth(0).click();
-  await page.keyboard.type('find(\'Project\')');
-  await page.waitForTimeout(wait);
-  await page.locator('.save-repeater-query').click();
-  await page.locator('.repeater-datakey').fill('project');
-  await page.waitForTimeout(wait);
-  await page.locator('.save-repeater-datakey').click();
-
-  // build event action mapping for form
-  await page.locator('span').filter({ hasText: 'form' }).click();
-  await page.waitForTimeout(wait);
-  await page.getByRole('link', { name: 'HTML' }).click();
-  await page.waitForTimeout(wait);
-  await page.locator('input[name="_html_method"]').fill('post');
-  await page.waitForTimeout(wait);
-  await page.getByRole('link', { name: 'General' }).click();
-  await page.locator('input[name="_html_id"]').fill('create-project-form');
-  await page.waitForTimeout(wait);
-  await page.getByRole('link', { name: 'Events' }).click();
-  await page.waitForTimeout(wait);
-  await page.getByRole('textbox', { name: 'Browser event (click, keydown' }).fill('submit');
-  await page.waitForTimeout(wait);
-  await page.keyboard.press('Tab');
-  await page.waitForTimeout(wait);
-  await page.locator('#action-select').selectOption('Create new object');
-  await page.waitForTimeout(wait);
-  await page.getByRole('textbox', { name: 'Custom type or script' }).fill('Project');
-  await page.waitForTimeout(wait);
-  await page.keyboard.press('Tab');
-  await page.waitForTimeout(wait);
-  await page.getByRole('img', { name: 'Add parameter', exact: true }).click();
-  await page.waitForTimeout(wait);
-  await page.locator('input.parameter-name-input').first().fill('name');
-  await page.waitForTimeout(wait);
-  await page.getByRole('combobox').nth(5).selectOption('User Input');
-  await page.waitForTimeout(wait);
-  await page.locator('span').filter({ hasText: /^input$/ }).hover();
-  await page.waitForTimeout(wait);
-  await page.mouse.down();
-  await page.waitForTimeout(wait);
-  await page.getByText('Drag and drop existing form').first().hover();
-  await page.waitForTimeout(wait);
-  await page.mouse.up();
-  await page.getByLabel('Behaviour on success Define').selectOption('Navigate to a new page');
-  await page.keyboard.press('Tab');
-  await page.waitForTimeout(wait);
-  await page.getByRole('textbox', { name: 'Success URL' }).fill('/project/{result.id}');
-  await page.keyboard.press('Tab');
-  await page.waitForTimeout(2000);
-  await page.screenshot({ path: 'screenshots/pages_create-form_event-action-mapping-configuration.png' });
-
-  await page.reload();
-  await page.waitForTimeout(5000);
-
-  // click on a different element to disable highlighting for the element we want to screenshot
-  await page.locator('span').filter({ hasText: 'body' }).click();
-  await page.waitForTimeout(wait);
-  await page.locator('span').filter({ hasText: 'script' }).hover();
-  await page.waitForTimeout(2000);
-
-  // take a screenshot of the form element
-  await page.locator('div.node:has(b[title="form"])').nth(4).screenshot({ path: 'screenshots/pages_create-form-element.png' });
 
 
-  // create a second page for editing
-  await page.locator('#pages-actions .dropdown-select').click();
-  await page.locator('#create_page').click();
-  await page.waitForTimeout(wait);
-  await page.locator('#template-tiles .app-tile:nth-child(4)').click();
-  await page.waitForTimeout(2000);
+    // create project page
+    {
 
-  await page.getByText('New Page').click();
-  await page.waitForTimeout(wait);
-  await page.getByRole('link', { name: 'General' }).click();
-  await page.waitForTimeout(wait);
-  await page.locator('#name-input').fill('project');
-  await page.locator('#pagesTree').click();
-  await page.waitForTimeout(wait);
+        await createAndRenamePage(page, 4, 'project');
+        await expandPageTree(page, 'project');
+        await insertFrontendJs(page, 'project');
 
-  // collapse previous page
-  await page.locator('i').first().click();
+        let pageContainer = getPageContainer(page, 'project');
 
-  // expand second page
-  await page.locator('#pagesTree .node-container:nth-child(2)').click({ button: 'right' });
-  await page.getByText('Expand / Collapse').waitFor({ state: 'visible' });
-  await page.getByText('Expand / Collapse').hover();
-  await page.waitForTimeout(wait);
-  await page.getByText('Expand subtree recursively').waitFor({ state: 'visible' });
-  await page.getByText('Expand subtree recursively').click();
-  await page.waitForTimeout(wait);
+        // remove Initial body text
+        let removeNode = pageContainer.getElement('Initial body text');
+        await useContextMenu(page, removeNode, 'Remove Node');
 
-    // insert frontend.js
-    await page.locator('#pagesTree').getByText('head').click({ button: 'right' });
-    await page.getByText('Suggested HTML element').waitFor({ state: 'visible' });
-    await page.getByText('Suggested HTML element').hover();
-    await page.getByRole('listitem').filter({ hasText: /^script$/ }).waitFor({ state: 'visible' });
-    await page.getByRole('listitem').filter({ hasText: /^script$/ }).click();
-    await page.waitForTimeout(wait);
-    await page.locator('#pagesTree').getByText('script').click();
-    await page.waitForTimeout(wait);
-    await page.getByRole('link', { name: 'HTML' }).click();
-    await page.waitForTimeout(wait);
-    await page.locator('input[name="_html_type"]').fill('module');
-    await page.locator('input[name="_html_src"]').fill('/structr/js/frontend/frontend.js');
+        // change title
+        await page.locator('span').filter({hasText: '${capitalize(page.name)}'}).nth(2).click();
+        await page.waitForTimeout(wait);
+        await page.keyboard.down('Control');
+        await page.keyboard.press('A');
+        await page.keyboard.up('Control');
+        await page.keyboard.type('Edit Project "${current.name}"');
+        await page.waitForTimeout(200);
+        await page.getByRole('button', {name: 'Save'}).click();
+        await page.waitForTimeout(wait);
 
-  // remove Initial body text content
-  await page.locator('#pagesTree').getByText('Initial body text').click({ button: 'right' });
-  await page.getByText('Remove Node').waitFor({ state: 'visible' });
-  await page.getByText('Remove Node').click();
-  await page.waitForTimeout(wait);
+        let divContainer = pageContainer.getElement('div');
+        await useContextMenu(page, divContainer, 'Insert HTML element', 'e-f', 'form');
 
-  // change title
-  await page.locator('span').filter({ hasText: '${capitalize(page.name)}' }).nth(2).click();
-    await page.waitForTimeout(wait);
-    await page.keyboard.down('Control');
-    await page.keyboard.press('A');
-    await page.keyboard.up('Control');
-    await page.keyboard.type('Edit Project "${current.name}"');
-    await page.waitForTimeout(200);
-    await page.getByRole('button', { name: 'Save' }).click();
-    await page.waitForTimeout(wait);
+        // insert label with input field and text
+        let formContainer = divContainer.getElement('form');
+        await insertInputWithLabel(page, formContainer, 'Name', 'input');
+        await insertInputWithLabel(page, formContainer, 'Description', 'input');
+        await insertInputWithLabel(page, formContainer, 'Due date', 'input');
+
+        let input1 = formContainer.getElement('input', 0);
+        await configureHTMLAttributes(page, input1, { type: 'text', name: 'name', value: '${current.name}' });
+
+        let input2 = formContainer.getElement('input', 1);
+        await configureHTMLAttributes(page, input2, { type: 'text', name: 'description', value: '${current.description}' });
+
+        let input3 = formContainer.getElement('input', 2);
+        await configureHTMLAttributes(page, input3, { type: 'date', name: 'dueDate', value: '${dateFormat(current.dueDate, "yyyy-MM-dd")}' });
+
+        // click on different element before screenshotting to avoid ugly spellcheck lines in screenshot (WTF?)
+        await page.locator('input[name="_html_autofocus"]').click();
+        await page.waitForTimeout(wait);
+
+        await page.waitForTimeout(5000);
+        await page.screenshot({path: 'screenshots/pages_edit-form_input-configuration.png'});
+
+        // insert button element
+        await useContextMenu(page, formContainer, 'Insert HTML element', 'b', 'button');
+        let buttonContainer = formContainer.getElement('Initial text for button');
+        await setNodeContent(page, buttonContainer, 'Save Project');
+        await page.waitForTimeout(wait);
 
 
-    // insert form element
-    await page.locator('#pagesTree').getByText('div').click({ button: 'right' });
-    await page.getByText('Insert HTML element').waitFor({ state: 'visible' });
-    await page.getByText('Insert HTML element').hover();
-    await page.getByText('e-f').first().waitFor({ state: 'visible' });
-    await page.getByText('e-f').first().hover();
-    await page.getByText('form').first().waitFor({ state: 'visible' });
-    await page.getByText('form').first().click();
-    await page.waitForTimeout(wait);
+        // build event action mapping for form
+        await page.locator('span').filter({hasText: 'form'}).click();
+        await page.waitForTimeout(wait);
+        await page.getByRole('link', {name: 'HTML'}).click();
+        await page.waitForTimeout(wait);
+        await page.locator('input[name="_html_method"]').fill('post');
+        await page.waitForTimeout(wait);
+        await page.getByRole('link', {name: 'General'}).click();
+        await page.locator('input[name="_html_id"]').fill('save-project-form');
+        await page.waitForTimeout(wait);
+        await page.getByRole('link', {name: 'Events'}).click();
+        await page.waitForTimeout(wait);
+        await page.getByRole('textbox', {name: 'Browser event (click, keydown'}).fill('submit');
+        await page.keyboard.press('Tab');
+        await page.waitForTimeout(wait);
+        await page.locator('#action-select').selectOption('Update object');
+        await page.waitForTimeout(wait);
+        await page.getByRole('textbox', {name: 'Custom type or script'}).fill('Project');
+        await page.waitForTimeout(wait);
+        await page.keyboard.press('Tab');
+        await page.waitForTimeout(wait);
+        await page.locator('#id-expression-input').fill('${current.id}');
+        await page.waitForTimeout(wait);
+        await page.keyboard.press('Tab');
+        await page.waitForTimeout(wait);
+        await page.getByRole('img', {name: 'Add parameter', exact: true}).click();
+        await page.waitForTimeout(wait);
+        await page.getByRole('img', {name: 'Add parameter', exact: true}).click();
+        await page.waitForTimeout(wait);
+        await page.getByRole('img', {name: 'Add parameter', exact: true}).click();
+        await page.waitForTimeout(wait);
+        await page.getByRole('textbox', {name: 'Name'}).nth(2).fill('name');
+        await page.waitForTimeout(wait);
+        await page.getByRole('combobox').nth(5).selectOption('User Input');
+        await page.waitForTimeout(wait);
+        await page.getByRole('textbox', {name: 'Name'}).nth(3).fill('description');
+        await page.waitForTimeout(wait);
+        await page.getByRole('combobox').nth(6).selectOption('User Input');
+        await page.waitForTimeout(wait);
+        await page.getByRole('textbox', {name: 'Name'}).nth(4).fill('dueDate');
+        await page.waitForTimeout(wait);
+        await page.getByRole('combobox').nth(7).selectOption('User Input');
+        await page.waitForTimeout(wait);
 
-    // insert input element
-    await page.locator('#pagesTree').getByText('form').click({ button: 'right' });
-    await page.getByText('Suggested HTML element').first().waitFor({ state: 'visible' });
-    await page.getByText('Suggested HTML element').first().hover();
-    await page.getByRole('listitem').filter({ hasText: /^input$/ }).waitFor({ state: 'visible' });
-    await page.getByRole('listitem').filter({ hasText: /^input$/ }).click();
-    await page.waitForTimeout(wait);
-    await page.locator('span').filter({ hasText: /^input$/ }).click();
-    await page.waitForTimeout(wait);
-    await page.getByRole('link', { name: 'HTML' }).click();
-    await page.locator('input[name="_html_type"]').fill('text');
-    await page.locator('input[name="_html_name"]').fill('name');
-    await page.locator('input[name="_html_value"]').fill('${current.name}');
-    await page.waitForTimeout(wait);
+        // drag input1 to dropzone1
+        await page.locator('span').filter({hasText: 'input'}).first().hover();
+        await page.waitForTimeout(wait);
+        await page.mouse.down();
+        await page.waitForTimeout(wait);
+        await page.getByText('Drag and drop existing form').first().hover();
+        await page.waitForTimeout(wait);
+        await page.mouse.up();
 
-    // insert input element
-    await page.locator('#pagesTree').getByText('form').click({ button: 'right' });
-    await page.getByText('Suggested HTML element').first().waitFor({ state: 'visible' });
-    await page.getByText('Suggested HTML element').first().hover();
-    await page.getByRole('listitem').filter({ hasText: /^input$/ }).waitFor({ state: 'visible' });
-    await page.getByRole('listitem').filter({ hasText: /^input$/ }).click();
-    await page.waitForTimeout(wait);
-    await page.locator('span').filter({ hasText: /^input$/ }).nth(1).click();
-    await page.waitForTimeout(wait);
-    await page.getByRole('link', { name: 'HTML' }).click();
-    await page.locator('input[name="_html_type"]').fill('text');
-    await page.locator('input[name="_html_name"]').fill('description');
-    await page.locator('input[name="_html_value"]').fill('${current.description}');
-    await page.waitForTimeout(wait);
+        // drag input2 to dropzone2
+        await page.locator('span').filter({hasText: 'input'}).nth(1).hover();
+        await page.waitForTimeout(wait);
+        await page.mouse.down();
+        await page.waitForTimeout(wait);
+        await page.getByText('Drag and drop existing form').nth(1).hover();
+        await page.waitForTimeout(wait);
+        await page.mouse.up();
 
-    // insert input element
-    await page.locator('#pagesTree').getByText('form').click({ button: 'right' });
-    await page.getByText('Suggested HTML element').first().waitFor({ state: 'visible' });
-    await page.getByText('Suggested HTML element').first().hover();
-    await page.getByRole('listitem').filter({ hasText: /^input$/ }).waitFor({ state: 'visible' });
-    await page.getByRole('listitem').filter({ hasText: /^input$/ }).click();
-    await page.waitForTimeout(wait);
-    await page.locator('span').filter({ hasText: /^input$/ }).nth(2).click();
-    await page.waitForTimeout(wait);
-    await page.getByRole('link', { name: 'HTML' }).click();
-    await page.locator('input[name="_html_type"]').fill('date');
-    await page.locator('input[name="_html_name"]').fill('dueDate');
-    await page.locator('input[name="_html_value"]').fill('${dateFormat(current.dueDate, "yyyy-MM-dd")}');
+        // drag input3 to dropzone3
+        await page.locator('span').filter({hasText: 'input'}).nth(2).hover();
+        await page.waitForTimeout(wait);
+        await page.mouse.down();
+        await page.waitForTimeout(wait);
+        await page.getByText('Drag and drop existing form').nth(2).hover();
+        await page.waitForTimeout(wait);
+        await page.mouse.up();
 
-    // click on different element before screenshotting to avoid ugly spellcheck lines in screenshot (WTF?)
-    await page.locator('input[name="_html_autofocus"]').click();
-    await page.waitForTimeout(wait);
+        await page.getByLabel('Behaviour on success Define').selectOption('Reload the current page');
+        await page.keyboard.press('Tab');
+        await page.waitForTimeout(5000);
+        await page.screenshot({path: 'screenshots/pages_edit-form_event-action-mapping-configuration.png'});
+        await page.waitForTimeout(2000);
 
-    await page.waitForTimeout(5000);
-    await page.screenshot({ path: 'screenshots/pages_edit-form_input-configuration.png' });
+        // reload to un-select the form element
+        await page.reload();
+        await page.waitForTimeout(5000);
 
-    // insert button element
-    await page.locator('#pagesTree').getByText('form').click({ button: 'right' });
-    await page.getByText('Suggested HTML element').first().waitFor({ state: 'visible' });
-    await page.getByText('Suggested HTML element').first().hover();
-    await page.getByRole('listitem').filter({ hasText: /^button$/ }).waitFor({ state: 'visible' });
-    await page.getByRole('listitem').filter({ hasText: /^button$/ }).click();
-    await page.waitForTimeout(wait);
-    await page.locator('#pagesTree').getByText('Initial text for button').click();
-    await page.waitForTimeout(wait);
-    await page.keyboard.down('Control');
-    await page.keyboard.press('A');
-    await page.keyboard.up('Control');
-    await page.keyboard.type('Save Project');
-    await page.waitForTimeout(200);
-    await page.getByRole('button', { name: 'Save' }).click();
-    await page.waitForTimeout(wait);
+        // click on a different element to disable highlighting for the element we want to screenshot
+        await page.locator('span').filter({hasText: 'form#save-project-form'}).click();
+        await page.waitForTimeout(wait);
+        await page.locator('span').filter({hasText: 'body'}).click();
+        await page.waitForTimeout(wait);
+        await page.locator('span').filter({hasText: 'head'}).hover();
+        await page.waitForTimeout(2000);
+
+        // take a screenshot of the form element
+        await page.locator('div.node:has(b[title="form"])').nth(4).screenshot({path: 'screenshots/pages_edit-form-element.png'});
+
+        await page.waitForTimeout(1000);
+        await page.goto(process.env.BASE_URL + '/projects');
+        await page.waitForTimeout(1000);
+
+        await page.locator('input[name="name"]').fill('Project #1');
+        await page.waitForTimeout(wait);
+        await page.locator('button').click();
+        await page.waitForTimeout(1000);
+
+        await expect(page.locator('h1')).toHaveText('Edit Project "Project #1"');
+
+        await page.waitForTimeout(1000);
+        await page.goto(process.env.BASE_URL + '/projects');
+        await page.waitForTimeout(1000);
+
+        await page.goto(process.env.BASE_URL + '/structr/');
+        await expect(page).toHaveTitle(/Structr/);
+
+        await collapsePageTree(page, 'project');
+    }
+
+    // next part: advanced example
+    {
+        await resizePagesTree(page, 200);
+
+        await createAndRenamePage(page, 4, 'advanced');
+        await expandPageTree(page, 'advanced');
+        await insertFrontendJs(page, 'advanced');
+
+        let pageContainer = getPageContainer(page, 'advanced');
+
+        // remove Initial body text
+        let removeNode = pageContainer.getElement('Initial body text');
+        await useContextMenu(page, removeNode, 'Remove Node');
+
+        // change title
+        await page.locator('span').filter({hasText: '${capitalize(page.name)}'}).nth(2).click();
+        await page.waitForTimeout(wait);
+        await page.keyboard.down('Control');
+        await page.keyboard.press('A');
+        await page.keyboard.up('Control');
+        await page.keyboard.type('Edit Project "${current.name}"');
+        await page.waitForTimeout(200);
+        await page.getByRole('button', {name: 'Save'}).click();
+        await page.waitForTimeout(wait);
+
+        // collapse some elements for screenshotting
+        let head = pageContainer.getElement('head');
+        let h1 = pageContainer.getElement('h1');
+        await expandOrCollapseElement(page, head, 'collapse');
+        await expandOrCollapseElement(page, h1, 'collapse');
+
+        let divContainer = pageContainer.getElement('div');
+        await useContextMenu(page, divContainer, 'Insert HTML element', 'e-f', 'form');
+
+        // insert label with input field and text
+        let formContainer = divContainer.getElement('form');
+        await insertInputWithLabel(page, formContainer, 'Manager', 'select');
+        await insertInputWithLabel(page, formContainer, 'Client', 'select');
+        await insertInputWithLabel(page, formContainer, 'Tags', 'select');
+        await insertInputWithLabel(page, formContainer, 'Tasks', 'select');
+
+        let tagsSelect = formContainer.getElement('select', 2);
+        let tasksSelect = formContainer.getElement('select', 3);
+
+        await configureHTMLAttributes(page, tagsSelect, { multiple: 'true' });
+        await configureHTMLAttributes(page, tasksSelect, { multiple: 'true' });
+
+        let configs = [
+            { query: 'find(\'Employee\')', dataKey: 'employee', optionText: '${employee.name}', optionValue: '${employee.id}', selected: '${is(eq(current.manager, employee), \'\')}' },
+            { query: 'find(\'Client\')', dataKey: 'client', optionText: '${client.name}', optionValue: '${client.id}', selected: '${is(eq(current.client, client), \'\')}' },
+            { query: 'find(\'Tag\')', dataKey: 'tag', optionText: '${tag.name}', optionValue: '${tag.id}', selected: '${is(contains(current.tags, tag), \'\')}' },
+            { query: 'find(\'Task\')', dataKey: 'task', optionText: '${task.name}', optionValue: '${task.id}', selected: '${is(contains(current.tasks, task), \'\')}' },
+        ];
+
+        let index = 0;
+
+        for (let config of configs) {
+
+            let labelContainer = formContainer.getElement('label', index);
+            let select = labelContainer.getElement('select');
+            await useContextMenu(page, select, 'Suggested HTML element', 'option');
+            let option = labelContainer.getElement('option');
+            await expandOrCollapseElement(page, labelContainer, 'expand');
+            await option.getTextNode().click();
+            await configureFunctionQuery(page, option, config.query, config.dataKey);
+            await configureHTMLAttributes(page, option, { value: config.optionValue, selected: config.selected });
+            let optionText = labelContainer.getElement('Initial text for option');
+            await setNodeContent(page, optionText, config.optionText);
+
+            index++;
+        }
+
+        // insert button element
+        await useContextMenu(page, formContainer, 'Insert HTML element', 'b', 'button');
+        let buttonContainer = formContainer.getElement('Initial text for button');
+        await setNodeContent(page, buttonContainer, 'Save Project');
+        await page.waitForTimeout(wait);
 
 
-    // build event action mapping for form
-    await page.locator('span').filter({ hasText: 'form' }).click();
-    await page.waitForTimeout(wait);
-    await page.getByRole('link', { name: 'HTML' }).click();
-    await page.waitForTimeout(wait);
-    await page.locator('input[name="_html_method"]').fill('post');
-    await page.waitForTimeout(wait);
-    await page.getByRole('link', { name: 'General' }).click();
-    await page.locator('input[name="_html_id"]').fill('save-project-form');
-    await page.waitForTimeout(wait);
-    await page.getByRole('link', { name: 'Events' }).click();
-    await page.waitForTimeout(wait);
-    await page.getByRole('textbox', { name: 'Browser event (click, keydown' }).fill('submit');
-    await page.keyboard.press('Tab');
-    await page.waitForTimeout(wait);
-    await page.locator('#action-select').selectOption('Update object');
-    await page.waitForTimeout(wait);
-    await page.getByRole('textbox', { name: 'Custom type or script' }).fill('Project');
-    await page.waitForTimeout(wait);
-    await page.keyboard.press('Tab');
-    await page.waitForTimeout(wait);
-    await page.locator('#id-expression-input').fill('${current.id}');
-    await page.waitForTimeout(wait);
-    await page.keyboard.press('Tab');
-    await page.waitForTimeout(wait);
-    await page.getByRole('img', { name: 'Add parameter', exact: true }).click();
-    await page.waitForTimeout(wait);
-    await page.getByRole('img', { name: 'Add parameter', exact: true }).click();
-    await page.waitForTimeout(wait);
-    await page.getByRole('img', { name: 'Add parameter', exact: true }).click();
-    await page.waitForTimeout(wait);
-    await page.getByRole('textbox', { name: 'Name' }).nth(2).fill('name');
-    await page.waitForTimeout(wait);
-    await page.getByRole('combobox').nth(5).selectOption('User Input');
-    await page.waitForTimeout(wait);
-    await page.getByRole('textbox', { name: 'Name' }).nth(3).fill('description');
-    await page.waitForTimeout(wait);
-    await page.getByRole('combobox').nth(6).selectOption('User Input');
-    await page.waitForTimeout(wait);
-    await page.getByRole('textbox', { name: 'Name' }).nth(4).fill('dueDate');
-    await page.waitForTimeout(wait);
-    await page.getByRole('combobox').nth(7).selectOption('User Input');
-    await page.waitForTimeout(wait);
+        // build event action mapping for form
+        await page.locator('span').filter({hasText: 'form'}).click();
+        await page.waitForTimeout(wait);
+        await page.getByRole('link', {name: 'HTML'}).click();
+        await page.waitForTimeout(wait);
+        await page.locator('input[name="_html_method"]').fill('post');
+        await page.waitForTimeout(wait);
+        await page.getByRole('link', {name: 'General'}).click();
+        await page.locator('input[name="_html_id"]').fill('save-project-form');
+        await page.waitForTimeout(wait);
+        await page.getByRole('link', {name: 'Events'}).click();
+        await page.waitForTimeout(wait);
+        await page.getByRole('textbox', {name: 'Browser event (click, keydown'}).fill('submit');
+        await page.keyboard.press('Tab');
+        await page.waitForTimeout(wait);
+        await page.locator('#action-select').selectOption('Update object');
+        await page.waitForTimeout(wait);
+        await page.getByRole('textbox', {name: 'Custom type or script'}).fill('Project');
+        await page.waitForTimeout(wait);
+        await page.keyboard.press('Tab');
+        await page.waitForTimeout(wait);
+        await page.locator('#id-expression-input').fill('${current.id}');
+        await page.waitForTimeout(wait);
+        await page.keyboard.press('Tab');
+        await page.waitForTimeout(wait);
+        await page.getByRole('img', {name: 'Add parameter', exact: true}).click();
+        await page.waitForTimeout(wait);
+        await page.getByRole('img', {name: 'Add parameter', exact: true}).click();
+        await page.waitForTimeout(wait);
+        await page.getByRole('img', {name: 'Add parameter', exact: true}).click();
+        await page.waitForTimeout(wait);
+        await page.getByRole('img', {name: 'Add parameter', exact: true}).click();
+        await page.waitForTimeout(wait);
+        await page.getByRole('textbox', {name: 'Name'}).nth(2).fill('manager');
+        await page.waitForTimeout(wait);
+        await page.getByRole('combobox').nth(5).selectOption('User Input');
+        await page.waitForTimeout(wait);
+        await page.getByRole('textbox', {name: 'Name'}).nth(3).fill('client');
+        await page.waitForTimeout(wait);
+        await page.getByRole('combobox').nth(6).selectOption('User Input');
+        await page.waitForTimeout(wait);
+        await page.getByRole('textbox', {name: 'Name'}).nth(4).fill('tags');
+        await page.waitForTimeout(wait);
+        await page.getByRole('combobox').nth(7).selectOption('User Input');
+        await page.waitForTimeout(wait);
+        await page.getByRole('textbox', {name: 'Name'}).nth(5).fill('tasks');
+        await page.waitForTimeout(wait);
+        await page.getByRole('combobox').nth(8).selectOption('User Input');
+        await page.waitForTimeout(wait);
 
-    // drag input1 to dropzone1
-    await page.locator('span').filter({ hasText: 'input' }).first().hover();
-    await page.waitForTimeout(wait);
-    await page.mouse.down();
-    await page.waitForTimeout(wait);
-    await page.getByText('Drag and drop existing form').first().hover();
-    await page.waitForTimeout(wait);
-    await page.mouse.up();
+        // drag inputs to dropzone
+        for (var i=0; i<4; i++) {
 
-    // drag input2 to dropzone2
-    await page.locator('span').filter({ hasText: 'input' }).nth(1).hover();
-    await page.waitForTimeout(wait);
-    await page.mouse.down();
-    await page.waitForTimeout(wait);
-    await page.getByText('Drag and drop existing form').nth(1).hover();
-    await page.waitForTimeout(wait);
-    await page.mouse.up();
+            await page.locator('span').filter({hasText: 'select'}).nth(i).hover();
+            await page.waitForTimeout(wait);
+            await page.mouse.down();
+            await page.waitForTimeout(wait);
+            await page.getByText('Drag and drop existing form').nth(i).hover();
+            await page.waitForTimeout(wait);
+            await page.mouse.up();
+        }
 
-    // drag input3 to dropzone3
-    await page.locator('span').filter({ hasText: 'input' }).nth(2).hover();
-    await page.waitForTimeout(wait);
-    await page.mouse.down();
-    await page.waitForTimeout(wait);
-    await page.getByText('Drag and drop existing form').nth(2).hover();
-    await page.waitForTimeout(wait);
-    await page.mouse.up();
+        await page.getByLabel('Behaviour on success Define').selectOption('Reload the current page');
+        await page.keyboard.press('Tab');
+        await page.waitForTimeout(5000);
+        await page.screenshot({path: 'screenshots/pages_advanced-form_event-action-mapping-configuration.png'});
+        await page.waitForTimeout(2000);
 
-    await page.getByLabel('Behaviour on success Define').selectOption('Reload the current page');
-    await page.keyboard.press('Tab');
-    await page.waitForTimeout(5000);
-    await page.screenshot({ path: 'screenshots/pages_edit-form_event-action-mapping-configuration.png' });
-    await page.waitForTimeout(2000);
+        // reload to un-select the form element
+        await page.reload();
+        await page.waitForTimeout(5000);
 
-    // reload to un-select the form element
-    await page.reload();
-    await page.waitForTimeout(5000);
+        // click on a different element to disable highlighting for the element we want to screenshot
+        await page.locator('span').filter({hasText: 'form#save-project-form'}).click();
+        await page.waitForTimeout(wait);
+        await page.locator('span').filter({hasText: 'body'}).click();
+        await page.waitForTimeout(wait);
+        await page.locator('span').filter({hasText: 'head'}).hover();
+        await page.waitForTimeout(2000);
 
-    // click on a different element to disable highlighting for the element we want to screenshot
-    await page.locator('span').filter({ hasText: 'form#save-project-form' }).click();
-    await page.waitForTimeout(wait);
-    await page.locator('span').filter({ hasText: 'body' }).click();
-    await page.waitForTimeout(wait);
-    await page.locator('span').filter({ hasText: 'head' }).hover();
-    await page.waitForTimeout(2000);
+        // take a screenshot of the form element
+        await page.locator('div.node:has(b[title="form"])').nth(4).screenshot({path: 'screenshots/pages_advanced-form-element.png'});
 
-  // take a screenshot of the form element
-  await page.locator('div.node:has(b[title="form"])').nth(4).screenshot({ path: 'screenshots/pages_edit-form-element.png' });
+        await page.waitForTimeout(1000);
+        await page.goto(process.env.BASE_URL + '/advanced');
+        await page.waitForTimeout(1000);
 
-  await page.waitForTimeout(1000);
-  await page.goto(process.env.BASE_URL + '/projects');
-  await page.waitForTimeout(1000);
+        await page.locator('input[name="name"]').fill('Project #1');
+        await page.waitForTimeout(wait);
+        await page.locator('button').click();
+        await page.waitForTimeout(1000);
 
-  await page.locator('input[name="name"]').fill('Project #1');
-  await page.waitForTimeout(wait);
-  await page.locator('button').click();
-  await page.waitForTimeout(1000);
-  await page.locator('h1').innerText('Edit Project "Project #1');
+        await expect(page.locator('h1')).toHaveText('Edit Project "Project #1"');
 
-  await page.waitForTimeout(1000);
-  await page.goto(process.env.BASE_URL + '/projects');
-  await page.waitForTimeout(1000);
+        await page.goto(process.env.BASE_URL + '/structr/');
+        await expect(page).toHaveTitle(/Structr/);
 
-    //await page.setViewportSize({ width: 3840, height: 2160 });
-    await page.goto(process.env.BASE_URL + '/structr/');
-    //await page.evaluate('document.body.style.zoom="2.0"');
+    }
 
-    await expect(page).toHaveTitle(/Structr/);
 
-  // Logout
-  await page.locator('.submenu-trigger').hover();
-  await page.waitForTimeout(500);
-  await page.locator('#logout_').waitFor({ state: 'visible' });
-  await page.locator('#logout_').click();
-  await page.locator('#usernameField').waitFor({ state: 'visible' });
-  await page.waitForTimeout(1000);
+
+
+    await logout(page);
 
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

@@ -568,7 +568,10 @@ let _Pages = {
 					}
 				]
 			});
-		}
+		} else {
+
+            console.log(entity)
+        }
 
 		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
