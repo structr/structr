@@ -73,7 +73,10 @@ The following example shows how to configure a simple form that creates a new Pr
 
 ```html
 <form id="create-project-form">
-    <input type="text" name="name" required>
+    <label>
+        Name
+        <input type="text" name="name" required>
+    </label>
     <button type="submit">Create Project</button>
 </form>
 ```
@@ -100,10 +103,12 @@ When a user fills in the form and clicks "Create Project", Structr creates a new
 Note that you can also enter `AbstractNode` as the type and pass a parameter named `type` to determine the actual type at runtime. This is useful when a form can create different types of objects depending on user input.
 
 #### Update Object
-The Update Object action updates an existing object in the database. You enter a template expression in the "UUID of data object to update" field that resolves to the UUID of the object you want to update, for example `${current.id}`. Note that this field is not an auto-script field, so you need to include the `${...}` wrapper. The configured parameter mapping determines which properties are updated. Each parameter name corresponds to a property on the object - only the mapped properties are modified, other properties remain unchanged. 
+The Update Object action updates an existing object in the database. You enter a template expression in the "UUID of data object to update" field that resolves to the UUID of the object you want to update, for example `${current.id}`. Note that this field is not an auto-script field, so you need to include the `${...}` wrapper.
+
+The configured parameter mapping determines which properties are updated. Each parameter name corresponds to a property on the object - only the mapped properties are modified, other properties remain unchanged. 
 
 ##### Example: Edit Form
-To let users modify existing data, you build an edit form. With the Event Action Mapping in Structr, you simply add an input field for each property you want to edit and set each input field's `value` to the corresponding property using a template expression, for example `${current.name}`. When the user submits the form, the Event Action Mapping sends the modified values back to the server. For details on dynamic attribute values, see the Dynamic Content chapter.
+To let users modify existing data, you usually build an edit form. With the Event Action Mapping in Structr, you simply add an input field for each property you want to edit and set each input field's `value` to the corresponding property using a template expression, for example `${current.name}`. When the user submits the form, the Event Action Mapping sends the modified values back to the server. For details on dynamic attribute values, see the Dynamic Content chapter.
 
 The following example shows the configuration of an edit form for a Project with multiple field types. The page is accessible at `/project/{id}` where `{id}` is the project's UUID. Structr automatically resolves the UUID and makes the project available as `current`. For details on URL resolution, see the Navigation & Routing chapter.
 
@@ -111,10 +116,19 @@ The following example shows the configuration of an edit form for a Project with
 <img src="pages_edit-form-element.png" class="small-image-left"/>
 
 ```html
-<form id="create-project-form">
-    <input type="text" name="name" value="${current.name}">
-    <input type="text" name="description" value="${current.description}">
-    <input type="date" name="dueDate" value="${dateFormat(current.dueDate, 'yyyy-MM-dd')}">
+<form id="edit-project-form">
+    <label>
+        Name
+        <input type="text" name="name" value="${current.name}">
+    </label>
+    <label>
+        Description
+        <input type="text" name="description" value="${current.description}">
+    </label>
+    <label>
+        DueDate
+        <input type="date" name="dueDate" value="${dateFormat(current.dueDate, 'yyyy-MM-dd')}">
+    </label>
     <button type="submit">Save Project</button>
 </form>
 ```
@@ -134,9 +148,7 @@ The Action Mapping configuration looks like this:
 
 ![Event Action Mapping configuration for the edit form](pages_edit-form_event-action-mapping-configuration.png)
 
-Each input has a `value` attribute with a template expression that loads the current value. The date field uses `dateFormat()` to convert to the HTML date input format.
-
-The configuration of a single input field looks like this:
+Each input has a `value` attribute with a template expression that loads the current value. The date field uses `dateFormat()` to convert to the HTML date input format thus the configuration of a single input field looks like this:
 
 ![Event Action Mapping configuration for the edit form](pages_edit-form_input-configuration.png)
 
@@ -522,3 +534,124 @@ While an action is running, the triggering element receives the CSS class `struc
     content: ' Loading...';
 }
 ```
+
+
+## Advanced Example
+
+The examples earlier in this chapter show simple forms that map input fields to primitive properties like strings and dates. In practice, most forms also need to set relationships to other objects. This section shows how to build a form that handles all four relationship cardinalities alongside primitive properties.
+
+### The Data Model
+
+The example uses a project management scenario with the following types and relationships:
+
+| Type | Relationship | Target Type | Cardinality | Meaning |
+|------|-------------|-------------|-------------|---------|
+| Project | manager | Employee | many-to-one | Each project has one manager, but an employee can manage multiple projects. |
+| Project | client | Client | one-to-one | Each project has exactly one client, and each client has exactly one project. |
+| Project | tags | Tag | many-to-many | A project can have multiple tags, and a tag can be assigned to multiple projects. |
+| Project | tasks | Task | one-to-many | A project has multiple tasks, but each task belongs to exactly one project. |
+
+In addition, Project has the primitive properties `name` (String), `description` (String), and `dueDate` (Date).
+
+### How Relationship Properties Work in Forms
+
+To set a relationship property in a form, you pass the UUID of the related object as the parameter value. Structr uses the UUID to find the target object and creates or updates the relationship.
+
+For to-one relationships (many-to-one and one-to-one), you pass a single UUID. A `<select>` element is the natural choice here because the user picks one item from a list. Each `<option>` has the UUID of a related object as its `value`.
+
+For to-many relationships (one-to-many and many-to-many), you pass multiple UUIDs. A `<select>` element with the `multiple` attribute is the natural choice here. Each `<option>` has the UUID of a related object as its `value`, and the browser collects all selected values into an array.
+
+Structr manages relationships completely. When you submit the form, Structr sets the relationship to exactly the objects you pass. Old relationships that are no longer in the submitted data are removed automatically.
+
+### The Form
+
+The following form combines primitive inputs and relationship selectors for a Project. The page is accessible at `/advanced/{id}` where `{id}` is the project's UUID.
+
+<div class="html-example">
+<img src="pages_advanced-form-element.png" class="small-image-left"/>
+
+```html
+<form id="advanced-project-form">
+    <label>
+        Manager
+        <select name="manager" required>
+            <!-- repeater query: find('Employee'), data key: employee -->
+            <option value="${employee.id}" selected="">${employee.name}</option>
+        </select>
+    </label>
+    <label>
+        Client
+        <select name="client" required>
+            <!-- repeater query: find('Client'), data key: client -->
+            <option value="${client.id}" selected="">${client.name}</option>
+        </select>
+    </label>
+    <label>
+        Tags
+        <select name="tags" multiple>
+            <!-- repeater query: find('Tag'), data key: tag -->
+            <option value="${tag.id}" selected="">${tag.name}</option>
+        </select>
+    </label>
+    <label>
+        Tasks
+        <select name="task" multiple>
+            <!-- repeater query: find('Task'), data key: task -->
+            <option value="${task.id}" selected="">${task.name}</option>
+        </select>
+    </label>
+    <button type="submit">Save Project</button>
+</form>
+```
+</div>
+<div style="clear: both;"></div>
+
+### Configuring the Event Action Mapping
+
+Select the form element in the page tree and configure the Event Action Mapping:
+
+1. Set the **Event** to `submit`.
+2. Select "Update object" as the **Action**.
+3. In the UUID field, enter `${current.id}`.
+4. In the type field, enter `Project`.
+5. Under **Parameter Mapping**, add a parameter for each property:
+
+| Parameter Name | Parameter Type | Mapped Element | Purpose |
+|---------------|---------------|----------------|---------|
+| name | User Input | name input field | Primitive string property |
+| description | User Input | description textarea | Primitive string property |
+| dueDate | User Input | dueDate input field | Primitive date property |
+| manager | User Input | manager select | To-one: sends one UUID |
+| client | User Input | client select | To-one: sends one UUID |
+| tags | User Input | tags select | To-many: sends array of UUIDs |
+| tasks | User Input | tasks select | To-many: sends array of UUIDs |
+
+6. Under **Behavior on Success**, select "Reload the current page".
+
+### What Happens for Each Cardinality
+
+#### Many-to-One (Manager)
+
+The `<select>` element contains one `<option>` per employee. The repeater iterates over all employees and renders an option for each one. When the user selects a manager and submits the form, Structr receives the UUID of the selected employee and sets the `manager` relationship on the project. If a manager was previously set, the old relationship is removed and replaced with the new one.
+
+The conditional `selected` attribute ensures that the current manager is pre-selected when the form loads. The `if(equal(...))` expression compares the ID of each employee with the ID of the project's current manager.
+
+#### One-to-One (Client)
+
+From a form perspective, one-to-one works the same as many-to-one. The user selects a single client from a dropdown, and Structr sets the relationship. The difference is in the data model constraint: since the relationship is one-to-one, assigning a client to this project automatically removes that client from any other project it was previously assigned to. This enforcement happens on the server side and requires no special handling in the form.
+
+#### Many-to-Many (Tags)
+
+Each tag is rendered as an `<option>` inside a `<select multiple>` element by a repeater. When the form is submitted, the browser collects the values of all selected options, and Structr receives them as an array of UUIDs. Structr then sets the `tags` relationship to exactly these objects, adding new relationships and removing any that are no longer in the array.
+
+The `contains()` function checks whether the current project's tags collection includes each tag, and sets the `selected` attribute accordingly.
+
+#### One-to-Many (Tasks)
+
+The `<select multiple>` element lists all available tasks. The repeater iterates over all tasks, and each option's `selected` state is determined by whether the task already belongs to the current project. When the form is submitted, Structr receives the array of selected task UUIDs and updates the `tasks` relationship. Since each task can only belong to one project, assigning a task to this project automatically removes it from its previous project.
+
+### Alternative: Adding Related Objects Inline
+
+The form above assigns existing objects via their UUIDs. For one-to-many relationships, a common alternative is to create new related objects directly from the parent form's page. Instead of a multi-select, you place a repeater that lists the current tasks and a separate "Add Task" form below it. This second form uses the "Create new object" action and passes the project's UUID as the value of the `project` property, establishing the relationship on creation. After creating the task, a partial reload of the task list shows the new entry.
+
+This pattern is useful when related objects do not exist yet and need to be created in the context of the parent object. It works well for one-to-many relationships where the "many" side is owned by the "one" side.
