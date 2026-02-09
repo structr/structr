@@ -41,13 +41,16 @@ import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.core.traits.definitions.SchemaViewTraitDefinition;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.structr.test.rest.common.TestEnum;
+import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.Page;
 import org.structr.websocket.command.SearchNodesCommand;
 import org.testng.annotations.Test;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.Matchers.*;
 import static org.testng.AssertJUnit.*;
@@ -1312,9 +1315,33 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 	@Test
 	public void testGlobalSearch() {
 
+		final List<String> expectedSearchHits = new ArrayList<>();
+
 		try (final Tx tx = app.tx()) {
 
-			Page.createSimplePage(securityContext, "testPage");
+			final Page page = Page.createNewPage(securityContext, "testPage");
+			if (page != null) {
+
+				DOMElement html  = page.createElement("html");
+				DOMElement head  = page.createElement("head");
+				DOMElement body  = page.createElement("body");
+				DOMElement title = page.createElement("title");
+				DOMElement h1    = page.createElement("h1");
+				DOMElement div   = page.createElement("div");
+
+				page.appendChild(html);
+				html.appendChild(head);
+				html.appendChild(body);
+				head.appendChild(title);
+				body.appendChild(h1);
+				body.appendChild(div);
+				title.appendChild(page.createTextNode("${capitalize(page.name)}"));
+				h1.appendChild(page.createTextNode("${capitalize(page.name)}"));
+				div.appendChild(page.createTextNode("Initial body text"));
+
+				expectedSearchHits.add(title.getFirstChild().getUuid());
+				expectedSearchHits.add(h1.getFirstChild().getUuid());
+			}
 
 			tx.success();
 
@@ -1323,15 +1350,37 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 			fail("Unexpected exception");
 		}
 
+		// search DOM only
 		try (final Tx tx = app.tx()) {
 
-			final List<GraphObject> resultsWithoutTenantIdentifier = SearchNodesCommand.executeSearch("capitalize", true, true, true);
+			final String expectedKeysForDOMResults = "id,isDOMElement,keys,labels,name,type";
 
-			assertEquals(2, resultsWithoutTenantIdentifier.size());
+			final List<GraphObject> results = SearchNodesCommand.executeSearch("capitalize", true, false, false);
+
+			assertEquals(2, results.size());
+
+			for  (final GraphObject graphObject : results) {
+
+				final String searchResultId = graphObject.getProperty(new StringProperty("id"));
+				final String keys           = graphObject.getPropertyKeys("all").stream().sorted().map(Object::toString).collect(Collectors.joining(","));
+
+				assertTrue("Expected search results does not contain encountered search result", expectedSearchHits.contains(searchResultId));
+				assertEquals("Unexpected keys for DOM search results", expectedKeysForDOMResults, keys);
+			}
+
+			tx.success();
+
+		} catch (Exception ex) {
+			logger.warn("", ex);
+			fail("Unexpected exception");
+		}
+
+		// search with a different tenant identifier (expect 0 results)
+		try (final Tx tx = app.tx()) {
 
 			Settings.TenantIdentifier.setValue("TEST");
 
-			final List<GraphObject> resultsWithTenantIdentifier = SearchNodesCommand.executeSearch("capitalize", true, true, true);
+			final List<GraphObject> resultsWithTenantIdentifier = SearchNodesCommand.executeSearch("capitalize", true, false, false);
 
 			assertEquals("Global search (with a tenant identifier that did not have any nodes created) should yield no results",0, resultsWithTenantIdentifier.size());
 
