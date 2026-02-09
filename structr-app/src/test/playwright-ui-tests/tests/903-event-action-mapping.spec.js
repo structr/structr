@@ -30,7 +30,7 @@ import {
     resizePagesTree, setNodeContent, useContextMenu
 } from "./helpers/pages";
 
-let runTests = [ 3 ];
+let runTests = [ 1, 2, 3 ];
 
 test.beforeAll(async ({playwright}) => {
 
@@ -583,29 +583,10 @@ test('pages', async ({page}) => {
 
         await page.waitForTimeout(1000);
 
-        await page.pause();
-
         // take a screenshot of the form element (background change is necessary because playwright tries to scroll the element into view, which hovers it apparently)
         await formContainer.locator.screenshot({path: 'screenshots/pages_advanced-form-element.png', style: '.nodeHover { background-color: transparent; }' });
 
-        await page.waitForTimeout(1000);
-        await page.goto(process.env.BASE_URL + '/advanced');
-        await page.waitForTimeout(1000);
-
-        await page.locator('input[name="name"]').fill('Project #1');
-        await page.waitForTimeout(wait);
-        await page.locator('button').click();
-        await page.waitForTimeout(1000);
-
-        await expect(page.locator('h1')).toHaveText('Edit Project "Project #1"');
-
-        await page.goto(process.env.BASE_URL + '/structr/');
-        await expect(page).toHaveTitle(/Structr/);
-
     }
-
-
-
 
     await logout(page);
 

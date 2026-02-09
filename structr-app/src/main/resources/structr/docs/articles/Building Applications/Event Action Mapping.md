@@ -52,6 +52,15 @@ Event Action Mapping does not require a `<form>` element. You can wire up indivi
 
 When you bind an Event Action Mapping directly to an input field, you do not need to configure parameter mapping. If the field has a `name` attribute, it automatically sends its current value with that name as the parameter. This makes auto-save setups particularly simple - just set the field's name to match the property you want to update.
 
+For example, consider a project detail page with two independently saving fields:
+
+```html
+<input type="text" name="name" value="${current.name}">
+<input type="text" name="description" value="${current.description}">
+```
+
+Each input gets its own Event Action Mapping: set the event to `change`, the action to "Update object", and the UUID to `${current.id}`. No parameter mapping is needed - Structr reads the field's `name` attribute and current value automatically. When the user changes a field and moves to the next one, the value is saved immediately.
+
 ## Actions
 
 Actions define what happens when an event fires. Each action type has its own configuration options. Most actions require parameters to specify which data to send to the server.
@@ -152,9 +161,9 @@ Each input has a `value` attribute with a template expression that loads the cur
 
 ![Event Action Mapping configuration for the edit form](pages_edit-form_input-configuration.png)
 
-#### Pre-Selecting Options in Select Elements
+#### Edit Forms with Other Input Types
 
-The example above uses text and date inputs, which load their current values via the `value` attribute. For `<select>` elements, Structr provides a different mechanism: the **Selected Values** field on the General tab of `<option>` elements. This field accepts a template expression that resolves to the currently selected value or values. Structr automatically compares the result with each option's `value` attribute and sets the `selected` attribute on matching options.
+The example above uses text and date inputs, which load their current values via the `value` attribute. For `<select>` elements, Structr provides a different mechanism: the **Selected Values Expression** field on the General tab of `<option>` elements. This field accepts a template expression that resolves to the currently selected value or values. Structr automatically compares the result with each option's `value` attribute and sets the `selected` attribute on matching options.
 
 For to-one relationships, the expression points to the single related object, for example `current.manager`. For to-many relationships, it points to the collection, for example `current.tags`. Structr handles both cases automatically. The Advanced Example at the end of this chapter demonstrates this for all four relationship cardinalities.
 
@@ -169,7 +178,13 @@ The delete operation removes only the specified object. Related objects are not 
 Consider a list of projects rendered by a repeater. The repeater has a data key like `project`, and each row contains a delete button:
 
 ```html
-<button class="delete-btn" title="Delete Project">🗑</button>
+<div id="project-list">
+    <!-- repeater: find('Project'), data key: project -->
+    <div>
+        <span>${project.name}</span>
+        <button class="delete-btn" title="Delete Project">🗑</button>
+    </div>
+</div>
 ```
 
 To make the delete button work:
@@ -183,6 +198,22 @@ To make the delete button work:
 7. Enter `#project-list` as the selector - this matches the `id` attribute of the element that contains the repeater
 
 When a user clicks the delete button, Structr deletes the project and reloads the list. The container element needs an `id` attribute so the partial reload can find and refresh it.
+
+#### Creating Related Objects Inline
+
+When a form creates a new object that should belong to an existing object, you can use a hidden input to establish the relationship. The hidden input carries the UUID of the parent object, so Structr links the two automatically.
+
+For example, a project page at `/project/{id}` might include a form to add tasks:
+
+```html
+<form id="add-task-form">
+    <input type="text" name="name" placeholder="New task..." required>
+    <input type="hidden" name="project" value="${current.id}">
+    <button type="submit">Add Task</button>
+</form>
+```
+
+The Event Action Mapping on this form uses the "Create new object" action with type `Task`. When the user submits the form, Structr creates a new Task and sets its `project` relationship to the current project because the hidden input passes the project's UUID as the `project` property.
 
 ### Authentication
 
@@ -420,15 +451,15 @@ Example:
 
 #### Validation Events
 
-HTML provides events that you can use to extend validation behavior:
+HTML provides validation-related events that can be useful in combination with custom JavaScript:
 
 - `invalid` - fires when a field fails validation
-- `input` - fires when the value changes, useful for live validation
+- `input` - fires when the value changes, useful for live validation feedback
 - `change` - fires when the field loses focus after the value changed
 
-You can use these events with Event Action Mapping to trigger custom validation logic or display custom error messages.
+These events are primarily useful for custom JavaScript validation logic, not for Event Action Mapping actions. For details on integrating custom JavaScript, see the Custom JavaScript Integration section.
 
-#### Validation CSS Classes
+#### Validation CSS Pseudo-Classes
 
 The browser automatically applies CSS pseudo-classes to form fields based on their validation state:
 
@@ -463,9 +494,7 @@ For complex validation that goes beyond schema constraints, you can implement va
 
 When server-side validation fails, Structr returns an error response with details about which constraints were violated. You can display this information to the user using a failure notification.
 
-For inline text messages, the notification displays each validation error with its property name and error type. Additionally, the input element for each invalid property automatically receives a red border and a `data-error` attribute containing the error type. These error indicators are cleared automatically when a subsequent action succeeds.
-
-See the Notifications section for details on configuring failure notifications.
+The Inline Text Message notification type is particularly useful here because it displays each validation error with its property name and also marks the corresponding input elements with a red border. See the Notifications section for details.
 
 ## Custom JavaScript Integration
 
@@ -605,7 +634,7 @@ The following form contains relationship selectors for all four cardinalities on
     </label>
     <label>
         <span>Tasks</span>
-        <select name="task" multiple>
+        <select name="tasks" multiple>
             <!-- repeater: find('Task'), data key: task -->
             <option value="${task.id}">
                 ${task.name}
@@ -653,24 +682,20 @@ Each `<option>` element needs to know whether it should be pre-selected when the
 
 The `<select>` element contains one `<option>` per employee. The repeater iterates over all employees and renders an option for each one. When the user selects a manager and submits the form, Structr receives the UUID of the selected employee and sets the `manager` relationship on the project. If a manager was previously set, the old relationship is removed and replaced with the new one.
 
-The Selected Values field on the `<option>` element is set to `current.manager`. Structr compares each employee's UUID against the current manager and sets the `selected` attribute on the matching option, so the current manager is pre-selected when the form loads.
+The Selected Values Expression field on the `<option>` element is set to `current.manager`. Structr compares each employee's UUID against the current manager and sets the `selected` attribute on the matching option, so the current manager is pre-selected when the form loads.
 
 #### One-to-One (Client)
 
-From a form perspective, one-to-one works the same as many-to-one. The user selects a single client from a dropdown, and Structr sets the relationship. The Selected Values field is set to `current.client`. The difference is in the data model constraint: since the relationship is one-to-one, assigning a client to this project automatically removes that client from any other project it was previously assigned to. This enforcement happens on the server side and requires no special handling in the form.
+From a form perspective, one-to-one works the same as many-to-one. The user selects a single client from a dropdown, and Structr sets the relationship. The Selected Values Expression field is set to `current.client`. The difference is in the data model constraint: since the relationship is one-to-one, assigning a client to this project automatically removes that client from any other project it was previously assigned to. This enforcement happens on the server side and requires no special handling in the form.
 
 #### Many-to-Many (Tags)
 
 Each tag is rendered as an `<option>` inside a `<select multiple>` element by a repeater. When the form is submitted, the browser collects the values of all selected options, and Structr receives them as an array of UUIDs. Structr then sets the `tags` relationship to exactly these objects, adding new relationships and removing any that are no longer in the array.
 
-The Selected Values field on the `<option>` element is set to `current.tags`. Structr checks whether each tag is contained in the project's current tags collection and marks the matching options as selected.
+The Selected Values Expression field on the `<option>` element is set to `current.tags`. Structr checks whether each tag is contained in the project's current tags collection and marks the matching options as selected.
 
 #### One-to-Many (Tasks)
 
-The `<select multiple>` element lists all available tasks. The repeater iterates over all tasks, and the Selected Values field on the `<option>` element is set to `current.tasks`. Structr checks whether each task is in the project's current tasks collection and marks the matching options as selected. When the form is submitted, Structr receives the array of selected task UUIDs and updates the `tasks` relationship. Since each task can only belong to one project, assigning a task to this project automatically removes it from its previous project.
+The `<select multiple>` element lists all available tasks. The repeater iterates over all tasks, and the Selected Values Expression field on the `<option>` element is set to `current.tasks`. Structr checks whether each task is in the project's current tasks collection and marks the matching options as selected. When the form is submitted, Structr receives the array of selected task UUIDs and updates the `tasks` relationship. Since each task can only belong to one project, assigning a task to this project automatically removes it from its previous project.
 
-### Alternative: Adding Related Objects Inline
-
-The form above assigns existing objects via their UUIDs. For one-to-many relationships, a common alternative is to create new related objects directly from the parent form's page. Instead of a multi-select, you place a repeater that lists the current tasks and a separate "Add Task" form below it. This second form uses the "Create new object" action and passes the project's UUID as the value of the `project` property, establishing the relationship on creation. After creating the task, a partial reload of the task list shows the new entry.
-
-This pattern is useful when related objects do not exist yet and need to be created in the context of the parent object. It works well for one-to-many relationships where the "many" side is owned by the "one" side.
+For one-to-many relationships, the inline creation pattern described earlier in the "Creating Related Objects Inline" section is often a simpler alternative to the multi-select approach shown here.
