@@ -1353,7 +1353,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 		// search DOM only
 		try (final Tx tx = app.tx()) {
 
-			final String expectedKeysForDOMResults = "id,isDOMElement,keys,labels,name,type";
+			final String expectedKeysForDOMResults = "id,isDOMElement,keys,labels,name,type,values";
 
 			final List<GraphObject> results = SearchNodesCommand.executeSearch("capitalize", true, false, false);
 
