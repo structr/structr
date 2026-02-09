@@ -171,6 +171,20 @@ table#schema-grants th, table#schema-grants td {
 }
 /* END: schema grants editor */
 
+.tree-contents {
+    min-width: initial;
+}
+
+.tree-context {
+    height: 100%;
+    vertical-align: top;
+    background-color: var(--solid-white);
+    box-shadow: 0 0 .625rem 0 rgba(0,0,0,0.1);
+    padding: 1.5rem;
+    margin-top: 0;
+    overflow: auto;
+}
+
 ul#usage-tree {
 	max-height: 400px;
 }

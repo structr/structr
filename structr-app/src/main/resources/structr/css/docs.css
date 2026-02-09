@@ -244,7 +244,7 @@ html.documentation {
 .article img:not([src*="svg"]) {
     margin: 1rem auto;
     width: 100%;
-    box-shadow: 0 .5rem 2rem .25rem #bbb;
+    box-shadow: 0 .2rem 1rem .125rem #ddd;
 }
 
 .article p a,
@@ -546,8 +546,32 @@ index h2, .index h3 {
     margin: 0 0 2rem 2rem;"
 }
 
+.article img.small-image-left {
+    width: auto;
+    height: auto;
+    zoom: 0.5 !important;
+    margin: 0 2rem 2rem 0;
+}
+
 .article img.tab-image {
     width: auto;
     height: 3rem;
     margin: 0;
+}
+
+div.html-example {
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+    align-items: start;
+    margin: 2rem 0 0 0;
+}
+
+div.html-example pre {
+    margin: 0;
+}
+
+p:has(img.small-image-left) {
+    margin: 0;
+    padding: 0;
 }
