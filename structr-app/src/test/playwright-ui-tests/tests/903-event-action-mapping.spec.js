@@ -21,7 +21,7 @@ import {test, expect} from '@playwright/test';
 import {login, logout} from "./helpers/auth";
 import {
     collapsePageTree,
-    configureFunctionQuery,
+    configureFunctionQuery, configureGeneralAttributes,
     configureHTMLAttributes,
     createAndRenamePage, expandOrCollapseElement,
     expandPageTree,
@@ -29,6 +29,8 @@ import {
     insertFrontendJs, insertInputWithLabel,
     resizePagesTree, setNodeContent, useContextMenu
 } from "./helpers/pages";
+
+let runTests = [ 3 ];
 
 test.beforeAll(async ({playwright}) => {
 
@@ -64,6 +66,7 @@ test.beforeAll(async ({playwright}) => {
     });
 
     // remove existing data
+    await context.delete(process.env.BASE_URL + '/structr/rest/Project');
     await context.delete(process.env.BASE_URL + '/structr/rest/Employee');
     await context.delete(process.env.BASE_URL + '/structr/rest/Client');
     await context.delete(process.env.BASE_URL + '/structr/rest/Tag');
@@ -150,7 +153,7 @@ test('pages', async ({page}) => {
     await page.waitForTimeout(1000);
 
     // create projects page
-    {
+    if (runTests.includes(1)) {
 
         await createAndRenamePage(page, 4, 'projects');
         await expandPageTree(page, 'projects');
@@ -247,9 +250,8 @@ test('pages', async ({page}) => {
         await collapsePageTree(page, 'projects');
     }
 
-
     // create project page
-    {
+    if (runTests.includes(2)) {
 
         await createAndRenamePage(page, 4, 'project');
         await expandPageTree(page, 'project');
@@ -418,9 +420,7 @@ test('pages', async ({page}) => {
     }
 
     // next part: advanced example
-    {
-        await resizePagesTree(page, 200);
-
+    if (runTests.includes(3)) {
         await createAndRenamePage(page, 4, 'advanced');
         await expandPageTree(page, 'advanced');
         await insertFrontendJs(page, 'advanced');
@@ -465,10 +465,10 @@ test('pages', async ({page}) => {
         await configureHTMLAttributes(page, tasksSelect, { multiple: 'true' });
 
         let configs = [
-            { query: 'find(\'Employee\')', dataKey: 'employee', optionText: '${employee.name}', optionValue: '${employee.id}', selected: '${is(eq(current.manager, employee), \'\')}' },
-            { query: 'find(\'Client\')', dataKey: 'client', optionText: '${client.name}', optionValue: '${client.id}', selected: '${is(eq(current.client, client), \'\')}' },
-            { query: 'find(\'Tag\')', dataKey: 'tag', optionText: '${tag.name}', optionValue: '${tag.id}', selected: '${is(contains(current.tags, tag), \'\')}' },
-            { query: 'find(\'Task\')', dataKey: 'task', optionText: '${task.name}', optionValue: '${task.id}', selected: '${is(contains(current.tasks, task), \'\')}' },
+            { query: 'find(\'Employee\')', dataKey: 'employee', optionText: '${employee.name}', optionValue: '${employee.id}', selectedValues: 'current.manager' },
+            { query: 'find(\'Client\')', dataKey: 'client', optionText: '${client.name}', optionValue: '${client.id}', selectedValues: 'current.client' },
+            { query: 'find(\'Tag\')', dataKey: 'tag', optionText: '${tag.name}', optionValue: '${tag.id}', selectedValues: 'current.tags' },
+            { query: 'find(\'Task\')', dataKey: 'task', optionText: '${task.name}', optionValue: '${task.id}', selectedValues: 'current.tasks', screenshot: true },
         ];
 
         let index = 0;
@@ -482,7 +482,15 @@ test('pages', async ({page}) => {
             await expandOrCollapseElement(page, labelContainer, 'expand');
             await option.getTextNode().click();
             await configureFunctionQuery(page, option, config.query, config.dataKey);
-            await configureHTMLAttributes(page, option, { value: config.optionValue, selected: config.selected });
+            await configureGeneralAttributes(page, option, { selectedValues: config.selectedValues });
+
+            if (config.screenshot) {
+                await page.locator('input#name-input').click();
+                await page.waitForTimeout(5000);
+                await page.screenshot({path: 'screenshots/pages_advanced-form_option-configuration.png'});
+            }
+
+            await configureHTMLAttributes(page, option, { value: config.optionValue });
             let optionText = labelContainer.getElement('Initial text for option');
             await setNodeContent(page, optionText, config.optionText);
 
@@ -568,16 +576,17 @@ test('pages', async ({page}) => {
         await page.reload();
         await page.waitForTimeout(5000);
 
-        // click on a different element to disable highlighting for the element we want to screenshot
-        await page.locator('span').filter({hasText: 'form#save-project-form'}).click();
-        await page.waitForTimeout(wait);
-        await page.locator('span').filter({hasText: 'body'}).click();
-        await page.waitForTimeout(wait);
-        await page.locator('span').filter({hasText: 'head'}).hover();
-        await page.waitForTimeout(2000);
+        // click on head element to deselect form for screenshot below
+        let h = pageContainer.getElement('head');
+        await h.getTextNode().hover();
+        await h.getTextNode().click();
 
-        // take a screenshot of the form element
-        await page.locator('div.node:has(b[title="form"])').nth(4).screenshot({path: 'screenshots/pages_advanced-form-element.png'});
+        await page.waitForTimeout(1000);
+
+        await page.pause();
+
+        // take a screenshot of the form element (background change is necessary because playwright tries to scroll the element into view, which hovers it apparently)
+        await formContainer.locator.screenshot({path: 'screenshots/pages_advanced-form-element.png', style: '.nodeHover { background-color: transparent; }' });
 
         await page.waitForTimeout(1000);
         await page.goto(process.env.BASE_URL + '/advanced');
