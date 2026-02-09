@@ -2492,7 +2492,7 @@ input.tree-search-input {
 	margin-right: .5rem ! important;
 }
 
-.tree-contents, .tree-context {
+.tree-contents {
 	min-width: 44rem;
 	height: 100%;
 	vertical-align: top;

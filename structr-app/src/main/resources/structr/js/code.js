@@ -76,12 +76,15 @@ let _Code = {
 			right = right + 'px';
 		}
 
+		let availableWidth = _Code.codeMain.innerWidth();
+		let outerPadding   = (window.innerWidth - availableWidth) / 2;
+
 		_Code.codeMain[0].querySelector('.column-resizer-left').style.left     = `${left}px`;
-		_Code.codeMain[0].querySelector('.column-resizer-right').style.left    = `calc(${window.innerWidth}px - ${right})`;
+		_Code.codeMain[0].querySelector('.column-resizer-right').style.left    = `calc(${window.innerWidth - outerPadding}px - ${right})`;
 
 		document.getElementById('code-tree').style.width              = `calc(${left}px - 1rem)`;
 		document.getElementById('code-context-container').style.width = `calc(${right} - 3rem)`;
-		document.getElementById('code-contents').style.width          = `calc(${window.innerWidth}px - ${left}px - ${right} - 4rem)`;
+		document.getElementById('code-contents').style.width          = `calc(${availableWidth}px - ${left}px - ${right} - 4rem)`;
 
 		_Editors.resizeVisibleEditors();
 	},
