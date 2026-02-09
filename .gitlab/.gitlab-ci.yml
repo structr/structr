@@ -67,7 +67,7 @@ setup-variables:
   script:
     - mvn clean install -DskipTests -DskipDist -DskipDocker -DskipDeb -DskipDockerTestDB=true
     - cd ${MODULE}
-    - mvn install -DskipDockerTestDB=true -Denv.testDatabaseConnection="bolt://neo4j:7687"
+    - mvn install -DskipDockerTestDB=true -Denv.testDatabaseConnection="bolt://neo4j:7687" -Dtest.forkCount=2
   artifacts:
     when: always
     reports:
