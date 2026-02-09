@@ -1378,13 +1378,14 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 		// search with a different tenant identifier (expect 0 results)
 		try (final Tx tx = app.tx()) {
 
+			final String identifier = Settings.TenantIdentifier.getValue();
 			Settings.TenantIdentifier.setValue("TEST");
 
 			final List<GraphObject> resultsWithTenantIdentifier = SearchNodesCommand.executeSearch("capitalize", true, false, false);
 
 			assertEquals("Global search (with a tenant identifier that did not have any nodes created) should yield no results",0, resultsWithTenantIdentifier.size());
 
-			Settings.TenantIdentifier.setValue(null);
+			Settings.TenantIdentifier.setValue(identifier);
 
 			tx.success();
 
