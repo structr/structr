@@ -165,6 +165,8 @@ export async function insertInputWithLabel(page: Page, container: Container, nam
     let labelContainer = container.getElement('label', count - 1);
     let textContainer = labelContainer.getElement('Initial text for label');
 
+    await useContextMenu(page, textContainer, 'Wrap element in...', '... HTML element', 's', 'span');
+
     await setNodeContent(page, textContainer, name);
 
     switch (inputOrSelect) {
@@ -194,6 +196,19 @@ export async function configureHTMLAttributes(page: Page, node: Container, data:
 
     for (let key in data) {
         await page.locator(`input[name="_html_${key}"]`).fill(data[key]);
+    }
+
+    await page.waitForTimeout(wait);
+
+}
+
+export async function configureGeneralAttributes(page: Page, node: Container, data: Object, wait = 100) {
+
+    await node.getTextNode().click();
+    await page.getByRole('link', {name: 'General'}).click();
+
+    for (let key in data) {
+        await page.locator(`input[name="${key}"]`).fill(data[key]);
     }
 
     await page.waitForTimeout(wait);
@@ -231,7 +246,7 @@ export async function setNodeContent(page: Page, node: Container, content: strin
     await page.waitForTimeout(wait);
 }
 
-export async function useContextMenu(page: Page, container: Container, level1, level2?, level3?) {
+export async function useContextMenu(page: Page, container: Container, level1: string, level2?: string, level3?: string, level4?: string) {
 
     // insert form element
     await container.getTextNode().click({button: 'right'});
@@ -247,8 +262,18 @@ export async function useContextMenu(page: Page, container: Container, level1, l
         if (level3) {
 
             await subsub.hover();
-            let item = subsub.locator('> ul > li').filter({ has: page.getByText(level3, { exact: true }) });
-            await item.click();
+            let subsubsub = subsub.locator('> ul > li').filter({ has: page.getByText(level3, { exact: true }) });
+
+            if (level4) {
+
+                await subsubsub.hover();
+                let subsubsubsub = subsubsub.locator('> ul > li').filter({ has: page.getByText(level4, { exact: true }) });
+                await subsubsubsub.click();
+
+            } else {
+
+                await subsubsub.click();
+            }
 
         } else {
 

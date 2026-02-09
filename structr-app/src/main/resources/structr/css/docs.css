@@ -547,7 +547,9 @@ index h2, .index h3 {
 }
 
 .article img.small-image-left {
-    width: 45%;
+    width: auto;
+    height: auto;
+    zoom: 0.5 !important;
     margin: 0 2rem 2rem 0;
 }
 

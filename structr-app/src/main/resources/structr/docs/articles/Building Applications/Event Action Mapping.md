@@ -74,7 +74,7 @@ The following example shows how to configure a simple form that creates a new Pr
 ```html
 <form id="create-project-form">
     <label>
-        Name
+        <span>Name</span>
         <input type="text" name="name" required>
     </label>
     <button type="submit">Create Project</button>
@@ -118,15 +118,15 @@ The following example shows the configuration of an edit form for a Project with
 ```html
 <form id="edit-project-form">
     <label>
-        Name
+        <span>Name</span>
         <input type="text" name="name" value="${current.name}">
     </label>
     <label>
-        Description
+        <span>Description</span>
         <input type="text" name="description" value="${current.description}">
     </label>
     <label>
-        DueDate
+        <span>Due Date</span>
         <input type="date" name="dueDate" value="${dateFormat(current.dueDate, 'yyyy-MM-dd')}">
     </label>
     <button type="submit">Save Project</button>
@@ -139,18 +139,24 @@ Select the form element in the page tree and open the Event Action Mapping panel
 
 1. Set the **Event** to `submit`. This triggers the action when the user submits the form.
 2. Select "Update object" as the **Action**.
-3. In the UUID of data object field, enter '${current.id}'. This is the UUID of the object we want to edit.
-3. In the type field, enter `Project`. This is the type of object that we expect to edit.
-4. Under **Parameter Mapping**, click the plus button to add parameters for each of the properties. Set the name to the name of the property, and the type to "User Input". A drop area appears - drag the input field from the page tree onto it. This links the parameter to the input field.
-5. Under **Behavior on Success**, select "Reload the current page".
+3. In the UUID of data object field, enter `${current.id}`. This is the UUID of the object we want to edit.
+4. In the type field, enter `Project`. This is the type of object that we expect to edit.
+5. Under **Parameter Mapping**, click the plus button to add parameters for each of the properties. Set the name to the name of the property, and the type to "User Input". A drop area appears - drag the input field from the page tree onto it. This links the parameter to the input field.
+6. Under **Behavior on Success**, select "Reload the current page".
 
 The Action Mapping configuration looks like this:
 
 ![Event Action Mapping configuration for the edit form](pages_edit-form_event-action-mapping-configuration.png)
 
-Each input has a `value` attribute with a template expression that loads the current value. The date field uses `dateFormat()` to convert to the HTML date input format thus the configuration of a single input field looks like this:
+Each input has a `value` attribute with a template expression that loads the current value. The date field uses `dateFormat()` to convert to the HTML date input format. The configuration of a single input field looks like this:
 
 ![Event Action Mapping configuration for the edit form](pages_edit-form_input-configuration.png)
+
+#### Pre-Selecting Options in Select Elements
+
+The example above uses text and date inputs, which load their current values via the `value` attribute. For `<select>` elements, Structr provides a different mechanism: the **Selected Values** field on the General tab of `<option>` elements. This field accepts a template expression that resolves to the currently selected value or values. Structr automatically compares the result with each option's `value` attribute and sets the `selected` attribute on matching options.
+
+For to-one relationships, the expression points to the single related object, for example `current.manager`. For to-many relationships, it points to the collection, for example `current.tags`. Structr handles both cases automatically. The Advanced Example at the end of this chapter demonstrates this for all four relationship cardinalities.
 
 #### Delete Object
 
@@ -538,7 +544,7 @@ While an action is running, the triggering element receives the CSS class `struc
 
 ## Advanced Example
 
-The examples earlier in this chapter show simple forms that map input fields to primitive properties like strings and dates. In practice, most forms also need to set relationships to other objects. This section shows how to build a form that handles all four relationship cardinalities alongside primitive properties.
+The examples earlier in this chapter show simple forms that map input fields to primitive properties like strings and dates. In practice, most forms also need to set relationships to other objects. This section shows how to build a form that handles all four relationship cardinalities.
 
 ### The Data Model
 
@@ -550,8 +556,6 @@ The example uses a project management scenario with the following types and rela
 | Project | client | Client | one-to-one | Each project has exactly one client, and each client has exactly one project. |
 | Project | tags | Tag | many-to-many | A project can have multiple tags, and a tag can be assigned to multiple projects. |
 | Project | tasks | Task | one-to-many | A project has multiple tasks, but each task belongs to exactly one project. |
-
-In addition, Project has the primitive properties `name` (String), `description` (String), and `dueDate` (Date).
 
 ### How Relationship Properties Work in Forms
 
@@ -565,7 +569,7 @@ Structr manages relationships completely. When you submit the form, Structr sets
 
 ### The Form
 
-The following form combines primitive inputs and relationship selectors for a Project. The page is accessible at `/advanced/{id}` where `{id}` is the project's UUID.
+The following form contains relationship selectors for all four cardinalities on a Project. The page is accessible at `/advanced/{id}` where `{id}` is the project's UUID.
 
 <div class="html-example">
 <img src="pages_advanced-form-element.png" class="small-image-left"/>
@@ -573,31 +577,39 @@ The following form combines primitive inputs and relationship selectors for a Pr
 ```html
 <form id="advanced-project-form">
     <label>
-        Manager
-        <select name="manager" required>
-            <!-- repeater query: find('Employee'), data key: employee -->
-            <option value="${employee.id}" selected="">${employee.name}</option>
+        <span>Manager</span>
+        <select name="manager">
+            <!-- repeater: find('Employee'), data key: employee -->
+            <option value="${employee.id}">
+                ${employee.name}
+            </option>
         </select>
     </label>
     <label>
-        Client
-        <select name="client" required>
-            <!-- repeater query: find('Client'), data key: client -->
-            <option value="${client.id}" selected="">${client.name}</option>
+        <span>Client</span>
+        <select name="client">
+            <!-- repeater: find('Client'), data key: client -->
+            <option value="${client.id}">
+                ${client.name}
+            </option>
         </select>
     </label>
     <label>
-        Tags
+        <span>Tags</span>
         <select name="tags" multiple>
-            <!-- repeater query: find('Tag'), data key: tag -->
-            <option value="${tag.id}" selected="">${tag.name}</option>
+            <!-- repeater: find('Tag'), data key: tag -->
+            <option value="${tag.id}">
+                ${tag.name}
+            </option>
         </select>
     </label>
     <label>
-        Tasks
+        <span>Tasks</span>
         <select name="task" multiple>
-            <!-- repeater query: find('Task'), data key: task -->
-            <option value="${task.id}" selected="">${task.name}</option>
+            <!-- repeater: find('Task'), data key: task -->
+            <option value="${task.id}">
+                ${task.name}
+            </option>
         </select>
     </label>
     <button type="submit">Save Project</button>
@@ -605,6 +617,8 @@ The following form combines primitive inputs and relationship selectors for a Pr
 ```
 </div>
 <div style="clear: both;"></div>
+
+Each `<option>` element is configured as a repeater that iterates over the available objects of the respective type. The HTML shows only one `<option>` per `<select>`, but at runtime, the repeater produces one option for each object returned by its function query. For details on repeaters and function queries, see the Dynamic Content chapter.
 
 ### Configuring the Event Action Mapping
 
@@ -618,9 +632,6 @@ Select the form element in the page tree and configure the Event Action Mapping:
 
 | Parameter Name | Parameter Type | Mapped Element | Purpose |
 |---------------|---------------|----------------|---------|
-| name | User Input | name input field | Primitive string property |
-| description | User Input | description textarea | Primitive string property |
-| dueDate | User Input | dueDate input field | Primitive date property |
 | manager | User Input | manager select | To-one: sends one UUID |
 | client | User Input | client select | To-one: sends one UUID |
 | tags | User Input | tags select | To-many: sends array of UUIDs |
@@ -628,27 +639,35 @@ Select the form element in the page tree and configure the Event Action Mapping:
 
 6. Under **Behavior on Success**, select "Reload the current page".
 
+The Action Mapping configuration looks like this:
+
+![Event Action Mapping configuration for the advanced project form](pages_advanced-form_event-action-mapping-configuration.png)
+
+Each `<option>` element needs to know whether it should be pre-selected when the form loads. As described earlier in this chapter, Structr provides the **Selected Values Expression** field on the General tab of `<option>` elements for this purpose. The field contains a template expression that resolves to the current value of the property, for example `current.manager` or `current.tags`. Structr compares each option's `value` attribute against the result and sets the `selected` attribute on matching options.
+
+![HTML element configuration for the option element](pages_advanced-form_option-configuration.png)
+
 ### What Happens for Each Cardinality
 
 #### Many-to-One (Manager)
 
 The `<select>` element contains one `<option>` per employee. The repeater iterates over all employees and renders an option for each one. When the user selects a manager and submits the form, Structr receives the UUID of the selected employee and sets the `manager` relationship on the project. If a manager was previously set, the old relationship is removed and replaced with the new one.
 
-The conditional `selected` attribute ensures that the current manager is pre-selected when the form loads. The `if(equal(...))` expression compares the ID of each employee with the ID of the project's current manager.
+The Selected Values field on the `<option>` element is set to `current.manager`. Structr compares each employee's UUID against the current manager and sets the `selected` attribute on the matching option, so the current manager is pre-selected when the form loads.
 
 #### One-to-One (Client)
 
-From a form perspective, one-to-one works the same as many-to-one. The user selects a single client from a dropdown, and Structr sets the relationship. The difference is in the data model constraint: since the relationship is one-to-one, assigning a client to this project automatically removes that client from any other project it was previously assigned to. This enforcement happens on the server side and requires no special handling in the form.
+From a form perspective, one-to-one works the same as many-to-one. The user selects a single client from a dropdown, and Structr sets the relationship. The Selected Values field is set to `current.client`. The difference is in the data model constraint: since the relationship is one-to-one, assigning a client to this project automatically removes that client from any other project it was previously assigned to. This enforcement happens on the server side and requires no special handling in the form.
 
 #### Many-to-Many (Tags)
 
 Each tag is rendered as an `<option>` inside a `<select multiple>` element by a repeater. When the form is submitted, the browser collects the values of all selected options, and Structr receives them as an array of UUIDs. Structr then sets the `tags` relationship to exactly these objects, adding new relationships and removing any that are no longer in the array.
 
-The `contains()` function checks whether the current project's tags collection includes each tag, and sets the `selected` attribute accordingly.
+The Selected Values field on the `<option>` element is set to `current.tags`. Structr checks whether each tag is contained in the project's current tags collection and marks the matching options as selected.
 
 #### One-to-Many (Tasks)
 
-The `<select multiple>` element lists all available tasks. The repeater iterates over all tasks, and each option's `selected` state is determined by whether the task already belongs to the current project. When the form is submitted, Structr receives the array of selected task UUIDs and updates the `tasks` relationship. Since each task can only belong to one project, assigning a task to this project automatically removes it from its previous project.
+The `<select multiple>` element lists all available tasks. The repeater iterates over all tasks, and the Selected Values field on the `<option>` element is set to `current.tasks`. Structr checks whether each task is in the project's current tasks collection and marks the matching options as selected. When the form is submitted, Structr receives the array of selected task UUIDs and updates the `tasks` relationship. Since each task can only belong to one project, assigning a task to this project automatically removes it from its previous project.
 
 ### Alternative: Adding Related Objects Inline
 
