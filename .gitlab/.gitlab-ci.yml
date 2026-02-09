@@ -120,7 +120,7 @@ snapshot-build:
 
         # Create new SNAPSHOT release with build artifacts
         echo "Creating SNAPSHOT release with glab..."
-        glab release create $STRUCTR_VERSION structr-app/target/structr-$STRUCTR_VERSION-$BUILD_TIMESTAMP.$COMMIT_SHORT.deb structr-app/target/*.zip \
+        glab release create $STRUCTR_VERSION structr-app/target/*.deb structr-app/target/*.zip \
         --name "structr-$STRUCTR_VERSION-$BUILD_TIMESTAMP.$COMMIT_SHORT" \
         --notes "## Latest SNAPSHOT Build
 
@@ -169,7 +169,7 @@ release-build:
         
         # Create versioned release with build artifacts
         echo "Creating release with glab..."
-        glab release create "$STRUCTR_VERSION" structr-app/target/structr-$STRUCTR_VERSION-$BUILD_TIMESTAMP.$COMMIT_SHORT.deb structr-app/target/*.zip \
+        glab release create "$STRUCTR_VERSION" structr-app/target/*.deb structr-app/target/*.zip \
          --name "$STRUCTR_VERSION" \
          --notes "## Release $STRUCTR_VERSION
 
