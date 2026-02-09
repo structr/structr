@@ -41,9 +41,10 @@ test('config', async ({ page }) => {
   await expect(page).toHaveTitle('Structr Configuration Editor');
   await page.screenshot({ path: 'screenshots/config_set-superuser-password.png' });
 
-  await expect(page.getByPlaceholder('Enter a superuser password')).toBeVisible();
-  await page.getByPlaceholder('Enter a superuser password').fill(process.env.SUPERUSER_PASSWORD);
-  await page.getByRole('button', { name: 'Save'}).click();
+  let input = page.getByRole('textbox', { name: 'password' });
+  await expect(input).toBeVisible();
+  await input.fill(process.env.SUPERUSER_PASSWORD);
+  await page.getByRole('button', { name: 'Login'}).click();
   await page.waitForTimeout(500);
   await page.screenshot({ path: 'screenshots/config_superuser-password-set.png', caret: 'initial' });
   await page.getByRole('button', { name: 'Configure a database connection'}).click();
