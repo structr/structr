@@ -21,6 +21,8 @@ package org.structr.web.auth;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.github.scribejava.core.builder.ServiceBuilder;
+import com.github.scribejava.core.builder.api.DefaultApi20;
 import com.github.scribejava.core.model.OAuth2AccessToken;
 import com.github.scribejava.core.model.OAuthRequest;
 import com.github.scribejava.core.model.Response;
@@ -28,6 +30,7 @@ import com.github.scribejava.core.model.Verb;
 import com.github.scribejava.core.oauth.OAuth20Service;
 import com.google.gson.Gson;
 import jakarta.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -46,6 +49,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+/**
+ * Abstract base class for OAuth2 clients.
+ * Provides common functionality for all OAuth2 providers.
+ */
 public abstract class AbstractOAuth2Client implements OAuth2Client {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractOAuth2Client.class);
@@ -61,30 +68,92 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 	protected final String logoutUri;
 	protected final String userDetailsURI;
 	protected final String scope;
+	protected final OAuth2ProviderRegistry.ProviderConfig providerConfig;
 
 	protected Map<String, Object> userInfo;
-
 	protected OAuth20Service service;
 
-	public AbstractOAuth2Client(final HttpServletRequest request, final String provider) {
+	/**
+	 * Constructor that loads configuration and builds the OAuth service.
+	 *
+	 * @param request The HTTP servlet request
+	 * @param provider The provider name
+	 * @param api The DefaultApi20 for this provider
+	 */
+	protected AbstractOAuth2Client(final HttpServletRequest request, final String provider, final DefaultApi20 api, final OAuth2ProviderRegistry.ProviderConfig providerConfig) {
+		this.provider = provider;
+		this.providerConfig = providerConfig;
 
-		this.provider  = provider;
+		// Load OAuth configuration from settings with defaults
+		authLocation   = getSetting("authorization_location", "");
+		tokenLocation  = getSetting("token_location", "");
+		clientId       = getSetting("client_id", "");
+		clientSecret   = getSetting("client_secret", "");
+		redirectUri    = getAbsoluteUrl(request, getDefaultRedirectUri());
+		returnUri      = getSetting("return_uri", "/");
+		errorUri       = getSetting("error_uri", "/error");
+		logoutUri      = getSetting("logout_uri", "/logout");
+		userDetailsURI = getSetting("user_details_resource_uri", getDefaultUserDetailsUri());
+		scope          = getSetting("scope", getDefaultScope());
 
-		authLocation   = Settings.getOrCreateStringSetting("oauth", provider, "authorization_location").getValue("");
-		tokenLocation  = Settings.getOrCreateStringSetting("oauth", provider, "token_location").getValue("");
-		clientId       = Settings.getOrCreateStringSetting("oauth", provider, "client_id").getValue("");
-		clientSecret   = Settings.getOrCreateStringSetting("oauth", provider, "client_secret").getValue("");
-		redirectUri    = getAbsoluteUrl(request, Settings.getOrCreateStringSetting("oauth", provider, "redirect_uri").getValue(""));
-		returnUri      = Settings.getOrCreateStringSetting("oauth", provider, "return_uri").getValue("");
-		errorUri       = Settings.getOrCreateStringSetting("oauth", provider, "error_uri").getValue("");
-		logoutUri      = Settings.getOrCreateStringSetting("oauth", provider, "logout_uri").getValue("");
-		userDetailsURI = Settings.getOrCreateStringSetting("oauth", provider, "user_details_resource_uri").getValue("");
-		scope          = Settings.getOrCreateStringSetting("oauth", provider, "scope").getValue("");
+		buildOAuthService(api);
 	}
 
-	protected String getAbsoluteUrl(final HttpServletRequest request, final String redirectUri) {
+	/**
+	 * Gets a setting value with fallback to default.
+	 * Allows subclasses to provide provider-specific defaults.
+	 */
+	protected String getSetting(final String key, final String defaultValue) {
+		return Settings.getOrCreateStringSetting("oauth", provider, key).getValue(defaultValue);
+	}
 
-		return !(redirectUri.startsWith("http")) ? "http" + (request.isSecure() ? "s" : "") + "://" + request.getServerName() + ":" + request.getServerPort() + redirectUri : redirectUri;
+	/**
+	 * Gets the default redirect URI for this provider.
+	 * Can be overridden by subclasses.
+	 */
+	protected String getDefaultRedirectUri() {
+		return "/oauth/" + provider + "/auth";
+	}
+
+	/**
+	 * Gets the default user details URI for this provider.
+	 * Must be overridden by subclasses that use defaults.
+	 */
+	protected String getDefaultUserDetailsUri() {
+		return providerConfig.getDefaultUserInfoEndpoint();
+	}
+
+	/**
+	 * Gets the default scope for this provider.
+	 * Can be overridden by subclasses.
+	 */
+	protected String getDefaultScope() {
+		return providerConfig.getDefaultScope();
+	}
+
+	/**
+	 * Builds the OAuth service using the provided API instance.
+	 * Can be overridden by subclasses that need custom service configuration.
+	 *
+	 * @param api The ScribeJava API instance
+	 */
+	protected void buildOAuthService(final DefaultApi20 api) {
+		this.service = new ServiceBuilder(clientId)
+				.apiSecret(clientSecret)
+				.callback(redirectUri)
+				.defaultScope(scope)
+				.build(api);
+	}
+
+	/**
+	 * Converts relative URLs to absolute URLs based on request.
+	 */
+	protected String getAbsoluteUrl(final HttpServletRequest request, final String uri) {
+		if (uri.startsWith("http")) {
+			return uri;
+		}
+		return "http" + (request.isSecure() ? "s" : "") + "://" +
+				request.getServerName() + ":" + request.getServerPort() + uri;
 	}
 
 	@Override
@@ -94,122 +163,136 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 
 	@Override
 	public String getCredentialKey() {
-
-		return "email";
+		return providerConfig.getCredentialKey();
 	}
 
 	@Override
 	public String getReturnURI() {
-
 		return returnUri;
 	}
 
 	@Override
 	public String getErrorURI() {
-
 		return errorUri;
 	}
 
 	@Override
 	public String getLogoutURI() {
-
 		return logoutUri;
 	}
 
 	@Override
-	public OAuth2AccessToken getAccessToken(String authorizationReplyCode) {
-
+	public OAuth2AccessToken getAccessToken(final String authorizationReplyCode) {
 		try {
 
 			return service.getAccessToken(authorizationReplyCode);
 
-		} catch (IOException | InterruptedException | ExecutionException e) {
+		} catch (Exception e) {
+			if (Settings.OAuthVerboseLogging.getValue(false)) {
+				logger.error("Failed to get access token from {}: {}", provider, e.getMessage());
+			}
 
-			logger.error("Could not get accessToken", e);
+			logger.debug("Access token error details", e);
 		}
-
 		return null;
 	}
 
 	@Override
 	public String getClientCredentials(final OAuth2AccessToken accessToken) {
+		try {
+			final OAuthRequest request = new OAuthRequest(Verb.GET, userDetailsURI);
+			service.signRequest(accessToken, request);
 
-		final OAuthRequest request = new OAuthRequest(Verb.GET, userDetailsURI);
+			try (Response response = service.execute(request)) {
+				if (!response.isSuccessful()) {
+					logger.error("User details request to {} failed: {} - {}",
+							provider, response.getCode(), response.getMessage());
+					return null;
+				}
 
-		service.signRequest(accessToken, request);
-
-		try (Response response = service.execute(request)) {
-
-			final String rawResponse = response.getBody();
-
-			Gson gson = new Gson();
-			Map<String, Object> params = gson.fromJson(rawResponse, Map.class);
-
-			// also add the accessToken payload into the userinformation because it contains some additional user information
-			Map<String, Object> accessTokenEntries = decodeAndConvertAccessTokenClaims(accessToken);
-			if (accessTokenEntries != null) {
-				params.put("accessTokenClaims", accessTokenEntries);
+				return parseUserCredentials(response.getBody(), accessToken);
 			}
-
-			// make full user info available to implementing classes
-			this.userInfo = params;
-
-			if (params.get(getCredentialKey()) != null) {
-
-				return params.get(getCredentialKey()).toString();
-			}
-
-			return null;
-
 		} catch (Exception e) {
-
-			logger.error("Could not perform client credential request {}", e);
+			if (Settings.OAuthVerboseLogging.getValue(false)) {
+				logger.error("Failed to get client credentials from {}: {}", provider, e.getMessage());
+			}
+			logger.debug("Client credentials error details", e);
 		}
-
 		return null;
 	}
 
-	Map<String, Object> decodeAndConvertAccessTokenClaims (final OAuth2AccessToken accessToken) {
+	/**
+	 * Parses the user details response and extracts credentials.
+	 *
+	 * @param responseBody The response body from the user details endpoint
+	 * @param accessToken The OAuth access token
+	 * @return The credential value (typically email)
+	 */
+	protected String parseUserCredentials(final String responseBody, final OAuth2AccessToken accessToken) {
 		try {
+			final Gson gson = new Gson();
+			final Map<String, Object> params = gson.fromJson(responseBody, Map.class);
 
-			DecodedJWT jwt = JWT.decode(accessToken.getAccessToken());
+			// Add decoded access token claims to user info
+			final Map<String, Object> accessTokenClaims = decodeAccessTokenClaims(accessToken);
+			if (accessTokenClaims != null) {
+				params.put("accessTokenClaims", accessTokenClaims);
+			}
 
-			Map<String, Object> accessTokenEntries = new HashMap<>();
-			Object claimValue;
+			// Store full user info for later use
+			this.userInfo = params;
+
+			// Extract and return the credential value
+			final Object credentialValue = params.get(getCredentialKey());
+			return credentialValue != null ? credentialValue.toString() : null;
+
+		} catch (Exception e) {
+			if (Settings.OAuthVerboseLogging.getValue(false)) {
+				logger.error("Failed to parse user credentials from {}: {}", provider, e.getMessage());
+			}
+			logger.debug("Credential parsing error details", e);
+		}
+		return null;
+	}
+
+	/**
+	 * Decodes JWT access token and extracts claims as a map.
+	 *
+	 * @param accessToken The OAuth access token
+	 * @return Map of claims or null if decoding fails
+	 */
+	protected Map<String, Object> decodeAccessTokenClaims(final OAuth2AccessToken accessToken) {
+		try {
+			final DecodedJWT jwt = JWT.decode(accessToken.getAccessToken());
+			final Map<String, Object> claims = new HashMap<>();
+
 			for (Map.Entry<String, Claim> entry : jwt.getClaims().entrySet()) {
+				final Claim claim = entry.getValue();
+				final String key = entry.getKey();
 
-				Claim value = entry.getValue();
-				if (value.asDouble() != null || value.asLong() != null || value.asInt() != null) {
-
-					accessTokenEntries.put(entry.getKey(), value.as(Number.class));
-
-				} else if ((claimValue = value.asBoolean()) != null) {
-
-					accessTokenEntries.put(entry.getKey(), claimValue);
-
-				} else if ((claimValue = value.asList(Object.class)) != null) {
-
-					accessTokenEntries.put(entry.getKey(), claimValue);
-
-				}  else if ((claimValue = value.asMap()) != null) {
-
-					accessTokenEntries.put(entry.getKey(), claimValue);
-
-				} else if ((claimValue = value.asString()) != null) {
-
-					accessTokenEntries.put(entry.getKey(), claimValue);
+				// Extract claim value based on type
+				if (claim.asDouble() != null || claim.asLong() != null || claim.asInt() != null) {
+					claims.put(key, claim.as(Number.class));
+				} else if (claim.asBoolean() != null) {
+					claims.put(key, claim.asBoolean());
+				} else if (claim.asList(Object.class) != null) {
+					claims.put(key, claim.asList(Object.class));
+				} else if (claim.asMap() != null) {
+					claims.put(key, claim.asMap());
+				} else if (claim.asString() != null) {
+					claims.put(key, claim.asString());
 				}
 			}
 
-			return accessTokenEntries;
+			return claims;
 
 		} catch (Exception e) {
-			logger.error("Could not read client information from access_token {}", e);
+			logger.debug("Could not decode access token claims for {}: {}", provider, e.getMessage());
 		}
-
 		return null;
 	}
 
+	@Override
 	public Map<String, Object> getUserInfo() {
 		return this.userInfo;
 	}
@@ -218,10 +301,9 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 	public void invokeOnLoginMethod(final Principal user) throws FrameworkException {
 
 		final AbstractMethod method = Methods.resolveMethod(Traits.of(StructrTraits.USER), Actions.NOTIFICATION_OAUTH_LOGIN);
+
 		if (method != null) {
-
 			final NamedArguments arguments = new NamedArguments();
-
 			arguments.add("provider", this.provider);
 			arguments.add("userinfo", this.getUserInfo());
 
@@ -230,7 +312,8 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 	}
 
 	@Override
-	public void initializeAutoCreatedUser(Principal user) {
-
+	public void initializeAutoCreatedUser(final Principal user) {
+		// Default implementation does nothing
+		// Subclasses can override to customize user initialization
 	}
 }

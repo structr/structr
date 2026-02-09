@@ -612,34 +612,11 @@ public class UiAuthenticator implements Authenticator {
 		final String name   = uriParts[1];
 		final String action = uriParts[2];
 
-		OAuth2Client oAuth2Client = null;
+		OAuth2Client oAuth2Client;
 
 		try {
 
-			switch (name) {
-				case "auth0":
-					oAuth2Client = new Auth0AuthClient(request);
-					break;
-				case "facebook":
-					oAuth2Client = new FacebookAuthClient(request);
-					break;
-				case "github":
-					oAuth2Client = new GithubAuthClient(request);
-					break;
-				case "google":
-					oAuth2Client = new GoogleAuthClient(request);
-					break;
-				case "linkedin":
-					oAuth2Client = new LinkedInAuthClient(request);
-					break;
-				case "azure":
-					oAuth2Client = new AzureAuthClient(request);
-					break;
-				default:
-
-					logger.error("Unable to initialize oAuth2Client for provider {}", name);
-					return null;
-			}
+			oAuth2Client = OAuth2ClientFactory.createClient(name, request);
 
 		} catch (IllegalArgumentException iae) {
 

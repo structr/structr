@@ -18,27 +18,88 @@
  */
 package org.structr.web.auth;
 
-
 import com.github.scribejava.core.model.OAuth2AccessToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
 
+import java.util.Map;
+
+/**
+ * Interface for OAuth2 client implementations.
+ */
 public interface OAuth2Client {
 
-    String getAuthorizationURL(final String state);
-    OAuth2AccessToken getAccessToken(final String authorizationReplyCode);
+	/**
+	 * Gets the authorization URL for the OAuth2 flow.
+	 *
+	 * @param state The state parameter for CSRF protection
+	 * @return The authorization URL
+	 */
+	String getAuthorizationURL(final String state);
 
-    String getClientCredentials(final OAuth2AccessToken accessToken);
+	/**
+	 * Exchanges authorization code for access token.
+	 *
+	 * @param authorizationReplyCode The authorization code from the provider
+	 * @return The access token
+	 */
+	OAuth2AccessToken getAccessToken(final String authorizationReplyCode);
 
-    String getReturnURI();
+	/**
+	 * Retrieves user credentials from the provider using the access token.
+	 *
+	 * @param accessToken The OAuth access token
+	 * @return The credential value (typically email)
+	 */
+	String getClientCredentials(final OAuth2AccessToken accessToken);
 
-    String getErrorURI();
+	/**
+	 * Gets the return URI to redirect to after successful authentication.
+	 *
+	 * @return The return URI
+	 */
+	String getReturnURI();
 
-    void invokeOnLoginMethod(Principal user) throws FrameworkException;
+	/**
+	 * Gets the error URI to redirect to after failed authentication.
+	 *
+	 * @return The error URI
+	 */
+	String getErrorURI();
 
-    String getCredentialKey();
+	/**
+	 * Gets the logout URI.
+	 *
+	 * @return The logout URI
+	 */
+	String getLogoutURI();
 
-    void initializeAutoCreatedUser(Principal user);
+	/**
+	 * Invokes the onOAuthLogin method on the user if it exists.
+	 *
+	 * @param user The authenticated user
+	 * @throws FrameworkException If method invocation fails
+	 */
+	void invokeOnLoginMethod(final Principal user) throws FrameworkException;
 
-    String getLogoutURI();
+	/**
+	 * Gets the credential key used to identify users (e.g., "email").
+	 *
+	 * @return The credential key
+	 */
+	String getCredentialKey();
+
+	/**
+	 * Initializes an auto-created user with provider-specific data.
+	 *
+	 * @param user The newly created user
+	 */
+	void initializeAutoCreatedUser(final Principal user);
+
+	/**
+	 * Gets the full user info retrieved from the OAuth provider.
+	 *
+	 * @return Map of user information
+	 */
+	Map<String, Object> getUserInfo();
 }

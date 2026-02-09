@@ -566,83 +566,101 @@ public class Settings {
 	public static final Setting<Integer> LetsEncryptKeySize                         = new IntegerSetting(securityGroup,  "Letsencrypt", "letsencrypt.key.size", 2048, "Encryption key length. Default is 2048.");
 
 
-	// oauth settings
-	public static final Setting<String> OAuthServers          = new StringSetting(oauthGroup, "General", "oauth.servers", "auth0 azure facebook github google linkedin", "Space-separated List of available oauth services. Defaults to a list of all available services.");
-	public static final Setting<Boolean> OAuthVerboseLogging  = new BooleanSetting(oauthGroup, "General", "oauth.logging.verbose", false, "Enables verbose logging for oauth login");
+	// OAuth General Settings
+	public static final Setting<String> OAuthServers          = new StringSetting(oauthGroup, "General", "oauth.servers", "auth0 azure facebook github google linkedin keycloak", "Space-separated list of available OAuth services. Defaults to a list of all available services.");
+	public static final Setting<Boolean> OAuthVerboseLogging  = new BooleanSetting(oauthGroup, "General", "oauth.logging.verbose", false, "Optional. Enables verbose logging for OAuth login. Useful for debugging.");
 
-	public static final Setting<String> OAuthGithubAuthLocation   = new StringSetting(oauthGroup, "GitHub", "oauth.github.authorization_location", "https://github.com/login/oauth/authorize", "URL of the authorization endpoint.");
-	public static final Setting<String> OAuthGithubTokenLocation  = new StringSetting(oauthGroup, "GitHub", "oauth.github.token_location", "https://github.com/login/oauth/access_token", "URL of the token endpoint.");
-	public static final Setting<String> OAuthGithubClientId       = new StringSetting(oauthGroup, "GitHub", "oauth.github.client_id", "", "Client ID used for oauth.");
-	public static final Setting<String> OAuthGithubClientSecret   = new StringSetting(oauthGroup, "GitHub", "oauth.github.client_secret", "", "Client secret used for oauth").setIsProtected();
-	public static final Setting<String> OAuthGithubRedirectUri    = new StringSetting(oauthGroup, "GitHub", "oauth.github.redirect_uri", "/oauth/github/auth", "Structr endpoint for the service oauth authorization.");
-	public static final Setting<String> OAuthGithubUserDetailsUri = new StringSetting(oauthGroup, "GitHub", "oauth.github.user_details_resource_uri", "https://api.github.com/user/emails", "Points to the user details endpoint of the service provider.");
-	public static final Setting<String> OAuthGithubErrorUri       = new StringSetting(oauthGroup, "GitHub", "oauth.github.error_uri", "/login", "Structr redirects to this URI on unsuccessful authentication.");
-	public static final Setting<String> OAuthGithubReturnUri      = new StringSetting(oauthGroup, "GitHub", "oauth.github.return_uri", "/", "Structr redirects to this URI on successful authentification.");
-	public static final Setting<String> OAuthGithubScope          = new StringSetting(oauthGroup, "GitHub", "oauth.github.scope", "user:email", "Specifies the scope of the authentifcation. Defaults to 'user:email'.");
-	public static final ChoiceSetting OAuthGithubAccessTokenLocation = new ChoiceSetting(oauthGroup, "GitHub", "oauth.github.accesstoken.location", "query", Set.of("body", "header", "query"), "Where to encode  the access token when accessing the userinfo endpoint. Set this to header if you use an OICD-compliant service. ");
+	// GitHub OAuth Settings
+	public static final Setting<String> OAuthGithubAuthLocation   = new StringSetting(oauthGroup, "GitHub", "oauth.github.authorization_location", "", "Optional. URL of the authorization endpoint. Uses default GitHub endpoint if not set.");
+	public static final Setting<String> OAuthGithubTokenLocation  = new StringSetting(oauthGroup, "GitHub", "oauth.github.token_location", "", "Optional. URL of the token endpoint. Uses default GitHub endpoint if not set.");
+	public static final Setting<String> OAuthGithubClientId       = new StringSetting(oauthGroup, "GitHub", "oauth.github.client_id", "", "Required. Client ID from your GitHub OAuth application.");
+	public static final Setting<String> OAuthGithubClientSecret   = new StringSetting(oauthGroup, "GitHub", "oauth.github.client_secret", "", "Required. Client secret from your GitHub OAuth application.").setIsProtected();
+	public static final Setting<String> OAuthGithubRedirectUri    = new StringSetting(oauthGroup, "GitHub", "oauth.github.redirect_uri", "/oauth/github/auth", "Optional. Structr endpoint for the OAuth authorization callback. Defaults to '/oauth/github/auth'.");
+	public static final Setting<String> OAuthGithubUserDetailsUri = new StringSetting(oauthGroup, "GitHub", "oauth.github.user_details_resource_uri", "", "Optional. User details endpoint. Defaults to 'https://api.github.com/user'.");
+	public static final Setting<String> OAuthGithubErrorUri       = new StringSetting(oauthGroup, "GitHub", "oauth.github.error_uri", "/error", "Optional. Redirect URI on unsuccessful authentication. Defaults to '/login'.");
+	public static final Setting<String> OAuthGithubReturnUri      = new StringSetting(oauthGroup, "GitHub", "oauth.github.return_uri", "/", "Optional. Redirect URI on successful authentication. Defaults to '/'.");
+	public static final Setting<String> OAuthGithubLogoutUri      = new StringSetting(oauthGroup, "GitHub", "oauth.github.logout_uri", "/logout", "Optional. Logout URI. Defaults to '/logout'.");
+	public static final Setting<String> OAuthGithubScope          = new StringSetting(oauthGroup, "GitHub", "oauth.github.scope", "user:email", "Optional. OAuth scope. Defaults to 'user:email'.");
 
-	public static final Setting<String> OAuthLinkedInAuthLocation   = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.authorization_location", "https://www.linkedin.com/oauth/v2/authorization", "URL of the authorization endpoint.");
-	public static final Setting<String> OAuthLinkedInTokenLocation  = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.token_location", "https://www.linkedin.com/oauth/v2/accessToken", "URL of the token endpoint.");
-	public static final Setting<String> OAuthLinkedInClientId       = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.client_id", "", "Client ID used for oauth.");
-	public static final Setting<String> OAuthLinkedInClientSecret   = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.client_secret", "", "Client secret used for oauth").setIsProtected();
-	public static final Setting<String> OAuthLinkedInRedirectUri    = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.redirect_uri", "/oauth/linkedin/auth", "Structr redirects to this URI on successful authentification.");
-	public static final Setting<String> OAuthLinkedInUserDetailsUri = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.user_details_resource_uri", "https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))", "Points to the user details endpoint of the service provider.");
-	public static final Setting<String> OAuthLinkedInUserProfileUri = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.user_profile_resource_uri", "https://api.linkedin.com/v2/me", "Points to the user profile endpoint of the service provider.");
-	public static final Setting<String> OAuthLinkedInErrorUri       = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.error_uri", "/login", "Structr redirects to this URI on unsuccessful authentication.");
-	public static final Setting<String> OAuthLinkedInReturnUri      = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.return_uri", "/", "Structr redirects to this URI on successful authentification.");
-	public static final Setting<String> OAuthLinkedInScope          = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.scope", "r_liteprofile r_emailaddress", "oauth.linkedin.scope");
-	public static final ChoiceSetting OAuthLinkedInAccessTokenLocation = new ChoiceSetting(oauthGroup, "LinkedIn", "oauth.linkedin.accesstoken.location", "query", Set.of("body", "header", "query"), "Where to encode  the access token when accessing the userinfo endpoint. Set this to header if you use an OICD-compliant service. ");
+	// LinkedIn OAuth Settings
+	public static final Setting<String> OAuthLinkedInAuthLocation   = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.authorization_location", "", "Optional. URL of the authorization endpoint. Uses default LinkedIn endpoint if not set.");
+	public static final Setting<String> OAuthLinkedInTokenLocation  = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.token_location", "", "Optional. URL of the token endpoint. Uses default LinkedIn endpoint if not set.");
+	public static final Setting<String> OAuthLinkedInClientId       = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.client_id", "", "Required. Client ID from your LinkedIn OAuth application.");
+	public static final Setting<String> OAuthLinkedInClientSecret   = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.client_secret", "", "Required. Client secret from your LinkedIn OAuth application.").setIsProtected();
+	public static final Setting<String> OAuthLinkedInRedirectUri    = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.redirect_uri", "/oauth/linkedin/auth", "Optional. Structr endpoint for the OAuth authorization callback. Defaults to '/oauth/linkedin/auth'.");
+	public static final Setting<String> OAuthLinkedInUserDetailsUri = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.user_details_resource_uri", "", "Optional. User details endpoint. Defaults to 'https://api.linkedin.com/v2/userinfo'.");
+	public static final Setting<String> OAuthLinkedInErrorUri       = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.error_uri", "/error", "Optional. Redirect URI on unsuccessful authentication. Defaults to '/login'.");
+	public static final Setting<String> OAuthLinkedInReturnUri      = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.return_uri", "/", "Optional. Redirect URI on successful authentication. Defaults to '/'.");
+	public static final Setting<String> OAuthLinkedInLogoutUri      = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.logout_uri", "/logout", "Optional. Logout URI. Defaults to '/logout'.");
+	public static final Setting<String> OAuthLinkedInScope          = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.scope", "openid profile email", "Optional. OAuth scope. Defaults to 'openid profile email'.");
 
-	public static final Setting<String> OAuthGoogleAuthLocation   = new StringSetting(oauthGroup, "Google", "oauth.google.authorization_location", "https://accounts.google.com/o/oauth2/auth", "URL of the authorization endpoint.");
-	public static final Setting<String> OAuthGoogleTokenLocation  = new StringSetting(oauthGroup, "Google", "oauth.google.token_location", "https://accounts.google.com/o/oauth2/token", "URL of the token endpoint.");
-	public static final Setting<String> OAuthGoogleClientId       = new StringSetting(oauthGroup, "Google", "oauth.google.client_id", "", "Client ID used for oauth.");
-	public static final Setting<String> OAuthGoogleClientSecret   = new StringSetting(oauthGroup, "Google", "oauth.google.client_secret", "", "Client secret used for oauth").setIsProtected();
-	public static final Setting<String> OAuthGoogleRedirectUri    = new StringSetting(oauthGroup, "Google", "oauth.google.redirect_uri", "/oauth/google/auth", "Structr redirects to this URI on successful authentification.");
-	public static final Setting<String> OAuthGoogleUserDetailsUri = new StringSetting(oauthGroup, "Google", "oauth.google.user_details_resource_uri", "https://www.googleapis.com/oauth2/v3/userinfo");
-	public static final Setting<String> OAuthGoogleErrorUri       = new StringSetting(oauthGroup, "Google", "oauth.google.error_uri", "/login", "Structr redirects to this URI on unsuccessful authentication.");
-	public static final Setting<String> OAuthGoogleReturnUri      = new StringSetting(oauthGroup, "Google", "oauth.google.return_uri", "/", "Structr redirects to this URI on successful authentification.");
-	public static final Setting<String> OAuthGoogleScope          = new StringSetting(oauthGroup, "Google", "oauth.google.scope", "email", "Specifies the scope of the authentifcation.");
-	public static final ChoiceSetting OAuthGoogleAccessTokenLocation = new ChoiceSetting(oauthGroup, "Google", "oauth.google.accesstoken.location", "query", Set.of("body", "header", "query"), "Where to encode  the access token when accessing the userinfo endpoint. Set this to header if you use an OICD-compliant service. ");
+	// Google OAuth Settings
+	public static final Setting<String> OAuthGoogleAuthLocation   = new StringSetting(oauthGroup, "Google", "oauth.google.authorization_location", "", "Optional. URL of the authorization endpoint. Uses default Google endpoint if not set.");
+	public static final Setting<String> OAuthGoogleTokenLocation  = new StringSetting(oauthGroup, "Google", "oauth.google.token_location", "", "Optional. URL of the token endpoint. Uses default Google endpoint if not set.");
+	public static final Setting<String> OAuthGoogleClientId       = new StringSetting(oauthGroup, "Google", "oauth.google.client_id", "", "Required. Client ID from your Google Cloud Console OAuth credentials.");
+	public static final Setting<String> OAuthGoogleClientSecret   = new StringSetting(oauthGroup, "Google", "oauth.google.client_secret", "", "Required. Client secret from your Google Cloud Console OAuth credentials.").setIsProtected();
+	public static final Setting<String> OAuthGoogleRedirectUri    = new StringSetting(oauthGroup, "Google", "oauth.google.redirect_uri", "/oauth/google/auth", "Optional. Structr endpoint for the OAuth authorization callback. Defaults to '/oauth/google/auth'.");
+	public static final Setting<String> OAuthGoogleUserDetailsUri = new StringSetting(oauthGroup, "Google", "oauth.google.user_details_resource_uri", "", "Optional. User details endpoint. Defaults to 'https://www.googleapis.com/oauth2/v3/userinfo'.");
+	public static final Setting<String> OAuthGoogleErrorUri       = new StringSetting(oauthGroup, "Google", "oauth.google.error_uri", "/error", "Optional. Redirect URI on unsuccessful authentication. Defaults to '/login'.");
+	public static final Setting<String> OAuthGoogleReturnUri      = new StringSetting(oauthGroup, "Google", "oauth.google.return_uri", "/", "Optional. Redirect URI on successful authentication. Defaults to '/'.");
+	public static final Setting<String> OAuthGoogleLogoutUri      = new StringSetting(oauthGroup, "Google", "oauth.google.logout_uri", "/logout", "Optional. Logout URI. Defaults to '/logout'.");
+	public static final Setting<String> OAuthGoogleScope          = new StringSetting(oauthGroup, "Google", "oauth.google.scope", "email", "Optional. OAuth scope. Defaults to 'email'.");
 
-	public static final Setting<String> OAuthFacebookAuthLocation   = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.authorization_location", "https://www.facebook.com/dialog/oauth", "URL of the authorization endpoint.");
-	public static final Setting<String> OAuthFacebookTokenLocation  = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.token_location", "https://graph.facebook.com/oauth/access_token", "URL of the token endpoint.");
-	public static final Setting<String> OAuthFacebookClientId       = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.client_id", "", "Client ID used for oauth.");
-	public static final Setting<String> OAuthFacebookClientSecret   = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.client_secret", "", "Client secret used for oauth").setIsProtected();
-	public static final Setting<String> OAuthFacebookRedirectUri    = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.redirect_uri", "/oauth/facebook/auth", "Structr redirects to this URI on successful authentification.");
-	public static final Setting<String> OAuthFacebookUserDetailsUri = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.user_details_resource_uri", "https://graph.facebook.com/me?fields=id,name,email", "Points to the user details endpoint of the service provider.");
-	public static final Setting<String> OAuthFacebookErrorUri       = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.error_uri", "/login", "Structr redirects to this URI on unsuccessful authentication.");
-	public static final Setting<String> OAuthFacebookReturnUri      = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.return_uri", "/", "Structr redirects to this URI on successful authentification.");
-	public static final Setting<String> OAuthFacebookScope          = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.scope", "email", "Specifies the scope of the authentifcation.");
-	public static final ChoiceSetting OAuthFacebookAccessTokenLocation = new ChoiceSetting(oauthGroup, "Facebook", "oauth.facebook.accesstoken.location", "query", Set.of("body", "header", "query"), "Where to encode  the access token when accessing the userinfo endpoint. Set this to header if you use an OICD-compliant service. ");
+	// Facebook OAuth Settings
+	public static final Setting<String> OAuthFacebookAuthLocation   = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.authorization_location", "", "Optional. URL of the authorization endpoint. Uses default Facebook endpoint if not set.");
+	public static final Setting<String> OAuthFacebookTokenLocation  = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.token_location", "", "Optional. URL of the token endpoint. Uses default Facebook endpoint if not set.");
+	public static final Setting<String> OAuthFacebookClientId       = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.client_id", "", "Required. App ID from your Facebook Developer application.");
+	public static final Setting<String> OAuthFacebookClientSecret   = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.client_secret", "", "Required. App secret from your Facebook Developer application.").setIsProtected();
+	public static final Setting<String> OAuthFacebookRedirectUri    = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.redirect_uri", "/oauth/facebook/auth", "Optional. Structr endpoint for the OAuth authorization callback. Defaults to '/oauth/facebook/auth'.");
+	public static final Setting<String> OAuthFacebookUserDetailsUri = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.user_details_resource_uri", "", "Optional. User details endpoint. Defaults to 'https://graph.facebook.com/me'.");
+	public static final Setting<String> OAuthFacebookErrorUri       = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.error_uri", "/error", "Optional. Redirect URI on unsuccessful authentication. Defaults to '/login'.");
+	public static final Setting<String> OAuthFacebookReturnUri      = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.return_uri", "/", "Optional. Redirect URI on successful authentication. Defaults to '/'.");
+	public static final Setting<String> OAuthFacebookLogoutUri      = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.logout_uri", "/logout", "Optional. Logout URI. Defaults to '/logout'.");
+	public static final Setting<String> OAuthFacebookScope          = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.scope", "email", "Optional. OAuth scope. Defaults to 'email'.");
 
-	public static final Setting<String> OAuthAuth0AuthLocation          = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.authorization_location", "", "URL of the authorization endpoint.");
-	public static final Setting<String> OAuthAuth0TokenLocation         = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.token_location", "", "URL of the token endpoint.");
-	public static final Setting<String> OAuthAuth0LogoutLocation        = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.logout_location", "", "URL of the logout endpoint.");
-	public static final Setting<String> OAuthAuth0LogoutReturnUri       = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.logout_return_uri", "", "Structr redirects to this URI on successfull logout.");
-	public static final Setting<String> OAuthAuth0LogoutReturnLocationParameterKey  = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.logout_return_location_parameter", "returnTo", "Provider specific URL parameter that carries the value of the return location after successfull logout.");
-	public static final Setting<String> OAuthAuth0ClientId              = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.client_id", "", "Client ID use for oauth.");
-	public static final Setting<String> OAuthAuth0ClientSecret          = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.client_secret", "", "Client secret used for oauth.").setIsProtected();
-	public static final Setting<String> OAuthAuth0RedirectUri           = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.redirect_uri", "", "Structr redirects to this URI on successful authentification.");
-	public static final Setting<String> OAuthAuth0UserDetailsUri        = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.user_details_resource_uri", "", "Points to the user details endpoint of the service provider.");
-	public static final Setting<String> OAuthAuth0ErrorUri              = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.error_uri", "", "Structr redirects to this URI on unsuccessful authentication.");
-	public static final Setting<String> OAuthAuth0ReturnUri             = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.return_uri", "", "Structr redirects to this URI on successful authentification.");
-	public static final Setting<String> OAuthAuth0Scope                 = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.scope", "openid profile email", "Specifies the scope of the authentifcation.");
-	public static final Setting<String> OAuthAuth0Audience              = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.audience", "", "The API audience of the application in Auth0.");
-	public static final ChoiceSetting OAuthAuth0AccessTokenLocation     = new ChoiceSetting(oauthGroup, "Auth0", "oauth.auth0.accesstoken.location", "query", Set.of("body", "header", "query"), "Where to encode  the access token when accessing the userinfo endpoint. Set this to header if you use an OICD-compliant service. ");
+	// Auth0 OAuth Settings
+	public static final Setting<String> OAuthAuth0Tenant                = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.tenant", "", "Required (recommended). Auth0 tenant domain (e.g., 'your-tenant.auth0.com'). When set, authorization_location and token_location are built automatically.");
+	public static final Setting<String> OAuthAuth0AuthorizationPath     = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.authorization_path", "/authorize", "Optional. Path to authorization endpoint. Only used with tenant setting. Defaults to '/authorize'.");
+	public static final Setting<String> OAuthAuth0TokenPath             = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.token_path", "/oauth/token", "Optional. Path to token endpoint. Only used with tenant setting. Defaults to '/oauth/token'.");
+	public static final Setting<String> OAuthAuth0UserinfoPath          = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.userinfo_path", "/userinfo", "Optional. Path to userinfo endpoint. Only used with tenant setting. Defaults to '/userinfo'.");
+	public static final Setting<String> OAuthAuth0AuthLocation          = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.authorization_location", "", "Required if tenant not set. Full URL of the authorization endpoint. Ignored if tenant is configured.");
+	public static final Setting<String> OAuthAuth0TokenLocation         = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.token_location", "", "Required if tenant not set. Full URL of the token endpoint. Ignored if tenant is configured.");
+	public static final Setting<String> OAuthAuth0ClientId              = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.client_id", "", "Required. Client ID from your Auth0 application.");
+	public static final Setting<String> OAuthAuth0ClientSecret          = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.client_secret", "", "Required. Client secret from your Auth0 application.").setIsProtected();
+	public static final Setting<String> OAuthAuth0RedirectUri           = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.redirect_uri", "/oauth/auth0/auth", "Optional. Structr endpoint for the OAuth authorization callback. Defaults to '/oauth/auth0/auth'.");
+	public static final Setting<String> OAuthAuth0UserDetailsUri        = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.user_details_resource_uri", "", "Optional. User details endpoint. Built from tenant if not set.");
+	public static final Setting<String> OAuthAuth0ErrorUri              = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.error_uri", "/error", "Optional. Redirect URI on unsuccessful authentication. Defaults to '/login'.");
+	public static final Setting<String> OAuthAuth0ReturnUri             = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.return_uri", "/", "Optional. Redirect URI on successful authentication. Defaults to '/'.");
+	public static final Setting<String> OAuthAuth0LogoutUri             = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.logout_uri", "/logout", "Optional. Logout URI. Defaults to '/logout'.");
+	public static final Setting<String> OAuthAuth0Scope                 = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.scope", "openid profile email", "Optional. OAuth scope. Defaults to 'openid profile email'.");
+	public static final Setting<String> OAuthAuth0Audience              = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.audience", "", "Optional. The API audience (identifier) of your Auth0 API. Required for API access tokens.");
 
-	public static final Setting<String> OAuthAzureAuthLocation          = new StringSetting(oauthGroup, "Azure", "oauth.azure.authorization_location", "", "URL of the authorization endpoint.");
-	public static final Setting<String> OAuthAzureTokenLocation         = new StringSetting(oauthGroup, "Azure", "oauth.azure.token_location", "", "URL of the token endpoint.");
-	public static final Setting<String> OAuthAzureLogoutLocation        = new StringSetting(oauthGroup, "Azure", "oauth.azure.logout_location", "", "URL of the logout endpoint.");
-	public static final Setting<String> OAuthAzureLogoutReturnUri       = new StringSetting(oauthGroup, "Azure", "oauth.azure.logout_return_uri", "", "Structr redirects to this URI on successfull logout.");
-	public static final Setting<String> OAuthAzureLogoutReturnLocationParameterKey  = new StringSetting(oauthGroup, "Auth0", "oauth.azure.logout_return_location_parameter", "returnTo", "Provider specific URL parameter that carries the value of the return location after successfull logout.");
-	public static final Setting<String> OAuthAzureClientId              = new StringSetting(oauthGroup, "Azure", "oauth.azure.client_id", "", "Client ID use for oauth.");
-	public static final Setting<String> OAuthAzureClientSecret          = new StringSetting(oauthGroup, "Azure", "oauth.azure.client_secret", "", "Client secret used for oauth.").setIsProtected();
-	public static final Setting<String> OAuthAzureRedirectUri           = new StringSetting(oauthGroup, "Azure", "oauth.azure.redirect_uri", "", "Structr redirects to this URI on successful authentification.");
-	public static final Setting<String> OAuthAzureUserDetailsUri        = new StringSetting(oauthGroup, "Azure", "oauth.azure.user_details_resource_uri", "", "Points to the user details endpoint of the service provider.");
-	public static final Setting<String> OAuthAzureErrorUri              = new StringSetting(oauthGroup, "Azure", "oauth.azure.error_uri", "", "Structr redirects to this URI on unsuccessful authentication.");
-	public static final Setting<String> OAuthAzureReturnUri             = new StringSetting(oauthGroup, "Azure", "oauth.azure.return_uri", "", "Structr redirects to this URI on successful authentification.");
-	public static final Setting<String> OAuthAzureScope                 = new StringSetting(oauthGroup, "Azure", "oauth.azure.scope", "openid profile email", "Specifies the scope of the authentifcation.");
-	public static final ChoiceSetting OAuthAzureAccessTokenLocation     = new ChoiceSetting(oauthGroup, "Azure", "oauth.azure.accesstoken.location", "query", Set.of("body", "header", "query"), "Where to encode  the access token when accessing the userinfo endpoint. Set this to header if you use an OICD-compliant service. ");
+	// Azure Active Directory OAuth Settings
+	public static final Setting<String> OAuthAzureTenantId              = new StringSetting(oauthGroup, "Azure", "oauth.azure.tenant_id", "common", "Required. Azure AD tenant ID, or 'common' for multi-tenant apps, or 'organizations' for work accounts only.");
+	public static final Setting<String> OAuthAzureAuthLocation          = new StringSetting(oauthGroup, "Azure", "oauth.azure.authorization_location", "", "Optional. URL of the authorization endpoint. Built automatically from tenant_id if not set.");
+	public static final Setting<String> OAuthAzureTokenLocation         = new StringSetting(oauthGroup, "Azure", "oauth.azure.token_location", "", "Optional. URL of the token endpoint. Built automatically from tenant_id if not set.");
+	public static final Setting<String> OAuthAzureClientId              = new StringSetting(oauthGroup, "Azure", "oauth.azure.client_id", "", "Required. Application (client) ID from Azure AD app registration.");
+	public static final Setting<String> OAuthAzureClientSecret          = new StringSetting(oauthGroup, "Azure", "oauth.azure.client_secret", "", "Required. Client secret from Azure AD app registration.").setIsProtected();
+	public static final Setting<String> OAuthAzureRedirectUri           = new StringSetting(oauthGroup, "Azure", "oauth.azure.redirect_uri", "/oauth/azure/auth", "Optional. Structr endpoint for the OAuth authorization callback. Defaults to '/oauth/azure/auth'.");
+	public static final Setting<String> OAuthAzureUserDetailsUri        = new StringSetting(oauthGroup, "Azure", "oauth.azure.user_details_resource_uri", "", "Optional. User details endpoint. Defaults to 'https://graph.microsoft.com/v1.0/me'.");
+	public static final Setting<String> OAuthAzureErrorUri              = new StringSetting(oauthGroup, "Azure", "oauth.azure.error_uri", "/error", "Optional. Redirect URI on unsuccessful authentication. Defaults to '/login'.");
+	public static final Setting<String> OAuthAzureReturnUri             = new StringSetting(oauthGroup, "Azure", "oauth.azure.return_uri", "/", "Optional. Redirect URI on successful authentication. Defaults to '/'.");
+	public static final Setting<String> OAuthAzureLogoutUri             = new StringSetting(oauthGroup, "Azure", "oauth.azure.logout_uri", "/logout", "Optional. Logout URI. Defaults to '/logout'.");
+	public static final Setting<String> OAuthAzureScope                 = new StringSetting(oauthGroup, "Azure", "oauth.azure.scope", "openid profile email", "Optional. OAuth scope. Defaults to 'openid profile email'.");
+
+	// Keycloak OAuth Settings
+	public static final Setting<String> OAuthKeycloakServerUrl          = new StringSetting(oauthGroup, "Keycloak", "oauth.keycloak.server_url", "", "Required. Keycloak server URL (e.g., 'https://keycloak.example.com').");
+	public static final Setting<String> OAuthKeycloakRealm              = new StringSetting(oauthGroup, "Keycloak", "oauth.keycloak.realm", "master", "Required. Keycloak realm name. Defaults to 'master'.");
+	public static final Setting<String> OAuthKeycloakAuthLocation       = new StringSetting(oauthGroup, "Keycloak", "oauth.keycloak.authorization_location", "", "Optional. URL of the authorization endpoint. Built automatically from server_url and realm if not set.");
+	public static final Setting<String> OAuthKeycloakTokenLocation      = new StringSetting(oauthGroup, "Keycloak", "oauth.keycloak.token_location", "", "Optional. URL of the token endpoint. Built automatically from server_url and realm if not set.");
+	public static final Setting<String> OAuthKeycloakClientId           = new StringSetting(oauthGroup, "Keycloak", "oauth.keycloak.client_id", "", "Required. Client ID from your Keycloak client configuration.");
+	public static final Setting<String> OAuthKeycloakClientSecret       = new StringSetting(oauthGroup, "Keycloak", "oauth.keycloak.client_secret", "", "Required. Client secret from your Keycloak client configuration.").setIsProtected();
+	public static final Setting<String> OAuthKeycloakRedirectUri        = new StringSetting(oauthGroup, "Keycloak", "oauth.keycloak.redirect_uri", "/oauth/keycloak/auth", "Optional. Structr endpoint for the OAuth authorization callback. Defaults to '/oauth/keycloak/auth'.");
+	public static final Setting<String> OAuthKeycloakUserDetailsUri     = new StringSetting(oauthGroup, "Keycloak", "oauth.keycloak.user_details_resource_uri", "", "Optional. User details endpoint. Built automatically from server_url and realm if not set.");
+	public static final Setting<String> OAuthKeycloakErrorUri           = new StringSetting(oauthGroup, "Keycloak", "oauth.keycloak.error_uri", "/error", "Optional. Redirect URI on unsuccessful authentication. Defaults to '/login'.");
+	public static final Setting<String> OAuthKeycloakReturnUri          = new StringSetting(oauthGroup, "Keycloak", "oauth.keycloak.return_uri", "/", "Optional. Redirect URI on successful authentication. Defaults to '/'.");
+	public static final Setting<String> OAuthKeycloakLogoutUri          = new StringSetting(oauthGroup, "Keycloak", "oauth.keycloak.logout_uri", "/logout", "Optional. Logout URI. Defaults to '/logout'.");
+	public static final Setting<String> OAuthKeycloakScope              = new StringSetting(oauthGroup, "Keycloak", "oauth.keycloak.scope", "openid profile email", "Optional. OAuth scope. Defaults to 'openid profile email'.");
 
 	// licence settings
 	public static final Setting<String> LicenseKey                = new StringSetting(licensingGroup,   "Licensing", "license.key",                   "", "Base64-encoded string that contains the complete license data, typically saved as 'license.key' in the main directory.");
