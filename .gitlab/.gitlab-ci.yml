@@ -96,7 +96,8 @@ snapshot-build:
     - test:modules
   before_script:
     # Setup Maven settings with authentication
-    - echo "$MAVEN_SETTINGS" | base64 -d > $CI_PROJECT_DIR/.m2/settings.xml
+    - mkdir -p ~/.m2
+    - echo "$MAVEN_SETTINGS" | base64 -d > ~/.m2/settings.xml
     - chmod 600 $CI_PROJECT_DIR/.m2/settings.xml
   script:
     - |
@@ -104,8 +105,7 @@ snapshot-build:
         echo "Building SNAPSHOT version $STRUCTR_VERSION on main branch"
         
         # Build with sources but skip tests (already completed)
-        mvn -U clean install -Pwith-sources -DskipTests -DskipDockerTestDB=true -Ddocker.skip.push -Dstructr.build.timestamp="$BUILD_TIMESTAMP" \
-
+        mvn -U clean install -Pwith-sources -DskipTests -DskipDockerTestDB=true -Dstructr.build.timestamp="$BUILD_TIMESTAMP"
 
         # Configure glab for HTTP GitLab instance
         glab config set host "https://$CI_SERVER_HOST" 
@@ -152,7 +152,8 @@ release-build:
     - test:modules
   before_script:
     # Setup Maven settings with authentication
-    - echo "$MAVEN_SETTINGS" | base64 -d > $CI_PROJECT_DIR/.m2/settings.xml
+    - mkdir -p ~/.m2
+    - echo "$MAVEN_SETTINGS" | base64 -d > ~/.m2/settings.xml
     - chmod 600 $CI_PROJECT_DIR/.m2/settings.xml
   script:
     - |
@@ -160,7 +161,7 @@ release-build:
         echo "Building release version $STRUCTR_VERSION on release branch"
         
         # Build with sources but skip tests (already completed)
-        mvn -U clean install -Pwith-sources -DskipTests -DskipDockerTestDB=true -Ddocker.skip.push -Dstructr.build.timestamp="$BUILD_TIMESTAMP"
+        mvn -U clean install -Pwith-sources -DskipTests -DskipDockerTestDB=true -Dstructr.build.timestamp="$BUILD_TIMESTAMP"
 
         # Configure glab for HTTP GitLab instance`
         glab config set host "https://$CI_SERVER_HOST" 
