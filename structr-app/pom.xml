@@ -602,6 +602,9 @@
                                         </args>
                                         <buildx>
                                             <builderName>structr-buildx</builderName>
+                                            <attestations>
+                                                <provenance>false</provenance>
+                                            </attestations>
                                             <platforms>
                                                 <platform>linux/amd64</platform>
                                                 <platform>linux/arm64</platform>
