@@ -96,9 +96,11 @@ snapshot-build:
     - test:modules
   before_script:
     # Setup Maven settings with authentication
-    - mkdir -p ~/.m2
+    - mkdir -p ~/.m2 && mkdir -p ~/.structr/
+    - echo "$STRUCTR_KEYSTORE" | base64 -d > ~/.structr/structr.keystore
     - echo "$MAVEN_SETTINGS" | base64 -d > ~/.m2/settings.xml
-    - chmod 600 $CI_PROJECT_DIR/.m2/settings.xml
+    - chmod 600 ~/.m2/settings.xml
+    - echo "$CI_REGISTRY_PASSWORD" | docker login registry.structr.com -u "$CI_REGISTRY_USER" --password-stdin
   script:
     - |
       if [[ "$STRUCTR_VERSION" =~ SNAPSHOT && "$CI_COMMIT_REF_NAME" == "main" ]]; then
@@ -152,9 +154,11 @@ release-build:
     - test:modules
   before_script:
     # Setup Maven settings with authentication
-    - mkdir -p ~/.m2
+    - mkdir -p ~/.m2 && mkdir -p ~/.structr/
+    - echo "$STRUCTR_KEYSTORE" | base64 -d > ~/.structr/structr.keystore
     - echo "$MAVEN_SETTINGS" | base64 -d > ~/.m2/settings.xml
-    - chmod 600 $CI_PROJECT_DIR/.m2/settings.xml
+    - chmod 600 ~/.m2/settings.xml
+    - echo "$CI_REGISTRY_PASSWORD" | docker login registry.structr.com -u "$CI_REGISTRY_USER" --password-stdin
   script:
     - |
       if [[ "$CI_COMMIT_REF_NAME" == "release" ]]; then

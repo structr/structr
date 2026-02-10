@@ -2843,7 +2843,7 @@ class MessageBuilder {
 							${this.params.text}
 						</div>
 
-						<div class="message-buttons flex gap-2 justify-end"></div>
+						<div class="message-buttons flex flex-wrap gap-2 justify-end"></div>
 					</div>
 					<div class="flex gap-3">
 						<div class="message-time text-sm leading-6 whitespace-pre"></div>
