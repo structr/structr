@@ -130,13 +130,10 @@ public class UiModule implements StructrModule {
 		StructrTraits.registerTrait(new CssRuleTraitDefinition());
 		StructrTraits.registerTrait(new CssSelectorTraitDefinition());
 		StructrTraits.registerTrait(new CssSemanticClassTraitDefinition());
-		StructrTraits.registerTrait(new DOMNodeTraitDefinition());
-		StructrTraits.registerTrait(new AbstractFileTraitDefinition());
 		StructrTraits.registerTrait(new LinkableTraitDefinition());
 		StructrTraits.registerTrait(new FileTraitDefinition());
 		StructrTraits.registerTrait(new ImageTraitDefinition());
 		StructrTraits.registerTrait(new FolderTraitDefinition());
-		StructrTraits.registerTrait(new LinkableTraitDefinition());
 		StructrTraits.registerTrait(new LinkSourceTraitDefinition());
 		StructrTraits.registerTrait(new PageTraitDefinition());
 		StructrTraits.registerTrait(new PagePathTraitDefinition());
