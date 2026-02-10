@@ -96,7 +96,8 @@ snapshot-build:
     - test:modules
   before_script:
     # Setup Maven settings with authentication
-    - echo "$MAVEN_SETTINGS" | base64 -d > $CI_PROJECT_DIR/.m2/settings.xml
+    - mkdir -p ~/.m2
+    - echo "$MAVEN_SETTINGS" | base64 -d > ~/.m2/settings.xml
     - chmod 600 $CI_PROJECT_DIR/.m2/settings.xml
   script:
     - |
@@ -151,7 +152,8 @@ release-build:
     - test:modules
   before_script:
     # Setup Maven settings with authentication
-    - echo "$MAVEN_SETTINGS" | base64 -d > $CI_PROJECT_DIR/.m2/settings.xml
+    - mkdir -p ~/.m2
+    - echo "$MAVEN_SETTINGS" | base64 -d > ~/.m2/settings.xml
     - chmod 600 $CI_PROJECT_DIR/.m2/settings.xml
   script:
     - |
