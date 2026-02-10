@@ -359,7 +359,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 		return valid;
 	}
 
-	public long getValdationTime() {
+	public long getValidationTime() {
 		return validationTime;
 	}
 
