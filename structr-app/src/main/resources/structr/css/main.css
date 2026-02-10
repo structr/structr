@@ -3474,6 +3474,11 @@ table.props td.__value {
 	display: flex;
 	flex-wrap: wrap;
 	gap: .25rem;
+	word-break: break-all;
+}
+
+#global-search-results td.name, #global-search-results td.value {
+	word-break: break-all;
 }
 
 #global-search-results .attr {
