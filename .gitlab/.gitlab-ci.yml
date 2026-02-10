@@ -104,8 +104,7 @@ snapshot-build:
         echo "Building SNAPSHOT version $STRUCTR_VERSION on main branch"
         
         # Build with sources but skip tests (already completed)
-        mvn -U clean install -Pwith-sources -DskipTests -DskipDockerTestDB=true -Ddocker.skip.push -Dstructr.build.timestamp="$BUILD_TIMESTAMP" \
-
+        mvn -U clean install -Pwith-sources -DskipTests -DskipDockerTestDB=true -Dstructr.build.timestamp="$BUILD_TIMESTAMP"
 
         # Configure glab for HTTP GitLab instance
         glab config set host "https://$CI_SERVER_HOST" 
@@ -160,7 +159,7 @@ release-build:
         echo "Building release version $STRUCTR_VERSION on release branch"
         
         # Build with sources but skip tests (already completed)
-        mvn -U clean install -Pwith-sources -DskipTests -DskipDockerTestDB=true -Ddocker.skip.push -Dstructr.build.timestamp="$BUILD_TIMESTAMP"
+        mvn -U clean install -Pwith-sources -DskipTests -DskipDockerTestDB=true -Dstructr.build.timestamp="$BUILD_TIMESTAMP"
 
         # Configure glab for HTTP GitLab instance`
         glab config set host "https://$CI_SERVER_HOST" 
