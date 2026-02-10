@@ -17,28 +17,53 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 // @ts-check
-import { test, expect } from '@playwright/test';
-import { login, logout } from './helpers/auth';
+import {test} from '@playwright/test';
+import {login, logout} from './helpers/auth';
+import {initialize} from "./helpers/init";
+import {createAndRenamePage, expandPageTree, getPageContainer, setNodeContent} from "./helpers/pages";
 
 test.beforeAll(async ({ playwright }) => {
-
-	const context = await playwright.request.newContext({
-		extraHTTPHeaders: {
-			'Accept': 'application/json',
-			'X-User': 'superadmin',
-			'X-Password': process.env.SUPERUSER_PASSWORD,
-		}
-	});
+    await initialize(playwright, {
+        'SchemaNode': [
+            { name: 'Milestone' },
+            { name: 'Project' }
+        ],
+        'SchemaRelationshipNode': [
+            {
+                sourceNode: {name: 'Project'},
+                targetNode: {name: 'Milestone'},
+                relationshipType: 'HAS_MILESTONE',
+                sourceMultiplicity: '1',
+                targetMultiplicity: '*',
+                sourceJsonName: 'project',
+                targetJsonName: 'milestones'
+            }
+        ]
+    });
 });
 
 test('search-and-refactor-code', async ({ page }) => {
-
-	test.setTimeout(240_000);
 
 	let oldName = 'milestones';
 	let newName = 'goals';
 
 	await login(page);
+
+    // create example page
+
+    await page.locator('#header #pages_').waitFor({state: 'visible'});
+    await page.locator('#header #pages_').click();
+
+    await createAndRenamePage(page, 4, 'test');
+
+    let pageContainer = getPageContainer(page, 'test');
+    await expandPageTree(page, 'test');
+
+    let content1 = pageContainer.getElement('${capitalize(page.name)}');
+    let content2 = pageContainer.getElement('Initial body text');
+
+    await setNodeContent(page, content1, 'milestones');
+    await setNodeContent(page, content2, 'milestones');
 
 	// Navigate to security (to show that automatic navigation to code works)
 	await page.locator('#header #security_').waitFor({state: 'visible'});
@@ -51,13 +76,13 @@ test('search-and-refactor-code', async ({ page }) => {
 	await searchInput.waitFor({state: 'visible'});
 
 	await searchInput.fill(oldName);
+    await page.waitForTimeout(1000);
 
 	// wait for results
-	let relationshipResultRow = await page.locator('div[data-key="targetJsonName"]').first();
+	let relationshipResultRow = await page.getByRole('cell', { name: 'targetJsonName', exact: true });
 
-	await page.screenshot({ path: 'screenshots/global-search.png' });
-
-	await relationshipResultRow.locator('button').click();
+	await relationshipResultRow.click();
+    await page.waitForTimeout(1000);
 
 	// Wait for Code UI to load all components
 	await page.waitForTimeout(1000);
@@ -67,8 +92,12 @@ test('search-and-refactor-code', async ({ page }) => {
 	// click on the backdrop to hide global search popover
 	await globalSearchActivator.click();
 
+    await page.waitForTimeout(1000);
+
 	await input.fill('');
 	await input.pressSequentially(newName);
+
+    await page.waitForTimeout(1000);
 
 	await page.locator('[id="action-button-save"]').click();
 
@@ -96,11 +125,14 @@ test('search-and-refactor-code', async ({ page }) => {
 	// update search results
 	await searchInput.fill('');
 	await searchInput.fill(oldName);
+    await page.keyboard.press('Enter');
 
 	await page.waitForTimeout(500);
 
-	let contentResultRow = await page.locator('div[data-key="content"]').first();
-	await contentResultRow.locator('button').click();
+    await page.screenshot({ path: 'screenshots/global-search.png' });
+
+	let contentResultRow = await page.getByRole('cell', { name: 'Content', exact: true }).first();
+	await contentResultRow.click();
 
 	await page.waitForTimeout(1000);
 
@@ -121,8 +153,8 @@ test('search-and-refactor-code', async ({ page }) => {
 
 	await page.waitForTimeout(500);
 
-	contentResultRow = await page.locator('div[data-key="content"]').first();
-	await contentResultRow.locator('button').click();
+    contentResultRow = await page.getByRole('cell', { name: 'Content', exact: true }).first();
+	await contentResultRow.click();
 
 	await page.waitForTimeout(1000);
 

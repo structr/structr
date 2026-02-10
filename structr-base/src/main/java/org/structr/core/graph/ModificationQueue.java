@@ -128,7 +128,7 @@ public class ModificationQueue {
 			// do callback according to entry state
 			boolean res = state.doValidationAndIndexing(this, securityContext, errorBuffer, doValidation, counter);
 
-			validationTime += state.getValdationTime();
+			validationTime += state.getValidationTime();
 			indexingTime += state.getIndexingTime();
 
 			if (!res) {

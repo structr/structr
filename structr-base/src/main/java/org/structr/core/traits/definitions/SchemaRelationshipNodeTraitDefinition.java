@@ -30,6 +30,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.SemanticErrorToken;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.*;
@@ -135,19 +136,6 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 				@Override
 				public void onCreation(final GraphObject obj, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-					final Traits traits                              = obj.getTraits();
-					final PropertyKey<String> previousSourceJsonName = traits.key(PREVIOUS_SOURCE_JSON_NAME_PROPERTY);
-					final PropertyKey<String> previousTargetJsonName = traits.key(PREVIOUS_TARGET_JSON_NAME_PROPERTY);
-					final PropertyKey<String> sourceJsonName         = traits.key(SOURCE_JSON_NAME_PROPERTY);
-					final PropertyKey<String> targetJsonName         = traits.key(TARGET_JSON_NAME_PROPERTY);
-					final PropertyMap map                            = new PropertyMap();
-
-					// store old property names
-					map.put(previousSourceJsonName, obj.getProperty(sourceJsonName));
-					map.put(previousTargetJsonName, obj.getProperty(targetJsonName));
-
-					obj.setProperties(securityContext, map);
-
 					// register transaction postprocessing that recreates the schema information
 					TransactionCommand.postProcess("reloadSchema", new ReloadSchema(false));
 				}
@@ -170,9 +158,12 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 					checkClassName(node);
 					checkAndRenameSourceAndTargetJsonNames(node);
 
+					final GraphObjectMap modifications = modificationQueue.getModifications(obj);
+					final GraphObjectMap before        = modifications.get(new GenericProperty<>("before"));
+
 					// store old property names
-					map.put(previousSourceJsonName, obj.getProperty(sourceJsonName));
-					map.put(previousTargetJsonName, obj.getProperty(targetJsonName));
+					map.put(previousSourceJsonName, before.getProperty(sourceJsonName));
+					map.put(previousTargetJsonName, before.getProperty(targetJsonName));
 
 					obj.setProperties(securityContext, map);
 

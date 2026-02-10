@@ -20,7 +20,10 @@
 // @ts-check
 import { expect, Page } from '@playwright/test';
 
-export async function login(page: Page, username = 'admin', password = 'admin') {
+export async function login(page: Page, screenshot: boolean = false) {
+
+    let username = 'admin';
+    let password = 'admin';
 
     await page.goto(process.env.BASE_URL + '/structr/');
 
@@ -34,6 +37,11 @@ export async function login(page: Page, username = 'admin', password = 'admin') 
     // Login with given credentials
     await page.locator('#usernameField').fill(username);
     await page.locator('#passwordField').fill(password);
+
+    if (screenshot) {
+        await page.screenshot({path: 'screenshots/login.png', caret: 'initial'});
+    }
+
     await page.waitForTimeout(500);
     await page.locator('#loginButton').click();
 
