@@ -2737,7 +2737,7 @@ class MessageBuilder {
 	show() {
 
 		let uniqueMessageAlreadyPresented = false;
-		let allClasses                    = ['message', 'relative', 'break-word', 'flex', 'rounded-md', 'p-4', 'pt-10', 'm-1', this.typeClass, this.params.uniqueClass];
+		let allClasses                    = ['message', 'relative', 'break-word', 'flex', 'rounded-md', 'p-3', 'm-2', this.typeClass, this.params.uniqueClass];
 
 		if (this.params.uniqueClass) {
 
@@ -2829,25 +2829,25 @@ class MessageBuilder {
 
 			let message = _Helpers.createSingleDOMElementFromHTML(`
 				<div class="${allClasses.join(' ')}" id="${this.params.msgId}" data-unique-count="${this.params.uniqueCount}">
-					<div class="absolute top-3 right-3 flex gap-3">
-						<div class="message-time text-sm"></div>
-						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, _Icons.getSvgIconClassesForColoredIcon([MessageBuilder.closeButtonClass, 'hidden', 'icon-grey', 'cursor-pointer']))}
-					</div>
-					<div class="message-icon flex-shrink-0 mr-2">
+					<div class="message-icon flex-shrink-0 mr-2 mt-1">
 						${_Icons.getSvgIcon(_Icons.getSvgIconForMessageClass(this.typeClass))}
 					</div>
 					<div class="flex-grow">
 
-						<div class="flex gap-1 font-bold text-lg">
-							<div class="-mt-1 message-title empty:hidden">${this.params.title ?? ''}</div>
+						<div class="flex gap-1 font-bold text-lg leading-6">
+							<div class="message-title mb-2 empty:hidden">${this.params.title ?? ''}</div>
 							${this.getUniqueCountElement()}
 						</div>
 
-						<div class="message-text mb-2 overflow-y-auto">
+						<div class="message-text overflow-y-auto leading-6">
 							${this.params.text}
 						</div>
 
 						<div class="message-buttons flex gap-2 justify-end"></div>
+					</div>
+					<div class="flex gap-3">
+						<div class="message-time text-sm leading-6 whitespace-pre"></div>
+						<div class="mt-0.5">${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon([MessageBuilder.closeButtonClass, 'hidden', 'icon-grey', 'cursor-pointer']))}</div>
 					</div>
 				</div>
 			`);
@@ -2895,10 +2895,11 @@ class MessageBuilder {
 	updateLastShownTime(messageEl) {
 
 		let lang = navigator.language ?? navigator.languages?.[0] ?? 'en-US'
-		let datetimeString = new Intl.DateTimeFormat(lang, { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false }).format(new Date())
+		let dateString = new Intl.DateTimeFormat(lang, { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date())
+		let timeString = new Intl.DateTimeFormat(lang, { hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false }).format(new Date())
 
 		let timeEl = messageEl.querySelector('.message-time');
-		timeEl.textContent = datetimeString;
+		timeEl.textContent = dateString + '\n' + timeString;
 	}
 
 	updateNotificationIcon(notificationAdded = false) {
