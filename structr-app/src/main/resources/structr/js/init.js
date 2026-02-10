@@ -2737,7 +2737,7 @@ class MessageBuilder {
 	show() {
 
 		let uniqueMessageAlreadyPresented = false;
-		let allClasses                    = ['message', 'relative', 'break-word', 'flex', 'rounded-md', 'p-4', 'm-1', this.typeClass, this.params.uniqueClass];
+		let allClasses                    = ['message', 'relative', 'break-word', 'flex', 'rounded-md', 'p-4', 'pt-10', 'm-1', this.typeClass, this.params.uniqueClass];
 
 		if (this.params.uniqueClass) {
 

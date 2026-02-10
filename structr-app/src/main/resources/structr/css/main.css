@@ -4430,6 +4430,9 @@ ul.combined-input-select-field li:not(.nohover):hover {
 .pt-5 {
 	padding-top: 1.25rem;
 }
+.pt-10 {
+    padding-top: 2.5rem;
+}
 .px-1 {
 	padding-left: .25rem;
 	padding-right: .25rem;
