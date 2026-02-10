@@ -2187,6 +2187,10 @@ th.center {
 	max-height: calc(100vh - var(--header-height));
 }
 
+#info-area .message {
+	box-shadow: 0 0 .625rem 0 rgba(0, 0, 0, 0.1);
+}
+
 #info-area.force-show {
 	display: initial;
 }
@@ -4164,8 +4168,14 @@ ul.combined-input-select-field li:not(.nohover):hover {
 .-mt-1 {
 	margin-top: -.25rem;
 }
+.-mt-0\.5 {
+	margin-top: -.125rem;
+}
 .mt-0 {
 	margin-top: 0;
+}
+.mt-0\.5 {
+	margin-top: .125rem;
 }
 .mt-1 {
 	margin-top: .25rem;
@@ -4482,6 +4492,12 @@ ul.combined-input-select-field li:not(.nohover):hover {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+}
+.leading-4 {
+	line-height: 1rem;
+}
+.leading-6 {
+	line-height: 1.5rem;
 }
 .leading-8 {
 	line-height: 2rem;
