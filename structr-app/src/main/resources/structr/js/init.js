@@ -2847,7 +2847,7 @@ class MessageBuilder {
 							${this.params.text}
 						</div>
 
-						<div class="message-buttons flex gap-2 justify-end"></div>
+						<div class="message-buttons flex flex-wrap gap-2 justify-end"></div>
 					</div>
 				</div>
 			`);
