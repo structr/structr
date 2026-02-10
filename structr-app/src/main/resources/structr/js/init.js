@@ -2047,9 +2047,9 @@ let Structr = {
 			result: (result, key, htmlCodeForKey, value, searchString) => `
 				<tr class="cursor-pointer" data-id="${result.id}" data-key="${key}" title="${key}">
 					<td title="${result.id}">${result.id.substring(1, 5)}&hellip;</td>
-					<td>${result.name ? `${result.name} [${result.type}]` : result.type}</td>
+					<td class="name">${result.name ? `${result.name} [${result.type}]` : result.type}</td>
 					<td class="key">${htmlCodeForKey}</td>
-					<td>${value?.before?.length > 23 ? '&hellip;' : ''}${value?.before||''}${Structr.globalSearch.highlightText(value.match, searchString)}${value?.after||''}${value?.after?.length > 23 ? '&hellip;' : ''}</td>
+					<td class="value">${value?.before?.length > 23 ? '&hellip;' : ''}${value?.before||''}${Structr.globalSearch.highlightText(value.match, searchString)}${value?.after||''}${value?.after?.length > 23 ? '&hellip;' : ''}</td>
 				</tr>
 			`
 		},
