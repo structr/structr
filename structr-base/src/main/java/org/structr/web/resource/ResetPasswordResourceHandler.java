@@ -22,6 +22,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -145,8 +146,11 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 
 		try {
 
+			final String smtpUserSetting      = Settings.SmtpUser.getValue();
+			final String defaultSenderAddress = (Settings.isValidEmail(smtpUserSetting)) ? smtpUserSetting : "structr-mail-daemon@localhost";
+
 			MailHelper.sendHtmlMail(
-				getTemplateText(TemplateKey.RESET_PASSWORD_SENDER_ADDRESS, "structr-mail-daemon@localhost", localeString),
+				getTemplateText(TemplateKey.RESET_PASSWORD_SENDER_ADDRESS, defaultSenderAddress, localeString),
 				getTemplateText(TemplateKey.RESET_PASSWORD_SENDER_NAME, "Structr Mail Daemon", localeString),
 				userEmail, "", null, null, null,
 				getTemplateText(TemplateKey.RESET_PASSWORD_SUBJECT, "Request to reset your Structr password", localeString),

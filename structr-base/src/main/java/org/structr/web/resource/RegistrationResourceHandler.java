@@ -217,8 +217,11 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 		final String textMailContent = replaceVariablesInTemplate(TemplateKey.CONFIRM_REGISTRATION_TEXT_BODY,"Go to ${link} to finalize registration.", localeString, ctx);
 		final String htmlMailContent = replaceVariablesInTemplate(TemplateKey.CONFIRM_REGISTRATION_HTML_BODY,"<div>Click <a href='${link}'>here</a> to finalize registration.</div>", localeString, ctx);
 
+		final String smtpUserSetting      = Settings.SmtpUser.getValue();
+		final String defaultSenderAddress = (Settings.isValidEmail(smtpUserSetting)) ? smtpUserSetting : "structr-mail-daemon@localhost";
+
 		MailHelper.sendHtmlMail(
-			getTemplateText(TemplateKey.CONFIRM_REGISTRATION_SENDER_ADDRESS, "structr-mail-daemon@localhost", localeString),
+			getTemplateText(TemplateKey.CONFIRM_REGISTRATION_SENDER_ADDRESS, defaultSenderAddress, localeString),
 			getTemplateText(TemplateKey.CONFIRM_REGISTRATION_SENDER_NAME, "Structr Mail Daemon", localeString),
 			userEmail, "", null, null, null,
 			getTemplateText(TemplateKey.CONFIRM_REGISTRATION_SUBJECT, "Welcome to Structr, please finalize registration", localeString),

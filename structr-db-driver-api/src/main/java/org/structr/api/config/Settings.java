@@ -1177,6 +1177,11 @@ public class Settings {
 	}
 
 	public static boolean isValidEmail(final String email) {
+
+		if (email == null) {
+			return false;
+		}
+
 		return Settings.emailValidationPattern.matcher(email).matches();
 	}
 
