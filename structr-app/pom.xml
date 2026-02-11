@@ -579,7 +579,6 @@
                             <images>
                                 <image>
                                     <name>structr/structr:${project.version}</name>
-
                                     <build>
                                         <contextDir>${project.basedir}</contextDir>
                                         <args>
@@ -587,6 +586,25 @@
                                         </args>
                                         <buildx>
                                             <builderName>structr-buildx</builderName>
+                                            <platforms>
+                                                <platform>linux/amd64</platform>
+                                                <platform>linux/arm64</platform>
+                                            </platforms>
+                                        </buildx>
+                                    </build>
+                                </image>
+                                <image>
+                                    <name>registry.structr.com/structr/structr:${project.version}</name>
+                                    <build>
+                                        <contextDir>${project.basedir}</contextDir>
+                                        <args>
+                                            <STRUCTR_VERSION>${project.build.finalName}</STRUCTR_VERSION>
+                                        </args>
+                                        <buildx>
+                                            <builderName>structr-buildx</builderName>
+                                            <attestations>
+                                                <provenance>false</provenance>
+                                            </attestations>
                                             <platforms>
                                                 <platform>linux/amd64</platform>
                                                 <platform>linux/arm64</platform>

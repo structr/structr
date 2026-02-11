@@ -107,8 +107,7 @@ import java.util.regex.Pattern;
 @Documentation(name="HtmlServlet", parent="Servlets", shortDescription="Main entry point for HTML rendering.", children={ "HtmlServlet Settings" })
 public class HtmlServlet extends AbstractServletBase implements HttpServiceServlet {
 
-	private static final Logger logger                             = LoggerFactory.getLogger(HtmlServlet.class.getName());
-	private static final Property<String> pathPropertyForSearch    = new StringProperty("path").indexed();
+	private static final Logger logger = LoggerFactory.getLogger(HtmlServlet.class.getName());
 
 	public static final String CONFIRM_REGISTRATION_PAGE = "/confirm_registration";
 	public static final String RESET_PASSWORD_PAGE       = "/reset-password";
@@ -1426,7 +1425,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			final List<Linkable> list = new LinkedList<>();
 
-			for (final NodeInterface node : StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.LINKABLE).key(pathPropertyForSearch, path).getResultStream()) {
+			for (final NodeInterface node : StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.LINKABLE).and().key(Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY), path).getResultStream()) {
 
 				list.add(node.as(Linkable.class));
 			}

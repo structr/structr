@@ -17,68 +17,19 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 // @ts-check
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
-
-    //sloMo: 100,
 
     use: {
         viewport: { width: 1920, height: 1080 },
         deviceScaleFactor: 2,
-        //video: {
-            //mode: 'on',
-            //size: { width: 3840, height: 2160 }
-            //size: { width: 1920, height: 1080 }
-        //},
         trace: 'on'
     },
 
     workers: process.env.CI ? 1 : undefined,
 
-    // Folder for test artifacts such as screenshots, videos, traces, etc.
-    //outputDir: 'test-results',
+    // Each test is given 10 minutes to run.
+    timeout: 600_000,
 
-    // path to the global setup files.
-    //globalSetup: require.resolve('./global-setup'),
-
-    // path to the global teardown files.
-    //globalTeardown: require.resolve('./global-teardown'),
-
-    // Each test is given 60 seconds.
-    timeout: 60_000,
-
-    // projects: [
-    //     /* Test against desktop browsers */
-    //     {
-    //         name: 'chromium',
-    //         use: { ...devices['Desktop Chrome'] },
-    //     },
-    //     {
-    //         name: 'firefox',
-    //         use: { ...devices['Desktop Firefox'] },
-    //     },
-    //     {
-    //         name: 'webkit',
-    //         use: { ...devices['Desktop Safari'] },
-    //     },
-    //     /* Test against mobile viewports. */
-    //     {
-    //         name: 'Mobile Chrome',
-    //         use: { ...devices['Pixel 5'] },
-    //     },
-    //     {
-    //         name: 'Mobile Safari',
-    //         use: { ...devices['iPhone 12'] },
-    //     },
-    //     /* Test against branded browsers. */
-    //     {
-    //         name: 'Google Chrome',
-    //         use: { ...devices['Desktop Chrome'], channel: 'chrome' }, // or 'chrome-beta'
-    //     },
-    //     {
-    //         name: 'Microsoft Edge',
-    //         use: { ...devices['Desktop Edge'], channel: 'msedge' }, // or 'msedge-dev'
-    //     },
-    // ]
 });

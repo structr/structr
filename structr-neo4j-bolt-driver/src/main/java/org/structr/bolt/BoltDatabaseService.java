@@ -735,11 +735,22 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 					name:            n.name,
 					keys:            matchedKeys,
 					values:          [key IN matchedKeys |
-					   {
-						  before: right(substring(toString(n[key]), 0, size(split(toLower(toString(n[key])), searchString)[0])), 24),
-						  match:  substring(toString(n[key]), size(split(toLower(toString(n[key])), searchString)[0]), size(searchString)),
-						  after:  left(substring(toString(n[key]), size(split(toLower(toString(n[key])), searchString)[0]) + size(searchString)), 24)
-					   }
+					   CASE
+						 WHEN n[key] IS :: LIST<STRING> THEN
+						   head([v IN n[key] WHERE toLower(v) CONTAINS searchString |
+							 {
+							   before: right(substring(v, 0, size(split(toLower(v), searchString)[0])), 24),
+							   match:  substring(v, size(split(toLower(v), searchString)[0]), size(searchString)),
+							   after:  left(substring(v, size(split(toLower(v), searchString)[0]) + size(searchString)), 24)
+							 }
+						   ])
+						 ELSE
+						   {
+							 before: right(substring(toString(n[key]), 0, size(split(toLower(toString(n[key])), searchString)[0])), 24),
+							 match:  substring(toString(n[key]), size(split(toLower(toString(n[key])), searchString)[0]), size(searchString)),
+							 after:  left(substring(toString(n[key]), size(split(toLower(toString(n[key])), searchString)[0]) + size(searchString)), 24)
+						   }
+					   END
 				   ],
 					labels:          labels
 				} AS searchResult

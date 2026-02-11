@@ -17,84 +17,50 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 // @ts-check
-import {test, expect} from '@playwright/test';
+import {expect, test} from '@playwright/test';
 import {login, logout} from "./helpers/auth";
+import {initialize} from "./helpers/init";
 import {
     collapsePageTree,
-    configureFunctionQuery, configureGeneralAttributes,
+    configureFunctionQuery,
+    configureGeneralAttributes,
     configureHTMLAttributes,
-    createAndRenamePage, expandOrCollapseElement,
+    createAndRenamePage,
+    expandOrCollapseElement,
     expandPageTree,
     getPageContainer,
-    insertFrontendJs, insertInputWithLabel,
-    resizePagesTree, setNodeContent, useContextMenu
+    insertFrontendJs,
+    insertInputWithLabel,
+    resizePagesTree,
+    setNodeContent,
+    useContextMenu
 } from "./helpers/pages";
 
 let runTests = [ 1, 2, 3 ];
 
-test.beforeAll(async ({playwright}) => {
-
-    const context = await playwright.request.newContext({
-        extraHTTPHeaders: {
-            'Accept': 'application/json',
-            'X-User': 'superadmin',
-            'X-Password': process.env.SUPERUSER_PASSWORD,
-        }
-    });
-
-    // Clear all data
-    await context.delete(process.env.BASE_URL + '/structr/rest/Page');
-    await context.delete(process.env.BASE_URL + '/structr/rest/ActionMapping');
-    await context.delete(process.env.BASE_URL + '/structr/rest/ParameterMapping');
-    await context.delete(process.env.BASE_URL + '/structr/rest/SchemaNode');
-
-    // create schema
-    await context.post(process.env.BASE_URL + '/structr/rest/SchemaNode', {
-        data: JSON.stringify([
+test.beforeAll(async ({ playwright }) => {
+    await initialize(playwright, {
+        'SchemaNode': [
             {
                 name: 'Project',
                 schemaProperties: [
-                    { name: 'description', propertyType: 'String' },
-                    { name: 'dueDate', propertyType: 'Date', format: 'yyyy-MM-dd' },
+                    {name: 'description', propertyType: 'String'},
+                    {name: 'dueDate', propertyType: 'Date', format: 'yyyy-MM-dd'},
                 ]
             },
-            { name: 'Employee' },
-            { name: 'Client' },
-            { name: 'Tag' },
-            { name: 'Task' }
-        ])
-    });
-
-    // remove existing data
-    await context.delete(process.env.BASE_URL + '/structr/rest/Project');
-    await context.delete(process.env.BASE_URL + '/structr/rest/Employee');
-    await context.delete(process.env.BASE_URL + '/structr/rest/Client');
-    await context.delete(process.env.BASE_URL + '/structr/rest/Tag');
-    await context.delete(process.env.BASE_URL + '/structr/rest/Task');
-
-    // create test data
-    await context.post(process.env.BASE_URL + '/structr/rest/Employee', {
-        data: JSON.stringify([ { name: 'Employee #1' }, { name: 'Employee #2' }, { name: 'Employee #3' } ])
-    });
-
-    await context.post(process.env.BASE_URL + '/structr/rest/Client', {
-        data: JSON.stringify([ { name: 'Client #1' }, { name: 'Client #2' }, { name: 'Client #3' } ])
-    });
-
-    await context.post(process.env.BASE_URL + '/structr/rest/Tag', {
-        data: JSON.stringify([ { name: 'Tag #1' }, { name: 'Tag #2' }, { name: 'Tag #3' } ])
-    });
-
-    await context.post(process.env.BASE_URL + '/structr/rest/Task', {
-        data: JSON.stringify([ { name: 'Task #1' }, { name: 'Task #2' }, { name: 'Task #3' } ])
-    });
-
-
-    await context.post(process.env.BASE_URL + '/structr/rest/SchemaRelationshipNode', {
-        data: JSON.stringify([
+            {name: 'Employee'},
+            {name: 'Client'},
+            {name: 'Tag'},
+            {name: 'Task'}
+        ],
+        'Employee': [{name: 'Employee #1'}, {name: 'Employee #2'}, {name: 'Employee #3'}],
+        'Client': [{name: 'Client #1'}, {name: 'Client #2'}, {name: 'Client #3'}],
+        'Tag': [{name: 'Tag #1'}, {name: 'Tag #2'}, {name: 'Tag #3'}],
+        'Task': [{name: 'Task #1'}, {name: 'Task #2'}, {name: 'Task #3'}],
+        'SchemaRelationshipNode': [
             {
-                sourceNode: { name: 'Project'},
-                targetNode: { name: 'Task' },
+                sourceNode: {name: 'Project'},
+                targetNode: {name: 'Task'},
                 relationshipType: 'HAS_TASK',
                 sourceMultiplicity: '1',
                 targetMultiplicity: '*',
@@ -102,8 +68,8 @@ test.beforeAll(async ({playwright}) => {
                 targetJsonName: 'tasks',
             },
             {
-                sourceNode: { name: 'Employee'},
-                targetNode: { name: 'Project' },
+                sourceNode: {name: 'Employee'},
+                targetNode: {name: 'Project'},
                 relationshipType: 'MANAGES',
                 sourceMultiplicity: '1',
                 targetMultiplicity: '*',
@@ -111,8 +77,8 @@ test.beforeAll(async ({playwright}) => {
                 targetJsonName: 'project',
             },
             {
-                sourceNode: { name: 'Client'},
-                targetNode: { name: 'Project' },
+                sourceNode: {name: 'Client'},
+                targetNode: {name: 'Project'},
                 relationshipType: 'HAS_CLIENT',
                 sourceMultiplicity: '1',
                 targetMultiplicity: '1',
@@ -120,22 +86,20 @@ test.beforeAll(async ({playwright}) => {
                 targetJsonName: 'project',
             },
             {
-                sourceNode: { name: 'Project'},
-                targetNode: { name: 'Tag' },
+                sourceNode: {name: 'Project'},
+                targetNode: {name: 'Tag'},
                 relationshipType: 'HAS_TAGS',
                 sourceMultiplicity: '*',
                 targetMultiplicity: '*',
                 sourceJsonName: 'projects',
                 targetJsonName: 'tags',
             },
-        ])
+        ]
     });
+ });
 
-});
 
 test('pages', async ({page}) => {
-
-    test.setTimeout(2_000);
 
     let wait = 100;
 
@@ -236,7 +200,6 @@ test('pages', async ({page}) => {
         await page.screenshot({path: 'screenshots/pages_create-form_event-action-mapping-configuration.png'});
 
         await page.reload();
-        await page.waitForTimeout(5000);
 
         // click on a different element to disable highlighting for the element we want to screenshot
         await page.locator('span').filter({hasText: 'body'}).click();
@@ -385,7 +348,6 @@ test('pages', async ({page}) => {
 
         // reload to un-select the form element
         await page.reload();
-        await page.waitForTimeout(5000);
 
         // click on a different element to disable highlighting for the element we want to screenshot
         await page.locator('span').filter({hasText: 'form#save-project-form'}).click();
@@ -398,9 +360,7 @@ test('pages', async ({page}) => {
         // take a screenshot of the form element
         await page.locator('div.node:has(b[title="form"])').nth(4).screenshot({path: 'screenshots/pages_edit-form-element.png'});
 
-        await page.waitForTimeout(1000);
         await page.goto(process.env.BASE_URL + '/projects');
-        await page.waitForTimeout(1000);
 
         await page.locator('input[name="name"]').fill('Project #1');
         await page.waitForTimeout(wait);
@@ -408,10 +368,6 @@ test('pages', async ({page}) => {
         await page.waitForTimeout(1000);
 
         await expect(page.locator('h1')).toHaveText('Edit Project "Project #1"');
-
-        await page.waitForTimeout(1000);
-        await page.goto(process.env.BASE_URL + '/projects');
-        await page.waitForTimeout(1000);
 
         await page.goto(process.env.BASE_URL + '/structr/');
         await expect(page).toHaveTitle(/Structr/);
@@ -574,7 +530,6 @@ test('pages', async ({page}) => {
 
         // reload to un-select the form element
         await page.reload();
-        await page.waitForTimeout(5000);
 
         // click on head element to deselect form for screenshot below
         let h = pageContainer.getElement('head');

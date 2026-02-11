@@ -18,7 +18,7 @@
 ///
 
 // @ts-check
-import { expect, Page, Locator } from '@playwright/test';
+import { Page, Locator } from '@playwright/test';
 
 /**
  * Access wrapper for Structr's page tree.
@@ -71,7 +71,7 @@ export async function createAndRenamePage(page: Page, whichTemplate, name, wait 
     await page.locator('#create_page').click();
     await page.waitForTimeout(wait);
     await page.locator(`#template-tiles .app-tile:nth-child(${whichTemplate})`).click();
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(wait);
 
     await page.getByText('New Page').click();
     await page.waitForTimeout(wait);
@@ -142,18 +142,30 @@ export async function insertFrontendJs(page: Page, pageName, wait = 100) {
 export async function resizePagesTree(page: Page, offset: number, wait = 100) {
 
     let resizer = page.locator('.column-resizer-left');
+
+    await resizer.isVisible();
+
     let box = await resizer.boundingBox();
 
-    // resize pages tree flyout
-    await resizer.hover();
-    await page.waitForTimeout(wait);
-    await page.mouse.down();
-    await page.waitForTimeout(wait);
-    await page.mouse.move(box.x + offset, 0, { steps: 20 } );
-    await page.waitForTimeout(100);
-    await page.waitForTimeout(wait);
-    await page.mouse.up();
-    await page.waitForTimeout(wait);
+    if (box && box.x) {
+
+        // resize pages tree flyout
+        await resizer.isVisible();
+        await resizer.hover();
+        await page.waitForTimeout(wait);
+        await page.mouse.down();
+        await page.waitForTimeout(wait);
+        await page.mouse.move(box.x + offset, 0, {steps: 20});
+        await page.waitForTimeout(100);
+        await page.waitForTimeout(wait);
+        await page.mouse.up();
+        await page.waitForTimeout(wait);
+
+    } else {
+
+        console.log('box was null!');
+    }
+
 }
 
 export async function insertInputWithLabel(page: Page, container: Container, name: string, inputOrSelect: string, wait = 100) {
@@ -166,7 +178,7 @@ export async function insertInputWithLabel(page: Page, container: Container, nam
     let textContainer = labelContainer.getElement('Initial text for label');
 
     await useContextMenu(page, textContainer, 'Wrap element in...', '... HTML element', 's', 'span');
-
+    await page.waitForTimeout(1000);
     await setNodeContent(page, textContainer, name);
 
     switch (inputOrSelect) {
@@ -236,7 +248,7 @@ export async function configureFunctionQuery(page: Page, node: Container, query:
 export async function setNodeContent(page: Page, node: Container, content: string, wait = 100) {
 
     await node.getTextNode().click();
-    await page.waitForTimeout(wait);
+    await page.waitForTimeout(1000);
     await page.keyboard.down('Control');
     await page.keyboard.press('A');
     await page.keyboard.up('Control');

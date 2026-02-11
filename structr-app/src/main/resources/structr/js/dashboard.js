@@ -1094,7 +1094,7 @@ let _Dashboard = {
 									<br><br>
 									To avoid misunderstandings, errors and unintentionally overwriting data, please be sure to read the help texts carefully before starting the export or import.
 									<br><br>
-									If in doubt, contact <a href="https://support.structr.com">Structr Support</a>.
+									If in doubt, you can reach out via the <a href="https://structr.org/forum">Structr Forum</a>.
 								</div>
 							</div>								
 

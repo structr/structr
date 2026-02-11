@@ -36,6 +36,7 @@ import org.structr.web.entity.Linkable;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
@@ -177,6 +178,70 @@ public class HtmlServletObjectResolvingTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 		}
+	}
+
+	@Test
+	public void testFileResolutionAfterRenamingFolder() {
+
+		final String fileContent = "this is a test";
+		final String initialFolderPath = "/test/test1/test2";
+		final String fileName = "test.txt";
+
+		final String folderNameBeforeRename = "test1";
+		final String folderNameAfterRename  = "changedName";
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface folder = FileHelper.createFolderPath(securityContext, initialFolderPath);
+			final NodeInterface file   = FileHelper.createFile(securityContext, fileContent.getBytes(), "text/plain", StructrTraits.FILE, fileName, true);
+
+			file.setProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+
+		RestAssured.basePath = "/";
+		RestAssured.baseURI  = "http://" + host + ":" + httpPort;
+		RestAssured.port     = httpPort;
+
+		// ensure file is found before renaming folder
+		RestAssured
+			.given()
+				.header(X_USER_HEADER, "superadmin")
+				.header(X_PASSWORD_HEADER, "sehrgeheim")
+			.expect()
+				.statusCode(200)
+				.body(org.hamcrest.CoreMatchers.equalTo(fileContent))
+			.when()
+				.get(initialFolderPath + "/" + fileName);
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).name(folderNameBeforeRename).getFirst();
+
+			folder.setProperty(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.NAME_PROPERTY), folderNameAfterRename);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+
+		// test that file is found after renaming folder
+		final String newFolderPath = initialFolderPath.replace(folderNameBeforeRename, folderNameAfterRename);
+
+		RestAssured
+			.given()
+				.header(X_USER_HEADER, "superadmin")
+				.header(X_PASSWORD_HEADER, "sehrgeheim")
+			.expect()
+				.statusCode(200)
+				.body(org.hamcrest.CoreMatchers.equalTo(fileContent))
+			.when()
+				.get(newFolderPath + "/" + fileName);
 
 	}
 }
