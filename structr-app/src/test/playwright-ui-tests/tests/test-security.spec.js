@@ -106,8 +106,6 @@ test('resource-access-before-1', async ({request}) => {
 
 test('add-resource-access-auth-user-get', async ({page}) => {
 
-    test.setTimeout(240_000);
-
     //await page.setViewportSize({ width: 3840, height: 2160 });
     await page.goto(process.env.BASE_URL + '/structr/');
     //await page.evaluate('document.body.style.zoom="2.0"');
@@ -185,27 +183,7 @@ test('resource-access-before-2', async ({request}) => {
 
 test('add-resource-access-auth-user-post', async ({page}) => {
 
-    test.setTimeout(240_000);
-
-    //await page.setViewportSize({ width: 3840, height: 2160 });
-    await page.goto(process.env.BASE_URL + '/structr/');
-    //await page.evaluate('document.body.style.zoom="2.0"');
-
-    await expect(page).toHaveTitle(/Structr/);
-    await expect(page.locator('#usernameField')).toBeVisible();
-    await expect(page.locator('#passwordField')).toBeVisible();
-    await expect(page.locator('#loginButton')).toBeVisible();
-
-    await page.waitForTimeout(1000);
-
-    //await page.screenshot({ path: 'screenshots/login.png' });
-
-    // Login with admin/admin
-    await page.locator('#usernameField').fill('admin');
-    await page.locator('#passwordField').fill('admin');
-    await page.waitForTimeout(500);
-    await page.locator('#loginButton').click();
-    await page.waitForTimeout(1000);
+    await login(page);
 
     // Security
     await page.locator('#security_').waitFor({state: 'visible'});
@@ -248,27 +226,7 @@ test('resource-access-after-2', async ({request}) => {
 
 test('cors-settings', async ({page}) => {
 
-    test.setTimeout(240_000);
-
-    //await page.setViewportSize({ width: 3840, height: 2160 });
-    await page.goto(process.env.BASE_URL + '/structr/');
-    //await page.evaluate('document.body.style.zoom="2.0"');
-
-    await expect(page).toHaveTitle(/Structr/);
-    await expect(page.locator('#usernameField')).toBeVisible();
-    await expect(page.locator('#passwordField')).toBeVisible();
-    await expect(page.locator('#loginButton')).toBeVisible();
-
-    await page.waitForTimeout(1000);
-
-    //await page.screenshot({ path: 'screenshots/login.png' });
-
-    // Login with admin/admin
-    await page.locator('#usernameField').fill('admin');
-    await page.locator('#passwordField').fill('admin');
-    await page.waitForTimeout(500);
-    await page.locator('#loginButton').click();
-    await page.waitForTimeout(1000);
+    await login(page);
 
     // Security
     await page.locator('#security_').waitFor({state: 'visible'});

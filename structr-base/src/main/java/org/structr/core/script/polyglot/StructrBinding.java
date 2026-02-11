@@ -132,15 +132,6 @@ public class StructrBinding implements ProxyObject {
 				}
 				return new PolyglotProxyMap(actionContext, actionContext.getContextStore().getTemporaryParameters());
 
-			case "globalSchemaMethods":
-
-				// TODO: remove in first stable release after 6.0
-				final String deprecationWarning = "Using deprecated \"$.globalSchemaMethods\" to call a user-defined function, please call it using \"$.\" directly. Support for this will be dropped in the near future.";
-				TransactionCommand.simpleBroadcastDeprecationWarning("SCRIPTING", "Deprecation warning", deprecationWarning);
-				logger.warn(deprecationWarning);
-
-				return new UserDefinedFunctionWrapper(actionContext);
-
 			case "_functions":
 
 				return new FunctionBinding(actionContext, entity);
