@@ -166,7 +166,7 @@ public class Deployment6Test extends DeploymentTestBase {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.addType("Test");
 
-			type.addFunctionProperty("testProperty1").setContentType("application/x-cypher").setFormat("MATCH (n:" + randomTenantId + ":SchemaNode) RETURN n");
+			type.addScriptProperty("testProperty1").setContentType("application/x-cypher").setSource("MATCH (n:" + randomTenantId + ":SchemaNode) RETURN n");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 

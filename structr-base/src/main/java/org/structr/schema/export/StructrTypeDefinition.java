@@ -506,6 +506,18 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
+	public JsonScriptProperty addScriptProperty(final String name, final String... views) {
+
+		final StructrScriptProperty scriptProperty = new StructrScriptProperty(this, name);
+
+		addPropertyNameToViews(name, views);
+
+		properties.add(scriptProperty);
+
+		return scriptProperty;
+	}
+
+	@Override
 	public JsonEnumProperty addEnumProperty(final String name, final String... views) {
 
 		final StructrEnumProperty enumProperty = new StructrEnumProperty(this, name);
