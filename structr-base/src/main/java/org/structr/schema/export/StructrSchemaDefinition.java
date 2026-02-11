@@ -207,30 +207,42 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 
 	public boolean hasSourceCodeInFiles() {
 
-		final Set<StructrTypeDefinition> types = getTypeDefinitions();
-		if (!types.isEmpty()) {
+		final List<Map<String, Object>> methods = getUserDefinedFunctions();
 
-			for (final StructrTypeDefinition<?> typeDefinition : types) {
+		for (final Map<String, Object> method : methods) {
 
-				for (final JsonMethod method : typeDefinition.getMethods()) {
+			final Object source = method.get(JsonSchema.KEY_SOURCE);
 
-					final String source = method.getSource();
-					if (source != null && source.startsWith("./")) {
+			if (source instanceof String sourceString) {
 
-						return true;
-					}
+				if (sourceString.startsWith("./")) {
+					return true;
 				}
+			}
+		}
 
-				for (final JsonProperty property : typeDefinition.getProperties()) {
+		final Set<StructrTypeDefinition> types = getTypeDefinitions();
 
-					if (property instanceof JsonFunctionProperty functionProperty) {
+		for (final StructrTypeDefinition<?> typeDefinition : types) {
 
-						final String readFn = functionProperty.getReadFunction();
-						final String writeFn = functionProperty.getWriteFunction();
+			for (final JsonMethod method : typeDefinition.getMethods()) {
 
-						if (readFn != null && readFn.startsWith("./") || writeFn != null && writeFn.startsWith("./")) {
-							return true;
-						}
+				final String source = method.getSource();
+				if (source != null && source.startsWith("./")) {
+
+					return true;
+				}
+			}
+
+			for (final JsonProperty property : typeDefinition.getProperties()) {
+
+				if (property instanceof JsonFunctionProperty functionProperty) {
+
+					final String readFn = functionProperty.getReadFunction();
+					final String writeFn = functionProperty.getWriteFunction();
+
+					if (readFn != null && readFn.startsWith("./") || writeFn != null && writeFn.startsWith("./")) {
+						return true;
 					}
 				}
 			}
