@@ -2629,6 +2629,12 @@ class MessageBuilder {
 		error: 'error',
 		info: 'info'
 	});
+	static defaultTitles = Object.freeze({
+		success: 'Success',
+		warning: 'Warning',
+		error: 'Error',
+		info: 'Info'
+	});
 	static closeButtonClass = 'close-message-button';
 	static getMessagesContainer = () => {
 		return document.querySelector('#info-area #messages');
@@ -2660,6 +2666,16 @@ class MessageBuilder {
 			replaceInParentSelector: '',
 			specialInteractionButtons: []
 		};
+	}
+
+	getTitle() {
+
+		let title = this.params.title;
+		if (!title || title.trim() === '') {
+			title = MessageBuilder.defaultTitles[this.typeClass];
+		}
+
+		return title;
 	}
 
 	requiresConfirmation() {
@@ -2769,7 +2785,7 @@ class MessageBuilder {
 				if (this.params.updatesText) {
 
 					if (titleElement) {
-						titleElement.innerHTML = this.params.title;
+						titleElement.innerHTML = this.getTitle();
 					}
 
 					messageTextElement.innerHTML = this.params.text;
@@ -2777,7 +2793,7 @@ class MessageBuilder {
 				} else if (this.params.prependsText) {
 
 					if (titleElement) {
-						titleElement.innerHTML = this.params.title;
+						titleElement.innerHTML = this.getTitle();
 					}
 
 					let prependTarget = (this.params.appendSelector === '') ? messageTextElement : (messageTextElement.querySelector(this.params.prependSelector) ?? messageTextElement);
@@ -2787,7 +2803,7 @@ class MessageBuilder {
 				} else if (this.params.appendsText) {
 
 					if (titleElement) {
-						titleElement.innerHTML = this.params.title;
+						titleElement.innerHTML = this.getTitle();
 					}
 
 					let appendTarget = (this.params.appendSelector === '') ? messageTextElement : (messageTextElement.querySelector(this.params.appendSelector) ?? messageTextElement);
@@ -2797,7 +2813,7 @@ class MessageBuilder {
 				} else if (this.params.replacesElement) {
 
 					if (titleElement) {
-						titleElement.innerHTML = this.params.title;
+						titleElement.innerHTML = this.getTitle();
 					}
 
 					let parentElement =  (this.params.replaceInParentSelector === '') ? messageTextElement : (messageTextElement.querySelector(this.params.replaceInParentSelector) ?? messageTextElement);
@@ -2829,14 +2845,25 @@ class MessageBuilder {
 
 			let message = _Helpers.createSingleDOMElementFromHTML(`
 				<div class="${allClasses.join(' ')}" id="${this.params.msgId}" data-unique-count="${this.params.uniqueCount}">
+
 					<div class="message-icon flex-shrink-0 mr-2 mt-1">
 						${_Icons.getSvgIcon(_Icons.getSvgIconForMessageClass(this.typeClass))}
 					</div>
-					<div class="flex-grow">
 
-						<div class="flex gap-1 font-bold text-lg leading-6">
-							<div class="message-title mb-2 empty:hidden">${this.params.title ?? ''}</div>
-							${this.getUniqueCountElement()}
+					<div class="flex-grow flex flex-col gap-3">
+
+						<div class="flex gap-6">
+
+							<div class="flex-grow font-bold text-lg">
+								<span class="message-title -mt-0.5 inline-block">${this.getTitle()}</span>
+								${this.getUniqueCountElement()}
+							</div>
+
+							<div class="flex gap-3">
+								<div class="message-time text-sm whitespace-nowrap mt-0.5"></div>
+								${_Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, _Icons.getSvgIconClassesForColoredIcon([MessageBuilder.closeButtonClass, 'mt-0.5', 'hidden', 'icon-grey', 'cursor-pointer']))}
+							</div>
+
 						</div>
 
 						<div class="message-text overflow-y-auto leading-6">
@@ -2844,10 +2871,6 @@ class MessageBuilder {
 						</div>
 
 						<div class="message-buttons flex flex-wrap gap-2 justify-end"></div>
-					</div>
-					<div class="flex gap-3">
-						<div class="message-time text-sm leading-6 whitespace-pre"></div>
-						<div class="mt-0.5">${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon([MessageBuilder.closeButtonClass, 'hidden', 'icon-grey', 'cursor-pointer']))}</div>
 					</div>
 				</div>
 			`);
@@ -2894,12 +2917,12 @@ class MessageBuilder {
 
 	updateLastShownTime(messageEl) {
 
-		let lang = navigator.language ?? navigator.languages?.[0] ?? 'en-US'
-		let dateString = new Intl.DateTimeFormat(lang, { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date())
-		let timeString = new Intl.DateTimeFormat(lang, { hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false }).format(new Date())
+		let lang       = navigator.language ?? navigator.languages?.[0] ?? 'en-US'
+		let dateString = new Intl.DateTimeFormat(lang, { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+		let timeString = new Intl.DateTimeFormat(lang, { hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false }).format(new Date());
 
 		let timeEl = messageEl.querySelector('.message-time');
-		timeEl.textContent = dateString + '\n' + timeString;
+		timeEl.textContent = dateString + ' ' + timeString;
 	}
 
 	updateNotificationIcon(notificationAdded = false) {
@@ -2986,7 +3009,7 @@ class MessageBuilder {
 	}
 
 	getUniqueCountElement() {
-		return `<span class="-mt-1 message-unique-count empty:hidden">${(this.params.uniqueCount > 1) ? `(${this.params.uniqueCount})` : ''}</span>`;
+		return `<span class="message-unique-count">${(this.params.uniqueCount > 1) ? `(${this.params.uniqueCount})` : ''}</span>`;
 	};
 }
 
