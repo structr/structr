@@ -2740,7 +2740,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					try (final FileReader reader = new FileReader(schemaJsonFile.toFile())) {
 
 						final StructrSchemaDefinition schema   = (StructrSchemaDefinition)StructrSchema.createFromSource(reader);
-						final boolean shouldLoadSourceFromFile = schema.hasMethodSourceCodeInFiles();
+						final boolean shouldLoadSourceFromFile = schema.hasSourceCodeInFiles();
 
 						// The following block takes the relative file name in the source property of a schema method
 						// and loads the actual source code from a file on disk.
