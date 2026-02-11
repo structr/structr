@@ -20,8 +20,6 @@ package org.structr.core.script.polyglot.context;
 
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Engine;
-import org.graalvm.polyglot.io.IOAccess;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
@@ -30,12 +28,11 @@ import org.structr.core.script.polyglot.AccessProvider;
 import org.structr.core.script.polyglot.StructrBinding;
 import org.structr.schema.action.ActionContext;
 
-import java.sql.Struct;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.logging.Handler;
-import java.util.logging.LogRecord;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public abstract class ContextFactory {
@@ -50,7 +47,7 @@ public abstract class ContextFactory {
 				.out(new PolyglotOutputStream(LoggerFactory.getLogger("JavaScriptPolyglotContext")))
 				.allowPolyglotAccess(AccessProvider.getPolyglotAccessConfig())
 				.allowHostAccess(AccessProvider.getHostAccessConfig())
-				.allowHostClassLookup(s -> Settings.AllowedHostClasses.getValue("").contains(s))
+				.allowHostClassLookup(allowedHostClassPredicate())
 				.allowIO(AccessProvider.getIOAccessConfig())
 				.allowExperimentalOptions(true)
 				.option("js.foreign-object-prototype", "true")
@@ -91,7 +88,7 @@ public abstract class ContextFactory {
 				.allowPolyglotAccess(AccessProvider.getPolyglotAccessConfig())
 				.allowHostAccess(AccessProvider.getHostAccessConfig())
 				.allowIO(AccessProvider.getIOAccessConfig())
-				.allowHostClassLookup(s -> Settings.AllowedHostClasses.getValue("").contains(s));
+				.allowHostClassLookup(allowedHostClassPredicate());
 
 	public static String getDebuggerPath() {
 
@@ -226,6 +223,41 @@ public abstract class ContextFactory {
 
 		lockedContext.setBinding(structrBinding);
 		return lockedContext;
+	}
+
+	private static Predicate<String> allowedHostClassPredicate() {
+		return s -> {
+			final String allowedHostClassesString = Settings.AllowedHostClasses.getValue("");
+
+			if (allowedHostClassesString.isEmpty()) {
+				return false;
+			}
+
+			if (allowedHostClassesString.contains(s)) {
+				return true;
+			}
+
+			String[] allowedHostClasses = allowedHostClassesString.split(",");
+			String[] requestClassComponents = s.split("\\.");
+
+			String partialPath = "";
+			// Check requested class package path one by one and accept only wildcards at the end
+			for (String requestClassComponent : requestClassComponents) {
+
+				partialPath += (requestClassComponent.trim() + ".");
+				if (partialPath.length() > s.length()) {
+					break;
+				}
+
+				for (String allowedHostClass : allowedHostClasses) {
+					if (allowedHostClass.trim().equals(partialPath + "*")) {
+						return true;
+					}
+				}
+			}
+
+			return false;
+		};
 	}
 
 	public static class LockedContext {

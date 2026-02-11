@@ -63,6 +63,7 @@ import org.structr.web.entity.User;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.awt.*;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.text.DecimalFormat;
@@ -73,6 +74,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.List;
 
 import static org.testng.AssertJUnit.*;
 
@@ -7833,6 +7835,26 @@ public class ScriptingTest extends StructrTest {
 			Settings.getOrCreateStringSetting("testKey").setValue("abc");
 			assertEquals("false", Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.isConfigNull();}"));
 			assertEquals("abc", Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.readConfig();}"));
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testConfigHostAccessWildcards() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			Settings.AllowedHostClasses.setValue("org.structr.api.config.Settings,java.util.Date,org.structr.*");
+			Scripting.evaluate(new ActionContext(securityContext), null, "${{Java.type(\"org.structr.core.script.polyglot.context.ContextFactory\")}}", "testHostClassWildcard1");
+			Scripting.evaluate(new ActionContext(securityContext), null, "${{Java.type(\"org.structr.api.config.Settings\")}}", "testHostClassWildcard2");
+			Scripting.evaluate(new ActionContext(securityContext), null, "${{Java.type(\"java.util.Date\")}}", "testHostClassWildcard3");
+			Scripting.evaluate(new ActionContext(securityContext), null, "${{try{Java.type(\"org.forbidden.package.SecretClass\");} catch (ex) {$.log(\"Expected exception caught. \" + ex);}}}", "testHostClassWildcard4");
 
 			tx.success();
 
