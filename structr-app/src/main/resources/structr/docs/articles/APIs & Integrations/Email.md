@@ -273,7 +273,7 @@ For example, if your SMTP account is `user@example.com`, sending from `other@exa
 550 5.7.1 User not authorized to send on behalf of <other@example.com>
 ```
 
-This also applies to Structr's built-in mail templates for password reset and registration confirmation. By default, these send from `structr-mail-daemon@localhost`, which most providers reject. Configure the correct sender addresses in the Mail Templates area of the Admin UI.
+This also applies to Structr's built-in mail templates for password reset and registration confirmation. By default, these emails are sent using the address configured in structr.conf under `smtp.user` (if it contains a valid email address). If not, the sender defaults to `structr-mail-daemon@localhost`, which is typically rejected by external mail providers. Configure the correct sender addresses in the Mail Templates area of the Admin UI.
 
 ## Receiving Emails
 
