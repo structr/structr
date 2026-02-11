@@ -260,7 +260,6 @@ export async function setNodeContent(page: Page, node: Container, content: strin
 
 export async function useContextMenu(page: Page, container: Container, level1: string, level2?: string, level3?: string, level4?: string) {
 
-    // insert form element
     await container.getTextNode().click({button: 'right'});
 
     let menu = page.locator('#context-menu-dialog');

@@ -148,7 +148,9 @@ test('job-queue', async ({page}) => {
     await page.locator('select#target-type-select').selectOption({label: 'Milestone'}, {timeout: 30000});
     await page.waitForTimeout(500);
     await page.getByRole('button', {name: 'Start import'}).click();
-    await page.getByRole('button', {name: 'Close'}).click();
+    await page.waitForTimeout(1000);
+    await page.getByRole('button', {name: 'Close', exact: true }).isVisible();
+    await page.getByRole('button', {name: 'Close', exact: true }).click();
 
     await page.getByText('1000-tasks.csv').first().click({button: 'right'});
     await page.waitForTimeout(500);
