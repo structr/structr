@@ -33,6 +33,7 @@ import org.structr.core.function.Functions;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
@@ -41,11 +42,9 @@ import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.FileHelper;
+import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
-import org.structr.web.entity.dom.Content;
-import org.structr.web.entity.dom.DOMElement;
-import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.dom.*;
 import org.structr.web.maintenance.DeployCommand;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.web.traits.definitions.FileTraitDefinition;
@@ -64,15 +63,100 @@ import static org.testng.AssertJUnit.*;
 public class Deployment4Test extends DeploymentTestBase {
 
 	@Test
-	public void test41CustomAttributes() {
+	public void test40EmptyFolderInDeployment() {
+
+		final String folderPath = "/empty/folders/in/filesystem";
 
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			final Page page = Page.createNewPage(securityContext,   "test41");
+			final NodeInterface folder     = FileHelper.createFolderPath(securityContext, folderPath);
+			final NodeInterface rootFolder = getRootFolder(folder.as(Folder.class));
+
+			assertNotNull("Root folder should not be null", rootFolder);
+
+			// root folder needs to have "includeInFrontendExport" set
+			rootFolder.setProperty(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), true);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+
+		doImportExportRoundtrip(true, null);
+
+		// check
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).name("filesystem").getFirst();
+
+			assertNotNull("Invalid deployment result - empty folder from export was not imported!", folder);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+	}
+
+	@Test
+	public void test41TwoTemplatesWithSameNameInTwoPages() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			// create first page
+			final Page page1 = Page.createNewPage(securityContext,   "test41_1");
+			final DOMElement html1 = createElement(page1, page1, "html");
+			final DOMElement head1 = createElement(page1, html1, "head");
+			createElement(page1, head1, "title", "test41_1");
+			final DOMElement body1 = createElement(page1, html1, "body");
+			final DOMElement div1   = createElement(page1, body1, "div");
+
+			// create first template and give it a name
+			final Template template1 = createTemplate(page1, div1, "template source - öäüÖÄÜß'\"'`");
+			final PropertyMap template1Properties = new PropertyMap();
+			template1Properties.put(Traits.of(StructrTraits.TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Test41Template");
+			template1.setProperties(template1.getSecurityContext(), template1Properties);
+
+
+			// create second page
+			final Page page2 = Page.createNewPage(securityContext,   "test41_2");
+			final DOMElement html2 = createElement(page2, page2, "html");
+			final DOMElement head2 = createElement(page2, html2, "head");
+			createElement(page2, head2, "title", "test41_2");
+			final DOMElement body2 = createElement(page2, html2, "body");
+			final DOMElement div2   = createElement(page2, body2, "div");
+
+			// create second template and give it the same name as the first one
+			final Template template2 = createTemplate(page2, div2, "template source 2 - öäüÖÄÜß'\"'`");
+			final PropertyMap template2Properties = new PropertyMap();
+			template2Properties.put(Traits.of(StructrTraits.TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Test41Template");
+			template2.setProperties(template2.getSecurityContext(), template2Properties);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test
+		compare(calculateHash(), true);
+	}
+
+	@Test
+	public void test42CustomAttributes() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final Page page = Page.createNewPage(securityContext,   "test42");
 			final DOMElement html = createElement(page, page, "html");
 			final DOMElement head = createElement(page, html, "head");
-			createElement(page, head, "title", "test41");
+			createElement(page, head, "title", "test42");
 
 			final DOMElement body       = createElement(page, html, "body");
 			final DOMElement div1        = createElement(page, body, "div");
@@ -93,21 +177,21 @@ public class Deployment4Test extends DeploymentTestBase {
 	}
 
 	@Test
-	public void test42NamedContentElement() {
+	public void test43NamedContentElement() {
 
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			final Page page = Page.createNewPage(securityContext,   "test42");
+			final Page page = Page.createNewPage(securityContext,   "test43");
 			final DOMElement html = createElement(page, page, "html");
 			final DOMElement head = createElement(page, html, "head");
-			createElement(page, head, "title", "test42");
+			createElement(page, head, "title", "test43");
 
 			final DOMElement body       = createElement(page, html, "body");
 			final DOMElement div1        = createElement(page, body, "div");
 
 			final Content content = createContent(page, div1, "my content text");
-			content.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "myNamedConentElement");
+			content.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "myNamedContentElement");
 
 			tx.success();
 
@@ -120,15 +204,15 @@ public class Deployment4Test extends DeploymentTestBase {
 	}
 
 	@Test
-	public void test43HiddenContentElement() {
+	public void test44HiddenContentElement() {
 
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			final Page page = Page.createNewPage(securityContext,   "test43");
+			final Page page = Page.createNewPage(securityContext,   "test44");
 			final DOMElement html = createElement(page, page, "html");
 			final DOMElement head = createElement(page, html, "head");
-			createElement(page, head, "title", "test43");
+			createElement(page, head, "title", "test44");
 
 			final DOMElement body       = createElement(page, html, "body");
 			final DOMElement div1        = createElement(page, body, "div");
@@ -147,9 +231,9 @@ public class Deployment4Test extends DeploymentTestBase {
 	}
 
 	@Test
-	public void test44HiddenPage() {
+	public void test45HiddenPage() {
 
-		final String testName = "test44";
+		final String testName = "test45";
 
 		// setup
 		try (final Tx tx = app.tx()) {
@@ -187,25 +271,6 @@ public class Deployment4Test extends DeploymentTestBase {
 		} catch (FrameworkException fex) {
 			fail("Unexpected exception.");
 		}
-	}
-
-	@Test
-	public void test45Schema() {
-
-		final String testName = "test45";
-
-		// setup
-		try (final Tx tx = app.tx()) {
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			fail("Unexpected exception.");
-		}
-
-		// test
-		compare(calculateHash(), true);
-
 	}
 
 	@Test
@@ -757,85 +822,6 @@ public class Deployment4Test extends DeploymentTestBase {
 			fail("Unexpected exception.");
 		}
 
-	}
-
-	@Test
-	public void test50SchemaBasedVisibilityFlags() {
-
-		// setup 1 - schema type
-		try (final Tx tx = app.tx()) {
-
-			final JsonSchema schema = StructrSchema.createFromDatabase(app);
-
-			// add test type
-			schema.addType("Public").setVisibleForPublicUsers();
-			schema.addType("Authenticated").setVisibleForAuthenticatedUsers();
-			schema.addType("Both").setVisibleForAuthenticatedUsers().setVisibleForPublicUsers();
-
-			StructrSchema.extendDatabaseSchema(app, schema);
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			fail("Unexpected exception.");
-		}
-
-		final String anonClass = "Public";
-		final String authClass = "Authenticated";
-		final String bothClass = "Both";
-
-		// setup 2 - schema grant
-		try (final Tx tx = app.tx()) {
-
-			app.create(anonClass, "anon1");
-			app.create(anonClass, "anon2");
-
-			app.create(authClass, "auth1");
-			app.create(authClass, "auth2");
-
-			app.create(bothClass, "both1");
-			app.create(bothClass, "both2");
-
-			app.create(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "password")
-			);
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			fail("Unexpected exception.");
-		}
-
-		// allow REST access
-		grant("Public",        UiAuthenticator.NON_AUTH_USER_GET | UiAuthenticator.AUTH_USER_GET,  true); // reset all other permissions
-		grant("Authenticated", UiAuthenticator.NON_AUTH_USER_GET | UiAuthenticator.AUTH_USER_GET, false);
-		grant("Both",          UiAuthenticator.NON_AUTH_USER_GET | UiAuthenticator.AUTH_USER_GET, false);
-
-		// test before roundtrip
-		RestAssured.given().expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Public");
-		RestAssured.given().expect().statusCode(200).body("result", Matchers.hasSize(0)).when().get("/Authenticated");
-		RestAssured.given().expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Both");
-
-		RestAssured.given().header(X_USER_HEADER, "user").header(X_PASSWORD_HEADER, "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Public");
-		RestAssured.given().header(X_USER_HEADER, "user").header(X_PASSWORD_HEADER, "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Authenticated");
-		RestAssured.given().header(X_USER_HEADER, "user").header(X_PASSWORD_HEADER, "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Both");
-
-		// roundtrip and compare
-		final String hash1 = calculateHash();
-		doImportExportRoundtrip(true, null, false);
-		final String hash2 = calculateHash();
-
-		// test after roundtrip
-		RestAssured.given().expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Public");
-		RestAssured.given().expect().statusCode(200).body("result", Matchers.hasSize(0)).when().get("/Authenticated");
-		RestAssured.given().expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Both");
-
-		RestAssured.given().header(X_USER_HEADER, "user").header(X_PASSWORD_HEADER, "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Public");
-		RestAssured.given().header(X_USER_HEADER, "user").header(X_PASSWORD_HEADER, "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Authenticated");
-		RestAssured.given().header(X_USER_HEADER, "user").header(X_PASSWORD_HEADER, "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Both");
-
-		assertEquals("Invalid deployment roundtrip result", hash1, hash2);
 	}
 
 	// ----- private methods -----

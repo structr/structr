@@ -575,46 +575,4 @@ public class Deployment0Test extends DeploymentTestBase {
 		// test
 		compare(calculateHash(), true);
 	}
-
-	@Test
-	public void test10SharedComponent() {
-
-		// setup
-		try (final Tx tx = app.tx()) {
-
-			// create first page
-			final Page page1 = Page.createNewPage(securityContext,   "test10_1");
-			final DOMElement html1 = createElement(page1, page1, "html");
-			final DOMElement head1 = createElement(page1, html1, "head");
-			createElement(page1, head1, "title", "test10_1");
-
-			final DOMElement body1 = createElement(page1, html1, "body");
-			final DOMElement div1   = createElement(page1, body1, "div");
-
-			createElement(page1, div1, "div", "test1");
-			createElement(page1, div1, "div", "test1");
-
-			final DOMNode component = createComponent(div1);
-
-			// create second page
-			final Page page2 = Page.createNewPage(securityContext,   "test10_2");
-			final DOMElement html2 = createElement(page2, page2, "html");
-			final DOMElement head2 = createElement(page2, html2, "head");
-			createElement(page2, head2, "title", "test10_2");
-
-			final DOMElement body2 = createElement(page2, html2, "body");
-			final DOMElement div2   = createElement(page2, body2, "div");
-
-			// re-use template from above
-			cloneComponent(component, div2);
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			fail("Unexpected exception.");
-		}
-
-		// test
-		compare(calculateHash(), true);
-	}
 }

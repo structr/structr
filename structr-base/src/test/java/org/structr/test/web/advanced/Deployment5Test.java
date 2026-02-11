@@ -20,6 +20,7 @@ package org.structr.test.web.advanced;
 
 import io.restassured.RestAssured;
 import org.hamcrest.Matchers;
+import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.ResultStream;
 import org.structr.common.AccessMode;
 import org.structr.common.Permission;
@@ -33,7 +34,10 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.core.traits.definitions.SchemaGrantTraitDefinition;
+import org.structr.schema.export.StructrSchema;
+import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
@@ -59,6 +63,85 @@ import java.util.function.Function;
 import static org.testng.AssertJUnit.*;
 
 public class Deployment5Test extends DeploymentTestBase {
+
+	@Test
+	public void test50SchemaBasedVisibilityFlags() {
+
+		// setup 1 - schema type
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			// add test type
+			schema.addType("Public").setVisibleForPublicUsers();
+			schema.addType("Authenticated").setVisibleForAuthenticatedUsers();
+			schema.addType("Both").setVisibleForAuthenticatedUsers().setVisibleForPublicUsers();
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		final String anonClass = "Public";
+		final String authClass = "Authenticated";
+		final String bothClass = "Both";
+
+		// setup 2 - schema grant
+		try (final Tx tx = app.tx()) {
+
+			app.create(anonClass, "anon1");
+			app.create(anonClass, "anon2");
+
+			app.create(authClass, "auth1");
+			app.create(authClass, "auth2");
+
+			app.create(bothClass, "both1");
+			app.create(bothClass, "both2");
+
+			app.create(StructrTraits.USER,
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user"),
+				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "password")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// allow REST access
+		grant("Public",        UiAuthenticator.NON_AUTH_USER_GET | UiAuthenticator.AUTH_USER_GET,  true); // reset all other permissions
+		grant("Authenticated", UiAuthenticator.NON_AUTH_USER_GET | UiAuthenticator.AUTH_USER_GET, false);
+		grant("Both",          UiAuthenticator.NON_AUTH_USER_GET | UiAuthenticator.AUTH_USER_GET, false);
+
+		// test before roundtrip
+		RestAssured.given().expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Public");
+		RestAssured.given().expect().statusCode(200).body("result", Matchers.hasSize(0)).when().get("/Authenticated");
+		RestAssured.given().expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Both");
+
+		RestAssured.given().header(X_USER_HEADER, "user").header(X_PASSWORD_HEADER, "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Public");
+		RestAssured.given().header(X_USER_HEADER, "user").header(X_PASSWORD_HEADER, "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Authenticated");
+		RestAssured.given().header(X_USER_HEADER, "user").header(X_PASSWORD_HEADER, "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Both");
+
+		// roundtrip and compare
+		final String hash1 = calculateHash();
+		doImportExportRoundtrip(true, null, false);
+		final String hash2 = calculateHash();
+
+		// test after roundtrip
+		RestAssured.given().expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Public");
+		RestAssured.given().expect().statusCode(200).body("result", Matchers.hasSize(0)).when().get("/Authenticated");
+		RestAssured.given().expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Both");
+
+		RestAssured.given().header(X_USER_HEADER, "user").header(X_PASSWORD_HEADER, "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Public");
+		RestAssured.given().header(X_USER_HEADER, "user").header(X_PASSWORD_HEADER, "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Authenticated");
+		RestAssured.given().header(X_USER_HEADER, "user").header(X_PASSWORD_HEADER, "password").expect().statusCode(200).body("result", Matchers.hasSize(2)).when().get("/Both");
+
+		assertEquals("Invalid deployment roundtrip result", hash1, hash2);
+	}
 
 	@Test
 	public void test51SchemaGrantsRoundtrip() {
@@ -686,121 +769,5 @@ public class Deployment5Test extends DeploymentTestBase {
 			fail("Unexpected exception.");
 		}
 
-	}
-
-	@Test
-	public void test60PreventDeploymentExportOfNestedTemplatesInTrash() {
-
-		String template2UUID = null;
-		String template3UUID = null;
-
-		try (final Tx tx = app.tx()) {
-
-			final Page page = Page.createNewPage(securityContext,   "test60");
-			final DOMElement html = createElement(page, page, "html");
-			final DOMElement head = createElement(page, html, "head");
-			createElement(page, head, "title", "test05");
-
-			final DOMElement body = createElement(page, html, "body");
-			final DOMElement div1  = createElement(page, body, "div");
-
-			final Template template1 = createTemplate(page, div1, "template1");
-			final Template template2 = createTemplate(page, template1, "template2");
-			final Template template3 = createTemplate(page, template2, "template3");
-
-			template2UUID = template2.getUuid();
-			template3UUID = template3.getUuid();
-
-			// remove pageId from node and all children ("move to trash")
-			template2.getParent().removeChild(template2);
-			RemoveCommand.recursivelyRemoveNodesFromPage(template2, securityContext);
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			fail("Unexpected exception.");
-		}
-
-		compare(calculateHash(), true);
-
-		try (final Tx tx = app.tx()) {
-
-			// make sure that the templates from the trash were not exported/imported
-
-			assertNotNull(template2UUID);
-			assertNotNull(template3UUID);
-
-			final NodeInterface n1 = app.getNodeById(template2UUID);
-			assertEquals("Template node should not be exported if it is in the trash", null, n1);
-
-			final NodeInterface n2 = app.getNodeById(template3UUID);
-			assertEquals("Template node should not be exported if it is in the trash as a child of another node", null, n2);
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			fail("Unexpected exception.");
-		}
-	}
-
-	@Test
-	public void test61ContentElementHasNoUselessTextAttributes() {
-
-		try (final Tx tx = app.tx()) {
-
-			final Page page = Page.createNewPage(securityContext,   "test42");
-			final DOMElement html = createElement(page, page, "html");
-			final DOMElement head = createElement(page, html, "head");
-			createElement(page, head, "title", "test42");
-
-			final DOMElement body = createElement(page, html, "body");
-			final DOMElement div1 = createElement(page, body, "div");
-			final DOMElement div2 = createElement(page, body, "div");
-			final DOMElement div3 = createElement(page, body, "div");
-
-			createContent(page,  div1, "my content text");
-			createComment(page,  div2, "my comment text");
-			createTemplate(page, div3, "my template text");
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			fail("Unexpected exception.");
-		}
-
-		// run deployment
-		compare(calculateHash(), true);
-
-		try (final Tx tx = app.tx()) {
-
-			try (final ResultStream<NodeInterface> results = app.nodeQuery(StructrTraits.CONTENT).getResultStream()) {
-
-				for (NodeInterface content : results) {
-
-					assertFalse("After a deployment, no Content node should have an '_html_#text' attribute!", content.getPropertyContainer().hasProperty("_html_#text"));
-				}
-			}
-
-			try (final ResultStream<NodeInterface> results = app.nodeQuery(StructrTraits.COMMENT).getResultStream()) {
-
-				for (NodeInterface comment : results) {
-
-					assertFalse("After a deployment, no Comment node should have an '_html_#comment' attribute!", comment.getPropertyContainer().hasProperty("_html_#comment"));
-				}
-			}
-
-			try (final ResultStream<NodeInterface> results = app.nodeQuery(StructrTraits.TEMPLATE).getResultStream()) {
-
-				for (NodeInterface template : results) {
-
-					assertFalse("After a deployment, no Template node should have an '_html_src' attribute!", template.getPropertyContainer().hasProperty("_html_src"));
-				}
-			}
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			fail("Unexpected exception.");
-		}
 	}
 }
