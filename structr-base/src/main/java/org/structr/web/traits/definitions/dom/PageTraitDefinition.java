@@ -18,6 +18,7 @@
  */
 package org.structr.web.traits.definitions.dom;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.api.AbstractMethod;
@@ -27,16 +28,20 @@ import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.docs.Documentation;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.traits.definitions.LinkableTraitDefinition;
 import org.structr.web.traits.operations.CheckHierarchy;
+import org.structr.web.traits.operations.GetContextName;
 import org.structr.web.traits.operations.HandleNewChild;
 import org.structr.web.traits.operations.Render;
 import org.structr.web.traits.wrappers.dom.PageTraitWrapper;
@@ -141,6 +146,18 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 						throw new FrameworkException(422, DOMNode.HIERARCHY_REQUEST_ERR_MESSAGE_ELEMENT);
 					}
 				}
+			},
+
+			GetContextName.class,
+			new GetContextName() {
+
+				@Override
+				public String getContextName(final NodeInterface node) {
+
+					final Traits traits = node.getTraits();
+
+					return StringUtils.defaultString(node.getProperty(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)), "#page");
+				}
 			}
 		);
 	}
@@ -231,27 +248,7 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public String getShortDescription() {
-		return "This type is the main entry point for Structr's Page Rendering Engine.";
-	}
-
-	@Override
-	public String getLongDescription() {
-		return """
-		### How It Works
-		When a user accesses the URL of a Page with their browser, a process is started that runs through this tree structure from top to bottom and generates the HTML representation for each element. This process is called page rendering. Because of this sequential processing, it is possible to run through the same element more than once without additional effort (e.g. for each result of a database query) or to hide the content of specific elements depending on certain conditions (for access control).
-		
-		### Keywords
-		The following keywords are valid in the context of the page rendering process: `page`, `this`, `request`, ...
-		
-		### Common Use Cases
-		- Pages can be used to server static content, like text, images etc. from Structr's filesystem.
-		- Pages are also the main element of a dynamic web application.
-		
-		### Additional Information
-		- A Page either consist of HTML elements or a single Template element (a so-called "Main Page Template")
-		- HTML elements be configured to execute a database query (or a script) and loop over the results, creating a Repeater
-		- The information that comes with the request URL (path elements, request parameters, etc.) are also available in the Page Rendering process.
-		""";
+	public boolean includeInDocumentation() {
+		return true;
 	}
 }

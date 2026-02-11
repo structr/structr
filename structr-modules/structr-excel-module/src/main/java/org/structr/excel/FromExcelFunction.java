@@ -34,6 +34,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.storage.StorageProviderFactory;
@@ -133,6 +134,11 @@ public class FromExcelFunction extends Function<Object, Object> {
 	}
 
 	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.InputOutput;
+	}
+
+	@Override
 	public List<Parameter> getParameters() {
 		return List.of(
 				Parameter.mandatory("file", "excel file to read from"),
@@ -184,7 +190,7 @@ public class FromExcelFunction extends Function<Object, Object> {
 		// First row = header
 		final XSSFRow headerRow = sheet.getRow(firstRowNum);
 
-		final ArrayList<String> headerValues = new ArrayList<>();
+		final ArrayList<GenericProperty> headerPropertyKeys = new ArrayList<>();
 
 		for (int c = headerRow.getFirstCellNum(); c < headerRow.getLastCellNum(); c++) {
 
@@ -196,7 +202,7 @@ public class FromExcelFunction extends Function<Object, Object> {
 				continue;
 			}
 
-			headerValues.add(getCellValue(cell).toString());
+			headerPropertyKeys.add(new GenericProperty(getCellValue(cell).toString()));
 		}
 
 		for (int r = firstRowNum+1; r <= lastRowNum; r++) {
@@ -210,6 +216,9 @@ public class FromExcelFunction extends Function<Object, Object> {
 			}
 
 			final GraphObjectMap rowObject = new GraphObjectMap();
+			for (final GenericProperty prop : headerPropertyKeys) {
+				rowObject.put(prop, null);
+			}
 
 			final Short firstCellNum = row.getFirstCellNum();
 			final Short lastCellNum  = row.getLastCellNum();
@@ -222,9 +231,9 @@ public class FromExcelFunction extends Function<Object, Object> {
 
 				if (cell != null) {
 
-					if (headerValues.size() > c) {
+					if (headerPropertyKeys.size() > c) {
 
-						rowObject.put(new GenericProperty(headerValues.get(c)), getCellValue(cell));
+						rowObject.put(headerPropertyKeys.get(c), getCellValue(cell));
 
 					} else {
 

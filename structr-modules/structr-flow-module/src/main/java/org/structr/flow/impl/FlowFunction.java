@@ -29,6 +29,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.flow.api.FlowResult;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowEngine;
@@ -180,5 +181,10 @@ public class FlowFunction extends Function<Object, Object> {
 			"The effective name is the combined name of the Flow plus all its parent packages.",
 			"In a StructrScript environment, parameters can be passed as pairs of 'key1', 'value1'."
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.InputOutput;
 	}
 }

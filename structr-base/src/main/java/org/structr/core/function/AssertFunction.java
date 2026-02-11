@@ -24,6 +24,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -106,7 +107,7 @@ public class AssertFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-			Example.javaScript("$.assert($.me.name == 'admin', 422, 'Only admin users are allowed to access this resource.')", "Make sure only admin users can continue here")
+			Example.javaScript("$.assert(($.me?.isAdmin === true), 422, 'Only admin users are allowed to access this resource.')", "Make sure only admin users can continue here")
 		);
 	}
 
@@ -117,6 +118,11 @@ public class AssertFunction extends AdvancedScriptingFunction {
 			"See also `getErrors()`, `clearError()`, `clearErrors()` and `error()`.",
 			"Only works in schema methods, not in page rendering."
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Validation;
 	}
 
 	// ----- private methods -----

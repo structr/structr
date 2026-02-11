@@ -1,0 +1,208 @@
+# GitLab CI pipeline for Structr build, test, and release automation
+# Prevents execution on tags, only runs on commits to branches
+
+workflow:
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
+    - when: always
+
+stages:
+  - .pre
+  - test
+  - deploy
+  - cleanup
+
+variables:
+  # Docker configuration
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
+  # Maven configuration
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+  MAVEN_CLI_OPTS: "--batch-mode --errors --fail-at-end --show-version"
+
+# Cache Maven dependencies per branch
+cache:
+  key: "m2-$CI_COMMIT_REF_SLUG"
+  paths:
+    - .m2/repository
+  policy: pull-push
+  when: always
+
+# Extract build variables for use in downstream jobs
+setup-variables:
+  stage: .pre
+  tags:
+    - shared
+  script:
+    - MVN_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+    - BUILD_TIMESTAMP=$(date -u -d "$CI_COMMIT_TIMESTAMP" +%Y%m%d%H%M)
+    - COMMIT_SHORT=${CI_COMMIT_SHA:0:5}
+    - echo "STRUCTR_VERSION=$MVN_VERSION" >> build.env
+    - echo "BUILD_TIMESTAMP=$BUILD_TIMESTAMP" >> build.env
+    - echo "COMMIT_SHORT=$COMMIT_SHORT" >> build.env
+  artifacts:
+    reports:
+      dotenv: build.env
+    expire_in: 1 hour
+
+# Test job template with Neo4j database
+.test_template:
+  stage: test
+  tags:
+    - shared
+  rules:
+    - if: "$GITLAB_USER_LOGIN =~ /^dependabot/"
+      when: never
+    - when: always
+  services:
+    - docker:dind
+    - name: neo4j:2025
+      alias: neo4j
+      variables:
+        NEO4J_AUTH: "neo4j/admin123"
+        NEO4J_server_memory_heap_initial__size: "4g"
+        NEO4J_server_memory_heap_max__size: "4g"
+        NEO4J_server_memory_pagecache_size: "4g"
+  script:
+    - mvn clean install -DskipTests -DskipDist -DskipDocker -DskipDeb -DskipDockerTestDB=true
+    - cd ${MODULE}
+    - mvn install -DskipDockerTestDB=true -Denv.testDatabaseConnection="bolt://neo4j:7687" -Dtest.forkCount=2
+  artifacts:
+    when: always
+    reports:
+      junit: "${CI_PROJECT_DIR}/${MODULE}/**/target/failsafe-reports/TEST-*.xml"
+
+# Execute tests for all Structr modules in parallel
+test:modules:
+  extends: .test_template
+  parallel:
+    matrix:
+      - MODULE:
+          [
+            structr-base,
+            structr-db-driver-api,
+            structr-modules,
+            structr-neo4j-bolt-driver,
+          ]
+
+# Build and release SNAPSHOT versions from main branch
+snapshot-build:
+  stage: deploy
+  tags:
+    - shared
+  needs:
+    - setup-variables
+    - test:modules
+  before_script:
+    # Setup Maven settings with authentication
+    - mkdir -p ~/.m2 && mkdir -p ~/.structr/
+    - echo "$STRUCTR_KEYSTORE" | base64 -d > ~/.structr/structr.keystore
+    - echo "$MAVEN_SETTINGS" | base64 -d > ~/.m2/settings.xml
+    - chmod 600 ~/.m2/settings.xml
+    - echo "$CI_REGISTRY_PASSWORD" | docker login registry.structr.com -u "$CI_REGISTRY_USER" --password-stdin
+  script:
+    - |
+      if [[ "$STRUCTR_VERSION" =~ SNAPSHOT && "$CI_COMMIT_REF_NAME" == "main" ]]; then
+        echo "Building SNAPSHOT version $STRUCTR_VERSION on main branch"
+        
+        # Build with sources but skip tests (already completed)
+        mvn -U clean install -Pwith-sources -DskipTests -DskipDockerTestDB=true -Dstructr.build.timestamp="$BUILD_TIMESTAMP"
+
+        # Configure glab for HTTP GitLab instance
+        glab config set host "https://$CI_SERVER_HOST" 
+        glab config set api_protocol https
+        glab config set token "$CI_RELEASE_TOKEN"
+        
+        # Remove previous SNAPSHOT release to allow updates
+        echo "Deleting previous SNAPSHOT release with glab..."
+        if ! glab release delete "$STRUCTR_VERSION" --with-tag -y 2>/dev/null; then
+            echo "Could not delete release $STRUCTR_VERSION (may not exist yet)"
+        fi
+
+        # Create new SNAPSHOT release with build artifacts
+        echo "Creating SNAPSHOT release with glab..."
+        glab release create $STRUCTR_VERSION structr-app/target/*.deb structr-app/target/*.zip \
+        --name "structr-$STRUCTR_VERSION-$BUILD_TIMESTAMP.$COMMIT_SHORT" \
+        --notes "## Latest SNAPSHOT Build
+
+        **Version:** $STRUCTR_VERSION  
+        **Commit:** [$CI_COMMIT_SHORT_SHA]($CI_PROJECT_URL/-/commit/$CI_COMMIT_SHA)  
+        **Date:** $(date)  
+        **Branch:** $CI_COMMIT_REF_NAME  
+        **Build:** $BUILD_TIMESTAMP.$COMMIT_SHORT
+
+        This release is automatically updated with each commit to main."
+        
+        echo "SNAPSHOT build and release completed successfully"
+      else
+        echo "Skipping build because version is no SNAPSHOT and/or not on main branch"
+        echo "   Structr version: '$STRUCTR_VERSION'"
+        echo "   Branch: '$CI_COMMIT_REF_NAME'"
+        exit 0
+      fi
+  rules:
+    - when: on_success
+
+# Build and release stable versions from release branch
+release-build:
+  stage: deploy
+  tags:
+    - shared
+  needs:
+    - setup-variables
+    - test:modules
+  before_script:
+    # Setup Maven settings with authentication
+    - mkdir -p ~/.m2 && mkdir -p ~/.structr/
+    - echo "$STRUCTR_KEYSTORE" | base64 -d > ~/.structr/structr.keystore
+    - echo "$MAVEN_SETTINGS" | base64 -d > ~/.m2/settings.xml
+    - chmod 600 ~/.m2/settings.xml
+    - echo "$CI_REGISTRY_PASSWORD" | docker login registry.structr.com -u "$CI_REGISTRY_USER" --password-stdin
+  script:
+    - |
+      if [[ "$CI_COMMIT_REF_NAME" == "release" ]]; then
+        echo "Building release version $STRUCTR_VERSION on release branch"
+        
+        # Build with sources but skip tests (already completed)
+        mvn -U clean install -Pwith-sources -DskipTests -DskipDockerTestDB=true -Dstructr.build.timestamp="$BUILD_TIMESTAMP"
+
+        # Configure glab for HTTP GitLab instance`
+        glab config set host "https://$CI_SERVER_HOST" 
+        glab config set api_protocol https
+        glab config set token "$CI_RELEASE_TOKEN"
+        
+        # Create versioned release with build artifacts
+        echo "Creating release with glab..."
+        glab release create "$STRUCTR_VERSION" structr-app/target/*.deb structr-app/target/*.zip \
+         --name "$STRUCTR_VERSION" \
+         --notes "## Release $STRUCTR_VERSION
+
+          **Date:** $(date)"      
+        
+        echo "Release build and release completed successfully"
+      else
+        echo "Refusing release build for other branches than 'release'"
+        echo "   Branch: '$CI_COMMIT_REF_NAME'"
+        exit 0
+      fi
+  rules:
+    - when: on_success
+
+# Clean up Docker resources after pipeline completion
+cleanup-system:
+  stage: cleanup
+  tags:
+    - shared
+  when: always
+  needs:
+    - job: test:modules
+      optional: true
+    - job: snapshot-build
+      optional: true
+    - job: release-build
+      optional: true
+  script:
+    - docker container prune -f
+    - docker image prune -f
+    - docker volume prune -f

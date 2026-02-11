@@ -24,9 +24,10 @@ import org.structr.api.schema.JsonType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
-import org.structr.web.maintenance.DeployCommand;
 import org.structr.web.maintenance.DeployDataCommand;
 import org.testng.annotations.Test;
 
@@ -122,7 +123,8 @@ public class DataDeploymentTest extends StructrUiTest {
 		// check data
 		try (final Tx tx = app.tx()) {
 
-			final List<NodeInterface> nodes = app.nodeQuery("TestA").getAsList();
+			final PropertyKey<String> nameKey = Traits.of("TestA").key("name");
+			final List<NodeInterface> nodes = app.nodeQuery("TestA").sort(nameKey).getAsList();
 
 			assertEquals("Invalid number of nodes after data deployment roundtrip", 4, nodes.size());
 

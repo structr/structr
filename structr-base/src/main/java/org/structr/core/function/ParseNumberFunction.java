@@ -24,6 +24,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.text.NumberFormat;
@@ -132,5 +133,10 @@ public class ParseNumberFunction extends CoreFunction {
 				Parameter.mandatory("string", "String that will be parsed into numerical value"),
 				Parameter.optional("locale", "Locale string for specific number formatting")
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Conversion;
 	}
 }

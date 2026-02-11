@@ -25,6 +25,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.nio.charset.Charset;
@@ -149,5 +150,10 @@ public class Base64DecodeFunction extends CoreFunction {
 		return List.of(
 			Example.structrScript("${base64decode(\"Q2hlY2sgb3V0IGh0dHBzOi8vc3RydWN0ci5jb20=\")}", "Decode a base64-encoded string")
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.String;
 	}
 }

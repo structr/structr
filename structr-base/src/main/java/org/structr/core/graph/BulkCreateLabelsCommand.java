@@ -24,6 +24,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.TypeProperty;
 import org.structr.docs.*;
+import org.structr.docs.ontology.ConceptType;
 
 import java.util.Collections;
 import java.util.List;
@@ -112,19 +113,23 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 
 	@Override
 	public String getShortDescription() {
-		return "Updates the type labels of a node in the database so they match the type hierarchy of the Structr type.";
+		return "Updates Neo4j type labels on nodes to match their Structr type hierarchy.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "This command looks at the value in the `type` property of an object and tries to identify a corresponding schema type. If the schema type exists, it creates a label on the object for each type in the inheritance hierarchy and removes labels that don’t have a corresponding type.";
+		return """
+        Use this command after changing type inheritance or when labels are out of sync.
+        
+        The command reads each node's `type` property, resolves the inheritance hierarchy, and creates a label for each type in the chain.
+        """;
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 		return List.of(
-			Parameter.optional("type", "if set, labels are only updated on nodes with the given type"),
-			Parameter.optional("removeUnused", "if set to `false`, unused labels are left on the node (default is `true`)")
+			Parameter.optional("type", "Limit to nodes of this type"),
+			Parameter.optional("removeUnused", "Remove labels without corresponding types (default: true)")
 		);
 	}
 
@@ -136,7 +141,7 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-			"This command will only work for objects that have a value in their `type` property."
+			"Only works for nodes that have a value in their `type` property."
 		);
 	}
 
@@ -153,5 +158,10 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 	@Override
 	public List<Usage> getUsages() {
 		return List.of();
+	}
+
+	@Override
+	public final List<ConceptReference> getParentConcepts() {
+		return List.of(ConceptReference.of(ConceptType.Topic, "Maintenance Commands"));
 	}
 }

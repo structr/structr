@@ -28,11 +28,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.docs.Documentation;
 
 import java.io.IOException;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+@Documentation(name="MetricsServlet", parent="Servlets", children={ "MetricsServlet Settings" })
 public class MetricsServlet extends AbstractDataServlet {
 	private final io.prometheus.client.servlet.jakarta.exporter.MetricsServlet servlet;
 

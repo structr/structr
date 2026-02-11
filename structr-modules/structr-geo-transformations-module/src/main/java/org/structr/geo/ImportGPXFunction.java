@@ -28,6 +28,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -251,8 +252,8 @@ public class ImportGPXFunction extends GeoFunction {
 	}
 
 	@Override
-	public List<String> getNotes() {
-		return super.getNotes();
+	public FunctionCategory getCategory() {
+		return FunctionCategory.InputOutput;
 	}
 
 	// ----- private methods -----

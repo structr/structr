@@ -30,6 +30,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Iterator;
@@ -98,6 +99,11 @@ public class DeleteFunction extends CoreFunction implements BatchableFunction {
 			Example.structrScript("${delete(first(find('Project')))}", "Delete the first project"),
 			Example.structrScript("${delete(find('Project'))}", "Delete all projects")
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Database;
 	}
 
 	// ----- interface BatchableFunction -----

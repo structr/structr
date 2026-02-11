@@ -33,6 +33,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
@@ -166,5 +167,10 @@ public class SendHtmlMailFunction extends UiAdvancedFunction {
 		return List.of(
 				Example.structrScript("${sendPlaintextMail('info@structr.com', 'Structr', 'user@domain.com', 'Test User', 'Welcome to Structr', 'Hi User, welcome to <b>Structr</b>!', 'Hi User, welcome to Structr!', find('File', 'name', 'welcome-to-structr.pdf')))}")
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.EMail;
 	}
 }

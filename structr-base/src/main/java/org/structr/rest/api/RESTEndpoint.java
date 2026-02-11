@@ -20,10 +20,10 @@ package org.structr.rest.api;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.*;
 import org.structr.rest.api.parameter.RESTParameter;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -36,7 +36,7 @@ public abstract class RESTEndpoint {
 	private String uniquePath                     = null;
 	private Pattern pattern                       = null;
 
-	public RESTEndpoint(final RESTParameter... parameters) {
+	public RESTEndpoint(RESTParameter... parameters) {
 		initialize(parameters);
 	}
 
@@ -124,8 +124,7 @@ public abstract class RESTEndpoint {
 	// ----- private methods -----
 	private void initialize(final RESTParameter... parameters) {
 
-		final StringBuilder signatureBuffer = new StringBuilder();
-		final StringBuilder pathBuffer      = new StringBuilder();
+		final StringBuilder pathBuffer = new StringBuilder();
 
 		for (final RESTParameter parameter : parameters) {
 
@@ -142,7 +141,7 @@ public abstract class RESTEndpoint {
 			pathBuffer.append("(/.*)?");
 		}
 
-		this.uniquePath        = pathBuffer.toString();
-		this.pattern          = Pattern.compile(uniquePath);
+		this.uniquePath = pathBuffer.toString();
+		this.pattern    = Pattern.compile(uniquePath);
 	}
 }

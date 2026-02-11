@@ -25,12 +25,14 @@ import org.structr.common.error.InvalidPropertySchemaToken;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.property.EnumProperty;
 import org.structr.core.property.Property;
+import org.structr.docs.Documentation;
 import org.structr.schema.SchemaHelper.Type;
 
 /**
  *
  *
  */
+@Documentation(name="Enum property validation", parent="Value-based schema constraints", shortDescription="For enum attributes, the format field is interpreted as a comma-separated list of possible values. For example, \"small, medium, large\" defines an enum property that can only be set to one of those three values.")
 public class EnumPropertyGenerator extends PropertyGenerator<String> {
 
 	public EnumPropertyGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {

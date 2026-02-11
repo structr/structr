@@ -561,6 +561,16 @@ public class FileHelper {
 		return null;
 	}
 
+	public static String cleanFileName(final String name) {
+
+		String cleanedName = name;
+
+		cleanedName = cleanedName.replace(" ", "");
+		cleanedName = cleanedName.replaceAll("[\\W]+", "-");
+
+		return cleanedName;
+	}
+
 	public static class Base64URIData {
 
 		private String contentType = null;

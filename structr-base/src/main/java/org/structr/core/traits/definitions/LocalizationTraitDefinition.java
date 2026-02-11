@@ -150,23 +150,4 @@ public final class LocalizationTraitDefinition extends AbstractNodeTraitDefiniti
 	public Relation getRelation() {
 		return null;
 	}
-
-	@Override
-	public String getShortDescription() {
-		return "This type represents translations for text snippets.";
-	}
-
-	@Override
-	public String getLongDescription() {
-		return """
-		### How It Works
-		A localization is an expression that is included in the content of a page or any other textual element in the following form:
-
-		`localize(key, domain)`
-
-		`key` is a term describing the concept that should be rendered depending on the locale which is currently active for the accessing user, and domain describes the context for this term. The combination of key and domain has to be unique.
-
-		The retrieval process works just as rendering the page. If you request the locale en_US you might get localizations for en as a fallback if no exact match is found. If no localization could be found, an empty input field is rendered where you can quickly create the missing localization.
-		""";
-	}
 }

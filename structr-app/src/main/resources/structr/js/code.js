@@ -76,12 +76,15 @@ let _Code = {
 			right = right + 'px';
 		}
 
+		let availableWidth = _Code.codeMain.innerWidth();
+		let outerPadding   = (window.innerWidth - availableWidth) / 2;
+
 		_Code.codeMain[0].querySelector('.column-resizer-left').style.left     = `${left}px`;
-		_Code.codeMain[0].querySelector('.column-resizer-right').style.left    = `calc(${window.innerWidth}px - ${right})`;
+		_Code.codeMain[0].querySelector('.column-resizer-right').style.left    = `calc(${window.innerWidth - outerPadding}px - ${right})`;
 
 		document.getElementById('code-tree').style.width              = `calc(${left}px - 1rem)`;
 		document.getElementById('code-context-container').style.width = `calc(${right} - 3rem)`;
-		document.getElementById('code-contents').style.width          = `calc(${window.innerWidth}px - ${left}px - ${right} - 4rem)`;
+		document.getElementById('code-contents').style.width          = `calc(${availableWidth}px - ${left}px - ${right} - 4rem)`;
 
 		_Editors.resizeVisibleEditors();
 	},
@@ -2212,7 +2215,7 @@ let _Code = {
 				location.hash = 'code';
 			}
 
-			await _Helpers.waitForElement('.' + _Code.classIndicatorEverythingReady);
+			await _Helpers.waitForElement('.' + _Code.classIndicatorEverythingReady, { childList: true, subtree: true, attributes: true });
 
 			return true;
 		},
@@ -3007,7 +3010,7 @@ let _Code = {
 				<div class="flex flex-wrap gap-8">
 
 					<div class="min-w-48">
-						<label class="block mb-5">Enable/include this type</label>
+						<label class="block mb-5">&nbsp;</label>
 						<label class="flex"><input type="checkbox" data-property="includeInOpenAPI"> Include in OpenAPI output</label>
 					</div>
 

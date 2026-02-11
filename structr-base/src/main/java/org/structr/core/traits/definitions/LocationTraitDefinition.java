@@ -27,6 +27,8 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.TraitsInstance;
+import org.structr.docs.Documentation;
+import org.structr.docs.ontology.ConceptType;
 
 import java.util.Map;
 import java.util.Set;

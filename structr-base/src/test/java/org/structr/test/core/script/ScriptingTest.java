@@ -63,6 +63,7 @@ import org.structr.web.entity.User;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.awt.*;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.text.DecimalFormat;
@@ -73,6 +74,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.List;
 
 import static org.testng.AssertJUnit.*;
 
@@ -7734,6 +7736,131 @@ public class ScriptingTest extends StructrTest {
 		} catch (FrameworkException t) {
 			t.printStackTrace();
 			fail("Unexpected exception during test setup.");
+		}
+	}
+
+	@Test
+	public void testSuperCallInScriptMethod() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			final JsonObjectType baseProject     = schema.addType("Project");
+			final JsonObjectType extendedProject = schema.addType("ExtendedProject");
+
+			extendedProject.addTrait("Project");
+
+			baseProject.addMethod("doTest", """
+			{
+				$.this.name += 'Project' + $.arguments.name;
+			}
+			""");
+
+			extendedProject.addMethod("doTest", """
+			{
+				// call super method with same arguments
+				$.Project.doTest($.arguments);
+			
+				$.this.name += 'ExtendedProject' + $.arguments.name;
+			}
+			""");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final String result = (String) Actions.execute(securityContext, null, """
+			${{
+				let extendedProject = $.create('ExtendedProject', { name: 'Test' });
+			
+				extendedProject.doTest({ name: 'TEST' });
+			
+				extendedProject.name;
+			}}
+			""", "testSuperCall");
+
+			assertEquals("Super implementation of instance method was not called correctly", "TestProjectTESTExtendedProjectTEST", result);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+	}
+
+	@Test
+	public void testConfigNullValues() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.addType("Test");
+
+			type.addMethod("readConfig", "{ return $.config('testKey', 123); }");
+			type.addMethod("isConfigNull", "{ return ($.config('testKey') === null); }");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final String type        = "Test";
+			final NodeInterface test = app.create(type, "test1");
+
+			assertEquals("true", Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.isConfigNull();}"));
+			assertEquals("123", Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.readConfig();}"));
+			Settings.getOrCreateStringSetting("testKey").setValue("abc");
+			assertEquals("false", Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.isConfigNull();}"));
+			assertEquals("abc", Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.readConfig();}"));
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testConfigHostAccessWildcards() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			Settings.AllowedHostClasses.setValue("org.structr.api.config.Settings,java.util.Date,org.structr.*");
+			Scripting.evaluate(new ActionContext(securityContext), null, "${{Java.type(\"org.structr.core.script.polyglot.context.ContextFactory\")}}", "testHostClassWildcard1");
+			Scripting.evaluate(new ActionContext(securityContext), null, "${{Java.type(\"org.structr.api.config.Settings\")}}", "testHostClassWildcard2");
+			Scripting.evaluate(new ActionContext(securityContext), null, "${{Java.type(\"java.util.Date\")}}", "testHostClassWildcard3");
+			Scripting.evaluate(new ActionContext(securityContext), null, "${{try{Java.type(\"org.forbidden.package.SecretClass\");} catch (ex) {$.log(\"Expected exception caught. \" + ex);}}}", "testHostClassWildcard4");
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception");
 		}
 	}
 

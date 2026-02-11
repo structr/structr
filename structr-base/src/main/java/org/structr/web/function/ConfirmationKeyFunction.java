@@ -20,6 +20,7 @@ package org.structr.web.function;
 
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.schema.action.ActionContext;
 
@@ -60,5 +61,10 @@ public class ConfirmationKeyFunction extends UiCommunityFunction {
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Security;
 	}
 }

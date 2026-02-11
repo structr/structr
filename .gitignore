@@ -27,6 +27,8 @@ structr-app/*.key*
 structr-app/src/main/resources/structr/index.html
 structr-app/src/test/playwright-ui-tests/*.png*
 structr-app/src/test/ui/test-results
+structr-app/src/test/playwright-ui-tests/*.env
+structr-app/src/test/playwright-ui-tests/screenshots
 **/logs
 *.diff
 **nb-configuration.xml

@@ -1295,22 +1295,23 @@ public class DeployDataCommand extends DeployCommand {
 
 	@Override
 	public String getShortDescription() {
-		return "Creates a Data Deployment Export or Import of the application data.";
+		return "Exports or imports application data.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "This command reads or writes a text-based export of the application data (not the application itself) that can be stored in a version control system.";
+		return """
+        Exports or imports data only, not the schema or application structure. Use this for backing up or migrating data between environments.
+        """;
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-
 		return List.of(
-			Parameter.mandatory("mode", "deployment mode, `import` or `export`"),
-			Parameter.optional("source", "source folder for `import` mode"),
-			Parameter.optional("target", "target folder for `export` mode"),
-			Parameter.optional("types", "comma-separated list of data types to export")
+			Parameter.mandatory("mode", "`import` or `export`"),
+			Parameter.optional("source", "Source folder path (required for import)"),
+			Parameter.optional("target", "Target folder path (required for export)"),
+			Parameter.optional("types", "Comma-separated list of types to export")
 		);
 	}
 

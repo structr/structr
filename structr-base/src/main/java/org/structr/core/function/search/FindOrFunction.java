@@ -22,6 +22,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.function.CoreFunction;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -31,6 +32,11 @@ public class FindOrFunction extends CoreFunction {
 	@Override
 	public String getName() {
 		return "find.or";
+	}
+
+	@Override
+	public String getDisplayName(boolean includeParameters) {
+		return "predicate.or";
 	}
 
 	@Override
@@ -72,11 +78,6 @@ public class FindOrFunction extends CoreFunction {
 	}
 
 	@Override
-	public boolean isHidden() {
-		return true;
-	}
-
-	@Override
 	public List<Signature> getSignatures() {
 		return Signature.forAllScriptingLanguages("predicates");
 	}
@@ -99,5 +100,10 @@ public class FindOrFunction extends CoreFunction {
 				handleParameter(orPredicate, o);
 			}
 		}
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Database;
 	}
 }

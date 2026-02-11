@@ -25,6 +25,7 @@ import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -139,5 +140,10 @@ public class ToGraphObjectFunction extends UiCommunityFunction {
 		return List.of(
 				"Since strings can not be converted to graph objects but it can be desirable to use collections of strings in repeaters (e.g. the return value of the `inheriting_types()` function), collections of strings are treated specially and converted to graph objects with `value` => `<string>` as its result. (see example 2)"
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Conversion;
 	}
 }

@@ -27,6 +27,7 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 import org.structr.docs.*;
+import org.structr.docs.ontology.ConceptType;
 
 import java.util.List;
 import java.util.Map;
@@ -105,6 +106,7 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 		return DocumentableType.MaintenanceCommand;
 	}
 
+
 	@Override
 	public String getName() {
 		return "copyRelationshipProperties";
@@ -112,19 +114,19 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 
 	@Override
 	public String getShortDescription() {
-		return "Copies relationship properties from one key to another.";
+		return "Copies property values from one key to another on all relationships.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return null;
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 		return List.of(
-			Parameter.mandatory("sourceKey", "source key"),
-			Parameter.mandatory("destKey", "destination key")
+			Parameter.mandatory("sourceKey", "Source property key"),
+			Parameter.mandatory("destKey", "Destination property key")
 		);
 	}
 
@@ -151,5 +153,10 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 	@Override
 	public List<Usage> getUsages() {
 		return List.of();
+	}
+
+	@Override
+	public final List<ConceptReference> getParentConcepts() {
+		return List.of(ConceptReference.of(ConceptType.Topic, "Maintenance Commands"));
 	}
 }

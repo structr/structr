@@ -23,6 +23,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -103,5 +104,10 @@ public class CopyPermissionsFunction extends CoreFunction {
 		return List.of(
 			"This function **only** changes target node permissions that are also present on the source node."
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.AccessControl;
 	}
 }

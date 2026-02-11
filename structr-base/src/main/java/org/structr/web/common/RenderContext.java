@@ -29,7 +29,7 @@ import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
-import org.structr.common.RequestKeywords;
+import org.structr.common.RequestParameters;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -146,7 +146,7 @@ public class RenderContext extends ActionContext {
 
 	public static RenderContext getInstance(final SecurityContext securityContext, final HttpServletRequest request, HttpServletResponse response) {
 
-		final String editString = StringUtils.defaultString(request.getParameter(RequestKeywords.EditMode.keyword()));
+		final String editString = StringUtils.defaultString(request.getParameter(RequestParameters.EditMode.getName()));
 
 		return new RenderContext(securityContext, request, response, editMode(editString));
 

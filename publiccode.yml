@@ -1,0 +1,132 @@
+publiccodeYmlVersion: "0.5"
+
+name: Structr
+softwareVersion: "6.1.0"
+releaseDate: "2026-01-29"
+
+url: "https://github.com/structr/structr"
+landingURL: "https://structr.org"
+
+platforms:
+  - web
+
+categories:
+  - application-development
+  - content-management
+  - digital-asset-management
+  - data-collection
+  - document-management
+  - knowledge-management
+
+developmentStatus: stable
+softwareType: "standalone/web"
+
+intendedAudience:
+  countries:
+    - DE
+
+description:
+  en:
+    shortDescription: >
+      Generic open source low-code development and runtime platform based on graph
+      technology for building fully custom applications.
+    longDescription: |
+      Structr is a generic low-code development and runtime platform built on a graph
+      database. It is not tied to any specific domain or predefined use case and
+      provides full flexibility and extensibility to create custom applications within
+      its scope (web apps, graph-backed backends, middleware/integration components).
+
+      Graph database foundation:
+      Structr uses a graph database to store both (a) application components (schema,
+      types, UI building blocks, templates, scripts, flows) and (b) the default
+      application/user data. This provides schema flexibility, fast graph traversals,
+      and high performance for complex domains.
+
+      Dual UI model (developer/admin vs end-user):
+      Structr provides a web-based Developer/Admin UI (Structr IDE) with no-code,
+      low-code and pro-code tools to modify the “application graph” (the part of the
+      database that defines the application). Developers typically do not edit a raw
+      application source tree; they edit schemas, isolated script expressions/methods,
+      HTML templates, and virtual files stored in the graph. Using these tools,
+      developers create the end-user facing web UI.
+
+      JSON Schema interoperability:
+      The database schema can be represented as JSON Schema (https://json-schema.org)
+      and supports import/export.
+
+      Polyglot development:
+      Structr supports multiple programming languages via GraalVM: application logic
+      and dynamic content can be implemented using any language supported by GraalVM.
+
+      Files & content:
+      Structr provides an internal virtual filesystem for managing images, videos and
+      binary content with custom metadata. Binary data can be stored externally using
+      file storage providers; S3 repositories are supported. Structr also supports
+      “dynamic files”: virtual files whose content is generated in real time via
+      scripts that evaluate graph data and may integrate external data sources or
+      user input. Files can be accessed through supported protocols (e.g. HTTP, FTP,
+      SSH/SCP) depending on deployment/configuration.
+
+      Integration & protocols (selected):
+      - APIs: REST/JSON
+      - Messaging / pub-sub: AMQP (e.g. RabbitMQ), Kafka, Pulsar, XMPP
+      - Mail: SMTP (outbound), IMAP
+      - File access / storage: HTTP, S3, FTP, SSH/SCP
+      - Optional integrations: OAuth providers (SSO), LDAP-compatible services
+
+      AI & automation:
+      Structr can be used with AI to create apps and to interact with Structr
+      applications and managed data through MCP.
+
+      Support & websites:
+      Community site, forum and documentation are available at https://structr.org.
+      Commercial offerings (including commercial support and custom development) are
+      available from Structr GmbH at https://structr.com.
+
+      Licensing:
+      Structr is dual-licensed: open source (GPLv3/AGPLv3) and commercial/individual
+      licensing options.
+
+      Data protection & hosting:
+      Structr GmbH is based in Germany (EU). Deployments can be aligned with GDPR
+      requirements depending on configuration and operational context; standard
+      hosting on German/EU-based providers is available.
+    documentation: "https://structr.org"
+    features:
+      - "Generic low-code platform (no-code / low-code / pro-code) for fully custom applications"
+      - "Graph-native application model and default data storage (Neo4j 4.4+)"
+      - "Web-based Developer/Admin UI (Structr IDE) for schema, data, UI, scripts and operations"
+      - "End-user web UI creation via templates, schema-defined types and scripts"
+      - "Polyglot scripting via GraalVM (any GraalVM-supported language)"
+      - "Schema representation as JSON Schema with import/export"
+      - "REST/JSON APIs for integration"
+      - "Event-driven / pub-sub integration (AMQP/RabbitMQ, Kafka, Pulsar, XMPP)"
+      - "Virtual filesystem with custom metadata; optional external binary storage (S3)"
+      - "Dynamic files generated at runtime via scripts"
+      - "File access via HTTP, FTP and SSH/SCP (depending on deployment/configuration)"
+      - "Email integration via SMTP and IMAP (depending on configuration)"
+      - "Optional identity/SSO integration (OAuth providers, LDAP-compatible services)"
+      - "AI-assisted creation and interaction via MCP"
+
+legal:
+  license: "AGPL-3.0-or-later OR GPL-3.0-or-later"
+  mainCopyrightOwner: "Structr GmbH"
+
+maintenance:
+  type: internal
+  contacts:
+    - name: "Axel Morgner"
+      email: "axel.morgner@structr.com"
+      affiliation: "Structr GmbH"
+
+localisation:
+  localisationReady: true
+  availableLanguages:
+    - en
+
+dependsOn:
+  open:
+    - name: "Neo4j"
+      versionMin: "4.4"
+    - name: "GraalVM JDK"
+      version: "25"

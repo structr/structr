@@ -27,6 +27,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
@@ -119,9 +120,29 @@ public class FileImportVisitor implements FileVisitor<Path> {
 		final Set<String> configuredButNotEncounteredPaths = new HashSet<>(metadata.keySet());
 		encounteredPaths.forEach(configuredButNotEncounteredPaths::remove);
 
-		for (final String pathString : configuredButNotEncounteredPaths) {
+		final List<String> sortedPaths   = configuredButNotEncounteredPaths.stream().sorted().toList();
+		final BooleanProperty isTemplate = new BooleanProperty("isTemplate");
 
-			createFolderFromMetadata(pathString);
+		for (final String pathString : sortedPaths) {
+
+			try (final Tx tx = app.tx(true, false, false)) {
+
+				tx.disableChangelog();
+
+				// folders do not have the key "isTemplate" - cheaper than trying to identify subtypes of "Folder"
+				final PropertyMap map  = getConvertedPropertiesForFileOrFolder(pathString);
+				final boolean isFolder = !map.containsKey(isTemplate);
+
+				if (isFolder) {
+					createFolderFromMetadata(pathString);
+				}
+
+				tx.success();
+
+			} catch (FrameworkException e) {
+
+				logger.warn("Exception while attempting to identify/import metadata-only folder {}: {}", pathString, e.getMessage());
+			}
 		}
 	}
 

@@ -40,6 +40,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
+import org.structr.docs.Documentation;
 import org.structr.rest.common.HttpHelper;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
@@ -55,6 +56,7 @@ import java.util.Map;
 /**
  * Servlet for proxy requests.
  */
+@Documentation(name="ProxyServlet", parent="Servlets", children={ "ProxyServlet Settings" })
 public class ProxyServlet extends AbstractServletBase implements HttpServiceServlet {
 
 	private static final Logger logger = LoggerFactory.getLogger(ProxyServlet.class.getName());

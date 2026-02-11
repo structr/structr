@@ -26,6 +26,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.importer.ScriptJob;
 
@@ -41,7 +42,7 @@ public class ScheduleFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("script [, title ]");
+		return Signature.forAllScriptingLanguages("function [, title, [ onFinish ]]");
 	}
 
 	@Override
@@ -82,8 +83,8 @@ public class ScheduleFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${schedule(expression[, title])}."),
-			Usage.javaScript("Usage: ${{$.schedule(expression[, title])}}.")
+			Usage.structrScript("Usage: ${schedule(function [, title, [ onFinish ]])}."),
+			Usage.javaScript("Usage: ${{$.schedule(function [, title, [ onFinish ]])}}.")
 		);
 	}
 
@@ -98,7 +99,7 @@ public class ScheduleFunction extends UiAdvancedFunction {
 		Allows the user to insert a script snippet into the import queue for later execution. 
 		Useful in situations where a script should run after a long-running import job, or if the script should run in 
 		a separate transaction that is independent of the calling transaction.
-		The `title` parameter is optional and is displayed in the Structr admin UI in the Importer section and in the 
+		The `title` parameter is optional and is displayed in the Structr admin UI in the Job Queue section and in the 
 		notification messages when a script is started or finished.
 		The `onFinish` parameter is a script snippet which will be called when the process finishes (successfully or with an exception).
 		A parameter `jobInfo` is injected in the context of the `onFinish` function (see `job_info()` for more information on this object).
@@ -138,9 +139,14 @@ public class ScheduleFunction extends UiAdvancedFunction {
 	public List<Parameter> getParameters() {
 
 		return List.of(
-				Parameter.mandatory("expression", "function to run later"),
-				Parameter.optional("title", "title of schedule"),
+				Parameter.mandatory("function", "function to run later"),
+				Parameter.optional("title", "title of scheduled function to be shown in job queue"),
 				Parameter.optional("onFinish", "function to be called when main expression finished")
-				);
+		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Scripting;
 	}
 }

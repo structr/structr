@@ -40,6 +40,8 @@ import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnDeletion;
 import org.structr.core.traits.operations.graphobject.OnModification;
+import org.structr.docs.Documentation;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.files.external.DirectoryWatchService;
 import org.structr.web.entity.Folder;
 import org.structr.web.traits.wrappers.FolderTraitWrapper;
@@ -160,7 +162,7 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Boolean> mountWatchContentsProperty                = new BooleanProperty(MOUNT_WATCH_CONTENTS_PROPERTY);
 		final Property<Integer> mountScanIntervalProperty                 = new IntProperty(MOUNT_SCAN_INTERVAL_PROPERTY);
 		final Property<Integer> positionProperty                          = new IntProperty(POSITION_PROPERTY).indexed();		// FIXME: Is Folder.position ever used? sort order is alphabetically I think
-		final Property<String> enabledChecksumsProperty                   = new StringProperty(ENABLED_CHECKSUMS_PROPERTY).description("override for the global checksums setting, allows you to enable or disable individual checksums for all files in this folder (and sub-folders)");
+		final Property<String> enabledChecksumsProperty                   = new StringProperty(ENABLED_CHECKSUMS_PROPERTY).description("Override for the global checksums setting, allows you to enable or disable individual checksums for all files in this folder (and sub-folders).");
 		final Property<String> mountTargetProperty                        = new StringProperty(MOUNT_TARGET_PROPERTY).indexed();
 		final Property<String> mountTargetFileTypeProperty                = new StringProperty(MOUNT_TARGET_FILE_TYPE_PROPERTY);
 		final Property<String> mountTargetFolderTypeProperty              = new StringProperty(MOUNT_TARGET_FOLDER_TYPE_PROPERTY);
@@ -218,28 +220,8 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public String getShortDescription() {
-		return "This type is one of Structr's built-in types for organizing files and creating hierarchical structures within your application.";
-	}
-
-	@Override
-	public String getLongDescription() {
-
-		return """
-		### How Folders Work
-		Folder nodes represent directories in Structr's file system and provide a way to group and organize File nodes. Folders in Structr are stored as nodes in the database and can contain both files and other folders (subfolders). Each Folder node has properties like name and path, and can be queried, secured, and manipulated like any other node type. Folders can be created through the Structr UI, via the REST API, or programmatically.
-
-		### Folder Hierarchy
-		Folders create a tree-like structure by establishing parent-child relationships with other folders and files. A folder can have a parent folder and can contain multiple child folders and files. This creates a familiar file system hierarchy that mirrors traditional directory structures.
-
-		### Common Use Cases
-		- Folders are used for organizing uploaded files by type, user, project, or any other logical grouping that fits your application's needs.
-		- Folders help structure application resources like separating images, stylesheets, scripts, and documents into distinct directories.
-		- Folders enable permission management at the directory level, allowing you to control access to entire groups of files at once.
-		
-		### External Storage
-		tbd
-		""";
+	public boolean includeInDocumentation() {
+		return true;
 	}
 
 	// ----- private static methods -----

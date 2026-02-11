@@ -28,6 +28,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.docs.*;
+import org.structr.docs.ontology.ConceptType;
 
 import java.util.List;
 import java.util.Map;
@@ -187,22 +188,21 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 	@Override
 	public String getShortDescription() {
-		return "Adds UUIDs to all nodes and relationships that don’t have a value in their `id` property.";
+		return "Generates UUIDs for nodes and relationships that lack an `id` property.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return null;
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-
 		return List.of(
-			Parameter.optional("type", "if set, this command will only be applied to nodes with the given type"),
-			Parameter.optional("relType", "if set, this command will only be applied to relationships with the given type"),
-			Parameter.optional("allNodes", "if set to `true`, this command will only be applied to nodes"),
-			Parameter.optional("allRels", "if set to `true`, this command will only be applied to relationships")
+			Parameter.optional("type", "Limit to this node type"),
+			Parameter.optional("relType", "Limit to this relationship type"),
+			Parameter.optional("allNodes", "Apply to all nodes"),
+			Parameter.optional("allRels", "Apply to all relationships")
 		);
 	}
 
@@ -229,5 +229,10 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 	@Override
 	public List<Usage> getUsages() {
 		return List.of();
+	}
+
+	@Override
+	public final List<ConceptReference> getParentConcepts() {
+		return List.of(ConceptReference.of(ConceptType.Topic, "Maintenance Commands"));
 	}
 }

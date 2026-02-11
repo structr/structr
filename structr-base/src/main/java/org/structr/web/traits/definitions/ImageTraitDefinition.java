@@ -40,6 +40,8 @@ import org.structr.core.traits.operations.accesscontrollable.IsGranted;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.operations.propertycontainer.SetProperties;
 import org.structr.core.traits.operations.propertycontainer.SetProperty;
+import org.structr.docs.Documentation;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.Image;
 import org.structr.web.property.ImageDataProperty;
@@ -237,12 +239,12 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Boolean> isImageProperty                    = new ConstantBooleanProperty(IS_IMAGE_PROPERTY, true).readOnly();
 		final Property<Boolean> isThumbnailProperty                = new BooleanProperty(IS_THUMBNAIL_PROPERTY).indexed();
 		final Property<Boolean> thumbnailCreationFailedProperty    = new BooleanProperty(THUMBNAIL_CREATION_FAILED_PROPERTY);
-		final Property<Integer> heightProperty                     = new IntProperty(HEIGHT_PROPERTY).indexed().description("height of this image");
-		final Property<Integer> orientationProperty                = new IntProperty(ORIENTATION_PROPERTY).indexed().description("orientation of this image");
-		final Property<Integer> widthProperty                      = new IntProperty(WIDTH_PROPERTY).indexed().description("width of this image");
-		final Property<String> exifIFD0DataProperty                = new StringProperty(EXIF_IFD0_DATA_PROPERTY).description("Exif IFD0 data");
-		final Property<String> exifSubIFDDataProperty              = new StringProperty(EXIF_SUB_IFD_DATA_PROPERTY).description("Exif SubIFD data");
-		final Property<String> gpsDataProperty                     = new StringProperty(GPS_DATA_PROPERTY).description("GPS data");
+		final Property<Integer> heightProperty                     = new IntProperty(HEIGHT_PROPERTY).indexed().description("Height of this image.");
+		final Property<Integer> orientationProperty                = new IntProperty(ORIENTATION_PROPERTY).indexed().description("Orientation of this image.");
+		final Property<Integer> widthProperty                      = new IntProperty(WIDTH_PROPERTY).indexed().description("Width of this image.");
+		final Property<String> exifIFD0DataProperty                = new StringProperty(EXIF_IFD0_DATA_PROPERTY).description("Exif IFD0 data.");
+		final Property<String> exifSubIFDDataProperty              = new StringProperty(EXIF_SUB_IFD_DATA_PROPERTY).description("Exif SubIFD data.");
+		final Property<String> gpsDataProperty                     = new StringProperty(GPS_DATA_PROPERTY).description("GPS data.");
 		final Property<String> imageDataProperty                   = new ImageDataProperty(IMAGE_DATA_PROPERTY).typeHint("String").disableSerialization(true);
 
 		return Set.of(
@@ -290,20 +292,7 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public String getShortDescription() {
-		return "This type allows you to handle images within your application.";
-	}
-
-	@Override
-	public String getLongDescription() {
-
-		return """
-		### How It Works
-		Image nodes store information about images and include built-in properties and methods that make it easy to use images in your application.
-
-		### Common Use Cases
-		- You can store images in the Structr filesystem to use them as static resources in your web application.
-		- You can extend the data model to link images (and other files as well) with other types in your data model.
-		""";
+	public boolean includeInDocumentation() {
+		return true;
 	}
 }

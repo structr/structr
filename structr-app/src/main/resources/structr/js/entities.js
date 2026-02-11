@@ -2255,6 +2255,8 @@ let _Entities = {
 			location.hash = 'pages';
 		}
 
+		await _Helpers.waitForElement('.' + _Pages.classIndicatorEverythingReady, { childList: true, subtree: true, attributes: true });
+
 		let tab = await _Helpers.waitForElement('#' + tabId);
 		if (!tab.classList.contains('active')) {
 			tab.click();

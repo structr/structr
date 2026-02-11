@@ -18,12 +18,12 @@
  */
 package org.structr.autocomplete.keywords;
 
-import org.structr.autocomplete.KeywordHint;
+import org.structr.autocomplete.GeneralKeywordHint;
 import org.structr.docs.Example;
 
 import java.util.List;
 
-public class LocaleHint extends KeywordHint {
+public class LocaleHint extends GeneralKeywordHint {
 
 	@Override
 	public String getName() {
@@ -57,10 +57,5 @@ public class LocaleHint extends KeywordHint {
 			}}
 			""", "Print the current locale of a request to the log file")
 		);
-	}
-
-	@Override
-	public List<String> getNotes() {
-		return null;
 	}
 }

@@ -26,9 +26,11 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.jetty.alpn.server.ALPNServerConnectionFactory;
+import org.eclipse.jetty.ee10.servlet.FilterHolder;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.ee10.servlet.SessionHandler;
+import org.eclipse.jetty.ee10.servlets.DoSFilter;
 import org.eclipse.jetty.http.*;
 import org.eclipse.jetty.http2.WindowRateControl;
 import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
@@ -55,6 +57,7 @@ import org.structr.rest.auth.SessionHelper;
 import org.structr.rest.common.MetricsFilter;
 import org.structr.rest.common.Stats;
 import org.structr.rest.common.StatsCallback;
+import org.structr.rest.servlet.DocumentationServlet;
 import org.structr.rest.servlet.MetricsServlet;
 import org.structr.schema.SchemaService;
 import org.structr.websocket.servlet.WebSocketConfigurator;
@@ -84,6 +87,7 @@ public class HttpService implements RunnableService, StatsCallback {
 	}
 
 	private final Map<String, Map<String, Stats>> stats = new ConcurrentHashMap<>();
+	private ResourceHandler exportedResourceHandler     = null;
 	private SslContextFactory.Server sslContextFactory  = null;
 	private DefaultSessionCache sessionCache            = null;
 	private GzipHandler gzipHandler                     = null;
@@ -202,6 +206,14 @@ public class HttpService implements RunnableService, StatsCallback {
 
 	@Override
 	public void injectArguments(Command command) {
+	}
+
+	public Server getServer() {
+		return server;
+	}
+
+	public ResourceHandler getExportedResourceHandler() {
+		return exportedResourceHandler;
 	}
 
 	@Override
@@ -334,6 +346,8 @@ public class HttpService implements RunnableService, StatsCallback {
 			context.addAliasCheck((pathInContext, resource) -> resource.exists());
 
 			contexts.addHandler(context);
+
+			exportedResourceHandler = resourceHandler;
 		}
 
 		if (Settings.ConfigServletEnabled.getValue()) {
@@ -414,6 +428,32 @@ public class HttpService implements RunnableService, StatsCallback {
 		// only add metrics filter if metrics servlet is enabled
 		if (Settings.Servlets.getValue("").contains(MetricsServlet.class.getSimpleName())) {
 			servletContext.addFilter(MetricsFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
+		}
+
+		// docs
+		servletContext.addServlet(DocumentationServlet.class, "/structr/docs/ontology/*");
+		servletContext.addServlet(DocumentationServlet.class, "/structr/docs/ontology");
+
+		// add and configure DoSFilter
+		if (Settings.RateLimiting.getValue()) {
+
+			final FilterHolder holder = new FilterHolder(DoSFilter.class);
+
+			holder.setInitParameter("maxRequestsPerSec", Settings.MaxRequestsPerSec.getValue().toString());
+			holder.setInitParameter("maxRequestsPerSec", Settings.MaxRequestsPerSec.getValue().toString());
+			holder.setInitParameter("delayMs", Settings.DelayMs.getValue().toString());
+			holder.setInitParameter("maxWaitMs", Settings.MaxWaitMs.getValue().toString());
+			holder.setInitParameter("throttledRequests", Settings.ThrottledRequests.getValue().toString());
+			holder.setInitParameter("throttleMs", Settings.ThrottleMs.getValue().toString());
+			holder.setInitParameter("maxRequestMs", Settings.MaxRequestMs.getValue().toString());
+			holder.setInitParameter("maxIdleTrackerMs", Settings.MaxIdleTrackerMs.getValue().toString());
+			holder.setInitParameter("insertHeaders", Settings.InsertHeaders.getValue().toString());
+			holder.setInitParameter("remotePort", Settings.RemotePort.getValue().toString());
+			holder.setInitParameter("ipWhitelist", Settings.IpWhitelist.getValue());
+			holder.setInitParameter("managedAttr", Settings.ManagedAttr.getValue().toString());
+			holder.setInitParameter("tooManyCode", Settings.TooManyCode.getValue().toString());
+
+			servletContext.addFilter(holder, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.ASYNC));
 		}
 
 		// Always add servletContext last because it's terminal in the resource chain

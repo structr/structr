@@ -22,6 +22,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -81,5 +82,10 @@ public class EndsWithFunction extends CoreFunction {
 			Parameter.mandatory("string", "string to check"),
 			Parameter.mandatory("suffix", "suffix to check")
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.String;
 	}
 }

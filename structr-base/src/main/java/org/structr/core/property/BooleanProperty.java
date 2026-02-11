@@ -25,6 +25,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.docs.DocumentableType;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -105,7 +106,7 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 						setProperty(securityContext, entity, fixedValue);
 
 					} catch (FrameworkException fex) {
-						logger.error("Cound not set fixed property {} on graph object {}", new Object[]{fixedValue, entity});
+						logger.error("Cound not set fixed property {} on graph object {}", fixedValue, entity);
 					}
 				}
 
@@ -119,6 +120,17 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 	@Override
 	public boolean isArray() {
 		return false;
+	}
+
+	// ----- interface Documentable -----
+	@Override
+	public String getShortDescription() {
+		return "A property for boolean values.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return null;
 	}
 
 	// ----- OpenAPI -----

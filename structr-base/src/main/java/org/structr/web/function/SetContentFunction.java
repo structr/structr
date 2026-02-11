@@ -27,6 +27,7 @@ import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.File;
 
@@ -136,16 +137,21 @@ public class SetContentFunction extends UiAdvancedFunction {
 	public List<Parameter> getParameters() {
 
 		return List.of(
-				Parameter.mandatory("file", "file node"),
-				Parameter.mandatory("content", "content to set"),
-				Parameter.optional("encoding", "encoding, default: UTF-8")
-				);
+			Parameter.mandatory("file", "file node"),
+			Parameter.mandatory("content", "content to set"),
+			Parameter.optional("encoding", "encoding, default: UTF-8")
+		);
 	}
 
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-				"The `encoding` parameter is used when writing the data to the file. The default (`UTF-8`) rarely needs to be changed but can be very useful when working with binary strings. For example when using the `toExcel()` function."
+			"The `encoding` parameter is used when writing the data to the file. The default (`UTF-8`) rarely needs to be changed but can be very useful when working with binary strings. For example when using the `toExcel()` function."
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.InputOutput;
 	}
 }

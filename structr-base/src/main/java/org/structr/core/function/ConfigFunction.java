@@ -22,12 +22,14 @@ import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -49,10 +51,14 @@ public class ConfigFunction extends AdvancedScriptingFunction {
 
 		try {
 
-			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2);
+			try {
+				assert (sources.length >= 1 && sources.length <= 2);
+			} catch (AssertionError e) {
+				throw new ArgumentCountException("Expected 1 or 2 arguments, but got " + sources.length + ".");
+			}
 
 			final String configKey    = sources[0].toString();
-			final String defaultValue = sources.length >= 2 ? sources[1].toString() : "";
+			final String defaultValue = sources.length >= 2 ? sources[1].toString() : null;
 			Setting setting           = Settings.getSetting(configKey);
 
 			if (setting == null) {
@@ -125,5 +131,10 @@ public class ConfigFunction extends AdvancedScriptingFunction {
 		return List.of(
 			"For security reasons the superuser password can not be read with this function."
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.InputOutput;
 	}
 }

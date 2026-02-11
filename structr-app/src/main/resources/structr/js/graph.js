@@ -913,7 +913,11 @@ let _Graph = {
 		}
 
 		_Graph.clickTimeout = window.setTimeout(() => {
-			_Entities.showProperties(node);
+			let fixedNode = {
+				type: node.nodeType,
+				...node
+			};
+			_Entities.showProperties(fixedNode);
 		}, _Graph.doubleClickTime);
 
 		window.setTimeout(() => {
@@ -929,7 +933,12 @@ let _Graph = {
 
 		_Graph.hasDoubleClicked = false;
 
-		_Entities.showProperties(clickedEdge.data.edge);
+		let edge = {
+			...(clickedEdge.data.edge),
+			type: clickedEdge.data.edge.relType	// edge contains type: 'arrow', so we put this second
+		};
+
+		_Entities.showProperties(edge);
 	},
 	renderNodeExpanderInfoButton: (colorKey, label) => {
 		return `

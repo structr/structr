@@ -30,6 +30,8 @@ import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.docs.Documentation;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
@@ -173,5 +175,10 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Relation getRelation() {
 		return null;
+	}
+
+	@Override
+	public boolean includeInDocumentation() {
+		return true;
 	}
 }

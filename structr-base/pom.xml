@@ -8,12 +8,12 @@
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>6.1-SNAPSHOT</version>
+        <version>6.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>structr-base</artifactId>
     <packaging>jar</packaging>
-    <version>6.1-SNAPSHOT</version>
+    <version>6.2-SNAPSHOT</version>
 
     <dependencies>
         <dependency>
@@ -348,6 +348,29 @@
             <groupId>org.antlr</groupId>
             <artifactId>antlr4-runtime</artifactId>
         </dependency>
+        <!-- Storage Provider -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>netty-nio-client</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>apache-client</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>url-connection-client</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>netty-nio-client</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.eclipse.elk</groupId>
             <artifactId>org.eclipse.elk.core</artifactId>
@@ -394,11 +417,12 @@
             <groupId>org.shredzone.acme4j</groupId>
             <artifactId>acme4j-client</artifactId>
             <version>3.4.0</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>org.shredzone.acme4j</groupId>
-            <artifactId>acme4j-client</artifactId>
-            <version>3.4.0</version>
+            <groupId>org.apache.pulsar</groupId>
+            <artifactId>pulsar-client</artifactId>
+            <version>4.0.5</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
@@ -541,6 +565,10 @@
                         <groupId>io.fabric8</groupId>
                         <artifactId>docker-maven-plugin</artifactId>
                         <version>${docker.maven.plugin.version}</version>
+                        <configuration>
+                            <skip>${skipDockerTestDB}</skip>
+                            <skipRun>${skipDockerTestDB}</skipRun>
+                        </configuration>
                         <executions>
                             <execution>
                                 <id>prepare-database</id>
@@ -570,7 +598,6 @@
                                             </run>
                                         </image>
                                     </images>
-                                    <skip>${skipDockerTestDB}</skip>
                                 </configuration>
                             </execution>
                             <execution>
@@ -581,7 +608,6 @@
                                 </goals>
                                 <configuration>
                                     <executeStopOnVMShutdown>true</executeStopOnVMShutdown>
-                                    <skip>${skipDockerTestDB}</skip>
                                 </configuration>
                             </execution>
                         </executions>
@@ -627,7 +653,7 @@
             <name>GNU Affero General Public License, Version 3</name>
             <url>http://www.gnu.org/licenses/agpl-3.0-standalone.html</url>
             <comments>
-                Copyright (C) 2010-2025 Structr GmbH
+                Copyright (C) 2010-2026 Structr GmbH
 
                 This file is part of Structr &lt;http://structr.org&gt;.
 

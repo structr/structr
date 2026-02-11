@@ -57,25 +57,25 @@ public class EMailMessageTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> attachedFilesProperty = new EndNodes(traitsInstance, ATTACHED_FILES_PROPERTY, StructrTraits.EMAIL_MESSAGE_HAS_ATTACHMENT_FILE).description("").description("files that were attached to this message");
-		final Property<NodeInterface> mailboxProperty                 = new StartNode(traitsInstance, MAILBOX_PROPERTY, StructrTraits.MAILBOX_CONTAINS_EMAIL_MESSAGES_EMAIL_MESSAGE).description("").description("mailbox this message belongs to");
+		final Property<Iterable<NodeInterface>> attachedFilesProperty = new EndNodes(traitsInstance, ATTACHED_FILES_PROPERTY, StructrTraits.EMAIL_MESSAGE_HAS_ATTACHMENT_FILE).description("").description("Files that were attached to this message.");
+		final Property<NodeInterface> mailboxProperty                 = new StartNode(traitsInstance, MAILBOX_PROPERTY, StructrTraits.MAILBOX_CONTAINS_EMAIL_MESSAGES_EMAIL_MESSAGE).description("").description("Mailbox this message belongs to.");
 
-		final Property<String> subjectProperty                        = new StringProperty(SUBJECT_PROPERTY).indexed().description("subject of this message");
-		final Property<String> fromProperty                           = new StringProperty(FROM_PROPERTY).indexed().description("sender name of this message");
-		final Property<String> fromMailProperty                       = new StringProperty(FROM_MAIL_PROPERTY).indexed().description("sender address of this message");
-		final Property<String> toProperty                             = new StringProperty(TO_PROPERTY).indexed().description("recipient of this message");
-		final Property<String> ccProperty                             = new StringProperty(CC_PROPERTY).indexed().description("cc address of this message");
-		final Property<String> bccProperty                            = new StringProperty(BCC_PROPERTY).indexed().description("bcc address of this message");
-		final Property<String> replyToProperty                        = new StringProperty(REPLY_TO_PROPERTY).indexed().description("reply address of this message");
-		final Property<String> contentProperty                        = new StringProperty(CONTENT_PROPERTY).description("plaintext content of this message");
-		final Property<String> htmlContentProperty                    = new StringProperty(HTML_CONTENT_PROPERTY).description("html content of this message");
+		final Property<String> subjectProperty                        = new StringProperty(SUBJECT_PROPERTY).indexed().description("Subject of this message.");
+		final Property<String> fromProperty                           = new StringProperty(FROM_PROPERTY).indexed().description("Sender name of this message.");
+		final Property<String> fromMailProperty                       = new StringProperty(FROM_MAIL_PROPERTY).indexed().description("Sender address of this message.");
+		final Property<String> toProperty                             = new StringProperty(TO_PROPERTY).indexed().description("Recipient of this message.");
+		final Property<String> ccProperty                             = new StringProperty(CC_PROPERTY).indexed().description("CC address of this message.");
+		final Property<String> bccProperty                            = new StringProperty(BCC_PROPERTY).indexed().description("BCC address of this message.");
+		final Property<String> replyToProperty                        = new StringProperty(REPLY_TO_PROPERTY).indexed().description("Reply address of this message.");
+		final Property<String> contentProperty                        = new StringProperty(CONTENT_PROPERTY).description("Plaintext content of this message.");
+		final Property<String> htmlContentProperty                    = new StringProperty(HTML_CONTENT_PROPERTY).description("HTML content of this message.");
 		final Property<String> folderProperty                         = new StringProperty(FOLDER_PROPERTY).indexed();
 		final Property<String> headerProperty                         = new StringProperty(HEADER_PROPERTY);
-		final Property<String> messageIdProperty                      = new StringProperty(MESSAGE_ID_PROPERTY).indexed().description("message id of this message");
-		final Property<String> inReplyToProperty                      = new StringProperty(IN_REPLY_TO_PROPERTY).indexed().description("inReplyTo of this message");
+		final Property<String> messageIdProperty                      = new StringProperty(MESSAGE_ID_PROPERTY).indexed().description("Message id of this message.");
+		final Property<String> inReplyToProperty                      = new StringProperty(IN_REPLY_TO_PROPERTY).indexed().description("inReplyTo of this message.");
 
-		final Property<Date> receivedDateProperty                     = new DateProperty(RECEIVED_DATE_PROPERTY).indexed().description("date this message was received");
-		final Property<Date> sentDateProperty                         = new DateProperty(SENT_DATE_PROPERTY).indexed().description("date this message was sent");
+		final Property<Date> receivedDateProperty                     = new DateProperty(RECEIVED_DATE_PROPERTY).indexed().description("Date this message was received.");
+		final Property<Date> sentDateProperty                         = new DateProperty(SENT_DATE_PROPERTY).indexed().description("Date this message was sent.");
 
 		return newSet(
 			attachedFilesProperty,
@@ -118,19 +118,7 @@ public class EMailMessageTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public String getShortDescription() {
-		return "This type is part of the MailService, which you can use to import emails from different mailboxes into Structr.";
-	}
-
-	@Override
-	public String getLongDescription() {
-
-		return """
-		### How It Works
-		An `EMailMessage` represents an email in the database and can be used to trigger actions in Structr when new emails arrive in a Mailbox. When the MailService is enabled, it queries all Mailbox instances in the database at regular intervals and stores new emails as EMailMessages in the database.
-
-		### Common Use Cases
-		A common use case is to implement an `onCreate()` lifecycle method on the type `EMailMessage` to react to incoming emails, associate them with support tickets etc.
-		""";
+	public boolean includeInDocumentation() {
+		return true;
 	}
 }

@@ -39,10 +39,13 @@ import org.structr.api.index.Index;
 import org.structr.api.index.NewIndexConfig;
 import org.structr.api.search.*;
 import org.structr.api.util.CountResult;
+import org.structr.api.util.Iterables;
 import org.structr.api.util.NodeWithOwnerResult;
 
 import java.time.Duration;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  *
@@ -693,6 +696,78 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 		}
 
 		return new CountResult(nodeCount, relCount, userCount);
+	}
+
+	@Override
+	public List<Map<String, Object>> globalSearch(final Set<String> types, final String searchString) {
+
+		final Map<String, Object> parameters = Map.of("searchString", searchString.toLowerCase());
+
+		if (!types.isEmpty()) {
+
+			final String searchLabels = String.join(" OR ", types);
+			final String tenantId     = getTenantIdentifier();
+			final String labelsClause = (tenantId == null) ? searchLabels : String.format("n:`%s` AND (%s)", tenantId, searchLabels);
+
+			final String cypherQuery = """
+				MATCH (n)
+					WHERE (%s)
+				WITH
+					n, $searchString as searchString
+				WITH
+					n,
+					searchString,
+					[prop IN keys(n)
+						WHERE
+							CASE
+								WHEN n[prop] IS NULL THEN false
+								WHEN n[prop] IS :: STRING THEN toLower(n[prop]) CONTAINS searchString
+								WHEN n[prop] IS :: LIST<STRING> THEN ANY (v IN n[prop] WHERE toLower(v) CONTAINS searchString)
+								ELSE toLower(toString(n[prop])) CONTAINS searchString
+							END
+						| prop] AS matchedKeys,
+					labels(n) as labels
+				WHERE
+					size(matchedKeys) > 0
+				RETURN {
+					id:              n.id,
+					type:            n.type,
+					name:            n.name,
+					keys:            matchedKeys,
+					values:          [key IN matchedKeys |
+					   CASE
+						 WHEN n[key] IS :: LIST<STRING> THEN
+						   head([v IN n[key] WHERE toLower(v) CONTAINS searchString |
+							 {
+							   before: right(substring(v, 0, size(split(toLower(v), searchString)[0])), 24),
+							   match:  substring(v, size(split(toLower(v), searchString)[0]), size(searchString)),
+							   after:  left(substring(v, size(split(toLower(v), searchString)[0]) + size(searchString)), 24)
+							 }
+						   ])
+						 ELSE
+						   {
+							 before: right(substring(toString(n[key]), 0, size(split(toLower(toString(n[key])), searchString)[0])), 24),
+							 match:  substring(toString(n[key]), size(split(toLower(toString(n[key])), searchString)[0]), size(searchString)),
+							 after:  left(substring(toString(n[key]), size(split(toLower(toString(n[key])), searchString)[0]) + size(searchString)), 24)
+						   }
+					   END
+				   ],
+					labels:          labels
+				} AS searchResult
+				""".formatted(labelsClause);
+
+			final Iterable<Map<String, Object>> rawResults = getCurrentTransaction().run(new SimpleCypherQuery(cypherQuery, parameters));
+			final List<Map<String, Object>> results        = new LinkedList<>();
+
+			for (final Map<String, Object> result : rawResults) {
+
+				results.add((Map) result.get("searchResult"));
+			}
+
+			return results;
+		}
+
+		return List.of();
 	}
 
 	@Override

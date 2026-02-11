@@ -1,0 +1,7 @@
+#
+# 0-blacklist.txt
+#
+# This file defines all the words and phrases that should NOT be imported into the ontology.
+# It should be loaded first.
+#
+

@@ -1,0 +1,116 @@
+#
+# hierarchy.txt
+#
+# This file defines the hierarchical structure of the documentation ontology.
+#
+
+# The word "Structr" is the root of the ontology
+Structr has new topics "Introduction", "Building Applications", "Admin User Interface", "REST Interface", "Security", "APIs & Integrations", "Operations", "Expert Topics", "Tutorials", "References"
+
+
+# Introduction
+Topic "Introduction" has markdown-file "articles/Introduction/Core Concepts.md"
+Topic "Introduction" has markdown-file "articles/Introduction/Getting Started.md"
+Topic "Introduction" has markdown-file "articles/Introduction/First Steps.md"
+
+
+
+
+
+# Building Applications
+Topic "Building Applications" has markdown-file "articles/Building Applications/Overview.md"
+Topic "Building Applications" has markdown-file "articles/Building Applications/Data Model.md"
+Topic "Building Applications" has markdown-file "articles/Building Applications/Data Creation & Import.md"
+Topic "Building Applications" has markdown-file "articles/Building Applications/Pages & Templates.md"
+Topic "Building Applications" has markdown-file "articles/Building Applications/Navigation & Routing.md"
+Topic "Building Applications" has markdown-file "articles/Building Applications/Dynamic Content.md"
+Topic "Building Applications" has markdown-file "articles/Building Applications/Event Action Mapping.md"
+Topic "Building Applications" has markdown-file "articles/Building Applications/Business Logic.md"
+Topic "Building Applications" has markdown-file "articles/Building Applications/Scheduled Tasks.md"
+Topic "Building Applications" has markdown-file "articles/Building Applications/Best Practices.md"
+Topic "Building Applications" has markdown-file "articles/Building Applications/Troubleshooting.md"
+
+    "Rendering options" has topics "Load / Update Mode" as table, "Delay or Interval (ms)"
+        "Load / Update Mode" has description "This setting allows you to enable delayed rendering or lazy loading for this element."
+        "Load / Update Mode" has constant "Eager" with description "Renders the element in the initial server-side rendering run."
+        "Load / Update Mode" has constant "When page has finished loading" with description "Renders the element after the initial rendering run is done."
+        "Load / Update Mode" has constant "With a delay after page has finished loading" with description "Renders the element after a configurable number of milliseconds after the page has finished loading."
+        "Load / Update Mode" has constant "When element becomes visible" with description "Renders the element when it is scrolled into view."
+        "Load / Update Mode" has constant "With periodic updates" with description "Renders the element and refreshes its content after a configurable number of milliseconds."
+        "Delay or Interval (ms)" has description "Configures the number of milliseconds for delayed and / or periodic refresh according to the load / update mode setting above."
+
+
+# Admin User Interface
+Topic "Admin User Interface" has markdown-file "articles/Admin User Interface/Overview.md"
+Topic "Admin User Interface" has markdown-file "articles/Admin User Interface/Dashboard.md"
+Topic "Admin User Interface" has markdown-file "articles/Admin User Interface/Admin Console.md"
+Topic "Admin User Interface" has markdown-file "articles/Admin User Interface/Schema.md"
+Topic "Admin User Interface" has markdown-file "articles/Admin User Interface/Data.md"
+Topic "Admin User Interface" has markdown-file "articles/Admin User Interface/Pages.md"
+Topic "Admin User Interface" has markdown-file "articles/Admin User Interface/Security.md"
+Topic "Admin User Interface" has markdown-file "articles/Admin User Interface/Code.md"
+Topic "Admin User Interface" has markdown-file "articles/Admin User Interface/Files.md"
+Topic "Admin User Interface" has markdown-file "articles/Admin User Interface/Graph.md"
+Topic "Admin User Interface" has markdown-file "articles/Admin User Interface/Flows.md"
+Topic "Admin User Interface" has markdown-file "articles/Admin User Interface/Job Queue.md"
+Topic "Admin User Interface" has markdown-file "articles/Admin User Interface/Localization.md"
+Topic "Admin User Interface" has markdown-file "articles/Admin User Interface/Virtual Types.md"
+Topic "Admin User Interface" has markdown-file "articles/Admin User Interface/Mail Templates.md"
+Topic "Admin User Interface" has markdown-file "articles/Admin User Interface/Configuration Interface.md"
+
+
+
+
+# REST Interface
+Topic "REST Interface" has markdown-file "articles/REST Interface/Overview.md"
+Topic "REST Interface" has markdown-file "articles/REST Interface/Authentication.md"
+Topic "REST Interface" has markdown-file "articles/REST Interface/Data Access.md"
+Topic "REST Interface" has markdown-file "articles/REST Interface/Virtual Types.md"
+
+Topic "REST Interface" has topics "System endpoints" as table, "Servlets" as table, "Request parameters" as table, "Request headers" as table
+
+
+
+# APIs & Integrations
+Topic "APIs & Integrations" has markdown-file "articles/APIs & Integrations/Email.md"
+Topic "APIs & Integrations" has markdown-file "articles/APIs & Integrations/OpenAPI.md"
+Topic "APIs & Integrations" has markdown-file "articles/APIs & Integrations/JDBC.md"
+Topic "APIs & Integrations" has markdown-file "articles/APIs & Integrations/MongoDB.md"
+Topic "APIs & Integrations" has markdown-file "articles/APIs & Integrations/FTP.md"
+Topic "APIs & Integrations" has markdown-file "articles/APIs & Integrations/Message Brokers.md"
+Topic "APIs & Integrations" has markdown-file "articles/APIs & Integrations/Server-Sent Events.md"
+Topic "APIs & Integrations" has markdown-file "articles/APIs & Integrations/Host Script Execution.md"
+Topic "APIs & Integrations" has markdown-file "articles/APIs & Integrations/RSS Feeds.md"
+Topic "APIs & Integrations" has markdown-file "articles/APIs & Integrations/Spatial.md"
+
+
+# Security
+Topic "Security" has markdown-file "articles/Security/Overview.md"
+Topic "Security" has markdown-file "articles/Security/User Management.md"
+Topic "Security" has markdown-file "articles/Security/Two Factor Authentication.md"
+Topic "Security" has markdown-file "articles/Security/JWT Authentication.md"
+Topic "Security" has markdown-file "articles/Security/OAuth.md"
+Topic "Security" has markdown-file "articles/Security/SSL Configuration.md"
+Topic "Security" has markdown-file "articles/Security/SSH Access.md"
+Topic "Security" has markdown-file "articles/Security/Rate Limiting.md"
+
+# Operations
+"Operations" has markdown-file "articles/Operations/Configuration.md"
+"Operations" has markdown-file "articles/Operations/Application Lifecycle.md"
+"Operations" has markdown-file "articles/Operations/Backup & Recovery.md"
+"Operations" has markdown-file "articles/Operations/Multi-Site Hosting.md"
+"Operations" has markdown-file "articles/Operations/Filesystem.md"
+"Operations" has markdown-file "articles/Operations/Maintenance.md"
+"Operations" has markdown-file "articles/Operations/Monitoring.md"
+"Operations" has markdown-file "articles/Operations/Logging & Debugging.md"
+"Operations" has markdown-file "articles/Operations/Changelog.md"
+
+
+# Expert Topics
+"Expert Topics" has markdown-file "articles/Expert Topics/Built-in Analytics.md"
+"Expert Topics" has markdown-file "articles/Expert Topics/Migration.md"
+
+
+# Tutorials
+"Tutorials" has markdown-file "articles/Tutorials/Building Your First Application.md"
+"Tutorials" has markdown-file "articles/Tutorials/Building A Spatial Index.md"

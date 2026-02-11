@@ -56,18 +56,10 @@ import java.util.Set;
  */
 public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefinition {
 
-	/*
-	private static final Set<PropertyKey> schemaRebuildTriggerKeys = new LinkedHashSet<>(Arrays.asList(
-		name, schemaNode, staticSchemaNodeName, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, isStatic, isPrivate, returnRawResult, httpVerb
-	));
-	*/
-
 	public static final String PARAMETERS_PROPERTY                 = "parameters";
 	public static final String SCHEMA_NODE_PROPERTY                = "schemaNode";
 	public static final String STATIC_SCHEMA_NODE_NAME_PROPERTY    = "staticSchemaNodeName";
-	public static final String SIGNATURE_PROPERTY                  = "signature";
 	public static final String VIRTUAL_FILE_NAME_PROPERTY          = "virtualFileName";
-	public static final String RETURN_TYPE_PROPERTY                = "returnType";
 	public static final String OPEN_API_RETURN_TYPE_PROPERTY       = "openAPIReturnType";
 	public static final String SOURCE_PROPERTY                     = "source";
 	public static final String EXCEPTIONS_PROPERTY                 = "exceptions";
@@ -224,9 +216,7 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 		final Property<Iterable<NodeInterface>> parameters         = new EndNodes(traitsInstance, PARAMETERS_PROPERTY, StructrTraits.SCHEMA_METHOD_PARAMETERS);
 		final Property<NodeInterface>      schemaNode              = new StartNode(traitsInstance, SCHEMA_NODE_PROPERTY, StructrTraits.SCHEMA_NODE_METHOD, new PropertySetNotion<>(newSet(GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY, AbstractSchemaNodeTraitDefinition.IS_SERVICE_CLASS_PROPERTY)));
 		final Property<String>             staticSchemaNodeName    = new StringProperty(STATIC_SCHEMA_NODE_NAME_PROPERTY);
-		final Property<String>             signature               = new StringProperty(SIGNATURE_PROPERTY).indexed();
 		final Property<String>             virtualFileName         = new StringProperty(VIRTUAL_FILE_NAME_PROPERTY).indexed();
-		final Property<String>             returnType              = new StringProperty(RETURN_TYPE_PROPERTY).indexed();
 		final Property<String>             openAPIReturnType       = new StringProperty(OPEN_API_RETURN_TYPE_PROPERTY).indexed();
 		final Property<String>             source                  = new StringProperty(SOURCE_PROPERTY);
 		final Property<String[]>           exceptions              = new ArrayProperty<>(EXCEPTIONS_PROPERTY, String.class).indexed();
@@ -250,9 +240,7 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 			parameters,
 			schemaNode,
 			staticSchemaNodeName,
-			signature,
 			virtualFileName,
-			returnType,
 			openAPIReturnType,
 			source,
 			exceptions,
@@ -281,7 +269,7 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 
 			PropertyView.Public,
 			newSet(
-					SCHEMA_NODE_PROPERTY, STATIC_SCHEMA_NODE_NAME_PROPERTY, SOURCE_PROPERTY, RETURN_TYPE_PROPERTY,
+					SCHEMA_NODE_PROPERTY, STATIC_SCHEMA_NODE_NAME_PROPERTY, SOURCE_PROPERTY,
 					EXCEPTIONS_PROPERTY, CALL_SUPER_PROPERTY, OVERRIDES_EXISTING_PROPERTY, DO_EXPORT_PROPERTY, CODE_TYPE_PROPERTY,
 					IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY, TAGS_PROPERTY, SUMMARY_PROPERTY, DESCRIPTION_PROPERTY, IS_STATIC_PROPERTY,
 					INCLUDE_IN_OPEN_API_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY,
@@ -290,7 +278,7 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 
 			PropertyView.Ui,
 			newSet(
-					SCHEMA_NODE_PROPERTY, STATIC_SCHEMA_NODE_NAME_PROPERTY, SOURCE_PROPERTY, RETURN_TYPE_PROPERTY,
+					SCHEMA_NODE_PROPERTY, STATIC_SCHEMA_NODE_NAME_PROPERTY, SOURCE_PROPERTY,
 					EXCEPTIONS_PROPERTY, CALL_SUPER_PROPERTY, OVERRIDES_EXISTING_PROPERTY, DO_EXPORT_PROPERTY, CODE_TYPE_PROPERTY,
 					IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY, TAGS_PROPERTY, SUMMARY_PROPERTY, DESCRIPTION_PROPERTY, IS_STATIC_PROPERTY,
 					INCLUDE_IN_OPEN_API_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY,
@@ -300,7 +288,7 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 			PropertyView.Schema,
 			newSet(
 					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
-					SCHEMA_NODE_PROPERTY, STATIC_SCHEMA_NODE_NAME_PROPERTY, SOURCE_PROPERTY, RETURN_TYPE_PROPERTY,
+					SCHEMA_NODE_PROPERTY, STATIC_SCHEMA_NODE_NAME_PROPERTY, SOURCE_PROPERTY,
 					EXCEPTIONS_PROPERTY, CALL_SUPER_PROPERTY, OVERRIDES_EXISTING_PROPERTY, DO_EXPORT_PROPERTY, CODE_TYPE_PROPERTY,
 					IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY, TAGS_PROPERTY, SUMMARY_PROPERTY, DESCRIPTION_PROPERTY, IS_STATIC_PROPERTY,
 					INCLUDE_IN_OPEN_API_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY,
@@ -323,365 +311,4 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 		return null;
 	}
 
-	/*
-	@Override
-	public boolean isValid(final ErrorBuffer errorBuffer) {
-	}
-
-	@Override
-	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-
-		super.onCreation(securityContext, errorBuffer);
-
-		handleAutomaticCorrectionOfAttributes(securityContext, errorBuffer);
-	}
-
-	@Override
-	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-
-		super.onModification(securityContext, errorBuffer, modificationQueue);
-
-		if (Boolean.TRUE.equals(getProperty(deleteMethod))) {
-
-			StructrApp.getInstance().delete(this);
-
-		} else {
-
-			handleAutomaticCorrectionOfAttributes(securityContext, errorBuffer);
-		}
-
-		// acknowledge all events for this node when it is modified
-		RuntimeEventLog.acknowledgeAllEventsForId(getUuid());
-
-		// Ensure AbstractSchemaNode methodCache is invalidated when a schema method changes
-		if (!TransactionCommand.isDeleted(getNode())) {
-
-			final AbstractSchemaNode schemaNode = getProperty(SchemaMethod.schemaNode);
-			if (schemaNode != null) {
-
-				schemaNode.clearCachedSchemaMethodsForInstance();
-
-				this.clearMethodCacheOfExtendingNodes();
-			}
-		}
-	}
-
-	@Override
-	public void onNodeDeletion(SecurityContext securityContext) throws FrameworkException {
-		super.onNodeDeletion(securityContext);
-		AbstractSchemaNode.clearCachedSchemaMethods();
-	}
-
-	public SchemaMethodParameter getSchemaMethodParameter(final String name) {
-
-		for (final SchemaMethodParameter param : getProperty(SchemaMethod.parameters)) {
-
-			if (name.equals(param.getName())) {
-				return param;
-			}
-		}
-
-		return null;
-	}
-
-	// ----- private methods -----
-	private void clearMethodCacheOfExtendingNodes() throws FrameworkException {
-
-		final AbstractSchemaNode node = getProperty(schemaNode);
-		if (node != null) {
-
-			for (final SchemaNode extendingNode : node.getProperty(SchemaNode.extendedByClasses)) {
-
-				extendingNode.clearCachedSchemaMethodsForInstance();
-			}
-		}
-	}
-
-	private void addType(final Queue<String> typeQueue, final AbstractSchemaNode schemaNode) {
-
-		final SchemaNode _extendsClass = schemaNode.getProperty(SchemaNode.extendsClass);
-		if (_extendsClass != null) {
-
-			typeQueue.add(_extendsClass.getName());
-		}
-
-		final String _interfaces = schemaNode.getProperty(SchemaNode.implementsInterfaces);
-		if (_interfaces != null) {
-
-			for (final String iface : _interfaces.split("[, ]+")) {
-
-				typeQueue.add(iface);
-			}
-		}
-	}
-
-	private void determineSignature(final Map<String, SchemaNode> schemaNodes, final AbstractSchemaNode schemaEntity, final ActionEntry entry, final String methodName) throws FrameworkException {
-
-		final App app                  = StructrApp.getInstance();
-		final Set<String> visitedTypes = new LinkedHashSet<>();
-		final Queue<String> typeQueue  = new LinkedList<>();
-		final String structrPackage    = "org.structr.dynamic.";
-
-		// initial type
-		addType(typeQueue, schemaEntity);
-
-		while (!typeQueue.isEmpty()) {
-
-			final String typeName = typeQueue.poll();
-			String shortTypeName  = typeName;
-
-			if (typeName != null && !visitedTypes.contains(typeName)) {
-
-				visitedTypes.add(typeName);
-
-				if (typeName.startsWith(structrPackage)) {
-					shortTypeName = typeName.substring(structrPackage.length());
-				}
-
-				// try to find schema node for the given type
-				final SchemaNode typeNode = schemaNodes.get(shortTypeName);
-				if (typeNode != null && !typeNode.equals(schemaEntity)) {
-
-					final SchemaMethod superMethod = typeNode.getSchemaMethod(methodName);
-					if (superMethod != null) {
-
-						final ActionEntry superEntry = superMethod.getActionEntry(schemaNodes, typeNode);
-
-						entry.copy(superEntry);
-
-						// done
-						return;
-					}
-
-					// next type in queue
-					addType(typeQueue, typeNode);
-
-				} else {
-
-					// no schema node for the given type found, try internal types
-					final Class internalType = SchemaHelper.classForName(typeName);
-					if (internalType != null) {
-
-						if (getSignature(internalType, methodName, entry)) {
-
-							return;
-						}
-
-						final Class superclass = internalType.getSuperclass();
-						if (superclass != null) {
-
-							// examine superclass as well
-							typeQueue.add(superclass.getName());
-
-							// collect interfaces
-							for (final Class iface : internalType.getInterfaces()) {
-								typeQueue.add(iface.getName());
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	@Override public boolean isLifecycleMethod () {
-
-		final AbstractSchemaNode parent = getProperty(SchemaMethod.schemaNode);
-		final boolean hasParent         = (parent != null);
-		final String methodName         = getName();
-
-		if (hasParent) {
-
-			final List<String> typeBasedLifecycleMethods = List.of("onNodeCreation", "onCreate", "afterCreate", "onSave", "afterSave", "onDelete", "afterDelete");
-			final List<String> fileLifecycleMethods      = List.of("onUpload", "onDownload");
-			final List<String> userLifecycleMethods      = List.of("onOAuthLogin");
-
-			for (final String lifecycleMethodPrefix : typeBasedLifecycleMethods) {
-
-				if (methodName.startsWith(lifecycleMethodPrefix)) {
-					return true;
-				}
-			}
-
-			boolean inheritsFromFile = false;
-			boolean inheritsFromUser = false;
-
-			final Class type = SchemaHelper.getEntityClassForRawType(parent.getName());
-
-			if (type != null) {
-
-				inheritsFromFile = AbstractFile.class.isAssignableFrom(type);
-				inheritsFromUser = User.class.isAssignableFrom(type);
-			}
-
-			if (inheritsFromFile) {
-
-				for (final String lifecycleMethodName : fileLifecycleMethods) {
-
-					if (methodName.equals(lifecycleMethodName)) {
-						return true;
-					}
-				}
-			}
-
-			if (inheritsFromUser) {
-
-				for (final String lifecycleMethodName : userLifecycleMethods) {
-
-					if (methodName.equals(lifecycleMethodName)) {
-						return true;
-					}
-				}
-			}
-
-		} else {
-
-			final List<String> globalLifecycleMethods = List.of("onStructrLogin", "onStructrLogout", "onAcmeChallenge");
-
-			for (final String lifecycleMethodName : globalLifecycleMethods) {
-
-				if (methodName.equals(lifecycleMethodName)) {
-					return true;
-				}
-			}
-
-		}
-
-		return false;
-	}
-
-	// ----- interface Favoritable -----
-	@Override
-	public String getContext() {
-
-		final AbstractSchemaNode parent = getProperty(SchemaMethod.schemaNode);
-		final StringBuilder buf = new StringBuilder();
-
-		if (parent != null) {
-
-			buf.append(parent.getProperty(SchemaNode.name));
-			buf.append(".");
-			buf.append(getProperty(name));
-		}
-
-		return buf.toString();
-	}
-
-	@Override
-	public String getFavoriteContent() {
-		return getProperty(SchemaMethod.source);
-	}
-
-	@Override
-	public String getFavoriteContentType() {
-		return "application/x-structr-javascript";
-	}
-
-	@Override
-	public void setFavoriteContent(String content) throws FrameworkException {
-		setProperty(SchemaMethod.source, content);
-	}
-
-	private boolean getSignature(final Class type, final String methodName, final ActionEntry entry) {
-
-		// superclass is NodeInterface
-		for (final Method method : type.getMethods()) {
-
-			if (methodName.equals(method.getName()) && (method.getModifiers() & Modifier.STATIC) == 0) {
-
-				final Type[] parameterTypes = method.getGenericParameterTypes();
-				final Type returnType       = method.getGenericReturnType();
-				final List<Type> types      = new LinkedList<>();
-
-				// compile list of types to check for generic type parameter
-				types.addAll(Arrays.asList(parameterTypes));
-				types.add(returnType);
-
-				final String genericTypeParameter = getGenericMethodParameter(types, method);
-
-				// check for generic return type, and if the method defines its own generic type
-				if (returnType instanceof TypeVariable && ((TypeVariable)returnType).getGenericDeclaration().equals(method)) {
-
-					// method defines its own generic type
-					entry.setReturnType(genericTypeParameter + returnType.getTypeName());
-
-				} else {
-
-					// non-generic return type
-					final Class returnClass = method.getReturnType();
-					if (returnClass.isArray()) {
-
-						entry.setReturnType(genericTypeParameter + returnClass.getComponentType().getName() + "[]");
-
-					} else {
-
-						entry.setReturnType(genericTypeParameter + method.getReturnType().getName());
-					}
-				}
-
-				for (final Parameter parameter : method.getParameters()) {
-
-					String typeName = parameter.getParameterizedType().getTypeName();
-					String name     = parameter.getType().getSimpleName();
-
-					if (typeName.contains("$")) {
-						typeName = typeName.replace("$", ".");
-					}
-
-					entry.addParameter(typeName, parameter.getName());
-				}
-
-				for (final Class exception : method.getExceptionTypes()) {
-					entry.addException(exception.getName());
-				}
-
-				entry.setOverrides(getProperty(overridesExisting));
-				entry.setCallSuper(getProperty(callSuper));
-
-				// success
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	private String getGenericMethodParameter(final List<Type> types, final Method method) {
-
-		final List<String> typeParameterNames = new LinkedList<>();
-
-		for (final Type type : types) {
-
-			if (type instanceof TypeVariable && ((TypeVariable)type).getGenericDeclaration().equals(method)) {
-
-				// method defines its own generic type
-				typeParameterNames.add(type.getTypeName());
-			}
-		}
-
-		if (typeParameterNames.isEmpty()) {
-			return "";
-		}
-
-		return "<" + StringUtils.join(typeParameterNames, ", ") + "> ";
-	}
-
-	// ----- private static methods -----
-	public static String getCachedSourceCode(final String uuid) throws FrameworkException {
-
-		// this method is called from generated Java code in ActionEntry.java line 242
-
-		final SchemaMethod method = StructrApp.getInstance().getNodeById(SchemaMethod.class, uuid);
-		if (method != null) {
-
-			final String source = method.getProperty(SchemaMethod.source);
-			if (source != null) {
-
-				return "${" + source.trim() + "}";
-			}
-		}
-
-		return "${}";
-	}
-	*/
 }

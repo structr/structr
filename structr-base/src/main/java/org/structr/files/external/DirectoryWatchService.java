@@ -34,6 +34,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.docs.*;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.schema.SchemaService;
 import org.structr.storage.StorageProvider;
 import org.structr.storage.StorageProviderFactory;
@@ -351,72 +352,6 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 	@Override
 	public String getModuleName() {
 		return "ui";
-	}
-
-	// ----- public static methods -----
-	public static Documentable getDocumentation() {
-
-		return new Documentable() {
-
-			@Override
-			public DocumentableType getDocumentableType() {
-				return DocumentableType.Service;
-			}
-
-			@Override
-			public String getName() {
-				return "DirectoryWatchService";
-			}
-
-			@Override
-			public String getShortDescription() {
-				return "A service that synchronizes a Folder in Structr's filesystem with a folder in the server's filesystem.";
-			}
-
-			@Override
-			public String getLongDescription() {
-				return """
-				### How It Works
-				If you set the `mountTarget` property of a Folder node to an existing path on your local filesystem, you can configure Structr to watch the folder's contents and update the metadata whenever a file on disk changes.
-				
-				The contents of the files are not imported into Structr but remain in the mounted folder. Changes made to the files in Structr are written to the corresponding files.
-				
-				### Notes
-				- This will only work on filesystems that support directory watch events.
-				- The DirectoryWatchService must be included in the structr.conf setting `configured.services` to be activated.
-				""";
-			}
-
-			@Override
-			public List<Parameter> getParameters() {
-				return List.of();
-			}
-
-			@Override
-			public List<Example> getExamples() {
-				return List.of();
-			}
-
-			@Override
-			public List<String> getNotes() {
-				return List.of();
-			}
-
-			@Override
-			public List<Signature> getSignatures() {
-				return List.of();
-			}
-
-			@Override
-			public List<Language> getLanguages() {
-				return List.of();
-			}
-
-			@Override
-			public List<Usage> getUsages() {
-				return List.of();
-			}
-		};
 	}
 
 	// ----- private methods -----

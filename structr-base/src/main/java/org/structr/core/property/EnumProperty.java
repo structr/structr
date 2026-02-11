@@ -25,11 +25,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ValueToken;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.docs.DocumentableType;
 
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * A property that stores and retrieves a simple enum value of the given type.
@@ -79,6 +78,11 @@ public class EnumProperty extends AbstractPrimitiveProperty<String> {
 
 	public Set<String> getEnumConstants() {
 		return enumConstants;
+	}
+
+	@Override
+	public String format() {
+		return (format != null) ? format : String.join(", ", new TreeSet<>(enumConstants));
 	}
 
 	@Override
@@ -137,6 +141,17 @@ public class EnumProperty extends AbstractPrimitiveProperty<String> {
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+		return null;
+	}
+
+	// ----- interface Documentable -----
+	@Override
+	public String getShortDescription() {
+		return "A property for string values, constrained to a fixed range of values.";
+	}
+
+	@Override
+	public String getLongDescription() {
 		return null;
 	}
 

@@ -68,14 +68,14 @@ public class OSMGeoCodingProvider extends AbstractGeoCodingProvider{
 		Document xmlDoc;
 
 		try {
-			String protocol = "xml";
-			URL mapsUrl = new URL("http://nominatim.openstreetmap.org/search?q=" + encodedAddress + "&format=" + protocol + "&accept-language=" + language + "&addressdetails=1&limit=1");
-			HttpURLConnection connection = (HttpURLConnection) mapsUrl.openConnection();
+			final String protocol              = "xml";
+			final URL mapsUrl                  = new URL("https://nominatim.openstreetmap.org/search?q=" + encodedAddress + "&format=" + protocol + "&accept-language=" + language + "&addressdetails=1&limit=1");
+			final HttpURLConnection connection = (HttpURLConnection) mapsUrl.openConnection();
+			final SAXReader reader             = new SAXReader();
 
-			SAXReader reader = new SAXReader();
 			// Protect against external entity expansion
 			reader.setIncludeExternalDTDDeclarations(false);
-			BufferedReader rd = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+			final BufferedReader rd = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 			xmlDoc = reader.read(rd);
 
 			connection.disconnect();

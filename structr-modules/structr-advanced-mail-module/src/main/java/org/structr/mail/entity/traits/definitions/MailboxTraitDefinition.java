@@ -20,8 +20,10 @@ package org.structr.mail.entity.traits.definitions;
 
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.JavaMethod;
@@ -38,6 +40,7 @@ import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.mail.entity.Mailbox;
 import org.structr.mail.entity.traits.wrappers.MailboxTraitWrapper;
+import org.structr.mail.service.MailService;
 import org.structr.schema.action.EvaluationHints;
 
 import java.util.ArrayList;
@@ -94,6 +97,34 @@ public class MailboxTraitDefinition extends AbstractNodeTraitDefinition {
 				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) {
 					return getAvailableFoldersOnServer(securityContext, entity.as(Mailbox.class));
 				}
+
+				@Override
+				public String getDescription() {
+					return "Returns a list of folder names available on the configured mail server. Use this to discover which folders can be added to the folders property for fetching.";
+				}
+			},
+			new JavaMethod("fetchMails", false, false) {
+
+				@Override
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) {
+
+					final MailService mailService = Services.getInstance().getServiceImplementation(MailService.class);
+					if (mailService != null) {
+
+						mailService.fetchMails(entity.as(Mailbox.class));
+
+					} else {
+
+						throw new RuntimeException("MailService not configured or not running.");
+					}
+
+					return null;
+				}
+
+				@Override
+				public String getDescription() {
+					return "Triggers an immediate fetch of emails from this mailbox, bypassing the regular MailService interval. Creates EMailMessage objects for new messages and extracts attachments.";
+				}
 			}
 		);
 	}
@@ -101,14 +132,14 @@ public class MailboxTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> emailsProperty  = new EndNodes(traitsInstance, EMAILS_PROPERTY, StructrTraits.MAILBOX_CONTAINS_EMAIL_MESSAGES_EMAIL_MESSAGE).description("messages in this mailbox");
-		final Property<String> hostProperty                     = new StringProperty(HOST_PROPERTY).indexed().notNull().description("host or IP address this mailbox connects to");
-		final Property<String> userProperty                     = new StringProperty(USER_PROPERTY).indexed().notNull().description("username this mailbox connects with");
+		final Property<Iterable<NodeInterface>> emailsProperty  = new EndNodes(traitsInstance, EMAILS_PROPERTY, StructrTraits.MAILBOX_CONTAINS_EMAIL_MESSAGES_EMAIL_MESSAGE).description("Messages in this mailbox.");
+		final Property<String> hostProperty                     = new StringProperty(HOST_PROPERTY).indexed().notNull().description("Host or IP address this mailbox connects to.");
+		final Property<String> userProperty                     = new StringProperty(USER_PROPERTY).indexed().notNull().description("Username this mailbox connects with.");
 		final Property<String> overrideMailEntityTypeProperty   = new StringProperty(OVERRIDE_MAIL_ENTITY_TYPE_PROPERTY).indexed();
-		final Property<String> passwordProperty                 = new EncryptedStringProperty(PASSWORD_PROPERTY).indexed().description("password this mailbox connects with");
-		final Property<String[]> foldersProperty                = new ArrayProperty<>(FOLDERS_PROPERTY, String.class).indexed().description("folders this mailbox queries");
-		final Property<String> mailProtocolProperty             = new EnumProperty(MAIL_PROTOCOL_PROPERTY, Set.of("pop3", "imaps")).indexed().notNull().description("mail protocol");
-		final Property<Integer> portProperty                    = new IntProperty(PORT_PROPERTY).indexed().description("port this mailbox connects to");
+		final Property<String> passwordProperty                 = new EncryptedStringProperty(PASSWORD_PROPERTY).indexed().description("Password this mailbox connects with.");
+		final Property<String[]> foldersProperty                = new ArrayProperty<>(FOLDERS_PROPERTY, String.class).indexed().description("Folders this mailbox queries.");
+		final Property<String> mailProtocolProperty             = new EnumProperty(MAIL_PROTOCOL_PROPERTY, Set.of("pop3", "imaps")).indexed().notNull().description("Mail protocol.");
+		final Property<Integer> portProperty                    = new IntProperty(PORT_PROPERTY).indexed().description("Port this mailbox connects to.");
 		final Property<Object> availableFoldersOnServerProperty = new FunctionProperty<>(AVAILABLE_FOLDERS_ON_SERVER_PROPERTY).readFunction("{return Structr.this.getAvailableFoldersOnServer()}");
 
 		return newSet(
@@ -161,19 +192,7 @@ public class MailboxTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public String getShortDescription() {
-		return "This type is part of the MailService, which you can use to import emails from different mailboxes into Structr.";
-	}
-
-	@Override
-	public String getLongDescription() {
-
-		return """
-		### How It Works
-		A `Mailbox` node represents a Mailbox in the database. New EMailMessages are associated with their Mailbox instance. When the MailService is enabled, it queries all Mailbox instances in the database at regular intervals and stores new emails as EMailMessages in the database.
-
-		### Common Use Cases
-		A common use case is to configure a Mailbox instance for a support address and act on incoming messages.
-		""";
+	public boolean includeInDocumentation() {
+		return true;
 	}
 }

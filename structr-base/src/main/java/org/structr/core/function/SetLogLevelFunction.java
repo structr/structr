@@ -25,6 +25,8 @@ import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.ConceptType;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -87,6 +89,21 @@ public class SetLogLevelFunction extends CoreFunction {
 
 		Change takes effect immediately until another call is made or the application is restarted. On system start, the configuration value is used.
 		""".formatted(String.join(", ", Settings.getAvailableLogLevels().keySet()), Settings.LogLevel.getKey());
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.System;
+	}
+
+	@Override
+	public List<Link> getLinkedConcepts() {
+
+		final List<Link> linkedConcepts = super.getLinkedConcepts();
+
+		linkedConcepts.add(Link.to("ispartof", ConceptReference.of(ConceptType.Topic, "Logging")));
+
+		return linkedConcepts;
 	}
 
 	public static boolean setLogLevel(final String level) {

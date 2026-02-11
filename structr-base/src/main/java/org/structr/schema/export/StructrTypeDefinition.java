@@ -37,10 +37,10 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.*;
+import org.structr.docs.Documentation;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.operation.*;
 import org.structr.schema.openapi.parameter.OpenAPIPropertyQueryParameter;
-import org.structr.util.UrlUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -51,6 +51,7 @@ import java.util.Map.Entry;
 /**
  * @param <T>
  */
+@Documentation(name="Dynamic type options", parent="Dynamic types")
 public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implements JsonType, StructrDefinition {
 
 	public static final Set<String> VIEW_BLACKLIST = new LinkedHashSet<>(Arrays.asList("_html_", "all", "category", "custom", "editWidget", "effectiveNameView", "fav", "schema", "ui"));
@@ -1086,8 +1087,8 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 	void diffMethods(final Traits nodeType, final StructrTypeDefinition other) throws FrameworkException {
 
-		final Map<String, StructrMethodDefinition> databaseMethods = getMappedMethodsBySignature();
-		final Map<String, StructrMethodDefinition> structrMethods  = other.getMappedMethodsBySignature();
+		final Map<String, StructrMethodDefinition> databaseMethods = getMappedMethodsByName();
+		final Map<String, StructrMethodDefinition> structrMethods  = other.getMappedMethodsByName();
 		final Set<String> methodsOnlyInDatabase                    = new TreeSet<>(databaseMethods.keySet());
 		final Set<String> methodsOnlyInStructrSchema               = new TreeSet<>(structrMethods.keySet());
 		final Set<String> bothMethods                              = new TreeSet<>(databaseMethods.keySet());
@@ -1310,7 +1311,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			typeDefinition.setIcon(icon.toString());
 		}
 
-		// do not create empty built-in types
+		// do not create empty built-in traits
 		if (Boolean.TRUE.equals(source.get("isBuiltinType"))) {
 
 			if (MigrationService.typeShouldBeRemoved(name)) {
@@ -1400,57 +1401,6 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		}
 	}
 
-	private String getParameterizedType(final String type, final String queryString) {
-
-		final StringBuilder buf           = new StringBuilder();
-		final List<String> typeParameters = new LinkedList<>();
-
-		buf.append(type);
-
-		if (queryString != null) {
-
-			final Map<String, String> params = UrlUtils.parseQueryString(queryString);
-			final String types               = params.get("typeParameters");
-
-			if (types != null) {
-
-				final String[] parameterTypes = types.split("[, ]+");
-				for (final String parameterType : parameterTypes) {
-
-					final String trimmed = parameterType.trim();
-					if (StringUtils.isNotBlank(trimmed)) {
-
-						typeParameters.add(trimmed);
-					}
-				}
-
-				buf.append("<");
-				buf.append(StringUtils.join(typeParameters, ", "));
-				buf.append(">");
-			}
-		}
-
-		return buf.toString();
-
-	}
-
-	private String resolveParameterizedType(final String parameterizedType) {
-
-		// input is something like "org.structr.core.entity.LinkedTreeNodeImpl<org.structr.web.entity.AbstractFile>"
-		// output is LinkedTreeNodeImpl?typeParameters=org.structr.web.entity.AbstractFile
-
-		if (parameterizedType.contains("<") && parameterizedType.contains(">")) {
-
-			final int startOfTypeParam = parameterizedType.indexOf("<");
-			final String typeParameter = parameterizedType.substring(startOfTypeParam);
-			final String baseType      = parameterizedType.substring(0, startOfTypeParam);
-
-			return baseType + "?typeParameters=" + typeParameter.substring(1, typeParameter.length() - 1);
-		}
-
-		return parameterizedType.substring(parameterizedType.lastIndexOf(".") + 1);
-	}
-
 	private Map<String, StructrPropertyDefinition> getMappedProperties() {
 
 		final LinkedHashMap<String, StructrPropertyDefinition> mapped = new LinkedHashMap<>();
@@ -1463,13 +1413,13 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		return mapped;
 	}
 
-	private Map<String, StructrMethodDefinition> getMappedMethodsBySignature() {
+	private Map<String, StructrMethodDefinition> getMappedMethodsByName() {
 
 		final LinkedHashMap<String, StructrMethodDefinition> mapped = new LinkedHashMap<>();
 
 		for (final StructrMethodDefinition def : this.methods) {
 
-			mapped.put(def.getSignature(), def);
+			mapped.put(def.getName(), def);
 		}
 
 		return mapped;

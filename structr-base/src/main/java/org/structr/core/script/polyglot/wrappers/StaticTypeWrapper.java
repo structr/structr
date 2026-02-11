@@ -20,8 +20,7 @@ package org.structr.core.script.polyglot.wrappers;
 
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
 import org.structr.core.traits.Traits;
@@ -29,7 +28,6 @@ import org.structr.schema.action.ActionContext;
 
 public class StaticTypeWrapper implements ProxyObject {
 
-	private final static Logger logger = LoggerFactory.getLogger(StaticTypeWrapper.class);
 	private final ActionContext actionContext;
 	private final Traits traits;
 
@@ -43,9 +41,14 @@ public class StaticTypeWrapper implements ProxyObject {
 	public Object getMember(final String key) {
 
 		final AbstractMethod method = Methods.resolveMethod(traits, key);
-		if (method != null && method.isStatic()) {
+		if (method != null) {
 
-			return method.getProxyExecutable(actionContext, null);
+			final GraphObject superEntity = actionContext.isSuperCall(method);
+
+			if (superEntity != null || method.isStatic()) {
+
+				return method.getProxyExecutable(actionContext, superEntity);
+			}
 		}
 
 		return null;
@@ -58,7 +61,7 @@ public class StaticTypeWrapper implements ProxyObject {
 
 	@Override
 	public boolean hasMember(final String key) {
-		return true;
+		return getMember(key) != null;
 	}
 
 	@Override

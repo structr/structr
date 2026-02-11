@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html class="h-full bg-white sm:bg-gray-200" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Docs - Structr Community Website</title>
+    <script src="/structr/js/helper.js"></script>
+    <link href="/structr/css/main.css" rel="stylesheet">
+    <link href="/structr/css/docs-new.css" rel="stylesheet">
+    <link href="/structr/fonts/sora.css" rel="stylesheet">
+    <link href="/structr/fonts/nunito.css" rel="stylesheet">
+    <link href="/structr/fonts/nexa.css" rel="stylesheet">
+    <link href="/structr/fonts/nexa-text.css" rel="stylesheet">
+    <link href="https://structr.org/images/structr-logo-mark-full-colour-rgb.svg" rel="icon">
+
+    <style>
+
+        .hidden {
+            display: none !important;
+        }
+
+        body {
+            --header-height: 0;
+        }
+        #main {
+            top: 4rem;
+            height: calc(100% - 6rem);
+        }
+
+        nav, iframe, aside {
+            //height: calc(100vh - 8rem) !important;
+        }
+
+    </style>
+</head>
+<body>
+<div id="function-bar"></div>
+<div id="main"></div>
+<script>
+    let Structr = {
+        registerModule: () => {},
+        setMainContainerHTML: (html) => { document.querySelector('#main').innerHTML = html; },
+        setFunctionBarHTML: (html) => { document.querySelector('#function-bar').innerHTML = html; },
+        mainMenu: {
+            unblock: () => {}
+        }
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+        _Documentation.onload();
+    })
+</script>
+<script src="/structr/js/docs-new.js"></script>
+</body>
+</html>

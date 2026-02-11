@@ -18,7 +18,13 @@
  */
 package org.structr.core.traits;
 
+import com.google.common.collect.Comparators;
+import org.structr.docs.Documentable;
+
 import java.text.SimpleDateFormat;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 public class TraitsManager {
 
@@ -39,5 +45,18 @@ public class TraitsManager {
 
 	public static void replaceCurrentInstance(final TraitsInstance newInstance) {
 		TraitsManager.currentInstance = newInstance;
+	}
+
+	public static void addAllSystemTypes(final List<Documentable> documentables) {
+
+		final TraitsInstance rootInstance = TraitsManager.getRootInstance();
+		for (final String traitName : rootInstance.getAllTypes(t -> t.isNodeType())) {
+
+			final Traits traits = rootInstance.getTraits(traitName);
+			if (!traits.isHidden()) {
+
+				documentables.add(traits);
+			}
+		}
 	}
 }

@@ -28,6 +28,8 @@ import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.wrappers.MailTemplateTraitWrapper;
+import org.structr.docs.Documentation;
+import org.structr.docs.ontology.ConceptType;
 
 import java.util.Map;
 import java.util.Set;
@@ -56,9 +58,9 @@ public final class MailTemplateTraitDefinition extends AbstractNodeTraitDefiniti
 	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<String> textProperty        = new StringProperty(TEXT_PROPERTY).description("text content of this template");
-		final Property<String> descriptionProperty = new StringProperty(DESCRIPTION_PROPERTY).indexed().description("description of this template");
-		final Property<String> localeProperty      = new StringProperty(LOCALE_PROPERTY).indexed().description("locale for this template");
+		final Property<String> textProperty        = new StringProperty(TEXT_PROPERTY).description("Text content of this template.");
+		final Property<String> descriptionProperty = new StringProperty(DESCRIPTION_PROPERTY).indexed().description("Description of this template.");
+		final Property<String> localeProperty      = new StringProperty(LOCALE_PROPERTY).indexed().description("Locale for this template.");
 
 		return newSet(
 			textProperty,
@@ -90,21 +92,7 @@ public final class MailTemplateTraitDefinition extends AbstractNodeTraitDefiniti
 	}
 
 	@Override
-	public String getShortDescription() {
-		return "This type represents customizable email templates.";
-	}
-
-	@Override
-	public String getLongDescription() {
-		return """
-		### How It Works
-		A MailTemplate is a node with a name, text content and locale that you can use to send customized emails. The text content can contain Script Expressions that are evaluated before the next processing step, and MailTemplates with pre-defined keys are used in internal processes in Structr.
-		
-		### Common Use Cases
-		- MailTemplates are used to customize emails that are sent to the new users, if you configure Structr to allow User Self-Registration.
-		
-		### Notes
-		- To send emails from Structr, the appropriate settings must be made in structr.conf.
-		""";
+	public boolean includeInDocumentation() {
+		return true;
 	}
 }

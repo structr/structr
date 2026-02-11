@@ -12,7 +12,7 @@
 	<groupId>org.structr</groupId>
 	<artifactId>structr</artifactId>
 	<packaging>pom</packaging>
-	<version>6.1-SNAPSHOT</version>
+	<version>6.2-SNAPSHOT</version>
 
 	<url>https://structr.com</url>
 
@@ -53,6 +53,7 @@
 		<test.neo4j.version>neo4j:2025</test.neo4j.version>
 		<structr.lib.directory>${structr.root.directory}/structr-app/target/lib</structr.lib.directory>
 		<maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
+		<structr.build.timestamp>${maven.build.timestamp}</structr.build.timestamp>
 		<maven.plugin.jar.version>3.4.2</maven.plugin.jar.version>
 		<test.forkCount>4</test.forkCount>
 		<slf4j.version>2.0.0</slf4j.version>
@@ -66,6 +67,7 @@
 		<graal.version>25.0.1</graal.version>
 		<apache.sshd.version>2.7.0</apache.sshd.version>
         <docker.maven.plugin.version>0.48.0</docker.maven.plugin.version>
+		<skipDockerTestDB>false</skipDockerTestDB>
 	</properties>
 
 	<modules>
@@ -75,7 +77,7 @@
 		<module>structr-base</module>
 		<module>structr-modules</module>
 		<module>structr-app</module>
-		<module>structr-test-configuration</module>
+		<!--module>structr-test-configuration</module-->
 	</modules>
 
 	<repositories>
@@ -597,6 +599,31 @@
 				<artifactId>antlr4-runtime</artifactId>
 				<version>4.9.3</version>
 			</dependency>
+			<!-- Storage Provider -->
+			<dependency>
+				<groupId>software.amazon.awssdk</groupId>
+				<artifactId>s3</artifactId>
+				<version>2.41.14</version>
+				<exclusions>
+					<exclusion>
+						<groupId>software.amazon.awssdk</groupId>
+						<artifactId>netty-nio-client</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>software.amazon.awssdk</groupId>
+						<artifactId>apache-client</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>software.amazon.awssdk</groupId>
+						<artifactId>url-connection-client</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>software.amazon.awssdk</groupId>
+				<artifactId>netty-nio-client</artifactId>
+				<version>2.41.14</version>
+			</dependency>
 			<dependency>
 				<groupId>org.eclipse.elk</groupId>
 				<artifactId>org.eclipse.elk.core</artifactId>
@@ -693,6 +720,7 @@
 								<exclude>src/main/resources/**/*.ttf</exclude>
 								<exclude>src/main/resources/**/*.otf</exclude>
 								<exclude>src/main/resources/**/*.svg</exclude>
+								<exclude>src/main/resources/**/*.txt</exclude>
 								<exclude>src/main/resources/**/*.properties</exclude>
 								<exclude>src/main/resources/bin/**</exclude>
 								<exclude>src/main/resources/mime.types</exclude>
@@ -706,7 +734,8 @@
 								<exclude>src/test/**/*.html</exclude>
 								<exclude>src/test/**/*.xml</exclude>
 								<exclude>src/test/**/*.csv</exclude>
-								<exclude>src/test/**/selenium/**/*</exclude>
+                                <exclude>src/test/**/selenium/**/*</exclude>
+								<exclude>src/test/**/test-results/**/*</exclude>
 								<exclude>src/main/resources/deb/**</exclude>
 								<exclude>src/main/resources/structr/js/flow-editor/**/*</exclude>
 								<exclude>src/main/resources/structr/swagger/**/*</exclude>
@@ -918,7 +947,7 @@
 			<name>GNU General Public License, Version 3</name>
 			<url>http://www.gnu.org/licenses/gpl-3.0-standalone.html</url>
 			<comments>
-				Copyright (C) 2010-2025 Structr GmbH
+				Copyright (C) 2010-2026 Structr GmbH
 
 				This file is part of Structr &lt;http://structr.org&gt;.
 
@@ -940,7 +969,7 @@
 			<name>GNU Affero General Public License, Version 3</name>
 			<url>http://www.gnu.org/licenses/agpl-3.0-standalone.html</url>
 			<comments>
-				Copyright (C) 2010-2025 Structr GmbH
+				Copyright (C) 2010-2026 Structr GmbH
 
 				This file is part of Structr &lt;http://structr.org&gt;.
 

@@ -18,15 +18,11 @@
  */
 package org.structr.core.api;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.core.script.Snippet;
 
 /**
  */
 public abstract class JavaMethod extends AbstractMethod {
-
-	private static final Logger logger = LoggerFactory.getLogger(JavaMethod.class);
 
 	private final Parameters parameters;
 	private final boolean isPrivate;
@@ -74,5 +70,10 @@ public abstract class JavaMethod extends AbstractMethod {
 	@Override
 	public String getFullMethodName() {
 		return "Java method ‛" + name + "‛";
+	}
+
+	@Override
+	public String getDeclaringTrait() {
+		return null;
 	}
 }

@@ -51,8 +51,8 @@ import java.util.Map.Entry;
 public abstract class AbstractMethod {
 
 	protected String description = null;
-	protected String summary     = null;
-	protected String name        = null;
+	protected String summary = null;
+	protected String name = null;
 
 	public AbstractMethod(final String name, final String summary, final String description) {
 
@@ -62,11 +62,19 @@ public abstract class AbstractMethod {
 	}
 
 	public abstract boolean isStatic();
+
 	public abstract boolean isPrivate();
+
 	public abstract Snippet getSnippet();
+
 	public abstract String getHttpVerb();
+
 	public abstract Parameters getParameters();
+
 	public abstract String getFullMethodName();
+
+	public abstract String getDeclaringTrait();
+
 	public abstract Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException;
 
 	public String getName() {
@@ -96,79 +104,79 @@ public abstract class AbstractMethod {
 
 						// Important: getContext is called with allowEntityOverride=false to prevent entity automatically being overridden in the case of an existent context
 						final ContextFactory.LockedContext lockedContext = ContextFactory.getContext(engineName, actionContext, entity, false);
+						final Context context                            = lockedContext.getContext();
+						final SecurityContext securityContext            = actionContext.getSecurityContext();
+						final Value bindings                             = context.getBindings(engineName).getMember("Structr");
+						final StructrBinding binding                     = bindings.asProxyObject();
+						final GraphObject previousEntity                 = binding.getEntity();
+						final ActionContext previousContext              = binding.getActionContext();
+						final Value previousMethodParameters             = binding.getMethodParameters();
+						final Map<String, Object> tmp                    = securityContext.getContextStore().getTemporaryParameters();
 
-                        final Context context = lockedContext.getContext();
-                        final SecurityContext securityContext = actionContext.getSecurityContext();
-                        final Value bindings = context.getBindings(engineName).getMember("Structr");
-                        final StructrBinding binding = bindings.asProxyObject();
-                        final GraphObject previousEntity = binding.getEntity();
-                        final ActionContext previousContext = binding.getActionContext();
-                        final Value previousMethodParameters = binding.getMethodParameters();
-                        final Map<String, Object> tmp = securityContext.getContextStore().getTemporaryParameters();
-                        Locale effectiveLocale = actionContext.getLocale();
+						Locale effectiveLocale = actionContext.getLocale();
+						ActionContext inner    = null;
 
-                        ActionContext inner = null;
-                        try {
+						try {
 
-                            final Arguments args = NamedArguments.fromValues(actionContext, arguments);
-                            final Arguments converted = checkAndConvertArguments(securityContext, args, true);
-                            inner = new ActionContext(securityContext, converted.toMap());
-                            inner.setLocale(effectiveLocale);
+							final Arguments args = NamedArguments.fromValues(actionContext, arguments);
+							final Arguments converted = checkAndConvertArguments(securityContext, args, true);
+							inner = new ActionContext(securityContext, converted.toMap());
+							inner.setLocale(effectiveLocale);
 
-                            inner.setScriptingContexts(actionContext.getScriptingContexts());
+							inner.setScriptingContexts(actionContext.getScriptingContexts());
 
-                            if (arguments.length == 1) {
-                                binding.setMethodParameters(arguments[0]);
-                            }
+							if (arguments.length == 1) {
+								binding.setMethodParameters(arguments[0]);
+							}
 
-                            binding.setEntity(entity);
-                            binding.setActionContext(inner);
+							binding.setEntity(entity);
+							binding.setActionContext(inner);
 
-                            // store current AbstractMethod object in ActionContext
-                            inner.setCurrentMethod(this);
+							// store current AbstractMethod object in ActionContext
+							inner.setCurrentMethod(entity, this);
 
-                            // Context reference count handling
-                            ContextHelper.incrementReferenceCount(context);
+							// Context reference count handling
+							ContextHelper.incrementReferenceCount(context);
 
-                            final Value result = Scripting.evaluatePolyglot(inner, engineName, context, entity, snippet);
+							final Value result = Scripting.evaluatePolyglot(inner, engineName, context, entity, snippet);
 
-                            // Context reference count handling
-                            ContextHelper.decrementReferenceCount(context);
+							// Context reference count handling
+							ContextHelper.decrementReferenceCount(context);
 
-                            if (ContextHelper.getReferenceCount(context) <= 0) {
+							if (ContextHelper.getReferenceCount(context) <= 0) {
 
-                                context.close();
-                                actionContext.putScriptingContext(engineName, null);
-                            }
+								context.close();
+								actionContext.putScriptingContext(engineName, null);
+							}
 
-                            effectiveLocale = inner.getLocale();
+							effectiveLocale = inner.getLocale();
 
-                            return result;
+							return result;
 
-                        } catch (IllegalArgumentTypeException iaex) {
+						} catch (IllegalArgumentTypeException iaex) {
 
-                            iaex.printStackTrace();
+							iaex.printStackTrace();
 
-                            throwIllegalArgumentExceptionForMapBasedArguments();
+							throwIllegalArgumentExceptionForMapBasedArguments();
 
-                        } finally {
+						} finally {
 
-                            // pass on error tokens
-                            if (inner != null && inner.hasError()) {
-                                for (ErrorToken token : inner.getErrorBuffer().getErrorTokens()) {
-                                    actionContext.getErrorBuffer().add(token);
-                                }
-                            }
+							// pass on error tokens
+							if (inner != null && inner.hasError()) {
+								for (ErrorToken token : inner.getErrorBuffer().getErrorTokens()) {
+									actionContext.getErrorBuffer().add(token);
+								}
+							}
 
-                            // restore state before this method call
-                            binding.setEntity(previousEntity);
-                            binding.setActionContext(previousContext);
-                            binding.setMethodParameters(previousMethodParameters);
-                            securityContext.getContextStore().setTemporaryParameters(tmp);
-                            // take over inner locale, in case it changed
-                            actionContext.setLocale(effectiveLocale);
-                        }
-                    }
+							// restore state before this method call
+							binding.setEntity(previousEntity);
+							binding.setActionContext(previousContext);
+							binding.setMethodParameters(previousMethodParameters);
+							securityContext.getContextStore().setTemporaryParameters(tmp);
+							// take over inner locale, in case it changed
+							actionContext.setLocale(effectiveLocale);
+						}
+					}
 				}
 
 				// fallback => normal scripting
@@ -197,14 +205,14 @@ public abstract class AbstractMethod {
 		}
 
 		final NamedArguments converted = new NamedArguments();
-		int index                      = 0;
+		int index = 0;
 
 		// The below block tries to convert method arguments according to declared parameters (if present).
 		// We go over all arguments, check if there is a corresponding parameter, and convert the value if yes.
 		for (final Argument arg : arguments.getAll()) {
 
 			// named argument?
-			String parameterName        = arg.getName();
+			String parameterName = arg.getName();
 			final Object parameterValue = arg.getValue();
 
 			if (parameterName == null) {

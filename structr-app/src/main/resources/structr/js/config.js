@@ -171,17 +171,25 @@ let _Config = {
 
 				name = name.trim();
 
-				let newEntry = _Helpers.createSingleDOMElementFromHTML(`
-					<div class="form-group">
-						<label class="font-bold basis-full sm:basis-auto sm:min-w-128">${name}</label>
-						<input type="text" name="${name}">
-						<input type="hidden" name="${name}._settings_group" value="${$(currentTab).attr('id')}">
-					</div>
-				`);
+				let existing = document.querySelector(`[name="${CSS.escape(name)}"]`);
+				if (existing) {
 
-				currentTab.appendChild(newEntry);
+					alert('A configuration setting with that key already exists.');
 
-				_Config.cron.initPotentialNewCronExpressionSetting(newEntry, name);
+				} else {
+
+					let newEntry = _Helpers.createSingleDOMElementFromHTML(`
+						<div class="form-group">
+							<label class="font-bold basis-full sm:basis-auto sm:min-w-128">${name}</label>
+							<input type="text" name="${name}">
+							<input type="hidden" name="${name}._settings_group" value="${$(currentTab).attr('id')}">
+						</div>
+					`);
+
+					currentTab.appendChild(newEntry);
+
+					_Config.cron.initPotentialNewCronExpressionSetting(newEntry, name);
+				}
 			}
 		}
 	},

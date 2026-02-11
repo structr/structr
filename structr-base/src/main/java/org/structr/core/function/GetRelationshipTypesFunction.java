@@ -30,6 +30,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
 
@@ -205,5 +206,10 @@ public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 				Parameter.optional("lookupType", "`existing` or `schema` - default: `existing`"),
 				Parameter.optional("direction", "`incoming`, `outgoing` or `both` - default: `both`")
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Schema;
 	}
 }

@@ -44,14 +44,8 @@ let _Documentation = {
 			Structr.subModule = Structr.subModule?.substring(0, lastIndexOfHash);
 		}
 
-		_Documentation.preloadContent().then(() => {
-
-			// install handler after preload
-			window.addEventListener('hashchange', _Documentation.hashChangeHandler);
-
-			_Documentation.updateHashWithoutAddingHistory('#docs:' + (Structr.subModule || '1-Introduction/1-Getting%20Started.md') + '#' + (inPageHash ?? ''))
-			_Documentation.loadDoc(Structr.subModule || '1-Introduction/1-Getting%20Started.md', inPageHash);
-		});
+        //_Documentation.loadDoc(Structr.subModule || 'Getting Started', inPageHash);
+		_Documentation.loadDoc('concept00002', inPageHash);
 
 		Structr.setFunctionBarHTML(_Documentation.templates.searchField());
 
@@ -116,250 +110,100 @@ let _Documentation = {
 	},
 	init: () => {
 
+        // build the table of contents
 		const docsElement = document.getElementById('docs-main-navigation');
+        const iframe = document.querySelector('iframe');
 
-		fetch('/structr/docs/index.txt')
-			.then(response => response.text())
-			.then(text => {
-				text.split('\n').forEach(line => {
+        if (iframe) {
 
-					if (line) {
-						const [index, label] = line.split('-');
-						docsElement.insertAdjacentHTML('beforeend', _Documentation.templates.mainNavigationItem({
-							index: index,
-							label: label
-						}));
+            iframe.addEventListener('load', e => {
+                //_Documentation.makeEditable();
+            });
 
-						const parentIndex = index;
-						const parentLabel = label;
+        } else {
+            console.log('iframe not found');
+        }
 
-						docsElement.querySelector(`li:nth-child(${index})`).insertAdjacentHTML('beforeend', '<ul>');
+		fetch('/structr/docs/ontology?root=Structr&details=name&levels=1&format=toc&startLevel=1')
+			.then(response => response.json())
+			.then(json => {
 
-						const articleListElement = docsElement.querySelector(`li:nth-child(${index}) ul`);
+                for (let entry of json.data) {
 
-						fetch(`/structr/docs/${index}-${label}/index.txt`)
-							.then(response => {
-								if (response.ok) {
-									return response.text();
-								}
-							})
-							.then(text => {
-								text.split('\n').forEach(line => {
+                    let menuItem = _Documentation.createElementFromHTML(_Documentation.templates.mainNavigationItem({
+                        label: entry.name
+                    }));
 
-									if (line) {
+                    docsElement.appendChild(menuItem);
 
-										const [index, name] = line.split('-');
-										articleListElement.insertAdjacentHTML('beforeend', _Documentation.templates.mainNavigationSubItem({
-											parentIndex: parentIndex,
-											parentLabel: parentLabel,
-											index: index,
-											name: name,
-											label: name.substring(0, name.lastIndexOf('.'))
-										}));
+                    let sublist = document.createElement('ul');
+                    menuItem.appendChild(sublist);
 
-									}
-								});
-							});
-					}
-				});
+                    if (entry && entry.links && entry.links.length) {
+                        for (let child of entry.links[0].targets) {
+
+                            let subItem = _Documentation.createElementFromHTML(_Documentation.templates.mainNavigationSubItem({
+                                parent: entry.id,
+                                id: child.id,
+                                label: child.name
+                            }));
+
+                            subItem.addEventListener('click', e => {
+                                _Documentation.loadContext(child.id);
+                            });
+
+                            sublist.appendChild(subItem);
+                        }
+                    }
+				}
 			});
 
 	},
-	preloadContent: () => {
-		return new Promise(async resolve => {
-
-			await fetch('/structr/docs/index.txt')
-				.then(response => response.text())
-				.then(async text => {
-
-					for (const line of text.split('\n')) {
-
-						if (line) {
-							const [index, label] = line.split('-');
-
-							const parentIndex = index;
-							const parentLabel = label;
-
-							await fetch(`/structr/docs/${index}-${label}/index.txt`)
-								.then(async response => {
-									if (response.ok) {
-										return response.text();
-									}
-								})
-								.then(async text => {
-
-									for (const line of text.split('\n')) {
-
-										if (line) {
-
-											const path = `${parentIndex}-${parentLabel}/${line}`;
-
-											await fetch(`/structr/docs/${path}`)
-												.then(async response => {
-													if (response.ok) {
-														return response.text();
-													}
-												})
-												.then(async text => {
-													_Documentation._content[path] = text;
-												});
-
-										}
-									}
-
-								});
-						}
-					}
-					resolve();
-
-				});
-		});
+	loadDoc: (id, hash, parents, searchHit) => {
+        let iframe = document.querySelector('div#docs-area iframe');
+        if (iframe) {
+            let hash = '';
+            if (parents && parents.length > 1) {
+                hash = '#' + _Documentation.cleanStringForLink(parents[parents.length - 1].name);
+            } else if (searchHit) {
+                hash = '#' + _Documentation.cleanStringForLink(searchHit);
+            }
+            iframe.src = `/structr/docs/ontology?id=${id}&details=all&format=markdown${hash}`;
+            _Documentation.loadContext(id);
+        }
 	},
-	loadDoc: (rawPath, hash, searchText) => {
+    loadContext: (id) => {
 
-		// console.log('Loading documentation page ', rawPath, hash);
-		const path = decodeURI(rawPath);
-		let articleElement       = document.querySelector('#docs-area article');
+        document.querySelectorAll('a[target="main-documentation"]').forEach(el => el.classList.remove('active'));
+        document.querySelector(`a[target="main-documentation"][href*="id=${id}"]`)?.classList.add('active');
 
-		if (_Documentation.currentDoc !== rawPath) {
+        fetch(`/structr/docs/ontology?id=${id}&details=name&levels=1&format=toc&startLevel=1`)
+            .then(response => response.json())
+            .then(json => {
 
-			_Documentation.currentDoc = rawPath;
+                let index = 1;
+                let aside = document.querySelector('aside.index');
 
-			const text = _Documentation._content[path];
-			const converter = new showdown.Converter({ tables: true, simplifiedAutoLink: true, prefixHeaderId: `${path}` });
+                aside.innerHTML = '<h2 class="index-heading">On this page</h2>';
 
-			// Transform image URLs
-			// Input: Local URLs like just "login.png": ![Login Screen](login.png)
-			// Output: /docs/5-Admin%20User%20Interface/login.png
+                for (let entry of json.data) {
 
-			const markdownImageRegex = /!\[([^\]]*)\]\(((?!https?:\/\/)[^)\s]+(?<!\.md))\)/g;
-			const markdownLinkRegex  = /[^!]\[([^\]]*)\]\(((?!https?:\/\/)[^)\s]+)\)/g;
+                    const cleanStringForLink = _Documentation.cleanStringForLink(entry.name);
 
-			const prefixMarkdownImages = (text, prefix) => {
-				return text?.replace(markdownImageRegex, (match, alt, url) => {
-					return `![${alt}](${prefix}${url})`;
-				});
-			}
+                    aside.appendChild(_Documentation.createElementFromHTML(_Documentation.templates.indexItem({
+                        id: id,
+                        name: cleanStringForLink,
+                        label: entry.name
+                    })));
 
-			// Transform image URLs
-			// Input: Local URLs like just "login.png": ![Login Screen](login.png)
-			// Output: /docs/5-Admin%20User%20Interface/login.png
-
-			const prefixArticleLinks = (text, prefix) => {
-				return text?.replace(markdownLinkRegex, (match, alt, url) => {
-					return ` [${alt}](${prefix}${url})`;
-				});
-			}
-
-			const parent       = path.substring(0, path.lastIndexOf('/'));
-			let updatedContent = prefixMarkdownImages(text, '/structr/docs/' + parent.replace(/ /g, '%20') + '/');
-			updatedContent     = prefixArticleLinks(updatedContent, '/structr/#docs:' + parent.replace(/ /g, '%20') + '/');
-
-			const html               = converter.makeHtml(updatedContent);
-			articleElement.innerHTML = `<p class="main-category subtitle">${parent.substring(parent.lastIndexOf('-')+1)}</p>` + html;
-
-			const indexHtml = converter.makeHtml(html);
-
-			// Page index
-			document.querySelector('#docs-area aside').innerHTML = '<div class="index-heading">On this page</div>' + indexHtml;
-
-			// Activate in-page index links (aside element on the right-hand side)
-			document.querySelectorAll('#docs-area aside h1, #docs-area aside h2, #docs-area aside h3, #docs-area aside h4').forEach(el => {
-				const newAElement = document.createElement('A');
-				newAElement.href = '#' + el.id;
-				el.removeAttribute('id');
-				el.parentNode.insertBefore(newAElement, el);
-				newAElement.appendChild(el);
-			});
-		}
-
-		articleElement.scrollTo(0,0);
-
-		if (hash) {
-
-			const el = document.getElementById(hash) || document.querySelector(`[name="${CSS.escape(hash)}"]`);
-			if (el) el.scrollIntoView({ block: "start" });
-
-			_Documentation.updateHashWithoutAddingHistory('#docs:' + _Documentation.currentDoc + '#' + hash);
-
-		} else if (searchText) {
-
-			let navigateToClosestAnchor = (el) => {
-				let id;
-				while (!id) {
-					if (el.id) {
-						id = el.id;
-						break;
-					} else {
-						el = el.previousElementSibling;
-						if (el === articleElement) {
-							return;
-						}
-					}
-				}
-
-				// attempt to find link for this id
-				let linkToEl = document.querySelector(`a[href="#${id}"]`);
-				if (linkToEl) {
-					linkToEl.click();
-				} else {
-					// this breaks on reload...
-					location.hash = '#' + id;
-				}
-			};
-
-			for (let child of articleElement.children) {
-
-				if (child.innerText.toLowerCase().contains(searchText)) {
-					navigateToClosestAnchor(child);
-					break;
-				}
-			}
-		}
-
-		document.querySelectorAll('#docs-area nav a').forEach(aElement => {
-			aElement.classList.remove('active');
-		});
-
-		// Make navigation link active and scroll into view
-		_Helpers.waitForElement(`#docs-area nav a[href='#docs:${decodeURI(path)}']`).then(el => {
-			el.classList.add('active');
-			el.scrollIntoView({ block: "start" });
-		});
-
-		const isElementInViewport = el => {
-
-			const rect = el.getBoundingClientRect();
-
-			return (
-				rect.top >= 0 &&
-				rect.left >= 0 &&
-				rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) && /* or $(window).height() */
-				rect.right <= (window.innerWidth || document.documentElement.clientWidth) /* or $(window).width() */
-			);
-		};
-
-		articleElement.addEventListener('scroll', e => {
-			for (const el of document.querySelectorAll('.article h1, .article h2')) {
-				const isVisible = isElementInViewport(el);
-				if (isVisible) {
-					document.querySelectorAll('.index a').forEach(el => {
-						el.classList.remove('active');
-					});
-					const id = el.id; //querySelector('a').id;
-					const indexEl = document.querySelector('.index a[href="#' + id + '"]');
-					indexEl.classList.add('active');
-					break;
-				} else {
-					/*
-					const id = el.querySelector('a').id;
-					const indexEl = document.querySelector('.index a[href="#' + id + '"]');
-					indexEl.classList.remove('active');
-					*/
-				}
-			}
-		});
-	},
+                    aside.querySelector(`a[href*="#${cleanStringForLink}"]`)?.addEventListener('click', e => {
+                        aside.querySelectorAll('a[target="main-documentation"]').forEach(el => el.classList.remove('active'));
+                        e.target.classList.add('active');
+                    });
+                }
+            });
+    },
+    cleanStringForLink: (str) => str.replace('?', '').replaceAll(/[\W]+/g, '-').toLowerCase(),
 	search: {
 		searchOverlay: undefined,
 		overlaySearchField: undefined,
@@ -385,9 +229,9 @@ let _Documentation = {
 
 			document.addEventListener('keydown', _Documentation.keyDownHandler);
 
-			_Documentation.search.overlaySearchField.addEventListener('keyup', e => {
-				_Helpers.requestAnimationFrameWrapper(_Documentation.search.searchAnimationFrameKey, _Documentation.search.doSearch);
-			});
+			_Documentation.search.overlaySearchField.addEventListener('keyup', _Helpers.debounce(e => {
+                _Documentation.search.doSearch();
+			}, 500));
 
 			_Documentation.search.overlaySearchField.addEventListener('search', e => {
 				let query = e.target.value;
@@ -409,55 +253,148 @@ let _Documentation = {
 		clearSearchResults: () => {
 			_Documentation.search.searchResultsList.replaceChildren();
 		},
-		doSearch: () => {
+        doSearch: () => {
 
-			_Documentation.search.clearSearchResults();
+            _Documentation.search.clearSearchResults();
 
-			let searchText = _Documentation.search.overlaySearchField.value;
+            let searchText = _Documentation.search.overlaySearchField.value;
+            if (searchText) {
 
-			if (searchText) {
+                if (searchText.length < 3) {
 
-				for (const file of Object.keys(_Documentation._content)) {
+                    let result = _Helpers.createSingleDOMElementFromHTML(`
+                        <li class="search-result cursor-pointer">
+                            <div class="group-aria-selected:text-sky-600">
+                                <span>Please type at least 3 characters to search.</span>
+                            </div>
+                        </li>
+                    `);
 
-					const textLowerCase       = _Documentation.removeAllMarkdownChars(_Documentation._content[file]).toLowerCase();
-					const searchTextLowerCase = searchText.toLowerCase();
-					const numContextWords     = 5;
-					let index                 = textLowerCase.indexOf(searchTextLowerCase.toLowerCase());
+                    result.addEventListener('click', e => {
+                        _Documentation.search.hideSearch();
+                    });
 
-					if (index >= 0) {
+                    _Documentation.search.searchResultsList.appendChild(result);
 
-						const substringBefore = textLowerCase.slice(0, index);
-						const wordsBefore = substringBefore.split(' ');
-						const substringAfter = textLowerCase.slice(index);
-						const wordsAfter = substringAfter.split(' ');
+                } else {
 
-						let result = _Helpers.createSingleDOMElementFromHTML(`
-							<li class="search-result cursor-pointer">
-								<div class="group-aria-selected:text-sky-600">
-									<span>${wordsBefore.slice(Math.max(wordsBefore.length - numContextWords, 1)).join(' ')}${wordsAfter.slice(0, numContextWords).join(' ')}</span>
-								</div>
-								<div aria-hidden="true" class="search-result-path">${file}<span class="sr-only">/</span></div>
-							</li>
-						`);
+                    fetch(`/structr/docs/ontology?search=${encodeURIComponent(searchText)}&details=name&levels=1&startLevel=0`)
+                        .then(response => response.json())
+                        .then(json => {
 
-						result.addEventListener('click', e => {
-							_Documentation.search.hideSearch();
-							_Documentation.loadDoc(encodeURI(file), null, searchTextLowerCase);
-						});
+                            if (json.data) {
 
-						_Documentation.search.searchResultsList.appendChild(result);
-					}
-				}
-			}
-		},
-		showSearch: () => {
-			_Documentation.search.searchOverlay.classList.remove('hidden');
-			_Documentation.search.overlaySearchField.focus();
-		},
-		hideSearch: () => {
-			_Documentation.search.searchOverlay.classList.add('hidden');
-		}
-	},
+                                let num = json.data.length;
+                                let count = 0;
+
+                                if (num == 0) {
+
+                                    let result = _Helpers.createSingleDOMElementFromHTML(`
+                                                <li class="search-result">
+                                                    <div class="text-gray-999 text-center">
+                                                        <span>No results</span>
+                                                    </div>
+                                                </li>
+                                            `);
+
+                                    _Documentation.search.searchResultsList.appendChild(result);
+
+                                } else {
+
+                                    for (let entry of json.data) {
+
+                                        if (count++ < 15) {
+
+                                            let parents = _Documentation.search.extractParents(entry);
+                                            let contextHint = _Documentation.search.formatContextHint(entry);
+                                            let id = parents?.[0]?.id || entry.id;
+                                            let type = entry.type;
+
+                                            if (type === 'MarkdownFile' || type === 'MarkdownTopic') {
+                                                type = 'Topic';
+                                            }
+
+                                            let result = _Helpers.createSingleDOMElementFromHTML(`
+                                                <li class="search-result cursor-pointer">
+                                                    <div class="group-aria-selected:text-sky-600">
+                                                        <span>${entry.name}</span>
+                                                    </div>
+                                                    <div class="search-result-type">${type}</div>
+                                                    <div class="search-result-description">${contextHint}<span class="sr-only">/</span></div>
+                                                </li>
+                                            `);
+
+                                            result.addEventListener('click', e => {
+                                                _Documentation.search.hideSearch();
+                                                _Documentation.loadDoc(`${id}`, null, parents, entry.name);
+                                            });
+
+                                            _Documentation.search.searchResultsList.appendChild(result);
+
+                                        } else {
+
+                                            let result = _Helpers.createSingleDOMElementFromHTML(`
+                                                <li class="search-result">
+                                                    <div class="text-gray-999 text-center">
+                                                        <span>Showing results 1 - 15 of ${num}</span>
+                                                    </div>
+                                                </li>
+                                            `);
+
+                                            _Documentation.search.searchResultsList.appendChild(result);
+
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                }
+            }
+        },
+        showSearch: () => {
+            _Documentation.search.searchOverlay.classList.remove('hidden');
+            _Documentation.search.overlaySearchField.value = '';
+            _Documentation.search.overlaySearchField.focus();
+        },
+        hideSearch: () => {
+            _Documentation.search.searchOverlay.classList.add('hidden');
+        },
+        extractParents: (entry) => {
+
+            let parents = [];
+
+            let parent = entry?.parents?.[0]?.targets?.[0];
+            while (parent) {
+
+                if (!parent.isToplevel) {
+                    parents.push(parent);
+                }
+
+                parent = parent?.parents?.[0]?.targets?.[0];
+            }
+
+            parents = parents.reverse();
+
+            return parents;
+        },
+        formatContextHint: (entry) => {
+
+            if (entry?.shortDescription?.length) {
+                return entry.shortDescription;
+            }
+
+            if (entry && entry.parents && entry.parents.length) {
+                return entry.parents[0].targets.map(t => t.name).join(', ');
+            }
+
+            return '';
+        }
+    },
+    createElementFromHTML: (html) => {
+        let range = document.createRange();
+        return range.createContextualFragment(html).firstElementChild;
+    },
 	templates: {
 		main: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/docs.css">
@@ -466,23 +403,26 @@ let _Documentation = {
 					<ul id="docs-main-navigation">
 					</ul>
 				</nav>
-				<article class="article"></article>
+				<iframe name="main-documentation"></iframe>
 				<aside class="index"></aside>
 			</div>`,
 		searchField: config => `
 			<div id="search-field">
-				${_Icons.getSvgIcon(_Icons.iconSearch, 20, 20, ['icon-grey', 'absolute', 'left-3', 'top-2'])}
-
+				<svg aria-hidden="true" viewBox="0 0 20 20">
+					<path fill="#555" d="M16.293 17.707a1 1 0 0 0 1.414-1.414l-1.414 1.414ZM9 14a5 5 0 0 1-5-5H2a7 7 0 0 0 7 7v-2ZM4 9a5 5 0 0 1 5-5V2a7 7 0 0 0-7 7h2Zm5-5a5 5 0 0 1 5 5h2a7 7 0 0 0-7-7v2Zm8.707 12.293-3.757-3.757-1.414 1.414 3.757 3.757 1.414-1.414ZM14 9a4.98 4.98 0 0 1-1.464 3.536l1.414 1.414A6.98 6.98 0 0 0 16 9h-2Zm-1.464 3.536A4.98 4.98 0 0 1 9 14v2a6.98 6.98 0 0 0 4.95-2.05l-1.414-1.414Z"></path>
+				</svg>
 				<input type="text" placeholder="Search docs">
 			</div>
 		`,
 		mainNavigationItem: config => `<li class="docs-main-nav-item">${config.label}</li>`,
-		mainNavigationSubItem: config => `<li><a href="#docs:${config.parentIndex}-${config.parentLabel}/${config.index}-${config.name}">${config.label}</a></li>`,
+        mainNavigationSubItem: config => `<li><a target="main-documentation" href="/structr/docs/ontology?id=${config.id}&parent=${config.parent}">${config.label}</a></li>`,
+		indexItem: config => `<h2><a target="main-documentation" href="/structr/docs/ontology?id=${config.id}#${config.name}">${config.label}</a></h2>`,
 		searchOverlay: config => `
 			<div id="search-overlay" class="hidden">
 				<div id="search-overlay-dialog">
-					${_Icons.getSvgIcon(_Icons.iconSearch, 20, 20, ['icon-black', 'absolute', 'left-3', 'top-2'])}
-
+					<svg aria-hidden="true" viewbox="0 0 20 20">
+						<path d="M16.293 17.707a1 1 0 0 0 1.414-1.414l-1.414 1.414ZM9 14a5 5 0 0 1-5-5H2a7 7 0 0 0 7 7v-2ZM4 9a5 5 0 0 1 5-5V2a7 7 0 0 0-7 7h2Zm5-5a5 5 0 0 1 5 5h2a7 7 0 0 0-7-7v2Zm8.707 12.293-3.757-3.757-1.414 1.414 3.757 3.757 1.414-1.414ZM14 9a4.98 4.98 0 0 1-1.464 3.536l1.414 1.414A6.98 6.98 0 0 0 16 9h-2Zm-1.464 3.536A4.98 4.98 0 0 1 9 14v2a6.98 6.98 0 0 0 4.95-2.05l-1.414-1.414Z"></path>
+					</svg>
 					<input spellcheck="false" id="overlay-search-field" autocomplete="off" type="search" maxlength="512" placeholder="Search docs" autofocus="autofocus" aria-autocomplete="both" aria-labelledby=":R2dja:-label" data-autofocus="true">
 					<div id="search-results">
 						<ul></ul>

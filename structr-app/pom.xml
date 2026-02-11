@@ -4,13 +4,13 @@
 
     <name>Structr App</name>
     <artifactId>structr-app</artifactId>
-    <version>6.1-SNAPSHOT</version>
+    <version>6.2-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <parent>
         <groupId>org.structr</groupId>
         <artifactId>structr</artifactId>
-        <version>6.1-SNAPSHOT</version>
+        <version>6.2-SNAPSHOT</version>
     </parent>
 
     <properties>
@@ -143,7 +143,7 @@
 
     <build>
         <!-- Artifact name: structr-6.0-SNAPSHOT-202510261155.abc12.jar -->
-        <finalName>structr-${project.version}-${maven.build.timestamp}.${buildNumber}</finalName>
+        <finalName>structr-${project.version}-${structr.build.timestamp}.${buildNumber}</finalName>
 
         <plugins>
             <plugin>
@@ -579,7 +579,6 @@
                             <images>
                                 <image>
                                     <name>structr/structr:${project.version}</name>
-
                                     <build>
                                         <contextDir>${project.basedir}</contextDir>
                                         <args>
@@ -587,6 +586,25 @@
                                         </args>
                                         <buildx>
                                             <builderName>structr-buildx</builderName>
+                                            <platforms>
+                                                <platform>linux/amd64</platform>
+                                                <platform>linux/arm64</platform>
+                                            </platforms>
+                                        </buildx>
+                                    </build>
+                                </image>
+                                <image>
+                                    <name>registry.structr.com/structr/structr:${project.version}</name>
+                                    <build>
+                                        <contextDir>${project.basedir}</contextDir>
+                                        <args>
+                                            <STRUCTR_VERSION>${project.build.finalName}</STRUCTR_VERSION>
+                                        </args>
+                                        <buildx>
+                                            <builderName>structr-buildx</builderName>
+                                            <attestations>
+                                                <provenance>false</provenance>
+                                            </attestations>
                                             <platforms>
                                                 <platform>linux/amd64</platform>
                                                 <platform>linux/arm64</platform>

@@ -32,6 +32,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.HashSet;
@@ -162,5 +163,10 @@ public class RevokeFunction extends AdvancedScriptingFunction {
 				Parameter.mandatory("node", "node to revoke permissions"),
 				Parameter.mandatory("permissions", "comma seperated permission string of `read`, `write`, `delete`, `accessControl`")
 				);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.AccessControl;
 	}
 }

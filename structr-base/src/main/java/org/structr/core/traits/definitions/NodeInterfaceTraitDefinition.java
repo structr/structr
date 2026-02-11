@@ -244,9 +244,9 @@ public final class NodeInterfaceTraitDefinition extends AbstractNodeTraitDefinit
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
 		// properties
-		final PropertyKey<String>  nameProperty                     = new StringProperty(NAME_PROPERTY).indexed().description("name of this node");
+		final PropertyKey<String>  nameProperty                     = new StringProperty(NAME_PROPERTY).indexed();
 		final PropertyKey<Boolean> hiddenProperty                   = new BooleanProperty(HIDDEN_PROPERTY).indexed();
-		final Property<NodeInterface> ownerProperty                 = new StartNode(traitsInstance, OWNER_PROPERTY, StructrTraits.PRINCIPAL_OWNS_NODE).description("owner of this node");
+		final Property<NodeInterface> ownerProperty                 = new StartNode(traitsInstance, OWNER_PROPERTY, StructrTraits.PRINCIPAL_OWNS_NODE);
 		final PropertyKey<String> ownerIdProperty                   = new EntityIdProperty(OWNER_ID_PROPERTY, StructrTraits.NODE_INTERFACE, OWNER_PROPERTY, StructrTraits.PRINCIPAL);
 		final PropertyKey<Iterable<NodeInterface>> granteesProperty = new StartNodes(traitsInstance, GRANTEES_PROPERTY, StructrTraits.SECURITY);
 

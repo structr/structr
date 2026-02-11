@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            html, body {
+                margin: 0;
+                padding: 0;
+                background-color: #eee;
+            }
+            #container {
+                position: relative;
+            }
+            #visualization {
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                height: calc(100vh);
+                background-color: white;
+            }
+            #context {
+                position: absolute;
+                padding: 1em;
+                top: 2em;
+                font-size: 10pt;
+                right: 2em;
+                width: 500px;
+                height: 800px;
+                border: 1px solid #999;
+                background-color: #fff;
+                box-shadow: 0 4px 10px 0 rgba(0,0,0,0.1);
+                overflow: auto;
+            }
+            #context h3, h4, p {
+                margin: 0.5rem 0;
+            }
+            #search {
+                position: absolute;
+                box-shadow: 0 4px 10px 0 rgba(0,0,0,0.1);
+                bottom: 3em;
+                left: 35%;
+                width: 30%;
+            }
+            #search input {
+                width: 100%;
+                box-sizing: border-box;
+            }
+            #search input.error {
+                background-color: #fef;
+            }
+            #results {
+                position: relative;
+                padding: 0 .5em;
+                background-color: #fff;
+                font-size: 9pt;
+                overflow: auto;
+                width: 100%;
+                height: 300px;
+            }
+            #results div.node-link {
+                padding: 0.2em 0;
+                font-weight: 500;
+                cursor: pointer;
+            }
+            #results div.node-link:hover {
+                background-color: #eee;
+            }
+            .hidden {
+                display: none;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="container">
+            <div id="visualization">
+            </div>
+            <div id="context"></div>
+            <div id="search">
+                <div id="results" class="hidden"></div>
+                <input />
+            </div>
+        </div>
+        <script src="https://visjs.github.io/vis-network/standalone/umd/vis-network.min.js"></script>
+        <script>
+            const colors = {
+
+                'Unknown':    '#FF0000',
+
+                // Structural concepts - Blau/Indigo-Palette
+                //'topic':      '#4A90E2',  // Helles Blau
+                'Topic':      '#000000',  // Schwarz
+                'Concept':    '#5C6BC0',  // Indigo
+                'Component':  '#66BB6A',  // Grün
+                'Type':       '#26A69A',  // Teal
+                'Feature':    '#FFA726',  // Orange
+                'Capability': '#FFCA28',  // Gelb-Orange
+                'UseCase':   '#FFB74D',  // Hellorange
+                'Mechanism':  '#AB47BC',  // Lila
+                'Provider':   '#7E57C2',  // Dunkles Violett
+                'Service':    '#9575CD',  // Hellviolett
+
+                // External sources - Grau-Palette (neutral, dokumentarisch)
+                'MarkdownFolder': '#78909C',  // Blaugrau
+                'MarkdownFile':   '#90A4AE',  // Hellblaugrau
+                'CodeSource':     '#607D8B',  // Stahlblau
+
+                // UI Elements - Cyan/Türkis-Palette (interaktiv, frontend)
+                'Tab':          '#26C6DA',  // Helles Cyan
+                'Flyout':       '#00BCD4',  // Türkis
+                'Menu':         '#0097A7',  // Dunkles Cyan
+                'dialog':       '#00838F',  // Petrol
+                'Link':         '#4DD0E1',  // Sehr helles Cyan
+                'Input':        '#80DEEA',  // Pastellcyan
+                'Textarea':     '#84FFFF',  // Hellstes Cyan
+                'Button':       '#18FFFF',  // Neon Cyan
+                'Checkbox':     '#64FFDA',  // Cyan-Grün
+                'dropdown':     '#1DE9B6',  // Mintgrün
+                'Selector':     '#00E676',  // Hellgrün
+                'List':         '#69F0AE',  // Pastellgrün
+                'Table':        '#B9F6CA',  // Sehr hellgrün
+                'Row':          '#CCFF90',  // Gelbgrün
+                'Column':       '#F4FF81',  // Hellgelb
+                'Notification': '#FFD54F',  // Gold
+                'Element':      '#4FC3F7',  // Sky Blue
+                'Icon':         '#29B6F6',  // Hellblau
+
+                // Backend elements - Dunklere Violett/Braun-Töne (technisch, intern)
+                'Logfile':      '#8D6E63',  // Braun
+                'Value':        '#A1887F',  // Hellbraun
+
+                // Metadata - Warme Grau/Beige-Töne (unterstützend, sekundär)
+                'Hint':         '#BCAAA4',  // Beige
+                'Note':         '#D7CCC8',  // Hellbeige
+                'Description':  '#EFEBE9',  // Sehr hellbeige
+                'Info':         '#81C784',  // Pastellgrün (informativ)
+                'Setting':      '#AED581',  // Hellgrün (konfigurierbar)
+                'Configuration':'9CCC65',   // Limette
+                'Synonym':      '#C5E1A5',  // Sehr hellgrün
+
+                'Area':         '#FFCC00',
+                'Helper':       '#EEEEEE',
+                'Text':         '#EEEEEE'
+            };
+            fetch('/structr/docs/ontology?type=*&levels=1&format=json&includeMentions').then(response => response.json()).then(data => {
+
+                var container = document.querySelector('#visualization');
+                var nodes = new vis.DataSet();
+                var edges = new vis.DataSet();
+
+                for (let entry of data.data) {
+                    let id = entry.id;
+                    let value = (entry.childCount + 1) * 2;
+                    let fontSize = 50;
+                    //color = (entry.occurrences > 0 ? '#00ff0099' : 'red');
+                    color = colors[entry.type];
+                    if (entry.mentions.length == 0) {
+                        color = '#FF0000';
+                        fontSize = 50;
+                    }
+
+                    nodes.add({ id: id, label: entry.type + ':' + entry.name + ' (' + entry.mentions.length + ')', value: value, color: color, font: { size: fontSize } });
+                }
+
+                for (let entry of data.data) {
+                    for (let link of entry.links) {
+                        for (let target of link.targets) {
+                            let id1 = entry.id;
+                            let id2 = target.id;
+                            let edge = { from: id1, to: id2 };
+                            edges.add(edge);
+                        }
+                    }
+                }
+                var data = {
+                    nodes: nodes,
+                    edges: edges,
+                };
+                var network = new vis.Network(container, data, {
+                    layout: {
+                        randomSeed: 42
+                    },
+                    nodes: {
+                        font: {
+                            size: 20
+                        },
+                        shape: 'hexagon',
+                        scaling: {
+                            min: 20,
+                            max: 100
+                        }
+                    },
+                    edges: {
+                        arrows: 'to'
+                    },
+                    physics: {
+                        enabled: true,
+                        solver: 'forceAtlas2Based',
+                        stabilization: true,
+                        forceAtlas2Based: {
+                            centralGravity: 0.0001,
+                            avoidOverlap: 0.8,
+                            springLength: 500,
+                            springConstant: 0.05,
+                            damping: 0.2,
+                        },
+                        barnesHut: {
+                            gravitationalConstant: -100000,
+                            avoidOverlap: 0.5,
+                            springLength: 500,
+                            springConstant: 0.05,
+                            damping: 0.2
+                        },
+                        wind: {
+                            x: 0,
+                            y: 0
+                        }
+                    }
+                });
+
+                let loadNode = (rawName) => {
+
+                    let name    = rawName.substring(0, rawName.lastIndexOf(' '));
+                    let context = document.querySelector('#context');
+                    context.innerHTML = 'Loading data for ' + name + '...';
+
+                    fetch(`/structr/docs/ontology?root=${encodeURIComponent(name)}&format=json&levels=1&includeMentions`).then(response => response.json()).then(data => {
+                        let result = data.data[0];
+                        let name   = result.name;
+                        let max    = Math.min(result.mentions.length, 30);
+                        let plus   = result.mentions.length > max ? '+' : '';
+
+                        context.innerHTML = `
+                                <h3>${name}</h3>
+                                <p>${result.type}</p>
+                                <h4>Defined in (${result.references.length})</h4>
+                                <p>${result.references.map(m => m.sourceFile + ':' + m.row + ':' + m.column).join('<br/>')}</p>
+                                <h4>Children</h4>
+                                <p>${result.childCount}</p>
+                                <h4>Mentions in Docs (${max}${plus})</h4>
+                                <p>${result.mentions.slice(0, max).map(m => m.sourceFile + ':' + m.lineNumber).join('<br/>')}</p>
+                            `
+                    });
+                }
+
+                network.addEventListener('click', (data) => {
+                    if (data && data.nodes && data.nodes.length) {
+
+                        let node = nodes.get(data.nodes[0]);
+                        loadNode(node.label);
+                    }
+                });
+
+                let debounce = (func, wait, immediate) => {
+                    var timeout;
+
+                    return function() {
+                        var context = this, args = arguments;
+                        var later = function() {
+                            timeout = null;
+                            if (!immediate) func.apply(context, args);
+                        };
+                        var callNow = immediate && !timeout;
+                        clearTimeout(timeout);
+                        timeout = setTimeout(later, wait);
+                        if (callNow) func.apply(context, args);
+                    };
+                }
+
+                document.network = network;
+
+                let searchField   = document.querySelector('#search input');
+                let resultsWidget = document.querySelector('#results');
+                document.addEventListener('keyup', (keyup) => {
+                    if (keyup.key === "Escape") {
+                        searchField.value = '';
+                        resultsWidget.classList.add('hidden');
+                    }
+                });
+                searchField.addEventListener('keyup', debounce((keyup) => {
+                    resultsWidget.classList.add('hidden');
+                    let selected = [];
+                    let found    = [];
+                    let value = searchField.value.toLowerCase();
+                    if (value.length > 0) {
+                        for (let node of nodes.get()) {
+                            if (node.label.toLowerCase().includes(value)) {
+                                selected.push(node.id);
+                                found.push(node);
+                            }
+                        }
+                        switch (selected.length) {
+                            case 0:
+                                searchField.classList.add('error');
+                                window.setTimeout(() => {
+                                    searchField.classList.remove('error');
+                                }, 3000);
+                                break;
+
+                            case 1:
+                                network.fit({nodes: selected});
+                                network.selectNodes(selected);
+                                let node = nodes.get(selected[0]);
+                                loadNode(node.label);
+                                break;
+
+                            default:
+                                resultsWidget.classList.remove('hidden');
+                                resultsWidget.innerHTML = '';
+                                for (let node of found) {
+                                    let div = document.createElement('div');
+                                    div.classList.add('node-link');
+                                    div.appendChild(document.createTextNode(node.label));
+                                    div.addEventListener('click', () => {
+                                        let n = [node.id];
+                                        network.fit({ nodes: n });
+                                        network.selectNodes(n);
+                                        loadNode(node.label);
+                                    });
+                                    resultsWidget.appendChild(div);
+                                }
+                                break;
+                        }
+                    }
+                }, 500));
+            });
+        </script>
+    </body>
+</html>

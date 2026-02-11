@@ -45,9 +45,7 @@ import org.structr.core.function.SetLogLevelFunction;
 import org.structr.core.graph.*;
 import org.structr.cron.CronService;
 import org.structr.docs.Documentable;
-import org.structr.docs.impl.service.FtpServiceDocumentable;
-import org.structr.docs.impl.service.MailServiceDocumentable;
-import org.structr.docs.impl.service.SSHServiceDocumentable;
+import org.structr.docs.documentables.service.*;
 import org.structr.files.external.DirectoryWatchService;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaHelper;
@@ -159,8 +157,8 @@ public class Services implements StructrServices, BroadcastReceiver {
 		documentables.add(new FtpServiceDocumentable());
 		documentables.add(new SSHServiceDocumentable());
 		documentables.add(new MailServiceDocumentable());
-		documentables.add(CronService.getDocumentation());
-		documentables.add(DirectoryWatchService.getDocumentation());
+		documentables.add(new CronServiceDocumentable());
+		documentables.add(new DirectoryWatchServiceDocumentable());
 	}
 
 	/**
@@ -882,7 +880,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 		} catch (Throwable t) {
 
-			logger.error("Exception occured when trying to start service " + serviceName, t);
+			logger.error("Exception occurred when trying to start service " + serviceName, t);
 
                         if (!disableRetry && isVital) {
 

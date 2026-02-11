@@ -21,6 +21,7 @@ package org.structr.web.function;
 import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -77,12 +78,17 @@ public class ValidateCertificatesFunction extends UiAdvancedFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.javaScript("""
-						${{
-						    $.validateCertificates(false);
-						    let result = $.GET('https://www.domain-with-invalid-certificate.com/resource.json');
-						}}
-						""")
+			Example.javaScript("""
+				${{
+				    $.validateCertificates(false);
+				    let result = $.GET('https://www.domain-with-invalid-certificate.com/resource.json');
+				}}
+			""")
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Http;
 	}
 }

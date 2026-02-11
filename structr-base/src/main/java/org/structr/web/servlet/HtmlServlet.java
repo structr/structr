@@ -32,6 +32,8 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
+import org.structr.common.RequestHeaders;
+import org.structr.common.RequestParameters;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
@@ -60,11 +62,13 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.UserTraitDefinition;
+import org.structr.docs.Documentation;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.rest.servlet.AbstractServletBase;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Actions;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.util.Base64;
@@ -100,16 +104,13 @@ import java.util.regex.Pattern;
 /**
  * Main servlet for content rendering.
  */
+@Documentation(name="HtmlServlet", parent="Servlets", shortDescription="Main entry point for HTML rendering.", children={ "HtmlServlet Settings" })
 public class HtmlServlet extends AbstractServletBase implements HttpServiceServlet {
 
-	private static final Logger logger                             = LoggerFactory.getLogger(HtmlServlet.class.getName());
-	private static final Property<String> pathPropertyForSearch    = new StringProperty("path").indexed();
+	private static final Logger logger = LoggerFactory.getLogger(HtmlServlet.class.getName());
 
 	public static final String CONFIRM_REGISTRATION_PAGE = "/confirm_registration";
 	public static final String RESET_PASSWORD_PAGE       = "/reset-password";
-	public static final String DOWNLOAD_AS_FILENAME_KEY  = "filename";
-	public static final String RANGE_KEY                 = "range";
-	public static final String DOWNLOAD_AS_DATA_URL_KEY  = "as-data-url";
 	public static final String CONFIRMATION_KEY_KEY      = "key";
 	public static final String TARGET_PATH_KEY           = "target";
 	public static final String ERROR_PAGE_KEY            = "onerror";
@@ -1424,7 +1425,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			final List<Linkable> list = new LinkedList<>();
 
-			for (final NodeInterface node : StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.LINKABLE).key(pathPropertyForSearch, path).getResultStream()) {
+			for (final NodeInterface node : StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.LINKABLE).and().key(Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY), path).getResultStream()) {
 
 				list.add(node.as(Linkable.class));
 			}
@@ -1457,9 +1458,9 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 	public static void setNoCacheHeaders(final HttpServletResponse response) {
 
-		response.setHeader("Cache-Control", "private, max-age=0, s-maxage=0, no-cache, no-store, must-revalidate"); // HTTP 1.1.
-		response.setHeader("Pragma", "no-cache, no-store"); // HTTP 1.0.
-		response.setDateHeader("Expires", 0);
+		response.setHeader(RequestHeaders.CacheControl.getName(), "private, max-age=0, s-maxage=0, no-cache, no-store, must-revalidate"); // HTTP 1.1.
+		response.setHeader(RequestHeaders.Pragma.getName(), "no-cache, no-store"); // HTTP 1.0.
+		response.setDateHeader(RequestHeaders.Expires.getName(), 0);
 	}
 
 	private static boolean notModifiedSince(final HttpServletRequest request, HttpServletResponse response, final NodeInterface node, final boolean dontCache) {
@@ -1482,15 +1483,15 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		if (!dontCache && seconds != null) {
 
 			cal.add(Calendar.SECOND, seconds);
-			response.setHeader("Cache-Control", "max-age=" + seconds + ", s-maxage=" + seconds);
-			response.setHeader("Expires", httpDateFormat.format(cal.getTime()));
+			response.setHeader(RequestHeaders.CacheControl.getName(), "max-age=" + seconds + ", s-maxage=" + seconds);
+			response.setHeader(RequestHeaders.Expires.getName(), httpDateFormat.format(cal.getTime()));
 
 		} else {
 
 			if (!dontCache) {
-				response.setHeader("Cache-Control", "no-cache, must-revalidate, proxy-revalidate");
+				response.setHeader(RequestHeaders.CacheControl.getName(), "no-cache, must-revalidate, proxy-revalidate");
 			} else {
-				response.setHeader("Cache-Control", "private, no-cache, no-store, max-age=0, s-maxage=0, must-revalidate, proxy-revalidate");
+				response.setHeader(RequestHeaders.CacheControl.getName(), "private, no-cache, no-store, max-age=0, s-maxage=0, must-revalidate, proxy-revalidate");
 			}
 
 		}
@@ -1498,9 +1499,9 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		if (lastModified != null) {
 
 			final Date roundedLastModified = DateUtils.round(lastModified, Calendar.SECOND);
-			response.setHeader("Last-Modified", httpDateFormat.format(roundedLastModified));
+			response.setHeader(RequestHeaders.LastModified.getName(), httpDateFormat.format(roundedLastModified));
 
-			final String ifModifiedSince = request.getHeader("If-Modified-Since");
+			final String ifModifiedSince = request.getHeader(RequestHeaders.IfModifiedSince.getName());
 
 			if (StringUtils.isNotBlank(ifModifiedSince)) {
 
@@ -1515,11 +1516,11 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						notModified = true;
 
 						response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
-						response.setHeader("Vary", "Accept-Encoding");
+						response.setHeader(RequestHeaders.Vary.getName(), "Accept-Encoding");
 					}
 
 				} catch (ParseException ex) {
-					logger.warn("Could not parse If-Modified-Since header", ex);
+					// silently ignore invalid date as per RFC 7232 section 3.3
 				}
 			}
 		}
@@ -1538,7 +1539,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		final long t0 = System.currentTimeMillis();
 
 		final ServletOutputStream out         = response.getOutputStream();
-		final String downloadAsFilename       = request.getParameter(DOWNLOAD_AS_FILENAME_KEY);
+		final String downloadAsFilename       = request.getParameter(RequestParameters.DownloadAsFilename.getName());
 		final Map<String, Object> callbackMap = new HashMap<>();
 
 		// make edit mode available in callback method
@@ -1570,7 +1571,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		} else {
 
-			final String downloadAsDataUrl = request.getParameter(DOWNLOAD_AS_DATA_URL_KEY);
+			final String downloadAsDataUrl = request.getParameter(RequestParameters.DownloadAsDataUrl.getName());
 			if (downloadAsDataUrl != null) {
 
 				final String encoded = FileHelper.getBase64String(file);
@@ -1609,7 +1610,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					response.setContentType("application/octet-stream");
 				}
 
-				final String range = request.getHeader("Range");
+				final String range = request.getHeader(RequestHeaders.Range.getName());
 
 				try {
 
@@ -1692,7 +1693,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			// call onDownload callback
 			try {
 
-				final AbstractMethod method = Methods.resolveMethod(file.getTraits(), "onDownload");
+				final AbstractMethod method = Methods.resolveMethod(file.getTraits(), Actions.NOTIFICATION_DOWNLOAD);
 				if (method != null) {
 
 					method.execute(securityContext, file, NamedArguments.fromMap(callbackMap), new EvaluationHints());
@@ -1843,7 +1844,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			}
 
 			// check Http Basic Authentication headers
-			final Principal principal = getPrincipalForAuthorizationHeader(request.getHeader("Authorization"));
+			final Principal principal = getPrincipalForAuthorizationHeader(request.getHeader(RequestHeaders.Authorization.getName()));
 			if (principal != null) {
 
 				final SecurityContext securityContext = SecurityContext.getInstance(principal, AccessMode.Frontend);

@@ -82,6 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	});
 
 	StructrWS.init();
+	Structr.globalSearch.init();
 
 	document.body.addEventListener('keyup', async (event) => {
 
@@ -276,8 +277,6 @@ let Structr = {
 	},
 	init: () => {
 		_Helpers.fastRemoveAllChildren(document.querySelector('#errorText'));
-
-		Structr.globalSearch.init();
 	},
 	clearMain: () => {
 
@@ -1137,7 +1136,7 @@ let Structr = {
 	},
 	handleGenericMessage: (data) => {
 
-		let showScheduledJobsNotifications = Importer.isShowNotifications();
+		let showScheduledJobsNotifications = _JobQueue.isShowNotifications();
 		let showScriptingErrorPopups       = UISettings.getValueForSetting(UISettings.settingGroups.global.settings.showScriptingErrorPopupsKey);
 		let showResourceAccessPopups       = UISettings.getValueForSetting(UISettings.settingGroups.global.settings.showResourceAccessPermissionWarningPopupsKey);
 		let showDeprecationWarningPopups   = UISettings.getValueForSetting(UISettings.settingGroups.global.settings.showDeprecationWarningPopupsKey);
@@ -1218,8 +1217,8 @@ let Structr = {
 					messageBuilder.show();
 				}
 
-				if (Structr.isModuleActive(Importer)) {
-					Importer.updateJobTable();
+				if (Structr.isModuleActive(_JobQueue)) {
+					_JobQueue.updateJobTable();
 				}
 				break;
 
@@ -1235,8 +1234,8 @@ let Structr = {
 					new ErrorMessage().title(`Exception while importing ${data.jobtype}`).text(`File: ${data.filepath}<br>${text}`).requiresConfirmation().show();
 				}
 
-				if (Structr.isModuleActive(Importer)) {
-					Importer.updateJobTable();
+				if (Structr.isModuleActive(_JobQueue)) {
+					_JobQueue.updateJobTable();
 				}
 				break;
 
@@ -1265,8 +1264,8 @@ let Structr = {
 					messageBuilder.show();
 				}
 
-				if (Structr.isModuleActive(Importer)) {
-					Importer.updateJobTable();
+				if (Structr.isModuleActive(_JobQueue)) {
+					_JobQueue.updateJobTable();
 				}
 				break;
 
@@ -1960,17 +1959,19 @@ let Structr = {
 			if (data.queryString.length > 0) {
 
 				let results        = await Command.searchNodes(data);
-				let resultsElement = document.querySelector('#global-search-results');
+				let resultsElement = document.querySelector('#global-search-results tbody');
 
 				for (let result of results) {
 
-					for (let key of result.keys) {
+					for (let i=0; i<result.keys.length; i++) {
 
-						let el = _Helpers.createSingleDOMElementFromHTML(Structr.globalSearch.templates.result(result, key));
+						const key = result.keys[i], value = result.values[i];
+
+						let el = _Helpers.createSingleDOMElementFromHTML(Structr.globalSearch.templates.result(result, key, Structr.globalSearch.htmlCodeForKey(key), value, data.queryString));
 
 						resultsElement.appendChild(el);
 
-						el.querySelector('button').addEventListener('click', () => {
+						el.addEventListener('click', () => {
 							Structr.globalSearch.goTo(result, key, data);
 						});
 					}
@@ -2018,40 +2019,63 @@ let Structr = {
 							<div class="mx-4 my-4">
 								<form id="global-search-node-form" class="flex flex-col gap-2">
 									<div class="flex gap-2">
-										<input type="search" name="queryString" required placeholder="Search term..." autocomplete="off" autofocus>
+										<input class="global-search-input" type="search" name="queryString" required placeholder="Search across selected areas..." autocomplete="off" autofocus>
 									</div>
-									<div>
+									<div class="flex gap-8">
 										<label class="flex items-center"><input type="checkbox" checked name="searchDOM">Page Elements</label>
-										<label class="flex items-center"><input type="checkbox" checked name="searchSchema">Schema</label>
+										<label class="flex items-center"><input type="checkbox" checked name="searchSchema">Schema/Code</label>
 										<!--	<label class="flex items-center"><input type="checkbox" checked name="searchFlow">Flow Nodes</label>-->
 									</div>
 								</form>
 		
-								<div id="global-search-results" class="grid items-start gap-x-2 gap-y-3 mt-6" style="grid-template-columns: [ name ] minmax(0, 1fr) [ keys ] minmax(10%, max-content) [ id ] 4rem [ actions ] minmax(2rem, max-content)">
-									<div class="contents font-bold">
-										<div>Name/Type</div>
-										<div>Key</div>
-										<div>ID</div>
-										<div></div>
-									</div>
-								</div>
+								<table id="global-search-results">
+									<thead>
+										<tr>
+											<th>ID</th>
+											<th>Name/Type</th>
+											<th>Attribute Key</th>
+											<th>Value</th>
+										</tr>
+									</thead>
+									<tbody></tbody>
+								</table>
 							</div>
 						</div>
 					</div>
 				</div>
 			`,
-			result: (result, key) => `
-				<div class="contents" data-id="${result.id}" data-key="${key}">
-					<div class="break-word">${result.name ? `${result.name} [${result.type}]` : result.type}</div>
-					<div class="break-word">${key}</div>
-					<div class="truncate">${result.id}</div>
-					<div>
-						<button class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green p-2 mr-0" title="Go to element">
-							${_Icons.getSvgIcon(_Icons.iconOpenInNewPage, 16, 16, [..._Icons.getSvgIconClassesNonColorIcon(), 'pointer-events-none'])}
-						</button>
-					</div>
-				</div>
+			result: (result, key, htmlCodeForKey, value, searchString) => `
+				<tr class="cursor-pointer" data-id="${result.id}" data-key="${key}" title="${key}">
+					<td title="${result.id}">${result.id.substring(1, 5)}&hellip;</td>
+					<td class="name">${result.name ? `${result.name} [${result.type}]` : result.type}</td>
+					<td class="key">${htmlCodeForKey}</td>
+					<td class="value">${value?.before?.length > 23 ? '&hellip;' : ''}${value?.before||''}${Structr.globalSearch.highlightText(value.match, searchString)}${value?.after||''}${value?.after?.length > 23 ? '&hellip;' : ''}</td>
+				</tr>
 			`
+		},
+		htmlCodeForKey: key => {
+
+			if (key.startsWith('_custom_html_data-')) {
+				return `${key.substring(18)} <div class="attr custom-html-data-attr">custom html data</div>`;
+			} else if (key.startsWith('_custom_html_')) {
+				return `${key.substring(13)}<div class="attr custom-html-attr">Custom HTML</div>`;
+			} else if (key === '_html_id') {
+				return `<div class="attr id-attr">id</div>`;
+			} else if (key === '_html_class') {
+				return `<div class="attr class-attr">class</div>`;
+			} else if (key.startsWith('_html_')) {
+				return `${key.substring(6)} <div class="attr html-attr">html</div>`;
+			} else if (key === 'content') {
+				return `<div class="attr content-attr">${key}</div>`;
+			} else {
+				return `${key}`;
+			}
+		},
+		highlightText: (str, searchString) => {
+			const escaped = searchString.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+			return str.replace(new RegExp(escaped, 'gi'), (match) => {
+				return `<mark>${match}</mark>`;
+			});
 		}
 	},
 
@@ -2070,7 +2094,8 @@ let Structr = {
 	templates: {
 		mainBody: config => `
 
-			<div class="structr-version text-gray-999 text-xs absolute bottom-2 right-8 z-1"></div>
+			<div class="structr-version text-gray-999 text-xs absolute bottom-2 right-8 z-100"></div>
+
 			<div id="info-area">
 				<div id="close-all-button" class="mt-4 mb-2 mx-2 text-right">
 					<button class="confirm hover:border-gray-666 bg-white mr-0">Close All</button>
@@ -2098,7 +2123,7 @@ let Structr = {
 								<li data-name="Code"><a id="code_" href="#code" data-activate-module="code">Code</a></li>
 								<li data-name="Flows"><a id="flows_" href="#flows" data-activate-module="flows">Flows</a></li>
 								<li data-name="Data"><a id="crud_" href="#crud" data-activate-module="crud">Data</a></li>
-								<li data-name="Importer"><a id="importer_" href="#importer" data-activate-module="importer">Importer</a></li>
+								<li data-name="Job Queue"><a id="job-queue_" href="#job-queue" data-activate-module="job-queue">Job Queue</a></li>
 								<li data-name="Localization"><a id="localization_" href="#localization" data-activate-module="localization">Localization</a></li>
 								<li data-name="Virtual Types"><a id="virtual-types_" href="#virtual-types" data-activate-module="virtual-types">Virtual Types</a></li>
 								<li data-name="Mail Templates"><a id="mail-templates_" href="#mail-templates" data-activate-module="mail-templates">Mail Templates</a></li>
@@ -2120,7 +2145,7 @@ let Structr = {
 
 					<div style="target-name: --global-search;">
 					
-						<button class="m-0 p-0 border-0" popovertarget="global-search-popover" style="anchor-name: --global-search;">
+						<button class="m-0 p-0 border-0 bg-transparent" popovertarget="global-search-popover" style="anchor-name: --global-search;">
 							${_Icons.getSvgIcon(_Icons.iconSearch, 24, 24, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), 'Global Search')}
 						</button>
 
@@ -2134,7 +2159,7 @@ let Structr = {
 					</div>
 
 					<div>
-						${_Icons.getSvgIconWithID('terminal-icon', _Icons.iconTerminal, 26,26, _Icons.getSvgIconClassesForColoredIcon(['text-white']), 'Toggle Console')}
+						${_Icons.getSvgIconWithID('terminal-icon', _Icons.iconTerminal, 26,26, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), 'Toggle Console')}
 					</div>
 
 					<div id="${Structr.notificationIconId}" class="relative">
@@ -2712,7 +2737,7 @@ class MessageBuilder {
 	show() {
 
 		let uniqueMessageAlreadyPresented = false;
-		let allClasses                    = ['message', 'relative', 'break-word', 'flex', 'rounded-md', 'p-4', 'm-1', this.typeClass, this.params.uniqueClass];
+		let allClasses                    = ['message', 'relative', 'break-word', 'flex', 'rounded-md', 'p-3', 'm-2', this.typeClass, this.params.uniqueClass];
 
 		if (this.params.uniqueClass) {
 
@@ -2804,25 +2829,25 @@ class MessageBuilder {
 
 			let message = _Helpers.createSingleDOMElementFromHTML(`
 				<div class="${allClasses.join(' ')}" id="${this.params.msgId}" data-unique-count="${this.params.uniqueCount}">
-					<div class="absolute top-3 right-3 flex gap-3">
-						<div class="message-time text-sm"></div>
-						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, _Icons.getSvgIconClassesForColoredIcon([MessageBuilder.closeButtonClass, 'hidden', 'icon-grey', 'cursor-pointer']))}
-					</div>
-					<div class="message-icon flex-shrink-0 mr-2">
+					<div class="message-icon flex-shrink-0 mr-2 mt-1">
 						${_Icons.getSvgIcon(_Icons.getSvgIconForMessageClass(this.typeClass))}
 					</div>
 					<div class="flex-grow">
 
-						<div class="flex gap-1 font-bold text-lg">
-							<div class="-mt-1 message-title empty:hidden">${this.params.title ?? ''}</div>
+						<div class="flex gap-1 font-bold text-lg leading-6">
+							<div class="message-title mb-2 empty:hidden">${this.params.title ?? ''}</div>
 							${this.getUniqueCountElement()}
 						</div>
 
-						<div class="message-text mb-2 overflow-y-auto">
+						<div class="message-text overflow-y-auto leading-6">
 							${this.params.text}
 						</div>
 
-						<div class="message-buttons flex gap-2 justify-end"></div>
+						<div class="message-buttons flex flex-wrap gap-2 justify-end"></div>
+					</div>
+					<div class="flex gap-3">
+						<div class="message-time text-sm leading-6 whitespace-pre"></div>
+						<div class="mt-0.5">${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon([MessageBuilder.closeButtonClass, 'hidden', 'icon-grey', 'cursor-pointer']))}</div>
 					</div>
 				</div>
 			`);
@@ -2870,10 +2895,11 @@ class MessageBuilder {
 	updateLastShownTime(messageEl) {
 
 		let lang = navigator.language ?? navigator.languages?.[0] ?? 'en-US'
-		let datetimeString = new Intl.DateTimeFormat(lang, { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false }).format(new Date())
+		let dateString = new Intl.DateTimeFormat(lang, { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date())
+		let timeString = new Intl.DateTimeFormat(lang, { hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false }).format(new Date())
 
 		let timeEl = messageEl.querySelector('.message-time');
-		timeEl.textContent = datetimeString;
+		timeEl.textContent = dateString + '\n' + timeString;
 	}
 
 	updateNotificationIcon(notificationAdded = false) {
@@ -3410,12 +3436,12 @@ let UISettings = {
 				}
 			}
 		},
-		importer: {
-			title: 'Importer',
+		'job-queue': {
+			title: 'Job Queue',
 			settings: {
 				showNotificationsKey: {
 					text: 'Show notifications for scheduled jobs',
-					storageKey: 'structrImporterShowNotifications_' + location.port,
+					storageKey: 'structrJobQueueShowNotifications_' + location.port,
 					defaultValue: true,
 					type: 'checkbox'
 				}

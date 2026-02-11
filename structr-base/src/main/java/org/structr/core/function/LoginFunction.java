@@ -27,6 +27,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.schema.action.ActionContext;
 
@@ -91,5 +92,10 @@ public class LoginFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Security;
 	}
 }

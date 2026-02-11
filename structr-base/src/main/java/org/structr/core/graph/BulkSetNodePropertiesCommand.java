@@ -32,6 +32,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.docs.*;
+import org.structr.docs.ontology.ConceptType;
 
 import java.util.List;
 import java.util.Map;
@@ -168,19 +169,21 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 
 	@Override
 	public String getShortDescription() {
-		return "Sets a given set of property values on all nodes of a certain type.";
+		return "Sets property values on all nodes of a given type.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "This command takes all arguments other than `type` and `newType` for input properties and sets the given values on all nodes of the given type.";
+		return """
+        All parameters except `type` and `newType` are treated as property key-value pairs to set on matching nodes.
+        """;
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 		return List.of(
-			Parameter.mandatory("type", "type of nodes to set properties on"),
-			Parameter.optional("newType", "can be used to update the `type` property of nodes (because type is already taken)")
+			Parameter.mandatory("type", "Node type to modify"),
+			Parameter.optional("newType", "New value for the `type` property")
 		);
 	}
 
@@ -192,7 +195,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-			"Warning: if this command is used to change the `type` property of nodes, the \"Create Labels\" command has to be called afterwards to update the labels of the changed nodes - otherwise they will not be accessible."
+			"Warning: After changing the `type` property, run `createLabels` to update node labels. Otherwise, nodes may not be accessible through their new type."
 		);
 	}
 
@@ -209,5 +212,10 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 	@Override
 	public List<Usage> getUsages() {
 		return List.of();
+	}
+
+	@Override
+	public final List<ConceptReference> getParentConcepts() {
+		return List.of(ConceptReference.of(ConceptType.Topic, "Maintenance Commands"));
 	}
 }

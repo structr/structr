@@ -37,6 +37,7 @@ import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
+import org.structr.docs.Documentation;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.export.StructrSchemaDefinition;
@@ -64,6 +65,7 @@ import java.util.*;
 /**
  * A servlet that implements the OpenAPI endpoint.
  */
+@Documentation(name="OpenAPIServlet", parent="Servlets", children={ "OpenAPIServlet Settings" })
 public class OpenAPIServlet extends AbstractDataServlet {
 
 	private final Logger logger = LoggerFactory.getLogger(OpenAPIServlet.class);

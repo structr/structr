@@ -23,10 +23,7 @@ import com.google.gson.GsonBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.schema.JsonMethod;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonType;
+import org.structr.api.schema.*;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -208,7 +205,7 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 		return map;
 	}
 
-	public boolean hasMethodSourceCodeInFiles() {
+	public boolean hasSourceCodeInFiles() {
 
 		final Set<StructrTypeDefinition> types = getTypeDefinitions();
 		if (!types.isEmpty()) {
@@ -221,6 +218,19 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 					if (source != null && source.startsWith("./")) {
 
 						return true;
+					}
+				}
+
+				for (final JsonProperty property : typeDefinition.getProperties()) {
+
+					if (property instanceof JsonFunctionProperty functionProperty) {
+
+						final String readFn = functionProperty.getReadFunction();
+						final String writeFn = functionProperty.getWriteFunction();
+
+						if (readFn != null && readFn.startsWith("./") || writeFn != null && writeFn.startsWith("./")) {
+							return true;
+						}
 					}
 				}
 			}

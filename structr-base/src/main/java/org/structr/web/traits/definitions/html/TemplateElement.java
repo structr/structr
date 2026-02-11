@@ -22,6 +22,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.common.RequestHeaders;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.traits.StructrTraits;
@@ -91,7 +92,7 @@ public class TemplateElement extends GenericHtmlElementTraitDefinition {
 	private static void handleRequestData(final RenderContext renderContext) {
 
 		final HttpServletRequest request = renderContext.getRequest();
-		final String contentType         = request.getHeader("content-type");
+		final String contentType         = request.getHeader(RequestHeaders.ContentType.getName());
 
 		if (StringUtils.isEmpty(contentType)) {
 

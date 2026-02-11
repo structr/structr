@@ -31,6 +31,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.*;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Arrays;
@@ -173,5 +174,10 @@ public class DoAsFunction extends BuiltinFunctionHint implements ProxyExecutable
 		return List.of(
 			Usage.javaScript("Usage: ${{ $.doAs(user, function) }}. Example: ${{ $.doAs(user, () => log($.me))}")
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.System;
 	}
 }

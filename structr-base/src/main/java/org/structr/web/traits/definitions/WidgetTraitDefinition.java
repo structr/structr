@@ -28,6 +28,8 @@ import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.docs.Documentation;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.web.entity.Widget;
 import org.structr.web.traits.wrappers.WidgetTraitWrapper;
 
@@ -81,15 +83,15 @@ public class WidgetTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<String> sourceProperty          = new StringProperty(SOURCE_PROPERTY);
-		final Property<String> descriptionProperty     = new StringProperty(DESCRIPTION_PROPERTY);
-		final Property<String> configurationProperty   = new StringProperty(CONFIGURATION_PROPERTY);
-		final Property<String> svgIconPathProperty     = new StringProperty(SVG_ICON_PATH_PROPERTY);
-		final Property<String> thumbnailPathProperty   = new StringProperty(THUMBNAIL_PATH_PROPERTY);
-		final Property<String> treePathProperty        = new StringProperty(TREE_PATH_PROPERTY);
+		final Property<String> sourceProperty          = new StringProperty(SOURCE_PROPERTY).description("HTML source code of the Widget. Can include Structr expressions and template variables in square brackets like [variableName].");
+		final Property<String> descriptionProperty     = new StringProperty(DESCRIPTION_PROPERTY).description("Explanatory text displayed when inserting the Widget. Supports HTML formatting. Shown in the dialog when the Widget is used as a page template.");
+		final Property<String> configurationProperty   = new StringProperty(CONFIGURATION_PROPERTY).description("JSON object defining configurable template variables. Keys match square bracket expressions in the source, values define input labels and types for the insertion dialog.");
+		final Property<String> svgIconPathProperty     = new StringProperty(SVG_ICON_PATH_PROPERTY).description("Path to an SVG icon displayed in the Widgets flyout, can be an absolute URL.");
+		final Property<String> thumbnailPathProperty   = new StringProperty(THUMBNAIL_PATH_PROPERTY).description("Path to a thumbnail image displayed in the Widgets flyout, can be an absolute URL.");
+		final Property<String> treePathProperty        = new StringProperty(TREE_PATH_PROPERTY).description("Slash-separated path for organizing Widgets into categories. Must begin with a slash, for example \"/Forms/Input Elements\".");
 		final Property<Boolean> isWidgetProperty       = new ConstantBooleanProperty(IS_WIDGET_PROPERTY, true);
-		final Property<String[]> selectorsProperty     = new ArrayProperty(SELECTORS_PROPERTY, String[].class);
-		final Property<Boolean> isPageTemplateProperty = new BooleanProperty(IS_PAGE_TEMPLATE_PROPERTY);
+		final Property<String[]> selectorsProperty     = new ArrayProperty(SELECTORS_PROPERTY, String.class).description("CSS selectors that control where this Widget appears as a suggestion in the context menu. For example \"table\" or \"div.container\".");
+		final Property<Boolean> isPageTemplateProperty = new BooleanProperty(IS_PAGE_TEMPLATE_PROPERTY).description("When enabled, this Widget appears in the Create Page dialog as a page template option.");
 
 		return Set.of(
 			sourceProperty,
@@ -131,5 +133,10 @@ public class WidgetTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Relation getRelation() {
 		return null;
+	}
+
+	@Override
+	public boolean includeInDocumentation() {
+		return true;
 	}
 }

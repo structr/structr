@@ -37,6 +37,8 @@ let _Pages = {
 	pagesResizerRightKey: 'structrPagesResizerRightKey_' + location.port,
 	functionBarSwitchKey: 'structrFunctionBarSwitchKey_' + location.port,
 
+	classIndicatorEverythingReady: 'pages-area-ready',
+
 	dropzoneDropAllowedClass: 'allow-drop',
 
 	shadowPage: undefined,
@@ -124,7 +126,6 @@ let _Pages = {
 		_Pages.previewSlideout         = $('#previewSlideout');
 
 		_Pages.localizations.init();
-		_Pages.search.init();
 
 		_Pages.ensureShadowPageExists().then(_Pages.initSlideouts).then(() => {
 
@@ -567,7 +568,10 @@ let _Pages = {
 					}
 				]
 			});
-		}
+		} else {
+
+            console.log(entity)
+        }
 
 		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
@@ -1322,10 +1326,26 @@ let _Pages = {
 
 		let actionMapping;
 
-		Command.query('SchemaNode', 2000, 1, 'name', 'asc', { isServiceClass: false }, (schemaNodes) => {
-			dataTypeSelect.insertAdjacentHTML('beforeend', schemaNodes.map(typeObj => `<option>${typeObj.name}</option>`).join(''));
-			dataTypeSelectUl.insertAdjacentHTML('beforeend', schemaNodes.map(typeObj => `<li data-value="${typeObj.name}">${typeObj.name}</li>`).join(''));
-		}, false, null, 'id,name,isBuiltinType');
+		Command.getSchemaInfo(null, types => {
+
+			types = types.filter(t => !t.isServiceClass);
+			_Helpers.sort(types);
+
+			let builtinTypes = types.filter(t => t.isBuiltin);
+			let customTypes  = types.filter(t => !t.isBuiltin);
+
+			let customTypesOptGroup  = dataTypeSelect.querySelector('optgroup[data-custom-types]');
+			let builtinTypesOptGroup = dataTypeSelect.querySelector('optgroup[data-builtin-types]');
+
+			customTypesOptGroup.insertAdjacentHTML('beforeend', customTypes.map((type) => `<option>${type.name}</option>`).join(''));
+			builtinTypesOptGroup.insertAdjacentHTML('beforeend', builtinTypes.map((type) => `<option>${type.name}</option>`).join(''));
+
+			let customTypesUl  = dataTypeSelectUl.querySelector('ul[data-custom-types]');
+			let builtinTypesUl = dataTypeSelectUl.querySelector('ul[data-builtin-types]');
+
+			customTypesUl.insertAdjacentHTML('beforeend', customTypes.map(type => `<li data-value="${type.name}">${type.name}</li>`).join(''));
+			builtinTypesUl.insertAdjacentHTML('beforeend', builtinTypes.map(type => `<li data-value="${type.name}">${type.name}</li>`).join(''));
+		});
 
 		Command.query('FlowContainer', 2000, 1, 'name', 'asc', null, (flows) => {
 			flowSelect.insertAdjacentHTML('beforeend', flows.map(flow => `<option>${flow.name}</option>`).join(''));
@@ -1459,10 +1479,16 @@ let _Pages = {
 					return;
 				}
 
-				for (let child of dataTypeSelectUl.children) {
+				for (let childUl of dataTypeSelectUl.querySelectorAll('ul')) {
 
-					let shouldHide = !(child.dataset.value && child.dataset.value.match(el.value));
-					child.classList.toggle('hidden', shouldHide);
+					for (let child of childUl.children) {
+
+						let shouldHide = !(child.dataset.value && child.dataset.value.match(el.value));
+						child.classList.toggle('hidden', shouldHide);
+					}
+
+					let visibleCount = childUl.querySelectorAll('li:not(.hidden)').length;
+					childUl.parentElement.classList.toggle('hidden', (visibleCount === 0));
 				}
 
 				showDataTypeList();
@@ -1530,7 +1556,6 @@ let _Pages = {
 			});
 		}
 
-
 		addParameterMappingButton.addEventListener('click', e => {
 
 			Command.get(entity.id, 'id,type,triggeredActions', (result) => {
@@ -1538,6 +1563,7 @@ let _Pages = {
 				let nextParameterIndex = document.querySelectorAll('.em-parameter-mappings-container .em-parameter-mapping').length + 1;
 
 				Command.create({ type: 'ParameterMapping', actionMapping: actionMapping.id, parameterName: 'parameter_' + nextParameterIndex }, (parameterMapping) => {
+
 					getAndAppendParameterMapping(parameterMapping.id);
 				});
 			});
@@ -2310,6 +2336,8 @@ let _Pages = {
 					}
 				});
 			}
+
+			_Pages.pagesTree[0].classList.add(_Pages.classIndicatorEverythingReady);
 
 			window.setTimeout(() => {
 				_Pages.cleanActiveTabsFromLocalStorage();
@@ -3932,62 +3960,10 @@ let _Pages = {
 	},
 
 	search: {
-		init: () => {
-			let form                    = document.querySelector('#pages-search-node-form');
-			let searchField             = form.querySelector('[name="queryString"]');
-
-			form.addEventListener('submit', e => {
-				e.preventDefault();
-				_Pages.search.doSearch();
-			});
-
-			searchField.addEventListener('input', _Helpers.debounce(_Pages.search.doSearch, 300));
-
-			searchField.addEventListener('search', e => {
-				if (searchField.value === '') {
-					_Pages.search.clear();
-				}
-			});
-		},
-		clear: () => {
-
-			let resultsElement = document.querySelector('#pages-search-results');
-			for (let oldResult of resultsElement.querySelectorAll('[data-id]')) {
-				_Helpers.fastRemoveElement(oldResult);
-			}
-		},
-		doSearch: async () => {
-
-			let form = document.querySelector('#pages-search-node-form');
-			let data = Structr.globalSearch.getBasicFormData(form);
-			data.searchDOM = true;
-
-			_Pages.search.clear();
-
-			if (data.queryString.length > 0) {
-
-				let results        = await Command.searchNodes(data);
-				let resultsElement = document.querySelector('#pages-search-results');
-
-				for (let result of results) {
-
-					for (let key of result.keys) {
-
-						let el = _Helpers.createSingleDOMElementFromHTML(_Pages.search.templates.result(result, key));
-
-						resultsElement.appendChild(el);
-
-						el.querySelector('button').addEventListener('click', () => {
-							_Pages.search.goTo(result, key, data);
-						});
-					}
-				}
-			}
-		},
 		goTo: (result, key, searchData) => {
 
-			let { id } = result;
-			let tabName     = _Pages.search.getTabForKey(key);
+			let { id }  = result;
+			let tabName = _Pages.search.getTabForKey(key);
 
 			if (tabName === 'editor' || tabName === 'repeater') {
 				_Editors.highlightTextInNextEditor(searchData.queryString);
@@ -4032,40 +4008,6 @@ let _Pages = {
 			}
 
 			return 'advanced';
-		},
-		templates: {
-			slideoutContent: config => `
-				<div class="overflow-y-auto max-h-full h-full">
-					<div class="mx-4 my-4">
-						<form id="pages-search-node-form" class="flex flex-col gap-2">
-							<div class="flex gap-2">
-								<input type="search" name="queryString" required placeholder="Search term..." autocomplete="off">
-							</div>
-						</form>
-
-						<div id="pages-search-results" class="grid items-center gap-x-2 gap-y-3 mt-6" style="grid-template-columns: [ name ] minmax(0, 1fr) [ keys ] minmax(10%, max-content) [ id ] 4rem [ actions ] minmax(2rem, max-content)">
-							<div class="contents font-bold">
-								<div>Name/Type</div>
-								<div>Key</div>
-								<div>ID</div>
-								<div></div>
-							</div>
-						</div>
-					</div>
-				</div>
-			`,
-			result: (result, key) => `
-				<div class="contents" data-id="${result.id}" data-key="${key}">
-					<div>${result.name ? `${result.name} [${result.type}]` : result.type}</div>
-					<div>${key}</div>
-					<div class="truncate">${result.id}</div>
-					<div>
-						<button class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green p-2 mr-0" title="Go to element">
-							${_Icons.getSvgIcon(_Icons.iconOpenInNewPage, 16, 16, [..._Icons.getSvgIconClassesNonColorIcon(), 'pointer-events-none'])}
-						</button>
-					</div>
-				</div>
-			`
 		}
 	},
 
@@ -4136,10 +4078,6 @@ let _Pages = {
 			</div>
 
 			<div id="previewSlideout" class="slideOut slideOutRight">
-			</div>
-
-			<div id="searchSlideout" class="slideOut slideOutRight">
-				${_Pages.search.templates.slideoutContent()}
 			</div>
 		`,
 		slideoutActivators: {
@@ -4222,12 +4160,6 @@ let _Pages = {
 						</svg>
 						<br>
 						Preview
-					</div>
-
-					<div class="slideout-activator right" id="searchTab" data-for-slideout="#searchSlideout" data-sub-section="search">
-						${_Icons.getSvgIcon(_Icons.iconSearch, 24, 24, ['icon-grey'])}
-						<br>
-						Search
 					</div>
 
 				</div>
@@ -4367,6 +4299,7 @@ let _Pages = {
 						<div class="hidden em-event-element em-event-any">
 							<label class="block mb-2" data-comment="Select the action that is triggered by the event.">Action</label>
 
+                            <!-- the actions can be fetched from the backend in the future-->
 							<select class="select2" id="action-select">
 								<option value="none">No action</option>
 								<optgroup label="Data">
@@ -4434,8 +4367,19 @@ let _Pages = {
 								<input type="text" class="combined-input-select-field" id="data-type-input" placeholder="Custom type or script expression">
 								<select class="required combined-input-select-field" id="data-type-select">
 									<option value="">Select type from schema</option>
+									<optgroup label="Custom Types" data-custom-types></optgroup>
+									<optgroup label="Builtin Types" data-builtin-types></optgroup>
 								</select>
-								<ul class="combined-input-select-field hidden"></ul>
+								<ul class="combined-input-select-field hidden">
+									<li class="nohover">
+										<div class="font-bold pb-2">Custom Types</div>
+										<ul class="pl-4" data-custom-types></ul>
+									</li>
+									<li class="nohover">
+										<div class="font-bold pb-2">Builtin Types</div>
+										<ul class="pl-4" data-builtin-types></ul>
+									</li>
+								</ul>
 							</div>
 						</div>
 
@@ -4479,15 +4423,15 @@ let _Pages = {
 						</div>
 						
 						<div class="col-span-2 hidden em-action-element em-action-create em-action-update em-action-delete em-action-method em-action-flow">
-							<h3>Dialog Settings</h3>
+							<h3>Confirmation Dialog</h3>
 							<div class="grid grid-cols-2 gap-8">
 							
 								<div>
 									<label class="block mb-2" data-comment="Select type of dialog for confirming action">Dialog Type</label>
 		
 									<select class="select2" id="dialog-select">
-										<option value="none">None</option>
-										<option value="okcancel">Confirm Dialog (window.confirm)</option>
+										<option value="none">No confirmation</option>
+										<option value="okcancel">Use window.confirm</option>
 									</select>
 								</div>
 
@@ -4702,8 +4646,10 @@ let _Pages = {
 							<option value="pagesize-param">Request parameter for page size</option>
 							<option value="constant-value">Constant value</option>
 							<option value="script-expression">Eval. expression</option>
+							<!-- not implemented in backend
 							<option value="method-result">Result of method call</option>
 							<option value="flow-result">Result of flow</option>
+							-->
 						</select>
 					</div>
 

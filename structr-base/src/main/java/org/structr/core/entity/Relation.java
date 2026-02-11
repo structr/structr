@@ -26,6 +26,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.Notion;
 import org.structr.core.property.PropertyKey;
+import org.structr.docs.Documentation;
+import org.structr.docs.ontology.ConceptType;
 
 /**
  * Defines constants for structr's relationship entities.
@@ -33,53 +35,57 @@ import org.structr.core.property.PropertyKey;
  * @param <S>
  * @param <T>
  *
- *
  */
+@Documentation(name="Cascading Delete Options", shortDescription = "The following cascading delete options exist.", parent="Relationships")
+@Documentation(name="Autocreation Options", shortDescription = "The following automatic creation options exist.", parent="Relationships")
 public interface Relation<S extends Source, T extends Target> extends RelationshipType, PermissionPropagation {
 
 	/**
 	 * No cascading delete / autocreate.
 	 */
-	public static final int NONE              = 0;
+	@Documentation(type=ConceptType.Constant, shortDescription = "No cascading delete", parent="Cascading Delete Options")
+	@Documentation(type=ConceptType.Constant, shortDescription = "No automatic creation of related nodes", parent="Autocreation Options")
+	int NONE              = 0;
 
 	/**
 	 * Target node will be deleted if source node
 	 * gets deleted.
 	 */
-	public static final int SOURCE_TO_TARGET  = 1;
+	@Documentation(type=ConceptType.Constant, shortDescription="If source is deleted, target will be deleted automatically.", parent="Cascading Delete Options")
+	@Documentation(type=ConceptType.Constant, shortDescription="Target node will be created automatically if the input value is unique.", parent="Autocreation Options")
+	int SOURCE_TO_TARGET  = 1;
 
 	/**
 	 * Source node will be deleted if target node
 	 * gets deleted.
 	 */
-	public static final int TARGET_TO_SOURCE  = 2;
+	@Documentation(type=ConceptType.Constant, shortDescription="If target is deleted, source will be deleted automatically.", parent="Cascading Delete Options")
+	@Documentation(type=ConceptType.Constant, shortDescription="Source node will be created automatically if the input value is unique.", parent="Autocreation Options")
+	int TARGET_TO_SOURCE  = 2;
 
 	/**
 	 * Both nodes will be deleted whenever one of
 	 * the two nodes gets deleted.
 	 *
 	 */
-	public static final int ALWAYS            = 3;
+	@Documentation(type=ConceptType.Constant, shortDescription="If any of the two nodes is deleted, the other will be deleted automatically.", parent="Cascading Delete Options")
+	@Documentation(type=ConceptType.Constant, shortDescription="Any of the two nodes will be created automatically if the input value is unique.", parent="Autocreation Options")
+	int ALWAYS            = 3;
 
 	/**
 	 * Source and/or target nodes will be deleted
 	 * if they become invalid.
 	 */
-	public static final int CONSTRAINT_BASED  = 4;
+	@Documentation(type=ConceptType.Constant, shortDescription="Delete source or target node if deletion of the other side would result in a constraint violation on the node (e.g. not-null constraint).", parent="Cascading Delete Options")
+	int CONSTRAINT_BASED  = 4;
 
-	public static final String[] CASCADING_DESCRIPTIONS = {
+	String[] CASCADING_DESCRIPTIONS = {
 		"NONE",
 		"SOURCE_TO_TARGET",
 		"TARGET_TO_SOURCE",
 		"ALWAYS",
 		"CONSTRAINT_BASED"
 	};
-
-	/*
-	default String getType() {
-		return getSourceType() + name() + getTargetType();
-	}
-	*/
 
 	enum Multiplicity { One, Many }
 

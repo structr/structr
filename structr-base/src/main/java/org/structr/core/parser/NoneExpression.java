@@ -23,6 +23,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.docs.*;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 
@@ -182,5 +183,10 @@ public class NoneExpression extends Expression {
 		return List.of(
 			Usage.structrScript("Usage: ${none(list, expression)}. Example: ${none(user.groups, is_allowed(data, current, 'read'))}")
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Collection;
 	}
 }

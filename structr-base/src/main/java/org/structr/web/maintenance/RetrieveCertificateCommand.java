@@ -23,6 +23,7 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.jruby.Main;
 import org.shredzone.acme4j.*;
 import org.shredzone.acme4j.challenge.Challenge;
 import org.shredzone.acme4j.challenge.Dns01Challenge;
@@ -46,6 +47,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.docs.*;
 import org.structr.rest.service.HttpService;
 import org.structr.schema.action.Actions;
@@ -74,9 +76,9 @@ import java.util.*;
 public class RetrieveCertificateCommand extends Command implements MaintenanceCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(RetrieveCertificateCommand.class.getName());
-	private final static String CERTIFICATE_RETRIEVAL_STATUS = "CERTIFICATE_RETRIEVAL_STATUS";
-	private final static String ACME_DNS_CHALLENGE_PREFIX    = "_acme-challenge.";
-	private final static String ACME_DNS_CHALLENGE_SUFFIX    = ".";
+	private final static String CERTIFICATE_RETRIEVAL_STATUS   = "CERTIFICATE_RETRIEVAL_STATUS";
+	private final static String ACME_DNS_CHALLENGE_PREFIX      = "_acme-challenge.";
+	private final static String ACME_DNS_CHALLENGE_SUFFIX      = ".";
 	private final static String MODE_PARAM_KEY                 = "mode";
 	private final static String CHALLENGE_PARAM_KEY            = "challenge";
 	private final static String SERVER_PARAM_KEY               = "server";
@@ -385,7 +387,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 			final KeyPair domainKeyPair = getOrCreateDomainKey();
 			csrb.sign(domainKeyPair);
 
-			try (final Writer out = new FileWriter(new File(Settings.LetsEncryptDomainCSRFileName.getValue()))) {
+			try (final Writer out = new FileWriter(Settings.LetsEncryptDomainCSRFileName.getValue())) {
 				csrb.write(out);
 			}
 
@@ -748,7 +750,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 		final String record = ACME_DNS_CHALLENGE_PREFIX + domain + ACME_DNS_CHALLENGE_SUFFIX;
 		final String digest = challenge.get().getDigest();
 
-		final Object result = Actions.callWithSecurityContext("onAcmeChallenge", SecurityContext.getSuperUserInstance(), Map.of("type", "dns", "domain", domain, "record", record, "digest", digest));
+		final Object result = Actions.callWithSecurityContext(Actions.NOTIFICATION_ACME_CHALLENGE, SecurityContext.getSuperUserInstance(), Map.of("type", "dns", "domain", domain, "record", record, "digest", digest));
 		if (result == null) {
 
 			publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Lifecycle method 'onAcmeChallenge' not found! Within the next " + waitForSeconds + " seconds, create a DNS record for " + domain + " with the following data: Name: '" + record + "', Type: 'TXT', Value: '" + digest + "'");
@@ -932,21 +934,21 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 	@Override
 	public String getShortDescription() {
-		return "Triggers creation or update of an SSL certificate using Let’s Encrypt.";
+		return "Creates or renews an SSL certificate using Let's Encrypt.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return null;
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 		return List.of(
-			Parameter.mandatory("server", "`staging` or `production`, `staging` mode is meant for testing and will generate invalid dummy certificates only, while `production` creates real, valid certificates but is throttled."),
-			Parameter.optional("challenge", "overwrite the default challenge method as set in structr.conf. This is convenient to test an alternative challenge type without the need to restart the Structr instance."),
-			Parameter.optional("wait", "let the client wait for the given number of seconds in order to have enough time to prepare the DNS TXT record in case of the dns challenge type, or the HTTP response in case of the http challenge."),
-			Parameter.optional("reload", "`true` or `false`, reload the HTTPS certificate after updating it. Allows using the new certificate without restarting, defaults to `false`.")
+			Parameter.mandatory("server", "`staging` (test certificates) or `production` (valid certificates)"),
+			Parameter.optional("challenge", "Override the challenge method from structr.conf"),
+			Parameter.optional("wait", "Seconds to wait for DNS or HTTP challenge preparation"),
+			Parameter.optional("reload", "Reload HTTPS certificate without restart (default: false)")
 		);
 	}
 
@@ -958,7 +960,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-			"Please note that the configuration setting `letsencrypt.domains` must contain the full domain name of the server you want to create the certificate for."
+			"The `letsencrypt.domains` setting must contain the full domain name for the certificate."
 		);
 	}
 
