@@ -35,8 +35,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.*;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.File;
-import org.structr.web.entity.Folder;
+import org.structr.web.entity.*;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
@@ -57,7 +56,113 @@ public class Deployment2Test extends DeploymentTestBase {
 	private static final Logger logger = LoggerFactory.getLogger(Deployment2Test.class.getName());
 
 	@Test
-	public void test21ExportGrants() {
+	public void test20ExportOwnership() {
+
+		NodeInterface user1 = null;
+		NodeInterface user2 = null;
+
+		try (final Tx tx = app.tx()) {
+
+			user1 = createTestNode(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user1"));
+			user2 = createTestNode(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user2"));
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			fail("Unexpected exception.");
+		}
+
+		assertNotNull("User was not created, test cannot continue", user1);
+		assertNotNull("User was not created, test cannot continue", user2);
+
+		// setup
+		final SecurityContext context1 = SecurityContext.getInstance(user1.as(User.class), AccessMode.Backend);
+		final App app1                 = StructrApp.getInstance(context1);
+
+		try (final Tx tx = app1.tx()) {
+
+			final Page page       = Page.createNewPage(context1,   "test20");
+			final DOMElement html = createElement(page, page, "html");
+			final DOMElement head = createElement(page, html, "head");
+			createElement(page, head, "title", "test20");
+
+			final DOMElement body = createElement(page, html, "body");
+			final DOMElement div1 = createElement(page, body, "div");
+
+			final Content content = createContent(page, div1, "<b>Test</b>");
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key(ContentTraitDefinition.CONTENT_TYPE_PROPERTY), "text/html");
+
+			// set owner to different user
+			div1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), user2);
+			content.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), user2);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test
+		compare(calculateHash(), true, false);
+	}
+
+	@Test
+	public void test21PageLinks() {
+
+		String pageId = null;
+		String a_uuid = null;
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final Page page       = Page.createNewPage(securityContext,   "test02");
+			pageId                = page.getUuid();
+			final DOMElement html = createElement(page, page, "html");
+			final DOMElement head = createElement(page, html, "head");
+
+			createElement(page, head, "title", "test11");
+
+			final DOMElement body       = createElement(page, html, "body");
+
+			// create a link which links to same page
+			{
+				final DOMElement a = createElement(page, body, "a");
+
+				createElement(page, a, "a", "link to self");
+
+				a.as(LinkSource.class).setLinkable(page.as(Linkable.class));
+
+				a_uuid = a.getUuid();
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		doImportExportRoundtrip(true, null);
+
+		// check
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface node = app.getNodeById(StructrTraits.A, a_uuid);
+			final LinkSource a       = node.as(LinkSource.class);
+
+			assertNotNull("A element was not created!", a);
+			assertNotNull("A has no linked page!", a.getLinkable());
+
+			assertEquals("A element is not linked to page it should be linked to", pageId, a.getLinkable().getUuid());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void test22ExportGrants() {
 
 		Principal user1 = null;
 		Principal user2 = null;
@@ -82,7 +187,7 @@ public class Deployment2Test extends DeploymentTestBase {
 
 		try (final Tx tx = app1.tx()) {
 
-			final Page page      = Page.createNewPage(context1, "test21");
+			final Page page      = Page.createNewPage(context1, "test22");
 			final DOMElement html      = createElement(page, page, "html");
 			final DOMElement head      = createElement(page, html, "head");
 			createElement(page, head, "title", "test21");
@@ -109,7 +214,7 @@ public class Deployment2Test extends DeploymentTestBase {
 	}
 
 	@Test
-	public void test22TemplateOwnershipAndGrants() {
+	public void test23TemplateOwnershipAndGrants() {
 
 		Principal user1 = null;
 		Principal user2 = null;
@@ -132,10 +237,10 @@ public class Deployment2Test extends DeploymentTestBase {
 		try (final Tx tx = app.tx()) {
 
 			// create first page
-			final Page page1 = Page.createNewPage(securityContext,   "test22_1");
+			final Page page1 = Page.createNewPage(securityContext,   "test23_1");
 			final DOMElement html1 = createElement(page1, page1, "html");
 			final DOMElement head1 = createElement(page1, html1, "head");
-			createElement(page1, head1, "title", "test22_1");
+			createElement(page1, head1, "title", "test23_1");
 
 			final DOMElement body1 = createElement(page1, html1, "body");
 			final DOMElement div1   = createElement(page1, body1, "div");
@@ -146,10 +251,10 @@ public class Deployment2Test extends DeploymentTestBase {
 			final DOMNode component = createComponent(div1);
 
 			// create second page
-			final Page page2 = Page.createNewPage(securityContext,   "test22_2");
+			final Page page2 = Page.createNewPage(securityContext,   "test23_2");
 			final DOMElement html2 = createElement(page2, page2, "html");
 			final DOMElement head2 = createElement(page2, html2, "head");
-			createElement(page2, head2, "title", "test22_2");
+			createElement(page2, head2, "title", "test23_2");
 
 			final DOMElement body2 = createElement(page2, html2, "body");
 			final DOMElement div2   = createElement(page2, body2, "div");
@@ -189,7 +294,7 @@ public class Deployment2Test extends DeploymentTestBase {
 	}
 
 	@Test
-	public void test23FileOwnershipAndGrants() {
+	public void test24FileOwnershipAndGrants() {
 
 		Principal user1 = null;
 		Principal user2 = null;
@@ -265,15 +370,15 @@ public class Deployment2Test extends DeploymentTestBase {
 	}
 
 	@Test
-	public void test24ContentShowConditions() {
+	public void test25ContentShowConditions() {
 
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			final Page page = Page.createNewPage(securityContext,   "test24");
+			final Page page = Page.createNewPage(securityContext,   "test25");
 			final DOMElement html = createElement(page, page, "html");
 			final DOMElement head = createElement(page, html, "head");
-			createElement(page, head, "title", "test24");
+			createElement(page, head, "title", "test25");
 
 			final DOMElement body        = createElement(page, html, "body");
 			final DOMElement div1         = createElement(page, body, "div");
@@ -297,7 +402,7 @@ public class Deployment2Test extends DeploymentTestBase {
 	}
 
 	@Test
-	public void test25ExtendedBuiltinTypes() {
+	public void test26ExtendedBuiltinTypes() {
 
 		/* This method tests whether files, folders and images that are
 		 * considered part of application data (derived from built-in
@@ -358,15 +463,15 @@ public class Deployment2Test extends DeploymentTestBase {
 	}
 
 	@Test
-	public void test26Escaping() {
+	public void test27Escaping() {
 
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			final Page page = Page.createNewPage(securityContext,   "test25");
+			final Page page = Page.createNewPage(securityContext,   "test27");
 			final DOMElement html = createElement(page, page, "html");
 			final DOMElement head = createElement(page, html, "head");
-			createElement(page, head, "title", "test25");
+			createElement(page, head, "title", "test27");
 
 			final DOMElement body        = createElement(page, html, "body");
 			final DOMElement div1         = createElement(page, body, "div");
@@ -385,10 +490,10 @@ public class Deployment2Test extends DeploymentTestBase {
 	}
 
 	@Test
-	public void test27FileAttributes() {
+	public void test28FileAttributes() {
 
-		final String fileName1 = "test27_1.txt";
-		final String fileName2 = "test27_2.txt";
+		final String fileName1 = "test28_1.txt";
+		final String fileName2 = "test28_2.txt";
 
 		// setup
 		try (final Tx tx = app.tx()) {
@@ -438,7 +543,7 @@ public class Deployment2Test extends DeploymentTestBase {
 	}
 
 	@Test
-	public void test28MailTemplates() {
+	public void test29MailTemplates() {
 
 		// setup
 		try (final Tx tx = app.tx()) {
@@ -493,101 +598,5 @@ public class Deployment2Test extends DeploymentTestBase {
 		} catch (FrameworkException fex) {
 			fail("Unexpected exception.");
 		}
-	}
-
-	@Test
-	public void test29Localizations() {
-
-		// setup
-		try (final Tx tx = app.tx()) {
-
-			app.create(StructrTraits.LOCALIZATION,
-				new NodeAttribute<>(Traits.of(StructrTraits.LOCALIZATION).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                "localization1"),
-				new NodeAttribute<>(Traits.of(StructrTraits.LOCALIZATION).key(LocalizationTraitDefinition.DOMAIN_PROPERTY),              "domain1"),
-				new NodeAttribute<>(Traits.of(StructrTraits.LOCALIZATION).key(LocalizationTraitDefinition.LOCALE_PROPERTY),              "de_DE"),
-				new NodeAttribute<>(Traits.of(StructrTraits.LOCALIZATION).key(LocalizationTraitDefinition.LOCALIZED_NAME_PROPERTY),       "localizedName1")
-			);
-
-			app.create(StructrTraits.LOCALIZATION,
-				new NodeAttribute<>(Traits.of(StructrTraits.LOCALIZATION).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                       "localization2"),
-				new NodeAttribute<>(Traits.of(StructrTraits.LOCALIZATION).key(LocalizationTraitDefinition.DOMAIN_PROPERTY),                     "domain2"),
-				new NodeAttribute<>(Traits.of(StructrTraits.LOCALIZATION).key(LocalizationTraitDefinition.LOCALE_PROPERTY),                     "en"),
-				new NodeAttribute<>(Traits.of(StructrTraits.LOCALIZATION).key(LocalizationTraitDefinition.LOCALIZED_NAME_PROPERTY),              "localizedName2")
-			);
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			logger.warn("", fex);
-			fail("Unexpected exception.");
-		}
-
-		// test
-		doImportExportRoundtrip(true);
-
-		// check
-		try (final Tx tx = app.tx()) {
-
-			final NodeInterface localization1 = app.nodeQuery(StructrTraits.LOCALIZATION).key(Traits.of(StructrTraits.LOCALIZATION).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "localization1").getFirst();
-			final NodeInterface localization2 = app.nodeQuery(StructrTraits.LOCALIZATION).key(Traits.of(StructrTraits.LOCALIZATION).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "localization2").getFirst();
-
-			assertNotNull("Invalid deployment result", localization1);
-			assertNotNull("Invalid deployment result", localization2);
-
-			assertEquals("Invalid Localization deployment result", "localization1",  localization1.getProperty(Traits.of(StructrTraits.LOCALIZATION).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
-			assertEquals("Invalid Localization deployment result", "domain1",        localization1.getProperty(Traits.of(StructrTraits.LOCALIZATION).key(LocalizationTraitDefinition.DOMAIN_PROPERTY)));
-			assertEquals("Invalid Localization deployment result", "de_DE",          localization1.getProperty(Traits.of(StructrTraits.LOCALIZATION).key(LocalizationTraitDefinition.LOCALE_PROPERTY)));
-			assertEquals("Invalid Localization deployment result", "localizedName1", localization1.getProperty(Traits.of(StructrTraits.LOCALIZATION).key(LocalizationTraitDefinition.LOCALIZED_NAME_PROPERTY)));
-			assertEquals("Invalid Localization deployment result", true,             (boolean)localization1.getProperty(Traits.of(StructrTraits.LOCALIZATION).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY)));
-			assertEquals("Invalid Localization deployment result", true,             (boolean)localization1.getProperty(Traits.of(StructrTraits.LOCALIZATION).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY)));
-
-			assertEquals("Invalid Localization deployment result", "localization2",  localization2.getProperty(Traits.of(StructrTraits.LOCALIZATION).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
-			assertEquals("Invalid Localization deployment result", "domain2",        localization2.getProperty(Traits.of(StructrTraits.LOCALIZATION).key(LocalizationTraitDefinition.DOMAIN_PROPERTY)));
-			assertEquals("Invalid Localization deployment result", "en",             localization2.getProperty(Traits.of(StructrTraits.LOCALIZATION).key(LocalizationTraitDefinition.LOCALE_PROPERTY)));
-			assertEquals("Invalid Localization deployment result", "localizedName2", localization2.getProperty(Traits.of(StructrTraits.LOCALIZATION).key(LocalizationTraitDefinition.LOCALIZED_NAME_PROPERTY)));
-			assertEquals("Invalid Localization deployment result", true,             (boolean)localization2.getProperty(Traits.of(StructrTraits.LOCALIZATION).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY)));
-			assertEquals("Invalid Localization deployment result", true,             (boolean)localization2.getProperty(Traits.of(StructrTraits.LOCALIZATION).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY)));
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			fail("Unexpected exception.");
-		}
-	}
-
-	@Test
-	public void test30IncreasingIndentationCountInRoundtrip() {
-
-		// setup
-		try (final Tx tx = app.tx()) {
-
-			final Page page = Page.createNewPage(securityContext,   "test30");
-			final DOMElement html = createElement(page, page, "html");
-			final DOMElement head = createElement(page, html, "head");
-			createElement(page, head, "title", "test30");
-
-			final DOMElement body     = createElement(page, html, "body");
-			final DOMElement div1     = createElement(page, body, "div");
-			final DOMElement div2     = createElement(page, div1, "div", "This is a test.");
-			final DOMElement table1   = createElement(page, div2, "table");
-			final DOMElement thead    = createElement(page, table1, "thead");
-			final DOMElement tbody    = createElement(page, table1, "tbody");
-			final DOMElement tr1      = createElement(page, thead, "tr");
-			final DOMElement tr2      = createElement(page, tbody, "tr");
-			final DOMElement td11     = createElement(page, tr1, "td", "content11", "Content before <select>");
-			final DOMElement td12     = createElement(page, tr1, "td", "content12");
-			final DOMElement td21     = createElement(page, tr2, "td", "content21");
-			final DOMElement td22     = createElement(page, tr2, "td", "content22");
-			final DOMElement select   = createElement(page, td11, "select");
-			final DOMElement option1  = createElement(page, select, "option", "value1");
-			final DOMElement option2  = createElement(page, select, "option", "value2");
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			fail("Unexpected exception.");
-		}
-
-		compare(calculateHash(), true);
 	}
 }
