@@ -49,7 +49,67 @@ import static org.testng.AssertJUnit.*;
 public class Deployment3Test extends DeploymentTestBase {
 
 	@Test
-	public void test31RoundtripWithEmptyContentElements() {
+	public void test30Localizations() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			app.create(StructrTraits.LOCALIZATION,
+				new NodeAttribute<>(Traits.of(StructrTraits.LOCALIZATION).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),          "localization1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.LOCALIZATION).key(LocalizationTraitDefinition.DOMAIN_PROPERTY),         "domain1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.LOCALIZATION).key(LocalizationTraitDefinition.LOCALE_PROPERTY),         "de_DE"),
+				new NodeAttribute<>(Traits.of(StructrTraits.LOCALIZATION).key(LocalizationTraitDefinition.LOCALIZED_NAME_PROPERTY), "localizedName1")
+			);
+
+			app.create(StructrTraits.LOCALIZATION,
+				new NodeAttribute<>(Traits.of(StructrTraits.LOCALIZATION).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),          "localization2"),
+				new NodeAttribute<>(Traits.of(StructrTraits.LOCALIZATION).key(LocalizationTraitDefinition.DOMAIN_PROPERTY),         "domain2"),
+				new NodeAttribute<>(Traits.of(StructrTraits.LOCALIZATION).key(LocalizationTraitDefinition.LOCALE_PROPERTY),         "en"),
+				new NodeAttribute<>(Traits.of(StructrTraits.LOCALIZATION).key(LocalizationTraitDefinition.LOCALIZED_NAME_PROPERTY), "localizedName2")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+
+		// test
+		doImportExportRoundtrip(true);
+
+		// check
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface localization1 = app.nodeQuery(StructrTraits.LOCALIZATION).key(Traits.of(StructrTraits.LOCALIZATION).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "localization1").getFirst();
+			final NodeInterface localization2 = app.nodeQuery(StructrTraits.LOCALIZATION).key(Traits.of(StructrTraits.LOCALIZATION).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "localization2").getFirst();
+
+			assertNotNull("Invalid deployment result", localization1);
+			assertNotNull("Invalid deployment result", localization2);
+
+			assertEquals("Invalid Localization deployment result", "localization1",  localization1.getProperty(Traits.of(StructrTraits.LOCALIZATION).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
+			assertEquals("Invalid Localization deployment result", "domain1",        localization1.getProperty(Traits.of(StructrTraits.LOCALIZATION).key(LocalizationTraitDefinition.DOMAIN_PROPERTY)));
+			assertEquals("Invalid Localization deployment result", "de_DE",          localization1.getProperty(Traits.of(StructrTraits.LOCALIZATION).key(LocalizationTraitDefinition.LOCALE_PROPERTY)));
+			assertEquals("Invalid Localization deployment result", "localizedName1", localization1.getProperty(Traits.of(StructrTraits.LOCALIZATION).key(LocalizationTraitDefinition.LOCALIZED_NAME_PROPERTY)));
+			assertEquals("Invalid Localization deployment result", true,             (boolean)localization1.getProperty(Traits.of(StructrTraits.LOCALIZATION).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY)));
+			assertEquals("Invalid Localization deployment result", true,             (boolean)localization1.getProperty(Traits.of(StructrTraits.LOCALIZATION).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY)));
+
+			assertEquals("Invalid Localization deployment result", "localization2",  localization2.getProperty(Traits.of(StructrTraits.LOCALIZATION).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
+			assertEquals("Invalid Localization deployment result", "domain2",        localization2.getProperty(Traits.of(StructrTraits.LOCALIZATION).key(LocalizationTraitDefinition.DOMAIN_PROPERTY)));
+			assertEquals("Invalid Localization deployment result", "en",             localization2.getProperty(Traits.of(StructrTraits.LOCALIZATION).key(LocalizationTraitDefinition.LOCALE_PROPERTY)));
+			assertEquals("Invalid Localization deployment result", "localizedName2", localization2.getProperty(Traits.of(StructrTraits.LOCALIZATION).key(LocalizationTraitDefinition.LOCALIZED_NAME_PROPERTY)));
+			assertEquals("Invalid Localization deployment result", true,             (boolean)localization2.getProperty(Traits.of(StructrTraits.LOCALIZATION).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY)));
+			assertEquals("Invalid Localization deployment result", true,             (boolean)localization2.getProperty(Traits.of(StructrTraits.LOCALIZATION).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY)));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void test31IncreasingIndentationCountInRoundtrip() {
 
 		// setup
 		try (final Tx tx = app.tx()) {
@@ -58,6 +118,42 @@ public class Deployment3Test extends DeploymentTestBase {
 			final DOMElement html = createElement(page, page, "html");
 			final DOMElement head = createElement(page, html, "head");
 			createElement(page, head, "title", "test31");
+
+			final DOMElement body     = createElement(page, html, "body");
+			final DOMElement div1     = createElement(page, body, "div");
+			final DOMElement div2     = createElement(page, div1, "div", "This is a test.");
+			final DOMElement table1   = createElement(page, div2, "table");
+			final DOMElement thead    = createElement(page, table1, "thead");
+			final DOMElement tbody    = createElement(page, table1, "tbody");
+			final DOMElement tr1      = createElement(page, thead, "tr");
+			final DOMElement tr2      = createElement(page, tbody, "tr");
+			final DOMElement td11     = createElement(page, tr1, "td", "content11", "Content before <select>");
+			final DOMElement td12     = createElement(page, tr1, "td", "content12");
+			final DOMElement td21     = createElement(page, tr2, "td", "content21");
+			final DOMElement td22     = createElement(page, tr2, "td", "content22");
+			final DOMElement select   = createElement(page, td11, "select");
+			final DOMElement option1  = createElement(page, select, "option", "value1");
+			final DOMElement option2  = createElement(page, select, "option", "value2");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		compare(calculateHash(), true);
+	}
+
+	@Test
+	public void test32RoundtripWithEmptyContentElements() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final Page page = Page.createNewPage(securityContext,   "test32");
+			final DOMElement html = createElement(page, page, "html");
+			final DOMElement head = createElement(page, html, "head");
+			createElement(page, head, "title", "test32");
 
 			final DOMElement body     = createElement(page, html, "body");
 			final DOMElement div1     = createElement(page, body, "div");
@@ -100,15 +196,15 @@ public class Deployment3Test extends DeploymentTestBase {
 	}
 
 	@Test
-	public void test32RoundtripWithEmptyContentElements() {
+	public void test33RoundtripWithEmptyContentElements() {
 
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			final Page page = Page.createNewPage(securityContext,   "test32");
+			final Page page = Page.createNewPage(securityContext,   "test33");
 			final DOMElement html = createElement(page, page, "html");
 			final DOMElement head = createElement(page, html, "head");
-			createElement(page, head, "title", "test32");
+			createElement(page, head, "title", "test33");
 
 			final DOMElement body = createElement(page, html, "body");
 			final DOMElement div1 = createElement(page, body, "div");
@@ -126,7 +222,7 @@ public class Deployment3Test extends DeploymentTestBase {
 	}
 
 	@Test
-	public void test33SchemaMethods() {
+	public void test34SchemaMethods() {
 
 		// setup
 		try (final Tx tx = app.tx()) {
@@ -201,7 +297,7 @@ public class Deployment3Test extends DeploymentTestBase {
 	}
 
 	@Test
-	public void test34WidgetWithTemplate() {
+	public void test35WidgetWithTemplate() {
 
 		// setup
 		try (final Tx tx = app.tx()) {
@@ -269,7 +365,7 @@ public class Deployment3Test extends DeploymentTestBase {
 	}
 
 	@Test
-	public void test35WidgetWithSharedComponentCreation() {
+	public void test36WidgetWithSharedComponentCreation() {
 
 		// setup
 		try (final Tx tx = app.tx()) {
@@ -345,7 +441,7 @@ public class Deployment3Test extends DeploymentTestBase {
 	}
 
 	@Test
-	public void test36BuiltInTypesWithProperties() {
+	public void test37BuiltInTypesWithProperties() {
 
 		// setup schema
 		try (final Tx tx = app.tx()) {
@@ -403,7 +499,7 @@ public class Deployment3Test extends DeploymentTestBase {
 	}
 
 	@Test
-	public void test37SharedComponentTemplate() {
+	public void test38SharedComponentTemplate() {
 
 		// setup
 		try (final Tx tx = app.tx()) {
@@ -436,7 +532,7 @@ public class Deployment3Test extends DeploymentTestBase {
 	}
 
 	@Test
-	public void test38DynamicFileExport() {
+	public void test39DynamicFileExport() {
 
 		// setup
 		try (final Tx tx = app.tx()) {
@@ -478,91 +574,6 @@ public class Deployment3Test extends DeploymentTestBase {
 			fail("Unexpected exception.");
 		}
 
-		compare(calculateHash(), true);
-	}
-
-	@Test
-	public void test39EmptyFolderInDeployment() {
-
-		final String folderPath = "/empty/folders/in/filesystem";
-
-		// setup
-		try (final Tx tx = app.tx()) {
-
-			final NodeInterface folder     = FileHelper.createFolderPath(securityContext, folderPath);
-			final NodeInterface rootFolder = getRootFolder(folder.as(Folder.class));
-
-			assertNotNull("Root folder should not be null", rootFolder);
-
-			// root folder needs to have "includeInFrontendExport" set
-			rootFolder.setProperty(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), true);
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			logger.warn("", fex);
-			fail("Unexpected exception.");
-		}
-
-		doImportExportRoundtrip(true, null);
-
-		// check
-		try (final Tx tx = app.tx()) {
-
-			final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).name("filesystem").getFirst();
-
-			assertNotNull("Invalid deployment result - empty folder from export was not imported!", folder);
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			fail("Unexpected exception.");
-		}
-
-	}
-
-	@Test
-	public void test40TwoTemplatesWithSameNameInTwoPages() {
-
-		// setup
-		try (final Tx tx = app.tx()) {
-
-			// create first page
-			final Page page1 = Page.createNewPage(securityContext,   "test40_1");
-			final DOMElement html1 = createElement(page1, page1, "html");
-			final DOMElement head1 = createElement(page1, html1, "head");
-			createElement(page1, head1, "title", "test40_1");
-			final DOMElement body1 = createElement(page1, html1, "body");
-			final DOMElement div1   = createElement(page1, body1, "div");
-
-			// create first template and give it a name
-			final Template template1 = createTemplate(page1, div1, "template source - öäüÖÄÜß'\"'`");
-			final PropertyMap template1Properties = new PropertyMap();
-			template1Properties.put(Traits.of(StructrTraits.TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Test40Template");
-			template1.setProperties(template1.getSecurityContext(), template1Properties);
-
-
-			// create second page
-			final Page page2 = Page.createNewPage(securityContext,   "test40_2");
-			final DOMElement html2 = createElement(page2, page2, "html");
-			final DOMElement head2 = createElement(page2, html2, "head");
-			createElement(page2, head2, "title", "test40_2");
-			final DOMElement body2 = createElement(page2, html2, "body");
-			final DOMElement div2   = createElement(page2, body2, "div");
-
-			// create second template and give it the same name as the first one
-			final Template template2 = createTemplate(page2, div2, "template source 2 - öäüÖÄÜß'\"'`");
-			final PropertyMap template2Properties = new PropertyMap();
-			template2Properties.put(Traits.of(StructrTraits.TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Test40Template");
-			template2.setProperties(template2.getSecurityContext(), template2Properties);
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			fail("Unexpected exception.");
-		}
-
-		// test
 		compare(calculateHash(), true);
 	}
 }

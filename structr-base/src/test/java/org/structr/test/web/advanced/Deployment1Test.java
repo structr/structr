@@ -53,6 +53,48 @@ public class Deployment1Test extends DeploymentTestBase {
 	private static final Logger logger = LoggerFactory.getLogger(Deployment1Test.class.getName());
 
 	@Test
+	public void test10SharedComponent() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			// create first page
+			final Page page1 = Page.createNewPage(securityContext,   "test10_1");
+			final DOMElement html1 = createElement(page1, page1, "html");
+			final DOMElement head1 = createElement(page1, html1, "head");
+			createElement(page1, head1, "title", "test10_1");
+
+			final DOMElement body1 = createElement(page1, html1, "body");
+			final DOMElement div1   = createElement(page1, body1, "div");
+
+			createElement(page1, div1, "div", "test1");
+			createElement(page1, div1, "div", "test1");
+
+			final DOMNode component = createComponent(div1);
+
+			// create second page
+			final Page page2 = Page.createNewPage(securityContext,   "test10_2");
+			final DOMElement html2 = createElement(page2, page2, "html");
+			final DOMElement head2 = createElement(page2, html2, "head");
+			createElement(page2, head2, "title", "test10_2");
+
+			final DOMElement body2 = createElement(page2, html2, "body");
+			final DOMElement div2   = createElement(page2, body2, "div");
+
+			// re-use template from above
+			cloneComponent(component, div2);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test
+		compare(calculateHash(), true);
+	}
+
+	@Test
 	public void test11TemplateInTbody() {
 
 		// setup
@@ -458,111 +500,5 @@ public class Deployment1Test extends DeploymentTestBase {
 
 		// test
 		compare(calculateHash(), true);
-	}
-
-	@Test
-	public void test20ExportOwnership() {
-
-		NodeInterface user1 = null;
-		NodeInterface user2 = null;
-
-		try (final Tx tx = app.tx()) {
-
-			user1 = createTestNode(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user1"));
-			user2 = createTestNode(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user2"));
-
-			tx.success();
-
-		} catch (FrameworkException ex) {
-			fail("Unexpected exception.");
-		}
-
-		assertNotNull("User was not created, test cannot continue", user1);
-		assertNotNull("User was not created, test cannot continue", user2);
-
-		// setup
-		final SecurityContext context1 = SecurityContext.getInstance(user1.as(User.class), AccessMode.Backend);
-		final App app1                 = StructrApp.getInstance(context1);
-
-		try (final Tx tx = app1.tx()) {
-
-			final Page page       = Page.createNewPage(context1,   "test20");
-			final DOMElement html = createElement(page, page, "html");
-			final DOMElement head = createElement(page, html, "head");
-			createElement(page, head, "title", "test20");
-
-			final DOMElement body = createElement(page, html, "body");
-			final DOMElement div1 = createElement(page, body, "div");
-
-			final Content content = createContent(page, div1, "<b>Test</b>");
-			content.setProperty(Traits.of(StructrTraits.CONTENT).key(ContentTraitDefinition.CONTENT_TYPE_PROPERTY), "text/html");
-
-			// set owner to different user
-			div1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), user2);
-			content.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), user2);
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			fail("Unexpected exception.");
-		}
-
-		// test
-		compare(calculateHash(), true, false);
-	}
-
-	@Test
-	public void test21PageLinks() {
-
-		String pageId = null;
-		String a_uuid = null;
-
-		// setup
-		try (final Tx tx = app.tx()) {
-
-			final Page page       = Page.createNewPage(securityContext,   "test02");
-			pageId                = page.getUuid();
-			final DOMElement html = createElement(page, page, "html");
-			final DOMElement head = createElement(page, html, "head");
-
-			createElement(page, head, "title", "test11");
-
-			final DOMElement body       = createElement(page, html, "body");
-
-			// create a link which links to same page
-			{
-				final DOMElement a = createElement(page, body, "a");
-
-				createElement(page, a, "a", "link to self");
-
-				a.as(LinkSource.class).setLinkable(page.as(Linkable.class));
-
-				a_uuid = a.getUuid();
-			}
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			fail("Unexpected exception.");
-		}
-
-		doImportExportRoundtrip(true, null);
-
-		// check
-		try (final Tx tx = app.tx()) {
-
-			final NodeInterface node = app.getNodeById(StructrTraits.A, a_uuid);
-			final LinkSource a       = node.as(LinkSource.class);
-
-			assertNotNull("A element was not created!", a);
-			assertNotNull("A has no linked page!", a.getLinkable());
-
-			assertEquals("A element is not linked to page it should be linked to", pageId, a.getLinkable().getUuid());
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			fail("Unexpected exception.");
-		}
 	}
 }
