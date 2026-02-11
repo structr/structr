@@ -598,11 +598,11 @@ You can allow users to sign up themselves instead of creating accounts manually.
 
 #### Mail Templates
 
-Structr uses the following mail templates for registration emails. Create these as MailTemplate objects:
+Structr uses the following mail templates for registration emails. Create these as MailTemplate objects to overwrite the defaults:
 
 | Template Name | Purpose | Default Value |
 |---------------|---------|---------------|
-| `CONFIRM_REGISTRATION_SENDER_ADDRESS` | Sender email address | structr-mail-daemon@localhost |
+| `CONFIRM_REGISTRATION_SENDER_ADDRESS` | Sender email address | `smtp.user` from structr.conf (if it contains a valid email address); otherwise `structr-mail-daemon@localhost` |
 | `CONFIRM_REGISTRATION_SENDER_NAME` | Sender name | Structr Mail Daemon |
 | `CONFIRM_REGISTRATION_SUBJECT` | Email subject | Welcome to Structr, please finalize registration |
 | `CONFIRM_REGISTRATION_TEXT_BODY` | Plain text body | Go to ${link} to finalize registration. |
@@ -653,9 +653,11 @@ To allow users to regain access when they forget their password, Structr provide
 
 #### Mail Templates
 
+Structr uses the following mail templates for password reset emails. Create these as MailTemplate objects to overwrite the defaults:
+
 | Template Name | Purpose | Default Value |
 |---------------|---------|---------------|
-| `RESET_PASSWORD_SENDER_ADDRESS` | Sender email address | structr-mail-daemon@localhost |
+| `RESET_PASSWORD_SENDER_ADDRESS` | Sender email address | `smtp.user` from structr.conf (if it contains a valid email address); otherwise `structr-mail-daemon@localhost` |
 | `RESET_PASSWORD_SENDER_NAME` | Sender name | Structr Mail Daemon |
 | `RESET_PASSWORD_SUBJECT` | Email subject | Request to reset your Structr password |
 | `RESET_PASSWORD_TEXT_BODY` | Plain text body | Go to ${link} to reset your password. |
