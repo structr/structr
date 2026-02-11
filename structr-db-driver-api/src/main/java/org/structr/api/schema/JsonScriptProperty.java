@@ -24,9 +24,9 @@ package org.structr.api.schema;
  */
 public interface JsonScriptProperty extends JsonProperty {
 
-	public JsonScriptProperty setSource(final String source);
-	public String getSource();
+	JsonScriptProperty setSource(final String source);
+	String getSource();
 
-	public JsonScriptProperty setContentType(final String contentType);
-	public String getContentType();
+	JsonScriptProperty setContentType(final String contentType);
+	String getContentType();
 }
