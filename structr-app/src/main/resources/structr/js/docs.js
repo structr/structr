@@ -124,7 +124,7 @@ let _Documentation = {
             console.log('iframe not found');
         }
 
-		fetch('/structr/docs/ontology?root=Structr&details=name&levels=1&format=toc&startLevel=1')
+		fetch('/structr/docs/ontology?root=Structr&details=all&levels=1&format=toc&startLevel=1')
 			.then(response => response.json())
 			.then(json => {
 
@@ -177,7 +177,7 @@ let _Documentation = {
         document.querySelectorAll('a[target="main-documentation"]').forEach(el => el.classList.remove('active'));
         document.querySelector(`a[target="main-documentation"][href*="id=${id}"]`)?.classList.add('active');
 
-        fetch(`/structr/docs/ontology?id=${id}&details=name&levels=1&format=toc&startLevel=1`)
+        fetch(`/structr/docs/ontology?id=${id}&details=all&levels=1&format=toc&startLevel=1`)
             .then(response => response.json())
             .then(json => {
 
@@ -278,7 +278,7 @@ let _Documentation = {
 
                 } else {
 
-                    fetch(`/structr/docs/ontology?search=${encodeURIComponent(searchText)}&details=name&levels=1&startLevel=0`)
+                    fetch(`/structr/docs/ontology?search=${encodeURIComponent(searchText)}&details=all&levels=1&startLevel=0`)
                         .then(response => response.json())
                         .then(json => {
 
@@ -415,8 +415,8 @@ let _Documentation = {
 			</div>
 		`,
 		mainNavigationItem: config => `<li class="docs-main-nav-item">${config.label}</li>`,
-        mainNavigationSubItem: config => `<li><a target="main-documentation" href="/structr/docs/ontology?id=${config.id}&parent=${config.parent}">${config.label}</a></li>`,
-		indexItem: config => `<h2><a target="main-documentation" href="/structr/docs/ontology?id=${config.id}#${config.name}">${config.label}</a></h2>`,
+        mainNavigationSubItem: config => `<li><a target="main-documentation" href="/structr/docs/ontology?id=${config.id}&parent=${config.parent}&details=all">${config.label}</a></li>`,
+		indexItem: config => `<h2><a target="main-documentation" href="/structr/docs/ontology?id=${config.id}&details=all#${config.name}">${config.label}</a></h2>`,
 		searchOverlay: config => `
 			<div id="search-overlay" class="hidden">
 				<div id="search-overlay-dialog">
