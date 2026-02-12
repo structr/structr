@@ -335,13 +335,6 @@ public class DocumentationServlet extends HttpServlet {
 
 			boolean hasFilter = false;
 
-			// format?
-			final String format = request.getParameter("format");
-			if (StringUtils.isNotBlank(format)) {
-
-				settings.setOutputFormat(format);
-			}
-
 			// types filter?
 			final String types = request.getParameter("types");
 			if (StringUtils.isNotBlank(types)) {
@@ -458,35 +451,44 @@ public class DocumentationServlet extends HttpServlet {
 				hasFilter = true;
 			}
 
-			final String startLevel = request.getParameter("startLevel");
-			if (StringUtils.isNotBlank(startLevel) && StringUtils.isNumeric(startLevel)) {
-
-				settings.setStartLevel(Integer.parseInt(startLevel));
-			}
-
-			final String levels = request.getParameter("levels");
-			if (StringUtils.isNotBlank(levels) && StringUtils.isNumeric(levels)) {
-
-				settings.setMaxLevels(Integer.parseInt(levels));
-			}
-
 			// default behaviour: add all root concepts
 			if (links.isEmpty() && !hasFilter) {
 
 				links.addAll(ontology.getRootConcepts().stream().map(c -> new Link(null, null, c)).toList());
 			}
 
-			// details?
-			final String details = request.getParameter("details");
-			if (StringUtils.isNotBlank(details)) {
+		}
 
-				final String[] parts = details.split(",");
-				for (final String part : parts) {
+		// details?
+		final String details = request.getParameter("details");
+		if (StringUtils.isNotBlank(details)) {
 
-					settings.getDetails().add(Details.valueOf(part.trim()));
-				}
+			final String[] parts = details.split(",");
+			for (final String part : parts) {
+
+				settings.getDetails().add(Details.valueOf(part.trim()));
 			}
 		}
+
+		// format?
+		final String format = request.getParameter("format");
+		if (StringUtils.isNotBlank(format)) {
+
+			settings.setOutputFormat(format);
+		}
+
+		final String startLevel = request.getParameter("startLevel");
+		if (StringUtils.isNotBlank(startLevel) && StringUtils.isNumeric(startLevel)) {
+
+			settings.setStartLevel(Integer.parseInt(startLevel));
+		}
+
+		final String levels = request.getParameter("levels");
+		if (StringUtils.isNotBlank(levels) && StringUtils.isNumeric(levels)) {
+
+			settings.setMaxLevels(Integer.parseInt(levels));
+		}
+
 	}
 
 	private OutputSettings setupOutputSettings(final Ontology ontology, final Resource baseResource) {
