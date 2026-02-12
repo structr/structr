@@ -28,7 +28,7 @@ Access to every object in Structr must be explicitly granted - this also applies
 
 ## Define the Data Model
 
-<img src="http://localhost:8082/structr/docs/schema_type-created_Project.png" class="small-image" />
+<img src="schema_type-created_Project.png" class="small-image" />
 
 Defining the data model is usually the first step in developing a Structr application. The data model controls how data is stored in the database, which fields are present in the REST endpoints and much more. It contains all information about the data types (or classes), their properties and how the objects are related, as well as their methods.
 
@@ -140,7 +140,7 @@ To handle user input in a Structr application, you can configure Event Action Ma
 
 ## Implement Business Logic
 
-<img src="http://localhost:8082/structr/docs/code_project-to-openapi.png" class="small-image" />
+<img src="code_project-to-openapi.png" class="small-image" />
 
 Structr offers a wide range of options for implementing business logic in your application. These include time-controlled processes like scheduled imports, event-driven processes triggered through external interfaces or the application front end, and lifecycle methods that respond to data creation, modification, and deletion in the database.
 
@@ -191,7 +191,7 @@ Structr supports OAuth 2.0 for user authentication, enabling integration with ex
 
 ### Emails & SMTP
 
-<img src="http://localhost:8082/structr/docs/code_project-method-autocomplete.png" class="small-image" />
+<img src="code_project-method-autocomplete.png" class="small-image" />
 
 Structr allows you to send plain text or HTML emails with attachments from any business logic method. You can also retrieve emails from IMAP mailboxes and trigger automated responses to incoming messages through lifecycle methods or custom workflows.
 
