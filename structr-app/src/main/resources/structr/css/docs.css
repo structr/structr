@@ -498,7 +498,7 @@ index h2, .index h3 {
     font-size: .9rem;
     margin-top: .25rem;
     text-overflow: ellipsis;
-    whitespace: nowrap;
+    white-space: nowrap;
     color: var(--gray-999);
 }
 
@@ -506,7 +506,7 @@ index h2, .index h3 {
     font-size: .9rem;
     margin-top: .25rem;
     text-overflow: ellipsis;
-    whitespace: nowrap;
+    white-space: nowrap;
     color: var(--gray-666);
     font-style: italic;
 }
@@ -515,7 +515,7 @@ index h2, .index h3 {
     font-size: .9rem;
     margin-top: .25rem;
     text-overflow: ellipsis;
-    whitespace: nowrap;
+    white-space: nowrap;
     color: var(--gray-999);
 }
 
