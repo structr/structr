@@ -34,25 +34,28 @@ Control which OAuth providers are available using the `oauth.servers` setting:
 
 Each provider requires a client ID and client secret. Most providers also support simplified tenant-based configuration where endpoints are constructed automatically.
 
-**Recommended Approach: Tenant-Based Configuration**
+#### Recommended Approach: Tenant-Based Configuration
 
 For providers that support it, use the tenant/server settings and Structr will automatically construct the authorization, token, and userinfo endpoints:
 
-**Auth0:**
+#### Auth0
+
 ```
 oauth.auth0.tenant = your-tenant.auth0.com
 oauth.auth0.client_id = <your-client-id>
 oauth.auth0.client_secret = <your-client-secret>
 ```
 
-**Microsoft Entra ID (Azure AD):**
+#### Microsoft Entra ID (Azure AD)
+
 ```
 oauth.azure.tenant_id = <your-tenant-id>
 oauth.azure.client_id = <your-client-id>
 oauth.azure.client_secret = <your-client-secret>
 ```
 
-**Keycloak:**
+#### Keycloak
+
 ```
 oauth.keycloak.server_url = https://keycloak.example.com
 oauth.keycloak.realm = master
@@ -60,7 +63,7 @@ oauth.keycloak.client_id = <your-client-id>
 oauth.keycloak.client_secret = <your-client-secret>
 ```
 
-**Other Providers (Google, GitHub, Facebook, LinkedIn):**
+#### Other Providers (Google, GitHub, Facebook, LinkedIn)
 
 These providers use default endpoints and only require credentials:
 ```
@@ -86,7 +89,7 @@ The following table shows all available settings. Replace `<provider>` with the 
 
 #### Tenant/Server-Based Configuration (Recommended)
 
-**Auth0:**
+##### Auth0
 
 | Setting | Required | Description |
 |---------|----------|-------------|
@@ -96,13 +99,13 @@ The following table shows all available settings. Replace `<provider>` with the 
 | `oauth.auth0.userinfo_path` | No | Path to userinfo endpoint. Defaults to `/userinfo` |
 | `oauth.auth0.audience` | No | The API audience (identifier) of your Auth0 API. Required for API access tokens |
 
-**Azure AD:**
+##### Azure AD
 
 | Setting | Required | Description |
 |---------|----------|-------------|
 | `oauth.azure.tenant_id` | **Yes** | Azure AD tenant ID, or `common` for multi-tenant apps, or `organizations` for work accounts only. Defaults to `common` |
 
-**Keycloak:**
+##### Keycloak
 
 | Setting | Required | Description |
 |---------|----------|-------------|
@@ -129,7 +132,8 @@ Enable automatic user creation so Structr can create user nodes for new OAuth us
 
 ### Provider-Specific Examples
 
-**Microsoft Entra ID (Azure AD):**
+#### Microsoft Entra ID (Azure AD)
+
 ```
 oauth.servers = azure
 oauth.azure.tenant_id = <your-tenant-id>
@@ -139,7 +143,8 @@ oauth.azure.return_uri = /
 jsonrestservlet.user.autocreate = true
 ```
 
-**Google:**
+#### Google
+
 ```
 oauth.servers = google
 oauth.google.client_id = <your-client-id>
@@ -147,7 +152,8 @@ oauth.google.client_secret = <your-client-secret>
 jsonrestservlet.user.autocreate = true
 ```
 
-**GitHub:**
+#### GitHub
+
 ```
 oauth.servers = github
 oauth.github.client_id = <your-client-id>
@@ -155,7 +161,8 @@ oauth.github.client_secret = <your-client-secret>
 jsonrestservlet.user.autocreate = true
 ```
 
-**Keycloak:**
+#### Keycloak
+
 ```
 oauth.servers = keycloak
 oauth.keycloak.server_url = https://keycloak.example.com
@@ -169,11 +176,15 @@ jsonrestservlet.user.autocreate = true
 
 When you configure an OAuth provider, Structr automatically adds a login button for that provider to the Admin UI login form. Clicking this button redirects to the provider's login page and returns to the Structr backend after successful authentication. This enables Single Sign-On for administrators without additional configuration.
 
+### Setting the isAdmin flag
+Please note that in order to log into the Admin User Interface, the new user must be created with the `isAdmin` flag set to true. That means you need to implement a custom `onOAuthLogin` lifecycle method as described below, and select an "Admin Group" in Azure AD that Structr can use to identify administrators.
+
 ## Triggering Authentication
 
 For your own application pages, trigger OAuth authentication by redirecting users to `/oauth/<provider>/login`.
 
-**HTML:**
+### HTML
+
 ```html
 <a href="/oauth/auth0/login">Login with Auth0</a>
 <a href="/oauth/azure/login">Login with Microsoft</a>
@@ -186,14 +197,14 @@ For your own application pages, trigger OAuth authentication by redirecting user
 
 ## Authentication Flow
 
-When a user clicks the login link:
+When a user clicks the login link in your page or in the Admin UI login form, the following process is executed:
 
 1. Structr redirects the user to the provider's authorization URL
 2. The user authenticates with the provider (enters credentials, approves permissions)
 3. The provider redirects back to Structr's callback URL with an authorization code
 4. Structr exchanges the authorization code for an access token
 5. Structr retrieves user details from the provider
-6. Structr creates or updates the local user node
+6. Structr creates or updates the local User node
 7. If configured, Structr calls the `onOAuthLogin` method on the User type
 8. Structr creates a session and redirects to the configured return URL
 
@@ -220,6 +231,7 @@ The `userinfo` object contains provider-specific fields. Common fields include:
 | `accessTokenClaims` | Claims from the access token (provider-specific) |
 
 ### Example: Basic User Setup
+
 ```javascript
 {
     $.log('User ' + $.this.name + ' logged in via ' + $.methodParameters.provider);
@@ -241,6 +253,7 @@ The `userinfo` object contains provider-specific fields. Common fields include:
 ### Example: Azure AD Integration with Group Mapping
 
 This example shows how to integrate with Azure Active Directory (Entra ID), including mapping Azure groups to Structr admin privileges:
+
 ```javascript
 {
     const ADMIN_GROUP = 'bc6fbf5f-34f9-4789-8443-76b194edfa09';  // Azure AD group ID
@@ -269,6 +282,7 @@ This example shows how to integrate with Azure Active Directory (Entra ID), incl
 ```
 
 ### Example: Mapping Provider Groups to Structr Groups
+
 ```javascript
 {
     const GROUP_MAPPING = {
@@ -308,6 +322,7 @@ Each OAuth provider requires you to register your application and obtain client 
 ### Redirect URI Format
 
 Your redirect URI typically follows this pattern:
+
 ```
 https://your-domain.com/oauth/<provider>/auth
 ```
@@ -316,30 +331,35 @@ Register this URL with the provider and ensure it matches your Structr configura
 
 ### Provider-Specific Setup Notes
 
-**Microsoft Entra ID (Azure AD):**
+#### Microsoft Entra ID (Azure AD)
+
 - Register the application in Azure Portal under "App registrations"
 - Configure "Redirect URIs" under Authentication – use `https://your-domain.com/oauth/azure/auth`
 - Add required API permissions (e.g., User.Read, openid, profile)
 - For group claims, configure "Token configuration" to include groups
 - Use your Azure tenant ID in the `oauth.azure.tenant_id` setting, or use `common` for multi-tenant apps
 
-**Google:**
+#### Google
+
 - Enable the "Google+ API" or "People API" in the Google Cloud Console
 - Configure OAuth consent screen before creating credentials
 - Uses default endpoints – only client credentials required
 
-**GitHub:**
+#### GitHub
+
 - Set "Authorization callback URL" in your OAuth App settings
 - Request appropriate scopes (e.g., `user:email` for email access)
 - Uses default endpoints – only client credentials required
 
-**Keycloak:**
+#### Keycloak
+
 - Create a client in your Keycloak realm
 - Set "Valid Redirect URIs" to `https://your-domain.com/oauth/keycloak/auth`
 - Configure client authentication and standard flow
 - Provide server URL and realm name for automatic endpoint construction
 
-**Auth0:**
+#### Auth0
+
 - Create an application in the Auth0 dashboard
 - Configure "Allowed Callback URLs" to `https://your-domain.com/oauth/auth0/auth`
 - Copy your Auth0 tenant domain (e.g., `your-tenant.auth0.com`)
