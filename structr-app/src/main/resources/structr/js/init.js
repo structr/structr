@@ -1342,6 +1342,14 @@ let Structr = {
 					}
 
 					finalMessage.show();
+
+				} else if (data.subtype === 'WARNING') {
+
+					let text = `<div>${data.message}</div>`;
+
+					let finalMessage = new WarningMessage().title(`${type} warning`).uniqueClass('date-deployment-warning').text(text).appendsText().requiresConfirmation();
+
+					finalMessage.show();
 				}
 				break;
 			}

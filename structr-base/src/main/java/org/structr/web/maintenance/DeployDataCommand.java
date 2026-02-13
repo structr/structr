@@ -52,6 +52,7 @@ import java.text.DecimalFormatSymbols;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class DeployDataCommand extends DeployCommand {
 
@@ -392,9 +393,9 @@ public class DeployDataCommand extends DeployCommand {
 
 		if (Files.exists(nodesDir)) {
 
-			try {
+			try (final Stream<Path> nodeFilesList = Files.list(nodesDir)) {
 
-				Files.list(nodesDir).sorted().forEach((Path p) -> {
+				nodeFilesList.sorted().forEach((Path p) -> {
 
 					java.io.File f = p.toFile();
 
@@ -402,7 +403,16 @@ public class DeployDataCommand extends DeployCommand {
 
 						final String typeName = StringUtils.substringBeforeLast(f.getName(), ".json");
 
-						importExtensibleNodeListData(context, typeName, readConfigList(p));
+						if (Traits.exists(typeName)) {
+
+							importExtensibleNodeListData(context, typeName, readConfigList(p));
+
+						} else {
+
+							final String message = "Skipping file %s. Node type not part of schema.".formatted(f.getName());
+							logger.warn(message);
+							publishCustomMessage(DEPLOYMENT_DATA_IMPORT_STATUS, MaintenanceModeCommand.COMMAND_SUBTYPE_WARNING,message);
+						}
 					}
 				});
 
@@ -414,9 +424,9 @@ public class DeployDataCommand extends DeployCommand {
 
 		if (Files.exists(relsDir)) {
 
-			try {
+			try (final Stream<Path> relFilesList = Files.list(relsDir)) {
 
-				Files.list(relsDir).sorted().forEach((Path p) -> {
+				relFilesList.sorted().forEach((Path p) -> {
 
 					java.io.File f = p.toFile();
 
@@ -430,8 +440,9 @@ public class DeployDataCommand extends DeployCommand {
 
 						} else {
 
-							logger.warn("Not importing data. Relationship type cannot be found: {}!", typeName);
-							publishWarningMessage(DEPLOYMENT_DATA_IMPORT_STATUS, "Type can not be found! NOT Importing relationships for type " + typeName);
+							final String message = "Skipping file %s. Relationship type type not part of schema.".formatted(f.getName());
+							logger.warn(message);
+							publishCustomMessage(DEPLOYMENT_DATA_IMPORT_STATUS, MaintenanceModeCommand.COMMAND_SUBTYPE_WARNING,message);
 						}
 					}
 				});
@@ -856,23 +867,34 @@ public class DeployDataCommand extends DeployCommand {
 
 	private void exportRelationship(final SecurityContext context, final RelationshipInterface rel, final Path relsDir) throws FrameworkException {
 
-		final String relTypeName = rel.getType();
+		final String relUuid           = rel.getUuid();
+		final String relTypeName       = rel.getType();
+		final NodeInterface sourceNode = rel.getSourceNode();
+		final NodeInterface targetNode = rel.getTargetNode();
+		final String sourceNodeClass   = sourceNode.getType();
+		final String targetNodeClass   = targetNode.getType();
 
-		if (!blacklistedRelationshipTypes.contains(relTypeName)) {
+		final boolean relTypeExistsInSchema = (Traits.of(relTypeName) != null);
+
+		if (!relTypeExistsInSchema) {
+
+			final String message = "Skipping relationship because it is not part of the schema: (%s {id: \"%s\"})-[%s {id: \"%s\"}]->(%s {id: \"%s\"})"
+										   .formatted(sourceNode.getType(), sourceNode.getUuid(), relTypeName, relUuid, targetNode.getType(), targetNode.getUuid());
+			logger.warn(message);
+			publishCustomMessage(DEPLOYMENT_DATA_IMPORT_STATUS, MaintenanceModeCommand.COMMAND_SUBTYPE_WARNING,message);
+
+			// add relationship to list so we only get this warning once
+			alreadyExportedRelationships.add(relUuid);
+
+		} else if (!blacklistedRelationshipTypes.contains(relTypeName)) {
 
 			final App app = StructrApp.getInstance(context);
-
-			final String relUuid = rel.getUuid();
 
 			if (!alreadyExportedRelationships.contains(relUuid)) {
 
 				try (final Tx tx = app.tx()) {
 
-					final NodeInterface sourceNode  = rel.getSourceNode();
-					final NodeInterface targetNode  = rel.getTargetNode();
 					final Map<String, Object> entry = new TreeMap<>();
-					final String sourceNodeClass    = sourceNode.getType();
-					final String targetNodeClass    = targetNode.getType();
 
 					if (!missingTypesForExport.contains(sourceNodeClass) && !isTypeInExportedTypes(sourceNodeClass)) {
 
@@ -948,10 +970,9 @@ public class DeployDataCommand extends DeployCommand {
 		}
 	}
 
-	private void importRelationshipListData(final SecurityContext context, final String type, final List<Map<String, Object>> data) {
+	private void importRelationshipListData(final SecurityContext context, final String typeName, final List<Map<String, Object>> data) {
 
 		final App app         = StructrApp.getInstance(context);
-		final String typeName = type;
 		final int chunkSize   = Settings.DeploymentRelImportBatchSize.getValue();
 		int chunkCount        = 0;
 		int relCount          = 0;
@@ -1000,11 +1021,19 @@ public class DeployDataCommand extends DeployCommand {
 						incrementFailedRelationshipsCounterForType(typeName, "target");
 					}
 
-					if (sourceNode != null && targetNode != null) {
+					final String fullRelType = (String) entry.get("type");
 
-						final RelationshipInterface r = app.create(sourceNode, targetNode, type);
+					if (!Traits.exists(fullRelType)) {
 
-						correctNumberFormats(context, entry, type);
+						final String message = "Relationship type not found! Not importing relationship %s(%s)".formatted(fullRelType, entry.get("id"));
+						publishCustomMessage(DEPLOYMENT_DATA_IMPORT_STATUS, MaintenanceModeCommand.COMMAND_SUBTYPE_WARNING, message);
+						logger.warn(message);
+
+					} else if (sourceNode != null && targetNode != null) {
+
+						final RelationshipInterface r = app.create(sourceNode, targetNode, typeName);
+
+						correctNumberFormats(context, entry, typeName);
 
 						final PropertyContainer pc = r.getPropertyContainer();
 						pc.setProperties(entry);
