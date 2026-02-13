@@ -361,7 +361,7 @@ let _JobQueue = {
 						mixedMappingConfig.mappedTypes = config.mixedMappingConfig;
 					}
 
-					$('input[name=import-type][value=' + importType + ']').prop('checked', 'checked').trigger('change');
+					$('input[name=import-type][value=' + config.targetType + ']').prop('checked', 'checked').trigger('change');
 
 					$('#target-type-select').val(config.targetType).trigger('change', [config]);
 				}
