@@ -69,17 +69,9 @@ public interface MaintenanceCommand extends Documentable {
 		return HttpServletResponse.SC_OK;
 	}
 
-	default void publishBeginMessage (final String type, final Map additionalInfo) {
+	default void publishBeginMessage (final String type, final Map<String, Object> additionalInfo) {
 
-		final Map<String, Object> msgData = new HashMap();
-		msgData.put(COMMAND_TYPE_KEY,    type);
-		msgData.put(COMMAND_SUBTYPE_KEY, COMMAND_SUBTYPE_BEGIN);
-
-		if (additionalInfo != null) {
-			msgData.putAll(additionalInfo);
-		}
-
-		TransactionCommand.simpleBroadcastGenericMessage(msgData, Predicate.all());
+		publishCustomMessage(type, COMMAND_SUBTYPE_BEGIN, null, additionalInfo);
 	}
 
 	default void publishProgressMessage (final String type, final String message) {
@@ -87,36 +79,19 @@ public interface MaintenanceCommand extends Documentable {
 		publishProgressMessage(type, message, null);
 	}
 
-	default void publishProgressMessage (final String type, final String message, final Map additionalInfo) {
+	default void publishProgressMessage (final String type, final String message, final Map<String, Object> additionalInfo) {
 
-		final Map<String, Object> msgData = new HashMap();
-		msgData.put(COMMAND_TYPE_KEY,    type);
-		msgData.put(COMMAND_SUBTYPE_KEY, COMMAND_SUBTYPE_PROGRESS);
-		msgData.put(COMMAND_MESSAGE_KEY, message);
-
-		if (additionalInfo != null) {
-			msgData.putAll(additionalInfo);
-		}
-
-		TransactionCommand.simpleBroadcastGenericMessage(msgData, Predicate.all());
+		publishCustomMessage(type, COMMAND_SUBTYPE_PROGRESS, message, additionalInfo);
 	}
 
-	default void publishEndMessage (final String type, final Map additionalInfo) {
+	default void publishEndMessage (final String type, final Map<String, Object> additionalInfo) {
 
-		final Map<String, Object> msgData = new HashMap();
-		msgData.put(COMMAND_TYPE_KEY,    type);
-		msgData.put(COMMAND_SUBTYPE_KEY, COMMAND_SUBTYPE_END);
-
-		if (additionalInfo != null) {
-			msgData.putAll(additionalInfo);
-		}
-
-		TransactionCommand.simpleBroadcastGenericMessage(msgData, Predicate.all());
+		publishCustomMessage(type, COMMAND_SUBTYPE_END, null, additionalInfo);
 	}
 
 	default void publishWarningMessage (final String title, final String text) {
 
-		final Map<String, Object> warningMsgData = new HashMap();
+		final Map<String, Object> warningMsgData = new HashMap<>();
 		warningMsgData.put(COMMAND_TYPE_KEY,    COMMAND_SUBTYPE_WARNING);
 		warningMsgData.put(COMMAND_TITLE_KEY,   title);
 		warningMsgData.put(COMMAND_MESSAGE_KEY, text);
@@ -126,12 +101,35 @@ public interface MaintenanceCommand extends Documentable {
 
 	default void publishInfoMessage (final String title, final String text) {
 
-		final Map<String, Object> warningMsgData = new HashMap();
+		final Map<String, Object> warningMsgData = new HashMap<>();
 		warningMsgData.put(COMMAND_TYPE_KEY,    COMMAND_SUBTYPE_INFO);
 		warningMsgData.put(COMMAND_TITLE_KEY,   title);
 		warningMsgData.put(COMMAND_MESSAGE_KEY, text);
 
 		TransactionCommand.simpleBroadcastGenericMessage(warningMsgData, Predicate.all());
+	}
+
+	default void publishCustomMessage (final String type, final String subType, final String message) {
+
+		publishCustomMessage(type, subType, message, null);
+	}
+
+	default void publishCustomMessage (final String type, final String subType, final String message, final Map<String, Object> additionalInfo) {
+
+		final Map<String, Object> msgData = new HashMap<>();
+		msgData.put(COMMAND_TYPE_KEY,    type);
+		msgData.put(COMMAND_SUBTYPE_KEY, subType);
+
+		if (message != null) {
+			msgData.put(COMMAND_MESSAGE_KEY, message);
+		}
+
+		if (additionalInfo != null) {
+			// careful with additional info. "type", "subtype" and "message" overwrite control data
+			msgData.putAll(additionalInfo);
+		}
+
+		TransactionCommand.simpleBroadcastGenericMessage(msgData, Predicate.all());
 	}
 
 }
