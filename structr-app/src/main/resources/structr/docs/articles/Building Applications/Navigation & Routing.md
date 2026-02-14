@@ -66,30 +66,142 @@ htmlservlet.resolveproperties = Product.name, Article.title, Project.urlPath
 
 With this configuration, navigating to `/products/my-product-name` resolves the Product with that name and makes it available as `current`.
 
-## URL routing
+## URL Routing
 
-URL routing allows you to define additional URL paths for a page, with typed parameters that Structr validates and makes available in the page.
-
-### Defining routes
-
-In the URL Routing tab of a page, you define path expressions with placeholders:
-
-- `/project/{name}` – a single parameter
-- `/blog/{lang}/{title}` – multiple parameters
-- `/{category}/{year}/{title}` – for blog-style URLs
-
-For each placeholder, you select a type (String or Integer). The parameter is then available in the page under its name.
+By default, Structr automatically maps pages to URLs based on their name. URL Routing extends this by allowing you to define custom routing schemes with typed parameters that Structr validates and makes available in the page. This gives you full control over your URL structure beyond the built-in automatic routing.
 
 ### How it works
 
-A page can have multiple routes. Structr evaluates URL routes before checking page names. If a route matches, the page is displayed and the parameters are available in template expressions and scripts.
+A page can have multiple routes. Structr evaluates URL routes before checking page names, so custom routes take priority over the default name-based resolution. If a route matches, the corresponding page is rendered and the matched parameters are available in template expressions and scripts.
 
-Parameters are optional. If a path segment is empty, the parameter is null. If a value does not match the expected type (for example "abc" for an Integer parameter), the page is still displayed but the parameter is null.
+Parameters are optional. If a path segment is missing, the parameter value is `null`. If a value does not match the expected type (for example `"abc"` for an Integer parameter), the page is still rendered but the parameter value is `null` and Structr logs an error.
+
+Multiple routes can point to the same page, allowing a single page to serve different URL patterns. For example, a product page could be reachable via both `/product/{id}` and `/shop/{category}/{id}`.
+
+### Defining routes
+
+In the URL Routing tab of a page, you define path expressions using placeholders following the pattern `/<page>/<param1>/<param2>/.../<paramN>` that allow URL parameters to be mapped to a page and multiple parameters.
+
+The parameters are then available in the page context using their placeholder names. In StructrScript, parameters are accessed with single braces `${paramName}`, while JavaScript blocks use double braces `${{ ... }}`.
+
+> **Note:** Do not use parameter names that are also used as data keys in repeaters, as they will not work.
+
+### Parameter types and validation
+
+For each placeholder, you can select a type that determines how Structr validates and converts the input value. The available types are:
+
+- String
+- Integer
+- Long
+- Double
+- Float
+- Date
+- Boolean
+
+#### String
+
+Any input is accepted as-is and returned without conversion. This is the default type. If an unknown type is configured, Structr logs a warning and falls back to this behavior.
+
+#### Integer and Long
+
+The input is first parsed as a Double, then converted to the target type. This means decimal input is accepted but truncated to the integer part without rounding (e.g. `3.9` becomes `3`, `3.1` becomes `3`). If the input is not a valid number, the parameter value will be `null` and Structr logs a warning:
+
+`WARN o.s.w.entity.path.PagePathParameter - Exception while converting input for PagePathParameter with path aLong: For input string: "123ssdfgsdgf"`
+
+#### Float and Double
+
+The input is parsed as a Double. For Float, the value is then narrowed to float precision, which may cause rounding. Float has approximately 7 significant digits of precision, Double has approximately 15. If the input is not a valid number, the parameter value will be `null` and Structr logs a warning.
+
+#### Boolean
+
+The input is converted using Java's `Boolean.valueOf()`, which returns `true` only if the input string is `"true"` (case-insensitive). Any other value, including `"1"`, `"yes"`, or `"on"`, results in `false`.
+
+#### Date
+
+The input is parsed as an ISO 8601 date string. The following formats are supported:
+
+- `yyyy-MM-dd'T'HH:mm:ss.SSSXXX` (e.g. `2026-02-14T12:34:56.000+01:00`)
+- `yyyy-MM-dd'T'HH:mm:ssXXX` (e.g. `2026-02-14T12:34:56+01:00`)
+- `yyyy-MM-dd'T'HH:mm:ssZ` (e.g. `2026-02-14T12:34:56Z`)
+- `yyyy-MM-dd'T'HH:mm:ss.SSSZ` (e.g. `2026-02-14T12:34:56.000Z`)
+
+If none of the supported formats can parse the input, the parameter value will be `null`. No exception is thrown.
+
+
+### Examples
+
+#### A single parameter
+
+Path: `/project/{name}`
+
+In the page `project`, access the value of the first URL parameter as follows:
+
+In StructrScript:
+
+`${name}`
+
+In JavaScript:
+
+```
+${{
+    const projectName = $.name;
+}}
+```
+
+#### Multiple parameters
+
+Path: `/blog/{lang}/{title}`
+
+In the page `blog`, access the value of the first and second URL parameters as follows:
+
+In StructrScript:
+
+`${lang}`
+
+`${title}`
+
+In JavaScript:
+
+```
+${{
+    const language = $.lang;
+    const title    = $.title;
+}}
+```
+
+#### Blog-style URLs
+
+Path: `/{category}/{year}/{title}` – for blog-style URLs
+
+Structr uses the value of the first path segment (`category`) to resolve the target page by name.
+
+In StructrScript:
+
+```
+${
+    log('Year: ', year, ', Category: ', category, ', Title: ', title)
+}
+```
+
+In JavaScript:
+
+```
+${{
+    const year        = $.year;
+    const category    = $.category;
+    const title       = $.title;
+}}
+```
 
 ### Use cases
 
-URL routing is useful for SEO-friendly URLs that include object names instead of IDs, multilingual sites that include the language code in the path, and detail pages that receive identifiers via the URL.
+URL Routing is particularly useful for:
 
+- **SEO-friendly URLs** — using human-readable object names or slugs instead of UUIDs (e.g. `/product/ergonomic-keyboard` instead of `/product?id=a3f8...`)
+- **Multilingual sites** — including the language code as a path segment (e.g. `/en/about`, `/de/about`) to serve localized content from a single page
+- **Detail pages** — passing identifiers via the URL so a single page template can render different content (e.g. `/user/{username}`, `/order/{orderId}`)
+- **Hierarchical content** — modeling category and subcategory structures directly in the URL (e.g. `/docs/{section}/{topic}`)
+- **Clean API-style endpoints** — combining URL Routing with page methods to create RESTful-style interfaces served by Structr pages
 
 ## Building navigation
 
