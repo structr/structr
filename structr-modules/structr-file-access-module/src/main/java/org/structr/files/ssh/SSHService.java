@@ -213,17 +213,9 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 					if (principal != null) {
 
-						if (principal.isAdmin()) {
+						isValid = true;
+						securityContext = SecurityContext.getInstance(principal, principal.isAdmin() ? AccessMode.Backend : AccessMode.Frontend);
 
-							isValid = true;
-							securityContext = SecurityContext.getInstance(principal, AccessMode.Backend);
-
-						} else {
-
-							isValid = false;
-							logger.warn("Rejecting SSH connection attempt by non-admin user '{}'", username);
-							session.disconnect(401, "SSH access is only allowed for admin users!");
-						}
 					}
 
 				} catch (UnauthorizedException ae) {
@@ -271,43 +263,37 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 				final NodeInterface principalNode = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).name(username).getFirst();
 				if (principalNode != null) {
 
-					final Principal principal = principalNode.as(Principal.class);
-					if (principal.isAdmin()) {
+				final Principal principal = principalNode.as(Principal.class);
 
-						securityContext = SecurityContext.getInstance(principal, AccessMode.Backend);
+					securityContext = SecurityContext.getInstance(principal, principal.isAdmin() ? AccessMode.Backend : AccessMode.Frontend);
 
-						// check single (main) pubkey
-						final String pubKeyData = principal.getProperty(principal.getTraits().key(PrincipalTraitDefinition.PUBLIC_KEY_PROPERTY));
-						if (pubKeyData != null) {
+					// check single (main) pubkey
+					final String pubKeyData = principal.getProperty(principal.getTraits().key(PrincipalTraitDefinition.PUBLIC_KEY_PROPERTY));
+					if (pubKeyData != null) {
 
-							final PublicKey pubKey = PublicKeyEntry.parsePublicKeyEntry(pubKeyData).resolvePublicKey(session, Collections.emptyMap(), PublicKeyEntryResolver.FAILING);
+						final PublicKey pubKey = PublicKeyEntry.parsePublicKeyEntry(pubKeyData).resolvePublicKey(session, Collections.emptyMap(), PublicKeyEntryResolver.FAILING);
 
-							isValid = KeyUtils.compareKeys(pubKey, key);
-						}
+						isValid = KeyUtils.compareKeys(pubKey, key);
+					}
 
-						// check array of pubkeys for this user
-						final String[] pubKeysData = principal.getProperty(principal.getTraits().key( PrincipalTraitDefinition.PUBLIC_KEYS_PROPERTY));
-						if (pubKeysData != null) {
+					// check array of pubkeys for this user
+					final String[] pubKeysData = principal.getProperty(principal.getTraits().key( PrincipalTraitDefinition.PUBLIC_KEYS_PROPERTY));
+					if (pubKeysData != null) {
 
-							for (final String k : pubKeysData) {
+						for (final String k : pubKeysData) {
 
-								if (k != null) {
-									final PublicKey pubKey = PublicKeyEntry.parsePublicKeyEntry(k).resolvePublicKey(session, Collections.emptyMap(), PublicKeyEntryResolver.FAILING);
-									if (KeyUtils.compareKeys(pubKey, key)) {
+							if (k != null) {
+								final PublicKey pubKey = PublicKeyEntry.parsePublicKeyEntry(k).resolvePublicKey(session, Collections.emptyMap(), PublicKeyEntryResolver.FAILING);
+								if (KeyUtils.compareKeys(pubKey, key)) {
 
-										isValid = true;
-										break;
-									}
+									isValid = true;
+									break;
 								}
 							}
 						}
-
-					} else {
-
-						isValid = false;
-						logger.warn("Rejecting SSH connection attempt by non-admin user '{}'", username);
-						session.disconnect(401, "SSH access is only allowed for admin users!");
 					}
+
+
 				}
 
 			} catch (UnauthorizedException ae) {
