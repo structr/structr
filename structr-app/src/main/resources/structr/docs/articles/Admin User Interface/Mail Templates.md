@@ -1,7 +1,7 @@
 
 The Mail Templates area is where you create and manage email templates for your application. These templates define the content and structure of automated emails such as registration confirmations, password resets, or notification messages. Templates can include template expressions that are replaced with dynamic content when the email is sent, allowing you to personalize messages with user-specific information. Each template can have multiple locale variants to support multi-language applications. By default, this area is hidden in the burger menu.
 
-![Mail Templates](mail-templates.png)
+![Mail Templates](/structr/docs/mail-templates.png)
 
 Note: This area appears empty until you create your first mail template.
 

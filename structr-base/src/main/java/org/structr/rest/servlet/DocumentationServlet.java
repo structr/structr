@@ -250,9 +250,11 @@ public class DocumentationServlet extends HttpServlet {
 		writer.write("    <link rel=\"stylesheet\" href=\"/structr/css/docs.css\" />\n");
 		writer.write("    <script src=\"/structr/js/docs_helper.js\"></script>\n");
 
+		/*
 		if (settings.getBaseUrl() != null) {
 			writer.write("<base href='" + settings.getBaseUrl() + "'/>\n");
 		}
+		*/
 
 		writer.write("</head>\n");
 		writer.write("<body>\n");
@@ -462,6 +464,9 @@ public class DocumentationServlet extends HttpServlet {
 		// details?
 		final String details = request.getParameter("details");
 		if (StringUtils.isNotBlank(details)) {
+
+			// allow the default to be overridden
+			settings.getDetails().clear();
 
 			final String[] parts = details.split(",");
 			for (final String part : parts) {

@@ -1,7 +1,7 @@
 
 The Virtual Types area is where you create and configure virtual types – dynamic data transformations that expose transformed data via REST endpoints. Virtual types allow you to present your data in different formats without modifying the underlying schema. You can rename properties, filter objects, apply transformations, and create simplified views of complex data structures. This makes them useful for building APIs that present data differently to different consumers, or for transforming data during import and export operations. By default, this area is hidden in the burger menu.
 
-![Virtual Types](virtual-types.png)
+![Virtual Types](/structr/docs/virtual-types.png)
 
 Note: This area appears empty until you create your first virtual type.
 

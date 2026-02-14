@@ -1,7 +1,7 @@
 
 The Flows area is a visual workflow designer where you can create automated processes using flow-based programming. This approach is similar to visual scripting tools like Unity's Visual Script. By default, this area is hidden in the burger menu.
 
-![Flows](flows_connected-nodes.png)
+![Flows](/structr/docs/flows_connected-nodes.png)
 
 ## Secondary Menu
 

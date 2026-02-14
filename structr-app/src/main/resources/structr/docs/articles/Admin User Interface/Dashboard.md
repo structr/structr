@@ -2,7 +2,7 @@
 
 The Dashboard provides system information, server logs, deployment tools, and configuration options for the Admin UI. This is the default landing page after login and gives you a quick overview of the system state.
 
-![Dashboard](dashboard_about-structr.png)
+![Dashboard](/structr/docs/dashboard_about-structr.png)
 
 ## About Me
 
@@ -18,13 +18,13 @@ The tab displays:
 
 The Session ID is particularly useful for debugging. If you need to see your application from another user's perspective, you can copy their Session ID from the table and set it in your browser. This allows you to experience exactly what that user sees without knowing their password.
 
-![About Me](dashboard_about-me.png)
+![About Me](/structr/docs/dashboard_about-me.png)
 
 ## About Structr
 
 This tab shows detailed information about the Structr server instance. You can verify which version is running, which modules are available, and whether your license is valid.
 
-![About Structr](dashboard_about-structr.png)
+![About Structr](/structr/docs/dashboard_about-structr.png)
 
 ### Version and Modules
 
@@ -56,7 +56,7 @@ This is a filterable table showing request statistics: timestamps, request count
 
 This tab provides tools for exporting and importing Structr applications and data.
 
-![Deployment](dashboard_deployment.png)
+![Deployment](/structr/docs/dashboard_deployment.png)
 
 ### Application Deployment
 
@@ -90,7 +90,7 @@ Each function is listed with its name and can be executed by clicking on it. Thi
 
 This tab displays the server log in real-time. The log contains technical information about what Structr is doing: startup messages, errors, warnings, request processing, and transaction details.
 
-![Server Log](dashboard_server-log.png)
+![Server Log](/structr/docs/dashboard_server-log.png)
 
 ### Controls
 
@@ -117,7 +117,7 @@ The log levels are INFO (normal operation), WARN (potential issues that do not p
 
 This tab shows a structured view of system events: API requests, authentication events, transactions, and administrative actions. Unlike the server log which contains free-form text, the event log presents events as filterable table rows with consistent columns.
 
-![Event Log](dashboard_event-log.png)
+![Event Log](/structr/docs/dashboard_event-log.png)
 
 ### Event Types
 
@@ -137,7 +137,7 @@ The event log does not auto-refresh. Click the refresh button to update it. You 
 
 This tab lists all threads running in the Java Virtual Machine. Each row shows the thread name, state, and stack trace. You can use this tab to diagnose hanging requests, infinite loops, or deadlocks.
 
-![Running Threads](dashboard_running-threads.png)
+![Running Threads](/structr/docs/dashboard_running-threads.png)
 
 ### Thread Management
 
@@ -152,7 +152,7 @@ Long-running threads may indicate problems in your application code, such as inf
 
 This tab lets you configure the Admin UI appearance and behavior. Changes take effect immediately and are stored per user.
 
-![UI Configuration](dashboard_ui-config.png)
+![UI Configuration](/structr/docs/dashboard_ui-config.png)
 
 ### Menu Configuration
 
