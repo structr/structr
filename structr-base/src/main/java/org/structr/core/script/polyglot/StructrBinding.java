@@ -203,7 +203,11 @@ public class StructrBinding implements ProxyObject {
 	}
 
 	@Override
-	public void putMember(String key, Value value) {
+	public void putMember(final String key, final Value value) {
+
+		if (actionContext != null) {
+			actionContext.setConstant(key, PolyglotWrapper.unwrap(actionContext, value));
+		}
 	}
 
 	public void setMethodParameters(final Value methodParameters) {

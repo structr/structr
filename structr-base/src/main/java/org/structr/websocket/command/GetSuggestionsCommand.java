@@ -62,14 +62,15 @@ public class GetSuggestionsCommand extends AbstractCommand {
 		final String name                     = webSocketData.getNodeDataStringValue("name");
 		final String htmlId                   = webSocketData.getNodeDataStringValue("htmlId");
 		final String tag                      = webSocketData.getNodeDataStringValue("tag");
+		final String type                     = webSocketData.getNodeDataStringValue("type");
 		final App app                         = StructrApp.getInstance(securityContext);
 
-		if (tag != null) {
+		if (tag != null || type != null) {
 
 			try {
 
 				final List<NodeInterface> result = new LinkedList<>();
-				final Element element            = new Element(tag);
+				final Element element            = new Element(tag != null ? tag : type);
 
 				for (final String css : classes) {
 					element.addClass(css);

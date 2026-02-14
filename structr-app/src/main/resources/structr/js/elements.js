@@ -684,11 +684,13 @@ let _Elements = {
 		},
 		getSuggestedWidgets: (entity, callback) => {
 
-			if (!entity.isPage && !entity.isContent) {
+			if (!entity.isPage && (!entity.isContent || entity.type === 'Template')) {
 
 				let classes = entity._html_class && entity._html_class.length ? entity._html_class.split(' ') : [];
 
-				Command.getSuggestions(entity._html_id, entity.name, entity.tag, classes, (result) => {
+                console.log(entity, classes);
+
+				Command.getSuggestions(entity._html_id, entity.name, entity.tag, classes, entity.type, (result) => {
 
 					let data = (result ?? []).map(r => {
 						return {

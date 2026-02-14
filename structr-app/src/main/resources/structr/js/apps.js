@@ -47,7 +47,8 @@ let _Apps = {
 	},
 	loadData: async () => {
 
-		let response = await fetch('https://apps.structr.com/structr/rest/StructrApplicationCategory?' + Structr.getRequestParameterName('sort') + '=position');
+        let response = await fetch('/structr/rest/StructrApplicationCategory?' + Structr.getRequestParameterName('sort') + '=position');
+		//let response = await fetch('https://apps.structr.com/structr/rest/StructrApplicationCategory?' + Structr.getRequestParameterName('sort') + '=position');
 
 		if (response.ok) {
 			let data = await response.json();

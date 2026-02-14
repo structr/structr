@@ -1319,14 +1319,15 @@ let Command = {
 	 * templates that the user can choose from.
 	 *
 	 */
-	getSuggestions: function(id, name, tag, classes, callback) {
+	getSuggestions: function(id, name, tag, classes, type, callback) {
 		let obj  = {
 			command: 'GET_SUGGESTIONS',
 			data: {
 				htmlId: id,
 				name: name,
 				tag: tag,
-				classes: classes
+				classes: classes,
+                type: type
 			}
 		};
 		return StructrWS.sendObj(obj, callback);
