@@ -1565,7 +1565,7 @@ let _Entities = {
 					} else {
 
 						input.val(newVal);
-						valueMsg = (newVal !== undefined || newValue !== null) ? `value "${newVal}"`: 'empty value';
+						valueMsg = (newVal !== undefined || newValue !== null) ? `value "<span class="max-w-64 truncate">${newVal}</span>"`: 'empty value';
 					}
 
 					if (!isCreateDialog) {
@@ -2507,7 +2507,7 @@ let _Entities = {
 					newVal = newVal.join(',');
 				}
 				input.val(newVal);
-				let valueMsg = (newVal !== undefined || newVal !== null) ? `value "${newVal}` : 'empty value';
+				let valueMsg = (newVal !== undefined || newVal !== null) ? `value "<span class="max-w-64 truncate">${newVal}</span>"` : 'empty value';
 				_Dialogs.custom.showAndHideInfoBoxMessage(`Updated property "${key}" with ${valueMsg}`, 'success', 2000, 200);
 
 			} else {

@@ -879,7 +879,7 @@ let _Dialogs = {
 				let newDiv = _Helpers.createSingleDOMElementFromHTML(`
 					<div class="infoBox ${msgClass} flex items-center p-2">
 						${_Icons.getSvgIcon(_Icons.getSvgIconForMessageClass(msgClass), 16, 16, ['mr-2'])}
-						<div>
+						<div class="flex items-center gap-1">
 							${msg}
 						</div>
 					</div>
