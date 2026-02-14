@@ -447,6 +447,11 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 	// ---- interface ShellFactory -----
 	@Override
 	public org.apache.sshd.server.command.Command createShell(ChannelSession channelSession) throws IOException {
+
+		if (!(AccessMode.Backend.equals(securityContext.getAccessMode()))) {
+			throw new IOException("Access denied. User has no backend access.");
+
+		}
 		return new StructrConsoleCommand(securityContext );
 	}
 	// ----- -----
