@@ -28,7 +28,7 @@ Most things that you would use a verb to describe should be modeled as relations
 ## Creating a Basic Type
 To create a new type, click the green "Create Data Type" button in the top left corner of the [Schema](/structr/docs/ontology/Admin%20User%20Interface/Schema) area.
 
-![The Create Type Dialog](schema_create-type_Project.png)
+![The Create Type Dialog](/structr/docs/schema_create-type_Project.png)
 
 #### Name & Traits
 When you create a new data type, you will first be asked to enter a name for the new type and, if desired, select one or more traits. You can choose from a list of built-in traits to take advantage of functionality provided by Structr.
@@ -54,7 +54,7 @@ Like all other parts of the application, the schema definition itself is stored 
 ## Extending a Type
 When you click Create in the Create Type dialog, the new type is created and the dialog switches to an Edit Type dialog. You can also open the Edit Type dialog by hovering over a type node and clicking the pencil icon.
 
-![The Edit Type Dialog](schema_property-added_projectId.png)
+![The Edit Type Dialog](/structr/docs/schema_property-added_projectId.png)
 
 The dialog consists of six tabs that configure type properties or display type information.
 
@@ -165,7 +165,7 @@ You can create additional views beyond these default views and populate them wit
 
 ### Methods
 
-<img src="http://localhost:8082/structr/docs/schema_method-added_sendEMail.png" class="small-image-50" />
+<img src="/structr/docs/schema_method-added_sendEMail.png" class="small-image-50" />
 
 The Methods tab allows you to define custom methods and lifecycle methods for a type. The tab is divided into two sections: a method list on the left and a code editor on the right.
 
@@ -250,7 +250,7 @@ Cypher properties are read-only computed properties that execute Cypher queries 
 ## Linking Two Types
 To create a relationship between two types, click the lower dot on the start type and drag the green connector to the upper dot on the target type. This will open the Create Relationship dialog.
 
-![The Create Relationship Dialog](schema_relationship-project-task-created.png)
+![The Create Relationship Dialog](/structr/docs/schema_relationship-project-task-created.png)
 
 The Create Relationship Dialog consists of four areas.
 

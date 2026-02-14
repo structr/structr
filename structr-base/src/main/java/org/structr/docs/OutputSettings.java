@@ -27,7 +27,7 @@ public class OutputSettings {
 	private final Map<String, Map<String, Map<ConceptType, Formatter>>> formatterMap = new LinkedHashMap<>();
 	private final Map<Integer, Set<String>> linkTypesPerLevel                        = new LinkedHashMap<>();
 	private final Set<ConceptType> typesToRender                                     = new LinkedHashSet<>();
-	private final Set<Details> details                                               = new LinkedHashSet<>();
+	private final Set<Details> details                                               = new LinkedHashSet<>(Set.of(Details.all));
 	private boolean renderComments                                                   = true;
 	private String outputMode                                                        = "overview";
 	private String outputFormat                                                      = "markdown";

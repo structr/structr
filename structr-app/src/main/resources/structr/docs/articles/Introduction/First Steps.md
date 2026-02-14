@@ -18,14 +18,14 @@ Start by creating the data structure for your project management system. The sch
 
 Navigate to the "Schema" view and click "Create Data Type" to add your first entity type.
 
-![Creating Project Type](schema_create-type_Project.png)
+![Creating Project Type](/structr/docs/schema_create-type_Project.png)
 
 1. Enter "Project" as the type name
 2. Click "Create" to add the type
 
 Add a custom property to uniquely identify projects:
 
-![Adding Project ID Property](schema_property-added_projectId.png)
+![Adding Project ID Property](/structr/docs/schema_property-added_projectId.png)
 
 1. Expand "Direct properties"
 2. Click "Add direct property"
@@ -38,11 +38,11 @@ Add a custom property to uniquely identify projects:
 
 Add a Milestone type following the same pattern:
 
-![Creating Milestone Type](schema_create-type_Milestone.png)
+![Creating Milestone Type](/structr/docs/schema_create-type_Milestone.png)
 
 Add multiple properties to track milestone details:
 
-![Milestone Properties](schema_added-Milestone-properties.png)
+![Milestone Properties](/structr/docs/schema_added-Milestone-properties.png)
 
 - `milestoneId`: String property marked as unique
 - `dueDate`: Date property for deadline tracking
@@ -66,13 +66,13 @@ Create these relationships and set the type to:
 - **PROJECT\_HAS\_MILESTONE**: One project can have many milestones
 - **TASK\_BELONGS\_TO**: Many tasks belong to one project
 
-![Relationship Created](schema_relationship-project-milestone-created.png)
+![Relationship Created](/structr/docs/schema_relationship-project-milestone-created.png)
 
 ### Creating the Task Type
 
 Create a Task type with similar structure:
 
-![Task Properties](schema_added-Task-properties.png)
+![Task Properties](/structr/docs/schema_added-Task-properties.png)
 
 - `taskId`: String property marked as unique
 - `projectId`: Function property linking to projects
@@ -81,7 +81,7 @@ Create a Task type with similar structure:
 
 Switch to the Data tab to create test records for your project management system.
 
-![Data Editor](data.png)
+![Data Editor](/structr/docs/data.png)
 
 ### Creating Projects
 
@@ -101,7 +101,7 @@ Switch to the Data tab to create test records for your project management system
     - Milestone B1, B2, B3 (for Project B)
     - Milestone C1, C2, C3 (for Project C)
 
-![Created Objects](data_objects-created.png)
+![Created Objects](/structr/docs/data_objects-created.png)
 
 ### Linking Data
 
@@ -111,28 +111,28 @@ Connect milestones to their respective projects:
 2. Click the relationship icon in the "milestones" column for each project
 3. Select the appropriate milestones for each project
 
-![Linked Objects](data_objects-linked.png)
+![Linked Objects](/structr/docs/data_objects-linked.png)
 
 ## Chapter 3: Building the Web Interface
 
 Create a web page to display your project data using Structr's page builder.
 
-![Pages Editor](pages.png)
+![Pages Editor](/structr/docs/pages.png)
 
 ### Creating a New Page
 
 1. Click the dropdown menu and select "Create Page"
 2. Choose the "Sidebar Layout" template
 
-![Create Page](pages_create-page.png)
+![Create Page](/structr/docs/pages_create-page.png)
 
 3. Name the page "projects" in the General tab
 
-![Page Created](pages_page-created.png)
+![Page Created](/structr/docs/pages_page-created.png)
 
 4. Right-click the page and expand the tree structure to see all elements
 
-![Page Expanded](pages_page-expanded.png)
+![Page Expanded](/structr/docs/pages_page-expanded.png)
 
 ### Adding a Table
 
@@ -142,7 +142,7 @@ Create a web page to display your project data using Structr's page builder.
 
 The widget is attached to the page tree as a branch of individual DOM elements that can be navigated and modified.
 
-![Simple Table Added](pages_simple-table-added.png)
+![Simple Table Added](/structr/docs/pages_simple-table-added.png)
 
 ### Customizing the Table
 
@@ -160,7 +160,7 @@ Modify the table to display project information:
 
 3. Remove unnecessary columns by right-clicking and selecting "Remove Node"
 
-![Output Expression](pages_output-expression.png)
+![Output Expression](/structr/docs/pages_output-expression.png)
 
 ### Adding Dynamic Data
 
@@ -171,7 +171,7 @@ Configure the table to display all projects:
 3. Set up a Function Query: `find('Project')`
 4. Set the data key to "project"
 
-![Repeater Configuration](pages_repeater.png)
+![Repeater Configuration](/structr/docs/pages_repeater.png)
 
 Your page now dynamically displays all projects with their associated milestones.
 
@@ -179,13 +179,13 @@ Your page now dynamically displays all projects with their associated milestones
 
 Set up user access controls to secure your project management system.
 
-![Security Overview](security.png)
+![Security Overview](/structr/docs/security.png)
 
 ### Creating Users
 
 To create users, navigate to `Security` via the main menu.
 
-![Create User](security_create-user.png)
+![Create User](/structr/docs/security_create-user.png)
  
 1. Make sure "User" is selected and click "Create" to create a new user account
 2. Rename the user from "New User" to a new user name of your choice
@@ -193,18 +193,18 @@ To create users, navigate to `Security` via the main menu.
 
 >**Note:** We recommend using a password manager to create a good password and to store it securely. Structr is compatible with most password managers.
 
-![Rename User](security_change-admin-password.png)
+![Rename User](/structr/docs/security_change-admin-password.png)
 
 ### Creating Groups
 
 1. Make sure "Group" is selected and click "Create" to create a user group
 2. Rename from "New Group" to a new group name of your choice
 
-![Create Group](security_create-group.png)
+![Create Group](/structr/docs/security_create-group.png)
 
 3. Drag the user onto the group to add them as a member
 
-![User in Group](security_user-dragged-on-group.png)
+![User in Group](/structr/docs/security_user-dragged-on-group.png)
 
 ### Setting Resource Permissions
 
@@ -214,12 +214,12 @@ Grant API access permissions for authenticated users:
 2. Create a permission for "Project" resources
 3. Enable "GET" for authenticated users to allow them read access to project data
 
-![Resource Access GET](security_create-resource-access-auth-user-get.png)
+![Resource Access GET](/structr/docs/security_create-resource-access-auth-user-get.png)
 
 4. Create an additional permission for "Project/_id" resources
 5. Enable "POST" to allow authenticated users to create new projects
 
-![Resource Access POST](security_create-resource-access-auth-user-post.png)
+![Resource Access POST](/structr/docs/security_create-resource-access-auth-user-post.png)
 
 ### CORS Configuration
 
@@ -235,7 +235,7 @@ Enable cross-origin requests for web applications:
    - Allow Credentials: `true`
    - Expose Headers: `Allow`
 
-![CORS Settings](security_create-cors-setting.png)
+![CORS Settings](/structr/docs/security_create-cors-setting.png)
 
 ## Conclusion
 

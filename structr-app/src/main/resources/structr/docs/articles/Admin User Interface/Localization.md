@@ -2,7 +2,7 @@
 
 The Localization area is where you manage translations for multi-language applications. Here you create and edit the translation entries that the `localize()` function looks up when rendering pages. Each entry consists of a key, an optional domain for organizing related translations, and one or more locale-specific translations. When a page calls `localize()` with a key, Structr returns the appropriate translation based on the current user's locale setting. By default, this area is hidden in the burger menu.
 
-![Localization](localization_created.png)
+![Localization](/structr/docs/localization_created.png)
 
 Note: This area appears empty until you create your first localization entry.
 

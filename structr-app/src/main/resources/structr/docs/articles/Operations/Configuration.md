@@ -17,7 +17,7 @@ The preferred way to edit configuration settings is through the Configuration In
 
 You can access the Configuration Interface by clicking the wrench icon in the Admin UI header bar. The interface opens in a new browser tab and requires authentication with the superuser password.
 
-![Configuration Interface](configuration-interface.png)
+![Configuration Interface](/structr/docs/configuration-interface.png)
 
 After making changes, click the green button in the lower right corner to save them to `structr.conf`. Individual settings can be reset to their default value using the red button with the white X next to each field — this takes effect immediately. The interface also provides a reload function to apply configuration changes without restarting Structr.
 

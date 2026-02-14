@@ -2,7 +2,7 @@
 
 The Security area is where you manage access control for your application. Here you create users and organize them into groups, define which REST endpoints are accessible to authenticated and anonymous users, and configure cross-origin request settings for browser-based clients. The permission model supports both role-based access through groups and fine-grained object-level permissions. Each of these concerns has its own tab.
 
-![Security](security.png)
+![Security](/structr/docs/security.png)
 
 ## Users and Groups
 

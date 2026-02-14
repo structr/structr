@@ -1,13 +1,13 @@
 
 The Configuration Interface provides access to all runtime settings that control Structr's behavior. You can open it by clicking the wrench icon in the header bar. The interface opens in a new browser tab and requires a separate login using the superuser password defined in `structr.conf`.
 
-![Configuration Interface](configuration-interface_login.png)
+![Configuration Interface](/structr/docs/configuration-interface_login.png)
 
 This separation is intentional. The Configuration Interface provides access to sensitive operations that go beyond normal application administration: you can configure database connections, restart services, and define cron expressions for scheduled functions. These capabilities would otherwise require direct access to maintenance commands or configuration files. By requiring a separate authentication with the superuser password, Structr adds an additional layer of security that protects these critical settings even if an attacker gains access to a regular admin account.
 
 ## Interface Layout
 
-![Configuration Interface](configuration-interface.png)
+![Configuration Interface](/structr/docs/configuration-interface.png)
 
 The Configuration Interface uses a different layout than other areas of the Admin UI. The header bar is present at the top, but it contains no main navigation menu. In the top right corner, you find a logout link to end your session in the Configuration Interface.
 

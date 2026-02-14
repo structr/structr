@@ -3,7 +3,7 @@ The Job Queue area displays scheduled jobs and background tasks. Despite its cur
 
 Note: This area will be renamed from "Importer" to "Job Queue" in a future release.
 
-![Job Queue](importer.png)
+![Job Queue](/structr/docs/importer.png)
 
 ## Secondary Menu
 

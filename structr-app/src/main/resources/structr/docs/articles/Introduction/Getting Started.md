@@ -14,6 +14,10 @@ Structr is an open-source low-code platform that allows you to:
 - Manage users, groups, roles, permissions, and access rights out of the box
 - Store and manage files in a virtual folder tree with your own metadata
 
+### Read More
+
+[Admin User Interface Overview](/structr/docs/ontology/Admin%20User%20Interface/Overview), [Building Applications with Structr](/structr/docs/ontology/Building%20Applications/Overview), [The Data Model](/structr/docs/ontology/Building%20Applications/Data%20Model).
+
 ## Prerequisites
 
 Before you begin, you should have:
@@ -186,7 +190,7 @@ After installation (for Docker or manual setup), you'll need to go through the i
 
 Navigate to [http://localhost:8082/structr](http://localhost:8082/structr) which will redirect you to the configuration wizard at [http://localhost:8082/structr/config](http://localhost:8082/structr/config).
 
-![Enter a superuser password](config_set-superuser-password.png)
+![Enter a superuser password](/structr/docs/config_set-superuser-password.png)
 
 > **Note:** Choose a strong password - this is your system administrator account with full access to all Structr features. After the first call, the configuration tool is secured with this password. If you have forgotten the password, you can only obtain it as a system administrator at the operating system level from structr.conf.
 
@@ -194,7 +198,7 @@ Navigate to [http://localhost:8082/structr](http://localhost:8082/structr) which
 
 Click "Configure a database connection" and then "Create new database connection".
 
-![Configure a database connection](config_create-database-connection.png)
+![Configure a database connection](/structr/docs/config_create-database-connection.png)
 
 
 For a standard Neo4j setup:
@@ -203,19 +207,19 @@ For a standard Neo4j setup:
 2. Adjust the connection parameters if needed
 3. Click "Save" to establish the connection
 
-![Database Connections](config_configure-database-connection.png)
+![Database Connections](/structr/docs/config_configure-database-connection.png)
 
 If your database connection does not use these default settings, change them according to your database configuration.
 
-![Database Connections](config_database-connection-specified.png)
+![Database Connections](/structr/docs/config_database-connection-specified.png)
 
-![Database Connections](config_database-connection-wait.png)
+![Database Connections](/structr/docs/config_database-connection-wait.png)
 
 ### 3. Access the Admin Interface
 
 Once connected, click "Open Structr UI" to enter the main application.
 
-![Finished database connection](config_database-connection-established.png)
+![Finished database connection](/structr/docs/config_database-connection-established.png)
 
 ## First Steps 
 
@@ -223,7 +227,7 @@ When you see the sign-in screen, you're ready to start working with your Structr
 
 ### Sign In
 
-![Sign-in Screen](login.png)
+![Sign-in Screen](/structr/docs/login.png)
 
 There's default admin user which is created automatically if the database was found empty. The default password is `admin`.
 
@@ -231,6 +235,6 @@ There's default admin user which is created automatically if the database was fo
 
 ### Change Admin Password
 
-![Change the admin password](security_change-admin-password.png)
+![Change the admin password](/structr/docs/security_change-admin-password.png)
 
 Now you're set and done and ready for the [first steps](/structr/docs/ontology/Introduction/First%20Steps) with Structr.

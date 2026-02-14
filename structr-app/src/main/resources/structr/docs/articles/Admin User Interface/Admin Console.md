@@ -2,7 +2,7 @@
 
 The Admin Console is a text-based interface for advanced administration tasks. It provides a REPL (read-evaluate-print loop) where you can execute JavaScript, StructrScript, Cypher queries, Admin Shell commands, and REST calls directly.
 
-![Admin Console](dashboard_admin-console.png)
+![Admin Console](/structr/docs/dashboard_admin-console.png)
 
 ## Opening the Console
 

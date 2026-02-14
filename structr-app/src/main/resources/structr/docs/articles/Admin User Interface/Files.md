@@ -2,7 +2,7 @@
 
 The Files area is Structr's virtual file system – a familiar file browser interface where you can manage your application's static assets. CSS, JavaScript, images, documents, and any other files live here.
 
-![Files](files_navigated-to-folder.png)
+![Files](/structr/docs/files_navigated-to-folder.png)
 
 ## Secondary Menu
 

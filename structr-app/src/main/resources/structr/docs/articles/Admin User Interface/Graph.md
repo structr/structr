@@ -1,7 +1,7 @@
 
 The Graph area is an interactive graph explorer where you can visualize your data objects and their relationships. This area is particularly useful when you need to understand the connections between objects in your database, explore how data is interlinked, or navigate complex relationship structures. By starting from a query result, you can progressively expand the visualization to discover related objects step by step. By default, this area is hidden in the burger menu.
 
-![Graph](graph_show-nodes.png)
+![Graph](/structr/docs/graph_show-nodes.png)
 
 ## Querying Data
 

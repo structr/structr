@@ -1,7 +1,7 @@
 
 The Code area is where you write and organize your application's business logic. While the Schema area gives you a visual overview of types and relationships, the Code area focuses on what those types actually do – their methods, computed properties, and API configuration.
 
-![Code](code_project-method.png)
+![Code](/structr/docs/code_project-method.png)
 
 ## Working with the Code Area
 
@@ -21,7 +21,7 @@ This shows global functions in a table format – the same view that is availabl
 
 This section displays the OpenAPI specification for your application. The specification is also exposed as a public endpoint that external consumers can access to discover and interact with your APIs. It serves as the authoritative reference for all API endpoints defined in your application, documenting available methods, their parameters, and expected responses.
 
-![OpenAPI Output](code_openapi-root.png)
+![OpenAPI Output](/structr/docs/code_openapi-root.png)
 
 ### Types
 

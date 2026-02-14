@@ -1,7 +1,7 @@
 
 The Data area is a generic interface for viewing and editing all objects in your database. You can select a type from the list, view all its instances in a table, and edit values directly. This is useful for data inspection, quick fixes, bulk operations, and CSV import/export.
 
-![Data Overview](data.png)
+![Data Overview](/structr/docs/data.png)
 
 ## Browsing Your Data
 

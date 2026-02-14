@@ -2,7 +2,7 @@ After defining a first version of the data model, the next step is usually to bu
 
 ## Working with Pages
 
-<img src="Structr_6.jpg" class="small-image-50" />
+<img src="/structr/docs/Structr_6.jpg" class="small-image-50" />
 
 A page in Structr consists of HTML elements, template blocks, content elements, or a combination of these. Pages are rendered on the server, so the browser receives fully rendered HTML rather than JavaScript that builds the page client-side.
 
@@ -46,7 +46,7 @@ When you click the green "Create Page" button in the upper left corner of the Pa
 
 ### Create Page Dialog
 
-![Create Page Dialog](pages_create-page.png)
+![Create Page Dialog](/structr/docs/pages_create-page.png)
 
 #### Templates
 When you select "Create Page", you will see a list of templates that are used to create the structure of the new page. Templates are based on the Tailwind CSS framework and range from simple layouts like the Empty Page to more complex structures with sidebars and navigation menus, as well as specialized templates like the Sign-In Page.
@@ -59,7 +59,7 @@ Page templates are widgets with the `isPageTemplate` flag enabled. Structr looks
 ### Import Page Dialog
 The Import Page dialog lets you create pages from HTML source code or by importing from external URLs.
 
-![Import Page Dialog](pages_import-page.png)
+![Import Page Dialog](/structr/docs/pages_import-page.png)
 
 #### Create Page From Source Code
 Paste your HTML code into the textarea. You can then configure the import options below before creating the page.
@@ -81,7 +81,7 @@ Deployment annotations are special markers that Structr inserts when exporting H
 
 ## The Page Element
 
-![Page Elements](pages_page-expanded.png)
+![Page Elements](/structr/docs/pages_page-expanded.png)
 
 The Page element sits at the top of a page's element tree and represents the page itself. Below the Page element, there is either a single Template element (the Main Page Template) or an `<html>` element containing `<head>` and `<body>` elements. Templates can also be used to create non-HTML pages: by setting the content type to `application/json`, `text/xml`, or `text/plain`, you can make the page return any content you want.
 
@@ -102,7 +102,7 @@ For conditional rendering based on runtime conditions, see the Show and Hide Con
 ### The General Tab
 The General tab of a page contains important settings that affect how the page is rendered for users and displayed in the preview.
 
-![General Settings](pages_page-expanded.png)
+![General Settings](/structr/docs/pages_page-expanded.png)
 
 #### Name
 The page name identifies the page in the page tree and determines its URL. A page named "about" is accessible at `/about`.
@@ -140,7 +140,7 @@ The preview request parameters field allows you to provide fixed parameters that
 ### The Advanced Tab
 The Advanced tab provides a raw view of the current object, showing all its attributes grouped by category, in an editable table for quick access. This tab includes the base attributes like `id`, `type`, `createdBy`, `createdDate`, `lastModifiedDate`, and `hidden` that are not available elsewhere.
 
-![Advanced Settings](pages_page-details-advanced.png)
+![Advanced Settings](/structr/docs/pages_page-details-advanced.png)
 
 #### Hidden Flag
 The `hidden` flag prevents rendering of the element and all its children. When you enable this flag, Structr excludes the element from the page output entirely, making it useful for temporarily disabling parts of your page structure without deleting them.
@@ -157,7 +157,7 @@ The Security tab contains the Access Control settings for the current page, with
 ### The Active Elements Tab
 The Active Elements tab provides a structural overview of the page. Key page components are highlighted, such as templates, repeaters and elements with event action mappings. Clicking a component jumps directly to its location in the page tree.
 
-![Active Elements](pages_page-details-active-elements.png)
+![Active Elements](/structr/docs/pages_page-details-active-elements.png)
 
 ### The URL Routing Tab
 The URL Routing tab allows you to configure additional URL paths under which the page is made available. You can define typed parameters in the path that Structr automatically validates and makes available in the page under the corresponding key.
@@ -183,7 +183,7 @@ When you hover over an HTML element with your mouse, the context menu icon appea
 ### The General Tab
 The General tab of an HTML element contains important settings that affect how the element is rendered and displayed in the page tree.
 
-![General Settings](pages_element-details_general.png)
+![General Settings](/structr/docs/pages_element-details_general.png)
 
 #### Name
 The name is used to identify the element in the page tree and can help communicate the element's purpose in your page structure.
@@ -236,7 +236,7 @@ Like the Preview tab for Page elements, this tab displays the same rendered outp
 ### The Repeater Tab
 The Repeater tab allows you to configure an element to render dynamically based on a data source, repeating its output for each object in a collection.
 
-![Repeater Settings](pages_element-details_repeater.png)
+![Repeater Settings](/structr/docs/pages_element-details_repeater.png)
 
 #### Result Collection
 At the top, you select the repeater source: Flow, Cypher Query, or Function Query (a scripting expression).
@@ -253,7 +253,7 @@ For example, a repeater with the Function Query `find('Project')` and data key `
 ### The Events Tab
 The Events tab allows you to configure Event Action Mappings for individual elements.
 
-![Event Action Mappings](pages_element-details_events.png)
+![Event Action Mappings](/structr/docs/pages_element-details_events.png)
 
 #### How it works
 You start by selecting the DOM event that the Event Action Mapping should respond to in the Event field. After selecting an event, the Action field appears where you select the action to perform.

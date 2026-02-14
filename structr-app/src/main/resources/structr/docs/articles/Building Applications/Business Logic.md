@@ -246,7 +246,7 @@ Structr can monitor inboxes and trigger logic when messages arrive. See the [SMT
 ## Writing Code
 You write business logic in the code editor in the Code area. When you select a method or function in the tree on the left, the editor opens on the right. The editor provides syntax highlighting and autocompletion for both JavaScript and StructrScript.
 
-![Code Area](code_project-method.png)
+![Code Area](/structr/docs/code_project-method.png)
 
 Structr supports two scripting languages: JavaScript and StructrScript. To use JavaScript, enclose your code in curly braces {...}. Code without curly braces is interpreted as StructrScript, a simpler expression language designed for template expressions.
 

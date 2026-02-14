@@ -1,7 +1,7 @@
 
 The Pages area is the visual editor for building your application's user interface. It combines a page tree, property panels, and live preview in one workspace. Here you design layouts, configure data bindings, set up interactions, and preview the results.
 
-![Pages Overview](pages_page-created.png)
+![Pages Overview](/structr/docs/pages_page-created.png)
 
 ## The Workspace
 
