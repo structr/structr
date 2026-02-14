@@ -647,7 +647,7 @@ let _Widgets = {
 	},
 	insertWidgetIntoPage: (widget, target, pageId, callback) => {
 
-		let url               = _Widgets.getWidgetServerUrl();
+		let url   = _Widgets.getWidgetServerUrl();
 		let widgetSource      = widget.source;
 		let widgetDescription = widget.description;
 		let widgetConfig      = widget.configuration;
@@ -666,14 +666,17 @@ let _Widgets = {
 			if ((widgetDescription !== null && widgetDescription !== "") || widgetConfig ) {
 
 				let { dialogText } = _Dialogs.custom.openDialog('Configure Widget', undefined, ['insert-widget-dialog']);
-				let appendWidgetButton = _Dialogs.custom.appendCustomDialogButton('<button id="appendWidget">Append Widget</button>');
+				let appendWidgetButton = _Dialogs.custom.appendCustomDialogButton('<button id="appendWidget" class="action">Append Widget</button>');
 
 				if ((widgetDescription === null || widgetDescription.trim() === "")) {
-					widgetDescription = '<p>Fill out the following parameters to correctly configure the widget.</p>'
+					widgetDescription = ''
 				}
 
 				dialogText.insertAdjacentHTML('beforeend', `
-					${widgetDescription}
+					<h3>Description</h3>
+					<p>${widgetDescription}</p>
+					<h3>Settings</h3>
+                    <p>Fill out the following parameters to correctly configure the widget.</p>
 					<table class="props widget-props"></table>
 				`);
 

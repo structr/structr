@@ -39,11 +39,13 @@ public interface Widget extends NodeInterface {
 	ThreadLocalMatcher threadLocalTemplateMatcher = new ThreadLocalMatcher("\\[[^\\]]+\\]");
 
 	String getSource();
+	String getShortDescription();
 	String getDescription();
 	boolean isWidget();
 	String getTreePath();
 	String getConfiguration();
 	boolean isPageTemplate();
+	boolean isExclusiveInParent();
 	String[] getSelectors();
 
 	static void expandWidget(final SecurityContext securityContext, final Page page, final DOMNode parent, final String baseUrl, final Map<String, Object> parameters, final boolean processDeploymentInfo) throws FrameworkException {

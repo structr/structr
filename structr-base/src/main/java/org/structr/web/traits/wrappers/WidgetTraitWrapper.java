@@ -46,6 +46,11 @@ public class WidgetTraitWrapper extends AbstractNodeTraitWrapper implements Widg
 	}
 
 	@Override
+	public String getShortDescription() {
+		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.SHORT_DESCRIPTION_PROPERTY));
+	}
+
+	@Override
 	public boolean isWidget() {
 		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.IS_WIDGET_PROPERTY));
 	}
@@ -63,6 +68,11 @@ public class WidgetTraitWrapper extends AbstractNodeTraitWrapper implements Widg
 	@Override
 	public boolean isPageTemplate() {
 		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.IS_PAGE_TEMPLATE_PROPERTY));
+	}
+
+	@Override
+	public boolean isExclusiveInParent() {
+		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.IS_EXCLUSIVE_PROPERTY));
 	}
 
 	@Override

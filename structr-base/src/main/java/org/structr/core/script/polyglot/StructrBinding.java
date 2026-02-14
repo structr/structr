@@ -40,9 +40,11 @@ import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
+import org.structr.web.common.RenderContext;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Map;
 import java.util.Set;
 
 import static org.structr.core.script.polyglot.PolyglotWrapper.wrap;
@@ -192,6 +194,7 @@ public class StructrBinding implements ProxyObject {
 		keys.add("request");
 		keys.add("session");
 		keys.add("cache");
+		keys.add("theme");
 		keys.add("applicationStore");
 		keys.add("methodParameters");
 		return keys;
@@ -205,8 +208,13 @@ public class StructrBinding implements ProxyObject {
 	@Override
 	public void putMember(final String key, final Value value) {
 
-		if (actionContext != null) {
-			actionContext.setConstant(key, PolyglotWrapper.unwrap(actionContext, value));
+		if (actionContext instanceof RenderContext r && "theme".equals(key)) {
+
+			final Object data = PolyglotWrapper.unwrap(actionContext, value);
+			if (data instanceof Map m) {
+
+				r.getTheme().putAll(m);
+			}
 		}
 	}
 

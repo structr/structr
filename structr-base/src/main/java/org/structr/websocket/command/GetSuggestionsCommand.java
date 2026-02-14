@@ -18,6 +18,7 @@
  */
 package org.structr.websocket.command;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +31,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.web.entity.Widget;
+import org.structr.web.entity.dom.DOMElement;
+import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.traits.definitions.WidgetTraitDefinition;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -58,63 +61,80 @@ public class GetSuggestionsCommand extends AbstractCommand {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		final PropertyKey selectorsKey        = Traits.of(StructrTraits.WIDGET).key(WidgetTraitDefinition.SELECTORS_PROPERTY);
-		final List<String> classes            = webSocketData.getNodeDataStringList("classes");
-		final String name                     = webSocketData.getNodeDataStringValue("name");
-		final String htmlId                   = webSocketData.getNodeDataStringValue("htmlId");
-		final String tag                      = webSocketData.getNodeDataStringValue("tag");
-		final String type                     = webSocketData.getNodeDataStringValue("type");
-		final App app                         = StructrApp.getInstance(securityContext);
 
-		if (tag != null || type != null) {
+		final String id = webSocketData.getId();
+		if (id != null) {
 
-			try {
+			final DOMNode domNode = getDOMNode(id);
+			if (domNode != null) {
 
-				final List<NodeInterface> result = new LinkedList<>();
-				final Element element            = new Element(tag != null ? tag : type);
+				final List<String> classes = splitClasses(domNode.getCssClass());
+				final String name = domNode.getName();
+				final String htmlId = getHtmlId(domNode);
+				final String tag = getTag(domNode);
+				final App app = StructrApp.getInstance(securityContext);
 
-				for (final String css : classes) {
-					element.addClass(css);
-				}
+				if (tag != null) {
 
-				if (name != null) {   element.attr("name", name); }
-				if (htmlId != null) { element.attr("id",   htmlId); }
+					try {
 
-				try (final ResultStream<NodeInterface> resultStream = app.nodeQuery(StructrTraits.WIDGET).getResultStream()) {
+						final List<NodeInterface> result = new LinkedList<>();
+						final Element element = new Element(tag);
 
-					for (final NodeInterface node : resultStream) {
+						for (final String css : classes) {
+							element.addClass(css);
+						}
 
-						final Widget widget      = node.as(Widget.class);
-						final String[] selectors = getSelectors(widget, selectorsKey);
-						if (selectors != null) {
+						if (name != null) {
+							element.attr("name", name);
+						}
+						if (htmlId != null) {
+							element.attr("id", htmlId);
+						}
 
-							for (final String selector : selectors) {
+						try (final ResultStream<NodeInterface> resultStream = app.nodeQuery(StructrTraits.WIDGET).getResultStream()) {
 
-								if (element.select(selector).first() != null) {
+							for (final NodeInterface node : resultStream) {
 
-									result.add(widget);
-									break;
+								final Widget widget = node.as(Widget.class);
+								final String[] selectors = getSelectors(widget, selectorsKey);
+								if (selectors != null) {
+
+									for (final String selector : selectors) {
+
+										if (element.select(selector).first() != null) {
+
+											// skip exclusive widgets (only one in each parent allowed)
+											if (widget.isExclusiveInParent() && alreadyPresent(domNode, widget)) {
+												continue;
+											}
+
+											result.add(widget);
+											break;
+										}
+									}
 								}
 							}
 						}
+
+						webSocketData.setResult(result);
+
+						// send only over local connection (no broadcast)
+						getWebSocket().send(webSocketData, true);
+
+						return;
+
+					} catch (Throwable t) {
+
+						logger.error("", t);
+						getWebSocket().send(MessageBuilder.status().code(422).build(), true);
 					}
 				}
-
-				webSocketData.setResult(result);
-
-				// send only over local connection (no broadcast)
-				getWebSocket().send(webSocketData, true);
-
-			} catch (Throwable t) {
-
-				logger.error("", t);
-				getWebSocket().send(MessageBuilder.status().code(422).build(), true);
 			}
-
-		} else {
-
-			// send empty result
-			getWebSocket().send(webSocketData, true);
 		}
+
+		// send empty result
+		getWebSocket().send(webSocketData, true);
 	}
 
 	@Override
@@ -133,5 +153,58 @@ public class GetSuggestionsCommand extends AbstractCommand {
 		}
 
 		return null;
+	}
+
+	private List<String> splitClasses(final String input) {
+
+		final List<String> classes = new LinkedList<>();
+
+		if (StringUtils.isNotBlank(input)) {
+
+			for (final String css : input.split(" ")) {
+
+				final String timmed = css.trim();
+
+				if (StringUtils.isNotBlank(timmed)) {
+					classes.add(timmed);
+				}
+			}
+		}
+
+		return classes;
+	}
+
+	private String getTag(final DOMNode node) {
+
+		if (node.is("DOMElement")) {
+
+			return node.as(DOMElement.class).getTag();
+		}
+
+		return node.getType();
+	}
+
+	private String getHtmlId(final DOMNode node) {
+
+		if (node.is("DOMElement")) {
+			return node.as(DOMElement.class).getHtmlId();
+		}
+
+		return null;
+	}
+
+	private boolean alreadyPresent(final DOMNode node, final Widget widget) {
+
+		final String widgetName = widget.getName();
+
+		for (final DOMNode child : node.getChildren()) {
+
+			if (widgetName.equals(child.getName())) {
+
+				return true;
+			}
+		}
+
+		return false;
 	}
 }

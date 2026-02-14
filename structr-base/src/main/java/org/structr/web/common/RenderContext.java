@@ -33,6 +33,7 @@ import org.structr.common.RequestParameters;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
@@ -53,6 +54,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Stack;
@@ -67,6 +69,7 @@ public class RenderContext extends ActionContext {
 
 	private final Map<String, GraphObject> dataObjects = new HashMap<>();
 	private final Stack<SecurityContext> scStack       = new Stack<>();
+	private final Map<String, Object> theme            = new LinkedHashMap<>();
 	private EditMode editMode                          = EditMode.NONE;
 	private AsyncBuffer buffer                         = null;
 	private int depth                                  = 0;
@@ -109,6 +112,7 @@ public class RenderContext extends ActionContext {
 		super(other);
 
 		this.dataObjects.putAll(other.dataObjects);
+		this.theme.putAll(other.theme);
 
 		this.editMode                   = other.editMode;
 		this.inBody                     = other.inBody;
@@ -450,6 +454,10 @@ public class RenderContext extends ActionContext {
 						hints.reportExistingKey(key);
 						return getDetailsDataObject();
 
+					case "theme":
+						hints.reportExistingKey(key);
+						return this.theme;
+
 					case "template":
 
 						if (entity.is(StructrTraits.DOM_NODE)) {
@@ -581,6 +589,10 @@ public class RenderContext extends ActionContext {
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
+	}
+
+	public Map<String, Object> getTheme() {
+		return theme;
 	}
 
 	// ----- private methods -----

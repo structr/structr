@@ -686,16 +686,12 @@ let _Elements = {
 
 			if (!entity.isPage && (!entity.isContent || entity.type === 'Template')) {
 
-				let classes = entity._html_class && entity._html_class.length ? entity._html_class.split(' ') : [];
-
-                console.log(entity, classes);
-
-				Command.getSuggestions(entity._html_id, entity.name, entity.tag, classes, entity.type, (result) => {
+				Command.getSuggestions(entity.id, (result) => {
 
 					let data = (result ?? []).map(r => {
 						return {
 							id:           r.id,
-							name:         r.name,
+							name:         '<b>' + r.name + '</b>' + (r.description ? (' - ' + r.description) : ''),
 							source:       r.source,
 							clickHandler: () => {
 								Command.get(r.id, undefined, (result) => {
