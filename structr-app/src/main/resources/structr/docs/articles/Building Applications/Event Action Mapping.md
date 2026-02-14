@@ -36,7 +36,7 @@ Events are DOM events that trigger an action. You configure which event to liste
 
 To add an Event Action Mapping, select an element in the page tree and open the Event Action Mapping panel. Select the event you want to react to - for example `click` for a button or `submit` for a form. Then configure the action, parameters, and follow-up behavior.
 
-![Event Action Mappings](pages_element-details_events.png)
+![Event Action Mappings](/structr/docs/pages_element-details_events.png)
 
 ### Available Events
 
@@ -78,7 +78,7 @@ Creates a new object in the database. You specify the type to create in the "Ent
 The following example shows how to configure a simple form that creates a new Project. The figure below illustrates the form's element hierarchy in the page tree and the corresponding HTML.
 
 <div class="html-example">
-<img src="pages_create-form-element.png" class="small-image-left"/>
+<img src="/structr/docs/pages_create-form-element.png" class="small-image-left"/>
 
 ```html
 <form id="create-project-form">
@@ -104,7 +104,7 @@ Select the form element in the page tree and open the Event Action Mapping panel
 
 The completed configuration looks like this:
 
-![Event Action Mapping configuration for the create form](pages_create-form_event-action-mapping-configuration.png)
+![Event Action Mapping configuration for the create form](/structr/docs/pages_create-form_event-action-mapping-configuration.png)
 
 When a user fills in the form and clicks "Create Project", Structr creates a new Project object with the entered name and redirects the browser to the edit page of the project.
 
@@ -122,7 +122,7 @@ To let users modify existing data, you usually build an edit form. With the Even
 The following example shows the configuration of an edit form for a Project with multiple field types. The page is accessible at `/project/{id}` where `{id}` is the project's UUID. Structr automatically resolves the UUID and makes the project available as `current`. For details on URL resolution, see the Navigation & Routing chapter.
 
 <div class="html-example">
-<img src="pages_edit-form-element.png" class="small-image-left"/>
+<img src="/structr/docs/pages_edit-form-element.png" class="small-image-left"/>
 
 ```html
 <form id="edit-project-form">
@@ -155,11 +155,11 @@ Select the form element in the page tree and open the Event Action Mapping panel
 
 The Action Mapping configuration looks like this:
 
-![Event Action Mapping configuration for the edit form](pages_edit-form_event-action-mapping-configuration.png)
+![Event Action Mapping configuration for the edit form](/structr/docs/pages_edit-form_event-action-mapping-configuration.png)
 
 Each input has a `value` attribute with a template expression that loads the current value. The date field uses `dateFormat()` to convert to the HTML date input format. The configuration of a single input field looks like this:
 
-![Event Action Mapping configuration for the edit form](pages_edit-form_input-configuration.png)
+![Event Action Mapping configuration for the edit form](/structr/docs/pages_edit-form_input-configuration.png)
 
 #### Edit Forms with Other Input Types
 
@@ -601,7 +601,7 @@ Structr manages relationships completely. When you submit the form, Structr sets
 The following form contains relationship selectors for all four cardinalities on a Project. The page is accessible at `/advanced/{id}` where `{id}` is the project's UUID.
 
 <div class="html-example">
-<img src="pages_advanced-form-element.png" class="small-image-left"/>
+<img src="/structr/docs/pages_advanced-form-element.png" class="small-image-left"/>
 
 ```html
 <form id="advanced-project-form">
@@ -670,11 +670,11 @@ Select the form element in the page tree and configure the Event Action Mapping:
 
 The Action Mapping configuration looks like this:
 
-![Event Action Mapping configuration for the advanced project form](pages_advanced-form_event-action-mapping-configuration.png)
+![Event Action Mapping configuration for the advanced project form](/structr/docs/pages_advanced-form_event-action-mapping-configuration.png)
 
 Each `<option>` element needs to know whether it should be pre-selected when the form loads. As described earlier in this chapter, Structr provides the **Selected Values Expression** field on the General tab of `<option>` elements for this purpose. The field contains a template expression that resolves to the current value of the property, for example `current.manager` or `current.tags`. Structr compares each option's `value` attribute against the result and sets the `selected` attribute on matching options.
 
-![HTML element configuration for the option element](pages_advanced-form_option-configuration.png)
+![HTML element configuration for the option element](/structr/docs/pages_advanced-form_option-configuration.png)
 
 ### What Happens for Each Cardinality
 

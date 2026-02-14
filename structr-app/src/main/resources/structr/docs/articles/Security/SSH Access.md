@@ -164,6 +164,7 @@ sshfs admin@localhost:/ mountpoint -p 8022
 ```
 
 Replace:
+
 - `admin` with your username
 - `localhost` with your server address
 - `mountpoint` with your local mount directory

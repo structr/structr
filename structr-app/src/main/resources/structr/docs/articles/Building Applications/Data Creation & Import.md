@@ -13,7 +13,7 @@ You can import CSV data in two different ways:
 
 The simple CSV import dialog in the Data section is a tool to quickly import a limited dataset, based on very simple rules. The import is limited to a single type, the input can have a maximum size of 100,000 characters, and the columns in the CSV file must exactly match the property names of the target type. If you need more options, you can use the CSV Import Wizard in the Files section.
 
-![The Simple Import Dialog](data_import-csv.png)
+![The Simple Import Dialog](/structr/docs/data_import-csv.png)
 
 ### Import Wizard
 
@@ -25,7 +25,7 @@ Once you uploaded a CSV file, you can open the Import Wizard by clicking on the 
 
 #### The Import Wizard
 
-![The CSV Import Wizard](files_import-csv-dialog.png)
+![The CSV Import Wizard](/structr/docs/files_import-csv-dialog.png)
 
 ##### Data Sample
 
@@ -71,7 +71,7 @@ The following screenshot shows the import dialog for an XML file that contains s
 
 >**Note**: Just like for CSV, the XML Import Wizard can be found in the context menu of XML files in the Files section, but only if the content type is `text/xml` or `application/xml`.
 
-![The XML Import Wizard](files_import-xml-dialog.png)
+![The XML Import Wizard](/structr/docs/files_import-xml-dialog.png)
 
 You can click on an element in the structure of the XML file to select one of the following actions.
 

@@ -26,7 +26,7 @@ Structr brings data and frontend closer together than traditional frameworks. Yo
 
 ## Template Expressions
 
-<img src="pages_single-repeater-element.png" class="small-image-50" />
+<img src="/structr/docs/pages_single-repeater-element.png" class="small-image-50" />
 
 Template expressions allow you to insert dynamic values anywhere in your pages. You can use them in content elements, template elements, and HTML attributes.
 
@@ -130,7 +130,7 @@ Auto-script fields are a natural fit for StructrScript expressions since they ar
 
 ## Repeaters
 
-<img src="pages_element-details_repeater.png" class="small-image-50" />
+<img src="/structr/docs/pages_element-details_repeater.png" class="small-image-50" />
 
 To display collections of data, you configure an element as a repeater. The repeater executes a query and renders the element once for each result. This is the primary way to display lists, tables, and other data-driven content in Structr.
 

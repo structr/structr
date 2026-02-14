@@ -2,7 +2,7 @@
 
 The Schema area is the visual editor for designing your data model. Types appear as boxes on a canvas, and relationships appear as connecting lines between them. You can drag types to arrange them, click to edit their properties, and draw connections between types to create relationships.
 
-![Schema Overview](schema_type-created_Project.png)
+![Schema Overview](/structr/docs/schema_type-created_Project.png)
 
 ## The Canvas
 
