@@ -4249,8 +4249,7 @@ let _Pages = {
 						<option>Double</option>
 						<option>Float</option>
 						<option>Date</option>
-						<option>List</option>
-						<option>Map</option>
+						<option>Boolean</option>
 					</select>
 				</div>
 			</div>
