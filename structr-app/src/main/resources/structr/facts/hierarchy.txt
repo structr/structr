@@ -9,9 +9,9 @@ Structr has new topics "Introduction", "Building Applications", "Admin User Inte
 
 
 # Introduction
-Topic "Introduction" has markdown-file "articles/Introduction/Core Concepts.md"
 Topic "Introduction" has markdown-file "articles/Introduction/Getting Started.md"
 Topic "Introduction" has markdown-file "articles/Introduction/First Steps.md"
+Topic "Introduction" has markdown-file "articles/Introduction/Core Concepts.md"
 
 
 
