@@ -1365,7 +1365,7 @@ body[style*=zoom] .non-block-ui-blocker-content {
 
 #dialogBox.insert-widget-dialog {
     width: calc(40vw);
-    height: calc(20vh);
+    height: calc(25vh);
 }
 
 /* set default sizes for dialogs with tabs */
@@ -3080,21 +3080,35 @@ img#image-editor.orientation-8 {
 /**
  * Append Widget styles
  */
-.widget-props {
+.widget-props tr {
     background-color: transparent !important;
 }
 
-.widget-props h4 {
-    margin: 4px 0;
-    text-transform: capitalize;
+.widget-props td {
+    padding: .25rem 4px;
+    line-height: 1.5;
 }
 
-.widget-props input,
-.widget-props select,
-.widget-props textarea {
-    width: 100%;
+.widget-props td:first-child {
+    width: 30%;
+    font-weight: 600;
+}
+
+.widget-props td:nth-child(2) {
+    width: 70%;
+    text-align: right;
+}
+
+.widget-props td input,
+.widget-props td textarea {
+    width: 80%;
     box-sizing: border-box;
     margin: auto;
+}
+
+.widget-props td select {
+    box-sizing: border-box;
+	margin: auto;
 }
 
 span.context-help-text {

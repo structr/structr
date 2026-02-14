@@ -663,22 +663,28 @@ let _Widgets = {
 
 		if (widgetSource) {
 
-			if ((widgetDescription !== null && widgetDescription !== "") || widgetConfig ) {
+			if (widgetConfig ) {
 
-				let { dialogText } = _Dialogs.custom.openDialog('Configure Widget', undefined, ['insert-widget-dialog']);
+				let { dialogText } = _Dialogs.custom.openDialog('Insert Widget', undefined, ['insert-widget-dialog']);
 				let appendWidgetButton = _Dialogs.custom.appendCustomDialogButton('<button id="appendWidget" class="action">Append Widget</button>');
 
 				if ((widgetDescription === null || widgetDescription.trim() === "")) {
 					widgetDescription = ''
 				}
 
-				dialogText.insertAdjacentHTML('beforeend', `
-					<h3>Description</h3>
-					<p>${widgetDescription}</p>
-					<h3>Settings</h3>
-                    <p>Fill out the following parameters to correctly configure the widget.</p>
-					<table class="props widget-props"></table>
-				`);
+                if (widgetDescription.length) {
+
+                    dialogText.insertAdjacentHTML('beforeend', `
+                        <h3>Description</h3>
+                        <p>${widgetDescription}</p>
+                    `);
+                }
+
+                dialogText.insertAdjacentHTML('beforeend', `
+                        <h3>Settings</h3>
+                        <p>Please select values for the following settings before inserting the widget.</p>
+                        <table class="props widget-props"></table>
+                    `);
 
 				let table = $('table', $(dialogText));
 

@@ -691,7 +691,7 @@ let _Elements = {
 					let data = (result ?? []).map(r => {
 						return {
 							id:           r.id,
-							name:         '<b>' + r.name + '</b>' + (r.description ? (' - ' + r.description) : ''),
+							name:         '<b>' + r.name + '</b>' + (r.shortDescription ? (' - ' + r.shortDescription) : ''),
 							source:       r.source,
 							clickHandler: () => {
 								Command.get(r.id, undefined, (result) => {

@@ -129,7 +129,7 @@ public class WidgetTraitDefinition extends AbstractNodeTraitDefinition {
 
 			"editWidget",
 			newSet(
-					SELECTORS_PROPERTY, IS_PAGE_TEMPLATE_PROPERTY, IS_EXCLUSIVE_PROPERTY
+					SELECTORS_PROPERTY, IS_PAGE_TEMPLATE_PROPERTY, IS_EXCLUSIVE_PROPERTY, SHORT_DESCRIPTION_PROPERTY
 			)
 		);
 	}
