@@ -683,10 +683,10 @@ let _Widgets = {
                 dialogText.insertAdjacentHTML('beforeend', `
                         <h3>Settings</h3>
                         <p>Please select values for the following settings before inserting the widget.</p>
-                        <table class="props widget-props"></table>
+                        <div class="widget-props grid grid-cols-3 gap-8">
                     `);
 
-				let table = $('table', $(dialogText));
+				let table = $('div', $(dialogText));
 
 				let getOptionsAsText = (options, defaultValue) => {
 
@@ -721,7 +721,7 @@ let _Widgets = {
 						case "select":
 							let options = fieldConfig.options || ["-"];
 
-							let buffer = `<tr><td><span id="label-${cleanedLabel}">${titleLabel}</span></td><td><select id="${cleanedLabel}" class="form-field" data-key="${label}">`;
+							let buffer = `<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select id="${cleanedLabel}" class="form-field" data-key="${label}">`;
 							let delayedAppendFunction;
 
 							if (fieldConfig.dynamicOptionsFunction) {
@@ -741,7 +741,7 @@ let _Widgets = {
 								buffer += getOptionsAsText(options, defaultValue);
 							}
 
-							buffer += '</select></td></tr>';
+							buffer += '</select></div>';
 
 							table.append(buffer);
 							if (delayedAppendFunction) {
@@ -751,12 +751,12 @@ let _Widgets = {
 
 						case "textarea":
 							let rows = (fieldConfig.rows ? parseInt(fieldConfig.rows) || 5 : 5);
-							table.append(`<tr><td><span id="label-${cleanedLabel}">${titleLabel}</span></td><td><textarea rows=${rows} class="form-field" id="${label}" placeholder="${placeholder}" data-key="${label}">${defaultValue}</textarea></td></tr>`);
+							table.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><textarea rows=${rows} class="form-field" id="${label}" placeholder="${placeholder}" data-key="${label}">${defaultValue}</textarea></div>`);
 							break;
 
 						case "input":
 						default:
-							table.append(`<tr><td><span id="label-${cleanedLabel}">${titleLabel}</span></td><td><input class="form-field" type="text" id="${label}" placeholder="${placeholder}" data-key="${label}" value="${defaultValue}"></td></tr>`);
+							table.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><input class="form-field" type="text" id="${label}" placeholder="${placeholder}" data-key="${label}" value="${defaultValue}"></div>`);
 					}
 
 					if (fieldConfig.help) {

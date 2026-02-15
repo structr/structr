@@ -1370,7 +1370,8 @@ body[style*=zoom] .non-block-ui-blocker-content {
 
 /* set default sizes for dialogs with tabs */
 #dialogBox:has(#tabs),
-#dialogBox:has(#files-tabs) {
+#dialogBox:has(#files-tabs),
+#dialogBox:has(.widgets-tabs) {
     height: calc(45vh) !important;
 }
 
@@ -3080,35 +3081,21 @@ img#image-editor.orientation-8 {
 /**
  * Append Widget styles
  */
-.widget-props tr {
+.widget-props {
     background-color: transparent !important;
 }
 
-.widget-props td {
-    padding: .25rem 4px;
-    line-height: 1.5;
+.widget-props h4 {
+    margin: 4px 0;
+    text-transform: capitalize;
 }
 
-.widget-props td:first-child {
-    width: 30%;
-    font-weight: 600;
-}
-
-.widget-props td:nth-child(2) {
-    width: 70%;
-    text-align: right;
-}
-
-.widget-props td input,
-.widget-props td textarea {
-    width: 80%;
+.widget-props input,
+.widget-props select,
+.widget-props textarea {
+    width: 100%;
     box-sizing: border-box;
     margin: auto;
-}
-
-.widget-props td select {
-    box-sizing: border-box;
-	margin: auto;
 }
 
 span.context-help-text {
