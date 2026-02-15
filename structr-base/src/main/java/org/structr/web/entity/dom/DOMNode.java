@@ -103,6 +103,7 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	//void normalize() throws FrameworkException;
 	void setHidden(final boolean hidden) throws FrameworkException;
 	void setIdAttribute(final String id) throws FrameworkException;
+	void setComponentType(final String componentType) throws FrameworkException;
 
 	boolean isHidden();
 	boolean isSynced();
@@ -133,6 +134,7 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	String getPositionPath();
 	String getCssClass();
 	String getNodeValue();
+	String getComponentType();
 
 	boolean renderDeploymentExportComments(AsyncBuffer out, boolean isContentNode);
 

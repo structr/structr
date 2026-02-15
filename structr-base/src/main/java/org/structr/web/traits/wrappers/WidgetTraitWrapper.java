@@ -79,4 +79,9 @@ public class WidgetTraitWrapper extends AbstractNodeTraitWrapper implements Widg
 	public String[] getSelectors() {
 		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.SELECTORS_PROPERTY));
 	}
+
+	@Override
+	public String getComponentType() {
+		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.COMPONENT_TYPE_PROPERTY));
+	}
 }

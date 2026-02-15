@@ -585,24 +585,46 @@ let Command = {
 			return StructrWS.sendObj(obj, resolve);
 		}));
 	},
+    /**
+     * Send an APPEND_WIDGET command to the server.
+     *
+     * The server will create nodes from the given source and
+     * append them as children of the node with the given parent id.
+     *
+     * If the node was child of a parent before, it will be
+     * removed from the former parent before being appended
+     * to the new one.
+     */
+    appendWidget: function(source, parentId, pageId, widgetHostBaseUrl, attributes, processDeploymentInfo, callback) {
+        let obj = {
+            command: 'APPEND_WIDGET',
+            pageId: pageId,
+            data: {
+                widgetHostBaseUrl: widgetHostBaseUrl,
+                parentId: parentId,
+                source: source,
+                processDeploymentInfo: (processDeploymentInfo || false)
+            }
+        };
+        if (attributes) {
+            $.extend(obj.data, attributes);
+        }
+        return StructrWS.sendObj(obj, callback);
+    },
 	/**
-	 * Send an APPEND_WIDGET command to the server.
+	 * Send an REPLACE_WIDGET command to the server.
 	 *
 	 * The server will create nodes from the given source and
-	 * append them as children of the node with the given parent id.
-	 *
-	 * If the node was child of a parent before, it will be
-	 * removed from the former parent before being appended
-	 * to the new one.
-	 *
+	 * replace the node with the given id with the newly created
+     * node, moving all its children to the new node.
 	 */
-	appendWidget: function(source, parentId, pageId, widgetHostBaseUrl, attributes, processDeploymentInfo, callback) {
+	replaceWidget: function(source, nodeId, pageId, widgetHostBaseUrl, attributes, processDeploymentInfo, callback) {
 		let obj = {
-			command: 'APPEND_WIDGET',
+			command: 'REPLACE_WIDGET',
 			pageId: pageId,
 			data: {
 				widgetHostBaseUrl: widgetHostBaseUrl,
-				parentId: parentId,
+				nodeId: nodeId,
 				source: source,
 				processDeploymentInfo: (processDeploymentInfo || false)
 			}
@@ -1313,16 +1335,14 @@ let Command = {
 	},
 	/**
 	 * Send a GET_SUGGESTIONS command to the server.
-	 *
-	 * This command send id, name, tag and a list of
-	 * CSS classes to the server to obtain a list of widget-like
-	 * templates that the user can choose from.
-	 *
 	 */
-	getSuggestions: function(id, callback) {
+	getSuggestions: function(id, mode, callback) {
 		let obj  = {
 			command: 'GET_SUGGESTIONS',
-            id: id
+            id: id,
+            data: {
+                mode: mode
+            }
 		};
 		return StructrWS.sendObj(obj, callback);
 	},

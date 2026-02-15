@@ -1372,7 +1372,7 @@ body[style*=zoom] .non-block-ui-blocker-content {
 #dialogBox:has(#tabs),
 #dialogBox:has(#files-tabs),
 #dialogBox:has(.widgets-tabs) {
-    height: calc(45vh) !important;
+    height: calc(45vh);
 }
 
 /* set default sizes for dialogs with tabs */

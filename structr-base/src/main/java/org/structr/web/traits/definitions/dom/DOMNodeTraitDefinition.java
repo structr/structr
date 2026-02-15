@@ -94,6 +94,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String IS_DOM_NODE_PROPERTY                    = "isDOMNode";
 	public static final String HAS_SHARED_COMPONENT_PROPERTY           = "hasSharedComponent";
 	public static final String DOM_SORT_POSITION_PROPERTY              = "domSortPosition";
+	public static final String COMPONENT_TYPE                          = "componentType";
 	public static final String FLOW_PROPERTY                           = "flow";
 
 	private static final String[] rawProps = new String[] {
@@ -721,6 +722,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Boolean> isDOMNodeProperty                                  = new ConstantBooleanProperty(IS_DOM_NODE_PROPERTY, true).category(DOMNode.PAGE_CATEGORY);
 		final Property<Boolean> hasSharedComponent                                 = new BooleanProperty(HAS_SHARED_COMPONENT_PROPERTY).indexed();
 		final Property<Integer> domSortPositionProperty                            = new IntProperty(DOM_SORT_POSITION_PROPERTY).category(DOMNode.PAGE_CATEGORY);
+		final Property<String> componentTypeProperty                               = new StringProperty(COMPONENT_TYPE).category(DOMNode.PAGE_CATEGORY);
 
 		return newSet(
 			parentProperty,
@@ -751,7 +753,8 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 			dontCacheProperty,
 			isDOMNodeProperty,
 			hasSharedComponent,
-			domSortPositionProperty
+			domSortPositionProperty,
+			componentTypeProperty
 		);
 	}
 

@@ -24,20 +24,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
-import org.structr.core.traits.Traits;
 import org.structr.web.entity.Widget;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.traits.definitions.WidgetTraitDefinition;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -60,7 +62,7 @@ public class GetSuggestionsCommand extends AbstractCommand {
 		setDoTransactionNotifications(false);
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		final PropertyKey selectorsKey        = Traits.of(StructrTraits.WIDGET).key(WidgetTraitDefinition.SELECTORS_PROPERTY);
+		final String mode                     = webSocketData.getNodeDataStringValueTrimmedOrDefault("mode", "insert");
 
 		final String id = webSocketData.getId();
 		if (id != null) {
@@ -68,72 +70,31 @@ public class GetSuggestionsCommand extends AbstractCommand {
 			final DOMNode domNode = getDOMNode(id);
 			if (domNode != null) {
 
-				final List<String> classes = splitClasses(domNode.getCssClass());
-				final String name = domNode.getName();
-				final String htmlId = getHtmlId(domNode);
-				final String tag = getTag(domNode);
-				final App app = StructrApp.getInstance(securityContext);
+				try {
+					final List<GraphObject> result = new LinkedList<>();
 
-				if (tag != null) {
+					switch (mode) {
 
-					try {
+						case "insert":
+							result.addAll(getWidgetsForInsert(securityContext, domNode));
+							break;
 
-						final List<NodeInterface> result = new LinkedList<>();
-						final Element element = new Element(tag);
-
-						for (final String css : classes) {
-							element.addClass(css);
-						}
-
-						if (name != null) {
-							element.attr("name", name);
-						}
-						if (htmlId != null) {
-							element.attr("id", htmlId);
-						}
-
-						try (final ResultStream<NodeInterface> resultStream = app.nodeQuery(StructrTraits.WIDGET).getResultStream()) {
-
-							for (final NodeInterface node : resultStream) {
-
-								final Widget widget = node.as(Widget.class);
-								final String[] selectors = getSelectors(widget, selectorsKey);
-								if (selectors != null) {
-
-									for (final String selector : selectors) {
-
-										if (element.select(selector).first() != null) {
-
-											// skip exclusive widgets (only one in each parent allowed)
-											if (widget.isExclusiveInParent() && alreadyPresent(domNode, widget)) {
-												continue;
-											}
-
-											result.add(widget);
-											break;
-										}
-									}
-								}
-							}
-						}
-
-						webSocketData.setResult(result);
-
-						// send only over local connection (no broadcast)
-						getWebSocket().send(webSocketData, true);
-
-						return;
-
-					} catch (Throwable t) {
-
-						logger.error("", t);
-						getWebSocket().send(MessageBuilder.status().code(422).build(), true);
+						case "replace":
+							result.addAll(getWidgetsForReplace(securityContext, domNode));
 					}
+
+					webSocketData.setResult(result);
+
+				} catch (Throwable t) {
+
+					logger.error("", t);
+					getWebSocket().send(MessageBuilder.status().code(422).build(), true);
+
+					return;
 				}
 			}
 		}
 
-		// send empty result
 		getWebSocket().send(webSocketData, true);
 	}
 
@@ -143,16 +104,102 @@ public class GetSuggestionsCommand extends AbstractCommand {
 	}
 
 	// ----- private methods -----
-	private String[] getSelectors(final Widget widget, final PropertyKey selectorsKey) {
+	private List<NodeInterface> getWidgetsForInsert(final SecurityContext securityContext, final DOMNode domNode) throws FrameworkException {
 
-		final Object value = widget.getSelectors();
+		final List<NodeInterface> result = new LinkedList<>();
+		final List<String> classes       = splitClasses(domNode.getCssClass());
+		final String name                = domNode.getName();
+		final String htmlId              = getHtmlId(domNode);
+		final String tag                 = getTag(domNode);
+		final App app                    = StructrApp.getInstance(securityContext);
 
-		if (value != null && value instanceof String[]) {
+		if (tag != null) {
 
-			return (String[])value;
+			final String dataTypeAttribute = getDataAttribute(domNode, "type");
+			final Element element = new Element(tag);
+
+			for (final String css : classes) {
+				element.addClass(css);
+			}
+
+			if (domNode.hasSharedComponent()) {
+
+				element.attr("type", domNode.getSharedComponent().getComponentType());
+
+			} else if (dataTypeAttribute != null) {
+
+				element.attr("type", dataTypeAttribute);
+			}
+
+			if (name != null) {
+				element.attr("name", name);
+			}
+
+			if (htmlId != null) {
+				element.attr("id", htmlId);
+			}
+
+			try (final ResultStream<NodeInterface> resultStream = app.nodeQuery(StructrTraits.WIDGET).getResultStream()) {
+
+				for (final NodeInterface node : resultStream) {
+
+					final Widget widget      = node.as(Widget.class);
+					final String[] selectors = widget.getSelectors();
+
+					if (selectors != null) {
+
+						for (final String selector : selectors) {
+
+							if (element.select(selector).first() != null) {
+
+								// skip exclusive widgets (only one in each parent allowed)
+								if (widget.isExclusiveInParent() && alreadyPresent(domNode, widget)) {
+									continue;
+								}
+
+								result.add(widget);
+								break;
+							}
+						}
+					}
+				}
+			}
+
+			// sort result by name
+			Collections.sort(result, Comparator.comparing(NodeInterface::getName));
 		}
 
-		return null;
+		return result;
+	}
+
+	private List<NodeInterface> getWidgetsForReplace(final SecurityContext securityContext, final DOMNode domNode) throws FrameworkException {
+
+		// We can only replace widgets with a matching data-type
+		final App app                    = StructrApp.getInstance(securityContext);
+		final List<NodeInterface> result = new LinkedList<>();
+
+		if (domNode.hasSharedComponent()) {
+
+			final String nodeType = domNode.getSharedComponent().getComponentType();
+
+			try (final ResultStream<NodeInterface> resultStream = app.nodeQuery(StructrTraits.WIDGET).getResultStream()) {
+
+				for (final NodeInterface node : resultStream) {
+
+					final Widget widget = node.as(Widget.class);
+					final String widgetType = widget.getComponentType();
+
+					if (widgetType != null && nodeType != null && widgetType.equals(nodeType)) {
+						result.add(widget);
+					}
+				}
+
+				// sort result by name
+				Collections.sort(result, Comparator.comparing(NodeInterface::getName));
+			}
+		}
+
+		return result;
 	}
 
 	private List<String> splitClasses(final String input) {
@@ -193,6 +240,16 @@ public class GetSuggestionsCommand extends AbstractCommand {
 		return null;
 	}
 
+	private String getName(final DOMNode node) {
+
+		if (node.hasSharedComponent()) {
+
+			return node.getSharedComponent().getName();
+		}
+
+		return node.getName();
+	}
+
 	private boolean alreadyPresent(final DOMNode node, final Widget widget) {
 
 		final String widgetName = widget.getName();
@@ -206,5 +263,20 @@ public class GetSuggestionsCommand extends AbstractCommand {
 		}
 
 		return false;
+	}
+
+	private String getDataAttribute(final DOMNode node, final String type) {
+
+		final String keyName = "_custom_html_data-" + type;
+
+		for (final PropertyKey<String> key : node.getDataPropertyKeys()) {
+
+			if (keyName.equals(key.jsonName())) {
+
+				return node.getProperty(key);
+			}
+		}
+
+		return null;
 	}
 }

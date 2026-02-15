@@ -645,156 +645,179 @@ let _Widgets = {
 			});
 		}
 	},
-	insertWidgetIntoPage: (widget, target, pageId, callback) => {
+    insertWidgetIntoPage: (widget, target, pageId, callback) => {
 
-		let url   = _Widgets.getWidgetServerUrl();
-		let widgetSource      = widget.source;
-		let widgetDescription = widget.description;
-		let widgetConfig      = widget.configuration;
+        let url = _Widgets.getWidgetServerUrl();
+        let processDeploymentInfo = false;
 
-		if (widgetConfig) {
-			try {
-				widgetConfig = JSON.parse(widgetConfig);
-			} catch (e) {
-				new ErrorMessage().text("Cannot parse Widget configuration").show();
-				return;
-			}
+        if (widget.configuration) {
+
+            processDeploymentInfo = widget.configuration.processDeploymentInfo;
+
+            _Widgets.showWidgetConfigurationDialog(widget, (attrs) => {
+                Command.appendWidget(widget.source, target.id, pageId, url, attrs, processDeploymentInfo, callback);
+            });
+
+        } else {
+
+            Command.appendWidget(widget.source, target.id, pageId, url, {}, processDeploymentInfo, callback);
+        }
+    },
+	replaceElementWithWidget: (widget, target, pageId, callback) => {
+
+		let url = _Widgets.getWidgetServerUrl();
+        let processDeploymentInfo = false;
+
+		if (widget.configuration) {
+
+            processDeploymentInfo = widget.configuration.processDeploymentInfo;
+
+            _Widgets.showWidgetConfigurationDialog(widget, (attrs) => {
+                Command.replaceWidget(widget.source, target.id, pageId, url, attrs, processDeploymentInfo, callback);
+            });
+
+		} else {
+
+			Command.replaceWidget(widget.source, target.id, pageId, url, {}, processDeploymentInfo, callback);
 		}
+	},
+    showWidgetConfigurationDialog: (widget, callback) => {
 
-		if (widgetSource) {
+        let widgetDescription = widget.description;
+        let widgetConfig      = widget.configuration;
 
-			if (widgetConfig ) {
+        if (widgetConfig) {
+            try {
+                widgetConfig = JSON.parse(widgetConfig);
+            } catch (e) {
+                new ErrorMessage().text("Cannot parse Widget configuration").show();
+                return;
+            }
+        }
 
-				let { dialogText } = _Dialogs.custom.openDialog('Insert Widget', undefined, ['insert-widget-dialog']);
-				let appendWidgetButton = _Dialogs.custom.appendCustomDialogButton('<button id="appendWidget" class="action">Append Widget</button>');
+        let { dialogText } = _Dialogs.custom.openDialog('Insert Widget', undefined, ['insert-widget-dialog']);
+        let appendWidgetButton = _Dialogs.custom.appendCustomDialogButton('<button id="appendWidget" class="action">Append Widget</button>');
 
-				if ((widgetDescription === null || widgetDescription.trim() === "")) {
-					widgetDescription = ''
-				}
+        if ((widgetDescription === null || widgetDescription.trim() === "")) {
+            widgetDescription = ''
+        }
 
-                if (widgetDescription.length) {
+        if (widgetDescription.length) {
 
-                    dialogText.insertAdjacentHTML('beforeend', `
+            dialogText.insertAdjacentHTML('beforeend', `
                         <h3>Description</h3>
                         <p>${widgetDescription}</p>
                     `);
-                }
+        }
 
-                dialogText.insertAdjacentHTML('beforeend', `
+        dialogText.insertAdjacentHTML('beforeend', `
                         <h3>Settings</h3>
                         <p>Please select values for the following settings before inserting the widget.</p>
                         <div class="widget-props grid grid-cols-3 gap-8">
                     `);
 
-				let table = $('div', $(dialogText));
+        let table = $('div', $(dialogText));
 
-				let getOptionsAsText = (options, defaultValue) => {
+        let getOptionsAsText = (options, defaultValue) => {
 
-					if (Object.prototype.toString.call(options) === '[object Array]') {
+            if (Object.prototype.toString.call(options) === '[object Array]') {
 
-						return options.map(option => `<option ${((option === defaultValue) ? 'selected' : '')}>${option}</option>`).join('');
+                return options.map(option => `<option ${((option === defaultValue) ? 'selected' : '')}>${option}</option>`).join('');
 
-					} else if (Object.prototype.toString.call(options) === '[object Object]') {
+            } else if (Object.prototype.toString.call(options) === '[object Object]') {
 
-						return Object.keys(options).map(option => `<option ${((option === defaultValue) ? 'selected' : '')} value="${option}">${options[option]}</option>`).join('');
-					}
-				};
+                return Object.keys(options).map(option => `<option ${((option === defaultValue) ? 'selected' : '')} value="${option}">${options[option]}</option>`).join('');
+            }
+        };
 
-				let sortedWidgetConfig = _Widgets.sortWidgetConfigurationByPosition(widgetConfig);
+        let sortedWidgetConfig = _Widgets.sortWidgetConfigurationByPosition(widgetConfig);
 
-				for (let configElement of sortedWidgetConfig) {
+        for (let configElement of sortedWidgetConfig) {
 
-					let label = configElement[0];
-					if (label === 'processDeploymentInfo') {
-						return;
-					}
+            let label = configElement[0];
+            if (label === 'processDeploymentInfo') {
+                return;
+            }
 
-					let cleanedLabel = label.replace(/[^\w]/g, '_');
+            let cleanedLabel = label.replace(/[^\w]/g, '_');
 
-					let fieldConfig  = configElement[1];
-					let fieldType    = fieldConfig.type;
-					let defaultValue = fieldConfig.default || '';
-					let titleLabel   = fieldConfig.title || label;
-					let placeholder  = fieldConfig.placeholder || titleLabel;
+            let fieldConfig  = configElement[1];
+            let fieldType    = fieldConfig.type;
+            let defaultValue = fieldConfig.default || '';
+            let titleLabel   = fieldConfig.title || label;
+            let placeholder  = fieldConfig.placeholder || titleLabel;
 
-					switch (fieldType) {
-						case "select":
-							let options = fieldConfig.options || ["-"];
+            switch (fieldType) {
+                case "select":
+                    let options = fieldConfig.options || ["-"];
 
-							let buffer = `<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select id="${cleanedLabel}" class="form-field" data-key="${label}">`;
-							let delayedAppendFunction;
+                    let buffer = `<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select id="${cleanedLabel}" class="form-field" data-key="${label}">`;
+                    let delayedAppendFunction;
 
-							if (fieldConfig.dynamicOptionsFunction) {
+                    if (fieldConfig.dynamicOptionsFunction) {
 
-								let dynamicOptionsFunction = new Function("callback", fieldConfig.dynamicOptionsFunction);
+                        let dynamicOptionsFunction = new Function("callback", fieldConfig.dynamicOptionsFunction);
 
-								let delayedAppendOptions = function (options) {
-									delayedAppendFunction = new function() {
-										$(`select#${cleanedLabel}`).append(getOptionsAsText(options, defaultValue));
-									};
-								};
+                        let delayedAppendOptions = function (options) {
+                            delayedAppendFunction = new function() {
+                                $(`select#${cleanedLabel}`).append(getOptionsAsText(options, defaultValue));
+                            };
+                        };
 
-								dynamicOptionsFunction(delayedAppendOptions);
+                        dynamicOptionsFunction(delayedAppendOptions);
 
-							} else {
+                    } else {
 
-								buffer += getOptionsAsText(options, defaultValue);
-							}
+                        buffer += getOptionsAsText(options, defaultValue);
+                    }
 
-							buffer += '</select></div>';
+                    buffer += '</select></div>';
 
-							table.append(buffer);
-							if (delayedAppendFunction) {
-								delayedAppendFunction();
-							}
-							break;
+                    table.append(buffer);
+                    if (delayedAppendFunction) {
+                        delayedAppendFunction();
+                    }
+                    break;
 
-						case "textarea":
-							let rows = (fieldConfig.rows ? parseInt(fieldConfig.rows) || 5 : 5);
-							table.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><textarea rows=${rows} class="form-field" id="${label}" placeholder="${placeholder}" data-key="${label}">${defaultValue}</textarea></div>`);
-							break;
+                case "textarea":
+                    let rows = (fieldConfig.rows ? parseInt(fieldConfig.rows) || 5 : 5);
+                    table.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><textarea rows=${rows} class="form-field" id="${label}" placeholder="${placeholder}" data-key="${label}">${defaultValue}</textarea></div>`);
+                    break;
 
-						case "input":
-						default:
-							table.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><input class="form-field" type="text" id="${label}" placeholder="${placeholder}" data-key="${label}" value="${defaultValue}"></div>`);
-					}
+                case "input":
+                default:
+                    table.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><input class="form-field" type="text" id="${label}" placeholder="${placeholder}" data-key="${label}" value="${defaultValue}"></div>`);
+            }
 
-					if (fieldConfig.help) {
-						_Helpers.appendInfoTextToElement({
-							text: fieldConfig.help,
-							element: $(`#label-${cleanedLabel}`)
-						});
-					}
-				}
+            if (fieldConfig.help) {
+                _Helpers.appendInfoTextToElement({
+                    text: fieldConfig.help,
+                    element: $(`#label-${cleanedLabel}`)
+                });
+            }
+        }
 
-				appendWidgetButton.addEventListener('click', (e) => {
+        appendWidgetButton.addEventListener('click', (e) => {
 
-					e.stopPropagation();
+            e.stopPropagation();
 
-					let attrs = {};
+            let attrs = {};
 
-					for (let field of table[0].querySelectorAll('.form-field')) {
-						let key = field.dataset['key'];
-						if (widgetConfig[key]) {
-							attrs[key] = field.value;
-						}
-					}
+            for (let field of table[0].querySelectorAll('.form-field')) {
+                let key = field.dataset['key'];
+                if (widgetConfig[key]) {
+                    attrs[key] = field.value;
+                }
+            }
 
-					Command.appendWidget(widgetSource, target.id, pageId, url, attrs, widgetConfig.processDeploymentInfo, callback);
+            // async callback
+            if (callback && typeof callback === 'function') {
+                callback(attrs);
+            }
 
-					_Dialogs.custom.clickDialogCancelButton();
-				});
-
-			} else {
-
-				Command.appendWidget(widgetSource, target.id, pageId, url, {}, (widgetConfig ? widgetConfig.processDeploymentInfo : false), callback);
-			}
-
-		} else {
-
-			new WarningMessage().text("Ignoring empty Widget").show();
-		}
-	},
+            _Dialogs.custom.clickDialogCancelButton();
+        });
+    },
 	sortWidgetConfigurationByPosition: (config) => {
 
 		let entries = Object.entries(config);

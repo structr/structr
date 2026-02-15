@@ -381,6 +381,7 @@ let _Pages = {
 
 			elements.push({
 				name: 'Wrap element in...',
+                id: 'wrap-element-in',
 				elements: [
 					{
 						name: '... HTML element',
@@ -402,17 +403,16 @@ let _Pages = {
 				]
 			});
 
-			if (entity.isContent !== true) {
-
-				elements.push({
-					name: 'Replace element with...',
-					elements: [
-						{
-							name: '... HTML element',
-							elements: _Elements.sortedElementGroups,
-							forcedClickHandler: handleReplaceWithAction
-						},
-						// {
+			if (entity.isContent !== true) {elements.push({
+				name: 'Replace element with...',
+                id: 'replace-element-with',
+				elements: [
+					{
+						name: '... HTML element',
+						elements: _Elements.sortedElementGroups,
+						forcedClickHandler: handleReplaceWithAction
+					},
+					// {
 						// 	name: '... Template element',
 						// 	clickHandler: () => {
 						// 		handleReplaceWithAction('#template');

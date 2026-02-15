@@ -739,6 +739,7 @@ public class Importer {
 
 						// create shared component (and nothing else) from this template
 						newNode.setOwnerDocument(CreateComponentCommand.getOrCreateHiddenDocument());
+						newNode.setComponentType(node.attr("data-type"));
 						newNode.setName(name);
 					}
 

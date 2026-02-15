@@ -47,6 +47,7 @@ public interface Widget extends NodeInterface {
 	boolean isPageTemplate();
 	boolean isExclusiveInParent();
 	String[] getSelectors();
+	String getComponentType();
 
 	static void expandWidget(final SecurityContext securityContext, final Page page, final DOMNode parent, final String baseUrl, final Map<String, Object> parameters, final boolean processDeploymentInfo) throws FrameworkException {
 
