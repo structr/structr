@@ -1,6 +1,6 @@
 The Access Control dialog is a standardized interface used across nearly all data types in Structr, with only minor variations based on the specific type you're working with.
 
-![Access Control Dialog](/structr/docs//structr/docs//structr/docs/pages_access-control-dialog.png)
+![Access Control Dialog](/structr/docs/pages_access-control-dialog.png)
 
 ## Owner
 At the top of the dialog, you'll see the current owner of the object. Use the dropdown to either assign a new owner or remove ownership entirely. These changes affect only the selected object by modifying its OWNS relationship in the database.
