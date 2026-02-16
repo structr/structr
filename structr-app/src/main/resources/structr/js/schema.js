@@ -256,10 +256,11 @@ let _Schema = {
 
 		_Schema.currentNodeDialogId = id;
 
-		Command.get(id, null, (entity) => {
+		Command.get(id, null, async (entity) => {
 
+			let nodeDataCache  = await _Schema.caches.getNodeData();
 			let isRelationship = (entity.type === "SchemaRelationshipNode");
-			let title          = isRelationship ? `(:${_Schema.caches.nodeData[entity.sourceId].name})—[:${entity.relationshipType}]—►(:${_Schema.caches.nodeData[entity.targetId].name})` : entity.name;
+			let title          = isRelationship ? `(:${nodeDataCache[entity.sourceId].name})—[:${entity.relationshipType}]—►(:${nodeDataCache[entity.targetId].name})` : entity.name;
 
 			let callbackCancel = () => {
 
@@ -286,7 +287,7 @@ let _Schema = {
 			let tabControls;
 
 			if (isRelationship) {
-				tabControls = _Schema.relationships.loadRelationship(entity, mainTabs, contentEl, _Schema.caches.nodeData[entity.sourceId], _Schema.caches.nodeData[entity.targetId], targetView, callbackCancel);
+				tabControls = _Schema.relationships.loadRelationship(entity, mainTabs, contentEl, nodeDataCache[entity.sourceId], nodeDataCache[entity.targetId], targetView, callbackCancel);
 			} else {
 				tabControls = _Schema.nodes.loadNode(entity, mainTabs, contentEl, targetView, callbackCancel);
 			}
@@ -559,74 +560,65 @@ let _Schema = {
 		},
 		loadNodes: async () => {
 
-			let response = await fetch(`${Structr.rootUrl}SchemaNode/ui?${Structr.getRequestParameterName('sort')}=hierarchyLevel&${Structr.getRequestParameterName('order')}=asc&isServiceClass=false`);
-			if (response.ok) {
+			let nodeData                        = await _Schema.caches.getNodeData();
+			let nameToSchemaNodeMap             = Object.fromEntries(Object.values(nodeData).map(node => [node.name, node]));
+			let initialPosition                 = { left: 40, top: 20 };
+			let customTypeNames                 = Object.keys(nameToSchemaNodeMap).sort();
+			let otherNodeTypes                  = await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && !type.isServiceClass && !customTypeNames.includes(type.name));
+			let firstCustomThenBuiltinTypeNames = [...customTypeNames, ...otherNodeTypes.map(type => type.name).sort()];
 
-				let data                            = await response.json();
-				_Schema.caches.nodeData             = Object.fromEntries(data.result.map(node => [node.id, node]));
-				let nameToSchemaNodeMap             = Object.fromEntries(data.result.map(node => [node.name, node]));
-				let initialPosition                 = { left: 40, top: 20 };
-				let customTypeNames                 = data.result.map(type => type.name).sort();
-				let otherNodeTypes                  = await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && !type.isServiceClass && !customTypeNames.includes(type.name));
-				let firstCustomThenBuiltinTypeNames = [...customTypeNames, ...otherNodeTypes.map(type => type.name).sort()];
+			for (let typeName of firstCustomThenBuiltinTypeNames) {
 
-				for (let typeName of firstCustomThenBuiltinTypeNames) {
+				if (_Schema.ui.visibility.isTypeVisible(typeName)) {
 
-					if (_Schema.ui.visibility.isTypeVisible(typeName)) {
+					let customSchemaNode = nameToSchemaNodeMap[typeName];
 
-						let customSchemaNode = nameToSchemaNodeMap[typeName];
+					if (customSchemaNode) {
 
-						if (customSchemaNode) {
+						initialPosition = _Schema.nodes.addTypeToCanvas(customSchemaNode, initialPosition);
 
-							initialPosition = _Schema.nodes.addTypeToCanvas(customSchemaNode, initialPosition);
+					} else {
 
-						} else {
+						initialPosition = _Schema.nodes.addTypeToCanvas({
+							id: _Schema.nodes.getIdForBuiltinTypePlacerHolder(typeName),
+							name: typeName,
+							isBuiltinType: true
+						}, initialPosition);
+					}
+				}
+			}
 
-							initialPosition = _Schema.nodes.addTypeToCanvas({
-								id: _Schema.nodes.getIdForBuiltinTypePlacerHolder(typeName),
-								name: typeName,
-								isBuiltinType: true
-							}, initialPosition);
+			// draw inheritance arrows
+			let allNodeTypes    = await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && !type.isServiceClass);
+			let inheritanceInfo = _Schema.nodes.getInheritanceInfoForJsPlumb(allNodeTypes, Object.values(nameToSchemaNodeMap));
+
+			for (let typeConfig of inheritanceInfo) {
+
+				let sourceVisible = _Schema.ui.visibility.isTypeVisible(typeConfig.name);
+
+				if (sourceVisible) {
+
+					for (let targetConfig of typeConfig.inheritedTraitsJsPlumbClasses) {
+
+						let targetVisible = _Schema.ui.visibility.isTypeVisible(targetConfig.name);
+
+						if (targetVisible) {
+
+							_Schema.ui.jsPlumbInstance.connect({
+								source: 'id_' + typeConfig.jsPlumbClass,
+								target: 'id_' + targetConfig.jsPlumbClass,
+								endpoint: 'Blank',
+								anchors: [
+									[ 'Perimeter', { shape: 'Rectangle' } ],
+									[ 'Perimeter', { shape: 'Rectangle' } ]
+								],
+								connector: [ 'Straight', { curviness: 200, cornerRadius: 25, gap: 0 }],
+								paintStyle: { lineWidth: 4, strokeStyle: "#dddddd", dashstyle: '2 2' },
+								cssClass: "dashed-inheritance-relationship"
+							});
 						}
 					}
 				}
-
-				// draw inheritance arrows
-				let allNodeTypes    = await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && !type.isServiceClass);
-				let inheritanceInfo = _Schema.nodes.getInheritanceInfoForJsPlumb(allNodeTypes, data.result);
-
-				for (let typeConfig of inheritanceInfo) {
-
-					let sourceVisible = _Schema.ui.visibility.isTypeVisible(typeConfig.name);
-
-					if (sourceVisible) {
-
-						for (let targetConfig of typeConfig.inheritedTraitsJsPlumbClasses) {
-
-							let targetVisible = _Schema.ui.visibility.isTypeVisible(targetConfig.name);
-
-							if (targetVisible) {
-
-								_Schema.ui.jsPlumbInstance.connect({
-									source: 'id_' + typeConfig.jsPlumbClass,
-									target: 'id_' + targetConfig.jsPlumbClass,
-									endpoint: 'Blank',
-									anchors: [
-										[ 'Perimeter', { shape: 'Rectangle' } ],
-										[ 'Perimeter', { shape: 'Rectangle' } ]
-									],
-									connector: [ 'Straight', { curviness: 200, cornerRadius: 25, gap: 0 }],
-									paintStyle: { lineWidth: 4, strokeStyle: "#dddddd", dashstyle: '2 2' },
-									cssClass: "dashed-inheritance-relationship"
-								});
-							}
-						}
-					}
-				}
-
-			} else {
-
-				throw new Error("Loading of Schema nodes failed");
 			}
 		},
 		addTypeToCanvas: (entity, initialPosition) => {
@@ -1051,15 +1043,17 @@ let _Schema = {
 	relationships: {
 		loadRels: async () => {
 
+			let nodeData = await _Schema.caches.getNodeData();
 			let response = await fetch(`${Structr.rootUrl}SchemaRelationshipNode`);
 			let data     = await response.json();
+			await _Schema.relationships.checkAndWarnAboutNonUniqueRelationshipNames(data.result);
 
 			let relCnt   = {};
 
 			for (let res of data.result) {
 
-				let sourceName    = _Schema.caches.nodeData[res.sourceId].name;
-				let targetName    = _Schema.caches.nodeData[res.targetId].name;
+				let sourceName    = nodeData[res.sourceId].name;
+				let targetName    = nodeData[res.targetId].name;
 				let sourceVisible = _Schema.ui.visibility.isTypeVisible(sourceName);
 				let targetVisible = _Schema.ui.visibility.isTypeVisible(targetName);
 
@@ -1071,7 +1065,7 @@ let _Schema = {
 
 			// draw relationships for visible builtin types
 			let builtinRelationships = await _Schema.caches.getFilteredSchemaTypes(type => type.isRel && type.isBuiltin && type.relInfo);
-			let schemaNodes          = Object.values(_Schema.caches.nodeData);
+			let schemaNodes          = Object.values(nodeData);
 
 			for (let builtinRel of builtinRelationships) {
 
@@ -1093,6 +1087,57 @@ let _Schema = {
 					}, builtinRel.relInfo)
 
 					_Schema.relationships.addRelationshipToCanvas(relObj, sourceType, targetType, relCnt);
+				}
+			}
+		},
+		checkAndWarnAboutNonUniqueRelationshipNames: async (preloadedRelNodes = null) => {
+
+			if (false === UISettings.getValueForSetting(UISettings.settingGroups.schema_code.settings.ignoreNonUniqueSchemaRelationshipWarning)) {
+
+				let nodeData       = await _Schema.caches.getNodeData();
+				let customRelNodes = (preloadedRelNodes !== null) ? preloadedRelNodes : (await (await fetch(`${Structr.rootUrl}SchemaRelationshipNode`)).json()).result;
+
+				let relNameInfo = {};
+
+				for (let customRel of customRelNodes) {
+
+					let sourceName = nodeData[customRel.sourceId].name;
+					let targetName = nodeData[customRel.targetId].name;
+
+					relNameInfo[sourceName] ??= {};
+					relNameInfo[sourceName][customRel.relationshipType] ??= [];
+					relNameInfo[sourceName][customRel.relationshipType].push(customRel);
+
+					if (sourceName !== targetName) {
+						relNameInfo[targetName] ??= {};
+						relNameInfo[targetName][customRel.relationshipType] ??= [];
+						relNameInfo[targetName][customRel.relationshipType].push(customRel);
+					}
+				}
+
+				let warnings = [];
+				for (let [type, relMap] of Object.entries(relNameInfo)) {
+
+					for (let [relType, rels] of Object.entries(relMap)) {
+
+						if (rels.length > 1) {
+							warnings.push(`Node type "${type}" has ${rels.length} relationships with the same type name "${relType}".`);
+						}
+					}
+				}
+
+				if (warnings.length > 0) {
+
+					new WarningMessage().title('Query Performance Risk: Non-Unique Relationship Types').text(`
+						For optimal query performance, each relationship type associated with a given node type should have a unique name. Reusing the same relationship type for multiple semantic purposes can lead to inefficient query plans when traversing related nodes.<br>
+						The following node/relationship combinations may cause degraded performance:
+
+						<ul>
+							${warnings.map(w => `<li>${w}</li>`).join('')}
+						</ul>
+
+						(You can disable this message in the UI settings)
+					`).requiresConfirmation().show();
 				}
 			}
 		},
@@ -4333,10 +4378,40 @@ let _Schema = {
 		});
 	},
 	caches: {
+		cacheForAutoLayout: {},
+
+		// Cache mapping Node UUID -> Schema Node
 		nodeData: {},
-		getCustomTypeNames: () => {
-			return Object.values(_Schema.caches.nodeData).map(type => type.name).sort();
+		getCustomTypeNames: async () => {
+
+			let nodeDataCache = await _Schema.caches.getNodeData();
+
+			return Object.values(nodeDataCache).map(type => type.name).sort();
 		},
+		getNodeData: async () => {
+
+			await _Schema.caches.populateSchemaNodeCache();
+
+			return _Schema.caches.nodeData;
+		},
+		populateSchemaNodeCache: async (forceUpdate = false) => {
+
+			if (Object.keys(_Schema.caches.nodeData).length === 0 || forceUpdate === true) {
+
+				let response = await fetch(`${Structr.rootUrl}SchemaNode/ui?${Structr.getRequestParameterName('sort')}=hierarchyLevel&${Structr.getRequestParameterName('order')}=asc&isServiceClass=false`);
+				if (response.ok) {
+
+					let data                = await response.json();
+					_Schema.caches.nodeData = Object.fromEntries(data.result.map(node => [node.id, node]));
+
+				} else {
+
+					throw new Error("Loading of Schema nodes failed");
+				}
+			}
+		},
+
+
 		nodeConnectors: {},
 
 		_schema: {},
@@ -4884,7 +4959,7 @@ let _Schema = {
 
 							// create list of builtin types (that are not available as schema nodes --> overridden builtin type)
 							let allBuiltinTypeNames       = (await _Schema.caches.getFilteredSchemaTypes(type => (type.isBuiltin === true))).map(type => type.name);
-							let customTypeNames           = _Schema.caches.getCustomTypeNames();
+							let customTypeNames           = await _Schema.caches.getCustomTypeNames();
 							let notOverriddenBuiltinTypes = new Set(allBuiltinTypeNames).difference(new Set(customTypeNames));
 
 							let visibleTypes = [...allTypes.difference(hiddenTypes).difference(notOverriddenBuiltinTypes)];
@@ -5035,7 +5110,7 @@ let _Schema = {
 
                     n.id = n.className;
 
-					_Schema.caches.nodeData[n.id] = n;
+					_Schema.caches.cacheForAutoLayout[n.id] = n;
 
 					let width  = (n.name.length * 12) + 20; // n.clientWidth;
 					let height = 20; // n.clientHeight;
@@ -5068,8 +5143,9 @@ let _Schema = {
 				}
 
 				// rels
-				let response = await fetch(Structr.rootUrl + 'SchemaRelationshipNode');
-				let data     = await response.json();
+				// Unused code -> commented out
+				// let response = await fetch(Structr.rootUrl + 'SchemaRelationshipNode');
+				// let data     = await response.json();
 
 				// inheritance
 				let includeInheritance = false;
@@ -5079,7 +5155,7 @@ let _Schema = {
 
 					for (let node of input.children) {
 
-						let data = _Schema.caches.nodeData[node.id.substring(3)];
+						let data = _Schema.caches.cacheForAutoLayout[node.id.substring(3)];
 						if (data) {
 
 							if (data?.extendsClass?.id) {
@@ -5209,7 +5285,7 @@ let _Schema = {
 			},
 			openTypeVisibilityDialog: async () => {
 
-				let customTypeNames    = _Schema.caches.getCustomTypeNames();
+				let customTypeNames    = await _Schema.caches.getCustomTypeNames();
 				let fileTypeNames      = (await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.isBuiltin && type.traits.includes('AbstractFile'))).map(type => type.name).sort();
 				let principalTypeNames = (await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.isBuiltin && type.traits.includes('Principal'))).map(type => type.name).sort();
 				let htmlTypeNames      = (await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.isBuiltin && type.traits.includes('DOMNode'))).map(type => type.name).sort();
