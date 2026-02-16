@@ -1871,10 +1871,11 @@ let Structr = {
 	},
 	openPropertiesDialogForUserProvidedUUID: () => {
 
-		_Dialogs.readUUIDFromUser.showPromise('Enter the UUID for which you want to open the properties dialog').then(uuid => {
-			Command.get(uuid, null, (obj) => {
-				_Entities.showProperties(obj, null, true);
-			});
+		_Dialogs.readUUIDFromUser.showPromise('Enter the UUID for which you want to open the properties dialog').then(async (uuid) => {
+
+			let obj = await Command.getPromise(uuid, null);
+			_Entities.showProperties(obj, null, true);
+
 		}).catch(e => {
 			if (typeof e !== 'string') {
 				console.warn(e);
@@ -3400,18 +3401,6 @@ let UISettings = {
 					defaultValue: true,
 					type: 'checkbox'
 				},
-				favorEditorForContentElementsKey: {
-					text: 'Open the editor tab for content nodes in the page area by default (unless the last one used is saved).',
-					storageKey: 'favorEditorForContentElements' + location.port,
-					defaultValue: true,
-					type: 'checkbox'
-				},
-				favorHTMLForDOMNodesKey: {
-					text: 'Open the HTML tab for DOM nodes in the page area by default (unless the last one used is saved).',
-					storageKey: 'favorHTMLForDOMNodes' + location.port,
-					defaultValue: true,
-					type: 'checkbox'
-				},
 				sharedComponentSyncModeKey: {
 					text: 'Sync strategy when updating a shared component',
 					storageKey: 'sharedComponentSyncMode' + location.port,
@@ -3488,6 +3477,12 @@ let UISettings = {
 					type: 'checkbox',
 					onUpdate: () => {
 					}
+				},
+				ignoreNonUniqueSchemaRelationshipWarning: {
+					text: 'Ignore non-unique relationship type warnings',
+					storageKey: 'structrIgnoreNonUniqueSchemaRelWarnings_' + location.port,
+					defaultValue: true,
+					type: 'checkbox'
 				}
 			}
 		},

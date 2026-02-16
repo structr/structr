@@ -140,6 +140,8 @@ let _Code = {
 				_TreeHelper.initTree(_Code.codeTree, _Code.tree.treeInitFunction, 'structr-ui-code');
 			});
 
+			_Schema.relationships.checkAndWarnAboutNonUniqueRelationshipNames();
+
 			Structr.mainMenu.unblock(100);
 
 			Structr.resize();

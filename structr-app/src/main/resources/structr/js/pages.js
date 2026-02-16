@@ -411,28 +411,31 @@ let _Pages = {
 				]
 			});
 
-			elements.push({
-				name: 'Replace element with...',
-				elements: [
-					{
-						name: '... HTML element',
-						elements: _Elements.sortedElementGroups,
-						forcedClickHandler: handleReplaceWithAction
-					},
-					{
-						name: '... Template element',
-						clickHandler: () => {
-							handleReplaceWithAction('#template');
+			if (entity.isContent !== true) {
+
+				elements.push({
+					name: 'Replace element with...',
+					elements: [
+						{
+							name: '... HTML element',
+							elements: _Elements.sortedElementGroups,
+							forcedClickHandler: handleReplaceWithAction
+						},
+						// {
+						// 	name: '... Template element',
+						// 	clickHandler: () => {
+						// 		handleReplaceWithAction('#template');
+						// 	}
+						// },
+						{
+							name: '... div element',
+							clickHandler: () => {
+								handleReplaceWithAction('div');
+							}
 						}
-					},
-					{
-						name: '... div element',
-						clickHandler: () => {
-							handleReplaceWithAction('div');
-						}
-					}
-				]
-			});
+					]
+				});
+			}
 		}
 
 		if (isPage) {
@@ -840,26 +843,26 @@ let _Pages = {
 			_Pages.previews.updatePreviewSlideout();
 		}
 
-		if (UISettings.getValueForSetting(UISettings.settingGroups.pages.settings.favorEditorForContentElementsKey) && (!urlHash && obj.isContent)) {
+		if (!urlHash) {
 			/*
-				if urlHash is given, user has manually selected a tab. if it is not given, user has selected a node
+				if urlHash is present, user has either manually selected a tab OR has previously selected a tab for this node
+				so, if no urlHash is present, we select a tab from the defaults
 			*/
-			urlHash = '#pages:editor';
-		}
 
-		if (UISettings.getValueForSetting(UISettings.settingGroups.pages.settings.favorHTMLForDOMNodesKey) && (!urlHash && obj.isDOMNode)) {
-			/*
-				if urlHash is given, user has manually selected a tab. if it is not given, user has selected a node
-			*/
-			urlHash = '#pages:html';
+			if (obj.isContent) {
+				urlHash = '#pages:editor';
+			} else if (obj.isDOMNode) {
+				urlHash = '#pages:html';
+			} else if (obj.isPage) {
+				urlHash = '#pages:general';
+			} else {
+				urlHash = new URL(location.href).hash;
+			}
 		}
 
 		_Pages.emptyCenterPane();
 		_Pages.adaptFunctionBarTabs(obj);
 
-		if (!urlHash) {
-			urlHash = new URL(location.href).hash;
-		}
 		let activeLink = document.querySelector(`#function-bar .tabs-menu li a[href="${urlHash}"]`);
 
 		if (activeLink) {

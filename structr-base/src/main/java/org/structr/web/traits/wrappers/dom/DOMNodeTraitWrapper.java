@@ -589,7 +589,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 		if (sourceNode.is(StructrTraits.LINK_SOURCE)) {
 
-			final LinkSource linkSourceElement = (LinkSource)sourceNode;
+			final LinkSource linkSourceElement = sourceNode.as(LinkSource.class);
 
 			properties.put(Traits.of(StructrTraits.LINK_SOURCE).key(LinkSourceTraitDefinition.LINKABLE_PROPERTY), linkSourceElement.getLinkable());
 		}

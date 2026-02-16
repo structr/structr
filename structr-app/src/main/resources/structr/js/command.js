@@ -1002,6 +1002,9 @@ let Command = {
 	createFile: function(file, callback) {
 		let obj = {
 			command: 'CREATE',
+			config: {
+				isUpload: true
+			},
 			data: {
 				contentType: file.type,
 				name: file.name,
