@@ -346,15 +346,20 @@ let _Dialogs = {
 				value: uuid
 			};
 
-			if (!_Helpers.isUUID(uuid)) {
+			if (_Helpers.isUUID(uuid)) {
+
+				// attempt to fetch minimal obj with only id
+				let obj = await Command.getPromise(uuid, 'id');
+				if (!obj) {
+
+					result.allow = false;
+					result.invalidMessage = 'No node found for given UUID';
+				}
+
+			} else {
+
 				result.allow = false;
 				result.invalidMessage = 'Given value is not a valid UUID';
-			}
-
-			let obj = await Command.getPromise(uuid, 'id');
-			if (!obj) {
-				result.allow = false;
-				result.invalidMessage = 'No node found for given UUID';
 			}
 
 			return result;
