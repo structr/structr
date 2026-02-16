@@ -66,7 +66,8 @@ public class CreateCommand extends AbstractCommand {
 			TransactionCommand.registerNodeCallback(newNode, callback);
 
 			// check for File node and store in WebSocket to receive chunks
-			if (newNode.is(StructrTraits.FILE)) {
+			final boolean isUpload = webSocketData.getCommandConfigBooleanValue("isUpload");
+			if (isUpload && newNode.is(StructrTraits.FILE)) {
 
 				getWebSocket().createFileUploadHandler(newNode.as(File.class));
 			}
