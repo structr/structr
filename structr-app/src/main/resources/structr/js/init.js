@@ -3400,18 +3400,6 @@ let UISettings = {
 					defaultValue: true,
 					type: 'checkbox'
 				},
-				favorEditorForContentElementsKey: {
-					text: 'Open the editor tab for content nodes in the page area by default (unless the last one used is saved).',
-					storageKey: 'favorEditorForContentElements' + location.port,
-					defaultValue: true,
-					type: 'checkbox'
-				},
-				favorHTMLForDOMNodesKey: {
-					text: 'Open the HTML tab for DOM nodes in the page area by default (unless the last one used is saved).',
-					storageKey: 'favorHTMLForDOMNodes' + location.port,
-					defaultValue: true,
-					type: 'checkbox'
-				},
 				sharedComponentSyncModeKey: {
 					text: 'Sync strategy when updating a shared component',
 					storageKey: 'sharedComponentSyncMode' + location.port,
