@@ -1871,10 +1871,11 @@ let Structr = {
 	},
 	openPropertiesDialogForUserProvidedUUID: () => {
 
-		_Dialogs.readUUIDFromUser.showPromise('Enter the UUID for which you want to open the properties dialog').then(uuid => {
-			Command.get(uuid, null, (obj) => {
-				_Entities.showProperties(obj, null, true);
-			});
+		_Dialogs.readUUIDFromUser.showPromise('Enter the UUID for which you want to open the properties dialog').then(async (uuid) => {
+
+			let obj = await Command.getPromise(uuid, null);
+			_Entities.showProperties(obj, null, true);
+
 		}).catch(e => {
 			if (typeof e !== 'string') {
 				console.warn(e);
