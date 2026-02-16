@@ -2367,7 +2367,7 @@ let _Entities = {
 
 		} else {
 
-			if (!isExpanded) {
+			if (nodeContainer.length && !isExpanded) {
 				Command.children(id, callback);
 			}
 
