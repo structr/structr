@@ -411,28 +411,31 @@ let _Pages = {
 				]
 			});
 
-			elements.push({
-				name: 'Replace element with...',
-				elements: [
-					{
-						name: '... HTML element',
-						elements: _Elements.sortedElementGroups,
-						forcedClickHandler: handleReplaceWithAction
-					},
-					{
-						name: '... Template element',
-						clickHandler: () => {
-							handleReplaceWithAction('#template');
+			if (entity.isContent !== true) {
+
+				elements.push({
+					name: 'Replace element with...',
+					elements: [
+						{
+							name: '... HTML element',
+							elements: _Elements.sortedElementGroups,
+							forcedClickHandler: handleReplaceWithAction
+						},
+						// {
+						// 	name: '... Template element',
+						// 	clickHandler: () => {
+						// 		handleReplaceWithAction('#template');
+						// 	}
+						// },
+						{
+							name: '... div element',
+							clickHandler: () => {
+								handleReplaceWithAction('div');
+							}
 						}
-					},
-					{
-						name: '... div element',
-						clickHandler: () => {
-							handleReplaceWithAction('div');
-						}
-					}
-				]
-			});
+					]
+				});
+			}
 		}
 
 		if (isPage) {
