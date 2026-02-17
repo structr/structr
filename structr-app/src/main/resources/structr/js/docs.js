@@ -170,6 +170,23 @@ let _Documentation = {
             }
             iframe.src = `/structr/docs/ontology?id=${id}&details=all&format=markdown${hash}`;
             _Documentation.loadContext(id);
+
+            iframe.addEventListener('load', () => {
+                iframe.contentDocument.querySelector('body').addEventListener('click', e => {
+                    const el = e.target;
+                    if (el.tagName === 'A') {
+                        console.log(el.href);
+                        fetch(el.href + '?details=name&levels=1&format=toc&startLevel=0')
+                            .then(response => response.json())
+                            .then(json => {
+                                _Documentation.loadContext(json.data?.[0].id);
+                            });
+
+                    }
+
+                });
+            });
+
         }
 	},
     loadContext: (id) => {
