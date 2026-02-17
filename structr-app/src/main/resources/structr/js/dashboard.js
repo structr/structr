@@ -543,19 +543,11 @@ let _Dashboard = {
 
 				Command.getSchemaInfo(null, types => {
 
-					types = types.filter(t => !t.isServiceClass);
-					_Helpers.sort(types);
+					let nodeTypes = types.filter(t => !t.isServiceClass && !t.isRel);
+					_Helpers.sort(nodeTypes);
 
-					let builtinTypes = [];
-					let customTypes  = [];
-
-					for (let t of types) {
-						if (t.isBuiltin) {
-							builtinTypes.push(t);
-						} else {
-							customTypes.push(t);
-						}
-					}
+					let builtinTypes = nodeTypes.filter(t => t.isBuiltin);
+					let customTypes  = nodeTypes.filter(t => !t.isBuiltin);
 
 					for (let typesSelectElemSelector of ['#data-export-types-input', '#zip-data-export-types-input']) {
 
