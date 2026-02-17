@@ -80,7 +80,7 @@ public class MarkdownGlossaryFormatter extends Formatter {
 					lines.add("| --- | --- |");
 				}
 
-				lines.add("| " + c.getName() + " | " + collectParents(c) + " |");
+				lines.add("| " + c.getName() + " | [" + collectParents(c) + "](" + createLinkForParentsString(collectParents(c)) + ") |");
 			}
 		}
 
@@ -122,16 +122,35 @@ public class MarkdownGlossaryFormatter extends Formatter {
 		}
 	}
 
-	private int wordCount(final String name) {
+	private static int wordCount(final String name) {
 		return name.split(" ").length;
 	}
 
-	private String clean(final String name) {
+	private static String clean(final String name) {
 
 		if (name.startsWith("\"") && name.endsWith("\"")) {
 			return name.substring(1, name.length() - 1);
 		}
 
 		return name;
+	}
+
+	private static String cleanStringForLink(String str) {
+		return str.replace("?", "")
+				.replaceAll("[\\W]+", "-")
+				.toLowerCase();
+	}
+
+	private static String createLinkForParentsString(final String input) {
+		long count = input.chars().filter(c -> c == '/').count();
+		if (count < 2) {
+			return "/structr/docs/ontology/"
+					+ input.replaceAll(" / ", "/")
+					.replaceAll(" ", "%20");
+		}
+		return "/structr/docs/ontology/"
+				+ (input.substring(0, input.lastIndexOf("/") + 2) + "#" + cleanStringForLink(input.substring(input.lastIndexOf("/") + 2)))
+				.replaceAll(" / ", "/")
+				.replaceAll(" ", "%20");
 	}
 }
