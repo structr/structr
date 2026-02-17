@@ -4438,6 +4438,7 @@ let _Schema = {
 
 		_schema_slash_type: {},
 		clearTypeInfoCache: () => {
+			_Schema.caches.nodeData = {};
 			_Schema.caches._schema_slash_type = {};
 		},
 		invalidateTypeInfoCache: (typeName) => {
