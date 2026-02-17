@@ -42,7 +42,7 @@ public class GlossaryToken extends NamedConceptToken {
 
 			concepts.add(annotatedConcept);
 
-			ontology.createSymmetricLink(glossary, Verb.Has, Concept.create(ontology, this, ConceptType.GlossaryEntry, "2"));
+			//ontology.createSymmetricLink(glossary, Verb.Has, Concept.create(ontology, this, ConceptType.GlossaryEntry, "2"));
 			ontology.createSymmetricLink(glossary, Verb.Has, Concept.create(ontology, this, ConceptType.GlossaryEntry, "A"));
 			ontology.createSymmetricLink(glossary, Verb.Has, Concept.create(ontology, this, ConceptType.GlossaryEntry, "B"));
 			ontology.createSymmetricLink(glossary, Verb.Has, Concept.create(ontology, this, ConceptType.GlossaryEntry, "C"));
