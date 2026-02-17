@@ -115,7 +115,7 @@ public class GetSuggestionsCommand extends AbstractCommand {
 
 		if (tag != null) {
 
-			final String dataTypeAttribute = getDataAttribute(domNode, "type");
+			final String dataTypeAttribute = getComponentType(domNode);
 			final Element element = new Element(tag);
 
 			for (final String css : classes) {
@@ -177,26 +177,40 @@ public class GetSuggestionsCommand extends AbstractCommand {
 		// We can only replace widgets with a matching data-type
 		final App app                    = StructrApp.getInstance(securityContext);
 		final List<NodeInterface> result = new LinkedList<>();
+		final String nodeType            = getComponentType(domNode);
+		final Integer dimensions         = getDimensions(domNode);
 
-		if (domNode.hasSharedComponent()) {
+		try (final ResultStream<NodeInterface> resultStream = app.nodeQuery(StructrTraits.WIDGET).getResultStream()) {
 
-			final String nodeType = domNode.getSharedComponent().getComponentType();
+			for (final NodeInterface node : resultStream) {
 
-			try (final ResultStream<NodeInterface> resultStream = app.nodeQuery(StructrTraits.WIDGET).getResultStream()) {
+				final Widget widget            = node.as(Widget.class);
+				final String widgetType        = widget.getComponentType();
+				final Integer widgetDimensions = widget.getDimensions();
 
-				for (final NodeInterface node : resultStream) {
+				if (widgetType != null && nodeType != null && widgetType.equals(nodeType)) {
 
-					final Widget widget = node.as(Widget.class);
-					final String widgetType = widget.getComponentType();
-
-					if (widgetType != null && nodeType != null && widgetType.equals(nodeType)) {
-						result.add(widget);
+					// if dimensions are set, they must match
+					if (dimensions != null && widgetDimensions != null && dimensions != widgetDimensions) {
+						continue;
 					}
-				}
 
-				// sort result by name
-				Collections.sort(result, Comparator.comparing(NodeInterface::getName));
+					// mismatched dimensions
+					if (dimensions != null && widgetDimensions == null) {
+						continue;
+					}
+
+					// mismatched dimensions
+					if (dimensions == null && widgetDimensions != null) {
+						continue;
+					}
+
+					result.add(widget);
+				}
 			}
+
+			// sort result by name
+			Collections.sort(result, Comparator.comparing(NodeInterface::getName));
 		}
 
 		return result;
@@ -240,16 +254,6 @@ public class GetSuggestionsCommand extends AbstractCommand {
 		return null;
 	}
 
-	private String getName(final DOMNode node) {
-
-		if (node.hasSharedComponent()) {
-
-			return node.getSharedComponent().getName();
-		}
-
-		return node.getName();
-	}
-
 	private boolean alreadyPresent(final DOMNode node, final Widget widget) {
 
 		final String widgetName = widget.getName();
@@ -265,18 +269,23 @@ public class GetSuggestionsCommand extends AbstractCommand {
 		return false;
 	}
 
-	private String getDataAttribute(final DOMNode node, final String type) {
+	private String getComponentType(final DOMNode node) {
 
-		final String keyName = "_custom_html_data-" + type;
+		if (node.hasSharedComponent()) {
 
-		for (final PropertyKey<String> key : node.getDataPropertyKeys()) {
-
-			if (keyName.equals(key.jsonName())) {
-
-				return node.getProperty(key);
-			}
+			return node.getSharedComponent().getComponentType();
 		}
 
-		return null;
+		return node.getComponentType();
+	}
+
+	private Integer getDimensions(final DOMNode node) {
+
+		if (node.hasSharedComponent()) {
+
+			return node.getSharedComponent().getDimensions();
+		}
+
+		return node.getDimensions();
 	}
 }

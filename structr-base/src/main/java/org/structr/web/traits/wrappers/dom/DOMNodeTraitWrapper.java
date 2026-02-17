@@ -986,12 +986,17 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	@Override
 	public String getComponentType() {
-		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.COMPONENT_TYPE));
+		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.COMPONENT_TYPE_PROPERTY));
+	}
+
+	@Override
+	public Integer getDimensions() {
+		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.DIMENSIONS_PROPERTY));
 	}
 
 	@Override
 	public void setComponentType(final String componentType) throws FrameworkException {
-		wrappedObject.setProperty(traits.key(DOMNodeTraitDefinition.COMPONENT_TYPE), componentType);
+		wrappedObject.setProperty(traits.key(DOMNodeTraitDefinition.COMPONENT_TYPE_PROPERTY), componentType);
 	}
 
 	@Override

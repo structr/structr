@@ -441,7 +441,7 @@ let _Elements = {
 
                         let insertElements = widgets.map(r => ({
                             id:           r.id,
-                            name:         '<b>' + r.name + '</b>' + (r.shortDescription ? (' - ' + r.shortDescription) : ''),
+                            name:         _Elements.contextMenu.getSuggestedWidgetName(r),
                             source:       r.source,
                             clickHandler: () => {
                                 Command.get(r.id, undefined, (result) => {
@@ -462,7 +462,7 @@ let _Elements = {
 
                         let replaceElements = widgets.map(r => ({
                             id:           r.id,
-                            name:         '<b>' + r.name + '</b>' + (r.shortDescription ? (' - ' + r.shortDescription) : ''),
+                            name:         _Elements.contextMenu.getSuggestedWidgetName(r),
                             source:       r.source,
                             clickHandler: () => {
                                 Command.get(r.id, undefined, (result) => {
@@ -492,6 +492,10 @@ let _Elements = {
 			_Elements.contextMenu.updateMenuGroupVisibility();
 			_Elements.contextMenu.repositionMenu(x, y);
 		},
+        getSuggestedWidgetName: (widget) => {
+            return '<b>' + widget.name + '</b>' + (widget.shortDescription ? (' - ' + widget.shortDescription) : '')
+            //return widget.name;
+        },
 		addContextMenuElements: ({ ul, element, hidden = false, forcedClickHandler, prepend = false, cssPositionClasses, entity }) => {
 
 			if (hidden) {
@@ -557,7 +561,7 @@ let _Elements = {
                     let idString = (element?.id ? `id="${element.id}" ` : '');
 					let subListElement = _Helpers.createSingleDOMElementFromHTML(`<ul ${idString} class="element-group ${cssPositionClasses}"></ul>`);
 					menuEntry.appendChild(subListElement);
-					_Elements.contextMenu.addContextMenuElements({ ul: subListElement, element: element.elements, hidden: true, forcedClickHandler: (forcedClickHandler ? forcedClickHandler : element.forcedClickHandler), prepend, cssPositionClasses, entity });
+					_Elements.contextMenu.addContextMenuElements({ ul: subListElement, element: element.elements, hidden: true, forcedClickHandler: (forcedClickHandler ? forcedClickHandler : element.forcedClickHandler), prepend: false, cssPositionClasses, entity });
 				}
 			}
 		},

@@ -1,0 +1,60 @@
+/**
+ * Copyright (C) 2010-2026 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+@layer base {
+
+    body { @apply flex flex-row antialiased w-full h-screen font-sans bg-${theme.canvas};}
+    nav { @apply mt-12 p-4; }
+    main { @apply p-8 mx-auto w-full max-w-7xl; }
+    p { @apply text-sm text-${theme.text.paragraph}; }
+
+    .canvas { @apply flex flex-col flex-1 h-full overflow-auto; }
+    .header { @apply h-20 overflow-auto bg-${theme.header.background} border-b border-${theme.header.border} shadow-sm; }
+    .sidebar { @apply w-40 lg:w-72 bg-${theme.sidebar.background} border-r border-${theme.sidebar.border} shadow-sm; }
+    .logo { @apply flex flex-shrink-0 items-center justify-center p-8 h-20; }
+    .menu-item { @apply block px-6 py-3 text-${theme.nav.text} bg-${theme.nav.background} cursor-pointer hover:bg-${theme.nav.hover} text-sm rounded-lg; }
+    .menu-item.active { @apply bg-${theme.nav.active} cursor-pointer hover:bg-${theme.nav.hover} text-sm rounded-lg; }
+    .page-heading { @apply mx-auto w-full font-bold text-xl text-${theme.text.pageHeading}; }
+
+    .panel { @apply rounded-xl bg-${theme.surface.background} border border-${theme.surface.border}; }
+    .panel-heading { @apply py-4 px-6 border-b border-${theme.surface.border} text-${theme.text.heading}; }
+    .panel-content { @apply px-8 pb-8; }
+    .panel.panel-content { @apply pt-8; }
+    .list-container { @apply overflow-hidden rounded-xl bg-${theme.surface.background} border border-${theme.surface.border}; }
+    .list { @apply divide-y divide-${theme.surface.border}; }
+
+    /* table */
+    .table { @apply py-2 min-w-full bg-${theme.surface.background} border border-${theme.surface.border} rounded-xl; }
+    table { @apply min-w-full divide-y divide-${theme.surface.border} }
+    thead { @apply divide-y divide-${theme.surface.border} bg-${theme.surface.background} }
+    th { @apply py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6; }
+    tbody { @apply divide-y divide-${theme.surface.border} bg-${theme.surface.background} }
+    td { @apply whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6; }
+
+    .textfield { @apply mt-1 block w-full rounded-md border border-${theme.input.border} py-2 px-3 shadow-sm focus:border-${theme.input.focus} focus:outline-none focus:ring-${theme.input.focus} sm:text-sm; }
+    .button { @apply inline-flex items-center rounded-md border border-transparent px-4 py-2 text-sm font-medium shadow-sm focus:ring-offset-2 focus:outline-none focus:ring-2; }
+    .button-primary { @apply bg-${theme.button.primary.background} text-${theme.button.primary.text} hover:bg-${theme.button.primary.focus} focus:ring-${theme.button.primary.focus}; }
+    .button-success { @apply bg-${theme.button.success.background} text-${theme.button.success.text} hover:bg-${theme.button.success.focus} focus:ring-${theme.button.success.focus}; }
+    .badge { @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-medium }
+    .badge.primary { @apply bg-${theme.colors.primary.background} text-${theme.colors.primary.text}; }
+
+    main > * + * { @apply mt-8; }
+    .panel > * + * { @apply mt-8; }
+    .panel-content > * + * { @apply mt-8; }
+}

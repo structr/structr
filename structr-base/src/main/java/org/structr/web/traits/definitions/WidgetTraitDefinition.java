@@ -52,6 +52,7 @@ public class WidgetTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String IS_PAGE_TEMPLATE_PROPERTY  = "isPageTemplate";
 	public static final String IS_EXCLUSIVE_PROPERTY      = "isExclusiveInParent";
 	public static final String COMPONENT_TYPE_PROPERTY    = "componentType";
+	public static final String DIMENSIONS_PROPERTY        = "dimensions";
 
 	public WidgetTraitDefinition() {
 		super(StructrTraits.WIDGET);
@@ -96,6 +97,7 @@ public class WidgetTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Boolean> isPageTemplateProperty  = new BooleanProperty(IS_PAGE_TEMPLATE_PROPERTY).description("When enabled, this Widget appears in the Create Page dialog as a page template option.");
 		final Property<Boolean> isExclusiveProperty     = new BooleanProperty(IS_EXCLUSIVE_PROPERTY);
 		final Property<String> componentTypeProperty    = new StringProperty(COMPONENT_TYPE_PROPERTY);
+		final Property<Integer> dimensionsProperty      = new IntProperty(DIMENSIONS_PROPERTY);
 
 		return Set.of(
 			sourceProperty,
@@ -109,7 +111,8 @@ public class WidgetTraitDefinition extends AbstractNodeTraitDefinition {
 			selectorsProperty,
 			isPageTemplateProperty,
 			isExclusiveProperty,
-			componentTypeProperty
+			componentTypeProperty,
+			dimensionsProperty
 		);
 	}
 
@@ -120,19 +123,22 @@ public class WidgetTraitDefinition extends AbstractNodeTraitDefinition {
 
 			PropertyView.Public,
 			newSet(
-					SOURCE_PROPERTY, DESCRIPTION_PROPERTY, SHORT_DESCRIPTION_PROPERTY, CONFIGURATION_PROPERTY, SVG_ICON_PATH_PROPERTY, THUMBNAIL_PATH_PROPERTY,
-					TREE_PATH_PROPERTY, IS_WIDGET_PROPERTY, SELECTORS_PROPERTY, IS_PAGE_TEMPLATE_PROPERTY, IS_EXCLUSIVE_PROPERTY, COMPONENT_TYPE_PROPERTY
+				SOURCE_PROPERTY, DESCRIPTION_PROPERTY, SHORT_DESCRIPTION_PROPERTY, CONFIGURATION_PROPERTY, SVG_ICON_PATH_PROPERTY, THUMBNAIL_PATH_PROPERTY,
+				TREE_PATH_PROPERTY, IS_WIDGET_PROPERTY, SELECTORS_PROPERTY, IS_PAGE_TEMPLATE_PROPERTY, IS_EXCLUSIVE_PROPERTY, COMPONENT_TYPE_PROPERTY,
+				DIMENSIONS_PROPERTY
 			),
 
 			PropertyView.Ui,
 			newSet(
-					SOURCE_PROPERTY, DESCRIPTION_PROPERTY, SHORT_DESCRIPTION_PROPERTY, CONFIGURATION_PROPERTY, SVG_ICON_PATH_PROPERTY, THUMBNAIL_PATH_PROPERTY,
-					TREE_PATH_PROPERTY, IS_WIDGET_PROPERTY, SELECTORS_PROPERTY, IS_PAGE_TEMPLATE_PROPERTY, IS_EXCLUSIVE_PROPERTY, COMPONENT_TYPE_PROPERTY
+				SOURCE_PROPERTY, DESCRIPTION_PROPERTY, SHORT_DESCRIPTION_PROPERTY, CONFIGURATION_PROPERTY, SVG_ICON_PATH_PROPERTY, THUMBNAIL_PATH_PROPERTY,
+				TREE_PATH_PROPERTY, IS_WIDGET_PROPERTY, SELECTORS_PROPERTY, IS_PAGE_TEMPLATE_PROPERTY, IS_EXCLUSIVE_PROPERTY, COMPONENT_TYPE_PROPERTY,
+				DIMENSIONS_PROPERTY
 			),
 
 			"editWidget",
 			newSet(
-					SELECTORS_PROPERTY, IS_PAGE_TEMPLATE_PROPERTY, IS_EXCLUSIVE_PROPERTY, SHORT_DESCRIPTION_PROPERTY, COMPONENT_TYPE_PROPERTY
+				SELECTORS_PROPERTY, IS_PAGE_TEMPLATE_PROPERTY, IS_EXCLUSIVE_PROPERTY, SHORT_DESCRIPTION_PROPERTY, COMPONENT_TYPE_PROPERTY,
+				DIMENSIONS_PROPERTY
 			)
 		);
 	}

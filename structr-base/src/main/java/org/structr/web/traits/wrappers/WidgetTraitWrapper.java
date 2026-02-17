@@ -84,4 +84,9 @@ public class WidgetTraitWrapper extends AbstractNodeTraitWrapper implements Widg
 	public String getComponentType() {
 		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.COMPONENT_TYPE_PROPERTY));
 	}
+
+	@Override
+	public Integer getDimensions() {
+		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.DIMENSIONS_PROPERTY));
+	}
 }

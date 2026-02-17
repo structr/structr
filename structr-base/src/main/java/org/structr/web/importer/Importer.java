@@ -242,6 +242,7 @@ public class Importer {
 
 					} else {
 
+						// FIXME: use XML parser for everything?
 						parsedDocument = Jsoup.parseBodyFragment(code);
 					}
 
@@ -739,7 +740,6 @@ public class Importer {
 
 						// create shared component (and nothing else) from this template
 						newNode.setOwnerDocument(CreateComponentCommand.getOrCreateHiddenDocument());
-						newNode.setComponentType(node.attr("data-type"));
 						newNode.setName(name);
 					}
 
@@ -1536,13 +1536,22 @@ public class Importer {
 
 	private NodeInterface createNewTemplateNode(final NodeInterface parent, final List<Node> children) throws FrameworkException {
 
-		final StringBuilder sb = new StringBuilder();
+		final StringBuilder stringBuilder = new StringBuilder();
 
 		for (final Node c : children) {
-			sb.append(nodeToString(c));
+			stringBuilder.append(nodeToString(c));
 		}
 
-		return createNewTemplateNode(parent, sb.toString(), null);
+		// allow th and td to be part of a template: replace table-header and table-cell with th and td..
+		String buf = stringBuilder.toString();
+
+		// this must be done because jsoup cannot parse th and td without context
+		buf = buf.replace("<table-header", "<th");
+		buf = buf.replace("</table-header", "</th");
+		buf = buf.replace("<table-data", "<td");
+		buf = buf.replace("</table-data", "</td");
+
+		return createNewTemplateNode(parent, buf, null);
 	}
 
 	private NodeInterface createNewTemplateNode(final NodeInterface parent, final String content, final String contentType) throws FrameworkException {

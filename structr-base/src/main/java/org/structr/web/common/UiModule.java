@@ -434,6 +434,7 @@ public class UiModule implements StructrModule {
 		Functions.put(licenseManager, new InsertHtmlFunction());
 		Functions.put(licenseManager, new GetSourceFunction());
 		Functions.put(licenseManager, new HasCssClassFunction());
+		Functions.put(licenseManager, new ThemeFunction());
 
 		Functions.put(licenseManager, new SendHtmlMailFunction());
 		Functions.put(licenseManager, new SendPlaintextMailFunction());

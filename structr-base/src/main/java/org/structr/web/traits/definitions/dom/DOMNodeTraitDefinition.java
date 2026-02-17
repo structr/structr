@@ -45,8 +45,6 @@ import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.operations.nodeinterface.VisitForUsage;
-import org.structr.docs.Documentation;
-import org.structr.docs.ontology.ConceptType;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
@@ -94,7 +92,8 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String IS_DOM_NODE_PROPERTY                    = "isDOMNode";
 	public static final String HAS_SHARED_COMPONENT_PROPERTY           = "hasSharedComponent";
 	public static final String DOM_SORT_POSITION_PROPERTY              = "domSortPosition";
-	public static final String COMPONENT_TYPE                          = "componentType";
+	public static final String COMPONENT_TYPE_PROPERTY                 = "componentType";
+	public static final String DIMENSIONS_PROPERTY                     = "dimensions";
 	public static final String FLOW_PROPERTY                           = "flow";
 
 	private static final String[] rawProps = new String[] {
@@ -722,7 +721,8 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Boolean> isDOMNodeProperty                                  = new ConstantBooleanProperty(IS_DOM_NODE_PROPERTY, true).category(DOMNode.PAGE_CATEGORY);
 		final Property<Boolean> hasSharedComponent                                 = new BooleanProperty(HAS_SHARED_COMPONENT_PROPERTY).indexed();
 		final Property<Integer> domSortPositionProperty                            = new IntProperty(DOM_SORT_POSITION_PROPERTY).category(DOMNode.PAGE_CATEGORY);
-		final Property<String> componentTypeProperty                               = new StringProperty(COMPONENT_TYPE).category(DOMNode.PAGE_CATEGORY);
+		final Property<String> componentTypeProperty                               = new StringProperty(COMPONENT_TYPE_PROPERTY).category(DOMNode.PAGE_CATEGORY);
+		final Property<Integer> dimensionsProperty                                 = new IntProperty(DIMENSIONS_PROPERTY).category(DOMNode.PAGE_CATEGORY);
 
 		return newSet(
 			parentProperty,
@@ -754,7 +754,8 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 			isDOMNodeProperty,
 			hasSharedComponent,
 			domSortPositionProperty,
-			componentTypeProperty
+			componentTypeProperty,
+			dimensionsProperty
 		);
 	}
 
@@ -764,8 +765,8 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Ui,
 			newSet(
-					RELOADING_ACTIONS_PROPERTY, FAILURE_ACTIONS_PROPERTY,
-					SUCCESS_NOTIFICATION_ACTIONS_PROPERTY, FAILURE_NOTIFICATION_ACTIONS_PROPERTY
+				RELOADING_ACTIONS_PROPERTY, FAILURE_ACTIONS_PROPERTY, COMPONENT_TYPE_PROPERTY, DIMENSIONS_PROPERTY,
+				SUCCESS_NOTIFICATION_ACTIONS_PROPERTY, FAILURE_NOTIFICATION_ACTIONS_PROPERTY
 			)
 		);
 	}
