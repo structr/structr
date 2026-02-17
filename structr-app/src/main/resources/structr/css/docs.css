@@ -528,6 +528,10 @@ index h2, .index h3 {
     display: none;
 }
 
+.article small {
+    line-height: 0;
+}
+
 .article img.small-image {
     width: 40%;
     float: right;
