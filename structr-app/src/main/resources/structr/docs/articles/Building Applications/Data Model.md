@@ -1,7 +1,15 @@
-The process of creating a Structr application usually begins with the data model. This chapter focuses on the various steps required to create the data model and serves as a guide to help you navigate the multitude of possibilities.
+The process of creating a Structr application usually begins with the data model. This chapter focuses on the various steps required to define and implement your data model and serves as a guide to help you navigate the multitude of possibilities.
+
+## Data Model vs. Schema
+
+The **data model** is the abstract design of your application's data — the types of objects, their attributes, and how they relate to each other. The **schema** is the concrete implementation of that model inside Structr, defining the types, properties, relationships, methods, and constraints that the system enforces at runtime.
+
+In Structr, the gap between the two is unusually small. Because Structr stores the schema itself as a graph in the underlying graph database, types map to nodes, relationships map to edges, and properties map to attributes on those nodes — closely mirroring the structure of the data model.
+
+The [Schema Editor](/structr/docs/ontology/Admin%20User%20Interface/Schema) is the primary tool for creating and editing the schema. Because the schema maps so directly to the data model, it effectively doubles as a data modeling tool. Throughout this chapter, we use *data model* when referring to the abstract design and *schema* when referring to the implementation in Structr.
 
 ## A Primer on Data Modeling
-The schema should mirror the attributes and relationships that objects have in the real world as closely as possible. A few basic rules help you determine whether an object should be modeled as a node, a relationship, or a property.
+The data model should mirror the attributes and relationships that objects have in the real world as closely as possible. A few basic rules help you determine whether an object should be modeled as a node, a relationship, or a property.
 
 ### When to Use Nodes?
 Most things that you would use a *noun* to describe should be modeled as nodes.
@@ -25,8 +33,10 @@ Most things that you would use a verb to describe should be modeled as relations
 - actions or activities
 - facts
 
+These rules apply at the data modeling level. When you translate them into the Structr schema, nodes become schema types, relationships become schema relationships, and properties become schema properties — but the conceptual thinking stays the same.
+
 ## Creating a Basic Type
-To create a new type, click the green "Create Data Type" button in the top left corner of the [Schema](/structr/docs/ontology/Admin%20User%20Interface/Schema) area.
+To create a new type in the schema, click the green "Create Data Type" button in the top left corner of the [Schema](/structr/docs/ontology/Admin%20User%20Interface/Schema) area.
 
 ![The Create Type Dialog](/structr/docs/schema_create-type_Project.png)
 
@@ -49,7 +59,7 @@ All types for which you activate the "Include in OpenAPI output" checkbox and en
 [Read more about OpenAPI.](/structr/docs/ontology/APIs%20&%20Integrations/OpenAPI)
 
 ### Other Ways to Create Types in the Schema
-Like all other parts of the application, the schema definition itself is stored in the database, so you can also create new types by adding objects of type `SchemaNode` with the name of the desired type in the `name` attribute, and you can also do this from a script or method using the `create()` function.
+Like all other parts of the application, the schema definition itself is stored as a graph in the database. This means you can also create new types by adding objects of type `SchemaNode` with the name of the desired type in the `name` attribute, and you can also do this from a script or method using the `create()` function. This is another illustration of how closely the schema and the underlying graph structure are aligned — the schema *is* data in the same database it describes.
 
 ## Extending a Type
 When you click Create in the Create Type dialog, the new type is created and the dialog switches to an Edit Type dialog. You can also open the Edit Type dialog by hovering over a type node and clicking the pencil icon.
@@ -63,7 +73,7 @@ The General tab is similar to the Create Type dialog and provides configuration 
 
 ### Direct Properties
 
-The Direct Properties tab displays a table where you add and edit attributes for the type. Each row represents an attribute with the following configuration options.
+Direct properties are values stored locally on the node or relationship itself, directly attached to the object in the database. They typically hold simple values like strings, numbers, dates, or booleans, but can also have more complex types like Function or Cypher properties that compute their values dynamically. The Direct Properties tab displays a table where you add and edit these attributes. Each row represents an attribute with the following configuration options.
 
 #### JSON Name & DB Name¹
 JSON Name specifies the attribute name used to access the attribute in code, REST APIs, and other interfaces.
@@ -138,6 +148,9 @@ When you read an EncryptedString property, Structr automatically decrypts it. Wh
 Note that this protects data in the database but not during transmission – use HTTPS for transport encryption.
 
 ### Linked Properties
+
+In contrast to direct properties, linked properties are not stored on the node itself. They represent related objects that are reachable through relationships — single objects or collections of objects connected to the current node in the graph. Where direct properties hold simple values, linked properties provide access to complex objects in the vicinity of a node.
+
 The Linked Properties tab displays a table with one row per relationship. Each row shows the property name for this side of the relationship, the relationship details, and the target type. You can edit the property name directly in the table and navigate to the target type by clicking it.
 
 ### Inherited Properties
@@ -261,7 +274,7 @@ At the top of the dialog, you can configure the source cardinality, the relation
 Select 1 or * from the dropdown for source and target cardinality to define how many objects can connect. Use 1 for single connections and * for multiple connections. For example, if each Project contains multiple Tasks but each Task belongs to one Project, select 1 for the source cardinality (Project side) and * for the target cardinality (Task side).
 
 #### Relationship Type
-Enter a name in the center input field that describes the relationship in your database schema. This is typically an action or connection like "OWNS", "MANAGES", or "BELONGS_TO".
+Enter a name in the center input field that describes the relationship in the schema. This name corresponds directly to the relationship type stored in the graph database and is typically an action or connection like "OWNS", "MANAGES", or "BELONGS_TO".
 
 >**Note:** Please be as specific as possible and try not to reuse existing relationship types, as this can lead to performance issues later on. For example, do not use “HAS” for everything, as you will then lose the advantage of being able to query different relationship types separately, and all data from the database will have to be filtered via the target type.
 
