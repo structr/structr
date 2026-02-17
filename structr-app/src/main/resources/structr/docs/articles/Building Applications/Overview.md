@@ -53,7 +53,7 @@ For example, you can define a uniqueness constraint on a specific attribute of a
 
 There are currently two different areas in the Structr Admin User Interface where the data model can be edited: [Schema](/structr/docs/ontology/Admin%20User%20Interface/Schema) and [Code](/structr/docs/ontology/Admin%20User%20Interface/Code). The Schema area contains the visual schema editor, which can be used to manage types and relationships, while the Code area is more for developing business logic. In both areas, new types can be created and existing types can be edited.
 
-[Read more about the Data Model.](/structr/docs/ontology/Building%20Applications/Data%20Model)
+[Read more about data modeling.](/structr/docs/ontology/Building%20Applications/Data%20Model)
 
 ## Create or Import Data
 
