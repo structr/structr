@@ -205,7 +205,6 @@ let _Files = {
 				_Files.getFilesTree().jstree().get_node(node.id).text = node.name;
 				_Files.getFilesTree().jstree().refresh_node(node.id);
 			}
-
 		}
 
 		let listModeActive  = _Files.isViewModeActive('list');
@@ -223,6 +222,7 @@ let _Files = {
 			let fileIconHTML = _Icons.getSvgIcon(fileIcon, iconSize, iconSize);
 			let ownerString  = (node.owner ? (node.owner.name ? node.owner.name : '[unnamed]') : '');
 
+			container.querySelector('[data-key=path]')?.setAttribute('href', node.path);
 			container.querySelector('[data-key=name]')?.replaceChildren(name);
 			container.querySelector('[data-key=name]')?.setAttribute('title', name);
 			container.querySelector('[data-key=lastModifiedDate]')?.replaceChildren(modifiedDate);
@@ -455,7 +455,8 @@ let _Files = {
 
 					} else {
 
-						_Entities.deleteNode(entity, entity.isFolder, () => {
+						let updatedEntity = StructrModel.obj(entity.id);
+						_Entities.deleteNode(updatedEntity, updatedEntity.isFolder, () => {
 							// refresh handled via model
 						});
 					}
@@ -966,7 +967,7 @@ let _Files = {
 					return `
 						<td data-icon-col class="file-icon">
 							<div data-row-icon-container class="flex justify-between">
-								<a href="${filePath}" target="_blank">${fileIconHTML}</a>
+								<a href="${filePath}" target="_blank" data-key="path">${fileIconHTML}</a>
 							</div>
 						</td>
 					`;
