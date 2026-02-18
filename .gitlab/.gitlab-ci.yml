@@ -122,17 +122,20 @@ snapshot-build:
 
         # Create new SNAPSHOT release with build artifacts
         echo "Creating SNAPSHOT release with glab..."
-        glab release create $STRUCTR_VERSION structr-app/target/*.deb structr-app/target/*.zip \
+      
+        glab release create "$STRUCTR_VERSION" \
+        --use-package-registry \
         --name "structr-$STRUCTR_VERSION-$BUILD_TIMESTAMP.$COMMIT_SHORT" \
         --notes "## Latest SNAPSHOT Build
-
-        **Version:** $STRUCTR_VERSION  
-        **Commit:** [$CI_COMMIT_SHORT_SHA]($CI_PROJECT_URL/-/commit/$CI_COMMIT_SHA)  
-        **Date:** $(date)  
-        **Branch:** $CI_COMMIT_REF_NAME  
+        
+        **Version:** $STRUCTR_VERSION
+        **Commit:** [$CI_COMMIT_SHORT_SHA]($CI_PROJECT_URL/-/commit/$CI_COMMIT_SHA)
+        **Date:** $(date)
+        **Branch:** $CI_COMMIT_REF_NAME
         **Build:** $BUILD_TIMESTAMP.$COMMIT_SHORT
-
-        This release is automatically updated with each commit to main."
+        
+        This release is automatically updated with each commit to main." \
+        structr-app/target/*.deb structr-app/target/*.zip
         
         echo "SNAPSHOT build and release completed successfully"
       else
@@ -174,11 +177,13 @@ release-build:
         
         # Create versioned release with build artifacts
         echo "Creating release with glab..."
-        glab release create "$STRUCTR_VERSION" structr-app/target/*.deb structr-app/target/*.zip \
-         --name "$STRUCTR_VERSION" \
-         --notes "## Release $STRUCTR_VERSION
+         glab release create "$STRUCTR_VERSION" \
+          --use-package-registry \
+          --name "$STRUCTR_VERSION" \
+          --notes  --notes "## Release $STRUCTR_VERSION
 
-          **Date:** $(date)"      
+          **Date:** $(date)" \
+          structr-app/target/*.deb structr-app/target/*.zip        
         
         echo "Release build and release completed successfully"
       else
