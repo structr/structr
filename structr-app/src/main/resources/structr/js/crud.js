@@ -659,6 +659,9 @@ let _Crud = {
 
 			let customViewProperties = (isRetry ? [] : _Crud.objectList.filterKeys(type, Object.keys(properties)));
 
+			// always include visibility flags to ensure functionality of the lock icon
+			customViewProperties.push('visibleToPublicUsers', 'visibleToAuthenticatedUsers');
+
 			let signal = _Crud.crudListFetchAbortMechanism.abortController.signal;
 
 			let headers = {
