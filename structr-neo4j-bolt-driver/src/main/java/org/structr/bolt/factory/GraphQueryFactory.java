@@ -49,10 +49,6 @@ public class GraphQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 
 			query.addNullObjectParameter(graphQuery.getDirection(), graphQuery.getRelationship());
 
-		} else if (predicate instanceof AnyQuery anyQuery) {
-
-			final Object value = anyQuery.getValue();
-
 		} else {
 
 			query.addGraphQueryPart(part);
