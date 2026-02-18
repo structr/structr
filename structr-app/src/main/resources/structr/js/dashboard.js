@@ -946,7 +946,7 @@ let _Dashboard = {
 							${Object.entries(config).map(([key, value]) => `
 								<div class="flex gap-1">
 									<div class="font-bold">${key}:</div>
-									<div class="truncate">${value}</div>
+									<div class="truncate" title="${_Helpers.escapeForHtmlAttributes(value)}">${value}</div>
 								</div>
 							`).join('')}
 						</div>
