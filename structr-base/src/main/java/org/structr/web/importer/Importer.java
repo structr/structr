@@ -66,6 +66,7 @@ import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.structr.web.traits.definitions.html.Input;
 import org.structr.websocket.command.CreateComponentCommand;
+import software.amazon.awssdk.services.s3.endpoints.internal.Value;
 
 import java.io.*;
 import java.net.MalformedURLException;
@@ -110,7 +111,7 @@ public class Importer {
 	private CommentHandler commentHandler;
 	private boolean relativeVisibility = false;
 	private boolean isDeployment       = false;
-	private Document parsedDocument    = null;
+	private List<Node> parsedDocument  = null;
 	private final String name;
 	private URL originalUrl;
 	private String address;
@@ -199,6 +200,7 @@ public class Importer {
 				code = code.replaceAll("<(area|base|br|col(?!group)|command|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)([^>]*)>", "<$1$2/>");
 			}
 
+			/*
 			if (fragment) {
 
 				if (isDeployment) {
@@ -260,6 +262,9 @@ public class Importer {
 				}
 
 			}
+			*/
+
+			parsedDocument = Parser.parseXmlFragment(code, "http://localhost:8082");
 
 		} else {
 
@@ -271,7 +276,9 @@ public class Importer {
 			code = responseData.get(HttpHelper.FIELD_BODY) != null ? (String) responseData.get(HttpHelper.FIELD_BODY) : null;
 			if (code != null) {
 
-				parsedDocument = Jsoup.parse(code);
+				//parsedDocument = Jsoup.parse(code);
+				parsedDocument = Parser.parseXmlFragment(code, "http://localhost:8082");
+
 			} else {
 
 				throw new FrameworkException(422, "Could not parse requested url for import. Response body is empty.");
@@ -309,7 +316,8 @@ public class Importer {
 
 	public DOMNode createComponentChildNodes(final DOMNode parent, final Page page) throws FrameworkException {
 
-		// head() and body() automatically create elements (inlcuding "html") - but we want to keep the original intact
+		/*
+		// head() and body() automatically create elements (including "html") - but we want to keep the original intact
 		final String initialDocument = parsedDocument.toString();
 		Element head                 = parsedDocument.head();
 
@@ -368,6 +376,7 @@ public class Importer {
 			// body is another special case
 			return bodyElement;
 		}
+		*/
 
 		// fallback, no head no body => document is parent
 		return createChildNodes(parsedDocument, parent, page);
@@ -375,12 +384,12 @@ public class Importer {
 
 	public DOMNode createChildNodes(final DOMNode parent, final Page page) throws FrameworkException {
 
-		return createChildNodes(parsedDocument.body(), parent, page);
+		return createChildNodes(parsedDocument, parent, page);
 	}
 
 	public DOMNode createChildNodes(final DOMNode parent, final Page page, final boolean removeHashAttribute) throws FrameworkException {
 
-		return createChildNodes(parsedDocument.body(), parent, page, removeHashAttribute, 0);
+		return createChildNodes(parsedDocument, parent, page, removeHashAttribute, 0);
 	}
 
 	public DOMNode createChildNodesWithHtml(final DOMNode parent, final Page page, final boolean removeHashAttribute) throws FrameworkException {
@@ -408,7 +417,7 @@ public class Importer {
 
 		final List<Node> nodeList = new LinkedList<>();
 
-		for (final Node node : parsedDocument.childNodes()) {
+		for (final Node node : parsedDocument) {
 
 			for (final Node child : node.childNodes()) {
 				nodeList.add(child);
@@ -422,7 +431,7 @@ public class Importer {
 
 	public DOMNode createComponentHullChildNodes (final NodeInterface parent, final Page page) throws FrameworkException {
 
-		for (final Node node : parsedDocument.childNodes()) {
+		for (final Node node : parsedDocument) {
 
 			final String tag  = node.nodeName();
 			final String type = CaseHelper.toUpperCamelCase(tag);
@@ -433,7 +442,7 @@ public class Importer {
 			}
 
 			if (!type.equals("#comment")) {
-				return createChildNodes(node, parent, page, false, 1, parent);
+				return createChildNodes(node.childNodes(), parent, page, false, 1, parent);
 			}
 		}
 
@@ -477,21 +486,20 @@ public class Importer {
 	}
 
 	// ----- private methods -----
-	private DOMNode createChildNodes(final Node startNode, final DOMNode parent, final Page page) throws FrameworkException {
-		return createChildNodes(startNode, parent, page, false, 0);
+	private DOMNode createChildNodes(final List<Node> nodes, final DOMNode parent, final Page page) throws FrameworkException {
+		return createChildNodes(nodes, parent, page, false, 0);
 	}
 
-	private DOMNode createChildNodes(final Node startNode, final DOMNode parent, final Page page, final boolean removeHashAttribute, final int depth) throws FrameworkException {
-		return createChildNodes(startNode, parent, page, false, 0, null);
+	private DOMNode createChildNodes(final List<Node> nodes, final DOMNode parent, final Page page, final boolean removeHashAttribute, final int depth) throws FrameworkException {
+		return createChildNodes(nodes, parent, page, removeHashAttribute, depth, null);
 	}
 
-	private DOMNode createChildNodes(final Node startNode, final NodeInterface parent, final Page page, final boolean removeHashAttribute, final int depth, final NodeInterface suppliedRoot) throws FrameworkException {
+	private DOMNode createChildNodes(final List<Node> children, final NodeInterface parent, final Page page, final boolean removeHashAttribute, final int depth, final NodeInterface suppliedRoot) throws FrameworkException {
 
 		NodeInterface rootElement = suppliedRoot;
 		Linkable linkable         = null;
 		String instructions       = null;
 
-		final List<Node> children = startNode.childNodes();
 		for (Node node : children) {
 
 			String tag = node.nodeName();
@@ -1118,7 +1126,7 @@ public class Importer {
 				// Step down and process child nodes except for newly created templates
 				if (!isNewTemplateOrComponent) {
 
-					createChildNodes(node, newNode, page, removeHashAttribute, depth + 1);
+					createChildNodes(node.childNodes(), newNode, page, removeHashAttribute, depth + 1);
 				}
 			}
 		}
@@ -1579,7 +1587,7 @@ public class Importer {
 	}
 
 	private DOMNode createSharedComponent(final Node node) throws FrameworkException {
-		return createChildNodes(node, null, CreateComponentCommand.getOrCreateHiddenDocument());
+		return createChildNodes(node.childNodes(), null, CreateComponentCommand.getOrCreateHiddenDocument());
 	}
 
 	private String nodeToString(Node node) {

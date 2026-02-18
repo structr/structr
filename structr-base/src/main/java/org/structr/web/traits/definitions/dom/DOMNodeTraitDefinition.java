@@ -94,6 +94,8 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String DOM_SORT_POSITION_PROPERTY              = "domSortPosition";
 	public static final String COMPONENT_TYPE_PROPERTY                 = "componentType";
 	public static final String DIMENSIONS_PROPERTY                     = "dimensions";
+	public static final String ITEM_TYPE_PROPERTY                      = "itemType";
+	public static final String IS_COMPONENT_ROOT_PROPERTY              = "isComponentRoot";
 	public static final String FLOW_PROPERTY                           = "flow";
 
 	private static final String[] rawProps = new String[] {
@@ -721,8 +723,10 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Boolean> isDOMNodeProperty                                  = new ConstantBooleanProperty(IS_DOM_NODE_PROPERTY, true).category(DOMNode.PAGE_CATEGORY);
 		final Property<Boolean> hasSharedComponent                                 = new BooleanProperty(HAS_SHARED_COMPONENT_PROPERTY).indexed();
 		final Property<Integer> domSortPositionProperty                            = new IntProperty(DOM_SORT_POSITION_PROPERTY).category(DOMNode.PAGE_CATEGORY);
-		final Property<String> componentTypeProperty                               = new StringProperty(COMPONENT_TYPE_PROPERTY).category(DOMNode.PAGE_CATEGORY);
-		final Property<Integer> dimensionsProperty                                 = new IntProperty(DIMENSIONS_PROPERTY).category(DOMNode.PAGE_CATEGORY);
+		final Property<String> componentTypeProperty                               = new StringProperty(COMPONENT_TYPE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<Integer> dimensionsProperty                                 = new IntProperty(DIMENSIONS_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<String> itemTypeProperty                                    = new StringProperty(ITEM_TYPE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<Boolean> isComponentRootProperty                            = new BooleanProperty(IS_COMPONENT_ROOT_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 
 		return newSet(
 			parentProperty,
@@ -755,7 +759,9 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 			hasSharedComponent,
 			domSortPositionProperty,
 			componentTypeProperty,
-			dimensionsProperty
+			dimensionsProperty,
+			itemTypeProperty,
+			isComponentRootProperty
 		);
 	}
 
@@ -766,7 +772,8 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 			PropertyView.Ui,
 			newSet(
 				RELOADING_ACTIONS_PROPERTY, FAILURE_ACTIONS_PROPERTY, COMPONENT_TYPE_PROPERTY, DIMENSIONS_PROPERTY,
-				SUCCESS_NOTIFICATION_ACTIONS_PROPERTY, FAILURE_NOTIFICATION_ACTIONS_PROPERTY
+				ITEM_TYPE_PROPERTY, IS_COMPONENT_ROOT_PROPERTY, SUCCESS_NOTIFICATION_ACTIONS_PROPERTY,
+				FAILURE_NOTIFICATION_ACTIONS_PROPERTY
 			)
 		);
 	}

@@ -98,7 +98,7 @@ public abstract class StructrUiTest {
 		Settings.ApplicationHost.setValue(host);
 		Settings.HttpPort.setValue(httpPort);
 
-		Settings.Servlets.setValue("JsonRestServlet WebSocketServlet HtmlServlet UploadServlet OpenAPIServlet");
+		Settings.Servlets.setValue("JsonRestServlet WebSocketServlet HtmlServlet UploadServlet OpenAPIServlet DeploymentServlet");
 
 		// allow use of EncryptedStringProperty
 		Settings.GlobalSecret.setValue("test_secret");

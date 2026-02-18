@@ -595,7 +595,7 @@ let Command = {
      * removed from the former parent before being appended
      * to the new one.
      */
-    appendWidget: function(source, parentId, pageId, widgetHostBaseUrl, attributes, processDeploymentInfo, callback) {
+    appendWidget: function(source, parentId, pageId, widgetHostBaseUrl, attributes, config, processDeploymentInfo, callback) {
         let obj = {
             command: 'APPEND_WIDGET',
             pageId: pageId,
@@ -603,7 +603,8 @@ let Command = {
                 widgetHostBaseUrl: widgetHostBaseUrl,
                 parentId: parentId,
                 source: source,
-                processDeploymentInfo: (processDeploymentInfo || false)
+                processDeploymentInfo: (processDeploymentInfo || false),
+                config: config
             }
         };
         if (attributes) {
@@ -618,7 +619,7 @@ let Command = {
 	 * replace the node with the given id with the newly created
      * node, moving all its children to the new node.
 	 */
-	replaceWidget: function(source, nodeId, pageId, widgetHostBaseUrl, attributes, processDeploymentInfo, callback) {
+	replaceWidget: function(source, nodeId, pageId, widgetHostBaseUrl, attributes, config, processDeploymentInfo, callback) {
 		let obj = {
 			command: 'REPLACE_WIDGET',
 			pageId: pageId,
@@ -626,7 +627,8 @@ let Command = {
 				widgetHostBaseUrl: widgetHostBaseUrl,
 				nodeId: nodeId,
 				source: source,
-				processDeploymentInfo: (processDeploymentInfo || false)
+				processDeploymentInfo: (processDeploymentInfo || false),
+                config: config
 			}
 		};
 		if (attributes) {

@@ -19,11 +19,13 @@
 
 @layer base {
 
-    body { @apply flex flex-row antialiased w-full h-screen font-sans bg-${theme.canvas};}
+    /* tags */
+    body { @apply flex flex-row antialiased w-full h-screen font-sans bg-${theme.canvas} text-${theme.text.paragraph};}
     nav { @apply mt-12 p-4; }
     main { @apply p-8 mx-auto w-full max-w-7xl; }
     p { @apply text-sm text-${theme.text.paragraph}; }
 
+    /* main layout */
     .canvas { @apply flex flex-col flex-1 h-full overflow-auto; }
     .header { @apply h-20 overflow-auto bg-${theme.header.background} border-b border-${theme.header.border} shadow-sm; }
     .sidebar { @apply w-40 lg:w-72 bg-${theme.sidebar.background} border-r border-${theme.sidebar.border} shadow-sm; }
@@ -32,12 +34,34 @@
     .menu-item.active { @apply bg-${theme.nav.active} cursor-pointer hover:bg-${theme.nav.hover} text-sm rounded-lg; }
     .page-heading { @apply mx-auto w-full font-bold text-xl text-${theme.text.pageHeading}; }
 
+    /* components */
     .panel { @apply rounded-xl bg-${theme.surface.background} border border-${theme.surface.border}; }
     .panel-heading { @apply py-4 px-6 border-b border-${theme.surface.border} text-${theme.text.heading}; }
     .panel-content { @apply px-8 pb-8; }
     .panel.panel-content { @apply pt-8; }
     .list-container { @apply overflow-hidden rounded-xl bg-${theme.surface.background} border border-${theme.surface.border}; }
-    .list { @apply divide-y divide-${theme.surface.border}; }
+    ul, ol { @apply divide-y divide-${theme.surface.border}; }
+    ol { @apply list-decimal ml-8; }
+    li { @apply px-6 py-4; }
+
+    /* accordion is complicated... */
+    .accordion {
+        @apply rounded-xl bg-${theme.surface.background} border border-${theme.surface.border} divide-y divide-${theme.surface.border};
+        details { @apply py-3 px-8 hover:bg-${theme.surface.hover}; }
+        details:first-child { @apply rounded-t-xl; }
+        details:last-child {  @apply rounded-b-xl; }
+        details[open] { @apply p-0 hover:bg-transparent; }
+        details[open] summary { @apply py-3 px-8 border-b border-${theme.surface.border} hover:bg-${theme.surface.hover}; }
+        details[open]:first-child summary { @apply rounded-t-xl; }
+        details[open]:last-child > *:last-child { @apply rounded-b-xl; }
+        details[open] > *:not(summary) { @apply m-8; }
+        details[open] summary::after { transform: rotate(180deg); }
+        summary {
+            @apply flex items-center justify-between cursor-pointer rounded-[inherit];
+            &::marker { content: ""; }
+            &::after { content: ""; width: 1em; height: 1em; flex-shrink: 0; background-color: currentColor; mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); mask-size: contain; mask-repeat: no-repeat; transition: transform 0.2s; }
+        }
+    }
 
     /* table */
     .table { @apply py-2 min-w-full bg-${theme.surface.background} border border-${theme.surface.border} rounded-xl; }
@@ -47,14 +71,20 @@
     tbody { @apply divide-y divide-${theme.surface.border} bg-${theme.surface.background} }
     td { @apply whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6; }
 
-    .textfield { @apply mt-1 block w-full rounded-md border border-${theme.input.border} py-2 px-3 shadow-sm focus:border-${theme.input.focus} focus:outline-none focus:ring-${theme.input.focus} sm:text-sm; }
+    /* forms */
+    form label { @apply block; }
+    input[type="text"], textarea { @apply mt-1 block w-full rounded-md text-${theme.input.text} bg-${theme.input.background} border border-${theme.input.border} py-2 px-3 shadow-sm focus:border-${theme.input.focus} focus:outline-none focus:ring-${theme.input.focus} sm:text-sm; }
+    input[type="checkbox"] { @apply m-0 mr-2 p-0 text-${theme.input.text} bg-${theme.input.background}; }
     .button { @apply inline-flex items-center rounded-md border border-transparent px-4 py-2 text-sm font-medium shadow-sm focus:ring-offset-2 focus:outline-none focus:ring-2; }
     .button-primary { @apply bg-${theme.button.primary.background} text-${theme.button.primary.text} hover:bg-${theme.button.primary.focus} focus:ring-${theme.button.primary.focus}; }
     .button-success { @apply bg-${theme.button.success.background} text-${theme.button.success.text} hover:bg-${theme.button.success.focus} focus:ring-${theme.button.success.focus}; }
     .badge { @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-medium }
     .badge.primary { @apply bg-${theme.colors.primary.background} text-${theme.colors.primary.text}; }
 
+    /* margins */
     main > * + * { @apply mt-8; }
     .panel > * + * { @apply mt-8; }
     .panel-content > * + * { @apply mt-8; }
+    .accordion > details > * + * { @apply mt-4; }
+    form > * + * { @apply mt-8; }
 }

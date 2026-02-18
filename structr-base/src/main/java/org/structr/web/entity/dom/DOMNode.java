@@ -49,6 +49,7 @@ import java.util.Set;
 //public interface DOMNode extends NodeTrait, LinkedTreeNode, Node, Renderable, DOMAdoptable, DOMImportable, ContextAwareEntity {
 public interface DOMNode extends NodeInterface, LinkedTreeNode {
 
+	String WIDGETS_CATEGORY              = "Widgets";
 	String PAGE_CATEGORY                 = "Page Structure";
 	String EDIT_MODE_BINDING_CATEGORY    = "Edit Mode Binding";
 	String EVENT_ACTION_MAPPING_CATEGORY = "Event Action Mapping";
@@ -104,6 +105,10 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	void setHidden(final boolean hidden) throws FrameworkException;
 	void setIdAttribute(final String id) throws FrameworkException;
 	void setComponentType(final String componentType) throws FrameworkException;
+	void setItemType(final String itemType) throws FrameworkException;
+	void setDimensions(final Integer dimensions) throws FrameworkException;
+	void setParent(final DOMNode parent) throws FrameworkException;
+	void setIsComponentRoot(boolean b) throws FrameworkException;
 
 	boolean isHidden();
 	boolean isSynced();
@@ -119,6 +124,7 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	boolean shouldBeRendered(final RenderContext renderContext);
 	boolean isSameNode(final DOMNode otherNode);
 	boolean hasChildNodes();
+	Boolean isComponentRoot();
 
 	int getChildPosition(final DOMNode otherNode);
 
@@ -135,6 +141,7 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	String getCssClass();
 	String getNodeValue();
 	String getComponentType();
+	String getItemType();
 	Integer getDimensions();
 
 	boolean renderDeploymentExportComments(AsyncBuffer out, boolean isContentNode);
@@ -327,8 +334,6 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 
 		logger.error(message, arguments);
 	}
-
-
 
 	// ----- nested classes -----
 	class TextCollector implements Predicate<DOMNode> {

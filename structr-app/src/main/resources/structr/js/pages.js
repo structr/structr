@@ -2297,7 +2297,8 @@ let _Pages = {
 						tile.addEventListener('click', () => {
 							Command.create({ type: 'Page' }, (page) => {
 								Structr.removeExpandedNode(page.id);
-								Command.appendWidget(widget.source, page.id, page.id, null, {}, true);
+                                let config = { componentType: widget.componentType, dimensions: widget.dimensions };
+								Command.appendWidget(widget.source, page.id, page.id, null, {}, config, true);
 								_Dialogs.custom.dialogCancelBaseAction();
 							});
 						});

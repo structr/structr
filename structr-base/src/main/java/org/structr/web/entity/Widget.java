@@ -23,6 +23,8 @@ import org.structr.common.ThreadLocalMatcher;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.JsonInput;
+import org.structr.core.JsonSingleInput;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.web.entity.dom.DOMNode;
@@ -86,7 +88,8 @@ public interface Widget extends NodeInterface {
 
 		if (!errorBuffer.hasError()) {
 
-			Importer importer = new Importer(securityContext, _source, baseUrl, null, false, false, false, false);
+			final Importer importer = new Importer(securityContext, _source, baseUrl, null, false, false, false, false);
+			final JsonInput config  = ((JsonSingleInput) parameters.get("config")).getFirst();
 
 			if (processDeploymentInfo) {
 				importer.setIsDeployment(true);
@@ -103,6 +106,29 @@ public interface Widget extends NodeInterface {
 			if (importer.parse(true)) {
 
 				importer.createChildNodes(parent, page, true);
+
+				// Copy attributes from Widget to created nodes. This assumes that the parent node
+				// is a temporary parent to separate new widget nodes from existing nodes.
+				if (config != null) {
+
+					for (final DOMNode newChild : parent.getChildren()) {
+
+						// hasSharedComponent is not set yet, because it is set in a lifecycle method
+						final DOMNode sharedComponent = newChild.getSharedComponent();
+						if (sharedComponent != null) {
+
+							sharedComponent.setComponentType((String) config.get("componentType"));
+							sharedComponent.setDimensions(toInt(config.get("dimensions")));
+
+						} else {
+
+							newChild.setComponentType((String) config.get("componentType"));
+							newChild.setDimensions(toInt(config.get("dimensions")));
+						}
+
+						newChild.setIsComponentRoot(true);
+					}
+				}
 
 				final String tableChildElement = importer.getTableChildElement();
 				if (tableChildElement != null) {
@@ -125,6 +151,15 @@ public interface Widget extends NodeInterface {
 			// report error to ui
 			throw new FrameworkException(422, "Unable to import the given source code", errorBuffer);
 		}
+	}
+
+	static Integer toInt(final Object value) {
+
+		if (value != null && value instanceof Number number) {
+			return number.intValue();
+		}
+
+		return null;
 	}
 
 	class ReplacementInfo {

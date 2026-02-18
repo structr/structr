@@ -18,54 +18,54 @@
  */
 
 $.theme = {
-    "canvas": "slate-50",
-    "logo": "black",
+    "canvas": "slate-900",
+    "logo": "white",
     "header": {
-        "background": "white",
-        "border": "gray-200"
+        "background": "slate-900",
+        "border": "slate-700"
     },
     "sidebar": {
-        "background": "white",
-        "border": "gray-200"
+        "background": "slate-900",
+        "border": "slate-700"
     },
     "nav": {
         "background": "transparent",
-        "hover": "amber-200",
-        "active": "amber-100",
-        "text": "black"
+        "hover": "gray-700",
+        "active": "gray-800",
+        "text": "white",
     },
     "surface": {
-        "background": "white",
-        "border": "gray-200",
-        "divider": "gray-100",
-        "hover": "amber-100"
+        "background": "slate-800",
+        "border": "slate-600",
+        "divider": "slate-700",
+        "hover": "gray-700"
     },
     "text": {
-        "pageHeading": "slate-700",
-        "heading": "slate-950",
-        "paragraph": "slate-600"
+        "pageHeading": "slate-200",
+        "heading": "slate-100",
+        "paragraph": "slate-300"
     },
     "input": {
-        "background": "gray-50",
-        "border": "gray-200",
-        "focus": "amber-400",
-        "text": "slate-600"
+        "background": "slate-900",
+        "border": "slate-700",
+        "focus": "slate-600",
+        "text": "slate-300"
     },
     "button": {
         "primary": {
-            "background": "amber-500",
-            "focus": "amber-600",
+            "background": "amber-700",
+            "focus": "amber-800",
             "text": "white"
         },
         "success": {
-            "background": "emerald-500",
-            "focus": "emerald-600",
+            "background": "emerald-700",
+            "focus": "emerald-800",
             "text": "white"
         }
     },
     "colors": {
         "primary": {
-            "background": "amber-500",
+            "background": "amber-700",
             "text": "white"
         }
     }

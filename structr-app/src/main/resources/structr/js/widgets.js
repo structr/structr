@@ -649,36 +649,44 @@ let _Widgets = {
 
         let url = _Widgets.getWidgetServerUrl();
         let processDeploymentInfo = false;
+        let config = {
+            componentType: widget.componentType,
+            dimensions: widget.dimensions,
+        };
 
         if (widget.configuration) {
 
             processDeploymentInfo = widget.configuration.processDeploymentInfo;
 
             _Widgets.showWidgetConfigurationDialog(widget, (attrs) => {
-                Command.appendWidget(widget.source, target.id, pageId, url, attrs, processDeploymentInfo, callback);
+                Command.appendWidget(widget.source, target.id, pageId, url, attrs, config, processDeploymentInfo, callback);
             });
 
         } else {
 
-            Command.appendWidget(widget.source, target.id, pageId, url, {}, processDeploymentInfo, callback);
+            Command.appendWidget(widget.source, target.id, pageId, url, {}, config, processDeploymentInfo, callback);
         }
     },
 	replaceElementWithWidget: (widget, target, pageId, callback) => {
 
 		let url = _Widgets.getWidgetServerUrl();
         let processDeploymentInfo = false;
+        let config = {
+            componentType: widget.componentType,
+            dimensions: widget.dimensions,
+        };
 
 		if (widget.configuration) {
 
             processDeploymentInfo = widget.configuration.processDeploymentInfo;
 
             _Widgets.showWidgetConfigurationDialog(widget, (attrs) => {
-                Command.replaceWidget(widget.source, target.id, pageId, url, attrs, processDeploymentInfo, callback);
+                Command.replaceWidget(widget.source, target.id, pageId, url, attrs, config, processDeploymentInfo, callback);
             });
 
 		} else {
 
-			Command.replaceWidget(widget.source, target.id, pageId, url, {}, processDeploymentInfo, callback);
+			Command.replaceWidget(widget.source, target.id, pageId, url, {}, config, processDeploymentInfo, callback);
 		}
 	},
     showWidgetConfigurationDialog: (widget, callback) => {

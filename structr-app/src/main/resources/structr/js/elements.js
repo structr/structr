@@ -439,16 +439,13 @@ let _Elements = {
 
                     if (widgets && widgets.length) {
 
-                        let insertElements = widgets.map(r => ({
-                            id:           r.id,
-                            name:         _Elements.contextMenu.getSuggestedWidgetName(r),
-                            source:       r.source,
-                            clickHandler: () => {
-                                Command.get(r.id, undefined, (result) => {
-                                    _Widgets.insertWidgetIntoPage(result, entity, entity.pageId);
-                                });
-                            }
-                        }));
+                        let insertHandler  = (result) => { _Widgets.insertWidgetIntoPage(result, entity, entity.pageId); };
+                        let insertElements = [];
+
+                        for (let widget of widgets) {
+
+                            _Elements.contextMenu.insertInTree(insertElements, widget, insertHandler);
+                        }
 
                         _Elements.contextMenu.addContextMenuElements({ ul: mainMenuList, element: [ '|', { name: 'Suggested Widgets', elements: insertElements } ], prepend: true, cssPositionClasses, entity });
                         _Elements.contextMenu.updateMenuGroupVisibility();
@@ -460,29 +457,17 @@ let _Elements = {
 
 					if (widgets && widgets.length) {
 
-                        let replaceElements = widgets.map(r => ({
-                            id:           r.id,
-                            name:         _Elements.contextMenu.getSuggestedWidgetName(r),
-                            source:       r.source,
-                            clickHandler: () => {
-                                Command.get(r.id, undefined, (result) => {
-                                    _Widgets.replaceElementWithWidget(result, entity, entity.pageId);
-                                });
-                            }
-                        }));
+                        let replaceHandler = (result) => { _Widgets.replaceElementWithWidget(result, entity, entity.pageId); };
+                        let replaceElements = [];
+
+                        for (let widget of widgets) {
+                            _Elements.contextMenu.insertInTree(replaceElements, widget, replaceHandler);
+                        }
 
                         let replaceList = mainMenuList.querySelector('#replace-element-with');
                         if (replaceList) {
                             _Elements.contextMenu.addContextMenuElements({ ul: replaceList, element: [ '|', { name: 'Suggested Widgets', elements: replaceElements } ], prepend: true, cssPositionClasses, entity });
                         }
-
-                        /*
-                        // find lists for replace and wrap
-                        let wrapList = mainMenuList.querySelector('#wrap-element-in');
-                        if (wrapList) {
-                            _Elements.contextMenu.addContextMenuElements({ ul: wrapList, element: [ '|', { name: 'Suggested Widgets', elements: wrapElements } ], prepend: true, cssPositionClasses, entity });
-                        }
-                        */
 
 						_Elements.contextMenu.updateMenuGroupVisibility();
 					}
@@ -492,9 +477,34 @@ let _Elements = {
 			_Elements.contextMenu.updateMenuGroupVisibility();
 			_Elements.contextMenu.repositionMenu(x, y);
 		},
+        insertInTree: (destination, widget, clickHandler) => {
+            let current = destination;
+            let treePath = widget.treePath || 'Uncategorized';
+            for (let part of treePath.split('/')) {
+                if (part.length == 0) { continue; }
+                let element = current.find(e => e.name === part);
+                if (!element) {
+                    element = { name: part, elements: [] };
+                    current.push(element);
+                }
+                current = element.elements;
+            }
+            current.push(_Elements.contextMenu.createEntryForWidget(widget, clickHandler));
+        },
+        createEntryForWidget: (widget, clickHandler) => {
+            return {
+                id:           widget.id,
+                name:         _Elements.contextMenu.getSuggestedWidgetName(widget),
+                clickHandler: () => {
+                    Command.get(widget.id, undefined, (result) => {
+                        clickHandler(result);
+                    });
+                }
+            };
+        },
         getSuggestedWidgetName: (widget) => {
-            return '<b>' + widget.name + '</b>' + (widget.shortDescription ? (' - ' + widget.shortDescription) : '')
-            //return widget.name;
+            //return '<b>' + widget.name + '</b>' + (widget.shortDescription ? (' - ' + widget.shortDescription) : '')
+            return widget.name;
         },
 		addContextMenuElements: ({ ul, element, hidden = false, forcedClickHandler, prepend = false, cssPositionClasses, entity }) => {
 
@@ -886,8 +896,10 @@ let _Elements = {
 		let nodeContainer  = $('.node-container', div);
 		let iconsContainer = $('.icons-container', div);
 
-		_Dragndrop.enableDraggable(entity, div[0], _Dragndrop.dropActions.domElement, true, _Dragndrop.pages.dragStart, _Dragndrop.pages.dragEnd);
-		_Dragndrop.pages.enableDroppable(entity, div[0], nodeContainer[0]);
+        if (div && div.length) {
+            _Dragndrop.enableDraggable(entity, div[0], _Dragndrop.dropActions.domElement, true, _Dragndrop.pages.dragStart, _Dragndrop.pages.dragEnd);
+            _Dragndrop.pages.enableDroppable(entity, div[0], nodeContainer[0]);
+        }
 
 		if (isTemplate) {
 			let hasChildren = entity.childrenIds && entity.childrenIds.length;

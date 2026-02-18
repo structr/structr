@@ -990,13 +990,38 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	}
 
 	@Override
+	public String getItemType() {
+		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.ITEM_TYPE_PROPERTY));
+	}
+
+	@Override
 	public Integer getDimensions() {
 		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.DIMENSIONS_PROPERTY));
 	}
 
 	@Override
+	public Boolean isComponentRoot() {
+		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.IS_COMPONENT_ROOT_PROPERTY));
+	}
+
+	@Override
 	public void setComponentType(final String componentType) throws FrameworkException {
 		wrappedObject.setProperty(traits.key(DOMNodeTraitDefinition.COMPONENT_TYPE_PROPERTY), componentType);
+	}
+
+	@Override
+	public void setItemType(final String itemType) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(DOMNodeTraitDefinition.ITEM_TYPE_PROPERTY), itemType);
+	}
+
+	@Override
+	public void setDimensions(final Integer dimensions) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(DOMNodeTraitDefinition.DIMENSIONS_PROPERTY), dimensions);
+	}
+
+	@Override
+	public void setIsComponentRoot(final boolean isComponentRoot) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(DOMNodeTraitDefinition.IS_COMPONENT_ROOT_PROPERTY), isComponentRoot);
 	}
 
 	@Override
@@ -1027,6 +1052,10 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	@Override
 	public final String getSharedComponentConfiguration() {
 		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.SHARED_COMPONENT_CONFIGURATION_PROPERTY));
+	}
+
+	public final void setParent(final DOMNode parent) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(DOMNodeTraitDefinition.PARENT_PROPERTY), parent);
 	}
 
 	@Override

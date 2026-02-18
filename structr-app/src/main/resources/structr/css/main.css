@@ -1368,11 +1368,20 @@ body[style*=zoom] .non-block-ui-blocker-content {
     height: calc(25vh);
 }
 
+#dialogBox.maximized.insert-widget-dialog {
+    width: calc(100vw - 4rem);
+    height: calc(100vh - 5rem);
+}
+
 /* set default sizes for dialogs with tabs */
-#dialogBox:has(#tabs),
-#dialogBox:has(#files-tabs),
-#dialogBox:has(.widgets-tabs) {
+#dialogBox:has(ul > li.tab),
+#dialogBox:has(div#tabs) {
     height: calc(45vh);
+}
+#dialogBox.maximized:has(#tabs),
+#dialogBox.maximized:has(#files-tabs),
+#dialogBox.maximized:has(.widgets-tabs) {
+    height: calc(100vh - 5rem);
 }
 
 /* set default sizes for dialogs with tabs */

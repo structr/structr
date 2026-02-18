@@ -64,9 +64,9 @@ public class ThemeFunction extends UiCommunityFunction {
 
 				final HttpService service                = Services.getInstance().getServiceImplementation(HttpService.class);
 				final ResourceHandler resourceHandler    = service.getExportedResourceHandler();
-				final Resource themeResource             = resourceHandler.getBaseResource().resolve("/themes/" + name + "/theme.js");
-				final Resource styleResource             = resourceHandler.getBaseResource().resolve("/themes/" + name + "/style.css");
-				final Path themePath                     = themeResource.getPath();
+				final Resource baseResource              = resourceHandler.getBaseResource();
+				final Resource styleResource             = baseResource.resolve("/themes/style.css");
+				final Path themePath                     = getThemePathOrDefault(baseResource, name);
 				final Path stylePath                     = styleResource.getPath();
 
 				final String themeSource = Files.readString(themePath);
@@ -86,4 +86,18 @@ public class ThemeFunction extends UiCommunityFunction {
 		return null;
 	}
 
+	// ----- private methods -----
+	private Path getThemePathOrDefault(final Resource baseResource, final String name) {
+
+		final Resource themeResource = baseResource.resolve("/themes/" + name + "/theme.js");
+		final Path themePath         = themeResource.getPath();
+
+		if (Files.exists(themePath)) {
+			return themePath;
+		}
+
+		logger.warn("Theme {} does not exist, using default.", name);
+
+		return baseResource.resolve("/themes/default/theme.js").getPath();
+	}
 }

@@ -18,21 +18,33 @@
  */
 package org.structr.websocket.command;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.pdfbox.pdmodel.PDStructureElementNameTreeNode;
+import org.bouncycastle.tsp.TSPUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.web.entity.Widget;
+import org.structr.web.entity.dom.Content;
+import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.command.dom.ReplaceWithCommand;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
+
+import java.util.*;
 
 
 public class ReplaceWidgetCommand extends AbstractCommand {
@@ -79,17 +91,9 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 				final DOMNode parentNode = nodeToReplace.getParent();
 				if (parentNode != null) {
 
-					final DOMNode tmpParent = page.createElement("div");
+					final Map<String, Object> data = webSocketData.getNodeData();
 
-					Widget.expandWidget(getWebSocket().getSecurityContext(), page, tmpParent, baseUrl, webSocketData.getNodeData(), processDeploymentInfo);
-
-					// which is the new node?
-					final DOMNode newNode = tmpParent.getFirstChild();
-
-					ReplaceWithCommand.replaceNode(securityContext, parentNode, nodeToReplace, newNode, false, true, true);
-
-					// remove temporary parent
-					StructrApp.getInstance(securityContext).delete(tmpParent);
+					ReplaceWidgetCommand.replaceWidget(securityContext, page, nodeToReplace, baseUrl, data, processDeploymentInfo);
 
 					TransactionCommand.registerNodeCallback(parentNode, callback);
 
@@ -114,5 +118,202 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 	@Override
 	public String getCommand() {
 		return "REPLACE_WIDGET";
+	}
+
+	public static void replaceWidget(final SecurityContext securityContext, final Page page, final DOMNode nodeToReplace, final String baseUrl, final Map<String, Object> data, final boolean processDeploymentInfo) throws FrameworkException {
+
+		// create temporary parent for Widget to expand in
+		final DOMNode tmpParent  = page.createElement("div");
+		final DOMNode parentNode = nodeToReplace.getParent();
+
+		// expand Widget
+		Widget.expandWidget(securityContext, page, tmpParent, baseUrl, data, processDeploymentInfo);
+
+		// get Widget node (can only be a single node!)
+		final DOMNode newNode = tmpParent.getFirstChild();
+
+		// move content and children to new node
+		moveContent(securityContext, nodeToReplace, newNode);
+
+		// replace current node with new one
+		parentNode.replaceChild(newNode, nodeToReplace);
+
+		// remove temporary parent
+		StructrApp.getInstance(securityContext).delete(tmpParent);
+	}
+
+	// ----- private methods -----
+	private static void moveContent(final SecurityContext securityContext, final DOMNode oldNode, final DOMNode newNode) throws FrameworkException{
+
+		final Map<String, LocalSlotData> slotChildren = new LinkedHashMap<>();
+		final Set<String> idsOfOldNodesWithItemType   = new LinkedHashSet<>();
+
+		// collect slot children from old node
+		for (final NodeInterface node : collectChildren(oldNode)) {
+
+			if (node.is(StructrTraits.DOM_NODE)) {
+
+				final DOMNode slotNode = node.as(DOMNode.class);
+				final String itemType = slotNode.getItemType();
+
+				System.out.println("OLD: processing " + format(slotNode) + "..");
+
+				if (itemType != null) {
+
+					idsOfOldNodesWithItemType.add(slotNode.getUuid());
+
+					System.out.println("OLD: Storing \"" + format(slotNode) + "\" with itemType \"" + itemType + "\"");
+
+					final LocalSlotData slotData = new LocalSlotData(slotNode, itemType);
+
+					if (slotChildren.put(itemType, slotData) != null) {
+
+						throw new FrameworkException(422, "Slot " + itemType + " exists more than once in " + slotNode);
+					}
+
+				} else {
+
+					System.out.println("OLD: Ignoring \"" + format(slotNode) + "\" because it has no itemType");
+				}
+			}
+		}
+
+		// find slots in new node
+		for (final NodeInterface node : collectChildren(newNode)) {
+
+			if (node.is(StructrTraits.DOM_NODE)) {
+
+				final DOMNode slotNode   = node.as(DOMNode.class);
+				final String itemType    = slotNode.getItemType();
+				final LocalSlotData data = slotChildren.get(itemType);
+
+				System.out.println("NEW: processing " + format(slotNode) + "..");
+
+				if (data != null) {
+
+					// move node to new slot
+					data.applyTo(securityContext, slotNode);
+				}
+			}
+		}
+
+		final App app = StructrApp.getInstance(securityContext);
+
+		// remove children with itemType from new node that were present on the old node
+		for (final NodeInterface child : newNode.getAllChildNodes()) {
+
+
+			if (idsOfOldNodesWithItemType.contains(child.getUuid())) {
+
+				app.delete(child);
+			}
+		}
+	}
+
+	private static List<DOMNode> collectChildren(final DOMNode node) throws FrameworkException {
+
+		final List<DOMNode> nodes = new LinkedList<>();
+
+		nodes.add(node);
+
+		for (final DOMNode child : node.getChildren()) {
+
+			// don't collect nested components
+			if (child.isComponentRoot()) {
+				continue;
+			}
+
+			nodes.addAll(collectChildren(child));
+		}
+
+		return nodes;
+	}
+
+	public static void print(final DOMNode node, int depth) {
+
+		System.out.println(StringUtils.repeat(" ", depth * 4) +  nameOrTag(node) + " (" + node.getUuid() + ")");
+
+		for (final DOMNode child2 : node.getChildren()) {
+
+			print(child2, depth + 1);
+		}
+	}
+
+	private static String format(final DOMNode node) {
+		return node.getType() + "(" + nameOrTag(node) + ")";
+	}
+
+	public static String nameOrTag(final DOMNode node) {
+
+		if (node.getName() != null) {
+			return node.getName();
+		}
+
+		if (node.is(StructrTraits.DOM_ELEMENT)) {
+			return node.as(DOMElement.class).getTag();
+		}
+
+		if (node.is(StructrTraits.CONTENT)) {
+			final String content = node.as(Content.class).getContent();
+			return "Content[" + content.substring(0, Math.min(content.length(), 6)) + "]";
+		}
+
+		return node.getUuid();
+	}
+
+	private static class LocalSlotData {
+
+		private final Set<String> keys       = Set.of(DOMNodeTraitDefinition.DATA_KEY_PROPERTY, DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY);
+		private final List<DOMNode> children = new LinkedList<>();
+		private final PropertyMap properties = new PropertyMap();
+		private final String itemType;
+
+		public LocalSlotData(final DOMNode node, final String itemType) throws FrameworkException {
+
+			this.itemType = itemType;
+
+			final Traits traits = node.getTraits();
+
+			for (final DOMNode child : node.getChildren()) {
+
+				System.out.println("OLD: storing children of \"" + format(child) + "\" for itemType " + itemType);
+				this.children.add(child);
+			}
+
+			for (final String keyName : keys) {
+
+				final PropertyKey key = traits.key(keyName);
+				properties.put(key, node.getProperty(key));
+			}
+		}
+
+		public void applyTo(final SecurityContext securityContext, final DOMNode newNode) throws FrameworkException {
+
+			final App app = StructrApp.getInstance(securityContext);
+
+			// remove template slot content (will be replaced with children from source node)
+			for (final DOMNode child : newNode.getChildren()) {
+
+				if (child.getItemType() == null) {
+
+					System.out.println("NEW: deleting " + format(child) + " with no itemType");
+					app.delete(child);
+
+				} else {
+
+					System.out.println("NEW: ignoring " + format(child) + " because it has itemType \"" + child.getItemType() + "\"");
+				}
+			}
+
+			// move slot content from source to destination
+			for (final DOMNode child : this.children) {
+
+				System.out.println("NEW: moving \"" + format(child) + "\" to \"" + format(newNode) + "\"");
+				newNode.appendChild(child);
+			}
+
+			System.out.println("NEW: setting properties on new node");
+			newNode.setProperties(securityContext, properties);
+		}
 	}
 }
