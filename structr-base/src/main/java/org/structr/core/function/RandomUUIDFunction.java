@@ -56,12 +56,22 @@ public class RandomUUIDFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns a random UUID.";
+		return "Returns a new random UUID (v4).";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "New in v3.6: Returns a new random UUID, a string with 32 characters [0-9a-f].";
+		return """
+			The output format depends on `application.uuid.allowedformats`:
+
+			- `without_dashes` (default): 32 lowercase hex characters `[0-9a-f]{32}`
+
+			- `with_dashes`: 36 lowercase hex characters including dashes `[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}`
+
+			- `both`: Output format depends on `application.uuid.createcompact`:
+			    - `true` (default): same as `without_dashes`
+			    - `false`: same as `with_dashes`
+			""";
 	}
 
 	@Override
