@@ -207,6 +207,11 @@ tt, tt *, pre, pre *, code, code *,
 	font-size: var(--font-monospace-size) !important;
 }
 
+/* override custom font size to prevent wrong size in code suggestion popups */
+.monaco-editor .suggest-details p code {
+    font-size: inherit !important;
+}
+
 a, a:link, a:visited {
 	color: var(--inactive-link);
 }

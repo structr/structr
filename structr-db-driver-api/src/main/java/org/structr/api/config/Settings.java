@@ -96,10 +96,10 @@ public class Settings {
 	public static final Setting<String> ApplicationTimezone         = new StringSetting(generalGroup, "Application", "application.timezone", "", "Application timezone (e.g. UTC, Europe/Berlin). If not set, falls back to system timezone or UTC. Note: Changes require a restart of Structr.");
 
 	public static final Setting<String> UUIDv4AllowedFormats        = new ChoiceSetting(generalGroup,          "Application", "application.uuid.allowedformats",             "without_dashes", Settings.getAllowedUUIDv4FormatOptions(), "Configures which UUIDv4 types are allowed: With dashes, without dashes or both.").setLongDescription("""
-  		<br><strong>WARNING</strong>: Allowing both UUIDv4 formats to be accepted is not supported and strongly recommended against! It should only be used for temporary migration scenarios!<br>
-  		<br><strong>WARNING</strong>: If changed after data was already created, this could prevent access to data objects. Only change this setting with an empty database.<br>
-  		<br><strong>INFO</strong>: Requires a restart to take effect.
-	""");
+		<br><strong>WARNING</strong>: Allowing both UUIDv4 formats to be accepted is not supported and strongly recommended against! It should only be used for temporary migration scenarios!<br>
+		<br><strong>WARNING</strong>: If changed after data was already created, this could prevent access to data objects. Only change this setting with an empty database.<br>
+		<br><strong>INFO</strong>: Requires a restart to take effect.
+		""");
 	public static final Setting<Boolean> UUIDv4CreateCompact        = new BooleanSetting(generalGroup,         "Application", "application.uuid.createcompact",              true, "Determines if UUIDs are created with or without dashes. This setting is only used if <strong>" + Settings.UUIDv4AllowedFormats.getKey() + "</strong> is set to <strong>" + POSSIBLE_UUID_V4_FORMATS.both.toString() + "</strong>.<br><br><strong>WARNING</strong>: Requires a restart to take effect.");
 	public static final Setting<String> EmailValidationRegex        = new StringSetting(generalGroup,          "Application", "application.email.validation.regex", "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$", "Regular expression used to validate email addresses for User.eMail and is_valid_email() function.");
 	private static Pattern emailValidationPattern = Pattern.compile(Settings.EmailValidationRegex.getValue());
