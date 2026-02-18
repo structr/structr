@@ -21,6 +21,7 @@ package org.structr.bolt.factory;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.index.AbstractIndex;
 import org.structr.api.index.AbstractQueryFactory;
+import org.structr.api.search.AnyQuery;
 import org.structr.api.search.GraphQuery;
 import org.structr.api.search.Operation;
 import org.structr.api.search.QueryPredicate;
@@ -47,6 +48,10 @@ public class GraphQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 		if (values.isEmpty() || onlyEmptyValues(values)) {
 
 			query.addNullObjectParameter(graphQuery.getDirection(), graphQuery.getRelationship());
+
+		} else if (predicate instanceof AnyQuery anyQuery) {
+
+			final Object value = anyQuery.getValue();
 
 		} else {
 

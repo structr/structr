@@ -386,6 +386,14 @@ public class SearchAttributeGroup<T> extends SearchAttribute<T> implements Query
 		return this;
 	}
 
+	@Override
+	public <P> QueryGroup<T> any(final PropertyKey<P> key, final P value, final boolean exact) {
+
+		searchItems.add(new AnySearchAttribute(key, value, exact));
+
+		return this;
+	}
+
 	// ----- interface Query<T> -----
 	@Override
 	public QueryContext getQueryContext() {

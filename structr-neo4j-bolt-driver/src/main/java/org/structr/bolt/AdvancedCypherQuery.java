@@ -480,6 +480,30 @@ public class AdvancedCypherQuery implements CypherQuery {
 		parameters.put(paramKey2, value2);
 	}
 
+	public void addAnyParameter(final String key, final Object value, final boolean isExactMatch) {
+
+		final String paramKey = "param" + count++;
+
+		if (isExactMatch) {
+
+			buffer.append("ANY (x IN n.`");
+			buffer.append(key);
+			buffer.append("` WHERE x IN $");
+			buffer.append(paramKey);
+			buffer.append(")");
+
+		} else {
+
+			buffer.append("ANY (x IN $");
+			buffer.append(paramKey);
+			buffer.append(" WHERE n.`");
+			buffer.append(key);
+			buffer.append("` CONTAINS x)");
+		}
+
+		parameters.put(paramKey, value);
+	}
+
 	public void addGraphQueryPart(final GraphQueryPart newPart) {
 
 		final Operation operation = newPart.getOperation();
