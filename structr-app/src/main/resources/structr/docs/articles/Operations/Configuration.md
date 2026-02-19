@@ -19,7 +19,7 @@ You can access the Configuration Interface by clicking the wrench icon in the Ad
 
 ![Configuration Interface](/structr/docs/configuration-interface.png)
 
-After making changes, click the green button in the lower right corner to save them to `structr.conf`. Individual settings can be reset to their default value using the red button with the white X next to each field — this takes effect immediately. The interface also provides a reload function to apply configuration changes without restarting Structr.
+After making changes, click the green button in the lower right corner to save them to `structr.conf`. Individual settings can be reset to their default value using the red button with the white X next to each field. This takes effect immediately. The interface also provides a reload function to apply configuration changes without restarting Structr.
 
 ## How Settings Are Stored
 
@@ -121,7 +121,7 @@ When using Neo4j as database, also follow the [Neo4j file permission recommendat
 
 ## Data-at-Rest Encryption
 
-To protect data stored on disk in case of physical hardware theft, enable filesystem-level encryption on the operating system. This is called data-at-rest encryption and must be configured at the OS level — Structr does not provide this directly.
+To protect data stored on disk in case of physical hardware theft, enable filesystem-level encryption on the operating system. This is called data-at-rest encryption and must be configured at the OS level as Structr does not provide this directly.
 
 Consult your operating system documentation for options like LUKS (Linux), BitLocker (Windows), or FileVault (macOS).
 

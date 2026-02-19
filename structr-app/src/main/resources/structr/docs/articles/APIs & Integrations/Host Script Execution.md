@@ -2,7 +2,7 @@
 
 Structr can execute shell scripts on the host system, allowing your application to interact with the operating system, run external tools, and integrate with other software on the server. This opens up possibilities like generating documents with external converters, running maintenance tasks from a web interface, querying system metadata, controlling Docker containers, or integrating with legacy systems.
 
-For security reasons, scripts must be explicitly registered in the configuration file before they can be executed. You cannot run arbitrary commands — only scripts that an administrator has approved.
+For security reasons, scripts must be explicitly registered in the configuration file before they can be executed. You cannot run arbitrary commands, only scripts that an administrator has approved.
 
 ## Registering Scripts
 
@@ -98,7 +98,7 @@ The default is controlled by the `log.scriptprocess.commandline` setting.
 
 Host script execution is a powerful feature that requires careful handling.
 
-- Only scripts registered in `structr.conf` can be executed. This configuration-based allowlist prevents code injection attacks — even if an attacker gains access to your application logic, they cannot execute arbitrary commands.
+- Only scripts registered in `structr.conf` can be executed. This configuration-based allowlist prevents code injection attacks. Even if an attacker gains access to your application logic, they cannot execute arbitrary commands.
 - By default, script paths cannot be symbolic links. This prevents attacks where a symlink points to a sensitive file outside the scripts folder.
 - Paths containing `..` are rejected by default, preventing access to files outside the scripts folder.
 - Always validate and sanitize any user input before passing it as a parameter to a script. Never construct script parameters directly from user input without validation.

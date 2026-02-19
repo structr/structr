@@ -4,7 +4,7 @@ A single Structr instance can serve multiple websites under different domains. T
 
 Structr uses Site objects to control which pages are served for which domain. You can think of this as a built-in reverse proxy: when a request arrives, Structr checks the hostname and port against your configured sites and serves only the pages assigned to the matching site.
 
-Pages not assigned to any site are served for all requests, which is the default behavior when you don't use this feature. Sites control page visibility only — files are not affected and remain accessible regardless of the requesting domain.
+Pages not assigned to any site are served for all requests, which is the default behavior when you don't use this feature. Sites control page visibility only while files are not affected and remain accessible regardless of the requesting domain.
 
 ## Creating a Site
 

@@ -8,7 +8,7 @@ The export creates a portable folder structure containing your application's sch
 
 Structr provides two deployment mechanisms: application deployment and data deployment.
 
-Application deployment exports the structure of your application — schema, pages, templates, shared components, widgets, files marked for export, security settings, and business logic. This is everything needed to recreate the application on another system, but it does not include users, groups, or any data created during normal use of the application.
+Application deployment exports the structure of your application: Schema, pages, templates, shared components, widgets, files marked for export, security settings, and business logic. This is everything needed to recreate the application on another system, but it does not include users, groups, or any data created during normal use of the application.
 
 Data deployment exports the actual objects stored in your database. You select which types to export, making this useful for migrating user data, creating test datasets, or synchronizing content between environments.
 
@@ -24,7 +24,7 @@ This is the typical development cycle. It is very important to do these steps in
 4. On the target server (staging or production), pull the latest changes
 5. Import the application
 
-When working in a team, each developer works on their local instance and merges changes through the repository. Structr does not merge during import — all conflict resolution happens in the version control system.
+When working in a team, each developer works on their local instance and merges changes through the repository. Structr does not merge during import - all conflict resolution happens in the version control system.
 
 For detailed setup instructions with Docker and Git, see the Version Control Workflow section below.
 

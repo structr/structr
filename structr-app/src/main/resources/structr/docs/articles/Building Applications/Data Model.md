@@ -2,9 +2,9 @@ The process of creating a Structr application usually begins with the data model
 
 ## Data Model vs. Schema
 
-The **data model** is the abstract design of your application's data — the types of objects, their attributes, and how they relate to each other. The **schema** is the concrete implementation of that model inside Structr, defining the types, properties, relationships, methods, and constraints that the system enforces at runtime.
+The **data model** is the abstract design of your application's data and defines the types of objects, their attributes, and how they relate to each other. The **schema** is the concrete implementation of that model inside Structr, defining the types, properties, relationships, methods, and constraints that the system enforces at runtime.
 
-In Structr, the gap between the two is unusually small. Because Structr stores the schema itself as a graph in the underlying graph database, types map to nodes, relationships map to edges, and properties map to attributes on those nodes — closely mirroring the structure of the data model.
+In Structr, the gap between the two is unusually small. Because Structr stores the schema itself as a graph in the underlying graph database, types map to nodes, relationships map to edges, and properties map to attributes on those nodes, closely mirroring the structure of the data model.
 
 The [Schema Editor](/structr/docs/ontology/Admin%20User%20Interface/Schema) is the primary tool for creating and editing the schema. Because the schema maps so directly to the data model, it effectively doubles as a data modeling tool. Throughout this chapter, we use *data model* when referring to the abstract design and *schema* when referring to the implementation in Structr.
 
@@ -33,7 +33,7 @@ Most things that you would use a verb to describe should be modeled as relations
 - actions or activities
 - facts
 
-These rules apply at the data modeling level. When you translate them into the Structr schema, nodes become schema types, relationships become schema relationships, and properties become schema properties — but the conceptual thinking stays the same.
+These rules apply at the data modeling level. When you translate them into the Structr schema, nodes become schema types, relationships become schema relationships, and properties become schema properties but the conceptual thinking stays the same.
 
 ## Creating a Basic Type
 To create a new type in the schema, click the green "Create Data Type" button in the top left corner of the [Schema](/structr/docs/ontology/Admin%20User%20Interface/Schema) area.
@@ -59,7 +59,7 @@ All types for which you activate the "Include in OpenAPI output" checkbox and en
 [Read more about OpenAPI.](/structr/docs/ontology/APIs%20&%20Integrations/OpenAPI)
 
 ### Other Ways to Create Types in the Schema
-Like all other parts of the application, the schema definition itself is stored as a graph in the database. This means you can also create new types by adding objects of type `SchemaNode` with the name of the desired type in the `name` attribute, and you can also do this from a script or method using the `create()` function. This is another illustration of how closely the schema and the underlying graph structure are aligned — the schema *is* data in the same database it describes.
+Like all other parts of the application, the schema definition itself is stored as a graph in the database. This means you can also create new types by adding objects of type `SchemaNode` with the name of the desired type in the `name` attribute, and you can also do this from a script or method using the `create()` function. This is another illustration of how closely the schema and the underlying graph structure are aligned: The schema *is* data in the same database it describes.
 
 ## Extending a Type
 When you click Create in the Create Type dialog, the new type is created and the dialog switches to an Edit Type dialog. You can also open the Edit Type dialog by hovering over a type node and clicking the pencil icon.
@@ -149,7 +149,7 @@ Note that this protects data in the database but not during transmission – use
 
 ### Linked Properties
 
-In contrast to direct properties, linked properties are not stored on the node itself. They represent related objects that are reachable through relationships — single objects or collections of objects connected to the current node in the graph. Where direct properties hold simple values, linked properties provide access to complex objects in the vicinity of a node.
+In contrast to direct properties, linked properties are not stored on the node itself. They represent related objects that are reachable through relationships - single objects or collections of objects connected to the current node in the graph. Where direct properties hold simple values, linked properties provide access to complex objects in the vicinity of a node.
 
 The Linked Properties tab displays a table with one row per relationship. Each row shows the property name for this side of the relationship, the relationship details, and the target type. You can edit the property name directly in the table and navigate to the target type by clicking it.
 
