@@ -247,7 +247,7 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 
 		for (int d = 0; d < depth; d++) {
 
-			indent.append("	");
+			indent.append('\t');
 
 		}
 

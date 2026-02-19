@@ -37,6 +37,7 @@ import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.web.traits.definitions.html.Script;
 import org.testng.annotations.Test;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -370,7 +371,8 @@ public class ImporterTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
-			logger.warn("", ex);
+			ex.printStackTrace();
+			fail(ex.getMessage());
 		}
 	}
 
@@ -403,32 +405,29 @@ public class ImporterTest extends StructrUiTest {
 
 		} catch (FrameworkException ex) {
 			ex.printStackTrace();
-			fail("Unexpected exception");
+			fail(ex.getMessage());
 		}
 	}
 
 	private String testImport(final String address, final RenderContext.EditMode editMode) {
 
-		String sourceHtml = null;
+		String sourceHtml = "";
 
-		try {
+		// render page into HTML string
+		try (final Tx tx = app.tx()) {
 
-			// render page into HTML string
-			try (final Tx tx = app.tx()) {
+			final Importer importer = new Importer(securityContext, null, address, "testpage", true, true, false, false);
 
-				final Importer importer = new Importer(securityContext, null, address, "testpage", true, true, false, false);
+			importer.parse();
 
-				importer.parse();
+			// create page from source
+			final Page sourcePage = importer.readPage();
+			sourceHtml = sourcePage.getContent(editMode);
+			tx.success();
 
-				// create page from source
-				final Page sourcePage = importer.readPage();
-				sourceHtml = sourcePage.getContent(editMode);
-				tx.success();
-			}
-
-		} catch (Throwable t) {
-
-			logger.warn("", t);
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail(fex.getMessage());
 		}
 
 		return sourceHtml;
@@ -482,7 +481,7 @@ public class ImporterTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
-			logger.warn("", ex);
+			ex.printStackTrace();
 		}
 	}
 
@@ -499,7 +498,7 @@ public class ImporterTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
-			logger.warn("", ex);
+			ex.printStackTrace();
 		}
 	}
 
@@ -512,6 +511,8 @@ public class ImporterTest extends StructrUiTest {
 		final List<Node> expectedNodes = new ArrayList<>();
 		final List<Node> actualNodes   = new ArrayList<>();
 
+		System.out.println(actual);
+
 		collectNodes(expectedNodes, Jsoup.parse(expected));
 		collectNodes(actualNodes, Jsoup.parse(actual));
 
@@ -520,6 +521,8 @@ public class ImporterTest extends StructrUiTest {
 			final Node expectedNode = expectedNodes.get(i);
 			final Node actualNode   = actualNodes.get(i);
 			final String acName     = actualNode.nodeName();
+
+			System.out.println(expectedNode.nodeName() + " -> " + actualNode.nodeName());
 
 			assertEquals("Tag name mismatch", expectedNode.nodeName(), actualNode.nodeName());
 			assertEquals("Attribute mismatch in " + acName, expectedNode.attributes(), actualNode.attributes());

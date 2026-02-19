@@ -20,7 +20,6 @@ package org.structr.test.web.advanced;
 
 import io.restassured.RestAssured;
 import org.apache.commons.lang3.StringUtils;
-import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.JsonInput;
 import org.structr.core.JsonSingleInput;

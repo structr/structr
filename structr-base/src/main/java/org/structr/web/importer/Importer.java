@@ -18,12 +18,14 @@
  */
 package org.structr.web.importer;
 
+import groovy.xml.XmlParser;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Comment;
 import org.jsoup.nodes.*;
+import org.jsoup.parser.ParseSettings;
 import org.jsoup.parser.Parser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -194,75 +196,8 @@ public class Importer {
 
 		if (StringUtils.isNotBlank(code) || StringUtils.isBlank(address)) {
 
-			if (isDeployment) {
-
-				// a trailing slash to all void/self-closing tags so the XML parser can parse it correctly
-				code = code.replaceAll("<(area|base|br|col(?!group)|command|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)([^>]*)>", "<$1$2/>");
-			}
-
-			/*
-			if (fragment) {
-
-				if (isDeployment) {
-
-					final List<Node> nodeList = Parser.parseXmlFragment(code, "");
-					parsedDocument            = Document.createShell("");
-					final Element body        = parsedDocument.body();
-					final Node[] nodes        = nodeList.toArray(new Node[nodeList.size()]);
-
-					for (int i = nodes.length - 1; i > 0; i--) {
-					    nodes[i].remove();
-					}
-
-					for (Node node : nodes) {
-					    body.appendChild(node);
-					}
-
-				} else {
-
-					final Matcher matcher = Pattern.compile("^\\s*<(thead|tbody|caption|colgroup|th|tr|tfoot).*", Pattern.CASE_INSENSITIVE).matcher(code);
-
-					if (matcher.matches()) {
-
-						// if outermost tag is a table element so use <table> as context element
-						parsedDocument      = Document.createShell("");
-						final Element body  = parsedDocument.body();
-						final Element table = body.appendElement("table");
-
-						final List<Node> nodeList = Parser.parseFragment(code, table, "");
-						final Node[] nodes        = nodeList.toArray(new Node[nodeList.size()]);
-
-						for (int i = nodes.length - 1; i > 0; i--) {
-							nodes[i].remove();
-						}
-
-						for (Node node : nodes) {
-							table.appendChild(node);
-						}
-
-						tableChildElement = matcher.group(1);
-
-					} else {
-
-						// FIXME: use XML parser for everything?
-						parsedDocument = Jsoup.parseBodyFragment(code);
-					}
-
-				}
-
-			} else {
-
-				if (isDeployment) {
-
-					parsedDocument = Jsoup.parse(code, "", Parser.xmlParser());
-
-				} else {
-
-					parsedDocument = Jsoup.parse(code);
-				}
-
-			}
-			*/
+			// a trailing slash to all void/self-closing tags so the XML parser can parse it correctly
+			code = code.replaceAll("<(area|base|br|col(?!group)|command|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)([^>]*)>", "<$1$2/>");
 
 			parsedDocument = Parser.parseXmlFragment(code, "http://localhost:8082");
 
@@ -276,8 +211,13 @@ public class Importer {
 			code = responseData.get(HttpHelper.FIELD_BODY) != null ? (String) responseData.get(HttpHelper.FIELD_BODY) : null;
 			if (code != null) {
 
+				code = code.replaceAll("<(area|base|br|col(?!group)|command|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)([^>]*)>", "<$1$2/>");
+
+				parsedDocument = Jsoup.parse(code, "", Parser.xmlParser()).childNodes();
+
 				//parsedDocument = Jsoup.parse(code);
-				parsedDocument = Parser.parseXmlFragment(code, "http://localhost:8082");
+				//parsedDocument = Parser.parseXmlFragment(code, "http://localhost:8082");
+
 
 			} else {
 
@@ -298,9 +238,24 @@ public class Importer {
 		Page page = Page.createNewPage(securityContext, uuid, name);
 		if (page != null) {
 
+			DOMNode parent = page;
+
+			if (false) {
+
+				final DOMNode html = page.createElement("html");
+				final DOMNode head = page.createElement("head");
+				final DOMNode body = page.createElement("body");
+
+				page.appendChild(html);
+				html.appendChild(head);
+				html.appendChild(body);
+
+				parent = body;
+			}
+
 			page.setVisibility(publicVisible, authVisible);
 
-			createChildNodes(parsedDocument, page, page);
+			createChildNodes(parsedDocument, parent, page);
 
 			if (!isDeployment) {
 				logger.info("##### Finished fetching {} for page {} #####", address != null ? address : "content", name);

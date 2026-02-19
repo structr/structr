@@ -25,6 +25,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.script.Scripting;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.rest.service.HttpService;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
@@ -39,16 +40,6 @@ public class ThemeFunction extends UiCommunityFunction {
 	@Override
 	public String getName() {
 		return "theme";
-	}
-
-	@Override
-	public String getShortDescription() {
-		return "Applies the theme with the given name.";
-	}
-
-	@Override
-	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("name");
 	}
 
 	@Override
@@ -84,6 +75,24 @@ public class ThemeFunction extends UiCommunityFunction {
 		}
 
 		return null;
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Applies the theme with the given name.";
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${theme('dark')}"),
+			Usage.structrScript("Usage: ${{ $.theme('dark'); }}")
+		);
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("name");
 	}
 
 	// ----- private methods -----

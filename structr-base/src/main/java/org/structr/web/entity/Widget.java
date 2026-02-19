@@ -88,8 +88,8 @@ public interface Widget extends NodeInterface {
 
 		if (!errorBuffer.hasError()) {
 
-			final Importer importer = new Importer(securityContext, _source, baseUrl, null, false, false, false, false);
-			final JsonInput config  = ((JsonSingleInput) parameters.get("config")).getFirst();
+			final Importer importer          = new Importer(securityContext, _source, baseUrl, null, false, false, false, false);
+			final JsonSingleInput configData = ((JsonSingleInput) parameters.get("config"));
 
 			if (processDeploymentInfo) {
 				importer.setIsDeployment(true);
@@ -109,7 +109,9 @@ public interface Widget extends NodeInterface {
 
 				// Copy attributes from Widget to created nodes. This assumes that the parent node
 				// is a temporary parent to separate new widget nodes from existing nodes.
-				if (config != null) {
+				if (configData != null) {
+
+					final JsonInput config = configData.getFirst();
 
 					for (final DOMNode newChild : parent.getChildren()) {
 
