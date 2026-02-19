@@ -27,6 +27,16 @@ When a request comes in, Structr determines which page to display based on sever
 
 If multiple pages have the same name and the same permissions, Structr cannot distinguish between them and only one will be displayed.
 
+### Pages vs. static files
+
+It is important to understand the difference between dynamic pages and static files when it comes to URL resolution.
+
+For dynamic pages (Page nodes with their tree of Template and DOM elements), Structr is flexible: `/product`, `/product/`, and `/product/index.html` all resolve to the page named `product`. This is the standard behavior unless custom URL routing is configured.
+
+For static files served from the virtual filesystem, Structr resolves paths exactly. A request to `/product` or `/product/` resolves to the folder named `product`, not to a file like `index.html` inside it. Unlike traditional web servers such as Apache or Nginx, Structr does not automatically map directory paths to index files.
+
+This distinction matters when migrating static websites into Structr's virtual filesystem. If your static HTML files use directory-style links like `href="/product/"`, those links will resolve to the folder rather than to an `index.html` file within it. You need to use explicit file references like `href="/product/index.html"` instead.
+
 ## The start page
 
 When users navigate to the root URL (`/`), Structr displays a start page based on one of two configurations:
