@@ -56,7 +56,6 @@ setup-variables:
       when: never
     - when: always
   services:
-    - docker:dind
     - name: neo4j:2025
       alias: neo4j
       variables:
@@ -177,13 +176,13 @@ release-build:
         
         # Create versioned release with build artifacts
         echo "Creating release with glab..."
-         glab release create "$STRUCTR_VERSION" \
+        glab release create "$STRUCTR_VERSION" \
           --use-package-registry \
           --name "$STRUCTR_VERSION" \
           --notes  --notes "## Release $STRUCTR_VERSION
 
           **Date:** $(date)" \
-          structr-app/target/*.deb structr-app/target/*.zip        
+          structr-app/target/*.deb structr-app/target/*.zip
         
         echo "Release build and release completed successfully"
       else
@@ -193,6 +192,30 @@ release-build:
       fi
   rules:
     - when: on_success
+
+trigger-enterprise:
+  stage: deploy
+  tags:
+    - shared
+  needs:
+    - setup-variables
+    - job: snapshot-build
+      optional: true
+    - job: release-build
+      optional: true
+  rules:
+    - if: $CI_COMMIT_REF_NAME == "main" || $CI_COMMIT_REF_NAME == "release"
+      when: on_success
+    - when: never
+  script:
+    - |
+      curl -X POST \
+        --form "token=$ENTERPRISE_TRIGGER_TOKEN" \
+        --form "ref=main" \
+        --form "variables[COMMUNITY_VERSION]=$STRUCTR_VERSION" \
+        --form "variables[BUILD_TIMESTAMP]=$BUILD_TIMESTAMP" \
+        --form "variables[COMMIT_SHORT]=$COMMIT_SHORT" \
+        "https://$CI_SERVER_HOST/api/v4/projects/20/trigger/pipeline"
 
 # Clean up Docker resources after pipeline completion
 cleanup-system:
