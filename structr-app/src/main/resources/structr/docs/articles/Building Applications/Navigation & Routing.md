@@ -207,11 +207,11 @@ ${{
 
 URL Routing is particularly useful for:
 
-- **SEO-friendly URLs** — using human-readable object names or slugs instead of UUIDs (e.g. `/product/ergonomic-keyboard` instead of `/product?id=a3f8...`)
-- **Multilingual sites** — including the language code as a path segment (e.g. `/en/about`, `/de/about`) to serve localized content from a single page
-- **Detail pages** — passing identifiers via the URL so a single page template can render different content (e.g. `/user/{username}`, `/order/{orderId}`)
-- **Hierarchical content** — modeling category and subcategory structures directly in the URL (e.g. `/docs/{section}/{topic}`)
-- **Clean API-style endpoints** — combining URL Routing with page methods to create RESTful-style interfaces served by Structr pages
+- **SEO-friendly URLs** - using human-readable object names or slugs instead of UUIDs (e.g. `/product/ergonomic-keyboard` instead of `/product?id=a3f8...`)
+- **Multilingual sites** - including the language code as a path segment (e.g. `/en/about`, `/de/about`) to serve localized content from a single page
+- **Detail pages** - passing identifiers via the URL so a single page template can render different content (e.g. `/user/{username}`, `/order/{orderId}`)
+- **Hierarchical content** - modeling category and subcategory structures directly in the URL (e.g. `/docs/{section}/{topic}`)
+- **Clean API-style endpoints** - combining URL Routing with page methods to create RESTful-style interfaces served by Structr pages
 
 ## Building navigation
 
