@@ -16,24 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.graph.search;
+package org.structr.api.search;
 
-import org.structr.api.search.AnyQuery;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.RelationProperty;
 
-public class AnySearchAttribute<T> extends PropertySearchAttribute<T> implements AnyQuery {
+public interface AnyGraphQuery extends GraphQuery {
 
-	public AnySearchAttribute(final PropertyKey<T> key, final T value, final boolean isExactMatch) {
-		super(key, value, isExactMatch);
-	}
-
-	@Override
-	public Class getQueryType() {
-		return AnyQuery.class;
-	}
-
-	public boolean isRelationProperty() {
-		return (getKey() instanceof RelationProperty);
+	default boolean isAny() {
+		return true;
 	}
 }

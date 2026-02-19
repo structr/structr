@@ -52,6 +52,8 @@ public class FindAnyFunction extends AdvancedScriptingFunction {
 
 			if (value instanceof Collection collection) {
 				return new AnyPredicate(collection);
+			} else {
+				throw new FrameworkException(422, "find.any: first parameter must be a collection");
 			}
 
 		} catch (final IllegalArgumentException e) {
@@ -60,31 +62,32 @@ public class FindAnyFunction extends AdvancedScriptingFunction {
 
 			return usage(ctx.isJavaScriptContext());
 		}
-
-		return null;
 	}
 
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.javaScript("Usage: ${{ $.predicate.equals(key, value). Example: ${{ $.find('Group', $.predicate.and($.predicate.equals('name', 'Test'))) }}"),
-			Usage.structrScript("Usage: ${equals(key, value). Example: ${find('Group', and(equals('name', 'Test')))}")
+			Usage.javaScript("Usage: ${{ $.predicate.any(collection). Example: ${{ $.find('Group', $.predicate.equals('name', $.predicate.any(['Group 1', 'Group 2']))) }}"),
+			Usage.structrScript("Usage: ${any(collection). Example: ${find('Group', equals('name', any(merge('Group 1', 'Group 2'))))}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Returns a query predicate that can be used with find() or search().";
+		return "Returns a query predicate that can be used with find().";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+			Returns a search predicate to specify a collection of possible values in [find()](53) and [search()](109) functions.
+			The query returns all nodes that match any of the given values.
+			""";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("value");
+		return Signature.forAllScriptingLanguages("collection");
 	}
 
 	@Override

@@ -20,14 +20,9 @@ package org.structr.bolt.factory;
 
 import org.structr.api.index.AbstractIndex;
 import org.structr.api.index.AbstractQueryFactory;
-import org.structr.api.search.AnyQuery;
-import org.structr.api.search.QueryPredicate;
-import org.structr.api.search.RangeQuery;
+import org.structr.api.search.*;
 import org.structr.bolt.AdvancedCypherQuery;
 
-/**
- *
- */
 public class AnyQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery> {
 
 	public AnyQueryFactory(final AbstractIndex index) {

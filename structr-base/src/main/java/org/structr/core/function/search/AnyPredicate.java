@@ -25,10 +25,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 
 import java.util.Collection;
-import java.util.List;
 
-/**
- */
 public class AnyPredicate extends AbstractPredicate {
 
 	private Collection<Object> value = null;

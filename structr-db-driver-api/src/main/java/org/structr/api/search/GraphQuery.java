@@ -32,4 +32,8 @@ public interface GraphQuery extends QueryPredicate {
 	Direction getDirection();
 	String getNotionPropertyName();
 	Identity getIdentity();
+
+	default boolean isAny() {
+		return false;
+	}
 }

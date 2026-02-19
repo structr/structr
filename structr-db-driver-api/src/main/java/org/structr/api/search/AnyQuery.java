@@ -23,4 +23,6 @@ package org.structr.api.search;
  */
 public interface AnyQuery extends QueryPredicate {
 
+	Object getKey();
+	boolean isRelationProperty();
 }

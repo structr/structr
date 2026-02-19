@@ -504,6 +504,90 @@ public class AdvancedCypherQuery implements CypherQuery {
 		parameters.put(paramKey, value);
 	}
 
+	public void addAnyGraphParameter(final String key, final List<Long> boltIds, final List<String> nodeIds, final boolean isExactMatch) {
+
+		final boolean hasBoltIds = boltIds != null && !boltIds.isEmpty();
+		final boolean hasNodeIds = nodeIds != null && !nodeIds.isEmpty();
+
+		if (isExactMatch) {
+
+			buffer.append("(");
+
+			// include nodeId part if there are nodeIds OR if there are noBoltIds
+			// effectively making sure that there is always at least one query part... accounts for empty searchValues
+			if (hasNodeIds || !hasBoltIds) {
+
+				final String paramKey1_nodeIds = "param" + count++;
+
+				buffer.append("ANY (x IN ");
+				buffer.append(key);
+				buffer.append(".`id` WHERE x IN $");
+				buffer.append(paramKey1_nodeIds);
+				buffer.append(")");
+
+				parameters.put(paramKey1_nodeIds, nodeIds);
+			}
+
+			if (hasNodeIds && hasBoltIds) {
+				buffer.append(" OR ");
+			}
+
+			if (hasBoltIds) {
+
+				final String paramKey2_boltIds = "param" + count++;
+
+				buffer.append("ID(");
+				buffer.append(key);
+				buffer.append(") IN $");
+				buffer.append(paramKey2_boltIds);
+
+				parameters.put(paramKey2_boltIds, boltIds);
+			}
+
+			buffer.append(")");
+
+		} else {
+
+			// CONTAINS
+			// TODO: identical... filtering is handled in includeInResult... this should probably be unified
+			buffer.append("(");
+
+			// include nodeId part if there are nodeIds OR if there are noBoltIds
+			// effectively making sure that there is always at least one query part... accounts for empty searchValues
+			if (hasNodeIds || !hasBoltIds) {
+
+				final String paramKey1_nodeIds = "param" + count++;
+
+				buffer.append("ANY (x IN ");
+				buffer.append(key);
+				buffer.append(".`id` WHERE x IN $");
+				buffer.append(paramKey1_nodeIds);
+				buffer.append(")");
+
+				parameters.put(paramKey1_nodeIds, nodeIds);
+			}
+
+			if (hasNodeIds && hasBoltIds) {
+				buffer.append(" OR ");
+			}
+
+			if (hasBoltIds) {
+
+				final String paramKey2_boltIds = "param" + count++;
+
+				buffer.append("ID(");
+				buffer.append(key);
+				buffer.append(") IN $");
+				buffer.append(paramKey2_boltIds);
+
+				parameters.put(paramKey2_boltIds, boltIds);
+			}
+
+			buffer.append(")");
+		}
+
+	}
+
 	public void addGraphQueryPart(final GraphQueryPart newPart) {
 
 		final Operation operation = newPart.getOperation();

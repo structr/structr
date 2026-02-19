@@ -29,6 +29,7 @@ import org.structr.bolt.AdvancedCypherQuery;
 import org.structr.bolt.BoltIdentity;
 import org.structr.bolt.GraphQueryPart;
 
+import java.util.ArrayList;
 import java.util.Set;
 
 public class GraphQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery> {
@@ -41,6 +42,12 @@ public class GraphQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 	public boolean createQuery(final QueryPredicate predicate, final AdvancedCypherQuery query, final boolean isFirst) {
 
 		final GraphQuery graphQuery = (GraphQuery)predicate;
+
+		if (graphQuery.isAny()) {
+
+			return createAnyQuery(predicate, query, isFirst);
+		}
+
 		final GraphQueryPart part   = new GraphQueryPart(graphQuery);
 		final Set<Object> values    = graphQuery.getValues();
 		final boolean isString      = predicate.getType().equals(String.class);
@@ -81,6 +88,72 @@ public class GraphQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 
 				first = false;
 			}
+		}
+
+		return true;
+	}
+
+	private boolean createAnyQuery(final QueryPredicate predicate, final AdvancedCypherQuery query, final boolean isFirst) {
+
+		final GraphQuery graphQuery = (GraphQuery)predicate;
+		final GraphQueryPart part   = new GraphQueryPart(graphQuery);
+		final Set<Object> values    = graphQuery.getValues();
+
+		// TODO: for the ANY query on a collection property, getvalues() is wrong because it flattens the list. we need to keep the lists intact and OR all lists
+
+		final boolean isString      = predicate.getType().equals(String.class);
+
+		query.addGraphQueryPart(part);
+
+		final boolean exactMatch = (predicate.isExactMatch() || !isString);
+
+		if (exactMatch) {
+
+			final ArrayList<Long> boltIds   = new ArrayList<>();
+			final ArrayList<String> nodeIds = new ArrayList<>();
+
+			for (final Object value : values) {
+
+				// TODO: do we actually ever get bolt ids?
+				final BoltIdentity boltIdentity = (BoltIdentity)graphQuery.getIdentity();
+				if (boltIdentity != null) {
+
+					final long id = boltIdentity.getId();
+
+					boltIds.add(id);
+
+				} else {
+
+					nodeIds.add(value.toString());
+				}
+			}
+
+			query.addAnyGraphParameter(part.getIdentifier(), boltIds, nodeIds, exactMatch);
+
+		} else {
+
+			// CONTAINS
+			// TODO: identical... filtering is handled in includeInResult... this should probably be unified
+			final ArrayList<Long> boltIds   = new ArrayList<>();
+			final ArrayList<String> nodeIds = new ArrayList<>();
+
+			for (final Object value : values) {
+
+				// TODO: do we actually ever get bolt ids?
+				final BoltIdentity boltIdentity = (BoltIdentity)graphQuery.getIdentity();
+				if (boltIdentity != null) {
+
+					final long id = boltIdentity.getId();
+
+					boltIds.add(id);
+
+				} else {
+
+					nodeIds.add(value.toString());
+				}
+			}
+
+			query.addAnyGraphParameter(part.getIdentifier(), boltIds, nodeIds, exactMatch);
 		}
 
 		return true;
