@@ -295,7 +295,7 @@ public class Importer {
 			createChildNodes(parsedDocument, page, page);
 
 			if (!isDeployment) {
-				logger.info("##### Finished fetching {} for page {} #####", address, name);
+				logger.info("##### Finished fetching {} for page {} #####", address != null ? address : "content", name);
 			}
 		}
 
