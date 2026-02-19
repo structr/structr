@@ -1,6 +1,6 @@
 # Filesystem
 
-Structr includes an integrated file storage system with a virtual filesystem that abstracts physical storage from the logical directory structure and metadata. Binary data can be stored on the local server filesystem, or on external storage backends through Structr's File Service Provider API.
+Structr includes an integrated file storage system with a virtual filesystem that abstracts physical storage from the logical directory structure and metadata. Binary data can be stored on the local server filesystem, or on external storage backends through Structr's File Service Provider API. Structr's built-in web server can serve static HTML pages, CSS, JavaScript, images, and other web assets directly from this virtual filesystem, similar to how traditional web servers serve files from a document root.
 
 ## Virtual Filesystem
 
@@ -213,3 +213,23 @@ $.setContent(file, 'New content');
 ### Custom File Types
 
 For more control, create custom types that inherit from the File trait. This allows you to add custom properties and methods to your files while retaining all standard file functionality. For example, an `InvoiceDocument` type could have properties for invoice number and amount, plus a method to generate a PDF.
+
+## Serving Static Websites
+
+Structr can serve complete static websites directly from its virtual filesystem. You can upload HTML files, stylesheets, JavaScript files, images, and fonts into a folder structure, and Structr's web server delivers them to browsers just like Apache, Nginx, or any other traditional web server would.
+
+This is useful for hosting static landing pages, documentation sites, or marketing websites alongside your dynamic Structr application. You can also use it during migration projects, serving an existing static site from Structr while gradually converting pages into dynamic Structr pages with data bindings and business logic.
+
+To set up a static site, upload your files into the virtual filesystem while preserving the original directory structure. Files are served at URLs that match their path in the virtual filesystem, so a file at `/assets/css/theme.css` is accessible at that exact URL.
+
+### Differences from traditional web servers
+
+While Structr serves static files in much the same way as traditional web servers, there is one important difference: Structr does not automatically resolve directory paths to index files. A request to `/product/` resolves to the folder named `product`, not to a file like `index.html` inside it.
+
+This means that directory-style links commonly used in static websites, such as `href="/product/"`, will not work as expected. You need to use explicit file references like `href="/product/index.html"` instead.
+
+Note that this only applies to static files in the virtual filesystem. Dynamic Structr pages behave differently: `/product`, `/product/`, and `/product/index.html` all resolve to the page named `product`. See the Navigation & Routing chapter for details on how Structr resolves page URLs.
+
+### Visibility and permissions
+
+Static files follow the same permission model as all other objects in Structr. To make files accessible to public visitors, enable `visibleToPublicUsers` on the files and their parent folders. You can also restrict specific files or folders to authenticated users or individual groups, giving you fine-grained access control that traditional web servers typically require separate configuration for.

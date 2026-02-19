@@ -114,12 +114,12 @@ If the installation was successful, running `java -version` should result in the
     $ apt update
     $ apt -y install neo4j
 
-You can alternatively install the latest Neo4j version 2025.09.0:
+You can alternatively install the latest Neo4j version 2026.01.4:
 
     $ wget -O - https://debian.neo4j.com/neotechnology.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/neotechnology.gpg
     $ echo 'deb [signed-by=/etc/apt/keyrings/neotechnology.gpg] https://debian.neo4j.com stable latest' | sudo tee -a /etc/apt/sources.list.d/neo4j.list
     $ sudo apt-get update
-    $ apt -y install neo4j=1:2025.09.0
+    $ apt -y install neo4j=1:2026.01.4
 
 #### Configure and Start Neo4j
 
@@ -137,10 +137,10 @@ You can check the status of the Neo4j process with the following command:
 
     $ systemctl status neo4j
 
-#### Install and Start Structr (version 6.0.0)
+#### Install and Start Structr (version 6.1.0)
 
-    $ wget https://download.structr.com/repositories/releases/org/structr/structr/6.0.0/structr-6.0.0.deb
-    $ dpkg -i structr-6.0.0.deb
+    $ wget https://download.structr.com/repositories/releases/org/structr/structr/6.1.0/structr-6.1.0.deb
+    $ dpkg -i structr-6.1.0.deb
     $ systemctl start structr
 
 #### Troubleshooting: Conflicting Java Versions
@@ -177,7 +177,7 @@ If Structr has been started successfully, the last lines of its system log file 
     2025-09-24 12:33:20.809 [main] INFO  org.eclipse.jetty.server.Server - Started oejs.Server@6e1d939e{STARTING}[12.0.23,sto=1000] @6888ms
     2025-09-24 12:33:20.811 [main] INFO  org.structr.core.Services - 5 service(s) processed
     2025-09-24 12:33:20.812 [main] INFO  org.structr.core.Services - Registering shutdown hook.
-    2025-09-24 12:33:20.826 [main] INFO  org.structr.core.Services - Started Structr 6.0.0 abcde 202510121210
+    2025-09-24 12:33:20.826 [main] INFO  org.structr.core.Services - Started Structr 6.1.0 abcde 202601291210
     2025-09-24 12:33:20.827 [main] INFO  org.structr.core.Services - ---------------- Initialization complete ---------------- 
 
 ## Initial Configuration
