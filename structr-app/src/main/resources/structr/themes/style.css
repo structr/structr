@@ -43,6 +43,10 @@
     ul, ol { @apply divide-y divide-${theme.surface.border}; }
     ol { @apply list-decimal ml-8; }
     li { @apply px-6 py-4; }
+    .card { @apply flex flex-row p-8 rounded-xl bg-${theme.surface.background} border border-${theme.surface.border}; }
+    .card.card-left .icon { @apply mr-4 rounded-lg border border-${theme.surface.border} w-14 h-14 flex-shrink-0; }
+    .card.card-right .icon { @apply ml-4 rounded-lg border border-${theme.surface.border} w-14 h-14 flex-shrink-0; }
+    .card h4 { @apply text-lg font-bold m-0 p-0 flex-grow; }
 
     /* accordion is complicated... */
     .accordion {
@@ -54,7 +58,7 @@
         details[open] summary { @apply py-3 px-8 border-b border-${theme.surface.border} hover:bg-${theme.surface.hover}; }
         details[open]:first-child summary { @apply rounded-t-xl; }
         details[open]:last-child > *:last-child { @apply rounded-b-xl; }
-        details[open] > *:not(summary) { @apply m-8; }
+        details[open] > :not(summary) { @apply m-8; }
         details[open] summary::after { transform: rotate(180deg); }
         summary {
             @apply flex items-center justify-between cursor-pointer rounded-[inherit];
@@ -67,9 +71,9 @@
     .table { @apply py-2 min-w-full bg-${theme.surface.background} border border-${theme.surface.border} rounded-xl; }
     table { @apply min-w-full divide-y divide-${theme.surface.border} }
     thead { @apply divide-y divide-${theme.surface.border} bg-${theme.surface.background} }
-    th { @apply py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6; }
+    th { @apply py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-${theme.text.heading} sm:pl-6; }
     tbody { @apply divide-y divide-${theme.surface.border} bg-${theme.surface.background} }
-    td { @apply whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6; }
+    td { @apply whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-${theme.text.paragraph} sm:pl-6; }
 
     /* forms */
     form label { @apply block; }

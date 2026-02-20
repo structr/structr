@@ -142,6 +142,7 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	String getNodeValue();
 	String getComponentType();
 	String getItemType();
+	String getRepeaterType();
 	Integer getDimensions();
 
 	boolean renderDeploymentExportComments(AsyncBuffer out, boolean isContentNode);

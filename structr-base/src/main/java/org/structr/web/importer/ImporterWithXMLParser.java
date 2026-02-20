@@ -79,9 +79,9 @@ import java.util.regex.Pattern;
 /**
  * The importer creates a new page by downloading and parsing markup from a URL.
  */
-public class Importer {
+public class ImporterWithXMLParser {
 
-	private static final Logger logger = LoggerFactory.getLogger(Importer.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ImporterWithXMLParser.class.getName());
 
 	private static final Set<String> hrefElements       = new LinkedHashSet<>(Arrays.asList("link"));
 	private static final Set<String> ignoreElementNames = new LinkedHashSet<>(Arrays.asList("#declaration", "#doctype"));
@@ -110,7 +110,7 @@ public class Importer {
 	private CommentHandler commentHandler;
 	private boolean relativeVisibility = false;
 	private boolean isDeployment       = false;
-	private Document parsedDocument    = null;
+	private List<Node> parsedDocument  = null;
 	private final String name;
 	private URL originalUrl;
 	private String address;
@@ -135,7 +135,7 @@ public class Importer {
 	 * @param includeInExport
 	 * @param relativeVisibility
 	 */
-	public Importer(final SecurityContext securityContext, final String code, final String address, final String name, final boolean publicVisible, final boolean authVisible, final boolean includeInExport, final boolean relativeVisibility) {
+	public ImporterWithXMLParser(final SecurityContext securityContext, final String code, final String address, final String name, final boolean publicVisible, final boolean authVisible, final boolean includeInExport, final boolean relativeVisibility) {
 
 		this.code               = code;
 		this.address            = address;
@@ -171,7 +171,7 @@ public class Importer {
 	}
 
 	/**
-	 * Parse the code previously read by {@link Importer#readPage()} and treat it as complete page.
+	 * Parse the code previously read by {@link ImporterWithXMLParser#readPage()} and treat it as complete page.
 	 *
 	 * @return
 	 * @throws FrameworkException
@@ -181,7 +181,7 @@ public class Importer {
 	}
 
 	/**
-	 * Parse the code previously read by {@link Importer#readPage()} and treat it as page fragment.
+	 * Parse the code previously read by {@link ImporterWithXMLParser#readPage()} and treat it as page fragment.
 	 *
 	 * @param fragment
 	 * @return
@@ -193,72 +193,10 @@ public class Importer {
 
 		if (StringUtils.isNotBlank(code) || StringUtils.isBlank(address)) {
 
-			if (isDeployment) {
+			// a trailing slash to all void/self-closing tags so the XML parser can parse it correctly
+			code = code.replaceAll("<(area|base|br|col(?!group)|command|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)([^>]*)>", "<$1$2/>");
 
-				// a trailing slash to all void/self-closing tags so the XML parser can parse it correctly
-				code = code.replaceAll("<(area|base|br|col(?!group)|command|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)([^>]*)>", "<$1$2/>");
-			}
-
-			if (fragment) {
-
-				if (isDeployment) {
-
-					final List<Node> nodeList = Parser.parseXmlFragment(code, "");
-					parsedDocument            = Document.createShell("");
-					final Element body        = parsedDocument.body();
-					final Node[] nodes        = nodeList.toArray(new Node[nodeList.size()]);
-
-					for (int i = nodes.length - 1; i > 0; i--) {
-					    nodes[i].remove();
-					}
-
-					for (Node node : nodes) {
-					    body.appendChild(node);
-					}
-
-				} else {
-
-					final Matcher matcher = Pattern.compile("^\\s*<(thead|tbody|caption|colgroup|th|tr|tfoot).*", Pattern.CASE_INSENSITIVE).matcher(code);
-
-					if (matcher.matches()) {
-
-						// if outermost tag is a table element so use <table> as context element
-						parsedDocument      = Document.createShell("");
-						final Element body  = parsedDocument.body();
-						final Element table = body.appendElement("table");
-
-						final List<Node> nodeList = Parser.parseFragment(code, table, "");
-						final Node[] nodes        = nodeList.toArray(new Node[nodeList.size()]);
-
-						for (int i = nodes.length - 1; i > 0; i--) {
-							nodes[i].remove();
-						}
-
-						for (Node node : nodes) {
-							table.appendChild(node);
-						}
-
-						tableChildElement = matcher.group(1);
-
-					} else {
-
-						parsedDocument = Jsoup.parseBodyFragment(code);
-					}
-
-				}
-
-			} else {
-
-				if (isDeployment) {
-
-					parsedDocument = Jsoup.parse(code, "", Parser.xmlParser());
-
-				} else {
-
-					parsedDocument = Jsoup.parse(code);
-				}
-
-			}
+			parsedDocument = Parser.parseXmlFragment(code, "http://localhost:8082");
 
 		} else {
 
@@ -270,7 +208,14 @@ public class Importer {
 			code = responseData.get(HttpHelper.FIELD_BODY) != null ? (String) responseData.get(HttpHelper.FIELD_BODY) : null;
 			if (code != null) {
 
-				parsedDocument = Jsoup.parse(code);
+				code = code.replaceAll("<(area|base|br|col(?!group)|command|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)([^>]*)>", "<$1$2/>");
+
+				parsedDocument = Jsoup.parse(code, "", Parser.xmlParser()).childNodes();
+
+				//parsedDocument = Jsoup.parse(code);
+				//parsedDocument = Parser.parseXmlFragment(code, "http://localhost:8082");
+
+
 			} else {
 
 				throw new FrameworkException(422, "Could not parse requested url for import. Response body is empty.");
@@ -290,12 +235,27 @@ public class Importer {
 		Page page = Page.createNewPage(securityContext, uuid, name);
 		if (page != null) {
 
+			DOMNode parent = page;
+
+			if (false) {
+
+				final DOMNode html = page.createElement("html");
+				final DOMNode head = page.createElement("head");
+				final DOMNode body = page.createElement("body");
+
+				page.appendChild(html);
+				html.appendChild(head);
+				html.appendChild(body);
+
+				parent = body;
+			}
+
 			page.setVisibility(publicVisible, authVisible);
 
-			createChildNodes(parsedDocument, page, page);
+			createChildNodes(parsedDocument, parent, page);
 
 			if (!isDeployment) {
-				logger.info("##### Finished fetching {} for page {} #####", address != null ? address : "content", name);
+				logger.info("##### Finished fetching {} for page {} #####", address, name);
 			}
 		}
 
@@ -308,7 +268,8 @@ public class Importer {
 
 	public DOMNode createComponentChildNodes(final DOMNode parent, final Page page) throws FrameworkException {
 
-		// head() and body() automatically create elements (inlcuding "html") - but we want to keep the original intact
+		/*
+		// head() and body() automatically create elements (including "html") - but we want to keep the original intact
 		final String initialDocument = parsedDocument.toString();
 		Element head                 = parsedDocument.head();
 
@@ -367,6 +328,7 @@ public class Importer {
 			// body is another special case
 			return bodyElement;
 		}
+		*/
 
 		// fallback, no head no body => document is parent
 		return createChildNodes(parsedDocument, parent, page);
@@ -374,12 +336,12 @@ public class Importer {
 
 	public DOMNode createChildNodes(final DOMNode parent, final Page page) throws FrameworkException {
 
-		return createChildNodes(parsedDocument.body(), parent, page);
+		return createChildNodes(parsedDocument, parent, page);
 	}
 
 	public DOMNode createChildNodes(final DOMNode parent, final Page page, final boolean removeHashAttribute) throws FrameworkException {
 
-		return createChildNodes(parsedDocument.body(), parent, page, removeHashAttribute, 0);
+		return createChildNodes(parsedDocument, parent, page, removeHashAttribute, 0);
 	}
 
 	public DOMNode createChildNodesWithHtml(final DOMNode parent, final Page page, final boolean removeHashAttribute) throws FrameworkException {
@@ -407,7 +369,7 @@ public class Importer {
 
 		final List<Node> nodeList = new LinkedList<>();
 
-		for (final Node node : parsedDocument.childNodes()) {
+		for (final Node node : parsedDocument) {
 
 			for (final Node child : node.childNodes()) {
 				nodeList.add(child);
@@ -421,7 +383,7 @@ public class Importer {
 
 	public DOMNode createComponentHullChildNodes (final NodeInterface parent, final Page page) throws FrameworkException {
 
-		for (final Node node : parsedDocument.childNodes()) {
+		for (final Node node : parsedDocument) {
 
 			final String tag  = node.nodeName();
 			final String type = CaseHelper.toUpperCamelCase(tag);
@@ -432,7 +394,7 @@ public class Importer {
 			}
 
 			if (!type.equals("#comment")) {
-				return createChildNodes(node, parent, page, false, 1, parent);
+				return createChildNodes(node.childNodes(), parent, page, false, 1, parent);
 			}
 		}
 
@@ -449,7 +411,7 @@ public class Importer {
 
 	public static Page parsePageFromSource(final SecurityContext securityContext, final String source, final String name, final boolean removeHashAttribute) throws FrameworkException {
 
-		final Importer importer = new Importer(securityContext, source, null, "source", false, false, false, false);
+		final ImporterWithXMLParser importer = new ImporterWithXMLParser(securityContext, source, null, "source", false, false, false, false);
 		final App localAppCtx = StructrApp.getInstance(securityContext);
 		NodeInterface node = null;
 
@@ -476,21 +438,20 @@ public class Importer {
 	}
 
 	// ----- private methods -----
-	private DOMNode createChildNodes(final Node startNode, final DOMNode parent, final Page page) throws FrameworkException {
-		return createChildNodes(startNode, parent, page, false, 0);
+	private DOMNode createChildNodes(final List<Node> nodes, final DOMNode parent, final Page page) throws FrameworkException {
+		return createChildNodes(nodes, parent, page, false, 0);
 	}
 
-	private DOMNode createChildNodes(final Node startNode, final DOMNode parent, final Page page, final boolean removeHashAttribute, final int depth) throws FrameworkException {
-		return createChildNodes(startNode, parent, page, false, 0, null);
+	private DOMNode createChildNodes(final List<Node> nodes, final DOMNode parent, final Page page, final boolean removeHashAttribute, final int depth) throws FrameworkException {
+		return createChildNodes(nodes, parent, page, removeHashAttribute, depth, null);
 	}
 
-	private DOMNode createChildNodes(final Node startNode, final NodeInterface parent, final Page page, final boolean removeHashAttribute, final int depth, final NodeInterface suppliedRoot) throws FrameworkException {
+	private DOMNode createChildNodes(final List<Node> children, final NodeInterface parent, final Page page, final boolean removeHashAttribute, final int depth, final NodeInterface suppliedRoot) throws FrameworkException {
 
 		NodeInterface rootElement = suppliedRoot;
 		Linkable linkable         = null;
 		String instructions       = null;
 
-		final List<Node> children = startNode.childNodes();
 		for (Node node : children) {
 
 			String tag = node.nodeName();
@@ -681,10 +642,10 @@ public class Importer {
 
 						} else {
 
-							template = Importer.findSharedComponentByName(src);
+							template = ImporterWithXMLParser.findSharedComponentByName(src);
 							if (template == null) {
 
-								template = Importer.findTemplateByName(src);
+								template = ImporterWithXMLParser.findTemplateByName(src);
 
 								if (template == null) {
 
@@ -729,7 +690,7 @@ public class Importer {
 				final String name = node.attr("name");
 				if (StringUtils.isNotBlank(name)) {
 
-					NodeInterface template = Importer.findSharedComponentByName(name);
+					NodeInterface template = ImporterWithXMLParser.findSharedComponentByName(name);
 					if (template == null) {
 
 						newNode = createNewTemplateNode(null, node.childNodes()).as(DOMNode.class);
@@ -775,7 +736,7 @@ public class Importer {
 
 						} else {
 
-							final NodeInterface n = Importer.findSharedComponentByName(src);
+							final NodeInterface n = ImporterWithXMLParser.findSharedComponentByName(src);
 							if (n != null) {
 
 								component = n.as(DOMNode.class);
@@ -1117,7 +1078,7 @@ public class Importer {
 				// Step down and process child nodes except for newly created templates
 				if (!isNewTemplateOrComponent) {
 
-					createChildNodes(node, newNode, page, removeHashAttribute, depth + 1);
+					createChildNodes(node.childNodes(), newNode, page, removeHashAttribute, depth + 1);
 				}
 			}
 		}
@@ -1535,13 +1496,22 @@ public class Importer {
 
 	private NodeInterface createNewTemplateNode(final NodeInterface parent, final List<Node> children) throws FrameworkException {
 
-		final StringBuilder sb = new StringBuilder();
+		final StringBuilder stringBuilder = new StringBuilder();
 
 		for (final Node c : children) {
-			sb.append(nodeToString(c));
+			stringBuilder.append(nodeToString(c));
 		}
 
-		return createNewTemplateNode(parent, sb.toString(), null);
+		// allow th and td to be part of a template: replace table-header and table-cell with th and td..
+		String buf = stringBuilder.toString();
+
+		// this must be done because jsoup cannot parse th and td without context
+		buf = buf.replace("<table-header", "<th");
+		buf = buf.replace("</table-header", "</th");
+		buf = buf.replace("<table-data", "<td");
+		buf = buf.replace("</table-data", "</td");
+
+		return createNewTemplateNode(parent, buf, null);
 	}
 
 	private NodeInterface createNewTemplateNode(final NodeInterface parent, final String content, final String contentType) throws FrameworkException {
@@ -1569,7 +1539,7 @@ public class Importer {
 	}
 
 	private DOMNode createSharedComponent(final Node node) throws FrameworkException {
-		return createChildNodes(node, null, CreateComponentCommand.getOrCreateHiddenDocument());
+		return createChildNodes(node.childNodes(), null, CreateComponentCommand.getOrCreateHiddenDocument());
 	}
 
 	private String nodeToString(Node node) {

@@ -765,7 +765,6 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	@Override
 	public void syncName(final ErrorBuffer errorBuffer) throws FrameworkException {
 
-		/*
 		// sync name only
 		final String name = getName();
 		if (name != null) {
@@ -773,10 +772,12 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 			final List<DOMNode> syncedNodes = Iterables.toList(getSyncedNodes());
 			for (final DOMNode syncedNode : syncedNodes) {
 
-				syncedNode.setName(name);
+				if (syncedNode.getName() == null) {
+
+					syncedNode.setName(name);
+				}
 			}
 		}
-		*/
 	}
 
 	@Override
@@ -992,6 +993,11 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	@Override
 	public String getItemType() {
 		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.ITEM_TYPE_PROPERTY));
+	}
+
+	@Override
+	public String getRepeaterType() {
+		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.REPEATER_TYPE_PROPERTY));
 	}
 
 	@Override

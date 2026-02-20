@@ -19,8 +19,6 @@
 package org.structr.websocket.command;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.pdfbox.pdmodel.PDStructureElementNameTreeNode;
-import org.bouncycastle.tsp.TSPUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -40,7 +38,6 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.structr.websocket.StructrWebSocket;
-import org.structr.websocket.command.dom.ReplaceWithCommand;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -145,8 +142,9 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 	// ----- private methods -----
 	private static void moveContent(final SecurityContext securityContext, final DOMNode oldNode, final DOMNode newNode) throws FrameworkException{
 
-		final Map<String, LocalSlotData> slotChildren = new LinkedHashMap<>();
-		final Set<String> idsOfOldNodesWithItemType   = new LinkedHashSet<>();
+		final Map<String, ItemData> slotChildren    = new LinkedHashMap<>();
+		final Map<String, RepeaterData> repeaters   = new LinkedHashMap<>();
+		final Set<String> idsOfOldNodesWithItemType = new LinkedHashSet<>();
 
 		// collect slot children from old node
 		for (final NodeInterface node : collectChildren(oldNode)) {
@@ -154,26 +152,31 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 			if (node.is(StructrTraits.DOM_NODE)) {
 
 				final DOMNode slotNode = node.as(DOMNode.class);
+
+				// itemType (=> children)
 				final String itemType = slotNode.getItemType();
-
-				System.out.println("OLD: processing " + format(slotNode) + "..");
-
 				if (itemType != null) {
 
 					idsOfOldNodesWithItemType.add(slotNode.getUuid());
 
-					System.out.println("OLD: Storing \"" + format(slotNode) + "\" with itemType \"" + itemType + "\"");
-
-					final LocalSlotData slotData = new LocalSlotData(slotNode, itemType);
+					final ItemData slotData = new ItemData(slotNode);
 
 					if (slotChildren.put(itemType, slotData) != null) {
 
 						throw new FrameworkException(422, "Slot " + itemType + " exists more than once in " + slotNode);
 					}
+				}
 
-				} else {
+				// repeaterType (=> queries)
+				final String repeaterType = slotNode.getRepeaterType();
+				if (repeaterType != null) {
 
-					System.out.println("OLD: Ignoring \"" + format(slotNode) + "\" because it has no itemType");
+					final RepeaterData slotData = new RepeaterData(slotNode);
+
+					if (repeaters.put(repeaterType, slotData) != null) {
+
+						throw new FrameworkException(422, "Slot " + itemType + " exists more than once in " + slotNode);
+					}
 				}
 			}
 		}
@@ -183,16 +186,22 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 
 			if (node.is(StructrTraits.DOM_NODE)) {
 
-				final DOMNode slotNode   = node.as(DOMNode.class);
-				final String itemType    = slotNode.getItemType();
-				final LocalSlotData data = slotChildren.get(itemType);
+				final DOMNode slotNode          = node.as(DOMNode.class);
+				final String itemType           = slotNode.getItemType();
+				final String repeaterType       = slotNode.getRepeaterType();
+				final ItemData itemData         = slotChildren.get(itemType);
+				final RepeaterData repeaterData = repeaters.get(repeaterType);
 
-				System.out.println("NEW: processing " + format(slotNode) + "..");
-
-				if (data != null) {
+				if (itemData != null) {
 
 					// move node to new slot
-					data.applyTo(securityContext, slotNode);
+					itemData.applyTo(securityContext, slotNode);
+				}
+
+				if (repeaterData != null) {
+
+					// move node to new slot
+					repeaterData.applyTo(securityContext, slotNode);
 				}
 			}
 		}
@@ -201,7 +210,6 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 
 		// remove children with itemType from new node that were present on the old node
 		for (final NodeInterface child : newNode.getAllChildNodes()) {
-
 
 			if (idsOfOldNodesWithItemType.contains(child.getUuid())) {
 
@@ -261,29 +269,15 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 		return node.getUuid();
 	}
 
-	private static class LocalSlotData {
+	private static class ItemData {
 
-		private final Set<String> keys       = Set.of(DOMNodeTraitDefinition.DATA_KEY_PROPERTY, DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY);
 		private final List<DOMNode> children = new LinkedList<>();
-		private final PropertyMap properties = new PropertyMap();
-		private final String itemType;
 
-		public LocalSlotData(final DOMNode node, final String itemType) throws FrameworkException {
-
-			this.itemType = itemType;
-
-			final Traits traits = node.getTraits();
+		public ItemData(final DOMNode node) throws FrameworkException {
 
 			for (final DOMNode child : node.getChildren()) {
 
-				System.out.println("OLD: storing children of \"" + format(child) + "\" for itemType " + itemType);
 				this.children.add(child);
-			}
-
-			for (final String keyName : keys) {
-
-				final PropertyKey key = traits.key(keyName);
-				properties.put(key, node.getProperty(key));
 			}
 		}
 
@@ -296,24 +290,37 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 
 				if (child.getItemType() == null) {
 
-					System.out.println("NEW: deleting " + format(child) + " with no itemType");
 					app.delete(child);
-
-				} else {
-
-					System.out.println("NEW: ignoring " + format(child) + " because it has itemType \"" + child.getItemType() + "\"");
 				}
 			}
 
 			// move slot content from source to destination
 			for (final DOMNode child : this.children) {
 
-				System.out.println("NEW: moving \"" + format(child) + "\" to \"" + format(newNode) + "\"");
 				newNode.appendChild(child);
 			}
+		}
+	}
 
-			System.out.println("NEW: setting properties on new node");
-			newNode.setProperties(securityContext, properties);
+	private static class RepeaterData {
+
+		private final Set<String> keys       = Set.of(DOMNodeTraitDefinition.DATA_KEY_PROPERTY, DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY);
+		private final PropertyMap properties = new PropertyMap();
+
+		public RepeaterData(final DOMNode node) throws FrameworkException {
+
+			final Traits traits = node.getTraits();
+
+			for (final String keyName : keys) {
+
+				final PropertyKey key = traits.key(keyName);
+				properties.put(key, node.getProperty(key));
+			}
+		}
+
+		public void applyTo(final SecurityContext securityContext, final DOMNode newNode) throws FrameworkException {
+
+			 newNode.setProperties(securityContext, properties);
 		}
 	}
 }

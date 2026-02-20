@@ -30,6 +30,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.importer.Importer;
+import org.structr.web.importer.ImporterWithXMLParser;
 import org.structr.web.maintenance.deploy.DeploymentCommentHandler;
 
 import java.util.ArrayList;
@@ -52,6 +53,21 @@ public interface Widget extends NodeInterface {
 	String getComponentType();
 	Integer getDimensions();
 
+	/**
+	 * Parses HTML code from the "source" entry in the given parameters map into a set of DOMNodes that are created
+	 * in the given page, with the given parent. An additional config entry in the parameters can be specified to
+	 * add the "componentType" and "dimensions" attributes to the newly created widget, but for historical reasons,
+	 * the config object must be of type JsonSingleInput! Caution: this method uses the XML-based HTML parser to
+	 * import fragments, so there might be subtle errors in the imported structure..
+	 *
+	 * @param securityContext
+	 * @param page
+	 * @param parent
+	 * @param baseUrl
+	 * @param parameters
+	 * @param processDeploymentInfo
+	 * @throws FrameworkException
+	 */
 	static void expandWidget(final SecurityContext securityContext, final Page page, final DOMNode parent, final String baseUrl, final Map<String, Object> parameters, final boolean processDeploymentInfo) throws FrameworkException {
 
 		String _source = (String) parameters.get("source");
@@ -88,8 +104,8 @@ public interface Widget extends NodeInterface {
 
 		if (!errorBuffer.hasError()) {
 
-			final Importer importer          = new Importer(securityContext, _source, baseUrl, null, false, false, false, false);
-			final JsonSingleInput configData = ((JsonSingleInput) parameters.get("config"));
+			final ImporterWithXMLParser importer = new ImporterWithXMLParser(securityContext, _source, baseUrl, null, false, false, false, false);
+			final JsonSingleInput configData     = ((JsonSingleInput) parameters.get("config"));
 
 			if (processDeploymentInfo) {
 				importer.setIsDeployment(true);

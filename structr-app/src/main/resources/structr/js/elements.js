@@ -504,6 +504,7 @@ let _Elements = {
         },
         getSuggestedWidgetName: (widget) => {
             //return '<b>' + widget.name + '</b>' + (widget.shortDescription ? (' - ' + widget.shortDescription) : '')
+            //return widget.name + ' ' + widget.componentType + ' ' + widget.dimensions;
             return widget.name;
         },
 		addContextMenuElements: ({ ul, element, hidden = false, forcedClickHandler, prepend = false, cssPositionClasses, entity }) => {

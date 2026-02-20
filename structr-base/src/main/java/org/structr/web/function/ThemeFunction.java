@@ -86,7 +86,7 @@ public class ThemeFunction extends UiCommunityFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${theme('dark')}"),
-			Usage.structrScript("Usage: ${{ $.theme('dark'); }}")
+			Usage.javaScript("Usage: ${{ $.theme('dark'); }}")
 		);
 	}
 

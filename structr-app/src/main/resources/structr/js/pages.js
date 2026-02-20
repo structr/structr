@@ -403,7 +403,7 @@ let _Pages = {
 				]
 			});
 
-			if (entity.isContent !== true) {elements.push({
+			elements.push({
 				name: 'Replace element with...',
                 id: 'replace-element-with',
 				elements: [
@@ -413,20 +413,19 @@ let _Pages = {
 						forcedClickHandler: handleReplaceWithAction
 					},
 					// {
-						// 	name: '... Template element',
-						// 	clickHandler: () => {
-						// 		handleReplaceWithAction('#template');
-						// 	}
-						// },
-						{
-							name: '... div element',
-							clickHandler: () => {
-								handleReplaceWithAction('div');
-							}
+					// 	name: '... Template element',
+					// 	clickHandler: () => {
+					// 		handleReplaceWithAction('#template');
+					// 	}
+					// },
+					{
+						name: '... div element',
+						clickHandler: () => {
+							handleReplaceWithAction('div');
 						}
-					]
-				});
-			}
+					}
+				]
+			});
 		}
 
 		if (isPage) {
@@ -2890,7 +2889,7 @@ let _Pages = {
 				_Pages.previews.getComments(element).forEach(function(c) {
 
 					let inner  = $(_Pages.previews.getNonCommentSiblings(c.node));
-					let newDiv = $(`<span data-structr-id="${c.id}" data-structr-raw-content="${_Helpers.escapeForHtmlAttributes(c.rawContent, false)}"></span>`);
+                    let newDiv = $(`<span data-structr-id="${c.id}" data-structr-raw-content="${_Helpers.escapeForHtmlAttributes(c.rawContent, false)}"></span>`);
 
 					newDiv.append(inner);
 					$(c.node).replaceWith(newDiv);

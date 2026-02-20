@@ -95,6 +95,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String COMPONENT_TYPE_PROPERTY                 = "componentType";
 	public static final String DIMENSIONS_PROPERTY                     = "dimensions";
 	public static final String ITEM_TYPE_PROPERTY                      = "itemType";
+	public static final String REPEATER_TYPE_PROPERTY                  = "repeaterType";
 	public static final String IS_COMPONENT_ROOT_PROPERTY              = "isComponentRoot";
 	public static final String FLOW_PROPERTY                           = "flow";
 
@@ -726,6 +727,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> componentTypeProperty                               = new StringProperty(COMPONENT_TYPE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<Integer> dimensionsProperty                                 = new IntProperty(DIMENSIONS_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<String> itemTypeProperty                                    = new StringProperty(ITEM_TYPE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<String> repeaterTypeProperty                                = new StringProperty(REPEATER_TYPE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<Boolean> isComponentRootProperty                            = new BooleanProperty(IS_COMPONENT_ROOT_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 
 		return newSet(
@@ -761,6 +763,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 			componentTypeProperty,
 			dimensionsProperty,
 			itemTypeProperty,
+			repeaterTypeProperty,
 			isComponentRootProperty
 		);
 	}
@@ -772,8 +775,8 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 			PropertyView.Ui,
 			newSet(
 				RELOADING_ACTIONS_PROPERTY, FAILURE_ACTIONS_PROPERTY, COMPONENT_TYPE_PROPERTY, DIMENSIONS_PROPERTY,
-				ITEM_TYPE_PROPERTY, IS_COMPONENT_ROOT_PROPERTY, SUCCESS_NOTIFICATION_ACTIONS_PROPERTY,
-				FAILURE_NOTIFICATION_ACTIONS_PROPERTY
+				ITEM_TYPE_PROPERTY, REPEATER_TYPE_PROPERTY, IS_COMPONENT_ROOT_PROPERTY,
+				SUCCESS_NOTIFICATION_ACTIONS_PROPERTY, FAILURE_NOTIFICATION_ACTIONS_PROPERTY
 			)
 		);
 	}

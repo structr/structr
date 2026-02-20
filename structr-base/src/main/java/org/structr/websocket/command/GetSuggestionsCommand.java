@@ -205,8 +205,8 @@ public class GetSuggestionsCommand extends AbstractCommand {
 						continue;
 					}
 
-					result.add(widget);
 				}
+				result.add(widget);
 			}
 
 			// sort result by name

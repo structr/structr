@@ -124,7 +124,7 @@ public class CronService extends Thread implements RunnableService {
 											if (!taskClassName.contains(".")) {
 
 												// check for user-defined function with the given name
-												Actions.callWithSecurityContext(taskClassName, superUserSecurityContext, Collections.EMPTY_MAP);
+												Actions.callWithSecurityContext(taskClassName, superUserSecurityContext, Collections.EMPTY_MAP, "cron");
 
 											} else {
 

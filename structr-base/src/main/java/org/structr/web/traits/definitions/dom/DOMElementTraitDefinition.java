@@ -1611,7 +1611,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 			removeInternalDataBindingKeys(parameters);
 
-			return Actions.callWithSecurityContext(methodName, renderContext.getSecurityContext(), parameters);
+			return Actions.callWithSecurityContext(methodName, renderContext.getSecurityContext(), parameters, "custom");
 		}
 
 		if (Settings.isValidUuid(dataTarget)) {

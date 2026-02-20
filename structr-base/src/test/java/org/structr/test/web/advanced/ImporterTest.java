@@ -31,15 +31,17 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.RenderContext;
+import org.structr.web.entity.Widget;
+import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.importer.Importer;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.web.traits.definitions.html.Script;
 import org.testng.annotations.Test;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.testng.AssertJUnit.*;
 
@@ -50,6 +52,23 @@ import static org.testng.AssertJUnit.*;
 public class ImporterTest extends StructrUiTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(ImporterTest.class.getName());
+
+	@Test
+	public void testParsingOfTableCellFragments() {
+
+		Settings.HtmlIndentation.setValue(false);
+
+		compareParsedFragmentWithSource("<table><tbody><tr><td>Test</td></tr></tbody></table>");
+		compareParsedFragmentWithSource("<tbody><tr><td>Test</td></tr></tbody>");
+		compareParsedFragmentWithSource("<tr><td>Test</td></tr>");
+		compareParsedFragmentWithSource("<td>Test</td>");
+		compareParsedFragmentWithSource("<th>Test</th>");
+		compareParsedFragmentWithSource("<tbody><tr>Test</tr></tbody>");
+		compareParsedFragmentWithSource("<thead><tr><th>Test</th></tr></thead>");
+		compareParsedFragmentWithSource("<tr>Test</tr>");
+		compareParsedFragmentWithSource("<tr></tr>");
+
+	}
 
 	@Test
 	public void testBootstrapJumbotronEditModeNone() {
@@ -536,5 +555,35 @@ public class ImporterTest extends StructrUiTest {
 		for (final Node child : current.childNodes()) {
 			collectNodes(target, child);
 		}
+	}
+
+	private void compareParsedFragmentWithSource(final String source) {
+
+		final String parsed = parseFragmentToText(source);
+
+		assertEquals("Parsed fragment differs from source", source, parsed);
+	}
+
+	private String parseFragmentToText(final String source) {
+
+		try (final Tx tx = app.tx()) {
+
+			// page is only needed to create elements
+			final Page page      = Page.createNewPage(securityContext, "compareFragmentParsing");
+			final DOMNode parent = page.createElement("div");
+
+			Widget.expandWidget(securityContext, page, parent, "http://localhost", Map.of("source", source), false);
+
+			return parent.getFirstChild().getContent(RenderContext.EditMode.NONE);
+
+			// no commit => don't write anything to the database!
+			//tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail(fex.getMessage());
+		}
+
+		return null;
 	}
 }
