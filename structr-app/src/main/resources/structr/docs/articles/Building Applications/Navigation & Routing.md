@@ -31,7 +31,7 @@ If multiple pages have the same name and the same permissions, Structr cannot di
 
 It is important to understand the difference between dynamic pages and static files when it comes to URL resolution.
 
-For dynamic pages (Page nodes with their tree of Template and DOM elements), Structr is flexible: `/product`, `/product/`, and `/product/index.html` all resolve to the page named `product`. This is the standard behavior unless custom URL routing is configured.
+For dynamic pages (Page nodes with their tree of Template and DOM elements), Structr uses the first path segment to determine which page to display. Everything after the second slash is treated as additional data for that page. For example, `/product`, `/product/`, and `/product/index.html` all resolve to the page named `product`. A URL like `/product/a3f8b2c1...` where the second part is a UUID, also resolves to the `product` page, and the second segment (the UUID) is automatically looked up in the database and the resolved object made available under the `current` keyword (see "The current keyword" below). If `htmlservlet.resolveproperties` is configured, the second segment can also be a non-UUID value, e.g. a human-readable parameter like a name or slug instead of a UUID. This is the standard behavior unless custom URL routing is configured.
 
 For static files served from the virtual filesystem, Structr resolves paths exactly. A request to `/product` or `/product/` resolves to the folder named `product`, not to a file like `index.html` inside it. Unlike traditional web servers such as Apache or Nginx, Structr does not automatically map directory paths to index files.
 
