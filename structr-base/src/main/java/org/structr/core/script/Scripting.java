@@ -624,7 +624,7 @@ public class Scripting {
 		} else if (value instanceof Throwable throwable) {
 
 			final Stream<String> lines = Stream.concat(
-				Stream.of(String.valueOf(throwable.getMessage())),
+				Stream.of(String.valueOf(throwable.toString())),
 				Arrays.stream(throwable.getStackTrace())
 						.takeWhile(ste -> !ste.getClassName().startsWith("org.graalvm"))
 						.map(ste -> "\tat " + ste.toString())
