@@ -52,7 +52,6 @@ public class ConsoleTest extends StructrUiTest {
 			assertEquals("Invalid console execution result", "Mode set to 'Cypher'.\r\n",        console.runForTest("Console.setMode('" + ConsoleMode.Cypher.name() + "')"));
 			assertEquals("Invalid console execution result", "Mode set to 'JavaScript'.\r\n",    console.runForTest("Console.setMode('" + ConsoleMode.JavaScript.name() + "')"));
 			assertEquals("Invalid console execution result", "Mode set to 'AdminShell'. Type 'help' to get a list of commands.\r\n", console.runForTest("Console.setMode('" + ConsoleMode.AdminShell.name() + "')"));
-			assertEquals("Invalid console execution result", "Mode set to 'REST'. Type 'help' to get a list of commands.\r\n", console.runForTest("Console.setMode('" + ConsoleMode.REST.name() + "')"));
 
 
 		} catch (FrameworkException fex) {

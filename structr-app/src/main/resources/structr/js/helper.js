@@ -971,8 +971,7 @@ let _Console = new (function() {
 	let _consoleModeKey = 'structrConsoleModeKey_' + location.port;
 	let _initialized    = false;
 	let _consoleVisible = false;
-	let _modes          = ['JavaScript', 'StructrScript', 'Cypher', 'AdminShell', 'REST'];
-	let _curMode        = 0;
+	let _curMode;
 
 	// public methods
 	this.logoutAction = () => {
@@ -981,119 +980,111 @@ let _Console = new (function() {
 		_hideConsole();
 	};
 
-	this.initConsole = () => {
+	this.initConsole = async () => {
 
 		if (_initialized) {
 			return;
 		}
 
-		let storedMode = LSWrapper.getItem(_consoleModeKey, _modes[0]);
-
 		// Get initial mode and prompt from backend
-		// If backend sends no mode, use value from local storage
-		Command.console(`Console.setMode('${storedMode}')`, storedMode, (data) => {
+		let data        = await Command.consolePromise(`Console.getMode()`, LSWrapper.getItem(_consoleModeKey));
+		let message     = data.message;
+		let prompt      = data.data.prompt;
+		let versionInfo = data.data.versionInfo;
+		_curMode        = data.data.mode;
 
-			let message     = data.message;
-			let prompt      = data.data.prompt;
-			let versionInfo = data.data.versionInfo;
+		_terminal = $('#structr-console').terminal((command, term) => {
 
-			_curMode = _modes.indexOf(storedMode ?? data.data.mode) ?? 0;
+			if (command !== '') {
 
-			let consoleEl = $('#structr-console');
-			_terminal = consoleEl.terminal((command, term) => {
-
-				if (command !== '') {
-
-					try {
-						_runCommand(command, term);
-					} catch (e) {
-						term.error(new String(e));
-					}
-
-				} else {
-
-					term.echo('');
+				try {
+					_runCommand(command, term);
+				} catch (e) {
+					term.error(String(e));
 				}
 
-			}, {
-				greetings: `${_getBanner()}\nWelcome to Structr (${versionInfo}). Use <Shift>+<Tab> to switch modes.`,
-				name: 'structr-console',
-				height: 470,
-				prompt: prompt + '> ',
-				keydown: (e) => {
+			} else {
 
-					let event = e.originalEvent;
+				term.echo('');
+			}
 
-					if (event.shiftKey === true && (event.key === 'Tab' || event.keyCode === 9)) {
+		}, {
+			greetings: `${_getBanner()}\nWelcome to Structr (${versionInfo}). Use <Shift>+<Tab> to switch modes.`,
+			name: 'structr-console',
+			height: 470,
+			prompt: prompt + '> ',
+			keydown: (e) => {
 
-						_nextMode();
+				let event = e.originalEvent;
 
-						return false;
+				if (event.shiftKey === true && (event.key === 'Tab' || event.keyCode === 9)) {
 
-					} else if (_Helpers.isMac() && event.altKey && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
+					_nextMode();
 
-						// allow cursor to jump words via Alt+Left/Right (on Mac)
-						let curCmd     = _terminal.get_command();
-						let curPos     = _terminal.get_position();
-						let jmpIndexes = _getSplitIndexesInCommandForJumps(curCmd);
-						let targetPos;
+					return false;
 
-						if (event.key === 'ArrowLeft') {
+				} else if (_Helpers.isMac() && event.altKey && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
 
-							jmpIndexes = jmpIndexes.filter(i => i < curPos);
-							targetPos  = jmpIndexes.pop() ?? 0;
+					// allow cursor to jump words via Alt+Left/Right (on Mac)
+					let curCmd     = _terminal.get_command();
+					let curPos     = _terminal.get_position();
+					let jmpIndexes = _getSplitIndexesInCommandForJumps(curCmd);
+					let targetPos;
 
-						} else if (event.key === 'ArrowRight') {
+					if (event.key === 'ArrowLeft') {
 
-							jmpIndexes = jmpIndexes.filter(i => i > curPos);
-							targetPos  = jmpIndexes[0] ?? curCmd.length;
-						}
+						jmpIndexes = jmpIndexes.filter(i => i < curPos);
+						targetPos  = jmpIndexes.pop() ?? 0;
 
-						_terminal.set_position(targetPos);
+					} else if (event.key === 'ArrowRight') {
 
-						return false;
-
-					} else if (_Helpers.isMac() && event.altKey && (event.key === 'Backspace' || event.key === 'Delete')) {
-
-						// allow deletion of words via Alt+Backspace (on Mac)
-						let curCmd     = _terminal.get_command();
-						let curPos     = _terminal.get_position();
-						let jmpIndexes = _getSplitIndexesInCommandForJumps(curCmd);
-						let targetPos;
-						let newCmd;
-
-						if (event.key === 'Backspace') {
-
-							jmpIndexes = jmpIndexes.filter(i => i < curPos);
-							targetPos  = jmpIndexes.pop() ?? 0;
-							newCmd     = curCmd.slice(0, targetPos) + curCmd.slice(curPos, curCmd.length);
-
-						} else if (event.key === 'Delete') {
-
-							jmpIndexes = jmpIndexes.filter(i => i > curPos);
-							targetPos  = jmpIndexes[0] ?? curCmd.length;
-							newCmd     = curCmd.slice(0, curPos) + curCmd.slice(targetPos, curCmd.length);
-							targetPos  = curPos;
-						}
-
-						_terminal.set_command(newCmd)
-						_terminal.set_position(targetPos);
-
-						return false;
+						jmpIndexes = jmpIndexes.filter(i => i > curPos);
+						targetPos  = jmpIndexes[0] ?? curCmd.length;
 					}
-				},
-				completion: (lineToBeCompleted, callback) => {
-					Command.console(lineToBeCompleted, _getCurMode(), (data) => {
-						callback(data.data.commands);
-					}, true);
-				}
-			});
-			_terminal.consoleMode = _getCurMode();
-			_terminal.set_prompt(prompt + '> ');
-			_terminal.echo(message);
 
-			_initialized = true;
+					_terminal.set_position(targetPos);
+
+					return false;
+
+				} else if (_Helpers.isMac() && event.altKey && (event.key === 'Backspace' || event.key === 'Delete')) {
+
+					// allow deletion of words via Alt+Backspace (on Mac)
+					let curCmd     = _terminal.get_command();
+					let curPos     = _terminal.get_position();
+					let jmpIndexes = _getSplitIndexesInCommandForJumps(curCmd);
+					let targetPos;
+					let newCmd;
+
+					if (event.key === 'Backspace') {
+
+						jmpIndexes = jmpIndexes.filter(i => i < curPos);
+						targetPos  = jmpIndexes.pop() ?? 0;
+						newCmd     = curCmd.slice(0, targetPos) + curCmd.slice(curPos, curCmd.length);
+
+					} else if (event.key === 'Delete') {
+
+						jmpIndexes = jmpIndexes.filter(i => i > curPos);
+						targetPos  = jmpIndexes[0] ?? curCmd.length;
+						newCmd     = curCmd.slice(0, curPos) + curCmd.slice(targetPos, curCmd.length);
+						targetPos  = curPos;
+					}
+
+					_terminal.set_command(newCmd)
+					_terminal.set_position(targetPos);
+
+					return false;
+				}
+			},
+			completion: (lineToBeCompleted, callback) => {
+				Command.consolePromise(lineToBeCompleted, _curMode, true).then(data => {
+					callback(data.data.commands);
+				});
+			}
 		});
+		_terminal.set_prompt(prompt + '> ');
+		_terminal.echo(message);
+
+		_initialized = true;
 	};
 
 	this.toggleConsole = () => (_consoleVisible === true) ? _hideConsole() : _showConsole();
@@ -1109,19 +1100,12 @@ let _Console = new (function() {
 			+ '|____) |___| |_|   |_____| |____| |___| |_|  \n';
 	};
 
-	let _getCurMode = () => _modes[_curMode];
+	let _nextMode = async () => {
 
-	let _nextMode = () => {
+		let data = await _runCommand(`Console.nextMode()`, _terminal);
 
-		_curMode = (_curMode + 1) % _modes.length;
-
-		let mode = _getCurMode();
-
-		LSWrapper.setItem(_consoleModeKey, _getCurMode());
-
-		_terminal.consoleMode = mode;
-
-		_runCommand(`Console.setMode("${mode}")`, _terminal);
+		_curMode = data.data.mode;
+		LSWrapper.setItem(_consoleModeKey, _curMode);
 	};
 
 	// splits command by non-alphanumeric characters and returns all indexes to use in jump commands via keyboard navigation
@@ -1141,49 +1125,48 @@ let _Console = new (function() {
 		$('#structr-console').slideUp('fast');
 	};
 
-	let _runCommand = (command, term) => {
+	let _runCommand = async (command, term) => {
 
 		if (!term) {
 			term = _terminal;
 		}
 
-		Command.console(command, _getCurMode(), (data) => {
-			let prompt = data.data.prompt;
-			if (prompt) {
-				term.set_prompt(prompt + '> ');
-			}
-			let result = data.message;
+		let data = await Command.consolePromise(command, _curMode);
 
-			if (result !== undefined) {
+		// handle data
+		let prompt = data.data.prompt;
+		if (prompt) {
+			term.set_prompt(prompt + '> ');
+		}
+		let result = data.message;
 
-				let isJSON = data.data?.isJSON ?? false;
-				if (isJSON) {
-					try {
+		if (result !== undefined) {
 
-						let data = JSON.parse(result);
+			if (data.data?.isJSON === true) {
+				try {
 
-						let errorText = Structr.getErrorMessageFromResponse(data, false);
+					result = Structr.getErrorMessageFromResponse(JSON.parse(result), false);
 
-						result = errorText;
+				} catch (e) {
 
-					} catch (e) {
-						result = new String(result);
-					}
+					result = String(result);
 				}
-
-				// prevent the output from being formatted and re-interpreted by term. ('[[1,2,3]]' leads to re-interpretation)
-				let echoConfig = {
-					exec: false,
-					raw: true,
-					finalize: (div) => {
-						div.css('white-space', 'pre-wrap');	// prevent the output from being put on one line but also prevent overflow
-						div.text(result);
-					}
-				};
-
-				term.echo(result, echoConfig);
 			}
-		});
+
+			// prevent the output from being formatted and re-interpreted by term. ('[[1,2,3]]' leads to re-interpretation)
+			let echoConfig = {
+				exec: false,
+				raw: true,
+				finalize: (div) => {
+					div.css('white-space', 'pre-wrap');	// prevent the output from being put on one line but also prevent overflow
+					div.text(result);
+				}
+			};
+
+			term.echo(result, echoConfig);
+		}
+
+		return data;
 	};
 });
 

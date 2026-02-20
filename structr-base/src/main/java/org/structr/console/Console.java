@@ -27,7 +27,6 @@ import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
-import org.structr.console.rest.RestCommand;
 import org.structr.console.shell.AdminConsoleCommand;
 import org.structr.console.tabcompletion.*;
 import org.structr.core.GraphObject;
@@ -57,7 +56,7 @@ public class Console {
 	private static Logger logger = LoggerFactory.getLogger(Console.class);
 
 	public enum ConsoleMode {
-		Cypher, JavaScript, StructrScript, AdminShell, REST
+		Cypher, JavaScript, StructrScript, AdminShell
 	};
 
 	private final Map<ConsoleMode, TabCompletionProvider> tabCompletionProviders = new HashMap<>();
@@ -77,7 +76,6 @@ public class Console {
 		tabCompletionProviders.put(ConsoleMode.JavaScript,    new JavaScriptTabCompletionProvider());
 		tabCompletionProviders.put(ConsoleMode.StructrScript, new StructrScriptTabCompletionProvider());
 		tabCompletionProviders.put(ConsoleMode.AdminShell,    new AdminTabCompletionProvider());
-		tabCompletionProviders.put(ConsoleMode.REST,          new RestTabCompletionProvider());
 	}
 
 	public boolean hasStillTheSameTraitsInstance() {
@@ -100,6 +98,10 @@ public class Console {
 
 			output.println("Mode is '" + getMode() + "'.");
 
+		} else if (line.startsWith("Console.nextMode()")) {
+
+			run("Console.setMode('" + Console.getNextConsoleMode(mode) + "')", output);
+
 		} else if (line.startsWith("Console.setMode('" + ConsoleMode.JavaScript.name() + "')") || line.startsWith("Console.setMode(\"" + ConsoleMode.JavaScript.name() + "\")")) {
 
 			mode = ConsoleMode.JavaScript;
@@ -119,11 +121,6 @@ public class Console {
 
 			mode = ConsoleMode.AdminShell;
 			output.println("Mode set to '" + ConsoleMode.AdminShell.name() + "'. Type 'help' to get a list of commands.");
-
-		} else if (line.startsWith("Console.setMode('" + ConsoleMode.REST.name() + "')") || line.startsWith("Console.setMode(\"" + ConsoleMode.REST.name() + "\")")) {
-
-			mode = ConsoleMode.REST;
-			output.println("Mode set to '" + ConsoleMode.REST.name() + "'. Type 'help' to get a list of commands.");
 
 		} else {
 
@@ -147,14 +144,20 @@ public class Console {
 				case AdminShell:
 					runAdminShell(line, output);
 					break;
-
-				case REST:
-					RestCommand.run(this, line, output);
-					break;
 			}
 
 			actionContext.getSecurityContext().setDoTransactionNotifications(notificationsEnabled);
 		}
+	}
+
+	public static ConsoleMode getNextConsoleMode(ConsoleMode consoleMode) {
+
+		return switch (consoleMode) {
+			case JavaScript -> ConsoleMode.StructrScript;
+			case StructrScript -> ConsoleMode.Cypher;
+			case Cypher -> ConsoleMode.AdminShell;
+			default -> ConsoleMode.JavaScript;
+		};
 	}
 
 	public List<TabCompletionResult> getTabCompletion(final String line) {
@@ -189,14 +192,6 @@ public class Console {
 			case AdminShell:
 				if (principal != null) {
 					buf.append(principal.getName());
-				}
-				break;
-
-			case REST:
-				if (username != null) {
-					buf.append(username);
-				} else {
-					buf.append("anonymous");
 				}
 				break;
 		}
