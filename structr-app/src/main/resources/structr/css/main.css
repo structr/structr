@@ -3371,10 +3371,6 @@ div#database-connections form input {
 	width: 200px;
 }
 
-table.props td.key {
-	width: 20%;
-}
-
 .resourceBox .node,
 #relatedNodesList .node,
 .props .node,
