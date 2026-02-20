@@ -3481,7 +3481,7 @@ let UISettings = {
 				ignoreNonUniqueSchemaRelationshipWarning: {
 					text: 'Ignore non-unique relationship type warnings',
 					storageKey: 'structrIgnoreNonUniqueSchemaRelWarnings_' + location.port,
-					defaultValue: true,
+					defaultValue: false,
 					type: 'checkbox'
 				}
 			}
