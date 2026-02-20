@@ -50,7 +50,7 @@ test('pages', async ({page}) => {
     await page.locator('#create_page').click();
     await page.waitForTimeout(1000);
     await page.screenshot({path: 'screenshots/pages_create-page.png'});
-    await page.locator('#template-tiles .app-tile:nth-child(2)').click();
+    await page.locator('#template-tiles .page-tile:nth-child(2)').click();
     await page.waitForTimeout(2000);
 
     // Open Access Control dialog to create a screenshot
@@ -68,6 +68,8 @@ test('pages', async ({page}) => {
     await page.locator('#pagesTree').click();
     await page.waitForTimeout(1000);
     await page.screenshot({path: 'screenshots/pages_page-created.png'});
+
+    await page.reload();
 
     await page.locator('#pagesTree .node-container:nth-child(1)').click({button: 'right'});
     await page.getByText('Expand / Collapse').waitFor({state: 'visible'});

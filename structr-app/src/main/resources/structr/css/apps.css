@@ -1,0 +1,94 @@
+/**
+ * Copyright (C) 2010-2026 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/*
+ * Apps
+ */
+#apps {
+    height: 100%;
+    overflow-y: scroll;
+    margin: 2rem;
+}
+
+.app-category {
+    margin: 1rem;
+    position: relative;
+}
+
+.app-category h1 {
+    margin: 0 0 1rem 0;
+}
+
+.app-category p {
+    margin: 0;
+}
+
+.app-tile {
+    background-color: var(--solid-white);
+    border: 1px solid var(--black-opacity-125);
+    box-shadow: 0 0 1rem var(--gray-opacity-10);
+    margin: 1rem 3rem 3rem 0;
+    padding: 0;
+    position: relative;
+    width: 16rem;
+    width: 16em;
+    height: 20rem;
+    display: inline-block;
+    vertical-align: text-top;
+    border-radius: .5rem;
+}
+
+.app-tile:hover {
+    background-color: var(--light-gray-bg-f3);
+    box-shadow: 0 0 1rem var(--black-opacity-125);
+    cursor: pointer;
+}
+
+.app-tile img {
+    width: 83%;
+    margin: 13.5% 20% 0 8.5%;
+}
+
+.app-tile .app-thumbnail-frame {
+    width: 100%;
+    background-repeat: no-repeat;
+    background-image: url('https://apps.structr.com/assets/images/frame.svg');
+}
+
+.app-thumbnail-frame img {
+    max-height: 69px;
+}
+
+.app-tile h3 {
+    margin: 1rem;
+    font-weight: 600;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.app-tile p {
+    margin: 1rem;
+}
+
+.app-tile button {
+    position: absolute;
+    bottom: 1rem;
+    right: 0.5rem;
+}
