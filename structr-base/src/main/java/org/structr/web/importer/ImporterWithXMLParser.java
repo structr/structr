@@ -18,6 +18,7 @@
  */
 package org.structr.web.importer;
 
+import com.google.gson.GsonBuilder;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.text.WordUtils;
@@ -52,10 +53,8 @@ import org.structr.schema.importer.SchemaJsonImporter;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
+import org.structr.web.entity.*;
 import org.structr.web.entity.File;
-import org.structr.web.entity.Image;
-import org.structr.web.entity.LinkSource;
-import org.structr.web.entity.Linkable;
 import org.structr.web.entity.dom.*;
 import org.structr.web.maintenance.DeployCommand;
 import org.structr.web.property.CustomHtmlAttributeProperty;
@@ -708,6 +707,30 @@ public class ImporterWithXMLParser {
 					logger.warn("Invalid shared template definition, missing name attribute!");
 				}
 
+			} else if ("structr:widget".equals(tag)) {
+
+				final String src = node.attr("src");
+				if (src != null) {
+
+					final NodeInterface widgetNode = app.nodeQuery(StructrTraits.WIDGET).name(src).getFirst();
+					if (widgetNode != null) {
+
+						final Widget widget = widgetNode.as(Widget.class);
+						final String source = widget.getSource();
+
+						if (parent != null) {
+
+							final DOMNode domParent = parent.as(DOMNode.class);
+
+							Widget.expandWidget(securityContext, page, domParent, "http://localhost", Map.of("source", source), false);
+						}
+					}
+
+				} else {
+
+					logger.warn("Invalid widget reference, missing src attribute!");
+				}
+
 			} else if ("structr:component".equals(tag)) {
 
 				final String src = node.attr("src");
@@ -850,14 +873,41 @@ public class ImporterWithXMLParser {
 										final PropertyKey actualKey       = newNodeType.key(camelCaseKey);
 										final PropertyConverter converter = actualKey.inputConverter(securityContext, false);
 
+										// we change the type of the value here
+										Object actualValue = value;
+
+										// check if we can parse JSON
+										if (actualValue != null) {
+
+											// JSON array?
+											if (actualValue.toString().startsWith("[")) {
+												try {
+													actualValue = new GsonBuilder().create().fromJson(value, List.class);
+												} catch (Throwable t) {
+													// reset value
+													actualValue = value;
+												}
+											}
+
+											// JSON object?
+											if (actualValue.toString().startsWith("{")) {
+												try {
+													actualValue = List.of(new GsonBuilder().create().fromJson(value, Map.class));
+												} catch (Throwable t) {
+													// reset value
+													actualValue = value;
+												}
+											}
+										}
+
 										if (converter != null) {
 
-											final Object convertedValue = converter.convert(value);
+											final Object convertedValue = converter.convert(actualValue);
 
-											if (value != null && convertedValue == null) {
+											if (actualValue != null && convertedValue == null) {
 
 												// DOMNode to be linked is not yet imported, so we store it to handle it later
-												deferredNodeProperties.put(actualKey, value);
+												deferredNodeProperties.put(actualKey, actualValue);
 
 											} else {
 
@@ -866,7 +916,7 @@ public class ImporterWithXMLParser {
 
 										} else {
 
-											newNodeProperties.put(actualKey, value);
+											newNodeProperties.put(actualKey, actualValue);
 										}
 
 									} else {

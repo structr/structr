@@ -104,14 +104,14 @@ public class GetSuggestionsCommand extends AbstractCommand {
 	}
 
 	// ----- private methods -----
-	private List<NodeInterface> getWidgetsForInsert(final SecurityContext securityContext, final DOMNode domNode) throws FrameworkException {
+	private List<Widget> getWidgetsForInsert(final SecurityContext securityContext, final DOMNode domNode) throws FrameworkException {
 
-		final List<NodeInterface> result = new LinkedList<>();
-		final List<String> classes       = splitClasses(domNode.getCssClass());
-		final String name                = domNode.getName();
-		final String htmlId              = getHtmlId(domNode);
-		final String tag                 = getTag(domNode);
-		final App app                    = StructrApp.getInstance(securityContext);
+		final List<Widget> result  = new LinkedList<>();
+		final List<String> classes = splitClasses(domNode.getCssClass());
+		final String name          = domNode.getName();
+		final String htmlId        = getHtmlId(domNode);
+		final String tag           = getTag(domNode);
+		final App app              = StructrApp.getInstance(securityContext);
 
 		if (tag != null) {
 
@@ -165,20 +165,20 @@ public class GetSuggestionsCommand extends AbstractCommand {
 				}
 			}
 
-			// sort result by name
-			Collections.sort(result, Comparator.comparing(NodeInterface::getName));
+			// sort result by treePath + name
+			Collections.sort(result, Comparator.comparing(w -> w.getTreePath() + "_" + w.getName()));
 		}
 
 		return result;
 	}
 
-	private List<NodeInterface> getWidgetsForReplace(final SecurityContext securityContext, final DOMNode domNode) throws FrameworkException {
+	private List<Widget> getWidgetsForReplace(final SecurityContext securityContext, final DOMNode domNode) throws FrameworkException {
 
 		// We can only replace widgets with a matching data-type
-		final App app                    = StructrApp.getInstance(securityContext);
-		final List<NodeInterface> result = new LinkedList<>();
-		final String nodeType            = getComponentType(domNode);
-		final Integer dimensions         = getDimensions(domNode);
+		final App app             = StructrApp.getInstance(securityContext);
+		final List<Widget> result = new LinkedList<>();
+		final String nodeType     = getComponentType(domNode);
+		final Integer dimensions  = getDimensions(domNode);
 
 		try (final ResultStream<NodeInterface> resultStream = app.nodeQuery(StructrTraits.WIDGET).getResultStream()) {
 
@@ -209,8 +209,8 @@ public class GetSuggestionsCommand extends AbstractCommand {
 				result.add(widget);
 			}
 
-			// sort result by name
-			Collections.sort(result, Comparator.comparing(NodeInterface::getName));
+			// sort result by treePath + name
+			Collections.sort(result, Comparator.comparing(w -> w.getTreePath() + "_" + w.getName()));
 		}
 
 		return result;

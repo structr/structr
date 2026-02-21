@@ -161,7 +161,7 @@ let _Widgets = {
 			}
 		});
 
-		_Pager.initPager('local-widgets', 'Widget', 1, 1000, 'treePath', 'asc');
+		_Pager.initPager('local-widgets', 'Widget', 1, 1000, 'treePath,name', 'asc');
 		let _wPager = _Pager.addPager('local-widgets', _Widgets.localWidgetsEl[0], true, 'Widget', 'public', (entities) => {
 
 			for (let entity of entities) {

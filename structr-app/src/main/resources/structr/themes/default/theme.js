@@ -43,7 +43,8 @@ $.theme = {
     "text": {
         "pageHeading": "slate-700",
         "heading": "slate-950",
-        "paragraph": "slate-600"
+        "paragraph": "slate-600",
+        "muted": "slate-300"
     },
     "input": {
         "background": "gray-50",
@@ -60,6 +61,16 @@ $.theme = {
         "success": {
             "background": "emerald-500",
             "focus": "emerald-600",
+            "text": "white"
+        },
+        "warning": {
+            "background": "emerald-500",
+            "focus": "emerald-600",
+            "text": "white"
+        },
+        "danger": {
+            "background": "red-500",
+            "focus": "red-600",
             "text": "white"
         }
     },

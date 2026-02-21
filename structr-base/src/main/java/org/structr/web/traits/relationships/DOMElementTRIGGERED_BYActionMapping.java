@@ -61,7 +61,7 @@ public class DOMElementTRIGGERED_BYActionMapping extends AbstractRelationshipTra
 
 	@Override
 	public int getAutocreationFlag() {
-		return Relation.NONE;
+		return Relation.SOURCE_TO_TARGET;
 	}
 
 	@Override

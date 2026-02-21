@@ -33,6 +33,7 @@
     .menu-item { @apply block px-6 py-3 text-${theme.nav.text} bg-${theme.nav.background} cursor-pointer hover:bg-${theme.nav.hover} text-sm rounded-lg; }
     .menu-item.active { @apply bg-${theme.nav.active} cursor-pointer hover:bg-${theme.nav.hover} text-sm rounded-lg; }
     .page-heading { @apply mx-auto w-full font-bold text-xl text-${theme.text.pageHeading}; }
+    .text-muted { @apply text-${theme.text.muted}; }
 
     /* components */
     .panel { @apply rounded-xl bg-${theme.surface.background} border border-${theme.surface.border}; }
@@ -42,11 +43,19 @@
     .list-container { @apply overflow-hidden rounded-xl bg-${theme.surface.background} border border-${theme.surface.border}; }
     ul, ol { @apply divide-y divide-${theme.surface.border}; }
     ol { @apply list-decimal ml-8; }
-    li { @apply px-6 py-4; }
+    li { @apply px-6 py-4 flex justify-between; }
+    li .button { @apply button-sm; }
+    li.no-items:not(:first-child) { @apply hidden; }
     .card { @apply flex flex-row p-8 rounded-xl bg-${theme.surface.background} border border-${theme.surface.border}; }
     .card.card-left .icon { @apply mr-4 rounded-lg border border-${theme.surface.border} w-14 h-14 flex-shrink-0; }
     .card.card-right .icon { @apply ml-4 rounded-lg border border-${theme.surface.border} w-14 h-14 flex-shrink-0; }
     .card h4 { @apply text-lg font-bold m-0 p-0 flex-grow; }
+    .gallery {
+        @apply gap-16;
+        img { @apply w-full rounded-t-sm shadow-lg; }
+        div.info { @apply p-4 text-xs font-medium bg-${theme.surface.background} text-${theme.text.heading} rounded-b-sm shadow-lg whitespace-nowrap truncate; }
+    }
+
 
     /* accordion is complicated... */
     .accordion {
@@ -71,7 +80,7 @@
     .table { @apply py-2 min-w-full bg-${theme.surface.background} border border-${theme.surface.border} rounded-xl; }
     table { @apply min-w-full divide-y divide-${theme.surface.border} }
     thead { @apply divide-y divide-${theme.surface.border} bg-${theme.surface.background} }
-    th { @apply py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-${theme.text.heading} sm:pl-6; }
+    th { @apply py-3.5 px-4 text-left text-sm font-semibold text-${theme.text.heading} sm:pl-6; }
     tbody { @apply divide-y divide-${theme.surface.border} bg-${theme.surface.background} }
     td { @apply whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-${theme.text.paragraph} sm:pl-6; }
 
@@ -80,8 +89,11 @@
     input[type="text"], textarea { @apply mt-1 block w-full rounded-md text-${theme.input.text} bg-${theme.input.background} border border-${theme.input.border} py-2 px-3 shadow-sm focus:border-${theme.input.focus} focus:outline-none focus:ring-${theme.input.focus} sm:text-sm; }
     input[type="checkbox"] { @apply m-0 mr-2 p-0 text-${theme.input.text} bg-${theme.input.background}; }
     .button { @apply inline-flex items-center rounded-md border border-transparent px-4 py-2 text-sm font-medium shadow-sm focus:ring-offset-2 focus:outline-none focus:ring-2; }
+    .button-sm { @apply inline-flex items-center rounded-md border border-transparent px-2 py-1 text-xs font-medium shadow-sm focus:ring-offset-2 focus:outline-none focus:ring-2; }
     .button-primary { @apply bg-${theme.button.primary.background} text-${theme.button.primary.text} hover:bg-${theme.button.primary.focus} focus:ring-${theme.button.primary.focus}; }
     .button-success { @apply bg-${theme.button.success.background} text-${theme.button.success.text} hover:bg-${theme.button.success.focus} focus:ring-${theme.button.success.focus}; }
+    .button-warning { @apply bg-${theme.button.warning.background} text-${theme.button.warning.text} hover:bg-${theme.button.warning.focus} focus:ring-${theme.button.warning.focus}; }
+    .button-danger { @apply bg-${theme.button.danger.background} text-${theme.button.danger.text} hover:bg-${theme.button.danger.focus} focus:ring-${theme.button.danger.focus}; }
     .badge { @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-medium }
     .badge.primary { @apply bg-${theme.colors.primary.background} text-${theme.colors.primary.text}; }
 

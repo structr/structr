@@ -29,7 +29,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.importer.Importer;
 import org.structr.web.importer.ImporterWithXMLParser;
 import org.structr.web.maintenance.deploy.DeploymentCommentHandler;
 
@@ -107,17 +106,8 @@ public interface Widget extends NodeInterface {
 			final ImporterWithXMLParser importer = new ImporterWithXMLParser(securityContext, _source, baseUrl, null, false, false, false, false);
 			final JsonSingleInput configData     = ((JsonSingleInput) parameters.get("config"));
 
-			if (processDeploymentInfo) {
-				importer.setIsDeployment(true);
-				importer.setCommentHandler(new DeploymentCommentHandler());
-			}
-
-			// test: insert widget into Page object directly
-			if (parent.equals(page)) {
-				importer.setIsDeployment(true);
-			}
-
-			//importer.setIsWidgetImport(true);
+			importer.setIsDeployment(true);
+			importer.setCommentHandler(new DeploymentCommentHandler());
 
 			if (importer.parse(true)) {
 

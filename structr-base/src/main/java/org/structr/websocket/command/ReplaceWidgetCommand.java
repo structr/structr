@@ -83,32 +83,22 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 		Page page = getPage(pageId);
 		if (page != null) {
 
-			try {
+			final DOMNode parentNode = nodeToReplace.getParent();
+			if (parentNode != null) {
 
-				final DOMNode parentNode = nodeToReplace.getParent();
-				if (parentNode != null) {
+				final Map<String, Object> data = webSocketData.getNodeData();
 
-					final Map<String, Object> data = webSocketData.getNodeData();
+				ReplaceWidgetCommand.replaceWidget(securityContext, page, nodeToReplace, baseUrl, data, processDeploymentInfo);
 
-					ReplaceWidgetCommand.replaceWidget(securityContext, page, nodeToReplace, baseUrl, data, processDeploymentInfo);
+				TransactionCommand.registerNodeCallback(parentNode, callback);
 
-					TransactionCommand.registerNodeCallback(parentNode, callback);
+			} else {
 
-				} else {
-
-					// log error?
-				}
-
-				// send success
-				getWebSocket().send(webSocketData, true);
-
-			} catch (Throwable fex) {
-
-				logger.warn(fex.toString());
-
-				// send exception
-				getWebSocket().send(MessageBuilder.status().code(422).message(fex.toString()).build(), true);
+				// log error?
 			}
+
+			// send success
+			getWebSocket().send(webSocketData, true);
 		}
 	}
 
@@ -142,9 +132,11 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 	// ----- private methods -----
 	private static void moveContent(final SecurityContext securityContext, final DOMNode oldNode, final DOMNode newNode) throws FrameworkException{
 
-		final Map<String, ItemData> slotChildren    = new LinkedHashMap<>();
+		final Map<String, ItemData> items           = new LinkedHashMap<>();
 		final Map<String, RepeaterData> repeaters   = new LinkedHashMap<>();
 		final Set<String> idsOfOldNodesWithItemType = new LinkedHashSet<>();
+		final String sourceName                     = oldNode.getName();
+		final String targetName                     = newNode.getName();
 
 		// collect slot children from old node
 		for (final NodeInterface node : collectChildren(oldNode)) {
@@ -159,9 +151,9 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 
 					idsOfOldNodesWithItemType.add(slotNode.getUuid());
 
-					final ItemData slotData = new ItemData(slotNode);
+					final ItemData slotData = new ItemData(slotNode, itemType);
 
-					if (slotChildren.put(itemType, slotData) != null) {
+					if (items.put(itemType, slotData) != null) {
 
 						throw new FrameworkException(422, "Slot " + itemType + " exists more than once in " + slotNode);
 					}
@@ -171,7 +163,7 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 				final String repeaterType = slotNode.getRepeaterType();
 				if (repeaterType != null) {
 
-					final RepeaterData slotData = new RepeaterData(slotNode);
+					final RepeaterData slotData = new RepeaterData(slotNode, repeaterType);
 
 					if (repeaters.put(repeaterType, slotData) != null) {
 
@@ -189,7 +181,7 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 				final DOMNode slotNode          = node.as(DOMNode.class);
 				final String itemType           = slotNode.getItemType();
 				final String repeaterType       = slotNode.getRepeaterType();
-				final ItemData itemData         = slotChildren.get(itemType);
+				final ItemData itemData         = items.get(itemType);
 				final RepeaterData repeaterData = repeaters.get(repeaterType);
 
 				if (itemData != null) {
@@ -215,6 +207,29 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 
 				app.delete(child);
 			}
+		}
+
+		final List<String> buffer = new LinkedList<>();
+
+		for (final ItemData slotData : items.values()) {
+
+			if (!slotData.wasProcessed()) {
+
+				buffer.add("\"" + targetName + "\" has no slot for itemType \"" + slotData.getIdentifier() + "\"");
+			}
+		}
+
+		for (final RepeaterData repeaterData : repeaters.values()) {
+
+			if (!repeaterData.wasProcessed()) {
+
+				buffer.add("\"" + targetName + "\" has no slot for repeaterType \"" + repeaterData.getIdentifier() + "\"");
+			}
+		}
+
+		if (!buffer.isEmpty()) {
+
+			throw new FrameworkException(422, "Widgets are not compatible: cannot replace \"" + sourceName + "\" with \"" + targetName + "\" because " + StringUtils.join(buffer, ", ") + ".");
 		}
 	}
 
@@ -269,11 +284,13 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 		return node.getUuid();
 	}
 
-	private static class ItemData {
+	private static class ItemData extends SlotData {
 
 		private final List<DOMNode> children = new LinkedList<>();
 
-		public ItemData(final DOMNode node) throws FrameworkException {
+		public ItemData(final DOMNode node, final String identifier) throws FrameworkException {
+
+			super(identifier);
 
 			for (final DOMNode child : node.getChildren()) {
 
@@ -299,15 +316,19 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 
 				newNode.appendChild(child);
 			}
+
+			processed = true;
 		}
 	}
 
-	private static class RepeaterData {
+	private static class RepeaterData extends SlotData {
 
 		private final Set<String> keys       = Set.of(DOMNodeTraitDefinition.DATA_KEY_PROPERTY, DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY);
 		private final PropertyMap properties = new PropertyMap();
 
-		public RepeaterData(final DOMNode node) throws FrameworkException {
+		public RepeaterData(final DOMNode node, final String identifier) throws FrameworkException {
+
+			super(identifier);
 
 			final Traits traits = node.getTraits();
 
@@ -321,6 +342,25 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 		public void applyTo(final SecurityContext securityContext, final DOMNode newNode) throws FrameworkException {
 
 			 newNode.setProperties(securityContext, properties);
+			processed = true;
+		}
+	}
+
+	private abstract static class SlotData {
+
+		protected final String identifier;
+		protected boolean processed = false;
+
+		public SlotData(final String identifier) {
+			this.identifier = identifier;
+		}
+
+		public String getIdentifier() {
+			return identifier;
+		}
+
+		public boolean wasProcessed() {
+			return processed;
 		}
 	}
 }
