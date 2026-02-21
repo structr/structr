@@ -2332,6 +2332,16 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				final Path moduleFolder = source.resolve("modules/" + module.getName() + "/");
 
+				if (!Files.exists(moduleFolder)) {
+					try {
+
+						Files.createDirectory(moduleFolder);
+					} catch (IOException ioex) {
+
+						logger.warn("Could not create missing module folder during import {}", moduleFolder, ioex);
+					}
+				}
+
 				if (Files.exists(moduleFolder)) {
 
 					logger.info("Importing deployment data for module {}", module.getName());
