@@ -29,6 +29,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.files.ssh.StructrSSHFileSystem;
 import org.structr.files.ssh.filesystem.StructrFileAttributes;
 import org.structr.files.ssh.filesystem.StructrFilesystem;
 import org.structr.files.ssh.filesystem.StructrPath;
@@ -331,9 +332,14 @@ public class StructrFilePath extends StructrPath {
 
 	public NodeInterface getActualFile() {
 
-		final String filePath = toString();
 		final App app         = StructrApp.getInstance(fs.getSecurityContext());
 		final Traits traits   = Traits.of(StructrTraits.ABSTRACT_FILE);
+		String filePath = toString();
+
+		// Special handling for relative paths pointing to the current directory
+		if (filePath.endsWith(StructrPath.CURRENT_DIRECTORY)) {
+			filePath = filePath.substring(0, filePath.length() - 1);
+		}
 
 		try (final Tx tx = app.tx()) {
 

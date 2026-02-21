@@ -27,6 +27,7 @@ import org.structr.web.entity.Folder;
 import org.structr.web.entity.StorageConfiguration;
 
 import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Path;
 
 public class LocalFSHelper {
@@ -62,11 +63,16 @@ public class LocalFSHelper {
 
 			fileOnDisk.getParentFile().mkdirs();
 
-			if (create && !parentFolder.isExternal()) {
+			if (create && (parentFolder == null || !parentFolder.isExternal())) {
 
 				try {
 
-					fileOnDisk.createNewFile();
+					final boolean fileCreated = fileOnDisk.createNewFile();
+
+					if (!fileCreated) {
+
+						throw new FileAlreadyExistsException(fileOnDisk.getAbsolutePath());
+					}
 
 				} catch (IOException ioex) {
 
