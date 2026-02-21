@@ -163,7 +163,12 @@ public class CreateZipFunction extends UiAdvancedFunction {
 				return usage(ctx.isJavaScriptContext());
 			}
 
-			return FileHelper.createFile(ctx.getSecurityContext(), zipFile.getFile(), "application/zip", name);
+			final File structrZipFile = FileHelper.createFile(ctx.getSecurityContext(), zipFile.getFile(), "application/zip", name);
+
+			zipFile.close();
+			zipFile.getFile().delete();
+
+			return structrZipFile;
 
 		} catch (IOException e) {
 
