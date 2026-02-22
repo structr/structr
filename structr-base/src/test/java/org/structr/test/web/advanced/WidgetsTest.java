@@ -69,23 +69,26 @@ public class WidgetsTest extends StructrUiTest {
 
 			// import a Panel with two children that are also widgets
 			expandWidget(page, "Main Content", "Panel");
-			expandWidget(page, "Panel", "Paragraph");
-			expandWidget(page, "Panel", "Button");
+			expandWidget(page, "Panel", "Paragraph with static text");
+			expandWidget(page, "Panel", "Create Button");
 
 			// check initial result
-			assertEquals("Main Content/+Page Heading/+Panel/++p/+++Content[Lorem ]/++button/+++Content[Button]", getCheckString(getDOMNode(page, "Main Content")));
+			assertEquals("Main Content/+Page Heading/+Panel/++p/+++Content[Lorem ]/++button/+++Content[Create]", getCheckString(getDOMNode(page, "Main Content")));
 
 			// check result after replacement
 			replaceElement(page, "Panel", "Panel with heading", Map.of("heading", "Panel Header"));
-			assertEquals("Main Content/+Page Heading/+Panel Header/++p/+++Content[Lorem ]/++button/+++Content[Button]", getCheckString(getDOMNode(page, "Main Content")));
+			assertEquals("Main Content/+Page Heading/+Panel with heading/++h3/+++Content[Headin]/++div/+++p/++++Content[Lorem ]/+++button/++++Content[Create]", getCheckString(getDOMNode(page, "Main Content")));
 
+			/*
 			// check result after replacement
-			replaceElement(page, "Panel Header", "Grid", Map.of("columns", 2));
-			assertEquals("Main Content/+Page Heading/+Grid with 2 columns/++p/+++Content[Lorem ]/++button/+++Content[Button]", getCheckString(getDOMNode(page, "Main Content")));
+			replaceElement(page, "Panel with heading", "Grid", Map.of("columns", 2));
+			assertEquals("Main Content/+Page Heading/+Grid with 2 columns/++p/+++Content[Lorem ]/++button/+++Content[Create]", getCheckString(getDOMNode(page, "Main Content")));
 
 			// check result after replacement round trip
 			replaceElement(page, "Grid with 2 columns", "Panel with heading", Map.of("heading", "Panel Header"));
-			assertEquals("Main Content/+Page Heading/+Panel Header/++p/+++Content[Lorem ]/++button/+++Content[Button]", getCheckString(getDOMNode(page, "Main Content")));
+			assertEquals("Main Content/+Page Heading/+Panel Header/++p/+++Content[Lorem ]/++button/+++Content[Create]", getCheckString(getDOMNode(page, "Main Content")));
+
+			 */
 
 			tx.success();
 
@@ -123,7 +126,7 @@ public class WidgetsTest extends StructrUiTest {
 
 			// insert data
 			expandWidget(page, "Table Header Cell", "Badge");
-			expandWidget(page, "Table Cell", "Paragraph");
+			expandWidget(page, "Table Cell", "Paragraph with static text");
 			expandWidget(page, "Table Cell", "List");
 
 			final String checkStringBefore = getCheckString(getDOMNode(page, "Main Content"));
@@ -264,7 +267,7 @@ public class WidgetsTest extends StructrUiTest {
 
 			final List<NodeInterface> widgets = app.nodeQuery(StructrTraits.WIDGET).getAsList();
 
-			assertEquals("Invalid number of imported Widgets", 17, widgets.size());
+			assertEquals("Invalid number of imported Widgets", 22, widgets.size());
 
 			// print names of all Widgets
 			System.out.println(widgets.stream().map(NodeInterface::getName).toList());

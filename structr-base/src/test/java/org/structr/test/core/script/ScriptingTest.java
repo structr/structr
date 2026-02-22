@@ -6369,7 +6369,7 @@ public class ScriptingTest extends StructrTest {
 			type.addMethod("getName", "{ return $.this.name; }");
 
 			// native object created inline
-			type.addMethod("test",  "{ let names = []; for (let t of $.find('Test')) { names.push(t.getName()); } return names.join(''); }");
+			type.addMethod("test",  "{ let names = []; for (let t of $.find('Test', $.predicate.sort('name'))) { names.push(t.getName()); } return names.join(''); }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 

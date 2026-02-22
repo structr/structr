@@ -163,7 +163,7 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 
 	@Override
 	public boolean isArray() {
-		return false;
+		return true;
 	}
 
 	@Override

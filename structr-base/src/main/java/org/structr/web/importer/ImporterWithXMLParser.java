@@ -18,6 +18,7 @@
  */
 package org.structr.web.importer;
 
+import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -879,25 +880,10 @@ public class ImporterWithXMLParser {
 										// check if we can parse JSON
 										if (actualValue != null) {
 
-											// JSON array?
-											if (actualValue.toString().startsWith("[")) {
-												try {
-													actualValue = new GsonBuilder().create().fromJson(value, List.class);
-												} catch (Throwable t) {
-													// reset value
-													actualValue = value;
-												}
-											}
+											final Gson gson = new GsonBuilder().create();
 
-											// JSON object?
-											if (actualValue.toString().startsWith("{")) {
-												try {
-													actualValue = List.of(new GsonBuilder().create().fromJson(value, Map.class));
-												} catch (Throwable t) {
-													// reset value
-													actualValue = value;
-												}
-											}
+											actualValue = tryParseJSONList(gson, actualKey, actualValue);
+											actualValue = tryParseJSONObject(gson, actualKey, actualValue);
 										}
 
 										if (converter != null) {
@@ -1633,5 +1619,45 @@ public class ImporterWithXMLParser {
 		result = result.replaceAll("\\.+", ".");
 
 		return result;
+	}
+
+	private Object tryParseJSONObject(final Gson gson, final PropertyKey key, final Object source) {
+
+		if (source != null && source.toString().startsWith("{")) {
+
+			try {
+
+				if (key.isCollection()) {
+
+					return List.of(gson.fromJson(source.toString(), Map.class));
+
+				} else {
+
+					return gson.fromJson(source.toString(), Map.class);
+				}
+
+			} catch (Throwable t) { }
+
+		}
+
+		return source;
+	}
+
+	private Object tryParseJSONList(final Gson gson, final PropertyKey key, final Object source) {
+
+		if (source != null && source.toString().startsWith("[")) {
+
+			try {
+
+				if (key.isCollection()) {
+
+					return gson.fromJson(source.toString(), List.class);
+				}
+
+			} catch (Throwable t) {
+			}
+		}
+
+		return source;
 	}
 }
