@@ -179,7 +179,7 @@ release-build:
         glab release create "$STRUCTR_VERSION" \
           --use-package-registry \
           --name "$STRUCTR_VERSION" \
-          --notes  --notes "## Release $STRUCTR_VERSION
+          --notes "## Release $STRUCTR_VERSION
 
           **Date:** $(date)" \
           structr-app/target/*.deb structr-app/target/*.zip
