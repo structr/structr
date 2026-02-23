@@ -328,10 +328,22 @@ html.documentation {
     padding: 1rem 4rem 1rem 0;
 }
 
-.article table td:has(a.open-details) {
+.article table td:has(a.show-details-link) {
     text-align: right;
     padding-right: 1rem;
     white-space: nowrap;
+}
+
+.group-\[\.details-shown\]\:hidden {
+    &:is(:where(.group):is(.details-shown) *) {
+        display: none;
+    }
+}
+
+.group-\[\.details-shown\]\:block {
+    &:is(:where(.group):is(.details-shown) *) {
+        display: block;
+    }
 }
 
 .article tr {

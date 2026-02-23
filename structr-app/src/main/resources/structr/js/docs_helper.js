@@ -18,7 +18,7 @@
  */
 document.addEventListener('DOMContentLoaded', e => {
 
-	let openDetailsLinks = document.querySelectorAll('a.open-details');
+	let openDetailsLinks = document.querySelectorAll('a.show-details-link');
 
 	for (let link of openDetailsLinks) {
 
@@ -28,11 +28,12 @@ document.addEventListener('DOMContentLoaded', e => {
 
 async function showBuiltinFunctionDetails(e) {
 
-	let link = e.target;
+	let link      = e.target;
 	let conceptId = link.dataset.conceptId;
+	let tr        = link.closest('tr');
+	let tdCount   = tr.querySelectorAll('td').length;
 
-	let tr      = link.closest('tr');
-	let tdCount = tr.querySelectorAll('td').length;
+	link.classList.toggle('details-shown');
 
 	if (tr.nextElementSibling?.dataset.detailsFor === conceptId) {
 		tr.nextElementSibling.classList.toggle('hidden');
@@ -43,8 +44,14 @@ async function showBuiltinFunctionDetails(e) {
 
 	if (res.ok) {
 
-		let nextTr = createDOMElementsFromHTML(`<tr data-details-for="${conceptId}"><td colspan="${tdCount}"></td></tr>`)[0];
-		let nextTd = nextTr.firstChild;
+		let nextTr = createDOMElementsFromHTML(`
+			<tr data-details-for="${conceptId}">
+				<td colspan="${tdCount}">
+					<div class="ml-12"></div>
+				</td>
+			</tr>
+		`)[0];
+		let contentDiv = nextTr.querySelector('div');
 		tr.insertAdjacentElement('afterend', nextTr);
 
 		let html            = await res.text();
@@ -52,7 +59,7 @@ async function showBuiltinFunctionDetails(e) {
 		let body            = detailsDocument.querySelector('body');
 
 		for (let child of [...body.children]) {
-			nextTd.appendChild(child);
+			contentDiv.appendChild(child);
 		}
 	}
 }

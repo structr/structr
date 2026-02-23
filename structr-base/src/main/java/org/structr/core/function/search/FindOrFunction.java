@@ -20,6 +20,7 @@ package org.structr.core.function.search;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.CoreFunction;
+import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
@@ -69,12 +70,25 @@ public class FindOrFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns a query predicate that can be used with find() or search().";
+		return "Combines the given predicates using logical OR, returning a predicate usable with find() or search().";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "The predicates can be passed as a single list or as a list of parameters.";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.javaScript("""
+				{
+					let projects = $.find('Project', $.predicate.or(
+						$.predicate.equals('status', 'FINISHED'),
+						$.predicate.equals('dueDate', $.predicate.lt(new Date())),
+					));
+				}""", "Find projects that are finished or were already due.")
+		);
 	}
 
 	@Override
@@ -85,17 +99,17 @@ public class FindOrFunction extends CoreFunction {
 	// ----- private methods -----
 	private void handleParameter(final OrPredicate orPredicate, final Object param) {
 
-		if (param instanceof SearchParameter) {
+		if (param instanceof SearchParameter searchParam) {
 
-			orPredicate.addParameter((SearchParameter)param);
+			orPredicate.addParameter(searchParam);
 
-		} else if (param instanceof SearchFunctionPredicate) {
+		} else if (param instanceof SearchFunctionPredicate searchFnPredicate) {
 
-			orPredicate.addPredicate((SearchFunctionPredicate)param);
+			orPredicate.addPredicate(searchFnPredicate);
 
-		} else if (param instanceof List) {
+		} else if (param instanceof List list) {
 
-			for (final Object o : (List)param) {
+			for (final Object o : list) {
 
 				handleParameter(orPredicate, o);
 			}
@@ -104,6 +118,6 @@ public class FindOrFunction extends CoreFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
-		return FunctionCategory.Database;
+		return FunctionCategory.Predicate;
 	}
 }

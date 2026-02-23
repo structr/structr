@@ -20,6 +20,7 @@ package org.structr.core.function.search;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.CoreFunction;
+import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
@@ -69,12 +70,25 @@ public class FindAndFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns a query predicate that can be used with find() or search().";
+		return "Combines the given predicates using logical AND, returning a predicate usable with find() or search().";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "The predicates can be passed as a single list or as a list of parameters.";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.javaScript("""
+				{
+					let projects = $.find('Project', $.predicate.and(
+						$.predicate.equals('status', 'IN_PROGRESS'),
+						$.predicate.equals('dueDate', $.predicate.lt(new Date())),
+					));
+				}""", "Find projects that are in progress and that were already due.")
+		);
 	}
 
 	@Override
@@ -90,17 +104,17 @@ public class FindAndFunction extends CoreFunction {
 	// ----- private methods -----
 	private void handleParameter(final AndPredicate andPredicate, final Object param) {
 
-		if (param instanceof SearchParameter) {
+		if (param instanceof SearchParameter searchParam) {
 
-			andPredicate.addParameter((SearchParameter)param);
+			andPredicate.addParameter(searchParam);
 
-		} else if (param instanceof SearchFunctionPredicate) {
+		} else if (param instanceof SearchFunctionPredicate searchFnPredicate) {
 
-			andPredicate.addPredicate((SearchFunctionPredicate)param);
+			andPredicate.addPredicate(searchFnPredicate);
 
-		} else if (param instanceof List) {
+		} else if (param instanceof List list) {
 
-			for (final Object o : (List)param) {
+			for (final Object o : list) {
 
 				handleParameter(andPredicate, o);
 			}

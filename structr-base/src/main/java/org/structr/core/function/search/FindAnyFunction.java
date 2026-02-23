@@ -21,6 +21,7 @@ package org.structr.core.function.search;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.core.function.SearchFunction;
+import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
@@ -74,15 +75,34 @@ public class FindAnyFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns a query predicate that can be used with find().";
+		return "Returns a query predicate that can be used with find() and search() .";
 	}
 
 	@Override
 	public String getLongDescription() {
 		return """
-			Returns a search predicate to specify a collection of possible values in [find()](53) and [search()](109) functions.
-			The query returns all nodes that match any of the given values.
+			The function takes a single collection as a parameter. The query returns all nodes that match any of the given values.
 			""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.javaScript("""
+				{
+					let projects = $.find('Project', $.predicate.equals('status', $.predicate.any(['IN_PROGRESS', 'WAITING'])));
+				}""", "Fetch projects whose status matches any value in the provided list"),
+				Example.javaScript("""
+				{
+					let myTasks = $.me.assignedTasks;
+
+					// for a "contains" search on a remote collection ("tasks"), we need a list of lists
+					// ==> wrap every task in a single array so we can search for each task individually
+					let mappedTasks = myTasks.map(task => [task]);
+
+					let project = $.find('Project', $.predicate.contains('tasks', $.predicate.any([ mappedTasks ])));
+				}""", "Fetch projects where the current user has tasks")
+		);
 	}
 
 	@Override
