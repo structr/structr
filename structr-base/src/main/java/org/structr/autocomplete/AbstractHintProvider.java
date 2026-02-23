@@ -55,6 +55,7 @@ import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.ContentHandler;
+import org.structr.web.entity.dom.Template;
 import org.structr.web.traits.wrappers.dom.ContentTraitWrapper;
 
 import java.io.IOException;
@@ -462,6 +463,7 @@ public abstract class AbstractHintProvider {
 		hints.add(0, new ValueHint());
 		hints.add(0, new ThisHint());
 		hints.add(0, new TenantIdentifierHint());
+		hints.add(0, new TemplateHint());
 		hints.add(0, new SessionHint());
 		hints.add(0, new RequestHint());
 		hints.add(0, new QueryStringHint());

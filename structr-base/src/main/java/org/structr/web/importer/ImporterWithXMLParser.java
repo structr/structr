@@ -721,9 +721,19 @@ public class ImporterWithXMLParser {
 
 						if (parent != null) {
 
+							// create temporary parent for Widget to expand in
+							final DOMNode tmpParent = page.createElement("div");
 							final DOMNode domParent = parent.as(DOMNode.class);
 
-							Widget.expandWidget(securityContext, page, domParent, "http://localhost", Map.of("source", source), false);
+							Widget.expandWidget(securityContext, page, tmpParent, "http://localhost", Map.of("source", source), false);
+
+							// move children
+							for (final DOMNode newChild : tmpParent.getChildren()) {
+								domParent.appendChild(newChild);
+
+								// which one is the new parent for nested children?
+								newNode = newChild;
+							}
 						}
 					}
 
@@ -874,35 +884,43 @@ public class ImporterWithXMLParser {
 										final PropertyKey actualKey       = newNodeType.key(camelCaseKey);
 										final PropertyConverter converter = actualKey.inputConverter(securityContext, false);
 
-										// we change the type of the value here
-										Object actualValue = value;
+										try {
 
-										// check if we can parse JSON
-										if (actualValue != null) {
+											// we change the type of the value here
+											Object actualValue = value;
 
-											final Gson gson = new GsonBuilder().create();
+											// check if we can parse JSON
+											if (actualValue != null) {
 
-											actualValue = tryParseJSONList(gson, actualKey, actualValue);
-											actualValue = tryParseJSONObject(gson, actualKey, actualValue);
-										}
+												final Gson gson = new GsonBuilder().create();
 
-										if (converter != null) {
+												actualValue = tryParseJSONList(gson, actualKey, actualValue);
+												actualValue = tryParseJSONObject(gson, actualKey, actualValue);
+											}
 
-											final Object convertedValue = converter.convert(actualValue);
+											if (converter != null) {
 
-											if (actualValue != null && convertedValue == null) {
+												final Object convertedValue = converter.convert(actualValue);
 
-												// DOMNode to be linked is not yet imported, so we store it to handle it later
-												deferredNodeProperties.put(actualKey, actualValue);
+												if (actualValue != null && convertedValue == null) {
+
+													// DOMNode to be linked is not yet imported, so we store it to handle it later
+													deferredNodeProperties.put(actualKey, actualValue);
+
+												} else {
+
+													newNodeProperties.put(actualKey, convertedValue);
+												}
 
 											} else {
 
-												newNodeProperties.put(actualKey, convertedValue);
+												newNodeProperties.put(actualKey, actualValue);
 											}
 
-										} else {
-
-											newNodeProperties.put(actualKey, actualValue);
+										} catch (Throwable t) {
+											t.printStackTrace();
+											System.out.println(actualKey);
+											System.out.println(value);
 										}
 
 									} else {
