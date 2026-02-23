@@ -44,7 +44,7 @@ let _Dialogs = {
 						height: 100%;
 						cursor: initial;
 						background-color: var(--solid-black);
-						opacity: 0.6;
+						opacity: 0.4;
 					"></div>
 					<div class="${_Dialogs.basic.contentClass}" style="
 						z-index: ${content_max_zIndex};
@@ -813,7 +813,7 @@ let _Dialogs = {
 				// removes attached event handlers but leaves the HTML intact
 				_Dialogs.custom.elements.dialogCancelButton.replaceWith(_Dialogs.custom.elements.dialogCancelButton.cloneNode(true));
 			} else {
-				_Dialogs.custom.elements.dialogBtn.insertAdjacentHTML('afterbegin', '<button class="closeButton hover:bg-gray-100 focus:border-gray-666 active:border-green">Close</button>');
+				_Dialogs.custom.elements.dialogBtn.insertAdjacentHTML('afterbegin', '<button class="closeButton hover:bg-gray-200 focus:border-gray-666 active:border-green">Close</button>');
 			}
 			_Dialogs.custom.elements.dialogCancelButton = _Dialogs.custom.elements.dialogBtn.querySelector('.closeButton');
 

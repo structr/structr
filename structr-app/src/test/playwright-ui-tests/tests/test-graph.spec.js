@@ -46,7 +46,7 @@ test('graph', async ({page}) => {
     await page.locator('#create_page').click();
     await page.waitForTimeout(1000);
     //await page.screenshot({ path: 'screenshots/pages_create-page.png' });
-    await page.locator('#template-tiles .app-tile:nth-child(2)').click();
+    await page.locator('#template-tiles .page-tile:nth-child(2)').click();
     await page.waitForTimeout(2000);
 
     await page.locator('.submenu-trigger').hover();

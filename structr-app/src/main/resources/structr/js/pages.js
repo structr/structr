@@ -2305,7 +2305,7 @@ let _Pages = {
 					for (let widget of pageTemplates) {
 
 						let id = 'create-from-' + widget.id;
-						let tile = _Helpers.createSingleDOMElementFromHTML(`<div id="${id}" class="app-tile"><div class="app-thumbnail-frame"><img src="${widget.newThumbnailPath ?? widget.thumbnailPath ?? smallTransparentGIF}"/><h4>${widget.name}</h4><p>${(widget.description || '')}</p></div></div>`);
+						let tile = _Helpers.createSingleDOMElementFromHTML(`<div id="${id}" class="page-tile"><div class="page-thumbnail-frame"><img src="${widget.newThumbnailPath ?? widget.thumbnailPath ?? smallTransparentGIF}"/><h4>${widget.name}</h4><p>${(widget.description || '')}</p></div></div>`);
 						container.append(tile);
 
 						tile.addEventListener('click', () => {
@@ -2318,7 +2318,7 @@ let _Pages = {
 					}
 
 					// default page
-					let defaultTile = _Helpers.createSingleDOMElementFromHTML('<div id="create-simple-page" class="app-tile"><div class="app-thumbnail-frame"><img src="https://apps.structr.com/assets/images/simple-new.png"/><h4>Simple Page</h4><p>Creates a simple page with a minimal set of HTML elements.</p></div></div>');
+					let defaultTile = _Helpers.createSingleDOMElementFromHTML('<div id="create-simple-page" class="page-tile"><div class="page-thumbnail-frame"><img src="https://apps.structr.com/assets/images/simple-new.png"/><h4>Simple Page</h4><p>Creates a simple page with a minimal set of HTML elements.</p></div></div>');
 					container.append(defaultTile);
 
 					let createSimplePageButton = container.querySelector('#create-simple-page');

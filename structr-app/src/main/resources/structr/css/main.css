@@ -726,8 +726,9 @@ img.disabled {
 
 .props td.key {
 	position: relative;
-	width: 50%;
+	width: 30%;
 	cursor: default;
+    font-weight: bold;
 }
 
 .props td.key .hint {
@@ -1317,16 +1318,15 @@ body[style*=zoom] .non-block-ui-blocker-content {
 }
 
 #dialogBox .minmax {
-	top: .65rem;
-	left: .65rem;
+	top: 1rem;
+	left: 1rem;
 	width: 16px;
 	height: 16px;
 }
 
 #dialogBox .close {
-	background-color: var(--solid-white);
-	top: .65rem;
-	right: .65rem;
+	top: 1rem;
+	right: 1rem;
 	width: 16px;
 	height: 16px;
 }
@@ -1345,38 +1345,79 @@ body[style*=zoom] .non-block-ui-blocker-content {
 #dialogBox {
 	width: calc(60vw);
 	height: calc(60vh);
-	padding-bottom: 4rem;
+	padding: 0 2rem 5rem 2rem;
 	position: relative;
 	display: flex;
 	flex-direction: column;
+    border-radius: .5rem;
+    background-color: #f4f4f4;
+    box-shadow: 0 0 .5rem var(--structr-light-green)
 }
 
 #dialogBox.maximized {
 	width: calc(100vw - 4rem);
-	height: calc(100vh - 7rem);
+	height: calc(100vh - 5rem);
+    max-height: calc(100vh - 5rem);
+    border-radius: 0;
+    margin: 0;
 }
 
-/* Make dialog title invisible */
+#dialogBox.insert-widget-dialog {
+    width: calc(40vw);
+    height: calc(25vh);
+}
+
+#dialogBox.maximized.insert-widget-dialog {
+    width: calc(100vw - 4rem);
+    height: calc(100vh - 5rem);
+}
+
+/* set default sizes for dialogs with tabs */
+#dialogBox:has(ul > li.tab),
+#dialogBox:has(div.widgets-tabs),
+#dialogBox:has(div#files-tabs),
+#dialogBox:has(div#tabs) {
+    height: calc(45vh);
+}
+#dialogBox.maximized:has(#tabs),
+#dialogBox.maximized:has(#files-tabs),
+#dialogBox.maximized:has(.widgets-tabs) {
+    height: calc(100vh - 5rem);
+}
+
 .dialogTitle {
-	font-size: .5rem;
+	font-size: 1.5rem;
 	text-align: center;
-	color: transparent;
 }
 
 .dialogBtn {
 	position: absolute;
-	bottom: 1rem;
+	bottom: 1.5rem;
 	text-align: left;
 	padding: 0;
 	margin: 0;
 }
 
-.dialogText, .dialogMeta {
-	text-align: initial;
+.dialogText {
+    text-align: initial;
+    padding: 1rem 1.5rem 4rem 1.5rem;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: .5rem;
+    box-sizing: border-box;
+}
+
+.dialogText h3:first-child {
+    margin-top: .5rem;
+}
+
+.dialogText h3 {
+    margin-top: 2rem;
+    font-weight: 600;
 }
 
 .dialogMeta {
-	padding: .5rem 0 0 0;
+    padding: 1.5rem 0 0.5rem 0;
 }
 
 .dialogTextWrapper {
@@ -1673,10 +1714,15 @@ button.enabled, button.active {
 	background-color: var(--solid-white);
 }
 
-.node .class-id-attrs,
+.node .class-id-attrs, .shared-component-name,
 .menu-entry-html .class-id-attrs,
 .node .linkable {
 	color: var(--gray-888);
+}
+
+.shared-component-name {
+    position: absolute;
+    right: 3rem;
 }
 
 .menu-entry-html .class-id-attrs {
@@ -2052,26 +2098,7 @@ th.center {
 /*
  * Apps
  */
-#apps {
-	height: 100%;
-	overflow-y: scroll;
-}
-
-.app-category {
-	margin: 12px;
-	padding: 2px 12px 6px 12px;
-	position: relative;
-}
-
-.app-category h2 {
-	margin: 0;
-}
-
-.app-category p {
-	margin: 0;
-}
-
-.app-tile {
+.page-tile {
 	background-color: var(--solid-white);
 	border: 1px solid var(--black-opacity-125);
 	box-shadow: 0 0 1rem var(--gray-opacity-10);
@@ -2086,28 +2113,28 @@ th.center {
 	border-radius: .5rem;
 }
 
-.app-tile:hover {
+.page-tile:hover {
 	background-color: var(--light-gray-bg-f3);
 	box-shadow: 0 0 1rem var(--black-opacity-125);
 	cursor: pointer;
 }
 
-.app-tile img {
+.page-tile img {
 	width: 83%;
 	margin: 13.5% 20% 0 8.5%;
 }
 
-.app-tile .app-thumbnail-frame {
+.page-tile .page-thumbnail-frame {
 	width: 100%;
 	background-repeat: no-repeat;
 	background-image: url('https://apps.structr.com/assets/images/frame.svg');
 }
 
-.app-thumbnail-frame img {
+.page-thumbnail-frame img {
 	max-height: 69px;
 }
 
-.app-tile h4 {
+.page-tile h4 {
 	margin: 1rem;
 	font-weight: 600;
 	overflow: hidden;
@@ -2115,7 +2142,7 @@ th.center {
 	text-overflow: ellipsis;
 }
 
-.app-tile p {
+.page-tile p {
 	margin: 1rem;
 }
 
@@ -2590,7 +2617,7 @@ input.tree-search-input {
 }
 /* END: styles to maximize methods editors in bulk save dialog for SCHEMA area */
 
-/* BEGIN: Show title of dialog box in schema edit dialogs AND allowing showing the dialog title by adding a classname */
+/* BEGIN: Show title of dialog box in schema edit dialogs AND allowing showing the dialog title by adding a classname
 .show-dialog-title .dialogTitle,
 .schema-edit-dialog:not(.global-methods-dialog) .dialogTitle {
 	color: black;
@@ -3018,16 +3045,21 @@ img#image-editor.orientation-8 {
 /**
  * Append Widget styles
  */
-.widget-props td input {
-	width: calc(100% - 8px);
-	border: 1px solid var(--link-color-active);
-	padding: 2px 4px;
+.widget-props {
+    background-color: transparent !important;
 }
 
-.widget-props td textarea {
-	width: calc(100% - 8px);
-	padding: 2px 4px;
-	margin: auto;
+.widget-props h4 {
+    margin: 4px 0;
+    text-transform: capitalize;
+}
+
+.widget-props input,
+.widget-props select,
+.widget-props textarea {
+    width: 100%;
+    box-sizing: border-box;
+    margin: auto;
 }
 
 span.context-help-text {
@@ -3337,10 +3369,6 @@ div#database-connections form label {
 div#database-connections form input {
 	height: 16px;
 	width: 200px;
-}
-
-table.props td.key {
-	width: 20%;
 }
 
 .resourceBox .node,
