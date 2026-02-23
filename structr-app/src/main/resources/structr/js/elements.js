@@ -119,7 +119,7 @@ let _Elements = {
 			focus: 'class'
 		}
 	],
-	voidAttrs: ['br', 'hr', 'img', 'input', 'link', 'meta', 'area', 'base', 'col', 'embed', 'keygen', 'menuitem', 'param', 'track', 'wbr'],
+	voidAttrs: ['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr'],
 	sortedElementGroups: [
 		{
 			name: 'a',
@@ -131,7 +131,7 @@ let _Elements = {
 		},
 		{
 			name: 'c',
-			elements: ['canvas', 'caption', 'cite', 'code', 'colgroup', 'col', 'command', 'comment']
+			elements: ['canvas', 'caption', 'cite', 'code', 'colgroup', 'col', 'comment']
 		},
 		{
 			name: 'd',
@@ -147,11 +147,11 @@ let _Elements = {
 		},
 		{
 			name: 'i-k',
-			elements: ['i', 'iframe', 'img', 'input', 'ins', '|', 'kbd', 'keygen']
+			elements: ['i', 'iframe', 'img', 'input', 'ins', '|', 'kbd']
 		},
 		{
 			name: 'l-m',
-			elements: ['label', 'legend', 'li', 'link', '|', 'main', 'map', 'mark', 'menu', 'meta', 'meter']
+			elements: ['label', 'legend', 'li', 'link', '|', 'main', 'map', 'mark', 'math', 'menu', 'meta', 'meter']
 		},
 		{
 			name: 'n-o',
@@ -159,11 +159,11 @@ let _Elements = {
 		},
 		{
 			name: 'p-r',
-			elements: ['p', 'param', 'picture', 'pre', 'progress', '|',  'q', '|', 'rp', 'rt', 'ruby']
+			elements: ['p', 'picture', 'pre', 'progress', '|', 'q', '|', 'rp', 'rt', 'ruby']
 		},
 		{
 			name: 's',
-			elements: ['s', 'samp', 'script', 'section', 'select', 'slot', 'small', 'source', 'span', 'strong', 'style', 'sub', 'summary', 'sup']
+			elements: ['s', 'samp', 'script', 'search', 'section', 'select', 'slot', 'small', 'source', 'span', 'strong', 'style', 'sub', 'summary', 'sup', 'svg']
 		},
 		{
 			name: 't',
@@ -994,6 +994,16 @@ let _Elements = {
 
 					let disabled = (initialText === editor.getValue());
 					_Helpers.disableElements(disabled, saveButton);
+
+					if (initialText === '#text' || initialText === '#template') {
+						// For new Content and Template nodes only, set contentType automatically based on detected type of new content
+						contentType = _Helpers.detectContentType(editor.getValue());
+						infoArea.querySelector('#contentTypeSelect').value = contentType;
+						entity.setProperty('contentType', contentType, false, () => {
+							_Editors.updateMonacoEditorLanguage(editor, contentType, entity);
+							_Helpers.blinkGreen(infoArea.querySelector('#contentTypeSelect'));
+						});
+					}
 				},
 				saveFn: (editor, entity) => {
 
