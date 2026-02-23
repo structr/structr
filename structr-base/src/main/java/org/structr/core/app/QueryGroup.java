@@ -49,6 +49,8 @@ public interface QueryGroup<T> extends Query<T> {
 	<P> QueryGroup<T> range(final PropertyKey<P> key, final P rangeStart, final P rangeEnd);
 	<P> QueryGroup<T> range(final PropertyKey<P> key, final P rangeStart, final P rangeEnd, final boolean includeStart, final boolean includeEnd);
 
+	<P> QueryGroup<T> any(final PropertyKey<P> key, final P value, final boolean exact);
+
 	Query<T> attributes(final List<SearchAttribute> attributes, final Operation operation);
 
 	void add(final SearchAttribute<T> attribute);

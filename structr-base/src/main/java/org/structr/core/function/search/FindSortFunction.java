@@ -20,6 +20,7 @@ package org.structr.core.function.search;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
+import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
@@ -87,15 +88,22 @@ public class FindSortFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-		This predicate sorts the results of a query by the given key. It supports "transitive sorting", i.e. you can sort nodes by properties of related nodes:
-		
-		```
-		{
-			// fetch the list of projects sorted by their owner's names
-			let projects = $.find('Project', $.predicate.sort('owner.name'));
-		}
-		```
+		This predicate sorts the results of a query by the given key. It supports "transitive sorting", i.e. you can sort nodes by properties of related nodes.
 		""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.javaScript("""
+				{
+					let projects = $.find('Project', $.predicate.sort('name'));
+				}""", "Fetch the list of projects sorted name"),
+				Example.javaScript("""
+				{
+					let projects = $.find('Project', $.predicate.sort('owner.name'));
+				}""", "Fetch the list of projects sorted by owner name (transitive sorting)")
+		);
 	}
 
 	@Override
@@ -105,6 +113,6 @@ public class FindSortFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
-		return FunctionCategory.Database;
+		return FunctionCategory.Predicate;
 	}
 }

@@ -20,6 +20,7 @@ package org.structr.core.function.search;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
+import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
@@ -74,8 +75,8 @@ public class FindEqualsFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.javaScript("Usage: ${{ $.predicate.equals(key, value). Example: ${{ $.find('Group', $.predicate.and($.predicate.equals('name', 'Test'))) }}"),
-			Usage.structrScript("Usage: ${equals(key, value). Example: ${find('Group', and(equals('name', 'Test')))}")
+			Usage.javaScript("Usage: ${{ $.predicate.equals(key, value). Example: ${{ $.find('Group', $.predicate.equals('name', 'Test')) }}"),
+			Usage.structrScript("Usage: ${equals(key, value). Example: ${find('Group', equals('name', 'Test'))}")
 		);
 	}
 
@@ -86,12 +87,26 @@ public class FindEqualsFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "The second parameter can be a value or one of a list of search predicates (any, range, gt, gte, lt, lte).";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.javaScript("""
+				{
+					let projects = $.find('Project', $.predicate.equals('name', 'Project X'));
+				}""", "Find projects with a specific name."),
+				Example.javaScript("""
+				{
+					let projects = $.find('Project', $.predicate.equals('dueDate', $.predicate.gte(new Date())));
+				}""", "Find projects whose dueDate is in the future.")
+		);
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("value");
+		return Signature.forAllScriptingLanguages("key, value");
 	}
 
 	@Override

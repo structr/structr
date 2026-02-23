@@ -20,6 +20,7 @@ package org.structr.core.function.search;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
+import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
@@ -86,7 +87,25 @@ public class FindContainsFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+			The contains predicate, when used on String properties, performs a case-insensitive search.
+			When used on a remote collection, a list of search values is required.
+			""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.javaScript("""
+				{
+					let projects = $.find('Project', $.predicate.contains('name', 'Consulting'));
+				}""", "Find projects that have 'consulting' in their name"),
+				Example.javaScript("""
+				{
+					// we are searching in a collection => we need to pass an array as parameter
+					let projects = $.find('Project', $.predicate.contains('teamMembers', [$.me]));
+				}""", "Find projects that have a list of tasks associated")
+		);
 	}
 
 	@Override

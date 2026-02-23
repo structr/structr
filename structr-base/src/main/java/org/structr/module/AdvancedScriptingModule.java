@@ -117,6 +117,7 @@ public class AdvancedScriptingModule implements StructrModule {
 		Functions.put(licenseManager, new FindLteFunction());
 		Functions.put(licenseManager, new FindGteFunction());
 		Functions.put(licenseManager, new FindGtFunction());
+		Functions.put(licenseManager, new FindAnyFunction());
 	}
 
 	@Override

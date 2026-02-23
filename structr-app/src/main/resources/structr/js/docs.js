@@ -174,16 +174,14 @@ let _Documentation = {
             iframe.addEventListener('load', () => {
                 iframe.contentDocument.querySelector('body').addEventListener('click', e => {
                     const el = e.target;
-                    if (el.tagName === 'A') {
-                        console.log(el.href);
+                    if (el.tagName === 'A' && !el.href.startsWith('javascript')) {
+
                         fetch(el.href + '?details=name&levels=1&format=toc&startLevel=0')
                             .then(response => response.json())
                             .then(json => {
                                 _Documentation.loadContext(json.data?.[0].id);
                             });
-
                     }
-
                 });
             });
 

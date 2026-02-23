@@ -91,12 +91,12 @@ public class FindRangeFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-		Returns a search predicate to specify value ranges, greater and less-than searches in [find()](53)  and [search()](109) functions. 
-		The first two parameters represent the first and the last element of the desired query range. Both start and end of the range can be 
-		set to `null` to allow the use of `range()` for `<`, `<=`. `>` and `>=` queries.
-		There are two optional boolean parameters, `includeStart` and `includeEnd` that control whether the search range 
-		should **include** or **exclude** the endpoints of the interval.
-		""";
+			Returns a search predicate to specify value ranges, greater and less-than searches in find() and search() functions.
+			The first two parameters represent the first and the last element of the desired query range. Both start and end of the range can be 
+			set to `null` to allow the use of `range()` for `<`, `<=`. `>` and `>=` queries.
+			There are two optional boolean parameters, `includeStart` and `includeEnd` that control whether the search range 
+			should **include** or **exclude** the endpoints of the interval.
+			""";
 	}
 
 	@Override
@@ -124,7 +124,7 @@ public class FindRangeFunction extends AdvancedScriptingFunction {
 						"""),
 				Example.javaScript("""
 						${{ $.find('Article', 'createdDate', $.predicate.range(
-									$.parseDate('01.12.2024 00:00', 'dd.MM.yyyy hh:mm'), 
+									$.parseDate('01.12.2024 00:00', 'dd.MM.yyyy hh:mm'),
 									$.parseDate('03.12.2024 23:59', 'dd.MM.yyyy hh:mm')
 							)
 						); }}
@@ -146,6 +146,6 @@ public class FindRangeFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
-		return FunctionCategory.Database;
+		return FunctionCategory.Predicate;
 	}
 }

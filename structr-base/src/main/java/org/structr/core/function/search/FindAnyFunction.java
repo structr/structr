@@ -20,24 +20,26 @@ package org.structr.core.function.search;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
+import org.structr.core.function.SearchFunction;
 import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
+import java.util.Collection;
 import java.util.List;
 
-public class FindGteFunction extends AdvancedScriptingFunction {
+public class FindAnyFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
-		return "find.gte";
+		return "find.any";
 	}
 
 	@Override
 	public String getDisplayName(boolean includeParameters) {
-		return "predicate.gte";
+		return "predicate.any";
 	}
 
 	@Override
@@ -45,12 +47,15 @@ public class FindGteFunction extends AdvancedScriptingFunction {
 
 		try {
 
-			if (sources == null || sources.length > 1) {
+			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-				throw new IllegalArgumentException();
+			final Object value = sources[0];
+
+			if (value instanceof Collection collection) {
+				return new AnyPredicate(collection);
+			} else {
+				throw new FrameworkException(422, "find.any: first parameter must be a collection");
 			}
-
-			return new RangePredicate(sources[0], null, true, false);
 
 		} catch (final IllegalArgumentException e) {
 
@@ -63,19 +68,21 @@ public class FindGteFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.javaScript("Usage: ${{ $.predicate.gte(value)}. Example: ${{ $.find('User', { age: $.predicate.gte(42) }); }}"),
-			Usage.structrScript("Usage: ${gte(value)}. Example: ${find('User', 'age', gte(42))}")
+			Usage.javaScript("Usage: ${{ $.predicate.any(collection). Example: ${{ $.find('Group', $.predicate.equals('name', $.predicate.any(['Group 1', 'Group 2']))) }}"),
+			Usage.structrScript("Usage: ${any(collection). Example: ${find('Group', equals('name', any(merge('Group 1', 'Group 2'))))}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Returns a gte predicate that can be used in find() function calls.";
+		return "Returns a query predicate that can be used with find() and search() .";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+			The function takes a single collection as a parameter. The query returns all nodes that match any of the given values.
+			""";
 	}
 
 	@Override
@@ -83,14 +90,24 @@ public class FindGteFunction extends AdvancedScriptingFunction {
 		return List.of(
 				Example.javaScript("""
 				{
-					let projects = $.find('Project', $.predicate.equals('budget', $.predicate.gte(1000000)));
-				}""", "Find projects whose budget is a million or more.")
+					let projects = $.find('Project', $.predicate.equals('status', $.predicate.any(['IN_PROGRESS', 'WAITING'])));
+				}""", "Fetch projects whose status matches any value in the provided list"),
+				Example.javaScript("""
+				{
+					let myTasks = $.me.assignedTasks;
+
+					// for a "contains" search on a remote collection ("tasks"), we need a list of lists
+					// ==> wrap every task in a single array so we can search for each task individually
+					let mappedTasks = myTasks.map(task => [task]);
+
+					let project = $.find('Project', $.predicate.contains('tasks', $.predicate.any([ mappedTasks ])));
+				}""", "Fetch projects where the current user has tasks")
 		);
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("value");
+		return Signature.forAllScriptingLanguages("collection");
 	}
 
 	@Override
