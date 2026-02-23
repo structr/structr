@@ -1344,7 +1344,7 @@ body[style*=zoom] .non-block-ui-blocker-content {
 
 #dialogBox {
 	width: calc(60vw);
-    max-height: calc(60vh);
+	height: calc(60vh);
 	padding: 0 2rem 5rem 2rem;
 	position: relative;
 	display: flex;

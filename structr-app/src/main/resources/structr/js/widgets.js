@@ -665,7 +665,7 @@ let _Widgets = {
 
 			if ((widgetDescription !== null && widgetDescription !== "") || widgetConfig ) {
 
-				let { dialogText } = _Dialogs.custom.openDialog('Configure Widget');
+				let { dialogText } = _Dialogs.custom.openDialog('Configure Widget', undefined, ['insert-widget-dialog']);
 				let appendWidgetButton = _Dialogs.custom.appendCustomDialogButton('<button id="appendWidget">Append Widget</button>');
 
 				if ((widgetDescription === null || widgetDescription.trim() === "")) {
