@@ -67,7 +67,7 @@ For local development or self-hosted production environments, Docker provides th
 
 ```bash
 # Clone the Docker setup repository
-git clone https://github.com/structr/docker-setup.git
+git clone https://gitlab.structr.com/structr/docker-setup.git
 
 # Change to the docker-setup directory
 cd docker-setup
@@ -81,7 +81,7 @@ Then start the containers:
 
 ```bash
 # Start Structr with Docker Compose
-docker-compose up -d
+docker compose up -d
 
 ```
 
