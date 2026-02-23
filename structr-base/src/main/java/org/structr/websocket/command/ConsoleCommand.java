@@ -78,7 +78,16 @@ public class ConsoleCommand extends AbstractCommand {
 		final ByteArrayOutputStream out      = new ByteArrayOutputStream();
 		final OutputStreamWritable writeable = new OutputStreamWritable(out);
 
-		final Pair<Console, Boolean> consoleAndChangedFlag = getWebSocket().getConsole((StringUtils.isNotBlank(mode) ? ConsoleMode.valueOf(mode) : ConsoleMode.JavaScript));
+		ConsoleMode consoleMode = ConsoleMode.JavaScript;
+		if (StringUtils.isNotBlank(mode)) {
+			try {
+				consoleMode = ConsoleMode.valueOf(mode);
+			} catch(Throwable t) {
+				// ignore unknown console mode key and leave at default
+			}
+		}
+
+		final Pair<Console, Boolean> consoleAndChangedFlag = getWebSocket().getConsole(consoleMode);
 		final Console console                              = consoleAndChangedFlag.getKey();
 		final Boolean hasChanged                           = consoleAndChangedFlag.getValue();
 

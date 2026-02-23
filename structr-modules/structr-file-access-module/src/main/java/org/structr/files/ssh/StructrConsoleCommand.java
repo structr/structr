@@ -350,28 +350,7 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 
 		if (!insideOfBlockOrStructure()) {
 
-			switch (consoleMode) {
-
-				case REST:
-					consoleMode = ConsoleMode.JavaScript;
-					break;
-
-				case JavaScript:
-					consoleMode = ConsoleMode.StructrScript;
-					break;
-
-				case StructrScript:
-					consoleMode = ConsoleMode.Cypher;
-					break;
-
-				case Cypher:
-					consoleMode = ConsoleMode.AdminShell;
-					break;
-
-				case AdminShell:
-					consoleMode = ConsoleMode.REST;
-					break;
-			}
+			consoleMode = Console.getNextConsoleMode(consoleMode);
 
 			term.handleString("Console.setMode('" + consoleMode.name() + "')");
 			term.clearTabCount();
