@@ -734,6 +734,9 @@ public class ImporterWithXMLParser {
 								// which one is the new parent for nested children?
 								newNode = newChild;
 							}
+
+							// remove temporary parent
+							StructrApp.getInstance(securityContext).delete(tmpParent);
 						}
 					}
 

@@ -689,7 +689,7 @@ let _Widgets = {
 			Command.replaceWidget(widget.source, target.id, pageId, url, {}, config, processDeploymentInfo, callback);
 		}
 	},
-    showWidgetConfigurationDialog: (widget, callback) => {
+    showWidgetConfigurationDialog: async (widget, callback) => {
 
         let widgetDescription = widget.description;
         let widgetConfig      = widget.configuration;
@@ -756,6 +756,12 @@ let _Widgets = {
             let placeholder  = fieldConfig.placeholder || titleLabel;
 
             switch (fieldType) {
+                case "schema-type":
+                    let types = await _Schema.caches.getFilteredSchemaTypes(t => !t.isBuiltin);
+                    types = types.map(t => t.name);
+                    table.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select id="${cleanedLabel}" class="form-field" data-key="${label}">${getOptionsAsText(types, defaultValue)}</select></div>`);
+                    break;
+
                 case "select":
                     let options = fieldConfig.options || ["-"];
 
