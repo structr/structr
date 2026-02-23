@@ -53,7 +53,7 @@ The easiest way to start is with a free Structr Sandbox - a cloud-hosted server 
 
 ### Option 2: Docker Installation (Recommended for Development)
 
-For local development or self-hosted production environments, Docker provides the most straightforward setup.
+For local development or self-hosted production environments, Docker provides the most straightforward setup. See [https://gitlab.structr.com/structr/docker-setup](https://gitlab.structr.com/structr/docker-setup) for more details.
 
 **Advantages:**
 
@@ -61,20 +61,31 @@ For local development or self-hosted production environments, Docker provides th
 - Easy to update and maintain
 - Includes all necessary dependencies
 
+> **Tip:** If you're new to Docker, install [Docker Desktop](https://www.docker.com/products/docker-desktop/) and use its integrated Terminal (button at the bottom-right of the Docker Desktop window) to run the commands below.
+
 **Quick start:**
 
 ```bash
 # Clone the Docker setup repository
 git clone https://github.com/structr/docker-setup.git
-cd docker-setup
 
+# Change to the docker-setup directory
+cd docker-setup
+```
+
+Before starting Structr, open `docker-compose.yml` in a text editor and change the privacy policy setting from `no` to `yes`:
+
+    AGREE_TO_STRUCTR_PRIVACY_POLICY=yes
+
+Then start the containers:
+
+```bash
 # Start Structr with Docker Compose
 docker-compose up -d
 
-# Access Structr at http://localhost:8082/structr
 ```
 
-For detailed Docker setup instructions, visit: [https://github.com/structr/docker-setup](https://github.com/structr/docker-setup)
+Access Structr in your browser at http://localhost:8082/structr.
 
 ### Option 3: Manual Installation (Advanced Users)
 
