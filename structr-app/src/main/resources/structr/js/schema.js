@@ -5305,7 +5305,7 @@ let _Schema = {
 					{ caption: "Other Types",      types: otherTypeNames     }
 				];
 
-				let { dialogText } = _Dialogs.custom.openDialog('Schema Type Visibility');
+				let { dialogText } = _Dialogs.custom.openDialog('Schema Type Visibility', undefined, ['schema-edit-dialog']);
 
 				let contentEl = _Helpers.createSingleDOMElementFromHTML('<div class="code-tabs flex flex-col h-full overflow-hidden"></div>');
 				dialogText.appendChild(contentEl);
