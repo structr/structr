@@ -619,6 +619,212 @@ let _Helpers = {
 			_Helpers.enableElement(btn);
 		}, 1000);
 	},
+	/**
+	 * Auto-detect the content type of a string value.
+	 *
+	 * Supported types:
+	 *   text/html, text/xml, text/css, text/javascript,
+	 *   text/markdown, text/textile, text/mediawiki,
+	 *   text/tracwiki, text/confluence, text/asciidoc,
+	 *   text/plain (fallback)
+	 *
+	 * @param {string} str - The string to analyze
+	 * @returns {string} One of the supported MIME types
+	 */
+	detectContentType: str => {
+
+		if (!str || typeof str !== 'string') {
+			return 'text/plain';
+		}
+
+		let trimmed = str.trim();
+		if (trimmed.length === 0) {
+			return 'text/plain';
+		}
+
+		// --- HTML ---
+		// DOCTYPE, <html>, or multiple common HTML tags
+		if (/^<!DOCTYPE\s+html/i.test(trimmed) || /^<html[\s>]/i.test(trimmed)) {
+			return 'text/html';
+		}
+		// Build HTML5 element set from _Elements.sortedElementGroups (elements.js),
+		// filtering out separators ('|'), Structr-internal entries ('comment', 'custom'),
+		// SVG elements ('g'), and deprecated elements ('command', 'keygen', 'param').
+		// Adds 'html' which is not in sortedElementGroups since Structr creates it implicitly.
+		let html5Elements = ['html'];
+		let exclude = new Set(['|', 'custom', 'comment', 'g', 'command', 'keygen', 'param']);
+
+		for (let group of _Elements.sortedElementGroups) {
+			if (typeof group === 'object' && Array.isArray(group.elements)) {
+				for (let el of group.elements) {
+					if (!exclude.has(el)) {
+						html5Elements.push(el);
+					}
+				}
+			}
+		}
+
+		let html5Pattern = new RegExp('<\\/?((' + html5Elements.join('|') + '))(\\s|>|\\/)', 'gi');
+		let htmlTags = (trimmed.match(html5Pattern) || []);
+		if (htmlTags.length >= 2) {
+			return 'text/html';
+		}
+
+		// --- XML ---
+		// XML declaration or tags with namespaces/self-closing that don't look like HTML
+		if (/^<\?xml[\s]/i.test(trimmed)) {
+			return 'text/xml';
+		}
+		if (/^<[a-zA-Z][\w.:_-]*[\s>\/]/.test(trimmed) && /<\/[a-zA-Z][\w.:_-]*>/.test(trimmed) && htmlTags.length === 0) {
+			// Has opening and closing tags but no HTML tags - likely XML
+			if (/:/.test(trimmed.match(/<([a-zA-Z][\w.:_-]*)/)?.[1] || '')) {
+				return 'text/xml'; // namespaced tags like <foo:bar>
+			}
+		}
+
+		// --- CSS ---
+		if (/^(\s*\/\*[\s\S]*?\*\/\s*)*([@.#:a-zA-Z\[][^{]*\{[^}]*\})/s.test(trimmed)) {
+			// Matches selectors followed by declaration blocks, optionally preceded by comments
+			let cssPatterns = [
+				/^@(import|charset|media|font-face|keyframes|supports|layer)\b/m,
+				/[.#][\w-]+\s*\{/,
+				/[\w-]+\s*:\s*[\w#"'(]/m,
+			];
+			let cssScore = cssPatterns.filter(p => p.test(trimmed)).length;
+			if (cssScore >= 2) {
+				return 'text/css';
+			}
+		}
+
+		// --- JavaScript ---
+		let jsPatterns = [
+			/^(['"]use strict['"]|import\s+|export\s+(default\s+)?|const\s+|let\s+|var\s+|function\s+|class\s+|async\s+function)/m,
+			/^\/\/\s/m,                                    // single-line comment at start of line
+			/=>\s*[{(]/,                                   // arrow functions
+			/\b(document|window|console|module)\s*\./,     // common JS globals
+			/\bfunction\s*\w*\s*\([^)]*\)\s*\{/,          // function declarations
+		];
+		let jsScore = jsPatterns.filter(p => p.test(trimmed)).length;
+		if (jsScore >= 2) {
+			return 'text/javascript';
+		}
+
+		// --- Confluence Wiki ---
+		// Check before Markdown because some syntax overlaps
+		let confluencePatterns = [
+			/^h[1-6]\.\s/m,                               // h1. Heading
+			/\{code(:[^}]*)?\}/,                           // {code} or {code:java}
+			/\{panel(:[^}]*)?\}/,                          // {panel}
+			/\{note\}|\{warning\}|\{info\}|\{tip\}/,      // macros
+			/\{toc\}|\{children\}|\{excerpt\}/,            // more macros
+			/\[([^|]*)\|([^\]]*)\]/,                       // [label|url] links
+			/\{color:[^}]+\}/,                             // {color:red}
+			/\{noformat\}/,                                // {noformat}
+		];
+		let confluenceScore = confluencePatterns.filter(p => p.test(trimmed)).length;
+		if (confluenceScore >= 2) {
+			return 'text/confluence';
+		}
+
+		// --- MediaWiki ---
+		let mediawikiPatterns = [
+			/^={2,5}[^=].*[^=]={2,5}\s*$/m,               // == Heading ==
+			/\[\[[^\]]+\]\]/,                              // [[internal links]]
+			/\{\{[^}]+\}\}/,                               // {{templates}}
+			/^[*#;:]+\s/m,                                 // list items (* # ; :)
+			/'''[^']+'''/,                                  // '''bold'''
+			/''[^']+''/,                                    // ''italic''
+			/<ref[>\s]/,                                   // <ref> tags
+			/^{\|/m,                                       // {| table start
+		];
+		let mediawikiScore = mediawikiPatterns.filter(p => p.test(trimmed)).length;
+		if (mediawikiScore >= 2) {
+			return 'text/mediawiki';
+		}
+
+		// --- TracWiki ---
+		let tracwikiPatterns = [
+			/^={1,5}\s+.+\s+={1,5}\s*$/m,                 // = Heading = (with spaces)
+			/\[\[BR\]\]/,                                  // [[BR]] line break
+			/\[wiki:[^\]]+\]/,                             // [wiki:PageName]
+			/\{\{\{[\s\S]*?\}\}\}/,                        // {{{ code blocks }}}
+			/'''[^']+'''/,                                  // '''bold'''
+			/''[^']+''/,                                    // ''italic''
+			/^[ ]+\*\s/m,                                  // indented list items (space + *)
+			/\{#![\w]+/,                                   // {#!python shebang in code blocks
+		];
+		let tracwikiScore = tracwikiPatterns.filter(p => p.test(trimmed)).length;
+		if (tracwikiScore >= 2) {
+			return 'text/tracwiki';
+		}
+
+		// --- AsciiDoc ---
+		let asciidocPatterns = [
+			/^={1,5}\s+\S/m,                              // = Heading (no closing =)
+			/^:[\w-]+:\s/m,                                // :attribute: value
+			/^\.[\w]/m,                                    // .Title (block title)
+			/^====*$/m,                                    // ==== section delimiter
+			/^----*$/m,                                    // ---- listing block
+			/^\[source[,\]]/m,                             // [source,java]
+			/^include::/m,                                 // include:: directive
+			/^(NOTE|TIP|WARNING|IMPORTANT|CAUTION):\s/m,   // admonitions
+			/<<[^>]+>>/,                                   // <<anchor>> cross-refs
+			/^ifdef::|^ifndef::/m,                         // conditional directives
+		];
+		let asciidocScore = asciidocPatterns.filter(p => p.test(trimmed)).length;
+		if (asciidocScore >= 2) {
+			return 'text/asciidoc';
+		}
+
+		// --- Textile ---
+		let textilePatterns = [
+			/^h[1-6]\.\s/m,                               // h1. Heading (also Confluence!)
+			/^p\.\s/m,                                     // p. Paragraph
+			/^bq\.\s/m,                                    // bq. Blockquote
+			/^#\s+\S/m,                                    // # ordered list
+			/\*[^*\s][^*]*\*/,                             // *bold*
+			/_[^_\s][^_]*_/,                               // _italic_
+			/^bc\.\s/m,                                    // bc. code block
+			/\|_\.\s/,                                     // |_. table header
+			/^fn\d+\.\s/m,                                 // fn1. footnote
+		];
+		let textileScore = textilePatterns.filter(p => p.test(trimmed)).length;
+		// Textile uses h1. like Confluence, but without {code} macros etc.
+		if (textileScore >= 2 && confluenceScore < 2) {
+			return 'text/textile';
+		}
+
+		// --- Markdown ---
+		// Check last among wiki formats since it has the most generic patterns
+		let mdPatterns = [
+			/^#{1,6}\s+\S/m,                              // # Heading
+			/^\s*[-*+]\s+\S/m,                             // - unordered list
+			/^\s*\d+\.\s+\S/m,                             // 1. ordered list
+			/\[.+?\]\(.+?\)/,                              // [text](url) links
+			/!\[.*?\]\(.+?\)/,                             // ![alt](url) images
+			/^```/m,                                       // fenced code blocks
+			/^\s*>\s+\S/m,                                 // > blockquotes
+			/\*\*[^*]+\*\*/,                               // **bold**
+			/^[-*_]{3,}\s*$/m,                             // --- horizontal rules
+			/^\|.+\|.+\|/m,                                // | table | row |
+		];
+		let mdScore = mdPatterns.filter(p => p.test(trimmed)).length;
+		if (mdScore >= 2) {
+			return 'text/markdown';
+		}
+
+		// --- Fallback: XML with generic tags ---
+		if (/^<[a-zA-Z][\w.-]*[\s>\/]/.test(trimmed) && /<\/[a-zA-Z][\w.-]*>\s*$/.test(trimmed)) {
+			return 'text/xml';
+		}
+
+		// --- Single HTML tag detection (e.g. a fragment like <div>...</div>) ---
+		if (/^<[a-z][\w-]*[\s>]/.test(trimmed) && htmlTags.length >= 1) {
+			return 'text/html';
+		}
+
+		return 'text/plain';
+	},
 	isImage: (contentType) => (contentType && contentType.indexOf('image') > -1),
 	isVideo: (contentType) => (contentType && contentType.indexOf('video') > -1),
 	requestAnimationFrameWrapper: (key, callback) => {
