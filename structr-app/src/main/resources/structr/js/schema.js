@@ -3838,8 +3838,9 @@ let _Schema = {
 			let storagePrefix = 'schemaMethodParameters_';
 			let name          = (schemaMethod.schemaNode === null) ? schemaMethod.name : schemaMethod.schemaNode.name + '/' + schemaMethod.name;
 			let url           = _Schema.methods.getURLForSchemaMethod(schemaMethod);
+			let description   = (schemaMethod.schemaNode) ? 'static method' : 'user-defined function';
 
-			let { dialogText } = _Dialogs.custom.openDialog(`Run user-defined function ${name}`);
+			let { dialogText } = _Dialogs.custom.openDialog(`Run ${description} ${name}`, undefined, ['execute-method-dialog']);
 
 			let runButton = _Dialogs.custom.prependCustomDialogButton(`
 					<button id="run-method" class="flex items-center action focus:border-gray-666 active:border-green">

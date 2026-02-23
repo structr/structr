@@ -897,7 +897,7 @@ img.disabled {
 .files-tabs li:not(.active):hover,
 .code-tabs > ul > li:not(.active):hover,
 .favs-tabs li:not(.active):hover,
-.widgets-tabs > li:not(.active):hover,
+.widgets-tabs > ul > li:not(.active):hover,
 .tabs-menu li:not(.active):hover {
 	border-bottom: .25rem solid var(--structr-light-green);
 	color: var(--gray-333) ! important;
@@ -1375,7 +1375,6 @@ body[style*=zoom] .non-block-ui-blocker-content {
 /* set default sizes for dialogs with tabs */
 #dialogBox:has(ul > li.tab),
 #dialogBox:has(div.widgets-tabs),
-#dialogBox:has(div#files-tabs),
 #dialogBox:has(div#tabs) {
     height: calc(45vh);
 }
@@ -1385,8 +1384,23 @@ body[style*=zoom] .non-block-ui-blocker-content {
     height: calc(100vh - 5rem);
 }
 
+#dialogBox.execute-method-dialog {
+	height: calc(45vh);
+}
+
+#dialogBox.file-edit-dialog.popup-dialog-with-editor {
+	height: calc(60vh);
+}
+
+#dialogBox.file-edit-dialog.popup-dialog-with-editor .dialogText {
+	padding: .25rem 1rem 0 1rem;
+}
+#dialogBox.file-edit-dialog.popup-dialog-with-editor .dialogMeta {
+	padding: .5rem 0 0 0;
+}
+
 .dialogTitle {
-	font-size: 1.5rem;
+	font-size: 1.25rem;
 	text-align: center;
 }
 

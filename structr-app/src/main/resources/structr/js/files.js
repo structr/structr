@@ -1382,7 +1382,7 @@ let _Files = {
 	},
 	editFiles:(ids, activeFileId, onTabSelect, onDialogClose) => {
 
-		let { dialogText } = _Dialogs.custom.openDialog('Edit files', null, ['popup-dialog-with-editor']);
+		let { dialogText } = _Dialogs.custom.openDialog('Edit files', null, ['popup-dialog-with-editor', 'file-edit-dialog']);
 		_Dialogs.custom.showMeta();
 
 		dialogText.insertAdjacentHTML('beforeend', '<div id="files-tabs" class="files-tabs flex flex-col h-full"><ul></ul></div>');
