@@ -91,6 +91,7 @@ abstract class AbstractCypherIndex<T extends PropertyContainer> extends Abstract
 		factories.put(EmptyQuery.class,        new EmptyQueryFactory(this));
 		factories.put(TypeQuery.class,         new TypeQueryFactory(this));
 		factories.put(UuidQuery.class,         new UuidQueryFactory(this));
+		factories.put(AnyQuery.class,          new AnyQueryFactory(this));
 		factories.put(RelationshipQuery.class, new RelationshipQueryFactory(this));
 		factories.put(ComparisonQuery.class,   new ComparisonQueryFactory(this));
 

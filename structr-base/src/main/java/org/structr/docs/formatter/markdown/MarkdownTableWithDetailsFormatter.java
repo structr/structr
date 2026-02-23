@@ -60,7 +60,7 @@ public class MarkdownTableWithDetailsFormatter extends Formatter {
 			// format children
 			final List<Map<String, String>> documentables = new LinkedList<>();
 
-			for (final Concept child : concept.getChildren(Verb.Has)) {
+			for (final Concept child : concept.getChildren(Verb.Has).stream().sorted(Comparator.comparing(Concept::getName)).toList()) {
 
 				final Documentable documentable = child.getDocumentable();
 				if (documentable != null) {
@@ -70,7 +70,7 @@ public class MarkdownTableWithDetailsFormatter extends Formatter {
 						"displayName", documentable.getDisplayName(false),
 						"shortDescription", documentable.getShortDescription(),
 						"longDescription", documentable.getLongDescription(),
-						"details", "<a href=\"javascript:void(0)\" class=\"open-details\" data-concept-id=\"" + child.getId() + "\">Open details</a>"
+						"details", "<a href=\"javascript:void(0)\" class=\"group show-details-link\" data-concept-id=\"" + child.getId() + "\"><span class=\"group-[.details-shown]:hidden pointer-events-none\">Show details</span><span class=\"hidden group-[.details-shown]:block pointer-events-none\">Hide details</span></a>"
 					));
 
 				} else {

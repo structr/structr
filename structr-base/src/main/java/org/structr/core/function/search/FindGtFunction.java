@@ -20,6 +20,7 @@ package org.structr.core.function.search;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
+import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
@@ -78,12 +79,22 @@ public class FindGtFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.javaScript("""
+				{
+					let projects = $.find('Project', $.predicate.equals('dueDate', $.predicate.gt(new Date())));
+				}""", "Find projects whose dueDate is in the future.")
+		);
+	}
+
+	@Override
 	public List<Signature> getSignatures() {
 		return Signature.forAllScriptingLanguages("value");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
-		return FunctionCategory.Database;
+		return FunctionCategory.Predicate;
 	}
 }

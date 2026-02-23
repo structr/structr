@@ -18,22 +18,10 @@
  */
 package org.structr.api.search;
 
-import org.structr.api.graph.Direction;
-import org.structr.api.graph.Identity;
 
-import java.util.Set;
-
-
-public interface GraphQuery extends QueryPredicate {
-
-	Set<Object> getValues();
-	String getRelationship();
-	String getOtherLabel();
-	Direction getDirection();
-	String getNotionPropertyName();
-	Identity getIdentity();
+public interface AnyGraphQuery extends GraphQuery {
 
 	default boolean isAny() {
-		return false;
+		return true;
 	}
 }

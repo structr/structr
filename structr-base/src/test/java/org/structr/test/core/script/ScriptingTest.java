@@ -5661,7 +5661,7 @@ public class ScriptingTest extends StructrTest {
 	public void testComments() {
 
 		/*
-		 * This test verifies that comments in JavaScript blocks are detected and interpreded correctly.
+		 * This test verifies that comments in JavaScript blocks are detected and interpreted correctly.
 		 */
 
 		final ActionContext ctx = new ActionContext(securityContext);
@@ -6773,8 +6773,6 @@ public class ScriptingTest extends StructrTest {
 	@Test
 	public void testFunctionInfoFunction() {
 
-
-		// setup
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
@@ -7063,6 +7061,237 @@ public class ScriptingTest extends StructrTest {
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
+	}
+
+	@Test
+	public void testFindAnyPredicate() {
+
+		{
+			// setup schema+data
+			try (final Tx tx = app.tx()) {
+
+				final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+				final JsonObjectType task = schema.addType("Task");
+				final JsonObjectType user = schema.addType("User");
+
+				task.addEnumProperty("status").setFormat("open, in_progress, finished");
+
+				task.relate(user, "ASSIGNEE", Cardinality.ManyToOne, "tasks", "assignee");
+
+				StructrSchema.extendDatabaseSchema(app, schema);
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+				fail("Unexpected exception");
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				final NodeInterface task01 = app.create("Task", "Task 1 - Do Laundry");
+				final NodeInterface task02 = app.create("Task", "Task 2 - Do Dishes");
+				final NodeInterface task03 = app.create("Task", "Task 3 - Read Book");
+				final NodeInterface task04 = app.create("Task", "Task 4 - Read Mail");
+				final NodeInterface task05 = app.create("Task", "Task 5 - Mow Lawn");
+				final NodeInterface task06 = app.create("Task", "Task 6 - Run Marathon");
+				final NodeInterface task07 = app.create("Task", "Task 7 - Do Taxes");
+				final NodeInterface task08 = app.create("Task", "Task 8 - Finish Project");
+				final NodeInterface task09 = app.create("Task", "Task 9 - Finish Homework");
+
+				final NodeInterface user1 = app.create("User", "User 1");
+				final NodeInterface user2 = app.create("User", "User 2");
+				final NodeInterface user3 = app.create("User", "User 3");
+				final NodeInterface user4 = app.create("User", "User 4");
+
+				final PropertyKey<NodeInterface> assigneeProperty = Traits.of("Task").key("assignee");
+				task01.setProperty(assigneeProperty, user1);
+				task02.setProperty(assigneeProperty, user2);
+				task03.setProperty(assigneeProperty, user3);
+				task04.setProperty(assigneeProperty, user1);
+				task05.setProperty(assigneeProperty, user2);
+				task06.setProperty(assigneeProperty, user3);
+				task07.setProperty(assigneeProperty, user1);
+				task08.setProperty(assigneeProperty, user2);
+				task09.setProperty(assigneeProperty, user3);
+
+				final PropertyKey<String> statusProperty = Traits.of("Task").key("status");
+				task01.setProperty(statusProperty, "open");
+				task02.setProperty(statusProperty, "in_progress");
+				task03.setProperty(statusProperty, "finished");
+				task04.setProperty(statusProperty, "open");
+				task05.setProperty(statusProperty, "in_progress");
+				task06.setProperty(statusProperty, "finished");
+				task07.setProperty(statusProperty, "open");
+				task08.setProperty(statusProperty, "in_progress");
+				task09.setProperty(statusProperty, "finished");
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+				fail("Unexpected exception");
+			}
+		}
+
+		{
+			// tests
+			try (final Tx tx = app.tx()) {
+
+				final ActionContext actionContext = new ActionContext(securityContext);
+
+				// any on local properties
+				{
+					final String anyEqualsQueryOnLocalAttribute1 = """
+							${{
+								$.find('Task', $.predicate.equals('name', $.predicate.any(['Task 4 - Read Mail', 'Task 5 - Mow Lawn'])), $.predicate.sort('name'))
+									.map(task => task.name).join(', ');
+							}}
+							""";
+					assertEquals("Task 4 - Read Mail, Task 5 - Mow Lawn", Scripting.evaluate(actionContext, null, anyEqualsQueryOnLocalAttribute1, "test1"));
+
+					final String anyEqualsQueryOnLocalAttribute2 = """
+							${{
+								$.find('Task', $.predicate.equals('status', $.predicate.any(['open', 'in_progress'])), $.predicate.sort('name'))
+									.map(task => task.name).join(', ');
+							}}
+							""";
+					assertEquals("Task 1 - Do Laundry, Task 2 - Do Dishes, Task 4 - Read Mail, Task 5 - Mow Lawn, Task 7 - Do Taxes, Task 8 - Finish Project", Scripting.evaluate(actionContext, null, anyEqualsQueryOnLocalAttribute2, "test1"));
+
+
+					final String anyContainsQueryOnLocalAttribute1 = """
+							${{
+								$.find('Task', $.predicate.contains('name', $.predicate.any(['Do', 'Read'])), $.predicate.sort('name'))
+									.map(task => task.name).join(', ');
+							}}
+							""";
+					assertEquals("Task 1 - Do Laundry, Task 2 - Do Dishes, Task 3 - Read Book, Task 4 - Read Mail, Task 7 - Do Taxes", Scripting.evaluate(actionContext, null, anyContainsQueryOnLocalAttribute1, "test2"));
+				}
+
+				// any on remote properties
+				{
+					final String anyEqualsQueryOnRemoteAttribute1 = """
+							${{
+								let user1 = $.find('User', 'name', 'User 1')[0];
+								let user2 = $.find('User', 'name', 'User 2')[0];
+								let user4 = $.find('User', 'name', 'User 4')[0];
+
+								$.find('Task', $.predicate.equals('assignee', $.predicate.any([user1, user2, user4])), $.predicate.sort('name'))
+									.map(task => task.name).join(', ');
+							}}
+							""";
+					assertEquals("Task 1 - Do Laundry, Task 2 - Do Dishes, Task 4 - Read Mail, Task 5 - Mow Lawn, Task 7 - Do Taxes, Task 8 - Finish Project", Scripting.evaluate(actionContext, null, anyEqualsQueryOnRemoteAttribute1, "test2"));
+
+					final String anyEqualsQueryOnRemoteAttribute2 = """
+							${{
+								let task1 = $.find('Task', $.predicate.contains('name', 'Task 1'))[0];
+								let task2 = $.find('Task', $.predicate.contains('name', 'Task 2'))[0];
+								let task4 = $.find('Task', $.predicate.contains('name', 'Task 4'))[0];
+								let task5 = $.find('Task', $.predicate.contains('name', 'Task 5'))[0];
+								let task7 = $.find('Task', $.predicate.contains('name', 'Task 7'))[0];
+								let task8 = $.find('Task', $.predicate.contains('name', 'Task 8'))[0];
+
+								$.find('User', $.predicate.equals('tasks', $.predicate.any([ [task1, task4, task7], [task2, task5, task8] ])), $.predicate.sort('name'))
+									.map(user => user.name).join(', ');
+							}}
+							""";
+					assertEquals("User 1, User 2", Scripting.evaluate(actionContext, null, anyEqualsQueryOnRemoteAttribute2, "test2"));
+
+					final String anyEqualsQueryOnRemoteAttribute3 = """
+							${{
+								let task1 = $.find('Task', $.predicate.contains('name', 'Task 1'))[0];
+								let task4 = $.find('Task', $.predicate.contains('name', 'Task 4'))[0];
+
+								// no user has exactly these two tasks as assignments (user 1 has task1+4+7)
+								// --> must return empty list
+								$.find('User', $.predicate.equals('tasks', $.predicate.any([ [task1, task4] ])), $.predicate.sort('name'))
+									.map(user => user.name).join(', ');
+							}}
+							""";
+					assertEquals("", Scripting.evaluate(actionContext, null, anyEqualsQueryOnRemoteAttribute3, "test2"));
+
+					final String anyEqualsQueryOnRemoteAttribute4 = """
+							${{
+								let task1 = $.find('Task', $.predicate.contains('name', 'Task 1'))[0];
+								let task4 = $.find('Task', $.predicate.contains('name', 'Task 4'))[0];
+								let task7 = $.find('Task', $.predicate.contains('name', 'Task 7'))[0];
+
+								// values in any-collection are not collections (which does not work for remote collections)
+								// --> must return empty list
+								$.find('User', $.predicate.equals('tasks', $.predicate.any([ task1, task4, task7 ])), $.predicate.sort('name'))
+									.map(user => user.name).join(', ');
+							}}
+							""";
+					assertEquals("", Scripting.evaluate(actionContext, null, anyEqualsQueryOnRemoteAttribute4, "test2"));
+
+					final String anyContainsQueryOnRemoteAttribute1 = """
+							${{
+								let task1 = $.find('Task', $.predicate.contains('name', 'Task 1'))[0];
+								let task4 = $.find('Task', $.predicate.contains('name', 'Task 4'))[0];
+
+								// user 1 has task1+4+7
+								// --> must return user 1
+								$.find('User', $.predicate.contains('tasks', $.predicate.any([ [task1, task4] ])), $.predicate.sort('name'))
+									.map(user => user.name).join(', ');
+							}}
+							""";
+					assertEquals("User 1", Scripting.evaluate(actionContext, null, anyContainsQueryOnRemoteAttribute1, "test2"));
+
+					final String anyContainsQueryOnRemoteAttribute2 = """
+							${{
+								let task1 = $.find('Task', $.predicate.contains('name', 'Task 1'))[0];
+								let task4 = $.find('Task', $.predicate.contains('name', 'Task 4'))[0];
+								let task5 = $.find('Task', $.predicate.contains('name', 'Task 5'))[0];
+
+								// user 1 has task1+4+7, user 2 has 2+5+8
+								// --> must return user 1+2
+								$.find('User', $.predicate.contains('tasks', $.predicate.any([ [task1], [task4], [task5] ])), $.predicate.sort('name'))
+									.map(user => user.name).join(', ');
+							}}
+							""";
+					assertEquals("User 1, User 2", Scripting.evaluate(actionContext, null, anyContainsQueryOnRemoteAttribute2, "test2"));
+
+					final String anyContainsQueryOnRemoteAttribute3 = """
+							${{
+								let task1 = $.find('Task', $.predicate.contains('name', 'Task 1'))[0];
+								let task4 = $.find('Task', $.predicate.contains('name', 'Task 4'))[0];
+								let task7 = $.find('Task', $.predicate.contains('name', 'Task 7'))[0];
+								let task8 = $.find('Task', $.predicate.contains('name', 'Task 8'))[0];
+
+								// no user has exactly these two tasks as assignments (user 1 has task1+4+7)
+								// --> must return empty list
+								$.find('User', $.predicate.contains('tasks', $.predicate.any([ [task1, task4, task7, task8] ])), $.predicate.sort('name'))
+									.map(user => user.name).join(', ');
+							}}
+							""";
+					assertEquals("", Scripting.evaluate(actionContext, null, anyContainsQueryOnRemoteAttribute3, "test2"));
+
+					final String anyEqualsQueryOnRemoteAttributeCombinedWithAnyContainsOnLocalProperty1 = """
+							${{
+								let user1 = $.find('User', 'name', 'User 1')[0];
+								let user2 = $.find('User', 'name', 'User 2')[0];
+								let user4 = $.find('User', 'name', 'User 4')[0];
+
+								let rootPredicate = $.predicate.and(
+									$.predicate.equals('assignee', $.predicate.any([user1, user2, user4])),
+									$.predicate.contains('name', $.predicate.any(['Do', 'Read']))
+								);
+
+								$.find('Task', rootPredicate, $.predicate.sort('name'))
+									.map(task => task.name).join(', ');
+							}}
+							""";
+					assertEquals("Task 1 - Do Laundry, Task 2 - Do Dishes, Task 4 - Read Mail, Task 7 - Do Taxes", Scripting.evaluate(actionContext, null, anyEqualsQueryOnRemoteAttributeCombinedWithAnyContainsOnLocalProperty1, "test2"));
+				}
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+				fail("Unexpected exception");
+			}
+		}
+
 	}
 
 	@Test

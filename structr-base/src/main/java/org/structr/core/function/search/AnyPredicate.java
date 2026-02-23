@@ -16,24 +16,26 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api.search;
+package org.structr.core.function.search;
 
-import org.structr.api.graph.Direction;
-import org.structr.api.graph.Identity;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.QueryGroup;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 
-import java.util.Set;
+import java.util.Collection;
 
+public class AnyPredicate extends AbstractPredicate {
 
-public interface GraphQuery extends QueryPredicate {
+	private Collection<Object> value = null;
 
-	Set<Object> getValues();
-	String getRelationship();
-	String getOtherLabel();
-	Direction getDirection();
-	String getNotionPropertyName();
-	Identity getIdentity();
+	public AnyPredicate(final Collection<Object> value) {
+		this.value = value;
+	}
 
-	default boolean isAny() {
-		return false;
+	@Override
+	public void configureQuery(final SecurityContext securityContext, final Traits type, final PropertyKey propertyKey, final QueryGroup query, final boolean exact) throws FrameworkException {
+		query.any(propertyKey, value, exact);
 	}
 }

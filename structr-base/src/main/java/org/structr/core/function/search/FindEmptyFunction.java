@@ -20,6 +20,7 @@ package org.structr.core.function.search;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
+import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
@@ -72,6 +73,16 @@ public class FindEmptyFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.javaScript("""
+				{
+					let projects = $.find('Project', $.predicate.empty('budget'));
+				}""", "Find projects that don't have a budget")
+		);
 	}
 
 	@Override

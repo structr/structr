@@ -42,7 +42,7 @@ import java.util.Set;
  */
 public class GraphSearchAttribute<T> extends PropertySearchAttribute<T> implements GraphQuery {
 
-	private final PropertyKey notionKey;
+	protected final PropertyKey notionKey;
 	private Set<Object> values;
 	private boolean byId = false;
 
@@ -233,8 +233,8 @@ public class GraphSearchAttribute<T> extends PropertySearchAttribute<T> implemen
 		return null;
 	}
 
-	// ----- private methods -----
-	private void collect(final Set<Object> values, final Object value) {
+	// ----- protected methods -----
+	protected void collect(final Set<Object> values, final Object value) {
 
 		if (value instanceof Iterable) {
 
