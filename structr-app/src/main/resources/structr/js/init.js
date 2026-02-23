@@ -1138,7 +1138,6 @@ let Structr = {
 
 		let showScheduledJobsNotifications = _JobQueue.isShowNotifications();
 		let showScriptingErrorPopups       = UISettings.getValueForSetting(UISettings.settingGroups.global.settings.showScriptingErrorPopupsKey);
-		let showResourceAccessPopups       = UISettings.getValueForSetting(UISettings.settingGroups.global.settings.showResourceAccessPermissionWarningPopupsKey);
 		let showDeprecationWarningPopups   = UISettings.getValueForSetting(UISettings.settingGroups.global.settings.showDeprecationWarningPopupsKey);
 
 		switch (data.type) {
@@ -1431,7 +1430,12 @@ let Structr = {
 
 			case "RESOURCE_ACCESS":
 
-				if (showResourceAccessPopups) {
+				let showForAuthUsers   = UISettings.getValueForSetting(UISettings.settingGroups.global.settings.showResourceAccessPermissionWarningsForAuthUsersKey);
+				let showForPublicUsers = UISettings.getValueForSetting(UISettings.settingGroups.global.settings.showResourceAccessPermissionWarningsForPublicUsersKey);
+
+				let isForPublicUser = (data.validUser === false);
+
+				if ((showForAuthUsers && !isForPublicUser) || (showForPublicUsers && isForPublicUser)) {
 
 					let builder = new WarningMessage().title(`REST Access to '${data.uri}' denied`).text(data.message).requiresConfirmation();
 
@@ -1479,7 +1483,7 @@ let Structr = {
 						}
 					};
 
-					if (data.validUser === false) {
+					if (isForPublicUser) {
 
 						builder.specialInteractionButton('Create and show permission for <b>public</b> users', () => { createPermission({ visibleToPublicUsers: true, grantees: [] }) });
 
@@ -3356,9 +3360,15 @@ let UISettings = {
 					defaultValue: true,
 					type: 'checkbox'
 				},
-				showResourceAccessPermissionWarningPopupsKey: {
-					text: 'Show notifications for resource access permission warnings',
-					storageKey: 'showResourceAccessGrantWarningPopups' + location.port,
+				showResourceAccessPermissionWarningsForAuthUsersKey: {
+					text: 'Show notifications for resource access permission warnings (authenticated requests)',
+					storageKey: 'showResourceAccessPermissionWarningsForAuthUsers' + location.port,
+					defaultValue: true,
+					type: 'checkbox'
+				},
+				showResourceAccessPermissionWarningsForPublicUsersKey: {
+					text: 'Show notifications for resource access permission warnings (unauthenticated requests)',
+					storageKey: 'showResourceAccessPermissionWarningsForPublicUsers' + location.port,
 					defaultValue: true,
 					type: 'checkbox'
 				},
