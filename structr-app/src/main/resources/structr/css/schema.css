@@ -89,10 +89,6 @@
 	min-width: 20rem;
 }
 
-#reindex-nodes, #reindex-rels {
-	min-width: 14rem;
-}
-
 #save-layout-filename {
 	padding: 3px 2px 2px 4px;
 	margin-right: 8px;
