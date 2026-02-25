@@ -151,7 +151,10 @@ public class FunctionProperty<T> extends Property<T> implements Documentable {
 						}
 					}
 
-					securityContext.getContextStore().storeFunctionPropertyResult(obj.getUuid(), jsonName, result);
+					if (cachingEnabled) {
+
+						securityContext.getContextStore().storeFunctionPropertyResult(obj.getUuid(), jsonName, result);
+					}
 
 					return (T)result;
 				}
