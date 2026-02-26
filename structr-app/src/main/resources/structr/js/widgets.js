@@ -756,13 +756,22 @@ let _Widgets = {
             let placeholder  = fieldConfig.placeholder || titleLabel;
 
             switch (fieldType) {
-                case "schema-type":
+
+                case 'schema-type':
                     let types = await _Schema.caches.getFilteredSchemaTypes(t => !t.isBuiltin);
                     types = types.map(t => t.name);
-                    table.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select id="${cleanedLabel}" class="form-field" data-key="${label}">${getOptionsAsText(types, defaultValue)}</select></div>`);
+                    table.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select data-info="select-type" id="${cleanedLabel}" class="form-field" data-key="${label}"><option value="">--- Select type ---</option>${getOptionsAsText(types, defaultValue)}</select></div>`);
                     break;
 
-                case "select":
+                case 'schema-property':
+                    table.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select id="${cleanedLabel}" class="form-field" data-key="${label}"></select></div>`);
+                    break;
+
+                case 'schema-view':
+                    table.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select id="${cleanedLabel}" class="form-field" data-key="${label}"></select></div>`);
+                    break;
+
+                case 'select':
                     let options = fieldConfig.options || ["-"];
 
                     let buffer = `<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select id="${cleanedLabel}" class="form-field" data-key="${label}">`;
@@ -793,12 +802,12 @@ let _Widgets = {
                     }
                     break;
 
-                case "textarea":
+                case 'textarea':
                     let rows = (fieldConfig.rows ? parseInt(fieldConfig.rows) || 5 : 5);
                     table.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><textarea rows=${rows} class="form-field" id="${label}" placeholder="${placeholder}" data-key="${label}">${defaultValue}</textarea></div>`);
                     break;
 
-                case "input":
+                case 'input':
                 default:
                     table.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><input class="form-field" type="text" id="${label}" placeholder="${placeholder}" data-key="${label}" value="${defaultValue}"></div>`);
             }
