@@ -721,10 +721,10 @@ let _Widgets = {
         dialogText.insertAdjacentHTML('beforeend', `
                         <h3>Settings</h3>
                         <p>Please select values for the following settings before inserting the widget.</p>
-                        <div class="widget-props grid grid-cols-3 gap-8">
+                        <form id="widget-form"><div class="widget-props grid grid-cols-3 gap-8"></div></formi>
                     `);
 
-        let table = $('div', $(dialogText));
+        let form = $('div', $(dialogText));
 
         let getOptionsAsText = (options, defaultValue) => {
 
@@ -760,21 +760,65 @@ let _Widgets = {
                 case 'schema-type':
                     let types = await _Schema.caches.getFilteredSchemaTypes(t => !t.isBuiltin);
                     types = types.map(t => t.name);
-                    table.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select data-info="select-type" id="${cleanedLabel}" class="form-field" data-key="${label}"><option value="">--- Select type ---</option>${getOptionsAsText(types, defaultValue)}</select></div>`);
+                    form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select required data-info="select-type" id="${cleanedLabel}" class="form-field" data-key="${label}"><option value="">--- Select type ---</option>${getOptionsAsText(types, defaultValue)}</select></div>`);
                     break;
 
                 case 'schema-property':
-                    table.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select id="${cleanedLabel}" class="form-field" data-key="${label}"></select></div>`);
+                    form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select required id="${cleanedLabel}" class="form-field" data-key="${label}"></select></div>`);
+                    {
+                        let typeSelect = document.querySelector('select[data-info="select-type"]');
+                        if (typeSelect) {
+                            typeSelect.addEventListener('change', async (e) => {
+                                Command.getSchemaInfo(typeSelect.value, (info) => {
+                                    let s = document.querySelector(`select#${cleanedLabel}`);
+                                    s.insertAdjacentHTML('beforeend', getOptionsAsText(info.map(i => i.jsonName).sort(), 'name'));
+                                    s.dispatchEvent(new CustomEvent('change', {}));
+                                });
+                            });
+                        }
+                    }
                     break;
 
                 case 'schema-view':
-                    table.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select id="${cleanedLabel}" class="form-field" data-key="${label}"></select></div>`);
+                    form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select required id="${cleanedLabel}" class="form-field" data-key="${label}"></select></div>`);
+                {
+                    let typeSelect = document.querySelector('select[data-info="select-type"]');
+                    if (typeSelect) {
+                        typeSelect.addEventListener('change', async (e) => {
+                            Command.getTypeInfo(typeSelect.value, (types) => {
+                                for (let info of types) {
+                                    let s = document.querySelector(`select#${cleanedLabel}`);
+                                    s.insertAdjacentHTML('beforeend', getOptionsAsText(info.schemaViews.map(v => v.name).sort(), 'public'));
+                                    s.dispatchEvent(new CustomEvent('change', {}));
+                                }
+                            });
+                        });
+                    }
+                }
+                    break;
+
+                case 'schema-method':
+                    form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select required id="${cleanedLabel}" class="form-field" data-key="${label}"></select></div>`);
+                    {
+                        let typeSelect = document.querySelector('select[data-info="select-type"]');
+                        if (typeSelect) {
+                            typeSelect.addEventListener('change', async (e) => {
+                                Command.getTypeInfo(typeSelect.value, (types) => {
+                                    for (let info of types) {
+                                        let s = document.querySelector(`select#${cleanedLabel}`);
+                                        s.insertAdjacentHTML('beforeend', getOptionsAsText(info.schemaMethods.map(v => v.name).sort(), 'public'));
+                                        s.dispatchEvent(new CustomEvent('change', {}));
+                                    }
+                                });
+                            });
+                        }
+                    }
                     break;
 
                 case 'select':
                     let options = fieldConfig.options || ["-"];
 
-                    let buffer = `<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select id="${cleanedLabel}" class="form-field" data-key="${label}">`;
+                    let buffer = `<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select required id="${cleanedLabel}" class="form-field" data-key="${label}">`;
                     let delayedAppendFunction;
 
                     if (fieldConfig.dynamicOptionsFunction) {
@@ -796,7 +840,7 @@ let _Widgets = {
 
                     buffer += '</select></div>';
 
-                    table.append(buffer);
+                    form.append(buffer);
                     if (delayedAppendFunction) {
                         delayedAppendFunction();
                     }
@@ -804,12 +848,12 @@ let _Widgets = {
 
                 case 'textarea':
                     let rows = (fieldConfig.rows ? parseInt(fieldConfig.rows) || 5 : 5);
-                    table.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><textarea rows=${rows} class="form-field" id="${label}" placeholder="${placeholder}" data-key="${label}">${defaultValue}</textarea></div>`);
+                    form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><textarea required rows=${rows} class="form-field" id="${label}" placeholder="${placeholder}" data-key="${label}">${defaultValue}</textarea></div>`);
                     break;
 
                 case 'input':
                 default:
-                    table.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><input class="form-field" type="text" id="${label}" placeholder="${placeholder}" data-key="${label}" value="${defaultValue}"></div>`);
+                    form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><input required class="form-field" type="text" id="${label}" placeholder="${placeholder}" data-key="${label}" value="${defaultValue}"></div>`);
             }
 
             if (fieldConfig.help) {
@@ -820,13 +864,33 @@ let _Widgets = {
             }
         }
 
+        // disable button until selections are made
+        appendWidgetButton.disabled = true;
+        appendWidgetButton.classList.add('disabled');
+
+        let formElement = document.querySelector('#widget-form');
+
+        let updateButtonState = () => {
+            if (formElement.checkValidity()) {
+                appendWidgetButton.classList.remove('disabled');
+                appendWidgetButton.disabled = false;
+            } else {
+                appendWidgetButton.disabled = true;
+                appendWidgetButton.classList.add('disabled');
+            }
+        };
+
+        for (let e of formElement.elements) {
+            e.addEventListener('change', updateButtonState);
+        }
+
         appendWidgetButton.addEventListener('click', (e) => {
 
             e.stopPropagation();
 
             let attrs = {};
 
-            for (let field of table[0].querySelectorAll('.form-field')) {
+            for (let field of form[0].querySelectorAll('.form-field')) {
                 let key = field.dataset['key'];
                 if (widgetConfig[key]) {
                     attrs[key] = field.value;
