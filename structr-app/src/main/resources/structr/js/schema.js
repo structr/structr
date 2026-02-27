@@ -1681,12 +1681,12 @@ let _Schema = {
 					{ class: 'py-2 px-1 font-bold items-center justify-center ' + dbNameClass, title: 'DB Name' },
 					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Type' },
 					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Format' },
-					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Notnull' },
-					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Comp.' },
-					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Uniq.' },
-					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Idx' },
-					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Fulltext' },
-					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Default' },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Notnull', longTitle: 'Not Null'  },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Comp.', longTitle: 'Composite Uniqueness' },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Uniq.', longTitle: 'Unique'  },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Idx', longTitle: 'Indexed'  },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Fulltext', longTitle: 'Fulltext Indexed'  },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Default', longTitle: 'Default Value'  },
 					{ class: 'actions-col pb-1 px-1 font-bold flex items-center justify-center', title: 'Action' }
 				],
 				buttons: _Schema.templates.basicAddButton({ addButtonText: 'Add direct property' })
@@ -1750,6 +1750,20 @@ let _Schema = {
 
 						_Helpers.blink(indexedCb.parentNode, '#fff', '#bde5f8');
 						_Dialogs.custom.showAndHideInfoBoxMessage('Indexed flag set to default for this property type (overridable).', 'info', 2000, 500);
+					}
+
+					let allowUnique     = (selectedOption.value !== 'Function');
+					let uniqueCb        = gridRow.querySelector('.unique');
+					uniqueCb.disabled   = !allowUnique;
+					if (uniqueCb.checked && !allowUnique) {
+						uniqueCb.checked = false;
+					}
+
+					let allowCompUnique = (selectedOption.value !== 'Function');
+					let compUniqueCb    = gridRow.querySelector('.compound');
+					compUniqueCb.disabled = !allowCompUnique;
+					if (compUniqueCb.checked && !allowCompUnique) {
+						compUniqueCb.checked = false;
 					}
 
 					let allowFulltext   = (selectedOption.value === 'String' || selectedOption.value === 'StringArray');
@@ -1899,9 +1913,18 @@ let _Schema = {
 
 				let selectedOption = propertyTypeSelect.querySelector('option:checked');
 
-				let allowFulltext = (selectedOption.value === 'String' || selectedOption.value === 'StringArray');
+				let allowUnique   = (selectedOption.value !== 'Function');
+				let uniqueCb      = gridRow[0].querySelector('.unique');
+				uniqueCb.disabled = !allowUnique || isProtected;
+				uniqueCb.checked  = allowUnique && property.unique === true;
 
-				let fulltextCb = gridRow[0].querySelector('.fulltext-indexed');
+				let allowCompUnique   = (selectedOption.value !== 'Function');
+				let compUniqueCb      = gridRow[0].querySelector('.compound');
+				compUniqueCb.disabled = !allowCompUnique || isProtected;
+				compUniqueCb.checked  = allowCompUnique && property.compound === true;
+
+				let allowFulltext = (selectedOption.value === 'String' || selectedOption.value === 'StringArray');
+				let fulltextCb    = gridRow[0].querySelector('.fulltext-indexed');
 				fulltextCb.disabled = (!allowFulltext || isProtected);
 				fulltextCb.checked = allowFulltext && property.fulltext === true;
 
@@ -2437,10 +2460,10 @@ let _Schema = {
 						<input class="not-null" type="checkbox" style="margin-right: 0;">
 					</div>
 					<div class="flex items-center justify-center">
-						<input class="compound" type="checkbox" style="margin-right: 0;">
+						<input class="compound" type="checkbox" style="margin-right: 0;" disabled>
 					</div>
 					<div class="flex items-center justify-center">
-						<input class="unique" type="checkbox" style="margin-right: 0;">
+						<input class="unique" type="checkbox" style="margin-right: 0;" disabled>
 					</div>
 					<div class="flex items-center justify-center">
 						<input class="indexed" type="checkbox" style="margin-right: 0;">
@@ -6047,7 +6070,7 @@ let _Schema = {
 		schemaGrid: config => `
 			<div class="schema-grid ${config.class}" style="${config.style}">
 				<div class="schema-grid-header contents">
-					${config.cols.map(col=> `<div class="${col.class}">${col.title}</div>`).join('')}
+					${config.cols.map(col=> `<div class="${col.class}" ${col.longTitle ? `title="${_Helpers.escapeForHtmlAttributes(col.longTitle)}"` : ''}>${col.title}</div>`).join('')}
 				</div>
 				<div class="schema-grid-body contents">
 				</div>
