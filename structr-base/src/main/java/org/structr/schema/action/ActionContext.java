@@ -206,12 +206,21 @@ public class ActionContext {
 		return getContextStore().getRequestStore();
 	}
 
-	public void addTimer(final String key) {
-		getContextStore().addTimer(key);
+	// --- Timers ---
+	public void startTimer(final String key) {
+		getContextStore().startTimer(key);
 	}
 
-	public Date getTimer(final String key) {
-		return getContextStore().getTimer(key);
+	public long pauseTimer(final String key) {
+		return getContextStore().pauseTimer(key);
+	}
+
+	public long clearTimer(final String key) {
+		return getContextStore().clearTimer(key);
+	}
+
+	public Long getTimerElapsedMs(final String key) {
+		return getContextStore().getTimerElapsedMs(key);
 	}
 
 	public void addHeader(final String key, final String value) {

@@ -39,7 +39,8 @@ public class ContextStore {
 	private Map<String, Object> constants             = new HashMap<>();
 	private Map<String, Object> requestStore          = new HashMap<>();
 	private Map<String, Object> tmpParameters         = new HashMap<>();
-	private Map<String, Date> timerStore              = new HashMap<>();
+	private Map<String, Long> timerStore              = new HashMap<>();
+	private Map<String, Long> timerElapsedStore       = new HashMap<>();
 	private Map<Integer, Integer> counters            = new HashMap<>();
 	private AdvancedMailContainer amc                 = null;
 	private ArrayList<GraphObjectMap> localizations   = new ArrayList<>();
@@ -188,12 +189,46 @@ public class ContextStore {
 
 
 	// --- Timers ---
-	public void addTimer(final String key) {
-		timerStore.put(key, new Date());
+	public void startTimer(final String key) {
+		if (!timerStore.containsKey(key)) {
+			timerStore.put(key, System.nanoTime());
+		}
 	}
 
-	public Date getTimer(final String key) {
-		return timerStore.get(key);
+	public long pauseTimer(final String key) {
+
+		if (timerStore.containsKey(key)) {
+
+			final long timeSinceLastStart = (System.nanoTime() - timerStore.get(key));
+
+			timerElapsedStore.put(key, timeSinceLastStart + timerElapsedStore.getOrDefault(key, 0L));
+			timerStore.remove(key);
+
+			return timeSinceLastStart / 1_000_000L;
+		}
+
+		return 0;
+	}
+
+	public long clearTimer(final String key) {
+
+		final long totalTime = getTimerElapsedMs(key);
+
+		timerStore.remove(key);
+		timerElapsedStore.remove(key);
+
+		return totalTime;
+	}
+
+	public Long getTimerElapsedMs(final String key) {
+
+		long total = timerElapsedStore.getOrDefault(key, 0L);
+
+		if (timerStore.containsKey(key)) {
+			total += (System.nanoTime() - timerStore.get(key));
+		}
+
+		return total / 1_000_000L;
 	}
 
 	public AdvancedMailContainer getAdvancedMailContainer () {

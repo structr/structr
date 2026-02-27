@@ -28,7 +28,6 @@ import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
-import java.util.Date;
 import java.util.List;
 
 public class TimerFunction extends CoreFunction {
@@ -50,35 +49,25 @@ public class TimerFunction extends CoreFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
 
-			final String name = sources[0].toString();
+			final String name   = sources[0].toString();
 			final String action = sources[1].toString();
 
-			if (action.equals("start")) {
+			switch (action) {
+				case "start":
+					ctx.startTimer(name);
+					return null;
 
-				ctx.addTimer(name);
+				case "pause":
+					return ctx.pauseTimer(name);
 
-				return null;
+				case "clear":
+					return ctx.clearTimer(name);
 
-			} else if (action.equals("get")) {
+				case "get":
+					return ctx.getTimerElapsedMs(name);
 
-				final Date begin = ctx.getTimer(name);
-
-				if (begin == null) {
-
-					logger.warn("Timer {} has not been started yet. Starting it.", name);
-
-					ctx.addTimer(name);
-
-					return 0;
-
-				} else {
-
-					return (new Date()).getTime() -  begin.getTime();
-				}
-
-			} else {
-
-				logger.warn("Unknown action for timer function: {}", action);
+				default:
+					logger.warn("Unknown action for timer function: {}", action);
 			}
 
 		} catch (ArgumentCountException | ArgumentNullException ace) {
@@ -87,7 +76,6 @@ public class TimerFunction extends CoreFunction {
 		}
 
 		return usage(ctx.isJavaScriptContext());
-
 	}
 
 	@Override
@@ -101,12 +89,29 @@ public class TimerFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Starts/Stops/Pings a timer.";
+		return "Controls a named timer by starting, pausing, clearing, or returning its current elapsed time in milliseconds.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "This function can be used to measure the performance of sections of code. The `action` parameter can be `start` to create a new timer or `get` to retrieve the elapsed time (in milliseconds) since the start of the timer.";
+		return """
+			This function measures the execution time of sections of code.
+
+			A timer is identified by its name. Depending on the specified `action`, the timer can be started, paused, cleared, or queried. All time values are returned in **milliseconds**.
+
+			### Supported Actions
+
+			| Action  | Description                                                                                                                 | Return Value                                     |
+			| ------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+			| `start` | Starts a new timer or resumes an existing paused timer. If the timer is already running, the call has no effect.            | No return value.                                 |
+			| `pause` | Stops a running timer and accumulates the elapsed time into the total. If the timer is not running, no state changes occur. | Time elapsed since the last `start` (interval).  |
+			| `get`   | Retrieves the current total elapsed time. If the timer is running, the current interval is included in the result.          | Current total elapsed time.                      |
+			| `clear` | Stops the timer (if running), resets its elapsed time to zero, and removes any running state.                               | Total elapsed time before clearing.              |
+
+			If the specified timer does not yet exist, it is treated as having an elapsed time of `0`.
+			
+			No manual timer cleanup is required. Timers are scoped to the current request. This means timers started in one method can be accessed and continued in another method executed within the same request.
+			""";
 	}
 
 	@Override
@@ -114,7 +119,47 @@ public class TimerFunction extends CoreFunction {
 
 		return List.of(
 			Example.structrScript("${timer('benchmark1', 'start')}"),
-			Example.javaScript("${{ $.timer('benchmark1', 'start') }}")
+			Example.javaScript("""
+				${{
+					$.timer('whole_function', 'start');
+				
+					const estimateDurations = [];
+					const budgetDurations   = [];
+				
+					const projects = $.find('Project');
+				
+					if (projects.length > 0) {
+				
+						for (const project of projects) {
+				
+							$.timer('estimates', 'start');
+							project.calculateTotalEstimateByTaskEstimates();
+							estimateDurations.push($.timer('estimates', 'pause'));
+				
+							$.timer('budgets', 'start');
+							project.calculateRequiredBudget();
+							budgetDurations.push($.timer('budgets', 'pause'));
+						}
+				
+						const estimatesTotalTime = $.timer('estimates', 'get');
+						const estimatesMeanTime  = estimatesTotalTime / estimateDurations.length;
+						const estimatesMin       = Math.min(...estimateDurations);
+						const estimatesMax       = Math.max(...estimateDurations);
+				
+						const budgetsTotalTime = $.timer('budgets', 'get');
+						const budgetsMeanTime  = budgetsTotalTime / budgetDurations.length;
+						const budgetsMin       = Math.min(...budgetDurations);
+						const budgetsMax       = Math.max(...budgetDurations);
+				
+						$.log('Estimates took: ', estimatesTotalTime, ' ms. Mean: ', estimatesMeanTime, ' ms, Min: ', estimatesMin, ' ms, Max: ', estimatesMax, ' ms');
+						$.log('Budgets took: ', budgetsTotalTime, ' ms. Mean: ', budgetsMeanTime, ' ms, Min: ', budgetsMin, ' ms, Max: ', budgetsMax, ' ms');
+					}
+				
+					const totalTime = $.timer('whole_function', 'get');
+				
+					$.log(projects.length, ' projects analyzed in ', totalTime, ' ms');
+				}}
+				""")
 		);
 	}
 
@@ -123,7 +168,7 @@ public class TimerFunction extends CoreFunction {
 
 		return List.of(
 			Parameter.mandatory("name", "name of timer"),
-			Parameter.mandatory("action", "action (`start` or `get`)")
+			Parameter.mandatory("action", "action (`start`, `pause`, `get` or `clear`)")
 		);
 	}
 
@@ -131,8 +176,8 @@ public class TimerFunction extends CoreFunction {
 	public List<String> getNotes() {
 
 		return List.of(
-			"Using the `get` action before the `start` action returns 0 and starts the timer.",
-			"Using the `start` action on an already existing timer overwrites the timer."
+				"Calling `start` on a running timer has no effect.",
+				"Before the first `start` of a timer, using `get`, `pause` or `clear` will return 0."
 		);
 	}
 
