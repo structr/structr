@@ -3069,25 +3069,41 @@ let _Crud = {
 
 				for (let error of errors) {
 
-					let key      = error.property;
-					let errorMsg = error.token;
+					let errorMsg             = error.token;
+					let cellsForKeyWithError = [];
+					let keyOrKeys            = '';
 
-					let cellsForKeyWithError = dialogText.querySelectorAll(`td [name="${key}"]`);
+					if (error.property) {
+
+						keyOrKeys = error.property;
+
+						// single attribute uniqueness
+						cellsForKeyWithError = dialogText.querySelectorAll(`td [name="${keyOrKeys}"]`);
+
+					} else if (Array.isArray(error.keys) && error.keys.length > 0) {
+
+						keyOrKeys = error.keys.join(', ');
+
+						// composite uniqueness
+						for (let key of error.keys) {
+							cellsForKeyWithError.concat(dialogText.querySelectorAll(`td [name="${key}"]`));
+						}
+					}
+
+					// add "invalid" highlight from elements
+					for (let input of cellsForKeyWithError) {
+						input.classList.add('form-input', 'input-invalid');
+					}
+
+					let errorText = `"${keyOrKeys}" ${errorMsg.replace(/_/gi, ' ')}`;
+
+					if (error.detail) {
+						errorText += ` ${error.detail}`;
+					}
+
+					_Dialogs.custom.showAndHideInfoBoxMessage(errorText, 'error', 4000, 1000);
+
 					if (cellsForKeyWithError.length > 0) {
-
-						let errorText = `"${key}" ${errorMsg.replace(/_/gi, ' ')}`;
-
-						if (error.detail) {
-							errorText += ` ${error.detail}`;
-						}
-
-						_Dialogs.custom.showAndHideInfoBoxMessage(errorText, 'error', 4000, 1000);
-
-						// add "invalid" highlight from elements
-						for (let input of cellsForKeyWithError) {
-							input.classList.add('form-input', 'input-invalid');
-						}
-
 						cellsForKeyWithError[0].focus();
 					}
 				}
