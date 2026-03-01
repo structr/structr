@@ -1320,15 +1320,11 @@ body[style*=zoom] .non-block-ui-blocker-content {
 #dialogBox .minmax {
 	top: 1rem;
 	left: 1rem;
-	width: 16px;
-	height: 16px;
 }
 
 #dialogBox .close {
 	top: 1rem;
 	right: 1rem;
-	width: 16px;
-	height: 16px;
 }
 
 #dialogBox .window-icon:hover {
@@ -1354,69 +1350,22 @@ body[style*=zoom] .non-block-ui-blocker-content {
     box-shadow: 0 0 .5rem var(--structr-light-green)
 }
 
-#dialogBox.maximized {
-	width: calc(100vw - 4rem);
-	height: calc(100vh - 5rem);
-    max-height: calc(100vh - 5rem);
-    border-radius: 0;
-    margin: 0;
-}
-
 #dialogBox.insert-widget-dialog {
     width: calc(40vw);
     height: calc(25vh);
 }
 
-#dialogBox.maximized.insert-widget-dialog {
-    width: calc(100vw - 4rem);
-    height: calc(100vh - 5rem);
-}
-
-/* set default sizes for dialogs with tabs */
-#dialogBox:has(ul > li.tab),
-#dialogBox:has(div.widgets-tabs),
-#dialogBox:has(div#tabs) {
-    height: calc(45vh);
-}
-#dialogBox.maximized:has(#tabs),
-#dialogBox.maximized:has(#files-tabs),
-#dialogBox.maximized:has(.widgets-tabs) {
-    height: calc(100vh - 5rem);
-}
-
-#dialogBox.execute-method-dialog {
-	height: calc(45vh);
-}
-
-#dialogBox.file-edit-dialog.popup-dialog-with-editor {
-	height: calc(60vh);
-}
-#dialogBox.file-edit-dialog.popup-dialog-with-editor .dialogText {
-	padding: .25rem 1rem 0 1rem;
-}
-#dialogBox.file-edit-dialog.popup-dialog-with-editor .dialogMeta {
-	padding: .5rem 0 0 0;
-}
-
-#dialogBox.schema-edit-dialog .dialogText {
-	padding: .25rem 1rem 1rem 1rem;
-}
-#dialogBox.schema-edit-dialog .dialogMeta {
-	padding: 0.5rem 0 0 0;
-}
-
 #dialogBox.crud-node-dialog .dialogText {
 	padding: 1rem;
-}
-#dialogBox.crud-node-dialog .dialogMeta {
-	padding: 0.5rem 0 0 0;
 }
 
 #dialogBox.crud-import-export-dialog .dialogText {
 	padding: 1rem;
 }
-#dialogBox.crud-import-export-dialog .dialogMeta {
-	padding: 0.5rem 0 0 0;
+
+#dialogBox.maximized {
+	width: calc(100vw - 6rem);
+	height: calc(100vh - 7rem);
 }
 
 .dialogTitle {
@@ -1434,7 +1383,7 @@ body[style*=zoom] .non-block-ui-blocker-content {
 
 .dialogText {
     text-align: initial;
-    padding: 1rem 1.5rem 4rem 1.5rem;
+    padding: .5rem 1rem 0 1rem;
     background-color: #fff;
     border: 1px solid #ddd;
     border-radius: .5rem;
@@ -1451,7 +1400,7 @@ body[style*=zoom] .non-block-ui-blocker-content {
 }
 
 .dialogMeta {
-    padding: 1.5rem 0 0.5rem 0;
+    padding: 0.5rem 0 0 0;
 }
 
 .dialogTextWrapper {

@@ -921,53 +921,77 @@ let _Widgets = {
 
 			<h4>Basic example</h4>
 			<pre>
-			{
-				"configSwitch": {
-					"position": 2,
-					"default": "This is the default text"
-				},
-				"selectArray": {
-					"position": 3,
-					"type": "select",
-					"options": [
-						"choice_one",
-						"choice_two",
-						"choice_three"
-					],
-					"default": "choice_two"
-				},
-				"selectObject": {
-					"position": 1,
-					"type": "select",
-					"options": {
-						"choice_one": "First choice",
-						"choice_two": "Second choice",
-						"choice_three": "Third choice"
-					},
-					"default": "choice_two"
-				},
-				"processDeploymentInfo": true,
-			}</pre>
+{
+	"configSwitch": {
+		"position": 2,
+		"default": "This is the default text"
+	},
+	"selectArray": {
+		"position": 3,
+		"type": "select",
+		"options": [
+			"choice_one",
+			"choice_two",
+			"choice_three"
+		],
+		"default": "choice_two"
+	},
+	"selectObject": {
+		"position": 1,
+		"type": "select",
+		"options": {
+			"choice_one": "First choice",
+			"choice_two": "Second choice",
+			"choice_three": "Third choice"
+		},
+		"default": "choice_two"
+	},
+	"processDeploymentInfo": true,
+}
+			</pre>
 
-			<p>Reserved top-level words:</p>
-			<ul>
-				<li><b>processDeploymentInfo</b> (<i>boolean, default: false</i>)<br>Special configuration flag which allows the widgets to contain deployment annotations.</li>
-			</ul>
-			<p>The supported attributes of the configuration elements are the following:</p>
-			<ul>
-				<li><b>title</b><br>The title which is displayed in the left column of the "Add Widget to Page" dialog. If this value does not exist, the name of the template expression itself is used.</li>
-				<li><b>placeholder</b> <i>(only applicable to type=input|textarea)</i><br>The placeholder text which is displayed when the field is empty. If this value does not exist, the <b>title</b> is used..</li>
-				<li><b>default</b><br>The default value for the element. For type=textarea|input this value is the prefilled. For type=select this value is preselected.</li>
-				<li><b>position</b> <br> The options will be sorted according to this numeric attribute. If omitted, the object will occur after the objects with a set position in the natural order of the keys.</li>
-				<li><b>help</b> <i>(optional)</i><br> The help text which will be displayed while hovering over the information icon.</li>
-				<li><b>type</b>
-					<ul><li><b>input</b>: A standard input field (<i>default if omitted</i>)</li><li><b>textarea</b>: A textarea with a customizable number of rows (default: 5)</li><li><b>select</b>: A select element</li></ul>
-				</li>
-				<li><b>options</b> <i>(only applicable to type=select)</i><br>This field supports two different type of data: Array (of strings) and Object (value=&gt;Label).<br>
-					If the data encountered is an Array, the elements are rendered as simple option elements. If it is an Object, the option elements will have the key of the object as their value and the value of the element will be displayed as the text.</li>
-				<li><b>dynamicOptionsFunction</b> <i>(only applicable to type=select)</i><br>The body of a function which is used to populate the options array. The function receives a 'callback' parameter which has to be called with the resulting options.<br>The dynamic options can be in the same format as the options above. IMPORTANT: If this key is provided, the options key is ignored.</li>
-				<li><b>rows</b> <i>(only applicable to type=textarea)</i><br>The number of rows the textarea will have initially. If omitted, or not parseable as an integer, it will default to 5.</li>
-			</ul>
+			<h3>Reserved top-level words</h3>
+			<dl>
+				<dt class="font-bold">processDeploymentInfo</dt>
+				<dd>(<i>boolean, default: false</i>)<br>Special configuration flag which allows the widgets to contain deployment annotations.</dd>
+			</dl>
+			
+			<h3>Supported configuration attributes</h3>
+			<dl>
+				<dt class="font-bold">title</dt>
+				<dd>The title which is displayed in the left column of the "Add Widget to Page" dialog. If this value does not exist, the name of the template expression itself is used.</dd>
+				
+				<dt class="font-bold">placeholder</dt>
+				<dd> <i>(only applicable to type=input|textarea)</i><br>The placeholder text which is displayed when the field is empty. If this value does not exist, the <b>title</b> is used.</dd>
+				
+				<dt class="font-bold">default</dt>
+				<dd>The default value for the element. For type=textarea|input this value is the prefilled. For type=select this value is preselected.</dd>
+				
+				<dt class="font-bold">position</dt>
+				<dd>The options will be sorted according to this numeric attribute. If omitted, the object will occur after the objects with a set position in the natural order of the keys.</dd>
+				
+				<dt class="font-bold">help</dt>
+				<dd><i>(optional)</i><br> The help text which will be displayed while hovering over the information icon.</dd>
+				
+				<dt class="font-bold">type</dt>
+				<dd>
+					<ul>
+						<li><b>input</b>: A standard input field (<i>default if omitted</i>)</li>
+						<li><b>textarea</b>: A textarea with a customizable number of rows (default: 5)</li>
+						<li><b>select</b>: A select element</li>
+					</ul>
+				</dd>
+				
+				<dt class="font-bold">options</dt>
+				<dd><i>(only applicable to type=select)</i><br>This field supports two different type of data: Array (of strings) and Object (value=&gt;Label).<br>
+					If the data encountered is an Array, the elements are rendered as simple option elements. If it is an Object, the option elements will have the key of the object as their value and the value of the element will be displayed as the text.</dd>
+				
+				<dt class="font-bold">dynamicOptionsFunction</dt>
+				<dd><i>(only applicable to type=select)</i><br>The body of a function which is used to populate the options array. The function receives a 'callback' parameter which has to be called with the resulting options.<br>The dynamic options can be in the same format as the options above. IMPORTANT: If this key is provided, the options key is ignored.</dd>
+				
+				<dt class="font-bold">rows</dt>
+				<dd> <i>(only applicable to type=textarea)</i><br>The number of rows the textarea will have initially. If omitted, or not parseable as an integer, it will default to 5.</dd>
+			</dl>
 
 			<h2>Description</h2>
 			<p>The description will be displayed when the user adds the widget to a page. It can contain HTML and usually serves the purpose of explaining what the widget is used for and the function of the configuration switches.</p>
@@ -975,8 +999,11 @@ let _Widgets = {
 			<h2>Options</h2>
 			<p>The following options can be configured for a widget:</p>
 			<ul>
-				<li><b>Selectors</b><br>The selectors control into which elements a widget may be inserted. If a selector matches, the widget appears in the "Suggested widgets" context menu in the pages tree.</li>
-				<li><b>Is Page Template</b><br>Check this box if the widget is a page template. The widget can the be selected when creating a page.</li>
+				<dt class="font-bold">Selectors</dt>
+				<dd>The selectors control into which elements a widget may be inserted. If a selector matches, the widget appears in the "Suggested widgets" context menu in the pages tree.</dd>
+				
+				<dt class="font-bold">Is Page Template</dt>
+				<dd>Check this box if the widget is a page template. The widget can the be selected when creating a page.</dd>
 			</ul>
 		`,
 		serversDialog: config => `

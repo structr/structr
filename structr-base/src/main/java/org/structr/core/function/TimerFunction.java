@@ -101,12 +101,12 @@ public class TimerFunction extends CoreFunction {
 
 			### Supported Actions
 
-			| Action  | Description                                                                                                                 | Return Value                                     |
-			| ------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
-			| `start` | Starts a new timer or resumes an existing paused timer. If the timer is already running, the call has no effect.            | No return value.                                 |
-			| `pause` | Stops a running timer and accumulates the elapsed time into the total. If the timer is not running, no state changes occur. | Time elapsed since the last `start` (interval).  |
-			| `get`   | Retrieves the current total elapsed time. If the timer is running, the current interval is included in the result.          | Current total elapsed time.                      |
-			| `clear` | Stops the timer (if running), resets its elapsed time to zero, and removes any running state.                               | Total elapsed time before clearing.              |
+			| Action  | Description                                                                                                                 | Return Value                                                               |
+			| ------- | --------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+			| `start` | Starts a new timer or resumes an existing paused timer. If the timer is already running, the call has no effect.            | No return value.                                                           |
+			| `pause` | Stops a running timer and accumulates the elapsed time into the total. If the timer is not running, no state changes occur. | Time elapsed since the last `start` (interval). 0 if timer is not running  |
+			| `get`   | Retrieves the current total elapsed time. If the timer is running, the current interval is included in the result.          | Current total elapsed time.                                                |
+			| `clear` | Stops the timer (if running), resets its elapsed time to zero, and removes any running state.                               | Total elapsed time before clearing.                                        |
 
 			If the specified timer does not yet exist, it is treated as having an elapsed time of `0`.
 			
