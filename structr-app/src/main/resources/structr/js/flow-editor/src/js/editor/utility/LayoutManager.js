@@ -1,17 +1,14 @@
 'use strict';
 
 import {Persistence} from "../../../../../lib/structr/persistence/Persistence.js";
-import {Rest} from "../../../../../lib/structr/rest/Rest.js";
 import {StructrRest} from "../../../../../lib/structr/rest/StructrRest.js";
 
 export class LayoutManager {
 
     constructor(editor) {
-        this._persistence = new Persistence();
-        this._rest = new Rest();
-        this._structrRest = new StructrRest();
-        this._flowEditor = editor;
-
+		this._persistence = new Persistence(editor.options.basePath);
+		this._structrRest = new StructrRest(editor.options.basePath);
+		this._flowEditor  = editor;
     }
 
     async getActiveSavedLayout() {
@@ -28,7 +25,7 @@ export class LayoutManager {
     async getSavedLayoutById(id) {
         let layout = null;
 
-        let r = await this._rest.get('/structr/rest/FlowContainerConfiguration?id=' + id + '&flow=' + this._flowEditor._flowContainer.id + '&validForEditor=' + this._flowEditor._editorId);
+        let r = await this._structrRest.get('FlowContainerConfiguration?id=' + id + '&flow=' + this._flowEditor._flowContainer.id + '&validForEditor=' + this._flowEditor._editorId);
 
         if (r !== null && r !== undefined && r.result_count > 0) {
             layout = JSON.parse(r.result[0].configJson);
@@ -41,7 +38,7 @@ export class LayoutManager {
 
         let layouts = null;
 
-        let r = await this._rest.get('/structr/rest/FlowContainerConfiguration?&flow=' + this._flowEditor._flowContainer.id + '&validForEditor=' + this._flowEditor._editorId + '&' + '_sort' + '=lastModifiedDate&' + '_order' + '=asc');
+        let r = await this._structrRest.get('FlowContainerConfiguration?&flow=' + this._flowEditor._flowContainer.id + '&validForEditor=' + this._flowEditor._editorId + '&' + '_sort' + '=lastModifiedDate&' + '_order' + '=asc');
 
         if (r !== null && r !== undefined && r.result_count > 0 && !raw) {
             layouts = r.result.map( res => JSON.parse(res.configJson));
@@ -50,19 +47,17 @@ export class LayoutManager {
         }
 
         return layouts;
-
     }
 
     async saveLayout(visibleForAll, saveAsNewLayout) {
         let layout = {};
         let editorConfig = this._flowEditor.getEditorJson();
 
-        for (let [key,node] of Object.entries(editorConfig.nodes)) {
+        for (let [key, node] of Object.entries(editorConfig.nodes)) {
 
             if (node.data.dbNode !== null && node.data.dbNode !== undefined) {
                 layout[node.data.dbNode.id] = node.position;
             }
-
         }
 
 		let activeLayout = null;
@@ -90,7 +85,6 @@ export class LayoutManager {
                 visibleToAuthenticatedUsers: visibleForAll !== undefined ? visibleForAll : false
             });
         }
-
     }
 
     applySavedLayout(layout) {
@@ -103,13 +97,10 @@ export class LayoutManager {
                 if (node.data.dbNode !== undefined && layout[node.data.dbNode.id] !== undefined) {
                     node.position = layout[node.data.dbNode.id];
                 }
-
             }
 
             this._flowEditor._editor.view.update();
             this._flowEditor.resetView();
         }
-
     }
-
 }

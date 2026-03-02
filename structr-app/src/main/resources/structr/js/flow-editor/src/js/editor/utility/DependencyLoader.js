@@ -1,6 +1,6 @@
 export class DependencyLoader {
 
-	constructor(basePath) {
+	constructor(basePath = "") {
 		this.basePath = basePath;
 	}
 

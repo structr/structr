@@ -1,10 +1,10 @@
 import {Persistence} from "../../../../../lib/structr/persistence/Persistence.js";
-import {Rest} from "../../../../../lib/structr/rest/Rest.js";
+import {StructrRest} from "../../../../../lib/structr/rest/StructrRest.js";
 
 export class CloneHandler {
 
-	constructor() {
-		this.config = {};
+	constructor(basePath = "") {
+		this.config = { basePath };
 		this.config.remotePropertyKey = "_remote_properties";
 	}
 
@@ -55,10 +55,7 @@ export class CloneHandler {
 						node[this.config.remotePropertyKey][key] = value;
 					}
 				}
-
-
 			}
-
 		}
 
 		// processedNodes is now cleaned up and only contains relationships that are within the copied nodes context
@@ -74,10 +71,7 @@ export class CloneHandler {
 			})
 		};
 
-		console.log(result);
-
 		return result;
-
 	}
 
 	async pasteElements(editor, pasteData) {
@@ -101,7 +95,6 @@ export class CloneHandler {
 			let newNode = await this._getOrCreateNode(node, nodes, editor._flowContainer);
 			newNodes[newNode.id] = newNode;
 			legacyIdMap[legacyId] = newNode.id;
-
 		}
 
 		for (let [legacyNodeId,remoteProperties] of Object.entries(globalRemoteProperties)) {
@@ -120,9 +113,7 @@ export class CloneHandler {
 
 					currentNode[key] = legacyIdMap[value];
 				}
-
 			}
-
 		}
 
 		for (let [index,data] of Object.entries(positions)) {
@@ -130,13 +121,12 @@ export class CloneHandler {
 		}
 
 		await this._renderNewNodes(editor, newNodes, positions);
-
 	}
 
 	async _renderNewNodes(editor, nodes, positions) {
 
-		let rest = new Rest();
-		let persistence = new Persistence();
+		let structrRest = new StructrRest(editor.options.basePath);
+		let persistence = new Persistence(editor.options.basePath);
 
 		let promises = [];
 
@@ -147,9 +137,8 @@ export class CloneHandler {
 
 		let nodeList = Object.entries(nodes).map(([key,value]) => value);
 
-
 		// TODO: Filter already connected rels
-		rest.post(`${Structr.rootUrl}FlowContainer/${editor._flowContainer.id}/getFlowRelationships`).then((res) => {
+		structrRest.post(`FlowContainer/${editor._flowContainer.id}/getFlowRelationships`).then((res) => {
 			let result = res.result;
 
 			for (let rel of result) {
@@ -189,7 +178,7 @@ export class CloneHandler {
 
 
 	async _getOrCreateNode(currentNode, nodeData, flowContainer) {
-		let persistence = new Persistence();
+		let persistence = new Persistence(this.config.basePath);
 
 		let node = Object.assign({}, currentNode);
 

@@ -231,7 +231,7 @@ public class FlowServlet extends JsonRestServlet {
 
 					final FlowContainer flow          = flowNode.as(FlowContainer.class);
 					final Object flowResult           = flow.evaluate(securityContext, flowParameters);
-					final ResultStream result         = new PagingIterable<>("FlowContainer " + flow.getUuid(), List.of(flowResult));
+					final ResultStream result         = new PagingIterable<>("FlowContainer " + flow.getUuid(), ((flowResult == null) ? List.of() : List.of(flowResult)));
 
 					// timing..
 					double queryTimeEnd = System.nanoTime();

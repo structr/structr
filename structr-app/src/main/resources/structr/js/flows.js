@@ -21,6 +21,7 @@ import {FlowContainer} from "./flow-editor/src/js/editor/entities/FlowContainer.
 import {FlowEditor} from "./flow-editor/src/js/editor/FlowEditor.js";
 import {LayoutModal} from "./flow-editor/src/js/editor/utility/LayoutModal.js";
 import {Rest} from "./lib/structr/rest/Rest.js";
+import {StructrRest} from './lib/structr/rest/StructrRest.js';
 
 let flowsMain, flowsTree, flowsCanvas, nodeEditor;
 let flowEditor, flowId;
@@ -146,12 +147,12 @@ let _Flows = {
 		async function getPackageByEffectiveName(name) {
 
 			let nameComponents = getNameParts(name);
-			let packages = await rest.get('/FlowContainerPackage?effectiveName=' + encodeURIComponent(nameComponents.join(".")));
+			let packages = await structrRest.get('FlowContainerPackage?effectiveName=' + encodeURIComponent(nameComponents.join(".")));
 			return packages.result.length > 0 ? packages.result[0] : null;
 		}
 
-		let basePath = _Helpers.getPrefixedRootUrl('')
-		let rest        = new Rest(basePath);
+		let basePath    = _Helpers.getPrefixedRootUrl('');
+		let structrRest = new StructrRest(basePath);
 		let persistence = new Persistence(basePath);
 
 		Structr.setMainContainerHTML(_Flows.templates.main());
@@ -713,18 +714,18 @@ let _Flows = {
 
 		flowId = id;
 		let basePath = _Helpers.getPrefixedRootUrl('');
-		let rest        = new Rest(basePath);
+		let structrRest = new StructrRest(basePath);
 		let persistence = new Persistence(basePath);
 
 		persistence.getNodesById(id, new FlowContainer()).then( r => {
 			document.title = `Flow - ${r[0].name}`;
 
 			let rootElement = document.querySelector("#nodeEditor");
-			flowEditor = new FlowEditor(rootElement, r[0], {deactivateInternalEvents: true, basePath: basePath});
+			flowEditor = new FlowEditor(rootElement, r[0], { deactivateInternalEvents: true, basePath: basePath });
 
 			flowEditor.waitForInitialization().then( () => {
 
-				rest.post(`/structr/rest/FlowContainer/${r[0].id}/getFlowNodes`).then((res) => {
+				structrRest.post(`FlowContainer/${r[0].id}/getFlowNodes`).then((res) => {
 
 					let result = res.result;
 
@@ -742,7 +743,7 @@ let _Flows = {
 
 				}).then(() => {
 
-					rest.post(`/structr/rest/FlowContainer/${r[0].id}/getFlowRelationships`).then((res) => {
+					structrRest.post(`FlowContainer/${r[0].id}/getFlowRelationships`).then((res) => {
 
 						let result = res.result;
 
