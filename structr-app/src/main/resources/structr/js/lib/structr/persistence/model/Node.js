@@ -74,8 +74,6 @@ export class Node {
     }
 
     static getType() {
-        return 'AbstractNode';
+        return 'NodeInterface';
     }
-
-
 }

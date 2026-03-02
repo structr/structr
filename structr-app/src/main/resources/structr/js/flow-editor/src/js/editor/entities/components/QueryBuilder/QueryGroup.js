@@ -3,7 +3,9 @@ import {QuerySortOperation} from "./QuerySortOperation.js";
 
 export class QueryGroup {
 
-	constructor(isRootGroup, isFirstGroup) {
+	constructor(flowEditor, isRootGroup, isFirstGroup) {
+
+		this.flowEditor = flowEditor;
 		this.isRootGroup = isRootGroup || false;
 		this.isFirstGroup = isRootGroup || isFirstGroup || false;
 
@@ -152,9 +154,9 @@ export class QueryGroup {
 		let group = undefined;
 
 		if (this.model.operations.length > 0) {
-			group = new QueryGroup(false, false);
+			group = new QueryGroup(this.flowEditor, false, false);
 		} else {
-			group = new QueryGroup(false, true);
+			group = new QueryGroup(this.flowEditor, false, true);
 		}
 
 		//Add listener for deletion event fired by QueryGroup delete button
@@ -185,7 +187,7 @@ export class QueryGroup {
 	}
 
 	_addOperation() {
-		const operation = new QueryOperation();
+		const operation = new QueryOperation(this.flowEditor);
 
 		operation.setQueryType(this.model.queryType);
 
@@ -225,7 +227,7 @@ export class QueryGroup {
 		// Only allow root group to add sort op and limit to one instance
 		if (this.isRootGroup && this.handles.operations.querySelector(".query-sort") === null) {
 
-			const operation = new QuerySortOperation();
+			const operation = new QuerySortOperation(this.flowEditor);
 
 			this.sortOp = operation;
 

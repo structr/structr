@@ -3,8 +3,9 @@ import {QueryStringValue} from "./QueryStringValue.js";
 
 export class QuerySortOperation {
 
-	constructor() {
+	constructor(flowEditor) {
 
+		this.flowEditor = flowEditor;
 		this.handles = {};
 
 		this.model = new Proxy(
@@ -84,7 +85,7 @@ export class QuerySortOperation {
 				this.handles.key.removeChild(this.handles.key.firstChild);
 			}
 
-			const structrRest = new StructrRest();
+			const structrRest = new StructrRest(this.flowEditor.options.basePath);
 			await structrRest.get("_schema/" + queryType).then((res) => {
 				const properties = res.result[0].views.all;
 

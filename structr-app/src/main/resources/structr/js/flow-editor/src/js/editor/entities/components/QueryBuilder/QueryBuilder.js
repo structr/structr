@@ -2,8 +2,9 @@ import {QueryGroup} from "./QueryGroup.js";
 
 export class QueryBuilder {
 
-    constructor() {
-        this.domNodes = this._constructDOMElements();
+    constructor(flowEditor) {
+		this.flowEditor = flowEditor;
+        this.domNodes   = this._constructDOMElements();
     }
 
     // ---------- Interface ----------
@@ -34,7 +35,7 @@ export class QueryBuilder {
         const html = new DOMParser().parseFromString(this._getTemplate(), "text/html");
         const rootElement = html.body.firstChild;
 
-        this.rootGroup = new QueryGroup(true);
+        this.rootGroup = new QueryGroup(this.flowEditor, true);
 
         this.rootGroup.getDOMNodes().addEventListener("query.group.change", (event) => {
             this.getDOMNodes().dispatchEvent(new CustomEvent("query.builder.change", {detail: this}));
@@ -48,5 +49,4 @@ export class QueryBuilder {
     _getTemplate() {
         return `<div class="query-builder"></div>`;
     }
-
 }

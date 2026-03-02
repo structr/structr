@@ -162,7 +162,75 @@ public class FlowContainerPackageTraitDefinition extends AbstractNodeTraitDefini
 		final Property<Iterable<NodeInterface>> packages = new EndNodes(traitsInstance, PACKAGES_PROPERTY, StructrTraits.FLOW_CONTAINER_PACKAGE_PACKAGE);
 		final Property<Iterable<NodeInterface>> flows    = new EndNodes(traitsInstance, FLOWS_PROPERTY, StructrTraits.FLOW_CONTAINER_PACKAGE_FLOW);
 		final Property<String> name                      = new StringProperty(NAME_PROPERTY).notNull().indexed();
-		final Property<Object> effectiveName             = new FunctionProperty<>(EFFECTIVE_NAME_PROPERTY).indexed().unique().notNull().readFunction("if(empty(this.parent), this.name, concat(this.parent.effectiveName, \".\", this.name))").writeFunction("{\r\n\tlet self = Structr.get(\'this\');\r\n\tlet path = Structr.get(\'value\');\r\n\r\n\tconst getOrCreatePackage = (name, path) => {\r\n\t\tlet effectiveName = Structr.empty(path) ? name : Structr.concat(path,\".\",name);\r\n\r\n\t\tlet package = Structr.first(Structr.find(\"FlowContainerPackage\", \"effectiveName\", effectiveName));\r\n\r\n\t\tif (Structr.empty(path)) {\r\n\t\t\t\r\n\t\t\tif (Structr.empty(package)) {\r\n\t\t\t\tpackage = Structr.create(\"FlowContainerPackage\", \"name\", name);\r\n\t\t\t}\r\n\t\t} else {\r\n\t\t\tlet parent = Structr.first(Structr.find(\"FlowContainerPackage\", \"effectiveName\", path));\r\n\r\n\t\t\tif (Structr.empty(package)) {\r\n\t\t\t\tpackage = Structr.create(\"FlowContainerPackage\", \"name\", name, \"parent\", parent);\r\n\t\t\t}\r\n\t\t}\r\n\r\n\t\treturn package;\r\n\t}\r\n\r\n\tif (!Structr.empty(path)) {\r\n\r\n\t\tif (path.length > 0) {\r\n\r\n\t\t\tlet flowName = null;\r\n\r\n\t\t\tif (path.indexOf(\".\") !== -1) {\r\n\r\n\t\t\t\tlet elements = path.split(\".\");\r\n\r\n\t\t\t\tif (elements.length > 1) {\r\n\r\n\t\t\t\t\tflowName = elements.pop();\r\n\t\t\t\t\tlet currentPath = \"\";\r\n\t\t\t\t\tlet parentPackage = null;\r\n\r\n\t\t\t\t\tfor (let el of elements) {\r\n\t\t\t\t\t\tlet package = getOrCreatePackage(el, currentPath);\r\n\t\t\t\t\t\tparentPackage = package;\r\n\t\t\t\t\t\tcurrentPath = package.effectiveName;\r\n\t\t\t\t\t}\r\n\r\n\t\t\t\t\tself.flowPackage = parentPackage;\r\n\t\t\t\t} else {\r\n\r\n\t\t\t\t\tflowName = elements[0];\r\n\t\t\t\t}\r\n\r\n\t\t\t\tself.name = flowName;\r\n\t\t\t} else {\r\n\r\n\t\t\t\tself.name = path;\r\n\t\t\t}\r\n\r\n\t\t}\r\n\r\n\t}\r\n\r\n}").typeHint("String");
+		final Property<Object> effectiveName             = new FunctionProperty<>(EFFECTIVE_NAME_PROPERTY).indexed().unique().notNull().readFunction("if(empty(this.parent), this.name, concat(this.parent.effectiveName, \".\", this.name))").writeFunction("""
+				{
+					let self = $.get('this');
+					let path = $.get('value');
+
+					const getOrCreatePackage = (name, path) => {
+
+						let effectiveName = $.empty(path) ? name : $.concat(path,".",name);
+
+						let flowContainerPackage = $.first($.find("FlowContainerPackage", "effectiveName", effectiveName));
+
+						if ($.empty(path)) {
+
+							if ($.empty(flowContainerPackage)) {
+								flowContainerPackage = $.create("FlowContainerPackage", "name", name);
+							}
+
+						} else {
+
+							let parent = $.first($.find("FlowContainerPackage", "effectiveName", path));
+
+							if ($.empty(flowContainerPackage)) {
+								flowContainerPackage = $.create("FlowContainerPackage", "name", name, "parent", parent);
+							}
+						}
+
+						return flowContainerPackage;
+					};
+
+					if (!$.empty(path)) {
+
+						if (path.length > 0) {
+
+							let flowName = null;
+
+							if (path.indexOf(".") !== -1) {
+
+								let elements = path.split(".");
+
+								if (elements.length > 1) {
+
+									flowName = elements.pop();
+									let currentPath = "";
+									let parentPackage = null;
+
+									for (let el of elements) {
+
+										let flowContainerPackage = getOrCreatePackage(el, currentPath);
+										parentPackage = flowContainerPackage;
+										currentPath = flowContainerPackage.effectiveName;
+									}
+
+									self.parent = parentPackage;
+
+								} else {
+
+									flowName = elements[0];
+								}
+
+								self.name = flowName;
+
+							} else {
+
+								self.name = path;
+							}
+						}
+					}
+				}
+				""").typeHint("String");
 		final Property<Boolean> scheduledForIndexing     = new BooleanProperty(SCHEDULED_FOR_INDEXING_PROPERTY).defaultValue(false);
 
 		return newSet(

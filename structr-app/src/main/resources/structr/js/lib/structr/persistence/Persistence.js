@@ -7,10 +7,9 @@ import {StructrRest} from '../rest/StructrRest.js';
 
 export class Persistence {
 
-    constructor(basePath) {
+    constructor(basePath = "") {
         this._structrRest = new StructrRest(basePath);
     }
-
 
     async createNode(object) {
         let result = await this._persistObject(object);
@@ -36,7 +35,6 @@ export class Persistence {
 
         let result = await this._structrRest.get(object.type, view);
         return this._extractRestResult(result, object);
-
     }
 
     async getNodesById(id, model, view) {
@@ -66,7 +64,6 @@ export class Persistence {
         let result = await this._structrRest.getByName(object.type, name, view);
         return this._extractRestResult(result, object);
     }
-
 
     async _persistObject(object) {
 
@@ -103,21 +100,32 @@ export class Persistence {
     _extractRestResult(result, model) {
         let containers = [];
 
-        if(result.result_count === 1) {
-            if(Array.isArray(result.result)) {
+        if (result.result_count === 1) {
+
+            if (Array.isArray(result.result)) {
+
                 if  (result.result.length > 0) {
+
 					containers.push(this._wrapObject(result.result[0], model));
+
 				} else {
+
 					return containers;
                 }
+
             } else {
+
                 containers.push(this._wrapObject(result.result, model));
             }
+
         } else if (result.result_count > 1) {
-            for(let i = 0; i < result.result.length; i++) {
+
+            for (let i = 0; i < result.result.length; i++) {
+
                 containers.push(this._wrapObject(result.result[i], model));
             }
         }
+
         return containers;
     }
 
