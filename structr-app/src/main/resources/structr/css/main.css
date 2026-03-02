@@ -728,7 +728,6 @@ img.disabled {
 	position: relative;
 	width: 30%;
 	cursor: default;
-    font-weight: bold;
 }
 
 .props td.key .hint {
