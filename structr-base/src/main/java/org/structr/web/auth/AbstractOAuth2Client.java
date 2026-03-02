@@ -43,11 +43,10 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.Actions;
 import org.structr.schema.action.EvaluationHints;
+import java.net.URI;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 /**
  * Abstract base class for OAuth2 clients.
@@ -89,10 +88,10 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 		tokenLocation  = getSetting("token_location", "");
 		clientId       = getSetting("client_id", "");
 		clientSecret   = getSetting("client_secret", "");
-		redirectUri    = getAbsoluteUrl(request, getDefaultRedirectUri());
-		returnUri      = getSetting("return_uri", "/");
-		errorUri       = getSetting("error_uri", "/error");
-		logoutUri      = getSetting("logout_uri", "/logout");
+		redirectUri    = getAbsoluteUrl(request, getSetting("redirect_uri", getDefaultRedirectUri()));
+		returnUri      = getAbsoluteUrl(request, getSetting("return_uri", "/"));
+		errorUri       = getAbsoluteUrl(request, getSetting("error_uri", "/error"));
+		logoutUri      = getAbsoluteUrl(request, getSetting("logout_uri", "/logout"));
 		userDetailsURI = getSetting("user_details_resource_uri", getDefaultUserDetailsUri());
 		scope          = getSetting("scope", getDefaultScope());
 
@@ -146,14 +145,30 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 	}
 
 	/**
-	 * Converts relative URLs to absolute URLs based on request.
+	 * Converts relative URLs to absolute URLs based on request or configured baseURL.
 	 */
 	protected String getAbsoluteUrl(final HttpServletRequest request, final String uri) {
+
 		if (uri.startsWith("http")) {
 			return uri;
 		}
-		return "http" + (request.isSecure() ? "s" : "") + "://" +
-				request.getServerName() + ":" + request.getServerPort() + uri;
+
+		final String baseUrlOverride = Settings.BaseUrlOverride.getValue();
+		if (StringUtils.isNotBlank(baseUrlOverride)) {
+			String base = baseUrlOverride.endsWith("/") ? baseUrlOverride : baseUrlOverride + "/";
+			String relative = uri.startsWith("/") ? uri.substring(1) : uri;
+			return URI.create(base).resolve(relative).toString();
+		}
+
+		final int port = request.getServerPort();
+		final boolean isSecure = request.isSecure();
+		final String portPart = (port == 80 || port == 443) ? "" : ":" + port;
+
+		final String baseUrl = "http" + (isSecure ? "s" : "") + "://"
+				+ request.getServerName()
+				+ portPart;
+
+		return URI.create(baseUrl).resolve(uri).toString();
 	}
 
 	@Override
