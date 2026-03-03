@@ -3176,6 +3176,12 @@ let _Entities = {
 					<label for="includeInFrontendExport" data-comment-config='{"insertAfter":true}' data-comment="${_Files.tooltips.includeInFrontendExport}">Include in frontend export</label>
 				</div>
 			`,
+			excludeSubtreeFromFrontendExport: config => `
+				<div class="mb-2 flex items-center">
+					<input type="checkbox" name="excludeSubtreeFromExport" id="excludeSubtreeFromExport">
+					<label for="excludeSubtreeFromExport" data-comment-config='{"insertAfter":true}' data-comment="${_Files.tooltips.excludeSubtreeFromExport}">Exclude subtree from frontend export</label>
+				</div>
+			`,
 			fileOptions: config => `
 				<div id="file-options" class="quick-access-options">
 
@@ -3224,6 +3230,8 @@ let _Entities = {
 							<label class="block mb-2">Options</label>
 
 							${_Entities.generalTab.templates.includeInFrontendExport(config)}
+
+							${_Entities.generalTab.templates.excludeSubtreeFromFrontendExport(config)}
 
 						</div>
 					</div>

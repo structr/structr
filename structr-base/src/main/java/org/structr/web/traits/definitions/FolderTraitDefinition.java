@@ -40,8 +40,6 @@ import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnDeletion;
 import org.structr.core.traits.operations.graphobject.OnModification;
-import org.structr.docs.Documentation;
-import org.structr.docs.ontology.ConceptType;
 import org.structr.files.external.DirectoryWatchService;
 import org.structr.web.entity.Folder;
 import org.structr.web.traits.wrappers.FolderTraitWrapper;
@@ -51,25 +49,26 @@ import java.util.Set;
 
 public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 
-	public static final String WORK_FOLDER_OF_USERS_PROPERTY       = "workFolderOfUsers";
-	public static final String CHILDREN_PROPERTY                   = "children";
-	public static final String FILES_PROPERTY                      = "files";
-	public static final String FOLDERS_PROPERTY                    = "folders";
-	public static final String IMAGES_PROPERTY                     = "images";
-	public static final String FOLDER_PARENT_PROPERTY              = "folderParent";
-	public static final String HOME_FOLDER_OF_USER_PROPERTY        = "homeFolderOfUser";
-	public static final String IS_FOLDER_PROPERTY                  = "isFolder";
-	public static final String MOUNT_DO_FULLTEXT_INDEXING_PROPERTY = "mountDoFulltextIndexing";
-	public static final String MOUNT_WATCH_CONTENTS_PROPERTY       = "mountWatchContents";
-	public static final String MOUNT_SCAN_INTERVAL_PROPERTY        = "mountScanInterval";
-	public static final String POSITION_PROPERTY                   = "position";
-	public static final String ENABLED_CHECKSUMS_PROPERTY          = "enabledChecksums";
-	public static final String MOUNT_TARGET_PROPERTY               = "mountTarget";
-	public static final String MOUNT_TARGET_FILE_TYPE_PROPERTY     = "mountTargetFileType";
-	public static final String MOUNT_TARGET_FOLDER_TYPE_PROPERTY   = "mountTargetFolderType";
-	public static final String MOUNT_LAST_SCANNED_PROPERTY         = "mountLastScanned";
-	public static final String FILES_COUNT_PROPERTY                = "filesCount";
-	public static final String FOLDERS_COUNT_PROPERTY              = "foldersCount";
+	public static final String WORK_FOLDER_OF_USERS_PROPERTY        = "workFolderOfUsers";
+	public static final String CHILDREN_PROPERTY                    = "children";
+	public static final String FILES_PROPERTY                       = "files";
+	public static final String FOLDERS_PROPERTY                     = "folders";
+	public static final String IMAGES_PROPERTY                      = "images";
+	public static final String FOLDER_PARENT_PROPERTY               = "folderParent";
+	public static final String HOME_FOLDER_OF_USER_PROPERTY         = "homeFolderOfUser";
+	public static final String IS_FOLDER_PROPERTY                   = "isFolder";
+	public static final String MOUNT_DO_FULLTEXT_INDEXING_PROPERTY  = "mountDoFulltextIndexing";
+	public static final String MOUNT_WATCH_CONTENTS_PROPERTY        = "mountWatchContents";
+	public static final String MOUNT_SCAN_INTERVAL_PROPERTY         = "mountScanInterval";
+	public static final String POSITION_PROPERTY                    = "position";
+	public static final String ENABLED_CHECKSUMS_PROPERTY           = "enabledChecksums";
+	public static final String MOUNT_TARGET_PROPERTY                = "mountTarget";
+	public static final String MOUNT_TARGET_FILE_TYPE_PROPERTY      = "mountTargetFileType";
+	public static final String MOUNT_TARGET_FOLDER_TYPE_PROPERTY    = "mountTargetFolderType";
+	public static final String MOUNT_LAST_SCANNED_PROPERTY          = "mountLastScanned";
+	public static final String FILES_COUNT_PROPERTY                 = "filesCount";
+	public static final String FOLDERS_COUNT_PROPERTY               = "foldersCount";
+	public static final String EXCLUDE_SUBTREE_FROM_EXPORT_PROPERTY = "excludeSubtreeFromExport";
 
 	public FolderTraitDefinition() {
 		super(StructrTraits.FOLDER);
@@ -169,6 +168,7 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Long> mountLastScannedProperty                     = new LongProperty(MOUNT_LAST_SCANNED_PROPERTY);
 		final Property<Object> filesCountProperty                         = new FunctionProperty(FILES_COUNT_PROPERTY).readFunction("size(this.files)").typeHint("int");
 		final Property<Object> foldersCountProperty                       = new FunctionProperty(FOLDERS_COUNT_PROPERTY).readFunction("size(this.folders)").typeHint("int");
+		final Property<Boolean> excludeSubtreeFromExportProperty          = new BooleanProperty(EXCLUDE_SUBTREE_FROM_EXPORT_PROPERTY);
 
 		return Set.of(
 			childrenProperty,
@@ -189,7 +189,8 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 			mountTargetFolderTypeProperty,
 			mountLastScannedProperty,
 			filesCountProperty,
-			foldersCountProperty
+			foldersCountProperty,
+			excludeSubtreeFromExportProperty
 		);
 	}
 
@@ -199,7 +200,7 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-					FILES_PROPERTY, FOLDERS_PROPERTY, IMAGES_PROPERTY, ENABLED_CHECKSUMS_PROPERTY, IS_FOLDER_PROPERTY,
+					EXCLUDE_SUBTREE_FROM_EXPORT_PROPERTY, FILES_PROPERTY, FOLDERS_PROPERTY, IMAGES_PROPERTY, ENABLED_CHECKSUMS_PROPERTY, IS_FOLDER_PROPERTY,
 					MOUNT_DO_FULLTEXT_INDEXING_PROPERTY, MOUNT_LAST_SCANNED_PROPERTY, MOUNT_SCAN_INTERVAL_PROPERTY, MOUNT_TARGET_PROPERTY,
 					MOUNT_TARGET_FILE_TYPE_PROPERTY, MOUNT_TARGET_FOLDER_TYPE_PROPERTY, MOUNT_WATCH_CONTENTS_PROPERTY,
 					FILES_COUNT_PROPERTY, FOLDERS_COUNT_PROPERTY, NodeInterfaceTraitDefinition.OWNER_PROPERTY
@@ -207,7 +208,7 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 
 			PropertyView.Ui,
 			newSet(
-					FILES_PROPERTY, FOLDERS_PROPERTY, IMAGES_PROPERTY, ENABLED_CHECKSUMS_PROPERTY, IS_FOLDER_PROPERTY,
+					EXCLUDE_SUBTREE_FROM_EXPORT_PROPERTY, FILES_PROPERTY, FOLDERS_PROPERTY, IMAGES_PROPERTY, ENABLED_CHECKSUMS_PROPERTY, IS_FOLDER_PROPERTY,
 					MOUNT_DO_FULLTEXT_INDEXING_PROPERTY, MOUNT_LAST_SCANNED_PROPERTY, MOUNT_SCAN_INTERVAL_PROPERTY, MOUNT_TARGET_PROPERTY,
 					MOUNT_TARGET_FILE_TYPE_PROPERTY, MOUNT_TARGET_FOLDER_TYPE_PROPERTY, MOUNT_WATCH_CONTENTS_PROPERTY
 			)

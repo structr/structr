@@ -62,6 +62,11 @@ public class FolderTraitWrapper extends AbstractFileTraitWrapper implements Fold
 	}
 
 	@Override
+	public boolean isExcludeSubtreeFromExport() {
+		return wrappedObject.getProperty(traits.key(FolderTraitDefinition.EXCLUDE_SUBTREE_FROM_EXPORT_PROPERTY));
+	}
+
+	@Override
 	public Iterable<AbstractFile> getChildren() {
 
 		final PropertyKey<Iterable<NodeInterface>> childrenKey = traits.key(FolderTraitDefinition.CHILDREN_PROPERTY);

@@ -39,7 +39,8 @@ let _Files = {
 	filesResizerLeftKey: 'structrFilesResizerLeftKey_' + location.port,
 	rootFolderName: 'root',
 	tooltips: {
-		includeInFrontendExport: 'If checked this file/folder is exported in the deployment process. This flag can only be set at root level and affects all descendants.'
+		includeInFrontendExport: 'If checked this file/folder is exported in the deployment process. This flag can only be set at root level and affects all descendants.',
+		excludeSubtreeFromExport: 'If checked, the descendants of this folder are not exported during the deployment process.'
 	},
 
 	getViewMode: () => LSWrapper.getItem(_Files.filesViewModeKey, 'list'),
