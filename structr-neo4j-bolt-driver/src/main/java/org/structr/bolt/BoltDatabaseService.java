@@ -709,7 +709,8 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 			final String tenantId     = getTenantIdentifier();
 			final String labelsClause = (tenantId == null) ? searchLabels : String.format("n:`%s` AND (%s)", tenantId, searchLabels);
 
-			final String cypherQuery = """
+			final boolean supportsTypePredicateExpressions = supportsFeature(DatabaseFeature.TypePredicateExpressions);
+			final String cypherQuery = (supportsTypePredicateExpressions) ? """
 				MATCH (n)
 					WHERE (%s)
 				WITH
@@ -754,7 +755,33 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 				   ],
 					labels:          labels
 				} AS searchResult
-				""".formatted(labelsClause);
+				""".formatted(labelsClause) : """
+					MATCH (n)
+						WHERE (%s)
+					WITH
+						n, $searchString as searchString
+					WITH
+						n,
+						searchString,
+						[prop IN keys(n) WHERE n[prop] CONTAINS searchString | prop] AS matchedKeys,
+						labels(n) as labels
+					WHERE
+						size(matchedKeys) > 0
+					RETURN {
+						id:              n.id,
+						type:            n.type,
+						name:            n.name,
+						keys:            matchedKeys,
+						values:          [key IN matchedKeys |
+						   {
+							 before: right(substring(toString(n[key]), 0, size(split(toLower(toString(n[key])), searchString)[0])), 24),
+							 match:  substring(toString(n[key]), size(split(toLower(toString(n[key])), searchString)[0]), size(searchString)),
+							 after:  left(substring(toString(n[key]), size(split(toLower(toString(n[key])), searchString)[0]) + size(searchString)), 24)
+						   }
+					   ],
+						labels:          labels
+					} AS searchResult
+					""".formatted(labelsClause);
 
 			final Iterable<Map<String, Object>> rawResults = getCurrentTransaction().run(new SimpleCypherQuery(cypherQuery, parameters));
 			final List<Map<String, Object>> results        = new LinkedList<>();
@@ -805,6 +832,10 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 
 			case ShowIndexesQuery:
 				return neo4jMajorVersion >= 5;
+
+			case TypePredicateExpressions:
+				// see https://development.neo4j.dev/blog/developer/data-quality-type-constraints-functions/
+				return neo4jMajorVersion >= 5 && neo4jMinorVersion >= 9;
 		}
 
 		return false;
