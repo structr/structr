@@ -3534,6 +3534,11 @@ table.props td.__value {
 	border: 1px solid #ccc;
 }
 
+#global-search-results .show-ellipsis-l::before,
+#global-search-results .show-ellipsis-r::after {
+	content: '\2026';
+}
+
 /*
  * Search Box in function bar
  */
