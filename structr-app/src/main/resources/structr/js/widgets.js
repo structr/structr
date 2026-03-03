@@ -757,6 +757,61 @@ let _Widgets = {
 
             switch (fieldType) {
 
+                case 'datasource':
+                    let sources = await Command.queryPromise('DataSource', 1000, 1, 'name', 'asc', {}, true, 'dataSource');
+                    let values = {};
+                    for (let value of sources) {
+                        values[value.id] = value.name;
+                    }
+                    form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select required data-info="select-type" id="${cleanedLabel}" class="form-field" data-key="${label}"><option value="">--- Select datasource ---</option>${getOptionsAsText(values, defaultValue)}</select></div>`);
+                    break;
+
+                case 'mapping':
+                    form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><input type="text" required class="form-field" id="${cleanedLabel}" data-key="${label}" /><div class="sortable-checkbox-list" id="options-${cleanedLabel}"></div></div>`);
+                    {
+                        let typeSelect = document.querySelector('select[data-info="select-type"]');
+                        if (typeSelect) {
+                            let blacklist = { grantees: true };
+                            typeSelect.addEventListener('change', async (e) => {
+                                let id = typeSelect.value;
+                                Command.get(id, 'id,type,name,keys', (info) => {
+                                    let s = document.querySelector(`div#options-${cleanedLabel}`);
+                                    let i = document.querySelector(`input#${cleanedLabel}`);
+                                    s.innerHTML = '';
+                                    if (info && info.keys) {
+
+                                        for (let k in info.keys) {
+                                            let key = info.keys[k];
+                                            s.insertAdjacentHTML('beforeend', `<label draggable><input type="checkbox" data-key="${key.key}"><span>${key.label}</span></label>`);
+                                        }
+                                        let collectKeys = () => {
+                                            let mapping = {};
+                                            s.querySelectorAll('input').forEach(input => {
+                                                if (input.checked) {
+                                                    let key = input.dataset.key;
+                                                    mapping[key] = {
+                                                        key: key,
+                                                        template: 'Default'
+                                                    }
+                                                }
+                                            });
+                                            return JSON.stringify(mapping);
+                                        }
+                                        s.querySelectorAll('input').forEach((input) => {
+                                            input.addEventListener('change', async (e) => {
+                                                i.value = collectKeys();
+                                            })
+                                        })
+                                        _Widgets.sortables.enableDragSort(s);
+                                    }
+                                });
+                            });
+                        } else {
+                            console.log('No typeselect');
+                        }
+                    }
+                    break;
+
                 case 'schema-type':
                     let types = await _Schema.caches.getFilteredSchemaTypes(t => !t.isBuiltin);
                     types = types.map(t => t.name);
@@ -765,34 +820,19 @@ let _Widgets = {
 
                 case 'schema-property':
                     form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select required id="${cleanedLabel}" class="form-field" data-key="${label}"></select></div>`);
-                    {
-                        let typeSelect = document.querySelector('select[data-info="select-type"]');
-                        if (typeSelect) {
-                            typeSelect.addEventListener('change', async (e) => {
-                                Command.getSchemaInfo(typeSelect.value, (info) => {
-                                    let s = document.querySelector(`select#${cleanedLabel}`);
-                                    s.insertAdjacentHTML('beforeend', getOptionsAsText(info.map(i => i.jsonName).sort(), 'name'));
-                                    s.dispatchEvent(new CustomEvent('change', {}));
-                                });
-                            });
-                        }
-                    }
-                    break;
-
-                case 'schema-view':
-                    form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select required id="${cleanedLabel}" class="form-field" data-key="${label}"></select></div>`);
                 {
                     let typeSelect = document.querySelector('select[data-info="select-type"]');
                     if (typeSelect) {
                         typeSelect.addEventListener('change', async (e) => {
-                            Command.getTypeInfo(typeSelect.value, (types) => {
-                                for (let info of types) {
-                                    let s = document.querySelector(`select#${cleanedLabel}`);
-                                    s.insertAdjacentHTML('beforeend', getOptionsAsText(info.schemaViews.map(v => v.name).sort(), 'public'));
-                                    s.dispatchEvent(new CustomEvent('change', {}));
-                                }
+                            let id = typeSelect.value;
+                            Command.get(id, 'id,type,name,keys', (info) => {
+                                let s = document.querySelector(`select#${cleanedLabel}`);
+                                s.insertAdjacentHTML('beforeend', getOptionsAsText(Object.keys(info.keys).sort(), 'name'));
+                                s.dispatchEvent(new CustomEvent('change', {}));
                             });
                         });
+                    } else {
+                        console.log('No typeselect');
                     }
                 }
                     break;
@@ -976,6 +1016,59 @@ let _Widgets = {
 
 		return [];
 	},
+
+    sortables: {
+        enableDragSort: (container) => {
+            let dragged = null;
+            const indicator = document.createElement('div');
+            indicator.style.cssText = 'height:2px;background:var(--structr-light-green);pointer-events:none;';
+
+            for (const child of container.children) {
+                const handle = document.createElement('span');
+                handle.textContent = '⠿';
+                handle.style.cssText = 'cursor: grab; flex-grow: 0; padding: 0 1rem;';
+                child.appendChild(handle);
+                child.setAttribute('draggable', 'true');
+                child.addEventListener('dragstart', (e) => {
+                    dragged = child;
+                    setTimeout(() => child.style.opacity = '0.4', 0);
+                });
+                child.addEventListener('dragend', () => {
+                    child.style.opacity = '';
+                    dragged = null;
+                    indicator.remove();
+                });
+            }
+
+            function getDropTarget(y) {
+                for (const child of [...container.children]) {
+                    if (child === indicator || child === dragged) continue;
+                    const rect = child.getBoundingClientRect();
+                    if (y < rect.top + rect.height / 2) return child;
+                }
+                return null;
+            }
+
+            container.addEventListener('dragover', e => {
+                e.preventDefault();
+                if (!dragged) return;
+                const before = getDropTarget(e.clientY);
+                before ? container.insertBefore(indicator, before) : container.appendChild(indicator);
+            });
+
+            container.addEventListener('dragleave', e => {
+                if (!container.contains(e.relatedTarget)) indicator.remove();
+            });
+
+            container.addEventListener('drop', e => {
+                e.preventDefault();
+                if (!dragged) return;
+                indicator.remove();
+                const before = getDropTarget(e.clientY);
+                before ? container.insertBefore(dragged, before) : container.appendChild(dragged);
+            });
+        }
+    },
 
 	templates: {
 		slideout: config => `

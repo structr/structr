@@ -1657,7 +1657,9 @@ public class ImporterWithXMLParser {
 					return gson.fromJson(source.toString(), Map.class);
 				}
 
-			} catch (Throwable t) { }
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
 
 		}
 
@@ -1676,6 +1678,7 @@ public class ImporterWithXMLParser {
 				}
 
 			} catch (Throwable t) {
+				t.printStackTrace();
 			}
 		}
 

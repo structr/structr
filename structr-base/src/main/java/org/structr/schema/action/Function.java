@@ -19,6 +19,7 @@
 package org.structr.schema.action;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +38,7 @@ import org.structr.core.property.*;
 import org.structr.core.traits.Traits;
 import org.structr.docs.*;
 import org.structr.schema.parser.DatePropertyGenerator;
+import org.structr.web.common.AsyncBuffer;
 
 import java.io.File;
 import java.io.IOException;
@@ -890,6 +892,161 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		return hints;
 	}
 
+	protected String getStringOrNull(final Object[] sources, final int index) {
+
+		if (index < sources.length && sources[index] != null) {
+
+			return sources[index].toString();
+		}
+
+		return null;
+	}
+
+	protected <T> T getOrNull(final List<T> sources, final int index) {
+
+		if (sources.size() > index) {
+
+			return sources.get(index);
+		}
+
+		return null;
+	}
+
+	protected List<String> splitAndTrim(final String source, final String separator) {
+
+		final List<String> list = new LinkedList<>();
+
+		for (final String part : source.split(separator)) {
+
+			final String trimmed = part.trim();
+
+			if (StringUtils.isNotBlank(trimmed)) {
+
+				list.add(trimmed);
+			}
+		}
+
+		return list;
+	}
+	protected void addStringOrNull(final Object[] sources, final int index, final List<String> toAdd) {
+
+		final String value = getStringOrNull(sources, index);
+		if (value != null) {
+
+			toAdd.add(value);
+		}
+	}
+
+	protected String joinNonNullStrings(final String... parts) {
+
+		final List<String> list = new ArrayList<>(5);
+
+		for (final String part : parts) {
+
+			if (part != null) {
+
+				list.add(part);
+			}
+		}
+
+		return StringUtils.join(list, "-");
+	}
+
+	protected TagWithCSSInfo getWrapperElement(final String source) {
+
+		if (source != null) {
+
+			return new TagWithCSSInfo(source);
+		}
+
+		return null;
+	}
+
+	protected class TagWithCSSInfo {
+
+		private final List<String> classes = new LinkedList<>();
+		private final String source;
+		private String id = null;
+		private String tag = null;
+
+		public TagWithCSSInfo(final String source) {
+
+			this.source = source;
+
+			// we only support simple CSS selectors with id and class for now
+			for (final String part : splitCssSelector(source)) {
+
+				if (part.startsWith(".")) {
+
+					classes.add(part.substring(1));
+
+				} else if (part.startsWith("#")) {
+
+					id = part.substring(1);
+
+				} else {
+
+					tag = part;
+				}
+			}
+		}
+
+		public void formatStartTag(final AsyncBuffer buffer) {
+
+			if (StringUtils.isNotBlank(tag)) {
+
+				buffer.append("<");
+				buffer.append(tag);
+
+				if (id != null) {
+					buffer.append(" id=\"" + id + "\"");
+				}
+
+				if (!classes.isEmpty()) {
+
+					buffer.append(" class=\"");
+					buffer.append(StringUtils.join(classes, " "));
+					buffer.append("\"");
+				}
+
+				buffer.append(">");
+			}
+
+		}
+
+		public void formatEndTag(final AsyncBuffer buffer) {
+
+			if (StringUtils.isNotBlank(tag)) {
+
+				buffer.append("</" + tag + ">");
+			}
+		}
+
+		public boolean matches(final List<String> selectors) {
+
+			for (final String selector : selectors) {
+
+				// match CSS class only
+				if (selector.startsWith(".") && classes.contains(selector.substring(1))) {
+					return true;
+				}
+
+				// match CSS class only
+				if (selector.startsWith("#") && selector.substring(1).equals(id)) {
+					return true;
+				}
+
+				// tag match
+				if (selector.equals(source)) {
+
+					return true;
+				}
+			}
+
+			return false;
+		}
+	}
+
 	// ----- private methods -----
 	private boolean eq(final Object o1, final Object o2) {
 
@@ -1044,5 +1201,27 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		final Double value2 = getDoubleForComparison(o2);
 
 		return value1.compareTo(value2);
+	}
+
+	private List<String> splitCssSelector(final String source) {
+
+		final Set<Character> separators = Set.of('.', '#');
+		final List<String> parts     = new LinkedList<>();
+		final StringBuilder current  = new StringBuilder();
+
+		for (final Character c : source.toCharArray()) {
+
+			// separator creates new part
+			if (separators.contains(c)) {
+				parts.add(current.toString());
+				current.setLength(0);
+			}
+
+			current.append(c);
+		}
+
+		parts.add(current.toString());
+
+		return parts;
 	}
 }

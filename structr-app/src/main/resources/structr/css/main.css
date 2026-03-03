@@ -2895,10 +2895,12 @@ i.fa-sitemap {
 }
 
 .result-box {
+    /*
 	position: absolute;
 	top: 48px;
 	left: 0;
 	right: 12px;
+	*/
 	padding: 12px;
 	clear: both;
 	overflow: hidden;
@@ -3100,7 +3102,7 @@ img#image-editor.orientation-8 {
     text-transform: capitalize;
 }
 
-.widget-props input,
+.widget-props input:not([type="checkbox"]),
 .widget-props select,
 .widget-props textarea {
     width: 100%;
@@ -3124,6 +3126,29 @@ span.context-help-text {
 
 input.newKey {
 	width: calc(100% - 8px);
+}
+
+div.sortable-checkbox-list {
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+}
+
+div.sortable-checkbox-list label {
+    line-height: 1.5rem;
+    padding: 0.2rem 0;
+    white-space: nowrap;
+    display: flex;
+}
+
+div.sortable-checkbox-list label span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-grow: 1;
+}
+
+div.sortable-checkbox-list label:hover {
+    background-color: #f4f4f4;
 }
 
 /**

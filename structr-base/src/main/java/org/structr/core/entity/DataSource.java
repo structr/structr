@@ -18,30 +18,19 @@
  */
 package org.structr.core.entity;
 
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.traits.TraitDefinition;
-import org.structr.core.traits.TraitsInstance;
-import org.structr.core.traits.TypeInfo;
+import org.structr.core.GraphObject;
+import org.structr.core.graph.NodeInterface;
 
-import java.util.Set;
+import java.util.List;
+import java.util.Map;
 
-public interface SchemaNode extends AbstractSchemaNode, TypeInfo, DataProvider {
+public interface DataSource extends NodeInterface {
 
-	String schemaNodeNamePattern = "[A-Z][a-zA-Z0-9_]*";
+	Iterable<GraphObject> getValues(final SecurityContext securityContext) throws FrameworkException;
+	List<Map<String, Object>> getFields(final SecurityContext securityContext) throws FrameworkException;
+	String getDataKey();
 
-	String getMultiplicity(final String propertyNameToCheck);
-	String getRelatedType(final String propertyNameToCheck);
-
-	boolean defaultVisibleToPublic();
-	boolean defaultVisibleToAuth();
-
-	Iterable<SchemaRelationshipNode> getRelatedTo();
-	Iterable<SchemaRelationshipNode> getRelatedFrom();
-
-	Set<String> getInheritedTraits();
-	void setInheritedTraits(final Set<String> setOfTraits) throws FrameworkException;
-
-	TraitDefinition getTraitDefinition(final TraitsInstance traitsInstance);
-
-	void handleMigration() throws FrameworkException;
+	DataProvider getDataProvider();
 }

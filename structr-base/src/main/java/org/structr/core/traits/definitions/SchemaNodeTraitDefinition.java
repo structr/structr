@@ -25,6 +25,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.DataProvider;
+import org.structr.core.entity.DataSource;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.ModificationQueue;
@@ -35,18 +38,18 @@ import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.TraitsInstance;
+import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.operations.datasource.DataProviderOperations;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.operations.nodeinterface.OnNodeDeletion;
 import org.structr.core.traits.wrappers.SchemaNodeTraitWrapper;
 import org.structr.schema.ReloadSchema;
+import org.structr.schema.SchemaHelper;
 
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  *
@@ -142,6 +145,49 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 			SchemaNode.class, (traits, node) -> new SchemaNodeTraitWrapper(traits, node)
+		);
+	}
+
+	@Override
+	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
+		return Map.of(
+
+			DataProviderOperations.class, new DataProviderOperations() {
+
+				@Override
+				public Iterable<GraphObject> getValues(final SecurityContext securityContext, final DataProvider provider) throws FrameworkException {
+
+					final SchemaNode schemaNode = provider.as(SchemaNode.class);
+					final String name           = schemaNode.getName();
+
+					return (Iterable) StructrApp.getInstance(securityContext).nodeQuery(name).getResultStream();
+				}
+
+				@Override
+				public Map<String, Object> getFields(final SecurityContext securityContext, final DataProvider provider) throws FrameworkException {
+
+					final SchemaNode schemaNode      = provider.as(SchemaNode.class);
+					final String name                = schemaNode.getName();
+					final Traits traits              = Traits.of(name);
+					final Map<String, Object> input  = SchemaHelper.getPropertiesForView(securityContext, traits, PropertyView.All);
+					final Map<String, Object> output = new LinkedHashMap<>();
+
+					// transform input
+					for (final String key : input.keySet()) {
+
+						final Map<String, Object> data    = (Map) input.get(key);
+						final Map<String, Object> newData = new LinkedHashMap<>();
+
+						newData.put("label",     data.get("jsonName"));
+						newData.put("template", "Default " + data.get("type"));
+
+						output.put(key, newData);
+					}
+
+					return output;
+				}
+			}
 		);
 	}
 

@@ -27,6 +27,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
+import org.structr.core.entity.DataSource;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -144,6 +145,8 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	String getItemType();
 	String getRepeaterType();
 	Integer getDimensions();
+	String getRecursiveComponentType();
+	String getRecursiveItemType();
 
 	boolean renderDeploymentExportComments(AsyncBuffer out, boolean isContentNode);
 
@@ -163,11 +166,14 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	DOMNode getFirstChild() throws FrameworkException;
 	Iterable<DOMNode> getChildren();
 	Iterable<DOMNode> getSyncedNodes();
+	List<DOMNode> getChildrenWithName(final String name);
 
 	Iterable<ActionMapping> getReloadingActions();
 	Iterable<ActionMapping> getFailureActions();
 	Iterable<ActionMapping> getSuccessNotificationActions();
 	Iterable<ActionMapping> getFailureNotificationActions();
+
+	DataSource getDataSource();
 
 	DOMNode cloneNode(final boolean deep) throws FrameworkException;
 	DOMNode appendChild(final DOMNode domNode) throws FrameworkException;
@@ -183,6 +189,7 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	void setSharedComponent(final DOMNode sharedComponent) throws FrameworkException;
 
 	Template getClosestTemplate(final Page page);
+	DataSource getClosestDataSource();
 
 	void updateFromNode(final DOMNode otherNode) throws FrameworkException;
 	void updateHasSharedComponentFlag() throws FrameworkException;

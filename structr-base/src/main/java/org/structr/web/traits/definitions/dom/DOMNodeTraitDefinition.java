@@ -33,6 +33,7 @@ import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.InstanceMethod;
 import org.structr.core.datasources.DataSources;
 import org.structr.core.datasources.GraphDataSource;
+import org.structr.core.entity.DataSource;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
@@ -98,6 +99,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String REPEATER_TYPE_PROPERTY                  = "repeaterType";
 	public static final String IS_COMPONENT_ROOT_PROPERTY              = "isComponentRoot";
 	public static final String FLOW_PROPERTY                           = "flow";
+	public static final String DATA_SOURCE_PROPERTY                    = "dataSource";
 
 	private static final String[] rawProps = new String[] {
 		DATA_KEY_PROPERTY, CYPHER_QUERY_PROPERTY, FUNCTION_QUERY_PROPERTY, Option.SELECTEDVALUES_PROPERTY, FLOW_PROPERTY,
@@ -535,7 +537,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 						throw new FrameworkException(422, DOMNode.HIERARCHY_REQUEST_ERR_MESSAGE_SAME_NODE);
 					}
 
-					// verify that otherNode is not one of the
+					// verify that otherNode is not one of
 					// the ancestors of this node
 					// (prevent circular relationships)
 					DOMNode _parent = thisNode.getParent();
@@ -729,6 +731,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> itemTypeProperty                                    = new StringProperty(ITEM_TYPE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<String> repeaterTypeProperty                                = new StringProperty(REPEATER_TYPE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<Boolean> isComponentRootProperty                            = new BooleanProperty(IS_COMPONENT_ROOT_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<NodeInterface> dataSourceProperty                           = new EndNode(traitsInstance, DATA_SOURCE_PROPERTY, StructrTraits.DOM_NODE_HAS_DATA_SOURCE_DATA_SOURCE).category(DOMNode.WIDGETS_CATEGORY);
 
 		return newSet(
 			parentProperty,
@@ -764,7 +767,8 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 			dimensionsProperty,
 			itemTypeProperty,
 			repeaterTypeProperty,
-			isComponentRootProperty
+			isComponentRootProperty,
+			dataSourceProperty
 		);
 	}
 
@@ -775,7 +779,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 			PropertyView.Ui,
 			newSet(
 				RELOADING_ACTIONS_PROPERTY, FAILURE_ACTIONS_PROPERTY, COMPONENT_TYPE_PROPERTY, DIMENSIONS_PROPERTY,
-				ITEM_TYPE_PROPERTY, REPEATER_TYPE_PROPERTY, IS_COMPONENT_ROOT_PROPERTY,
+				ITEM_TYPE_PROPERTY, REPEATER_TYPE_PROPERTY, IS_COMPONENT_ROOT_PROPERTY, DATA_SOURCE_PROPERTY,
 				SUCCESS_NOTIFICATION_ACTIONS_PROPERTY, FAILURE_NOTIFICATION_ACTIONS_PROPERTY
 			)
 		);

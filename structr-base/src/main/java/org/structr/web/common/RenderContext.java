@@ -27,6 +27,7 @@ import org.apache.commons.codec.binary.Base64InputStream;
 import org.apache.commons.codec.binary.Base64OutputStream;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.RequestParameters;
@@ -36,6 +37,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.DataSource;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
@@ -47,6 +49,7 @@ import org.structr.schema.action.Function;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.websocket.command.ReplaceWidgetCommand;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -463,6 +466,23 @@ public class RenderContext extends ActionContext {
 						if (entity.is(StructrTraits.DOM_NODE)) {
 							hints.reportExistingKey(key);
 							return entity.as(DOMNode.class).getClosestTemplate(getPage());
+						}
+						break;
+
+					case "currentDataSource":
+
+						if (entity.is(StructrTraits.DOM_NODE)) {
+
+							hints.reportExistingKey(key);
+							final DOMNode domNode       = entity.as(DOMNode.class);
+							final DataSource dataSource = domNode.getClosestDataSource();
+
+							if (dataSource != null) {
+
+								return dataSource;
+							}
+
+							LoggerFactory.getLogger(RenderContext.class).warn("{} with UUID {} has no data source configured in any of its parents.", ReplaceWidgetCommand.nameOrTag(domNode), entity.getUuid());
 						}
 						break;
 

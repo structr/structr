@@ -33,6 +33,7 @@ import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.DataSource;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
@@ -325,6 +326,22 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	}
 
 	@Override
+	public final List<DOMNode> getChildrenWithName(final String name) {
+
+		final List<DOMNode> children = new LinkedList<>();
+
+		for (final NodeInterface node : treeGetChildren()) {
+
+			if (node.getName().equals(name)) {
+
+				children.add(node.as(DOMNode.class));
+			}
+		}
+
+		return children;
+	}
+
+	@Override
 	public final int treeGetChildCount() {
 		return Iterables.count(this.getOutgoingRelationships(getChildLinkType()));
 	}
@@ -435,6 +452,25 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 					}
 				}
+			}
+
+			node = node.getParent();
+		}
+
+		return null;
+	}
+
+	@Override
+	public final DataSource getClosestDataSource() {
+
+		DOMNode node = this;
+
+		while (node != null) {
+
+			final DataSource dataSource = node.getDataSource();
+			if (dataSource != null) {
+
+				return dataSource;
 			}
 
 			node = node.getParent();
@@ -1131,6 +1167,18 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		final PropertyKey<Iterable<NodeInterface>> key = traits.key(DOMNodeTraitDefinition.FAILURE_NOTIFICATION_ACTIONS_PROPERTY);
 
 		return Iterables.map(n -> n.as(ActionMapping.class), wrappedObject.getProperty(key));
+	}
+
+	@Override
+	public DataSource getDataSource() {
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.DATA_SOURCE_PROPERTY));
+		if (node != null) {
+
+			return node.as(DataSource.class);
+		}
+
+		return null;
 	}
 
 	@Override
@@ -2042,5 +2090,43 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	@Override
 	public void setIdAttribute(final String id) throws FrameworkException {
 		wrappedObject.setProperty(traits.key(DOMElementTraitDefinition._HTML_ID_PROPERTY), id);
+	}
+
+	@Override
+	public String getRecursiveComponentType() {
+
+		DOMNode node = this;
+
+		while (node != null && !node.isComponentRoot()) {
+
+			final String componentType = node.getComponentType();
+			if (componentType != null) {
+
+				return componentType;
+			}
+
+			node = node.getParent();
+		}
+
+		return null;
+	}
+
+	@Override
+	public String getRecursiveItemType() {
+
+		DOMNode node = this;
+
+		while (node != null && !node.isComponentRoot()) {
+
+			final String componentType = node.getComponentType();
+			if (componentType != null) {
+
+				return componentType;
+			}
+
+			node = node.getParent();
+		}
+
+		return null;
 	}
 }
