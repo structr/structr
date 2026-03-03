@@ -73,7 +73,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 	protected void service(HttpServletRequest request, HttpServletResponse resp) throws ServletException, IOException {
 
 		final String method = request.getMethod();
-	        if ("PATCH".equals(method)) {
+		if ("PATCH".equals(method)) {
 
 			doPatch(request, resp);
 			return;

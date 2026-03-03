@@ -961,7 +961,7 @@ public class HttpService implements RunnableService, StatsCallback {
 									}
 
 									final ServletHolder servletHolder = new ServletHolder(servlet);
-									((HttpServiceServlet) servlet).configureServletHolder(servletHolder);
+									httpServiceServlet.configureServletHolder(servletHolder);
 
 									if (servletPath.endsWith("*")) {
 
