@@ -64,21 +64,14 @@ public class SendPlaintextMailFunction extends UiAdvancedFunction {
 
 			} catch (EmailException eex) {
 
-				logException(caller, eex, sources);
+				throw new FrameworkException(422, eex.toString(), eex);
 			}
 
-		} catch (ArgumentNullException pe) {
+		} catch (ArgumentNullException | ArgumentCountException ex) {
 
-			// silently ignore null arguments
-			return null;
-
-		} catch (ArgumentCountException pe) {
-
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ex.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 		}
-
-		return "";
 	}
 
 	@Override
@@ -105,7 +98,8 @@ public class SendPlaintextMailFunction extends UiAdvancedFunction {
 				"The return value of this function is the message ID of the delivered message, or null",
 				"`textContent` is typically generated using the `template()` function.",
 				"Emails are sent based on the SMTP configuration defined in structr.conf.",
-				"For advanced scenarios, refer to the extended mail functions prefixed with `mail`, beginning with `mailBegin()`."
+				"For advanced scenarios, refer to the extended mail functions prefixed with `mail`, beginning with `mailBegin()`.",
+				"If an error occurs, an exception is thrown. In JavaScript, this can be caught via `try { ... } catch (e) { ... }`"
 		);
 	}
 
