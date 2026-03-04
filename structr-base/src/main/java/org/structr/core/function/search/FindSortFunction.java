@@ -21,6 +21,7 @@ package org.structr.core.function.search;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
@@ -88,8 +89,18 @@ public class FindSortFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-		This predicate sorts the results of a query by the given key. It supports "transitive sorting", i.e. you can sort nodes by properties of related nodes.
-		""";
+			This predicate sorts the results of a query by the given key. It supports "transitive sorting", i.e. you can sort nodes by properties of related nodes.
+
+			Default is ascending order; items with a null key sort last. If the parameter `descending` is true, the sort order is descending and items with a null key sort first.
+			""";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("key", "name of the sort key"),
+				Parameter.optional("descending", "If true, sorts in descending order; otherwise sorts in ascending order. (boolean, default `false`)")
+		);
 	}
 
 	@Override
@@ -102,13 +113,17 @@ public class FindSortFunction extends AdvancedScriptingFunction {
 				Example.javaScript("""
 				{
 					let projects = $.find('Project', $.predicate.sort('owner.name'));
-				}""", "Fetch the list of projects sorted by owner name (transitive sorting)")
+				}""", "Fetch the list of projects sorted by owner name (transitive sorting)"),
+				Example.javaScript("""
+				{
+					let projects = $.find('Project', $.predicate.sort('budget', true));
+				}""", "Fetch the list of projects sorted by budget in descending order")
 		);
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("key, value");
+		return Signature.forAllScriptingLanguages("key [, descending = false]");
 	}
 
 	@Override
