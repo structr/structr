@@ -142,7 +142,10 @@ public class FunctionProperty<T> extends Property<T> implements Documentable {
 									Object convertedResult = converter.convert(result);
 									if (convertedResult != null) {
 										result = convertedResult;
+									} else if ("".equals(result)) {
+										result = null;
 									}
+
 								} catch (FrameworkException ex) {
 
 									logger.warn("Could not convert value of function property. Conversion type: :%s, Raw value: " + result.toString(), ex);
