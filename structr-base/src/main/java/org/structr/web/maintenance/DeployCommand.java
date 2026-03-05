@@ -1413,10 +1413,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			putData(config, DOMElementTraitDefinition.PATH_PROPERTY,            page.getPath());
 			putData(config, PageTraitDefinition.POSITION_PROPERTY,              page.getPosition());
 			putData(config, PageTraitDefinition.SHOW_ON_ERROR_CODES_PROPERTY,   page.getShowOnErrorCodes());
-
-			// FIXME? show conditions for a page?
-			putData(config, DOMNodeTraitDefinition.SHOW_CONDITIONS_PROPERTY,    page.getShowConditions());
-			putData(config, DOMNodeTraitDefinition.HIDE_CONDITIONS_PROPERTY,    page.getHideConditions());
 		}
 
 		final Traits traits = node.getTraits();
