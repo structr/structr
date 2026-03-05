@@ -259,6 +259,12 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 
 			// Extract and return the credential value
 			final Object credentialValue = params.get(getCredentialKey());
+			final String credentialValueString = credentialValue != null ? credentialValue.toString() : null;
+
+			if (Settings.OAuthVerboseLogging.getValue(false)) {
+				logger.error("User details from location {} for provider {} does not contain credentials key {}", userDetailsURI , provider, getCredentialKey());
+			}
+
 			return credentialValue != null ? credentialValue.toString() : null;
 
 		} catch (Exception e) {

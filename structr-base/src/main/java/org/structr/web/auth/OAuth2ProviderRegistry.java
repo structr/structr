@@ -78,8 +78,8 @@ public class OAuth2ProviderRegistry {
 		// Azure: Requires tenant_id configuration
 		PROVIDERS.put("azure", new ProviderConfig(
 				null, // API created dynamically based on tenant_id
-				"mail",
-				"https://graph.microsoft.com/v1.0/me",
+				"email",
+				"https://graph.microsoft.com/oidc/userinfo",
 				"openid profile email",
 				AzureOAuthClient::new
 		));
