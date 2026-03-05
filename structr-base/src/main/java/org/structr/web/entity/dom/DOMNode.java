@@ -145,8 +145,19 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	String getItemType();
 	String getRepeaterType();
 	Integer getDimensions();
-	String getRecursiveComponentType();
-	String getRecursiveItemType();
+	String getDisplayMode();
+	String getFieldSet();
+	String getSaveMode();
+	String getRole();
+	Boolean showLabels();
+
+	// component-wide methods, traverse the parent hierarchy
+	String getComponentTypeForComponent();
+	String getItemTypeForComponent();
+	String getDisplayModeForComponent(final SecurityContext securityContext);
+	String getFieldSetForComponent();
+	String getRoleForComponent();
+	Boolean getShowLabelsFlagForComponent();
 
 	boolean renderDeploymentExportComments(AsyncBuffer out, boolean isContentNode);
 

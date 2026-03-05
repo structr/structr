@@ -39,10 +39,11 @@ import java.util.Set;
 
 public class DataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 
-	public static final String DOM_NODES_PROPERTY = "domNodes";
-	public static final String PROVIDER_PROPERTY  = "provider";
-	public static final String MAPPING_PROPERTY   = "mapping";
-	public static final String DATA_KEY_PROPERTY  = "dataKey";
+	public static final String DOM_NODES_PROPERTY  = "domNodes";
+	public static final String PROVIDER_PROPERTY   = "provider";
+	public static final String MAPPING_PROPERTY    = "mapping";
+	public static final String FIELD_SETS_PROPERTY = "fieldSets";
+	public static final String DATA_KEY_PROPERTY   = "dataKey";
 
 	public DataSourceTraitDefinition() {
 		super(StructrTraits.DATA_SOURCE);
@@ -73,6 +74,38 @@ public class DataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
 					return entity.as(DataSource.class).getFields(securityContext);
 				}
+			},
+
+			new InstanceMethod(StructrTraits.DATA_SOURCE, "getDataKey") {
+				@Override
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
+					return entity.as(DataSource.class).getDataKey();
+				}
+			},
+
+			new InstanceMethod(StructrTraits.DATA_SOURCE, "getDataType") {
+				@Override
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
+					return entity.as(DataSource.class).getDataType(securityContext);
+				}
+			},
+
+			new InstanceMethod(StructrTraits.DATA_SOURCE, "getCurrentValue") {
+				@Override
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
+
+					final DataSource dataSource = entity.as(DataSource.class);
+					if (dataSource != null) {
+
+						final String dataKey = dataSource.getDataKey();
+						if (dataKey != null) {
+
+							return securityContext.getRequestParameter(dataKey);
+						}
+					}
+
+					return null;
+				}
 			}
 		);
 	}
@@ -83,12 +116,14 @@ public class DataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Iterable<NodeInterface>> domNodesProperty = new StartNodes(traitsInstance, DOM_NODES_PROPERTY, StructrTraits.DOM_NODE_HAS_DATA_SOURCE_DATA_SOURCE).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<NodeInterface> providerProperty           = new EndNode(traitsInstance, PROVIDER_PROPERTY, StructrTraits.DATA_SOURCE_HAS_PROVIDER_DATA_PROVIDER).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<String> mappingProperty                   = new StringProperty(MAPPING_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<String> fieldSetsProperty                 = new StringProperty(FIELD_SETS_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<String> dataKeyProperty                   = new StringProperty(DATA_KEY_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 
 		return newSet(
 			domNodesProperty,
 			providerProperty,
 			mappingProperty,
+			fieldSetsProperty,
 			dataKeyProperty
 		);
 	}
@@ -102,6 +137,7 @@ public class DataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 				NodeInterfaceTraitDefinition.NAME_PROPERTY,
 				MAPPING_PROPERTY,
 				PROVIDER_PROPERTY,
+				FIELD_SETS_PROPERTY,
 				DATA_KEY_PROPERTY
 			)
 		);

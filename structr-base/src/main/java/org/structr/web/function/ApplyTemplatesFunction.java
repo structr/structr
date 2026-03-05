@@ -18,117 +18,193 @@
  */
 package org.structr.web.function;
 
+import org.apache.tika.utils.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.DataProvider;
 import org.structr.core.entity.DataSource;
+import org.structr.core.graph.NodeInterface;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
+import org.structr.web.datasource.DataField;
 import org.structr.web.entity.dom.DOMNode;
 
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Convenience method to render named child nodes.
  */
 public abstract class ApplyTemplatesFunction extends IncludeFunction {
 
-	public void applyTemplates(final ActionContext ctx, final DataSource dataSource, final String tag, final String slot) throws FrameworkException {
+	public void applyTemplates(final ActionContext ctx, final DataSource dataSource, final DOMNode domNode, final String tag, final String slot, final boolean inLoop) throws FrameworkException {
 
-		final SecurityContext securityContext  = ctx.getSecurityContext();
-		final App app                          = StructrApp.getInstance(securityContext);
-		final List<Map<String, Object>> fields = dataSource.getFields(securityContext);
-		final RenderContext innerCtx           = (RenderContext)ctx;
-		final TagWithCSSInfo wrapper           = getWrapperElement(tag);
-		final AsyncBuffer buffer               = innerCtx.getBuffer();
+		final SecurityContext securityContext = ctx.getSecurityContext();
+		final App app                         = StructrApp.getInstance(securityContext);
+		final Map<String, DataField> fields   = dataSource.getFields(securityContext);
+		final RenderContext innerCtx          = (RenderContext)ctx;
+		final TagWithCSSInfo wrapper          = getWrapperElement(tag);
+		final AsyncBuffer buffer              = innerCtx.getBuffer();
+		final Boolean showLabels              = domNode.getShowLabelsFlagForComponent();
+		final String requestedFieldSet        = domNode.getFieldSetForComponent();
+		final List<String> fieldSet           = dataSource.getFieldSet(securityContext, requestedFieldSet);
+		final String displayMode              = domNode.getDisplayModeForComponent(securityContext);
+		final boolean useEditTemplate         = "input".equals(displayMode);
+		final Object previousFieldValue       = innerCtx.getConstant("field");
+		final DataProvider dataProvider       = dataSource.getDataProvider();
+		final String channel                  = dataSource.getDataKey();
+		String selectedValue                  = null;
 
-		for (final Map<String, Object> field : fields) {
+		// we can only be a subscriber if the fields are not displayed in a loop
+		// something about dimensions is also true here...
+		if (!inLoop && channel != null) {
 
-			final Set<String> slots = getSlots(field);
+			final String role = domNode.getRoleForComponent();
+			if ("subscriber".equals(role)) {
 
-			// no slot => iterate over all fields or just one slot
-			if (slot == null || slots.contains(slot)) {
+				selectedValue = innerCtx.getRequestParameter(channel);
+				if (selectedValue != null) {
 
-				final List<String> hideIn  = (List<String>) field.get("hideIn");
-				final String templateName  = (String) field.get("template");
-				final String valueSource   = (String) field.get("value");
-				Object value               = null;
+					final String dataKey = dataSource.getDataKey();
+					if (dataKey != null) {
 
-				if (hideIn != null && wrapper != null && wrapper.matches(hideIn)) {
-					continue;
-				}
+						final NodeInterface node = app.getNodeById(selectedValue);
+						if (node != null) {
 
-				// value present?
-				if (valueSource != null) {
+							innerCtx.putDataObject(dataKey, node);
 
-					value = innerCtx.getReferencedProperty(null, valueSource, null, 0, new EvaluationHints(), 0, 0);
-					innerCtx.setConstant("value", value);
-				}
+						} else {
 
-				innerCtx.setConstant("field", field);
+							// no item
+							buffer.append("<span class=\"empty\">No item to display.</span>");
+							return;
+						}
 
-				if (wrapper != null) {
-					wrapper.formatStartTag(buffer);
-				}
+					} else {
 
-				final DOMNode templateNode = getTemplate(app, slot, templateName);
-				if (templateNode != null) {
-
-					renderNode(securityContext, ctx, innerCtx, new Object[0], app, templateNode, true);
+						logger.warn("Cannot store value for channel {}, data source {} does not define a dataKey.", channel, dataSource.getName());
+					}
 
 				} else {
 
-					if (value != null) {
-						innerCtx.getBuffer().append(value.toString());
-					}
-				}
-
-				if (wrapper != null) {
-					wrapper.formatEndTag(buffer);
+					// show "no item" element and exit (make configurable?)
+					buffer.append("<span class=\"empty\">No item to display.</span>");
+					return;
 				}
 			}
 		}
+
+		for (final String field : fieldSet) {
+
+			final DataField dataField = fields.get(field);
+			if (dataField != null) {
+
+				final Set<String> slots = dataField.getSlots();
+
+				// no slot => iterate over all fields or just one slot
+				if (slot == null || slots.contains(slot)) {
+
+					final Set<String> cssClasses = new LinkedHashSet<>();
+					final String editTemplate    = dataField.getEditTemplate();
+					final String template        = dataField.getTemplate();
+					final String valueSource     = dataField.getValue();
+					final String label           = dataField.getLabel();
+					Object value                 = null;
+
+					// apply field-dependent CSS classes to the wrapper element
+					dataField.applyCssClasses(cssClasses);
+
+					// make field information available in context
+					innerCtx.setConstant("field", dataField.evaluate(securityContext, dataProvider));
+
+					// value present?
+					if (valueSource != null) {
+
+						value = innerCtx.getReferencedProperty(null, valueSource, null, 0, new EvaluationHints(), 0, 0);
+						innerCtx.setConstant("value", value);
+					}
+
+					if (wrapper != null) {
+						wrapper.formatStartTag(buffer, Map.of(), cssClasses);
+					}
+
+					// render labels?
+					if (showLabels != null && showLabels && label != null) {
+
+						buffer.append("<label>" + label + "</label>");
+					}
+
+					if (useEditTemplate && StringUtils.isEmpty(editTemplate)) {
+
+						logger.warn("Field {} from data source {} cannot be used with displayMode input because it doesn't specify a value for `editTemplate`.", field, dataSource.getName());
+						buffer.append("<span class=\"error\">No edit template.</span>");
+
+					} else {
+
+						final DOMNode templateNode = getTemplate(app, slot, useEditTemplate ? editTemplate : template);
+						if (templateNode != null) {
+
+							renderNode(securityContext, ctx, innerCtx, new Object[0], app, templateNode, true);
+
+						} else {
+
+							if (value != null) {
+								buffer.append(value.toString());
+							}
+						}
+					}
+
+					if (wrapper != null) {
+						wrapper.formatEndTag(buffer);
+					}
+				}
+			}
+		}
+
+		// set previous value - if any
+		innerCtx.setConstant("field", previousFieldValue);
 	}
 
-	public void applyLabels(final ActionContext ctx, final DataSource dataSource, final String templateWrapper, final String slot) throws FrameworkException {
+	public void applyLabels(final ActionContext ctx, final DataSource dataSource, final DOMNode domNode, final String templateWrapper, final String slot) throws FrameworkException {
 
-		final SecurityContext securityContext  = ctx.getSecurityContext();
-		final RenderContext innerCtx           = new RenderContext((RenderContext)ctx);
-		final List<Map<String, Object>> fields = dataSource.getFields(securityContext);
-		final TagWithCSSInfo wrapper           = getWrapperElement(templateWrapper);
-		final AsyncBuffer buffer               = innerCtx.getBuffer();
+		final SecurityContext securityContext = ctx.getSecurityContext();
+		final RenderContext innerCtx          = new RenderContext((RenderContext)ctx);
+		final Map<String, DataField> fields   = dataSource.getFields(securityContext);
+		final TagWithCSSInfo wrapper          = getWrapperElement(templateWrapper);
+		final AsyncBuffer buffer              = innerCtx.getBuffer();
+		final String requestedFieldSet        = domNode.getFieldSetForComponent();
+		final List<String> fieldSet           = dataSource.getFieldSet(securityContext, requestedFieldSet);
+		final DataProvider dataProvider       = dataSource.getDataProvider();
 
-		for (final Map<String, Object> field : fields) {
+		for (final String field : fieldSet) {
 
-			// no slot => iterate over all fields or just one slot
-			if (slot == null || slot.equals(field.get("slot"))) {
+			final DataField dataField = fields.get(field);
+			if (dataField != null) {
 
-				final List<String> hideIn  = (List<String>) field.get("hideIn");
-				Object value               = field.get("label");
+				final Set<String> slots = dataField.getSlots();
 
-				if (hideIn != null && wrapper != null && wrapper.matches(hideIn)) {
-					continue;
-				}
+				// no slot => iterate over all fields or just one slot
+				if (slot == null || slots.contains(slot)) {
 
-				innerCtx.setConstant("value", value);
-				innerCtx.setConstant("field", field);
+					final String label = dataField.getLabel();
 
-				if (wrapper != null) {
-					wrapper.formatStartTag(buffer);
-				}
+					innerCtx.setConstant("value", label);
+					innerCtx.setConstant("field", dataField.evaluate(securityContext, dataProvider));
 
-				if (value != null) {
-					innerCtx.getBuffer().append(value.toString());
-				}
+					if (wrapper != null) {
+						wrapper.formatStartTag(buffer);
+					}
 
-				if (wrapper != null) {
-					wrapper.formatEndTag(buffer);
+					if (label != null) {
+						buffer.append(label);
+					}
+
+					if (wrapper != null) {
+						wrapper.formatEndTag(buffer);
+					}
 				}
 			}
 		}
@@ -150,28 +226,5 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 		}
 
 		return null;
-	}
-
-	private Set<String> getSlots(final Map<String, Object> field) {
-
-		final Set<String> result = new LinkedHashSet<>();
-
-		if (field.containsKey("slot") && field.containsKey("slots")) {
-			throw new RuntimeException("Field specification must not contain both `slot` and `slots` entry, please use only one of the two.");
-		}
-
-		final Object slot = field.get("slot");
-		if (slot != null && slot instanceof String s) {
-
-			result.add(s);
-		}
-
-		final Object slots = field.get("slots");
-		if (slots != null && slots instanceof List list) {
-
-			result.addAll(list);
-		}
-
-		return result;
 	}
 }

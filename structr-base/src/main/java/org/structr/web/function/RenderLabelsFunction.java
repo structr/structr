@@ -66,9 +66,11 @@ public class RenderLabelsFunction extends ApplyTemplatesFunction {
 			// Are we are in a DOMNode?
 			if (caller instanceof NodeInterface n && n.is(StructrTraits.DOM_NODE)) {
 
+				final DOMNode domNode = n.as(DOMNode.class);
+
 				if (sources[0] instanceof DataSource dataSource) {
 
-					applyLabels(ctx, dataSource, templateWrapper, slot);
+					applyLabels(ctx, dataSource, domNode, templateWrapper, slot);
 				}
 
 			} else {

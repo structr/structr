@@ -29,6 +29,7 @@ import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
+import org.structr.web.entity.dom.DOMNode;
 
 import java.util.List;
 
@@ -59,15 +60,17 @@ public class RenderFieldsFunction extends ApplyTemplatesFunction {
 				return null;
 			}
 
-			final String wrapperElement = getStringOrNull(sources, 1);
-			final String slot           = getStringOrNull(sources, 2);
+			final String tag  = getStringOrNull(sources, 1);
+			final String slot = getStringOrNull(sources, 2);
 
 			// Are we are in a DOMNode?
 			if (caller instanceof NodeInterface n && n.is(StructrTraits.DOM_NODE)) {
 
+				final DOMNode domNode = n.as(DOMNode.class);
+
 				if (sources[0] instanceof DataSource dataSource) {
 
-					applyTemplates(ctx, dataSource, wrapperElement, slot);
+					applyTemplates(ctx, dataSource, domNode, tag, slot, false);
 				}
 
 			} else {

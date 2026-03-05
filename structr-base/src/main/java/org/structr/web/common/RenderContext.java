@@ -47,8 +47,10 @@ import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 import org.structr.web.entity.LinkSource;
+import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.event.ActionMapping;
 import org.structr.websocket.command.ReplaceWidgetCommand;
 
 import java.io.ByteArrayInputStream;
@@ -56,11 +58,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Stack;
 
 /**
  * Holds information about the context in which a resource is rendered, like
@@ -471,20 +470,37 @@ public class RenderContext extends ActionContext {
 
 					case "currentDataSource":
 
+						final List<DOMNode> candidates = new LinkedList<>();
 						if (entity.is(StructrTraits.DOM_NODE)) {
 
 							hints.reportExistingKey(key);
-							final DOMNode domNode       = entity.as(DOMNode.class);
-							final DataSource dataSource = domNode.getClosestDataSource();
+							candidates.add(entity.as(DOMNode.class));
+						}
 
+						// ActionMapping can have a closest data source via DOMElements
+						if (entity.is(StructrTraits.ACTION_MAPPING)) {
+
+							hints.reportExistingKey(key);
+
+							final ActionMapping actionMapping = entity.as(ActionMapping.class);
+							for (final DOMElement element : actionMapping.getTriggerElements()) {
+								candidates.add(element.as(DOMNode.class));
+							}
+						}
+
+						for (final DOMNode domNode : candidates) {
+
+							final DataSource dataSource = domNode.getClosestDataSource();
 							if (dataSource != null) {
 
 								return dataSource;
 							}
-
-							LoggerFactory.getLogger(RenderContext.class).warn("{} with UUID {} has no data source configured in any of its parents.", ReplaceWidgetCommand.nameOrTag(domNode), entity.getUuid());
 						}
-						break;
+
+						LoggerFactory.getLogger(RenderContext.class).warn("{} with UUID {} has no data source configured in any of its parents.", entity.getType(), entity.getUuid());
+
+						// no data source found
+						return null;
 
 					case "page":
 						hints.reportExistingKey(key);

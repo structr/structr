@@ -178,7 +178,7 @@ public class Option extends GenericHtmlElementTraitDefinition {
 
 								if (currentValue instanceof GraphObjectMap map) {
 
-									if (map.size() == 1 && map.containsKey(valueKey)) {
+									if (map.containsKey(valueKey)) {
 
 										final java.lang.Object value = map.get(valueKey);
 

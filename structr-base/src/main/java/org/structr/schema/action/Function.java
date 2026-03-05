@@ -855,6 +855,23 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		return value;
 	}
 
+	public static Object intOrString(final Object value) {
+
+		if (value instanceof Number n) {
+			return n;
+		}
+
+		if (value instanceof String s) {
+
+			if (NumberUtils.isCreatable(s)) {
+
+				return NumberUtils.createNumber(s);
+			}
+		}
+
+		return value;
+	}
+
 	// ----- protected methods -----
 	protected List<Documentable> getContextHintsForTypes(final String lastToken) {
 
@@ -965,6 +982,8 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	protected class TagWithCSSInfo {
 
 		private final List<String> classes = new LinkedList<>();
+		private String channelName = null;
+		private String newValue    = null;
 		private final String source;
 		private String id = null;
 		private String tag = null;
@@ -992,6 +1011,16 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		}
 
 		public void formatStartTag(final AsyncBuffer buffer) {
+			formatStartTag(buffer, null, null);
+		}
+
+		public void formatStartTag(final AsyncBuffer buffer, final Map<String, String> additionalValues, final Set<String> additionalClasses) {
+
+			final List<String> mergedClasses = new LinkedList<>(classes);
+
+			if (additionalClasses != null) {
+				mergedClasses.addAll(additionalClasses);
+			}
 
 			if (StringUtils.isNotBlank(tag)) {
 
@@ -1002,11 +1031,19 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 					buffer.append(" id=\"" + id + "\"");
 				}
 
-				if (!classes.isEmpty()) {
+				if (!mergedClasses.isEmpty()) {
 
 					buffer.append(" class=\"");
-					buffer.append(StringUtils.join(classes, " "));
+					buffer.append(StringUtils.join(mergedClasses, " "));
 					buffer.append("\"");
+				}
+
+				if (additionalValues != null) {
+
+					for (final String key : additionalValues.keySet()) {
+
+						buffer.append(" " + key + "=\"" + additionalValues.get(key) + "\"");
+					}
 				}
 
 				buffer.append(">");

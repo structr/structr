@@ -20,6 +20,7 @@ package org.structr.core.parser;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
@@ -32,6 +33,7 @@ import org.structr.schema.action.Function;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -78,10 +80,14 @@ public class ArrayExpression extends Expression {
 
 			case 1:
 				final Object value  = expressions.get(0).evaluate(ctx, entity, hints);
-				final Object parsed = Function.parseInt(value);
+				final Object parsed = Function.intOrString(value);
 				if (parsed instanceof Number) {
 
 					return ((Number)parsed).intValue();
+
+				} else if (parsed instanceof String) {
+
+					return parsed;
 				}
 		}
 
@@ -95,29 +101,45 @@ public class ArrayExpression extends Expression {
 			return null;
 		}
 
-		final Integer index = (Integer)evaluate(ctx, entity, hints);
+		final Object index = evaluate(ctx, entity, hints);
 		if (index != null) {
 
-			if (value instanceof Collection || value.getClass().isArray()) {
+			if (index instanceof Number n) {
 
-				try {
+				if (value instanceof Collection || value.getClass().isArray()) {
 
-					// silently ignore array index errors
-					return CollectionUtils.get(value, index);
+					try {
 
-				} catch (Throwable t) {}
+						// silently ignore array index errors
+						return CollectionUtils.get(value, n.intValue());
 
-			} else if (value instanceof Iterable) {
+					} catch (Throwable t) {
+					}
 
-				try {
+				} else if (value instanceof Iterable) {
 
-					return Iterables.nth((Iterable)value, index);
+					try {
 
-				} catch (Throwable t) {}
+						return Iterables.nth((Iterable) value, n.intValue());
 
-			} else {
+					} catch (Throwable t) {
+					}
 
-				throw new FrameworkException(422, "Invalid expression: expected collection, found " + value.getClass().getSimpleName() + ".");
+				} else {
+
+					throw new FrameworkException(422, "Invalid expression: expected collection, found " + value.getClass().getSimpleName() + ".");
+				}
+
+			} else if (index instanceof String s) {
+
+				if (value instanceof Map map) {
+
+					return map.get(s);
+
+				} else {
+
+					throw new FrameworkException(422, "Invalid expression: expected map, found " + value.getClass().getSimpleName() + ".");
+				}
 			}
 
 		} else {

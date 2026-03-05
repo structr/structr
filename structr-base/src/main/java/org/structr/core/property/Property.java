@@ -34,6 +34,7 @@ import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.graph.search.PropertySearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.traits.Trait;
+import org.structr.web.datasource.FieldDefinition;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -42,7 +43,7 @@ import java.util.regex.Pattern;
 /**
  * Abstract base class for all property types.
  */
-public abstract class Property<T> implements PropertyKey<T> {
+public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 
 	private static final Logger logger               = LoggerFactory.getLogger(Property.class.getName());
 	private static final Pattern RANGE_QUERY_PATTERN = Pattern.compile("\\[(.*) TO (.*)\\]");
@@ -691,10 +692,31 @@ public abstract class Property<T> implements PropertyKey<T> {
 		return description;
 	}
 
+	@Override
+	public FieldDefinition getFieldDefinition() {
+		return this;
+	}
+
 	// ----- interface Comparable -----
 	@Override
 	public int compareTo(final PropertyKey other) {
 		return dbName().compareTo(other.dbName());
+	}
+
+	// ----- interface FieldDefinition -----
+	@Override
+	public boolean hasOptions() {
+		return false;
+	}
+
+	@Override
+	public boolean isRequired() {
+		return isNotNull();
+	}
+
+	@Override
+	public List<Map<String, String>> getOptions(SecurityContext securityContext, String filter, String label) throws FrameworkException {
+		return null;
 	}
 
 	// ----- protected methods -----

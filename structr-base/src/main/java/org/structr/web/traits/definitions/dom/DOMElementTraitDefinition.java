@@ -53,8 +53,6 @@ import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.operations.propertycontainer.GetPropertyKeys;
-import org.structr.docs.Documentation;
-import org.structr.docs.ontology.ConceptType;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.servlet.AbstractDataServlet;
 import org.structr.schema.action.ActionContext;
@@ -602,8 +600,17 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 										eventsString = StringUtils.join(mapping.keySet(), ",");
 									}
 
+									final Set<String> dynamicProperties = Set.of(
+										ActionMappingTraitDefinition.EVENT_PROPERTY,
+										ActionMappingTraitDefinition.ACTION_PROPERTY,
+										ActionMappingTraitDefinition.METHOD_PROPERTY,
+										ActionMappingTraitDefinition.FLOW_PROPERTY,
+										ActionMappingTraitDefinition.DATA_TYPE_PROPERTY,
+										ActionMappingTraitDefinition.ID_EXPRESSION_PROPERTY
+									);
+
 									// append all stored action mapping keys as data-structr-<key> attributes
-									for (final String key : Set.of(ActionMappingTraitDefinition.EVENT_PROPERTY, ActionMappingTraitDefinition.ACTION_PROPERTY, ActionMappingTraitDefinition.METHOD_PROPERTY, ActionMappingTraitDefinition.FLOW_PROPERTY, ActionMappingTraitDefinition.DATA_TYPE_PROPERTY, ActionMappingTraitDefinition.ID_EXPRESSION_PROPERTY)) {
+									for (final String key : dynamicProperties) {
 
 										final String value = actionNode.getPropertyWithVariableReplacement(renderContext, eamTraits.key(key));
 										if (StringUtils.isNotBlank(value)) {
@@ -1223,22 +1230,22 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 	private GraphObject handleCreateAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = renderContext.getSecurityContext();
-		final String dataTarget               = getDataTargetFromParameters(parameters, "create", true);
+		final String dataType                 = getDataTypeFromParameters(parameters, "create", true);
 
 		// resolve target type
-		Traits traits = Traits.of(dataTarget);
+		Traits traits = Traits.of(dataType);
 		if (traits == null) {
 
-			throw new FrameworkException(422, "Cannot execute create action with target type " + dataTarget + ", type does not exist.");
+			throw new FrameworkException(422, "Cannot execute create action with target type " + dataType + ", type does not exist.");
 		}
 
 		removeInternalDataBindingKeys(parameters);
 
 		// convert input
-		final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, dataTarget, parameters);
+		final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, dataType, parameters);
 
 		// create entity
-		return StructrApp.getInstance(securityContext).create(dataTarget, properties);
+		return StructrApp.getInstance(securityContext).create(dataType, properties);
 	}
 
 	private void handleUpdateAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
@@ -1705,6 +1712,18 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRDIALOGTEXT);
 	}
 
+	private String getDataTypeFromParameters(final Map<String, Object> parameters, final String action, final boolean throwExceptionIfEmpty) throws FrameworkException {
+
+		final String dataType  = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRDATATYPE);
+
+		if (StringUtils.isBlank(dataType) && throwExceptionIfEmpty) {
+
+			throw new FrameworkException(422, "Cannot execute " + action + " action without target UUID (data-structr-target attribute).");
+		}
+
+		return dataType;
+	}
+
 	private String getDataTargetFromParameters(final Map<String, Object> parameters, final String action, final boolean throwExceptionIfEmpty) throws FrameworkException {
 
 		// Support old and new parameters
@@ -1899,7 +1918,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 			final String dataType = triggeredAction.getDataType();
 			if (StringUtils.isNotBlank(dataType)) {
-				out.append(" data-structr-target=\"").append(dataType).append("\"");
+				out.append(" data-structr-data-type=\"").append(dataType).append("\"");
 			}
 		}
 

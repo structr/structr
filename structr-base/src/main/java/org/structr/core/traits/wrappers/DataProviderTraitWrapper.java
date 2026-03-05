@@ -25,6 +25,7 @@ import org.structr.core.entity.DataProvider;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.datasource.DataProviderOperations;
+import org.structr.web.datasource.FieldDefinition;
 
 import java.util.Map;
 
@@ -40,7 +41,12 @@ public class DataProviderTraitWrapper extends AbstractNodeTraitWrapper implement
 	}
 
 	@Override
-	public final Map<String, Object> getFields(SecurityContext securityContext) throws FrameworkException {
+	public final Map<String, FieldDefinition> getFields(SecurityContext securityContext) throws FrameworkException {
 		return traits.getMethod(DataProviderOperations.class).getFields(securityContext, this);
+	}
+
+	@Override
+	public String getDataType(final SecurityContext securityContext) throws FrameworkException {
+		return traits.getMethod(DataProviderOperations.class).getDataType(securityContext, this);
 	}
 }

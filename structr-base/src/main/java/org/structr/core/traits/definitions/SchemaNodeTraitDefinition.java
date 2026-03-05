@@ -27,7 +27,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.DataProvider;
-import org.structr.core.entity.DataSource;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.ModificationQueue;
@@ -47,7 +46,7 @@ import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.operations.nodeinterface.OnNodeDeletion;
 import org.structr.core.traits.wrappers.SchemaNodeTraitWrapper;
 import org.structr.schema.ReloadSchema;
-import org.structr.schema.SchemaHelper;
+import org.structr.web.datasource.FieldDefinition;
 
 import java.util.*;
 
@@ -158,34 +157,33 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public Iterable<GraphObject> getValues(final SecurityContext securityContext, final DataProvider provider) throws FrameworkException {
 
+					final PropertyKey sortKey   = Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 					final SchemaNode schemaNode = provider.as(SchemaNode.class);
 					final String name           = schemaNode.getName();
 
-					return (Iterable) StructrApp.getInstance(securityContext).nodeQuery(name).getResultStream();
+					return (Iterable) StructrApp.getInstance(securityContext).nodeQuery(name).sort(sortKey).getResultStream();
 				}
 
 				@Override
-				public Map<String, Object> getFields(final SecurityContext securityContext, final DataProvider provider) throws FrameworkException {
+				public Map<String, FieldDefinition> getFields(final SecurityContext securityContext, final DataProvider provider) throws FrameworkException {
 
-					final SchemaNode schemaNode      = provider.as(SchemaNode.class);
-					final String name                = schemaNode.getName();
-					final Traits traits              = Traits.of(name);
-					final Map<String, Object> input  = SchemaHelper.getPropertiesForView(securityContext, traits, PropertyView.All);
-					final Map<String, Object> output = new LinkedHashMap<>();
+					final Map<String, FieldDefinition> output = new LinkedHashMap<>();
+					final SchemaNode schemaNode               = provider.as(SchemaNode.class);
+					final String name                         = schemaNode.getName();
+					final Traits traits                       = Traits.of(name);
 
 					// transform input
-					for (final String key : input.keySet()) {
+					for (final PropertyKey key : traits.getPropertyKeysForView(PropertyView.All)) {
 
-						final Map<String, Object> data    = (Map) input.get(key);
-						final Map<String, Object> newData = new LinkedHashMap<>();
-
-						newData.put("label",     data.get("jsonName"));
-						newData.put("template", "Default " + data.get("type"));
-
-						output.put(key, newData);
+						output.put(key.jsonName(), key.getFieldDefinition());
 					}
 
 					return output;
+				}
+
+				@Override
+				public String getDataType(final SecurityContext securityContext, final DataProvider provider) throws FrameworkException {
+					return provider.as(SchemaNode.class).getTypeName();
 				}
 			}
 		);

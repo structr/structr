@@ -28,14 +28,17 @@ import org.structr.core.entity.DataSource;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.DataSourceTraitDefinition;
+import org.structr.web.datasource.DataField;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 public class DataSourceTraitWrapper extends AbstractNodeTraitWrapper implements DataSource {
 
 	private final Gson gson = new GsonBuilder().create();
-	private List<Map<String, Object>> fields = null;
+	private Map<String, DataField> fields = null;
+	private Map<String, List<String>> fieldSets = null;
 
 	public DataSourceTraitWrapper(final Traits traits, final NodeInterface node) {
 		super(traits, node);
@@ -50,18 +53,69 @@ public class DataSourceTraitWrapper extends AbstractNodeTraitWrapper implements 
 	}
 
 	@Override
-	public List<Map<String, Object>> getFields(final SecurityContext securityContext) throws FrameworkException {
+	public Map<String, DataField> getFields(final SecurityContext securityContext) throws FrameworkException {
 
 		if (fields == null) {
 
 			final String mappingSource = wrappedObject.getProperty(traits.key(DataSourceTraitDefinition.MAPPING_PROPERTY));
 			if (mappingSource != null) {
 
-				fields = gson.fromJson(mappingSource, List.class);
+				final Map<String, Object> data = gson.fromJson(mappingSource, Map.class);
+				fields = new LinkedHashMap<>();
+
+				for (final Map.Entry<String, Object> entry : data.entrySet()) {
+
+					final String key = entry.getKey();
+
+					fields.put(key, DataField.fromMap(key, (Map) entry.getValue()));
+				}
 			}
 		}
 
 		return fields;
+	}
+
+	@Override
+	public Map<String, List<String>> getFieldSets(final SecurityContext securityContext) throws FrameworkException {
+
+		if (fieldSets == null) {
+
+			final String source = wrappedObject.getProperty(traits.key(DataSourceTraitDefinition.FIELD_SETS_PROPERTY));
+			if (source != null) {
+
+				fieldSets = gson.fromJson(source, Map.class);
+			}
+		}
+
+		return fieldSets;
+	}
+
+	@Override
+	public List<String> getFieldSet(final SecurityContext securityContext, final String name) throws FrameworkException {
+
+		final Map<String, List<String>> fieldSets = getFieldSets(securityContext);
+		if (fieldSets != null) {
+
+			final List<String> fieldSet = fieldSets.get(name);
+			if (fieldSet != null) {
+
+				return fieldSet;
+			}
+		}
+
+		return List.of();
+	}
+
+	@Override
+	public String getDataType(final SecurityContext securityContext) throws FrameworkException {
+
+		final DataProvider dataProvider = getDataProvider();
+		if (dataProvider != null) {
+
+			return dataProvider.getDataType(securityContext);
+		}
+
+		return null;
 	}
 
 	@Override

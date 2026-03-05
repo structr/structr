@@ -28,6 +28,7 @@ import org.structr.core.app.QueryGroup;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.traits.Trait;
+import org.structr.web.datasource.FieldDefinition;
 
 import java.util.Comparator;
 import java.util.Map;
@@ -407,6 +408,8 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	PropertyKey<T> transformators(final String... transformators);
 
 	Comparator<GraphObject> sorted(final boolean descending);
+
+	FieldDefinition getFieldDefinition();
 
 	// ----- documentation -----
 	PropertyKey<T> description(final String description);

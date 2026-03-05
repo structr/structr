@@ -22,6 +22,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.api.AbstractMethod;
+import org.structr.core.entity.DataSource;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
@@ -125,8 +126,21 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 
 					} else {
 
+						final DataSource dataSource         = node.getDataSource();
+						final boolean renderTemplateWrapper = dataSource != null;
+
+						// new code for components
+						if (renderTemplateWrapper) {
+							renderContext.getBuffer().append("<structr-component data-structr-id=\"" + node.getUuid() + "\" data-source=\"" + dataSource.getDataKey() + "\">\n");
+						}
+
 						// "super" call using static method..
 						getSuper().renderContent(node, renderContext, depth);
+
+						// new code for components
+						if (renderTemplateWrapper) {
+							renderContext.getBuffer().append("</structr-component>\n");
+						}
 					}
 				}
 			}

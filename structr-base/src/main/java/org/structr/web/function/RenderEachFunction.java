@@ -18,12 +18,10 @@
  */
 package org.structr.web.function;
 
-import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.DataSource;
-import org.structr.core.function.Functions;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Example;
@@ -36,8 +34,7 @@ import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class RenderEachFunction extends UiCommunityFunction {
 
@@ -70,26 +67,60 @@ public class RenderEachFunction extends UiCommunityFunction {
 		final TagWithCSSInfo outerWrapper     = getWrapperElement(getOrNull(wrapperElements, 0));
 		final String innerWrapper             = getOrNull(wrapperElements, 1);
 
-
 		if (caller instanceof NodeInterface n && n.is(StructrTraits.DOM_NODE)) {
 
+			final DOMNode domNode    = n.as(DOMNode.class);
 			final AsyncBuffer buffer = renderContext.getBuffer();
 			final String dataKey     = dataSource.getDataKey();
+			final String channel     = dataSource.getDataKey();
+			final String role        = domNode.getRoleForComponent();
+			String selectedValue     = null;
+
+			// save previous value
+			final GraphObject previousValue = renderContext.getDataNode(dataKey);
+
+			// selected value from channel for highlighting
+			if (channel != null) {
+
+				selectedValue = renderContext.getRequestParameter(channel);
+			}
 
 			for (final GraphObject item : dataSource.getValues(securityContext)) {
 
 				renderContext.putDataObject(dataKey, item);
 
 				if (outerWrapper != null) {
-					outerWrapper.formatStartTag(buffer);
+
+					final Map<String, String> data  = new LinkedHashMap<>();
+					final Set<String> additionalCss = new LinkedHashSet<>();
+					final String uuid               = item.getUuid();
+
+					if ("controller".equals(role)) {
+
+						data.put("data-structr-success-target", "[data-source='" + channel + "']");
+						data.put("data-structr-events", "click");
+						data.put("data-structr-target", channel);
+						data.put("data-" + channel, uuid);
+
+						additionalCss.add("controller");
+
+						if (uuid.equals(selectedValue)) {
+							additionalCss.add("selected");
+						}
+					}
+
+					outerWrapper.formatStartTag(buffer, data, additionalCss);
 				}
 
-				func.applyTemplates(renderContext, dataSource, innerWrapper, slot);
+				func.applyTemplates(renderContext, dataSource, domNode, innerWrapper, slot, true);
 
 				if (outerWrapper != null) {
 					outerWrapper.formatEndTag(buffer);
 				}
 			}
+
+			// restore previous value
+			renderContext.putDataObject(dataKey, previousValue);
 
 		} else {
 

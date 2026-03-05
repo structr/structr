@@ -30,8 +30,8 @@ $.theme = {
     },
     "nav": {
         "background": "transparent",
-        "hover": "gray-700",
-        "active": "gray-800",
+        "hover": "gray-800",
+        "active": "gray-700",
         "text": "white",
     },
     "surface": {

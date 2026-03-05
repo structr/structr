@@ -26,6 +26,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.QueryGroup;
+import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.OneStartpoint;
 import org.structr.core.entity.Relation;
@@ -40,8 +41,11 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.schema.openapi.common.OpenAPIAnyOf;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
+import org.structr.web.datasource.FieldDefinition;
 
 import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -49,7 +53,7 @@ import java.util.Map;
  *
  *
  */
-public class StartNode extends Property<NodeInterface> implements RelationProperty {
+public class StartNode extends Property<NodeInterface> implements RelationProperty, FieldDefinition {
 
 	private static final Logger logger = LoggerFactory.getLogger(StartNode.class.getName());
 
@@ -301,5 +305,36 @@ public class StartNode extends Property<NodeInterface> implements RelationProper
 				Map.of("id", Map.of("type", "string", "example", NodeServiceCommand.getNextUuid()))
 			)
 		);
+	}
+
+	@Override
+	public FieldDefinition getFieldDefinition() {
+		return this;
+	}
+
+	// ----- interface FieldDefinition -----
+	@Override
+	public boolean hasOptions() {
+		return true;
+	}
+
+	@Override
+	public List<Map<String, String>> getOptions(final SecurityContext securityContext, final String filter, final String label) throws FrameworkException {
+
+		final List<Map<String, String>> options = new LinkedList<>();
+
+		// empty option
+		options.add(Map.of("name", "", "value", ""));
+
+		for (final NodeInterface node : StructrApp.getInstance(securityContext).nodeQuery(getSourceType()).getResultStream()) {
+
+			final Traits traits           = node.getTraits();
+			final PropertyKey<String> key = traits.key(label);
+
+			options.add(Map.of("name", node.getProperty(key), "value", node.getUuid()));
+
+		}
+
+		return options;
 	}
 }

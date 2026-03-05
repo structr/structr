@@ -30,8 +30,8 @@ $.theme = {
     },
     "nav": {
         "background": "transparent",
-        "hover": "amber-200",
-        "active": "amber-100",
+        "hover": "amber-100",
+        "active": "amber-200",
         "text": "black"
     },
     "surface": {
@@ -47,7 +47,7 @@ $.theme = {
         "muted": "slate-300"
     },
     "input": {
-        "background": "gray-50",
+        "background": "slate-50/25",
         "border": "gray-200",
         "focus": "amber-400",
         "text": "slate-600"
@@ -64,8 +64,8 @@ $.theme = {
             "text": "white"
         },
         "warning": {
-            "background": "emerald-500",
-            "focus": "emerald-600",
+            "background": "orange-500",
+            "focus": "orange-600",
             "text": "white"
         },
         "danger": {

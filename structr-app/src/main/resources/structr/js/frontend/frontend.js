@@ -22,7 +22,7 @@ export class Frontend {
 
 	constructor() {
 
-		// Javascript event handlers are called with 'this' bound to the current target,
+		// JavaScript event handlers are called with 'this' bound to the current target,
 		// but we need 'this' to be the current class instances, so we create bound
 		// functions that have 'this' bound to the class instance. This is necessary
 		// because we must remove and re-add event handlers after a partial reload,
@@ -46,31 +46,41 @@ export class Frontend {
 
 	resolveData(event, target) {
 
-		let data     = target.dataset;
-		let resolved = {};
+        let resolved = {};
+        {
 
-		// active input fields with a name
-		if (target.name && target.name.length > 0) {
+            let data = target.dataset;
 
-			resolved[target.name] = this.resolveElementValue(target);
-		}
+            // active input fields with a name
+            if (target.name && target.name.length > 0) {
 
-		for (const key in data) {
+                resolved[target.name] = this.resolveElementValue(target);
+            }
 
-			let value = data[key];
-			if (!value) {
-				continue;
-			}
+            for (const key in data) {
 
-//            if (key.startsWith('structr') && key !== 'structrTarget' && key !== 'structrIdExpression' && key !== 'structrMethod') {
-//				continue;
-//            }
+                let value = data[key];
+                if (!value) {
+                    continue;
+                }
 
-			resolved[key] = this.resolveValue(key, value, data, event, target);
+                resolved[key] = this.resolveValue(key, value, data, event, target);
+            }
+        }
 
-		}
+        // form-based approach if the event target is a form
+        if (target.tagName === 'FORM' && event.type === 'submit') {
 
-		return resolved;
+            let formData = new FormData(target);
+
+            for (let key of new Set(formData.keys())) {
+                let element = target.elements[key];
+                resolved[key] = this.resolveElementValue(element);
+            }
+
+        }
+
+        return resolved;
 	}
 
 	resolveValue(key, value, data, event, target) {
@@ -259,8 +269,11 @@ export class Frontend {
 				window.location.href = headers.twofactorloginpage + '?' + params.toString();
 				break;
 
+            case 401:
+                this.handleLogout();
+                break;
+
 			case 400:
-			case 401:
 			case 403:
 			case 404:
 			case 405:
@@ -463,8 +476,6 @@ export class Frontend {
 
 	handleNetworkError(element, error, status) {
 
-		console.log(error);
-
 		console.error({element, error, status});
 
 		if (element) {
@@ -517,8 +528,14 @@ export class Frontend {
 
 				this.replacePartial(container, id, element, dataset, parameters, dontRebind);
 			}
-
 		}
+
+        // update url state
+        const url = new URL(window.location.href);
+        for (let key in parameters) {
+            url.searchParams.set(key, parameters[key]);
+        }
+        history.pushState({}, '', url);
 	}
 
 	replaceContentInContainer = (container, html) => {
@@ -712,14 +729,11 @@ export class Frontend {
 		let preventDefault  = true;
 		let stopPropagation = true;
 
-		let target     = event.currentTarget;
-		let data       = target.dataset;
-		let id         = data.structrId;
-		let options    = this.parseOptions(target);
+		let target = event.currentTarget;
+		let data = target.dataset;
+		let id = data.structrId;
+		let options = this.parseOptions(target);
 		let delay      = 0;
-
-		// check browser validation
-		if (target.reportValidity && !target.reportValidity()) return;
 
 		// handle options
 		if (options.delay) { delay = options.delay; }
@@ -727,8 +741,11 @@ export class Frontend {
 		if (options.stopPropagation !== undefined) { stopPropagation = options.stopPropagation; }
 
 		// allow element to override preventDefault and stopPropagation
-		if (preventDefault) { event.preventDefault(); }
-		if (stopPropagation) { event.stopPropagation(); }
+        if (preventDefault) { event.preventDefault(); }
+        if (stopPropagation) { event.stopPropagation(); }
+
+        // check browser validation
+        if (target.reportValidity && !target.reportValidity()) return;
 
 		if (delay === 0) {
 
@@ -764,7 +781,6 @@ export class Frontend {
 			this.handlePagination(event, target, options);
 
 		} else if (id) {
-
 
 			// Dialog
 			if (data.structrDialogType === 'okcancel') {
@@ -940,6 +956,10 @@ export class Frontend {
 		const id = el.dataset.structrId;
 		this.reloadPartial('[data-structr-id="' + id + '"]', null, el, true);
 	}
+
+    handleLogout() {
+        window.alert('You have been logged out. Please log back in and reload the page.');
+    }
 
 	bindEvents() {
 

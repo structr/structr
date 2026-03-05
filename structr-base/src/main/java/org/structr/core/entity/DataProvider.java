@@ -22,11 +22,13 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
+import org.structr.web.datasource.FieldDefinition;
 
 import java.util.Map;
 
 public interface DataProvider extends NodeInterface {
 
 	Iterable<GraphObject> getValues(final SecurityContext securityContext) throws FrameworkException;
-	Map<String, Object> getFields(final SecurityContext securityContext) throws FrameworkException;
+	Map<String, FieldDefinition> getFields(final SecurityContext securityContext) throws FrameworkException;
+	String getDataType(final SecurityContext securityContext) throws FrameworkException;
 }

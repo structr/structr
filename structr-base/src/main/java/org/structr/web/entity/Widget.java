@@ -133,8 +133,6 @@ public interface Widget extends NodeInterface {
 							newChild.setComponentType((String) config.get("componentType"));
 							newChild.setDimensions(toInt(config.get("dimensions")));
 						}
-
-						newChild.setIsComponentRoot(true);
 					}
 				}
 

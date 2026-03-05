@@ -1047,6 +1047,31 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	}
 
 	@Override
+	public String getDisplayMode() {
+		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.DISPLAY_MODE_PROPERTY));
+	}
+
+	@Override
+	public String getFieldSet() {
+		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.FIELD_SET_PROPERTY));
+	}
+
+	@Override
+	public String getSaveMode() {
+		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.SAVE_MODE_PROPERTY));
+	}
+
+	@Override
+	public String getRole() {
+		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.ROLE_PROPERTY));
+	}
+
+	@Override
+	public Boolean showLabels() {
+		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.SHOW_LABELS_PROPERTY));
+	}
+
+	@Override
 	public void setComponentType(final String componentType) throws FrameworkException {
 		wrappedObject.setProperty(traits.key(DOMNodeTraitDefinition.COMPONENT_TYPE_PROPERTY), componentType);
 	}
@@ -2092,8 +2117,16 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		wrappedObject.setProperty(traits.key(DOMElementTraitDefinition._HTML_ID_PROPERTY), id);
 	}
 
+
+	/**
+	 * Returns the component type for this component, i.e. traverses
+	 * the parent nodes of an element up to the component root and
+	 * returns the first non-null componentType it finds.
+	 *
+	 * @return the item type or null
+	 */
 	@Override
-	public String getRecursiveComponentType() {
+	public String getComponentTypeForComponent() {
 
 		DOMNode node = this;
 
@@ -2108,23 +2141,157 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 			node = node.getParent();
 		}
 
+		if (node != null) {
+			return node.getComponentType();
+		}
+
 		return null;
 	}
 
+	/**
+	 * Returns the item type for this component, i.e. traverses
+	 * the parent nodes of an element up to the component root
+	 * and returns the first non-null itemType it finds.
+	 *
+	 * @return the item type or null
+	 */
 	@Override
-	public String getRecursiveItemType() {
+	public String getItemTypeForComponent() {
 
 		DOMNode node = this;
 
 		while (node != null && !node.isComponentRoot()) {
 
-			final String componentType = node.getComponentType();
-			if (componentType != null) {
+			final String itemType = node.getItemType();
+			if (itemType != null) {
 
-				return componentType;
+				return itemType;
 			}
 
 			node = node.getParent();
+		}
+
+		if (node != null) {
+			return node.getItemType();
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the display mode for this component, i.e. traverses
+	 * the parent nodes of an element up to the component root
+	 * and returns the first non-null displayMode it finds.
+	 *
+	 * @return the item type or null
+	 */
+	public String getDisplayModeForComponent(final SecurityContext securityContext) {
+
+		// can be switched via request parameter
+		// values are input, output and auto
+
+		DOMNode node = this;
+
+		while (node != null && !node.isComponentRoot()) {
+
+			final String displayMode = node.getDisplayMode();
+			if (displayMode != null) {
+
+				return displayMode;
+			}
+
+			node = node.getParent();
+		}
+
+		if (node != null) {
+			return node.getDisplayMode();
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the show labels flag for this component, i.e. traverses
+	 * the parent nodes of an element up to the component root
+	 * and returns the first non-null showLabels flag it finds.
+	 *
+	 * @return the item type or null
+	 */
+	public Boolean getShowLabelsFlagForComponent() {
+
+		DOMNode node = this;
+
+		while (node != null && !node.isComponentRoot()) {
+
+			final Boolean showLabels = node.showLabels();
+			if (showLabels != null && showLabels.booleanValue()) {
+
+				return true;
+			}
+
+			node = node.getParent();
+		}
+
+		if (node != null) {
+			return node.showLabels();
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the fieldSet for this component, i.e. traverses
+	 * the parent nodes of an element up to the component root
+	 * and returns the first non-null fieldSet it finds.
+	 *
+	 * @return the item type or null
+	 */
+	public String getFieldSetForComponent() {
+
+		DOMNode node = this;
+
+		while (node != null && !node.isComponentRoot()) {
+
+			final String fieldSet = node.getFieldSet();
+			if (fieldSet != null) {
+
+				return fieldSet;
+			}
+
+			node = node.getParent();
+		}
+
+		if (node != null) {
+			return node.getFieldSet();
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the role for this component, i.e. traverses
+	 * the parent nodes of an element up to the component root
+	 * and returns the first non-null role it finds.
+	 *
+	 * @return the item type or null
+	 */
+	public String getRoleForComponent() {
+
+		DOMNode node = this;
+
+		while (node != null && !node.isComponentRoot()) {
+
+			final String fieldSet = node.getRole();
+			if (fieldSet != null) {
+
+				return fieldSet;
+			}
+
+			node = node.getParent();
+		}
+
+		if (node != null) {
+			return node.getRole();
 		}
 
 		return null;
