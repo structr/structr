@@ -733,6 +733,7 @@ let _Entities = {
 		let fetchKey = key;
 		if (key === 'syncedNodesIds') { fetchKey = 'syncedNodes'; }
 		if (key === 'childrenIds') { fetchKey = 'children'; }
+		if (key === 'linkingElementsIds') { fetchKey = 'linkingElements'; }
 
 		fetch(`${Structr.rootUrl + entity.type}/${entity.id}/${fetchKey}?${Structr.getRequestParameterName('pageSize')}=${pageSize}&${Structr.getRequestParameterName('page')}=${page}`, {
 			headers: _Helpers.getHeadersForCustomView(['id', 'name'])
