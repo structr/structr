@@ -783,7 +783,7 @@ public class UiAuthenticator implements Authenticator {
 							}
 
 							response.resetBuffer();
-							response.setHeader(StructrTraits.LOCATION, Settings.ApplicationRootPath.getValue() + uriBuilder.build().toString());
+							response.setHeader(StructrTraits.LOCATION, uriBuilder.build().toString());
 							response.setStatus(HttpServletResponse.SC_FOUND);
 							response.flushBuffer();
 
