@@ -4958,6 +4958,12 @@ ul.combined-input-select-field li:not(.nohover):hover {
 	}
 }
 
+.\@xl\:col-span-2 {
+	@container (width >= 36rem) {
+		grid-column: span 1 / span 1;
+	}
+}
+
 /**
  * END Tailwind classes
  */

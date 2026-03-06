@@ -2987,7 +2987,7 @@ let _Entities = {
 
 		templates: {
 			nameTile: config => `
-				<div class="${(config.doubleWide === true ? 'col-span-2' : '')}">
+				<div class="${(config.doubleWide === true ? _Entities.generalTab.templates.colspan2Classes(config) : '')}">
 					<label class="block mb-2" for="name-input">Name</label>
 					<input type="text" id="name-input" autocomplete="off" name="name">
 				</div>
@@ -3005,7 +3005,7 @@ let _Entities = {
 				</div>
 			`,
 			htmlStyleTile: config => `
-				<div class="col-span-2">
+				<div class="${_Entities.generalTab.templates.colspan2Classes(config)}">
 					<label class="block mb-2" for="style-input">Style</label>
 					<input type="text" id="style-input" name="_html_style">
 				</div>
@@ -3033,7 +3033,7 @@ let _Entities = {
 
 						${_Entities.generalTab.templates.htmlIdTile(config)}
 
-						<div class="col-span-2">
+						<div class="${_Entities.generalTab.templates.colspan2Classes(config)}">
 							<label class="block mb-2" for="href-input">HREF attribute</label>
 							<input type="text" id="href-input" name="_html_href">
 						</div>
@@ -3099,15 +3099,15 @@ let _Entities = {
 				</div>
 			`,
 			textContentPartial: config => `
-				<div id="child-content-editor" class="col-span-2 hidden">
+				<div id="child-content-editor" class="${_Entities.generalTab.templates.colspan2Classes(config)} hidden">
 					<label class="block mb-2" for="content-input">Text Content</label>
 					<textarea id="content-input" name="content" data-defer-change-handler="true"></textarea>
 				</div>
 			`,
 			sharedComponentConfigurationPartial: config => `
-				<div id="shared-component-configuration-editor" class="col-span-2 hidden">
+				<div id="shared-component-configuration-editor" class="${_Entities.generalTab.templates.colspan2Classes(config)} hidden">
 					<label class="block mb-2" for="shared-component-configuration-input" ${_Helpers.getDataCommentAttributeForPropertyFromSchemaInfoHint('sharedComponentConfiguration', config.typeInfo)}>Shared Component Configuration</label>
-					${Structr.templates.autoScriptTextArea({ wrapperId: 'shared-component-configuration-editor', wrapperClassString: 'col-span-2', textareaId: 'shared-component-configuration-input', textareaAttributeString: 'name="sharedComponentConfiguration"' })}
+					${Structr.templates.autoScriptTextArea({ wrapperId: 'shared-component-configuration-editor', wrapperClassString: _Entities.generalTab.templates.colspan2Classes(config), textareaId: 'shared-component-configuration-input', textareaAttributeString: 'name="sharedComponentConfiguration"' })}
 				</div>
 			`,
 			customPropertiesPartial: config => `
@@ -3562,9 +3562,10 @@ let _Entities = {
 					<a class="block example-condition" data-value="${config.value}">${config.text ?? config.value}</a>
 				</div>
 			`,
+			spacerItemForGrid: config => `<div class="hidden @xl:block"><!-- occupy space in grid UI --></div>`,
 			containerClasses: config => `@container quick-access-options`,
 			gridClasses: config => `grid grid-cols-1 @xl:grid-cols-2 gap-8`,
-			spacerItemForGrid: config => `<div class="hidden @xl:block"><!-- occupy space in grid UI --></div>`
+			colspan2Classes: config => `col-span-1 @xl:col-span-2`
 		}
 	}
 };
