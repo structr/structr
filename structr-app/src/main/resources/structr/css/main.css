@@ -4633,6 +4633,9 @@ ul.combined-input-select-field li:not(.nohover):hover {
 .col-span-6 {
 	grid-column: span 6 / span 6;
 }
+.grid-cols-1 {
+	grid-template-columns: repeat(1, minmax(0, 1fr));
+}
 .grid-cols-2 {
 	grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -4938,6 +4941,23 @@ ul.combined-input-select-field li:not(.nohover):hover {
 .direction-ltr {
 	direction: ltr;
 }
+
+.\@container {
+	container-type: inline-size;
+}
+
+.\@xl\:grid-cols-2 {
+	@container (width >= 36rem) {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+.\@xl\:block {
+	@container (width >= 36rem) {
+		display: block;
+	}
+}
+
 /**
  * END Tailwind classes
  */

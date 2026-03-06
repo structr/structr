@@ -3023,9 +3023,9 @@ let _Entities = {
 				</div>
 			`,
 			aOptions: config => `
-				<div id="div-options" class="quick-access-options">
+				<div id="div-options" class="${_Entities.generalTab.templates.containerClasses(config)}">
 
-					<div class="grid grid-cols-2 gap-8">
+					<div class="${_Entities.generalTab.templates.gridClasses(config)}">
 
 						${_Entities.generalTab.templates.nameTile(Object.assign({ doubleWide: true }, config))}
 
@@ -3054,9 +3054,9 @@ let _Entities = {
 				</div>
 			`,
 			buttonOptions: config => `
-				<div id="div-options" class="quick-access-options">
+				<div id="div-options" class="${_Entities.generalTab.templates.containerClasses(config)}">
 
-					<div class="grid grid-cols-2 gap-8">
+					<div class="${_Entities.generalTab.templates.gridClasses(config)}">
 
 						${_Entities.generalTab.templates.nameTile(Object.assign({ doubleWide: true }, config))}
 
@@ -3083,9 +3083,9 @@ let _Entities = {
 				</div>
 			`,
 			contentOptions: config => `
-				<div id="default-dom-options" class="quick-access-options">
+				<div id="default-dom-options" class="${_Entities.generalTab.templates.containerClasses(config)}">
 
-					<div class="grid grid-cols-2 gap-8">
+					<div class="${_Entities.generalTab.templates.gridClasses(config)}">
 
 						${_Entities.generalTab.templates.nameTile(Object.assign({ doubleWide: true }, config))}
 
@@ -3117,9 +3117,9 @@ let _Entities = {
 				</div>
 			`,
 			defaultDOMOptions: config => `
-				<div id="default-dom-options" class="quick-access-options">
+				<div id="default-dom-options" class="${_Entities.generalTab.templates.containerClasses(config)}">
 
-					<div class="grid grid-cols-2 gap-8">
+					<div class="${_Entities.generalTab.templates.gridClasses(config)}">
 
 						${_Entities.generalTab.templates.nameTile(Object.assign({ doubleWide: true }, config))}
 
@@ -3144,9 +3144,9 @@ let _Entities = {
 				</div>
 			`,
 			divOptions: config => `
-				<div id="div-options" class="quick-access-options">
+				<div id="div-options" class="${_Entities.generalTab.templates.containerClasses(config)}">
 
-					<div class="grid grid-cols-2 gap-8">
+					<div class="${_Entities.generalTab.templates.gridClasses(config)}">
 
 						${_Entities.generalTab.templates.nameTile(Object.assign({ doubleWide: true }, config))}
 
@@ -3184,9 +3184,9 @@ let _Entities = {
 				</div>
 			`,
 			fileOptions: config => `
-				<div id="file-options" class="quick-access-options">
+				<div id="file-options" class="${_Entities.generalTab.templates.containerClasses(config)}">
 
-					<div class="grid grid-cols-2 gap-8">
+					<div class="${_Entities.generalTab.templates.gridClasses(config)}">
 
 						${_Entities.generalTab.templates.nameTile(config)}
 
@@ -3220,9 +3220,9 @@ let _Entities = {
 				</div>
 			`,
 			folderOptions: config => `
-				<div id="file-options" class="quick-access-options">
+				<div id="file-options" class="${_Entities.generalTab.templates.containerClasses(config)}">
 
-					<div class="grid grid-cols-2 gap-8">
+					<div class="${_Entities.generalTab.templates.gridClasses(config)}">
 
 						${_Entities.generalTab.templates.nameTile(config)}
 
@@ -3239,9 +3239,9 @@ let _Entities = {
 				</div>
 			`,
 			inputOptions: config => `
-				<div id="div-options" class="quick-access-options">
+				<div id="div-options" class="${_Entities.generalTab.templates.containerClasses(config)}">
 
-					<div class="grid grid-cols-2 gap-8">
+					<div class="${_Entities.generalTab.templates.gridClasses(config)}">
 
 						${_Entities.generalTab.templates.nameTile(Object.assign({ doubleWide: true }, config))}
 
@@ -3303,9 +3303,9 @@ let _Entities = {
 				</div>
 			`,
 			optionOptions: config => `
-				<div id="div-options" class="quick-access-options">
+				<div id="div-options" class="${_Entities.generalTab.templates.containerClasses(config)}">
 
-					<div class="grid grid-cols-2 gap-8">
+					<div class="${_Entities.generalTab.templates.gridClasses(config)}">
 
 						${_Entities.generalTab.templates.nameTile(Object.assign({ doubleWide: true }, config))}
 
@@ -3332,7 +3332,7 @@ let _Entities = {
 							<input type="text" id="value-input" name="_html_value">
 						</div>
 
-						<div><!-- occupy space in grid UI --></div>
+						${_Entities.generalTab.templates.spacerItemForGrid(config)}
 
 						${_Entities.generalTab.templates.visibilityPartial(config)}
 
@@ -3348,9 +3348,9 @@ let _Entities = {
 				</div>
 			`,
 			pageOptions: config => `
-				<div id="div-options" class="quick-access-options">
+				<div id="div-options" class="${_Entities.generalTab.templates.containerClasses(config)}">
 
-					<div class="grid grid-cols-2 gap-8">
+					<div class="${_Entities.generalTab.templates.gridClasses(config)}">
 
 						${_Entities.generalTab.templates.nameTile(config)}
 
@@ -3379,7 +3379,7 @@ let _Entities = {
 							<input type="text" id="path-input" name="path">
 						</div>
 
-						<div><!-- occupy space in grid UI --></div>
+						${_Entities.generalTab.templates.spacerItemForGrid(config)}
 
 						<div>
 
@@ -3427,7 +3427,7 @@ let _Entities = {
 				<div id="rendering-options-container" class="hidden">
 					<h3>Rendering Options</h3>
 
-					<div class="grid grid-cols-2 gap-8">
+					<div class="${_Entities.generalTab.templates.gridClasses(config)}">
 
 						<div>
 							<label class="block mb-2" for="rendering-mode-select" data-comment="Select update mode for this element to activate lazy or periodic loading.">Load/Update Mode</label>
@@ -3459,9 +3459,9 @@ let _Entities = {
 				</div>
 			`,
 			userOptions: config => `
-				<div id="div-options" class="quick-access-options">
+				<div id="div-options" class="${_Entities.generalTab.templates.containerClasses(config)}">
 
-					<div class="grid grid-cols-2 gap-8">
+					<div class="${_Entities.generalTab.templates.gridClasses(config)}">
 
 						${_Entities.generalTab.templates.nameTile(config)}
 
@@ -3561,7 +3561,10 @@ let _Entities = {
 				<div class="row">
 					<a class="block example-condition" data-value="${config.value}">${config.text ?? config.value}</a>
 				</div>
-			`
+			`,
+			containerClasses: config => `@container quick-access-options`,
+			gridClasses: config => `grid grid-cols-1 @xl:grid-cols-2 gap-8`,
+			spacerItemForGrid: config => `<div class="hidden @xl:block"><!-- occupy space in grid UI --></div>`
 		}
 	}
 };
