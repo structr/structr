@@ -1153,16 +1153,12 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		final boolean hasMultiplePathParts = StringUtils.countMatches(path, '/') > 1 && !path.startsWith("/html/");
 		final Traits traits                = Traits.of(StructrTraits.PAGE);
-		final PropertyKey<String> pathKey  = traits.key(PageTraitDefinition.PATH_PROPERTY);
 		final PropertyKey<String> nameKey  = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 		final String name                  = PathHelper.getName(path);
 
-		// Find pages by path or name
+		// Find pages name
 		final List<NodeInterface> possiblePages = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.PAGE)
-			.or()
-				.key(pathKey, path)
-				.key(nameKey, name)
-			.sort(pathKey)
+			.key(nameKey, name)
 			.getAsList();
 
 		for (final NodeInterface node : possiblePages) {
@@ -1807,18 +1803,13 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		final PropertyKey<Boolean> basicAuthKey     = Traits.of(StructrTraits.LINKABLE).key(LinkableTraitDefinition.ENABLE_BASIC_AUTH_PROPERTY);
 		final PropertyKey<Integer> positionKey      = Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.POSITION_PROPERTY);
 		final PropertyKey<String> filePathKey       = Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY);
-		final PropertyKey<String> pagePathKey       = Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.PATH_PROPERTY);
 
 		// Look for renderable objects using a SuperUserSecurityContext,
-		// but dont actually render the page. We're only interested in
+		// but don't actually render the page. We're only interested in
 		// the authentication settings.
 		NodeInterface possiblePage = null;
 
-		// try the different methods..
-		if (possiblePage == null) {
-			possiblePage = StructrApp.getInstance().nodeQuery(StructrTraits.PAGE).key(pagePathKey, path).key(basicAuthKey, true).sort(positionKey).getFirst();
-		}
-
+		// try the different methods...
 		if (possiblePage == null) {
 			possiblePage = StructrApp.getInstance().nodeQuery(StructrTraits.PAGE).key(Traits.of(StructrTraits.PAGE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), PathHelper.getName(path)).key(basicAuthKey, true).sort(positionKey).getFirst();
 		}

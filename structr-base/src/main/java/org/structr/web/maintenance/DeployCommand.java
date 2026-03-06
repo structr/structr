@@ -1410,7 +1410,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			putData(config, LinkableTraitDefinition.ENABLE_BASIC_AUTH_PROPERTY, linkable.getEnableBasicAuth());
 			putData(config, NodeInterfaceTraitDefinition.HIDDEN_PROPERTY,       page.isHidden());
 			putData(config, PageTraitDefinition.PAGE_CREATES_RAW_DATA_PROPERTY, page.pageCreatesRawData());
-			putData(config, DOMElementTraitDefinition.PATH_PROPERTY,            page.getPath());
 			putData(config, PageTraitDefinition.POSITION_PROPERTY,              page.getPosition());
 			putData(config, PageTraitDefinition.SHOW_ON_ERROR_CODES_PROPERTY,   page.getShowOnErrorCodes());
 		}
