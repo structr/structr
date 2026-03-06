@@ -30,7 +30,6 @@ let _Pages = {
 	leftTabMinWidth: 410,
 	rightTabMinWidth: 400,
 	selectedTypeKey: 'structrSelectedType_' + location.port,
-	autoRefreshDisabledKey: 'structrAutoRefreshDisabled_' + location.port,
 	detailsObjectIdKey: 'structrDetailsObjectId_' + location.port,
 	requestParametersKey: 'structrRequestParameters_' + location.port,
 	pagesResizerLeftKey: 'structrPagesResizerLeftKey_' + location.port,
@@ -71,16 +70,8 @@ let _Pages = {
 	handleNodeRefresh: (node) => {
 
 		if (node.isPage) {
-			//console.log(node);
-
-			// find and update node in pages tree
 
 			let pageNode = _Pages.pagesTree[0].querySelector('#id_' + node.id);
-
-			let pathElement = pageNode?.querySelector('.path_');
-			if (pathElement) {
-				pathElement.textContent = node.path;
-			}
 
 			let positionElement = pageNode?.querySelector('.position_');
 			if (positionElement) {
@@ -839,10 +830,6 @@ let _Pages = {
 
 		_Pages.centerPane.dataset['elementId'] = obj.id;
 
-		if (_Pages.previewSlideout.hasClass('open')) {
-			_Pages.previews.updatePreviewSlideout();
-		}
-
 		if (!urlHash) {
 			/*
 				if urlHash is present, user has either manually selected a tab OR has previously selected a tab for this node
@@ -1080,7 +1067,6 @@ let _Pages = {
 					${_Icons.getSvgIcon(_Icons.iconDOMTreePage, 16, 16, ['typeIcon', 'icon-grey'])}
 					<span class="abbr-ellipsis abbr-pages-tree-page">
 						<b title="${_Helpers.escapeForHtmlAttributes(entity.name)}" class="name_">${pageName}</b>
-						<span class="path_ font-semibold italic text-sm">${entity.path ?? ''}</span>
 						<span class="position_">${((entity.position !== undefined && entity.position !== null) ? entity.position : '')}</span>
 					</span>
 					<div class="icons-container flex items-center"></div>
@@ -3137,19 +3123,6 @@ let _Pages = {
 
 					_Pages.previews.modelForPageUpdated(entity.id);
 				}
-			});
-
-			let autoRefreshCheckbox = container.querySelector('#_auto-refresh');
-			autoRefreshCheckbox.addEventListener('change', () => {
-				let key = _Pages.autoRefreshDisabledKey + entity.id;
-				let autoRefreshDisabled = (LSWrapper.getItem(key) === '1');
-
-				if (autoRefreshDisabled) {
-					LSWrapper.removeItem(key);
-				} else {
-					LSWrapper.setItem(key, '1');
-				}
-				_Helpers.blinkGreen(autoRefreshCheckbox.parentNode);
 			});
 		},
 	},

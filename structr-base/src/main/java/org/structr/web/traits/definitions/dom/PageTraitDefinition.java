@@ -194,7 +194,7 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Integer> positionProperty                 = new IntProperty(POSITION_PROPERTY).indexed();
 		final Property<Integer> cacheForSecondsProperty          = new IntProperty(CACHE_FOR_SECONDS_PROPERTY);
 
-		final Property<String> pathProperty                      = new StringProperty(PATH_PROPERTY).indexed();
+		final Property<Object> pathProperty                      = new FunctionProperty(PATH_PROPERTY).readFunction("concat('/', this.id)").typeHint("String").indexed();
 		final Property<String> showOnErrorCodesProperty          = new StringProperty(SHOW_ON_ERROR_CODES_PROPERTY).indexed();
 		final Property<String> contentTypeProperty               = new StringProperty(CONTENT_TYPE_PROPERTY).indexed();
 		final Property<String> categoryProperty                  = new StringProperty(CATEGORY_PROPERTY).indexed();
@@ -222,7 +222,7 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 			PropertyView.Public,
 			newSet(
 					IS_PAGE_PROPERTY, PAGE_CREATES_RAW_DATA_PROPERTY, SITES_PROPERTY, VERSION_PROPERTY, POSITION_PROPERTY,
-					CACHE_FOR_SECONDS_PROPERTY, PATH_PROPERTY, SHOW_ON_ERROR_CODES_PROPERTY, CONTENT_TYPE_PROPERTY, CATEGORY_PROPERTY, PATHS_PROPERTY,
+					CACHE_FOR_SECONDS_PROPERTY, SHOW_ON_ERROR_CODES_PROPERTY, CONTENT_TYPE_PROPERTY, CATEGORY_PROPERTY, PATHS_PROPERTY,
 					DOMNodeTraitDefinition.DONT_CACHE_PROPERTY, DOMNodeTraitDefinition.CHILDREN_PROPERTY,
 					LinkableTraitDefinition.LINKING_ELEMENTS_PROPERTY, LinkableTraitDefinition.ENABLE_BASIC_AUTH_PROPERTY,
 					LinkableTraitDefinition.BASIC_AUTH_REALM_PROPERTY, NodeInterfaceTraitDefinition.OWNER_PROPERTY
@@ -231,7 +231,7 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 			PropertyView.Ui,
 			newSet(
 					IS_PAGE_PROPERTY, PAGE_CREATES_RAW_DATA_PROPERTY, SITES_PROPERTY, VERSION_PROPERTY, POSITION_PROPERTY,
-					CACHE_FOR_SECONDS_PROPERTY, PATH_PROPERTY, SHOW_ON_ERROR_CODES_PROPERTY, CONTENT_TYPE_PROPERTY, CATEGORY_PROPERTY, PATHS_PROPERTY,
+					CACHE_FOR_SECONDS_PROPERTY, SHOW_ON_ERROR_CODES_PROPERTY, CONTENT_TYPE_PROPERTY, CATEGORY_PROPERTY, PATHS_PROPERTY,
 					DOMNodeTraitDefinition.DONT_CACHE_PROPERTY, DOMNodeTraitDefinition.CHILDREN_PROPERTY
 			),
 

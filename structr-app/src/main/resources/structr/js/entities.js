@@ -3375,14 +3375,6 @@ let _Entities = {
 						</div>
 
 						<div>
-							<label class="block mb-2" for="path-input" data-comment="If set, the page will be available under this path and not under its name.">Custom Path</label>
-							<input type="text" id="path-input" name="path">
-						</div>
-
-						${_Entities.generalTab.templates.spacerItemForGrid(config)}
-
-						<div>
-
 							<label class="block mb-2">Options</label>
 
 							<div class="mb-2 flex items-center">
@@ -3394,12 +3386,6 @@ let _Entities = {
 							<div class="mb-2 flex items-center">
 								<label for="page-creates-raw-data-checkbox">
 									<input type="checkbox" name="pageCreatesRawData" id="page-creates-raw-data-checkbox"> Use binary encoding for output
-								</label>
-							</div>
-
-							<div class="mb-2 flex items-center">
-								<label for="_auto-refresh" data-comment="Auto-refresh page preview on changes (if page preview is active)">
-									<input id="_auto-refresh" type="checkbox" ${(LSWrapper.getItem(_Pages.autoRefreshDisabledKey + config.entity.id) ? '' : ' checked="checked"')}> Auto-refresh
 								</label>
 							</div>
 
@@ -3519,7 +3505,7 @@ let _Entities = {
 						${Structr.templates.autoScriptInput({ inputAttributeString: 'id="show-conditions" name="showConditions"', wrapperClassString: 'w-full'})}
 
 						<div class="dropdown-menu dropdown-menu-large">
-							<button class="mr-0 dropdown-select rounded border ml-2">
+							<button class="mr-0 dropdown-select rounded border ml-2" data-preferred-position-x="left">
 								${_Icons.getSvgIcon(_Icons.iconLightBulb, 16, 16, '', 'Examples')}
 							</button>
 
