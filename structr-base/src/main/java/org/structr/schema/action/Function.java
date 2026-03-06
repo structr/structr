@@ -38,7 +38,7 @@ import org.structr.core.property.*;
 import org.structr.core.traits.Traits;
 import org.structr.docs.*;
 import org.structr.schema.parser.DatePropertyGenerator;
-import org.structr.web.common.AsyncBuffer;
+import org.structr.web.datasource.TagWithCSSInfo;
 
 import java.io.File;
 import java.io.IOException;
@@ -979,111 +979,6 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		return null;
 	}
 
-	protected class TagWithCSSInfo {
-
-		private final List<String> classes = new LinkedList<>();
-		private String channelName = null;
-		private String newValue    = null;
-		private final String source;
-		private String id = null;
-		private String tag = null;
-
-		public TagWithCSSInfo(final String source) {
-
-			this.source = source;
-
-			// we only support simple CSS selectors with id and class for now
-			for (final String part : splitCssSelector(source)) {
-
-				if (part.startsWith(".")) {
-
-					classes.add(part.substring(1));
-
-				} else if (part.startsWith("#")) {
-
-					id = part.substring(1);
-
-				} else {
-
-					tag = part;
-				}
-			}
-		}
-
-		public void formatStartTag(final AsyncBuffer buffer) {
-			formatStartTag(buffer, null, null);
-		}
-
-		public void formatStartTag(final AsyncBuffer buffer, final Map<String, String> additionalValues, final Set<String> additionalClasses) {
-
-			final List<String> mergedClasses = new LinkedList<>(classes);
-
-			if (additionalClasses != null) {
-				mergedClasses.addAll(additionalClasses);
-			}
-
-			if (StringUtils.isNotBlank(tag)) {
-
-				buffer.append("<");
-				buffer.append(tag);
-
-				if (id != null) {
-					buffer.append(" id=\"" + id + "\"");
-				}
-
-				if (!mergedClasses.isEmpty()) {
-
-					buffer.append(" class=\"");
-					buffer.append(StringUtils.join(mergedClasses, " "));
-					buffer.append("\"");
-				}
-
-				if (additionalValues != null) {
-
-					for (final String key : additionalValues.keySet()) {
-
-						buffer.append(" " + key + "=\"" + additionalValues.get(key) + "\"");
-					}
-				}
-
-				buffer.append(">");
-			}
-
-		}
-
-		public void formatEndTag(final AsyncBuffer buffer) {
-
-			if (StringUtils.isNotBlank(tag)) {
-
-				buffer.append("</" + tag + ">");
-			}
-		}
-
-		public boolean matches(final List<String> selectors) {
-
-			for (final String selector : selectors) {
-
-				// match CSS class only
-				if (selector.startsWith(".") && classes.contains(selector.substring(1))) {
-					return true;
-				}
-
-				// match CSS class only
-				if (selector.startsWith("#") && selector.substring(1).equals(id)) {
-					return true;
-				}
-
-				// tag match
-				if (selector.equals(source)) {
-
-					return true;
-				}
-			}
-
-			return false;
-		}
-	}
-
 	// ----- private methods -----
 	private boolean eq(final Object o1, final Object o2) {
 
@@ -1238,27 +1133,5 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		final Double value2 = getDoubleForComparison(o2);
 
 		return value1.compareTo(value2);
-	}
-
-	private List<String> splitCssSelector(final String source) {
-
-		final Set<Character> separators = Set.of('.', '#');
-		final List<String> parts     = new LinkedList<>();
-		final StringBuilder current  = new StringBuilder();
-
-		for (final Character c : source.toCharArray()) {
-
-			// separator creates new part
-			if (separators.contains(c)) {
-				parts.add(current.toString());
-				current.setLength(0);
-			}
-
-			current.append(c);
-		}
-
-		parts.add(current.toString());
-
-		return parts;
 	}
 }

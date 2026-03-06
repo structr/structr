@@ -72,6 +72,8 @@ public class RenderContext extends ActionContext {
 	private final Map<String, GraphObject> dataObjects = new HashMap<>();
 	private final Stack<SecurityContext> scStack       = new Stack<>();
 	private final Map<String, Object> theme            = new LinkedHashMap<>();
+	private DataSource currentDataSource               = null;
+	private String currentReloadBehaviour              = null;
 	private EditMode editMode                          = EditMode.NONE;
 	private AsyncBuffer buffer                         = null;
 	private int depth                                  = 0;
@@ -470,6 +472,10 @@ public class RenderContext extends ActionContext {
 
 					case "currentDataSource":
 
+						if (currentDataSource != null) {
+							return currentDataSource;
+						}
+
 						final List<DOMNode> candidates = new LinkedList<>();
 						if (entity.is(StructrTraits.DOM_NODE)) {
 
@@ -497,7 +503,7 @@ public class RenderContext extends ActionContext {
 							}
 						}
 
-						LoggerFactory.getLogger(RenderContext.class).warn("{} with UUID {} has no data source configured in any of its parents.", entity.getType(), entity.getUuid());
+						LoggerFactory.getLogger(RenderContext.class).warn("{} with UUID {} has no data source in its context or any of its parents.", entity.getType(), entity.getUuid());
 
 						// no data source found
 						return null;
@@ -629,6 +635,22 @@ public class RenderContext extends ActionContext {
 
 	public Map<String, Object> getTheme() {
 		return theme;
+	}
+
+	public void setCurrentDataSource(final DataSource newDataSource) {
+		this.currentDataSource = newDataSource;
+	}
+
+	public DataSource getCurrentDataSource() {
+		return currentDataSource;
+	}
+
+	public void setCurrentReloadBehaviour(final String reloadBehaviour) {
+		this.currentReloadBehaviour = reloadBehaviour;
+	}
+
+	public String getCurrentReloadBehaviour() {
+		return currentReloadBehaviour;
 	}
 
 	// ----- private methods -----

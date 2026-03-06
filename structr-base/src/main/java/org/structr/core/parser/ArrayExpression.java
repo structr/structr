@@ -141,10 +141,6 @@ public class ArrayExpression extends Expression {
 					throw new FrameworkException(422, "Invalid expression: expected map, found " + value.getClass().getSimpleName() + ".");
 				}
 			}
-
-		} else {
-
-			throw new FrameworkException(422, "Invalid expression: invalid array index: null.");
 		}
 
 		return null;

@@ -483,6 +483,8 @@ export class Frontend {
 		}
 
 		this.fireEvent('error', { target: element, data: {}, status: status });
+
+        this.handleLogout();
 	}
 
 	reloadPartial(selector, parameters, element, dontRebind) {
@@ -660,8 +662,14 @@ export class Frontend {
 	 */
 	encodeRequestParameters(fromDataset, override) {
 
-		let params  = {};
-		let current = '';
+        let searchParams = new URLSearchParams(window.location.search);
+        let params  = {};
+        let current = '';
+
+        for (let key of new Set(searchParams.keys())) {
+            let values = searchParams.getAll(key);
+            params[key] = values.length === 1 ? values[0] : values;
+        }
 
 		// current object set?
 		if (fromDataset.currentObjectId) {

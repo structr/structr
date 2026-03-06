@@ -38,6 +38,7 @@ import org.structr.core.api.Methods;
 import org.structr.core.api.NamedArguments;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.DataSource;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.ModificationQueue;
@@ -62,10 +63,7 @@ import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.EventContext;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
-import org.structr.web.eam.EventAction;
-import org.structr.web.eam.EventBehaviour;
-import org.structr.web.eam.EventNotification;
-import org.structr.web.eam.ParameterType;
+import org.structr.web.eam.*;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -632,8 +630,8 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 									renderDialogAttributes(renderContext, out, triggeredAction);
 									renderSuccessNotificationAttributes(renderContext, out, triggeredAction);
 									renderFailureNotificationAttributes(renderContext, out, triggeredAction);
-									renderSuccessBehaviourAttributes(renderContext, out, triggeredAction);
-									renderFailureBehaviourAttributes(renderContext, out, triggeredAction);
+									renderSuccessBehaviourAttributes(renderContext, out, triggeredAction, node);
+									renderFailureBehaviourAttributes(renderContext, out, triggeredAction, node);
 
 									/*
 									{ // TODO: Migrate tree handling to new action mapping
@@ -892,7 +890,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 					switch (action) {
 
 						// Note: if you add new actions here, please also add them to MigrationService.EventActionMappingActions so
-						// they are not migrated accidentially..
+						// they are not migrated accidentally.
 
 						case EventAction.Create:
 							return handleCreateAction(renderContext, domElementNode, parameters, eventContext);
@@ -1262,7 +1260,6 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 			// update properties
 			target.setProperties(securityContext, properties);
-
 		}
 	}
 
@@ -1870,7 +1867,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		}
 	}
 
-	public void renderSuccessBehaviourAttributes(final RenderContext renderContext, final AsyncBuffer out, final ActionMapping triggeredAction) throws FrameworkException {
+	public void renderSuccessBehaviourAttributes(final RenderContext renderContext, final AsyncBuffer out, final ActionMapping triggeredAction, final DOMNode node) throws FrameworkException {
 
 		final Traits traits = triggeredAction.getTraits();
 
@@ -1884,6 +1881,9 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		String successTargetString = null;
 
 		switch (successBehaviour) {
+			case EventBehaviour.ComponentBased:
+				successTargetString = getComponentBasedReloadTarget(renderContext, node);
+				break;
 			case EventBehaviour.PartialRefresh:
 				successTargetString = successPartial;
 				break;
@@ -1927,7 +1927,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		}
 	}
 
-	public void renderFailureBehaviourAttributes(final RenderContext renderContext, final AsyncBuffer out, final ActionMapping triggeredAction) throws FrameworkException {
+	public void renderFailureBehaviourAttributes(final RenderContext renderContext, final AsyncBuffer out, final ActionMapping triggeredAction, final DOMNode node) throws FrameworkException {
 
 		final Traits traits = triggeredAction.getTraits();
 
@@ -1941,6 +1941,9 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		String failureTargetString = null;
 
 		switch (failureBehaviour) {
+			case EventBehaviour.ComponentBased:
+				failureTargetString = getComponentBasedReloadTarget(renderContext, node);
+				break;
 			case EventBehaviour.PartialRefresh:
 				failureTargetString = failurePartial;
 				break;
@@ -2124,5 +2127,47 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		}
 
 		return StringUtils.join(selectors, ",");
+	}
+
+	private String getComponentBasedReloadTarget(final RenderContext renderContext, final DOMNode node) {
+
+		// use either direct data source or from current context
+		final String reloadBehaviour = coalesce(renderContext.getCurrentReloadBehaviour(), node.getReloadBehaviourForComponent());
+		final DataSource dataSource  = coalesce(renderContext.getCurrentDataSource(), node.getClosestDataSource());
+
+		if (reloadBehaviour != null) {
+
+			switch (reloadBehaviour) {
+
+				case "partial":
+				case "others":
+					if (dataSource != null) {
+
+						final String dataKey = dataSource.getDataKey();
+						if (dataKey != null) {
+
+							return "[data-source='" + dataKey + "']";
+						}
+					}
+					break;
+
+				case "page":
+					return "url:";
+			}
+		}
+
+		return null;
+	}
+
+	private <T> T coalesce(final T... options) {
+
+		for (final T option : options) {
+
+			if (option != null) {
+				return option;
+			}
+		}
+
+		return null;
 	}
 }

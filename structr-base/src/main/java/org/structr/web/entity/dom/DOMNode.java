@@ -149,6 +149,7 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	String getFieldSet();
 	String getSaveMode();
 	String getRole();
+	String getReloadBehaviour();
 	Boolean showLabels();
 
 	// component-wide methods, traverse the parent hierarchy
@@ -157,6 +158,7 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	String getDisplayModeForComponent(final SecurityContext securityContext);
 	String getFieldSetForComponent();
 	String getRoleForComponent();
+	String getReloadBehaviourForComponent();
 	Boolean getShowLabelsFlagForComponent();
 
 	boolean renderDeploymentExportComments(AsyncBuffer out, boolean isContentNode);

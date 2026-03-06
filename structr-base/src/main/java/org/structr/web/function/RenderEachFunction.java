@@ -32,6 +32,7 @@ import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
+import org.structr.web.datasource.TagWithCSSInfo;
 import org.structr.web.entity.dom.DOMNode;
 
 import java.util.*;
@@ -69,21 +70,14 @@ public class RenderEachFunction extends UiCommunityFunction {
 
 		if (caller instanceof NodeInterface n && n.is(StructrTraits.DOM_NODE)) {
 
-			final DOMNode domNode    = n.as(DOMNode.class);
-			final AsyncBuffer buffer = renderContext.getBuffer();
-			final String dataKey     = dataSource.getDataKey();
-			final String channel     = dataSource.getDataKey();
-			final String role        = domNode.getRoleForComponent();
-			String selectedValue     = null;
-
-			// save previous value
+			final DOMNode domNode           = n.as(DOMNode.class);
+			final AsyncBuffer buffer        = renderContext.getBuffer();
+			final String dataKey            = dataSource.getDataKey();
+			final String channel            = dataSource.getDataKey();
+			final String role               = domNode.getRoleForComponent();
+			final String selectedId         = dataSource.getSelectedId(renderContext);
 			final GraphObject previousValue = renderContext.getDataNode(dataKey);
-
-			// selected value from channel for highlighting
-			if (channel != null) {
-
-				selectedValue = renderContext.getRequestParameter(channel);
-			}
+			final String reloadBehaviour    = domNode.getReloadBehaviourForComponent();
 
 			for (final GraphObject item : dataSource.getValues(securityContext)) {
 
@@ -97,14 +91,29 @@ public class RenderEachFunction extends UiCommunityFunction {
 
 					if ("controller".equals(role)) {
 
-						data.put("data-structr-success-target", "[data-source='" + channel + "']");
+						switch (reloadBehaviour) {
+
+							case "partial":
+							case "others":
+
+								// partial reload is triggered via pagination mechanism
+								data.put("data-structr-success-target", "[data-source='" + channel + "']");
+								break;
+
+							case "page":
+
+								data.put("data-structr-success-target", "url:");
+								break;
+
+						}
+
 						data.put("data-structr-events", "click");
 						data.put("data-structr-target", channel);
 						data.put("data-" + channel, uuid);
 
 						additionalCss.add("controller");
 
-						if (uuid.equals(selectedValue)) {
+						if (uuid.equals(selectedId)) {
 							additionalCss.add("selected");
 						}
 					}

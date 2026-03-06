@@ -31,6 +31,7 @@ import org.structr.schema.action.EvaluationHints;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.DataField;
+import org.structr.web.datasource.TagWithCSSInfo;
 import org.structr.web.entity.dom.DOMNode;
 
 import java.util.*;
@@ -52,6 +53,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 		final String requestedFieldSet        = domNode.getFieldSetForComponent();
 		final List<String> fieldSet           = dataSource.getFieldSet(securityContext, requestedFieldSet);
 		final String displayMode              = domNode.getDisplayModeForComponent(securityContext);
+		final String reloadBehaviour          = domNode.getReloadBehaviourForComponent();
 		final boolean useEditTemplate         = "input".equals(displayMode);
 		final Object previousFieldValue       = innerCtx.getConstant("field");
 		final DataProvider dataProvider       = dataSource.getDataProvider();
@@ -78,8 +80,8 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 
 						} else {
 
-							// no item
-							buffer.append("<span class=\"empty\">No item to display.</span>");
+							// show "no item" template or fallback and exit
+							renderTemplate(app, innerCtx, "span-no-item", "<span class=\"empty col-span-6\">No item to display.</span>");
 							return;
 						}
 
@@ -90,8 +92,8 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 
 				} else {
 
-					// show "no item" element and exit (make configurable?)
-					buffer.append("<span class=\"empty\">No item to display.</span>");
+					// show "no item" template or fallback and exit
+					renderTemplate(app, innerCtx, "span-no-item", "<span class=\"empty col-span-6\">No item to display.</span>");
 					return;
 				}
 			}
@@ -147,7 +149,21 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 						final DOMNode templateNode = getTemplate(app, slot, useEditTemplate ? editTemplate : template);
 						if (templateNode != null) {
 
-							renderNode(securityContext, ctx, innerCtx, new Object[0], app, templateNode, true);
+							final DataSource previousDataSource  = innerCtx.getCurrentDataSource();
+							final String previousReloadBehaviour = innerCtx.getCurrentReloadBehaviour();
+
+							// we need to make the current data source available to the inner template
+							innerCtx.setCurrentDataSource(dataSource);
+							innerCtx.setCurrentReloadBehaviour(reloadBehaviour);
+
+							try {
+								templateNode.render(innerCtx, 0);
+
+							} finally {
+
+								innerCtx.setCurrentDataSource(previousDataSource);
+								innerCtx.setCurrentReloadBehaviour(previousReloadBehaviour);
+							}
 
 						} else {
 
@@ -178,6 +194,10 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 		final String requestedFieldSet        = domNode.getFieldSetForComponent();
 		final List<String> fieldSet           = dataSource.getFieldSet(securityContext, requestedFieldSet);
 		final DataProvider dataProvider       = dataSource.getDataProvider();
+
+		if (fieldSet.isEmpty()) {
+			logger.warn("{} with ID {} doesn't specify a fieldSet, nothing will be rendered.", domNode.getType(), domNode.getUuid());
+		}
 
 		for (final String field : fieldSet) {
 
@@ -226,5 +246,18 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 		}
 
 		return null;
+	}
+
+	private void renderTemplate(final App app, final RenderContext ctx, final String name, final String fallbackHtml) throws FrameworkException {
+
+		final DOMNode template = getNodeForInclude(app, name);
+		if (template != null) {
+
+			template.render(ctx, 0);
+
+		} else {
+
+			ctx.getBuffer().append(fallbackHtml);
+		}
 	}
 }

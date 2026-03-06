@@ -26,6 +26,7 @@ import org.structr.docs.ontology.ConceptType;
 @Documentation(name="Follow-up actions", type=ConceptType.Topic, shortDescription="Automated follow-up actions that can be executed after an action was executed.", parent="Event Action Mapping")
 public enum EventBehaviour implements Documentable {
 
+	ComponentBased("component-based", "Let enclosing component decide", null),
 	PartialRefresh("partial-refresh", "Partial refresh", null),
 	PartialRefreshLinked("partial-refresh-linked", "Partial refresh linked", "Partial refresh of a linked element."),
 	NavigateToUrl("navigate-to-url", "Navigate to URL", null),

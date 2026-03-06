@@ -22,6 +22,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
+import org.structr.schema.action.ActionContext;
 import org.structr.web.datasource.DataField;
 
 import java.util.List;
@@ -33,9 +34,13 @@ public interface DataSource extends NodeInterface {
 	Map<String, DataField> getFields(final SecurityContext securityContext) throws FrameworkException;
 	Map<String, List<String>> getFieldSets(final SecurityContext securityContext) throws FrameworkException;
 	List<String> getFieldSet(final SecurityContext securityContext, String name) throws FrameworkException;
-
+	String getSelectedId(final ActionContext actionContext) throws FrameworkException;
+	Object getSelectedValue(final ActionContext actionContext) throws FrameworkException;
+	Object getCurrentValue(final ActionContext actionContext) throws FrameworkException;
 	String getDataType(final SecurityContext securityContext) throws FrameworkException;
 	String getDataKey();
 
 	DataProvider getDataProvider();
+
+	Object evaluate(final ActionContext actionContext, final String key) throws FrameworkException;
 }

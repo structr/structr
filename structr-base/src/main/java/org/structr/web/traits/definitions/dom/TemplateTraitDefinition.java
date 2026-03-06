@@ -33,14 +33,17 @@ import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.docs.Documentation;
 import org.structr.docs.ontology.ConceptType;
+import org.structr.schema.action.ActionContext;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
+import org.structr.web.datasource.TagWithCSSInfo;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Template;
 import org.structr.web.traits.operations.RenderContent;
 import org.structr.web.traits.wrappers.dom.TemplateTraitWrapper;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -126,20 +129,43 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 
 					} else {
 
+						final TagWithCSSInfo componentTag   = new TagWithCSSInfo("structr-component");
 						final DataSource dataSource         = node.getDataSource();
 						final boolean renderTemplateWrapper = dataSource != null;
+						final AsyncBuffer buffer            = renderContext.getBuffer();
 
 						// new code for components
 						if (renderTemplateWrapper) {
-							renderContext.getBuffer().append("<structr-component data-structr-id=\"" + node.getUuid() + "\" data-source=\"" + dataSource.getDataKey() + "\">\n");
+
+							// render selected element here?
+							final String dataKey           = dataSource.getDataKey();
+							final Map<String, String> data = new LinkedHashMap<>();
+
+							data.put("data-structr-id", node.getUuid());
+
+							if (dataKey != null) {
+
+								final String selectedId = dataSource.getSelectedId(renderContext);
+								if (selectedId != null) {
+
+									data.put("data-" + dataKey, selectedId);
+								}
+
+								// if reload behaviour is "others", we don't want to reload ourselves
+								if (!"others".equals(node.getReloadBehaviour())) {
+									data.put("data-source", dataKey);
+								}
+							}
+
+							componentTag.formatStartTag(buffer, data, Set.of());
 						}
 
-						// "super" call using static method..
+						// "super" call using static method.
 						getSuper().renderContent(node, renderContext, depth);
 
 						// new code for components
 						if (renderTemplateWrapper) {
-							renderContext.getBuffer().append("</structr-component>\n");
+							componentTag.formatEndTag(buffer);
 						}
 					}
 				}

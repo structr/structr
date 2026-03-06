@@ -58,59 +58,6 @@ public class DataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<AbstractMethod> getDynamicMethods() {
-
-		return newSet(
-
-			new InstanceMethod(StructrTraits.DATA_SOURCE, "getValues") {
-				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
-					return entity.as(DataSource.class).getValues(securityContext);
-				}
-			},
-
-			new InstanceMethod(StructrTraits.DATA_SOURCE, "getFields") {
-				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
-					return entity.as(DataSource.class).getFields(securityContext);
-				}
-			},
-
-			new InstanceMethod(StructrTraits.DATA_SOURCE, "getDataKey") {
-				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
-					return entity.as(DataSource.class).getDataKey();
-				}
-			},
-
-			new InstanceMethod(StructrTraits.DATA_SOURCE, "getDataType") {
-				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
-					return entity.as(DataSource.class).getDataType(securityContext);
-				}
-			},
-
-			new InstanceMethod(StructrTraits.DATA_SOURCE, "getCurrentValue") {
-				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
-
-					final DataSource dataSource = entity.as(DataSource.class);
-					if (dataSource != null) {
-
-						final String dataKey = dataSource.getDataKey();
-						if (dataKey != null) {
-
-							return securityContext.getRequestParameter(dataKey);
-						}
-					}
-
-					return null;
-				}
-			}
-		);
-	}
-
-	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
 		final Property<Iterable<NodeInterface>> domNodesProperty = new StartNodes(traitsInstance, DOM_NODES_PROPERTY, StructrTraits.DOM_NODE_HAS_DATA_SOURCE_DATA_SOURCE).category(DOMNode.WIDGETS_CATEGORY);

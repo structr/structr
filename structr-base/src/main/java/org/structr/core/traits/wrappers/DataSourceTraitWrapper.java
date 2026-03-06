@@ -23,11 +23,15 @@ import com.google.gson.GsonBuilder;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.DataProvider;
 import org.structr.core.entity.DataSource;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.DataSourceTraitDefinition;
+import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
+import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.DataField;
 
 import java.util.LinkedHashMap;
@@ -107,6 +111,55 @@ public class DataSourceTraitWrapper extends AbstractNodeTraitWrapper implements 
 	}
 
 	@Override
+	public String getSelectedId(final ActionContext actionContext) throws FrameworkException {
+
+		final SecurityContext securityContext = actionContext.getSecurityContext();
+		if (securityContext != null) {
+
+			final String dataKey = getDataKey();
+			if (dataKey != null) {
+
+				return securityContext.getRequestParameter(dataKey);
+			}
+		}
+
+		return null;
+
+	}
+
+	@Override
+	public Object getSelectedValue(final ActionContext actionContext) throws FrameworkException {
+
+		final String selectedId = getSelectedId(actionContext);
+		if (selectedId != null) {
+
+			return StructrApp.getInstance(actionContext.getSecurityContext()).getNodeById(selectedId);
+		}
+
+		return null;
+	}
+
+	@Override
+	public Object getCurrentValue(final ActionContext actionContext) throws FrameworkException {
+
+		if (actionContext instanceof RenderContext renderContext) {
+
+			final String dataKey = getDataKey();
+			if (dataKey != null) {
+
+				// allow fallback if no data node is set
+				final GraphObject dataNode = renderContext.getDataNode(dataKey);
+				if (dataNode != null) {
+
+					return dataNode;
+				}
+			}
+		}
+
+		return getSelectedValue(actionContext);
+	}
+
+	@Override
 	public String getDataType(final SecurityContext securityContext) throws FrameworkException {
 
 		final DataProvider dataProvider = getDataProvider();
@@ -133,5 +186,37 @@ public class DataSourceTraitWrapper extends AbstractNodeTraitWrapper implements 
 		}
 
 		return null;
+	}
+
+	@Override
+	public Object evaluate(final ActionContext actionContext, final String key) throws FrameworkException {
+
+		final SecurityContext securityContext = actionContext.getSecurityContext();
+
+		switch (key) {
+
+			case "fields":
+				return getFields(securityContext);
+
+			case "values":
+				return getValues(securityContext);
+
+			case "dataKey":
+				return getDataKey();
+
+			case "dataType":
+				return getDataType(securityContext);
+
+			case "selectedId":
+				return getSelectedId(actionContext);
+
+			case "selectedValue":
+				return getSelectedValue(actionContext);
+
+			case "currentValue":
+				return getCurrentValue(actionContext);
+		}
+
+		return this.as(NodeInterface.class).evaluate(actionContext, key, null, new EvaluationHints(), 0, 0);
 	}
 }

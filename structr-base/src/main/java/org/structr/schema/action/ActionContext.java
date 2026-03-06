@@ -39,10 +39,12 @@ import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
 import org.structr.core.api.NamedArguments;
+import org.structr.core.entity.DataSource;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.script.Scripting;
 import org.structr.core.script.polyglot.context.ContextFactory;
 import org.structr.core.script.polyglot.wrappers.HttpSessionWrapper;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.parser.DatePropertyGenerator;
 
@@ -176,7 +178,15 @@ public class ActionContext {
 
 			if (_data instanceof NodeInterface n) {
 
-				_data = n.evaluate(this, key, null, hints, row, column);
+				// evaluate data source attributes first
+				if (n.is(StructrTraits.DATA_SOURCE)) {
+
+					_data = n.as(DataSource.class).evaluate(this, key);
+
+				} else {
+
+					_data = n.evaluate(this, key, null, hints, row, column);
+				}
 
 			} else if (_data instanceof GraphObject obj) {
 

@@ -4523,6 +4523,7 @@ let _Pages = {
 										<option value="navigate-to-url">Navigate to a new page</option>
 										<option value="fire-event">Raise a custom event</option>
 										<option value="sign-out">Sign out</option>
+										<option value="component-based">Let enclosing component decide</option>
 									</select>
 								</div>
 
@@ -4565,6 +4566,7 @@ let _Pages = {
 										<option value="navigate-to-url">Navigate to a new page</option>
 										<option value="fire-event">Raise a custom event</option>
 										<option value="sign-out">Sign out</option>
+										<option value="component-based">Let enclosing component decide</option>
 									</select>
 								</div>
 

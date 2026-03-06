@@ -1067,6 +1067,11 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	}
 
 	@Override
+	public String getReloadBehaviour() {
+		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.RELOAD_BEHAVIOUR_PROPERTY));
+	}
+
+	@Override
 	public Boolean showLabels() {
 		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.SHOW_LABELS_PROPERTY));
 	}
@@ -2269,6 +2274,36 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	}
 
 	/**
+	 * Returns the reload behaviour for this component, i.e.
+	 * traverses the parent nodes of an element up to the
+	 * component root and returns the first non-null
+	 * reloadBehaviour it finds.
+	 *
+	 * @return the item type or null
+	 */
+	public String getReloadBehaviourForComponent() {
+
+		DOMNode node = this;
+
+		while (node != null && !node.isComponentRoot()) {
+
+			final String reloadBehaviour = node.getReloadBehaviour();
+			if (reloadBehaviour != null) {
+
+				return reloadBehaviour;
+			}
+
+			node = node.getParent();
+		}
+
+		if (node != null) {
+			return node.getReloadBehaviour();
+		}
+
+		return null;
+	}
+
+	/**
 	 * Returns the role for this component, i.e. traverses
 	 * the parent nodes of an element up to the component root
 	 * and returns the first non-null role it finds.
@@ -2281,10 +2316,10 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 		while (node != null && !node.isComponentRoot()) {
 
-			final String fieldSet = node.getRole();
-			if (fieldSet != null) {
+			final String role = node.getRole();
+			if (role != null) {
 
-				return fieldSet;
+				return role;
 			}
 
 			node = node.getParent();

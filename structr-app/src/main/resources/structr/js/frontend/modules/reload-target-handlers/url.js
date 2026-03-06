@@ -41,10 +41,22 @@ export class Handler {
 			result: parameters
 		};
 
-		// Evaluate and replace each {} expression
-		let value = reloadTarget.replace(/{([^}]+)}/g, (match, cg1) => this.getValue(data, cg1));
+        // empty value? preserve request parameters
+        if (reloadTarget.length === 0) {
+
+            let url = new URL(window.location.href);
+            for (const key in parameters) {
+                url.searchParams.set(key, parameters[key]);
+            }
+            reloadTarget = url.toString();
+
+        } else {
+
+            // Evaluate and replace each {} expression
+            reloadTarget = reloadTarget.replace(/{([^}]+)}/g, (match, cg1) => this.getValue(data, cg1));
+        }
 
 		// go to URL
-		window.location.href = value;
+		window.location.href = reloadTarget;
 	}
 }

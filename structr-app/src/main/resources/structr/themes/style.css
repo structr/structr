@@ -24,6 +24,7 @@
     nav { @apply mt-12 p-4; }
     main { @apply p-8 mx-auto w-full max-w-7xl; }
     p { @apply text-sm text-${theme.text.paragraph}; }
+    structr-component { @apply block; }
 
     /* main layout */
     .canvas { @apply flex flex-col flex-1 h-full overflow-auto; }
@@ -112,6 +113,7 @@
     /* margins */
     main > * + * { @apply mt-8; }
     structr-component > * + * { @apply mt-8; }
+    .group > * + * { @apply mt-8; }
     .panel > * + * { @apply mt-8; }
     .panel-content > * + * { @apply mt-8; }
     .accordion > details > * + * { @apply mt-4; }
