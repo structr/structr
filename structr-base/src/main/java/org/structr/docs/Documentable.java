@@ -74,6 +74,12 @@ public interface Documentable {
 		// should we use longDescription or details here?
 		if (details.contains(Details.all)) {
 
+			if (isExperimental()) {
+				lines.add("");
+				lines.add("**Experimental functionality!**");
+				lines.add("");
+			}
+
 			if (isJavaScriptOnly()) {
 
 				lines.add("");
@@ -443,6 +449,10 @@ public interface Documentable {
 		}
 
 		return score;
+	}
+
+	default boolean isExperimental() {
+		return this.getClass().isAnnotationPresent(Experimental.class);
 	}
 
 	class ConceptReference {

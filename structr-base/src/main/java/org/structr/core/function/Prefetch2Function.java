@@ -20,6 +20,8 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.docs.Example;
+import org.structr.docs.Experimental;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
@@ -29,6 +31,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+@Experimental
 public class Prefetch2Function extends CoreFunction {
 
 	@Override
@@ -43,12 +46,21 @@ public class Prefetch2Function extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+				The cypher query must return a collection of nodes `AS nodes` and a list of relationships between them `AS rels`.
+				Optionally, an `$id` parameter can be used to make the query more specific.
+
+				For every relationship in the `rels` collection, the `listOfOutgoingKeys` are marked as prefetched for the start node
+				and the `listOfIncomingKeys` are marked as prefetched for the end node.
+				This means that for those relationships, no more automatic database queries are being made later on.
+
+				A common pitfall can be that a relationship is not included in the cypher query but is still included in those lists, resulting in a scenario where nodes look like they do not have related nodes.
+				""";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("query, listOfOutgoingKeys, listOfIncomingKeys[, id]");
+		return Signature.forAllScriptingLanguages("query, listOfOutgoingKeys, listOfIncomingKeys [, id]");
 	}
 
 	@Override
@@ -70,8 +82,37 @@ public class Prefetch2Function extends CoreFunction {
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.javaScript("$.prefetch2('MATCH (n:Customer)-[r:HAS_TASK]->(m:Task) RETURN collect(n) + collect(m) AS nodes, collect(r) AS rels', ['Customer/all/OUTGOING/HAS_TASK'], ['Task/all/INCOMING/HAS_TASK'])"),
-			Usage.structrScript("prefetch2('MATCH (n:Customer)-[r:HAS_TASK]->(m:Task) RETURN collect(n) + collect(m) AS nodes, collect(r) AS rels', merge('Customer/all/OUTGOING/HAS_TASK'), merge('Task/all/INCOMING/HAS_TASK'))")
+				Usage.javaScript("Usage: ${{ $.prefetch(query, listOfOutgoingKeys, listOfIncomingKeys [, id]); }}. Example: ${{ $.prefetch2('MATCH (n:User { id: $id })-[r:HAS_TASK]->(m:Task) RETURN collect(n) + collect(m) AS nodes, collect(r) AS rels', ['all/OUTGOING/HAS_TASK'], ['all/INCOMING/HAS_TASK'], uuid); }}"),
+				Usage.structrScript("Usage: ${prefetch(query, listOfOutgoingKeys, listOfIncomingKeys [, id])}. Example: ${prefetch2('MATCH (n:User { id: $id })-[r:HAS_TASK]->(m:Task) RETURN collect(n) + collect(m) AS nodes, collect(r) AS rels', merge('all/OUTGOING/HAS_TASK'), merge('all/INCOMING/HAS_TASK'), uuid)}")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.javaScript("""
+						${{
+							let prefetchQuery = `
+								MATCH
+									(n:User { id: $id })-[r:HAS_TASK|CURRENT_TASK]->(m:Task)
+								RETURN
+									collect(n) + collect(m) AS nodes,
+									collect(r) AS rels
+							`;
+							let idParameter = $.me.id;
+
+							let listOfOutgoingKeys = [
+								'all/OUTGOING/HAS_TASK',
+								'all/OUTGOING/CURRENT_TASK'
+							];
+							let listOfIncomingKeys = [
+								'all/INCOMING/HAS_TASK',
+								'all/INCOMING/CURRENT_TASK'
+							];
+
+							$.prefetch2(prefetchQuery, listOfOutgoingKeys, listOfIncomingKeys, idParameter);
+						}}
+						""", "Prefetch all tasks for the current user and their current task")
 		);
 	}
 
