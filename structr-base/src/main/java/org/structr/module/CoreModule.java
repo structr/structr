@@ -25,7 +25,7 @@ import org.structr.core.traits.TraitDefinition;
 import org.structr.core.traits.definitions.*;
 import org.structr.core.traits.relationships.*;
 import org.structr.web.function.ScheduleFunction;
-import org.structr.web.traits.relationships.DOMNodeHAS_DATA_SOURCEDataSource;
+import org.structr.web.traits.relationships.ComponentConfigurationHAS_DATA_SOURCEDataSource;
 
 import java.util.Set;
 
@@ -62,7 +62,7 @@ public class CoreModule implements StructrModule {
 
 		// relationship traits
 		StructrTraits.registerTrait(new DataSourceHAS_PROVIDERDataProvider());
-		StructrTraits.registerTrait(new DOMNodeHAS_DATA_SOURCEDataSource());
+		StructrTraits.registerTrait(new ComponentConfigurationHAS_DATA_SOURCEDataSource());
 		StructrTraits.registerTrait(new PrincipalSchemaGrantRelationshipDefinition());
 		StructrTraits.registerTrait(new GroupContainsPrincipalDefinition());
 		StructrTraits.registerTrait(new SchemaExcludedViewPropertyDefinition());
@@ -78,7 +78,7 @@ public class CoreModule implements StructrModule {
 
 		// relationship types
 		StructrTraits.registerRelationshipType(StructrTraits.DATA_SOURCE_HAS_PROVIDER_DATA_PROVIDER, StructrTraits.DATA_SOURCE_HAS_PROVIDER_DATA_PROVIDER);
-		StructrTraits.registerRelationshipType(StructrTraits.DOM_NODE_HAS_DATA_SOURCE_DATA_SOURCE,   StructrTraits.DOM_NODE_HAS_DATA_SOURCE_DATA_SOURCE);
+		StructrTraits.registerRelationshipType(StructrTraits.COMPONENT_CONFIGURATION_HAS_DATA_SOURCE,   StructrTraits.COMPONENT_CONFIGURATION_HAS_DATA_SOURCE);
 		StructrTraits.registerRelationshipType(StructrTraits.PRINCIPAL_SCHEMA_GRANT_RELATIONSHIP,    StructrTraits.PRINCIPAL_SCHEMA_GRANT_RELATIONSHIP);
 		StructrTraits.registerRelationshipType(StructrTraits.GROUP_CONTAINS_PRINCIPAL,               StructrTraits.GROUP_CONTAINS_PRINCIPAL);
 		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_EXCLUDED_VIEW_PROPERTY,          StructrTraits.SCHEMA_EXCLUDED_VIEW_PROPERTY);

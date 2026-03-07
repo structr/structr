@@ -37,13 +37,12 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
+import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.traits.definitions.LinkSourceTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 
-import java.util.Arrays;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -66,13 +65,16 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	String HIERARCHY_REQUEST_ERR_MESSAGE_ELEMENT   = "A document may only accept an html element as its document element.";
 	String NOT_FOUND_ERR_MESSAGE                   = "Node is not a child.";
 
-	Set<String> cloneBlacklist = new LinkedHashSet<>(Arrays.asList(GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, DOMNodeTraitDefinition.OWNER_DOCUMENT_PROPERTY,
+	Set<String> cloneBlacklist = Set.of(
+		GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, DOMNodeTraitDefinition.OWNER_DOCUMENT_PROPERTY,
 		DOMNodeTraitDefinition.PAGE_ID_PROPERTY, DOMNodeTraitDefinition.PARENT_PROPERTY, DOMNodeTraitDefinition.PARENT_ID_PROPERTY,
 		DOMNodeTraitDefinition.SYNCED_NODES_PROPERTY, DOMNodeTraitDefinition.SYNCED_NODES_IDS_PROPERTY, DOMNodeTraitDefinition.CHILDREN_PROPERTY,
 		DOMNodeTraitDefinition.CHILDREN_IDS_PROPERTY, LinkSourceTraitDefinition.LINKABLE_PROPERTY, LinkSourceTraitDefinition.LINKABLE_ID_PROPERTY,
 		DOMElementTraitDefinition.PATH_PROPERTY, "relationshipId", DOMElementTraitDefinition.TRIGGERED_ACTIONS_PROPERTY,
 		DOMNodeTraitDefinition.RELOADING_ACTIONS_PROPERTY, DOMNodeTraitDefinition.FAILURE_ACTIONS_PROPERTY,
-		DOMNodeTraitDefinition.SUCCESS_NOTIFICATION_ACTIONS_PROPERTY, DOMNodeTraitDefinition.FAILURE_NOTIFICATION_ACTIONS_PROPERTY));
+		DOMNodeTraitDefinition.SUCCESS_NOTIFICATION_ACTIONS_PROPERTY, DOMNodeTraitDefinition.FAILURE_NOTIFICATION_ACTIONS_PROPERTY,
+		DOMNodeTraitDefinition.COMPONENT_CONFIGURATION_PROPERTY
+	);
 
 	static void collectNodesByPredicate(final SecurityContext securityContext, DOMNode startNode, List<DOMNode> results, Predicate<DOMNode> predicate, int depth, boolean stopOnFirstHit) throws FrameworkException {
 
@@ -125,7 +127,7 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	boolean shouldBeRendered(final RenderContext renderContext);
 	boolean isSameNode(final DOMNode otherNode);
 	boolean hasChildNodes();
-	Boolean isComponentRoot();
+	boolean isComponentRoot();
 
 	int getChildPosition(final DOMNode otherNode);
 
@@ -151,6 +153,10 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	String getRole();
 	String getReloadBehaviour();
 	Boolean showLabels();
+
+	ComponentConfiguration getOrCreateComponentConfiguration();
+	ComponentConfiguration getComponentConfiguration();
+	DataSource getDataSource();
 
 	// component-wide methods, traverse the parent hierarchy
 	String getComponentTypeForComponent();
@@ -185,8 +191,6 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	Iterable<ActionMapping> getFailureActions();
 	Iterable<ActionMapping> getSuccessNotificationActions();
 	Iterable<ActionMapping> getFailureNotificationActions();
-
-	DataSource getDataSource();
 
 	DOMNode cloneNode(final boolean deep) throws FrameworkException;
 	DOMNode appendChild(final DOMNode domNode) throws FrameworkException;

@@ -36,6 +36,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.DataSource;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.BooleanProperty;
@@ -52,11 +53,13 @@ import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.StringRenderBuffer;
+import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.dom.*;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.property.CustomHtmlAttributeProperty;
+import org.structr.web.traits.definitions.ComponentConfigurationTraitDefinition;
 import org.structr.web.traits.definitions.LinkSourceTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
@@ -66,7 +69,7 @@ import org.structr.websocket.command.CreateComponentCommand;
 import java.util.*;
 
 /**
- * Combines NodeInterface and DOMnode
+ * Combines NodeInterface and DOMNode
  */
 public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOMNode {
 
@@ -1022,78 +1025,191 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	}
 
 	@Override
+	public ComponentConfiguration getComponentConfiguration() {
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.COMPONENT_CONFIGURATION_PROPERTY));
+		if (node != null) {
+
+			return node.as(ComponentConfiguration.class);
+		}
+
+		return null;
+	}
+
+	@Override
 	public String getComponentType() {
-		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.COMPONENT_TYPE_PROPERTY));
+
+		final ComponentConfiguration config = getComponentConfiguration();
+		if (config != null) {
+
+			return config.getComponentType();
+		}
+
+		return null;
 	}
 
 	@Override
 	public String getItemType() {
-		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.ITEM_TYPE_PROPERTY));
+
+		final ComponentConfiguration config = getComponentConfiguration();
+		if (config != null) {
+
+			return config.getItemType();
+		}
+
+		return null;
 	}
 
 	@Override
 	public String getRepeaterType() {
-		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.REPEATER_TYPE_PROPERTY));
+
+		final ComponentConfiguration config = getComponentConfiguration();
+		if (config != null) {
+
+			return config.getRepeaterType();
+		}
+
+		return null;
 	}
 
 	@Override
 	public Integer getDimensions() {
-		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.DIMENSIONS_PROPERTY));
+
+		final ComponentConfiguration config = getComponentConfiguration();
+		if (config != null) {
+
+			return config.getDimensions();
+		}
+
+		return null;
 	}
 
 	@Override
-	public Boolean isComponentRoot() {
-		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.IS_COMPONENT_ROOT_PROPERTY));
+	public boolean isComponentRoot() {
+
+		final ComponentConfiguration config = getComponentConfiguration();
+		if (config != null) {
+
+			final Boolean isRoot = config.isComponentRoot();
+			if (isRoot != null) {
+
+				return isRoot;
+			}
+		}
+
+		return false;
 	}
 
 	@Override
 	public String getDisplayMode() {
-		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.DISPLAY_MODE_PROPERTY));
+
+		final ComponentConfiguration config = getComponentConfiguration();
+		if (config != null) {
+
+			return config.getDisplayMode();
+		}
+
+		return null;
 	}
 
 	@Override
 	public String getFieldSet() {
-		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.FIELD_SET_PROPERTY));
+
+		final ComponentConfiguration config = getComponentConfiguration();
+		if (config != null) {
+
+			return config.getFieldSet();
+		}
+
+		return null;
 	}
 
 	@Override
 	public String getSaveMode() {
-		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.SAVE_MODE_PROPERTY));
+
+		final ComponentConfiguration config = getComponentConfiguration();
+		if (config != null) {
+
+			return config.getSaveMode();
+		}
+
+		return null;
 	}
 
 	@Override
 	public String getRole() {
-		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.ROLE_PROPERTY));
+
+		final ComponentConfiguration config = getComponentConfiguration();
+		if (config != null) {
+
+			return config.getRole();
+		}
+
+		return null;
 	}
 
 	@Override
 	public String getReloadBehaviour() {
-		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.RELOAD_BEHAVIOUR_PROPERTY));
+
+		final ComponentConfiguration config = getComponentConfiguration();
+		if (config != null) {
+
+			return config.getReloadBehaviour();
+		}
+
+		return null;
 	}
 
 	@Override
 	public Boolean showLabels() {
-		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.SHOW_LABELS_PROPERTY));
+
+		final ComponentConfiguration config = getOrCreateComponentConfiguration();
+		if (config != null) {
+
+			return config.showLabels();
+		}
+
+		return null;
 	}
 
 	@Override
 	public void setComponentType(final String componentType) throws FrameworkException {
-		wrappedObject.setProperty(traits.key(DOMNodeTraitDefinition.COMPONENT_TYPE_PROPERTY), componentType);
+
+		final ComponentConfiguration config = getOrCreateComponentConfiguration();
+		if (config != null) {
+
+			config.setComponentType(componentType);
+		}
 	}
 
 	@Override
 	public void setItemType(final String itemType) throws FrameworkException {
-		wrappedObject.setProperty(traits.key(DOMNodeTraitDefinition.ITEM_TYPE_PROPERTY), itemType);
+
+		final ComponentConfiguration config = getOrCreateComponentConfiguration();
+		if (config != null) {
+
+			config.setItemType(itemType);
+		}
 	}
 
 	@Override
 	public void setDimensions(final Integer dimensions) throws FrameworkException {
-		wrappedObject.setProperty(traits.key(DOMNodeTraitDefinition.DIMENSIONS_PROPERTY), dimensions);
+
+		final ComponentConfiguration config = getOrCreateComponentConfiguration();
+		if (config != null) {
+
+			config.setDimensions(dimensions);
+		}
 	}
 
 	@Override
 	public void setIsComponentRoot(final boolean isComponentRoot) throws FrameworkException {
-		wrappedObject.setProperty(traits.key(DOMNodeTraitDefinition.IS_COMPONENT_ROOT_PROPERTY), isComponentRoot);
+
+		final ComponentConfiguration config = getOrCreateComponentConfiguration();
+		if (config != null) {
+
+			config.setIsComponentRoot(isComponentRoot);
+		}
 	}
 
 	@Override
@@ -1197,18 +1313,6 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		final PropertyKey<Iterable<NodeInterface>> key = traits.key(DOMNodeTraitDefinition.FAILURE_NOTIFICATION_ACTIONS_PROPERTY);
 
 		return Iterables.map(n -> n.as(ActionMapping.class), wrappedObject.getProperty(key));
-	}
-
-	@Override
-	public DataSource getDataSource() {
-
-		final NodeInterface node = wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.DATA_SOURCE_PROPERTY));
-		if (node != null) {
-
-			return node.as(DataSource.class);
-		}
-
-		return null;
 	}
 
 	@Override
@@ -2327,6 +2431,43 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 		if (node != null) {
 			return node.getRole();
+		}
+
+		return null;
+	}
+
+	@Override
+	public ComponentConfiguration getOrCreateComponentConfiguration() {
+
+		final NodeInterface config = getComponentConfiguration();
+		if (config != null) {
+
+			return config.as(ComponentConfiguration.class);
+		}
+
+		try {
+
+			// create new configuration
+			final NodeInterface newConfig = StructrApp.getInstance(getSecurityContext()).create(StructrTraits.COMPONENT_CONFIGURATION,
+				new NodeAttribute<>(Traits.of(StructrTraits.COMPONENT_CONFIGURATION).key(ComponentConfigurationTraitDefinition.DOM_NODE_PROPERTY), this)
+			);
+
+			return newConfig.as(ComponentConfiguration.class);
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+		}
+
+		return null;
+	}
+
+	@Override
+	public DataSource getDataSource() {
+
+		final ComponentConfiguration config = getComponentConfiguration();
+		if (config != null) {
+
+			return config.getDataSource();
 		}
 
 		return null;

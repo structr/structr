@@ -18,12 +18,6 @@
  */
 package org.structr.core.traits.definitions;
 
-import org.graalvm.nativeimage.hosted.Feature;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.InstanceMethod;
 import org.structr.core.entity.DataSource;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
@@ -60,7 +54,7 @@ public class DataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> domNodesProperty = new StartNodes(traitsInstance, DOM_NODES_PROPERTY, StructrTraits.DOM_NODE_HAS_DATA_SOURCE_DATA_SOURCE).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<Iterable<NodeInterface>> domNodesProperty = new StartNodes(traitsInstance, DOM_NODES_PROPERTY, StructrTraits.COMPONENT_CONFIGURATION_HAS_DATA_SOURCE).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<NodeInterface> providerProperty           = new EndNode(traitsInstance, PROVIDER_PROPERTY, StructrTraits.DATA_SOURCE_HAS_PROVIDER_DATA_PROVIDER).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<String> mappingProperty                   = new StringProperty(MAPPING_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<String> fieldSetsProperty                 = new StringProperty(FIELD_SETS_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);

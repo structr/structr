@@ -38,15 +38,13 @@ import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.datasource.TagWithCSSInfo;
+import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Template;
 import org.structr.web.traits.operations.RenderContent;
 import org.structr.web.traits.wrappers.dom.TemplateTraitWrapper;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -137,11 +135,26 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 						// new code for components
 						if (renderTemplateWrapper) {
 
-							// render selected element here?
-							final String dataKey           = dataSource.getDataKey();
-							final Map<String, String> data = new LinkedHashMap<>();
+							final ComponentConfiguration config = node.getComponentConfiguration();
+							final String dataKey                = dataSource.getDataKey();
+							final Map<String, String> data      = new LinkedHashMap<>();
+							final Set<String> classes           = new LinkedHashSet<>();
 
 							data.put("data-structr-id", node.getUuid());
+
+							if (config != null) {
+
+								final Integer columns = config.getColumns();
+								if (columns != null) {
+
+									classes.add("col-span-" + config.getColumns());
+
+								} else {
+
+									// default grid has 6 columns
+									classes.add("col-span-6");
+								}
+							}
 
 							if (dataKey != null) {
 
@@ -157,7 +170,7 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 								}
 							}
 
-							componentTag.formatStartTag(buffer, data, Set.of());
+							componentTag.formatStartTag(buffer, data, classes);
 						}
 
 						// "super" call using static method.

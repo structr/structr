@@ -2494,9 +2494,17 @@ let _Entities = {
 
 		Command.setProperty(entity.id, key, newVal, false, (result) => {
 
-			let newVal = result[key];
+            let newVal = '';
 
-			// update entity so this works multiple times
+            if (result && result[key]) {
+                newVal = result[key];
+
+                if (typeof newVal === 'object' && newVal.id) {
+                    newVal = newVal.id;
+                }
+            }
+
+            // update entity so this works multiple times
 			entity[key] = newVal;
 
 			if (key === 'password' || newVal !== oldVal) {
@@ -2720,18 +2728,57 @@ let _Entities = {
 
 				_Entities.generalTab.showCustomProperties(el, entity);
 			},
-			page: async (el, entity) => {
+            page: async (el, entity) => {
 
-				el.html(_Entities.generalTab.templates.pageOptions({ entity: entity, page: entity }));
+                el.html(_Entities.generalTab.templates.pageOptions({ entity: entity, page: entity }));
 
-				_Entities.generalTab.populateInputFields(el, entity);
-				_Entities.generalTab.registerSimpleInputChangeHandlers(el, entity);
+                _Entities.generalTab.populateInputFields(el, entity);
+                _Entities.generalTab.registerSimpleInputChangeHandlers(el, entity);
 
-				_Pages.previews.configurePreview(entity, el[0]);
+                _Pages.previews.configurePreview(entity, el[0]);
+
+                _Entities.generalTab.focusInput(el);
+
+                await _Entities.generalTab.showCustomProperties(el, entity);
+            },
+			component: async (el, entity) => {
+
+                let config = await Command.getPromise(entity.componentConfiguration.id, '', 'ui');
+
+				el.html(_Entities.generalTab.templates.componentOptions({ entity: config }));
+
+                let fieldSetSelect = document.querySelector('#field-set-select');
+                let dataSourceSelect = document.querySelector('#data-source-select');
+                if (dataSourceSelect) {
+
+                    let sources = await Command.queryPromise('DataSource', 1000, 1, 'name', 'asc', '');
+                    if (sources) {
+                        for (let source of sources) {
+                            dataSourceSelect.insertAdjacentHTML('beforeend', `<option value="${source.id}">${source.name}</option>`);
+                        }
+                    }
+
+                    let loadFieldSets = async (id) => {
+                            let dataSource = await Command.getPromise(id, 'id,fieldSets');
+                            if (dataSource) { return JSON.parse(dataSource.fieldSets); }
+                    }
+
+                    dataSourceSelect.addEventListener('change', async (e) => {
+                        let fieldSets = await loadFieldSets(dataSourceSelect.value);
+                        fieldSetSelect.innerHTML = '';
+                        for (let fieldSet in fieldSets) {
+                            let selected = fieldSet === config.fieldSet ? 'selected' : '';
+                            fieldSetSelect.insertAdjacentHTML('beforeend', `<option ${selected}>${fieldSet}</option>`);
+                        }
+                    });
+                }
+
+                _Entities.generalTab.populateInputFields(el, config);
+				_Entities.generalTab.populateSelectFields(el, config);
+                _Entities.generalTab.registerSimpleInputChangeHandlers(el, config);
+				_Entities.generalTab.registerSimpleSelectChangeHandlers(el, config);
 
 				_Entities.generalTab.focusInput(el);
-
-				await _Entities.generalTab.showCustomProperties(el, entity);
 			},
 		},
 		getGeneralTabConfig: (entity) => {
@@ -2750,8 +2797,14 @@ let _Entities = {
 				'Option':           { id: 'general', title: 'General',     appendDialogForEntityToContainer: _Entities.generalTab.dialogs.option },
 				'Page':             { id: 'general', title: 'General',     appendDialogForEntityToContainer: _Entities.generalTab.dialogs.page },
 				'Template':         { id: 'general', title: 'General',     appendDialogForEntityToContainer: _Entities.generalTab.dialogs.content },
-				'User':             { id: 'general', title: 'General',     appendDialogForEntityToContainer: _Entities.generalTab.dialogs.user }
+                'User':             { id: 'general', title: 'General',     appendDialogForEntityToContainer: _Entities.generalTab.dialogs.user },
+				'Component':        { id: 'general', title: 'General',     appendDialogForEntityToContainer: _Entities.generalTab.dialogs.component }
 			};
+
+            // show special dialog for components with configuration
+            if (entity.componentConfiguration) {
+                return registeredDialogs['Component'];
+            }
 
 			let dialogConfig = registeredDialogs[entity.type];
 
@@ -2767,9 +2820,9 @@ let _Entities = {
 				dialogConfig = registeredDialogs['File'];
 			}
 
-			if (!dialogConfig && entity.isFolder) {
-				dialogConfig = registeredDialogs['Folder'];
-			}
+            if (!dialogConfig && entity.isFolder) {
+                dialogConfig = registeredDialogs['Folder'];
+            }
 
 			return dialogConfig;
 		},
@@ -2921,9 +2974,34 @@ let _Entities = {
 
 			_Entities.generalTab.registerSimpleInputChangeHandlers(el, entity, emptyStringInsteadOfNull, true);
 		},
-		registerSimpleInputChangeHandlers: (el, entity, emptyStringInsteadOfNull, isDeferredChangeHandler = false) => {
+        registerSimpleInputChangeHandlers: (el, entity, emptyStringInsteadOfNull, isDeferredChangeHandler = false) => {
 
-			for (let inputEl of el[0].querySelectorAll('textarea[name], input[name]')) {
+            for (let inputEl of el[0].querySelectorAll('textarea[name], input[name]')) {
+
+                let shouldDeferChangeHandler = inputEl.dataset['deferChangeHandler'];
+
+                if (shouldDeferChangeHandler !== 'true' || (shouldDeferChangeHandler === 'true' && isDeferredChangeHandler === true) ) {
+
+                    inputEl.addEventListener('change', () => {
+
+                        let key      = inputEl.name;
+                        let oldVal   = entity[key];
+                        let newVal   = _Entities.generalTab.getValueFromFormElement(inputEl);
+                        let isChange = (oldVal !== newVal) && !((oldVal === null || oldVal === undefined) && newVal === '');
+
+                        if (isChange) {
+
+                            let blinkElement = (inputEl.type === 'checkbox') ? $(inputEl).parent() : null;
+
+                            _Entities.setPropertyWithFeedback(entity, key, newVal || (emptyStringInsteadOfNull ? '' : null), $(inputEl), blinkElement);
+                        }
+                    });
+                }
+            }
+        },
+		registerSimpleSelectChangeHandlers: (el, entity, emptyStringInsteadOfNull, isDeferredChangeHandler = false) => {
+
+			for (let inputEl of el[0].querySelectorAll('select[name]')) {
 
 				let shouldDeferChangeHandler = inputEl.dataset['deferChangeHandler'];
 
@@ -2946,18 +3024,33 @@ let _Entities = {
 				}
 			}
 		},
-		populateInputFields: (el, entity) => {
+        populateInputFields: (el, entity) => {
 
-			for (let inputEl of el[0].querySelectorAll('textarea[name], input[name]')) {
+            for (let inputEl of el[0].querySelectorAll('textarea[name], input[name]')) {
+
+                let val = entity[inputEl.name];
+                if (val != undefined && val != null) {
+                    if (inputEl.type === 'checkbox') {
+                        inputEl.checked = val;
+                    } else {
+                        inputEl.value = val;
+                    }
+                }
+            }
+        },
+		populateSelectFields: (el, entity) => {
+
+			for (let inputEl of el[0].querySelectorAll('select[name]')) {
 
 				let val = entity[inputEl.name];
 				if (val != undefined && val != null) {
-					if (inputEl.type === 'checkbox') {
-						inputEl.checked = val;
-					} else {
-						inputEl.value = val;
-					}
-				}
+                    if (typeof val === 'object' && val.id) {
+                        inputEl.value = val.id;
+                    } else {
+                        inputEl.value = val;
+                    }
+                }
+                inputEl.dispatchEvent(new Event('change'));
 			}
 		},
 		focusInput: (el, selector) => {
@@ -3547,6 +3640,134 @@ let _Entities = {
 				<div class="row">
 					<a class="block example-condition" data-value="${config.value}">${config.text ?? config.value}</a>
 				</div>
+			`,
+            componentOptions: config => `
+				<div id="div-options" class="quick-access-options" style="padding-top: 0;">
+					
+					<h3>Component Configuration</h3>
+					
+					<div class="grid grid-cols-2 gap-8">
+						
+						${_Entities.generalTab.templates.nameTile(config)}
+					
+						<div>
+							<label class="block mb-2" for="component-type-input" data-comment="The component type determines ...">Component Type</label>
+							<input type="text" id="component-type-input" autocomplete="off" name="componentType">
+						</div>
+					
+						<div>
+							<label class="block mb-2" for="dimensions-input" data-comment="Dimensions are..">Dimensions</label>
+							<input type="text" id="dimensions-input" autocomplete="off" name="dimensions">
+						</div>
+					
+						<div>
+							<label class="block mb-2" for="item-type-input" data-comment="The item type determines ...">Item Type</label>
+							<input type="text" id="item-type-input" autocomplete="off" name="itemType">
+						</div>
+					
+						<div>
+							<label class="block mb-2" for="repeater-type-input" data-comment="The repeater type determines ...">Repeater Type</label>
+							<input type="text" id="repeater-type-input" autocomplete="off" name="repeaterType">
+						</div>
+
+						<div>
+							<label class="block mb-2" for="columns-select" data-comment="Controls the width of this component in grid views">Width</label>
+							<select class="select2" id="columns-select" name="columns">
+								<option value="1">1 column (smallest)</option>
+								<option value="2">2 columns (1/3)</option>
+								<option value="3">3 columns (half width)</option>
+								<option value="4">4 columns (2/3)</option>
+								<option value="5">5 columns (5/6)</option>
+								<option value="6">6 columns (full width)</option>
+							</select>
+						</div>
+						
+						<div></div>
+						
+						<div>
+							<label class="block mb-4">Options</label>
+						    <div class="mb-2 flex items-center">
+    							<input type="checkbox" name="root" id="root">
+    							<label for="root">Is Component Root</label>
+						    </div>
+						</div>
+						
+					</div>
+					
+					<h3 class="mt-8">Data Source Configuration</h3>
+					
+					<div class="grid grid-cols-2 gap-8 mt-8">
+
+						<div>
+							<label class="block mb-2" for="data-source-select" data-comment="The data source determines which objects are displayed in this components.">Data Source</label>
+							<div class="data-source-options flex">
+    							<select class="select2" id="data-source-select" name="dataSource">
+    								<option value="">None</option>
+    							</select>
+    							<button class="button btn ml-2 mr-0" title="Create a new data source"><svg width="16" height="16"><use href="#circle_plus"></use></svg></button>
+   							</div>
+						</div>
+
+						<div>
+							<label class="block mb-2" for="field-set-select" data-comment="The field set determines which properties are displayed in this component.">Field Set</label>
+							<div class="field-setoptions flex">
+                                <select class="select2" id="field-set-select" name="fieldSet">
+                                    <option value="default">Default</option>
+                                </select>
+    							<button class="button btn ml-2 mr-0" title="Create a new field set for this data source."><svg width="16" height="16"><use href="#circle_plus"></use></svg></button>
+   							</div>
+						</div>
+
+						<div>
+							<label class="block mb-2" for="role-select" data-comment="The role of a component determines whether it controls other components or is controlled by other components.">Role</label>
+							<select class="select2" id="role-select" name="role">
+								<option value="">No role</option>
+								<option value="controller">Controller - controls other components with the same data source</option>
+								<option value="subscriber">Subscriber - is controlled by other components with the same data source</option>
+							</select>
+						</div>
+
+						<div>
+							<label class="block mb-2" for="reload-select" data-comment="Controls the reloading behaviour of this component">Reload Behavior</label>
+							<select class="select2" id="reload-select" name="reload">
+								<option value="none">No automatic reload</option>
+								<option value="page">Reload the whole page when changes occur</option>
+								<option value="partial">Reload all partials when changes occur</option>
+								<option value="others">Reload other partials when changes occur</option>
+							</select>
+						</div>
+
+						<div>
+							<label class="block mb-2" for="display-mode-select" data-comment="Controls the display mode of this component">Display Mode</label>
+							<select class="select2" id="display-mode-select" name="displayMode">
+								<option value="">None</option>
+								<option value="output">Render non-editable fields</option>
+								<option value="input">Render editable fields</option>
+							</select>
+						</div>
+
+						<div>
+							<label class="block mb-2" for="save-mode-select" data-comment="Controls the save mode of this component">Save Mode</label>
+							<select class="select2" id="save-mode-select" name="saveMode">
+								<option value="">Save all fields at once using a button</option>
+								<!-- option value="inline">Each field saves its own value immediately</option -->
+							</select>
+						</div>
+						
+						<div></div>
+
+						<div>
+							<label class="block mb-4">Options</label>
+                            <div class="mb-2 flex items-center">
+                                <input type="checkbox" name="labels" id="labels">
+                                <label for="labels">Show Labels</label>
+                            </div>
+                        </div>
+
+                    </div>
+
+				</div>
+			`,
 			`,
 			spacerItemForGrid: config => `<div class="hidden @xl:block"><!-- occupy space in grid UI --></div>`,
 			containerClasses: config => `@container quick-access-options`,

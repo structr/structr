@@ -23,15 +23,15 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-public class DOMNodeHAS_DATA_SOURCEDataSource extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
+public class ComponentConfigurationHAS_DATA_SOURCEDataSource extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	public DOMNodeHAS_DATA_SOURCEDataSource() {
-		super(StructrTraits.DOM_NODE_HAS_DATA_SOURCE_DATA_SOURCE);
+	public ComponentConfigurationHAS_DATA_SOURCEDataSource() {
+		super(StructrTraits.COMPONENT_CONFIGURATION_HAS_DATA_SOURCE);
 	}
 
 	@Override
 	public String getSourceType() {
-		return StructrTraits.DOM_NODE;
+		return StructrTraits.COMPONENT_CONFIGURATION;
 	}
 
 	@Override
@@ -61,7 +61,7 @@ public class DOMNodeHAS_DATA_SOURCEDataSource extends AbstractRelationshipTraitD
 
 	@Override
 	public int getAutocreationFlag() {
-		return Relation.SOURCE_TO_TARGET;
+		return Relation.NONE;
 	}
 
 	@Override

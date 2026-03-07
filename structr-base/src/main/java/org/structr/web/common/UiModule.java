@@ -71,6 +71,7 @@ public class UiModule implements StructrModule {
 		StructrTraits.registerTrait(new DOMNodeFAILURE_NOTIFICATION_ELEMENTActionMapping());
 		StructrTraits.registerTrait(new DOMNodeSUCCESS_TARGETActionMapping());
 		StructrTraits.registerTrait(new DOMNodeSYNCDOMNode());
+		StructrTraits.registerTrait(new DOMNodeHAS_COMPONENT_CONFIGURATIONComponentConfiguration());
 		StructrTraits.registerTrait(new FolderCONTAINSAbstractFile());
 		StructrTraits.registerTrait(new FolderCONTAINSFile());
 		StructrTraits.registerTrait(new FolderCONTAINSFolder());
@@ -97,6 +98,7 @@ public class UiModule implements StructrModule {
 		StructrTraits.registerRelationshipType(StructrTraits.DOM_ELEMENT_TRIGGERED_BY_ACTION_MAPPING,                        StructrTraits.DOM_ELEMENT_TRIGGERED_BY_ACTION_MAPPING);
 		StructrTraits.registerRelationshipType(StructrTraits.DOM_NODE_CONTAINS_DOM_NODE,                                     StructrTraits.DOM_NODE_CONTAINS_DOM_NODE);
 		StructrTraits.registerRelationshipType(StructrTraits.DOM_NODE_CONTAINS_NEXT_SIBLING_DOM_NODE,                        StructrTraits.DOM_NODE_CONTAINS_NEXT_SIBLING_DOM_NODE);
+		StructrTraits.registerRelationshipType(StructrTraits.DOM_NODE_HAS_COMPONENT_CONFIGURATION,                           StructrTraits.DOM_NODE_HAS_COMPONENT_CONFIGURATION);
 		StructrTraits.registerRelationshipType(StructrTraits.DOM_NODE_FAILURE_TARGET_ACTION_MAPPING,                         StructrTraits.DOM_NODE_FAILURE_TARGET_ACTION_MAPPING);
 		StructrTraits.registerRelationshipType(StructrTraits.DOM_NODE_PAGE_PAGE,                                             StructrTraits.DOM_NODE_PAGE_PAGE);
 		StructrTraits.registerRelationshipType(StructrTraits.DOM_NODE_SUCCESS_NOTIFICATION_ELEMENT_ACTION_MAPPING,           StructrTraits.DOM_NODE_SUCCESS_NOTIFICATION_ELEMENT_ACTION_MAPPING);
@@ -126,6 +128,7 @@ public class UiModule implements StructrModule {
 		StructrTraits.registerTrait(new CommentTraitDefinition());
 		StructrTraits.registerTrait(new DOMElementTraitDefinition());
 		StructrTraits.registerTrait(new ComponentTraitDefinition());
+		StructrTraits.registerTrait(new ComponentConfigurationTraitDefinition());
 		StructrTraits.registerTrait(new CssDeclarationTraitDefinition());
 		StructrTraits.registerTrait(new CssRuleTraitDefinition());
 		StructrTraits.registerTrait(new CssSelectorTraitDefinition());
@@ -153,6 +156,7 @@ public class UiModule implements StructrModule {
 		StructrTraits.registerNodeType(StructrTraits.APPLICATION_CONFIGURATION_DATA_NODE, StructrTraits.APPLICATION_CONFIGURATION_DATA_NODE);
 		StructrTraits.registerNodeType(StructrTraits.COMMENT,                             StructrTraits.DOM_NODE, StructrTraits.CONTENT, StructrTraits.COMMENT);
 		StructrTraits.registerNodeType(StructrTraits.COMPONENT,                           StructrTraits.DOM_NODE, StructrTraits.DOM_ELEMENT, StructrTraits.COMPONENT);
+		StructrTraits.registerNodeType(StructrTraits.COMPONENT_CONFIGURATION,             StructrTraits.COMPONENT_CONFIGURATION);
 		StructrTraits.registerNodeType(StructrTraits.CONTENT,                             StructrTraits.DOM_NODE, StructrTraits.CONTENT);
 		StructrTraits.registerNodeType(StructrTraits.CSS_DECLARATION,                     StructrTraits.CSS_DECLARATION);
 		StructrTraits.registerNodeType(StructrTraits.CSS_RULE,                            StructrTraits.CSS_RULE);

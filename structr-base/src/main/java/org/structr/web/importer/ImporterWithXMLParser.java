@@ -601,6 +601,7 @@ public class ImporterWithXMLParser {
 						}
 					}
 				}
+
 			} else if ("svg".equals(tag)) { // don't create elements for SVG
 
 				final String source = node.toString();
@@ -1078,9 +1079,10 @@ public class ImporterWithXMLParser {
 							}
 						}
 					}
-
-
 				}
+
+				// new code for components
+				importAndRemoveComponentConfig(app, newNode, node);
 
 				if (instructions != null) {
 
@@ -1683,5 +1685,25 @@ public class ImporterWithXMLParser {
 		}
 
 		return source;
+	}
+
+	private void importAndRemoveComponentConfig(final App app, final DOMNode newNode, final Node node) throws FrameworkException {
+
+		// import config
+		final String config = node.attr("config");
+		if (config != null) {
+
+			// remove config so it is not used twice
+			node.removeAttr("config");
+
+			final Map<String, Object> componentConfig = new GsonBuilder().create().fromJson(config, Map.class);
+			if (componentConfig != null) {
+
+				final ComponentConfiguration configObject = newNode.getOrCreateComponentConfiguration();
+				final PropertyMap properties              = PropertyMap.inputTypeToJavaType(securityContext, StructrTraits.COMPONENT_CONFIGURATION, componentConfig);
+
+				configObject.setProperties(securityContext, properties);
+			}
+		}
 	}
 }
