@@ -41,7 +41,7 @@ import java.util.*;
  */
 public abstract class ApplyTemplatesFunction extends IncludeFunction {
 
-	public void applyTemplates(final ActionContext ctx, final DataSource dataSource, final DOMNode domNode, final String tag, final Set<String> requestedSlots, final boolean inLoop) throws FrameworkException {
+	public void applyTemplates(final ActionContext ctx, final DataSource dataSource, final DOMNode domNode, final String tag, final String slot, final boolean inLoop) throws FrameworkException {
 
 		final SecurityContext securityContext = ctx.getSecurityContext();
 		final App app                         = StructrApp.getInstance(securityContext);
@@ -107,12 +107,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 				final Set<String> slots = dataField.getSlots();
 
 				// no slot => iterate over all fields or just one slot
-
-
-				FIXME: how to iterate over requested slots OR all existing slots?
-
-				
-				if (requestedSlots == null || slots.contains(requestedSlots)) {
+				if (slot == null || slots.contains(slot)) {
 
 					final Set<String> cssClasses = new LinkedHashSet<>();
 					final String editTemplate    = dataField.getEditTemplate();
@@ -151,7 +146,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 
 					} else {
 
-						final DOMNode templateNode = getTemplate(app, requestedSlots, useEditTemplate ? editTemplate : template);
+						final DOMNode templateNode = getTemplate(app, slot, useEditTemplate ? editTemplate : template);
 						if (templateNode != null) {
 
 							final DataSource previousDataSource  = innerCtx.getCurrentDataSource();

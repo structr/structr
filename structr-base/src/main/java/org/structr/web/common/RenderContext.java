@@ -34,7 +34,6 @@ import org.structr.common.RequestParameters;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.GraphObjectMap;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.DataSource;
@@ -51,7 +50,6 @@ import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.event.ActionMapping;
-import org.structr.websocket.command.ReplaceWidgetCommand;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -469,6 +467,16 @@ public class RenderContext extends ActionContext {
 							return entity.as(DOMNode.class).getClosestTemplate(getPage());
 						}
 						break;
+
+					case "component":
+
+						if (entity.is(StructrTraits.DOM_NODE)) {
+
+							hints.reportExistingKey(key);
+							return entity.as(DOMNode.class).getClosestComponent();
+						}
+						break;
+
 
 					case "currentDataSource":
 

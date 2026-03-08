@@ -206,7 +206,9 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	void setSharedComponent(final DOMNode sharedComponent) throws FrameworkException;
 
 	Template getClosestTemplate(final Page page);
+	DOMNode getClosestComponent();
 	DataSource getClosestDataSource();
+	boolean isEditable();
 
 	void updateFromNode(final DOMNode otherNode) throws FrameworkException;
 	void updateHasSharedComponentFlag() throws FrameworkException;

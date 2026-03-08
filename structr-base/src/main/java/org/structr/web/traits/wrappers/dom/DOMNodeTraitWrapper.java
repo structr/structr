@@ -65,6 +65,7 @@ import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.structr.web.traits.operations.*;
 import org.structr.websocket.command.CreateComponentCommand;
+import org.structr.websocket.command.ReplaceWidgetCommand;
 
 import java.util.*;
 
@@ -463,6 +464,31 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		return null;
 	}
 
+	/**
+	 * Returns the closes component in this element's
+	 * parent hierarchy, i.e. the first parent element
+	 * that has a ComponentConfiguration object.
+	 * @return
+	 */
+	@Override
+	public final DOMNode getClosestComponent() {
+
+		DOMNode node = this;
+
+		while (node != null) {
+
+			final ComponentConfiguration config = node.getComponentConfiguration();
+			if (config != null) {
+
+				return node;
+			}
+
+			node = node.getParent();
+		}
+
+		return null;
+	}
+
 	@Override
 	public final DataSource getClosestDataSource() {
 
@@ -552,6 +578,17 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		}
 
 		return null;
+	}
+
+	public final boolean isEditable() {
+
+		final ComponentConfiguration config = getComponentConfiguration();
+		if (config != null) {
+
+			return "input".equals(config.getDisplayMode());
+		}
+
+		return false;
 	}
 
 	public final boolean isSharedComponent() {
@@ -1163,7 +1200,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	@Override
 	public Boolean showLabels() {
 
-		final ComponentConfiguration config = getOrCreateComponentConfiguration();
+		final ComponentConfiguration config = getComponentConfiguration();
 		if (config != null) {
 
 			return config.showLabels();
@@ -1175,7 +1212,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	@Override
 	public void setComponentType(final String componentType) throws FrameworkException {
 
-		final ComponentConfiguration config = getOrCreateComponentConfiguration();
+		final ComponentConfiguration config = getComponentConfiguration();
 		if (config != null) {
 
 			config.setComponentType(componentType);
@@ -1185,7 +1222,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	@Override
 	public void setItemType(final String itemType) throws FrameworkException {
 
-		final ComponentConfiguration config = getOrCreateComponentConfiguration();
+		final ComponentConfiguration config = getComponentConfiguration();
 		if (config != null) {
 
 			config.setItemType(itemType);
@@ -1195,7 +1232,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	@Override
 	public void setDimensions(final Integer dimensions) throws FrameworkException {
 
-		final ComponentConfiguration config = getOrCreateComponentConfiguration();
+		final ComponentConfiguration config = getComponentConfiguration();
 		if (config != null) {
 
 			config.setDimensions(dimensions);
@@ -1205,7 +1242,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	@Override
 	public void setIsComponentRoot(final boolean isComponentRoot) throws FrameworkException {
 
-		final ComponentConfiguration config = getOrCreateComponentConfiguration();
+		final ComponentConfiguration config = getComponentConfiguration();
 		if (config != null) {
 
 			config.setIsComponentRoot(isComponentRoot);
@@ -2438,6 +2475,10 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	@Override
 	public ComponentConfiguration getOrCreateComponentConfiguration() {
+
+		System.out.println("CREATING ComponentConfiguration for " + ReplaceWidgetCommand.nameOrTag(this));
+
+		Thread.dumpStack();
 
 		final NodeInterface config = getComponentConfiguration();
 		if (config != null) {

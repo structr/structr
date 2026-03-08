@@ -684,6 +684,15 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					final DOMNode node = entity.as(DOMNode.class);
 					return node.getOwnerDocument();
 				}
+			},
+
+			new InstanceMethod(StructrTraits.DOM_NODE, "isEditable") {
+
+				@Override
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
+
+					return entity.as(DOMNode.class).isEditable();
+				}
 			}
 		);
 	}

@@ -1082,7 +1082,7 @@ public class ImporterWithXMLParser {
 				}
 
 				// new code for components
-				importAndRemoveComponentConfig(app, newNode, node);
+				importAndRemoveComponentConfig(newNode, node);
 
 				if (instructions != null) {
 
@@ -1687,7 +1687,7 @@ public class ImporterWithXMLParser {
 		return source;
 	}
 
-	private void importAndRemoveComponentConfig(final App app, final DOMNode newNode, final Node node) throws FrameworkException {
+	private void importAndRemoveComponentConfig(final DOMNode newNode, final Node node) throws FrameworkException {
 
 		// import config
 		final String config = node.attr("config");
