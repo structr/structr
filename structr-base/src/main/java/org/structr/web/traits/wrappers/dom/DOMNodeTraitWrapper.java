@@ -2476,10 +2476,6 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	@Override
 	public ComponentConfiguration getOrCreateComponentConfiguration() {
 
-		System.out.println("CREATING ComponentConfiguration for " + ReplaceWidgetCommand.nameOrTag(this));
-
-		Thread.dumpStack();
-
 		final NodeInterface config = getComponentConfiguration();
 		if (config != null) {
 

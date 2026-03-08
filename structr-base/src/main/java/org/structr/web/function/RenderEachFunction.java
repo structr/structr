@@ -73,7 +73,7 @@ public class RenderEachFunction extends UiCommunityFunction {
 			final DOMNode domNode           = n.as(DOMNode.class);
 			final AsyncBuffer buffer        = renderContext.getBuffer();
 			final String dataKey            = dataSource.getDataKey();
-			final String channel            = dataSource.getDataKey();
+			final String channel            = dataSource.getChannel();
 			final String role               = domNode.getRoleForComponent();
 			final String selectedId         = dataSource.getSelectedId(renderContext);
 			final GraphObject previousValue = renderContext.getDataNode(dataKey);
@@ -103,6 +103,10 @@ public class RenderEachFunction extends UiCommunityFunction {
 							case "page":
 
 								data.put("data-structr-success-target", "url:");
+								break;
+
+							default:
+								data.put("data-structr-success-target", reloadBehaviour);
 								break;
 
 						}

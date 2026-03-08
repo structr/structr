@@ -183,13 +183,6 @@ public class DataField {
 		if (config.containsKey("cols")) {
 
 			cssClasses.add("col-span-" + config.get("cols"));
-
-		} else {
-
-			// we're using a 6-column layout
-			// FIXME: avoid hard-coded constants
-			cssClasses.add("col-span-6");
 		}
-
 	}
 }

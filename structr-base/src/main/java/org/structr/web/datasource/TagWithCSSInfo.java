@@ -130,6 +130,10 @@ public class TagWithCSSInfo {
 		return false;
 	}
 
+	public List<String> getCssClasses() {
+		return classes;
+	}
+
 	private List<String> splitCssSelector(final String source) {
 
 		final Set<Character> separators = Set.of('.', '#');

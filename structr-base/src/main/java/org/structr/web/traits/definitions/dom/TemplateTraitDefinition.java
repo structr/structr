@@ -136,7 +136,7 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 						if (renderTemplateWrapper) {
 
 							final ComponentConfiguration config = node.getComponentConfiguration();
-							final String dataKey                = dataSource.getDataKey();
+							final String channel                = dataSource.getChannel();
 							final Map<String, String> data      = new LinkedHashMap<>();
 							final Set<String> classes           = new LinkedHashSet<>();
 
@@ -156,17 +156,18 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 								}
 							}
 
-							if (dataKey != null) {
+							if (channel != null) {
 
 								final String selectedId = dataSource.getSelectedId(renderContext);
 								if (selectedId != null) {
 
-									data.put("data-" + dataKey, selectedId);
+									data.put("data-current-object-id", selectedId);
+									data.put("data-" + channel, selectedId);
 								}
 
 								// if reload behaviour is "others", we don't want to reload ourselves
 								if (!"others".equals(node.getReloadBehaviour())) {
-									data.put("data-source", dataKey);
+									data.put("data-source", channel);
 								}
 							}
 

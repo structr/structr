@@ -53,9 +53,7 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
@@ -385,7 +383,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 									rootElement = findPartialByName(securityContext, PathHelper.getName(pagePart));
 								}
 
-								dataNode = findNodeByUuid(securityContext, PathHelper.getName(path));
+								final String uuid = PathHelper.getName(path);
+								dataNode = findNodeByUuid(securityContext, uuid);
 
 								if (dataNode == null) {
 									dataNode = findFirstNodeByName(securityContext, path);

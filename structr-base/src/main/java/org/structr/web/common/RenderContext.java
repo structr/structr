@@ -158,7 +158,7 @@ public class RenderContext extends ActionContext {
 
 	}
 
-	public void setDetailsDataObject(GraphObject detailsDataObject) {
+	public void setDetailsDataObject(final GraphObject detailsDataObject) {
 		this.detailsDataObject = detailsDataObject;
 	}
 
@@ -659,6 +659,27 @@ public class RenderContext extends ActionContext {
 
 	public String getCurrentReloadBehaviour() {
 		return currentReloadBehaviour;
+	}
+
+	public String getChannelValue(final String name) {
+
+		switch (name) {
+
+			case "current":
+				if (detailsDataObject != null) {
+
+					return detailsDataObject.getUuid();
+				}
+				break;
+
+			default:
+				final HttpServletRequest request = getSecurityContext().getRequest();
+				if (request != null) {
+					return request.getParameter(name);
+				}
+		}
+
+		return null;
 	}
 
 	// ----- private methods -----

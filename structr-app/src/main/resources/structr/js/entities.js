@@ -3729,12 +3729,7 @@ let _Entities = {
 
 						<div>
 							<label class="block mb-2" for="reload-select" data-comment="Controls the reloading behaviour of this component">Reload Behavior</label>
-							<select class="select2" id="reload-select" name="reload">
-								<option value="none">No automatic reload</option>
-								<option value="page">Reload the whole page when changes occur</option>
-								<option value="partial">Reload all partials when changes occur</option>
-								<option value="others">Reload other partials when changes occur</option>
-							</select>
+							<input type="text" id="reload-input" autocomplete="off" name="reload">
 						</div>
 
 						<div>

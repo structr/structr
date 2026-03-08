@@ -2143,16 +2143,19 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 				case "others":
 					if (dataSource != null) {
 
-						final String dataKey = dataSource.getDataKey();
-						if (dataKey != null) {
+						final String channel = dataSource.getChannel();
+						if (channel != null) {
 
-							return "[data-source='" + dataKey + "']";
+							return "[data-source='" + channel + "']";
 						}
 					}
 					break;
 
 				case "page":
 					return "url:";
+
+				default:
+					return reloadBehaviour;
 			}
 		}
 

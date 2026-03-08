@@ -786,6 +786,26 @@ let _Widgets = {
                     }
                     break;
 
+                case 'fields':
+                    form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select required id="${cleanedLabel}" class="form-field" data-key="${label}"></select></div>`);
+                    {
+                        let typeSelect = document.querySelector('select[data-info="select-type"]');
+                        if (typeSelect) {
+                            typeSelect.addEventListener('change', async (e) => {
+                                let id = typeSelect.value;
+                                Command.get(id, 'id,type,name,mapping', (info) => {
+                                    let s = document.querySelector(`select#${cleanedLabel}`);
+                                    let fields = JSON.parse(info.mapping); // right now it's JSON...
+                                    s.insertAdjacentHTML('beforeend', getOptionsAsText(Object.keys(fields).sort(), 'default'));
+                                    s.dispatchEvent(new CustomEvent('change', {}));
+                                });
+                            });
+                        } else {
+                            console.log('No typeselect');
+                        }
+                    }
+                    break;
+
                 case 'mapping':
                     form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><input type="text" required class="form-field" id="${cleanedLabel}" data-key="${label}" /><div class="sortable-checkbox-list" id="options-${cleanedLabel}"></div></div>`);
                     {

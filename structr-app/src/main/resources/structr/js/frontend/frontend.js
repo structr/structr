@@ -47,25 +47,22 @@ export class Frontend {
 	resolveData(event, target) {
 
         let resolved = {};
-        {
+        let data = target.dataset;
 
-            let data = target.dataset;
+        // active input fields with a name
+        if (target.name && target.name.length > 0) {
 
-            // active input fields with a name
-            if (target.name && target.name.length > 0) {
+            resolved[target.name] = this.resolveElementValue(target);
+        }
 
-                resolved[target.name] = this.resolveElementValue(target);
+        for (const key in data) {
+
+            let value = data[key];
+            if (!value) {
+                continue;
             }
 
-            for (const key in data) {
-
-                let value = data[key];
-                if (!value) {
-                    continue;
-                }
-
-                resolved[key] = this.resolveValue(key, value, data, event, target);
-            }
+            resolved[key] = this.resolveValue(key, value, data, event, target);
         }
 
         // form-based approach if the event target is a form
@@ -77,7 +74,6 @@ export class Frontend {
                 let element = target.elements[key];
                 resolved[key] = this.resolveElementValue(element);
             }
-
         }
 
         return resolved;
@@ -433,7 +429,7 @@ export class Frontend {
 
 		} else {
 
-			this.reloadPartial(targetString, parameters, element);
+			this.reloadPartial(targetString, parameters, element, false, options);
 		}
 	}
 
@@ -487,7 +483,7 @@ export class Frontend {
         this.handleLogout();
 	}
 
-	reloadPartial(selector, parameters, element, dontRebind) {
+	reloadPartial(selector, parameters, element, dontRebind, options) {
 
 		let reloadTargets = document.querySelectorAll(selector);
 
@@ -532,12 +528,17 @@ export class Frontend {
 			}
 		}
 
-        // update url state
-        const url = new URL(window.location.href);
-        for (let key in parameters) {
-            url.searchParams.set(key, parameters[key]);
+        if (options && options.updateHistory) {
+            const url = new URL(window.location.href);
+            for (let key in parameters) {
+                if (key === 'current') {
+                    url.pathname = url.pathname.split('/').toSpliced(2, 1, parameters[key]).join('/');
+                } else {
+                    url.searchParams.set(key, parameters[key]);
+                }
+            }
+            history.pushState({}, '', url);
         }
-        history.pushState({}, '', url);
 	}
 
 	replaceContentInContainer = (container, html) => {
@@ -707,7 +708,11 @@ export class Frontend {
 
 				} else {
 
-					params[key] = value;
+                    if (key === 'current') {
+                        current = '/' + value;
+                    } else {
+                        params[key] = value;
+                    }
 				}
 			}
 		}
@@ -877,6 +882,9 @@ export class Frontend {
 				}
 			}
 		}
+
+        // update history
+        options.updateHistory = true;
 
 		this.handleResult(target, { result: parameters }, 200, options);
 	}

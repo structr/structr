@@ -38,6 +38,7 @@ public interface DataSource extends NodeInterface {
 	Object getSelectedValue(final ActionContext actionContext) throws FrameworkException;
 	Object getCurrentValue(final ActionContext actionContext) throws FrameworkException;
 	String getDataType(final SecurityContext securityContext) throws FrameworkException;
+	String getChannel();
 	String getDataKey();
 
 	DataProvider getDataProvider();

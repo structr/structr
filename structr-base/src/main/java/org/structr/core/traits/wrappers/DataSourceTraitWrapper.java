@@ -110,23 +110,35 @@ public class DataSourceTraitWrapper extends AbstractNodeTraitWrapper implements 
 		return List.of();
 	}
 
+	/**
+	 * Returns the string value (UUID) of the context value that is currently
+	 * selected by the controller of this data source.
+	 *
+	 * @param actionContext
+	 * @return
+	 * @throws FrameworkException
+	 */
 	@Override
 	public String getSelectedId(final ActionContext actionContext) throws FrameworkException {
 
-		final SecurityContext securityContext = actionContext.getSecurityContext();
-		if (securityContext != null) {
+		final String channel = getChannel();
+		if (channel != null && actionContext instanceof RenderContext renderContext) {
 
-			final String dataKey = getDataKey();
-			if (dataKey != null) {
-
-				return securityContext.getRequestParameter(dataKey);
-			}
+			return renderContext.getChannelValue(channel);
 		}
 
 		return null;
-
 	}
 
+	/**
+	 * Returns the context value that is currently selected by the controller
+	 * of this data source. The value can be selected via the channel
+	 * mechanism.
+	 *
+	 * @param actionContext
+	 * @return
+	 * @throws FrameworkException
+	 */
 	@Override
 	public Object getSelectedValue(final ActionContext actionContext) throws FrameworkException {
 
@@ -139,6 +151,14 @@ public class DataSourceTraitWrapper extends AbstractNodeTraitWrapper implements 
 		return null;
 	}
 
+	/**
+	 * Returns the context value that is currently associated with
+	 * the data key of this data source.
+	 *
+	 * @param actionContext
+	 * @return
+	 * @throws FrameworkException
+	 */
 	@Override
 	public Object getCurrentValue(final ActionContext actionContext) throws FrameworkException {
 
@@ -169,6 +189,11 @@ public class DataSourceTraitWrapper extends AbstractNodeTraitWrapper implements 
 		}
 
 		return null;
+	}
+
+	@Override
+	public String getChannel() {
+		return wrappedObject.getProperty(traits.key(DataSourceTraitDefinition.CHANNEL_PROPERTY));
 	}
 
 	@Override

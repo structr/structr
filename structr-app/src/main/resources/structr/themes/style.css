@@ -91,7 +91,7 @@
     td .button { @apply button-sm; }
 
     /* forms */
-    form label, .form-field label { @apply block text-xs font-medium text-${theme.text.heading}; }
+    label { @apply block text-xs font-medium text-${theme.text.heading}; }
     input[type]:not([type="checkbox"]), textarea, select { @apply mt-1 block w-full rounded-md text-${theme.input.text} bg-${theme.input.background} border border-${theme.input.border} py-2 px-3 shadow-sm focus:border-${theme.input.focus} focus:outline-none focus:ring-${theme.input.focus} sm:text-sm; }
     input[type="checkbox"] { @apply m-0 mr-2 p-0 text-xs text-${theme.input.text} bg-${theme.input.background} rounded-sm border-${theme.input.border} focus:border-${theme.input.focus} focus:outline-none focus:ring-${theme.input.focus}; }
     .button { @apply inline-flex items-center rounded-md border border-transparent px-4 py-2 text-sm font-medium shadow-sm focus:ring-offset-2 focus:outline-none focus:ring-2; }

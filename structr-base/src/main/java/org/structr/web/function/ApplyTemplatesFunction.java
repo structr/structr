@@ -57,7 +57,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 		final boolean useEditTemplate         = "input".equals(displayMode);
 		final Object previousFieldValue       = innerCtx.getConstant("field");
 		final DataProvider dataProvider       = dataSource.getDataProvider();
-		final String channel                  = dataSource.getDataKey();
+		final String channel                  = dataSource.getChannel();
 		String selectedValue                  = null;
 
 		// we can only be a subscriber if the fields are not displayed in a loop
@@ -67,7 +67,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 			final String role = domNode.getRoleForComponent();
 			if ("subscriber".equals(role)) {
 
-				selectedValue = innerCtx.getRequestParameter(channel);
+				selectedValue = innerCtx.getChannelValue(channel);
 				if (selectedValue != null) {
 
 					final String dataKey = dataSource.getDataKey();
@@ -106,8 +106,8 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 
 				final Set<String> slots = dataField.getSlots();
 
-				// no slot => iterate over all fields or just one slot
-				if (slot == null || slots.contains(slot)) {
+				// no slot => iterate over all fields or just one slot, or name
+				if (slot == null || slots.contains(slot) || slot.equals(dataField.getName())) {
 
 					final Set<String> cssClasses = new LinkedHashSet<>();
 					final String editTemplate    = dataField.getEditTemplate();

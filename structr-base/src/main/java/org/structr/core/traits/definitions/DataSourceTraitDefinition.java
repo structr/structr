@@ -38,6 +38,7 @@ public class DataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String MAPPING_PROPERTY    = "mapping";
 	public static final String FIELD_SETS_PROPERTY = "fieldSets";
 	public static final String DATA_KEY_PROPERTY   = "dataKey";
+	public static final String CHANNEL_PROPERTY    = "channel";
 
 	public DataSourceTraitDefinition() {
 		super(StructrTraits.DATA_SOURCE);
@@ -59,13 +60,15 @@ public class DataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> mappingProperty                   = new StringProperty(MAPPING_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<String> fieldSetsProperty                 = new StringProperty(FIELD_SETS_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<String> dataKeyProperty                   = new StringProperty(DATA_KEY_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<String> channelProperty                   = new StringProperty(CHANNEL_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 
 		return newSet(
 			domNodesProperty,
 			providerProperty,
 			mappingProperty,
 			fieldSetsProperty,
-			dataKeyProperty
+			dataKeyProperty,
+			channelProperty
 		);
 	}
 
@@ -79,7 +82,8 @@ public class DataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 				MAPPING_PROPERTY,
 				PROVIDER_PROPERTY,
 				FIELD_SETS_PROPERTY,
-				DATA_KEY_PROPERTY
+				DATA_KEY_PROPERTY,
+				CHANNEL_PROPERTY
 			)
 		);
 	}
