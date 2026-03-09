@@ -25,7 +25,7 @@ import org.structr.core.traits.TraitDefinition;
 import org.structr.core.traits.definitions.*;
 import org.structr.core.traits.relationships.*;
 import org.structr.web.function.ScheduleFunction;
-import org.structr.web.traits.relationships.ComponentConfigurationHAS_DATA_SOURCEDataSource;
+import org.structr.web.traits.relationships.ComponentConfigurationHAS_DATA_ADAPTERDataAdapter;
 
 import java.util.Set;
 
@@ -62,7 +62,7 @@ public class CoreModule implements StructrModule {
 
 		// relationship traits
 		StructrTraits.registerTrait(new DataSourceHAS_PROVIDERDataProvider());
-		StructrTraits.registerTrait(new ComponentConfigurationHAS_DATA_SOURCEDataSource());
+		StructrTraits.registerTrait(new ComponentConfigurationHAS_DATA_ADAPTERDataAdapter());
 		StructrTraits.registerTrait(new PrincipalSchemaGrantRelationshipDefinition());
 		StructrTraits.registerTrait(new GroupContainsPrincipalDefinition());
 		StructrTraits.registerTrait(new SchemaExcludedViewPropertyDefinition());
@@ -78,7 +78,7 @@ public class CoreModule implements StructrModule {
 
 		// relationship types
 		StructrTraits.registerRelationshipType(StructrTraits.DATA_SOURCE_HAS_PROVIDER_DATA_PROVIDER, StructrTraits.DATA_SOURCE_HAS_PROVIDER_DATA_PROVIDER);
-		StructrTraits.registerRelationshipType(StructrTraits.COMPONENT_CONFIGURATION_HAS_DATA_SOURCE,   StructrTraits.COMPONENT_CONFIGURATION_HAS_DATA_SOURCE);
+		StructrTraits.registerRelationshipType(StructrTraits.COMPONENT_CONFIGURATION_HAS_DATA_ADAPTER,   StructrTraits.COMPONENT_CONFIGURATION_HAS_DATA_ADAPTER);
 		StructrTraits.registerRelationshipType(StructrTraits.PRINCIPAL_SCHEMA_GRANT_RELATIONSHIP,    StructrTraits.PRINCIPAL_SCHEMA_GRANT_RELATIONSHIP);
 		StructrTraits.registerRelationshipType(StructrTraits.GROUP_CONTAINS_PRINCIPAL,               StructrTraits.GROUP_CONTAINS_PRINCIPAL);
 		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_EXCLUDED_VIEW_PROPERTY,          StructrTraits.SCHEMA_EXCLUDED_VIEW_PROPERTY);
@@ -95,7 +95,7 @@ public class CoreModule implements StructrModule {
 		StructrTraits.registerNodeType(StructrTraits.NODE_INTERFACE, StructrTraits.NODE_INTERFACE);
 		StructrTraits.registerRelationshipType(StructrTraits.RELATIONSHIP_INTERFACE, StructrTraits.RELATIONSHIP_INTERFACE);
 
-		StructrTraits.registerTrait(new DataSourceTraitDefinition());
+		StructrTraits.registerTrait(new DataAdapterTraitDefinition());
 		StructrTraits.registerTrait(new DataProviderTraitDefinition());
 		StructrTraits.registerTrait(new PrincipalTraitDefinition());
 		StructrTraits.registerTrait(new GroupTraitDefinition());
@@ -118,7 +118,7 @@ public class CoreModule implements StructrModule {
 
 		// node types
 		StructrTraits.registerNodeType(StructrTraits.GENERIC_NODE);
-		StructrTraits.registerNodeType(StructrTraits.DATA_SOURCE,              StructrTraits.DATA_SOURCE);
+		StructrTraits.registerNodeType(StructrTraits.DATA_ADAPTER,              StructrTraits.DATA_ADAPTER);
 		StructrTraits.registerNodeType(StructrTraits.DATA_PROVIDER,            StructrTraits.DATA_PROVIDER);
 		StructrTraits.registerNodeType(StructrTraits.PRINCIPAL,                StructrTraits.PRINCIPAL);
 		StructrTraits.registerNodeType(StructrTraits.GROUP,                    StructrTraits.PRINCIPAL, StructrTraits.GROUP);

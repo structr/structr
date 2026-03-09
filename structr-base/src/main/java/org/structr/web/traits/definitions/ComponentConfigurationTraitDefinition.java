@@ -36,7 +36,7 @@ import java.util.Set;
 public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String DOM_NODE_PROPERTY              = "domNode";
-	public static final String DATA_SOURCE_PROPERTY           = "dataSource";
+	public static final String DATA_ADAPTER_PROPERTY          = "dataAdapter";
 	public static final String DISPLAY_MODE_PROPERTY          = "displayMode";
 	public static final String SAVE_MODE_PROPERTY             = "saveMode";
 	public static final String SHOW_LABELS_PROPERTY           = "labels";
@@ -65,19 +65,19 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> domNodeProperty       = new StartNode(traitsInstance, DOM_NODE_PROPERTY, StructrTraits.DOM_NODE_HAS_COMPONENT_CONFIGURATION).category(DOMNode.PAGE_CATEGORY);
-		final Property<NodeInterface> dataSourceProperty    = new EndNode(traitsInstance, DATA_SOURCE_PROPERTY, StructrTraits.COMPONENT_CONFIGURATION_HAS_DATA_SOURCE).category(DOMNode.WIDGETS_CATEGORY);
-		final Property<String> displayModeProperty          = new StringProperty(DISPLAY_MODE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
-		final Property<String> saveModeProperty             = new StringProperty(SAVE_MODE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
-		final Property<String> fieldSetProperty             = new StringProperty(FIELD_SET_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
-		final Property<String> roleProperty                 = new StringProperty(ROLE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
-		final Property<String> reloadBehaviourProperty      = new StringProperty(RELOAD_BEHAVIOUR_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
-		final Property<Boolean> showLabelsProperty          = new BooleanProperty(SHOW_LABELS_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
-		final Property<Integer> columnsProperty             = new IntProperty(COLUMNS_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<NodeInterface> domNodeProperty      = new StartNode(traitsInstance, DOM_NODE_PROPERTY, StructrTraits.DOM_NODE_HAS_COMPONENT_CONFIGURATION).category(DOMNode.PAGE_CATEGORY);
+		final Property<NodeInterface> dataAdapterProperty  = new EndNode(traitsInstance, DATA_ADAPTER_PROPERTY, StructrTraits.COMPONENT_CONFIGURATION_HAS_DATA_ADAPTER).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<String> displayModeProperty         = new StringProperty(DISPLAY_MODE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<String> saveModeProperty            = new StringProperty(SAVE_MODE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<String> fieldSetProperty            = new StringProperty(FIELD_SET_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<String> roleProperty                = new StringProperty(ROLE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<String> reloadBehaviourProperty     = new StringProperty(RELOAD_BEHAVIOUR_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<Boolean> showLabelsProperty         = new BooleanProperty(SHOW_LABELS_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<Integer> columnsProperty            = new IntProperty(COLUMNS_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 
 		return newSet(
 			domNodeProperty,
-			dataSourceProperty,
+			dataAdapterProperty,
 			displayModeProperty,
 			saveModeProperty,
 			fieldSetProperty,
@@ -94,7 +94,7 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 		return Map.of(
 			PropertyView.Ui,
 			newSet(
-				DOM_NODE_PROPERTY, DATA_SOURCE_PROPERTY, DISPLAY_MODE_PROPERTY, SAVE_MODE_PROPERTY,
+				DOM_NODE_PROPERTY, DATA_ADAPTER_PROPERTY, DISPLAY_MODE_PROPERTY, SAVE_MODE_PROPERTY,
 				FIELD_SET_PROPERTY, SHOW_LABELS_PROPERTY, ROLE_PROPERTY, RELOAD_BEHAVIOUR_PROPERTY,
 				COLUMNS_PROPERTY
 			)

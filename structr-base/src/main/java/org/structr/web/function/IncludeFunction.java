@@ -27,7 +27,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.DataSource;
+import org.structr.core.entity.DataAdapter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
@@ -182,7 +182,7 @@ public class IncludeFunction extends UiCommunityFunction {
 				innerCtx.setListSource(iterable);
 				node.renderNodeList(securityContext, innerCtx, 0, dataKey);
 
-			} else if (sources.length == 2 && sources[1] instanceof DataSource dataSource) {
+			} else if (sources.length == 2 && sources[1] instanceof DataAdapter dataSource) {
 
 				final Iterable<GraphObject> iterable = dataSource.getValues(securityContext);
 				final String dataKey                 = dataSource.getDataKey();

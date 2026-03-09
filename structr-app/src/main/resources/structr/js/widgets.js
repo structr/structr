@@ -757,13 +757,13 @@ let _Widgets = {
 
             switch (fieldType) {
 
-                case 'datasource':
-                    let sources = await Command.queryPromise('DataSource', 1000, 1, 'name', 'asc', {}, true, 'dataSource');
+                case 'adapter':
+                    let sources = await Command.queryPromise('DataAdapter', 1000, 1, 'name', 'asc', {}, true, 'adapter');
                     let values = {};
                     for (let value of sources) {
                         values[value.id] = value.name;
                     }
-                    form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select required data-info="select-type" id="${cleanedLabel}" class="form-field" data-key="${label}"><option value="">--- Select datasource ---</option>${getOptionsAsText(values, defaultValue)}</select></div>`);
+                    form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select required data-info="select-type" id="${cleanedLabel}" class="form-field" data-key="${label}"><option value="">--- Select data adapter ---</option>${getOptionsAsText(values, defaultValue)}</select></div>`);
                     break;
 
                 case 'fieldset':

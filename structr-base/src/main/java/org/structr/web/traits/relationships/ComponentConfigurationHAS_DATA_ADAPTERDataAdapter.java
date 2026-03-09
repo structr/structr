@@ -23,10 +23,10 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-public class ComponentConfigurationHAS_DATA_SOURCEDataSource extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
+public class ComponentConfigurationHAS_DATA_ADAPTERDataAdapter extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	public ComponentConfigurationHAS_DATA_SOURCEDataSource() {
-		super(StructrTraits.COMPONENT_CONFIGURATION_HAS_DATA_SOURCE);
+	public ComponentConfigurationHAS_DATA_ADAPTERDataAdapter() {
+		super(StructrTraits.COMPONENT_CONFIGURATION_HAS_DATA_ADAPTER);
 	}
 
 	@Override
@@ -36,12 +36,12 @@ public class ComponentConfigurationHAS_DATA_SOURCEDataSource extends AbstractRel
 
 	@Override
 	public String getTargetType() {
-		return StructrTraits.DATA_SOURCE;
+		return StructrTraits.DATA_ADAPTER;
 	}
 
 	@Override
 	public String getRelationshipType() {
-		return "HAS_DATA_SOURCE";
+		return "HAS_DATA_ADAPTER";
 	}
 
 	@Override

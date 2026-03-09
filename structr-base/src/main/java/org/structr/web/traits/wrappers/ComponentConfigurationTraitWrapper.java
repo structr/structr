@@ -19,13 +19,12 @@
 package org.structr.web.traits.wrappers;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.DataSource;
+import org.structr.core.entity.DataAdapter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.traits.definitions.ComponentConfigurationTraitDefinition;
-import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 
 public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper implements ComponentConfiguration {
 
@@ -35,16 +34,16 @@ public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper
 
 	@Override
 	public void setDataSource(final NodeInterface dataSourceNode) throws FrameworkException {
-		wrappedObject.setProperty(traits.key(ComponentConfigurationTraitDefinition.DATA_SOURCE_PROPERTY), dataSourceNode);
+		wrappedObject.setProperty(traits.key(ComponentConfigurationTraitDefinition.DATA_ADAPTER_PROPERTY), dataSourceNode);
 	}
 
 	@Override
-	public DataSource getDataSource() {
+	public DataAdapter getDataSource() {
 
-		final NodeInterface node = wrappedObject.getProperty(traits.key(ComponentConfigurationTraitDefinition.DATA_SOURCE_PROPERTY));
+		final NodeInterface node = wrappedObject.getProperty(traits.key(ComponentConfigurationTraitDefinition.DATA_ADAPTER_PROPERTY));
 		if (node != null) {
 
-			return node.as(DataSource.class);
+			return node.as(DataAdapter.class);
 		}
 
 		return null;

@@ -21,7 +21,7 @@ package org.structr.web.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.DataSource;
+import org.structr.core.entity.DataAdapter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Example;
@@ -53,7 +53,7 @@ public class RenderLabelsFunction extends ApplyTemplatesFunction {
 
 		try {
 
-			assertArrayHasMinLengthAndTypes(sources, 1, DataSource.class);
+			assertArrayHasMinLengthAndTypes(sources, 1, DataAdapter.class);
 
 			if (!ctx.isRenderContext()) {
 
@@ -68,7 +68,7 @@ public class RenderLabelsFunction extends ApplyTemplatesFunction {
 
 				final DOMNode domNode = n.as(DOMNode.class);
 
-				if (sources[0] instanceof DataSource dataSource) {
+				if (sources[0] instanceof DataAdapter dataSource) {
 
 					applyLabels(ctx, dataSource, domNode, templateWrapper, slot);
 				}

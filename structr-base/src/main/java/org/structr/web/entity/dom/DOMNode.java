@@ -27,7 +27,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
-import org.structr.core.entity.DataSource;
+import org.structr.core.entity.DataAdapter;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -156,7 +156,7 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 
 	ComponentConfiguration getOrCreateComponentConfiguration();
 	ComponentConfiguration getComponentConfiguration();
-	DataSource getDataSource();
+	DataAdapter getDataAdapter();
 
 	// component-wide methods, traverse the parent hierarchy
 	String getComponentTypeForComponent();
@@ -207,7 +207,7 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 
 	Template getClosestTemplate(final Page page);
 	DOMNode getClosestComponent();
-	DataSource getClosestDataSource();
+	DataAdapter getClosestDataAdapter();
 	boolean isEditable();
 
 	void updateFromNode(final DOMNode otherNode) throws FrameworkException;

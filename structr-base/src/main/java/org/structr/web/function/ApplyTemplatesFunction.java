@@ -25,7 +25,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.DataProvider;
-import org.structr.core.entity.DataSource;
+import org.structr.core.entity.DataAdapter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
@@ -42,7 +42,7 @@ import java.util.*;
  */
 public abstract class ApplyTemplatesFunction extends IncludeFunction {
 
-	public void applyTemplates(final ActionContext ctx, final DataSource dataSource, final DOMNode domNode, final String tag, final String slot, final boolean inLoop) throws FrameworkException {
+	public void applyTemplates(final ActionContext ctx, final DataAdapter dataSource, final DOMNode domNode, final String tag, final String slot, final boolean inLoop) throws FrameworkException {
 
 		final SecurityContext securityContext = ctx.getSecurityContext();
 		final App app                         = StructrApp.getInstance(securityContext);
@@ -164,11 +164,11 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 						final DOMNode templateNode = getTemplate(app, slot, useEditTemplate ? editTemplate : template);
 						if (templateNode != null) {
 
-							final DataSource previousDataSource  = innerCtx.getCurrentDataSource();
+							final DataAdapter previousDataSource  = innerCtx.getCurrentAdapter();
 							final String previousReloadBehaviour = innerCtx.getCurrentReloadBehaviour();
 
 							// we need to make the current data source available to the inner template
-							innerCtx.setCurrentDataSource(dataSource);
+							innerCtx.setCurrentAdapter(dataSource);
 							innerCtx.setCurrentReloadBehaviour(reloadBehaviour);
 
 							try {
@@ -176,7 +176,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 
 							} finally {
 
-								innerCtx.setCurrentDataSource(previousDataSource);
+								innerCtx.setCurrentAdapter(previousDataSource);
 								innerCtx.setCurrentReloadBehaviour(previousReloadBehaviour);
 							}
 
@@ -199,7 +199,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 		innerCtx.setConstant("field", previousFieldValue);
 	}
 
-	public void applyLabels(final ActionContext ctx, final DataSource dataSource, final DOMNode domNode, final String templateWrapper, final String slot) throws FrameworkException {
+	public void applyLabels(final ActionContext ctx, final DataAdapter dataSource, final DOMNode domNode, final String templateWrapper, final String slot) throws FrameworkException {
 
 		final SecurityContext securityContext = ctx.getSecurityContext();
 		final RenderContext innerCtx          = new RenderContext((RenderContext)ctx);

@@ -19,10 +19,8 @@
 package org.structr.core.traits.definitions;
 
 import org.structr.core.entity.DataProvider;
-import org.structr.core.entity.DataSource;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.EndNode;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNode;

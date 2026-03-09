@@ -18,20 +18,20 @@
  */
 package org.structr.core.traits.definitions;
 
-import org.structr.core.entity.DataSource;
+import org.structr.core.entity.DataAdapter;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.TraitsInstance;
-import org.structr.core.traits.wrappers.DataSourceTraitWrapper;
+import org.structr.core.traits.wrappers.DataAdapterTraitWrapper;
 import org.structr.web.entity.dom.DOMNode;
 
 import java.util.Map;
 import java.util.Set;
 
-public class DataSourceTraitDefinition extends AbstractNodeTraitDefinition {
+public class DataAdapterTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String DOM_NODES_PROPERTY  = "domNodes";
 	public static final String PROVIDER_PROPERTY   = "provider";
@@ -40,22 +40,22 @@ public class DataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String DATA_KEY_PROPERTY   = "dataKey";
 	public static final String CHANNEL_PROPERTY    = "channel";
 
-	public DataSourceTraitDefinition() {
-		super(StructrTraits.DATA_SOURCE);
+	public DataAdapterTraitDefinition() {
+		super(StructrTraits.DATA_ADAPTER);
 	}
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
 		return Map.of(
-			DataSource.class, (traits, node) -> new DataSourceTraitWrapper(traits, node)
+			DataAdapter.class, (traits, node) -> new DataAdapterTraitWrapper(traits, node)
 		);
 	}
 
 	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> domNodesProperty = new StartNodes(traitsInstance, DOM_NODES_PROPERTY, StructrTraits.COMPONENT_CONFIGURATION_HAS_DATA_SOURCE).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<Iterable<NodeInterface>> domNodesProperty = new StartNodes(traitsInstance, DOM_NODES_PROPERTY, StructrTraits.COMPONENT_CONFIGURATION_HAS_DATA_ADAPTER).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<NodeInterface> providerProperty           = new EndNode(traitsInstance, PROVIDER_PROPERTY, StructrTraits.DATA_SOURCE_HAS_PROVIDER_DATA_PROVIDER).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<String> mappingProperty                   = new StringProperty(MAPPING_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<String> fieldSetsProperty                 = new StringProperty(FIELD_SETS_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
@@ -76,7 +76,7 @@ public class DataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 	public Map<String, Set<String>> getViews() {
 
 		return Map.of(
-			"dataSource", newSet(
+			"adapter", newSet(
 				GraphObjectTraitDefinition.ID_PROPERTY,
 				NodeInterfaceTraitDefinition.NAME_PROPERTY,
 				MAPPING_PROPERTY,

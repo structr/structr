@@ -38,7 +38,7 @@ import org.structr.core.api.Methods;
 import org.structr.core.api.NamedArguments;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.DataSource;
+import org.structr.core.entity.DataAdapter;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.ModificationQueue;
@@ -2133,7 +2133,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		// use either direct data source or from current context
 		final String reloadBehaviour = coalesce(renderContext.getCurrentReloadBehaviour(), node.getReloadBehaviourForComponent());
-		final DataSource dataSource  = coalesce(renderContext.getCurrentDataSource(), node.getClosestDataSource());
+		final DataAdapter adapter    = coalesce(renderContext.getCurrentAdapter(), node.getClosestDataAdapter());
 
 		if (reloadBehaviour != null) {
 
@@ -2141,12 +2141,12 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 				case "partial":
 				case "others":
-					if (dataSource != null) {
+					if (adapter != null) {
 
-						final String channel = dataSource.getChannel();
+						final String channel = adapter.getChannel();
 						if (channel != null) {
 
-							return "[data-source='" + channel + "']";
+							return "[data-adapter='" + channel + "']";
 						}
 					}
 					break;

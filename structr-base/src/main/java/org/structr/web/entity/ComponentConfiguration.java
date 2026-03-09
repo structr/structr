@@ -19,13 +19,13 @@
 package org.structr.web.entity;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.DataSource;
+import org.structr.core.entity.DataAdapter;
 import org.structr.core.graph.NodeInterface;
 
 public interface ComponentConfiguration extends NodeInterface {
 
 	void setDataSource(final NodeInterface dataSourceNode) throws FrameworkException;
-	DataSource getDataSource();
+	DataAdapter getDataSource();
 
 	Integer getColumns();
 	String getDisplayMode();

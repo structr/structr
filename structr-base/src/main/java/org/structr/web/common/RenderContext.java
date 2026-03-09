@@ -36,7 +36,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.DataSource;
+import org.structr.core.entity.DataAdapter;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
@@ -70,7 +70,7 @@ public class RenderContext extends ActionContext {
 	private final Map<String, GraphObject> dataObjects = new HashMap<>();
 	private final Stack<SecurityContext> scStack       = new Stack<>();
 	private final Map<String, Object> theme            = new LinkedHashMap<>();
-	private DataSource currentDataSource               = null;
+	private DataAdapter currentAdapter                 = null;
 	private String currentReloadBehaviour              = null;
 	private EditMode editMode                          = EditMode.NONE;
 	private AsyncBuffer buffer                         = null;
@@ -478,10 +478,10 @@ public class RenderContext extends ActionContext {
 						break;
 
 
-					case "currentDataSource":
+					case "adapter":
 
-						if (currentDataSource != null) {
-							return currentDataSource;
+						if (currentAdapter != null) {
+							return currentAdapter;
 						}
 
 						final List<DOMNode> candidates = new LinkedList<>();
@@ -504,14 +504,14 @@ public class RenderContext extends ActionContext {
 
 						for (final DOMNode domNode : candidates) {
 
-							final DataSource dataSource = domNode.getClosestDataSource();
-							if (dataSource != null) {
+							final DataAdapter adapter = domNode.getClosestDataAdapter();
+							if (adapter != null) {
 
-								return dataSource;
+								return adapter;
 							}
 						}
 
-						LoggerFactory.getLogger(RenderContext.class).warn("{} with UUID {} has no data source in its context or any of its parents.", entity.getType(), entity.getUuid());
+						LoggerFactory.getLogger(RenderContext.class).warn("{} with UUID {} has no data adapter in its context or any of its parents.", entity.getType(), entity.getUuid());
 
 						// no data source found
 						return null;
@@ -645,12 +645,12 @@ public class RenderContext extends ActionContext {
 		return theme;
 	}
 
-	public void setCurrentDataSource(final DataSource newDataSource) {
-		this.currentDataSource = newDataSource;
+	public void setCurrentAdapter(final DataAdapter newDataSource) {
+		this.currentAdapter = newDataSource;
 	}
 
-	public DataSource getCurrentDataSource() {
-		return currentDataSource;
+	public DataAdapter getCurrentAdapter() {
+		return currentAdapter;
 	}
 
 	public void setCurrentReloadBehaviour(final String reloadBehaviour) {

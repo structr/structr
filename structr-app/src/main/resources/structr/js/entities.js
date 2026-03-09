@@ -2748,23 +2748,23 @@ let _Entities = {
                 el.html(_Entities.generalTab.templates.componentOptions({ entity: entity }));
 
                 let fieldSetSelect = document.querySelector('#field-set-select');
-                let dataSourceSelect = document.querySelector('#data-source-select');
-                if (dataSourceSelect) {
+                let dataAdapterSelect = document.querySelector('#data-adapter-select');
+                if (dataAdapterSelect) {
 
-                    let sources = await Command.queryPromise('DataSource', 1000, 1, 'name', 'asc', '');
-                    if (sources) {
-                        for (let source of sources) {
-                            dataSourceSelect.insertAdjacentHTML('beforeend', `<option value="${source.id}">${source.name}</option>`);
+                    let adapters = await Command.queryPromise('DataAdapter', 1000, 1, 'name', 'asc', '');
+                    if (adapters) {
+                        for (let adapter of adapters) {
+                            dataAdapterSelect.insertAdjacentHTML('beforeend', `<option value="${adapter.id}">${adapter.name}</option>`);
                         }
                     }
 
                     let loadFieldSets = async (id) => {
-                            let dataSource = await Command.getPromise(id, 'id,fieldSets');
-                            if (dataSource) { return JSON.parse(dataSource.fieldSets); }
+                            let dataAdapter = await Command.getPromise(id, 'id,fieldSets');
+                            if (dataAdapter) { return JSON.parse(dataAdapter.fieldSets); }
                     }
 
-                    dataSourceSelect.addEventListener('change', async (e) => {
-                        let fieldSets = await loadFieldSets(dataSourceSelect.value);
+                    dataAdapterSelect.addEventListener('change', async (e) => {
+                        let fieldSets = await loadFieldSets(dataAdapterSelect.value);
                         // make sure the existing value is also in the select box
                         fieldSetSelect.innerHTML = '';
                         for (let fieldSet in fieldSets) {
@@ -3704,17 +3704,17 @@ let _Entities = {
 
             dataSourcePartial: (config) => `
 
-                <h3>DataSource Configuration</h3>
+                <h3>Data Adapter Configuration</h3>
             
                 <div class="grid grid-cols-2 gap-8 mt-8">
 
                     <div>
-                        <label class="block mb-2" for="data-source-select" data-comment="The data source determines which objects are displayed in this components.">Data Source</label>
-                        <div class="data-source-options flex">
-                            <select class="select2" id="data-source-select" name="dataSource" data-which="config">
+                        <label class="block mb-2" for="data-adapter-select" data-comment="The data adapter determines which objects are displayed in this components.">Data Adapter</label>
+                        <div class="data-adapter-options flex">
+                            <select class="select2" id="data-adapter-select" name="dataAdapter" data-which="config">
                                 <option value="">None</option>
                             </select>
-                            <button class="button btn ml-2 mr-0" title="Create a new data source"><svg width="16" height="16"><use href="#circle_plus"></use></svg></button>
+                            <button class="button btn ml-2 mr-0" title="Create a new data adapter"><svg width="16" height="16"><use href="#circle_plus"></use></svg></button>
                         </div>
                     </div>
 
@@ -3724,7 +3724,7 @@ let _Entities = {
                             <select class="select2" id="field-set-select" name="fieldSet" data-which="config">
                                 <option value="default">Default</option>
                             </select>
-                            <button class="button btn ml-2 mr-0" title="Create a new field set for this data source."><svg width="16" height="16"><use href="#circle_plus"></use></svg></button>
+                            <button class="button btn ml-2 mr-0" title="Create a new field set for this data adapter."><svg width="16" height="16"><use href="#circle_plus"></use></svg></button>
                         </div>
                     </div>
 
@@ -3732,8 +3732,8 @@ let _Entities = {
                         <label class="block mb-2" for="role-select" data-comment="The role of a component determines whether it controls other components or is controlled by other components.">Role</label>
                         <select class="select2" id="role-select" name="role" data-which="config">
                             <option value="">No role</option>
-                            <option value="controller">Controller - controls other components with the same data source</option>
-                            <option value="subscriber">Subscriber - is controlled by other components with the same data source</option>
+                            <option value="controller">Controller - controls other components with the same data adapter</option>
+                            <option value="subscriber">Subscriber - is controlled by other components with the same data adapter</option>
                         </select>
                     </div>
 

@@ -39,7 +39,7 @@ public class DataSourceHAS_PROVIDERDataProvider extends AbstractRelationshipTrai
 
 	@Override
 	public String getSourceType() {
-		return StructrTraits.DATA_SOURCE;
+		return StructrTraits.DATA_ADAPTER;
 	}
 
 	@Override

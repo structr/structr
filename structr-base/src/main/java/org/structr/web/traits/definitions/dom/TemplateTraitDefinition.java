@@ -22,7 +22,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.api.AbstractMethod;
-import org.structr.core.entity.DataSource;
+import org.structr.core.entity.DataAdapter;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
@@ -31,9 +31,6 @@ import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
-import org.structr.docs.Documentation;
-import org.structr.docs.ontology.ConceptType;
-import org.structr.schema.action.ActionContext;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
@@ -128,7 +125,7 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 					} else {
 
 						final TagWithCSSInfo componentTag   = new TagWithCSSInfo("structr-component");
-						final DataSource dataSource         = node.getDataSource();
+						final DataAdapter dataSource         = node.getDataAdapter();
 						final boolean renderTemplateWrapper = dataSource != null;
 						final AsyncBuffer buffer            = renderContext.getBuffer();
 
@@ -167,7 +164,7 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 
 								// if reload behaviour is "others", we don't want to reload ourselves
 								if (!"others".equals(node.getReloadBehaviour())) {
-									data.put("data-source", channel);
+									data.put("data-adapter", channel);
 								}
 							}
 

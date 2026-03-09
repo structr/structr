@@ -25,10 +25,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.DataProvider;
-import org.structr.core.entity.DataSource;
+import org.structr.core.entity.DataAdapter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.DataSourceTraitDefinition;
+import org.structr.core.traits.definitions.DataAdapterTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.web.common.RenderContext;
@@ -38,13 +38,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class DataSourceTraitWrapper extends AbstractNodeTraitWrapper implements DataSource {
+public class DataAdapterTraitWrapper extends AbstractNodeTraitWrapper implements DataAdapter {
 
 	private final Gson gson = new GsonBuilder().create();
 	private Map<String, DataField> fields = null;
 	private Map<String, List<String>> fieldSets = null;
 
-	public DataSourceTraitWrapper(final Traits traits, final NodeInterface node) {
+	public DataAdapterTraitWrapper(final Traits traits, final NodeInterface node) {
 		super(traits, node);
 	}
 
@@ -61,7 +61,7 @@ public class DataSourceTraitWrapper extends AbstractNodeTraitWrapper implements 
 
 		if (fields == null) {
 
-			final String mappingSource = wrappedObject.getProperty(traits.key(DataSourceTraitDefinition.MAPPING_PROPERTY));
+			final String mappingSource = wrappedObject.getProperty(traits.key(DataAdapterTraitDefinition.MAPPING_PROPERTY));
 			if (mappingSource != null) {
 
 				final Map<String, Object> data = gson.fromJson(mappingSource, Map.class);
@@ -84,7 +84,7 @@ public class DataSourceTraitWrapper extends AbstractNodeTraitWrapper implements 
 
 		if (fieldSets == null) {
 
-			final String source = wrappedObject.getProperty(traits.key(DataSourceTraitDefinition.FIELD_SETS_PROPERTY));
+			final String source = wrappedObject.getProperty(traits.key(DataAdapterTraitDefinition.FIELD_SETS_PROPERTY));
 			if (source != null) {
 
 				fieldSets = gson.fromJson(source, Map.class);
@@ -193,18 +193,18 @@ public class DataSourceTraitWrapper extends AbstractNodeTraitWrapper implements 
 
 	@Override
 	public String getChannel() {
-		return wrappedObject.getProperty(traits.key(DataSourceTraitDefinition.CHANNEL_PROPERTY));
+		return wrappedObject.getProperty(traits.key(DataAdapterTraitDefinition.CHANNEL_PROPERTY));
 	}
 
 	@Override
 	public String getDataKey() {
-		return wrappedObject.getProperty(traits.key(DataSourceTraitDefinition.DATA_KEY_PROPERTY));
+		return wrappedObject.getProperty(traits.key(DataAdapterTraitDefinition.DATA_KEY_PROPERTY));
 	}
 
 	@Override
 	public DataProvider getDataProvider() {
 
-		final NodeInterface provider = wrappedObject.getProperty(traits.key(DataSourceTraitDefinition.PROVIDER_PROPERTY));
+		final NodeInterface provider = wrappedObject.getProperty(traits.key(DataAdapterTraitDefinition.PROVIDER_PROPERTY));
 		if (provider != null) {
 
 			return provider.as(DataProvider.class);

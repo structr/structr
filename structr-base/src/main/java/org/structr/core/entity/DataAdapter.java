@@ -28,7 +28,7 @@ import org.structr.web.datasource.DataField;
 import java.util.List;
 import java.util.Map;
 
-public interface DataSource extends NodeInterface {
+public interface DataAdapter extends NodeInterface {
 
 	Iterable<GraphObject> getValues(final SecurityContext securityContext) throws FrameworkException;
 	Map<String, DataField> getFields(final SecurityContext securityContext) throws FrameworkException;

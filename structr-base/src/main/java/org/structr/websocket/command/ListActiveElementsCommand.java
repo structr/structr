@@ -500,9 +500,9 @@ public class ListActiveElementsCommand extends AbstractCommand {
 
 		} else */
 
-		if (node.getDataSource() != null) {
+		if (node.getDataAdapter() != null) {
 
-			final String id = node.getDataSource().getUuid();
+			final String id = node.getDataAdapter().getUuid();
 
 			addIfNotPresent(nodes, createNodeFromMap(index, id, "DataSource", "ListDataSource"));
 

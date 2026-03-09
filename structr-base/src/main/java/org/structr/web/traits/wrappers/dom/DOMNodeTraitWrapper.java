@@ -33,7 +33,7 @@ import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.DataSource;
+import org.structr.core.entity.DataAdapter;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
@@ -65,7 +65,6 @@ import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.structr.web.traits.operations.*;
 import org.structr.websocket.command.CreateComponentCommand;
-import org.structr.websocket.command.ReplaceWidgetCommand;
 
 import java.util.*;
 
@@ -490,13 +489,13 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	}
 
 	@Override
-	public final DataSource getClosestDataSource() {
+	public final DataAdapter getClosestDataAdapter() {
 
 		DOMNode node = this;
 
 		while (node != null) {
 
-			final DataSource dataSource = node.getDataSource();
+			final DataAdapter dataSource = node.getDataAdapter();
 			if (dataSource != null) {
 
 				return dataSource;
@@ -2440,7 +2439,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	}
 
 	@Override
-	public DataSource getDataSource() {
+	public DataAdapter getDataAdapter() {
 
 		final ComponentConfiguration config = getComponentConfiguration();
 		if (config != null) {

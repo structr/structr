@@ -21,7 +21,7 @@ package org.structr.web.function;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.DataSource;
+import org.structr.core.entity.DataAdapter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Example;
@@ -52,7 +52,7 @@ public class RenderEachFunction extends UiCommunityFunction {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		assertArrayHasMinLengthAndTypes(sources, 2, DataSource.class, String.class);
+		assertArrayHasMinLengthAndTypes(sources, 2, DataAdapter.class, String.class);
 
 		if (!ctx.isRenderContext()) {
 
@@ -62,7 +62,7 @@ public class RenderEachFunction extends UiCommunityFunction {
 		final RenderFieldsFunction func       = new RenderFieldsFunction();
 		final RenderContext renderContext     = (RenderContext) ctx;
 		final SecurityContext securityContext = ctx.getSecurityContext();
-		final DataSource dataSource           = (DataSource) sources[0];
+		final DataAdapter dataSource           = (DataAdapter) sources[0];
 		final List<String> wrapperElements    = splitAndTrim(getStringOrNull(sources, 1), " ");
 		final String slot                     = getStringOrNull(sources, 2);
 		final TagWithCSSInfo outerWrapper     = getWrapperElement(getOrNull(wrapperElements, 0));
@@ -97,7 +97,7 @@ public class RenderEachFunction extends UiCommunityFunction {
 							case "others":
 
 								// partial reload is triggered via pagination mechanism
-								data.put("data-structr-success-target", "[data-source='" + channel + "']");
+								data.put("data-structr-success-target", "[data-adapter='" + channel + "']");
 								break;
 
 							case "page":
