@@ -27,16 +27,6 @@ public interface ComponentConfiguration extends NodeInterface {
 	void setDataSource(final NodeInterface dataSourceNode) throws FrameworkException;
 	DataSource getDataSource();
 
-	void setComponentType(final String componentType) throws FrameworkException;
-	void setItemType(final String itemType) throws FrameworkException;
-	void setDimensions(final Integer dimensions) throws FrameworkException;
-	void setIsComponentRoot(boolean b) throws FrameworkException;
-
-	Boolean isComponentRoot();
-	String getComponentType();
-	String getItemType();
-	String getRepeaterType();
-	Integer getDimensions();
 	Integer getColumns();
 	String getDisplayMode();
 	String getFieldSet();

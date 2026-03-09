@@ -51,51 +51,6 @@ public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper
 	}
 
 	@Override
-	public void setComponentType(final String componentType) throws FrameworkException {
-		wrappedObject.setProperty(traits.key(ComponentConfigurationTraitDefinition.COMPONENT_TYPE_PROPERTY), componentType);
-	}
-
-	@Override
-	public void setItemType(final String itemType) throws FrameworkException {
-		wrappedObject.setProperty(traits.key(ComponentConfigurationTraitDefinition.ITEM_TYPE_PROPERTY), itemType);
-	}
-
-	@Override
-	public void setDimensions(final Integer dimensions) throws FrameworkException {
-		wrappedObject.setProperty(traits.key(ComponentConfigurationTraitDefinition.DIMENSIONS_PROPERTY), dimensions);
-	}
-
-	@Override
-	public void setIsComponentRoot(final boolean isComponentRoot) throws FrameworkException {
-		wrappedObject.setProperty(traits.key(ComponentConfigurationTraitDefinition.IS_COMPONENT_ROOT_PROPERTY), isComponentRoot);
-	}
-
-	@Override
-	public Boolean isComponentRoot() {
-		return wrappedObject.getProperty(traits.key(ComponentConfigurationTraitDefinition.IS_COMPONENT_ROOT_PROPERTY));
-	}
-
-	@Override
-	public String getComponentType() {
-		return wrappedObject.getProperty(traits.key(ComponentConfigurationTraitDefinition.COMPONENT_TYPE_PROPERTY));
-	}
-
-	@Override
-	public String getItemType() {
-		return wrappedObject.getProperty(traits.key(ComponentConfigurationTraitDefinition.ITEM_TYPE_PROPERTY));
-	}
-
-	@Override
-	public String getRepeaterType() {
-		return wrappedObject.getProperty(traits.key(ComponentConfigurationTraitDefinition.REPEATER_TYPE_PROPERTY));
-	}
-
-	@Override
-	public Integer getDimensions() {
-		return wrappedObject.getProperty(traits.key(ComponentConfigurationTraitDefinition.DIMENSIONS_PROPERTY));
-	}
-
-	@Override
 	public Integer getColumns() {
 		return wrappedObject.getProperty(traits.key(ComponentConfigurationTraitDefinition.COLUMNS_PROPERTY));
 	}

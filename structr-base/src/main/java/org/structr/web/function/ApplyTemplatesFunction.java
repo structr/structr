@@ -19,6 +19,7 @@
 package org.structr.web.function;
 
 import org.apache.tika.utils.StringUtils;
+import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -109,12 +110,13 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 				// no slot => iterate over all fields or just one slot, or name
 				if (slot == null || slots.contains(slot) || slot.equals(dataField.getName())) {
 
-					final Set<String> cssClasses = new LinkedHashSet<>();
-					final String editTemplate    = dataField.getEditTemplate();
-					final String template        = dataField.getTemplate();
-					final String valueSource     = dataField.getValue();
-					final String label           = dataField.getLabel();
-					Object value                 = null;
+					final Set<String> cssClasses    = new LinkedHashSet<>();
+					final String editTemplate       = dataField.getEditTemplate();
+					final String template           = dataField.getTemplate();
+					final String valueSource        = dataField.getValue();
+					final String label              = dataField.getLabel();
+					final Boolean showLabelOverride = dataField.showLabel();
+					Object value                    = null;
 
 					// apply field-dependent CSS classes to the wrapper element
 					dataField.applyCssClasses(cssClasses);
@@ -126,6 +128,11 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 					if (valueSource != null) {
 
 						value = innerCtx.getReferencedProperty(null, valueSource, null, 0, new EvaluationHints(), 0, 0);
+
+						// make iterables permanent
+						if (value instanceof Iterable) {
+							value = Iterables.toList((Iterable)value);
+						}
 						innerCtx.setConstant("value", value);
 					}
 
@@ -134,9 +141,17 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 					}
 
 					// render labels?
-					if (showLabels != null && showLabels && label != null) {
+					if (label != null) {
 
-						buffer.append("<label>" + label + "</label>");
+						boolean doShow = showLabels != null && showLabels;
+
+						if (showLabelOverride != null) {
+							doShow = showLabelOverride;
+						}
+
+						if (doShow) {
+							buffer.append("<label>" + label + "</label>");
+						}
 					}
 
 					if (useEditTemplate && StringUtils.isEmpty(editTemplate)) {

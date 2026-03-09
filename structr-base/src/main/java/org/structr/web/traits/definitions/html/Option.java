@@ -159,6 +159,19 @@ public class Option extends GenericHtmlElementTraitDefinition {
 
 								// Iterable, Collection, List etc.
 								final List list = Iterables.toList((Iterable)selectedValues);
+
+								for (final java.lang.Object o : list) {
+
+									// support related nodes here
+									if (o instanceof GraphObject g) {
+
+										final String id = g.getUuid();
+										if (id != null) {
+
+
+										}
+									}
+								}
 								found = list.contains(currentValue);
 
 							} else if (selectedValues.getClass().isArray()) {

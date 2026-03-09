@@ -36,8 +36,9 @@ public class DataField {
 	private final String template;
 	private final String editTemplate;
 	private final String propertyName;
+	private final Boolean showLabel;
 
-	public DataField(final String name, final String label, final String value, final String template, final String editTemplate, final String propertyName) {
+	public DataField(final String name, final String label, final String value, final String template, final String editTemplate, final String propertyName, final Boolean showLabel) {
 
 		this.name         = name;
 		this.label        = label;
@@ -45,6 +46,7 @@ public class DataField {
 		this.template     = template;
 		this.editTemplate = editTemplate;
 		this.propertyName = propertyName;
+		this.showLabel    = showLabel;
 	}
 
 	public String getName() {
@@ -83,6 +85,10 @@ public class DataField {
 		return config;
 	}
 
+	public Boolean showLabel() {
+		return showLabel;
+	}
+
 	/**
 	 * Evaluates the field options and returns a map with the field information
 	 * usable by the frontend components that render the edit template.
@@ -113,6 +119,9 @@ public class DataField {
 
 				// add required flag
 				result.put("required", fieldDefinition.isRequired());
+
+				// multiple?
+				result.put("multiple", fieldDefinition.isCollection());
 
 				if (fieldDefinition.hasOptions()) {
 
@@ -145,7 +154,8 @@ public class DataField {
 			(String) map.get("value"),
 			(String) map.get("template"),
 			(String) map.get("editTemplate"),
-			(String) map.get("propertyName")
+			(String) map.get("propertyName"),
+			(Boolean) map.get("showLabel")
 		);
 
 		// combine "slot" and "slots"

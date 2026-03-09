@@ -20,14 +20,15 @@ package org.structr.web.datasource;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 
 import java.util.List;
-import java.util.Map;
 
 public interface FieldDefinition {
 
 	boolean hasOptions();
 	boolean isRequired();
+	boolean isCollection();
 
-	List<Map<String, String>> getOptions(final SecurityContext securityContext, final String filter, final String label) throws FrameworkException;
+	List<GraphObject> getOptions(final SecurityContext securityContext, final String filter, final String label) throws FrameworkException;
 }

@@ -1075,66 +1075,27 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	@Override
 	public String getComponentType() {
-
-		final ComponentConfiguration config = getComponentConfiguration();
-		if (config != null) {
-
-			return config.getComponentType();
-		}
-
-		return null;
+		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.COMPONENT_TYPE_PROPERTY));
 	}
 
 	@Override
 	public String getItemType() {
-
-		final ComponentConfiguration config = getComponentConfiguration();
-		if (config != null) {
-
-			return config.getItemType();
-		}
-
-		return null;
+		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.ITEM_TYPE_PROPERTY));
 	}
 
 	@Override
 	public String getRepeaterType() {
-
-		final ComponentConfiguration config = getComponentConfiguration();
-		if (config != null) {
-
-			return config.getRepeaterType();
-		}
-
-		return null;
+		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.REPEATER_TYPE_PROPERTY));
 	}
 
 	@Override
 	public Integer getDimensions() {
-
-		final ComponentConfiguration config = getComponentConfiguration();
-		if (config != null) {
-
-			return config.getDimensions();
-		}
-
-		return null;
+		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.DIMENSIONS_PROPERTY));
 	}
 
 	@Override
 	public boolean isComponentRoot() {
-
-		final ComponentConfiguration config = getComponentConfiguration();
-		if (config != null) {
-
-			final Boolean isRoot = config.isComponentRoot();
-			if (isRoot != null) {
-
-				return isRoot;
-			}
-		}
-
-		return false;
+		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.IS_COMPONENT_ROOT_PROPERTY));
 	}
 
 	@Override
@@ -1210,43 +1171,23 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	}
 
 	@Override
+	public void setIsComponentRoot(final boolean isComponentRoot) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(DOMNodeTraitDefinition.IS_COMPONENT_ROOT_PROPERTY), isComponentRoot);
+	}
+
+	@Override
 	public void setComponentType(final String componentType) throws FrameworkException {
-
-		final ComponentConfiguration config = getComponentConfiguration();
-		if (config != null) {
-
-			config.setComponentType(componentType);
-		}
+		wrappedObject.setProperty(traits.key(DOMNodeTraitDefinition.COMPONENT_TYPE_PROPERTY), componentType);
 	}
 
 	@Override
 	public void setItemType(final String itemType) throws FrameworkException {
-
-		final ComponentConfiguration config = getComponentConfiguration();
-		if (config != null) {
-
-			config.setItemType(itemType);
-		}
+		wrappedObject.setProperty(traits.key(DOMNodeTraitDefinition.ITEM_TYPE_PROPERTY), itemType);
 	}
 
 	@Override
 	public void setDimensions(final Integer dimensions) throws FrameworkException {
-
-		final ComponentConfiguration config = getComponentConfiguration();
-		if (config != null) {
-
-			config.setDimensions(dimensions);
-		}
-	}
-
-	@Override
-	public void setIsComponentRoot(final boolean isComponentRoot) throws FrameworkException {
-
-		final ComponentConfiguration config = getComponentConfiguration();
-		if (config != null) {
-
-			config.setIsComponentRoot(isComponentRoot);
-		}
+		wrappedObject.setProperty(traits.key(DOMNodeTraitDefinition.DIMENSIONS_PROPERTY), dimensions);
 	}
 
 	@Override

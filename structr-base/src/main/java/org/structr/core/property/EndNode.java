@@ -23,6 +23,7 @@ import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
@@ -37,6 +38,7 @@ import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.TraitsInstance;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.openapi.common.OpenAPIAnyOf;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
 import org.structr.web.datasource.FieldDefinition;
@@ -329,25 +331,8 @@ public class EndNode extends Property<NodeInterface> implements RelationProperty
 	}
 
 	@Override
-	public List<Map<String, String>> getOptions(final SecurityContext securityContext, final String filter, final String label) throws FrameworkException {
-
-		final List<Map<String, String>> options = new LinkedList<>();
-
-		// empty option
-		if (!isRequired()) {
-
-			options.add(Map.of("name", "", "value", ""));
-		}
-
-		for (final NodeInterface node : StructrApp.getInstance(securityContext).nodeQuery(getTargetType()).getResultStream()) {
-
-			final Traits traits           = node.getTraits();
-			final PropertyKey<String> key = traits.key(label);
-
-			options.add(Map.of("name", node.getProperty(key), "value", node.getUuid()));
-
-		}
-
-		return options;
+	public List<GraphObject> getOptions(final SecurityContext securityContext, final String filter, final String label) throws FrameworkException {
+		final PropertyKey<String> nameKey = Traits.of(getTargetType()).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+		return (List) StructrApp.getInstance(securityContext).nodeQuery(getTargetType()).sort(nameKey).getAsList();
 	}
 }

@@ -36,12 +36,7 @@ import java.util.Set;
 public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String DOM_NODE_PROPERTY              = "domNode";
-	public static final String COMPONENT_TYPE_PROPERTY        = "componentType";
 	public static final String DATA_SOURCE_PROPERTY           = "dataSource";
-	public static final String DIMENSIONS_PROPERTY            = "dimensions";
-	public static final String ITEM_TYPE_PROPERTY             = "itemType";
-	public static final String REPEATER_TYPE_PROPERTY         = "repeaterType";
-	public static final String IS_COMPONENT_ROOT_PROPERTY     = "root";
 	public static final String DISPLAY_MODE_PROPERTY          = "displayMode";
 	public static final String SAVE_MODE_PROPERTY             = "saveMode";
 	public static final String SHOW_LABELS_PROPERTY           = "labels";
@@ -72,11 +67,6 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 
 		final Property<NodeInterface> domNodeProperty       = new StartNode(traitsInstance, DOM_NODE_PROPERTY, StructrTraits.DOM_NODE_HAS_COMPONENT_CONFIGURATION).category(DOMNode.PAGE_CATEGORY);
 		final Property<NodeInterface> dataSourceProperty    = new EndNode(traitsInstance, DATA_SOURCE_PROPERTY, StructrTraits.COMPONENT_CONFIGURATION_HAS_DATA_SOURCE).category(DOMNode.WIDGETS_CATEGORY);
-		final Property<String> componentTypeProperty        = new StringProperty(COMPONENT_TYPE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
-		final Property<Integer> dimensionsProperty          = new IntProperty(DIMENSIONS_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
-		final Property<String> itemTypeProperty             = new StringProperty(ITEM_TYPE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
-		final Property<String> repeaterTypeProperty         = new StringProperty(REPEATER_TYPE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
-		final Property<Boolean> isComponentRootProperty     = new BooleanProperty(IS_COMPONENT_ROOT_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<String> displayModeProperty          = new StringProperty(DISPLAY_MODE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<String> saveModeProperty             = new StringProperty(SAVE_MODE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<String> fieldSetProperty             = new StringProperty(FIELD_SET_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
@@ -87,11 +77,6 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 
 		return newSet(
 			domNodeProperty,
-			componentTypeProperty,
-			dimensionsProperty,
-			itemTypeProperty,
-			repeaterTypeProperty,
-			isComponentRootProperty,
 			dataSourceProperty,
 			displayModeProperty,
 			saveModeProperty,
@@ -109,10 +94,9 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 		return Map.of(
 			PropertyView.Ui,
 			newSet(
-				DOM_NODE_PROPERTY, COMPONENT_TYPE_PROPERTY, DIMENSIONS_PROPERTY, ITEM_TYPE_PROPERTY,
-				REPEATER_TYPE_PROPERTY, IS_COMPONENT_ROOT_PROPERTY, DATA_SOURCE_PROPERTY,
-				DISPLAY_MODE_PROPERTY, SAVE_MODE_PROPERTY, FIELD_SET_PROPERTY, SHOW_LABELS_PROPERTY,
-				ROLE_PROPERTY, RELOAD_BEHAVIOUR_PROPERTY, COLUMNS_PROPERTY
+				DOM_NODE_PROPERTY, DATA_SOURCE_PROPERTY, DISPLAY_MODE_PROPERTY, SAVE_MODE_PROPERTY,
+				FIELD_SET_PROPERTY, SHOW_LABELS_PROPERTY, ROLE_PROPERTY, RELOAD_BEHAVIOUR_PROPERTY,
+				COLUMNS_PROPERTY
 			)
 		);
 	}

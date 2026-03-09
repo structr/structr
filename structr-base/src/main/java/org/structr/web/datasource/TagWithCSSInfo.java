@@ -21,10 +21,7 @@ package org.structr.web.datasource;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.web.common.AsyncBuffer;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class TagWithCSSInfo {
 
@@ -63,10 +60,15 @@ public class TagWithCSSInfo {
 
 	public void formatStartTag(final AsyncBuffer buffer, final Map<String, String> additionalValues, final Set<String> additionalClasses) {
 
-		final List<String> mergedClasses = new LinkedList<>(classes);
+		final Set<String> mergedClasses = new LinkedHashSet<>(classes);
 
 		if (additionalClasses != null) {
 			mergedClasses.addAll(additionalClasses);
+		}
+
+		// apply default column width
+		if (!containsAny(mergedClasses, "col-span-1", "col-span-2", "col-span-3", "col-span-4", "col-span-5", "col-span-6")) {
+			mergedClasses.add("col-span-6");
 		}
 
 		if (StringUtils.isNotBlank(tag)) {
@@ -130,10 +132,6 @@ public class TagWithCSSInfo {
 		return false;
 	}
 
-	public List<String> getCssClasses() {
-		return classes;
-	}
-
 	private List<String> splitCssSelector(final String source) {
 
 		final Set<Character> separators = Set.of('.', '#');
@@ -154,5 +152,17 @@ public class TagWithCSSInfo {
 		parts.add(current.toString());
 
 		return parts;
+	}
+
+	private boolean containsAny(final Set<String> set, final String... values) {
+
+		for (final String value : values) {
+
+			if (set.contains(value)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }

@@ -2745,7 +2745,7 @@ let _Entities = {
 
                 let config = await Command.getPromise(entity.componentConfiguration.id, '', 'ui');
 
-				el.html(_Entities.generalTab.templates.componentOptions({ entity: config }));
+                el.html(_Entities.generalTab.templates.componentOptions({ entity: entity }));
 
                 let fieldSetSelect = document.querySelector('#field-set-select');
                 let dataSourceSelect = document.querySelector('#data-source-select');
@@ -2765,18 +2765,20 @@ let _Entities = {
 
                     dataSourceSelect.addEventListener('change', async (e) => {
                         let fieldSets = await loadFieldSets(dataSourceSelect.value);
+                        // make sure the existing value is also in the select box
                         fieldSetSelect.innerHTML = '';
                         for (let fieldSet in fieldSets) {
                             let selected = fieldSet === config.fieldSet ? 'selected' : '';
                             fieldSetSelect.insertAdjacentHTML('beforeend', `<option ${selected}>${fieldSet}</option>`);
                         }
+                        fieldSetSelect.dispatchEvent(new Event('change'));
                     });
                 }
 
-                _Entities.generalTab.populateInputFields(el, config);
-				_Entities.generalTab.populateSelectFields(el, config);
-                _Entities.generalTab.registerSimpleInputChangeHandlers(el, config);
-				_Entities.generalTab.registerSimpleSelectChangeHandlers(el, config);
+                _Entities.generalTab.populateInputFields(el, { entity: entity, config: config });
+				_Entities.generalTab.populateSelectFields(el, { entity: entity, config: config });
+                _Entities.generalTab.registerSimpleInputChangeHandlers(el, { entity: entity, config: config });
+				_Entities.generalTab.registerSimpleSelectChangeHandlers(el, { entity: entity, config: config });
 
 				_Entities.generalTab.focusInput(el);
 			},
@@ -2974,7 +2976,7 @@ let _Entities = {
 
 			_Entities.generalTab.registerSimpleInputChangeHandlers(el, entity, emptyStringInsteadOfNull, true);
 		},
-        registerSimpleInputChangeHandlers: (el, entity, emptyStringInsteadOfNull, isDeferredChangeHandler = false) => {
+        registerSimpleInputChangeHandlers: (el, src, emptyStringInsteadOfNull, isDeferredChangeHandler = false) => {
 
             for (let inputEl of el[0].querySelectorAll('textarea[name], input[name]')) {
 
@@ -2983,6 +2985,11 @@ let _Entities = {
                 if (shouldDeferChangeHandler !== 'true' || (shouldDeferChangeHandler === 'true' && isDeferredChangeHandler === true) ) {
 
                     inputEl.addEventListener('change', () => {
+
+                        let entity = src;
+
+                        // let input decide what the data target is
+                        if (inputEl.dataset.which) { entity = src[inputEl.dataset.which]; }
 
                         let key      = inputEl.name;
                         let oldVal   = entity[key];
@@ -2999,7 +3006,7 @@ let _Entities = {
                 }
             }
         },
-		registerSimpleSelectChangeHandlers: (el, entity, emptyStringInsteadOfNull, isDeferredChangeHandler = false) => {
+		registerSimpleSelectChangeHandlers: (el, src, emptyStringInsteadOfNull, isDeferredChangeHandler = false) => {
 
 			for (let inputEl of el[0].querySelectorAll('select[name]')) {
 
@@ -3009,7 +3016,12 @@ let _Entities = {
 
 					inputEl.addEventListener('change', () => {
 
-						let key      = inputEl.name;
+                        let entity = src;
+
+                        // let input decide what the data target is
+                        if (inputEl.dataset.which) { entity = src[inputEl.dataset.which]; }
+
+                        let key      = inputEl.name;
 						let oldVal   = entity[key];
 						let newVal   = _Entities.generalTab.getValueFromFormElement(inputEl);
 						let isChange = (oldVal !== newVal) && !((oldVal === null || oldVal === undefined) && newVal === '');
@@ -3024,10 +3036,10 @@ let _Entities = {
 				}
 			}
 		},
-        populateInputFields: (el, entity) => {
-
+        populateInputFields: (el, src) => {
+            let entity = src;
             for (let inputEl of el[0].querySelectorAll('textarea[name], input[name]')) {
-
+                if (inputEl.dataset.which) { entity = src[inputEl.dataset.which]; }
                 let val = entity[inputEl.name];
                 if (val != undefined && val != null) {
                     if (inputEl.type === 'checkbox') {
@@ -3038,10 +3050,10 @@ let _Entities = {
                 }
             }
         },
-		populateSelectFields: (el, entity) => {
-
+		populateSelectFields: (el, src) => {
+            let entity = src;
 			for (let inputEl of el[0].querySelectorAll('select[name]')) {
-
+                if (inputEl.dataset.which) { entity = src[inputEl.dataset.which]; }
 				let val = entity[inputEl.name];
 				if (val != undefined && val != null) {
                     if (typeof val === 'object' && val.id) {
@@ -3641,127 +3653,133 @@ let _Entities = {
 					<a class="block example-condition" data-value="${config.value}">${config.text ?? config.value}</a>
 				</div>
 			`,
-            componentOptions: config => `
+            componentOptions: (config) => `
 				<div id="div-options" class="quick-access-options" style="padding-top: 0;">
-					
-					<h3>Component Configuration</h3>
-					
-					<div class="grid grid-cols-2 gap-8">
-						
-						${_Entities.generalTab.templates.nameTile(config)}
-					
-						<div>
-							<label class="block mb-2" for="component-type-input" data-comment="The component type determines ...">Component Type</label>
-							<input type="text" id="component-type-input" autocomplete="off" name="componentType">
-						</div>
-					
-						<div>
-							<label class="block mb-2" for="dimensions-input" data-comment="Dimensions are..">Dimensions</label>
-							<input type="text" id="dimensions-input" autocomplete="off" name="dimensions">
-						</div>
-					
-						<div>
-							<label class="block mb-2" for="item-type-input" data-comment="The item type determines ...">Item Type</label>
-							<input type="text" id="item-type-input" autocomplete="off" name="itemType">
-						</div>
-					
-						<div>
-							<label class="block mb-2" for="repeater-type-input" data-comment="The repeater type determines ...">Repeater Type</label>
-							<input type="text" id="repeater-type-input" autocomplete="off" name="repeaterType">
-						</div>
+				    ${_Entities.generalTab.templates.componentOptionsPartial(config)}
+				    ${_Entities.generalTab.templates.dataSourcePartial(config)}
+				</div>
+			`,
 
-						<div>
-							<label class="block mb-2" for="columns-select" data-comment="Controls the width of this component in grid views">Width</label>
-							<select class="select2" id="columns-select" name="columns">
-								<option value="1">1 column (smallest)</option>
-								<option value="2">2 columns (1/3)</option>
-								<option value="3">3 columns (half width)</option>
-								<option value="4">4 columns (2/3)</option>
-								<option value="5">5 columns (5/6)</option>
-								<option value="6">6 columns (full width)</option>
-							</select>
-						</div>
-						
-						<div></div>
-						
-						<div>
-							<label class="block mb-4">Options</label>
-						    <div class="mb-2 flex items-center">
-    							<input type="checkbox" name="root" id="root">
-    							<label for="root">Is Component Root</label>
-						    </div>
-						</div>
-						
-					</div>
-					
-					<h3 class="mt-8">Data Source Configuration</h3>
-					
-					<div class="grid grid-cols-2 gap-8 mt-8">
-
-						<div>
-							<label class="block mb-2" for="data-source-select" data-comment="The data source determines which objects are displayed in this components.">Data Source</label>
-							<div class="data-source-options flex">
-    							<select class="select2" id="data-source-select" name="dataSource">
-    								<option value="">None</option>
-    							</select>
-    							<button class="button btn ml-2 mr-0" title="Create a new data source"><svg width="16" height="16"><use href="#circle_plus"></use></svg></button>
-   							</div>
-						</div>
-
-						<div>
-							<label class="block mb-2" for="field-set-select" data-comment="The field set determines which properties are displayed in this component.">Field Set</label>
-							<div class="field-setoptions flex">
-                                <select class="select2" id="field-set-select" name="fieldSet">
-                                    <option value="default">Default</option>
-                                </select>
-    							<button class="button btn ml-2 mr-0" title="Create a new field set for this data source."><svg width="16" height="16"><use href="#circle_plus"></use></svg></button>
-   							</div>
-						</div>
-
-						<div>
-							<label class="block mb-2" for="role-select" data-comment="The role of a component determines whether it controls other components or is controlled by other components.">Role</label>
-							<select class="select2" id="role-select" name="role">
-								<option value="">No role</option>
-								<option value="controller">Controller - controls other components with the same data source</option>
-								<option value="subscriber">Subscriber - is controlled by other components with the same data source</option>
-							</select>
-						</div>
-
-						<div>
-							<label class="block mb-2" for="reload-select" data-comment="Controls the reloading behaviour of this component">Reload Behavior</label>
-							<input type="text" id="reload-input" autocomplete="off" name="reload">
-						</div>
-
-						<div>
-							<label class="block mb-2" for="display-mode-select" data-comment="Controls the display mode of this component">Display Mode</label>
-							<select class="select2" id="display-mode-select" name="displayMode">
-								<option value="">None</option>
-								<option value="output">Render non-editable fields</option>
-								<option value="input">Render editable fields</option>
-							</select>
-						</div>
-
-						<div>
-							<label class="block mb-2" for="save-mode-select" data-comment="Controls the save mode of this component">Save Mode</label>
-							<select class="select2" id="save-mode-select" name="saveMode">
-								<option value="">Save all fields at once using a button</option>
-								<!-- option value="inline">Each field saves its own value immediately</option -->
-							</select>
-						</div>
-						
-						<div></div>
-
-						<div>
-							<label class="block mb-4">Options</label>
-                            <div class="mb-2 flex items-center">
-                                <input type="checkbox" name="labels" id="labels">
-                                <label for="labels">Show Labels</label>
-                            </div>
+            componentOptionsPartial: (config) => `
+                
+                <h3>Component Configuration</h3>
+                
+                <div class="grid grid-cols-2 gap-8">
+                    
+                    <div>
+                        <label class="block mb-2" for="name-input" data-comment="The name of this component">Name</label>
+                        <input type="text" id="name-input" autocomplete="off" name="name" data-which="entity">
+                    </div>
+                
+                    <div>
+                        <label class="block mb-2" for="component-type-input" data-comment="The component type determines ...">Component Type</label>
+                        <input type="text" id="component-type-input" autocomplete="off" name="componentType" data-which="entity">
+                    </div>
+                
+                    <div>
+                        <label class="block mb-2" for="dimensions-input" data-comment="Dimensions are..">Dimensions</label>
+                        <input type="text" id="dimensions-input" autocomplete="off" name="dimensions" data-which="entity">
+                    </div>
+                
+                    <div>
+                        <label class="block mb-2" for="item-type-input" data-comment="The item type determines ...">Item Type</label>
+                        <input type="text" id="item-type-input" autocomplete="off" name="itemType" data-which="entity">
+                    </div>
+                
+                    <div>
+                        <label class="block mb-2" for="repeater-type-input" data-comment="The repeater type determines ...">Repeater Type</label>
+                        <input type="text" id="repeater-type-input" autocomplete="off" name="repeaterType" data-which="entity">
+                    </div>
+                    
+                    <div>
+                        <label class="block mb-4">Options</label>
+                        <div class="mb-2 flex items-center">
+                            <input type="checkbox" name="root" id="root" data-which="entity">
+                            <label for="root">Is Component Root</label>
                         </div>
+                    </div>
+                    
+                </div>
+			`,
 
+            dataSourcePartial: (config) => `
+
+                <h3>DataSource Configuration</h3>
+            
+                <div class="grid grid-cols-2 gap-8 mt-8">
+
+                    <div>
+                        <label class="block mb-2" for="data-source-select" data-comment="The data source determines which objects are displayed in this components.">Data Source</label>
+                        <div class="data-source-options flex">
+                            <select class="select2" id="data-source-select" name="dataSource" data-which="config">
+                                <option value="">None</option>
+                            </select>
+                            <button class="button btn ml-2 mr-0" title="Create a new data source"><svg width="16" height="16"><use href="#circle_plus"></use></svg></button>
+                        </div>
                     </div>
 
-				</div>
+                    <div>
+                        <label class="block mb-2" for="field-set-select" data-comment="The field set determines which properties are displayed in this component.">Field Set</label>
+                        <div class="field-setoptions flex">
+                            <select class="select2" id="field-set-select" name="fieldSet" data-which="config">
+                                <option value="default">Default</option>
+                            </select>
+                            <button class="button btn ml-2 mr-0" title="Create a new field set for this data source."><svg width="16" height="16"><use href="#circle_plus"></use></svg></button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block mb-2" for="role-select" data-comment="The role of a component determines whether it controls other components or is controlled by other components.">Role</label>
+                        <select class="select2" id="role-select" name="role" data-which="config">
+                            <option value="">No role</option>
+                            <option value="controller">Controller - controls other components with the same data source</option>
+                            <option value="subscriber">Subscriber - is controlled by other components with the same data source</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block mb-2" for="reload-select" data-comment="Controls the reloading behaviour of this component">Reload Behavior</label>
+                        <input type="text" id="reload-input" autocomplete="off" name="reload" data-which="config">
+                    </div>
+
+                    <div>
+                        <label class="block mb-2" for="display-mode-select" data-comment="Controls the display mode of this component">Display Mode</label>
+                        <select class="select2" id="display-mode-select" name="displayMode" data-which="config">
+                            <option value="">None</option>
+                            <option value="output">Render non-editable fields</option>
+                            <option value="input">Render editable fields</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block mb-2" for="save-mode-select" data-comment="Controls the save mode of this component">Save Mode</label>
+                        <select class="select2" id="save-mode-select" name="saveMode" data-which="config">
+                            <option value="">Save all fields at once using a button</option>
+                            <!-- option value="inline">Each field saves its own value immediately</option -->
+                        </select>
+                    </div>
+                
+                    <div>
+                        <label class="block mb-2" for="columns-select" data-comment="Controls the width of this component in grid views">Width</label>
+                        <select class="select2" id="columns-select" name="columns" data-which="config">
+                            <option value="1">1 column (smallest)</option>
+                            <option value="2">2 columns (1/3)</option>
+                            <option value="3">3 columns (half width)</option>
+                            <option value="4">4 columns (2/3)</option>
+                            <option value="5">5 columns (5/6)</option>
+                            <option value="6">6 columns (full width)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block mb-4">Options</label>
+                        <div class="mb-2 flex items-center">
+                            <input type="checkbox" name="labels" id="labels" data-which="config">
+                            <label for="labels">Show Labels</label>
+                        </div>
+                    </div>
+
+                </div>
 			`,
 			`,
 			spacerItemForGrid: config => `<div class="hidden @xl:block"><!-- occupy space in grid UI --></div>`,

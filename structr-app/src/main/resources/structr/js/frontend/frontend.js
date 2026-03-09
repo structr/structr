@@ -221,7 +221,12 @@ export class Frontend {
 
 				// all other node types
 				return element.value;
-			}
+
+			} else if (element.length) {
+
+                // radionodelist?
+                return element.values().filter(v => v.checked).map(v => v.value).toArray();
+            }
 
 			return null;
 		}

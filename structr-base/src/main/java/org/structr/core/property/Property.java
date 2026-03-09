@@ -715,7 +715,7 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 	}
 
 	@Override
-	public List<Map<String, String>> getOptions(SecurityContext securityContext, String filter, String label) throws FrameworkException {
+	public List<GraphObject> getOptions(SecurityContext securityContext, String filter, String label) throws FrameworkException {
 		return null;
 	}
 

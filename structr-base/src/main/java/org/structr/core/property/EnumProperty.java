@@ -24,6 +24,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ValueToken;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.web.datasource.FieldDefinition;
 
@@ -241,19 +242,13 @@ public class EnumProperty extends AbstractPrimitiveProperty<String> implements F
 	}
 
 	@Override
-	public List<Map<String, String>> getOptions(final SecurityContext securityContext, final String filter, final String label) {
+	public List<GraphObject> getOptions(final SecurityContext securityContext, final String filter, final String label) throws FrameworkException {
 
-		final List<Map<String, String>> options = new LinkedList<>();
-
-		// empty option
-		if (!isRequired()) {
-
-			options.add(Map.of("name", "", "value", ""));
-		}
+		final List<GraphObject> options = new LinkedList<>();
 
 		for (final String c : getEnumConstants()) {
 
-			options.add(Map.of("name", c, "value", c));
+			options.add(GraphObjectMap.fromMap(Map.of("name", c, "value", c)));
 		}
 
 		return options;
