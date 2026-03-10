@@ -1937,13 +1937,15 @@ let Structr = {
 			let form        = document.querySelector('#global-search-node-form');
 			let searchField = form.querySelector('[name="queryString"]');
 
+			let debouncedSearchFunction = _Helpers.debounce(Structr.globalSearch.doSearch, 300);
+
 			form.addEventListener('submit', e => {
 				e.preventDefault();
 
-				Structr.globalSearch.doSearch();
+				debouncedSearchFunction();
 			});
 
-			searchField.addEventListener('input', _Helpers.debounce(Structr.globalSearch.doSearch, 300));
+			searchField.addEventListener('input', debouncedSearchFunction);
 
 			searchField.addEventListener('search', () => {
 				if (searchField.value === '') {
