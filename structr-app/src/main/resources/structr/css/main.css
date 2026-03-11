@@ -3091,7 +3091,7 @@ img#image-editor.orientation-8 {
 }
 
 /**
- * Append Widget styles
+ * widget styles
  */
 .widget-props {
     background-color: transparent !important;
@@ -3149,6 +3149,48 @@ div.sortable-checkbox-list label span {
 
 div.sortable-checkbox-list label:hover {
     background-color: #f4f4f4;
+}
+
+div.toggle-button-container {
+    display: flex;
+}
+
+div.toggle-button-container button {
+    border-radius: 0;
+    margin: 0;
+    border-right-width: 0;
+}
+
+div.toggle-button-container button:focus,
+div.toggle-button-container button:active {
+    border-color: var(--gray-ddd) !important;
+    border-radius: 0;
+    margin: 0;
+    border-right-width: 0;
+}
+
+div.toggle-button-container button.fill {
+    font-weight: normal;
+}
+
+div.toggle-button-container button.active {
+    background-color: var(--very-light-structr-green-2) !important;
+}
+
+div.toggle-button-container button:hover,
+div.toggle-button-container button.hover {
+    background-color: var(--very-light-structr-green) !important;
+}
+
+div.toggle-button-container button:first-child {
+    border-top-left-radius: .25rem;
+    border-bottom-left-radius: .25rem;
+}
+
+div.toggle-button-container button:last-child {
+    border-top-right-radius: .25rem;
+    border-bottom-right-radius: .25rem;
+    border-right-width: 1px;
 }
 
 /**
@@ -3368,6 +3410,10 @@ table#principals .typeIcon {
 	padding-top: 1rem;
 }
 
+.quick-access-options div + h3 {
+    margin-top: 4rem;
+}
+
 .quick-access-options select,
 .quick-access-options input[type="text"],
 .quick-access-options input[type="password"],
@@ -3380,6 +3426,10 @@ table#principals .typeIcon {
 .events-container textarea {
 	width: 100%;
 	box-sizing: border-box;
+}
+
+input.validated:invalid {
+    border-color: red !important;
 }
 
 .events-container .node:hover {
@@ -4880,7 +4930,10 @@ ul.combined-input-select-field li:not(.nohover):hover {
 	border-left-width: 1px;
 }
 .border-t {
-	border-top-width: 1px;
+    border-top-width: 1px;
+}
+.border-b {
+	border-bottom-width: 1px;
 }
 .border-x {
 	border-left-width: 1px;

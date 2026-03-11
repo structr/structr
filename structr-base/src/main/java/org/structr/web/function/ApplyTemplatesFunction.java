@@ -137,6 +137,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 						if (value instanceof Iterable) {
 							value = Iterables.toList((Iterable)value);
 						}
+
 						innerCtx.setConstant("value", value);
 					}
 
@@ -168,11 +169,13 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 						final DOMNode templateNode = getTemplate(app, slot, useEditTemplate ? editTemplate : template);
 						if (templateNode != null) {
 
-							final DataAdapter previousDataSource  = innerCtx.getCurrentAdapter();
-							final String previousReloadBehaviour = innerCtx.getCurrentReloadBehaviour();
+							final DataAdapter previousDataAdapter  = innerCtx.getCurrentAdapter();
+							final Channel previousDataSource       = innerCtx.getCurrentDataSource();
+							final String previousReloadBehaviour   = innerCtx.getCurrentReloadBehaviour();
 
 							// we need to make the current data source available to the inner template
 							innerCtx.setCurrentAdapter(dataAdapter);
+							innerCtx.setCurrentDataSource(sourceChannel);
 							innerCtx.setCurrentReloadBehaviour(reloadBehaviour);
 
 							try {
@@ -180,7 +183,8 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 
 							} finally {
 
-								innerCtx.setCurrentAdapter(previousDataSource);
+								innerCtx.setCurrentAdapter(previousDataAdapter);
+								innerCtx.setCurrentDataSource(previousDataSource);
 								innerCtx.setCurrentReloadBehaviour(previousReloadBehaviour);
 							}
 

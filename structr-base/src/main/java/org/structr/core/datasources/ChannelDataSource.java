@@ -117,19 +117,6 @@ public class ChannelDataSource implements Channel {
 		return name;
 	}
 
-	/**
-	 * Returns the context value that is currently associated with
-	 * the data key of this data source.
-	 *
-	 * @param renderContext
-	 * @return
-	 * @throws FrameworkException
-	 */
-	@Override
-	public Object getCurrentValue(final RenderContext renderContext) throws FrameworkException {
-		return getValue(renderContext);
-	}
-
 	public Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, final EvaluationHints hints, final int row, final int column) throws FrameworkException {
 
 		final RenderContext renderContext = (RenderContext) actionContext;
@@ -141,16 +128,8 @@ public class ChannelDataSource implements Channel {
 
 			case "dataType":
 				return getDataType(renderContext);
-
-			case "selectedValue":
-				// let's see if we still need this
-				throw new RuntimeException("selectedValue is not available.");
-
-			case "currentValue":
-				return getCurrentValue(renderContext);
 		}
 
-		//return this.evaluate(actionContext, key, null, new EvaluationHints(), 0, 0);
 		return null;
 	}
 

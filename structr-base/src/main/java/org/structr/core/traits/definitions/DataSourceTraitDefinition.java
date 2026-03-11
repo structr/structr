@@ -19,6 +19,7 @@
 package org.structr.core.traits.definitions;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.DataSource;
 import org.structr.core.entity.Relation;
@@ -69,12 +70,8 @@ public class DataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 						case "dataType":
 							return dataSource.getDataType(renderContext);
 
-						case "selectedValue":
-							// lets see if we still need this
-							throw new RuntimeException("Not implemented yet");
-
 						case "currentValue":
-							return dataSource.getCurrentValue(renderContext);
+							return getCurrentValue(renderContext);
 					}
 
 					return getSuper().evaluate(node, actionContext, key, defaultValue, hints, row, column);
@@ -110,6 +107,12 @@ public class DataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Relation getRelation() {
+		return null;
+	}
+
+	// ----- private methods -----
+	private GraphObject getCurrentValue(final RenderContext renderContext) {
+
 		return null;
 	}
 }

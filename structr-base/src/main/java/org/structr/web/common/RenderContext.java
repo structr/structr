@@ -38,6 +38,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.datasources.Channel;
 import org.structr.core.entity.DataAdapter;
+import org.structr.core.entity.DataSource;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
@@ -71,6 +72,7 @@ public class RenderContext extends ActionContext {
 	private final Map<String, GraphObject> dataObjects = new HashMap<>();
 	private final Stack<SecurityContext> scStack       = new Stack<>();
 	private final Map<String, Object> theme            = new LinkedHashMap<>();
+	private Channel currentDataSource                  = null;
 	private DataAdapter currentAdapter                 = null;
 	private String currentReloadBehaviour              = null;
 	private EditMode editMode                          = EditMode.NONE;
@@ -480,6 +482,12 @@ public class RenderContext extends ActionContext {
 
 					case "dataSource":
 
+						// provide access to the current data source in render templates
+						// that are included via renderEach or renderFields
+						if (currentDataSource != null) {
+							return currentDataSource;
+						}
+
 						if (entity.is(StructrTraits.DOM_NODE)) {
 
 							final DOMNode component = entity.as(DOMNode.class).getClosestComponent();
@@ -513,6 +521,8 @@ public class RenderContext extends ActionContext {
 
 					case "adapter":
 
+						// provide access to the current adapter in render templates
+						// that are included via renderEach or renderFields
 						if (currentAdapter != null) {
 							return currentAdapter;
 						}
@@ -696,6 +706,14 @@ public class RenderContext extends ActionContext {
 
 	public String getCurrentReloadBehaviour() {
 		return currentReloadBehaviour;
+	}
+
+	public void setCurrentDataSource(final Channel newDataSource) {
+		this.currentDataSource = newDataSource;
+	}
+
+	public Channel getCurrentDataSource() {
+		return currentDataSource;
 	}
 
 	public String getChannelValue(final String name) {

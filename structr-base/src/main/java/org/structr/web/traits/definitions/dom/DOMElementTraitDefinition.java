@@ -2133,37 +2133,21 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 	private String getComponentBasedReloadTarget(final RenderContext renderContext, final DOMNode node) throws FrameworkException {
 
-		// use either direct data source or from current context
 		final String reloadBehaviour = coalesce(renderContext.getCurrentReloadBehaviour(), node.getReloadBehaviourForComponent());
-		final DOMNode component      = node.getClosestComponent();
+		if (reloadBehaviour != null) {
 
-		if (component != null) {
+			switch (reloadBehaviour) {
 
-			final ComponentConfiguration config = component.getComponentConfiguration();
+				case "partial":
+				case "others":
 
-			if (reloadBehaviour != null) {
+					return "[data-channel]";
 
-				switch (reloadBehaviour) {
+				case "page":
+					return "url:";
 
-					case "partial":
-					case "others":
-
-						final Set<String> channelNames = new LinkedHashSet<>();
-						final Channel sourceChannel    = config.getSourceChannel();
-						final String selectionChannel  = config.getSelectionChannel();
-
-						if (sourceChannel != null || selectionChannel != null) {
-							return "[data-channel]";
-						}
-
-						break;
-
-					case "page":
-						return "url:";
-
-					default:
-						return reloadBehaviour;
-				}
+				default:
+					return reloadBehaviour;
 			}
 		}
 

@@ -38,8 +38,6 @@ public interface Channel {
 	Iterable<GraphObject> getValues(final RenderContext renderContext, final ChannelInput input) throws FrameworkException;
 	Map<String, FieldDefinition> getFields(final RenderContext renderContext) throws FrameworkException;
 
-	Object getCurrentValue(final RenderContext renderContext) throws FrameworkException;
-
 	String getDataType(final RenderContext renderContext) throws FrameworkException;
 	String getName();
 

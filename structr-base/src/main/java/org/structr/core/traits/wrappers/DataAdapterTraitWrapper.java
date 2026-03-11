@@ -22,14 +22,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.entity.DataAdapter;
 import org.structr.core.entity.DataSource;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.DataAdapterTraitDefinition;
-import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.web.datasource.DataField;
 
 import java.util.LinkedHashMap;
@@ -108,22 +105,5 @@ public class DataAdapterTraitWrapper extends AbstractNodeTraitWrapper implements
 	@Override
 	public String getDataKey() {
 		return wrappedObject.getProperty(traits.key(DataAdapterTraitDefinition.DATA_KEY_PROPERTY));
-	}
-
-	@Override
-	public Object evaluate(final ActionContext actionContext, final GraphObject entity, final String key) throws FrameworkException {
-
-		final SecurityContext securityContext = actionContext.getSecurityContext();
-
-		switch (key) {
-
-			case "fields":
-				return getFields(securityContext);
-
-			case "dataKey":
-				return getDataKey();
-		}
-
-		return this.evaluate(actionContext, key, null, new EvaluationHints(), 0, 0);
 	}
 }

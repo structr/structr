@@ -18,6 +18,9 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.DataAdapter;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
@@ -25,7 +28,12 @@ import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.TraitsInstance;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.core.traits.operations.graphobject.Evaluate;
 import org.structr.core.traits.wrappers.DataAdapterTraitWrapper;
+import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
+import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
 
 import java.util.Map;
@@ -47,6 +55,34 @@ public class DataAdapterTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 			DataAdapter.class, (traits, node) -> new DataAdapterTraitWrapper(traits, node)
+		);
+	}
+
+	@Override
+	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
+		return Map.of(
+			Evaluate.class,
+			new Evaluate() {
+				@Override
+				public Object evaluate(final AbstractNode node, final ActionContext actionContext, final String key, final String defaultValue, final EvaluationHints hints, final int row, final int column) throws FrameworkException {
+
+					final RenderContext renderContext     = (RenderContext) actionContext;
+					final SecurityContext securityContext = renderContext.getSecurityContext();
+					final DataAdapter dataAdapter         = node.as(DataAdapter.class);
+
+					switch (key) {
+
+						case "fields":
+							return dataAdapter.getFields(securityContext);
+
+						case "dataKey":
+							return dataAdapter.getDataKey();
+					}
+
+					return getSuper().evaluate(node, actionContext, key, defaultValue, hints, row, column);
+				}
+			}
 		);
 	}
 

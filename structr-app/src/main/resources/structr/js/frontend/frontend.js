@@ -526,21 +526,20 @@ export class Frontend {
 				}).then(data => {
 					if (data.result && data.result[0]) {
 						let id = data.result[0].id;
-						this.replacePartial(container, id, element, dataset, parameters, dontRebind);
+						this.replacePartial(container, id, element, dataset, parameters, dontRebind, options);
 					}
 				});
 
 			} else {
 
-				this.replacePartial(container, id, element, dataset, parameters, dontRebind);
+				this.replacePartial(container, id, element, dataset, parameters, dontRebind, options);
 			}
-
-            resets.push(container.dataset.resets?.split(' ') ?? []);
 		}
 
         if (options && options.updateHistory) {
 
             const url = new URL(window.location.href);
+
             for (let key in parameters) {
                 if (key === 'current') {
                     url.pathname = url.pathname.split('/').toSpliced(2, 1, parameters[key]).join('/');
@@ -549,7 +548,7 @@ export class Frontend {
                 }
             }
 
-            for (const channel of resets) {
+            for (const channel of options.resets) {
                 url.searchParams.delete(channel);
             }
             history.pushState({}, '', url);
@@ -566,10 +565,10 @@ export class Frontend {
 		}
 	};
 
-	replacePartial(container, id, element, data, parameters, dontRebind) {
+	replacePartial(container, id, element, data, parameters, dontRebind, options) {
 
 		let base   = '/structr/html/' + id;
-		let params = this.encodeRequestParameters(data, parameters);
+		let params = this.encodeRequestParameters(data, parameters, options);
 		let uri    = base + params;
 
 		fetch(uri, {
@@ -676,11 +675,17 @@ export class Frontend {
 	 * @param {type} override
 	 * @returns {String} the URI-encoded objects
 	 */
-	encodeRequestParameters(fromDataset, override) {
+	encodeRequestParameters(fromDataset, override, options) {
 
         let searchParams = new URLSearchParams(window.location.search);
         let params  = {};
         let current = '';
+
+        if (options && options.resets && options.resets.length) {
+            for (const channel of options.resets) {
+                searchParams.delete(channel);
+            }
+        }
 
         for (let key of new Set(searchParams.keys())) {
             let values = searchParams.getAll(key);
@@ -900,6 +905,11 @@ export class Frontend {
 
         // update history
         options.updateHistory = true;
+        options.resets = [];
+
+        if (data.resets) {
+            options.resets = data.resets.split(' ');
+        }
 
 		this.handleResult(target, { result: parameters }, 200, options);
 	}

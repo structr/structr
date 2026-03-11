@@ -18,6 +18,7 @@
  */
 package org.structr.web.function;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.ChannelInput;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -36,6 +37,7 @@ import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.TagWithCSSInfo;
 import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
 
 import java.util.*;
 
@@ -80,10 +82,12 @@ public class RenderEachFunction extends UiCommunityFunction {
 
 			if (sourceChannel != null) {
 
-				final String reloadBehaviour = domNode.getReloadBehaviourForComponent();
-				final ChannelInput input     = new ChannelInput(config.getTransform());
-				final AsyncBuffer buffer     = renderContext.getBuffer();
-				final String role            = domNode.getRoleForComponent();
+				final String reloadBehaviour  = domNode.getReloadBehaviourForComponent();
+				final String selectionChannel = config.getSelectionChannel();
+				final ChannelInput input      = new ChannelInput(config.getTransform());
+				final AsyncBuffer buffer      = renderContext.getBuffer();
+				final String role             = domNode.getRoleForComponent();
+				final String resets           = getChannelDependencies(domNode, selectionChannel);
 
 				for (final GraphObject item : sourceChannel.getValues(renderContext, input)) {
 
@@ -97,7 +101,6 @@ public class RenderEachFunction extends UiCommunityFunction {
 
 						if ("controller".equals(role)) {
 
-							final String selectionChannel = config.getSelectionChannel();
 							if (selectionChannel != null) {
 
 								switch (reloadBehaviour) {
@@ -130,6 +133,11 @@ public class RenderEachFunction extends UiCommunityFunction {
 								if (selectedId != null && uuid != null && uuid.equals(selectedId)) {
 
 									additionalCss.add("selected");
+								}
+
+								if (StringUtils.isNotEmpty(resets)) {
+
+									data.put("data-resets", resets);
 								}
 							}
 						}
@@ -207,5 +215,64 @@ public class RenderEachFunction extends UiCommunityFunction {
 	@Override
 	public FunctionCategory getCategory() {
 		return FunctionCategory.Rendering;
+	}
+
+	// ----- private methods -----
+	private String getChannelDependencies(DOMNode node, final String channel) throws FrameworkException {
+
+		if (channel == null) {
+			return null;
+		}
+
+		final Page page          = node.getOwnerDocument();
+		final Set<String> result = new LinkedHashSet<>();
+
+		if (page != null) {
+
+			final Map<String, Set<String>> dependencies = new LinkedHashMap<>();
+			final Deque<String> queue                   = new LinkedList<>();
+
+			for (final NodeInterface n : page.getAllChildNodes()) {
+
+				final ComponentConfiguration config = n.as(DOMNode.class).getComponentConfiguration();
+				if (config != null) {
+
+					final String selectionChannel = config.getSelectionChannel();
+					if (selectionChannel != null) {
+
+						final Channel sourceChannel = config.getSourceChannel();
+						if (sourceChannel != null) {
+
+							final String source = sourceChannel.getName();
+							final String target = selectionChannel;
+
+							dependencies.computeIfAbsent(source, key -> new LinkedHashSet<>()).add(target);
+						}
+					}
+				}
+			}
+
+
+			queue.push(channel);
+
+			while (!queue.isEmpty()) {
+
+				final String current       = queue.pop();
+				final Set<String> mappings = dependencies.get(current);
+
+				if (mappings != null) {
+					for (final String dependency : mappings) {
+
+						if (result.add(dependency)) {
+
+							queue.push(dependency);
+						}
+					}
+				}
+			}
+
+		}
+
+		return StringUtils.join(result, " ");
 	}
 }

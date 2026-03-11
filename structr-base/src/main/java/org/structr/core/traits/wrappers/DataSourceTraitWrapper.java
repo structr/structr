@@ -50,47 +50,4 @@ public class DataSourceTraitWrapper extends AbstractNodeTraitWrapper implements 
 	public String getDataType(final RenderContext renderContext) throws FrameworkException {
 		return traits.getMethod(DataSourceOperations.class).getDataType(renderContext, this);
 	}
-
-	/**
-	 * Returns the context value that is currently associated with
-	 * the data key of this data source.
-	 *
-	 * @param renderContext
-	 * @return
-	 * @throws FrameworkException
-	 */
-	@Override
-	public Object getCurrentValue(final RenderContext renderContext) throws FrameworkException {
-
-		/*
-		final DataSource dataSource = getDataSource();
-		if (dataSource != null) {
-
-			// if this channel has a data source, we return the value that is currently
-			// stored under the data key
-			if (actionContext instanceof RenderContext renderContext) {
-
-				final String dataKey = getDataKey();
-				if (dataKey != null) {
-
-					// allow fallback if no data node is set
-					final GraphObject dataNode = renderContext.getDataNode(dataKey);
-					if (dataNode != null) {
-
-						return dataNode;
-					}
-				}
-			}
-		}
-
-		// if this channel has no data source, we return the single value
-		// we get from getValues()
-
-
-		FIXME: we're in the middle of merging channel and data source!
-		*/
-
-
-		return null;
-	}
 }

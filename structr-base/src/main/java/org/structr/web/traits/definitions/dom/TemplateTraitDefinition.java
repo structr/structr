@@ -179,13 +179,6 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 									data.put("data-current-object-id", selectedId);
 									data.put("data-" + selectionChannel, selectedId);
 								}
-
-								// calculate channel dependencies
-								final String resets = getChannelDependencies(node, selectionChannel);
-								if (StringUtils.isNotEmpty(resets)) {
-
-									data.put("data-resets", resets);
-								}
 							}
 
 							// current selected value
@@ -264,60 +257,5 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public boolean includeInDocumentation() {
 		return true;
-	}
-
-	// ----- private methods -----
-	private String getChannelDependencies(DOMNode node, final String channel) throws FrameworkException {
-
-		final Page page          = node.getOwnerDocument();
-		final Set<String> result = new LinkedHashSet<>();
-
-		if (page != null) {
-
-			final Map<String, Set<String>> dependencies = new LinkedHashMap<>();
-			final Deque<String> queue                   = new LinkedList<>();
-
-			for (final NodeInterface n : page.getAllChildNodes()) {
-
-				final ComponentConfiguration config = n.as(DOMNode.class).getComponentConfiguration();
-				if (config != null) {
-
-					final String selectionChannel = config.getSelectionChannel();
-					if (selectionChannel != null) {
-
-						final Channel sourceChannel = config.getSourceChannel();
-						if (sourceChannel != null) {
-
-							final String source = sourceChannel.getName();
-							final String target = selectionChannel;
-
-							dependencies.computeIfAbsent(source, key -> new LinkedHashSet<>()).add(target);
-						}
-					}
-				}
-			}
-
-
-			queue.push(channel);
-
-			while (!queue.isEmpty()) {
-
-				final String current       = queue.pop();
-				final Set<String> mappings = dependencies.get(current);
-
-				if (mappings != null) {
-					for (final String dependency : mappings) {
-
-						if (result.add(dependency)) {
-
-							queue.push(dependency);
-						}
-					}
-				}
-			}
-
-		}
-
-		return StringUtils.join(result, " ");
 	}
 }

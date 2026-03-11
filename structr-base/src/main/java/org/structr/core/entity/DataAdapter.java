@@ -20,9 +20,7 @@ package org.structr.core.entity;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
-import org.structr.schema.action.ActionContext;
 import org.structr.web.datasource.DataField;
 
 import java.util.List;
@@ -34,6 +32,4 @@ public interface DataAdapter extends NodeInterface {
 	Map<String, List<String>> getFieldSets(final SecurityContext securityContext) throws FrameworkException;
 	List<String> getFieldSet(final SecurityContext securityContext, String name) throws FrameworkException;
 	String getDataKey();
-
-	Object evaluate(final ActionContext actionContext, final GraphObject context, final String key) throws FrameworkException;
 }

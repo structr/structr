@@ -2745,7 +2745,7 @@ let _Entities = {
 
                 let config = await Command.getPromise(entity.componentConfiguration.id, '', 'ui');
 
-                el.html(_Entities.generalTab.templates.componentOptions({ entity: entity }));
+                el.html(_Entities.generalTab.templates.componentOptions({ entity: entity, config: config }));
 
                 let fieldSetSelect = document.querySelector('#field-set-select');
                 let dataAdapterSelect = document.querySelector('#data-adapter-select');
@@ -2776,13 +2776,28 @@ let _Entities = {
                     });
                 }
 
+                let selectionChannelInput = document.querySelector('#data-selection-channel-input');
+
+                let checkRoleConstraints = (result) => {
+                    if (result && result.role &&  selectionChannelInput) {
+                        selectionChannelInput.required = (result.role === 'controller');
+                        selectionChannelInput.reportValidity();
+                    }
+                }
+
                 _Entities.generalTab.loadOptions('#data-source-channel-select', 'DataSource', config.sourceChannel);
                 _Entities.generalTab.loadOptions('#data-source-channel-select', 'ComponentConfiguration', config.sourceChannel, { role: 'controller', '!selectionChannel': null }, 'channel:', 'selectionChannel');
+
+                _Entities.generalTab.selectButtons('#role-buttons', config, 'role', [{ label: 'None' }, { label: 'Controller', value: 'controller' }, { label: 'Subscriber', value: 'subscriber' }], false, checkRoleConstraints);
+                _Entities.generalTab.selectButtons('#display-mode-buttons', config, 'displayMode', [{ label: 'Input', value: 'input' }, { label: 'Output', value: 'output' }]);
+                _Entities.generalTab.selectButtons('#width-buttons', config, 'columns', [{ label: '1 column', value: 1 }, { label: '2 columns', value: 2 }, { label: '3 columns', value: 3 }, { label: '4 columns', value: 4 }, { label: '5 columns', value: 5 }, { label: '6 columns', value: 6 }], true);
 
                 _Entities.generalTab.populateInputFields(el, { entity: entity, config: config });
 				_Entities.generalTab.populateSelectFields(el, { entity: entity, config: config });
                 _Entities.generalTab.registerSimpleInputChangeHandlers(el, { entity: entity, config: config });
 				_Entities.generalTab.registerSimpleSelectChangeHandlers(el, { entity: entity, config: config });
+
+                // check constraints
 
 				_Entities.generalTab.focusInput(el);
 			},
@@ -2799,6 +2814,46 @@ let _Entities = {
                         let selected = value === currentValue ? 'selected' : '';
                         selectField.insertAdjacentHTML('beforeend', `<option value="${value}" ${selected}>${text}</option>`);
                     }
+                }
+            }
+        },
+        selectButtons: async (selector, entity, key, options, fill, callback) => {
+
+            let container = document.querySelector(selector);
+
+            for (let option of options) {
+                let active = (option.value === entity[key] ? 'active' : '');
+                if (!entity[key] && !option.value) active = 'active';
+                if (fill) active = (option.value <= entity[key] ? 'active' : '');
+                container.insertAdjacentHTML('beforeend', `<button data-value="${option.value}" class="${active} ${fill ? 'fill' : ''} button flex-1 hover:bg-gray-100 focus:border-gray-666 active:border-green">${option.label}</button>`);
+            }
+
+            let allButtons = container.querySelectorAll('button');
+
+            let clickAction = (e) => {
+
+                let value = e.target.dataset.value;
+                for (let button of allButtons) {
+                    if (fill && button.dataset.value <= value) {
+                        button.classList.add('active');
+                    } else {
+                        button.classList.remove('active');
+                    }
+                }
+                e.target.classList.add('active');
+
+                Command.setProperty(entity.id, key, value, false, (result) => {
+                    if (callback && typeof callback === 'function') {
+                        callback(result);
+                    }
+                });
+            };
+
+            for (let button of allButtons) {
+                button.addEventListener('click', clickAction);
+                if (fill) {
+                    button.addEventListener('mouseover', e => allButtons.forEach(b => { if (b.dataset.value <= e.target.dataset.value) { b.classList.add('hover')} }));
+                    button.addEventListener('mouseout', e => allButtons.forEach(b => b.classList.remove('hover')));
                 }
             }
         },
@@ -3673,7 +3728,7 @@ let _Entities = {
 				</div>
 			`,
             componentOptions: (config) => `
-				<div id="div-options" class="quick-access-options" style="padding-top: 0;">
+				<div id="div-options" class="${_Entities.generalTab.templates.containerClasses()}">
 				    ${_Entities.generalTab.templates.componentOptionsPartial(config)}
 				    ${_Entities.generalTab.templates.dataSourcePartial(config)}
 				</div>
@@ -3683,7 +3738,7 @@ let _Entities = {
                 
                 <h3>Component Configuration</h3>
                 
-                <div class="grid grid-cols-2 gap-8">
+				<div class="${_Entities.generalTab.templates.gridClasses()}">
                     
                     <div>
                         <label class="block mb-2" for="name-input" data-comment="The name of this component">Name</label>
@@ -3717,6 +3772,11 @@ let _Entities = {
                             <label for="root">Is Component Root</label>
                         </div>
                     </div>
+                
+                    <div class="col-span-1 @xl:col-span-2">
+                        <label class="block mb-2" for="columns-select" data-comment="Controls the width of this component in grid views">Width</label>
+                        <div id="width-buttons" class="toggle-button-container"></div>
+                    </div>
                     
                 </div>
 			`,
@@ -3725,25 +3785,22 @@ let _Entities = {
 
                 <h3>Data Configuration</h3>
             
-                <div class="grid grid-cols-2 gap-8 mt-8">
+				<div class="${_Entities.generalTab.templates.gridClasses()}">
 
                     <div>
-                        <label class="block mb-2" for="data-source-channel-select" data-comment="The source channel determines which objects are displayed in this component.">Source Channel</label>
+                        <label class="block mb-2" for="data-source-channel-select" data-comment="Source determines which objects are displayed in this component, and selection transforms the result.">Source & Selection</label>
                         <div class="data-source-channel-options flex">
-                            <select class="select2" id="data-source-channel-select" name="sourceChannel" data-which="config">
+                            <select class="select2 rounded-none rounded-l" id="data-source-channel-select" name="sourceChannel" data-which="config">
                                 <option value="">None</option>
                             </select>
+                            <span class="inline-flex items-center bg-gray px-2 w-4 justify-center select-none border-0 border-t border-b border-solid border-gray-input">.</span>
+                            <input class="rounded-none rounded-r" type="text" id="transform-input" autocomplete="off" name="transform" data-which="config">
                         </div>
                     </div>
 
                     <div>
-                        <label class="block mb-2" for="transform-input" data-comment="">Transform</label>
-                        <input type="text" id="transform-input" autocomplete="off" name="transform" data-which="config">
-                    </div>
-
-                    <div>
                         <label class="block mb-2" for="data-selection-channel-input" data-comment="Which channel the UUID of the selected object is made available on for other components to consume.">Selection Channel</label>
-                        <input type="text" id="data-selection-channel-input" autocomplete="off" name="selectionChannel" data-which="config">
+                        <input class="validated" type="text" id="data-selection-channel-input" ${config.config.role === 'controller' ? 'required' : ''} autocomplete="off" name="selectionChannel" data-which="config">
                     </div>
 
                     <div>
@@ -3758,16 +3815,12 @@ let _Entities = {
 
                     <div>
                         <label class="block mb-2" for="role-select" data-comment="The role of a component determines whether it controls other components or is controlled by other components.">Role</label>
-                        <select class="select2" id="role-select" name="role" data-which="config">
-                            <option value="">No role</option>
-                            <option value="controller">Controller - controls other components with the same data adapter</option>
-                            <option value="subscriber">Subscriber - is controlled by other components with the same data adapter</option>
-                        </select>
+                        <div id="role-buttons" class="toggle-button-container"></div>
                     </div>
 
                     <div>
                         <label class="block mb-2" for="field-set-select" data-comment="The field set determines which properties are displayed in this component.">Field Set</label>
-                        <div class="field-setoptions flex">
+                        <div class="field-set-options flex">
                             <select class="select2" id="field-set-select" name="fieldSet" data-which="config">
                                 <option value="default">Default</option>
                             </select>
@@ -3782,32 +3835,17 @@ let _Entities = {
 
                     <div>
                         <label class="block mb-2" for="display-mode-select" data-comment="Controls the display mode of this component">Display Mode</label>
-                        <select class="select2" id="display-mode-select" name="displayMode" data-which="config">
-                            <option value="">None</option>
-                            <option value="output">Render non-editable fields</option>
-                            <option value="input">Render editable fields</option>
-                        </select>
+                        <div id="display-mode-buttons" class="toggle-button-container"></div>
                     </div>
 
+                    <!-- save mode inline is not implemented yet
                     <div>
                         <label class="block mb-2" for="save-mode-select" data-comment="Controls the save mode of this component">Save Mode</label>
                         <select class="select2" id="save-mode-select" name="saveMode" data-which="config">
                             <option value="">Save all fields at once using a button</option>
-                            <!-- option value="inline">Each field saves its own value immediately</option -->
                         </select>
                     </div>
-                
-                    <div>
-                        <label class="block mb-2" for="columns-select" data-comment="Controls the width of this component in grid views">Width</label>
-                        <select class="select2" id="columns-select" name="columns" data-which="config">
-                            <option value="1">1 column (smallest)</option>
-                            <option value="2">2 columns (1/3)</option>
-                            <option value="3">3 columns (half width)</option>
-                            <option value="4">4 columns (2/3)</option>
-                            <option value="5">5 columns (5/6)</option>
-                            <option value="6">6 columns (full width)</option>
-                        </select>
-                    </div>
+                    -->
 
                     <div>
                         <label class="block mb-4">Options</label>
