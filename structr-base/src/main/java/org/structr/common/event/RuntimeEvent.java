@@ -38,6 +38,7 @@ public class RuntimeEvent {
 
 	public static final String ID_PROPERTY                 = "id";
 	public static final String TYPE_PROPERTY               = "type";
+	public static final String THREAD_NAME_PROPERTY        = "threadName";
 	public static final String DATA_PROPERTY               = "data";
 	public static final String SEEN_PROPERTY               = "seen";
 	public static final String DESCRIPTION_PROPERTY        = "description";
@@ -49,6 +50,7 @@ public class RuntimeEvent {
 
 	private static final LongProperty _id                = new LongProperty(ID_PROPERTY);
 	private static final StringProperty _type            = new StringProperty(TYPE_PROPERTY);
+	private static final StringProperty _threadName      = new StringProperty(THREAD_NAME_PROPERTY);
 	private static final GenericProperty _data           = new GenericProperty(DATA_PROPERTY);
 	private static final BooleanProperty _seen           = new BooleanProperty(SEEN_PROPERTY);
 	private static final StringProperty _description     = new StringProperty(DESCRIPTION_PROPERTY);
@@ -62,6 +64,7 @@ public class RuntimeEvent {
 	private boolean seen                   = false;
 	private String description             = null;
 	private String type                    = null;
+	private String threadName              = null;
 
 	public RuntimeEvent(final String type, final String description, final Map<String, Object> data) {
 
@@ -69,6 +72,8 @@ public class RuntimeEvent {
 		this.description = description;
 
 		this.data.putAll(data);
+
+		this.threadName = Thread.currentThread().getName();
 	}
 
 	public long getId() {
@@ -84,6 +89,10 @@ public class RuntimeEvent {
 
 	public String getType() {
 		return type;
+	}
+
+	public String getThreadName() {
+		return threadName;
 	}
 
 	public String getDescription() {
@@ -110,6 +119,7 @@ public class RuntimeEvent {
 			result.setProperty(_absoluteTimestamp, absoluteTimestamp);
 			result.setProperty(_relativeTimestamp, relativeTimestamp);
 			result.setProperty(_description,       description);
+			result.setProperty(_threadName,        threadName);
 			result.setProperty(_seen,              seen);
 			result.setProperty(_data,              data);
 

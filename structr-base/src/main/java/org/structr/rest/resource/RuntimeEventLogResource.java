@@ -120,39 +120,36 @@ public class RuntimeEventLogResource extends ExactMatchEndpoint {
 
 					final long id = Long.parseLong(request.getParameter(RuntimeEvent.ID_PROPERTY));
 
-					root.addPredicate(new Predicate<>() {
-
-						@Override
-						public boolean accept(final RuntimeEvent value) {
-							return id == value.getId();
-						}
-					});
+					root.addPredicate(value -> id == value.getId());
 				}
 
 				if (request.getParameter(RuntimeEvent.SEEN_PROPERTY) != null) {
 
 					final boolean seen = Boolean.parseBoolean(request.getParameter(RuntimeEvent.SEEN_PROPERTY));
 
-					root.addPredicate(new Predicate<>() {
-
-						@Override
-						public boolean accept(final RuntimeEvent value) {
-							return seen == value.getSeen();
-						}
-					});
+					root.addPredicate(value -> seen == value.getSeen());
 				}
 
 				if (request.getParameter(RuntimeEvent.TYPE_PROPERTY) != null) {
 
 					final Set<String> filter = new LinkedHashSet<>(split(request.getParameter(RuntimeEvent.TYPE_PROPERTY)));
 
-					root.addPredicate(new Predicate<>() {
+					if (!filter.isEmpty()) {
+						root.addPredicate(value -> filter.contains(value.getType()));
+					}
+				}
 
-						@Override
-						public boolean accept(final RuntimeEvent value) {
-							return filter.contains(value.getType());
-						}
-					});
+				if (request.getParameter(RuntimeEvent.THREAD_NAME_PROPERTY) != null) {
+
+					final String threadIdFilter = request.getParameter(RuntimeEvent.THREAD_NAME_PROPERTY);
+
+					if (!threadIdFilter.isEmpty()) {
+
+						root.addPredicate(value -> {
+							final String threadId = value.getThreadName();
+							return threadId != null && threadId.contains(threadIdFilter);
+						});
+					}
 				}
 			}
 

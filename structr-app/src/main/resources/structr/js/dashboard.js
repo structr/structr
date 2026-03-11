@@ -1564,24 +1564,37 @@ let _Dashboard = {
 
 				let container = document.querySelector('#dashboard-event-log');
 
-				container.querySelector('#refresh-event-log').addEventListener('click', _Dashboard.tabs['event-log'].loadRuntimeEventLog);
-				container.querySelector('#event-type-filter').addEventListener('change', _Dashboard.tabs['event-log'].loadRuntimeEventLog);
+				let debouncedSearchFunction = _Helpers.debounce(_Dashboard.tabs['event-log'].loadRuntimeEventLog, 200);
+
+				container.querySelector('form').addEventListener('submit', async e => {
+					e.preventDefault();
+
+					debouncedSearchFunction();
+				});
+
+				container.querySelector('#event-type-filter').addEventListener('change', debouncedSearchFunction);
+				container.querySelector('#event-thread-name-filter').addEventListener('search', debouncedSearchFunction);
+				container.querySelector('#event-page-size').addEventListener('change', debouncedSearchFunction);
 			},
 			loadRuntimeEventLog: async () => {
 
-				let tbody  = document.querySelector('#event-log-container');
-				let num    = document.querySelector('#event-type-page-size');
-				let filter = document.querySelector('#event-type-filter');
-				let url    = Structr.rootUrl + '_runtimeEventLog?' + Structr.getRequestParameterName('order') + '=absoluteTimestamp&' + Structr.getRequestParameterName('sort') + '=desc&' + Structr.getRequestParameterName('pageSize') + '=' + num.value;
-				let type   = filter.value;
+				let container             = document.querySelector('#dashboard-event-log');
+				let tbody                 = container.querySelector('#event-log-container');
+				let typeSelect            = container.querySelector('#event-type-filter');
+				let numberOfEventsInput   = container.querySelector('#event-page-size');
+				let threadNameFilterInput = container.querySelector('#event-thread-name-filter');
+
+				let filters = {
+					[Structr.getRequestParameterName('order')]:    'absoluteTimestamp',
+					[Structr.getRequestParameterName('sort')]:     'desc',
+					[Structr.getRequestParameterName('pageSize')]: numberOfEventsInput.value,
+					type:                                               typeSelect.value,
+					threadName:                                         threadNameFilterInput.value
+				};
 
 				_Helpers.fastRemoveAllChildren(tbody);
 
-				if (type && type.length) {
-					url += '&type=' + type;
-				}
-
-				let response = await fetch(url);
+				let response = await fetch(Structr.rootUrl + '_runtimeEventLog?' + new URLSearchParams(filters).toString());
 
 				if (response.ok) {
 
@@ -1595,6 +1608,7 @@ let _Dashboard = {
 							<tr>
 								<td>${new Date(event.absoluteTimestamp).toISOString()}</td>
 								<td>${event.type}</td>
+								<td>${event.threadName}</td>
 								<td>${event.description}</td>
 								<td>${(data ? JSON.stringify(data) : '')}</td>
 								<td class="actions-cell"></td>
@@ -2028,36 +2042,45 @@ let _Dashboard = {
 		tabContentEventLog: config => `
 			<div class="tab-content" id="dashboard-event-log">
 
-				<div id="event-log-options" class="flex items-center mb-4">
+				<form class="flex items-center mb-4 gap-8">
 
-					<label class="mr-1">Filter:</label>
-					<select id="event-type-filter" class="mr-8 hover:bg-gray-100 focus:border-gray-666 active:border-green">
-						<option value="">All events</option>
-						<option value="Authentication">Authentication events</option>
-						<option value="Cron">Cron events</option>
-						<!--<option value="GraphQL">GraphQL requests</option>-->
-						<option value="Http">Http requests</option>
-						<option value="Maintenance">Maintenance</option>
-						<option value="Scripting">Scripting events</option>
-						<option value="Rest">REST requests</option>
-						<option value="ResourceAccess">ResourceAccess events</option>
-						<option value="Transaction">Transactions</option>
-						<option value="SystemInfo">SystemInfo</option>
-					</select>
+					<label class="flex items-center gap-1">
+						<span>Filter:</span>
+						<select id="event-type-filter" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							<option value="">All events</option>
+							<option value="Authentication">Authentication events</option>
+							<option value="Cron">Cron events</option>
+							<option value="Http">Http requests</option>
+							<option value="Maintenance">Maintenance</option>
+							<option value="Scripting">Scripting events</option>
+							<option value="Rest">REST requests</option>
+							<option value="ResourceAccess">ResourceAccess events</option>
+							<option value="Transaction">Transactions</option>
+							<option value="SystemInfo">SystemInfo</option>
+						</select>
+					</label>
 
-					<label class="mr-1">Number of events to show:</label>
-					<input id="event-type-page-size" class="mr-8" type="number" size="3" value="100">
+					<label class="flex items-center gap-1">
+						<span>Thread Name:</span>
+						<input id="event-thread-name-filter" type="search" size="10" value="">
+					</label>
 
-					<button id="refresh-event-log" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+					<label class="flex items-center gap-1">
+						<span>Number of events to show:</span>
+						<input id="event-page-size" type="number" size="3" value="100">
+					</label>
+
+					<button type="submit" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
 						${_Icons.getSvgIcon(_Icons.iconRefreshArrows, 16, 16, 'mr-2')} Refresh
 					</button>
-				</div>
+				</form>
 
 				<table class="props">
 					<thead>
 						<tr>
 							<th class="text-left">Timestamp</th>
 							<th class="text-left">Type</th>
+							<th class="text-left">Thread Name</th>
 							<th class="text-left">Detail</th>
 							<th class="text-left">Data</th>
 							<th class="text-left">Actions</th>
