@@ -34,6 +34,7 @@ import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.graph.search.PropertySearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.traits.Trait;
+import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.FieldDefinition;
 
 import java.util.*;
@@ -715,7 +716,7 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 	}
 
 	@Override
-	public List<GraphObject> getOptions(SecurityContext securityContext, String filter, String label) throws FrameworkException {
+	public List<GraphObject> getOptions(RenderContext renderContext, String filter, String label) throws FrameworkException {
 		return null;
 	}
 

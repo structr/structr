@@ -22,7 +22,9 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.api.AbstractMethod;
+import org.structr.core.datasources.Channel;
 import org.structr.core.entity.DataAdapter;
+import org.structr.core.entity.DataSource;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
@@ -125,46 +127,68 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 					} else {
 
 						final TagWithCSSInfo componentTag   = new TagWithCSSInfo("structr-component");
-						final DataAdapter dataSource         = node.getDataAdapter();
-						final boolean renderTemplateWrapper = dataSource != null;
+						final ComponentConfiguration config = node.getComponentConfiguration();
 						final AsyncBuffer buffer            = renderContext.getBuffer();
 
 						// new code for components
-						if (renderTemplateWrapper) {
+						if (config != null) {
 
-							final ComponentConfiguration config = node.getComponentConfiguration();
-							final String channel                = dataSource.getChannel();
 							final Map<String, String> data      = new LinkedHashMap<>();
 							final Set<String> classes           = new LinkedHashSet<>();
 
 							data.put("data-structr-id", node.getUuid());
 
-							if (config != null) {
+							final Integer columns = config.getColumns();
+							if (columns != null) {
 
-								final Integer columns = config.getColumns();
-								if (columns != null) {
+								classes.add("col-span-" + config.getColumns());
 
-									classes.add("col-span-" + config.getColumns());
+							} else {
 
-								} else {
-
-									// default grid has 6 columns
-									classes.add("col-span-6");
-								}
+								// default grid has 6 columns
+								classes.add("col-span-6");
 							}
 
-							if (channel != null) {
+							final Channel sourceChannel   = config.getSourceChannel();
+							final String selectionChannel = config.getSelectionChannel();
 
-								final String selectedId = dataSource.getSelectedId(renderContext);
+							// data-channel for reload selector, collect all relevant channel names
+							final Set<String> channelNames = new LinkedHashSet<>();
+							if (sourceChannel != null) {
+
+								channelNames.add(sourceChannel.getName());
+							}
+							if (selectionChannel != null) {
+								channelNames.add(selectionChannel);
+							}
+
+							// if reload behaviour is "others", we don't want to reload ourselves
+							if (!channelNames.isEmpty() && !"others".equals(node.getReloadBehaviour())) {
+								data.put("data-channel", String.join(" ", channelNames));
+							}
+
+							// current selected value
+							if (selectionChannel != null) {
+
+								final String selectedId  = renderContext.getChannelValue(selectionChannel);
+
 								if (selectedId != null) {
 
 									data.put("data-current-object-id", selectedId);
-									data.put("data-" + channel, selectedId);
+									data.put("data-" + selectionChannel, selectedId);
 								}
+							}
 
-								// if reload behaviour is "others", we don't want to reload ourselves
-								if (!"others".equals(node.getReloadBehaviour())) {
-									data.put("data-adapter", channel);
+							// current selected value
+							if (sourceChannel != null) {
+
+								final String channelName = sourceChannel.getName();
+								final String selectedId  = renderContext.getChannelValue(channelName);
+
+								if (selectedId != null) {
+
+									data.put("data-current-object-id", selectedId);
+									data.put("data-" + channelName, selectedId);
 								}
 							}
 
@@ -175,7 +199,7 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 						getSuper().renderContent(node, renderContext, depth);
 
 						// new code for components
-						if (renderTemplateWrapper) {
+						if (config != null) {
 							componentTag.formatEndTag(buffer);
 						}
 					}

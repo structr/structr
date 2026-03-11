@@ -26,10 +26,10 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
 import java.util.Map;
 
-public class DataSourceHAS_PROVIDERDataProvider extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
+public class DOMNodeHAS_DATA_SOURCEDataSource extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	public DataSourceHAS_PROVIDERDataProvider() {
-		super(StructrTraits.DATA_SOURCE_HAS_PROVIDER_DATA_PROVIDER);
+	public DOMNodeHAS_DATA_SOURCEDataSource() {
+		super(StructrTraits.DOM_NODE_HAS_DATA_SOURCE);
 	}
 
 	@Override
@@ -39,22 +39,22 @@ public class DataSourceHAS_PROVIDERDataProvider extends AbstractRelationshipTrai
 
 	@Override
 	public String getSourceType() {
-		return StructrTraits.DATA_ADAPTER;
+		return StructrTraits.DOM_NODE;
 	}
 
 	@Override
 	public String getTargetType() {
-		return StructrTraits.DATA_PROVIDER;
+		return StructrTraits.DATA_SOURCE;
 	}
 
 	@Override
 	public String getRelationshipType() {
-		return "HAS_PROVIDER";
+		return "HAS_DATA_SOURCE";
 	}
 
 	@Override
 	public Relation.Multiplicity getSourceMultiplicity() {
-		return Relation.Multiplicity.One;
+		return Relation.Multiplicity.Many;
 	}
 
 	@Override

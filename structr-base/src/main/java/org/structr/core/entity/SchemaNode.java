@@ -25,7 +25,7 @@ import org.structr.core.traits.TypeInfo;
 
 import java.util.Set;
 
-public interface SchemaNode extends AbstractSchemaNode, TypeInfo, DataProvider {
+public interface SchemaNode extends AbstractSchemaNode, TypeInfo, DataSource {
 
 	String schemaNodeNamePattern = "[A-Z][a-zA-Z0-9_]*";
 

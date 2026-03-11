@@ -16,25 +16,29 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.entity;
+package org.structr.common;
 
-import org.structr.common.error.FrameworkException;
-import org.structr.core.datasources.Channel;
-import org.structr.core.entity.DataAdapter;
-import org.structr.core.graph.NodeInterface;
+import java.util.LinkedList;
+import java.util.List;
 
-public interface ComponentConfiguration extends NodeInterface {
+public class ChannelInput {
 
-	DataAdapter getDataAdapter();
-	Channel getSourceChannel() throws FrameworkException;
+	private final List<String> sortKeys = new LinkedList<>();
+	private final String transform;
 
-	String getSelectionChannel() throws FrameworkException;
-	Integer getColumns();
-	String getDisplayMode();
-	String getFieldSet();
-	String getSaveMode();
-	String getRole();
-	String getReloadBehaviour();
-	String getTransform();
-	Boolean showLabels();
+	public ChannelInput() {
+		this(null);
+	}
+
+	public ChannelInput(final String transform) {
+		this.transform = transform;
+	}
+
+	public List<String> sortKeys() {
+		return sortKeys;
+	}
+
+	public String transform() {
+		return transform;
+	}
 }

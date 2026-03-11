@@ -16,19 +16,21 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.datasource;
+package org.structr.core.traits.operations.datasource;
 
+import org.structr.common.ChannelInput;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.entity.DataSource;
+import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.web.common.RenderContext;
+import org.structr.web.datasource.FieldDefinition;
 
-import java.util.List;
+import java.util.Map;
 
-public interface FieldDefinition {
+public abstract class DataSourceOperations extends FrameworkMethod<DataSourceOperations> {
 
-	boolean hasOptions();
-	boolean isRequired();
-	boolean isCollection();
-
-	List<GraphObject> getOptions(final RenderContext renderContext, final String filter, final String label) throws FrameworkException;
+	public abstract Iterable<GraphObject> getValues(final RenderContext renderContext, final DataSource provider, final ChannelInput input) throws FrameworkException;
+	public abstract Map<String, FieldDefinition> getFields(final RenderContext renderContext, final DataSource provider) throws FrameworkException;
+	public abstract String getDataType(final RenderContext renderContext, final DataSource provider) throws FrameworkException;
 }

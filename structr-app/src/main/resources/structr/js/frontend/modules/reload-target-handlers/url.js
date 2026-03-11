@@ -46,7 +46,11 @@ export class Handler {
 
             let url = new URL(window.location.href);
             for (const key in parameters) {
-                url.searchParams.set(key, parameters[key]);
+                if (key === 'current') {
+                    url.pathname = url.pathname.split('/').toSpliced(2, 1, parameters[key]).join('/');
+                } else {
+                    url.searchParams.set(key, parameters[key]);
+                }
             }
             reloadTarget = url.toString();
 

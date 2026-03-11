@@ -30,18 +30,10 @@ import java.util.Map;
 
 public interface DataAdapter extends NodeInterface {
 
-	Iterable<GraphObject> getValues(final SecurityContext securityContext) throws FrameworkException;
 	Map<String, DataField> getFields(final SecurityContext securityContext) throws FrameworkException;
 	Map<String, List<String>> getFieldSets(final SecurityContext securityContext) throws FrameworkException;
 	List<String> getFieldSet(final SecurityContext securityContext, String name) throws FrameworkException;
-	String getSelectedId(final ActionContext actionContext) throws FrameworkException;
-	Object getSelectedValue(final ActionContext actionContext) throws FrameworkException;
-	Object getCurrentValue(final ActionContext actionContext) throws FrameworkException;
-	String getDataType(final SecurityContext securityContext) throws FrameworkException;
-	String getChannel();
 	String getDataKey();
 
-	DataProvider getDataProvider();
-
-	Object evaluate(final ActionContext actionContext, final String key) throws FrameworkException;
+	Object evaluate(final ActionContext actionContext, final GraphObject context, final String key) throws FrameworkException;
 }

@@ -39,7 +39,10 @@ import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
 import org.structr.core.api.NamedArguments;
+import org.structr.core.datasources.Channel;
+import org.structr.core.datasources.CurrentDataSource;
 import org.structr.core.entity.DataAdapter;
+import org.structr.core.entity.DataSource;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.script.Scripting;
 import org.structr.core.script.polyglot.context.ContextFactory;
@@ -178,15 +181,11 @@ public class ActionContext {
 
 			if (_data instanceof NodeInterface n) {
 
-				// evaluate data source attributes first
-				if (n.is(StructrTraits.DATA_ADAPTER)) {
+				_data = n.evaluate(this, key, null, hints, row, column);
 
-					_data = n.as(DataAdapter.class).evaluate(this, key);
+			} else if (_data instanceof Channel c) {
 
-				} else {
-
-					_data = n.evaluate(this, key, null, hints, row, column);
-				}
+				_data = c.evaluate(this, key, null, hints, row, column);
 
 			} else if (_data instanceof GraphObject obj) {
 

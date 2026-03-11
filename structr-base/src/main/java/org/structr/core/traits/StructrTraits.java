@@ -54,7 +54,7 @@ public class StructrTraits {
 	public static final String TEMPLATE                            = "Template";
 	public static final String CONTENT                             = "Content";
 	public static final String DATA_ADAPTER                        = "DataAdapter";
-	public static final String DATA_PROVIDER                       = "DataProvider";
+	public static final String DATA_SOURCE                         = "DataSource";
 	public static final String ACTION_MAPPING                      = "ActionMapping";
 	public static final String PARAMETER_MAPPING                   = "ParameterMapping";
 	public static final String LOCALIZATION                        = "Localization";
@@ -295,7 +295,7 @@ public class StructrTraits {
 	public static final String CSS_RULE_HAS_SELECTOR_CSS_SELECTOR                             = "CssRuleHAS_SELECTORCssSelector";
 	public static final String CSS_SEMANTIC_CLASS_MAPS_TO_CSS_SELECTOR                        = "CssSemanticClassMAPS_TOCssSelector";
 	public static final String COMPONENT_CONFIGURATION_HAS_DATA_ADAPTER                       = "ComponentConfigurationHAS_DATA_SOURCEDataAdapter";
-	public static final String DATA_SOURCE_HAS_PROVIDER_DATA_PROVIDER                         = "DataSourceHAS_PROVIDERDataProvider";
+	public static final String DOM_NODE_HAS_DATA_SOURCE                                       = "DOMNodeHAS_DATA_SOURCeDataSource";
 	public static final String DOM_ELEMENT_INPUT_ELEMENT_PARAMETER_MAPPING                    = "DOMElementINPUT_ELEMENTParameterMapping";
 	public static final String DOM_ELEMENT_RELOADS_DOM_ELEMENT                                = "DOMElementRELOADSDOMElement";
 	public static final String DOM_ELEMENT_TRIGGERED_BY_ACTION_MAPPING                        = "DOMElementTRIGGERED_BYActionMapping";

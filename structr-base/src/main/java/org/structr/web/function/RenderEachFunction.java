@@ -18,9 +18,10 @@
  */
 package org.structr.web.function;
 
-import org.structr.common.SecurityContext;
+import org.structr.common.ChannelInput;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.datasources.Channel;
 import org.structr.core.entity.DataAdapter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
@@ -33,6 +34,7 @@ import org.structr.schema.action.ActionContext;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.TagWithCSSInfo;
+import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.entity.dom.DOMNode;
 
 import java.util.*;
@@ -61,8 +63,7 @@ public class RenderEachFunction extends UiCommunityFunction {
 
 		final RenderFieldsFunction func       = new RenderFieldsFunction();
 		final RenderContext renderContext     = (RenderContext) ctx;
-		final SecurityContext securityContext = ctx.getSecurityContext();
-		final DataAdapter dataSource           = (DataAdapter) sources[0];
+		final DataAdapter dataAdapter         = (DataAdapter) sources[0];
 		final List<String> wrapperElements    = splitAndTrim(getStringOrNull(sources, 1), " ");
 		final String slot                     = getStringOrNull(sources, 2);
 		final TagWithCSSInfo outerWrapper     = getWrapperElement(getOrNull(wrapperElements, 0));
@@ -70,16 +71,18 @@ public class RenderEachFunction extends UiCommunityFunction {
 
 		if (caller instanceof NodeInterface n && n.is(StructrTraits.DOM_NODE)) {
 
-			final DOMNode domNode           = n.as(DOMNode.class);
-			final AsyncBuffer buffer        = renderContext.getBuffer();
-			final String dataKey            = dataSource.getDataKey();
-			final String channel            = dataSource.getChannel();
-			final String role               = domNode.getRoleForComponent();
-			final String selectedId         = dataSource.getSelectedId(renderContext);
-			final GraphObject previousValue = renderContext.getDataNode(dataKey);
-			final String reloadBehaviour    = domNode.getReloadBehaviourForComponent();
+			final DOMNode domNode               = n.as(DOMNode.class);
+			final DOMNode component             = domNode.getClosestComponent();
+			final ComponentConfiguration config = component.getComponentConfiguration();
+			final Channel sourceChannel         = config.getSourceChannel();
+			final AsyncBuffer buffer            = renderContext.getBuffer();
+			final String dataKey                = dataAdapter.getDataKey();
+			final String role                   = domNode.getRoleForComponent();
+			final GraphObject previousValue     = renderContext.getDataNode(dataKey);
+			final String reloadBehaviour        = domNode.getReloadBehaviourForComponent();
+			final ChannelInput input            = new ChannelInput(config.getTransform());
 
-			for (final GraphObject item : dataSource.getValues(securityContext)) {
+			for (final GraphObject item : sourceChannel.getValues(renderContext, input)) {
 
 				renderContext.putDataObject(dataKey, item);
 
@@ -91,41 +94,47 @@ public class RenderEachFunction extends UiCommunityFunction {
 
 					if ("controller".equals(role)) {
 
-						switch (reloadBehaviour) {
+						final String selectionChannel = config.getSelectionChannel();
+						if (selectionChannel != null) {
 
-							case "partial":
-							case "others":
+							switch (reloadBehaviour) {
 
-								// partial reload is triggered via pagination mechanism
-								data.put("data-structr-success-target", "[data-adapter='" + channel + "']");
-								break;
+								case "partial":
+								case "others":
 
-							case "page":
+									// partial reload is triggered via pagination mechanism
+									data.put("data-structr-success-target", "[data-channel~='" + selectionChannel + "']");
+									break;
 
-								data.put("data-structr-success-target", "url:");
-								break;
+								case "page":
 
-							default:
-								data.put("data-structr-success-target", reloadBehaviour);
-								break;
+									data.put("data-structr-success-target", "url:");
+									break;
 
-						}
+								default:
+									data.put("data-structr-success-target", reloadBehaviour);
+									break;
 
-						data.put("data-structr-events", "click");
-						data.put("data-structr-target", channel);
-						data.put("data-" + channel, uuid);
+							}
 
-						additionalCss.add("controller");
+							data.put("data-structr-events", "click");
+							data.put("data-structr-target", selectionChannel);
+							data.put("data-" + selectionChannel, uuid);
 
-						if (uuid.equals(selectedId)) {
-							additionalCss.add("selected");
+							additionalCss.add("controller");
+
+							final String selectedId = renderContext.getChannelValue(selectionChannel);
+							if (selectedId != null && uuid != null && uuid.equals(selectedId)) {
+
+								additionalCss.add("selected");
+							}
 						}
 					}
 
 					outerWrapper.formatStartTag(buffer, data, additionalCss);
 				}
 
-				func.applyTemplates(renderContext, dataSource, domNode, innerWrapper, slot, true);
+				func.applyTemplates(renderContext, dataAdapter, domNode, innerWrapper, slot, true);
 
 				if (outerWrapper != null) {
 					outerWrapper.formatEndTag(buffer);

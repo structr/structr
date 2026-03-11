@@ -16,20 +16,15 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.traits.operations.datasource;
+package org.structr.core.traits.operations.graphobject;
 
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.entity.DataProvider;
+import org.structr.core.entity.AbstractNode;
 import org.structr.core.traits.operations.FrameworkMethod;
-import org.structr.web.datasource.FieldDefinition;
+import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 
-import java.util.Map;
+public abstract class Evaluate extends FrameworkMethod<Evaluate> {
 
-public abstract class DataProviderOperations extends FrameworkMethod<DataProviderOperations> {
-
-	public abstract Iterable<GraphObject> getValues(final SecurityContext securityContext, final DataProvider provider) throws FrameworkException;
-	public abstract Map<String, FieldDefinition> getFields(final SecurityContext securityContext, final DataProvider provider) throws FrameworkException;
-	public abstract String getDataType(final SecurityContext securityContext, final DataProvider provider) throws FrameworkException;
+	public abstract Object evaluate(final AbstractNode node, final ActionContext actionContext, final String key, final String defaultValue, final EvaluationHints hints, final int row, final int column) throws FrameworkException;
 }

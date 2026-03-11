@@ -24,7 +24,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.DataProvider;
+import org.structr.core.datasources.Channel;
 import org.structr.core.entity.DataAdapter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.action.ActionContext;
@@ -33,6 +33,7 @@ import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.DataField;
 import org.structr.web.datasource.TagWithCSSInfo;
+import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.entity.dom.DOMNode;
 
 import java.util.*;
@@ -42,36 +43,39 @@ import java.util.*;
  */
 public abstract class ApplyTemplatesFunction extends IncludeFunction {
 
-	public void applyTemplates(final ActionContext ctx, final DataAdapter dataSource, final DOMNode domNode, final String tag, final String slot, final boolean inLoop) throws FrameworkException {
+	public void applyTemplates(final ActionContext ctx, final DataAdapter dataAdapter, final DOMNode domNode, final String tag, final String slot, final boolean inLoop) throws FrameworkException {
 
 		final SecurityContext securityContext = ctx.getSecurityContext();
 		final App app                         = StructrApp.getInstance(securityContext);
-		final Map<String, DataField> fields   = dataSource.getFields(securityContext);
+		final Map<String, DataField> fields   = dataAdapter.getFields(securityContext);
 		final RenderContext innerCtx          = (RenderContext)ctx;
 		final TagWithCSSInfo wrapper          = getWrapperElement(tag);
 		final AsyncBuffer buffer              = innerCtx.getBuffer();
 		final Boolean showLabels              = domNode.getShowLabelsFlagForComponent();
 		final String requestedFieldSet        = domNode.getFieldSetForComponent();
-		final List<String> fieldSet           = dataSource.getFieldSet(securityContext, requestedFieldSet);
+		final List<String> fieldSet           = dataAdapter.getFieldSet(securityContext, requestedFieldSet);
 		final String displayMode              = domNode.getDisplayModeForComponent(securityContext);
 		final String reloadBehaviour          = domNode.getReloadBehaviourForComponent();
 		final boolean useEditTemplate         = "input".equals(displayMode);
 		final Object previousFieldValue       = innerCtx.getConstant("field");
-		final DataProvider dataProvider       = dataSource.getDataProvider();
-		final String channel                  = dataSource.getChannel();
+		final DOMNode component               = domNode.getClosestComponent();
+		final ComponentConfiguration config   = component.getComponentConfiguration();
+		final Channel sourceChannel           = config.getSourceChannel();
 		String selectedValue                  = null;
 
 		// we can only be a subscriber if the fields are not displayed in a loop
 		// something about dimensions is also true here...
-		if (!inLoop && channel != null) {
+		if (!inLoop && sourceChannel != null) {
 
 			final String role = domNode.getRoleForComponent();
 			if ("subscriber".equals(role)) {
 
-				selectedValue = innerCtx.getChannelValue(channel);
+				final String channelName = sourceChannel.getName();
+
+				selectedValue = innerCtx.getChannelValue(channelName);
 				if (selectedValue != null) {
 
-					final String dataKey = dataSource.getDataKey();
+					final String dataKey = dataAdapter.getDataKey();
 					if (dataKey != null) {
 
 						final NodeInterface node = app.getNodeById(selectedValue);
@@ -88,7 +92,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 
 					} else {
 
-						logger.warn("{}: cannot store value for channel {}, data source {} does not define a dataKey.", getName(), channel, dataSource.getName());
+						logger.warn("{}: cannot store value for channel {}, data adapter {} does not define a dataKey.", getName(), channelName, dataAdapter.getName());
 					}
 
 				} else {
@@ -122,7 +126,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 					dataField.applyCssClasses(cssClasses);
 
 					// make field information available in context
-					innerCtx.setConstant("field", dataField.evaluate(securityContext, dataProvider));
+					innerCtx.setConstant("field", dataField.evaluate(innerCtx, sourceChannel));
 
 					// value present?
 					if (valueSource != null) {
@@ -156,7 +160,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 
 					if (useEditTemplate && StringUtils.isEmpty(editTemplate)) {
 
-						logger.warn("{}: field {} from data source {} cannot be used with displayMode input because it doesn't specify a value for `editTemplate`.", getName(), field, dataSource.getName());
+						logger.warn("{}: field {} from data source {} cannot be used with displayMode input because it doesn't specify a value for `editTemplate`.", getName(), field, dataAdapter.getName());
 						buffer.append("<span class=\"error\">No edit template.</span>");
 
 					} else {
@@ -168,7 +172,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 							final String previousReloadBehaviour = innerCtx.getCurrentReloadBehaviour();
 
 							// we need to make the current data source available to the inner template
-							innerCtx.setCurrentAdapter(dataSource);
+							innerCtx.setCurrentAdapter(dataAdapter);
 							innerCtx.setCurrentReloadBehaviour(reloadBehaviour);
 
 							try {
@@ -202,13 +206,15 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 	public void applyLabels(final ActionContext ctx, final DataAdapter dataSource, final DOMNode domNode, final String templateWrapper, final String slot) throws FrameworkException {
 
 		final SecurityContext securityContext = ctx.getSecurityContext();
-		final RenderContext innerCtx          = new RenderContext((RenderContext)ctx);
+		final RenderContext innerCtx          = (RenderContext) ctx;
 		final Map<String, DataField> fields   = dataSource.getFields(securityContext);
 		final TagWithCSSInfo wrapper          = getWrapperElement(templateWrapper);
 		final AsyncBuffer buffer              = innerCtx.getBuffer();
 		final String requestedFieldSet        = domNode.getFieldSetForComponent();
 		final List<String> fieldSet           = dataSource.getFieldSet(securityContext, requestedFieldSet);
-		final DataProvider dataProvider       = dataSource.getDataProvider();
+		final DOMNode component               = domNode.getClosestComponent();
+		final ComponentConfiguration config   = component.getComponentConfiguration();
+		final Channel sourceChannel           = config.getSourceChannel();
 
 		if (fieldSet.isEmpty()) {
 			logger.warn("{}: {} with ID {} doesn't specify a fieldSet, nothing will be rendered.", getName(), domNode.getType(), domNode.getUuid());
@@ -227,7 +233,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 					final String label = dataField.getLabel();
 
 					innerCtx.setConstant("value", label);
-					innerCtx.setConstant("field", dataField.evaluate(securityContext, dataProvider));
+					innerCtx.setConstant("field", dataField.evaluate(innerCtx, sourceChannel));
 
 					if (wrapper != null) {
 						wrapper.formatStartTag(buffer);

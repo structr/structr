@@ -34,6 +34,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.DataAdapter;
+import org.structr.core.entity.DataSource;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
@@ -488,14 +489,21 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		return null;
 	}
 
+	/**
+	 * Returns the closest data source in this element's
+	 * parent hierarchy, i.e. the first parent element
+	 * that has a data source.
+	 * @return
+	 */
 	@Override
-	public final DataAdapter getClosestDataAdapter() {
+	public final DataSource getClosestDataSource() {
 
 		DOMNode node = this;
 
+		// TODO: should we check component boundaries here?
 		while (node != null) {
 
-			final DataAdapter dataSource = node.getDataAdapter();
+			final DataSource dataSource = node.getDataSource();
 			if (dataSource != null) {
 
 				return dataSource;
@@ -1067,6 +1075,18 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		if (node != null) {
 
 			return node.as(ComponentConfiguration.class);
+		}
+
+		return null;
+	}
+
+	@Override
+	public DataSource getDataSource() {
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.DATA_SOURCE_PROPERTY));
+		if (node != null) {
+
+			return node.as(DataSource.class);
 		}
 
 		return null;
@@ -2444,7 +2464,11 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		final ComponentConfiguration config = getComponentConfiguration();
 		if (config != null) {
 
-			return config.getDataSource();
+			final DataAdapter dataAdapter = config.getDataAdapter();
+			if (dataAdapter != null) {
+
+				return dataAdapter;
+			}
 		}
 
 		return null;

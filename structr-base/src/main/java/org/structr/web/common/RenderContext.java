@@ -36,6 +36,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.datasources.Channel;
 import org.structr.core.entity.DataAdapter;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
@@ -477,6 +478,38 @@ public class RenderContext extends ActionContext {
 						}
 						break;
 
+					case "dataSource":
+
+						if (entity.is(StructrTraits.DOM_NODE)) {
+
+							final DOMNode component = entity.as(DOMNode.class).getClosestComponent();
+							if (component != null) {
+
+								return component.getComponentConfiguration().getSourceChannel();
+							}
+						}
+
+						// ActionMapping can have a closest data source via DOMElements
+						if (entity.is(StructrTraits.ACTION_MAPPING)) {
+
+							hints.reportExistingKey(key);
+
+							final ActionMapping actionMapping = entity.as(ActionMapping.class);
+							for (final DOMElement element : actionMapping.getTriggerElements()) {
+
+								final DOMNode closestComponent = element.as(DOMNode.class).getClosestComponent();
+								if (closestComponent != null) {
+
+									final Channel dataSource = closestComponent.getComponentConfiguration().getSourceChannel();
+									if (dataSource != null) {
+
+										return dataSource;
+									}
+								}
+							}
+						}
+						break;
+
 
 					case "adapter":
 
@@ -504,10 +537,14 @@ public class RenderContext extends ActionContext {
 
 						for (final DOMNode domNode : candidates) {
 
-							final DataAdapter adapter = domNode.getClosestDataAdapter();
-							if (adapter != null) {
+							final DOMNode closestComponent = domNode.getClosestComponent();
+							if (closestComponent != null) {
 
-								return adapter;
+								final DataAdapter adapter = closestComponent.getDataAdapter();
+								if (adapter != null) {
+
+									return adapter;
+								}
 							}
 						}
 

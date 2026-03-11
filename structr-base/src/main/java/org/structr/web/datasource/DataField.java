@@ -18,9 +18,10 @@
  */
 package org.structr.web.datasource;
 
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.DataProvider;
+import org.structr.core.datasources.Channel;
+import org.structr.core.entity.DataSource;
+import org.structr.web.common.RenderContext;
 
 import java.util.*;
 
@@ -93,12 +94,12 @@ public class DataField {
 	 * Evaluates the field options and returns a map with the field information
 	 * usable by the frontend components that render the edit template.
 	 *
-	 * @param securityContext
-	 * @param dataProvider
+	 * @param renderContext
+	 * @param dataSource
 	 * @return
 	 * @throws FrameworkException
 	 */
-	public Map<String, Object> evaluate(final SecurityContext securityContext, final DataProvider dataProvider) throws FrameworkException {
+	public Map<String, Object> evaluate(final RenderContext renderContext, final Channel dataSource) throws FrameworkException {
 
 		final Map<String, Object> result = new LinkedHashMap<>();
 
@@ -114,7 +115,7 @@ public class DataField {
 			result.put("propertyName", propertyName);
 
 			// fetch options from data provider
-			final FieldDefinition fieldDefinition = dataProvider.getFields(securityContext).get(propertyName);
+			final FieldDefinition fieldDefinition = dataSource.getFields(renderContext).get(propertyName);
 			if (fieldDefinition != null) {
 
 				// add required flag
@@ -138,7 +139,7 @@ public class DataField {
 						filter = (String) options.get("filter");
 					}
 
-					result.put("options", fieldDefinition.getOptions(securityContext, filter, label));
+					result.put("options", fieldDefinition.getOptions(renderContext, filter, label));
 				}
 			}
 		}

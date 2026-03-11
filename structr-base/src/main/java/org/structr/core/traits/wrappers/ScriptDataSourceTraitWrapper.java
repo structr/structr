@@ -16,19 +16,14 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.entity;
+package org.structr.core.traits.wrappers;
 
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
-import org.structr.web.datasource.FieldDefinition;
+import org.structr.core.traits.Traits;
 
-import java.util.Map;
+public class ScriptDataSourceTraitWrapper extends DataSourceTraitWrapper {
 
-public interface DataProvider extends NodeInterface {
-
-	Iterable<GraphObject> getValues(final SecurityContext securityContext) throws FrameworkException;
-	Map<String, FieldDefinition> getFields(final SecurityContext securityContext) throws FrameworkException;
-	String getDataType(final SecurityContext securityContext) throws FrameworkException;
+	public ScriptDataSourceTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
 }

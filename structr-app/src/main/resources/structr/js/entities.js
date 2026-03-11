@@ -2775,6 +2775,17 @@ let _Entities = {
                     });
                 }
 
+                let sourceDataSourceSelect = document.querySelector('#data-source-channel-select');
+                if (sourceDataSourceSelect) {
+                    let dataSources = await Command.queryPromise('DataSource', 1000, 1, 'name', 'asc', '');
+                    if (dataSources) {
+                        for (let dataSource of dataSources) {
+                            let selected = dataSource.name === config.sourceChannel ? 'selected' : '';
+                            sourceDataSourceSelect.insertAdjacentHTML('beforeend', `<option ${selected}>${dataSource.name}</option>`);
+                        }
+                    }
+                }
+
                 _Entities.generalTab.populateInputFields(el, { entity: entity, config: config });
 				_Entities.generalTab.populateSelectFields(el, { entity: entity, config: config });
                 _Entities.generalTab.registerSimpleInputChangeHandlers(el, { entity: entity, config: config });
@@ -3704,27 +3715,37 @@ let _Entities = {
 
             dataSourcePartial: (config) => `
 
-                <h3>Data Adapter Configuration</h3>
+                <h3>Data Configuration</h3>
             
                 <div class="grid grid-cols-2 gap-8 mt-8">
 
                     <div>
-                        <label class="block mb-2" for="data-adapter-select" data-comment="The data adapter determines which objects are displayed in this components.">Data Adapter</label>
+                        <label class="block mb-2" for="data-source-channel-select" data-comment="The source channel determines which objects are displayed in this component.">Source Channel</label>
+                        <div class="data-source-channel-options flex">
+                            <select class="select2" id="data-source-channel-select" name="sourceChannel" data-which="config">
+                                <option value="">None</option>
+                                <option value="current">Current</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block mb-2" for="transform-input" data-comment="">Transform</label>
+                        <input type="text" id="transform-input" autocomplete="off" name="transform" data-which="config">
+                    </div>
+
+                    <div>
+                        <label class="block mb-2" for="data-selection-channel-input" data-comment="Which channel the UUID of the selected object is made available on for other components to consume.">Selection Channel</label>
+                        <input type="text" id="data-selection-channel-input" autocomplete="off" name="selectionChannel" data-which="config">
+                    </div>
+
+                    <div>
+                        <label class="block mb-2" for="data-adapter-select" data-comment="The data adapter determines how the objects are displayed in this component.">Data Adapter</label>
                         <div class="data-adapter-options flex">
                             <select class="select2" id="data-adapter-select" name="dataAdapter" data-which="config">
                                 <option value="">None</option>
                             </select>
                             <button class="button btn ml-2 mr-0" title="Create a new data adapter"><svg width="16" height="16"><use href="#circle_plus"></use></svg></button>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block mb-2" for="field-set-select" data-comment="The field set determines which properties are displayed in this component.">Field Set</label>
-                        <div class="field-setoptions flex">
-                            <select class="select2" id="field-set-select" name="fieldSet" data-which="config">
-                                <option value="default">Default</option>
-                            </select>
-                            <button class="button btn ml-2 mr-0" title="Create a new field set for this data adapter."><svg width="16" height="16"><use href="#circle_plus"></use></svg></button>
                         </div>
                     </div>
 
@@ -3735,6 +3756,16 @@ let _Entities = {
                             <option value="controller">Controller - controls other components with the same data adapter</option>
                             <option value="subscriber">Subscriber - is controlled by other components with the same data adapter</option>
                         </select>
+                    </div>
+
+                    <div>
+                        <label class="block mb-2" for="field-set-select" data-comment="The field set determines which properties are displayed in this component.">Field Set</label>
+                        <div class="field-setoptions flex">
+                            <select class="select2" id="field-set-select" name="fieldSet" data-which="config">
+                                <option value="default">Default</option>
+                            </select>
+                            <button class="button btn ml-2 mr-0" title="Create a new field set for this data adapter."><svg width="16" height="16"><use href="#circle_plus"></use></svg></button>
+                        </div>
                     </div>
 
                     <div>

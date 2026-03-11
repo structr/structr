@@ -23,7 +23,6 @@ import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.GraphObjectMap;
 import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
@@ -41,10 +40,10 @@ import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.openapi.common.OpenAPIAnyOf;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
+import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.FieldDefinition;
 
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -331,8 +330,11 @@ public class EndNode extends Property<NodeInterface> implements RelationProperty
 	}
 
 	@Override
-	public List<GraphObject> getOptions(final SecurityContext securityContext, final String filter, final String label) throws FrameworkException {
-		final PropertyKey<String> nameKey = Traits.of(getTargetType()).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+	public List<GraphObject> getOptions(final RenderContext renderContext, final String filter, final String label) throws FrameworkException {
+
+		final SecurityContext securityContext = renderContext.getSecurityContext();
+		final PropertyKey<String> nameKey     = Traits.of(getTargetType()).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+
 		return (List) StructrApp.getInstance(securityContext).nodeQuery(getTargetType()).sort(nameKey).getAsList();
 	}
 }

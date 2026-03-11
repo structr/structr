@@ -68,9 +68,9 @@ public class RenderFieldsFunction extends ApplyTemplatesFunction {
 
 				final DOMNode domNode = n.as(DOMNode.class);
 
-				if (sources[0] instanceof DataAdapter dataSource) {
+				if (sources[0] instanceof DataAdapter dataAdapter) {
 
-					applyTemplates(ctx, dataSource, domNode, tag, slot, false);
+					applyTemplates(ctx, dataAdapter, domNode, tag, slot, false);
 				}
 
 			} else {

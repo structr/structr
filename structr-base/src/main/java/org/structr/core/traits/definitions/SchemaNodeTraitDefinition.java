@@ -18,6 +18,7 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.structr.common.ChannelInput;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -26,7 +27,7 @@ import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.DataProvider;
+import org.structr.core.entity.DataSource;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.ModificationQueue;
@@ -39,13 +40,14 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
-import org.structr.core.traits.operations.datasource.DataProviderOperations;
+import org.structr.core.traits.operations.datasource.DataSourceOperations;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.operations.nodeinterface.OnNodeDeletion;
 import org.structr.core.traits.wrappers.SchemaNodeTraitWrapper;
 import org.structr.schema.ReloadSchema;
+import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.FieldDefinition;
 
 import java.util.*;
@@ -152,11 +154,12 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			DataProviderOperations.class, new DataProviderOperations() {
+			DataSourceOperations.class, new DataSourceOperations() {
 
 				@Override
-				public Iterable<GraphObject> getValues(final SecurityContext securityContext, final DataProvider provider) throws FrameworkException {
+				public Iterable<GraphObject> getValues(final RenderContext renderContext, final DataSource provider, final ChannelInput input) throws FrameworkException {
 
+					final SecurityContext securityContext = renderContext.getSecurityContext();
 					final PropertyKey sortKey   = Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 					final SchemaNode schemaNode = provider.as(SchemaNode.class);
 					final String name           = schemaNode.getName();
@@ -165,7 +168,7 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 
 				@Override
-				public Map<String, FieldDefinition> getFields(final SecurityContext securityContext, final DataProvider provider) throws FrameworkException {
+				public Map<String, FieldDefinition> getFields(final RenderContext renderContext, final DataSource provider) throws FrameworkException {
 
 					final Map<String, FieldDefinition> output = new LinkedHashMap<>();
 					final SchemaNode schemaNode               = provider.as(SchemaNode.class);
@@ -182,7 +185,7 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 
 				@Override
-				public String getDataType(final SecurityContext securityContext, final DataProvider provider) throws FrameworkException {
+				public String getDataType(final RenderContext renderContext, final DataSource provider) throws FrameworkException {
 					return provider.as(SchemaNode.class).getTypeName();
 				}
 			}

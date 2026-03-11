@@ -39,7 +39,7 @@ import java.util.*;
  *
  *
  */
-public class AbstractSchemaNodeTraitWrapper extends DataProviderTraitWrapper implements AbstractSchemaNode {
+public class AbstractSchemaNodeTraitWrapper extends DataSourceTraitWrapper implements AbstractSchemaNode {
 
 	public AbstractSchemaNodeTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);

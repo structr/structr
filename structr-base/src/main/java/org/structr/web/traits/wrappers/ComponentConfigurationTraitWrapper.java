@@ -19,8 +19,13 @@
 package org.structr.web.traits.wrappers;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
+import org.structr.core.datasources.Channel;
+import org.structr.core.datasources.CurrentDataSource;
 import org.structr.core.entity.DataAdapter;
+import org.structr.core.entity.DataSource;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.web.entity.ComponentConfiguration;
@@ -33,12 +38,7 @@ public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper
 	}
 
 	@Override
-	public void setDataSource(final NodeInterface dataSourceNode) throws FrameworkException {
-		wrappedObject.setProperty(traits.key(ComponentConfigurationTraitDefinition.DATA_ADAPTER_PROPERTY), dataSourceNode);
-	}
-
-	@Override
-	public DataAdapter getDataSource() {
+	public DataAdapter getDataAdapter() {
 
 		final NodeInterface node = wrappedObject.getProperty(traits.key(ComponentConfigurationTraitDefinition.DATA_ADAPTER_PROPERTY));
 		if (node != null) {
@@ -47,6 +47,35 @@ public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper
 		}
 
 		return null;
+	}
+
+	@Override
+	public Channel getSourceChannel() throws FrameworkException {
+
+		final String sourceChannelName = wrappedObject.getProperty(traits.key(ComponentConfigurationTraitDefinition.SOURCE_CHANNEL_PROPERTY));
+		if (sourceChannelName != null) {
+
+			switch (sourceChannelName) {
+
+				case "current":
+					return new CurrentDataSource();
+
+				default:
+					final NodeInterface node = StructrApp.getInstance(getSecurityContext()).nodeQuery(StructrTraits.DATA_SOURCE).name(sourceChannelName).getFirst();
+					if (node != null) {
+
+						return node.as(DataSource.class);
+					}
+					break;
+			}
+		}
+
+		return null;
+	}
+
+	@Override
+	public String getSelectionChannel() throws FrameworkException {
+		return wrappedObject.getProperty(traits.key(ComponentConfigurationTraitDefinition.SELECTION_CHANNEL_PROPERTY));
 	}
 
 	@Override
@@ -82,5 +111,10 @@ public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper
 	@Override
 	public Boolean showLabels() {
 		return wrappedObject.getProperty(traits.key(ComponentConfigurationTraitDefinition.SHOW_LABELS_PROPERTY));
+	}
+
+	@Override
+	public String getTransform() {
+		return wrappedObject.getProperty(traits.key(ComponentConfigurationTraitDefinition.TRANSFORM_PROPERTY));
 	}
 }

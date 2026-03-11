@@ -23,15 +23,13 @@ import com.google.gson.GsonBuilder;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.DataProvider;
 import org.structr.core.entity.DataAdapter;
+import org.structr.core.entity.DataSource;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.DataAdapterTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
-import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.DataField;
 
 import java.util.LinkedHashMap;
@@ -43,17 +41,14 @@ public class DataAdapterTraitWrapper extends AbstractNodeTraitWrapper implements
 	private final Gson gson = new GsonBuilder().create();
 	private Map<String, DataField> fields = null;
 	private Map<String, List<String>> fieldSets = null;
+	private DataSource dataSource = null;
 
 	public DataAdapterTraitWrapper(final Traits traits, final NodeInterface node) {
 		super(traits, node);
 	}
 
-	@Override
-	public final Iterable<GraphObject> getValues(SecurityContext securityContext) throws FrameworkException {
-
-		final DataProvider dataProvider = getDataProvider();
-
-		return dataProvider.getValues(securityContext);
+	public void initialize(final DataSource dataSource) {
+		this.dataSource = dataSource;
 	}
 
 	@Override
@@ -110,111 +105,13 @@ public class DataAdapterTraitWrapper extends AbstractNodeTraitWrapper implements
 		return List.of();
 	}
 
-	/**
-	 * Returns the string value (UUID) of the context value that is currently
-	 * selected by the controller of this data source.
-	 *
-	 * @param actionContext
-	 * @return
-	 * @throws FrameworkException
-	 */
-	@Override
-	public String getSelectedId(final ActionContext actionContext) throws FrameworkException {
-
-		final String channel = getChannel();
-		if (channel != null && actionContext instanceof RenderContext renderContext) {
-
-			return renderContext.getChannelValue(channel);
-		}
-
-		return null;
-	}
-
-	/**
-	 * Returns the context value that is currently selected by the controller
-	 * of this data source. The value can be selected via the channel
-	 * mechanism.
-	 *
-	 * @param actionContext
-	 * @return
-	 * @throws FrameworkException
-	 */
-	@Override
-	public Object getSelectedValue(final ActionContext actionContext) throws FrameworkException {
-
-		final String selectedId = getSelectedId(actionContext);
-		if (selectedId != null) {
-
-			return StructrApp.getInstance(actionContext.getSecurityContext()).getNodeById(selectedId);
-		}
-
-		return null;
-	}
-
-	/**
-	 * Returns the context value that is currently associated with
-	 * the data key of this data source.
-	 *
-	 * @param actionContext
-	 * @return
-	 * @throws FrameworkException
-	 */
-	@Override
-	public Object getCurrentValue(final ActionContext actionContext) throws FrameworkException {
-
-		if (actionContext instanceof RenderContext renderContext) {
-
-			final String dataKey = getDataKey();
-			if (dataKey != null) {
-
-				// allow fallback if no data node is set
-				final GraphObject dataNode = renderContext.getDataNode(dataKey);
-				if (dataNode != null) {
-
-					return dataNode;
-				}
-			}
-		}
-
-		return getSelectedValue(actionContext);
-	}
-
-	@Override
-	public String getDataType(final SecurityContext securityContext) throws FrameworkException {
-
-		final DataProvider dataProvider = getDataProvider();
-		if (dataProvider != null) {
-
-			return dataProvider.getDataType(securityContext);
-		}
-
-		return null;
-	}
-
-	@Override
-	public String getChannel() {
-		return wrappedObject.getProperty(traits.key(DataAdapterTraitDefinition.CHANNEL_PROPERTY));
-	}
-
 	@Override
 	public String getDataKey() {
 		return wrappedObject.getProperty(traits.key(DataAdapterTraitDefinition.DATA_KEY_PROPERTY));
 	}
 
 	@Override
-	public DataProvider getDataProvider() {
-
-		final NodeInterface provider = wrappedObject.getProperty(traits.key(DataAdapterTraitDefinition.PROVIDER_PROPERTY));
-		if (provider != null) {
-
-			return provider.as(DataProvider.class);
-		}
-
-		return null;
-	}
-
-	@Override
-	public Object evaluate(final ActionContext actionContext, final String key) throws FrameworkException {
+	public Object evaluate(final ActionContext actionContext, final GraphObject entity, final String key) throws FrameworkException {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
 
@@ -223,25 +120,10 @@ public class DataAdapterTraitWrapper extends AbstractNodeTraitWrapper implements
 			case "fields":
 				return getFields(securityContext);
 
-			case "values":
-				return getValues(securityContext);
-
 			case "dataKey":
 				return getDataKey();
-
-			case "dataType":
-				return getDataType(securityContext);
-
-			case "selectedId":
-				return getSelectedId(actionContext);
-
-			case "selectedValue":
-				return getSelectedValue(actionContext);
-
-			case "currentValue":
-				return getCurrentValue(actionContext);
 		}
 
-		return this.as(NodeInterface.class).evaluate(actionContext, key, null, new EvaluationHints(), 0, 0);
+		return this.evaluate(actionContext, key, null, new EvaluationHints(), 0, 0);
 	}
 }

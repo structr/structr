@@ -34,11 +34,9 @@ import java.util.Set;
 public class DataAdapterTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String DOM_NODES_PROPERTY  = "domNodes";
-	public static final String PROVIDER_PROPERTY   = "provider";
 	public static final String MAPPING_PROPERTY    = "mapping";
 	public static final String FIELD_SETS_PROPERTY = "fieldSets";
 	public static final String DATA_KEY_PROPERTY   = "dataKey";
-	public static final String CHANNEL_PROPERTY    = "channel";
 
 	public DataAdapterTraitDefinition() {
 		super(StructrTraits.DATA_ADAPTER);
@@ -56,19 +54,15 @@ public class DataAdapterTraitDefinition extends AbstractNodeTraitDefinition {
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
 		final Property<Iterable<NodeInterface>> domNodesProperty = new StartNodes(traitsInstance, DOM_NODES_PROPERTY, StructrTraits.COMPONENT_CONFIGURATION_HAS_DATA_ADAPTER).category(DOMNode.WIDGETS_CATEGORY);
-		final Property<NodeInterface> providerProperty           = new EndNode(traitsInstance, PROVIDER_PROPERTY, StructrTraits.DATA_SOURCE_HAS_PROVIDER_DATA_PROVIDER).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<String> mappingProperty                   = new StringProperty(MAPPING_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<String> fieldSetsProperty                 = new StringProperty(FIELD_SETS_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<String> dataKeyProperty                   = new StringProperty(DATA_KEY_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
-		final Property<String> channelProperty                   = new StringProperty(CHANNEL_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 
 		return newSet(
 			domNodesProperty,
-			providerProperty,
 			mappingProperty,
 			fieldSetsProperty,
-			dataKeyProperty,
-			channelProperty
+			dataKeyProperty
 		);
 	}
 
@@ -80,10 +74,8 @@ public class DataAdapterTraitDefinition extends AbstractNodeTraitDefinition {
 				GraphObjectTraitDefinition.ID_PROPERTY,
 				NodeInterfaceTraitDefinition.NAME_PROPERTY,
 				MAPPING_PROPERTY,
-				PROVIDER_PROPERTY,
 				FIELD_SETS_PROPERTY,
-				DATA_KEY_PROPERTY,
-				CHANNEL_PROPERTY
+				DATA_KEY_PROPERTY
 			)
 		);
 	}

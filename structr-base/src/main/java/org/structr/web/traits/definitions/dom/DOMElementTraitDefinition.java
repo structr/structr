@@ -38,7 +38,7 @@ import org.structr.core.api.Methods;
 import org.structr.core.api.NamedArguments;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.DataAdapter;
+import org.structr.core.datasources.Channel;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.ModificationQueue;
@@ -64,6 +64,7 @@ import org.structr.web.common.EventContext;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.eam.*;
+import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -83,11 +84,12 @@ import org.structr.web.traits.operations.*;
 import org.structr.web.traits.wrappers.dom.DOMElementTraitWrapper;
 
 import java.util.*;
+import java.util.List;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import static org.structr.web.entity.dom.DOMElement.lowercaseBodyName;
-import static org.structr.web.entity.dom.DOMNode.EVENT_ACTION_MAPPING_CATEGORY;
-import static org.structr.web.entity.dom.DOMNode.PAGE_CATEGORY;
+import static org.structr.web.entity.dom.DOMNode.*;
 
 public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -1282,7 +1284,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		}
 	}
 
-	private Object handleAppendChildAction(final ActionContext actionContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
+	private Object handleAppendChildAction(final RenderContext actionContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
 		final String dataTarget = getDataTargetFromParameters(parameters, "append-child", true);
@@ -2129,33 +2131,48 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		return StringUtils.join(selectors, ",");
 	}
 
-	private String getComponentBasedReloadTarget(final RenderContext renderContext, final DOMNode node) {
+	private String getComponentBasedReloadTarget(final RenderContext renderContext, final DOMNode node) throws FrameworkException {
 
 		// use either direct data source or from current context
 		final String reloadBehaviour = coalesce(renderContext.getCurrentReloadBehaviour(), node.getReloadBehaviourForComponent());
-		final DataAdapter adapter    = coalesce(renderContext.getCurrentAdapter(), node.getClosestDataAdapter());
+		final DOMNode component      = node.getClosestComponent();
 
-		if (reloadBehaviour != null) {
+		if (component != null) {
 
-			switch (reloadBehaviour) {
+			final ComponentConfiguration config = component.getComponentConfiguration();
 
-				case "partial":
-				case "others":
-					if (adapter != null) {
+			if (reloadBehaviour != null) {
 
-						final String channel = adapter.getChannel();
-						if (channel != null) {
+				switch (reloadBehaviour) {
 
-							return "[data-adapter='" + channel + "']";
+					case "partial":
+					case "others":
+
+						final Set<String> channelNames = new LinkedHashSet<>();
+						final Channel sourceChannel    = config.getSourceChannel();
+						final String selectionChannel  = config.getSelectionChannel();
+
+						if (sourceChannel != null) {
+							channelNames.add(sourceChannel.getName());
 						}
-					}
-					break;
 
-				case "page":
-					return "url:";
+						if (selectionChannel != null) {
+							channelNames.add(selectionChannel);
+						}
 
-				default:
-					return reloadBehaviour;
+						if (!channelNames.isEmpty()) {
+							return channelNames.stream()
+								.map(c -> "[data-channel~='" + c + "']")
+								.collect(Collectors.joining(", "));
+						}
+						break;
+
+					case "page":
+						return "url:";
+
+					default:
+						return reloadBehaviour;
+				}
 			}
 		}
 

@@ -28,6 +28,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.DataAdapter;
+import org.structr.core.entity.DataSource;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
@@ -178,14 +179,6 @@ public class IncludeFunction extends UiCommunityFunction {
 			if (sources.length == 3 && sources[1] instanceof Iterable && sources[2] instanceof String dataKey) {
 
 				final Iterable<GraphObject> iterable = FunctionDataSource.map((Iterable) sources[1]);
-
-				innerCtx.setListSource(iterable);
-				node.renderNodeList(securityContext, innerCtx, 0, dataKey);
-
-			} else if (sources.length == 2 && sources[1] instanceof DataAdapter dataSource) {
-
-				final Iterable<GraphObject> iterable = dataSource.getValues(securityContext);
-				final String dataKey                 = dataSource.getDataKey();
 
 				innerCtx.setListSource(iterable);
 				node.renderNodeList(securityContext, innerCtx, 0, dataKey);

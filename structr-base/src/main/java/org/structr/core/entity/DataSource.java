@@ -16,25 +16,10 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.entity;
+package org.structr.core.entity;
 
-import org.structr.common.error.FrameworkException;
 import org.structr.core.datasources.Channel;
-import org.structr.core.entity.DataAdapter;
 import org.structr.core.graph.NodeInterface;
 
-public interface ComponentConfiguration extends NodeInterface {
-
-	DataAdapter getDataAdapter();
-	Channel getSourceChannel() throws FrameworkException;
-
-	String getSelectionChannel() throws FrameworkException;
-	Integer getColumns();
-	String getDisplayMode();
-	String getFieldSet();
-	String getSaveMode();
-	String getRole();
-	String getReloadBehaviour();
-	String getTransform();
-	Boolean showLabels();
+public interface DataSource extends NodeInterface, Channel {
 }

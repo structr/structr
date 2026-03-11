@@ -26,6 +26,7 @@ import org.structr.common.error.ValueToken;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.FieldDefinition;
 
 import java.util.*;
@@ -242,7 +243,7 @@ public class EnumProperty extends AbstractPrimitiveProperty<String> implements F
 	}
 
 	@Override
-	public List<GraphObject> getOptions(final SecurityContext securityContext, final String filter, final String label) throws FrameworkException {
+	public List<GraphObject> getOptions(final RenderContext renderContext, final String filter, final String label) throws FrameworkException {
 
 		final List<GraphObject> options = new LinkedList<>();
 
