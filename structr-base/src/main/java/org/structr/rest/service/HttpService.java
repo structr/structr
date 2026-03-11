@@ -21,6 +21,7 @@ package org.structr.rest.service;
 
 import jakarta.servlet.DispatcherType;
 import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -296,6 +297,21 @@ public class HttpService implements RunnableService, StatsCallback {
 		servletContext.insertHandler(gzipHandler);
 
 		final List<Connector> connectors = new LinkedList<>();
+
+		// Block TRACE verb globally instead of adding code to every servlet
+		{
+			servletContext.addFilter(new FilterHolder((request, response, chain) -> {
+
+				if ("TRACE".equalsIgnoreCase(((HttpServletRequest) request).getMethod())) {
+
+					((HttpServletResponse) response).sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+					return;
+				}
+
+				chain.doFilter(request, response);
+
+			}), "/*", EnumSet.of(DispatcherType.REQUEST));
+		}
 
 		// Enable serving static resources for structr-ui (and redirect to config servlet if the system is not configured yet)
 		{

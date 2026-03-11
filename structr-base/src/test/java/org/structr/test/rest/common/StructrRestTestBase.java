@@ -77,6 +77,11 @@ public abstract class StructrRestTestBase {
 	@BeforeClass(alwaysRun = true)
 	public void setup(@Optional String testDatabaseConnection) {
 
+		setup(testDatabaseConnection, "JsonRestServlet OpenAPIServlet");
+	}
+
+	public void setup(@Optional String testDatabaseConnection, final String enabledServletsSetting) {
+
 		final long timestamp = System.nanoTime();
 
 		RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
@@ -97,7 +102,7 @@ public abstract class StructrRestTestBase {
 		Settings.ApplicationHost.setValue(host);
 		Settings.HttpPort.setValue(httpPort);
 
-		Settings.Servlets.setValue("JsonRestServlet OpenAPIServlet");
+		Settings.Servlets.setValue(enabledServletsSetting);
 		Settings.RestAuthenticator.setValue(SuperUserAuthenticator.class.getName());
 		Settings.RestServletPath.setValue(restUrl);
 		Settings.RestUserClass.setValue("");
