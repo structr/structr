@@ -3812,7 +3812,6 @@ let _Entities = {
 
                 </div>
 			`,
-			`,
 			spacerItemForGrid: config => `<div class="hidden @xl:block"><!-- occupy space in grid UI --></div>`,
 			containerClasses: config => `@container quick-access-options`,
 			gridClasses: config => `grid grid-cols-1 @xl:grid-cols-2 gap-8`,
