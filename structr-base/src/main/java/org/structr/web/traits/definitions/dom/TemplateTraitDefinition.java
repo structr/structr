@@ -18,14 +18,14 @@
  */
 package org.structr.web.traits.definitions.dom;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.datasources.Channel;
-import org.structr.core.entity.DataAdapter;
-import org.structr.core.entity.DataSource;
 import org.structr.core.entity.Relation;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.*;
@@ -39,6 +39,7 @@ import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.datasource.TagWithCSSInfo;
 import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.Template;
 import org.structr.web.traits.operations.RenderContent;
 import org.structr.web.traits.wrappers.dom.TemplateTraitWrapper;
@@ -158,6 +159,7 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 
 								channelNames.add(sourceChannel.getName());
 							}
+
 							if (selectionChannel != null) {
 								channelNames.add(selectionChannel);
 							}
@@ -176,6 +178,13 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 
 									data.put("data-current-object-id", selectedId);
 									data.put("data-" + selectionChannel, selectedId);
+								}
+
+								// calculate channel dependencies
+								final String resets = getChannelDependencies(node, selectionChannel);
+								if (StringUtils.isNotEmpty(resets)) {
+
+									data.put("data-resets", resets);
 								}
 							}
 
@@ -255,5 +264,60 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public boolean includeInDocumentation() {
 		return true;
+	}
+
+	// ----- private methods -----
+	private String getChannelDependencies(DOMNode node, final String channel) throws FrameworkException {
+
+		final Page page          = node.getOwnerDocument();
+		final Set<String> result = new LinkedHashSet<>();
+
+		if (page != null) {
+
+			final Map<String, Set<String>> dependencies = new LinkedHashMap<>();
+			final Deque<String> queue                   = new LinkedList<>();
+
+			for (final NodeInterface n : page.getAllChildNodes()) {
+
+				final ComponentConfiguration config = n.as(DOMNode.class).getComponentConfiguration();
+				if (config != null) {
+
+					final String selectionChannel = config.getSelectionChannel();
+					if (selectionChannel != null) {
+
+						final Channel sourceChannel = config.getSourceChannel();
+						if (sourceChannel != null) {
+
+							final String source = sourceChannel.getName();
+							final String target = selectionChannel;
+
+							dependencies.computeIfAbsent(source, key -> new LinkedHashSet<>()).add(target);
+						}
+					}
+				}
+			}
+
+
+			queue.push(channel);
+
+			while (!queue.isEmpty()) {
+
+				final String current       = queue.pop();
+				final Set<String> mappings = dependencies.get(current);
+
+				if (mappings != null) {
+					for (final String dependency : mappings) {
+
+						if (result.add(dependency)) {
+
+							queue.push(dependency);
+						}
+					}
+				}
+			}
+
+		}
+
+		return StringUtils.join(result, " ");
 	}
 }

@@ -2764,6 +2764,7 @@ let _Entities = {
                     }
 
                     dataAdapterSelect.addEventListener('change', async (e) => {
+
                         let fieldSets = await loadFieldSets(dataAdapterSelect.value);
                         // make sure the existing value is also in the select box
                         fieldSetSelect.innerHTML = '';
@@ -2775,16 +2776,8 @@ let _Entities = {
                     });
                 }
 
-                let sourceDataSourceSelect = document.querySelector('#data-source-channel-select');
-                if (sourceDataSourceSelect) {
-                    let dataSources = await Command.queryPromise('DataSource', 1000, 1, 'name', 'asc', '');
-                    if (dataSources) {
-                        for (let dataSource of dataSources) {
-                            let selected = dataSource.name === config.sourceChannel ? 'selected' : '';
-                            sourceDataSourceSelect.insertAdjacentHTML('beforeend', `<option ${selected}>${dataSource.name}</option>`);
-                        }
-                    }
-                }
+                _Entities.generalTab.loadOptions('#data-source-channel-select', 'DataSource', config.sourceChannel);
+                _Entities.generalTab.loadOptions('#data-source-channel-select', 'ComponentConfiguration', config.sourceChannel, { role: 'controller', '!selectionChannel': null }, 'channel:', 'selectionChannel');
 
                 _Entities.generalTab.populateInputFields(el, { entity: entity, config: config });
 				_Entities.generalTab.populateSelectFields(el, { entity: entity, config: config });
@@ -2794,6 +2787,21 @@ let _Entities = {
 				_Entities.generalTab.focusInput(el);
 			},
 		},
+        loadOptions: async (selector, type, currentValue, query, prefix = 'node:', label = 'name') => {
+
+            let selectField = document.querySelector(selector);
+            if (selectField) {
+                let options = await Command.queryPromise(type, 1000, 1, 'name', 'asc', query);
+                if (options) {
+                    for (let option of options) {
+                        let text = option[label];
+                        let value = prefix + option[label];
+                        let selected = value === currentValue ? 'selected' : '';
+                        selectField.insertAdjacentHTML('beforeend', `<option value="${value}" ${selected}>${text}</option>`);
+                    }
+                }
+            }
+        },
 		getGeneralTabConfig: (entity) => {
 
 			let registeredDialogs = {
@@ -3724,7 +3732,6 @@ let _Entities = {
                         <div class="data-source-channel-options flex">
                             <select class="select2" id="data-source-channel-select" name="sourceChannel" data-which="config">
                                 <option value="">None</option>
-                                <option value="current">Current</option>
                             </select>
                         </div>
                     </div>

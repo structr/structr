@@ -21,7 +21,7 @@ package org.structr.web.traits.wrappers;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.datasources.Channel;
-import org.structr.core.datasources.CurrentDataSource;
+import org.structr.core.datasources.ChannelDataSource;
 import org.structr.core.entity.DataAdapter;
 import org.structr.core.entity.DataSource;
 import org.structr.core.graph.NodeInterface;
@@ -55,18 +55,26 @@ public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper
 		final String sourceChannelName = wrappedObject.getProperty(traits.key(ComponentConfigurationTraitDefinition.SOURCE_CHANNEL_PROPERTY));
 		if (sourceChannelName != null) {
 
-			switch (sourceChannelName) {
+			if (sourceChannelName.contains(":")) {
 
-				case "current":
-					return new CurrentDataSource();
+				final String[] parts = sourceChannelName.split(":");
+				final String type     = parts[0];
+				final String name     = parts[1];
 
-				default:
-					final NodeInterface node = StructrApp.getInstance(getSecurityContext()).nodeQuery(StructrTraits.DATA_SOURCE).name(sourceChannelName).getFirst();
-					if (node != null) {
+				switch (type) {
 
-						return node.as(DataSource.class);
-					}
-					break;
+					case "node":
+						final NodeInterface node = StructrApp.getInstance(getSecurityContext()).nodeQuery(StructrTraits.DATA_SOURCE).name(name).getFirst();
+						if (node != null) {
+
+							return node.as(DataSource.class);
+						}
+						break;
+
+					case "channel":
+						return new ChannelDataSource(name);
+
+				}
 			}
 		}
 

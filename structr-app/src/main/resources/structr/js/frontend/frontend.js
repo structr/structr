@@ -490,7 +490,10 @@ export class Frontend {
 
 	reloadPartial(selector, parameters, element, dontRebind, options) {
 
+        // TODO for later: avoid reload if all new arguments are identical to the currently loaded state
+
 		let reloadTargets = document.querySelectorAll(selector);
+        let resets = [];
 
 		if (!reloadTargets.length) {
 			console.log('Container with selector ' + selector + ' not found.');
@@ -531,9 +534,12 @@ export class Frontend {
 
 				this.replacePartial(container, id, element, dataset, parameters, dontRebind);
 			}
+
+            resets.push(container.dataset.resets?.split(' ') ?? []);
 		}
 
         if (options && options.updateHistory) {
+
             const url = new URL(window.location.href);
             for (let key in parameters) {
                 if (key === 'current') {
@@ -541,6 +547,10 @@ export class Frontend {
                 } else {
                     url.searchParams.set(key, parameters[key]);
                 }
+            }
+
+            for (const channel of resets) {
+                url.searchParams.delete(channel);
             }
             history.pushState({}, '', url);
         }

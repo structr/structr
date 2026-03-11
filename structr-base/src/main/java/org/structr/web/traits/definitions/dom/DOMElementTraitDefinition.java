@@ -2152,19 +2152,10 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 						final Channel sourceChannel    = config.getSourceChannel();
 						final String selectionChannel  = config.getSelectionChannel();
 
-						if (sourceChannel != null) {
-							channelNames.add(sourceChannel.getName());
+						if (sourceChannel != null || selectionChannel != null) {
+							return "[data-channel]";
 						}
 
-						if (selectionChannel != null) {
-							channelNames.add(selectionChannel);
-						}
-
-						if (!channelNames.isEmpty()) {
-							return channelNames.stream()
-								.map(c -> "[data-channel~='" + c + "']")
-								.collect(Collectors.joining(", "));
-						}
 						break;
 
 					case "page":

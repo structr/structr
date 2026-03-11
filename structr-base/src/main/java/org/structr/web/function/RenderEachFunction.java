@@ -75,69 +75,73 @@ public class RenderEachFunction extends UiCommunityFunction {
 			final DOMNode component             = domNode.getClosestComponent();
 			final ComponentConfiguration config = component.getComponentConfiguration();
 			final Channel sourceChannel         = config.getSourceChannel();
-			final AsyncBuffer buffer            = renderContext.getBuffer();
 			final String dataKey                = dataAdapter.getDataKey();
-			final String role                   = domNode.getRoleForComponent();
 			final GraphObject previousValue     = renderContext.getDataNode(dataKey);
-			final String reloadBehaviour        = domNode.getReloadBehaviourForComponent();
-			final ChannelInput input            = new ChannelInput(config.getTransform());
 
-			for (final GraphObject item : sourceChannel.getValues(renderContext, input)) {
+			if (sourceChannel != null) {
 
-				renderContext.putDataObject(dataKey, item);
+				final String reloadBehaviour = domNode.getReloadBehaviourForComponent();
+				final ChannelInput input     = new ChannelInput(config.getTransform());
+				final AsyncBuffer buffer     = renderContext.getBuffer();
+				final String role            = domNode.getRoleForComponent();
 
-				if (outerWrapper != null) {
+				for (final GraphObject item : sourceChannel.getValues(renderContext, input)) {
 
-					final Map<String, String> data  = new LinkedHashMap<>();
-					final Set<String> additionalCss = new LinkedHashSet<>();
-					final String uuid               = item.getUuid();
+					renderContext.putDataObject(dataKey, item);
 
-					if ("controller".equals(role)) {
+					if (outerWrapper != null) {
 
-						final String selectionChannel = config.getSelectionChannel();
-						if (selectionChannel != null) {
+						final Map<String, String> data = new LinkedHashMap<>();
+						final Set<String> additionalCss = new LinkedHashSet<>();
+						final String uuid = item.getUuid();
 
-							switch (reloadBehaviour) {
+						if ("controller".equals(role)) {
 
-								case "partial":
-								case "others":
+							final String selectionChannel = config.getSelectionChannel();
+							if (selectionChannel != null) {
 
-									// partial reload is triggered via pagination mechanism
-									data.put("data-structr-success-target", "[data-channel~='" + selectionChannel + "']");
-									break;
+								switch (reloadBehaviour) {
 
-								case "page":
+									case "partial":
+									case "others":
 
-									data.put("data-structr-success-target", "url:");
-									break;
+										// partial reload is triggered via pagination mechanism
+										data.put("data-structr-success-target", "[data-channel]");
+										break;
 
-								default:
-									data.put("data-structr-success-target", reloadBehaviour);
-									break;
+									case "page":
 
-							}
+										data.put("data-structr-success-target", "url:");
+										break;
 
-							data.put("data-structr-events", "click");
-							data.put("data-structr-target", selectionChannel);
-							data.put("data-" + selectionChannel, uuid);
+									default:
+										data.put("data-structr-success-target", reloadBehaviour);
+										break;
 
-							additionalCss.add("controller");
+								}
 
-							final String selectedId = renderContext.getChannelValue(selectionChannel);
-							if (selectedId != null && uuid != null && uuid.equals(selectedId)) {
+								data.put("data-structr-events", "click");
+								data.put("data-structr-target", selectionChannel);
+								data.put("data-" + selectionChannel, uuid);
 
-								additionalCss.add("selected");
+								additionalCss.add("controller");
+
+								final String selectedId = renderContext.getChannelValue(selectionChannel);
+								if (selectedId != null && uuid != null && uuid.equals(selectedId)) {
+
+									additionalCss.add("selected");
+								}
 							}
 						}
+
+						outerWrapper.formatStartTag(buffer, data, additionalCss);
 					}
 
-					outerWrapper.formatStartTag(buffer, data, additionalCss);
-				}
+					func.applyTemplates(renderContext, dataAdapter, domNode, innerWrapper, slot, true);
 
-				func.applyTemplates(renderContext, dataAdapter, domNode, innerWrapper, slot, true);
-
-				if (outerWrapper != null) {
-					outerWrapper.formatEndTag(buffer);
+					if (outerWrapper != null) {
+						outerWrapper.formatEndTag(buffer);
+					}
 				}
 			}
 

@@ -24,7 +24,6 @@ import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
@@ -37,12 +36,17 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class CurrentDataSource implements Channel {
+public class ChannelDataSource implements Channel {
+
+	private final String name;
+
+	public ChannelDataSource(final String name) {
+		this.name = name;
+	}
 
 	@Override
 	public final Iterable<GraphObject> getValues(final RenderContext renderContext, final ChannelInput input) throws FrameworkException {
 
-		final String name = getName();
 		if (name != null) {
 
 			final String uuid = renderContext.getChannelValue(name);
@@ -110,7 +114,7 @@ public class CurrentDataSource implements Channel {
 
 	@Override
 	public String getName() {
-		return "current";
+		return name;
 	}
 
 	/**
@@ -140,7 +144,7 @@ public class CurrentDataSource implements Channel {
 
 			case "selectedValue":
 				// let's see if we still need this
-				throw new RuntimeException("Not implemented yet");
+				throw new RuntimeException("selectedValue is not available.");
 
 			case "currentValue":
 				return getCurrentValue(renderContext);
