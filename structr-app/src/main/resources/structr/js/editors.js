@@ -891,8 +891,6 @@ let _Editors = {
 
 			if (trimmed.startsWith('python{')) {
 				mode = 'python';
-			} else if (trimmed.startsWith('R{')) {
-				mode = 'r';
 			} else if (trimmed.startsWith('{')) {
 				mode = 'javascript';
 			}

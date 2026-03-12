@@ -68,7 +68,38 @@ public class ActionContext {
 	private SecurityContext securityContext                                   = null;
 	private Predicate predicate                                               = null;
 	private boolean disableVerboseExceptionLogging                            = false;
-	private boolean javaScriptContext                                         = false;
+	private ScriptingEngine scriptingEngine                                   = ScriptingEngine.STRUCTR_SCRIPT;
+
+	public enum ScriptingEngine {
+		PYTHON("python", true),
+		JS("js", true),
+		STRUCTR_SCRIPT("structrScript", false);
+
+		private final String name;
+		private final boolean supportsExceptionHandling;
+
+		ScriptingEngine(final String name, final boolean supportsExceptionHandling) {
+			this.name = name;
+			this.supportsExceptionHandling = supportsExceptionHandling;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public boolean supportsExceptionHandling() {
+			return supportsExceptionHandling;
+		}
+
+		public static ScriptingEngine fromName(final String name) throws FrameworkException {
+			for (ScriptingEngine engine : values()) {
+				if (engine.name.equalsIgnoreCase(name)) {
+					return engine;
+				}
+			}
+			throw new FrameworkException(422, "Unsupported scripting engine: " + name);
+		}
+	}
 
 	public int level = 0;
 
@@ -560,18 +591,16 @@ public class ActionContext {
 		return out;
 	}
 
-	/**
-	 * @return the javaScriptContext
-	 */
 	public boolean isJavaScriptContext() {
-		return javaScriptContext;
+		return scriptingEngine.equals(ScriptingEngine.JS);
 	}
 
-	/**
-	 * @param javaScriptContext the javaScriptContext to set
-	 */
-	public void setJavaScriptContext(boolean javaScriptContext) {
-		this.javaScriptContext = javaScriptContext;
+	public void setScriptingEngine(final ScriptingEngine engine) {
+		this.scriptingEngine = engine;
+	}
+
+	public boolean supportsExceptionHandling() {
+		return scriptingEngine.supportsExceptionHandling();
 	}
 
 	public Locale getLocale() {

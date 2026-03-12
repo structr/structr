@@ -8093,6 +8093,257 @@ public class ScriptingTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testBase64DecodeErrorHandling() {
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext actionContext = new ActionContext(securityContext);
+
+			// StructrScript
+			{
+				final String structrScript_working = "${base64decode('VmlzaXQgaHR0cHM6Ly9zdHJ1Y3RyLm9yZw==')}";
+				assertEquals("Visit https://structr.org", Scripting.evaluate(actionContext, null, structrScript_working, "test1"));
+
+				final String structrScript_not_working_illegal_character = "${base64decode(' not part of base64 alphabet ; ')}";
+				assertEquals(null, Scripting.evaluate(actionContext, null, structrScript_not_working_illegal_character, "test1"));
+
+				final String structrScript_not_working_illegal_scheme = "${base64decode('VmlzaXQgaHR0cHM6Ly9zdHJ1Y3RyLm9yZw==', 'WRONG_SCHEME')}";
+				assertEquals(null, Scripting.evaluate(actionContext, null, structrScript_not_working_illegal_scheme, "test1"));
+
+				final String structrScript_not_working_illegal_charset = "${base64decode('VmlzaXQgaHR0cHM6Ly9zdHJ1Y3RyLm9yZw==', 'basic', 'WRONG_CHARSET')}";
+				assertEquals(null, Scripting.evaluate(actionContext, null, structrScript_not_working_illegal_charset, "test1"));
+			}
+
+			// JavaScript (with exception handling)
+			{
+				final String javaScript_working = """
+						${{
+							$.base64decode("VmlzaXQgaHR0cHM6Ly9zdHJ1Y3RyLm9yZw==");
+						}}
+						""";
+				assertEquals("Visit https://structr.org", Scripting.evaluate(actionContext, null, javaScript_working, "test1"));
+
+				final String javaScript_not_working_illegal_character = """
+						${{
+							try {
+								$.base64decode(" not part of base64 alphabet ; ");
+							} catch (e) {
+								e.getMessage();
+							}
+						}}
+						""";
+				final String expectedErrorMessage1 = "FrameworkException(422): base64decode: Exception encountered while decoding ' not part of base64 alphabet ; ' with scheme 'basic' (Illegal base64 character 20)";
+				assertEquals(expectedErrorMessage1, Scripting.evaluate(actionContext, null, javaScript_not_working_illegal_character, "test1"));
+
+				final String javaScript_not_working_illegal_scheme = """
+						${{
+							try {
+								$.base64decode("VmlzaXQgaHR0cHM6Ly9zdHJ1Y3RyLm9yZw==", 'WRONG_SCHEME');
+							} catch (e) {
+								e.getMessage();
+							}
+						}}
+						""";
+				final String expectedErrorMessage2 = "FrameworkException(422): base64decode: Unsupported base64 decoding scheme 'WRONG_SCHEME' - supported values are 'basic', 'url' and 'mime'.";
+				assertEquals(expectedErrorMessage2, Scripting.evaluate(actionContext, null, javaScript_not_working_illegal_scheme, "test1"));
+
+				final String javaScript_not_working_illegal_charset = """
+						${{
+							try {
+								$.base64decode("VmlzaXQgaHR0cHM6Ly9zdHJ1Y3RyLm9yZw==", 'basic', 'WRONG_CHARSET');
+							} catch (e) {
+								e.getMessage();
+							}
+						}}
+						""";
+				final String expectedErrorMessage3 = "FrameworkException(422): base64decode: Unsupported charset WRONG_CHARSET (WRONG_CHARSET)";
+				assertEquals(expectedErrorMessage3, Scripting.evaluate(actionContext, null, javaScript_not_working_illegal_charset, "test1"));
+			}
+
+			// JavaScript (without exception handling)
+			{
+				final String javaScript_working = """
+						${{
+							$.base64decode("VmlzaXQgaHR0cHM6Ly9zdHJ1Y3RyLm9yZw==");
+						}}
+						""";
+				assertEquals("Visit https://structr.org", Scripting.evaluate(actionContext, null, javaScript_working, "test1"));
+
+				try {
+
+					final String javaScript_not_working_illegal_character = """
+							${{
+								$.base64decode(" not part of base64 alphabet ; ");
+							}}
+							""";
+
+					Scripting.evaluate(actionContext, null, javaScript_not_working_illegal_character, "test1");
+
+					fail("An exception should have been thrown");
+
+				} catch (FrameworkException fex) {
+
+					final String expectedErrorMessage = "FrameworkException(422): base64decode: Exception encountered while decoding ' not part of base64 alphabet ; ' with scheme 'basic' (Illegal base64 character 20)";
+					assertEquals(expectedErrorMessage, fex.toString());
+				}
+
+				try {
+
+					final String javaScript_not_working_illegal_scheme = """
+							${{
+								$.base64decode("VmlzaXQgaHR0cHM6Ly9zdHJ1Y3RyLm9yZw==", 'WRONG_SCHEME');
+							}}
+							""";
+
+					Scripting.evaluate(actionContext, null, javaScript_not_working_illegal_scheme, "test1");
+
+					fail("An exception should have been thrown");
+
+				} catch (FrameworkException fex) {
+
+					final String expectedErrorMessage = "FrameworkException(422): base64decode: Unsupported base64 decoding scheme 'WRONG_SCHEME' - supported values are 'basic', 'url' and 'mime'.";
+					assertEquals(expectedErrorMessage, fex.toString());
+				}
+
+				try {
+
+					final String javaScript_not_working_illegal_charset = """
+						${{
+							$.base64decode("VmlzaXQgaHR0cHM6Ly9zdHJ1Y3RyLm9yZw==", 'basic', 'WRONG_CHARSET');
+						}}
+						""";
+
+					Scripting.evaluate(actionContext, null, javaScript_not_working_illegal_charset, "test1");
+
+					fail("An exception should have been thrown");
+
+				} catch (FrameworkException fex) {
+
+					final String expectedErrorMessage = "FrameworkException(422): base64decode: Unsupported charset WRONG_CHARSET (WRONG_CHARSET)";
+					assertEquals(expectedErrorMessage, fex.toString());
+				}
+			}
+
+			// Python (with exception handling)
+			{
+				final String python_working = """
+						${python{
+						Structr.base64decode("VmlzaXQgaHR0cHM6Ly9zdHJ1Y3RyLm9yZw==");
+						}}
+						""";
+				assertEquals("Visit https://structr.org", Scripting.evaluate(actionContext, null, python_working, "test1"));
+
+				final String python_not_working_illegal_character = """
+						${python{
+						try:
+							result = Structr.base64decode(" not part of base64 alphabet ; ");
+						except BaseException as e:
+							result = e.getMessage()
+
+						result
+						}}
+						""";
+				final String expectedErrorMessage1 = "FrameworkException(422): base64decode: Exception encountered while decoding ' not part of base64 alphabet ; ' with scheme 'basic' (Illegal base64 character 20)";
+				assertEquals(expectedErrorMessage1, Scripting.evaluate(actionContext, null, python_not_working_illegal_character, "test1"));
+
+				final String python_not_working_illegal_scheme = """
+						${python{
+						try:
+							result = Structr.base64decode("VmlzaXQgaHR0cHM6Ly9zdHJ1Y3RyLm9yZw==", 'WRONG_SCHEME');
+						except BaseException as e:
+							result = e.getMessage()
+
+						result
+						}}
+						""";
+				final String expectedErrorMessage2 = "FrameworkException(422): base64decode: Unsupported base64 decoding scheme 'WRONG_SCHEME' - supported values are 'basic', 'url' and 'mime'.";
+				assertEquals(expectedErrorMessage2, Scripting.evaluate(actionContext, null, python_not_working_illegal_scheme, "test1"));
+
+				final String python_not_working_illegal_charset = """
+						${python{
+						try:
+							result = Structr.base64decode("VmlzaXQgaHR0cHM6Ly9zdHJ1Y3RyLm9yZw==", 'basic', 'WRONG_CHARSET');
+						except BaseException as e:
+							result = e.getMessage()
+
+						result
+						}}
+						""";
+				final String expectedErrorMessage3 = "FrameworkException(422): base64decode: Unsupported charset WRONG_CHARSET (WRONG_CHARSET)";
+				assertEquals(expectedErrorMessage3, Scripting.evaluate(actionContext, null, python_not_working_illegal_charset, "test1"));
+			}
+
+			// Python (without exception handling)
+			{
+				final String python_working = """
+						${python{
+						Structr.base64decode("VmlzaXQgaHR0cHM6Ly9zdHJ1Y3RyLm9yZw==");
+						}}
+						""";
+				assertEquals("Visit https://structr.org", Scripting.evaluate(actionContext, null, python_working, "test1"));
+
+				try {
+
+					final String python_not_working_illegal_character = """
+							${python{
+							Structr.base64decode(" not part of base64 alphabet ; ");
+							}}
+							""";
+
+					Scripting.evaluate(actionContext, null, python_not_working_illegal_character, "test1");
+					fail("An exception should have been thrown");
+
+				} catch (FrameworkException fex) {
+
+					final String expectedErrorMessage = "FrameworkException(422): base64decode: Exception encountered while decoding ' not part of base64 alphabet ; ' with scheme 'basic' (Illegal base64 character 20)";
+					assertEquals(expectedErrorMessage, fex.toString());
+				}
+
+				try {
+
+					final String python_not_working_illegal_scheme = """
+							${python{
+							Structr.base64decode("VmlzaXQgaHR0cHM6Ly9zdHJ1Y3RyLm9yZw==", 'WRONG_SCHEME');
+							}}
+							""";
+
+					Scripting.evaluate(actionContext, null, python_not_working_illegal_scheme, "test1");
+					fail("An exception should have been thrown");
+
+				} catch (FrameworkException fex) {
+
+					final String expectedErrorMessage = "FrameworkException(422): base64decode: Unsupported base64 decoding scheme 'WRONG_SCHEME' - supported values are 'basic', 'url' and 'mime'.";
+					assertEquals(expectedErrorMessage, fex.toString());
+				}
+
+				try {
+
+					final String python_not_working_illegal_charset = """
+							${python{
+							Structr.base64decode("VmlzaXQgaHR0cHM6Ly9zdHJ1Y3RyLm9yZw==", 'basic', 'WRONG_CHARSET');
+							}}
+							""";
+
+					Scripting.evaluate(actionContext, null, python_not_working_illegal_charset, "test1");
+					fail("An exception should have been thrown");
+
+				} catch (FrameworkException fex) {
+
+					final String expectedErrorMessage = "FrameworkException(422): base64decode: Unsupported charset WRONG_CHARSET (WRONG_CHARSET)";
+					assertEquals(expectedErrorMessage, fex.toString());
+				}
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+
 	// ----- private methods ----
 	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource) {
 
