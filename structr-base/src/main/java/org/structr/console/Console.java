@@ -273,7 +273,7 @@ public class Console {
 
 	private void runStructrScript(final String line, final Writable writable) throws FrameworkException, IOException {
 
-		actionContext.setJavaScriptContext(false);
+		actionContext.setScriptingEngine(ActionContext.ScriptingEngine.STRUCTR_SCRIPT);
 
 		try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
 
@@ -305,7 +305,7 @@ public class Console {
 
 	private void runJavascript(final String line, final Writable writable) throws FrameworkException {
 
-		actionContext.setJavaScriptContext(true);
+		actionContext.setScriptingEngine(ActionContext.ScriptingEngine.JS);
 
 		try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
 

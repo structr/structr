@@ -185,15 +185,16 @@ public class Scripting {
 		if (!engine.isEmpty()) {
 
 			source = splitSnippet[1];
+			actionContext.setScriptingEngine(ActionContext.ScriptingEngine.fromName(engine));
+
 		} else {
 
 			source = expression.substring(2, expression.length() - 1);
+			actionContext.setScriptingEngine(ActionContext.ScriptingEngine.STRUCTR_SCRIPT);
 		}
 
 		final boolean isJavascript = "js".equals(engine);
 		final boolean isScriptEngine = !isJavascript && StringUtils.isNotBlank(engine);
-
-		actionContext.setJavaScriptContext(isJavascript);
 
 		// temporarily disable notifications for scripted actions
 

@@ -3887,7 +3887,7 @@ let _Schema = {
 							</div>
 						</div>
 						<h3 class="mt-4">Result</h3>
-						<pre id="log-output"></pre>
+						<pre id="log-output" class="whitespace-pre-wrap"></pre>
 					</div>
 				`);
 			dialogText.appendChild(paramsOuterBox);
