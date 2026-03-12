@@ -18,6 +18,7 @@
  */
 package org.structr.core.datasources;
 
+import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.ChannelInput;
 import org.structr.common.PropertyView;
@@ -28,7 +29,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.FieldDefinition;
 
@@ -117,7 +117,7 @@ public class ChannelDataSource implements Channel {
 		return name;
 	}
 
-	public Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, final EvaluationHints hints, final int row, final int column) throws FrameworkException {
+	public Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, final GraphObject contextObject, final int row, final int column) throws FrameworkException {
 
 		final RenderContext renderContext = (RenderContext) actionContext;
 
@@ -128,6 +128,9 @@ public class ChannelDataSource implements Channel {
 
 			case "dataType":
 				return getDataType(renderContext);
+
+			case "currentValue":
+				return getValue(renderContext);
 		}
 
 		return null;
@@ -138,6 +141,10 @@ public class ChannelDataSource implements Channel {
 
 		final List<GraphObject> values = Iterables.toList(getValues(renderContext, null));
 		if (!values.isEmpty()) {
+
+			if (values.size() > 1) {
+				LoggerFactory.getLogger(ChannelDataSource.class).warn("ChannelDataSource {} returns multiple values, this might be a problem.", getName());
+			}
 
 			return values.get(0);
 		}

@@ -30,7 +30,6 @@ import org.structr.core.Services;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
 import org.structr.core.function.Functions;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.script.polyglot.function.CacheFunction;
 import org.structr.core.script.polyglot.function.DoAsFunction;
 import org.structr.core.script.polyglot.function.DoInNewTransactionFunction;
@@ -38,7 +37,6 @@ import org.structr.core.script.polyglot.function.DoPrivilegedFunction;
 import org.structr.core.script.polyglot.wrappers.*;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 import org.structr.web.common.RenderContext;
 
@@ -172,7 +170,7 @@ public class StructrBinding implements ProxyObject {
 
 				try {
 
-					return PolyglotWrapper.wrap(actionContext, actionContext.evaluate(entity, name, null, null, 0, new EvaluationHints(), 1, 1));
+					return PolyglotWrapper.wrap(actionContext, actionContext.evaluate(entity, name, null, null, 0, entity, 1, 1));
 
 				} catch (FrameworkException ex) {
 
@@ -241,7 +239,7 @@ public class StructrBinding implements ProxyObject {
 						return new HttpServletRequestWrapper(actionContext, actionContext.getSecurityContext().getRequest());
 					}
 
-					final Object value = actionContext.evaluate(entity, args[0].toString(), null, null, 0, new EvaluationHints(), 1, 1);
+					final Object value = actionContext.evaluate(entity, args[0].toString(), null, null, 0, entity, 1, 1);
 
 					return PolyglotWrapper.wrap(actionContext, value);
 

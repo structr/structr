@@ -208,8 +208,6 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 
 	Template getClosestTemplate(final Page page);
 	DOMNode getClosestComponent();
-	DataSource getClosestDataSource();
-	DataSource getDataSource();
 	boolean isEditable();
 
 	void updateFromNode(final DOMNode otherNode) throws FrameworkException;

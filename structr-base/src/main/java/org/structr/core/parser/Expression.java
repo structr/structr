@@ -26,7 +26,6 @@ import org.structr.docs.DocumentableType;
 import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -130,6 +129,6 @@ public abstract class Expression implements Documentable {
 		return -1;
 	}
 
-	public abstract Object evaluate(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException;
-	public abstract Object transform(final ActionContext ctx, final GraphObject entity, final Object source, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException;
+	public abstract Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedScriptException;
+	public abstract Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException, UnlicensedScriptException;
 }

@@ -22,7 +22,6 @@ import org.structr.common.ChannelInput;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.FieldDefinition;
 
@@ -32,6 +31,10 @@ import java.util.Map;
  * We need an interface that does not extend NodeInterface to be able
  * to provide both graph-based and non-graph implementations of the
  * same interface for CurrentDataSource and SchemaNode etc.
+ *
+ * Note: all data sources that implement this interface must resolve
+ * the strings "values", "dataType" and "currentValue" to the
+ * correct values in their evaluate() method.
  */
 public interface Channel {
 
@@ -41,5 +44,5 @@ public interface Channel {
 	String getDataType(final RenderContext renderContext) throws FrameworkException;
 	String getName();
 
-	Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, final EvaluationHints hints, final int row, final int column) throws FrameworkException;
+	Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, final GraphObject contextObject, final int row, final int column) throws FrameworkException;
 }

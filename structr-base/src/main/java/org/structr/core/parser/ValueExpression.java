@@ -25,7 +25,6 @@ import org.structr.core.GraphObject;
 import org.structr.docs.*;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -67,14 +66,14 @@ public class ValueExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedScriptException {
 
 		Object value = null;
 
 		if (this.expressions.isEmpty()) {
 
 			// no nested expressions, this is not a function call
-			value = ctx.getReferencedProperty(entity, keyword, null, 0, hints, row, column);
+			value = ctx.getReferencedProperty(entity, keyword, null, 0, row, column);
 
 		} else {
 
@@ -84,13 +83,13 @@ public class ValueExpression extends Expression {
 			final Map<String, Object> params = new LinkedHashMap<>();
 
 			// evaluate child expressions to get parameters
-			handleParameters(ctx, entity, hints, params);
+			handleParameters(ctx, entity, params);
 
 			// install new parameters for possible method call
 			contextStore.setTemporaryParameters(params);
 
 			// evaluate
-			value = ctx.getReferencedProperty(entity, keyword, null, 0, hints, row, column);
+			value = ctx.getReferencedProperty(entity, keyword, null, 0, row, column);
 
 			// restore previous parameters
 			contextStore.setTemporaryParameters(tmp);
@@ -99,14 +98,14 @@ public class ValueExpression extends Expression {
 		for (final Expression expression : expressions) {
 
 			// evaluate expressions from left to right
-			value = expression.transform(ctx, entity, value, hints);
+			value = expression.transform(ctx, entity, value);
 		}
 
 		return value;
 	}
 
 	@Override
-	public Object transform(final ActionContext ctx, final GraphObject entity, final Object value, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object value) throws FrameworkException, UnlicensedScriptException {
 
 		// evaluate dot syntax
 		if (keyword.startsWith(".")) {
@@ -125,7 +124,7 @@ public class ValueExpression extends Expression {
 
 					// use evaluation depth > 0 so that any data key that is registered in the
 					// context can NOT be used
-					extractedValue = ctx.getReferencedProperty(entity, key, extractedValue, 1, hints, row, column);
+					extractedValue = ctx.getReferencedProperty(entity, key, extractedValue, 1, row, column);
 
 					// Treat enums as string values in StructrScript contexts
 					if (extractedValue instanceof Enum<?>) {
@@ -147,7 +146,7 @@ public class ValueExpression extends Expression {
 	}
 
 	// ----- private methods -----
-	private void handleParameters(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints, final Map<String, Object> dest) throws FrameworkException {
+	private void handleParameters(final ActionContext ctx, final GraphObject entity, final Map<String, Object> dest) throws FrameworkException {
 
 		Object key   = null;
 		Object value = null;
@@ -156,7 +155,7 @@ public class ValueExpression extends Expression {
 
 			if (key == null) {
 
-				key = param.evaluate(ctx, entity, hints);
+				key = param.evaluate(ctx, entity);
 
 				if (key instanceof Map) {
 
@@ -169,7 +168,7 @@ public class ValueExpression extends Expression {
 
 			} else if (value == null) {
 
-				value = param.evaluate(ctx, entity, hints);
+				value = param.evaluate(ctx, entity);
 
 				dest.put(key.toString(), value);
 

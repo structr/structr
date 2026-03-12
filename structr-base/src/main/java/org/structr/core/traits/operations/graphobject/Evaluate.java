@@ -19,12 +19,12 @@
 package org.structr.core.traits.operations.graphobject;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 
 public abstract class Evaluate extends FrameworkMethod<Evaluate> {
 
-	public abstract Object evaluate(final AbstractNode node, final ActionContext actionContext, final String key, final String defaultValue, final EvaluationHints hints, final int row, final int column) throws FrameworkException;
+	public abstract Object evaluate(final AbstractNode node, final ActionContext actionContext, final String key, final String defaultValue, final GraphObject contextObject, final int row, final int column) throws FrameworkException;
 }

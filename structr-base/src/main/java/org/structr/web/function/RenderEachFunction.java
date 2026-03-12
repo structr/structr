@@ -76,7 +76,7 @@ public class RenderEachFunction extends UiCommunityFunction {
 			final DOMNode domNode               = n.as(DOMNode.class);
 			final DOMNode component             = domNode.getClosestComponent();
 			final ComponentConfiguration config = component.getComponentConfiguration();
-			final Channel sourceChannel         = config.getSourceChannel();
+			final Channel sourceChannel         = config.getDataSource();
 			final String dataKey                = dataAdapter.getDataKey();
 			final GraphObject previousValue     = renderContext.getDataNode(dataKey);
 
@@ -240,7 +240,7 @@ public class RenderEachFunction extends UiCommunityFunction {
 					final String selectionChannel = config.getSelectionChannel();
 					if (selectionChannel != null) {
 
-						final Channel sourceChannel = config.getSourceChannel();
+						final Channel sourceChannel = config.getDataSource();
 						if (sourceChannel != null) {
 
 							final String source = sourceChannel.getName();

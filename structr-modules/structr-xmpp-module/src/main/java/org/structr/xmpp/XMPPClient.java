@@ -36,7 +36,6 @@ import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.xmpp.traits.definitions.XMPPClientTraitDefinition;
 import org.structr.xmpp.traits.definitions.XMPPRequestTraitDefinition;
 
@@ -75,7 +74,7 @@ public interface XMPPClient extends NodeInterface, XMPPInfo {
 					arguments.add("sender",  message.getFrom());
 					arguments.add("message", message.getBody());
 
-					method.execute(SecurityContext.getSuperUserInstance(), client, arguments, new EvaluationHints());
+					method.execute(SecurityContext.getSuperUserInstance(), client, arguments);
 				}
 			}
 

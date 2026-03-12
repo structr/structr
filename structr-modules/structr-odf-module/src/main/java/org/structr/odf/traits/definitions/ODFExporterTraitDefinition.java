@@ -44,7 +44,6 @@ import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.odf.entity.ODFExporter;
 import org.structr.odf.traits.wrappers.ODFExporterTraitWrapper;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
@@ -85,7 +84,7 @@ public class ODFExporterTraitDefinition extends AbstractNodeTraitDefinition {
 			new JavaMethod("createDocumentFromTemplate", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
 					createDocumentFromTemplate(securityContext, entity.as(ODFExporter.class));
 					return null;
@@ -95,7 +94,7 @@ public class ODFExporterTraitDefinition extends AbstractNodeTraitDefinition {
 			new JavaMethod("exportImage", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
 					final Map<String, Object> map = arguments.toMap();
 					final String uuid             = (String)map.get("uuid");

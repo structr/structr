@@ -37,7 +37,6 @@ import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.RESTMethodCallHandler;
 import org.structr.rest.api.WildcardMatchEndpoint;
 import org.structr.rest.api.parameter.RESTParameter;
-import org.structr.schema.action.EvaluationHints;
 
 import java.util.Map;
 import java.util.Set;
@@ -95,7 +94,7 @@ public class DeprecatedGlobalSchemaMethodsResource extends WildcardMatchEndpoint
 			try (final Tx tx = app.tx()) {
 
 				final Arguments arguments     = NamedArguments.fromMap(propertySet);
-				final RestMethodResult result = wrapInResult(method.execute(securityContext, null, arguments, new EvaluationHints()));
+				final RestMethodResult result = wrapInResult(method.execute(securityContext, null, arguments));
 
 				tx.success();
 

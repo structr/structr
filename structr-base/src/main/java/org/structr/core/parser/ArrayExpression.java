@@ -20,7 +20,6 @@ package org.structr.core.parser;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
@@ -28,7 +27,6 @@ import org.structr.core.GraphObject;
 import org.structr.docs.*;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
 import java.util.Collection;
@@ -71,7 +69,7 @@ public class ArrayExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedScriptException {
 
 		switch (expressions.size()) {
 
@@ -79,7 +77,7 @@ public class ArrayExpression extends Expression {
 				throw new FrameworkException(422, "Invalid expression: expected expression, found ].");
 
 			case 1:
-				final Object value  = expressions.get(0).evaluate(ctx, entity, hints);
+				final Object value  = expressions.get(0).evaluate(ctx, entity);
 				final Object parsed = Function.intOrString(value);
 				if (parsed instanceof Number) {
 
@@ -95,13 +93,13 @@ public class ArrayExpression extends Expression {
 	}
 
 	@Override
-	public Object transform(final ActionContext ctx, final GraphObject entity, final Object value, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object value) throws FrameworkException, UnlicensedScriptException {
 
 		if (value == null) {
 			return null;
 		}
 
-		final Object index = evaluate(ctx, entity, hints);
+		final Object index = evaluate(ctx, entity);
 		if (index != null) {
 
 			if (index instanceof Number n) {

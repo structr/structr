@@ -24,7 +24,6 @@ import org.structr.core.GraphObject;
 import org.structr.docs.*;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 
 import java.util.List;
 import java.util.function.Supplier;
@@ -41,12 +40,12 @@ public class LazyEvaluatedFunctionExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(ActionContext ctx, GraphObject entity, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
+	public Object evaluate(ActionContext ctx, GraphObject entity) throws FrameworkException, UnlicensedScriptException {
 		return this.supplier.get();
 	}
 
 	@Override
-	public Object transform(ActionContext ctx, GraphObject entity, Object source, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
+	public Object transform(ActionContext ctx, GraphObject entity, Object source) throws FrameworkException, UnlicensedScriptException {
 		return source;
 	}
 

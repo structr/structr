@@ -51,7 +51,6 @@ import org.structr.core.traits.operations.graphobject.IndexPassiveProperties;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.core.traits.operations.propertycontainer.GetVisibilityFlags;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
 import java.util.*;
@@ -172,17 +171,13 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 			new Evaluate() {
 
 				@Override
-				public Object evaluate(final AbstractNode node, ActionContext actionContext, String key, String defaultValue, EvaluationHints hints, int row, int column) throws FrameworkException {
-
-					hints.reportUsedKey(key, row, column);
+				public Object evaluate(final AbstractNode node, final ActionContext actionContext, final String key, final String defaultValue, final GraphObject contextObject, final int row, final int column) throws FrameworkException {
 
 					final Traits traits = node.getTraits();
 
 					switch (key) {
 
 						case "owner":
-							hints.reportExistingKey(key);
-
 							final Principal owner = node.as(AccessControllable.class).getOwnerNode();
 							if (owner != null) {
 
@@ -192,7 +187,6 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 							return null;
 
 						case "_path":
-							hints.reportExistingKey(key);
 							return node.getPath(actionContext.getSecurityContext());
 
 						default:
@@ -201,9 +195,6 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 							if (traits.hasKey(key)) {
 
 								final PropertyKey propertyKey = traits.key(key);
-
-								hints.reportExistingKey(key);
-
 								final Object value = node.getProperty(propertyKey, actionContext.getPredicate());
 								if (value != null) {
 
@@ -218,7 +209,7 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 								final Map<String, Object> temp  = contextStore.getTemporaryParameters();
 								final Arguments arguments       = NamedArguments.fromMap(temp);
 
-								return method.execute(actionContext.getSecurityContext(), node, arguments, hints);
+								return method.execute(actionContext.getSecurityContext(), node, arguments);
 							}
 
 							return Function.numberOrString(defaultValue);

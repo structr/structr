@@ -44,7 +44,7 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 	public static final String ROLE_PROPERTY                  = "role";
 	public static final String RELOAD_BEHAVIOUR_PROPERTY      = "reload";
 	public static final String COLUMNS_PROPERTY               = "columns";
-	public static final String SOURCE_CHANNEL_PROPERTY        = "sourceChannel";
+	public static final String DATA_SOURCE_PROPERTY           = "dataSource";
 	public static final String SELECTION_CHANNEL_PROPERTY     = "selectionChannel";
 	public static final String TRANSFORM_PROPERTY             = "transform";
 
@@ -77,7 +77,7 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 		final Property<String> reloadBehaviourProperty     = new StringProperty(RELOAD_BEHAVIOUR_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<Boolean> showLabelsProperty         = new BooleanProperty(SHOW_LABELS_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<Integer> columnsProperty            = new IntProperty(COLUMNS_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
-		final Property<String> sourceChannelProperty       = new StringProperty(SOURCE_CHANNEL_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<String> dataSourceProperty          = new StringProperty(DATA_SOURCE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<String> selectionChannelProperty    = new StringProperty(SELECTION_CHANNEL_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<String> transformProperty           = new StringProperty(TRANSFORM_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 
@@ -91,7 +91,7 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 			reloadBehaviourProperty,
 			showLabelsProperty,
 			columnsProperty,
-			sourceChannelProperty,
+			dataSourceProperty,
 			selectionChannelProperty,
 			transformProperty
 		);
@@ -105,7 +105,7 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 			newSet(
 				DOM_NODE_PROPERTY, DATA_ADAPTER_PROPERTY, DISPLAY_MODE_PROPERTY, SAVE_MODE_PROPERTY,
 				FIELD_SET_PROPERTY, SHOW_LABELS_PROPERTY, ROLE_PROPERTY, RELOAD_BEHAVIOUR_PROPERTY,
-				COLUMNS_PROPERTY, SOURCE_CHANNEL_PROPERTY, SELECTION_CHANNEL_PROPERTY,
+				COLUMNS_PROPERTY, DATA_SOURCE_PROPERTY, SELECTION_CHANNEL_PROPERTY,
 				TRANSFORM_PROPERTY
 			)
 		);

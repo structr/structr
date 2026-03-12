@@ -61,7 +61,6 @@ public class CoreModule implements StructrModule {
 		StructrTraits.registerBaseType(accessControllable);
 
 		// relationship traits
-		StructrTraits.registerTrait(new DOMNodeHAS_DATA_SOURCEDataSource());
 		StructrTraits.registerTrait(new ComponentConfigurationHAS_DATA_ADAPTERDataAdapter());
 		StructrTraits.registerTrait(new PrincipalSchemaGrantRelationshipDefinition());
 		StructrTraits.registerTrait(new GroupContainsPrincipalDefinition());
@@ -77,7 +76,6 @@ public class CoreModule implements StructrModule {
 		StructrTraits.registerTrait(new SchemaViewPropertyDefinition());
 
 		// relationship types
-		StructrTraits.registerRelationshipType(StructrTraits.DOM_NODE_HAS_DATA_SOURCE,                 StructrTraits.DOM_NODE_HAS_DATA_SOURCE);
 		StructrTraits.registerRelationshipType(StructrTraits.COMPONENT_CONFIGURATION_HAS_DATA_ADAPTER, StructrTraits.COMPONENT_CONFIGURATION_HAS_DATA_ADAPTER);
 		StructrTraits.registerRelationshipType(StructrTraits.PRINCIPAL_SCHEMA_GRANT_RELATIONSHIP,      StructrTraits.PRINCIPAL_SCHEMA_GRANT_RELATIONSHIP);
 		StructrTraits.registerRelationshipType(StructrTraits.GROUP_CONTAINS_PRINCIPAL,                 StructrTraits.GROUP_CONTAINS_PRINCIPAL);

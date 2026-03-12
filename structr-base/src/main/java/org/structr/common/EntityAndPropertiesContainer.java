@@ -32,7 +32,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 
 import java.util.Date;
 import java.util.List;
@@ -408,7 +407,7 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public Object evaluate(ActionContext actionContext, String key, String defaultValue, EvaluationHints hints, final int row, final int column) throws FrameworkException {
+	public Object evaluate(ActionContext actionContext, String key, String defaultValue, GraphObject contextObject, final int row, final int column) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 

@@ -48,7 +48,6 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.rest.common.XMLStructureAnalyzer;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 import org.structr.storage.StorageProvider;
 import org.structr.storage.StorageProviderFactory;
@@ -112,7 +111,7 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 			final AbstractMethod method = Methods.resolveMethod(traits, "onUpload");
 			if (method != null) {
 
-				method.execute(ctx, wrappedObject, new UnnamedArguments(), new EvaluationHints());
+				method.execute(ctx, wrappedObject, new UnnamedArguments());
 			}
 
 			tx.success();

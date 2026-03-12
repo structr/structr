@@ -34,7 +34,6 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 
 import java.util.Date;
 import java.util.List;
@@ -310,8 +309,8 @@ public class GraphObjectTraitWrapper<T extends GraphObject> implements GraphObje
 	}
 
 	@Override
-	public Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, final EvaluationHints hints, final int row, final int column) throws FrameworkException {
-		return wrappedObject.evaluate(actionContext, key, defaultValue, hints, row, column);
+	public Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, final GraphObject contextObject, final int row, final int column) throws FrameworkException {
+		return wrappedObject.evaluate(actionContext, key, defaultValue, contextObject, row, column);
 	}
 
 	@Override

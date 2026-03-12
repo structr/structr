@@ -29,7 +29,6 @@ import org.structr.core.parser.ConstantExpression;
 import org.structr.core.parser.LazyEvaluatedFunctionExpression;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
 import java.util.Arrays;
@@ -64,7 +63,7 @@ public class CacheFunction implements ProxyExecutable {
 				}
 			}
 
-			retVal = PolyglotWrapper.wrap(actionContext, cacheExpr.evaluate(actionContext, entity, new EvaluationHints()));
+			retVal = PolyglotWrapper.wrap(actionContext, cacheExpr.evaluate(actionContext, entity));
 
 		} catch (FrameworkException ex) {
 

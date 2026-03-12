@@ -489,32 +489,6 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		return null;
 	}
 
-	/**
-	 * Returns the closest data source in this element's
-	 * parent hierarchy, i.e. the first parent element
-	 * that has a data source.
-	 * @return
-	 */
-	@Override
-	public final DataSource getClosestDataSource() {
-
-		DOMNode node = this;
-
-		// TODO: should we check component boundaries here?
-		while (node != null) {
-
-			final DataSource dataSource = node.getDataSource();
-			if (dataSource != null) {
-
-				return dataSource;
-			}
-
-			node = node.getParent();
-		}
-
-		return null;
-	}
-
 	@Override
 	public final Page getClosestPage() {
 
@@ -1075,18 +1049,6 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		if (node != null) {
 
 			return node.as(ComponentConfiguration.class);
-		}
-
-		return null;
-	}
-
-	@Override
-	public DataSource getDataSource() {
-
-		final NodeInterface node = wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.DATA_SOURCE_PROPERTY));
-		if (node != null) {
-
-			return node.as(DataSource.class);
 		}
 
 		return null;

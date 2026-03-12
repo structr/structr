@@ -36,7 +36,6 @@ import org.structr.messaging.engine.entities.MessageSubscriber;
 import org.structr.messaging.traits.definitions.MessageSubscriberTraitDefinition;
 import org.structr.rest.RestMethodResult;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -79,7 +78,7 @@ public class MessageSubscriberTraitWrapper extends AbstractNodeTraitWrapper impl
 
 						params.add("topic", this.getTopic());
 
-						method.execute(securityContext, client, params, new EvaluationHints());
+						method.execute(securityContext, client, params);
 					}
 
 				} catch (FrameworkException e) {

@@ -18,14 +18,12 @@
  */
 package org.structr.web.traits.definitions.dom;
 
-import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.datasources.Channel;
 import org.structr.core.entity.Relation;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.*;
@@ -39,7 +37,6 @@ import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.datasource.TagWithCSSInfo;
 import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.Template;
 import org.structr.web.traits.operations.RenderContent;
 import org.structr.web.traits.wrappers.dom.TemplateTraitWrapper;
@@ -150,7 +147,7 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 								classes.add("col-span-6");
 							}
 
-							final Channel sourceChannel   = config.getSourceChannel();
+							final Channel sourceChannel   = config.getDataSource();
 							final String selectionChannel = config.getSelectionChannel();
 
 							// data-channel for reload selector, collect all relevant channel names

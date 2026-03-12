@@ -38,7 +38,6 @@ import org.structr.core.api.Methods;
 import org.structr.core.api.NamedArguments;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.datasources.Channel;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.ModificationQueue;
@@ -58,13 +57,14 @@ import org.structr.rest.api.RESTCall;
 import org.structr.rest.servlet.AbstractDataServlet;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.EventContext;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
-import org.structr.web.eam.*;
-import org.structr.web.entity.ComponentConfiguration;
+import org.structr.web.eam.EventAction;
+import org.structr.web.eam.EventBehaviour;
+import org.structr.web.eam.EventNotification;
+import org.structr.web.eam.ParameterType;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -84,12 +84,11 @@ import org.structr.web.traits.operations.*;
 import org.structr.web.traits.wrappers.dom.DOMElementTraitWrapper;
 
 import java.util.*;
-import java.util.List;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
 
 import static org.structr.web.entity.dom.DOMElement.lowercaseBodyName;
-import static org.structr.web.entity.dom.DOMNode.*;
+import static org.structr.web.entity.dom.DOMNode.EVENT_ACTION_MAPPING_CATEGORY;
+import static org.structr.web.entity.dom.DOMNode.PAGE_CATEGORY;
 
 public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -1640,7 +1639,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 						renderContext.getSecurityContext().enableReturnRawResult();
 					}
 
-					return method.execute(renderContext.getSecurityContext(), target, NamedArguments.fromMap(parameters), new EvaluationHints());
+					return method.execute(renderContext.getSecurityContext(), target, NamedArguments.fromMap(parameters));
 
 				} else {
 
@@ -1664,7 +1663,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 							renderContext.getSecurityContext().enableReturnRawResult();
 						}
 
-						return method.execute(renderContext.getSecurityContext(), null, NamedArguments.fromMap(parameters), new EvaluationHints());
+						return method.execute(renderContext.getSecurityContext(), null, NamedArguments.fromMap(parameters));
 
 					} else {
 
@@ -2007,7 +2006,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		} else {
 
 			// evaluate single keyword
-			final Object result = entity.evaluate(actionContext, dataTarget, null, new EvaluationHints(), 1, 1);
+			final Object result = entity.evaluate(actionContext, dataTarget, null, entity, 1, 1);
 			if (result != null) {
 
 				if (result instanceof Iterable) {
@@ -2148,18 +2147,6 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 				default:
 					return reloadBehaviour;
-			}
-		}
-
-		return null;
-	}
-
-	private <T> T coalesce(final T... options) {
-
-		for (final T option : options) {
-
-			if (option != null) {
-				return option;
 			}
 		}
 

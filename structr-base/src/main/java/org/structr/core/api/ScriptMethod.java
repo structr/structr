@@ -28,7 +28,6 @@ import org.structr.core.script.Scripting;
 import org.structr.core.script.Snippet;
 import org.structr.core.script.polyglot.config.ScriptConfig;
 import org.structr.schema.action.Actions;
-import org.structr.schema.action.EvaluationHints;
 
 /**
  */
@@ -146,7 +145,7 @@ public class ScriptMethod extends AbstractMethod {
 	}
 
 	@Override
-	public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+	public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
 		final Arguments converted = checkAndConvertArguments(securityContext, arguments, false);
 

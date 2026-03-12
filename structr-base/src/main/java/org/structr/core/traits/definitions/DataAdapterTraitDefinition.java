@@ -20,11 +20,15 @@ package org.structr.core.traits.definitions;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.DataAdapter;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.*;
+import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StartNodes;
+import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.TraitsInstance;
@@ -32,7 +36,6 @@ import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.graphobject.Evaluate;
 import org.structr.core.traits.wrappers.DataAdapterTraitWrapper;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
 
@@ -65,7 +68,7 @@ public class DataAdapterTraitDefinition extends AbstractNodeTraitDefinition {
 			Evaluate.class,
 			new Evaluate() {
 				@Override
-				public Object evaluate(final AbstractNode node, final ActionContext actionContext, final String key, final String defaultValue, final EvaluationHints hints, final int row, final int column) throws FrameworkException {
+				public Object evaluate(final AbstractNode node, final ActionContext actionContext, final String key, final String defaultValue, final GraphObject contextObject, final int row, final int column) throws FrameworkException {
 
 					final RenderContext renderContext     = (RenderContext) actionContext;
 					final SecurityContext securityContext = renderContext.getSecurityContext();
@@ -80,7 +83,7 @@ public class DataAdapterTraitDefinition extends AbstractNodeTraitDefinition {
 							return dataAdapter.getDataKey();
 					}
 
-					return getSuper().evaluate(node, actionContext, key, defaultValue, hints, row, column);
+					return getSuper().evaluate(node, actionContext, key, defaultValue, contextObject, row, column);
 				}
 			}
 		);

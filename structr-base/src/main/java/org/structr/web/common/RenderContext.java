@@ -38,14 +38,12 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.datasources.Channel;
 import org.structr.core.entity.DataAdapter;
-import org.structr.core.entity.DataSource;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.dom.DOMElement;
@@ -399,24 +397,16 @@ public class RenderContext extends ActionContext {
 	}
 
 	@Override
-	public Object evaluate(final GraphObject entity, final String key, final Object data, final String defaultValue, final int depth, final EvaluationHints hints, final int row, final int column) throws FrameworkException {
-
-		// report usage for toplevel keys only
-		if (data == null) {
-
-			// report key as used to identify unresolved keys later
-			hints.reportUsedKey(key, row, column);
-		}
+	public Object evaluate(final GraphObject entity, final String key, final Object data, final String defaultValue, final int depth, final GraphObject contextObject, final int row, final int column) throws FrameworkException {
 
 		// data key can only be used as the very first token
 		if (depth == 0 && hasDataForKey(key)) {
 
-			hints.reportExistingKey(key);
 			return getDataNode(key);
 		}
 
 		// evaluate non-ui specific context
-		final Object value = super.evaluate(entity, key, data, defaultValue, depth, hints, row, column);
+		final Object value = super.evaluate(entity, key, data, defaultValue, depth, contextObject, row, column);
 		if (value == null) {
 
 			if (data != null) {
@@ -427,8 +417,6 @@ public class RenderContext extends ActionContext {
 					case "link":
 
 						if (data instanceof NodeInterface node && node.is(StructrTraits.LINK_SOURCE)) {
-
-							hints.reportExistingKey(key);
 
 							final LinkSource linkSource = node.as(LinkSource.class);
 							return linkSource.getLinkable();
@@ -443,7 +431,6 @@ public class RenderContext extends ActionContext {
 
 					case "id":
 
-						hints.reportExistingKey(key);
 						GraphObject detailsObject = this.getDetailsDataObject();
 						if (detailsObject != null) {
 
@@ -456,29 +443,20 @@ public class RenderContext extends ActionContext {
 						break;
 
 					case "current":
-						hints.reportExistingKey(key);
 						return getDetailsDataObject();
 
 					case "theme":
-						hints.reportExistingKey(key);
 						return this.theme;
 
 					case "template":
 
 						if (entity.is(StructrTraits.DOM_NODE)) {
-							hints.reportExistingKey(key);
 							return entity.as(DOMNode.class).getClosestTemplate(getPage());
 						}
 						break;
 
 					case "component":
-
-						if (entity.is(StructrTraits.DOM_NODE)) {
-
-							hints.reportExistingKey(key);
-							return entity.as(DOMNode.class).getClosestComponent();
-						}
-						break;
+						return resolveClosestComponent(entity);
 
 					case "dataSource":
 
@@ -488,33 +466,10 @@ public class RenderContext extends ActionContext {
 							return currentDataSource;
 						}
 
-						if (entity.is(StructrTraits.DOM_NODE)) {
+						final DOMNode forDataSource = resolveClosestComponent(entity);
+						if (forDataSource != null) {
 
-							final DOMNode component = entity.as(DOMNode.class).getClosestComponent();
-							if (component != null) {
-
-								return component.getComponentConfiguration().getSourceChannel();
-							}
-						}
-
-						// ActionMapping can have a closest data source via DOMElements
-						if (entity.is(StructrTraits.ACTION_MAPPING)) {
-
-							hints.reportExistingKey(key);
-
-							final ActionMapping actionMapping = entity.as(ActionMapping.class);
-							for (final DOMElement element : actionMapping.getTriggerElements()) {
-
-								final DOMNode closestComponent = element.as(DOMNode.class).getClosestComponent();
-								if (closestComponent != null) {
-
-									final Channel dataSource = closestComponent.getComponentConfiguration().getSourceChannel();
-									if (dataSource != null) {
-
-										return dataSource;
-									}
-								}
-							}
+							return forDataSource.getComponentConfiguration().getDataSource();
 						}
 						break;
 
@@ -527,44 +482,16 @@ public class RenderContext extends ActionContext {
 							return currentAdapter;
 						}
 
-						final List<DOMNode> candidates = new LinkedList<>();
-						if (entity.is(StructrTraits.DOM_NODE)) {
+						final DOMNode forAdapter = resolveClosestComponent(entity);
+						if (forAdapter != null) {
 
-							hints.reportExistingKey(key);
-							candidates.add(entity.as(DOMNode.class));
-						}
-
-						// ActionMapping can have a closest data source via DOMElements
-						if (entity.is(StructrTraits.ACTION_MAPPING)) {
-
-							hints.reportExistingKey(key);
-
-							final ActionMapping actionMapping = entity.as(ActionMapping.class);
-							for (final DOMElement element : actionMapping.getTriggerElements()) {
-								candidates.add(element.as(DOMNode.class));
-							}
-						}
-
-						for (final DOMNode domNode : candidates) {
-
-							final DOMNode closestComponent = domNode.getClosestComponent();
-							if (closestComponent != null) {
-
-								final DataAdapter adapter = closestComponent.getDataAdapter();
-								if (adapter != null) {
-
-									return adapter;
-								}
-							}
+							return forAdapter.getComponentConfiguration().getDataAdapter();
 						}
 
 						LoggerFactory.getLogger(RenderContext.class).warn("{} with UUID {} has no data adapter in its context or any of its parents.", entity.getType(), entity.getUuid());
-
-						// no data source found
-						return null;
+						break;
 
 					case "page":
-						hints.reportExistingKey(key);
 						Page page = getPage();
 						if (page == null && entity.is(StructrTraits.DOM_NODE)) {
 							page = entity.as(DOMNode.class).getOwnerDocument();
@@ -574,7 +501,6 @@ public class RenderContext extends ActionContext {
 					case "parent":
 
 						if (entity.is(StructrTraits.DOM_NODE)) {
-							hints.reportExistingKey(key);
 							return entity.as(DOMNode.class).getParent();
 						}
 						break;
@@ -583,7 +509,6 @@ public class RenderContext extends ActionContext {
 
 						if (entity.is(StructrTraits.DOM_NODE)) {
 
-							hints.reportExistingKey(key);
 							return Iterables.toList(entity.as(DOMNode.class).getChildren());
 
 						}
@@ -593,8 +518,6 @@ public class RenderContext extends ActionContext {
 					case "link":
 
 						if (entity.is(StructrTraits.LINK_SOURCE)) {
-
-							hints.reportExistingKey(key);
 
 							final LinkSource linkSource = entity.as(LinkSource.class);
 
@@ -740,5 +663,30 @@ public class RenderContext extends ActionContext {
 	// ----- private methods -----
 	private void readConfigParameters () {
 		indentHtml = Settings.HtmlIndentation.getValue();
+	}
+
+	private DOMNode resolveClosestComponent(final GraphObject entity) {
+
+		if (entity.is(StructrTraits.DOM_NODE)) {
+
+			return entity.as(DOMNode.class).getClosestComponent();
+		}
+
+		// ActionMapping can have a closest data source via DOMElements
+		if (entity.is(StructrTraits.ACTION_MAPPING)) {
+
+			final ActionMapping actionMapping = entity.as(ActionMapping.class);
+
+			for (final DOMElement element : actionMapping.getTriggerElements()) {
+
+				final DOMNode component = element.as(DOMNode.class).getClosestComponent();
+				if (component != null) {
+
+					return component;
+				}
+			}
+		}
+
+		return null;
 	}
 }

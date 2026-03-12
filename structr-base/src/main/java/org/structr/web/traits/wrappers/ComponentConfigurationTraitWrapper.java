@@ -50,14 +50,14 @@ public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper
 	}
 
 	@Override
-	public Channel getSourceChannel() throws FrameworkException {
+	public Channel getDataSource() throws FrameworkException {
 
-		final String sourceChannelName = wrappedObject.getProperty(traits.key(ComponentConfigurationTraitDefinition.SOURCE_CHANNEL_PROPERTY));
-		if (sourceChannelName != null) {
+		final String dataSourceName = wrappedObject.getProperty(traits.key(ComponentConfigurationTraitDefinition.DATA_SOURCE_PROPERTY));
+		if (dataSourceName != null) {
 
-			if (sourceChannelName.contains(":")) {
+			if (dataSourceName.contains(":")) {
 
-				final String[] parts = sourceChannelName.split(":");
+				final String[] parts = dataSourceName.split(":");
 				final String type     = parts[0];
 				final String name     = parts[1];
 

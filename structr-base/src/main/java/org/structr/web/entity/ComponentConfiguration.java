@@ -26,7 +26,7 @@ import org.structr.core.graph.NodeInterface;
 public interface ComponentConfiguration extends NodeInterface {
 
 	DataAdapter getDataAdapter();
-	Channel getSourceChannel() throws FrameworkException;
+	Channel getDataSource() throws FrameworkException;
 
 	String getSelectionChannel() throws FrameworkException;
 	Integer getColumns();

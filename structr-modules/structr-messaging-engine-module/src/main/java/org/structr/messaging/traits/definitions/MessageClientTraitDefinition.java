@@ -43,7 +43,6 @@ import org.structr.messaging.engine.entities.MessageSubscriber;
 import org.structr.messaging.traits.operations.MessageClientOperations;
 import org.structr.messaging.traits.wrappers.MessageClientTraitWrapper;
 import org.structr.rest.RestMethodResult;
-import org.structr.schema.action.EvaluationHints;
 
 import java.util.Map;
 import java.util.Set;
@@ -64,7 +63,7 @@ public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 			new JavaMethod("sendMessage", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
 					final String topic   = (String) arguments.get(0);
 					final String message = (String) arguments.get(1);
@@ -82,7 +81,7 @@ public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 			new JavaMethod("subscribeTopic", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
 					final String topic = (String) arguments.get(0);
 
@@ -99,7 +98,7 @@ public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 			new JavaMethod("unsubscribeTopic", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
 					final String topic   = (String) arguments.get(0);
 
@@ -147,7 +146,7 @@ public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 											params.add("topic", topic);
 											params.add("message", message);
 
-											method.execute(securityContext, sub, params, new EvaluationHints());
+											method.execute(securityContext, sub, params);
 
 										} else {
 

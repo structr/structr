@@ -28,7 +28,6 @@ import org.structr.core.datasources.Channel;
 import org.structr.core.entity.DataAdapter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.DataField;
@@ -36,7 +35,10 @@ import org.structr.web.datasource.TagWithCSSInfo;
 import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.entity.dom.DOMNode;
 
-import java.util.*;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Convenience method to render named child nodes.
@@ -60,7 +62,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 		final Object previousFieldValue       = innerCtx.getConstant("field");
 		final DOMNode component               = domNode.getClosestComponent();
 		final ComponentConfiguration config   = component.getComponentConfiguration();
-		final Channel sourceChannel           = config.getSourceChannel();
+		final Channel sourceChannel           = config.getDataSource();
 		String selectedValue                  = null;
 
 		// we can only be a subscriber if the fields are not displayed in a loop
@@ -131,7 +133,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 					// value present?
 					if (valueSource != null) {
 
-						value = innerCtx.getReferencedProperty(null, valueSource, null, 0, new EvaluationHints(), 0, 0);
+						value = innerCtx.getReferencedProperty(null, valueSource, null, 0, 0, 0);
 
 						// make iterables permanent
 						if (value instanceof Iterable) {
@@ -218,7 +220,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 		final List<String> fieldSet           = dataSource.getFieldSet(securityContext, requestedFieldSet);
 		final DOMNode component               = domNode.getClosestComponent();
 		final ComponentConfiguration config   = component.getComponentConfiguration();
-		final Channel sourceChannel           = config.getSourceChannel();
+		final Channel sourceChannel           = config.getDataSource();
 
 		if (fieldSet.isEmpty()) {
 			logger.warn("{}: {} with ID {} doesn't specify a fieldSet, nothing will be rendered.", getName(), domNode.getType(), domNode.getUuid());
