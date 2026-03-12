@@ -48,7 +48,6 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.parser.DatePropertyGenerator;
 
 import java.util.*;
@@ -231,8 +230,7 @@ public class Scripting {
 
 			try {
 
-				final EvaluationHints hints = new EvaluationHints();
-				Object extractedValue       = Functions.evaluate(actionContext, entity, snippet, hints);
+				Object extractedValue       = Functions.evaluate(actionContext, entity, snippet);
 				final String value          = extractedValue != null ? extractedValue.toString() : "";
 				final String output         = actionContext.getOutput();
 

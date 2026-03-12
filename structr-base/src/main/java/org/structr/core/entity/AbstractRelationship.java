@@ -35,7 +35,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
 import java.util.ArrayList;
@@ -277,7 +276,7 @@ public final class AbstractRelationship extends AbstractGraphObject<Relationship
 	}
 
 	@Override
-	public Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, EvaluationHints hints, final int row, final int column) throws FrameworkException {
+	public Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, final int row, final int column) throws FrameworkException {
 
 		switch (key) {
 

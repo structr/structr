@@ -41,7 +41,6 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GroupTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 
 import java.util.*;
 
@@ -660,7 +659,7 @@ public class ServicePrincipal implements Principal {
 	}
 
 	@Override
-	public Object evaluate(ActionContext actionContext, String key, String defaultValue, EvaluationHints hints, int row, int column) throws FrameworkException {
+	public Object evaluate(ActionContext actionContext, String key, String defaultValue, int row, int column) throws FrameworkException {
 		return null;
 	}
 

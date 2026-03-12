@@ -37,7 +37,6 @@ import org.structr.core.graph.Tx;
 import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.Actions;
-import org.structr.schema.action.EvaluationHints;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -141,7 +140,7 @@ public class CronService extends Thread implements RunnableService {
 
 														if (method != null) {
 
-															method.execute(superUserSecurityContext, null,  new NamedArguments(), new EvaluationHints());
+															method.execute(superUserSecurityContext, null,  new NamedArguments());
 
 														} else {
 

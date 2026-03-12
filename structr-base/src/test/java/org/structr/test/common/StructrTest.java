@@ -45,7 +45,6 @@ import org.structr.core.traits.TraitsManager;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.SchemaService;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.test.core.traits.definitions.*;
 import org.structr.test.core.traits.definitions.relationships.*;
 import org.testng.annotations.*;
@@ -462,14 +461,12 @@ public class StructrTest {
 		}
 	}
 
-	protected Object invokeMethod(final SecurityContext securityContext, final NodeInterface node, final String methodName, final Map<String, Object> parameters, final boolean throwIfNotExists, final EvaluationHints hints) throws FrameworkException {
+	protected Object invokeMethod(final SecurityContext securityContext, final NodeInterface node, final String methodName, final Map<String, Object> parameters, final boolean throwIfNotExists) throws FrameworkException {
 
 		final AbstractMethod method = Methods.resolveMethod(node.getTraits(), methodName);
 		if (method != null) {
 
-			hints.reportExistingKey(methodName);
-
-			return method.execute(securityContext, node, NamedArguments.fromMap(parameters), new EvaluationHints());
+			return method.execute(securityContext, node, NamedArguments.fromMap(parameters));
 		}
 
 		if (throwIfNotExists) {

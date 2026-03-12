@@ -5102,7 +5102,7 @@ declare namespace monaco.editor {
         overviewRulerLanes: IEditorOption<EditorOption.overviewRulerLanes, number>;
         padding: IEditorOption<EditorOption.padding, Readonly<Required<IEditorPaddingOptions>>>;
         pasteAs: IEditorOption<EditorOption.pasteAs, Readonly<Required<IPasteAsOptions>>>;
-        parameterHints: IEditorOption<EditorOption.parameterHints, Readonly<Required<IEditorParameterHintOptions>>>;
+        parameterHints: IEditorOption<EditorOption.parameterReadonly<Required<IEditorParameterHintOptions>>>;
         peekWidgetDefaultFocus: IEditorOption<EditorOption.peekWidgetDefaultFocus, 'tree' | 'editor'>;
         placeholder: IEditorOption<EditorOption.placeholder, string>;
         definitionLinkOpensInPeek: IEditorOption<EditorOption.definitionLinkOpensInPeek, boolean>;
@@ -5130,7 +5130,7 @@ declare namespace monaco.editor {
         showFoldingControls: IEditorOption<EditorOption.showFoldingControls, 'always' | 'never' | 'mouseover'>;
         showUnused: IEditorOption<EditorOption.showUnused, boolean>;
         showDeprecated: IEditorOption<EditorOption.showDeprecated, boolean>;
-        inlayHints: IEditorOption<EditorOption.inlayHints, Readonly<Required<IEditorInlayHintsOptions>>>;
+        inlayHints: IEditorOption<EditorOption.inlayReadonly<Required<IEditorInlayHintsOptions>>>;
         snippetSuggestions: IEditorOption<EditorOption.snippetSuggestions, 'none' | 'top' | 'bottom' | 'inline'>;
         smartSelect: IEditorOption<EditorOption.smartSelect, Readonly<Required<ISmartSelectOptions>>>;
         smoothScrolling: IEditorOption<EditorOption.smoothScrolling, boolean>;

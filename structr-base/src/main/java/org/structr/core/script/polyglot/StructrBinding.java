@@ -38,7 +38,6 @@ import org.structr.core.script.polyglot.function.DoPrivilegedFunction;
 import org.structr.core.script.polyglot.wrappers.*;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
 import java.util.Arrays;
@@ -170,7 +169,7 @@ public class StructrBinding implements ProxyObject {
 
 				try {
 
-					return PolyglotWrapper.wrap(actionContext, actionContext.evaluate(entity, name, null, null, 0, new EvaluationHints(), 1, 1));
+					return PolyglotWrapper.wrap(actionContext, actionContext.evaluate(entity, name, null, null, 0, 1, 1));
 
 				} catch (FrameworkException ex) {
 
@@ -229,7 +228,7 @@ public class StructrBinding implements ProxyObject {
 						return new HttpServletRequestWrapper(actionContext, actionContext.getSecurityContext().getRequest());
 					}
 
-					final Object value = actionContext.evaluate(entity, args[0].toString(), null, null, 0, new EvaluationHints(), 1, 1);
+					final Object value = actionContext.evaluate(entity, args[0].toString(), null, null, 0, 1, 1);
 
 					return PolyglotWrapper.wrap(actionContext, value);
 

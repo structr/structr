@@ -69,7 +69,6 @@ import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.rest.servlet.AbstractServletBase;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.util.Base64;
 import org.structr.web.auth.UiAuthenticator;
@@ -1692,7 +1691,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				final AbstractMethod method = Methods.resolveMethod(file.getTraits(), Actions.NOTIFICATION_DOWNLOAD);
 				if (method != null) {
 
-					method.execute(securityContext, file, NamedArguments.fromMap(callbackMap), new EvaluationHints());
+					method.execute(securityContext, file, NamedArguments.fromMap(callbackMap));
 				}
 
 			} catch (FrameworkException fex) {

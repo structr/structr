@@ -59,7 +59,6 @@ import org.structr.rest.api.RESTCall;
 import org.structr.rest.servlet.AbstractDataServlet;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.EventContext;
 import org.structr.web.common.RenderContext;
@@ -1634,7 +1633,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 						renderContext.getSecurityContext().enableReturnRawResult();
 					}
 
-					return method.execute(renderContext.getSecurityContext(), target, NamedArguments.fromMap(parameters), new EvaluationHints());
+					return method.execute(renderContext.getSecurityContext(), target, NamedArguments.fromMap(parameters));
 
 				} else {
 
@@ -1658,7 +1657,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 							renderContext.getSecurityContext().enableReturnRawResult();
 						}
 
-						return method.execute(renderContext.getSecurityContext(), null, NamedArguments.fromMap(parameters), new EvaluationHints());
+						return method.execute(renderContext.getSecurityContext(), null, NamedArguments.fromMap(parameters));
 
 					} else {
 
@@ -1983,7 +1982,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		} else {
 
 			// evaluate single keyword
-			final Object result = entity.evaluate(actionContext, dataTarget, null, new EvaluationHints(), 1, 1);
+			final Object result = entity.evaluate(actionContext, dataTarget, null, 1, 1);
 			if (result != null) {
 
 				if (result instanceof Iterable) {

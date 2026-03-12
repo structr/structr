@@ -37,7 +37,6 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 
 import java.util.*;
 
@@ -496,7 +495,7 @@ public class SuperUser implements Principal {
 	}
 
 	@Override
-	public Object evaluate(ActionContext actionContext, String key, String defaultValue, EvaluationHints hints, int row, int column) throws FrameworkException {
+	public Object evaluate(ActionContext actionContext, String key, String defaultValue, int row, int column) throws FrameworkException {
 		return null;
 	}
 

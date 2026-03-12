@@ -22,7 +22,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.script.Snippet;
-import org.structr.schema.action.EvaluationHints;
 
 import java.util.Map;
 
@@ -77,7 +76,7 @@ public abstract class InstanceMethod extends AbstractMethod {
 	}
 
 	@Override
-	public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+	public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 		return execute(securityContext, entity, arguments.toMap());
 	}
 }

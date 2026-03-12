@@ -48,7 +48,6 @@ import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.operations.nodeinterface.OnNodeDeletion;
 import org.structr.core.traits.operations.propertycontainer.SetProperty;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
@@ -239,7 +238,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 			new JavaMethod("doCSVImport", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 					return entity.as(File.class).doCSVImport(securityContext, arguments.toMap());
 				}
 
@@ -253,7 +252,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 			new JavaMethod("doXMLImport", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 					return entity.as(File.class).doXMLImport(securityContext, arguments.toMap());
 				}
 
@@ -267,7 +266,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 			new JavaMethod("getFirstLines", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 					return entity.as(File.class).getFirstLines(securityContext, arguments.toMap());
 				}
 
@@ -281,7 +280,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 			new JavaMethod("getCSVHeaders", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 					return entity.as(File.class).getCSVHeaders(securityContext, arguments.toMap());
 				}
 
@@ -295,7 +294,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 			new JavaMethod("getXMLStructure", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 					return entity.as(File.class).getXMLStructure(securityContext);
 				}
 
@@ -309,7 +308,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 			new JavaMethod("getSearchContext", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
 					final Number contextLength = (Number)arguments.get("contextLength");
 					final String searchString  = (String)arguments.get("searchString");

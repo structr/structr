@@ -43,7 +43,6 @@ import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 
 import java.util.*;
 import java.util.Map.Entry;
@@ -532,7 +531,7 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
-	public Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, EvaluationHints hints, final int row, final int column) throws FrameworkException {
+	public Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, final int row, final int column) throws FrameworkException {
 
 		for (final PropertyKey propertyKey : properties.keySet()) {
 

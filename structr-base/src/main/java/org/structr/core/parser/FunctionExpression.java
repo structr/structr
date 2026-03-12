@@ -28,7 +28,6 @@ import org.structr.core.graph.Tx;
 import org.structr.docs.*;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
 import java.util.ArrayList;
@@ -69,12 +68,12 @@ public class FunctionExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedScriptException {
 
 		final ArrayList<Object> results = new ArrayList<>();
 		for (Expression expr : expressions) {
 
-			final Object result = expr.evaluate(ctx, entity, hints);
+			final Object result = expr.evaluate(ctx, entity);
 			results.add(result);
 		}
 
@@ -112,7 +111,7 @@ public class FunctionExpression extends Expression {
 	}
 
 	@Override
-	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException, UnlicensedScriptException {
 		return source;
 	}
 

@@ -42,7 +42,6 @@ import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.messaging.engine.entities.MessageSubscriber;
 import org.structr.messaging.traits.wrappers.MessageSubscriberTraitWrapper;
-import org.structr.schema.action.EvaluationHints;
 
 import java.util.Map;
 import java.util.Set;
@@ -65,7 +64,7 @@ public class MessageSubscriberTraitDefinition extends AbstractNodeTraitDefinitio
 			new JavaMethod("onMessage", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
 					final String topic   = (String) arguments.get(0);
 					final String message = (String) arguments.get(1);

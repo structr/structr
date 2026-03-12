@@ -43,7 +43,6 @@ import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.rest.service.HttpService;
 import org.structr.schema.SchemaService;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.test.web.entity.traits.definitions.*;
 import org.structr.test.web.entity.traits.definitions.relationships.FourThreeOneToOne;
 import org.structr.test.web.entity.traits.definitions.relationships.TwoFiveOneToMany;
@@ -700,14 +699,12 @@ public abstract class StructrUiTest {
 		}
 	}
 
-	protected Object invokeMethod(final SecurityContext securityContext, final NodeInterface node, final String methodName, final Map<String, Object> parameters, final boolean throwIfNotExists, final EvaluationHints hints) throws FrameworkException {
+	protected Object invokeMethod(final SecurityContext securityContext, final NodeInterface node, final String methodName, final Map<String, Object> parameters, final boolean throwIfNotExists) throws FrameworkException {
 
 		final AbstractMethod method = Methods.resolveMethod(node.getTraits(), methodName);
 		if (method != null) {
 
-			hints.reportExistingKey(methodName);
-
-			method.execute(securityContext, node, NamedArguments.fromMap(parameters), new EvaluationHints());
+			method.execute(securityContext, node, NamedArguments.fromMap(parameters));
 		}
 
 		if (throwIfNotExists) {

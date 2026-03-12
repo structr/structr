@@ -55,7 +55,6 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.parser.DatePropertyGenerator;
 import org.structr.test.common.StructrTest;
@@ -207,30 +206,29 @@ public class ScriptingTest extends StructrTest {
 			}
 
 			final NodeInterface sourceNode = app.nodeQuery(sourceType).getFirst();
-			final EvaluationHints hints   = new EvaluationHints();
 
 			// set testEnum property to OPEN via doTest01 function call, check result
-			invokeMethod(securityContext, sourceNode, "doTest01", Collections.EMPTY_MAP, true, hints);
+			invokeMethod(securityContext, sourceNode, "doTest01", Collections.EMPTY_MAP, true);
 			assertEquals("Invalid setProperty result for EnumProperty", "OPEN", sourceNode.getProperty(testEnumProperty));
 
 			// set testEnum property to CLOSED via doTest02 function call, check result
-			invokeMethod(securityContext, sourceNode, "doTest02", Collections.EMPTY_MAP, true, hints);
+			invokeMethod(securityContext, sourceNode, "doTest02", Collections.EMPTY_MAP, true);
 			assertEquals("Invalid setProperty result for EnumProperty", "CLOSED", sourceNode.getProperty(testEnumProperty));
 
 			// set testEnum property to TEST via doTest03 function call, check result
-			invokeMethod(securityContext, sourceNode, "doTest03", Collections.EMPTY_MAP, true, hints);
+			invokeMethod(securityContext, sourceNode, "doTest03", Collections.EMPTY_MAP, true);
 			assertEquals("Invalid setProperty result for EnumProperty", "TEST", sourceNode.getProperty(testEnumProperty));
 
 			// set testEnum property to INVALID via doTest03 function call, expect previous value & error
 			try {
-				invokeMethod(securityContext, sourceNode, "doTest04", Collections.EMPTY_MAP, true, hints);
+				invokeMethod(securityContext, sourceNode, "doTest04", Collections.EMPTY_MAP, true);
 				assertEquals("Invalid setProperty result for EnumProperty", "TEST", sourceNode.getProperty(testEnumProperty));
 				fail("Setting EnumProperty to invalid value should result in an Exception!");
 
 			} catch (FrameworkException fx) {}
 
 			// test other property types
-			invokeMethod(securityContext, sourceNode, "doTest05", Collections.EMPTY_MAP, true, hints);
+			invokeMethod(securityContext, sourceNode, "doTest05", Collections.EMPTY_MAP, true);
 			assertEquals("Invalid setProperty result for BooleanProperty",                         true, sourceNode.getProperty(testBooleanProperty));
 			assertEquals("Invalid setProperty result for IntegerProperty",                          123, sourceNode.getProperty(testIntegerProperty));
 			assertEquals("Invalid setProperty result for StringProperty",                   "testing..", sourceNode.getProperty(testStringProperty));
@@ -314,7 +312,7 @@ public class ScriptingTest extends StructrTest {
 			final AbstractMethod method = Methods.resolveMethod(node.getTraits(), "doTest01");
 			if (method != null) {
 
-				method.execute(securityContext, node, new UnnamedArguments(), new EvaluationHints());
+				method.execute(securityContext, node, new UnnamedArguments());
 			}
 
 			tx.success();

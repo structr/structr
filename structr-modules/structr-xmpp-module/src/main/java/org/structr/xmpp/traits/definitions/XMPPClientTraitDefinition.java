@@ -41,7 +41,6 @@ import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnDeletion;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.rest.RestMethodResult;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.xmpp.XMPPClient;
 import org.structr.xmpp.XMPPClientConnection;
 import org.structr.xmpp.XMPPContext;
@@ -166,7 +165,7 @@ public class XMPPClientTraitDefinition extends AbstractNodeTraitDefinition {
 			new JavaMethod("doSendMessage", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
 					final XMPPClient client = entity.as(XMPPClient.class);
 					if (client.getIsEnabled()) {
@@ -193,7 +192,7 @@ public class XMPPClientTraitDefinition extends AbstractNodeTraitDefinition {
 			new JavaMethod("doSubscribe", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
 					final XMPPClient client = entity.as(XMPPClient.class);
 					if (client.getIsEnabled()) {
@@ -220,7 +219,7 @@ public class XMPPClientTraitDefinition extends AbstractNodeTraitDefinition {
 			new JavaMethod("doUnsubscribe", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
 					final XMPPClient client = entity.as(XMPPClient.class);
 					if (client.getIsEnabled()) {
@@ -246,7 +245,7 @@ public class XMPPClientTraitDefinition extends AbstractNodeTraitDefinition {
 			new JavaMethod("doConfirmSubscription", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
 					final XMPPClient client = entity.as(XMPPClient.class);
 
@@ -273,7 +272,7 @@ public class XMPPClientTraitDefinition extends AbstractNodeTraitDefinition {
 			new JavaMethod("doDenySubscription", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
 					final XMPPClient client = entity.as(XMPPClient.class);
 					if (client.getIsEnabled()) {
@@ -299,7 +298,7 @@ public class XMPPClientTraitDefinition extends AbstractNodeTraitDefinition {
 			new JavaMethod("doJoinChat", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
 					final XMPPClient client = entity.as(XMPPClient.class);
 					if (client.getIsEnabled()) {
@@ -327,7 +326,7 @@ public class XMPPClientTraitDefinition extends AbstractNodeTraitDefinition {
 			new JavaMethod("doSendChatMessage", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
 					final XMPPClient client = entity.as(XMPPClient.class);
 					if (client.getIsEnabled()) {

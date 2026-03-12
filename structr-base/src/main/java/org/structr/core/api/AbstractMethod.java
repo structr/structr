@@ -35,7 +35,6 @@ import org.structr.core.script.polyglot.StructrBinding;
 import org.structr.core.script.polyglot.context.ContextFactory;
 import org.structr.core.script.polyglot.context.ContextHelper;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.parser.DatePropertyGenerator;
 
 import java.util.Date;
@@ -75,7 +74,7 @@ public abstract class AbstractMethod {
 
 	public abstract String getDeclaringTrait();
 
-	public abstract Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException;
+	public abstract Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException;
 
 	public String getName() {
 		return name;
@@ -181,7 +180,7 @@ public abstract class AbstractMethod {
 
 				// fallback => normal scripting
 				final Arguments converted = PolyglotWrapper.unwrapExecutableArguments(actionContext, this, arguments);
-				return PolyglotWrapper.wrap(actionContext, this.execute(actionContext.getSecurityContext(), entity, converted, new EvaluationHints()));
+				return PolyglotWrapper.wrap(actionContext, this.execute(actionContext.getSecurityContext(), entity, converted));
 
 			} catch (FrameworkException ex) {
 				throw new RuntimeException(ex);

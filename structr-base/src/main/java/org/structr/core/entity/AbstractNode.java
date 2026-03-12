@@ -39,7 +39,6 @@ import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.nodeinterface.*;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
 import java.util.ArrayList;
@@ -296,14 +295,11 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 	}
 
 	@Override
-	public Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, final EvaluationHints hints, final int row, final int column) throws FrameworkException {
-
-		hints.reportUsedKey(key, row, column);
+	public Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, final int row, final int column) throws FrameworkException {
 
 		switch (key) {
 
 			case "owner":
-				hints.reportExistingKey(key);
 
 				final Principal owner = as(AccessControllable.class).getOwnerNode();
 				if (owner != null) {
@@ -314,7 +310,6 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 				return null;
 
 			case "_path":
-				hints.reportExistingKey(key);
 				return getPath(actionContext.getSecurityContext());
 
 			default:
@@ -323,8 +318,6 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 				if (typeHandler.hasKey(key)) {
 
 					final PropertyKey propertyKey = typeHandler.key(key);
-
-					hints.reportExistingKey(key);
 
 					final Object value = getProperty(propertyKey, actionContext.getPredicate());
 					if (value != null) {
@@ -340,7 +333,7 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 					final Map<String, Object> temp  = contextStore.getTemporaryParameters();
 					final Arguments arguments       = NamedArguments.fromMap(temp);
 
-					return method.execute(actionContext.getSecurityContext(), this, arguments, hints);
+					return method.execute(actionContext.getSecurityContext(), this, arguments);
 				}
 
 				return Function.numberOrString(defaultValue);

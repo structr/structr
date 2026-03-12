@@ -125,7 +125,7 @@ public class ActionContext {
 		this.temporaryContextStore.setConstant(name, data);
 	}
 
-	public Object getReferencedProperty(final GraphObject entity, final String initialRefKey, final Object initialData, final int depth, final EvaluationHints hints, final int row, final int column) throws FrameworkException {
+	public Object getReferencedProperty(final GraphObject entity, final String initialRefKey, final Object initialData, final int depth, final int row, final int column) throws FrameworkException {
 
 		// split
 		final String[] refs  = StringUtils.split(initialRefKey, "!");
@@ -145,15 +145,15 @@ public class ActionContext {
 
 			if (_data instanceof NodeInterface n) {
 
-				_data = n.evaluate(this, key, null, hints, row, column);
+				_data = n.evaluate(this, key, null, row, column);
 
 			} else if (_data instanceof GraphObject obj) {
 
-				_data = obj.evaluate(this, key, null, hints, row, column);
+				_data = obj.evaluate(this, key, null, row, column);
 
 			} else {
 
-				_data = evaluate(entity, key, _data, null, i+depth, hints, row, column);
+				_data = evaluate(entity, key, _data, null, i+depth, row, column);
 			}
 
 			// stop evaluation on null
@@ -251,21 +251,12 @@ public class ActionContext {
 		return getContextStore().getAdvancedMailContainer();
 	}
 
-	public Object evaluate(final GraphObject entity, final String key, final Object data, final String defaultValue, final int depth, final EvaluationHints hints, final int row, final int column) throws FrameworkException {
-
-		// report usage for toplevel keys only
-		if (data == null) {
-
-			// report key as used to identify unresolved keys later
-			hints.reportUsedKey(key, row, column);
-		}
+	public Object evaluate(final GraphObject entity, final String key, final Object data, final String defaultValue, final int depth, final int row, final int column) throws FrameworkException {
 
 		Object value = getContextStore().getConstant(key);
 		if (this.temporaryContextStore.getConstant(key) != null) {
-			hints.reportExistingKey(key);
 			value = this.temporaryContextStore.getConstant(key);
 		} else if (this.temporaryContextStore.hasConstant(key)) {
-			hints.reportExistingKey(key);
 			value = null;
 		} else {
 
@@ -277,7 +268,6 @@ public class ActionContext {
 					value = ((HttpServletRequest) data).getParameterValues(key);
 					if (value != null) {
 
-						hints.reportExistingKey(key);
 						if (((String[]) value).length == 1) {
 
 							value = ((String[]) value)[0];
@@ -294,8 +284,6 @@ public class ActionContext {
 
 					if (StringUtils.isNotBlank(key)) {
 
-						hints.reportExistingKey(key);
-
 						// use "user." prefix to separate user and system data
 						value = sessionWrapper.getMember(key);
 					}
@@ -304,7 +292,6 @@ public class ActionContext {
 				// special handling of maps..
 				if (data instanceof Map) {
 
-					hints.reportExistingKey(key);
 					value = ((Map) data).get(key);
 				}
 
@@ -312,20 +299,18 @@ public class ActionContext {
 
 					if (data instanceof GraphObject graphObject) {
 
-						value = graphObject.evaluate(this, key, defaultValue, hints, row, column);
+						value = graphObject.evaluate(this, key, defaultValue, row, column);
 
 					} else if (data instanceof Traits traits) {
 
 						final AbstractMethod method = Methods.resolveMethod(traits, key);
 						if (method != null) {
 
-							hints.reportExistingKey(key);
-
 							final ContextStore contextStore = getContextStore();
 							final Map<String, Object> temp  = contextStore.getTemporaryParameters();
 							final Arguments arguments       = NamedArguments.fromMap(temp);
 
-							return method.execute(securityContext, null, arguments, hints);
+							return method.execute(securityContext, null, arguments);
 						}
 
 					} else {
@@ -334,15 +319,12 @@ public class ActionContext {
 
 							case "size":
 								if (data instanceof Collection) {
-									hints.reportExistingKey(key);
 									return ((Collection) data).size();
 								}
 								if (data instanceof Iterable) {
-									hints.reportExistingKey(key);
 									return Iterables.count((Iterable) data);
 								}
 								if (data.getClass().isArray()) {
-									hints.reportExistingKey(key);
 									return ((Object[]) data).length;
 								}
 								break;
@@ -361,31 +343,25 @@ public class ActionContext {
 						switch (key) {
 
 							case "request":
-								hints.reportExistingKey(key);
 								return securityContext.getRequest();
 
 							case "session":
 								if (securityContext.getRequest() != null) {
-									hints.reportExistingKey(key);
 									return new HttpSessionWrapper(new ActionContext(securityContext), securityContext.getRequest().getSession(false));
 								}
 								break;
 
 							case "baseUrl":
 							case "base_url":
-								hints.reportExistingKey(key);
 								return getBaseUrl(securityContext.getRequest());
 
 							case "applicationRootPath":
-								hints.reportExistingKey(key);
 								return Settings.ApplicationRootPath.getValue();
 
 							case "me":
-								hints.reportExistingKey(key);
 								return securityContext.getUser(false);
 
 							case "depth":
-								hints.reportExistingKey(key);
 								return securityContext.getSerializationDepth() - 1;
 
 						}
@@ -397,35 +373,28 @@ public class ActionContext {
 							switch (key) {
 
 								case "host":
-									hints.reportExistingKey(key);
 									return request.getServerName();
 
 								case "ip":
-									hints.reportExistingKey(key);
 									return request.getLocalAddr();
 
 								case "port":
-									hints.reportExistingKey(key);
 									return request.getServerPort();
 
 								case "pathInfo":
 								case "path_info":
-									hints.reportExistingKey(key);
 									return request.getPathInfo();
 
 								case "queryString":
 								case "query_string":
-									hints.reportExistingKey(key);
 									return request.getQueryString();
 
 								case "parameterMap":
 								case "parameter_map":
-									hints.reportExistingKey(key);
 									return request.getParameterMap();
 
 								case "remoteAddress":
 								case "remote_address":
-									hints.reportExistingKey(key);
 									return getRemoteAddr(request);
 							}
 						}
@@ -440,7 +409,6 @@ public class ActionContext {
 
 									try {
 										// return output stream of HTTP response for streaming
-										hints.reportExistingKey(key);
 										return response.getOutputStream();
 
 									} catch (IOException ioex) {
@@ -451,7 +419,6 @@ public class ActionContext {
 
 								case "statusCode":
 								case "status_code":
-									hints.reportExistingKey(key);
 									return response.getStatus();
 							}
 						}
@@ -461,25 +428,20 @@ public class ActionContext {
 					switch (key) {
 
 						case "now":
-							hints.reportExistingKey(key);
 							return this.isJavaScriptContext() ? new Date() : DatePropertyGenerator.format(new Date(), Settings.DefaultDateFormat.getValue());
 
 						case "this":
-							hints.reportExistingKey(key);
 							return entity;
 
 						case "locale":
-							hints.reportExistingKey(key);
 							return locale != null ? locale.toString() : null;
 
 						case "tenantIdentifier":
 						case "tenant_identifier":
-							hints.reportExistingKey(key);
 							return Settings.TenantIdentifier.getValue();
 
 						case "applicationStore":
 						case "application_store":
-							hints.reportExistingKey(key);
 							return Services.getInstance().getApplicationStore();
 
 						default:
@@ -488,8 +450,6 @@ public class ActionContext {
 							if (StringUtils.isNotEmpty(key) && (Character.isUpperCase(key.charAt(0)) || StringUtils.contains(key, "."))) {
 
 								if (Traits.exists(key)) {
-
-									hints.reportExistingKey(key);
 
 									return Traits.of(key);
 								}

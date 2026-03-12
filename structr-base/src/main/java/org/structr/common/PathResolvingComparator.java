@@ -28,7 +28,6 @@ import org.structr.core.traits.Traits;
 import org.structr.docs.Documentation;
 import org.structr.docs.ontology.ConceptType;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 
 import java.util.Comparator;
 
@@ -119,7 +118,7 @@ public class PathResolvingComparator implements Comparator<GraphObject> {
 			}
 
 			try {
-				final Object value = current.evaluate(actionContext, part, null, new EvaluationHints(), 1, 1);
+				final Object value = current.evaluate(actionContext, part, null, 1, 1);
 				if (value != null) {
 
 					// last part of path?

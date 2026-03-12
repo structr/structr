@@ -23,7 +23,6 @@ import org.structr.core.GraphObject;
 import org.structr.docs.*;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 
 import java.util.List;
 
@@ -48,12 +47,12 @@ public class NullExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints) throws FrameworkException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException {
 		return null;
 	}
 
 	@Override
-	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source, final EvaluationHints hints) throws FrameworkException {
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException {
 		return source;
 	}
 

@@ -44,7 +44,6 @@ import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.odf.entity.ODSExporter;
 import org.structr.odf.traits.wrappers.ODSExporterTraitWrapper;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.transform.VirtualType;
 import org.structr.web.entity.File;
@@ -77,7 +76,7 @@ public class ODSExporterTraitDefinition extends AbstractNodeTraitDefinition {
 			new JavaMethod("exportAttributes", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
 					final Map<String, Object> data = arguments.toMap();
 					final String uuid              = (String)data.get("uuid");

@@ -37,7 +37,6 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 
 import java.util.*;
 
@@ -120,7 +119,7 @@ public interface GraphObject {
 
 	// misc. methods
 	String getPropertyWithVariableReplacement(final ActionContext renderContext, final PropertyKey<String> key) throws FrameworkException;
-	Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, final EvaluationHints hints, final int row, final int column) throws FrameworkException;
+	Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, final int row, final int column) throws FrameworkException;
 	List<GraphObject> getSyncData() throws FrameworkException;
 
 	NodeInterface getSyncNode();
