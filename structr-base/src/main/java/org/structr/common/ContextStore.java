@@ -41,7 +41,6 @@ public class ContextStore {
 	private Map<String, Object> tmpParameters         = new HashMap<>();
 	private Map<String, Long> timerStore              = new HashMap<>();
 	private Map<String, Long> timerElapsedStore       = new HashMap<>();
-	private Map<Integer, Integer> counters            = new HashMap<>();
 	private AdvancedMailContainer amc                 = null;
 	private ArrayList<GraphObjectMap> localizations   = new ArrayList<>();
 	private Map<String, Object> functionPropertyCache = new HashMap<>();
@@ -60,7 +59,6 @@ public class ContextStore {
 		this.constants    = other.constants;
 		this.requestStore = other.requestStore;
 		this.timerStore   = other.timerStore;
-		this.counters     = other.counters;
 		this.amc          = other.amc;
 	}
 
@@ -162,31 +160,6 @@ public class ContextStore {
 	public void clearFunctionPropertyCache() {
 		this.functionPropertyCache.clear();
 	}
-
-	// --- Counters ---
-	public void incrementCounter(final int level) {
-		setCounter(level, getCounter(level) + 1);
-	}
-
-	public int getCounter(final int level) {
-
-		Integer value = counters.get(level);
-		if (value == null) {
-
-			return 0;
-		}
-
-		return value;
-	}
-
-	public void setCounter(final int level, final int value) {
-		counters.put(level, value);
-	}
-
-	public void resetCounter(final int level) {
-		counters.put(level, 0);
-	}
-
 
 	// --- Timers ---
 	public void startTimer(final String key) {

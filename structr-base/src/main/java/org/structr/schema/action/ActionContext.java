@@ -213,18 +213,6 @@ public class ActionContext {
 		return errorBuffer.hasError();
 	}
 
-	public void incrementCounter(final int level) {
-		getContextStore().incrementCounter(level);
-	}
-
-	public int getCounter(final int level) {
-		return getContextStore().getCounter(level);
-	}
-
-	public void resetCounter(final int level) {
-		getContextStore().resetCounter(level);
-	}
-
 	public void store(final String key, final Object value) {
 		getContextStore().store(key, value);
 	}
