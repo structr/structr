@@ -120,6 +120,10 @@ public abstract class Setting<T> {
 		return this;
 	}
 
+	public String getLongDescription() {
+		return longDescription;
+	}
+
 	public Setting<T> getPrefixedSetting(final String prefix) {
 
 		Setting<T> prefixedSetting = Settings.getSetting(prefix, key);
@@ -203,12 +207,19 @@ public abstract class Setting<T> {
 	// ----- private methods -----
 	private String getCalculatedComment() {
 
-		if (getComment() != null) {
+		if (getComment() != null && getLongDescription() != null) {
+			return getComment() + "<br>" + getLongDescription();
+		}
 
+		if (getLongDescription() == null) {
 			return getComment();
+		}
 
-		} else if (getKey().endsWith(".cronExpression")) {
+		if (getComment() == null) {
+			return getLongDescription();
+		}
 
+		if (getKey().endsWith(".cronExpression")) {
 			return Settings.CRON_EXPRESSION_INFO_HTML;
 		}
 
