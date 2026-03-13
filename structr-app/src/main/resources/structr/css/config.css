@@ -45,7 +45,6 @@
 	}
 	.form-group input[type=text], .form-group textarea {
 		flex-grow: 1;
-		/*display: block;*/
 	}
 
 	li.no-search-match {
@@ -58,8 +57,13 @@
 	}
 
 	div#configTabs {
-		display: flex;
 		flex-direction: column;
+		margin-right: 0;
+	}
+
+	#configTabs .tabs-menu li a {
+		padding: 0 1.5rem;
+		width: initial;
 	}
 }
 
@@ -79,10 +83,6 @@
 	}
 	.form-group input[type=text], .form-group textarea {
 		min-width: 32rem;
-	}
-
-	div#configTabs {
-		display: flex;
 	}
 
 	ul.tabs-menu {
@@ -141,6 +141,7 @@ body {
 }
 
 #configTabs {
+	display: flex;
 	margin: 2rem 2rem 0 0;
 	height: calc(100vh - 11rem);
 	border: none;
@@ -154,9 +155,9 @@ body {
 }
 
 .tabs-menu li a {
-	padding-right: 0;
-	padding-left: 2rem !important;
 	width: initial;
+	padding-left: 1.5rem;
+	padding-right: 0.5rem;
 }
 
 .config-group {

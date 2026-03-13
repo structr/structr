@@ -883,6 +883,7 @@ img.disabled {
 	height: 2rem;
 	position: relative;
 	z-index: 1;
+	border-bottom: .25rem solid transparent;
 }
 
 .tabs-menu > li {
