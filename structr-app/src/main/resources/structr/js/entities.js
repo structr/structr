@@ -3505,7 +3505,7 @@ let _Entities = {
 						${Structr.templates.autoScriptInput({ inputAttributeString: 'id="show-conditions" name="showConditions"', wrapperClassString: 'w-full'})}
 
 						<div class="dropdown-menu dropdown-menu-large">
-							<button class="mr-0 dropdown-select rounded border ml-2" data-preferred-position-x="left">
+							<button class="dropdown-select rounded border mr-0 ml-2 hover:bg-gray-100 focus:border-gray-666 active:border-green" data-preferred-position-x="left">
 								${_Icons.getSvgIcon(_Icons.iconLightBulb, 16, 16, '', 'Examples')}
 							</button>
 
