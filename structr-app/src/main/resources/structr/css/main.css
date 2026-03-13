@@ -1363,28 +1363,6 @@ body[style*=zoom] .non-block-ui-blocker-content {
     margin: 0;
 }
 
-#dialogBox.insert-widget-dialog {
-    width: calc(40vw);
-    height: calc(25vh);
-}
-
-#dialogBox.maximized.insert-widget-dialog {
-    width: calc(100vw - 4rem);
-    height: calc(100vh - 5rem);
-}
-
-/* set default sizes for dialogs with tabs */
-#dialogBox:has(ul > li.tab),
-#dialogBox:has(div.widgets-tabs),
-#dialogBox:has(div#tabs) {
-    height: calc(45vh);
-}
-#dialogBox.maximized:has(#tabs),
-#dialogBox.maximized:has(#files-tabs),
-#dialogBox.maximized:has(.widgets-tabs) {
-    height: calc(100vh - 5rem);
-}
-
 /* set default sizes for dialogs with tabs */
 #dialogBox:has(ul > li.tab),
 #dialogBox:has(div.widgets-tabs),
@@ -4361,7 +4339,10 @@ ul.combined-input-select-field li:not(.nohover):hover {
 	margin-top: 1.5rem;
 }
 .mt-8 {
-	margin-top: 2rem;
+    margin-top: 2rem;
+}
+.mt-16 {
+	margin-top: 4rem;
 }
 .mb-1 {
 	margin-bottom: .25rem;
@@ -5092,6 +5073,12 @@ ul.combined-input-select-field li:not(.nohover):hover {
 	@container (width >= 36rem) {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
+}
+
+.\@xl\:grid-cols-3 {
+    @container (width >= 36rem) {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
 }
 
 .\@xl\:block {

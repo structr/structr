@@ -18,6 +18,7 @@
  */
 package org.structr.web.entity;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.ThreadLocalMatcher;
 import org.structr.common.error.EmptyPropertyToken;
@@ -25,8 +26,10 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.JsonInput;
 import org.structr.core.JsonSingleInput;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.importer.ImporterWithXMLParser;
@@ -69,9 +72,10 @@ public interface Widget extends NodeInterface {
 	 */
 	static void expandWidget(final SecurityContext securityContext, final Page page, final DOMNode parent, final String baseUrl, final Map<String, Object> parameters, final boolean processDeploymentInfo) throws FrameworkException {
 
-		String _source = (String) parameters.get("source");
-		ErrorBuffer errorBuffer = new ErrorBuffer();
+		final App app                 = StructrApp.getInstance(securityContext);
+		final ErrorBuffer errorBuffer = new ErrorBuffer();
 
+		String _source = (String) parameters.get("source");
 		if (_source == null) {
 
 			errorBuffer.add(new EmptyPropertyToken(Widget.class.getSimpleName(), "source"));
@@ -79,10 +83,33 @@ public interface Widget extends NodeInterface {
 		} else {
 
 			// check source for mandatory parameters
-			Matcher matcher = threadLocalTemplateMatcher.get();
+			final Matcher matcher = threadLocalTemplateMatcher.get();
 
 			// initialize with source
 			matcher.reset(_source);
+
+			// create default objects if keywords from append widget dialog are present
+			if ("create-new-data-source".equals(parameters.get("dataSource"))) {
+
+				final NodeInterface dataSource = app.create(StructrTraits.DATA_SOURCE, "New DataSource");
+				parameters.put("dataSource", dataSource.getUuid());
+			}
+
+			if ("create-new-data-adapter".equals(parameters.get("dataAdapter"))) {
+
+				String type = "Unnamed";
+
+				// determine name from data source
+				final String dataSource = (String) parameters.get("dataSource");
+				if (dataSource != null && dataSource.startsWith("node:")) {
+
+					// use type from data source
+					type = StringUtils.substringAfterLast(dataSource, ":");
+				}
+
+				final NodeInterface dataAdapter = app.create(StructrTraits.DATA_ADAPTER, type + " Adapter");
+				parameters.put("dataAdapter", dataAdapter.getUuid());
+			}
 
 			while (matcher.find()) {
 

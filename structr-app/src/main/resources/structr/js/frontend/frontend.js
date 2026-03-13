@@ -536,7 +536,7 @@ export class Frontend {
 			}
 		}
 
-        if (options && options.updateHistory) {
+        if (options && options.updateHistory && options.updateHistory == true) {
 
             const url = new URL(window.location.href);
 

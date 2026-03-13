@@ -19,6 +19,7 @@
 package org.structr.core.traits.definitions;
 
 import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
@@ -31,9 +32,12 @@ import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.Evaluate;
+import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.wrappers.DataAdapterTraitWrapper;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
@@ -58,6 +62,35 @@ public class DataAdapterTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 			DataAdapter.class, (traits, node) -> new DataAdapterTraitWrapper(traits, node)
+		);
+	}
+
+	@Override
+	public Map<Class, LifecycleMethod> createLifecycleMethods(final TraitsInstance traitsInstance) {
+
+		return Map.of(
+			OnCreation.class,
+			new OnCreation() {
+				@Override
+				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+					final DataAdapter adapter = graphObject.as(DataAdapter.class);
+					final Traits traits       = graphObject.getTraits();
+
+					// set some sensible defaults
+					if (adapter.getDataKey() == null) {
+						adapter.setProperty(traits.key(DataAdapterTraitDefinition.DATA_KEY_PROPERTY), "item");
+					}
+
+					if (adapter.getFieldSets(securityContext) == null) {
+						adapter.setProperty(traits.key(DataAdapterTraitDefinition.FIELD_SETS_PROPERTY), "{ \"default\" : [ \"name\" ] }");
+					}
+
+					if (adapter.getFields(securityContext) == null) {
+						adapter.setProperty(traits.key(DataAdapterTraitDefinition.MAPPING_PROPERTY), "{ \"name\": { \"value\": \"item.name\", \"label\": \"Name\", \"slot\": \"label\", \"template\": \"text\", \"editTemplate\": \"textfield\" }}");
+					}
+				}
+			}
 		);
 	}
 

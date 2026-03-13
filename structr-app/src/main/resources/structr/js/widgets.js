@@ -1,4 +1,4 @@
-    /*
+/*
  * Copyright (C) 2010-2026 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
@@ -748,7 +748,6 @@ let _Widgets = {
             }
 
             let cleanedLabel = label.replace(/[^\w]/g, '_');
-
             let fieldConfig  = configElement[1];
             let fieldType    = fieldConfig.type;
             let defaultValue = fieldConfig.default || '';
@@ -757,32 +756,78 @@ let _Widgets = {
 
             switch (fieldType) {
 
-                case 'adapter':
-                    let sources = await Command.queryPromise('DataAdapter', 1000, 1, 'name', 'asc', {}, true, 'adapter');
-                    let values = {};
-                    for (let value of sources) {
-                        values[value.id] = value.name;
+                case 'datasource': {
+                        let sources = await Command.queryPromise('DataSource', 1000, 1, 'name', 'asc', {});
+                        let channels = await Command.queryPromise('ComponentConfiguration', 1000, 1, 'name', 'asc', {});
+                        let values = {};
+                        for (let value of sources) {
+                            values['node:' + value.name] = value.name;
+                        }
+                        for (let channel of channels) {
+                            if (channel.role === 'controller' && channel.selectionChannel && channel.selectionChannel !== 'current') {
+                                values['channel:' + channel.selectionChannel] = 'The "' + channel.selectionChannel + '" channel';
+                            }
+                        }
+                        form.append(`
+                            <div>
+                                <h4 id="label-${cleanedLabel}" data-comment="moep">${titleLabel}</h4>
+                                <select required data-info="select-source" id="${cleanedLabel}" class="form-field" data-key="${label}">
+                                    ${getOptionsAsText(values, defaultValue)}
+                                    <option value="channel:current">The "current" object</option>
+                                    <option value="create-new-data-source">+ New data source..</option>
+                                </select>
+                            </div>
+                        `);
+                        document.querySelector(`#${cleanedLabel}`).dispatchEvent(new CustomEvent('change', {}));
                     }
-                    form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select required data-info="select-type" id="${cleanedLabel}" class="form-field" data-key="${label}"><option value="">--- Select data adapter ---</option>${getOptionsAsText(values, defaultValue)}</select></div>`);
+                    break;
+
+                case 'adapter': {
+                        let sources = await Command.queryPromise('DataAdapter', 1000, 1, 'name', 'asc', {}, true, 'adapter');
+                        let values = {};
+                        for (let value of sources) {
+                            values[value.id] = value.name;
+                        }
+                        form.append(`
+                            <div>
+                                <h4 id="label-${cleanedLabel}">${titleLabel}</h4>
+                                <select required data-info="select-adapter" id="${cleanedLabel}" class="form-field" data-key="${label}">
+                                    ${getOptionsAsText(values, defaultValue)}
+                                    <option value="create-new-data-adapter">+ New data adapter..</option>
+                                </select>
+                            </div>
+                        `);
+                        document.querySelector(`#${cleanedLabel}`).dispatchEvent(new CustomEvent('change', {}));
+                    }
                     break;
 
                 case 'fieldset':
-                    form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select required id="${cleanedLabel}" class="form-field" data-key="${label}"></select></div>`);
+                    form.append(`
+                        <div>
+                            <h4 id="label-${cleanedLabel}">${titleLabel}</h4>
+                            <select required id="${cleanedLabel}" class="form-field" data-key="${label}">
+                                <option value="create-new-field-set">+ New field set..</option>
+                            </select>
+                        </div>`);
                     {
-                        let typeSelect = document.querySelector('select[data-info="select-type"]');
+                        let typeSelect = document.querySelector('select[data-info="select-adapter"]');
                         if (typeSelect) {
                             typeSelect.addEventListener('change', async (e) => {
                                 let id = typeSelect.value;
                                 Command.get(id, 'id,type,name,fieldSets', (info) => {
-                                    let s = document.querySelector(`select#${cleanedLabel}`);
-                                    let fieldSets = JSON.parse(info.fieldSets); // right now it's JSON...
-                                    s.insertAdjacentHTML('beforeend', getOptionsAsText(Object.keys(fieldSets).sort(), 'default'));
-                                    s.dispatchEvent(new CustomEvent('change', {}));
+                                    if (info) {
+                                        let s = document.querySelector(`select#${cleanedLabel}`);
+                                        let fieldSets = JSON.parse(info.fieldSets); // right now it's JSON...
+                                        s.insertAdjacentHTML('beforeend', getOptionsAsText(Object.keys(fieldSets).sort(), 'default'));
+                                        s.dispatchEvent(new CustomEvent('change', {}));
+                                    }
                                 });
                             });
+                            typeSelect.dispatchEvent(new CustomEvent('change', {}));
                         } else {
                             console.log('No typeselect');
                         }
+                        document.querySelector(`#${cleanedLabel}`).dispatchEvent(new CustomEvent('change', {}));
                     }
                     break;
 
@@ -809,19 +854,21 @@ let _Widgets = {
                 case 'mapping':
                     form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><input type="text" required class="form-field" id="${cleanedLabel}" data-key="${label}" /><div class="sortable-checkbox-list" id="options-${cleanedLabel}"></div></div>`);
                     {
-                        let typeSelect = document.querySelector('select[data-info="select-type"]');
+                        let typeSelect = document.querySelector('select[data-info="select-adapter"]');
                         if (typeSelect) {
                             let blacklist = { grantees: true };
                             typeSelect.addEventListener('change', async (e) => {
                                 let id = typeSelect.value;
-                                Command.get(id, 'id,type,name,keys', (info) => {
+                                Command.get(id, 'id,type,name,mapping', (adapter) => {
                                     let s = document.querySelector(`div#options-${cleanedLabel}`);
                                     let i = document.querySelector(`input#${cleanedLabel}`);
                                     s.innerHTML = '';
-                                    if (info && info.keys) {
+                                    console.log(adapter)
+                                    let mapping = JSON.parse(adapter.mapping); // right now it's JSON...
+                                    if (mapping) {
 
-                                        for (let k in info.keys) {
-                                            let key = info.keys[k];
+                                        for (let k in mapping) {
+                                            let key = mapping[k];
                                             s.insertAdjacentHTML('beforeend', `<label draggable><input type="checkbox" data-key="${key.key}"><span>${key.label}</span></label>`);
                                         }
                                         let collectKeys = () => {
@@ -847,7 +894,7 @@ let _Widgets = {
                                 });
                             });
                         } else {
-                            console.log('No typeselect');
+                            console.log('No adapter select');
                         }
                     }
                     break;
@@ -984,6 +1031,11 @@ let _Widgets = {
 
             _Dialogs.custom.clickDialogCancelButton();
         });
+
+        _Helpers.activateCommentsInElement(dialogText, { helpElementCss: { 'font-size': '13px'} });
+
+        // update button state initially, just in case the form is already valid..
+        updateButtonState();
     },
 	sortWidgetConfigurationByPosition: (config) => {
 

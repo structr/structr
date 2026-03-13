@@ -113,93 +113,99 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 
 				final Set<String> slots = dataField.getSlots();
 
-				// no slot => iterate over all fields or just one slot, or name
-				if (slot == null || slots.contains(slot) || slot.equals(dataField.getName())) {
+				if (slot != null && slots.isEmpty()) {
+					renderTemplate(app, innerCtx, "span-missing-slot", "<span class=\"error col-span-6\">Field '" + field + "' in data adapter '" + dataAdapter.getName() + "' is missing 'slot' entry.</span>");
 
-					final Set<String> cssClasses    = new LinkedHashSet<>();
-					final String editTemplate       = dataField.getEditTemplate();
-					final String template           = dataField.getTemplate();
-					final String valueSource        = dataField.getValue();
-					final String label              = dataField.getLabel();
-					final Boolean showLabelOverride = dataField.showLabel();
-					Object value                    = null;
+				} else {
 
-					// apply field-dependent CSS classes to the wrapper element
-					dataField.applyCssClasses(cssClasses);
+					// no slot => iterate over all fields or just one slot, or name
+					if (slot == null || slots.contains(slot) || slot.equals(dataField.getName())) {
 
-					// make field information available in context
-					innerCtx.setConstant("field", dataField.evaluate(innerCtx, sourceChannel));
+						final Set<String> cssClasses    = new LinkedHashSet<>();
+						final String editTemplate       = dataField.getEditTemplate();
+						final String template           = dataField.getTemplate();
+						final String valueSource        = dataField.getValue();
+						final String label              = dataField.getLabel();
+						final Boolean showLabelOverride = dataField.showLabel();
+						Object value                    = null;
 
-					// value present?
-					if (valueSource != null) {
+						// apply field-dependent CSS classes to the wrapper element
+						dataField.applyCssClasses(cssClasses);
 
-						value = innerCtx.getReferencedProperty(null, valueSource, null, 0, 0, 0);
+						// make field information available in context
+						innerCtx.setConstant("field", dataField.evaluate(innerCtx, sourceChannel));
 
-						// make iterables permanent
-						if (value instanceof Iterable) {
-							value = Iterables.toList((Iterable)value);
-						}
+						// value present?
+						if (valueSource != null) {
 
-						innerCtx.setConstant("value", value);
-					}
+							value = innerCtx.getReferencedProperty(null, valueSource, null, 0, 0, 0);
 
-					if (wrapper != null) {
-						wrapper.formatStartTag(buffer, Map.of(), cssClasses);
-					}
-
-					// render labels?
-					if (label != null) {
-
-						boolean doShow = showLabels != null && showLabels;
-
-						if (showLabelOverride != null) {
-							doShow = showLabelOverride;
-						}
-
-						if (doShow) {
-							buffer.append("<label>" + label + "</label>");
-						}
-					}
-
-					if (useEditTemplate && StringUtils.isEmpty(editTemplate)) {
-
-						logger.warn("{}: field {} from data source {} cannot be used with displayMode input because it doesn't specify a value for `editTemplate`.", getName(), field, dataAdapter.getName());
-						buffer.append("<span class=\"error\">No edit template.</span>");
-
-					} else {
-
-						final DOMNode templateNode = getTemplate(app, slot, useEditTemplate ? editTemplate : template);
-						if (templateNode != null) {
-
-							final DataAdapter previousDataAdapter  = innerCtx.getCurrentAdapter();
-							final Channel previousDataSource       = innerCtx.getCurrentDataSource();
-							final String previousReloadBehaviour   = innerCtx.getCurrentReloadBehaviour();
-
-							// we need to make the current data source available to the inner template
-							innerCtx.setCurrentAdapter(dataAdapter);
-							innerCtx.setCurrentDataSource(sourceChannel);
-							innerCtx.setCurrentReloadBehaviour(reloadBehaviour);
-
-							try {
-								templateNode.render(innerCtx, 0);
-
-							} finally {
-
-								innerCtx.setCurrentAdapter(previousDataAdapter);
-								innerCtx.setCurrentDataSource(previousDataSource);
-								innerCtx.setCurrentReloadBehaviour(previousReloadBehaviour);
+							// make iterables permanent
+							if (value instanceof Iterable) {
+								value = Iterables.toList((Iterable) value);
 							}
+
+							innerCtx.setConstant("value", value);
+						}
+
+						if (wrapper != null) {
+							wrapper.formatStartTag(buffer, Map.of(), cssClasses);
+						}
+
+						// render labels?
+						if (label != null) {
+
+							boolean doShow = showLabels != null && showLabels;
+
+							if (showLabelOverride != null) {
+								doShow = showLabelOverride;
+							}
+
+							if (doShow) {
+								buffer.append("<label>" + label + "</label>");
+							}
+						}
+
+						if (useEditTemplate && StringUtils.isEmpty(editTemplate)) {
+
+							logger.warn("{}: field {} from data source {} cannot be used with displayMode input because it doesn't specify a value for `editTemplate`.", getName(), field, dataAdapter.getName());
+							buffer.append("<span class=\"error\">No edit template.</span>");
 
 						} else {
 
-							if (value != null) {
-								buffer.append(value.toString());
+							final DOMNode templateNode = getTemplate(app, slot, useEditTemplate ? editTemplate : template);
+							if (templateNode != null) {
+
+								final DataAdapter previousDataAdapter = innerCtx.getCurrentAdapter();
+								final Channel previousDataSource = innerCtx.getCurrentDataSource();
+								final String previousReloadBehaviour = innerCtx.getCurrentReloadBehaviour();
+
+								// we need to make the current data source available to the inner template
+								innerCtx.setCurrentAdapter(dataAdapter);
+								innerCtx.setCurrentDataSource(sourceChannel);
+								innerCtx.setCurrentReloadBehaviour(reloadBehaviour);
+
+								try {
+									templateNode.render(innerCtx, 0);
+
+								} finally {
+
+									innerCtx.setCurrentAdapter(previousDataAdapter);
+									innerCtx.setCurrentDataSource(previousDataSource);
+									innerCtx.setCurrentReloadBehaviour(previousReloadBehaviour);
+								}
+
+							} else {
+
+								if (value != null) {
+									buffer.append(value.toString());
+								}
 							}
 						}
-					}
 
-					if (wrapper != null) {
-						wrapper.formatEndTag(buffer);
+						if (wrapper != null) {
+							wrapper.formatEndTag(buffer);
+						}
 					}
 				}
 			}

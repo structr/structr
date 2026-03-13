@@ -641,20 +641,23 @@ public class RenderContext extends ActionContext {
 
 	public String getChannelValue(final String name) {
 
-		switch (name) {
+		if (name != null) {
 
-			case "current":
-				if (detailsDataObject != null) {
+			switch (name) {
 
-					return detailsDataObject.getUuid();
-				}
-				break;
+				case "current":
+					if (detailsDataObject != null) {
 
-			default:
-				final HttpServletRequest request = getSecurityContext().getRequest();
-				if (request != null) {
-					return request.getParameter(name);
-				}
+						return detailsDataObject.getUuid();
+					}
+					break;
+
+				default:
+					final HttpServletRequest request = getSecurityContext().getRequest();
+					if (request != null) {
+						return request.getParameter(name);
+					}
+			}
 		}
 
 		return null;

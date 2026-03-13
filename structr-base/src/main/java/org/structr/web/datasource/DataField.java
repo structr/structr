@@ -71,7 +71,12 @@ public class DataField {
 	}
 
 	public String getPropertyName() {
-		return propertyName;
+
+		if (propertyName != null) {
+			return propertyName;
+		}
+
+		return name;
 	}
 
 	public Set<String> getSlots() {

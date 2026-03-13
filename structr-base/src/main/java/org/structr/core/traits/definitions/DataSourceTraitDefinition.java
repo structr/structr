@@ -128,16 +128,12 @@ public class DataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 
 					if ("subscriber".equals(role)) {
 
-						final String channelName = sourceChannel.getName();
-
+						final String channelName   = config.getSelectionChannel();
 						final String selectedValue = renderContext.getChannelValue(channelName);
+
 						if (selectedValue != null) {
 
-							final String dataKey = dataAdapter.getDataKey();
-							if (dataKey != null) {
-
-								return StructrApp.getInstance(renderContext.getSecurityContext()).getNodeById(selectedValue);
-							}
+							return StructrApp.getInstance(renderContext.getSecurityContext()).getNodeById(selectedValue);
 						}
 					}
 				}

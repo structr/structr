@@ -1919,7 +1919,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 			final String dataType = triggeredAction.getDataType();
 			if (StringUtils.isNotBlank(dataType)) {
-				out.append(" data-structr-data-type=\"").append(dataType).append("\"");
+				out.append(" data-structr-target=\"").append(dataType).append("\"");
 			}
 		}
 

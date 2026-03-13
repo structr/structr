@@ -19,13 +19,20 @@
 package org.structr.web.traits.definitions;
 
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.traits.wrappers.ComponentConfigurationTraitWrapper;
@@ -57,6 +64,28 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 
 		return Map.of(
 			ComponentConfiguration.class, (traits, node) -> new ComponentConfigurationTraitWrapper(traits, node)
+		);
+	}
+
+	@Override
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
+
+		return Map.of(
+			OnCreation.class,
+			new OnCreation() {
+				@Override
+				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+					final ComponentConfiguration componentConfiguration = graphObject.as(ComponentConfiguration.class);
+					final Traits traits                                 = componentConfiguration.getTraits();
+
+					// set default fieldSet
+					if (componentConfiguration.getFieldSet() == null) {
+
+						componentConfiguration.setProperty(traits.key(FIELD_SET_PROPERTY), "default");
+					}
+				}
+			}
 		);
 	}
 

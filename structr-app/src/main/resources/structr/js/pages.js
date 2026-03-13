@@ -561,9 +561,6 @@ let _Pages = {
 					}
 				]
 			});
-		} else {
-
-            console.log(entity)
         }
 
 		_Elements.contextMenu.appendContextMenuSeparator(elements);
@@ -747,7 +744,17 @@ let _Pages = {
 
 				default:
 
-					if (entity.isContent) {
+                    if (entity.componentConfiguration) {
+
+                        document.querySelector('a[href="#pages:html"]').closest('li').classList.add('hidden');
+                        document.querySelector('a[href="#pages:preview"]').closest('li').classList.add('hidden');
+                        document.querySelector('a[href="#pages:repeater"]').closest('li').classList.add('hidden');
+                        document.querySelector('a[href="#pages:events"]').closest('li').classList.add('hidden');
+                        document.querySelector('a[href="#pages:link"]').closest('li').classList.add('hidden');
+                        document.querySelector('a[href="#pages:active"]').closest('li').classList.add('hidden');
+                        document.querySelector('a[href="#pages:routing"]').closest('li').classList.add('hidden');
+
+                    } else if (entity.isContent) {
 						document.querySelector('a[href="#pages:html"]').closest('li').classList.add('hidden');
 						document.querySelector('a[href="#pages:editor"]').closest('li').classList.remove('hidden');
 						document.querySelector('a[href="#pages:events"]').closest('li').classList.add('hidden');
@@ -762,9 +769,9 @@ let _Pages = {
 					break;
 			}
 
-			if (!_Entities.isLinkableEntity(entity)) {
-				document.querySelector('a[href="#pages:link"]').closest('li').classList.add('hidden');
-			}
+            if (!_Entities.isLinkableEntity(entity)) {
+                document.querySelector('a[href="#pages:link"]').closest('li').classList.add('hidden');
+            }
 
 			let isEntityInSharedComponents = (entity.pageId === _Pages.shadowPage.id);
 			let isEntityInTrash = (!entity.isPage && !entity.pageId);

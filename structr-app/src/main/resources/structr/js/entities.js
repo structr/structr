@@ -2523,6 +2523,8 @@ let _Entities = {
 
 				input.val(oldVal);
 			}
+
+            _Pages.previews.updatePreviewSlideout();
 		});
 	},
 	templates: {
@@ -2779,18 +2781,18 @@ let _Entities = {
                 let selectionChannelInput = document.querySelector('#data-selection-channel-input');
 
                 let checkRoleConstraints = (result) => {
+                    selectionChannelInput.setCustomValidity('');
                     if (result && result.role &&  selectionChannelInput) {
-                        selectionChannelInput.required = (result.role === 'controller');
-                        selectionChannelInput.reportValidity();
+                        selectionChannelInput.required = (result.role !== 'none');
                     }
                 }
 
-                _Entities.generalTab.loadOptions('#data-source-channel-select', 'DataSource', config.sourceChannel);
-                _Entities.generalTab.loadOptions('#data-source-channel-select', 'ComponentConfiguration', config.sourceChannel, { role: 'controller', '!selectionChannel': null }, 'channel:', 'selectionChannel');
+                _Entities.generalTab.loadOptions('#data-source-channel-select', 'DataSource', config.dataSource, {}, 'node:', 'name', (node) => 'All ' + node.name + ' nodes');
+                _Entities.generalTab.loadOptions('#data-source-channel-select', 'ComponentConfiguration', config.dataSource, { '!selectionChannel': null }, 'channel:', 'selectionChannel', node => 'The "' + node.selectionChannel + '" channel');
 
-                _Entities.generalTab.selectButtons('#role-buttons', config, 'role', [{ label: 'None' }, { label: 'Controller', value: 'controller' }, { label: 'Subscriber', value: 'subscriber' }], false, checkRoleConstraints);
-                _Entities.generalTab.selectButtons('#display-mode-buttons', config, 'displayMode', [{ label: 'Input', value: 'input' }, { label: 'Output', value: 'output' }]);
-                _Entities.generalTab.selectButtons('#width-buttons', config, 'columns', [{ label: '1 column', value: 1 }, { label: '2 columns', value: 2 }, { label: '3 columns', value: 3 }, { label: '4 columns', value: 4 }, { label: '5 columns', value: 5 }, { label: '6 columns', value: 6 }], true);
+                _Entities.generalTab.selectButtons('#role-buttons', config, 'role', [{ label: 'None', value: 'none' }, { label: 'Controller', value: 'controller' }, { label: 'Subscriber', value: 'subscriber' }], false, checkRoleConstraints, () => _Pages.previews.updatePreviewSlideout());
+                _Entities.generalTab.selectButtons('#display-mode-buttons', config, 'displayMode', [{ label: 'Input', value: 'input' }, { label: 'Output', value: 'output' }], false, () => _Pages.previews.updatePreviewSlideout());
+                _Entities.generalTab.selectButtons('#width-buttons', config, 'columns', [{ label: '1 column', value: 1 }, { label: '2 columns', value: 2 }, { label: '3 columns', value: 3 }, { label: '4 columns', value: 4 }, { label: '5 columns', value: 5 }, { label: '6 columns', value: 6 }], true, () => _Pages.previews.updatePreviewSlideout());
 
                 _Entities.generalTab.populateInputFields(el, { entity: entity, config: config });
 				_Entities.generalTab.populateSelectFields(el, { entity: entity, config: config });
@@ -2802,15 +2804,18 @@ let _Entities = {
 				_Entities.generalTab.focusInput(el);
 			},
 		},
-        loadOptions: async (selector, type, currentValue, query, prefix = 'node:', label = 'name') => {
+        loadOptions: async (selector, type, currentValue, query, prefix = 'node:', property = 'name', labelFunction) => {
 
             let selectField = document.querySelector(selector);
             if (selectField) {
                 let options = await Command.queryPromise(type, 1000, 1, 'name', 'asc', query);
                 if (options) {
                     for (let option of options) {
-                        let text = option[label];
-                        let value = prefix + option[label];
+                        let text = option[property];
+                        if (labelFunction && typeof labelFunction === 'function') {
+                            text = labelFunction(option);
+                        }
+                        let value = prefix + option[property];
                         let selected = value === currentValue ? 'selected' : '';
                         selectField.insertAdjacentHTML('beforeend', `<option value="${value}" ${selected}>${text}</option>`);
                     }
@@ -2843,6 +2848,8 @@ let _Entities = {
                 e.target.classList.add('active');
 
                 Command.setProperty(entity.id, key, value, false, (result) => {
+                    console.log(typeof callback)
+
                     if (callback && typeof callback === 'function') {
                         callback(result);
                     }
@@ -3728,15 +3735,14 @@ let _Entities = {
 				</div>
 			`,
             componentOptions: (config) => `
+				  
 				<div id="div-options" class="${_Entities.generalTab.templates.containerClasses()}">
-				    ${_Entities.generalTab.templates.componentOptionsPartial(config)}
 				    ${_Entities.generalTab.templates.dataSourcePartial(config)}
+				    ${_Entities.generalTab.templates.fieldConfigPartial(config)}
 				</div>
 			`,
 
             componentOptionsPartial: (config) => `
-                
-                <h3>Component Configuration</h3>
                 
 				<div class="${_Entities.generalTab.templates.gridClasses()}">
                     
@@ -3772,25 +3778,18 @@ let _Entities = {
                             <label for="root">Is Component Root</label>
                         </div>
                     </div>
-                
-                    <div class="col-span-1 @xl:col-span-2">
-                        <label class="block mb-2" for="columns-select" data-comment="Controls the width of this component in grid views">Width</label>
-                        <div id="width-buttons" class="toggle-button-container"></div>
-                    </div>
                     
                 </div>
 			`,
 
             dataSourcePartial: (config) => `
 
-                <h3>Data Configuration</h3>
-            
 				<div class="${_Entities.generalTab.templates.gridClasses()}">
 
                     <div>
                         <label class="block mb-2" for="data-source-channel-select" data-comment="Source determines which objects are displayed in this component, and selection transforms the result.">Source & Selection</label>
                         <div class="data-source-channel-options flex">
-                            <select class="select2 rounded-none rounded-l" id="data-source-channel-select" name="sourceChannel" data-which="config">
+                            <select class="select2 rounded-none rounded-l" id="data-source-channel-select" name="dataSource" data-which="config">
                                 <option value="">None</option>
                             </select>
                             <span class="inline-flex items-center bg-gray px-2 w-4 justify-center select-none border-0 border-t border-b border-solid border-gray-input">.</span>
@@ -3854,6 +3853,20 @@ let _Entities = {
                             <label for="labels">Show Labels</label>
                         </div>
                     </div>
+                
+                    <div class="col-span-1 @xl:col-span-2">
+                        <label class="block mb-2" for="columns-select" data-comment="Controls the width of this component in grid views">Width</label>
+                        <div id="width-buttons" class="toggle-button-container"></div>
+                    </div>
+
+                </div>
+			`,
+
+            fieldConfigPartial: (config) => `
+
+				<div class="${_Entities.generalTab.templates.gridClasses()} mt-8">
+				
+    				<h3>Field Configuration</h3>
 
                 </div>
 			`,

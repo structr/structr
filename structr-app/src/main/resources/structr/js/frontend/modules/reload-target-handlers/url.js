@@ -44,15 +44,17 @@ export class Handler {
         // empty value? preserve request parameters
         if (reloadTarget.length === 0) {
 
-            let url = new URL(window.location.href);
-            for (const key in parameters) {
-                if (key === 'current') {
-                    url.pathname = url.pathname.split('/').toSpliced(2, 1, parameters[key]).join('/');
-                } else {
-                    url.searchParams.set(key, parameters[key]);
+            if (options.updateHistory) {
+                let url = new URL(window.location.href);
+                for (const key in parameters) {
+                    if (key === 'current') {
+                        url.pathname = url.pathname.split('/').toSpliced(2, 1, parameters[key]).join('/');
+                    } else {
+                        url.searchParams.set(key, parameters[key]);
+                    }
                 }
+                reloadTarget = url.toString();
             }
-            reloadTarget = url.toString();
 
         } else {
 
