@@ -23,13 +23,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.web.datasource.DataField;
 
-import java.util.List;
 import java.util.Map;
 
 public interface DataAdapter extends NodeInterface {
 
 	Map<String, DataField> getFields(final SecurityContext securityContext) throws FrameworkException;
-	Map<String, List<String>> getFieldSets(final SecurityContext securityContext) throws FrameworkException;
-	List<String> getFieldSet(final SecurityContext securityContext, String name) throws FrameworkException;
 	String getDataKey();
 }

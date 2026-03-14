@@ -50,7 +50,6 @@ public class DataAdapterTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String DOM_NODES_PROPERTY  = "domNodes";
 	public static final String MAPPING_PROPERTY    = "mapping";
-	public static final String FIELD_SETS_PROPERTY = "fieldSets";
 	public static final String DATA_KEY_PROPERTY   = "dataKey";
 
 	public DataAdapterTraitDefinition() {
@@ -80,10 +79,6 @@ public class DataAdapterTraitDefinition extends AbstractNodeTraitDefinition {
 					// set some sensible defaults
 					if (adapter.getDataKey() == null) {
 						adapter.setProperty(traits.key(DataAdapterTraitDefinition.DATA_KEY_PROPERTY), "item");
-					}
-
-					if (adapter.getFieldSets(securityContext) == null) {
-						adapter.setProperty(traits.key(DataAdapterTraitDefinition.FIELD_SETS_PROPERTY), "{ \"default\" : [ \"name\" ] }");
 					}
 
 					if (adapter.getFields(securityContext) == null) {
@@ -127,13 +122,11 @@ public class DataAdapterTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final Property<Iterable<NodeInterface>> domNodesProperty = new StartNodes(traitsInstance, DOM_NODES_PROPERTY, StructrTraits.COMPONENT_CONFIGURATION_HAS_DATA_ADAPTER).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<String> mappingProperty                   = new StringProperty(MAPPING_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
-		final Property<String> fieldSetsProperty                 = new StringProperty(FIELD_SETS_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<String> dataKeyProperty                   = new StringProperty(DATA_KEY_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 
 		return newSet(
 			domNodesProperty,
 			mappingProperty,
-			fieldSetsProperty,
 			dataKeyProperty
 		);
 	}
@@ -146,7 +139,6 @@ public class DataAdapterTraitDefinition extends AbstractNodeTraitDefinition {
 				GraphObjectTraitDefinition.ID_PROPERTY,
 				NodeInterfaceTraitDefinition.NAME_PROPERTY,
 				MAPPING_PROPERTY,
-				FIELD_SETS_PROPERTY,
 				DATA_KEY_PROPERTY
 			)
 		);

@@ -55,7 +55,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 		final AsyncBuffer buffer              = innerCtx.getBuffer();
 		final Boolean showLabels              = domNode.getShowLabelsFlagForComponent();
 		final String requestedFieldSet        = domNode.getFieldSetForComponent();
-		final List<String> fieldSet           = dataAdapter.getFieldSet(securityContext, requestedFieldSet);
+		final List<String> fieldSet           = splitAndTrim(requestedFieldSet, ",");
 		final String displayMode              = domNode.getDisplayModeForComponent(securityContext);
 		final String reloadBehaviour          = domNode.getReloadBehaviourForComponent();
 		final boolean useEditTemplate         = "input".equals(displayMode);
@@ -223,7 +223,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 		final TagWithCSSInfo wrapper          = getWrapperElement(templateWrapper);
 		final AsyncBuffer buffer              = innerCtx.getBuffer();
 		final String requestedFieldSet        = domNode.getFieldSetForComponent();
-		final List<String> fieldSet           = dataSource.getFieldSet(securityContext, requestedFieldSet);
+		final List<String> fieldSet           = splitAndTrim(requestedFieldSet, ",");
 		final DOMNode component               = domNode.getClosestComponent();
 		final ComponentConfiguration config   = component.getComponentConfiguration();
 		final Channel sourceChannel           = config.getDataSource();

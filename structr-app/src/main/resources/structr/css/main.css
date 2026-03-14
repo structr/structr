@@ -3069,7 +3069,7 @@ img#image-editor.orientation-8 {
 }
 
 /**
- * widget styles
+ * widget / component styles
  */
 .widget-props {
     background-color: transparent !important;
@@ -3169,6 +3169,18 @@ div.toggle-button-container button:last-child {
     border-top-right-radius: .25rem;
     border-bottom-right-radius: .25rem;
     border-right-width: 1px;
+}
+
+#sortable-list label {
+}
+
+#sortable-list label:hover {
+    background-color: var(--very-light-structr-green);
+}
+
+#sortable-list label:has(input:checked) {
+    font-weight: bold;
+    background-color: var(--very-light-structr-green-2);
 }
 
 /**

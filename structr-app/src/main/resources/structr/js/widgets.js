@@ -1110,20 +1110,20 @@ let _Widgets = {
 	},
 
     sortables: {
-        enableDragSort: (container) => {
+        enableDragSort: (container, callback) => {
             let dragged = null;
             const indicator = document.createElement('div');
-            indicator.style.cssText = 'height:2px;background:var(--structr-light-green);pointer-events:none;';
+            indicator.style.cssText = 'height:4px; background:var(--structr-light-green);pointer-events:none;';
 
             for (const child of container.children) {
                 const handle = document.createElement('span');
                 handle.textContent = '⠿';
-                handle.style.cssText = 'cursor: grab; flex-grow: 0; padding: 0 1rem;';
+                handle.style.cssText = 'cursor: grab; flex-grow: 0; margin-top: 2px;';
                 child.appendChild(handle);
                 child.setAttribute('draggable', 'true');
                 child.addEventListener('dragstart', (e) => {
                     dragged = child;
-                    setTimeout(() => child.style.opacity = '0.4', 0);
+                    setTimeout(() => child.style.opacity = '0.8', 0);
                 });
                 child.addEventListener('dragend', () => {
                     child.style.opacity = '';
@@ -1158,6 +1158,9 @@ let _Widgets = {
                 indicator.remove();
                 const before = getDropTarget(e.clientY);
                 before ? container.insertBefore(dragged, before) : container.appendChild(dragged);
+                if (callback && typeof callback === 'function') {
+                    callback();
+                }
             });
         }
     },

@@ -72,37 +72,6 @@ public class DataAdapterTraitWrapper extends AbstractNodeTraitWrapper implements
 	}
 
 	@Override
-	public Map<String, List<String>> getFieldSets(final SecurityContext securityContext) throws FrameworkException {
-
-		if (fieldSets == null) {
-
-			final String source = wrappedObject.getProperty(traits.key(DataAdapterTraitDefinition.FIELD_SETS_PROPERTY));
-			if (source != null) {
-
-				fieldSets = gson.fromJson(source, Map.class);
-			}
-		}
-
-		return fieldSets;
-	}
-
-	@Override
-	public List<String> getFieldSet(final SecurityContext securityContext, final String name) throws FrameworkException {
-
-		final Map<String, List<String>> fieldSets = getFieldSets(securityContext);
-		if (fieldSets != null) {
-
-			final List<String> fieldSet = fieldSets.get(name);
-			if (fieldSet != null) {
-
-				return fieldSet;
-			}
-		}
-
-		return List.of();
-	}
-
-	@Override
 	public String getDataKey() {
 		return wrappedObject.getProperty(traits.key(DataAdapterTraitDefinition.DATA_KEY_PROPERTY));
 	}

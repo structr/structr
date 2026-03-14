@@ -2749,7 +2749,6 @@ let _Entities = {
 
                 el.html(_Entities.generalTab.templates.componentOptions({ entity: entity, config: config }));
 
-                let fieldSetSelect = document.querySelector('#field-set-select');
                 let dataAdapterSelect = document.querySelector('#data-adapter-select');
                 if (dataAdapterSelect) {
 
@@ -2760,21 +2759,53 @@ let _Entities = {
                         }
                     }
 
-                    let loadFieldSets = async (id) => {
-                            let dataAdapter = await Command.getPromise(id, 'id,fieldSets');
-                            if (dataAdapter) { return JSON.parse(dataAdapter.fieldSets); }
+                    let loadFields = async (id) => {
+                            let dataAdapter = await Command.getPromise(id, 'id,mapping');
+                            if (dataAdapter) { return JSON.parse(dataAdapter.mapping); }
                     }
 
                     dataAdapterSelect.addEventListener('change', async (e) => {
 
-                        let fieldSets = await loadFieldSets(dataAdapterSelect.value);
-                        // make sure the existing value is also in the select box
-                        fieldSetSelect.innerHTML = '';
-                        for (let fieldSet in fieldSets) {
-                            let selected = fieldSet === config.fieldSet ? 'selected' : '';
-                            fieldSetSelect.insertAdjacentHTML('beforeend', `<option ${selected}>${fieldSet}</option>`);
+                        // field set editor
+                        let fields = await loadFields(e.target.value);
+
+                        let sortable = document.querySelector('#sortable-list');
+                        let fieldSetInput = document.querySelector('#field-set-input');
+                        let currentFieldSet = config.fieldSet.split(',').map(f => f.trim());
+
+                        for (let field in fields) {
+                            let checked = (currentFieldSet.includes(field) ? 'checked' : '');
+                            sortable.insertAdjacentHTML('beforeend', `
+                            <label class="py-2 px-2 shadow flex flex-row justify-between items-center flex-grow border rounded border-gray-ddd mb-1" draggable>
+                                <div>
+                                    <input type="checkbox" ${checked} data-key="${field}">
+                                    <span>${field}</span>
+                                </div>
+                            </label>
+                            `);
                         }
-                        fieldSetSelect.dispatchEvent(new Event('change'));
+
+                        let collectKeys = () => {
+                            let fields = [];
+                            sortable.querySelectorAll('input').forEach(input => {
+                                if (input.checked) {
+                                    let key = input.dataset.key;
+                                    fields.push(key);
+                                }
+                            });
+                            return fields.join(', ');
+                        }
+                        sortable.querySelectorAll('input').forEach((input) => {
+                            input.addEventListener('change', async (e) => {
+                                fieldSetInput.value = collectKeys();
+                                fieldSetInput.dispatchEvent(new Event('change'));
+                            });
+                        });
+
+                        _Widgets.sortables.enableDragSort(sortable, () => {
+                            fieldSetInput.value = collectKeys();
+                            fieldSetInput.dispatchEvent(new Event('change'));
+                        });
                     });
                 }
 
@@ -2798,8 +2829,6 @@ let _Entities = {
 				_Entities.generalTab.populateSelectFields(el, { entity: entity, config: config });
                 _Entities.generalTab.registerSimpleInputChangeHandlers(el, { entity: entity, config: config });
 				_Entities.generalTab.registerSimpleSelectChangeHandlers(el, { entity: entity, config: config });
-
-                // check constraints
 
 				_Entities.generalTab.focusInput(el);
 			},
@@ -3818,24 +3847,15 @@ let _Entities = {
                     </div>
 
                     <div>
-                        <label class="block mb-2" for="field-set-select" data-comment="The field set determines which properties are displayed in this component.">Field Set</label>
-                        <div class="field-set-options flex">
-                            <select class="select2" id="field-set-select" name="fieldSet" data-which="config">
-                                <option value="default">Default</option>
-                            </select>
-                            <button class="button btn ml-2 mr-0" title="Create a new field set for this data adapter."><svg width="16" height="16"><use href="#circle_plus"></use></svg></button>
-                        </div>
+                        <label class="block mb-2" for="display-mode-select" data-comment="Controls the display mode of this component">Display Mode</label>
+                        <div id="display-mode-buttons" class="toggle-button-container"></div>
                     </div>
-
+                    
                     <div>
                         <label class="block mb-2" for="reload-select" data-comment="Controls the reloading behaviour of this component">Reload Behavior</label>
                         <input type="text" id="reload-input" autocomplete="off" name="reload" data-which="config">
                     </div>
 
-                    <div>
-                        <label class="block mb-2" for="display-mode-select" data-comment="Controls the display mode of this component">Display Mode</label>
-                        <div id="display-mode-buttons" class="toggle-button-container"></div>
-                    </div>
 
                     <!-- save mode inline is not implemented yet
                     <div>
@@ -3845,14 +3865,6 @@ let _Entities = {
                         </select>
                     </div>
                     -->
-
-                    <div>
-                        <label class="block mb-4">Options</label>
-                        <div class="mb-2 flex items-center">
-                            <input type="checkbox" name="labels" id="labels" data-which="config">
-                            <label for="labels">Show Labels</label>
-                        </div>
-                    </div>
                 
                     <div class="col-span-1 @xl:col-span-2">
                         <label class="block mb-2" for="columns-select" data-comment="Controls the width of this component in grid views">Width</label>
@@ -3863,10 +3875,22 @@ let _Entities = {
 			`,
 
             fieldConfigPartial: (config) => `
+				
+    			<h3>Configure Fields</h3>
 
 				<div class="${_Entities.generalTab.templates.gridClasses()} mt-8">
-				
-    				<h3>Field Configuration</h3>
+
+                    <div>
+                        <input type="text" required class="hidden form-field" id="field-set-input" name="fieldSet" data-which="config" />
+                        <div class="flex flex-col" id="sortable-list"></div>
+                    </div>
+                    
+                    <div>
+                        <div class="mb-2 mt-2 flex items-center">
+                            <input type="checkbox" name="labels" id="labels" data-which="config">
+                            <label for="labels">Show Labels</label>
+                        </div>
+                    </div>
 
                 </div>
 			`,
@@ -3877,3 +3901,18 @@ let _Entities = {
 		}
 	}
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
