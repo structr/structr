@@ -57,7 +57,9 @@ public class ChoiceSetting extends StringSetting {
 
 		renderLabel(group);
 
-		final Tag select = group.block("select").attr(new Attr("name", getKey()));
+		final Tag settingInputContainer = group.block("div").css("flex items-center flex-grow");
+
+		final Tag select = settingInputContainer.block("select").attr(new Attr("name", getKey()));
 
 		for (final Map.Entry<String, String> entry : choices.entrySet()) {
 
@@ -69,6 +71,6 @@ public class ChoiceSetting extends StringSetting {
 			}
 		}
 
-		renderResetButton(group);
+		renderResetButton(settingInputContainer);
 	}
 }

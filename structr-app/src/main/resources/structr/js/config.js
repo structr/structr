@@ -42,7 +42,9 @@ let _Config = {
 
 		} else {
 
-			document.querySelector('#new-entry-button')?.addEventListener('click', _Config.createNewEntry);
+			document.querySelector('#new-entry-button')?.addEventListener('click', () => {
+				_Config.createNewEntry();
+			});
 
 			_Config.databaseConnections.init();
 
@@ -67,9 +69,10 @@ let _Config = {
 						invalidField.closest('.tab-content')?.classList.add('invalid');
 					}
 
-					let anyVisible    = invalidFields.some(f => f.offsetParent);
+					let anyVisible = invalidFields.some(f => f.offsetParent);
 
 					if (!anyVisible) {
+
 						let tabId = invalidFields[0].closest('.tab-content').id;
 						location.hash = '#' + tabId;
 
@@ -157,41 +160,68 @@ let _Config = {
 				});
 			}
 
-			_Config.cron.initExistingCronExpressionSettings();
+			_Config.cron.init();
 			_Search.init();
 		}
 	},
-	createNewEntry: () => {
+	createNewEntry: (suffix = '') => {
 
-		let currentTab = [...document.querySelectorAll('div.tab-content')].filter(tc => tc.style.display === 'block')[0];
-		if (currentTab) {
+		let name = window.prompt("Please enter a key for the new configuration entry.");
+		if (name && name.length) {
 
-			let name = window.prompt("Please enter a key for the new configuration entry.");
-			if (name && name.length) {
+			name = name.trim() + suffix;
 
-				name = name.trim();
+			if (!_Config.doesSettingAlreadyExist(name)) {
 
-				let existing = document.querySelector(`[name="${CSS.escape(name)}"]`);
-				if (existing) {
+				let targetTabId = (name.endsWith(_Config.cron.cronSuffix)) ? 'cron' : 'misc';
 
-					alert('A configuration setting with that key already exists.');
+				location.href = '#' + targetTabId;
 
-				} else {
+				let lastGroupInTargetTab = document.querySelector(`div.tab-content#${targetTabId} .config-group:last-of-type`);
 
-					let newEntry = _Helpers.createSingleDOMElementFromHTML(`
-						<div class="form-group">
-							<label class="font-bold basis-full sm:basis-auto sm:min-w-128">${name}</label>
+				let newEntry = _Helpers.createSingleDOMElementFromHTML(`
+					<div class="form-group">
+						<label class="font-bold basis-full sm:basis-auto sm:min-w-128">${name}</label>
+						<div class="flex items-center">
 							<input type="text" name="${name}">
-							<input type="hidden" name="${name}._settings_group" value="${$(currentTab).attr('id')}">
 						</div>
-					`);
+					</div>
+				`);
 
-					currentTab.appendChild(newEntry);
+				let input = newEntry.querySelector('input');
 
-					_Config.cron.initPotentialNewCronExpressionSetting(newEntry, name);
+				let resetButton = document.querySelector('svg.reset-key')?.cloneNode(true);
+				if (resetButton) {
+					delete resetButton.dataset.key;
+					resetButton.title = 'Remove custom entry';
+
+					input.insertAdjacentElement('afterend', resetButton);
+
+					resetButton.addEventListener('click', e => {
+						e.target.closest('.form-group').remove();
+					});
 				}
+
+				lastGroupInTargetTab.appendChild(newEntry);
+
+				window.setTimeout(() => {
+					input.focus();
+				}, 100);
+
+				_Config.cron.initPotentialNewCronExpressionSetting(newEntry, name);
 			}
 		}
+	},
+	doesSettingAlreadyExist: (name) => {
+
+		let existing = document.querySelector(`[name="${CSS.escape(name)}"]`);
+
+		if (existing) {
+
+			alert('A configuration setting with that key already exists.');
+		}
+
+		return !!existing;
 	},
 	cron: {
 		cronSuffix: '.cronExpression',
@@ -204,12 +234,31 @@ let _Config = {
 
 			return validationMessage;
 		},
+		init: () => {
+
+			let cronElement = document.querySelector('#cron');
+
+			let addNewButton = _Helpers.createSingleDOMElementFromHTML('<button class="active:border-green focus:border-gray-666 hover:bg-gray-100 mr-0 mt-6" type="button">Add Cron expression</button>');
+			addNewButton.addEventListener('click', () => {
+				_Config.createNewEntry(_Config.cron.cronSuffix);
+			});
+
+			cronElement?.insertAdjacentElement('beforeend', addNewButton);
+
+			_Config.cron.initExistingCronExpressionSettings();
+		},
 		initExistingCronExpressionSettings: () => {
 
 			let cronExpressionInputs = document.querySelectorAll(`input[name*="${_Config.cron.cronSuffix}"]`);
 
 			for (let input of cronExpressionInputs) {
-				_Config.cron.addFormValidationToInput(input);
+
+				let container = input.closest('.form-group');
+				container.querySelector('label').dataset['comment'] = _Config.cron.getCronInfoText();
+
+				_Helpers.activateCommentsInElement(container);
+
+				_Config.cron.addCronSpecificFunctionality(input);
 			}
 		},
 		initPotentialNewCronExpressionSetting: (container, name) => {
@@ -221,24 +270,57 @@ let _Config = {
 				_Helpers.activateCommentsInElement(container);
 
 				let input = container.querySelector(`input[name="${name}"]`);
-				_Config.cron.addFormValidationToInput(input);
+				_Config.cron.addCronSpecificFunctionality(input);
 
 				input.reportValidity();
 			}
 		},
-		addFormValidationToInput: (input) => {
+		addCronSpecificFunctionality: (input) => {
+
+			// re-arrange elements (to allow us to add the description element) by moving the current container to the empty space in the newParent
+			let newParent = _Helpers.createSingleDOMElementFromHTML(`
+				<div class="flex flex-col w-full">
+
+					<div class="mt-1 mb-2" data-cron-description></div>
+				</div>
+			`);
+
+			input.parentElement.parentElement.appendChild(newParent);
+			newParent.insertAdjacentElement('afterbegin', input.parentElement);
 
 			input.required = true;
 			input.pattern  = '([^ \\\\t]+[ \\\\t]){5}[^ \\\\t]+';
 
 			let validationMessage = _Config.cron.getValidationMessage();
 
-			input.addEventListener('invalid', () => {
-				input.setCustomValidity(validationMessage);
-			});
+			let showCronInfoText = (text) => {
+				newParent.querySelector('[data-cron-description]').textContent = text;
+			};
+
+			let describeCronExpression = () => {
+				try {
+					return window.cronstrue.toString(input.value);
+				} catch (e) {
+					return e;
+				}
+			};
+
+			let updateDescription = () => {
+
+				let basicValidity       = !input.validity.patternMismatch && !input.validity.valueMissing;
+				let hasUnsupportedChars = (input.value.replaceAll(/[\- 0-9,*/]/g, '').length > 0);
+
+				if (basicValidity && !hasUnsupportedChars) {
+					showCronInfoText(describeCronExpression());
+				} else {
+					showCronInfoText(validationMessage);
+				}
+			};
+
+			updateDescription();
 
 			input.addEventListener('input', () => {
-				input.setCustomValidity('');
+				updateDescription();
 			});
 		}
 	},
