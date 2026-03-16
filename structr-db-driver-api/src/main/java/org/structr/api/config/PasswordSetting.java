@@ -50,7 +50,9 @@ public class PasswordSetting extends Setting<String> {
 
 		renderLabel(group);
 
-		final Tag input    = group.empty("input").attr(new Attr("type", "text"), new Attr("name", getKey()));
+		final Tag settingInputContainer = group.block("div").css("flex items-center flex-grow");
+
+		final Tag input    = settingInputContainer.empty("input").attr(new Attr("type", "text"), new Attr("name", getKey()));
 		final String value = getValue();
 
 		// display value if non-empty
@@ -58,7 +60,7 @@ public class PasswordSetting extends Setting<String> {
 			input.attr(new Attr("value", value));
 		}
 
-		renderResetButton(group);
+		renderResetButton(settingInputContainer);
 	}
 
 	@Override

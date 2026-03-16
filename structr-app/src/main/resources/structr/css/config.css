@@ -25,6 +25,22 @@
 }
 
 @media (max-width: 639px) {
+
+	div#main {
+		display: flex;
+		flex-direction: column;
+	}
+
+	div#configTabs {
+		flex-direction: column;
+		margin-right: 0;
+	}
+
+	#configTabs .tabs-menu li a {
+		padding: 0 1.5rem;
+		width: initial;
+	}
+
 	.config-group, .form-group, .form-group-label {
 		display: block;
 	}
@@ -43,27 +59,14 @@
 	.basis-full {
 		flex-basis: 100%;
 	}
-	.form-group input[type=text], .form-group textarea {
+	.form-group input[type=text],
+	.form-group textarea,
+	.form-group select {
 		flex-grow: 1;
 	}
 
 	li.no-search-match {
 		display: none;
-	}
-
-	div#main {
-		display: flex;
-		flex-direction: column;
-	}
-
-	div#configTabs {
-		flex-direction: column;
-		margin-right: 0;
-	}
-
-	#configTabs .tabs-menu li a {
-		padding: 0 1.5rem;
-		width: initial;
 	}
 }
 
