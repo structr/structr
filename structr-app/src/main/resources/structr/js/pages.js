@@ -842,7 +842,9 @@ let _Pages = {
 				so, if no urlHash is present, we select a tab from the defaults
 			*/
 
-			if (obj.isContent) {
+            if (obj.componentConfiguration) {
+                urlHash = '#pages:general';
+            } else if (obj.isContent) {
 				urlHash = '#pages:editor';
 			} else if (obj.isDOMNode) {
 				urlHash = '#pages:html';

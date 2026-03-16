@@ -56,8 +56,6 @@ public class RenderEachFunction extends UiCommunityFunction {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		assertArrayHasMinLengthAndTypes(sources, 2, DataAdapter.class, String.class);
-
 		if (!ctx.isRenderContext()) {
 
 			return null;
@@ -65,9 +63,8 @@ public class RenderEachFunction extends UiCommunityFunction {
 
 		final RenderFieldsFunction func       = new RenderFieldsFunction();
 		final RenderContext renderContext     = (RenderContext) ctx;
-		final DataAdapter dataAdapter         = (DataAdapter) sources[0];
-		final List<String> wrapperElements    = splitAndTrim(getStringOrNull(sources, 1), " ");
-		final String slot                     = getStringOrNull(sources, 2);
+		final List<String> wrapperElements    = splitAndTrim(getStringOrNull(sources, 0), " ");
+		final String slot                     = getStringOrNull(sources, 1);
 		final TagWithCSSInfo outerWrapper     = getWrapperElement(getOrNull(wrapperElements, 0));
 		final String innerWrapper             = getOrNull(wrapperElements, 1);
 
@@ -76,6 +73,7 @@ public class RenderEachFunction extends UiCommunityFunction {
 			final DOMNode domNode               = n.as(DOMNode.class);
 			final DOMNode component             = domNode.getClosestComponent();
 			final ComponentConfiguration config = component.getComponentConfiguration();
+			final DataAdapter dataAdapter       = config.getDataAdapter();
 			final Channel sourceChannel         = config.getDataSource();
 			final String dataKey                = dataAdapter.getDataKey();
 			final GraphObject previousValue     = renderContext.getDataNode(dataKey);
@@ -167,28 +165,28 @@ public class RenderEachFunction extends UiCommunityFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${renderEach(dataSource, tag)} or ${renderEach(dataSource, tag, slot)}."),
-			Usage.javaScript("Usage: ${{ $.renderEach(datasource, tag)}} or ${{ $.renderEach(dataSource, tag, slot)}}.")
+			Usage.structrScript("Usage: ${renderEach(tag)} or ${renderEach(tag, slot)}."),
+			Usage.javaScript("Usage: ${{ $.renderEach(tag)}} or ${{ $.renderEach(tag, slot)}}.")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Renders the filtered contents of the given datasource according to the datasource configuration.";
+		return "Renders the filtered contents of a component's enclosing data source according to the data adapter configuration.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "This function iterates over the paginated and filtered elements from the given data source, evaluates the `value` expression(s) and renders the result, wrapped in the given tag. If the `slot` argument is present, only the value for the given slot is rendered. If no slot is given, this function renders all fields for all values, wrapped in the HTML element given in the `tag` argument.";
+		return "This function iterates over the paginated and filtered elements from the component's data source, evaluates the `value` expression(s) and renders the result, wrapped in the given tag. If the `slot` argument is present, only the value for the given slot is rendered. If no slot is given, this function renders all fields for all values, wrapped in the HTML element given in the `tag` argument.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-			Example.structrScript("${renderEach(currentDataSource, 'li', 'label')}", "Render list items"),
-			Example.structrScript("${renderEach(currentDataSource, 'th td')}", "Render table rows and cells"),
-			Example.javaScript("${{ $.renderEach(currentDataSource, 'li', 'label') }}", "Render list items"),
-			Example.javaScript("${{ $.renderEach(currentDataSource, 'th td') }}", "Render table rows and cells")
+			Example.structrScript("${renderEach('li', 'label')}", "Render list items"),
+			Example.structrScript("${renderEach('th td')}", "Render table rows and cells"),
+			Example.javaScript("${{ $.renderEach('li', 'label') }}", "Render list items"),
+			Example.javaScript("${{ $.renderEach('th td') }}", "Render table rows and cells")
 		);
 	}
 
@@ -196,7 +194,6 @@ public class RenderEachFunction extends UiCommunityFunction {
 	public List<Parameter> getParameters() {
 
 		return List.of(
-			Parameter.mandatory("dataSource", "data source to render"),
 			Parameter.optional("tag", "tag to wrap the content in"),
 			Parameter.optional("slot", "slot to fetch content from")
 		);
@@ -207,8 +204,7 @@ public class RenderEachFunction extends UiCommunityFunction {
 
 		return List.of(
 			"Works only during page rendering in Template nodes.",
-			"This function implements the core logic of data-driven components.",
-			"The data source specification controls the rendering of data-driven components."
+			"This function implements the core logic of data-driven components."
 		);
 	}
 

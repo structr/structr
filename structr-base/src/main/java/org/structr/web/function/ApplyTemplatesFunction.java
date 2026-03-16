@@ -26,14 +26,23 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.datasources.Channel;
 import org.structr.core.entity.DataAdapter;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.DataField;
 import org.structr.web.datasource.TagWithCSSInfo;
 import org.structr.web.entity.ComponentConfiguration;
+import org.structr.web.entity.Widget;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
+import org.structr.web.traits.definitions.WidgetTraitDefinition;
+import org.structr.websocket.command.AppendWidgetCommand;
+import org.structr.websocket.command.CreateComponentCommand;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -65,8 +74,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 		final Channel sourceChannel           = config.getDataSource();
 		String selectedValue                  = null;
 
-		// we can only be a subscriber if the fields are not displayed in a loop
-		// something about dimensions is also true here...
+		// we can only be a subscriber if we are not called from renderEach(), and maybe the component can use a dimensions property to filter data sources?
 		if (!inLoop && sourceChannel != null) {
 
 			final String role = domNode.getRoleForComponent();
@@ -278,19 +286,42 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 			return fallback;
 		}
 
+		// no template found => try to find a render template widget and instantiate it
+		// instantiate as superuser
+		final SecurityContext superAdminContext = SecurityContext.getSuperUserInstance();
+		final Traits widgetTraits               = Traits.of(StructrTraits.WIDGET);
+		final NodeInterface widgetNode              = StructrApp.getInstance(superAdminContext).nodeQuery(StructrTraits.WIDGET)
+			.key(widgetTraits.key(WidgetTraitDefinition.IS_RENDER_TEMPLATE_PROPERTY), true)
+			.key(widgetTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), templateName)
+			.getFirst();
+
+		if (widgetNode != null) {
+
+			final Page shadowPage = CreateComponentCommand.getOrCreateHiddenDocument();
+			final Widget widget    = widgetNode.as(Widget.class);
+
+			// try to expand widget
+			Widget.expandWidget(superAdminContext, shadowPage, null, "http://localhost", Map.of("source", widget.getSource()), false);
+
+			// try again
+			final DOMNode expanded = getNodeForInclude(app, templateName);
+			if (expanded != null) {
+
+				return expanded;
+			}
+		}
+
 		return null;
 	}
 
 	private void renderTemplate(final App app, final RenderContext ctx, final String name, final String fallbackHtml) throws FrameworkException {
 
-		final DOMNode template = getNodeForInclude(app, name);
+		DOMNode template = getTemplate(app, null, name);
 		if (template != null) {
 
 			template.render(ctx, 0);
-
-		} else {
-
-			ctx.getBuffer().append(fallbackHtml);
 		}
+
+		ctx.getBuffer().append(fallbackHtml);
 	}
 }

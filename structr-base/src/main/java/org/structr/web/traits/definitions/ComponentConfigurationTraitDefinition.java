@@ -18,6 +18,7 @@
  */
 package org.structr.web.traits.definitions;
 
+import org.apache.tika.utils.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -79,10 +80,10 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 					final ComponentConfiguration componentConfiguration = graphObject.as(ComponentConfiguration.class);
 					final Traits traits                                 = componentConfiguration.getTraits();
 
-					// set default fieldSet
-					if (componentConfiguration.getFieldSet() == null) {
+					// default field is "name"
+					if (StringUtils.isEmpty(componentConfiguration.getFieldSet())) {
 
-						componentConfiguration.setProperty(traits.key(FIELD_SET_PROPERTY), "default");
+						componentConfiguration.setProperty(traits.key(FIELD_SET_PROPERTY), "name");
 					}
 				}
 			}

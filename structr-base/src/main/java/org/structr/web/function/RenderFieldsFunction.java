@@ -21,6 +21,7 @@ package org.structr.web.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.datasources.Channel;
 import org.structr.core.entity.DataAdapter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
@@ -29,6 +30,7 @@ import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
+import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.entity.dom.DOMNode;
 
 import java.util.List;
@@ -45,7 +47,7 @@ public class RenderFieldsFunction extends ApplyTemplatesFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("dataSource, tag [, slot]");
+		return Signature.forAllScriptingLanguages("tag [, slot]");
 	}
 
 	@Override
@@ -53,25 +55,23 @@ public class RenderFieldsFunction extends ApplyTemplatesFunction {
 
 		try {
 
-			assertArrayHasMinLengthAndTypes(sources, 1, DataAdapter.class);
-
 			if (!ctx.isRenderContext()) {
 
 				return null;
 			}
 
-			final String tag  = getStringOrNull(sources, 1);
-			final String slot = getStringOrNull(sources, 2);
+			final String tag  = getStringOrNull(sources, 0);
+			final String slot = getStringOrNull(sources, 1);
 
 			// Are we are in a DOMNode?
 			if (caller instanceof NodeInterface n && n.is(StructrTraits.DOM_NODE)) {
 
-				final DOMNode domNode = n.as(DOMNode.class);
+				final DOMNode domNode               = n.as(DOMNode.class);
+				final DOMNode component             = domNode.getClosestComponent();
+				final ComponentConfiguration config = component.getComponentConfiguration();
+				final DataAdapter dataAdapter       = config.getDataAdapter();
 
-				if (sources[0] instanceof DataAdapter dataAdapter) {
-
-					applyTemplates(ctx, dataAdapter, domNode, tag, slot, false);
-				}
+				applyTemplates(ctx, dataAdapter, domNode, tag, slot, false);
 
 			} else {
 
@@ -95,14 +95,14 @@ public class RenderFieldsFunction extends ApplyTemplatesFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${renderFields(dataSource, tag, slot)}. Example: ${renderFields(currentDataSource, 'th'))}"),
-			Usage.javaScript("Usage: ${{ $.renderFields(dataSource, tag, slot)}}. Example: ${{ $.renderFields(currentDataSource, 'th')}}")
+			Usage.structrScript("Usage: ${renderFields(tag, slot)}. Example: ${renderFields('th'))}"),
+			Usage.javaScript("Usage: ${{ $.renderFields(tag, slot)}}. Example: ${{ $.renderFields('th')}}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Renders values for one or all of the fields *of one element* from the given data source, wrapped in the given tag.";
+		return "Renders values for one or all of the fields *of one element* from the enclosing component's data source, wrapped in the given tag.";
 	}
 
 	@Override
@@ -114,7 +114,7 @@ public class RenderFieldsFunction extends ApplyTemplatesFunction {
 	public List<Example> getExamples() {
 
 		return List.of(
-			Example.structrScript("${renderFields(currentDataSource, 'li', 'label)}", "Render the value of the `label` slot of the current element")
+			Example.structrScript("${renderFields('li', 'label)}", "Render the value of the `label` slot of the current element")
 		);
 	}
 
@@ -123,7 +123,7 @@ public class RenderFieldsFunction extends ApplyTemplatesFunction {
 
 		return List.of(
 			"Works only during page rendering in Template nodes.",
-			"This function can only be used inside an element that iterates over the values of a data source."
+			"This function can only be used inside a component that iterates over the values of a data source."
 		);
 	}
 

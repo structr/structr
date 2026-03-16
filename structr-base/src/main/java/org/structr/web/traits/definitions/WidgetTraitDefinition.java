@@ -40,24 +40,24 @@ import java.util.Set;
  */
 public class WidgetTraitDefinition extends AbstractNodeTraitDefinition {
 
-	public static final String DESCRIPTION_PROPERTY       = "description";
-	public static final String SHORT_DESCRIPTION_PROPERTY = "shortDescription";
-	public static final String SOURCE_PROPERTY            = "source";
-	public static final String CONFIGURATION_PROPERTY     = "configuration";
-	public static final String SVG_ICON_PATH_PROPERTY     = "svgIconPath";
-	public static final String THUMBNAIL_PATH_PROPERTY    = "thumbnailPath";
-	public static final String TREE_PATH_PROPERTY         = "treePath";
-	public static final String IS_WIDGET_PROPERTY         = "isWidget";
-	public static final String SELECTORS_PROPERTY         = "selectors";
-	public static final String IS_PAGE_TEMPLATE_PROPERTY  = "isPageTemplate";
-	public static final String IS_EXCLUSIVE_PROPERTY      = "isExclusiveInParent";
-	public static final String COMPONENT_TYPE_PROPERTY    = "componentType";
-	public static final String DIMENSIONS_PROPERTY        = "dimensions";
+	public static final String DESCRIPTION_PROPERTY        = "description";
+	public static final String SHORT_DESCRIPTION_PROPERTY  = "shortDescription";
+	public static final String SOURCE_PROPERTY             = "source";
+	public static final String CONFIGURATION_PROPERTY      = "configuration";
+	public static final String SVG_ICON_PATH_PROPERTY      = "svgIconPath";
+	public static final String THUMBNAIL_PATH_PROPERTY     = "thumbnailPath";
+	public static final String TREE_PATH_PROPERTY          = "treePath";
+	public static final String IS_WIDGET_PROPERTY          = "isWidget";
+	public static final String SELECTORS_PROPERTY          = "selectors";
+	public static final String IS_PAGE_TEMPLATE_PROPERTY   = "isPageTemplate";
+	public static final String IS_RENDER_TEMPLATE_PROPERTY = "isRenderTemplate";
+	public static final String IS_EXCLUSIVE_PROPERTY       = "isExclusiveInParent";
+	public static final String COMPONENT_TYPE_PROPERTY     = "componentType";
+	public static final String DIMENSIONS_PROPERTY         = "dimensions";
 
 	public WidgetTraitDefinition() {
 		super(StructrTraits.WIDGET);
 	}
-
 
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
@@ -85,19 +85,20 @@ public class WidgetTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<String> sourceProperty           = new StringProperty(SOURCE_PROPERTY).description("HTML source code of the Widget. Can include Structr expressions and template variables in square brackets like [variableName].");
-		final Property<String> descriptionProperty      = new StringProperty(DESCRIPTION_PROPERTY).description("Explanatory text (long description) displayed when inserting the Widget. Supports HTML formatting. Shown in the dialog when the Widget is used as a page template.");
-		final Property<String> shortDescriptionProperty = new StringProperty(SHORT_DESCRIPTION_PROPERTY).description("Short text displayed when selecting the widget. Shown in the context menu.");
-		final Property<String> configurationProperty    = new StringProperty(CONFIGURATION_PROPERTY).description("JSON object defining configurable template variables. Keys match square bracket expressions in the source, values define input labels and types for the insertion dialog.");
-		final Property<String> svgIconPathProperty      = new StringProperty(SVG_ICON_PATH_PROPERTY).description("Path to an SVG icon displayed in the Widgets flyout, can be an absolute URL.");
-		final Property<String> thumbnailPathProperty    = new StringProperty(THUMBNAIL_PATH_PROPERTY).description("Path to a thumbnail image displayed in the Widgets flyout, can be an absolute URL.");
-		final Property<String> treePathProperty         = new StringProperty(TREE_PATH_PROPERTY).description("Slash-separated path for organizing Widgets into categories. Must begin with a slash, for example \"/Forms/Input Elements\".");
-		final Property<Boolean> isWidgetProperty        = new ConstantBooleanProperty(IS_WIDGET_PROPERTY, true);
-		final Property<String[]> selectorsProperty      = new ArrayProperty(SELECTORS_PROPERTY, String.class).description("CSS selectors that control where this Widget appears as a suggestion in the context menu. For example \"table\" or \"div.container\".");
-		final Property<Boolean> isPageTemplateProperty  = new BooleanProperty(IS_PAGE_TEMPLATE_PROPERTY).description("When enabled, this Widget appears in the Create Page dialog as a page template option.");
-		final Property<Boolean> isExclusiveProperty     = new BooleanProperty(IS_EXCLUSIVE_PROPERTY);
-		final Property<String> componentTypeProperty    = new StringProperty(COMPONENT_TYPE_PROPERTY);
-		final Property<Integer> dimensionsProperty      = new IntProperty(DIMENSIONS_PROPERTY);
+		final Property<String> sourceProperty            = new StringProperty(SOURCE_PROPERTY).description("HTML source code of the Widget. Can include Structr expressions and template variables in square brackets like [variableName].");
+		final Property<String> descriptionProperty       = new StringProperty(DESCRIPTION_PROPERTY).description("Explanatory text (long description) displayed when inserting the Widget. Supports HTML formatting. Shown in the dialog when the Widget is used as a page template.");
+		final Property<String> shortDescriptionProperty  = new StringProperty(SHORT_DESCRIPTION_PROPERTY).description("Short text displayed when selecting the widget. Shown in the context menu.");
+		final Property<String> configurationProperty     = new StringProperty(CONFIGURATION_PROPERTY).description("JSON object defining configurable template variables. Keys match square bracket expressions in the source, values define input labels and types for the insertion dialog.");
+		final Property<String> svgIconPathProperty       = new StringProperty(SVG_ICON_PATH_PROPERTY).description("Path to an SVG icon displayed in the Widgets flyout, can be an absolute URL.");
+		final Property<String> thumbnailPathProperty     = new StringProperty(THUMBNAIL_PATH_PROPERTY).description("Path to a thumbnail image displayed in the Widgets flyout, can be an absolute URL.");
+		final Property<String> treePathProperty          = new StringProperty(TREE_PATH_PROPERTY).description("Slash-separated path for organizing Widgets into categories. Must begin with a slash, for example \"/Forms/Input Elements\".");
+		final Property<Boolean> isWidgetProperty         = new ConstantBooleanProperty(IS_WIDGET_PROPERTY, true);
+		final Property<String[]> selectorsProperty       = new ArrayProperty(SELECTORS_PROPERTY, String.class).description("CSS selectors that control where this Widget appears as a suggestion in the context menu. For example \"table\" or \"div.container\".");
+		final Property<Boolean> isPageTemplateProperty   = new BooleanProperty(IS_PAGE_TEMPLATE_PROPERTY).description("When enabled, this Widget appears in the Create Page dialog as a page template option.");
+		final Property<Boolean> isExclusiveProperty      = new BooleanProperty(IS_EXCLUSIVE_PROPERTY);
+		final Property<Boolean> isRenderTemplateProperty = new BooleanProperty(IS_RENDER_TEMPLATE_PROPERTY).description("When enabled, this Widget can be used as a render template in data-driven components.");
+		final Property<String> componentTypeProperty     = new StringProperty(COMPONENT_TYPE_PROPERTY);
+		final Property<Integer> dimensionsProperty       = new IntProperty(DIMENSIONS_PROPERTY);
 
 		return Set.of(
 			sourceProperty,
@@ -111,6 +112,7 @@ public class WidgetTraitDefinition extends AbstractNodeTraitDefinition {
 			selectorsProperty,
 			isPageTemplateProperty,
 			isExclusiveProperty,
+			isRenderTemplateProperty,
 			componentTypeProperty,
 			dimensionsProperty
 		);
@@ -124,21 +126,21 @@ public class WidgetTraitDefinition extends AbstractNodeTraitDefinition {
 			PropertyView.Public,
 			newSet(
 				SOURCE_PROPERTY, DESCRIPTION_PROPERTY, SHORT_DESCRIPTION_PROPERTY, CONFIGURATION_PROPERTY, SVG_ICON_PATH_PROPERTY, THUMBNAIL_PATH_PROPERTY,
-				TREE_PATH_PROPERTY, IS_WIDGET_PROPERTY, SELECTORS_PROPERTY, IS_PAGE_TEMPLATE_PROPERTY, IS_EXCLUSIVE_PROPERTY, COMPONENT_TYPE_PROPERTY,
-				DIMENSIONS_PROPERTY
+				TREE_PATH_PROPERTY, IS_WIDGET_PROPERTY, SELECTORS_PROPERTY, IS_PAGE_TEMPLATE_PROPERTY, IS_EXCLUSIVE_PROPERTY, IS_RENDER_TEMPLATE_PROPERTY,
+				COMPONENT_TYPE_PROPERTY, DIMENSIONS_PROPERTY
 			),
 
 			PropertyView.Ui,
 			newSet(
 				SOURCE_PROPERTY, DESCRIPTION_PROPERTY, SHORT_DESCRIPTION_PROPERTY, CONFIGURATION_PROPERTY, SVG_ICON_PATH_PROPERTY, THUMBNAIL_PATH_PROPERTY,
-				TREE_PATH_PROPERTY, IS_WIDGET_PROPERTY, SELECTORS_PROPERTY, IS_PAGE_TEMPLATE_PROPERTY, IS_EXCLUSIVE_PROPERTY, COMPONENT_TYPE_PROPERTY,
-				DIMENSIONS_PROPERTY
+				TREE_PATH_PROPERTY, IS_WIDGET_PROPERTY, SELECTORS_PROPERTY, IS_PAGE_TEMPLATE_PROPERTY, IS_EXCLUSIVE_PROPERTY, IS_RENDER_TEMPLATE_PROPERTY,
+				COMPONENT_TYPE_PROPERTY, DIMENSIONS_PROPERTY
 			),
 
 			"editWidget",
 			newSet(
-				SELECTORS_PROPERTY, IS_PAGE_TEMPLATE_PROPERTY, IS_EXCLUSIVE_PROPERTY, SHORT_DESCRIPTION_PROPERTY, COMPONENT_TYPE_PROPERTY,
-				DIMENSIONS_PROPERTY
+				SELECTORS_PROPERTY, IS_PAGE_TEMPLATE_PROPERTY, IS_RENDER_TEMPLATE_PROPERTY, IS_EXCLUSIVE_PROPERTY, SHORT_DESCRIPTION_PROPERTY,
+				COMPONENT_TYPE_PROPERTY, DIMENSIONS_PROPERTY
 			)
 		);
 	}

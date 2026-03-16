@@ -37,15 +37,10 @@ public class DataAdapterTraitWrapper extends AbstractNodeTraitWrapper implements
 
 	private final Gson gson = new GsonBuilder().create();
 	private Map<String, DataField> fields = null;
-	private Map<String, List<String>> fieldSets = null;
 	private DataSource dataSource = null;
 
 	public DataAdapterTraitWrapper(final Traits traits, final NodeInterface node) {
 		super(traits, node);
-	}
-
-	public void initialize(final DataSource dataSource) {
-		this.dataSource = dataSource;
 	}
 
 	@Override

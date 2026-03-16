@@ -29,6 +29,7 @@ import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
+import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.entity.dom.DOMNode;
 
 import java.util.List;
@@ -45,7 +46,7 @@ public class RenderLabelsFunction extends ApplyTemplatesFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("dataSource, tag [, slot]");
+		return Signature.forAllScriptingLanguages("tag [, slot]");
 	}
 
 	@Override
@@ -53,25 +54,23 @@ public class RenderLabelsFunction extends ApplyTemplatesFunction {
 
 		try {
 
-			assertArrayHasMinLengthAndTypes(sources, 1, DataAdapter.class);
-
 			if (!ctx.isRenderContext()) {
 
 				return null;
 			}
 
-			final String templateWrapper = getStringOrNull(sources, 1);
-			final String slot            = getStringOrNull(sources, 2);
+			final String templateWrapper = getStringOrNull(sources, 0);
+			final String slot            = getStringOrNull(sources, 1);
 
 			// Are we are in a DOMNode?
 			if (caller instanceof NodeInterface n && n.is(StructrTraits.DOM_NODE)) {
 
-				final DOMNode domNode = n.as(DOMNode.class);
+				final DOMNode domNode               = n.as(DOMNode.class);
+				final DOMNode component             = domNode.getClosestComponent();
+				final ComponentConfiguration config = component.getComponentConfiguration();
+				final DataAdapter dataAdapter       = config.getDataAdapter();
 
-				if (sources[0] instanceof DataAdapter dataSource) {
-
-					applyLabels(ctx, dataSource, domNode, templateWrapper, slot);
-				}
+				applyLabels(ctx, dataAdapter, domNode, templateWrapper, slot);
 
 			} else {
 
@@ -95,14 +94,14 @@ public class RenderLabelsFunction extends ApplyTemplatesFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${renderLabels(dataSource, tag, slot)}. Example: ${renderLabels(currentDataSource, 'li', 'label')}"),
-			Usage.javaScript("Usage: ${{ $.renderLabels(dataSource, tag, slot)}}. Example: ${{ $.renderLabels(currentDataSource, 'li', 'label')}}")
+			Usage.structrScript("Usage: ${renderLabels(tag, slot)}. Example: ${renderLabels('li', 'label')}"),
+			Usage.javaScript("Usage: ${{ $.renderLabels(tag, slot)}}. Example: ${{ $.renderLabels('li', 'label')}}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Renders labels for one or all of the fields *of one element* from the given data source, wrapped in the given tag.";
+		return "Renders labels for one or all of the fields *of one element* from the enclosing component's data source, wrapped in the given tag.";
 	}
 
 	@Override
@@ -114,8 +113,8 @@ public class RenderLabelsFunction extends ApplyTemplatesFunction {
 	public List<Example> getExamples() {
 
 		return List.of(
-			Example.structrScript("${renderLabels(currentDataSource, 'li', 'label')}", "Render the label of the `label` field"),
-			Example.structrScript("${renderLabels(currentDataSource, 'th')}", "Render the labels of all fields of the current data source, wrapped in a th element")
+			Example.structrScript("${renderLabels('li', 'label')}", "Render the label of the `label` field"),
+			Example.structrScript("${renderLabels('th')}", "Render the labels of all fields of the current data source, wrapped in a th element")
 		);
 	}
 
