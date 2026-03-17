@@ -32,6 +32,19 @@ let _Config = {
 	resize: () => {},
 	init: () => {
 
+		document.body.addEventListener('keyup', async (event) => {
+
+			let keyCode = event.keyCode;
+			let code    = event.code;
+
+			if (code === 'Escape' || code === 'Esc' || keyCode === 27) {
+
+				await _Dialogs.custom.checkSaveOrCloseOnEscapeKeyPressed();
+			}
+
+			return false;
+		});
+
 		_Icons.preloadSVGIcons();
 
 		window.addEventListener('resize', _Config.resize);
@@ -164,64 +177,70 @@ let _Config = {
 			_Search.init();
 		}
 	},
-	createNewEntry: (suffix = '') => {
+	createNewEntry: (text = 'Enter a key for the new configuration entry', suffix = '') => {
 
-		let name = window.prompt("Please enter a key for the new configuration entry.");
-		if (name && name.length) {
+		_Dialogs.getArbitraryInputFromUser.showPromise(text, async (userInput) => {
 
-			name = name.trim() + suffix;
+			let newKey = userInput.trim() + suffix;
 
-			if (!_Config.doesSettingAlreadyExist(name)) {
+			let validationResult = {
+				allow: true,
+				value: newKey
+			};
 
-				let targetTabId = (name.endsWith(_Config.cron.cronSuffix)) ? 'cron' : 'misc';
+			let existing = document.querySelector(`[name="${CSS.escape(newKey)}"]`);
 
-				location.href = '#' + targetTabId;
+			if (existing) {
 
-				let lastGroupInTargetTab = document.querySelector(`div.tab-content#${targetTabId} .config-group:last-of-type`);
-
-				let newEntry = _Helpers.createSingleDOMElementFromHTML(`
-					<div class="form-group">
-						<label class="font-bold basis-full sm:basis-auto sm:min-w-128">${name}</label>
-						<div class="flex items-center">
-							<input type="text" name="${name}">
-						</div>
-					</div>
-				`);
-
-				let input = newEntry.querySelector('input');
-
-				let resetButton = document.querySelector('svg.reset-key')?.cloneNode(true);
-				if (resetButton) {
-					delete resetButton.dataset.key;
-					resetButton.title = 'Remove custom entry';
-
-					input.insertAdjacentElement('afterend', resetButton);
-
-					resetButton.addEventListener('click', e => {
-						e.target.closest('.form-group').remove();
-					});
-				}
-
-				lastGroupInTargetTab.appendChild(newEntry);
-
-				window.setTimeout(() => {
-					input.focus();
-				}, 100);
-
-				_Config.cron.initPotentialNewCronExpressionSetting(newEntry, name);
+				validationResult.allow = false;
+				validationResult.invalidMessage = 'A configuration setting with that key already exists.';
 			}
-		}
-	},
-	doesSettingAlreadyExist: (name) => {
 
-		let existing = document.querySelector(`[name="${CSS.escape(name)}"]`);
+			return validationResult;
 
-		if (existing) {
+		}).then(async (name) => {
 
-			alert('A configuration setting with that key already exists.');
-		}
+			let targetTabId = (name.endsWith(_Config.cron.cronSuffix)) ? 'cron' : 'misc';
 
-		return !!existing;
+			location.href = '#' + targetTabId;
+
+			let lastGroupInTargetTab = document.querySelector(`div.tab-content#${targetTabId} .config-group:last-of-type`);
+
+			let newEntry = _Helpers.createSingleDOMElementFromHTML(`
+				<div class="form-group">
+					<label class="font-bold basis-full sm:basis-auto sm:min-w-128">${name}</label>
+					<div class="flex items-center">
+						<input type="text" name="${name}">
+					</div>
+				</div>
+			`);
+
+			let input = newEntry.querySelector('input');
+
+			let resetButton = document.querySelector('svg.reset-key')?.cloneNode(true);
+			if (resetButton) {
+				delete resetButton.dataset.key;
+				resetButton.title = 'Remove custom entry';
+
+				input.insertAdjacentElement('afterend', resetButton);
+
+				resetButton.addEventListener('click', e => {
+					e.target.closest('.form-group').remove();
+				});
+			}
+
+			lastGroupInTargetTab.appendChild(newEntry);
+
+			window.setTimeout(() => {
+				input.focus();
+			}, 100);
+
+			_Config.cron.initPotentialNewCronExpressionSetting(newEntry, name);
+		}).catch(e => {
+			if (typeof e !== 'string') {
+				console.warn(e);
+			}
+		});
 	},
 	cron: {
 		cronSuffix: '.cronExpression',
@@ -240,7 +259,7 @@ let _Config = {
 
 			let addNewButton = _Helpers.createSingleDOMElementFromHTML('<button class="active:border-green focus:border-gray-666 hover:bg-gray-100 mr-0 mt-6" type="button">Add Cron expression</button>');
 			addNewButton.addEventListener('click', () => {
-				_Config.createNewEntry(_Config.cron.cronSuffix);
+				_Config.createNewEntry('Enter key for new cron expression (".cronExpression" is appended automatically)', _Config.cron.cronSuffix);
 			});
 
 			cronElement?.insertAdjacentElement('beforeend', addNewButton);

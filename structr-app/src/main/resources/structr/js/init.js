@@ -1875,7 +1875,7 @@ let Structr = {
 	},
 	openPropertiesDialogForUserProvidedUUID: () => {
 
-		_Dialogs.readUUIDFromUser.showPromise('Enter the UUID for which you want to open the properties dialog').then(async (uuid) => {
+		_Dialogs.getArbitraryInputFromUser.showPromise('Enter the UUID for which you want to open the properties dialog', _Dialogs.getArbitraryInputFromUser.uuidValidationPromise).then(async (uuid) => {
 
 			let obj = await Command.getPromise(uuid, null);
 			_Entities.showProperties(obj, null, true);
@@ -1888,7 +1888,7 @@ let Structr = {
 	},
 	navigateToDOMElementDialogForUserProvidedUUID: () => {
 
-		_Dialogs.readUUIDFromUser.showPromise('Enter the UUID of the DOM element which you want to select.<br>The pages section and the appropriate elements will be loaded.').then(uuid => {
+		_Dialogs.getArbitraryInputFromUser.showPromise('Enter the UUID of the DOM element which you want to select.<br>The pages section and the appropriate elements will be loaded.', _Dialogs.getArbitraryInputFromUser.uuidValidationPromise).then(uuid => {
 			_Pages.selectAndShowArbitraryDOMElement(uuid);
 		}).catch(e => {
 			if (typeof e !== 'string') {
@@ -1898,9 +1898,9 @@ let Structr = {
 	},
 	openEditorDialogForUserProvidedUUID: () => {
 
-		_Dialogs.readUUIDFromUser.showPromise('Enter the UUID for which you want to open the content/template edit dialog', async (uuid) => {
+		_Dialogs.getArbitraryInputFromUser.showPromise('Enter the UUID for which you want to open the content/template edit dialog', async (uuid) => {
 
-			let validationResult = await _Dialogs.readUUIDFromUser.defaultUUIDValidationPromise(uuid);
+			let validationResult = await _Dialogs.getArbitraryInputFromUser.uuidValidationPromise(uuid);
 
 			if (validationResult.allow) {
 

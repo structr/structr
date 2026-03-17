@@ -338,8 +338,15 @@ let _Dialogs = {
 			});
 		},
 	},
-	readUUIDFromUser: {
-		defaultUUIDValidationPromise: async (uuid) => {
+	getArbitraryInputFromUser: {
+		allowEverythingPromise: async (value) => {
+
+			return {
+				allow: true,
+				value: value
+			};
+		},
+		uuidValidationPromise: async (uuid) => {
 
 			let result = {
 				allow: true,
@@ -364,7 +371,7 @@ let _Dialogs = {
 
 			return result;
 		},
-		showPromise: (text, validationPromise = _Dialogs.readUUIDFromUser.defaultUUIDValidationPromise) => {
+		showPromise: (text, validationPromise = _Dialogs.getArbitraryInputFromUser.allowEverythingPromise) => {
 
 			return new Promise((resolve, reject) => {
 
@@ -373,7 +380,7 @@ let _Dialogs = {
 						<div class="mb-6">
 							<div class="mb-4">${text}</div>
 
-							<input data-uuid type="text" placeholder="UUID" class="w-full box-border">
+							<input data-user-input type="text" placeholder="" class="w-full box-border">
 						</div>
 
 						<div data-button-container class="flex items-center justify-center gap-4"></div>
@@ -382,8 +389,8 @@ let _Dialogs = {
 
 				let messageDiv      = _Dialogs.basic.append(dialogMessage);
 				let buttonContainer = messageDiv.querySelector('[data-button-container]');
-				let uuidInput       = messageDiv.querySelector('input[data-uuid]');
-				uuidInput.focus();
+				let userInputEl     = messageDiv.querySelector('input[data-user-input]');
+				userInputEl.focus();
 
 				let runActionOption = true;
 				let cancelOption    = false;
@@ -392,14 +399,14 @@ let _Dialogs = {
 					{ buttonText: `Cancel`, result: cancelOption,    classes: ['cancel-button'] }
 				];
 
-				let answerFunction = (e, response) => {
+				let answerFunction = (e, userSelectedChoice) => {
 					e.stopPropagation();
 
-					if (response === runActionOption) {
+					if (userSelectedChoice === runActionOption) {
 
-						let uuid = uuidInput.value;
+						let value = userInputEl.value;
 
-						validationPromise(uuid).then(validationResult => {
+						validationPromise(value).then(validationResult => {
 
 							if (validationResult.allow === true) {
 
@@ -408,8 +415,8 @@ let _Dialogs = {
 
 							} else {
 
-								uuidInput.setCustomValidity(validationResult.invalidMessage);
-								uuidInput.reportValidity();
+								userInputEl.setCustomValidity(validationResult.invalidMessage);
+								userInputEl.reportValidity();
 							}
 						});
 
@@ -439,11 +446,11 @@ let _Dialogs = {
 
 				_Helpers.activateCommentsInElement(messageDiv);
 
-				uuidInput.addEventListener('keyup', (e) => {
+				userInputEl.addEventListener('keyup', (e) => {
 
 					// reset custom validity in case of previous errors
-					uuidInput.setCustomValidity('');
-					uuidInput.reportValidity();
+					userInputEl.setCustomValidity('');
+					userInputEl.reportValidity();
 
 					if (e.key === 'Enter' || e.code === 'Enter' || e.keyCode === 13) {
 						answerFunction(e, runActionOption);
