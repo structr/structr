@@ -18,48 +18,70 @@
  */
 package org.structr.core.traits.wrappers;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.datasources.Channel;
 import org.structr.core.entity.DataAdapter;
-import org.structr.core.entity.DataSource;
+import org.structr.core.entity.DataAdapterField;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.DataAdapterTraitDefinition;
+import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.DataField;
+import org.structr.web.datasource.FieldDefinition;
 
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class DataAdapterTraitWrapper extends AbstractNodeTraitWrapper implements DataAdapter {
 
-	private final Gson gson = new GsonBuilder().create();
-	private Map<String, DataField> fields = null;
-	private DataSource dataSource = null;
+	private Map<String, DataAdapterField> fields;
 
 	public DataAdapterTraitWrapper(final Traits traits, final NodeInterface node) {
 		super(traits, node);
 	}
 
 	@Override
-	public Map<String, DataField> getFields(final SecurityContext securityContext) throws FrameworkException {
+	public Map<String, DataField> augmentFields(final RenderContext renderContext, Channel channel) throws FrameworkException {
+
+		final Map<String, FieldDefinition> sourceFields        = channel.getFields(renderContext);
+		final Map<String, DataAdapterField> augmentationFields = getFields();
+		final Map<String, DataField> augmentedFields           = new TreeMap<>();
+
+		// augment fields from data source with fields from adapter
+		for (final String name : sourceFields.keySet()) {
+
+			final FieldDefinition sourceField        = sourceFields.get(name);
+			final DataAdapterField augmentationField = augmentationFields.get(name);
+
+			augmentedFields.put(name, DataField.from(renderContext, this, name, sourceField, augmentationField));
+		}
+
+		// add adapter fields that are not present in the data source
+		for (final String name : augmentationFields.keySet()) {
+
+			// don't overwrite existing fields, should have been processed already
+			if (!augmentedFields.containsKey(name)) {
+
+				augmentedFields.put(name, DataField.from(renderContext, this, name, null, augmentationFields.get(name)));
+			}
+		}
+
+		return augmentedFields;
+	}
+
+	@Override
+	public Map<String, DataAdapterField> getFields() {
 
 		if (fields == null) {
 
-			final String mappingSource = wrappedObject.getProperty(traits.key(DataAdapterTraitDefinition.MAPPING_PROPERTY));
-			if (mappingSource != null) {
+			fields = new LinkedHashMap<>();
 
-				final Map<String, Object> data = gson.fromJson(mappingSource, Map.class);
-				fields = new LinkedHashMap<>();
+			for (final NodeInterface field : (Iterable<NodeInterface>) wrappedObject.getProperty(traits.key(DataAdapterTraitDefinition.FIELDS_PROPERTY))) {
 
-				for (final Map.Entry<String, Object> entry : data.entrySet()) {
+				final DataAdapterField adapterField = field.as(DataAdapterField.class);
 
-					final String key = entry.getKey();
-
-					fields.put(key, DataField.fromMap(key, (Map) entry.getValue()));
-				}
+				fields.put(adapterField.getName(), adapterField);
 			}
 		}
 

@@ -18,152 +18,93 @@
  */
 package org.structr.web.datasource;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.datasources.Channel;
-import org.structr.core.entity.DataSource;
+import org.structr.common.helper.CaseHelper;
+import org.structr.core.entity.DataAdapter;
+import org.structr.core.entity.DataAdapterField;
+import org.structr.core.function.TitleizeFunction;
 import org.structr.web.common.RenderContext;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 
-public class DataField {
+public class DataField extends LinkedHashMap<String, Object> {
 
-	private final Map<String, Object> options = new LinkedHashMap<>();
-	private final Map<String, Object> config  = new LinkedHashMap<>();
-	private final Set<String> slots           = new LinkedHashSet<>();
+	public DataField(final String name) {
 
-	private final String label;
-	private final String name;
-	private final String value;
-	private final String template;
-	private final String editTemplate;
-	private final String propertyName;
-	private final Boolean showLabel;
-
-	public DataField(final String name, final String label, final String value, final String template, final String editTemplate, final String propertyName, final Boolean showLabel) {
-
-		this.name         = name;
-		this.label        = label;
-		this.value        = value;
-		this.template     = template;
-		this.editTemplate = editTemplate;
-		this.propertyName = propertyName;
-		this.showLabel    = showLabel;
+		put("name", name);
 	}
 
 	public String getName() {
-		return name;
+		return (String) get("name");
 	}
 
 	public String getLabel() {
-		return label;
+		return (String) get("label");
 	}
 
 	public String getValue() {
-		return value;
+		return (String)	get("value");
 	}
 
 	public String getTemplate() {
-		return template;
+		return (String)	get("template");
 	}
 
 	public String getEditTemplate() {
-		return editTemplate;
+		return (String)	get("editTemplate");
 	}
 
 	public String getPropertyName() {
-
-		if (propertyName != null) {
-			return propertyName;
-		}
-
-		return name;
+		return (String)	get("propertyName");
 	}
 
 	public Set<String> getSlots() {
-		return slots;
+		return (Set<String>) get("slots");
 	}
 
 	public Map<String, Object> getOptions() {
-		return options;
+		return (Map<String, Object>) get("options");
 	}
 
 	public Map<String, Object> getConfig() {
-		return config;
+		return (Map<String, Object>) get("config");
 	}
 
 	public Boolean showLabel() {
-		return showLabel;
+		return (Boolean) get("showLabel");
 	}
 
-	/**
-	 * Evaluates the field options and returns a map with the field information
-	 * usable by the frontend components that render the edit template.
-	 *
-	 * @param renderContext
-	 * @param dataSource
-	 * @return
-	 * @throws FrameworkException
-	 */
-	public Map<String, Object> evaluate(final RenderContext renderContext, final Channel dataSource) throws FrameworkException {
+	public void applyCssClasses(final Set<String> cssClasses) {
 
-		final Map<String, Object> result = new LinkedHashMap<>();
+		final Map<String, Object> config = getConfig();
+		if (config != null && config.containsKey("cols")) {
 
-		result.put("label",        getLabel());
-		result.put("value",        getValue());
-		result.put("template",     getTemplate());
-		result.put("editTemplate", getEditTemplate());
-		result.put("config",       getConfig());
+			cssClasses.add("col-span-" + config.get("cols"));
+		}
+	}
 
-		final String propertyName = getPropertyName();
-		if (propertyName != null) {
+	public void augment(final DataAdapterField augmentation) {
 
-			result.put("propertyName", propertyName);
-
-			// fetch options from data provider
-			final FieldDefinition fieldDefinition = dataSource.getFields(renderContext).get(propertyName);
-			if (fieldDefinition != null) {
-
-				// add required flag
-				result.put("required", fieldDefinition.isRequired());
-
-				// multiple?
-				result.put("multiple", fieldDefinition.isCollection());
-
-				if (fieldDefinition.hasOptions()) {
-
-					String label = "name";
-					String filter = null;
-
-					// check options that transform schema info
-					if (!options.isEmpty()) {
-
-						if (options.containsKey("label")) {
-							label = (String) options.get("label");
-						}
-
-						filter = (String) options.get("filter");
-					}
-
-					result.put("options", fieldDefinition.getOptions(renderContext, filter, label));
-				}
-			}
+		final String template = augmentation.getRenderTemplate();
+		if (StringUtils.isNotBlank(template)) {
+			put("template", template);
 		}
 
-		return result;
-	}
+		final String editTemplate = augmentation.getEditTemplate();
+		if (StringUtils.isNotBlank(editTemplate)) {
+			put("editTemplate", editTemplate);
+		}
 
-	public static DataField fromMap(final String name, final Map<String, Object> map) {
+		// only adapter fields can be deleted in UI
+		putIfAbsent("source", "adapter");
 
-		final DataField field = new DataField(
-			name,
-			(String) map.get("label"),
-			(String) map.get("value"),
-			(String) map.get("template"),
-			(String) map.get("editTemplate"),
-			(String) map.get("propertyName"),
-			(Boolean) map.get("showLabel")
-		);
+		// store field ID
+		put("id", augmentation.getUuid());
 
+		/*
 		// combine "slot" and "slots"
 		final List<String> slots = (List) map.get("slots");
 		if (slots != null) {
@@ -190,15 +131,55 @@ public class DataField {
 
 			field.getConfig().putAll(m);
 		}
-
-		return field;
+		*/
 	}
 
-	public void applyCssClasses(final Set<String> cssClasses) {
+	public static DataField from(final RenderContext renderContext, final DataAdapter adapter, final String name,  final FieldDefinition fieldDefinition, final DataAdapterField augmentation) throws FrameworkException {
 
-		if (config.containsKey("cols")) {
+		final DataField field = new DataField(name);
 
-			cssClasses.add("col-span-" + config.get("cols"));
+		field.put("propertyName", name);
+		field.put("value",        adapter.getDataKey() + "." + name);
+		field.put("label",        TitleizeFunction.titleize(CaseHelper.toUnderscore(name, false), "_"));
+
+		// data from field definition
+		if (fieldDefinition != null) {
+
+			field.put("required",       fieldDefinition.isRequired());
+			field.put("multiple",       fieldDefinition.isCollection());
+			field.put("template",       fieldDefinition.renderTemplate());
+			field.put("editTemplate",   fieldDefinition.editTemplate());
+			field.put("dataType",       fieldDefinition.dataType());
+			field.put("isCollection",   fieldDefinition.isCollection());
+			field.put("source",         "datasource");
+
+			if (fieldDefinition.hasOptions()) {
+
+				String label = "name";
+				String filter = null;
+
+				// check options that transform schema info
+				final Map<String, Object> options = null;//augmentation.getOptions();
+				if (options != null && !options.isEmpty()) {
+
+					if (options.containsKey("label")) {
+						label = (String) options.get("label");
+					}
+
+					filter = (String) options.get("filter");
+				}
+
+				field.put("options", fieldDefinition.getOptions(renderContext, filter, label));
+			}
 		}
+
+		// data from augmentation field
+		if (augmentation != null) {
+
+			field.augment(augmentation);
+		}
+
+		return field;
+
 	}
 }

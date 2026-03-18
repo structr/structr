@@ -62,6 +62,7 @@ public class CoreModule implements StructrModule {
 
 		// relationship traits
 		StructrTraits.registerTrait(new ComponentConfigurationHAS_DATA_ADAPTERDataAdapter());
+		StructrTraits.registerTrait(new DataAdapterHAS_FIELDDataAdapterField());
 		StructrTraits.registerTrait(new PrincipalSchemaGrantRelationshipDefinition());
 		StructrTraits.registerTrait(new GroupContainsPrincipalDefinition());
 		StructrTraits.registerTrait(new SchemaExcludedViewPropertyDefinition());
@@ -76,24 +77,26 @@ public class CoreModule implements StructrModule {
 		StructrTraits.registerTrait(new SchemaViewPropertyDefinition());
 
 		// relationship types
-		StructrTraits.registerRelationshipType(StructrTraits.COMPONENT_CONFIGURATION_HAS_DATA_ADAPTER, StructrTraits.COMPONENT_CONFIGURATION_HAS_DATA_ADAPTER);
-		StructrTraits.registerRelationshipType(StructrTraits.PRINCIPAL_SCHEMA_GRANT_RELATIONSHIP,      StructrTraits.PRINCIPAL_SCHEMA_GRANT_RELATIONSHIP);
-		StructrTraits.registerRelationshipType(StructrTraits.GROUP_CONTAINS_PRINCIPAL,                 StructrTraits.GROUP_CONTAINS_PRINCIPAL);
-		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_EXCLUDED_VIEW_PROPERTY,            StructrTraits.SCHEMA_EXCLUDED_VIEW_PROPERTY);
-		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_GRANT_SCHEMA_NODE_RELATIONSHIP,    StructrTraits.SCHEMA_GRANT_SCHEMA_NODE_RELATIONSHIP);
-		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_METHOD_PARAMETERS,                 StructrTraits.SCHEMA_METHOD_PARAMETERS);
-		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_NODE_EXTENDS_SCHEMA_NODE,          StructrTraits.SCHEMA_NODE_EXTENDS_SCHEMA_NODE);
-		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_NODE_METHOD,                       StructrTraits.SCHEMA_NODE_METHOD);
-		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_NODE_PROPERTY,                     StructrTraits.SCHEMA_NODE_PROPERTY);
-		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_NODE_VIEW,                         StructrTraits.SCHEMA_NODE_VIEW);
-		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_RELATIONSHIP_SOURCE_NODE,          StructrTraits.SCHEMA_RELATIONSHIP_SOURCE_NODE);
-		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_RELATIONSHIP_TARGET_NODE,          StructrTraits.SCHEMA_RELATIONSHIP_TARGET_NODE);
-		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_VIEW_PROPERTY,                     StructrTraits.SCHEMA_VIEW_PROPERTY);
+		StructrTraits.registerRelationshipType(StructrTraits.COMPONENT_CONFIGURATION_HAS_DATA_ADAPTER,  StructrTraits.COMPONENT_CONFIGURATION_HAS_DATA_ADAPTER);
+		StructrTraits.registerRelationshipType(StructrTraits.DATA_ADAPTER_HAS_FIELD_DATA_ADAPTER_FIELD, StructrTraits.DATA_ADAPTER_HAS_FIELD_DATA_ADAPTER_FIELD);
+		StructrTraits.registerRelationshipType(StructrTraits.PRINCIPAL_SCHEMA_GRANT_RELATIONSHIP,       StructrTraits.PRINCIPAL_SCHEMA_GRANT_RELATIONSHIP);
+		StructrTraits.registerRelationshipType(StructrTraits.GROUP_CONTAINS_PRINCIPAL,                  StructrTraits.GROUP_CONTAINS_PRINCIPAL);
+		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_EXCLUDED_VIEW_PROPERTY,             StructrTraits.SCHEMA_EXCLUDED_VIEW_PROPERTY);
+		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_GRANT_SCHEMA_NODE_RELATIONSHIP,     StructrTraits.SCHEMA_GRANT_SCHEMA_NODE_RELATIONSHIP);
+		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_METHOD_PARAMETERS,                  StructrTraits.SCHEMA_METHOD_PARAMETERS);
+		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_NODE_EXTENDS_SCHEMA_NODE,           StructrTraits.SCHEMA_NODE_EXTENDS_SCHEMA_NODE);
+		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_NODE_METHOD,                        StructrTraits.SCHEMA_NODE_METHOD);
+		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_NODE_PROPERTY,                      StructrTraits.SCHEMA_NODE_PROPERTY);
+		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_NODE_VIEW,                          StructrTraits.SCHEMA_NODE_VIEW);
+		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_RELATIONSHIP_SOURCE_NODE,           StructrTraits.SCHEMA_RELATIONSHIP_SOURCE_NODE);
+		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_RELATIONSHIP_TARGET_NODE,           StructrTraits.SCHEMA_RELATIONSHIP_TARGET_NODE);
+		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_VIEW_PROPERTY,                      StructrTraits.SCHEMA_VIEW_PROPERTY);
 
 		StructrTraits.registerNodeType(StructrTraits.NODE_INTERFACE, StructrTraits.NODE_INTERFACE);
 		StructrTraits.registerRelationshipType(StructrTraits.RELATIONSHIP_INTERFACE, StructrTraits.RELATIONSHIP_INTERFACE);
 
 		StructrTraits.registerTrait(new DataAdapterTraitDefinition());
+		StructrTraits.registerTrait(new DataAdapterFieldTraitDefinition());
 		StructrTraits.registerTrait(new DataSourceTraitDefinition());
 		StructrTraits.registerTrait(new PrincipalTraitDefinition());
 		StructrTraits.registerTrait(new GroupTraitDefinition());
@@ -117,6 +120,7 @@ public class CoreModule implements StructrModule {
 		// node types
 		StructrTraits.registerNodeType(StructrTraits.GENERIC_NODE);
 		StructrTraits.registerNodeType(StructrTraits.DATA_ADAPTER,             StructrTraits.DATA_ADAPTER);
+		StructrTraits.registerNodeType(StructrTraits.DATA_ADAPTER_FIELD,       StructrTraits.DATA_ADAPTER_FIELD);
 		StructrTraits.registerNodeType(StructrTraits.DATA_SOURCE,              StructrTraits.DATA_SOURCE);
 		StructrTraits.registerNodeType(StructrTraits.PRINCIPAL,                StructrTraits.PRINCIPAL);
 		StructrTraits.registerNodeType(StructrTraits.GROUP,                    StructrTraits.PRINCIPAL, StructrTraits.GROUP);

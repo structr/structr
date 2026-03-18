@@ -26,10 +26,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.DataAdapter;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.Property;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.StartNodes;
-import org.structr.core.property.StringProperty;
+import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
@@ -48,9 +45,9 @@ import java.util.Set;
 
 public class DataAdapterTraitDefinition extends AbstractNodeTraitDefinition {
 
-	public static final String DOM_NODES_PROPERTY  = "domNodes";
-	public static final String MAPPING_PROPERTY    = "mapping";
-	public static final String DATA_KEY_PROPERTY   = "dataKey";
+	public static final String CONFIGURATION_PROPERTY = "configuration";
+	public static final String FIELDS_PROPERTY        = "fields";
+	public static final String DATA_KEY_PROPERTY      = "dataKey";
 
 	public DataAdapterTraitDefinition() {
 		super(StructrTraits.DATA_ADAPTER);
@@ -80,10 +77,6 @@ public class DataAdapterTraitDefinition extends AbstractNodeTraitDefinition {
 					if (adapter.getDataKey() == null) {
 						adapter.setProperty(traits.key(DataAdapterTraitDefinition.DATA_KEY_PROPERTY), "item");
 					}
-
-					if (adapter.getFields(securityContext) == null) {
-						adapter.setProperty(traits.key(DataAdapterTraitDefinition.MAPPING_PROPERTY), "{ \"name\": { \"value\": \"item.name\", \"label\": \"Name\", \"slot\": \"label\", \"template\": \"text\", \"editTemplate\": \"textfield\" }}");
-					}
 				}
 			}
 		);
@@ -105,7 +98,8 @@ public class DataAdapterTraitDefinition extends AbstractNodeTraitDefinition {
 					switch (key) {
 
 						case "fields":
-							return dataAdapter.getFields(securityContext);
+							throw new RuntimeException("Cannot access augmented fields without data source.");
+							//return dataAdapter.augmentFields(securityContext, );
 
 						case "dataKey":
 							return dataAdapter.getDataKey();
@@ -120,13 +114,13 @@ public class DataAdapterTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> domNodesProperty = new StartNodes(traitsInstance, DOM_NODES_PROPERTY, StructrTraits.COMPONENT_CONFIGURATION_HAS_DATA_ADAPTER).category(DOMNode.WIDGETS_CATEGORY);
-		final Property<String> mappingProperty                   = new StringProperty(MAPPING_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
-		final Property<String> dataKeyProperty                   = new StringProperty(DATA_KEY_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<NodeInterface> configurationProperty    = new StartNode(traitsInstance, CONFIGURATION_PROPERTY, StructrTraits.COMPONENT_CONFIGURATION_HAS_DATA_ADAPTER).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<Iterable<NodeInterface>> fieldsProperty = new EndNodes(traitsInstance, FIELDS_PROPERTY, StructrTraits.DATA_ADAPTER_HAS_FIELD_DATA_ADAPTER_FIELD).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<String> dataKeyProperty                 = new StringProperty(DATA_KEY_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 
 		return newSet(
-			domNodesProperty,
-			mappingProperty,
+			configurationProperty,
+			fieldsProperty,
 			dataKeyProperty
 		);
 	}
@@ -138,7 +132,7 @@ public class DataAdapterTraitDefinition extends AbstractNodeTraitDefinition {
 			"adapter", newSet(
 				GraphObjectTraitDefinition.ID_PROPERTY,
 				NodeInterfaceTraitDefinition.NAME_PROPERTY,
-				MAPPING_PROPERTY,
+				FIELDS_PROPERTY,
 				DATA_KEY_PROPERTY
 			)
 		);

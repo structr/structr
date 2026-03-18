@@ -58,6 +58,12 @@ import java.util.*;
  */
 public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
+	private static final Set<String> PROPERTY_KEY_BLACKLIST_FOR_COMPONENTS = Set.of(
+		NodeInterfaceTraitDefinition.GRANTEES_PROPERTY,
+		NodeInterfaceTraitDefinition.HIDDEN_PROPERTY,
+		NodeInterfaceTraitDefinition.OWNER_ID_PROPERTY
+	);
+
 	public static final String RELATED_TO_PROPERTY                = "relatedTo";
 	public static final String RELATED_FROM_PROPERTY              = "relatedFrom";
 	public static final String SCHEMA_GRANTS_PROPERTY             = "schemaGrants";
@@ -178,7 +184,10 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					// transform input
 					for (final PropertyKey key : traits.getPropertyKeysForView(PropertyView.All)) {
 
-						output.put(key.jsonName(), key.getFieldDefinition());
+						// hide some internal properties
+						if (!PROPERTY_KEY_BLACKLIST_FOR_COMPONENTS.contains(key.jsonName())) {
+							output.put(key.jsonName(), key.getFieldDefinition());
+						}
 					}
 
 					return output;

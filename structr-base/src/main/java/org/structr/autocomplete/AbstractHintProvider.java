@@ -55,7 +55,6 @@ import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.ContentHandler;
-import org.structr.web.entity.dom.Template;
 import org.structr.web.traits.wrappers.dom.ContentTraitWrapper;
 
 import java.io.IOException;
@@ -480,12 +479,14 @@ public abstract class AbstractHintProvider {
 		hints.add(0, new IPHint());
 		hints.add(0, new IdHint());
 		hints.add(0, new HostHint());
+		hints.add(0, new DataSourceHint());
 		hints.add(0, new DataHint());
 		hints.add(0, new CurrentHint());
 		hints.add(0, new ChildrenHint());
 		hints.add(0, new BaseUrlHint());
 		hints.add(0, new ApplicationStoreHint());
 		hints.add(0, new ApplicationRootPathHint());
+		hints.add(0, new AdapterHint());
 
 	}
 

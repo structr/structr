@@ -327,4 +327,24 @@ public class StartNode extends Property<NodeInterface> implements RelationProper
 
 		return (List) StructrApp.getInstance(securityContext).nodeQuery(getSourceType()).sort(nameKey).getAsList();
 	}
+
+	@Override
+	public String renderTemplate() {
+		return "related-name";
+	}
+
+	@Override
+	public String editTemplate() {
+		return "select";
+	}
+
+	@Override
+	public String dataType() {
+		return "node";
+	}
+
+	@Override
+	public String nodeType() {
+		return relatedType();
+	}
 }

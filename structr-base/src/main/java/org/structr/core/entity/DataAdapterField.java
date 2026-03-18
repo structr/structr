@@ -16,25 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.datasource;
+package org.structr.core.entity;
 
-import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.web.common.RenderContext;
+import org.structr.core.graph.NodeInterface;
 
-import java.util.List;
+public interface DataAdapterField extends NodeInterface {
 
-public interface FieldDefinition {
-
-	String jsonName();
-	String renderTemplate();
-	String editTemplate();
-	String dataType();
-	String nodeType();
-
-	boolean hasOptions();
-	boolean isRequired();
-	boolean isCollection();
-
-	List<GraphObject> getOptions(final RenderContext renderContext, final String filter, final String label) throws FrameworkException;
+	String getRenderTemplate();
+	String getEditTemplate();
 }

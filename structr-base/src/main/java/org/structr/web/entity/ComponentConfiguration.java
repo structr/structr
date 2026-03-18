@@ -22,9 +22,11 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.datasources.Channel;
 import org.structr.core.entity.DataAdapter;
 import org.structr.core.graph.NodeInterface;
+import org.structr.web.entity.dom.DOMNode;
 
 public interface ComponentConfiguration extends NodeInterface {
 
+	DOMNode getComponent();
 	DataAdapter getDataAdapter();
 	Channel getDataSource() throws FrameworkException;
 
@@ -37,4 +39,6 @@ public interface ComponentConfiguration extends NodeInterface {
 	String getReloadBehaviour();
 	String getTransform();
 	Boolean showLabels();
+
+	void setFieldSet(final String s) throws FrameworkException;
 }

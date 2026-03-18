@@ -29,12 +29,26 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.web.entity.ComponentConfiguration;
+import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.traits.definitions.ComponentConfigurationTraitDefinition;
 
 public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper implements ComponentConfiguration {
 
 	public ComponentConfigurationTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
+	}
+
+	@Override
+	public DOMNode getComponent() {
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key(ComponentConfigurationTraitDefinition.DOM_NODE_PROPERTY));
+		if (node != null) {
+
+			return node.as(DOMNode.class);
+		}
+
+		return null;
+
 	}
 
 	@Override
@@ -72,7 +86,7 @@ public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper
 						break;
 
 					case "channel":
-						return new ChannelDataSource(name);
+						return new ChannelDataSource(this, name);
 
 				}
 			}
@@ -124,5 +138,10 @@ public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper
 	@Override
 	public String getTransform() {
 		return wrappedObject.getProperty(traits.key(ComponentConfigurationTraitDefinition.TRANSFORM_PROPERTY));
+	}
+
+	@Override
+	public void setFieldSet(final String fieldSet) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(ComponentConfigurationTraitDefinition.FIELD_SET_PROPERTY), fieldSet);
 	}
 }

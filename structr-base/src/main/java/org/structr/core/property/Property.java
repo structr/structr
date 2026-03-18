@@ -720,6 +720,33 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 		return null;
 	}
 
+	@Override
+	public String renderTemplate() {
+		return null;
+	}
+
+	@Override
+	public String editTemplate() {
+		return "textfield";
+	}
+
+	@Override
+	public String dataType() {
+
+		final String typeName = typeName();
+		if (typeName != null) {
+
+			return typeName.toLowerCase();
+		}
+
+		return typeName();
+	}
+
+	@Override
+	public String nodeType() {
+		return null;
+	}
+
 	// ----- protected methods -----
 	protected boolean multiValueSplitAllowed() {
 		return true;

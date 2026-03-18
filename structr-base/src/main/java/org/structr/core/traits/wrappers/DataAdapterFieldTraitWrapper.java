@@ -16,19 +16,26 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.entity;
+package org.structr.core.traits.wrappers;
 
-import org.structr.common.error.FrameworkException;
-import org.structr.core.datasources.Channel;
+import org.structr.core.entity.DataAdapterField;
 import org.structr.core.graph.NodeInterface;
-import org.structr.web.common.RenderContext;
-import org.structr.web.datasource.DataField;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.DataAdapterFieldTraitDefinition;
 
-import java.util.Map;
+public class DataAdapterFieldTraitWrapper extends AbstractNodeTraitWrapper implements DataAdapterField {
 
-public interface DataAdapter extends NodeInterface {
+	public DataAdapterFieldTraitWrapper(final Traits traits, final NodeInterface node) {
+		super(traits, node);
+	}
 
-	Map<String, DataField> augmentFields(final RenderContext renderContext, final Channel channel) throws FrameworkException;
-	Map<String, DataAdapterField> getFields();
-	String getDataKey();
+	@Override
+	public String getRenderTemplate() {
+		return wrappedObject.getProperty(traits.key(DataAdapterFieldTraitDefinition.RENDER_TEMPLATE_PROPERTY));
+	}
+
+	@Override
+	public String getEditTemplate() {
+		return wrappedObject.getProperty(traits.key(DataAdapterFieldTraitDefinition.EDIT_TEMPLATE_PROPERTY));
+	}
 }

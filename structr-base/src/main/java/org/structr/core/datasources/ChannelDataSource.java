@@ -18,6 +18,7 @@
  */
 package org.structr.core.datasources;
 
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.ChannelInput;
@@ -31,6 +32,9 @@ import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.FieldDefinition;
+import org.structr.web.entity.ComponentConfiguration;
+import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -38,10 +42,15 @@ import java.util.Map;
 
 public class ChannelDataSource implements Channel {
 
+	private static final Logger logger = LoggerFactory.getLogger(ChannelDataSource.class);
+
+	private final ComponentConfiguration configuration;
 	private final String name;
 
-	public ChannelDataSource(final String name) {
-		this.name = name;
+	public ChannelDataSource(final ComponentConfiguration configuration,  String name) {
+
+		this.configuration = configuration;
+		this.name          = name;
 	}
 
 	@Override
@@ -68,11 +77,9 @@ public class ChannelDataSource implements Channel {
 								return (Iterable) node.getProperty(key);
 							}
 						}
-
-					} else {
-
-						return List.of(node);
 					}
+
+					return List.of(node);
 				}
 			}
 		}
@@ -84,7 +91,7 @@ public class ChannelDataSource implements Channel {
 	public final Map<String, FieldDefinition> getFields(final RenderContext renderContext) throws FrameworkException {
 
 		final Map<String, FieldDefinition> output = new LinkedHashMap<>();
-		final GraphObject value = getValue(renderContext);
+		final GraphObject value                   = getValue(renderContext, new ChannelInput(configuration.getTransform()));
 
 		if (value != null) {
 
@@ -95,6 +102,81 @@ public class ChannelDataSource implements Channel {
 
 				output.put(key.jsonName(), key.getFieldDefinition());
 			}
+
+		} else {
+
+			// no current value => analyze component configuration mappings
+			if (configuration != null) {
+
+				final DOMNode component = configuration.getComponent();
+				if (component != null) {
+
+					final String transform = configuration.getTransform();
+					final Page page        = component.getOwnerDocument();
+
+					for (final NodeInterface childNode : page.getAllChildNodes()) {
+
+						final DOMNode candidate                  = childNode.as(DOMNode.class);
+						final ComponentConfiguration otherConfig = candidate.getComponentConfiguration();
+
+						// evaluate component configuration
+						if (otherConfig != null && !otherConfig.equals(this)) {
+
+							final String selectionChannel = otherConfig.getSelectionChannel();
+							if (name.equals(selectionChannel)) {
+
+								final Channel dataSource                  = otherConfig.getDataSource();
+								final Map<String, FieldDefinition> fields = dataSource.getFields(renderContext);
+
+								if (transform != null) {
+
+									final FieldDefinition fieldDefinition = fields.get(transform);
+									if (fieldDefinition != null) {
+
+										final String nodeType = fieldDefinition.nodeType();
+										if (nodeType != null) {
+
+											if (Traits.exists(nodeType)) {
+
+												final Traits traits = Traits.of(nodeType);
+
+												// transform input
+												for (final PropertyKey key : traits.getPropertyKeysForView(PropertyView.All)) {
+
+													output.put(key.jsonName(), key.getFieldDefinition());
+												}
+
+											} else {
+
+												logger.warn("Cannot evaluate getFields(): node type '{}' does not exist.", nodeType);
+											}
+
+										} else {
+
+											logger.warn("Cannot evaluate getFields(): field '{}' does not specify a node type.", transform);
+										}
+
+									} else {
+
+										logger.warn("Cannot evaluated getFields(): data source does not define a field named '{}'", transform);
+									}
+
+								} else {
+
+									return otherConfig.getDataSource().getFields(renderContext);
+								}
+							}
+						}
+					}
+
+				} else {
+
+					logger.warn("Cannot evaluate getFields(): configuration is not attached to a component.");
+				}
+			} else {
+
+				logger.warn("Cannot evaluate getFields(): configuration is null in {} '{}'.", getClass().getSimpleName(), getName());
+			}
 		}
 
 		return output;
@@ -103,7 +185,7 @@ public class ChannelDataSource implements Channel {
 	@Override
 	public String getDataType(final RenderContext renderContext) throws FrameworkException {
 
-		final GraphObject value = getValue(renderContext);
+		final GraphObject value = getValue(renderContext, new ChannelInput(configuration.getTransform()));
 		if (value != null) {
 
 			return value.getType();
@@ -119,32 +201,34 @@ public class ChannelDataSource implements Channel {
 
 	public Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, final GraphObject contextObject, final int row, final int column) throws FrameworkException {
 
+		final ChannelInput input          = new ChannelInput(configuration.getTransform());
 		final RenderContext renderContext = (RenderContext) actionContext;
 
 		switch (key) {
 
 			case "values":
-				return getValues(renderContext, null);
+				return getValues(renderContext, input);
 
 			case "dataType":
 				return getDataType(renderContext);
 
+			case "selectedValue":
+				// the selected object from the channel
+				return getValue(renderContext, input);
+
 			case "currentValue":
-				return getValue(renderContext);
+				// the loop object
+				return renderContext.getDataNode(configuration.getDataAdapter().getDataKey());
 		}
 
 		return null;
 	}
 
 	// ----- private methods -----
-	private GraphObject getValue(final RenderContext renderContext) throws FrameworkException {
+	private GraphObject getValue(final RenderContext renderContext, final ChannelInput input) throws FrameworkException {
 
-		final List<GraphObject> values = Iterables.toList(getValues(renderContext, null));
+		final List<GraphObject> values = Iterables.toList(getValues(renderContext, input));
 		if (!values.isEmpty()) {
-
-			if (values.size() > 1) {
-				LoggerFactory.getLogger(ChannelDataSource.class).warn("ChannelDataSource {} returns multiple values, this might be a problem.", getName());
-			}
 
 			return values.get(0);
 		}

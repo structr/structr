@@ -16,25 +16,24 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.datasource;
+package org.structr.autocomplete.keywords;
 
-import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.web.common.RenderContext;
+import org.structr.autocomplete.PageKeywordHint;
 
-import java.util.List;
+public class AdapterHint extends PageKeywordHint {
 
-public interface FieldDefinition {
+	@Override
+	public String getName() {
+		return "adapter";
+	}
 
-	String jsonName();
-	String renderTemplate();
-	String editTemplate();
-	String dataType();
-	String nodeType();
+	@Override
+	public String getShortDescription() {
+		return "Refers to the configured data adapter of the enclosing component.";
+	}
 
-	boolean hasOptions();
-	boolean isRequired();
-	boolean isCollection();
-
-	List<GraphObject> getOptions(final RenderContext renderContext, final String filter, final String label) throws FrameworkException;
+	@Override
+	public String getLongDescription() {
+		return "The `adapter` keyword allows you to access the data adapter of the enclosing component..";
+	}
 }

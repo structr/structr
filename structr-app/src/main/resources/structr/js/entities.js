@@ -2487,7 +2487,7 @@ let _Entities = {
 	isLinkableEntity: (entity) => {
 		return (entity.tag === 'a' || entity.tag === 'link' || entity.tag === 'script' || entity.tag === 'img' || entity.tag === 'video' || entity.tag === 'object');
 	},
-	setPropertyWithFeedback: (entity, key, newVal, input, blinkEl) => {
+	setPropertyWithFeedback: (entity, key, newVal, input, blinkEl, callback) => {
 
 		const oldVal = entity[key];
 		input.val(oldVal);
@@ -2524,7 +2524,9 @@ let _Entities = {
 				input.val(oldVal);
 			}
 
-            _Pages.previews.updatePreviewSlideout();
+            if (callback && typeof callback === 'function') {
+                callback();
+            }
 		});
 	},
 	templates: {
@@ -2749,66 +2751,6 @@ let _Entities = {
 
                 el.html(_Entities.generalTab.templates.componentOptions({ entity: entity, config: config }));
 
-                let dataAdapterSelect = document.querySelector('#data-adapter-select');
-                if (dataAdapterSelect) {
-
-                    let adapters = await Command.queryPromise('DataAdapter', 1000, 1, 'name', 'asc', '');
-                    if (adapters) {
-                        for (let adapter of adapters) {
-                            dataAdapterSelect.insertAdjacentHTML('beforeend', `<option value="${adapter.id}">${adapter.name}</option>`);
-                        }
-                    }
-
-                    let loadFields = async (id) => {
-                            let dataAdapter = await Command.getPromise(id, 'id,mapping');
-                            if (dataAdapter) { return JSON.parse(dataAdapter.mapping); }
-                    }
-
-                    dataAdapterSelect.addEventListener('change', async (e) => {
-
-                        // field set editor
-                        let fields = await loadFields(e.target.value);
-
-                        let sortable = document.querySelector('#sortable-list');
-                        let fieldSetInput = document.querySelector('#field-set-input');
-                        let currentFieldSet = config.fieldSet.split(',').map(f => f.trim());
-
-                        for (let field in fields) {
-                            let checked = (currentFieldSet.includes(field) ? 'checked' : '');
-                            sortable.insertAdjacentHTML('beforeend', `
-                            <label class="py-2 px-2 shadow flex flex-row justify-between items-center flex-grow border rounded border-gray-ddd mb-1" draggable>
-                                <div>
-                                    <input type="checkbox" ${checked} data-key="${field}">
-                                    <span>${field}</span>
-                                </div>
-                            </label>
-                            `);
-                        }
-
-                        let collectKeys = () => {
-                            let fields = [];
-                            sortable.querySelectorAll('input').forEach(input => {
-                                if (input.checked) {
-                                    let key = input.dataset.key;
-                                    fields.push(key);
-                                }
-                            });
-                            return fields.join(', ');
-                        }
-                        sortable.querySelectorAll('input').forEach((input) => {
-                            input.addEventListener('change', async (e) => {
-                                fieldSetInput.value = collectKeys();
-                                fieldSetInput.dispatchEvent(new Event('change'));
-                            });
-                        });
-
-                        _Widgets.sortables.enableDragSort(sortable, () => {
-                            fieldSetInput.value = collectKeys();
-                            fieldSetInput.dispatchEvent(new Event('change'));
-                        });
-                    });
-                }
-
                 let selectionChannelInput = document.querySelector('#data-selection-channel-input');
 
                 let checkRoleConstraints = (result) => {
@@ -2818,21 +2760,268 @@ let _Entities = {
                     }
                 }
 
+                let updateCallback = () => {
+                    _Pages.previews.updatePreviewSlideout();
+                    _Entities.generalTab.updateSortableDataFields(entity);
+                }
+
+                let addButton = document.querySelector('#add-adapter-field-button');
+                if (addButton) {
+                    addButton.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        let input = document.createElement('input');
+                        addButton.classList.add('editing');
+                        input.type = 'text';
+                        input.placeholder = 'Enter field name..';
+                        addButton.appendChild(input);
+                        input.focus();
+                        input.addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); });
+                        input.addEventListener('blur', (e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            addButton.classList.remove('editing');
+                            input.remove();
+                        });
+                        input.addEventListener('keyup', async (e) => {
+                            if (e.key === 'Enter') {
+                                if (input.value.length > 0 && input.value.trim().length > 0) {
+                                    await fetch(`${Structr.rootUrl}DOMNode/${entity.id}/updateDataSourceField`, {
+                                        method: 'POST',
+                                        body: JSON.stringify({
+                                            fieldName: input.value,
+                                            activate: true
+                                        })
+                                    });
+                                    let fieldSetInput = document.querySelector('#field-set-input');
+                                    fieldSetInput.value += ',' + input.value;
+                                }
+                                addButton.classList.remove('editing');
+                                input.remove();
+                                _Pages.previews.updatePreviewSlideout();
+                                _Entities.generalTab.updateSortableDataFields(entity);
+                            }
+                            if (e.key === 'Escape' || e.key === 'Tab') {
+                                addButton.classList.remove('editing');
+                                input.remove();
+                            }
+                        });
+                    });
+                }
+
                 _Entities.generalTab.loadOptions('#data-source-channel-select', 'DataSource', config.dataSource, {}, 'node:', 'name', (node) => 'All ' + node.name + ' nodes');
                 _Entities.generalTab.loadOptions('#data-source-channel-select', 'ComponentConfiguration', config.dataSource, { '!selectionChannel': null }, 'channel:', 'selectionChannel', node => 'The "' + node.selectionChannel + '" channel');
 
                 _Entities.generalTab.selectButtons('#role-buttons', config, 'role', [{ label: 'None', value: 'none' }, { label: 'Controller', value: 'controller' }, { label: 'Subscriber', value: 'subscriber' }], false, checkRoleConstraints, () => _Pages.previews.updatePreviewSlideout());
-                _Entities.generalTab.selectButtons('#display-mode-buttons', config, 'displayMode', [{ label: 'Input', value: 'input' }, { label: 'Output', value: 'output' }], false, () => _Pages.previews.updatePreviewSlideout());
-                _Entities.generalTab.selectButtons('#width-buttons', config, 'columns', [{ label: '1 column', value: 1 }, { label: '2 columns', value: 2 }, { label: '3 columns', value: 3 }, { label: '4 columns', value: 4 }, { label: '5 columns', value: 5 }, { label: '6 columns', value: 6 }], true, () => _Pages.previews.updatePreviewSlideout());
+                _Entities.generalTab.selectButtons('#display-mode-buttons', config, 'displayMode', [{ label: 'Input', value: 'input' }, { label: 'Output', value: 'output' }], false, () => {
+                    _Pages.previews.updatePreviewSlideout();
+                    _Entities.generalTab.updateSortableDataFields(entity);
+                });
+                _Entities.generalTab.selectButtons('#width-buttons', config, 'columns', [{ label: '1 col', value: 1 }, { label: '2 cols', value: 2 }, { label: '3 cols', value: 3 }, { label: '4 cols', value: 4 }, { label: '5 cols', value: 5 }, { label: '6 cols', value: 6 }], true, () => _Pages.previews.updatePreviewSlideout());
 
                 _Entities.generalTab.populateInputFields(el, { entity: entity, config: config });
 				_Entities.generalTab.populateSelectFields(el, { entity: entity, config: config });
-                _Entities.generalTab.registerSimpleInputChangeHandlers(el, { entity: entity, config: config });
-				_Entities.generalTab.registerSimpleSelectChangeHandlers(el, { entity: entity, config: config });
+                _Entities.generalTab.registerSimpleInputChangeHandlers(el, { entity: entity, config: config }, false, false, updateCallback);
+				_Entities.generalTab.registerSimpleSelectChangeHandlers(el, { entity: entity, config: config }, false, false, updateCallback);
 
 				_Entities.generalTab.focusInput(el);
+
+                _Entities.generalTab.updateSortableDataFields(entity);
 			},
 		},
+        loadAvailableDataFields: async (id) => {
+
+            // we need to get the augmented fields from adapter + data source
+            let response = await fetch(`${Structr.rootUrl}DOMNode/${id}/getDataSourceFields`, {
+                method: 'POST'
+            });
+
+            if (response.ok) {
+                let result = await response.json();
+                return result.result;
+            }
+        },
+        updateSortableDataFields: async (entity) => {
+
+            // field set editor
+            let fields = await _Entities.generalTab.loadAvailableDataFields(entity.id) || {};
+            let sortable = document.querySelector('#sortable-list');
+            let available = document.querySelector('#available-list');
+            let fieldSetInput = document.querySelector('#field-set-input');
+            let displayMode = document.querySelector('#display-mode-buttons button.active').dataset.value;
+            let whichTemplate = displayMode === 'input' ? 'editTemplate' : 'template';
+            let currentFieldSet = [];
+
+            sortable.innerHTML = '';
+            available.innerHTML = '';
+
+            currentFieldSet = fieldSetInput.value.split(',').map(v => v.trim()).filter(v => v.length > 0);
+
+            // construct list of selected fields
+            if (currentFieldSet.length > 0) {
+                for (let fieldName of currentFieldSet) {
+                    let field = fields[fieldName];
+                    let renderTemplate = field?.[whichTemplate];
+                    let color = renderTemplate?.length ? 'text-gray-555' : 'text-gray-aaa';
+                    sortable.insertAdjacentHTML('beforeend', `
+                            <label class="block py-2 px-2 shadow flex flex-row items-center flex-grow border rounded border-gray-ddd mb-1" draggable title="Click to remove">
+                                <div class="flex-grow">
+                                    <input type="checkbox" checked data-key="${fieldName}">
+                                    <span>${fieldName}</span>
+                                </div>
+                                <span class="${color} italic font-normal cursor-pointer relative" data-field-name="${fieldName}" data-field-type="${field?.dataType}" title="Click to change template.">${renderTemplate || 'Set template..'}</span>
+                            </label>
+                            `);
+                }
+            }
+
+            // construct list of available fields (all fields minus selected fields)
+            for (let fieldName in fields) {
+                if (!currentFieldSet.includes(fieldName)) {
+                    let field = fields[fieldName];
+                    let color = field[whichTemplate]?.length ? 'text-gray-555' : 'text-gray-aaa';
+                    let iconClasses = (field?.source === 'adapter' ? 'delete-field-button text-gray-666 cursor-pointer' : 'text-gray-ddd');
+                    let iconTitle = (field?.source === 'adapter' ? 'Remove field from adapter.' : 'Data source field cannot be removed here.');
+                    available.insertAdjacentHTML('beforeend', `
+                            <label class="block py-2 px-2 shadow flex flex-row justify-between items-center flex-grow border rounded border-gray-ddd mb-1" title="Click to add">
+                                <div>
+                                    <input type="checkbox" data-key="${fieldName}">
+                                    <span>${fieldName}</span>
+                                </div>
+                                <div class="text-right flex items-center">
+                                    <span class="${color} italic font-normal mr-4" title="The render template used by this field.">${field[whichTemplate] || ''}</span>
+                                    <svg data-field-name="${fieldName}" data-field-id="${field.id}" class="${iconClasses}" width="16" height="16" title="${iconTitle}"><use href="#trashcan"></use></svg>
+                                </div>
+                            </label>
+                            `);
+                }
+            }
+
+            let collectKeys = () => {
+                let fields = [];
+                sortable.querySelectorAll('input').forEach(input => {
+                    if (input.checked) {
+                        let key = input.dataset.key;
+                        fields.push(key);
+                    }
+                });
+                available.querySelectorAll('input').forEach(input => {
+                    if (input.checked) {
+                        let key = input.dataset.key;
+                        fields.push(key);
+                    }
+                });
+                return fields.join(',');
+            }
+
+            sortable.querySelectorAll('input').forEach((input) => {
+                input.addEventListener('change', async (e) => {
+                    fieldSetInput.value = collectKeys();
+                    _Entities.generalTab.updateSortableDataFields(entity);
+                });
+            });
+
+            // checked available fields go to sortable fields
+            available.querySelectorAll('input').forEach((input) => {
+                input.addEventListener('change', async (e) => {
+                    fieldSetInput.value = collectKeys();
+                    _Entities.generalTab.updateSortableDataFields(entity);
+                });
+            });
+
+            // allow changing of edit templates
+            sortable.querySelectorAll('[data-field-name]').forEach((span) => {
+                span.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    _Entities.generalTab.showRenderTemplates(entity, displayMode, span);
+                })
+            });
+
+            // activate delete button(s) on available field
+            document.querySelectorAll('.delete-field-button').forEach((button) => {
+                button.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    button.classList.add('hidden');
+                    let data = button.dataset;
+                    let id = data.fieldId;
+                    let div = button.parentNode;
+                    div.insertAdjacentHTML('beforeend', `<svg id="confirm-deletion" class="ml-2 text-green" width="16" height="16"><title>Confirm deletion</title><use href="#checkmark_bold"></use></svg>`);
+                    div.insertAdjacentHTML('beforeend', `<svg id="cancel-deletion" class="ml-2 text-red" width="16" height="16"><title>Cancel</title><use href="#close-dialog-x"></use></svg>`);
+                    let confirm = document.querySelector('svg#confirm-deletion');
+                    let cancel = document.querySelector('svg#cancel-deletion');
+                    cancel.addEventListener('click', async (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        button.classList.remove('hidden');
+                        confirm.remove();
+                        cancel.remove();
+                    });
+                    confirm.addEventListener('click', async (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        await fetch(`${Structr.rootUrl}DOMNode/${entity.id}/updateDataSourceField`, {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                fieldName: data.fieldName,
+                                delete: true
+                            })
+                        });
+                        _Pages.previews.updatePreviewSlideout();
+                        _Entities.generalTab.updateSortableDataFields(entity);
+                    })
+                })
+            })
+
+            _Widgets.sortables.enableDragSort(sortable, () => {
+                fieldSetInput.value = collectKeys();
+                fieldSetInput.dispatchEvent(new Event('change'));
+            });
+
+            fieldSetInput.dispatchEvent(new Event('change'));
+        },
+        showRenderTemplates: async (entity, displayMode, span) => {
+            let div = document.createElement('div');
+            let data = span.dataset;
+            div.classList.add('bg-white', 'border', 'border-gray-ddd', 'rounded', 'render-template-select');
+            let templates = await Command.queryPromise('Widget', 1000, 1, 'name', 'asc', { isRenderTemplate: true }, true, '', 'id,type,name,selectors');
+            templates.push({ separator: true });
+            templates.push({ name: '<b>Reset to default</b>', reset: true });
+            for (let template of templates) {
+                if (template.separator) {
+                    let hr = document.createElement('hr');
+                    div.appendChild(hr);
+                } else {
+                    if (data.fieldType && template.selectors && !template.selectors.includes(data.fieldType)) {
+                        continue;
+                    }
+                    let item = document.createElement('div');
+                    item.innerHTML = template.name;
+                    div.appendChild(item);
+                    item.addEventListener('click', async (e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        await fetch(`${Structr.rootUrl}DOMNode/${entity.id}/updateDataSourceField`, {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                fieldName: data.fieldName,
+                                templateName: template.reset ? null : template.name,
+                                displayMode: displayMode
+                            })
+                        });
+                        _Pages.previews.updatePreviewSlideout();
+                        _Entities.generalTab.updateSortableDataFields(entity);
+                    });
+                }
+            }
+            span.appendChild(div);
+            div.addEventListener('mouseleave', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                div.remove();
+            })
+        },
         loadOptions: async (selector, type, currentValue, query, prefix = 'node:', property = 'name', labelFunction) => {
 
             let selectField = document.querySelector(selector);
@@ -2877,8 +3066,6 @@ let _Entities = {
                 e.target.classList.add('active');
 
                 Command.setProperty(entity.id, key, value, false, (result) => {
-                    console.log(typeof callback)
-
                     if (callback && typeof callback === 'function') {
                         callback(result);
                     }
@@ -3086,7 +3273,7 @@ let _Entities = {
 
 			_Entities.generalTab.registerSimpleInputChangeHandlers(el, entity, emptyStringInsteadOfNull, true);
 		},
-        registerSimpleInputChangeHandlers: (el, src, emptyStringInsteadOfNull, isDeferredChangeHandler = false) => {
+        registerSimpleInputChangeHandlers: (el, src, emptyStringInsteadOfNull, isDeferredChangeHandler = false, callback) => {
 
             for (let inputEl of el[0].querySelectorAll('textarea[name], input[name]')) {
 
@@ -3110,13 +3297,13 @@ let _Entities = {
 
                             let blinkElement = (inputEl.type === 'checkbox') ? $(inputEl).parent() : null;
 
-                            _Entities.setPropertyWithFeedback(entity, key, newVal || (emptyStringInsteadOfNull ? '' : null), $(inputEl), blinkElement);
+                            _Entities.setPropertyWithFeedback(entity, key, newVal || (emptyStringInsteadOfNull ? '' : null), $(inputEl), blinkElement, callback);
                         }
                     });
                 }
             }
         },
-		registerSimpleSelectChangeHandlers: (el, src, emptyStringInsteadOfNull, isDeferredChangeHandler = false) => {
+		registerSimpleSelectChangeHandlers: (el, src, emptyStringInsteadOfNull, isDeferredChangeHandler = false, callback) => {
 
 			for (let inputEl of el[0].querySelectorAll('select[name]')) {
 
@@ -3140,7 +3327,7 @@ let _Entities = {
 
 							let blinkElement = (inputEl.type === 'checkbox') ? $(inputEl).parent() : null;
 
-							_Entities.setPropertyWithFeedback(entity, key, newVal || (emptyStringInsteadOfNull ? '' : null), $(inputEl), blinkElement);
+							_Entities.setPropertyWithFeedback(entity, key, newVal || (emptyStringInsteadOfNull ? '' : null), $(inputEl), blinkElement, callback);
 						}
 					});
 				}
@@ -3832,23 +4019,13 @@ let _Entities = {
                     </div>
 
                     <div>
-                        <label class="block mb-2" for="data-adapter-select" data-comment="The data adapter determines how the objects are displayed in this component.">Data Adapter</label>
-                        <div class="data-adapter-options flex">
-                            <select class="select2" id="data-adapter-select" name="dataAdapter" data-which="config">
-                                <option value="">None</option>
-                            </select>
-                            <button class="button btn ml-2 mr-0" title="Create a new data adapter"><svg width="16" height="16"><use href="#circle_plus"></use></svg></button>
-                        </div>
+                        <label class="block mb-2" for="display-mode-select" data-comment="Controls the display mode of this component">Display Mode</label>
+                        <div id="display-mode-buttons" class="toggle-button-container"></div>
                     </div>
 
                     <div>
                         <label class="block mb-2" for="role-select" data-comment="The role of a component determines whether it controls other components or is controlled by other components.">Role</label>
                         <div id="role-buttons" class="toggle-button-container"></div>
-                    </div>
-
-                    <div>
-                        <label class="block mb-2" for="display-mode-select" data-comment="Controls the display mode of this component">Display Mode</label>
-                        <div id="display-mode-buttons" class="toggle-button-container"></div>
                     </div>
                     
                     <div>
@@ -3865,6 +4042,10 @@ let _Entities = {
                         </select>
                     </div>
                     -->
+                    <div class="mb-2 mt-2 flex items-center">
+                        <input type="checkbox" name="labels" id="labels" data-which="config">
+                        <label for="labels">Show Labels</label>
+                    </div>
                 
                     <div class="col-span-1 @xl:col-span-2">
                         <label class="block mb-2" for="columns-select" data-comment="Controls the width of this component in grid views">Width</label>
@@ -3876,20 +4057,18 @@ let _Entities = {
 
             fieldConfigPartial: (config) => `
 				
-    			<h3>Configure Fields</h3>
-
 				<div class="${_Entities.generalTab.templates.gridClasses()} mt-8">
+    			    <h3>Configured Fields</h3>
+   			    </div>
 
-                    <div>
+				<div class="${_Entities.generalTab.templates.gridClasses()}">
+                        
+                    <div class="${_Entities.generalTab.templates.colspan2Classes()}">
                         <input type="text" required class="hidden form-field" id="field-set-input" name="fieldSet" data-which="config" />
                         <div class="flex flex-col" id="sortable-list"></div>
-                    </div>
-                    
-                    <div>
-                        <div class="mb-2 mt-2 flex items-center">
-                            <input type="checkbox" name="labels" id="labels" data-which="config">
-                            <label for="labels">Show Labels</label>
-                        </div>
+                        <label id="add-adapter-field-button" class="block py-2 px-2 flex flex-row justify-center flex-grow text-gray-999 hover:border-solid hover:text-gray-666 border cursor-pointer border-dashed rounded border-gray-ddd mb-1"><span>Add new field</span></label>
+                        <h4>Available Fields</h4>
+                        <div class="flex flex-col" id="available-list"></div>
                     </div>
 
                 </div>

@@ -379,4 +379,24 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 
 		return (List) StructrApp.getInstance(securityContext).nodeQuery(getTargetType()).sort(nameKey).getAsList();
 	}
+
+	@Override
+	public String renderTemplate() {
+		return "related-name";
+	}
+
+	@Override
+	public String editTemplate() {
+		return "select";
+	}
+
+	@Override
+	public String dataType() {
+		return "node";
+	}
+
+	@Override
+	public String nodeType() {
+		return relatedType();
+	}
 }

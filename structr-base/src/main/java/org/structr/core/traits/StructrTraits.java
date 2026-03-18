@@ -54,6 +54,7 @@ public class StructrTraits {
 	public static final String TEMPLATE                            = "Template";
 	public static final String CONTENT                             = "Content";
 	public static final String DATA_ADAPTER                        = "DataAdapter";
+	public static final String DATA_ADAPTER_FIELD                  = "DataAdapterField";
 	public static final String DATA_SOURCE                         = "DataSource";
 	public static final String ACTION_MAPPING                      = "ActionMapping";
 	public static final String PARAMETER_MAPPING                   = "ParameterMapping";
@@ -321,6 +322,7 @@ public class StructrTraits {
 	public static final String USER_HOME_DIR_FOLDER                                           = "UserHOME_DIRFolder";
 	public static final String USER_WORKING_DIR_FOLDER                                        = "UserWORKING_DIRFolder";
 	public static final String DOM_NODE_FLOW_FLOW_CONTAINER                                   = "DOMNodeFLOWFlowContainer";
+	public static final String DATA_ADAPTER_HAS_FIELD_DATA_ADAPTER_FIELD                      = "DataAdapterHAS_FIELDDataAdapterField";
 	public static final String FLOW_ACTIVE_CONTAINER_CONFIGURATION                            = "FlowActiveContainerConfiguration";
 	public static final String FLOW_AGGREGATE_START_VALUE                                     = "FlowAggregateStartValue";
 	public static final String FLOW_CALL_CONTAINER                                            = "FlowCallContainer";

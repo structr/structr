@@ -26,7 +26,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.datasources.Channel;
 import org.structr.core.entity.DataAdapter;
-import org.structr.core.graph.NodeAttribute;
+import org.structr.core.entity.DataSource;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
@@ -41,7 +41,6 @@ import org.structr.web.entity.Widget;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.traits.definitions.WidgetTraitDefinition;
-import org.structr.websocket.command.AppendWidgetCommand;
 import org.structr.websocket.command.CreateComponentCommand;
 
 import java.util.LinkedHashSet;
@@ -58,13 +57,11 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 
 		final SecurityContext securityContext = ctx.getSecurityContext();
 		final App app                         = StructrApp.getInstance(securityContext);
-		final Map<String, DataField> fields   = dataAdapter.getFields(securityContext);
 		final RenderContext innerCtx          = (RenderContext)ctx;
 		final TagWithCSSInfo wrapper          = getWrapperElement(tag);
 		final AsyncBuffer buffer              = innerCtx.getBuffer();
 		final Boolean showLabels              = domNode.getShowLabelsFlagForComponent();
 		final String requestedFieldSet        = domNode.getFieldSetForComponent();
-		final List<String> fieldSet           = splitAndTrim(requestedFieldSet, ",");
 		final String displayMode              = domNode.getDisplayModeForComponent(securityContext);
 		final String reloadBehaviour          = domNode.getReloadBehaviourForComponent();
 		final boolean useEditTemplate         = "input".equals(displayMode);
@@ -114,12 +111,16 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 			}
 		}
 
-		for (final String field : fieldSet) {
+		// fetch augmented fields from data adapter
+		final Map<String, DataField> augmentedFields = dataAdapter.augmentFields(innerCtx, sourceChannel);
+		final List<String> fieldSetFromComponent     = splitAndTrim(requestedFieldSet, ",");
 
-			final DataField dataField = fields.get(field);
-			if (dataField != null) {
+		for (final String field : fieldSetFromComponent) {
 
-				final Set<String> slots = dataField.getSlots();
+			final DataField augmentedField = augmentedFields.get(field);
+			if (augmentedField != null) {
+
+				final Set<String> slots = augmentedField.getSlots();
 
 				if (slot != null && slots.isEmpty()) {
 					renderTemplate(app, innerCtx, "span-missing-slot", "<span class=\"error col-span-6\">Field '" + field + "' in data adapter '" + dataAdapter.getName() + "' is missing 'slot' entry.</span>");
@@ -127,21 +128,21 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 				} else {
 
 					// no slot => iterate over all fields or just one slot, or name
-					if (slot == null || slots.contains(slot) || slot.equals(dataField.getName())) {
+					if (slot == null || slots.contains(slot) || slot.equals(augmentedField.getName())) {
 
 						final Set<String> cssClasses    = new LinkedHashSet<>();
-						final String editTemplate       = dataField.getEditTemplate();
-						final String template           = dataField.getTemplate();
-						final String valueSource        = dataField.getValue();
-						final String label              = dataField.getLabel();
-						final Boolean showLabelOverride = dataField.showLabel();
+						final String editTemplate       = augmentedField.getEditTemplate();
+						final String template           = augmentedField.getTemplate();
+						final String valueSource        = augmentedField.getValue();
+						final String label              = augmentedField.getLabel();
+						final Boolean showLabelOverride = augmentedField.showLabel();
 						Object value                    = null;
 
 						// apply field-dependent CSS classes to the wrapper element
-						dataField.applyCssClasses(cssClasses);
+						augmentedField.applyCssClasses(cssClasses);
 
 						// make field information available in context
-						innerCtx.setConstant("field", dataField.evaluate(innerCtx, sourceChannel));
+						innerCtx.setConstant("field", augmentedField);
 
 						// value present?
 						if (valueSource != null) {
@@ -154,6 +155,10 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 							}
 
 							innerCtx.setConstant("value", value);
+
+						} else {
+
+							logger.warn("{}: field {} from data source {} has no value expression and will therefore produce no output.", getName(), field, dataAdapter.getName());
 						}
 
 						if (wrapper != null) {
@@ -223,18 +228,17 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 		innerCtx.setConstant("field", previousFieldValue);
 	}
 
-	public void applyLabels(final ActionContext ctx, final DataAdapter dataSource, final DOMNode domNode, final String templateWrapper, final String slot) throws FrameworkException {
+	public void applyLabels(final ActionContext ctx, final DataAdapter dataAdapter, final DOMNode domNode, final String templateWrapper, final String slot) throws FrameworkException {
 
-		final SecurityContext securityContext = ctx.getSecurityContext();
 		final RenderContext innerCtx          = (RenderContext) ctx;
-		final Map<String, DataField> fields   = dataSource.getFields(securityContext);
+		final DOMNode component               = domNode.getClosestComponent();
+		final ComponentConfiguration config   = component.getComponentConfiguration();
+		final Channel sourceChannel           = config.getDataSource();
+		final Map<String, DataField> fields   = dataAdapter.augmentFields(innerCtx, sourceChannel);
 		final TagWithCSSInfo wrapper          = getWrapperElement(templateWrapper);
 		final AsyncBuffer buffer              = innerCtx.getBuffer();
 		final String requestedFieldSet        = domNode.getFieldSetForComponent();
 		final List<String> fieldSet           = splitAndTrim(requestedFieldSet, ",");
-		final DOMNode component               = domNode.getClosestComponent();
-		final ComponentConfiguration config   = component.getComponentConfiguration();
-		final Channel sourceChannel           = config.getDataSource();
 
 		if (fieldSet.isEmpty()) {
 			logger.warn("{}: {} with ID {} doesn't specify a fieldSet, nothing will be rendered.", getName(), domNode.getType(), domNode.getUuid());
@@ -253,7 +257,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 					final String label = dataField.getLabel();
 
 					innerCtx.setConstant("value", label);
-					innerCtx.setConstant("field", dataField.evaluate(innerCtx, sourceChannel));
+					innerCtx.setConstant("field", dataField);
 
 					if (wrapper != null) {
 						wrapper.formatStartTag(buffer);
@@ -272,6 +276,10 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 	}
 
 	private DOMNode getTemplate(final App app, final String slot, final String templateName) throws FrameworkException {
+
+		if (StringUtils.isBlank(templateName)) {
+			return null;
+		}
 
 		final DOMNode template = getNodeForInclude(app, joinNonNullStrings(slot, templateName));
 		if (template != null) {

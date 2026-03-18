@@ -782,55 +782,6 @@ let _Widgets = {
                     }
                     break;
 
-                case 'adapter': {
-                        let sources = await Command.queryPromise('DataAdapter', 1000, 1, 'name', 'asc', {}, true, 'adapter');
-                        let values = {};
-                        for (let value of sources) {
-                            values[value.id] = value.name;
-                        }
-                        form.append(`
-                            <div>
-                                <h4 id="label-${cleanedLabel}">${titleLabel}</h4>
-                                <select required data-info="select-adapter" id="${cleanedLabel}" class="form-field" data-key="${label}">
-                                    ${getOptionsAsText(values, defaultValue)}
-                                    <option value="create-new-data-adapter">+ New data adapter..</option>
-                                </select>
-                            </div>
-                        `);
-                        document.querySelector(`#${cleanedLabel}`).dispatchEvent(new CustomEvent('change', {}));
-                    }
-                    break;
-
-                case 'fieldset':
-                    form.append(`
-                        <div>
-                            <h4 id="label-${cleanedLabel}">${titleLabel}</h4>
-                            <select required id="${cleanedLabel}" class="form-field" data-key="${label}">
-                                <option value="create-new-field-set">+ New field set..</option>
-                            </select>
-                        </div>`);
-                    {
-                        let typeSelect = document.querySelector('select[data-info="select-adapter"]');
-                        if (typeSelect) {
-                            typeSelect.addEventListener('change', async (e) => {
-                                let id = typeSelect.value;
-                                Command.get(id, 'id,type,name,fieldSets', (info) => {
-                                    if (info) {
-                                        let s = document.querySelector(`select#${cleanedLabel}`);
-                                        let fieldSets = JSON.parse(info.fieldSets); // right now it's JSON...
-                                        s.insertAdjacentHTML('beforeend', getOptionsAsText(Object.keys(fieldSets).sort(), 'default'));
-                                        s.dispatchEvent(new CustomEvent('change', {}));
-                                    }
-                                });
-                            });
-                            typeSelect.dispatchEvent(new CustomEvent('change', {}));
-                        } else {
-                            console.log('No typeselect');
-                        }
-                        document.querySelector(`#${cleanedLabel}`).dispatchEvent(new CustomEvent('change', {}));
-                    }
-                    break;
-
                 case 'fields':
                     form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select required id="${cleanedLabel}" class="form-field" data-key="${label}"></select></div>`);
                     {
@@ -847,54 +798,6 @@ let _Widgets = {
                             });
                         } else {
                             console.log('No typeselect');
-                        }
-                    }
-                    break;
-
-                case 'mapping':
-                    form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><input type="text" required class="form-field" id="${cleanedLabel}" data-key="${label}" /><div class="sortable-checkbox-list" id="options-${cleanedLabel}"></div></div>`);
-                    {
-                        let typeSelect = document.querySelector('select[data-info="select-adapter"]');
-                        if (typeSelect) {
-                            let blacklist = { grantees: true };
-                            typeSelect.addEventListener('change', async (e) => {
-                                let id = typeSelect.value;
-                                Command.get(id, 'id,type,name,mapping', (adapter) => {
-                                    let s = document.querySelector(`div#options-${cleanedLabel}`);
-                                    let i = document.querySelector(`input#${cleanedLabel}`);
-                                    s.innerHTML = '';
-                                    console.log(adapter)
-                                    let mapping = JSON.parse(adapter.mapping); // right now it's JSON...
-                                    if (mapping) {
-
-                                        for (let k in mapping) {
-                                            let key = mapping[k];
-                                            s.insertAdjacentHTML('beforeend', `<label draggable><input type="checkbox" data-key="${key.key}"><span>${key.label}</span></label>`);
-                                        }
-                                        let collectKeys = () => {
-                                            let mapping = {};
-                                            s.querySelectorAll('input').forEach(input => {
-                                                if (input.checked) {
-                                                    let key = input.dataset.key;
-                                                    mapping[key] = {
-                                                        key: key,
-                                                        template: 'Default'
-                                                    }
-                                                }
-                                            });
-                                            return JSON.stringify(mapping);
-                                        }
-                                        s.querySelectorAll('input').forEach((input) => {
-                                            input.addEventListener('change', async (e) => {
-                                                i.value = collectKeys();
-                                            })
-                                        })
-                                        _Widgets.sortables.enableDragSort(s);
-                                    }
-                                });
-                            });
-                        } else {
-                            console.log('No adapter select');
                         }
                     }
                     break;
@@ -1118,7 +1021,7 @@ let _Widgets = {
             for (const child of container.children) {
                 const handle = document.createElement('span');
                 handle.textContent = '⠿';
-                handle.style.cssText = 'cursor: grab; flex-grow: 0; margin-top: 2px;';
+                handle.style.cssText = 'cursor: grab; flex-grow: 0; margin-top: 2px; margin-left: 1rem;';
                 child.appendChild(handle);
                 child.setAttribute('draggable', 'true');
                 child.addEventListener('dragstart', (e) => {

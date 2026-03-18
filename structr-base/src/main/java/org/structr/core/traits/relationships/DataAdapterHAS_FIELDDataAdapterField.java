@@ -16,32 +16,32 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.traits.relationships;
+package org.structr.core.traits.relationships;
 
 import org.structr.core.entity.Relation;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-public class ComponentConfigurationHAS_DATA_ADAPTERDataAdapter extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
+public class DataAdapterHAS_FIELDDataAdapterField extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	public ComponentConfigurationHAS_DATA_ADAPTERDataAdapter() {
-		super(StructrTraits.COMPONENT_CONFIGURATION_HAS_DATA_ADAPTER);
+	public DataAdapterHAS_FIELDDataAdapterField() {
+		super(StructrTraits.DATA_ADAPTER_HAS_FIELD_DATA_ADAPTER_FIELD);
 	}
 
 	@Override
 	public String getSourceType() {
-		return StructrTraits.COMPONENT_CONFIGURATION;
-	}
-
-	@Override
-	public String getTargetType() {
 		return StructrTraits.DATA_ADAPTER;
 	}
 
 	@Override
+	public String getTargetType() {
+		return StructrTraits.DATA_ADAPTER_FIELD;
+	}
+
+	@Override
 	public String getRelationshipType() {
-		return "HAS_DATA_ADAPTER";
+		return "HAS_FIELD";
 	}
 
 	@Override
@@ -51,17 +51,17 @@ public class ComponentConfigurationHAS_DATA_ADAPTERDataAdapter extends AbstractR
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
-		return Relation.Multiplicity.One;
+		return Relation.Multiplicity.Many;
 	}
 
 	@Override
 	public int getCascadingDeleteFlag() {
-		return Relation.NONE;
+		return Relation.SOURCE_TO_TARGET;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
-		return Relation.NONE;
+		return Relation.SOURCE_TO_TARGET;
 	}
 
 	@Override

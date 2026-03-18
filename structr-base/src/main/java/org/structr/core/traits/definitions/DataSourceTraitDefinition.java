@@ -69,6 +69,9 @@ public class DataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 						case "dataType":
 							return dataSource.getDataType(renderContext);
 
+						case "selectedValue":
+							throw new RuntimeException("selectedValue requested, dont know how to handle it yet.");
+
 						case "currentValue":
 							return getCurrentValue(renderContext, contextObject);
 					}

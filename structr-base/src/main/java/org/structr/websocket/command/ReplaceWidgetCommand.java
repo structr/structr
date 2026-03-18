@@ -155,7 +155,7 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 
 					if (items.put(itemType, slotData) != null) {
 
-						throw new FrameworkException(422, "Slot " + itemType + " exists more than once in " + slotNode);
+						throw new FrameworkException(422, "Slot " + itemType + " exists more than once in " + nameOrTag(slotNode));
 					}
 				}
 

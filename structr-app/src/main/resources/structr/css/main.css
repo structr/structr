@@ -240,14 +240,14 @@ button, textarea, input, select {
 }
 
 select {
-	-webkit-appearance: none;
-	-moz-appearance: none;
-	appearance: none;
-	background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' fill='%21f242d'><polygon points='0,0 100,0 50,50'/></svg>") no-repeat;
-	background-size: .75rem;
-	background-position: calc(100% - .5rem) calc(100% - .6rem);
-	background-color: var(--solid-white);
-	padding-right: 2rem;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' fill='%21f242d'><polygon points='0,0 100,0 50,50'/></svg>") no-repeat;
+    background-size: .75rem;
+    background-position: calc(100% - .5rem) calc(100% - .6rem);
+    background-color: var(--solid-white);
+    padding-right: 2rem;
 }
 
 button {
@@ -3174,6 +3174,36 @@ div.toggle-button-container button:last-child {
 #sortable-list label {
 }
 
+.render-template-select {
+    box-shadow: 0 0 .625rem 0 rgba(0,0,0,0.1);
+    position: absolute;
+    padding: 0;
+    right: 0px;
+    top: 0px;
+    z-Index: 99;
+    min-Width: 200px;
+}
+
+.render-template-select div {
+    padding: .5rem 1rem;
+    color: var(--solid-black);
+    font-style: normal;
+}
+
+.render-template-select div:hover {
+    background-color: var(--structr-green);
+}
+
+.render-template-select hr {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    height: 1px;
+    border: none;
+    color: var(--gray-eee);
+    background-color: var(--gray-ccc);
+}
+
 #sortable-list label:hover {
     background-color: var(--very-light-structr-green);
 }
@@ -3181,6 +3211,19 @@ div.toggle-button-container button:last-child {
 #sortable-list label:has(input:checked) {
     font-weight: bold;
     background-color: var(--very-light-structr-green-2);
+}
+
+#sortable-list input[type="checkbox"] {
+    accent-color: var(--dark-structr-green);
+}
+
+#add-adapter-field-button.editing {
+    padding: 0;
+    border: none;
+}
+
+#add-adapter-field-button.editing span {
+    display: none;
 }
 
 /**
@@ -3416,6 +3459,10 @@ table#principals .typeIcon {
 .events-container textarea {
 	width: 100%;
 	box-sizing: border-box;
+}
+
+.quick-access-options input[type="checkbox"] {
+    accent-color: var(--dark-structr-green);
 }
 
 input.validated:invalid {
@@ -4503,12 +4550,33 @@ ul.combined-input-select-field li:not(.nohover):hover {
 .text-active-tab-text {
 	color: var(--active-tab-text);
 }
+.text-green {
+    color: var(--structr-green);
+}
+.text-red {
+    color: var(--light-red);
+}
 .text-gray-ddd,
 .hover\:text-gray-ddd:hover {
 	color: var(--gray-ddd);
 }
+.text-gray-aaa {
+    color: var(--gray-aaa);
+}
 .text-gray-999 {
-	color: var(--gray-999);
+    color: var(--gray-999);
+}
+.text-gray-666 {
+    color: var(--gray-666);
+}
+.text-gray-555 {
+	color: var(--gray-555);
+}
+.hover\:text-gray-666:hover {
+    color: var(--gray-666);
+}
+.font-normal {
+    font-weight: 400;
 }
 .font-medium {
 	font-weight: 500;
@@ -4518,6 +4586,9 @@ ul.combined-input-select-field li:not(.nohover):hover {
 }
 .font-bold {
 	font-weight: 700;
+}
+.italic {
+    font-style: italic;
 }
 .p-0 {
 	padding: 0;
@@ -4967,6 +5038,15 @@ ul.combined-input-select-field li:not(.nohover):hover {
 .rounded-r {
 	border-top-right-radius: .25rem;
 	border-bottom-right-radius: .25rem;
+}
+.border-dashed {
+    border-style: dashed;
+}
+.border-solid {
+    border-style: solid;
+}
+.hover\:border-solid:hover {
+    border-style: solid;
 }
 .inset-0 {
 	top: 0px;

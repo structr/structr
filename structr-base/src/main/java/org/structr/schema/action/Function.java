@@ -933,13 +933,16 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 
 		final List<String> list = new LinkedList<>();
 
-		for (final String part : source.split(separator)) {
+		if (source != null) {
 
-			final String trimmed = part.trim();
+			for (final String part : source.split(separator)) {
 
-			if (StringUtils.isNotBlank(trimmed)) {
+				final String trimmed = part.trim();
 
-				list.add(trimmed);
+				if (StringUtils.isNotBlank(trimmed)) {
+
+					list.add(trimmed);
+				}
 			}
 		}
 

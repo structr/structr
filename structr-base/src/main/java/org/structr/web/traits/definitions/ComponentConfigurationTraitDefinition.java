@@ -24,7 +24,9 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
@@ -32,6 +34,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.DataAdapterTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.web.entity.ComponentConfiguration;
@@ -78,12 +81,29 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 					final ComponentConfiguration componentConfiguration = graphObject.as(ComponentConfiguration.class);
-					final Traits traits                                 = componentConfiguration.getTraits();
+					final Traits adapterTraits                          = Traits.of(StructrTraits.DATA_ADAPTER);
+					final Traits componentTraits                        = componentConfiguration.getTraits();
+					final String dataKey                                = "item";
+
+					// create new data adapter (one per component)
+					if (componentConfiguration.getDataAdapter() == null) {
+
+						StructrApp.getInstance(securityContext).create(StructrTraits.DATA_ADAPTER,
+							new NodeAttribute<>(adapterTraits.key(DataAdapterTraitDefinition.CONFIGURATION_PROPERTY), componentConfiguration),
+							new NodeAttribute<>(adapterTraits.key(DataAdapterTraitDefinition.DATA_KEY_PROPERTY), dataKey)
+						);
+					}
 
 					// default field is "name"
 					if (StringUtils.isEmpty(componentConfiguration.getFieldSet())) {
 
-						componentConfiguration.setProperty(traits.key(FIELD_SET_PROPERTY), "name");
+						componentConfiguration.setProperty(componentTraits.key(FIELD_SET_PROPERTY), "name");
+					}
+
+					// default field is "name"
+					if (StringUtils.isEmpty(componentConfiguration.getDisplayMode())) {
+
+						componentConfiguration.setProperty(componentTraits.key(DISPLAY_MODE_PROPERTY), "output");
 					}
 				}
 			}

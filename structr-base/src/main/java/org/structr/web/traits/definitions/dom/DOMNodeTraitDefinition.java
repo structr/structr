@@ -30,15 +30,24 @@ import org.structr.common.event.RuntimeEventLog;
 import org.structr.common.helper.CaseHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
 import org.structr.core.api.InstanceMethod;
+import org.structr.core.api.JavaMethod;
+import org.structr.core.app.StructrApp;
+import org.structr.core.datasources.Channel;
 import org.structr.core.datasources.DataSources;
 import org.structr.core.datasources.GraphDataSource;
+import org.structr.core.entity.DataAdapter;
+import org.structr.core.entity.DataAdapterField;
+import org.structr.core.entity.DataSource;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.ModificationQueue;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.*;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.DataAdapterFieldTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -47,6 +56,7 @@ import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.operations.nodeinterface.VisitForUsage;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
+import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.property.CustomHtmlAttributeProperty;
@@ -646,7 +656,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					if (newChildNode != null) {
 
 						final DOMNode newChild = newChildNode.as(DOMNode.class);
-						final DOMNode node     = entity.as(DOMNode.class);
+						final DOMNode node = entity.as(DOMNode.class);
 
 						node.appendChild(newChild);
 
@@ -668,7 +678,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					if (newChildNode != null) {
 
 						final DOMNode newChild = newChildNode.as(DOMNode.class);
-						final DOMNode node     = entity.as(DOMNode.class);
+						final DOMNode node = entity.as(DOMNode.class);
 
 						node.appendChild(newChild);
 
@@ -697,6 +707,68 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
 
 					return entity.as(DOMNode.class).isEditable();
+				}
+			},
+
+			new JavaMethod("getDataSourceFields", false, false) {
+				@Override
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
+					final DOMNode domNode               = entity.as(DOMNode.class);
+					final ComponentConfiguration config = domNode.getComponentConfiguration();
+					final DataAdapter adapter           = config.getDataAdapter();
+					final Channel dataSource            = config.getDataSource();
+
+					return adapter.augmentFields(new RenderContext(securityContext), dataSource);
+				}
+			},
+
+			new JavaMethod("updateDataSourceField", false, false) {
+				@Override
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
+					final DOMNode domNode               = entity.as(DOMNode.class);
+					final ComponentConfiguration config = domNode.getComponentConfiguration();
+					final DataAdapter adapter           = config.getDataAdapter();
+
+					final String fieldName    = (String) arguments.get("fieldName");
+					final String templateName = (String) arguments.get("templateName");
+					final String displayMode  = (String) arguments.get("displayMode");
+					final Boolean activate    = (Boolean) arguments.get("activate");
+					final Boolean delete      = (Boolean) arguments.get("delete");
+
+					final Map<String, DataAdapterField> fields = adapter.getFields();
+					final String type                          = StructrTraits.DATA_ADAPTER_FIELD;
+					final Traits fieldTraits                   = Traits.of(type);
+
+					DataAdapterField field = fields.get(fieldName);
+					if (field == null) {
+
+						field = StructrApp.getInstance(securityContext).create(type,
+							new NodeAttribute<>(fieldTraits.key(DataAdapterFieldTraitDefinition.DATA_ADAPTER_PROPERTY), adapter),
+							new NodeAttribute<>(fieldTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), fieldName)
+						).as(DataAdapterField.class);
+					}
+
+					if ("input".equals(displayMode)) {
+
+						field.setProperty(fieldTraits.key(DataAdapterFieldTraitDefinition.EDIT_TEMPLATE_PROPERTY), templateName);
+
+					} else {
+
+						field.setProperty(fieldTraits.key(DataAdapterFieldTraitDefinition.RENDER_TEMPLATE_PROPERTY), templateName);
+					}
+
+					if (activate != null && activate.booleanValue()) {
+						config.setFieldSet(config.getFieldSet() + "," + fieldName);
+					}
+
+					if (delete != null && delete.booleanValue()) {
+						config.setFieldSet(config.getFieldSet().replace(fieldName, ""));
+						StructrApp.getInstance(securityContext).delete(field);
+					}
+
+					return null;
 				}
 			}
 		);
