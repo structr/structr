@@ -23,7 +23,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.api.util.html.Attr;
 import org.structr.api.util.html.Tag;
 
+import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -89,6 +91,7 @@ public class StringMultiChoiceSetting extends Setting<String> {
 
 		final Tag group = parent.block("div").css("form-group");
 		final String id = RandomStringUtils.insecure().nextAlphabetic(8);
+		final List<String> sortedOptions = getAvailableOptions().stream().sorted().toList();
 
 		renderLabel(group);
 
@@ -99,7 +102,7 @@ public class StringMultiChoiceSetting extends Setting<String> {
 			new Attr("name",         getKey()),
 			new Attr("id",           id),
 			new Attr("class",        "ordered-multi-select hidden"),
-			new Attr("data-choices", StringUtils.join(AvailableOptions.stream().sorted(), ","))
+			new Attr("data-choices", StringUtils.join(sortedOptions, ","))
 		);
 
 		final String value = getValue();
@@ -111,7 +114,7 @@ public class StringMultiChoiceSetting extends Setting<String> {
 
 		final Tag options = settingInputContainer.block("div");
 
-		for (final String option : AvailableOptions.stream().sorted().toList()) {
+		for (final String option : sortedOptions) {
 			options.block("button").attr(
 				new Attr("type", "button"),
 				new Attr("class", "toggle-option hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666" + (value.contains(option) ? " active" : "")),
@@ -143,6 +146,17 @@ public class StringMultiChoiceSetting extends Setting<String> {
 		}
 
 		return getValue();
+	}
+
+	public String[] getSelectedOptions() {
+
+		return Arrays.stream(getValue("").split("[ \\t]+"))
+					   .filter(StringUtils::isNotBlank)
+					   .toArray(String[]::new);
+	}
+
+	public List<String> getAvailableOptions() {
+		return AvailableOptions.stream().toList();
 	}
 
 	public void addAvailableOption(final String option) {

@@ -52,6 +52,7 @@ import org.eclipse.jetty.websocket.server.WebSocketUpgradeHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.api.config.StringMultiChoiceSetting;
 import org.structr.api.service.*;
 import org.structr.core.Services;
 import org.structr.rest.auth.SessionHelper;
@@ -75,6 +76,7 @@ import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 @ServiceDependency(SchemaService.class)
 @StopServiceForMaintenanceMode
@@ -82,6 +84,32 @@ import java.util.function.Consumer;
 public class HttpService implements RunnableService, StatsCallback {
 
 	private static final Logger logger = LoggerFactory.getLogger(HttpService.class.getName());
+
+	public static final StringMultiChoiceSetting UriComplianceAllowedViolations = (StringMultiChoiceSetting) new StringMultiChoiceSetting(Settings.serverGroup, "HTTP Settings", "httpservice.uricompliance.allowedviolations",
+			UriCompliance.Violation.AMBIGUOUS_PATH_SEPARATOR.toString(),
+			new LinkedHashSet<>(Arrays.stream(UriCompliance.Violation.values())
+//										.filter(UriCompliance::isPathViolation)
+										.map(Enum::toString)
+										.toList()),
+			"These are URI \"violations\", which may be allowed by the compliance mode.").setLongDescription("""
+				These are actual violations of the RFC, as they represent additional requirements in excess of the strict compliance of <a href="https://datatracker.ietf.org/doc/html/rfc3986">RFC 3986</a>.
+				Allowing these violations allows requests to violate the corresponding additional requirement.
+
+				The main use case for allowing some of these violations is the URL Routes feature for pages when URL variables are used.
+				For example to support empty variable values, AMBIGUOUS_EMPTY_SEGMENT must be allowed.
+				By default, AMBIGUOUS_PATH_SEPARATOR is the only allowed violation as this is useful for variables in custom URL Routes for pages.
+
+				<dl>
+					%s
+				</dl>
+				""".formatted(
+						Arrays.stream(UriCompliance.Violation.values())
+//								.filter(UriCompliance::isPathViolation)
+								.sorted(Comparator.comparing(UriCompliance.Violation::getName))
+								.map(v -> "<dt><a href=\"%s\">%s</a></dt><dd>%s</dd>".formatted(v.getURL(), v.getName(), v.getDescription()))
+								.collect(Collectors.joining("\n"))
+				)
+	);
 
 	private enum LifecycleEvent {
 		Started, Stopped
@@ -501,31 +529,26 @@ public class HttpService implements RunnableService, StatsCallback {
 		httpConfig.setOutputBufferSize(1024 * 1024); // intentionally low buffer size to allow even small bits of content to be sent to the client in case of slow rendering
 		httpConfig.setRequestHeaderSize(requestHeaderSize);
 
-		switch(Settings.UriCompliance.getValue()) {
+		final UriCompliance.Violation[] allowedViolations = Arrays.stream(UriComplianceAllowedViolations.getSelectedOptions()).filter(str -> {
 
-			default:
-			case "RFC3986":
-				httpConfig.setUriCompliance(UriCompliance.RFC3986);
-				break;
+			try {
 
-			case "JETTY_DEFAULT":
-				httpConfig.setUriCompliance(UriCompliance.DEFAULT);
-				break;
+				UriCompliance.Violation.valueOf(str);
+				return true;
 
-			case "LEGACY":
-				httpConfig.setUriCompliance(UriCompliance.LEGACY);
-				break;
+			} catch (IllegalArgumentException iae) {
 
-			case "RFC3986_UNAMBIGUOUS":
-				httpConfig.setUriCompliance(UriCompliance.UNAMBIGUOUS);
-				break;
+				logger.error("Unable to start HTTP Service because of unsupported URI compliance violation: '{}'.\nPossible values are: {}", str, String.join(" ", UriComplianceAllowedViolations.getAvailableOptions()));
 
-			case "UNSAFE":
-				httpConfig.setUriCompliance(UriCompliance.UNSAFE);
-				break;
-		}
+				System.exit(1);
+				return false;
+			}
 
-		httpConfig.setUriCompliance(UriCompliance.from("RFC3986,AMBIGUOUS_PATH_SEPARATOR"));
+		}).map(UriCompliance.Violation::valueOf).toArray(UriCompliance.Violation[]::new);
+
+		final UriCompliance customUriComplianceMode = UriCompliance.RFC3986.with("Custom UriCompliance based on RFC3986 with allowed violations", allowedViolations);
+
+		httpConfig.setUriCompliance(customUriComplianceMode);
 
 		if (StringUtils.isNotBlank(host) && httpPort > -1) {
 
@@ -951,11 +974,11 @@ public class HttpService implements RunnableService, StatsCallback {
 	private Map<String, ServletHolder> collectServlets(final LicenseManager licenseManager) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		final Map<String, ServletHolder> servlets = new LinkedHashMap<>();
-		String servletNameList                    = Settings.Servlets.getValue();
+		final String[] selectedServlets = Settings.Servlets.getSelectedOptions();
 
-		if (servletNameList != null) {
+		if (selectedServlets.length > 0) {
 
-			for (String servletName : servletNameList.split("[ \\t]+")) {
+			for (String servletName : selectedServlets) {
 
 				if (StringUtils.isNotBlank(servletName)) {
 
