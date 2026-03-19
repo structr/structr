@@ -18,10 +18,20 @@
  */
 package org.structr.core.entity;
 
+import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
+
+import java.util.Map;
 
 public interface DataAdapterField extends NodeInterface {
 
 	String getRenderTemplate();
 	String getEditTemplate();
+	String getValue();
+	String getDataType();
+	String getLabel();
+
+	Map<String, Object> getConfig();
+
+	void setConfig(final Map<String, Object> detailConfig) throws FrameworkException;
 }

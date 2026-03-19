@@ -88,21 +88,24 @@ public class DataField extends LinkedHashMap<String, Object> {
 
 	public void augment(final DataAdapterField augmentation) {
 
-		final String template = augmentation.getRenderTemplate();
-		if (StringUtils.isNotBlank(template)) {
-			put("template", template);
-		}
-
-		final String editTemplate = augmentation.getEditTemplate();
-		if (StringUtils.isNotBlank(editTemplate)) {
-			put("editTemplate", editTemplate);
-		}
+		putIfNotEmpty(this, "template",     augmentation.getRenderTemplate());
+		putIfNotEmpty(this, "editTemplate", augmentation.getEditTemplate());
+		putIfNotEmpty(this, "label",        augmentation.getLabel());
+		putIfNotEmpty(this, "value",        augmentation.getValue());
+		putIfNotEmpty(this, "dataType",     augmentation.getDataType());
 
 		// only adapter fields can be deleted in UI
 		putIfAbsent("source", "adapter");
 
 		// store field ID
 		put("id", augmentation.getUuid());
+
+		// detail config
+		final Map<String, Object> config = augmentation.getConfig();
+		if (config != null) {
+
+			put("config", config);
+		}
 
 		/*
 		// combine "slot" and "slots"
@@ -171,6 +174,10 @@ public class DataField extends LinkedHashMap<String, Object> {
 
 				field.put("options", fieldDefinition.getOptions(renderContext, filter, label));
 			}
+
+		} else {
+
+			field.put("dataType", "custom");
 		}
 
 		// data from augmentation field
@@ -181,5 +188,13 @@ public class DataField extends LinkedHashMap<String, Object> {
 
 		return field;
 
+	}
+
+	// ----- private static methods -----
+	private static void putIfNotEmpty(final DataField field, final String key, final String value) {
+
+		if (StringUtils.isNotBlank(value)) {
+			field.put(key, value);
+		}
 	}
 }

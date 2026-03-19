@@ -731,11 +731,14 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					final ComponentConfiguration config = domNode.getComponentConfiguration();
 					final DataAdapter adapter           = config.getDataAdapter();
 
-					final String fieldName    = (String) arguments.get("fieldName");
-					final String templateName = (String) arguments.get("templateName");
-					final String displayMode  = (String) arguments.get("displayMode");
-					final Boolean activate    = (Boolean) arguments.get("activate");
-					final Boolean delete      = (Boolean) arguments.get("delete");
+					final String fieldName    = (String) arguments.get("_fieldName");
+					final String templateName = (String) arguments.get("_templateName");
+					final String displayMode  = (String) arguments.get("_displayMode");
+					final String destination  = (String) arguments.get("_destination");
+					final Boolean reset       = (Boolean) arguments.get("_reset");
+					final Boolean activate    = (Boolean) arguments.get("_activate");
+					final Boolean delete      = (Boolean) arguments.get("_delete");
+					final Boolean update      = (Boolean) arguments.get("_update");
 
 					final Map<String, DataAdapterField> fields = adapter.getFields();
 					final String type                          = StructrTraits.DATA_ADAPTER_FIELD;
@@ -750,13 +753,28 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 						).as(DataAdapterField.class);
 					}
 
-					if ("input".equals(displayMode)) {
+					if (templateName != null) {
 
-						field.setProperty(fieldTraits.key(DataAdapterFieldTraitDefinition.EDIT_TEMPLATE_PROPERTY), templateName);
+						if ("input".equals(displayMode)) {
 
-					} else {
+							field.setProperty(fieldTraits.key(DataAdapterFieldTraitDefinition.EDIT_TEMPLATE_PROPERTY), templateName);
 
-						field.setProperty(fieldTraits.key(DataAdapterFieldTraitDefinition.RENDER_TEMPLATE_PROPERTY), templateName);
+						} else {
+
+							field.setProperty(fieldTraits.key(DataAdapterFieldTraitDefinition.RENDER_TEMPLATE_PROPERTY), templateName);
+						}
+					}
+
+					if (reset != null && reset.booleanValue()) {
+
+						if ("input".equals(displayMode)) {
+
+							field.setProperty(fieldTraits.key(DataAdapterFieldTraitDefinition.EDIT_TEMPLATE_PROPERTY), null);
+
+						} else {
+
+							field.setProperty(fieldTraits.key(DataAdapterFieldTraitDefinition.RENDER_TEMPLATE_PROPERTY), null);
+						}
 					}
 
 					if (activate != null && activate.booleanValue()) {
@@ -766,6 +784,32 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					if (delete != null && delete.booleanValue()) {
 						config.setFieldSet(config.getFieldSet().replace(fieldName, ""));
 						StructrApp.getInstance(securityContext).delete(field);
+					}
+
+					if (update != null && update.booleanValue()) {
+
+						final Map<String, Object> args = arguments.toMap();
+						args.remove("_destination");
+						args.remove("_fieldName");
+						args.remove("_update");
+
+						if ("field".equals(destination)) {
+
+							final PropertyMap input = PropertyMap.inputTypeToJavaType(securityContext, StructrTraits.DATA_ADAPTER_FIELD, args);
+							field.setProperties(securityContext, input);
+
+						} else {
+
+							// set all values on the config object
+							Map<String, Object> detailConfig = field.getConfig();
+							if (detailConfig == null) {
+
+								detailConfig = new LinkedHashMap<>();
+							}
+
+							detailConfig.putAll(args);
+							field.setConfig(detailConfig);
+						}
 					}
 
 					return null;

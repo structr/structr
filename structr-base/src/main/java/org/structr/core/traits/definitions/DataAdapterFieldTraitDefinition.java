@@ -37,6 +37,7 @@ import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.wrappers.DataAdapterFieldTraitWrapper;
 import org.structr.web.entity.dom.DOMNode;
 
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -45,6 +46,10 @@ public class DataAdapterFieldTraitDefinition extends AbstractNodeTraitDefinition
 	public static final String DATA_ADAPTER_PROPERTY    = "dataAdapter";
 	public static final String RENDER_TEMPLATE_PROPERTY = "renderTemplate";
 	public static final String EDIT_TEMPLATE_PROPERTY   = "editTemplate";
+	public static final String LABEL_PROPERTY           = "label";
+	public static final String CONFIG_PROPERTY          = "config";
+	public static final String VALUE_PROPERTY           = "value";
+	public static final String DATA_TYPE_PROPERTY       = "dataType";
 
 	public DataAdapterFieldTraitDefinition() {
 		super(StructrTraits.DATA_ADAPTER_FIELD);
@@ -77,11 +82,19 @@ public class DataAdapterFieldTraitDefinition extends AbstractNodeTraitDefinition
 		final Property<NodeInterface> dataAdapterProperty = new StartNode(traitsInstance, DATA_ADAPTER_PROPERTY, StructrTraits.DATA_ADAPTER_HAS_FIELD_DATA_ADAPTER_FIELD).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<String> renderTemplateProperty     = new StringProperty(RENDER_TEMPLATE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<String> editTemplateProperty       = new StringProperty(EDIT_TEMPLATE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<String> labelProperty              = new StringProperty(LABEL_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<String> configProperty             = new StringProperty(CONFIG_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<String> valueProperty              = new StringProperty(VALUE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<String> dataTypeProperty           = new StringProperty(DATA_TYPE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 
 		return newSet(
 			dataAdapterProperty,
 			renderTemplateProperty,
-			editTemplateProperty
+			editTemplateProperty,
+			labelProperty,
+			valueProperty,
+			dataTypeProperty,
+			configProperty
 		);
 	}
 
@@ -94,7 +107,11 @@ public class DataAdapterFieldTraitDefinition extends AbstractNodeTraitDefinition
 				NodeInterfaceTraitDefinition.NAME_PROPERTY,
 				DATA_ADAPTER_PROPERTY,
 				RENDER_TEMPLATE_PROPERTY,
-				EDIT_TEMPLATE_PROPERTY
+				EDIT_TEMPLATE_PROPERTY,
+				LABEL_PROPERTY,
+				VALUE_PROPERTY,
+				DATA_TYPE_PROPERTY,
+				CONFIG_PROPERTY
 			)
 		);
 	}

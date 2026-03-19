@@ -3171,9 +3171,6 @@ div.toggle-button-container button:last-child {
     border-right-width: 1px;
 }
 
-#sortable-list label {
-}
-
 .render-template-select {
     box-shadow: 0 0 .625rem 0 rgba(0,0,0,0.1);
     position: absolute;
@@ -3204,13 +3201,27 @@ div.toggle-button-container button:last-child {
     background-color: var(--gray-ccc);
 }
 
-#sortable-list label:hover {
-    background-color: var(--very-light-structr-green);
-}
-
-#sortable-list label:has(input:checked) {
+#sortable-list details:has(input:checked) {
     font-weight: bold;
     background-color: var(--very-light-structr-green-2);
+}
+
+#sortable-list summary {
+    display: flex;
+    align-items: center;
+    list-style: none;
+}
+
+#sortable-list summary::before {
+    content: '▶';
+    font-size: 0.6em;
+    transition: transform 0.2s;
+    margin-right: 0.5rem;
+    flex-shrink: 0;
+}
+
+#sortable-list details[open] > summary::before {
+    transform: rotate(90deg);
 }
 
 #sortable-list input[type="checkbox"] {
@@ -5032,8 +5043,16 @@ ul.combined-input-select-field li:not(.nohover):hover {
 	border-radius: 9999px;
 }
 .rounded-l {
+    border-top-left-radius: .25rem;
+    border-bottom-left-radius: .25rem;
+}
+.rounded-b {
+    border-bottom-left-radius: .25rem;
+    border-bottom-right-radius: .25rem;
+}
+.rounded-t {
 	border-top-left-radius: .25rem;
-	border-bottom-left-radius: .25rem;
+	border-top-right-radius: .25rem;
 }
 .rounded-r {
 	border-top-right-radius: .25rem;
@@ -5068,7 +5087,13 @@ ul.combined-input-select-field li:not(.nohover):hover {
 	background-color: color-mix(in srgb, var(--solid-white), transparent 60%);
 }
 .bg-gray {
-	background-color: var(--light-gray-bg-f7);
+    background-color: var(--light-gray-bg-f7);
+}
+.bg-gray-f4 {
+    background-color: #f4f4f4;
+}
+.bg-gray-f8 {
+	background-color: #f8f8f8;
 }
 .bg-red {
 	background-color: var(--red);

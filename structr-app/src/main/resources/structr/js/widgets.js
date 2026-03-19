@@ -1013,7 +1013,7 @@ let _Widgets = {
 	},
 
     sortables: {
-        enableDragSort: (container, callback) => {
+        enableDragSortForDetailsSummary: (container, callback) => {
             let dragged = null;
             const indicator = document.createElement('div');
             indicator.style.cssText = 'height:4px; background:var(--structr-light-green);pointer-events:none;';
@@ -1022,13 +1022,15 @@ let _Widgets = {
                 const handle = document.createElement('span');
                 handle.textContent = '⠿';
                 handle.style.cssText = 'cursor: grab; flex-grow: 0; margin-top: 2px; margin-left: 1rem;';
-                child.appendChild(handle);
-                child.setAttribute('draggable', 'true');
-                child.addEventListener('dragstart', (e) => {
+                child.querySelector('summary').appendChild(handle);
+                handle.setAttribute('draggable', 'true');
+                handle.addEventListener('dragstart', (e) => {
                     dragged = child;
+                    const rect = child.getBoundingClientRect();
+                    e.dataTransfer.setDragImage(child, rect.width - 10, rect.height / 2);
                     setTimeout(() => child.style.opacity = '0.8', 0);
                 });
-                child.addEventListener('dragend', () => {
+                handle.addEventListener('dragend', () => {
                     child.style.opacity = '';
                     dragged = null;
                     indicator.remove();

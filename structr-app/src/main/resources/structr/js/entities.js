@@ -2789,8 +2789,8 @@ let _Entities = {
                                     await fetch(`${Structr.rootUrl}DOMNode/${entity.id}/updateDataSourceField`, {
                                         method: 'POST',
                                         body: JSON.stringify({
-                                            fieldName: input.value,
-                                            activate: true
+                                            _fieldName: input.value,
+                                            _activate: true
                                         })
                                     });
                                     let fieldSetInput = document.querySelector('#field-set-input');
@@ -2841,7 +2841,7 @@ let _Entities = {
                 return result.result;
             }
         },
-        updateSortableDataFields: async (entity) => {
+        updateSortableDataFields: async (entity, openField) => {
 
             // field set editor
             let fields = await _Entities.generalTab.loadAvailableDataFields(entity.id) || {};
@@ -2863,15 +2863,27 @@ let _Entities = {
                     let field = fields[fieldName];
                     let renderTemplate = field?.[whichTemplate];
                     let color = renderTemplate?.length ? 'text-gray-555' : 'text-gray-aaa';
-                    sortable.insertAdjacentHTML('beforeend', `
-                            <label class="block py-2 px-2 shadow flex flex-row items-center flex-grow border rounded border-gray-ddd mb-1" draggable title="Click to remove">
-                                <div class="flex-grow">
-                                    <input type="checkbox" checked data-key="${fieldName}">
-                                    <span>${fieldName}</span>
-                                </div>
-                                <span class="${color} italic font-normal cursor-pointer relative" data-field-name="${fieldName}" data-field-type="${field?.dataType}" title="Click to change template.">${renderTemplate || 'Set template..'}</span>
-                            </label>
-                            `);
+                    sortable.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.configuredFieldPartial({ fieldName, field, renderTemplate, color, open: openField === fieldName }));
+                    let editor = document.querySelector(`.field-details-editor[data-field-name="${fieldName}"]`);
+                    if (editor) {
+                        editor.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({ label: 'Value Expression', name: 'value', fieldName, value: field.value, destination: 'field' }));
+                        editor.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({ css: 'mt-4', label: 'Data Type', name: 'dataType', fieldName, value: field.dataType, destination: 'field' }));
+                        editor.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({ css: 'mt-4', label: 'Label', name: 'label', fieldName, value: field.label, destination: 'field' }));
+                        editor.insertAdjacentHTML('beforeend', await _Entities.generalTab.templates.fieldConfigurationInput(field, renderTemplate));
+                        editor.querySelectorAll('input').forEach(input => {
+                            input.addEventListener('change', async e => {
+                                let data = { _fieldName: input.dataset.fieldName, _update: true };
+                                data[input.name] = input.value;
+                                data._destination = input.dataset.destination || 'config';
+                                await fetch(`${Structr.rootUrl}DOMNode/${entity.id}/updateDataSourceField`, {
+                                    method: 'POST',
+                                    body: JSON.stringify(data)
+                                });
+                                _Pages.previews.updatePreviewSlideout();
+                                await _Entities.generalTab.updateSortableDataFields(entity, input.dataset.fieldName);
+                            })
+                        })
+                    }
                 }
             }
 
@@ -2879,21 +2891,11 @@ let _Entities = {
             for (let fieldName in fields) {
                 if (!currentFieldSet.includes(fieldName)) {
                     let field = fields[fieldName];
+                    let renderTemplate = field?.[whichTemplate];
                     let color = field[whichTemplate]?.length ? 'text-gray-555' : 'text-gray-aaa';
                     let iconClasses = (field?.source === 'adapter' ? 'delete-field-button text-gray-666 cursor-pointer' : 'text-gray-ddd');
                     let iconTitle = (field?.source === 'adapter' ? 'Remove field from adapter.' : 'Data source field cannot be removed here.');
-                    available.insertAdjacentHTML('beforeend', `
-                            <label class="block py-2 px-2 shadow flex flex-row justify-between items-center flex-grow border rounded border-gray-ddd mb-1" title="Click to add">
-                                <div>
-                                    <input type="checkbox" data-key="${fieldName}">
-                                    <span>${fieldName}</span>
-                                </div>
-                                <div class="text-right flex items-center">
-                                    <span class="${color} italic font-normal mr-4" title="The render template used by this field.">${field[whichTemplate] || ''}</span>
-                                    <svg data-field-name="${fieldName}" data-field-id="${field.id}" class="${iconClasses}" width="16" height="16" title="${iconTitle}"><use href="#trashcan"></use></svg>
-                                </div>
-                            </label>
-                            `);
+                    available.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.availableFieldPartial({ fieldName, field, renderTemplate, color, iconClasses, iconTitle }));
                 }
             }
 
@@ -2914,10 +2916,10 @@ let _Entities = {
                 return fields.join(',');
             }
 
-            sortable.querySelectorAll('input').forEach((input) => {
-                input.addEventListener('change', async (e) => {
+            sortable.querySelectorAll('input[type="checkbox"]').forEach((input) => {
+                input.addEventListener('click', async (e) => {
                     fieldSetInput.value = collectKeys();
-                    _Entities.generalTab.updateSortableDataFields(entity);
+                    await _Entities.generalTab.updateSortableDataFields(entity);
                 });
             });
 
@@ -2925,16 +2927,16 @@ let _Entities = {
             available.querySelectorAll('input').forEach((input) => {
                 input.addEventListener('change', async (e) => {
                     fieldSetInput.value = collectKeys();
-                    _Entities.generalTab.updateSortableDataFields(entity);
+                    await _Entities.generalTab.updateSortableDataFields(entity);
                 });
             });
 
             // allow changing of edit templates
-            sortable.querySelectorAll('[data-field-name]').forEach((span) => {
+            sortable.querySelectorAll('.select-render-template').forEach((span) => {
                 span.addEventListener('click', async (e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    _Entities.generalTab.showRenderTemplates(entity, displayMode, span);
+                    await _Entities.generalTab.showRenderTemplates(entity, displayMode, span);
                 })
             });
 
@@ -2964,17 +2966,17 @@ let _Entities = {
                         await fetch(`${Structr.rootUrl}DOMNode/${entity.id}/updateDataSourceField`, {
                             method: 'POST',
                             body: JSON.stringify({
-                                fieldName: data.fieldName,
-                                delete: true
+                                _fieldName: data.fieldName,
+                                _delete: true
                             })
                         });
                         _Pages.previews.updatePreviewSlideout();
-                        _Entities.generalTab.updateSortableDataFields(entity);
+                        await _Entities.generalTab.updateSortableDataFields(entity);
                     })
                 })
             })
 
-            _Widgets.sortables.enableDragSort(sortable, () => {
+            _Widgets.sortables.enableDragSortForDetailsSummary(sortable, () => {
                 fieldSetInput.value = collectKeys();
                 fieldSetInput.dispatchEvent(new Event('change'));
             });
@@ -3005,13 +3007,14 @@ let _Entities = {
                         await fetch(`${Structr.rootUrl}DOMNode/${entity.id}/updateDataSourceField`, {
                             method: 'POST',
                             body: JSON.stringify({
-                                fieldName: data.fieldName,
-                                templateName: template.reset ? null : template.name,
-                                displayMode: displayMode
+                                _fieldName: data.fieldName,
+                                _templateName: template.reset ? null : template.name,
+                                _displayMode: displayMode,
+                                _reset: template.reset || false
                             })
                         });
                         _Pages.previews.updatePreviewSlideout();
-                        _Entities.generalTab.updateSortableDataFields(entity);
+                        await _Entities.generalTab.updateSortableDataFields(entity);
                     });
                 }
             }
@@ -4073,6 +4076,56 @@ let _Entities = {
 
                 </div>
 			`,
+            configuredFieldPartial: (config) => `
+                <details class="shadow border rounded border-gray-ddd mb-1" ${config.open ? 'open' : ''} draggable title="Click to edit details.">
+                    <summary class="px-2 py-2 flex items-center">
+                        <div class="flex flex-grow items-center">
+                            <input type="checkbox" checked data-key="${config.fieldName}">
+                            <span>${config.fieldName}</span>
+                        </div>
+                        <span class="${config.color} italic font-normal cursor-pointer relative select-render-template" data-field-name="${config.fieldName}" data-field-type="${config.field?.dataType}" title="Click to change template.">${config.renderTemplate || 'Set template..'}</span>
+                    </summary>
+                    <div class="field-details-editor flex flex-col bg-gray-f8 p-4 border border-0 border-t border-gray-ddd rounded-b font-normal" data-field-name="${config.fieldName}"></div>
+                </details>
+            `,
+            availableFieldPartial: (config) => `
+                <label class="block py-2 px-2 shadow flex flex-row justify-between items-center flex-grow border rounded border-gray-ddd mb-1" title="Click to add">
+                    <div>
+                        <input type="checkbox" data-key="${config.fieldName}">
+                        <span>${config.fieldName}</span>
+                    </div>
+                    <div class="text-right flex items-center">
+                        <span class="${config.color} italic font-normal mr-4" title="The render template used by this field.">${config.renderTemplate || ''}</span>
+                        <svg data-field-name="${config.fieldName}" data-field-id="${config.field.id}" class="${config.iconClasses}" width="16" height="16" title="${config.iconTitle}"><use href="#trashcan"></use></svg>
+                    </div>
+                </label>
+            `,
+            fieldDetailInput: (config) => `
+                <label class="font-bold block mb-1 px-1 ${config.css || ''}">${config.label}</label>
+                <input type="text" data-field-name="${config.fieldName}" data-destination="${config.destination}" autocomplete="off" name="${config.name}" value="${config.value || ''}">
+            `,
+            fieldConfigurationInput: async (field, templateName) => {
+                let templates = await Command.queryPromise('Widget', 1000, 1, 'name', 'asc', { isRenderTemplate: true, name: templateName }, true, null, 'id,type,name,configuration');
+                let fields = [];
+                if (templates && templates.length) {
+                    let template = templates[0];
+                    if (template && template?.configuration?.length > 0) {
+                        let config = JSON.parse(template.configuration);
+                        for (let key in config) {
+                            let label = config[key]?.label || key;
+                            let value = field?.config?.[key];
+                            fields.push(_Entities.generalTab.templates.fieldDetailInput({
+                                css: 'mt-4',
+                                fieldName: field.name,
+                                name: key,
+                                value: value,
+                                label: label
+                            }));
+                        }
+                    }
+                }
+                return fields.join('\n');
+            },
 			spacerItemForGrid: config => `<div class="hidden @xl:block"><!-- occupy space in grid UI --></div>`,
 			containerClasses: config => `@container quick-access-options`,
 			gridClasses: config => `grid grid-cols-1 @xl:grid-cols-2 gap-8`,
