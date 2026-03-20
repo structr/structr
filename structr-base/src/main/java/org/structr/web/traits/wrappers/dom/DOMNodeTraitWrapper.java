@@ -54,6 +54,7 @@ import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.StringRenderBuffer;
+import org.structr.web.entity.Component;
 import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
@@ -1045,13 +1046,22 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	@Override
 	public ComponentConfiguration getComponentConfiguration() {
 
-		final NodeInterface node = wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.COMPONENT_CONFIGURATION_PROPERTY));
-		if (node != null) {
+		final Map<String, Object> cache = getTemporaryStorage();
+		ComponentConfiguration config   = (ComponentConfiguration) cache.get("_cached_component_configuration");
 
-			return node.as(ComponentConfiguration.class);
+		if (config == null) {
+
+			final NodeInterface node = wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.COMPONENT_CONFIGURATION_PROPERTY));
+			if (node != null) {
+
+				config = node.as(ComponentConfiguration.class);
+
+				// step 1 is to cache the component configuration
+				cache.put("_cached_component_configuration", config);
+			}
 		}
 
-		return null;
+		return config;
 	}
 
 	@Override

@@ -74,7 +74,7 @@ public abstract class AbstractMethod {
 
 	public abstract String getDeclaringTrait();
 
-	public abstract Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException;
+	public abstract Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException;
 
 	public String getName() {
 		return name;
@@ -118,7 +118,7 @@ public abstract class AbstractMethod {
 						try {
 
 							final Arguments args = NamedArguments.fromValues(actionContext, arguments);
-							final Arguments converted = checkAndConvertArguments(securityContext, args, true);
+							final Arguments converted = checkAndConvertArguments(actionContext, args, true);
 							inner = new ActionContext(securityContext, converted.toMap());
 							inner.setLocale(effectiveLocale);
 
@@ -180,7 +180,7 @@ public abstract class AbstractMethod {
 
 				// fallback => normal scripting
 				final Arguments converted = PolyglotWrapper.unwrapExecutableArguments(actionContext, this, arguments);
-				return PolyglotWrapper.wrap(actionContext, this.execute(actionContext.getSecurityContext(), entity, converted));
+				return PolyglotWrapper.wrap(actionContext, this.execute(actionContext, entity, converted));
 
 			} catch (FrameworkException ex) {
 				throw new RuntimeException(ex);
@@ -194,9 +194,11 @@ public abstract class AbstractMethod {
 	}
 
 	// ----- protected methods -----
-	protected Arguments checkAndConvertArguments(final SecurityContext securityContext, final Arguments arguments, final boolean ensureArgumentsArePresent) throws FrameworkException, IllegalArgumentTypeException {
+	protected Arguments checkAndConvertArguments(final ActionContext actionContext, final Arguments arguments, final boolean ensureArgumentsArePresent) throws FrameworkException, IllegalArgumentTypeException {
 
-		final Parameters parameters = getParameters();
+		final SecurityContext securityContext = actionContext.getSecurityContext();
+		final Parameters parameters           = getParameters();
+
 		if (parameters.isEmpty()) {
 
 			// don't convert anything if the method defines no formal parameters

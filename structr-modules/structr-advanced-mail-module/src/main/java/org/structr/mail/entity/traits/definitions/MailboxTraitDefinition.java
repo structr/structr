@@ -41,6 +41,7 @@ import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.mail.entity.Mailbox;
 import org.structr.mail.entity.traits.wrappers.MailboxTraitWrapper;
 import org.structr.mail.service.MailService;
+import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -93,7 +94,8 @@ public class MailboxTraitDefinition extends AbstractNodeTraitDefinition {
 			new JavaMethod("getAvailableFoldersOnServer", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) {
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) {
+					final SecurityContext securityContext = actionContext.getSecurityContext();
 					return getAvailableFoldersOnServer(securityContext, entity.as(Mailbox.class));
 				}
 
@@ -105,7 +107,7 @@ public class MailboxTraitDefinition extends AbstractNodeTraitDefinition {
 			new JavaMethod("fetchMails", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) {
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) {
 
 					final MailService mailService = Services.getInstance().getServiceImplementation(MailService.class);
 					if (mailService != null) {

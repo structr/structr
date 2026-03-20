@@ -45,6 +45,7 @@ import org.structr.core.traits.TraitsManager;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.SchemaService;
+import org.structr.schema.action.ActionContext;
 import org.structr.test.core.traits.definitions.*;
 import org.structr.test.core.traits.definitions.relationships.*;
 import org.testng.annotations.*;
@@ -466,7 +467,7 @@ public class StructrTest {
 		final AbstractMethod method = Methods.resolveMethod(node.getTraits(), methodName);
 		if (method != null) {
 
-			return method.execute(securityContext, node, NamedArguments.fromMap(parameters));
+			return method.execute(new ActionContext(securityContext), node, NamedArguments.fromMap(parameters));
 		}
 
 		if (throwIfNotExists) {

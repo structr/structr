@@ -875,9 +875,10 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 			new InstanceMethod(StructrTraits.DOM_ELEMENT, "event") {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
 
-					final RenderContext renderContext = new RenderContext(securityContext);
+					// if we're called from within a page, we get a render context, otherwise we get a (new) action context
+					final RenderContext renderContext = actionContext instanceof  RenderContext ? (RenderContext) actionContext : new RenderContext(actionContext.getSecurityContext());
 					final EventContext  eventContext  = new EventContext();
 
 					final NodeInterface domElementNode = StructrApp.getInstance().getNodeById(StructrTraits.DOM_ELEMENT, entity.getUuid());
@@ -1639,7 +1640,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 						renderContext.getSecurityContext().enableReturnRawResult();
 					}
 
-					return method.execute(renderContext.getSecurityContext(), target, NamedArguments.fromMap(parameters));
+					return method.execute(renderContext, target, NamedArguments.fromMap(parameters));
 
 				} else {
 
@@ -1663,7 +1664,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 							renderContext.getSecurityContext().enableReturnRawResult();
 						}
 
-						return method.execute(renderContext.getSecurityContext(), null, NamedArguments.fromMap(parameters));
+						return method.execute(renderContext, null, NamedArguments.fromMap(parameters));
 
 					} else {
 

@@ -58,6 +58,11 @@ $.theme = {
             "focus": "amber-800",
             "text": "white"
         },
+        "secondary": {
+            "background": "gray-700",
+            "focus": "gray-800",
+            "text": "white"
+        },
         "success": {
             "background": "emerald-700",
             "focus": "emerald-800",

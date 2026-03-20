@@ -47,6 +47,7 @@ import org.structr.core.traits.operations.nodeinterface.OnNodeDeletion;
 import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowContainer;
 import org.structr.flow.traits.operations.GetExportData;
+import org.structr.schema.action.ActionContext;
 
 import java.util.Map;
 import java.util.Set;
@@ -85,7 +86,8 @@ public class FlowContainerTraitDefinition extends AbstractNodeTraitDefinition {
 			new JavaMethod("evaluate", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+					final SecurityContext securityContext = actionContext.getSecurityContext();
 					return entity.as(FlowContainer.class).evaluate(securityContext, arguments.toMap());
 				}
 			},
@@ -93,7 +95,8 @@ public class FlowContainerTraitDefinition extends AbstractNodeTraitDefinition {
 			new JavaMethod("getFlowNodes", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+					final SecurityContext securityContext = actionContext.getSecurityContext();
 					return entity.as(FlowContainer.class).getFlowNodes(securityContext);
 				}
 			},
@@ -101,7 +104,8 @@ public class FlowContainerTraitDefinition extends AbstractNodeTraitDefinition {
 			new JavaMethod("getFlowRelationships", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+					final SecurityContext securityContext = actionContext.getSecurityContext();
 					return entity.as(FlowContainer.class).getFlowRelationships(securityContext);
 				}
 			}

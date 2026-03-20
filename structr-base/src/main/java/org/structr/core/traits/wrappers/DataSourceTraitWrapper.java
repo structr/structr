@@ -21,6 +21,7 @@ package org.structr.core.traits.wrappers;
 import org.structr.common.ChannelInput;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.datasources.ChannelResult;
 import org.structr.core.entity.DataSource;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
@@ -30,15 +31,23 @@ import org.structr.web.datasource.FieldDefinition;
 
 import java.util.Map;
 
-public class DataSourceTraitWrapper extends AbstractNodeTraitWrapper implements DataSource {
+public class DataSourceTraitWrapper extends AbstractNodeTraitWrapper implements DataSource<GraphObject> {
+
+	private ChannelResult<GraphObject> result;
 
 	public DataSourceTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
 	}
 
 	@Override
-	public final Iterable<GraphObject> getValues(final RenderContext renderContext, final ChannelInput input) throws FrameworkException {
-		return traits.getMethod(DataSourceOperations.class).getValues(renderContext, this, input);
+	public final ChannelResult<GraphObject> getResult(final RenderContext renderContext, final ChannelInput input) throws FrameworkException {
+
+		if (result == null) {
+
+			result = ChannelResult.fromStream(traits.getMethod(DataSourceOperations.class).getValues(renderContext, this, input));
+		}
+
+		return result;
 	}
 
 	@Override

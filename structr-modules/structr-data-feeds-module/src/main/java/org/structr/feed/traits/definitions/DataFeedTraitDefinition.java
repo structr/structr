@@ -39,6 +39,7 @@ import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.feed.entity.DataFeed;
 import org.structr.feed.traits.wrappers.DataFeedTraitWrapper;
+import org.structr.schema.action.ActionContext;
 
 import java.util.Date;
 import java.util.Map;
@@ -95,8 +96,9 @@ public class DataFeedTraitDefinition extends AbstractNodeTraitDefinition {
 			new JavaMethod("cleanUp", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
+					final SecurityContext securityContext = actionContext.getSecurityContext();
 					entity.as(DataFeed.class).cleanUp(securityContext);
 					return null;
 				}
@@ -110,7 +112,8 @@ public class DataFeedTraitDefinition extends AbstractNodeTraitDefinition {
 			new JavaMethod("updateIfDue", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+					final SecurityContext securityContext = actionContext.getSecurityContext();
 					entity.as(DataFeed.class).updateIfDue(securityContext);
 					return null;
 				}
@@ -124,7 +127,8 @@ public class DataFeedTraitDefinition extends AbstractNodeTraitDefinition {
 			new JavaMethod("updateFeed", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+					final SecurityContext securityContext = actionContext.getSecurityContext();
 					entity.as(DataFeed.class).updateFeed(securityContext);
 					return null;
 				}

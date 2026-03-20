@@ -44,6 +44,7 @@ import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.odf.entity.ODSExporter;
 import org.structr.odf.traits.wrappers.ODSExporterTraitWrapper;
+import org.structr.schema.action.ActionContext;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.transform.VirtualType;
 import org.structr.web.entity.File;
@@ -76,19 +77,19 @@ public class ODSExporterTraitDefinition extends AbstractNodeTraitDefinition {
 			new JavaMethod("exportAttributes", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
 					final Map<String, Object> data = arguments.toMap();
 					final String uuid              = (String)data.get("uuid");
 
-					exportAttributes(securityContext, entity.as(ODSExporter.class), uuid);
+					exportAttributes(actionContext, entity.as(ODSExporter.class), uuid);
 					return null;
 				}
 			}
 		);
 	}
 
-	public void exportAttributes(final SecurityContext securityContext, final ODSExporter entity, final String uuid) throws FrameworkException {
+	public void exportAttributes(final ActionContext actionContext, final ODSExporter entity, final String uuid) throws FrameworkException {
 
 		final File output                = entity.getResultDocument();
 		final VirtualType transformation = entity.getTransformationProvider();
@@ -97,7 +98,7 @@ public class ODSExporterTraitDefinition extends AbstractNodeTraitDefinition {
 
 			final App app = StructrApp.getInstance();
 			final ResultStream result = app.nodeQuery(StructrTraits.NODE_INTERFACE).key(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.ID_PROPERTY), uuid).getResultStream();
-			final ResultStream transformedResult = transformation.transformOutput(securityContext, StructrTraits.NODE_INTERFACE, result);
+			final ResultStream transformedResult = transformation.transformOutput(actionContext, StructrTraits.NODE_INTERFACE, result);
 
 			Map<String, Object> nodeProperties = new HashMap<>();
 			GraphObjectMap node = (GraphObjectMap) Iterables.first(transformedResult);

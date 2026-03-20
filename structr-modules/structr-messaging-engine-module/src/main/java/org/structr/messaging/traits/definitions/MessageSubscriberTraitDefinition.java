@@ -42,6 +42,7 @@ import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.messaging.engine.entities.MessageSubscriber;
 import org.structr.messaging.traits.wrappers.MessageSubscriberTraitWrapper;
+import org.structr.schema.action.ActionContext;
 
 import java.util.Map;
 import java.util.Set;
@@ -64,12 +65,12 @@ public class MessageSubscriberTraitDefinition extends AbstractNodeTraitDefinitio
 			new JavaMethod("onMessage", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
 					final String topic   = (String) arguments.get(0);
 					final String message = (String) arguments.get(1);
 
-					return entity.as(MessageSubscriber.class).onMessage(securityContext, topic, message);
+					return entity.as(MessageSubscriber.class).onMessage(actionContext, topic, message);
 				}
 			}
 		);
@@ -97,7 +98,7 @@ public class MessageSubscriberTraitDefinition extends AbstractNodeTraitDefinitio
 					final MessageSubscriber subscriber = graphObject.as(MessageSubscriber.class);
 					if (subscriber.getTopic() != null) {
 
-						subscriber.subscribeOnAllClients(securityContext);
+						subscriber.subscribeOnAllClients(new ActionContext(securityContext));
 					}
 				}
 			},
@@ -113,7 +114,7 @@ public class MessageSubscriberTraitDefinition extends AbstractNodeTraitDefinitio
 
 					if (modificationQueue.isPropertyModified(subscriber, topicKey)) {
 
-						subscriber.subscribeOnAllClients(securityContext);
+						subscriber.subscribeOnAllClients(new ActionContext(securityContext));
 					}
 				}
 			}

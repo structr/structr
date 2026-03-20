@@ -18,6 +18,7 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.structr.api.util.ResultStream;
 import org.structr.common.ChannelInput;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -160,17 +161,20 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			DataSourceOperations.class, new DataSourceOperations() {
+			DataSourceOperations.class, new DataSourceOperations<NodeInterface>() {
 
 				@Override
-				public Iterable<GraphObject> getValues(final RenderContext renderContext, final DataSource provider, final ChannelInput input) throws FrameworkException {
+				public ResultStream<NodeInterface> getValues(final RenderContext renderContext, final DataSource provider, final ChannelInput input) throws FrameworkException {
 
+					final PropertyKey sortKey             = Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 					final SecurityContext securityContext = renderContext.getSecurityContext();
-					final PropertyKey sortKey   = Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
-					final SchemaNode schemaNode = provider.as(SchemaNode.class);
-					final String name           = schemaNode.getName();
+					final SchemaNode schemaNode           = provider.as(SchemaNode.class);
+					final String name                     = schemaNode.getName();
+					final int pageSize                    = input != null ? input.pageSize() : Integer.MAX_VALUE;
+					final int page                        = input != null ? input.page() : 1;
 
-					return (Iterable) StructrApp.getInstance(securityContext).nodeQuery(name).sort(sortKey).getResultStream();
+					// this method is called one to obtain the results and then only the cached result is used
+					return StructrApp.getInstance(securityContext).nodeQuery(name).sort(sortKey).pageSize(pageSize).page(page).getResultStream();
 				}
 
 				@Override

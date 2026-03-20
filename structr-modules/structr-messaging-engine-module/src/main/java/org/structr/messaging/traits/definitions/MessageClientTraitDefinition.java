@@ -43,6 +43,7 @@ import org.structr.messaging.engine.entities.MessageSubscriber;
 import org.structr.messaging.traits.operations.MessageClientOperations;
 import org.structr.messaging.traits.wrappers.MessageClientTraitWrapper;
 import org.structr.rest.RestMethodResult;
+import org.structr.schema.action.ActionContext;
 
 import java.util.Map;
 import java.util.Set;
@@ -63,12 +64,12 @@ public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 			new JavaMethod("sendMessage", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
 					final String topic   = (String) arguments.get(0);
 					final String message = (String) arguments.get(1);
 
-					return entity.as(MessageClient.class).sendMessage(securityContext, topic, message);
+					return entity.as(MessageClient.class).sendMessage(actionContext, topic, message);
 				}
 
 				@Override
@@ -81,11 +82,11 @@ public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 			new JavaMethod("subscribeTopic", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
 					final String topic = (String) arguments.get(0);
 
-					return entity.as(MessageClient.class).subscribeTopic(securityContext, topic);
+					return entity.as(MessageClient.class).subscribeTopic(actionContext, topic);
 				}
 
 				@Override
@@ -98,11 +99,11 @@ public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 			new JavaMethod("unsubscribeTopic", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
 					final String topic   = (String) arguments.get(0);
 
-					return entity.as(MessageClient.class).unsubscribeTopic(securityContext, topic);
+					return entity.as(MessageClient.class).unsubscribeTopic(actionContext, topic);
 				}
 
 				@Override
@@ -122,7 +123,7 @@ public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 			MessageClientOperations.class,
 			new MessageClientOperations() {
 
-				public RestMethodResult sendMessage(final SecurityContext securityContext, final MessageClient client, final String topic, final String message) throws FrameworkException {
+				public RestMethodResult sendMessage(final ActionContext actionContext, final MessageClient client, final String topic, final String message) throws FrameworkException {
 
 					final App app = StructrApp.getInstance();
 					try (final Tx tx = app.tx()) {
@@ -146,7 +147,7 @@ public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 											params.add("topic", topic);
 											params.add("message", message);
 
-											method.execute(securityContext, sub, params);
+											method.execute(actionContext, sub, params);
 
 										} else {
 
@@ -169,12 +170,12 @@ public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 
 				@Override
-				public RestMethodResult subscribeTopic(final SecurityContext securityContext, final MessageClient client, final String topic) throws FrameworkException {
+				public RestMethodResult subscribeTopic(final ActionContext actionContext, final MessageClient client, final String topic) throws FrameworkException {
 					return new RestMethodResult(200);
 				}
 
 				@Override
-				public RestMethodResult unsubscribeTopic(final SecurityContext securityContext, final MessageClient client, final String topic) throws FrameworkException {
+				public RestMethodResult unsubscribeTopic(final ActionContext actionContext, final MessageClient client, final String topic) throws FrameworkException {
 					return new RestMethodResult(200);
 				}
 			}

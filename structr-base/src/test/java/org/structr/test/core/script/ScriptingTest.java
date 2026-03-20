@@ -312,7 +312,7 @@ public class ScriptingTest extends StructrTest {
 			final AbstractMethod method = Methods.resolveMethod(node.getTraits(), "doTest01");
 			if (method != null) {
 
-				method.execute(securityContext, node, new UnnamedArguments());
+				method.execute(new ActionContext(securityContext), node, new UnnamedArguments());
 			}
 
 			tx.success();

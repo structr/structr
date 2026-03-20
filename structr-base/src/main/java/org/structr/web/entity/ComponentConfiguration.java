@@ -18,17 +18,20 @@
  */
 package org.structr.web.entity;
 
+import org.structr.common.ChannelInput;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.datasources.Channel;
 import org.structr.core.entity.DataAdapter;
 import org.structr.core.graph.NodeInterface;
+import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
 
 public interface ComponentConfiguration extends NodeInterface {
 
 	DOMNode getComponent();
 	DataAdapter getDataAdapter();
-	Channel getDataSource() throws FrameworkException;
+	Channel<GraphObject> getDataSource() throws FrameworkException;
 
 	String getSelectionChannel() throws FrameworkException;
 	Integer getColumns();
@@ -41,4 +44,8 @@ public interface ComponentConfiguration extends NodeInterface {
 	Boolean showLabels();
 
 	void setFieldSet(final String s) throws FrameworkException;
+
+	int getPageSize();
+
+	ChannelInput getChannelInput(final RenderContext renderContext) throws FrameworkException;
 }

@@ -18,6 +18,7 @@
  */
 package org.structr.web.traits.wrappers;
 
+import org.structr.common.ChannelInput;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.datasources.Channel;
@@ -28,9 +29,12 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
+import org.structr.web.common.RenderContext;
 import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.traits.definitions.ComponentConfigurationTraitDefinition;
+
+import java.util.Map;
 
 public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper implements ComponentConfiguration {
 
@@ -66,33 +70,45 @@ public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper
 	@Override
 	public Channel getDataSource() throws FrameworkException {
 
-		final String dataSourceName = wrappedObject.getProperty(traits.key(ComponentConfigurationTraitDefinition.DATA_SOURCE_PROPERTY));
-		if (dataSourceName != null) {
+		final Map<String, Object> cache = getTemporaryStorage();
+		Channel dataSource = (Channel) cache.get("_cached_data_source");
 
-			if (dataSourceName.contains(":")) {
+		if (dataSource == null) {
 
-				final String[] parts = dataSourceName.split(":");
-				final String type     = parts[0];
-				final String name     = parts[1];
+			final String dataSourceName = wrappedObject.getProperty(traits.key(ComponentConfigurationTraitDefinition.DATA_SOURCE_PROPERTY));
+			if (dataSourceName != null) {
 
-				switch (type) {
+				if (dataSourceName.contains(":")) {
 
-					case "node":
-						final NodeInterface node = StructrApp.getInstance(getSecurityContext()).nodeQuery(StructrTraits.DATA_SOURCE).name(name).getFirst();
-						if (node != null) {
+					final String[] parts = dataSourceName.split(":");
+					final String type = parts[0];
+					final String name = parts[1];
 
-							return node.as(DataSource.class);
-						}
-						break;
+					switch (type) {
 
-					case "channel":
-						return new ChannelDataSource(this, name);
+						case "node":
+							final NodeInterface node = StructrApp.getInstance(getSecurityContext()).nodeQuery(StructrTraits.DATA_SOURCE).name(name).getFirst();
+							if (node != null) {
 
+								dataSource = node.as(DataSource.class);
+							}
+							break;
+
+						case "channel":
+							dataSource = new ChannelDataSource(this, name);
+
+					}
 				}
+			}
+
+			if (dataSource != null) {
+
+				// step 2: cache data source
+				cache.put("_cached_data_source", dataSource);
 			}
 		}
 
-		return null;
+		return dataSource;
 	}
 
 	@Override
@@ -138,6 +154,36 @@ public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper
 	@Override
 	public String getTransform() {
 		return wrappedObject.getProperty(traits.key(ComponentConfigurationTraitDefinition.TRANSFORM_PROPERTY));
+	}
+
+	@Override
+	public int getPageSize() {
+
+		final Integer value = wrappedObject.getProperty(traits.key(ComponentConfigurationTraitDefinition.PAGE_SIZE_PROPERTY));
+		if (value != null) {
+
+			return value.intValue();
+		}
+
+		return 10;
+	}
+
+	@Override
+	public ChannelInput getChannelInput(final RenderContext renderContext) throws FrameworkException {
+
+		final Channel channel      = getDataSource();
+		final String paginationKey = channel.getPaginationKey();
+		final String pageString    = renderContext.getRequestParameter(paginationKey);
+
+		int pageSize = getPageSize();
+		int page     = 1;
+
+		if (pageString != null) {
+
+			page = Integer.valueOf(pageString);
+		}
+
+		return new ChannelInput(getTransform(), pageSize, page);
 	}
 
 	@Override

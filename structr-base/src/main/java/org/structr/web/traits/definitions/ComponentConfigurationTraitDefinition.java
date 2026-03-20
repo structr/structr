@@ -37,6 +37,7 @@ import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.DataAdapterTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
+import org.structr.schema.openapi.operation.OpenAPIGetMultipleOperation;
 import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.traits.wrappers.ComponentConfigurationTraitWrapper;
@@ -58,6 +59,7 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 	public static final String DATA_SOURCE_PROPERTY           = "dataSource";
 	public static final String SELECTION_CHANNEL_PROPERTY     = "selectionChannel";
 	public static final String TRANSFORM_PROPERTY             = "transform";
+	public static final String PAGE_SIZE_PROPERTY             = "pageSize";
 
 	public ComponentConfigurationTraitDefinition() {
 		super(StructrTraits.COMPONENT_CONFIGURATION);
@@ -130,6 +132,7 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 		final Property<String> dataSourceProperty          = new StringProperty(DATA_SOURCE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<String> selectionChannelProperty    = new StringProperty(SELECTION_CHANNEL_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<String> transformProperty           = new StringProperty(TRANSFORM_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<Integer> pageSizeProperty           = new IntProperty(PAGE_SIZE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 
 		return newSet(
 			domNodeProperty,
@@ -143,7 +146,8 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 			columnsProperty,
 			dataSourceProperty,
 			selectionChannelProperty,
-			transformProperty
+			transformProperty,
+			pageSizeProperty
 		);
 	}
 
@@ -156,7 +160,7 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 				DOM_NODE_PROPERTY, DATA_ADAPTER_PROPERTY, DISPLAY_MODE_PROPERTY, SAVE_MODE_PROPERTY,
 				FIELD_SET_PROPERTY, SHOW_LABELS_PROPERTY, ROLE_PROPERTY, RELOAD_BEHAVIOUR_PROPERTY,
 				COLUMNS_PROPERTY, DATA_SOURCE_PROPERTY, SELECTION_CHANNEL_PROPERTY,
-				TRANSFORM_PROPERTY
+				TRANSFORM_PROPERTY, PAGE_SIZE_PROPERTY
 			)
 		);
 	}

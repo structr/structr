@@ -36,6 +36,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaService;
+import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 
 import java.util.Collections;
@@ -140,7 +141,7 @@ public class CronService extends Thread implements RunnableService {
 
 														if (method != null) {
 
-															method.execute(superUserSecurityContext, null,  new NamedArguments());
+															method.execute(new ActionContext(superUserSecurityContext), null,  new NamedArguments());
 
 														} else {
 

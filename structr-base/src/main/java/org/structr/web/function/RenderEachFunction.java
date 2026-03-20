@@ -23,6 +23,7 @@ import org.structr.common.ChannelInput;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.datasources.Channel;
+import org.structr.core.datasources.ChannelResult;
 import org.structr.core.entity.DataAdapter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
@@ -70,24 +71,26 @@ public class RenderEachFunction extends UiCommunityFunction {
 
 		if (caller instanceof NodeInterface n && n.is(StructrTraits.DOM_NODE)) {
 
-			final DOMNode domNode               = n.as(DOMNode.class);
-			final DOMNode component             = domNode.getClosestComponent();
-			final ComponentConfiguration config = component.getComponentConfiguration();
-			final DataAdapter dataAdapter       = config.getDataAdapter();
-			final Channel sourceChannel         = config.getDataSource();
-			final String dataKey                = dataAdapter.getDataKey();
-			final GraphObject previousValue     = renderContext.getDataNode(dataKey);
+			final DOMNode domNode                    = n.as(DOMNode.class);
+			final DOMNode component                  = domNode.getClosestComponent();
+			final ComponentConfiguration config      = component.getComponentConfiguration();
+			final DataAdapter dataAdapter            = config.getDataAdapter();
+			final Channel<GraphObject> sourceChannel = config.getDataSource();
+			final String dataKey                     = dataAdapter.getDataKey();
+			final GraphObject previousValue          = renderContext.getDataNode(dataKey);
 
 			if (sourceChannel != null) {
 
 				final String reloadBehaviour  = domNode.getReloadBehaviourForComponent();
 				final String selectionChannel = config.getSelectionChannel();
-				final ChannelInput input      = new ChannelInput(config.getTransform());
+				final ChannelInput input      = config.getChannelInput(renderContext);
 				final AsyncBuffer buffer      = renderContext.getBuffer();
 				final String role             = domNode.getRoleForComponent();
 				final String resets           = getChannelDependencies(domNode, selectionChannel);
 
-				for (final GraphObject item : sourceChannel.getValues(renderContext, input)) {
+				final ChannelResult<GraphObject> result = sourceChannel.getResult(renderContext, input);
+
+				for (final GraphObject item : result.getData()) {
 
 					renderContext.putDataObject(dataKey, item);
 

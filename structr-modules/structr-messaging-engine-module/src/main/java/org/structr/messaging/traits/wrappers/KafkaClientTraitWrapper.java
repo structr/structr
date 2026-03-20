@@ -141,7 +141,7 @@ public class KafkaClientTraitWrapper extends MessageClientTraitWrapper implement
 	}
 
 	public void forwardReceivedMessage(final String topic, final String message) throws FrameworkException {
-		sendMessage(getSecurityContext(), topic, message);
+		sendMessage(new ActionContext(getSecurityContext()), topic, message);
 	}
 
 	public Properties getConfiguration(final Class clazz) {

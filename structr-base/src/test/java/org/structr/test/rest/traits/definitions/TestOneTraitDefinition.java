@@ -30,6 +30,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.schema.action.ActionContext;
 
 import java.util.Date;
 import java.util.LinkedHashSet;
@@ -50,7 +51,7 @@ public class TestOneTraitDefinition extends AbstractNodeTraitDefinition {
 		methods.add(new JavaMethod("test01", false, false) {
 
 			@Override
-			public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+			public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 				return null;
 			}
 		});
@@ -58,7 +59,7 @@ public class TestOneTraitDefinition extends AbstractNodeTraitDefinition {
 		methods.add(new JavaMethod("test02", false, false) {
 
 			@Override
-			public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+			public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 				return null;
 			}
 		});
@@ -66,7 +67,7 @@ public class TestOneTraitDefinition extends AbstractNodeTraitDefinition {
 		methods.add(new JavaMethod("test03", false, false) {
 
 			@Override
-			public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+			public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 				return null;
 			}
 		});
@@ -74,7 +75,7 @@ public class TestOneTraitDefinition extends AbstractNodeTraitDefinition {
 		methods.add(new JavaMethod("test04", false, false) {
 
 			@Override
-			public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+			public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 				return null;
 			}
 		});

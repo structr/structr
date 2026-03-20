@@ -22,6 +22,7 @@ package org.structr.web.traits.definitions.dom;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
+import org.structr.common.ChannelInput;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -35,12 +36,10 @@ import org.structr.core.api.InstanceMethod;
 import org.structr.core.api.JavaMethod;
 import org.structr.core.app.StructrApp;
 import org.structr.core.datasources.Channel;
+import org.structr.core.datasources.ChannelResult;
 import org.structr.core.datasources.DataSources;
 import org.structr.core.datasources.GraphDataSource;
-import org.structr.core.entity.DataAdapter;
-import org.structr.core.entity.DataAdapterField;
-import org.structr.core.entity.DataSource;
-import org.structr.core.entity.Relation;
+import org.structr.core.entity.*;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
@@ -51,12 +50,15 @@ import org.structr.core.traits.definitions.DataAdapterFieldTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.operations.graphobject.Evaluate;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.operations.nodeinterface.VisitForUsage;
+import org.structr.schema.action.ActionContext;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.ComponentConfiguration;
+import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.property.CustomHtmlAttributeProperty;
@@ -67,6 +69,7 @@ import org.structr.web.traits.wrappers.dom.DOMNodeTraitWrapper;
 import org.w3c.dom.DOMException;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Combines NodeInterface and org.w3c.dom.Node.
@@ -612,6 +615,64 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 			}
 		);
 
+		methods.put(
+
+			Evaluate.class,
+			new Evaluate() {
+
+				@Override
+				public Object evaluate(final AbstractNode node, final ActionContext actionContext, final String key, final String defaultValue, final GraphObject contextObject, final int row, final int column) throws FrameworkException {
+
+					final ComponentConfiguration config = node.as(DOMNode.class).getComponentConfiguration();
+					if (config != null) {
+
+						final Channel channel = config.getDataSource();
+						if (channel != null) {
+
+							if (actionContext instanceof RenderContext renderContext) {
+
+								final ChannelResult<GraphObject> iterable = channel.getResult(renderContext, config.getChannelInput(renderContext));
+								final String paginationKey                = channel.getPaginationKey();
+								final int resultCount                     = iterable.getResultCount();
+								final int pageCount                       = (int) Math.ceil((double)resultCount / (double)config.getPageSize());
+
+								if (paginationKey != null) {
+
+									final int currentPage = DOMElement.intOrOne(actionContext.getSecurityContext().getRequestParameter(paginationKey));
+
+									switch (key) {
+
+										case "pageCount":
+											return pageCount;
+
+										case "resultCount":
+											return resultCount;
+
+										case "currentPage":
+											return currentPage;
+
+										case "nextPage":
+											return currentPage + 1;
+
+										case "nextPage10":
+											return currentPage + 10;
+
+										case "prevPage":
+											return Math.max(1, currentPage - 1);
+
+										case "prevPage10":
+											return Math.max(1, currentPage - 10);
+									}
+								}
+							}
+						}
+					}
+
+					return getSuper().evaluate(node, actionContext, key, defaultValue, contextObject, row, column);
+				}
+			}
+		);
+
 		return methods;
 	}
 
@@ -636,7 +697,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 			new InstanceMethod(StructrTraits.DOM_NODE, "cloneNode") {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
 
 					final DOMNode node = entity.as(DOMNode.class);
 					final boolean deep = parameters.get("deep") != null && Boolean.parseBoolean(parameters.get("deep").toString());
@@ -650,7 +711,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 			new InstanceMethod(StructrTraits.DOM_NODE, "appendChild") {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
 
 					final NodeInterface newChildNode = (NodeInterface) parameters.get("newChild");
 					if (newChildNode != null) {
@@ -672,7 +733,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 			new InstanceMethod(StructrTraits.DOM_NODE, "setOwnerDocument") {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
 
 					final NodeInterface newChildNode = (NodeInterface) parameters.get("newChild");
 					if (newChildNode != null) {
@@ -694,7 +755,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 			new InstanceMethod(StructrTraits.DOM_NODE, "getOwnerDocument") {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
 
 					final DOMNode node = entity.as(DOMNode.class);
 					return node.getOwnerDocument();
@@ -704,7 +765,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 			new InstanceMethod(StructrTraits.DOM_NODE, "isEditable") {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
 
 					return entity.as(DOMNode.class).isEditable();
 				}
@@ -712,24 +773,31 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 			new JavaMethod("getDataSourceFields", false, false) {
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
 					final DOMNode domNode               = entity.as(DOMNode.class);
 					final ComponentConfiguration config = domNode.getComponentConfiguration();
 					final DataAdapter adapter           = config.getDataAdapter();
 					final Channel dataSource            = config.getDataSource();
 
-					return adapter.augmentFields(new RenderContext(securityContext), dataSource);
+					if (actionContext instanceof RenderContext renderContext) {
+
+						return adapter.augmentFields(renderContext, dataSource);
+					}
+
+					// this is called in case
+					return adapter.augmentFields(new RenderContext(actionContext.getSecurityContext()), dataSource);
 				}
 			},
 
 			new JavaMethod("updateDataSourceField", false, false) {
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
-					final DOMNode domNode               = entity.as(DOMNode.class);
-					final ComponentConfiguration config = domNode.getComponentConfiguration();
-					final DataAdapter adapter           = config.getDataAdapter();
+					final SecurityContext securityContext = actionContext.getSecurityContext();
+					final DOMNode domNode                 = entity.as(DOMNode.class);
+					final ComponentConfiguration config   = domNode.getComponentConfiguration();
+					final DataAdapter adapter             = config.getDataAdapter();
 
 					final String fieldName    = (String) arguments.get("_fieldName");
 					final String templateName = (String) arguments.get("_templateName");
@@ -813,6 +881,87 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					}
 
 					return null;
+				}
+			},
+
+			// private method, to be called from within a page rendering context only!
+			new JavaMethod("paginationControls", true, false) {
+
+				@Override
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
+					final Map<String, Object> attributes  = new LinkedHashMap<>();
+					final SecurityContext securityContext = actionContext.getSecurityContext();
+					final RenderContext renderContext     = (RenderContext) actionContext;
+					final DOMNode component               = entity.as(DOMNode.class);
+					final ComponentConfiguration config   = component.getComponentConfiguration();
+					final Channel channel                 = config.getDataSource();
+					final ChannelInput input              = config.getChannelInput(renderContext);
+					final String paginationKey            = channel.getPaginationKey();
+					final ChannelResult result            = channel.getResult(renderContext, input);
+					final int resultCount                 = result.getResultCount();
+					final int pageSize                    = config.getPageSize();
+					final int pageCount                   = (int) Math.ceil((double)resultCount / (double)pageSize);
+					final int currentPage                 = DOMElement.intOrOne(securityContext.getRequestParameter(paginationKey));
+					final int absolute                    = DOMElement.intOrZero(arguments.get("absolute"));
+					final int offset                      = DOMElement.intOrZero(arguments.get("offset"));
+					int value                             = currentPage;
+
+					if (absolute != 0) {
+
+						value = absolute;
+
+					} else if (offset != 0) {
+
+						value = currentPage + offset;
+					}
+
+					if (value > 0 && value <= pageCount) {
+
+						attributes.put("data-structr-success-target", "[data-channel~='" + channel.getName() + "']");
+						attributes.put("data-structr-events", "click");
+						attributes.put("data-structr-target", paginationKey);
+						attributes.put("data-" + paginationKey, value);
+
+					} else {
+
+						attributes.put("disabled", "true");
+					}
+
+					// join into a single string and return it
+					return attributes.entrySet().stream().map(e -> e.getKey() + "=\"" + e.getValue() + "\"").collect(Collectors.joining(" "));
+				}
+			},
+
+			// private method, to be called from within a page rendering context only!
+			new JavaMethod("page", true, false) {
+
+				@Override
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
+					final DOMNode component               = entity.as(DOMNode.class);
+					final SecurityContext securityContext = actionContext.getSecurityContext();
+					final RenderContext renderContext     = (RenderContext) actionContext;
+					final ComponentConfiguration config   = component.getComponentConfiguration();
+					final Channel channel                 = config.getDataSource();
+					final ChannelInput input              = config.getChannelInput(renderContext);
+					final String paginationKey            = channel.getPaginationKey();
+					final ChannelResult result            = channel.getResult(renderContext, input);
+					final int currentPage                 = DOMElement.intOrOne(securityContext.getRequestParameter(paginationKey));
+					final int absolute                    = DOMElement.intOrZero(arguments.get("absolute"));
+					final int offset                      = DOMElement.intOrZero(arguments.get("offset"));
+					int value                             = currentPage;
+
+					if (absolute != 0) {
+
+						value = absolute;
+
+					} else if (offset != 0) {
+
+						value = currentPage + offset;
+					}
+
+					return value;
 				}
 			}
 		);

@@ -22,6 +22,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.script.Snippet;
+import org.structr.schema.action.ActionContext;
 
 import java.util.Map;
 
@@ -30,7 +31,7 @@ public abstract class InstanceMethod extends AbstractMethod {
 	private final Parameters parameters;
 	private final String declaringTrait;
 
-	public abstract Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException;
+	public abstract Object execute(final ActionContext actionContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException;
 
 	public InstanceMethod(final String declaringTrait, final String name) {
 
@@ -76,7 +77,7 @@ public abstract class InstanceMethod extends AbstractMethod {
 	}
 
 	@Override
-	public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
-		return execute(securityContext, entity, arguments.toMap());
+	public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+		return execute(actionContext, entity, arguments.toMap());
 	}
 }

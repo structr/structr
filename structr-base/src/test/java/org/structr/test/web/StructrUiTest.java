@@ -43,6 +43,7 @@ import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.rest.service.HttpService;
 import org.structr.schema.SchemaService;
+import org.structr.schema.action.ActionContext;
 import org.structr.test.web.entity.traits.definitions.*;
 import org.structr.test.web.entity.traits.definitions.relationships.FourThreeOneToOne;
 import org.structr.test.web.entity.traits.definitions.relationships.TwoFiveOneToMany;
@@ -704,7 +705,7 @@ public abstract class StructrUiTest {
 		final AbstractMethod method = Methods.resolveMethod(node.getTraits(), methodName);
 		if (method != null) {
 
-			method.execute(securityContext, node, NamedArguments.fromMap(parameters));
+			method.execute(new ActionContext(securityContext), node, NamedArguments.fromMap(parameters));
 		}
 
 		if (throwIfNotExists) {

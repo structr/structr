@@ -81,18 +81,18 @@ public class VirtualTypeTraitWrapper extends AbstractNodeTraitWrapper implements
 	}
 
 	@Override
-	public ResultStream transformOutput(final SecurityContext securityContext, final String sourceType, final ResultStream result) throws FrameworkException {
+	public ResultStream transformOutput(final ActionContext actionContext, final String sourceType, final ResultStream result) throws FrameworkException {
 
 		final List<NodeInterface> props      = sort(Iterables.toList(getVirtualProperties()));
-		final Mapper mapper                  = new Mapper(securityContext, props, getSourceType());
-		final Filter filter                  = new Filter(securityContext, getFilterExpression());
+		final Mapper mapper                  = new Mapper(actionContext, props, getSourceType());
+		final Filter filter                  = new Filter(actionContext, getFilterExpression());
 		final Iterable<GraphObject> iterable = Iterables.map(mapper, Iterables.filter(filter, result));
 
 		return new PagingIterable("VirtualType.transformOutput()", iterable);
 	}
 
 	@Override
-	public void transformInput(final SecurityContext securityContext, final String type, final Map<String, Object> propertySet) throws FrameworkException {
+	public void transformInput(final ActionContext securityContext, final String type, final Map<String, Object> propertySet) throws FrameworkException {
 
 		final ActionContext actionContext = new ActionContext(securityContext);
 		final List<NodeInterface> props   = sort(Iterables.toList(getVirtualProperties()));
@@ -147,12 +147,12 @@ public class VirtualTypeTraitWrapper extends AbstractNodeTraitWrapper implements
 	// ----- nested classes -----
 	private class Filter implements Predicate<GraphObject> {
 
-		private ActionContext ctx = null;
-		private String expression = null;
+		private final ActionContext ctx;
+		private final String expression;
 
-		public Filter(final SecurityContext securityContext, final String expression) {
+		public Filter(final ActionContext actionContext, final String expression) {
 
-			this.ctx        = new ActionContext(securityContext);
+			this.ctx        = actionContext;
 			this.expression = expression;
 		}
 
@@ -178,11 +178,11 @@ public class VirtualTypeTraitWrapper extends AbstractNodeTraitWrapper implements
 	private class Mapper implements Function<GraphObject, GraphObject> {
 
 		private final List<Transformation> transformations = new LinkedList<>();
-		private ActionContext actionContext                = null;
+		private final ActionContext actionContext;
 
-		public Mapper(final SecurityContext securityContext, final List<NodeInterface> properties, final String type) throws FrameworkException {
+		public Mapper(final ActionContext actionContext, final List<NodeInterface> properties, final String type) throws FrameworkException {
 
-			this.actionContext = new ActionContext(securityContext);
+			this.actionContext = actionContext;
 
 			for (final NodeInterface node : properties) {
 

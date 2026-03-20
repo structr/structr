@@ -111,7 +111,7 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 			final AbstractMethod method = Methods.resolveMethod(traits, "onUpload");
 			if (method != null) {
 
-				method.execute(ctx, wrappedObject, new UnnamedArguments());
+				method.execute(new ActionContext(ctx), wrappedObject, new UnnamedArguments());
 			}
 
 			tx.success();

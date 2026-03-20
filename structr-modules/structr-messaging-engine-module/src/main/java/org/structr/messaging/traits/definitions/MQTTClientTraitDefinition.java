@@ -46,6 +46,7 @@ import org.structr.messaging.implementation.mqtt.entity.MQTTClient;
 import org.structr.messaging.traits.operations.MessageClientOperations;
 import org.structr.messaging.traits.wrappers.MQTTClientTraitWrapper;
 import org.structr.rest.RestMethodResult;
+import org.structr.schema.action.ActionContext;
 
 import java.util.Map;
 import java.util.Set;
@@ -187,9 +188,9 @@ public class MQTTClientTraitDefinition extends AbstractNodeTraitDefinition {
 
 
 				@Override
-				public RestMethodResult sendMessage(final SecurityContext securityContext, final MessageClient client, final String topic, final String message) throws FrameworkException {
+				public RestMethodResult sendMessage(final ActionContext actionContext, final MessageClient client, final String topic, final String message) throws FrameworkException {
 
-					getSuper().sendMessage(securityContext, client, topic, message);
+					getSuper().sendMessage(actionContext, client, topic, message);
 
 					if (client.getIsEnabled()) {
 
@@ -208,7 +209,7 @@ public class MQTTClientTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 
 				@Override
-				public RestMethodResult subscribeTopic(final SecurityContext securityContext, final MessageClient client, final String topic) throws FrameworkException {
+				public RestMethodResult subscribeTopic(final ActionContext actionContext, final MessageClient client, final String topic) throws FrameworkException {
 
 					if (client.getIsEnabled()) {
 
@@ -223,7 +224,7 @@ public class MQTTClientTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 
 				@Override
-				public RestMethodResult unsubscribeTopic(final SecurityContext securityContext, final MessageClient client, final String topic) throws FrameworkException {
+				public RestMethodResult unsubscribeTopic(final ActionContext actionContext, final MessageClient client, final String topic) throws FrameworkException {
 
 					if (client.getIsEnabled()) {
 

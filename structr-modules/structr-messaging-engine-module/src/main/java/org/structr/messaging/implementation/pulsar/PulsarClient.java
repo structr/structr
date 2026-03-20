@@ -22,6 +22,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.messaging.engine.entities.MessageClient;
 import org.structr.messaging.traits.wrappers.PulsarClientTraitWrapper;
+import org.structr.schema.action.ActionContext;
 
 public interface PulsarClient extends MessageClient {
 
@@ -31,6 +32,6 @@ public interface PulsarClient extends MessageClient {
 	String[] getServers();
 	void setup();
 	void close();
-	void forwardReceivedMessage(final SecurityContext securityContext, final String topic, final String message) throws FrameworkException;
+	void forwardReceivedMessage(final ActionContext actionContext, final String topic, final String message) throws FrameworkException;
 	PulsarClientTraitWrapper.ConsumerWorker getConsumerWorker();
 }

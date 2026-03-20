@@ -36,13 +36,17 @@ import java.util.Map;
  * the strings "values", "dataType" and "currentValue" to the
  * correct values in their evaluate() method.
  */
-public interface Channel {
+public interface Channel<T> {
 
-	Iterable<GraphObject> getValues(final RenderContext renderContext, final ChannelInput input) throws FrameworkException;
+	ChannelResult<T> getResult(final RenderContext renderContext, final ChannelInput input) throws FrameworkException;
 	Map<String, FieldDefinition> getFields(final RenderContext renderContext) throws FrameworkException;
 
 	String getDataType(final RenderContext renderContext) throws FrameworkException;
 	String getName();
 
 	Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, final GraphObject contextObject, final int row, final int column) throws FrameworkException;
+
+	default String getPaginationKey() {
+		return getName().toLowerCase() + ".page";
+	}
 }

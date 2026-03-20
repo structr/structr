@@ -95,8 +95,10 @@
     input[type]:not([type="checkbox"]), textarea, select { @apply mt-1 block w-full rounded-md text-${theme.input.text} bg-${theme.input.background} border border-${theme.input.border} py-2 px-3 shadow-sm focus:border-${theme.input.focus} focus:outline-none focus:ring-${theme.input.focus} sm:text-sm; }
     input[type="checkbox"] { @apply m-0 mr-2 p-0 text-xs text-${theme.input.text} bg-${theme.input.background} rounded-sm border-${theme.input.border} focus:border-${theme.input.focus} focus:outline-none focus:ring-${theme.input.focus}; }
     .button { @apply inline-flex items-center rounded-md border border-transparent px-4 py-2 text-sm font-medium shadow-sm focus:ring-offset-2 focus:outline-none focus:ring-2; }
+    .button:disabled { @apply cursor-not-allowed; }
     .button-sm { @apply inline-flex items-center rounded-md border border-transparent px-2 py-1 text-xs font-medium shadow-sm focus:ring-offset-2 focus:outline-none focus:ring-2; }
     .button-primary { @apply bg-${theme.button.primary.background} text-${theme.button.primary.text} hover:bg-${theme.button.primary.focus} focus:ring-${theme.button.primary.focus}; }
+    .button-secondary { @apply bg-${theme.button.secondary.background} text-${theme.button.secondary.text} hover:bg-${theme.button.secondary.focus} focus:ring-${theme.button.secondary.focus}; }
     .button-success { @apply bg-${theme.button.success.background} text-${theme.button.success.text} hover:bg-${theme.button.success.focus} focus:ring-${theme.button.success.focus}; }
     .button-warning { @apply bg-${theme.button.warning.background} text-${theme.button.warning.text} hover:bg-${theme.button.warning.focus} focus:ring-${theme.button.warning.focus}; }
     .button-danger { @apply bg-${theme.button.danger.background} text-${theme.button.danger.text} hover:bg-${theme.button.danger.focus} focus:ring-${theme.button.danger.focus}; }

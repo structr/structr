@@ -339,7 +339,7 @@ public class ActionContext {
 							final Map<String, Object> temp  = contextStore.getTemporaryParameters();
 							final Arguments arguments       = NamedArguments.fromMap(temp);
 
-							return method.execute(securityContext, null, arguments);
+							return method.execute(this, null, arguments);
 						}
 
 					} else {

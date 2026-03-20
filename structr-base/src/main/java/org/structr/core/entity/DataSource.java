@@ -18,8 +18,9 @@
  */
 package org.structr.core.entity;
 
+import org.structr.core.GraphObject;
 import org.structr.core.datasources.Channel;
 import org.structr.core.graph.NodeInterface;
 
-public interface DataSource extends NodeInterface, Channel {
+public interface DataSource<T extends GraphObject> extends NodeInterface, Channel<T> {
 }

@@ -18,20 +18,32 @@
  */
 package org.structr.common;
 
+import org.structr.api.Predicate;
+import org.structr.core.GraphObject;
+
 import java.util.LinkedList;
 import java.util.List;
 
-public class ChannelInput {
+public class ChannelInput implements Predicate<GraphObject> {
 
 	private final List<String> sortKeys = new LinkedList<>();
 	private final String transform;
+	private final int pageSize;
+	private final int page;
 
 	public ChannelInput() {
 		this(null);
 	}
 
 	public ChannelInput(final String transform) {
+		this(null, Integer.MAX_VALUE, 1);
+	}
+
+	public ChannelInput(final String transform, final int pageSize, final int page) {
+
 		this.transform = transform;
+		this.pageSize  = pageSize;
+		this.page      = page;
 	}
 
 	public List<String> sortKeys() {
@@ -40,5 +52,18 @@ public class ChannelInput {
 
 	public String transform() {
 		return transform;
+	}
+
+	public int pageSize() {
+		return pageSize;
+	}
+
+	public int page() {
+		return page;
+	}
+
+	@Override
+	public boolean accept(final GraphObject value) {
+		return true;
 	}
 }

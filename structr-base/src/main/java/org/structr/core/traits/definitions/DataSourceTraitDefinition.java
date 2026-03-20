@@ -23,7 +23,6 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
-import org.structr.core.datasources.Channel;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.DataAdapter;
 import org.structr.core.entity.DataSource;
@@ -64,7 +63,8 @@ public class DataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 					switch (key) {
 
 						case "values":
-							return dataSource.getValues(renderContext, null);
+							// FIXME: we need to get the channel input object in here somehow..
+							return dataSource.getResult(renderContext, null);
 
 						case "dataType":
 							return dataSource.getDataType(renderContext);
@@ -125,8 +125,6 @@ public class DataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 				if (component != null) {
 
 					final ComponentConfiguration config = component.getComponentConfiguration();
-					final DataAdapter dataAdapter       = config.getDataAdapter();
-					final Channel sourceChannel         = config.getDataSource();
 					final String role                   = domNode.getRoleForComponent();
 
 					if ("subscriber".equals(role)) {

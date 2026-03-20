@@ -209,7 +209,7 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 								final Map<String, Object> temp  = contextStore.getTemporaryParameters();
 								final Arguments arguments       = NamedArguments.fromMap(temp);
 
-								return method.execute(actionContext.getSecurityContext(), node, arguments);
+								return method.execute(actionContext, node, arguments);
 							}
 
 							return Function.numberOrString(defaultValue);

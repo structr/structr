@@ -428,7 +428,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 							} else if (result.is(StructrTraits.FILE)) {
 
-								streamFile(authResult.getSecurityContext(), result.as(File.class), request, response, EditMode.NONE, true);
+								streamFile(new ActionContext(authResult.getSecurityContext()), result.as(File.class), request, response, EditMode.NONE, true);
 								tx.success();
 								return;
 
@@ -466,7 +466,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				if (file != null && securityContext.isVisible(file)) {
 
-					streamFile(securityContext, file, request, response, edit, true);
+					streamFile(renderContext, file, request, response, edit, true);
 					tx.success();
 
 					return;
@@ -666,7 +666,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					File file = findFile(securityContext, request, path);
 					if (file != null) {
 
-						streamFile(securityContext, file, request, response, edit, false);
+						streamFile(renderContext, file, request, response, edit, false);
 						tx.success();
 						return;
 
@@ -730,7 +730,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 							} else if (result.is(StructrTraits.FILE)) {
 
-								streamFile(authResult.getSecurityContext(), result.as(File.class), request, response, EditMode.NONE, true);
+								streamFile(new ActionContext(authResult.getSecurityContext()), result.as(File.class), request, response, EditMode.NONE, true);
 								tx.success();
 								return;
 
@@ -1522,8 +1522,9 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		return notModified;
 	}
 
-	private void streamFile(final SecurityContext securityContext, final File file, HttpServletRequest request, HttpServletResponse response, final EditMode edit, final boolean sendContent) throws IOException {
+	private void streamFile(final ActionContext actionContext, final File file, HttpServletRequest request, HttpServletResponse response, final EditMode edit, final boolean sendContent) throws IOException {
 
+		final SecurityContext securityContext = actionContext.getSecurityContext();
 		if (!securityContext.isVisible(file)) {
 
 			response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -1690,7 +1691,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				final AbstractMethod method = Methods.resolveMethod(file.getTraits(), Actions.NOTIFICATION_DOWNLOAD);
 				if (method != null) {
 
-					method.execute(securityContext, file, NamedArguments.fromMap(callbackMap));
+					method.execute(actionContext, file, NamedArguments.fromMap(callbackMap));
 				}
 
 			} catch (FrameworkException fex) {

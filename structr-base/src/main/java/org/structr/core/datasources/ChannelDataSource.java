@@ -21,6 +21,7 @@ package org.structr.core.datasources;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
+import org.structr.api.util.PagingIterable;
 import org.structr.common.ChannelInput;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
@@ -37,13 +38,13 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
-public class ChannelDataSource implements Channel {
+public class ChannelDataSource<T extends GraphObject> implements Channel<T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(ChannelDataSource.class);
 
+	private Map<ChannelInput, ChannelResult<T>> cachedResults = new LinkedHashMap<>();
 	private final ComponentConfiguration configuration;
 	private final String name;
 
@@ -54,44 +55,74 @@ public class ChannelDataSource implements Channel {
 	}
 
 	@Override
-	public final Iterable<GraphObject> getValues(final RenderContext renderContext, final ChannelInput input) throws FrameworkException {
+	public final ChannelResult<T> getResult(final RenderContext renderContext, final ChannelInput input) throws FrameworkException {
 
-		if (name != null) {
+		ChannelResult<T> result = cachedResults.get(input);
+		if (result == null) {
 
-			final String uuid = renderContext.getChannelValue(name);
-			if (uuid != null) {
+			if (name != null) {
 
-				final NodeInterface node = StructrApp.getInstance(renderContext.getSecurityContext()).getNodeById(uuid);
-				if (node != null) {
+				final String uuid = renderContext.getChannelValue(name);
+				if (uuid != null) {
 
-					if (input != null) {
+					final NodeInterface node = StructrApp.getInstance(renderContext.getSecurityContext()).getNodeById(uuid);
+					if (node != null) {
 
-						final String transform = input.transform();
-						if (transform != null) {
+						if (input != null) {
 
-							final Traits traits = node.getTraits();
-							final PropertyKey key = traits.key(transform);
+							final String transform = input.transform();
+							if (transform != null) {
 
-							if (key != null) {
+								final Traits traits = node.getTraits();
+								final PropertyKey key = traits.key(transform);
 
-								return (Iterable) node.getProperty(key);
+								if (key != null) {
+
+									// this is where we need to implement pagination and filtering!
+									final Object value = node.getProperty(key);
+
+									if (value != null && value instanceof Iterable iterable) {
+
+										final String name                      = transform + " of " + node.getUuid();
+										final Iterable<T> filteredIterable     = Iterables.filter(input, iterable);
+										final PagingIterable<T> pagingIterable = new PagingIterable<>(name, filteredIterable, input.pageSize(), input.page());
+
+										result = ChannelResult.fromIterable(pagingIterable);
+									}
+								}
+
+								// if a transform is set but no values are present,
+								// we cannot return the source node.
+								if (result == null) {
+									result = new ChannelResult<>();
+								}
 							}
 						}
-					}
 
-					return List.of(node);
+						// fallback (is this necessary?)
+						if (result == null) {
+							result = ChannelResult.fromObject((T) node);
+						}
+					}
 				}
 			}
+
+			// fallback to empty result
+			if (result == null) {
+				result = new ChannelResult<>();
+			}
+
+			cachedResults.put(input, result);
 		}
 
-		return List.of();
+		return result;
 	}
 
 	@Override
 	public final Map<String, FieldDefinition> getFields(final RenderContext renderContext) throws FrameworkException {
 
 		final Map<String, FieldDefinition> output = new LinkedHashMap<>();
-		final GraphObject value                   = getValue(renderContext, new ChannelInput(configuration.getTransform()));
+		final T value                             = getValue(renderContext, new ChannelInput(configuration.getTransform()));
 
 		if (value != null) {
 
@@ -185,7 +216,7 @@ public class ChannelDataSource implements Channel {
 	@Override
 	public String getDataType(final RenderContext renderContext) throws FrameworkException {
 
-		final GraphObject value = getValue(renderContext, new ChannelInput(configuration.getTransform()));
+		final T value = getValue(renderContext, new ChannelInput(configuration.getTransform()));
 		if (value != null) {
 
 			return value.getType();
@@ -206,8 +237,11 @@ public class ChannelDataSource implements Channel {
 
 		switch (key) {
 
+			case "name":
+				return name;
+
 			case "values":
-				return getValues(renderContext, input);
+				return getResult(renderContext, input);
 
 			case "dataType":
 				return getDataType(renderContext);
@@ -225,12 +259,12 @@ public class ChannelDataSource implements Channel {
 	}
 
 	// ----- private methods -----
-	private GraphObject getValue(final RenderContext renderContext, final ChannelInput input) throws FrameworkException {
+	private T getValue(final RenderContext renderContext, final ChannelInput input) throws FrameworkException {
 
-		final List<GraphObject> values = Iterables.toList(getValues(renderContext, input));
-		if (!values.isEmpty()) {
+		final ChannelResult<T> result = getResult(renderContext, input);
+		if (!result.isEmpty()) {
 
-			return values.get(0);
+			return result.getFirst();
 		}
 
 		return null;

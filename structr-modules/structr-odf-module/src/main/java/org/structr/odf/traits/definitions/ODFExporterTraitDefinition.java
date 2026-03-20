@@ -44,6 +44,7 @@ import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.odf.entity.ODFExporter;
 import org.structr.odf.traits.wrappers.ODFExporterTraitWrapper;
+import org.structr.schema.action.ActionContext;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
@@ -84,9 +85,9 @@ public class ODFExporterTraitDefinition extends AbstractNodeTraitDefinition {
 			new JavaMethod("createDocumentFromTemplate", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
-					createDocumentFromTemplate(securityContext, entity.as(ODFExporter.class));
+					createDocumentFromTemplate(actionContext, entity.as(ODFExporter.class));
 					return null;
 				}
 			},
@@ -94,7 +95,7 @@ public class ODFExporterTraitDefinition extends AbstractNodeTraitDefinition {
 			new JavaMethod("exportImage", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
 					final Map<String, Object> map = arguments.toMap();
 					final String uuid             = (String)map.get("uuid");
@@ -151,7 +152,7 @@ public class ODFExporterTraitDefinition extends AbstractNodeTraitDefinition {
 		return null;
 	}
 
-	public void createDocumentFromTemplate(final SecurityContext securityContext, final ODFExporter entity) throws FrameworkException {
+	public void createDocumentFromTemplate(final ActionContext actionContext, final ODFExporter entity) throws FrameworkException {
 
 		final File template = entity.getDocumentTemplate();
 		File output         = entity.getResultDocument();
@@ -166,7 +167,7 @@ public class ODFExporterTraitDefinition extends AbstractNodeTraitDefinition {
 			// If no result file is given, create one and set it as result document
 			if (output == null) {
 
-				output = FileHelper.createFile(securityContext, new byte[]{}, template.getContentType(), StructrTraits.FILE, entity.getName().concat("_").concat(template.getName()), false).as(File.class);
+				output = FileHelper.createFile(actionContext.getSecurityContext(), new byte[]{}, template.getContentType(), StructrTraits.FILE, entity.getName().concat("_").concat(template.getName()), false).as(File.class);
 
 				output.setParent(template.getParent());
 
