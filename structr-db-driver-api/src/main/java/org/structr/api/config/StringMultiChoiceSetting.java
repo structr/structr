@@ -124,7 +124,7 @@ public class StringMultiChoiceSetting extends Setting<String> {
 			).text(option);
 		}
 
-		renderResetButton(options);
+		renderResetButton(settingInputContainer);
 	}
 
 	@Override
