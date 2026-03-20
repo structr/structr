@@ -41,6 +41,10 @@ import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.Random;
 
@@ -516,24 +520,39 @@ public class DynamicPathsTest extends FrontendTest {
 	}
 
 	// ----- private methods -----
-	private ResponseBody getBody(final int statusCode, final String url) {
+	private String getBody(final int statusCode, final String url) {
 
-		final ResponseBody body = RestAssured
-			.given()
-				.contentType("application/json; charset=UTF-8")
-				.header(X_USER_HEADER,     "admin")
-				.header(X_PASSWORD_HEADER, "admin")
-			.expect()
-				.statusCode(statusCode)
-			.when()
-				.get(url)
-			.andReturn();
+		// do not use RestAssured here, because it automatically encodes parts of the URL (like "///")
+		// and when encoding is disabled, it still normalizes paths so that the results are skewed
 
-		return body;
+		try (final HttpClient client = HttpClient.newHttpClient()) {
+
+			final HttpRequest request = HttpRequest.newBuilder()
+												.uri(URI.create(RestAssured.baseURI + url))
+												.header("Content-Type", "application/json; charset=UTF-8")
+												.header(X_USER_HEADER, "admin")
+												.header(X_PASSWORD_HEADER, "admin")
+												.GET()
+												.build();
+
+			final HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+			assertEquals(statusCode, response.statusCode());
+
+			return response.body();
+
+		} catch (Throwable t) {
+
+			final String msg = "Exception occurred during request: " + t.getMessage();
+
+			fail(msg);
+
+			return msg;
+		}
 	}
 
 	private String getContent(final int statusCode, final String url) {
-		return getBody(statusCode, url).asString();
+		return getBody(statusCode, url);
 	}
 
 	private String getPublicContent(final int statusCode, final String url) {

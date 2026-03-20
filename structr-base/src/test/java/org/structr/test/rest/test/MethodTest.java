@@ -601,6 +601,7 @@ public class MethodTest extends StructrRestTestBase {
 				.body("errors[0].value",     equalTo("two"))
 			.when()
 				.get("/BaseType/" + base + "/test1//two");
+				// RestAssured translates this to /test1%2f/two - this will fail as soon as these escape characters are not interpreted as actual slashes anymore (for a solution, see DynamicPathsTest)
 	}
 
 }

@@ -86,7 +86,7 @@ public class HttpService implements RunnableService, StatsCallback {
 	private static final Logger logger = LoggerFactory.getLogger(HttpService.class.getName());
 
 	public static final StringMultiChoiceSetting UriComplianceAllowedViolations = (StringMultiChoiceSetting) new StringMultiChoiceSetting(Settings.serverGroup, "HTTP Settings", "httpservice.uricompliance.allowedviolations",
-			"",
+			String.join(" ", List.of(UriCompliance.Violation.AMBIGUOUS_PATH_SEPARATOR.toString(), UriCompliance.Violation.AMBIGUOUS_EMPTY_SEGMENT.toString())),
 			new LinkedHashSet<>(Arrays.stream(UriCompliance.Violation.values())
 //										.filter(UriCompliance::isPathViolation)
 										.map(Enum::toString)
