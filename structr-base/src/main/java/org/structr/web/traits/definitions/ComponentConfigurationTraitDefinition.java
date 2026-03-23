@@ -47,19 +47,20 @@ import java.util.Set;
 
 public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefinition {
 
-	public static final String DOM_NODE_PROPERTY              = "domNode";
-	public static final String DATA_ADAPTER_PROPERTY          = "dataAdapter";
-	public static final String DISPLAY_MODE_PROPERTY          = "displayMode";
-	public static final String SAVE_MODE_PROPERTY             = "saveMode";
-	public static final String SHOW_LABELS_PROPERTY           = "labels";
-	public static final String FIELD_SET_PROPERTY             = "fieldSet";
-	public static final String ROLE_PROPERTY                  = "role";
-	public static final String RELOAD_BEHAVIOUR_PROPERTY      = "reload";
-	public static final String COLUMNS_PROPERTY               = "columns";
-	public static final String DATA_SOURCE_PROPERTY           = "dataSource";
-	public static final String SELECTION_CHANNEL_PROPERTY     = "selectionChannel";
-	public static final String TRANSFORM_PROPERTY             = "transform";
-	public static final String PAGE_SIZE_PROPERTY             = "pageSize";
+	public static final String DOM_NODE_PROPERTY               = "domNode";
+	public static final String DATA_ADAPTER_PROPERTY           = "dataAdapter";
+	public static final String DISPLAY_MODE_PROPERTY           = "displayMode";
+	public static final String SAVE_MODE_PROPERTY              = "saveMode";
+	public static final String SHOW_LABELS_PROPERTY            = "labels";
+	public static final String FIELD_SET_PROPERTY              = "fieldSet";
+	public static final String ROLE_PROPERTY                   = "role";
+	public static final String RELOAD_BEHAVIOUR_PROPERTY       = "reload";
+	public static final String COLUMNS_PROPERTY                = "columns";
+	public static final String DATA_SOURCE_PROPERTY            = "dataSource";
+	public static final String SELECTION_CHANNEL_PROPERTY      = "selectionChannel";
+	public static final String TRANSFORM_PROPERTY              = "transform";
+	public static final String PAGE_SIZE_PROPERTY              = "pageSize";
+	public static final String PAGINATION_WINDOW_SIZE_PROPERTY = "paginationWindowSize";
 
 	public ComponentConfigurationTraitDefinition() {
 		super(StructrTraits.COMPONENT_CONFIGURATION);
@@ -120,19 +121,20 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> domNodeProperty      = new StartNode(traitsInstance, DOM_NODE_PROPERTY, StructrTraits.DOM_NODE_HAS_COMPONENT_CONFIGURATION).category(DOMNode.PAGE_CATEGORY);
-		final Property<NodeInterface> dataAdapterProperty  = new EndNode(traitsInstance, DATA_ADAPTER_PROPERTY, StructrTraits.COMPONENT_CONFIGURATION_HAS_DATA_ADAPTER).category(DOMNode.WIDGETS_CATEGORY);
-		final Property<String> displayModeProperty         = new StringProperty(DISPLAY_MODE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
-		final Property<String> saveModeProperty            = new StringProperty(SAVE_MODE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
-		final Property<String> fieldSetProperty            = new StringProperty(FIELD_SET_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
-		final Property<String> roleProperty                = new StringProperty(ROLE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
-		final Property<String> reloadBehaviourProperty     = new StringProperty(RELOAD_BEHAVIOUR_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
-		final Property<Boolean> showLabelsProperty         = new BooleanProperty(SHOW_LABELS_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
-		final Property<Integer> columnsProperty            = new IntProperty(COLUMNS_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
-		final Property<String> dataSourceProperty          = new StringProperty(DATA_SOURCE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
-		final Property<String> selectionChannelProperty    = new StringProperty(SELECTION_CHANNEL_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
-		final Property<String> transformProperty           = new StringProperty(TRANSFORM_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
-		final Property<Integer> pageSizeProperty           = new IntProperty(PAGE_SIZE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<NodeInterface> domNodeProperty        = new StartNode(traitsInstance, DOM_NODE_PROPERTY, StructrTraits.DOM_NODE_HAS_COMPONENT_CONFIGURATION).category(DOMNode.PAGE_CATEGORY);
+		final Property<NodeInterface> dataAdapterProperty    = new EndNode(traitsInstance, DATA_ADAPTER_PROPERTY, StructrTraits.COMPONENT_CONFIGURATION_HAS_DATA_ADAPTER).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<String> displayModeProperty           = new StringProperty(DISPLAY_MODE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<String> saveModeProperty              = new StringProperty(SAVE_MODE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<String> fieldSetProperty              = new StringProperty(FIELD_SET_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<String> roleProperty                  = new StringProperty(ROLE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<String> reloadBehaviourProperty       = new StringProperty(RELOAD_BEHAVIOUR_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<Boolean> showLabelsProperty           = new BooleanProperty(SHOW_LABELS_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<Integer> columnsProperty              = new IntProperty(COLUMNS_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<String> dataSourceProperty            = new StringProperty(DATA_SOURCE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<String> selectionChannelProperty      = new StringProperty(SELECTION_CHANNEL_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<String> transformProperty             = new StringProperty(TRANSFORM_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<Integer> pageSizeProperty             = new IntProperty(PAGE_SIZE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<Integer> paginationWindowSizeProperty = new IntProperty(PAGINATION_WINDOW_SIZE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 
 		return newSet(
 			domNodeProperty,
@@ -147,7 +149,8 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 			dataSourceProperty,
 			selectionChannelProperty,
 			transformProperty,
-			pageSizeProperty
+			pageSizeProperty,
+			paginationWindowSizeProperty
 		);
 	}
 
@@ -160,7 +163,7 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 				DOM_NODE_PROPERTY, DATA_ADAPTER_PROPERTY, DISPLAY_MODE_PROPERTY, SAVE_MODE_PROPERTY,
 				FIELD_SET_PROPERTY, SHOW_LABELS_PROPERTY, ROLE_PROPERTY, RELOAD_BEHAVIOUR_PROPERTY,
 				COLUMNS_PROPERTY, DATA_SOURCE_PROPERTY, SELECTION_CHANNEL_PROPERTY,
-				TRANSFORM_PROPERTY, PAGE_SIZE_PROPERTY
+				TRANSFORM_PROPERTY, PAGE_SIZE_PROPERTY, PAGINATION_WINDOW_SIZE_PROPERTY
 			)
 		);
 	}

@@ -919,6 +919,18 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		return null;
 	}
 
+	protected int getIntOrDefault(final Object[] sources, final int index, final int defaultValue) {
+
+		if (index < sources.length && sources[index] != null) {
+
+			if (sources[index] instanceof Number) {
+				return ((Number)sources[index]).intValue();
+			}
+		}
+
+		return defaultValue;
+	}
+
 	protected <T> T getOrNull(final List<T> sources, final int index) {
 
 		if (sources.size() > index) {

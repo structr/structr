@@ -654,14 +654,8 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 										case "nextPage":
 											return currentPage + 1;
 
-										case "nextPage10":
-											return currentPage + 10;
-
 										case "prevPage":
 											return Math.max(1, currentPage - 1);
-
-										case "prevPage10":
-											return Math.max(1, currentPage - 10);
 									}
 								}
 							}
@@ -885,7 +879,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 			},
 
 			// private method, to be called from within a page rendering context only!
-			new JavaMethod("paginationControls", true, false) {
+			new JavaMethod("pagination", true, false) {
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
@@ -900,32 +894,33 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					final String paginationKey            = channel.getPaginationKey();
 					final ChannelResult result            = channel.getResult(renderContext, input);
 					final int resultCount                 = result.getResultCount();
+					final int windowSize                  = config.getPaginationWindowSize();
 					final int pageSize                    = config.getPageSize();
 					final int pageCount                   = (int) Math.ceil((double)resultCount / (double)pageSize);
 					final int currentPage                 = DOMElement.intOrOne(securityContext.getRequestParameter(paginationKey));
-					final int absolute                    = DOMElement.intOrZero(arguments.get("absolute"));
-					final int offset                      = DOMElement.intOrZero(arguments.get("offset"));
-					int value                             = currentPage;
+					final int value                       = DOMNodeTraitDefinition.getPaginationValue(currentPage, pageCount, windowSize, arguments);
 
-					if (absolute != 0) {
+					if (DOMNodeTraitDefinition.isPaginationControlHidden(currentPage, pageCount, windowSize, arguments)) {
 
-						value = absolute;
-
-					} else if (offset != 0) {
-
-						value = currentPage + offset;
-					}
-
-					if (value > 0 && value <= pageCount) {
-
-						attributes.put("data-structr-success-target", "[data-channel~='" + channel.getName() + "']");
-						attributes.put("data-structr-events", "click");
-						attributes.put("data-structr-target", paginationKey);
-						attributes.put("data-" + paginationKey, value);
+						attributes.put("data-hidden", true);
 
 					} else {
 
-						attributes.put("disabled", "true");
+						if (value > 0 && value <= pageCount) {
+
+							attributes.put("data-structr-success-target", "[data-channel~='" + channel.getName() + "']");
+							attributes.put("data-structr-events", "click");
+							attributes.put("data-structr-target", paginationKey);
+							attributes.put("data-" + paginationKey, value);
+
+							if (value == currentPage) {
+								attributes.put("data-current-page", currentPage);
+							}
+
+						} else {
+
+							attributes.put("disabled", "true");
+						}
 					}
 
 					// join into a single string and return it
@@ -947,21 +942,13 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					final ChannelInput input              = config.getChannelInput(renderContext);
 					final String paginationKey            = channel.getPaginationKey();
 					final ChannelResult result            = channel.getResult(renderContext, input);
+					final int resultCount                 = result.getResultCount();
+					final int windowSize                  = config.getPaginationWindowSize();
+					final int pageSize                    = config.getPageSize();
+					final int pageCount                   = (int) Math.ceil((double)resultCount / (double)pageSize);
 					final int currentPage                 = DOMElement.intOrOne(securityContext.getRequestParameter(paginationKey));
-					final int absolute                    = DOMElement.intOrZero(arguments.get("absolute"));
-					final int offset                      = DOMElement.intOrZero(arguments.get("offset"));
-					int value                             = currentPage;
 
-					if (absolute != 0) {
-
-						value = absolute;
-
-					} else if (offset != 0) {
-
-						value = currentPage + offset;
-					}
-
-					return value;
+					return DOMNodeTraitDefinition.getPaginationValue(currentPage, pageCount, windowSize, arguments);
 				}
 			}
 		);
@@ -1085,5 +1072,76 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		}
 
 		return Collections.EMPTY_LIST;
+	}
+
+	private static int getPaginationValue(final int currentPage, final int pageCount, final int windowSize, final Arguments arguments) {
+
+		if (arguments.get("prev") != null) {
+
+			return currentPage - 1;
+		}
+
+		if (arguments.get("next") != null) {
+
+			return currentPage + 1;
+		}
+
+		if (arguments.get("first") != null) {
+			return 1;
+		}
+
+		if (arguments.get("last") != null) {
+			return pageCount;
+		}
+
+		final Object windowInput = arguments.get("window");
+		if (windowInput != null) {
+
+			int window = DOMElement.intOrZero(windowInput);
+
+			if (currentPage < windowSize) {
+
+				window += (windowSize - currentPage);
+
+			} else if (currentPage > pageCount - windowSize + 1) {
+
+				window += (pageCount - windowSize - currentPage + 1);
+			}
+
+			return currentPage + window;
+		}
+
+		return 0;
+	}
+
+	private static boolean isPaginationControlHidden(final int currentPage, final int pageCount, final int windowSize, final Arguments arguments) {
+
+		// hide "prev" button if there is no previous page
+		if (arguments.get("first") != null && currentPage < 4) {
+			return true;
+		}
+
+		// hide "next" button if there is no next page
+		if (arguments.get("last") != null && currentPage == pageCount) {
+			return true;
+		}
+
+		// hide "low" ellipsis button
+		if ("low".equals(arguments.get("ellipsis")) && currentPage < 5) {
+			return true;
+		}
+
+		// hide "high" ellipsis button
+		if ("high".equals(arguments.get("ellipsis")) && currentPage >= (pageCount - 3)) {
+			return true;
+		}
+
+		// hide "last" button
+		if (arguments.get("last") != null && currentPage >= (pageCount - 2)) {
+
+			return true;
+		}
+
+		return false;
 	}
 }

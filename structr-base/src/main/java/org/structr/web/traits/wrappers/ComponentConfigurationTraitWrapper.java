@@ -169,6 +169,18 @@ public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper
 	}
 
 	@Override
+	public int getPaginationWindowSize() {
+
+		final Integer value = wrappedObject.getProperty(traits.key(ComponentConfigurationTraitDefinition.PAGINATION_WINDOW_SIZE_PROPERTY));
+		if (value != null) {
+
+			return value.intValue();
+		}
+
+		return 5;
+	}
+
+	@Override
 	public ChannelInput getChannelInput(final RenderContext renderContext) throws FrameworkException {
 
 		final Channel channel      = getDataSource();

@@ -163,7 +163,6 @@ public class ValueExpression extends Expression {
 
 					// reset params, allows map mixed with key-value pairs
 					key = null;
-
 				}
 
 			} else if (value == null) {
@@ -176,6 +175,11 @@ public class ValueExpression extends Expression {
 				key   = null;
 				value = null;
 			}
+		}
+
+		// allow single parameters
+		if (key != null) {
+			dest.put(key.toString(), true);
 		}
 	}
 

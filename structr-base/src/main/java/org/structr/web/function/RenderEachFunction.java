@@ -51,7 +51,7 @@ public class RenderEachFunction extends UiCommunityFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("dataSource, tag [, slot]");
+		return Signature.forAllScriptingLanguages("tag [, slot]");
 	}
 
 	@Override

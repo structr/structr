@@ -190,8 +190,8 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 							if (templateNode != null) {
 
 								final DataAdapter previousDataAdapter = innerCtx.getCurrentAdapter();
-								final Channel previousDataSource = innerCtx.getCurrentDataSource();
-								final String previousReloadBehaviour = innerCtx.getCurrentReloadBehaviour();
+								final Channel previousDataSource      = innerCtx.getCurrentDataSource();
+								final String previousReloadBehaviour  = innerCtx.getCurrentReloadBehaviour();
 
 								// we need to make the current data source available to the inner template
 								innerCtx.setCurrentAdapter(dataAdapter);
@@ -275,7 +275,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 		}
 	}
 
-	private DOMNode getTemplate(final App app, final String slot, final String templateName) throws FrameworkException {
+	protected DOMNode getTemplate(final App app, final String slot, final String templateName) throws FrameworkException {
 
 		if (StringUtils.isBlank(templateName)) {
 			return null;
@@ -322,7 +322,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 		return null;
 	}
 
-	private void renderTemplate(final App app, final RenderContext ctx, final String name, final String fallbackHtml) throws FrameworkException {
+	protected void renderTemplate(final App app, final RenderContext ctx, final String name, final String fallbackHtml) throws FrameworkException {
 
 		DOMNode template = getTemplate(app, null, name);
 		if (template != null) {

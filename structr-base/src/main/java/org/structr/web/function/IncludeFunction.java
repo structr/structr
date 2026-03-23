@@ -81,7 +81,6 @@ public class IncludeFunction extends UiCommunityFunction {
 
 			final SecurityContext securityContext    = ctx.getSecurityContext();
 			final App app                            = StructrApp.getInstance(securityContext);
-			final List<NodeInterface> nodeList       = app.nodeQuery(StructrTraits.DOM_NODE).name((String)sources[0]).getAsList();
 
 			RenderContext innerCtx = null;
 			boolean useBuffer      = false;
@@ -104,7 +103,18 @@ public class IncludeFunction extends UiCommunityFunction {
 			final DOMNode node = getNodeForInclude(app, sources[0].toString());
 			if (node != null) {
 
-				return renderNode(securityContext, ctx, innerCtx, sources, app, node, useBuffer);
+				// save current component
+				final DOMNode previousComponent = innerCtx.getCurrentComponent();
+
+				// store (possible) new current component
+				innerCtx.setPossibleCurrentComponent(caller);
+
+				final String value = renderNode(securityContext, ctx, innerCtx, sources, app, node, useBuffer);
+
+				// restore previous component
+				innerCtx.setCurrentComponent(previousComponent);
+
+				return value;
 			}
 
 			return "";

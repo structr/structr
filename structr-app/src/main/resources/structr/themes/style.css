@@ -99,6 +99,7 @@
     .button-sm { @apply inline-flex items-center rounded-md border border-transparent px-2 py-1 text-xs font-medium shadow-sm focus:ring-offset-2 focus:outline-none focus:ring-2; }
     .button-primary { @apply bg-${theme.button.primary.background} text-${theme.button.primary.text} hover:bg-${theme.button.primary.focus} focus:ring-${theme.button.primary.focus}; }
     .button-secondary { @apply bg-${theme.button.secondary.background} text-${theme.button.secondary.text} hover:bg-${theme.button.secondary.focus} focus:ring-${theme.button.secondary.focus}; }
+    .button-secondary[data-current-page] { @apply button-primary; }
     .button-success { @apply bg-${theme.button.success.background} text-${theme.button.success.text} hover:bg-${theme.button.success.focus} focus:ring-${theme.button.success.focus}; }
     .button-warning { @apply bg-${theme.button.warning.background} text-${theme.button.warning.text} hover:bg-${theme.button.warning.focus} focus:ring-${theme.button.warning.focus}; }
     .button-danger { @apply bg-${theme.button.danger.background} text-${theme.button.danger.text} hover:bg-${theme.button.danger.focus} focus:ring-${theme.button.danger.focus}; }
@@ -111,6 +112,7 @@
     /* internal */
     span.error { @apply text-xs text-red-600; }
     span.empty { @apply text-xs text-gray-400 text-center block; }
+    [data-hidden="true"] { visibility: hidden; }
 
     /* margins */
     main > * + * { @apply mt-8; }

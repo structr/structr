@@ -70,6 +70,7 @@ public class RenderContext extends ActionContext {
 	private final Map<String, GraphObject> dataObjects = new HashMap<>();
 	private final Stack<SecurityContext> scStack       = new Stack<>();
 	private final Map<String, Object> theme            = new LinkedHashMap<>();
+	private DOMNode currentComponent                   = null;
 	private Channel currentDataSource                  = null;
 	private DataAdapter currentAdapter                 = null;
 	private String currentReloadBehaviour              = null;
@@ -456,6 +457,10 @@ public class RenderContext extends ActionContext {
 						break;
 
 					case "component":
+
+						if (currentComponent != null) {
+							return currentComponent;
+						}
 						return resolveClosestComponent(entity);
 
 					case "dataSource":
@@ -637,6 +642,21 @@ public class RenderContext extends ActionContext {
 
 	public Channel getCurrentDataSource() {
 		return currentDataSource;
+	}
+
+	public void setPossibleCurrentComponent(final Object candidate) {
+
+		if (candidate == null && candidate instanceof GraphObject g && g.is(StructrTraits.DOM_NODE)) {
+			this.currentComponent = g.as(DOMNode.class).getClosestComponent();
+		}
+	}
+
+	public void setCurrentComponent(final DOMNode currentComponent) {
+		this.currentComponent = currentComponent;
+	}
+
+	public DOMNode getCurrentComponent() {
+		return currentComponent;
 	}
 
 	public String getChannelValue(final String name) {
