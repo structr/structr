@@ -112,7 +112,7 @@
     /* internal */
     span.error { @apply text-xs text-red-600; }
     span.empty { @apply text-xs text-gray-400 text-center block; }
-    [data-hidden="true"] { visibility: hidden; }
+    [data-hidden="true"] { display: none; }
 
     /* margins */
     main > * + * { @apply mt-8; }

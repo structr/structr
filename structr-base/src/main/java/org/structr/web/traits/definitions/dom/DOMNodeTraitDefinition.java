@@ -899,8 +899,11 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					final int pageCount                   = (int) Math.ceil((double)resultCount / (double)pageSize);
 					final int currentPage                 = DOMElement.intOrOne(securityContext.getRequestParameter(paginationKey));
 					final int value                       = DOMNodeTraitDefinition.getPaginationValue(currentPage, pageCount, windowSize, arguments);
+					final boolean hidden                  = DOMNodeTraitDefinition.isPaginationControlHidden(currentPage, pageCount, windowSize, arguments);
 
-					if (DOMNodeTraitDefinition.isPaginationControlHidden(currentPage, pageCount, windowSize, arguments)) {
+					System.out.println(arguments.toMap() + ": " + value + ", " + hidden);
+
+					if (hidden) {
 
 						attributes.put("data-hidden", true);
 
@@ -1099,15 +1102,8 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 			int window = DOMElement.intOrZero(windowInput);
 
-			if (currentPage < windowSize) {
-
-				window += (windowSize - currentPage);
-
-			} else if (currentPage > pageCount - windowSize + 1) {
-
-				window += (pageCount - windowSize - currentPage + 1);
-			}
-
+			// We return all the values here, buttons with invalid
+			// values are hidden by the method below.
 			return currentPage + window;
 		}
 
@@ -1140,6 +1136,17 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		if (arguments.get("last") != null && currentPage >= (pageCount - 2)) {
 
 			return true;
+		}
+
+		// fewer pages than window size? Show only buttons in the middle
+		final Object windowInput = arguments.get("window");
+		if (windowInput != null) {
+
+			final int window  = DOMElement.intOrZero(windowInput);
+			final int newPage = currentPage + window;
+
+			// we're returning "hidden", not "visible" here
+			return newPage < 1 || newPage > pageCount;
 		}
 
 		return false;
