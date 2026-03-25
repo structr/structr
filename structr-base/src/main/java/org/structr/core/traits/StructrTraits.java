@@ -344,6 +344,53 @@ public class StructrTraits {
 	public static final String FLOW_SWITCH_CASES                                              = "FlowSwitchCases";
 	public static final String FLOW_VALUE_INPUT                                               = "FlowValueInput";
 
+	// BPMN Process Engine node types
+	public static final String BPMN_DEFINITIONS        = "BpmnDefinitions";
+	public static final String BPMN_ELEMENT            = "BpmnElement";
+	public static final String BPMN_SEQUENCE_FLOW      = "BpmnSequenceFlow";
+	public static final String BPMN_DI_DIAGRAM         = "BpmnDiDiagram";
+	public static final String BPMN_DI_SHAPE           = "BpmnDiShape";
+	public static final String BPMN_DI_EDGE            = "BpmnDiEdge";
+
+	// BPMN Process Engine relationship types
+	public static final String BPMN_DEFINITIONS_HAS_ELEMENT       = "BpmnDefinitionsHAS_ELEMENTBpmnElement";
+	public static final String BPMN_DEFINITIONS_HAS_SEQUENCE_FLOW = "BpmnDefinitionsHAS_SEQUENCE_FLOWBpmnSequenceFlow";
+	public static final String BPMN_DEFINITIONS_HAS_DIAGRAM       = "BpmnDefinitionsHAS_DIAGRAMBpmnDiDiagram";
+	public static final String BPMN_SEQUENCE_FLOW_FROM            = "BpmnSequenceFlowFROMBpmnElement";
+	public static final String BPMN_SEQUENCE_FLOW_TO              = "BpmnSequenceFlowTOBpmnElement";
+	public static final String BPMN_DI_DIAGRAM_HAS_SHAPE          = "BpmnDiDiagramHAS_SHAPEBpmnDiShape";
+	public static final String BPMN_DI_DIAGRAM_HAS_EDGE           = "BpmnDiDiagramHAS_EDGEBpmnDiEdge";
+	public static final String BPMN_DI_SHAPE_REFERENCES_ELEMENT   = "BpmnDiShapeREFERENCESBpmnElement";
+	public static final String BPMN_DI_EDGE_REFERENCES_FLOW       = "BpmnDiEdgeREFERENCESBpmnSequenceFlow";
+	public static final String BPMN_ELEMENT_HAS_CHILD_ELEMENT     = "BpmnElementHAS_CHILD_ELEMENTBpmnElement";
+	public static final String BPMN_ELEMENT_HAS_CHILD_FLOW        = "BpmnElementHAS_CHILD_FLOWBpmnSequenceFlow";
+
+	// BPMN global definitions (message, signal, error at definitions level)
+	public static final String BPMN_GLOBAL_DEFINITION                    = "BpmnGlobalDefinition";
+	public static final String BPMN_DEFINITIONS_HAS_GLOBAL_DEFINITION    = "BpmnDefinitionsHAS_GLOBAL_DEFINITIONBpmnGlobalDefinition";
+
+	// Process Engine runtime node types
+	public static final String PROCESS_INSTANCE     = "ProcessInstance";
+	public static final String PROCESS_TOKEN         = "ProcessToken";
+	public static final String TASK_INSTANCE         = "TaskInstance";
+
+	// Process Engine runtime relationship types
+	public static final String PROCESS_INSTANCE_OF_DEFINITION      = "ProcessInstanceINSTANCE_OFBpmnDefinitions";
+	public static final String PROCESS_INSTANCE_HAS_TOKEN          = "ProcessInstanceHAS_TOKENProcessToken";
+	public static final String PROCESS_TOKEN_AT_ELEMENT            = "ProcessTokenAT_ELEMENTBpmnElement";
+	public static final String TASK_INSTANCE_OF_PROCESS            = "TaskInstanceTASK_OFProcessInstance";
+	public static final String TASK_INSTANCE_DEFINED_BY            = "TaskInstanceDEFINED_BYBpmnElement";
+
+	// Process data node types
+	public static final String PROCESS_PARAMETER        = "ProcessParameter";
+	public static final String PROCESS_PARAMETER_VALUE   = "ProcessParameterValue";
+
+	// Process data relationship types
+	public static final String BPMN_ELEMENT_HAS_PARAMETER                = "BpmnElementHAS_PARAMETERProcessParameter";
+	public static final String PROCESS_INSTANCE_HAS_PARAMETER_VALUE      = "ProcessInstanceHAS_PARAMETER_VALUEProcessParameterValue";
+	public static final String PROCESS_PARAMETER_VALUE_OF_PARAMETER      = "ProcessParameterValueOF_PARAMETERProcessParameter";
+	public static final String PROCESS_PARAMETER_VALUE_SET_BY_ELEMENT    = "ProcessParameterValueSET_BY_ELEMENTBpmnElement";
+
 
 	public static void registerTrait(final TraitDefinition definition) {
 

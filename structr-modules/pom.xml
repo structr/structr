@@ -29,6 +29,7 @@
 		<module>structr-excel-module</module>
 		<module>structr-file-access-module</module>
 		<module>structr-flow-module</module>
+		<module>structr-process-module</module>
 		<module>structr-geo-transformations-module</module>
 		<module>structr-media-module</module>
 		<module>structr-messaging-engine-module</module>

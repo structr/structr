@@ -88,6 +88,11 @@
         </dependency>
         <dependency>
             <groupId>org.structr</groupId>
+            <artifactId>structr-process-module</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.structr</groupId>
             <artifactId>structr-geo-transformations-module</artifactId>
             <version>${project.version}</version>
         </dependency>
