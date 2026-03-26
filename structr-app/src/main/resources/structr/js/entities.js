@@ -2865,10 +2865,13 @@ let _Entities = {
                     let color = renderTemplate?.length ? 'text-gray-555' : 'text-gray-aaa';
                     sortable.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.configuredFieldPartial({ fieldName, field, renderTemplate, color, open: openField === fieldName }));
                     let editor = document.querySelector(`.field-details-editor[data-field-name="${fieldName}"]`);
-                    if (editor) {
-                        editor.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({ label: 'Value Expression', name: 'value', fieldName, value: field.value, destination: 'field' }));
-                        editor.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({ css: 'mt-4', label: 'Data Type', name: 'dataType', fieldName, value: field.dataType, destination: 'field' }));
-                        editor.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({ css: 'mt-4', label: 'Label', name: 'label', fieldName, value: field.label, destination: 'field' }));
+                    if (editor && field) {
+                        editor.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({ css: 'col-span-3', label: 'Label', name: 'label', fieldName, value: field.label, destination: 'field' }));
+                        editor.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({ css: 'col-span-3', label: 'Value Expression', name: 'value', fieldName, value: field.value, destination: 'field' }));
+                        editor.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({ css: 'col-span-2', label: 'Sort Key', name: 'sortKey', fieldName, value: field.sortKey, destination: 'field' }));
+                        editor.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({ css: 'col-span-2', label: 'Columns', name: 'columns', fieldName, value: field.columns, destination: 'field' }));
+						editor.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({ css: 'col-span-2', label: 'Data Type', name: 'dataType', fieldName, value: field.dataType, destination: 'field' }));
+                        editor.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailCheckbox({ css: 'col-span-3', label: 'Include in filter', name: 'isSearchable', fieldName, value: field.isSearchable, destination: 'field' }));
                         editor.insertAdjacentHTML('beforeend', await _Entities.generalTab.templates.fieldConfigurationInput(field, renderTemplate));
                         editor.querySelectorAll('input').forEach(input => {
                             input.addEventListener('change', async e => {
@@ -4045,6 +4048,14 @@ let _Entities = {
                         </select>
                     </div>
                     -->
+                    
+                    <div>
+                        <label class="block mb-2" for="page-size-input" data-comment="Controls the page size of this component, defaults to 10">Page Size</label>
+                        <input type="text" id="page-size-input" autocomplete="off" name="pageSize" data-which="config">
+                    </div>
+                    
+                    <div></div>
+                    
                     <div class="mb-2 mt-2 flex items-center">
                         <input type="checkbox" name="labels" id="labels" data-which="config">
                         <label for="labels">Show Labels</label>
@@ -4085,7 +4096,7 @@ let _Entities = {
                         </div>
                         <span class="${config.color} italic font-normal cursor-pointer relative select-render-template" data-field-name="${config.fieldName}" data-field-type="${config.field?.dataType}" title="Click to change template.">${config.renderTemplate || 'Set template..'}</span>
                     </summary>
-                    <div class="field-details-editor flex flex-col bg-gray-f8 p-4 border border-0 border-t border-gray-ddd rounded-b font-normal" data-field-name="${config.fieldName}"></div>
+                    <div class="field-details-editor grid grid-cols-6 gap-4 bg-gray-f8 p-4 border border-0 border-t border-gray-ddd rounded-b font-normal" data-field-name="${config.fieldName}"></div>
                 </details>
             `,
             availableFieldPartial: (config) => `
@@ -4100,9 +4111,20 @@ let _Entities = {
                     </div>
                 </label>
             `,
-            fieldDetailInput: (config) => `
-                <label class="font-bold block mb-1 px-1 ${config.css || ''}">${config.label}</label>
-                <input type="text" data-field-name="${config.fieldName}" data-destination="${config.destination}" autocomplete="off" name="${config.name}" value="${config.value || ''}">
+			fieldDetailInput: (config) => `
+                <div class="${config.css || ''}">
+                    <label class="font-bold block mb-1 px-1">${config.label}</label>
+                    <input type="text" data-field-name="${config.fieldName}" data-destination="${config.destination}" autocomplete="off" name="${config.name}" value="${config.value || ''}">
+                </div>
+            `,
+            fieldDetailCheckbox: (config) => `
+                <div class="${config.css || ''}">
+                    <label class="font-bold block mb-1 px-1">Options</label>
+                    <label class="block mb-1 px-1">
+	                    <input type="checkbox" data-field-name="${config.fieldName}" data-destination="${config.destination}" name="${config.name}" ${config.value ? 'checked': ''}>
+    	                ${config.label}
+    	            </label>
+                </div>
             `,
             fieldConfigurationInput: async (field, templateName) => {
                 let templates = await Command.queryPromise('Widget', 1000, 1, 'name', 'asc', { isRenderTemplate: true, name: templateName }, true, null, 'id,type,name,configuration');
@@ -4115,7 +4137,7 @@ let _Entities = {
                             let label = config[key]?.label || key;
                             let value = field?.config?.[key];
                             fields.push(_Entities.generalTab.templates.fieldDetailInput({
-                                css: 'mt-4',
+                                css: 'col-span-3',
                                 fieldName: field.name,
                                 name: key,
                                 value: value,

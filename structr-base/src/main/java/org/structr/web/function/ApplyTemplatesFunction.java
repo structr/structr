@@ -25,6 +25,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.datasources.Channel;
+import org.structr.core.datasources.SortInfo;
 import org.structr.core.entity.DataAdapter;
 import org.structr.core.entity.DataSource;
 import org.structr.core.graph.NodeInterface;
@@ -43,10 +44,7 @@ import org.structr.web.entity.dom.Page;
 import org.structr.web.traits.definitions.WidgetTraitDefinition;
 import org.structr.websocket.command.CreateComponentCommand;
 
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Convenience method to render named child nodes.
@@ -239,6 +237,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 		final AsyncBuffer buffer              = innerCtx.getBuffer();
 		final String requestedFieldSet        = domNode.getFieldSetForComponent();
 		final List<String> fieldSet           = splitAndTrim(requestedFieldSet, ",");
+		final String sortKey                  = sourceChannel.getSortKey();
 
 		if (fieldSet.isEmpty()) {
 			logger.warn("{}: {} with ID {} doesn't specify a fieldSet, nothing will be rendered.", getName(), domNode.getType(), domNode.getUuid());
@@ -254,13 +253,40 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 				// no slot => iterate over all fields or just one slot
 				if (slot == null || slots.contains(slot)) {
 
-					final String label = dataField.getLabel();
+					final String label      = dataField.getLabel();
+					final SortInfo sortInfo = getSortInfo(innerCtx, sortKey, dataField.getSortKey());
 
 					innerCtx.setConstant("value", label);
 					innerCtx.setConstant("field", dataField);
 
+					// format sort controls on labels
+					final Map<String, String> data = new LinkedHashMap<>();
+					data.put("data-structr-success-target", "[data-channel]");
+					data.put("data-structr-events", "click");
+					data.put("data-structr-target", sortKey);
+
+					final Set<String> classes = new LinkedHashSet<>();
+					if (sortInfo != null && !dataField.isCollection()) {
+
+						classes.add("sortable");
+
+						data.put("data-" + sortKey, sortInfo.toString());
+
+						if (sortInfo.active) {
+
+							if (sortInfo.descending) {
+
+								classes.add("descending");
+
+							} else {
+
+								classes.add("ascending");
+							}
+						}
+					}
+
 					if (wrapper != null) {
-						wrapper.formatStartTag(buffer);
+						wrapper.formatStartTag(buffer, data, classes);
 					}
 
 					if (label != null) {
@@ -331,5 +357,25 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 		}
 
 		ctx.getBuffer().append(fallbackHtml);
+	}
+
+	protected SortInfo getSortInfo(final RenderContext renderContext, final String requestParameterName, final String fieldName) {
+
+		final SortInfo currentSortInfo = SortInfo.fromString(renderContext.getRequestParameter(requestParameterName));
+		final SortInfo newSortInfo     = SortInfo.fromString(fieldName);
+
+		if (currentSortInfo != null && newSortInfo != null) {
+
+			if (currentSortInfo.sortKey.equals(newSortInfo.sortKey)) {
+
+				// invert sort direction
+				newSortInfo.descending = !currentSortInfo.descending;
+
+				// is the current field the active sort key?
+				newSortInfo.active = fieldName.equals(currentSortInfo.sortKey);
+			}
+		}
+
+		return newSortInfo;
 	}
 }

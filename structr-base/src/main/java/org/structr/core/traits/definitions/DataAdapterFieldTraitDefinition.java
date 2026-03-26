@@ -25,10 +25,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.entity.DataAdapterField;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.Property;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.StartNode;
-import org.structr.core.property.StringProperty;
+import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.TraitsInstance;
@@ -50,6 +47,10 @@ public class DataAdapterFieldTraitDefinition extends AbstractNodeTraitDefinition
 	public static final String CONFIG_PROPERTY          = "config";
 	public static final String VALUE_PROPERTY           = "value";
 	public static final String DATA_TYPE_PROPERTY       = "dataType";
+	public static final String SORT_KEY_PROPERTY        = "sortKey";
+	public static final String IS_SEARCHABLE_PROPERTY   = "isSearchable";
+	public static final String ROWS_PROPERTY            = "rows";
+	public static final String COLUMNS_PROPERTY         = "columns";
 
 	public DataAdapterFieldTraitDefinition() {
 		super(StructrTraits.DATA_ADAPTER_FIELD);
@@ -86,6 +87,10 @@ public class DataAdapterFieldTraitDefinition extends AbstractNodeTraitDefinition
 		final Property<String> configProperty             = new StringProperty(CONFIG_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<String> valueProperty              = new StringProperty(VALUE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<String> dataTypeProperty           = new StringProperty(DATA_TYPE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<String> sortKeyProperty            = new StringProperty(SORT_KEY_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<Boolean> isSearchableProperty      = new BooleanProperty(IS_SEARCHABLE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<Integer> rowsProperty              = new IntProperty(ROWS_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<Integer> columnsProperty            = new IntProperty(COLUMNS_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 
 		return newSet(
 			dataAdapterProperty,
@@ -94,7 +99,11 @@ public class DataAdapterFieldTraitDefinition extends AbstractNodeTraitDefinition
 			labelProperty,
 			valueProperty,
 			dataTypeProperty,
-			configProperty
+			configProperty,
+			sortKeyProperty,
+			isSearchableProperty,
+			rowsProperty,
+			columnsProperty
 		);
 	}
 
@@ -111,7 +120,11 @@ public class DataAdapterFieldTraitDefinition extends AbstractNodeTraitDefinition
 				LABEL_PROPERTY,
 				VALUE_PROPERTY,
 				DATA_TYPE_PROPERTY,
-				CONFIG_PROPERTY
+				CONFIG_PROPERTY,
+				SORT_KEY_PROPERTY,
+				IS_SEARCHABLE_PROPERTY,
+				ROWS_PROPERTY,
+				COLUMNS_PROPERTY
 			)
 		);
 	}

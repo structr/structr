@@ -30,7 +30,7 @@ import java.util.List;
  */
 public class ChannelResult<T> {
 
-	private static final int softLimit  = 10000;
+	private static final int softLimit  = 1_000_000;
 
 	private final List<T> values = new LinkedList<T>();
 	private int totalResultCount = 0;

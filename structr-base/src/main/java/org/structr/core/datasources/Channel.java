@@ -46,7 +46,15 @@ public interface Channel<T> {
 
 	Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, final GraphObject contextObject, final int row, final int column) throws FrameworkException;
 
+	default String getSortKey() {
+		return getName().toLowerCase() + ".sort";
+	}
+
 	default String getPaginationKey() {
 		return getName().toLowerCase() + ".page";
+	}
+
+	default String getFilterKey() {
+		return getName().toLowerCase() + ".filter";
 	}
 }

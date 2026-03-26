@@ -541,10 +541,14 @@ export class Frontend {
             const url = new URL(window.location.href);
 
             for (let key in parameters) {
-                if (key === 'current') {
-                    url.pathname = url.pathname.split('/').toSpliced(2, 1, parameters[key]).join('/');
+                if (parameters[key]) {
+                    if (key === 'current') {
+                        url.pathname = url.pathname.split('/').toSpliced(2, 1, parameters[key]).join('/');
+                    } else {
+                        url.searchParams.set(key, parameters[key]);
+                    }
                 } else {
-                    url.searchParams.set(key, parameters[key]);
+                    url.searchParams.delete(key);
                 }
             }
 
@@ -690,6 +694,9 @@ export class Frontend {
         for (let key of new Set(searchParams.keys())) {
             let values = searchParams.getAll(key);
             params[key] = values.length === 1 ? values[0] : values;
+            if (params[key] === null) {
+                delete params[key];
+            }
         }
 
 		// current object set?
@@ -722,7 +729,7 @@ export class Frontend {
 			for (let key of Object.keys(override)) {
 
 				let value = override[key];
-				if (value === '') {
+				if (value === '' || value === null) {
 
 					delete params[key];
 
@@ -802,7 +809,7 @@ export class Frontend {
 		let sortKey = this.getFirst(data.structrTarget);
 
 		// special handling for frontend-only events (pagination, sorting)
-		if (sortKey && data[sortKey]) {
+		if (sortKey && (data[sortKey] || target.name === sortKey)) {
 
 			this.notifyElementActionStarted(target);
 
@@ -810,6 +817,7 @@ export class Frontend {
 			// data-structr-target attribute. This is currently only true for pagination and sorting, where
 			// data-structr-target="page" and data-page="1" (which comes from the backend), or
 			// data-structr-target="sort" and data-sort="sortKeyName".
+            // addition for filter fields: name=sortKeyName now also selects this branch
 
 			this.handlePagination(event, target, options);
 
@@ -877,6 +885,11 @@ export class Frontend {
 			sortKey  = parts[0].trim();
 			orderKey = parts[1].trim();
 		}
+
+        // check for key event and Escape key to reset the search field
+        if (options && options.resetWithEsc && event && event.key && event.key === 'Escape') {
+            event.target.value = '';
+        }
 
 		let resolved        = this.resolveData(event, target);
 		parameters[sortKey] = resolved[sortKey];

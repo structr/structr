@@ -378,6 +378,16 @@ public class RenderContext extends ActionContext {
 		return indentHtml;
 	}
 
+	public String[] getRequestParameterValues(final String name) {
+
+		if (request != null) {
+
+			return request.getParameterValues(name);
+		}
+
+		return null;
+	}
+
 	public String getRequestParameter(final String name) {
 
 		if (request != null) {

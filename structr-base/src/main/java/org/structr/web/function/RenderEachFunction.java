@@ -83,7 +83,7 @@ public class RenderEachFunction extends UiCommunityFunction {
 
 				final String reloadBehaviour  = domNode.getReloadBehaviourForComponent();
 				final String selectionChannel = config.getSelectionChannel();
-				final ChannelInput input      = config.getChannelInput(renderContext);
+				final ChannelInput input      = config.getChannelInput(renderContext, dataAdapter);
 				final AsyncBuffer buffer      = renderContext.getBuffer();
 				final String role             = domNode.getRoleForComponent();
 				final String resets           = getChannelDependencies(domNode, selectionChannel);

@@ -83,6 +83,8 @@ import org.structr.web.traits.definitions.ParameterMappingTraitDefinition;
 import org.structr.web.traits.operations.*;
 import org.structr.web.traits.wrappers.dom.DOMElementTraitWrapper;
 
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -590,7 +592,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 									// support for configuration options
 									if (StringUtils.isNotBlank(options)) {
-										out.append(" data-structr-options=\"").append(uuid).append("\"");
+										out.append(" data-structr-options=\"").append(StringEscapeUtils.escapeJson(options)).append("\"");
 									}
 
 									String eventsString = null;

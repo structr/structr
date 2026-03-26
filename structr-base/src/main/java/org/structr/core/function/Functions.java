@@ -194,7 +194,7 @@ public class Functions {
 					}
 					current = current.getParent();
 					if (current == null) {
-						throw new StructrScriptException(422, "Invalid expression: mismatched closing bracket after " + token.getContent(), token.getRow(), token.getColumn());
+						//throw new StructrScriptException(422, "Invalid expression: mismatched closing bracket after " + token.getContent(), token.getRow(), token.getColumn());
 					}
 					tokens.add(")");
 					level--;

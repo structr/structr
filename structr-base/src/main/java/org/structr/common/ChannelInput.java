@@ -19,39 +19,56 @@
 package org.structr.common;
 
 import org.structr.api.Predicate;
+import org.structr.api.graph.PropertyContainer;
 import org.structr.core.GraphObject;
+import org.structr.core.datasources.SortInfo;
+import org.structr.web.datasource.DataField;
 
 import java.util.LinkedList;
 import java.util.List;
 
 public class ChannelInput implements Predicate<GraphObject> {
 
-	private final List<String> sortKeys = new LinkedList<>();
+	private final List<SortInfo> sortInfos = new LinkedList<>();
+	private final List<DataField> searchableFields = new LinkedList<>();
+	private final String filter;
 	private final String transform;
 	private final int pageSize;
 	private final int page;
 
-	public ChannelInput() {
-		this(null);
-	}
-
 	public ChannelInput(final String transform) {
-		this(null, Integer.MAX_VALUE, 1);
+		this(transform, null, null, Integer.MAX_VALUE, 1);
 	}
 
-	public ChannelInput(final String transform, final int pageSize, final int page) {
+	public ChannelInput(final String transform, final String filter, final String[] sortStrings, final int pageSize, final int page) {
 
+		this.filter    = filter != null ? filter.toLowerCase() : null;
 		this.transform = transform;
 		this.pageSize  = pageSize;
 		this.page      = page;
+
+		if (sortStrings != null) {
+
+			for (String sortKey : sortStrings) {
+
+				if (sortKey != null) {
+
+					sortInfos.add(SortInfo.fromString(sortKey));
+				}
+			}
+		}
 	}
 
-	public List<String> sortKeys() {
-		return sortKeys;
+	public List<SortInfo> sortKeys() {
+		return sortInfos;
 	}
 
 	public String transform() {
 		return transform;
+	}
+
+	public String filter() {
+		return filter;
 	}
 
 	public int pageSize() {
@@ -62,8 +79,33 @@ public class ChannelInput implements Predicate<GraphObject> {
 		return page;
 	}
 
+	public List<DataField> searchableFields() {
+		return searchableFields;
+	}
+
 	@Override
-	public boolean accept(final GraphObject value) {
+	public boolean accept(final GraphObject object) {
+
+		final PropertyContainer container = object.getPropertyContainer();
+
+		if (filter != null) {
+
+			boolean accept = false;
+
+			for (final DataField field : searchableFields) {
+
+				final Object value = container.getProperty(field.getPropertyName());
+				if (value != null) {
+
+					if (value.toString().toLowerCase().contains(filter)) {
+						return true;
+					}
+				}
+			}
+
+			return accept;
+		}
+
 		return true;
 	}
 }

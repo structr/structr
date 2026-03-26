@@ -113,6 +113,10 @@
     span.error { @apply text-xs text-red-600; }
     span.empty { @apply text-xs text-gray-400 text-center block; }
     [data-hidden="true"] { display: none; }
+    .sortable { cursor: pointer; }
+    .sortable:hover::after { content: "↑"; position: absolute; }
+    .sortable.ascending::after { content: "↓"; position: absolute; }
+    .sortable.descending::after { content: "↑"; position: absolute; }
 
     /* margins */
     main > * + * { @apply mt-8; }

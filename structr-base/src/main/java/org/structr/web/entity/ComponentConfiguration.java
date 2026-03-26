@@ -48,5 +48,5 @@ public interface ComponentConfiguration extends NodeInterface {
 	int getPageSize();
 	int getPaginationWindowSize();
 
-	ChannelInput getChannelInput(final RenderContext renderContext) throws FrameworkException;
+	ChannelInput getChannelInput(final RenderContext renderContext, final DataAdapter dataAdapter) throws FrameworkException;
 }

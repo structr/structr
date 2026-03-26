@@ -59,6 +59,23 @@ public class DataAdapterFieldTraitWrapper extends AbstractNodeTraitWrapper imple
 	}
 
 	@Override
+	public String getSortKey() {
+		return wrappedObject.getProperty(traits.key(DataAdapterFieldTraitDefinition.SORT_KEY_PROPERTY));
+	}
+
+	public Boolean isSearchable() {
+		return wrappedObject.getProperty(traits.key(DataAdapterFieldTraitDefinition.IS_SEARCHABLE_PROPERTY));
+	}
+
+	public Integer getRows() {
+		return wrappedObject.getProperty(traits.key(DataAdapterFieldTraitDefinition.ROWS_PROPERTY));
+	}
+
+	public Integer getColumns() {
+		return wrappedObject.getProperty(traits.key(DataAdapterFieldTraitDefinition.COLUMNS_PROPERTY));
+	}
+
+	@Override
 	public Map<String, Object> getConfig() {
 
 		final String configSource = wrappedObject.getProperty(traits.key(DataAdapterFieldTraitDefinition.CONFIG_PROPERTY));

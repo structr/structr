@@ -18,8 +18,13 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.apache.commons.lang3.StringUtils;
+import org.structr.api.Predicate;
+import org.structr.api.util.Iterables;
+import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
 import org.structr.common.ChannelInput;
+import org.structr.common.PathResolvingComparator;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -27,13 +32,17 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
+import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
+import org.structr.core.datasources.SortInfo;
 import org.structr.core.entity.DataSource;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.search.GraphSearchAttribute;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
@@ -49,6 +58,7 @@ import org.structr.core.traits.operations.nodeinterface.OnNodeDeletion;
 import org.structr.core.traits.wrappers.SchemaNodeTraitWrapper;
 import org.structr.schema.ReloadSchema;
 import org.structr.web.common.RenderContext;
+import org.structr.web.datasource.DataField;
 import org.structr.web.datasource.FieldDefinition;
 
 import java.util.*;
@@ -166,15 +176,66 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public ResultStream<NodeInterface> getValues(final RenderContext renderContext, final DataSource provider, final ChannelInput input) throws FrameworkException {
 
-					final PropertyKey sortKey             = Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 					final SecurityContext securityContext = renderContext.getSecurityContext();
 					final SchemaNode schemaNode           = provider.as(SchemaNode.class);
 					final String name                     = schemaNode.getName();
+					final Traits traits                   = Traits.of(name);
 					final int pageSize                    = input != null ? input.pageSize() : Integer.MAX_VALUE;
 					final int page                        = input != null ? input.page() : 1;
+					final Query<NodeInterface> query      = StructrApp.getInstance(securityContext).nodeQuery(name);
 
-					// this method is called one to obtain the results and then only the cached result is used
-					return StructrApp.getInstance(securityContext).nodeQuery(name).sort(sortKey).pageSize(pageSize).page(page).getResultStream();
+					if (input != null) {
+
+						final List<SortInfo> sortKeys = input.sortKeys();
+						if (sortKeys != null) {
+
+							for (final SortInfo sortInfo : sortKeys) {
+
+								if (sortInfo.sortKey.contains(".")) {
+
+									// this is the place where path-based sort keys are resolved in this data source
+									query.comparator((Comparator) new PathResolvingComparator(renderContext, sortInfo.sortKey, sortInfo.descending));
+
+								} else {
+
+									if (traits.hasKey(sortInfo.sortKey)) {
+
+										final PropertyKey sortKey = traits.key(sortInfo.sortKey);
+										if (sortKey != null) {
+
+											query.sort(sortKey, sortInfo.descending);
+										}
+									}
+								}
+							}
+						}
+
+						// use contains query over the searchable fields
+						if (input.filter() != null) {
+
+							for (final String part : input.filter().split(" ")) {
+
+								final String trimmed = part.trim();
+
+								if (StringUtils.isNotBlank(trimmed)) {
+
+									// we AND together the individual parts of the filter string
+									final QueryGroup<NodeInterface> andGroup = query.and();
+									final QueryGroup<NodeInterface> orGroup = andGroup.or();
+
+									for (final DataField searchableField : input.searchableFields()) {
+
+										searchableField.configureQuery(traits, orGroup, trimmed);
+									}
+								}
+							}
+						}
+
+						// apply pagination etc.
+						query.pageSize(pageSize).page(page);
+					}
+
+					return query.getResultStream();
 				}
 
 				@Override

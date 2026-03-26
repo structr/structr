@@ -30,8 +30,13 @@ public interface DataAdapterField extends NodeInterface {
 	String getValue();
 	String getDataType();
 	String getLabel();
+	String getSortKey();
+	Boolean isSearchable();
+	Integer getRows();
+	Integer getColumns();
 
 	Map<String, Object> getConfig();
 
 	void setConfig(final Map<String, Object> detailConfig) throws FrameworkException;
+
 }

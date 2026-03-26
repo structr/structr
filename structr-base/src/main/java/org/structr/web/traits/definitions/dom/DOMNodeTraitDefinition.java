@@ -631,7 +631,8 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 							if (actionContext instanceof RenderContext renderContext) {
 
-								final ChannelResult<GraphObject> iterable = channel.getResult(renderContext, config.getChannelInput(renderContext));
+								final DataAdapter adapter                 = config.getDataAdapter();
+								final ChannelResult<GraphObject> iterable = channel.getResult(renderContext, config.getChannelInput(renderContext, adapter));
 								final String paginationKey                = channel.getPaginationKey();
 								final int resultCount                     = iterable.getResultCount();
 								final int pageCount                       = (int) Math.ceil((double)resultCount / (double)config.getPageSize());
@@ -890,7 +891,8 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					final DOMNode component               = entity.as(DOMNode.class);
 					final ComponentConfiguration config   = component.getComponentConfiguration();
 					final Channel channel                 = config.getDataSource();
-					final ChannelInput input              = config.getChannelInput(renderContext);
+					final DataAdapter adapter             = config.getDataAdapter();
+					final ChannelInput input              = config.getChannelInput(renderContext, adapter);
 					final String paginationKey            = channel.getPaginationKey();
 					final ChannelResult result            = channel.getResult(renderContext, input);
 					final int resultCount                 = result.getResultCount();
@@ -899,9 +901,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					final int pageCount                   = (int) Math.ceil((double)resultCount / (double)pageSize);
 					final int currentPage                 = DOMElement.intOrOne(securityContext.getRequestParameter(paginationKey));
 					final int value                       = DOMNodeTraitDefinition.getPaginationValue(currentPage, pageCount, windowSize, arguments);
-					final boolean hidden                  = DOMNodeTraitDefinition.isPaginationControlHidden(currentPage, pageCount, windowSize, arguments);
-
-					System.out.println(arguments.toMap() + ": " + value + ", " + hidden);
+					final boolean hidden                  = DOMNodeTraitDefinition.isPaginationControlHidden(currentPage, pageCount, resultCount, arguments);
 
 					if (hidden) {
 
@@ -909,7 +909,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 					} else {
 
-						if (value > 0 && value <= pageCount) {
+						if (value > 0 && (resultCount == -1 || value <= pageCount)) {
 
 							attributes.put("data-structr-success-target", "[data-channel~='" + channel.getName() + "']");
 							attributes.put("data-structr-events", "click");
@@ -942,7 +942,8 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					final RenderContext renderContext     = (RenderContext) actionContext;
 					final ComponentConfiguration config   = component.getComponentConfiguration();
 					final Channel channel                 = config.getDataSource();
-					final ChannelInput input              = config.getChannelInput(renderContext);
+					final DataAdapter adapter             = config.getDataAdapter();
+					final ChannelInput input              = config.getChannelInput(renderContext, adapter);
 					final String paginationKey            = channel.getPaginationKey();
 					final ChannelResult result            = channel.getResult(renderContext, input);
 					final int resultCount                 = result.getResultCount();
@@ -952,6 +953,35 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					final int currentPage                 = DOMElement.intOrOne(securityContext.getRequestParameter(paginationKey));
 
 					return DOMNodeTraitDefinition.getPaginationValue(currentPage, pageCount, windowSize, arguments);
+				}
+			},
+
+			// private method, to be called from within a page rendering context only!
+			new JavaMethod("filterControls", true, false) {
+
+				@Override
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
+					final Map<String, Object> attributes  = new LinkedHashMap<>();
+					final RenderContext renderContext     = (RenderContext) actionContext;
+					final DOMNode component               = entity.as(DOMNode.class);
+					final ComponentConfiguration config   = component.getComponentConfiguration();
+					final Channel channel                 = config.getDataSource();
+					final String filterKey                = channel.getFilterKey();
+					final String filterString             = renderContext.getRequestParameter(filterKey);
+
+					attributes.put("data-structr-success-target", "[data-channel~='" + channel.getName() + "']");
+					attributes.put("data-structr-events", "keyup");
+					attributes.put("data-structr-target", filterKey);
+					attributes.put("data-structr-options", "{ &quot;delay&quot;: 300, &quot;resetWithEsc&quot;: true }");
+					attributes.put("name", filterKey);
+
+					if (StringUtils.isNotBlank(filterString)) {
+						attributes.put("value", filterString);
+					}
+
+					// join into a single string and return it
+					return attributes.entrySet().stream().map(e -> e.getKey() + "=\"" + e.getValue() + "\"").collect(Collectors.joining(" "));
 				}
 			}
 		);
@@ -1110,30 +1140,25 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		return 0;
 	}
 
-	private static boolean isPaginationControlHidden(final int currentPage, final int pageCount, final int windowSize, final Arguments arguments) {
+	private static boolean isPaginationControlHidden(final int currentPage, final int pageCount, final int resultCount, final Arguments arguments) {
 
 		// hide "prev" button if there is no previous page
-		if (arguments.get("first") != null && currentPage < 4) {
-			return true;
-		}
-
-		// hide "next" button if there is no next page
-		if (arguments.get("last") != null && currentPage == pageCount) {
+		if (arguments.get("first") != null && (currentPage < 4 || resultCount == -1)) {
 			return true;
 		}
 
 		// hide "low" ellipsis button
-		if ("low".equals(arguments.get("ellipsis")) && currentPage < 5) {
+		if ("low".equals(arguments.get("ellipsis")) && (currentPage < 5 || resultCount == -1)) {
 			return true;
 		}
 
 		// hide "high" ellipsis button
-		if ("high".equals(arguments.get("ellipsis")) && currentPage >= (pageCount - 3)) {
+		if ("high".equals(arguments.get("ellipsis")) && (currentPage >= (pageCount - 3) || resultCount == -1)) {
 			return true;
 		}
 
 		// hide "last" button
-		if (arguments.get("last") != null && currentPage >= (pageCount - 2)) {
+		if (arguments.get("last") != null && (currentPage >= (pageCount - 2) || resultCount == -1)) {
 
 			return true;
 		}
@@ -1141,6 +1166,11 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		// fewer pages than window size? Show only buttons in the middle
 		final Object windowInput = arguments.get("window");
 		if (windowInput != null) {
+
+			// do not show "window" buttons if result count is above soft limit
+			if (resultCount == -1) {
+				return true;
+			}
 
 			final int window  = DOMElement.intOrZero(windowInput);
 			final int newPage = currentPage + window;

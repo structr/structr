@@ -30,6 +30,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.web.common.RenderContext;
+import org.structr.web.datasource.DataField;
 import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.traits.definitions.ComponentConfigurationTraitDefinition;
@@ -181,10 +182,14 @@ public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper
 	}
 
 	@Override
-	public ChannelInput getChannelInput(final RenderContext renderContext) throws FrameworkException {
+	public ChannelInput getChannelInput(final RenderContext renderContext, final DataAdapter dataAdapter) throws FrameworkException {
 
 		final Channel channel      = getDataSource();
+		final String sortKey       = channel.getSortKey();
+		final String filterKey     = channel.getFilterKey();
 		final String paginationKey = channel.getPaginationKey();
+		final String[] sortStrings = renderContext.getRequestParameterValues(sortKey);
+		final String filterString  = renderContext.getRequestParameter(filterKey);
 		final String pageString    = renderContext.getRequestParameter(paginationKey);
 
 		int pageSize = getPageSize();
@@ -195,7 +200,16 @@ public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper
 			page = Integer.valueOf(pageString);
 		}
 
-		return new ChannelInput(getTransform(), pageSize, page);
+		final ChannelInput input = new ChannelInput(getTransform(), filterString, sortStrings, pageSize, page);
+
+		for (final DataField field : dataAdapter.augmentFields(renderContext, channel).values()) {
+
+			if (field.isSearchable()) {
+				input.searchableFields().add(field);
+			}
+		}
+
+		return input;
 	}
 
 	@Override
