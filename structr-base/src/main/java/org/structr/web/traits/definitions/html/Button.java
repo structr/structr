@@ -37,6 +37,7 @@ public class Button extends GenericHtmlElementTraitDefinition {
 	public static final String FORMMETHOD_PROPERTY     = getPrefixedHTMLAttributeName("formmethod");
 	public static final String FORMNOVALIDATE_PROPERTY = getPrefixedHTMLAttributeName("formnovalidate");
 	public static final String FORMTARGET_PROPERTY     = getPrefixedHTMLAttributeName("formtarget");
+	public static final String NAME_PROPERTY           = getPrefixedHTMLAttributeName("name");
 	public static final String TYPE_PROPERTY           = getPrefixedHTMLAttributeName("type");
 	public static final String VALUE_PROPERTY          = getPrefixedHTMLAttributeName("value");
 
@@ -55,12 +56,13 @@ public class Button extends GenericHtmlElementTraitDefinition {
 		final PropertyKey<String> formmethodProperty     = new StringProperty(FORMMETHOD_PROPERTY);
 		final PropertyKey<String> formnovalidateProperty = new StringProperty(FORMNOVALIDATE_PROPERTY);
 		final PropertyKey<String> formtargetProperty     = new StringProperty(FORMTARGET_PROPERTY);
+		final PropertyKey<String> nameProperty           = new StringProperty(NAME_PROPERTY);
 		final PropertyKey<String> typeProperty           = new StringProperty(TYPE_PROPERTY);
 		final PropertyKey<String> valueProperty          = new StringProperty(VALUE_PROPERTY);
 
 		return newSet(
 			autofocusProperty, disabledProperty, formProperty, formactionProperty, formenctypeProperty,
-			formmethodProperty, formnovalidateProperty, formtargetProperty, typeProperty, valueProperty
+			formmethodProperty, formnovalidateProperty, formtargetProperty, nameProperty,typeProperty, valueProperty
 		);
 	}
 
@@ -71,7 +73,7 @@ public class Button extends GenericHtmlElementTraitDefinition {
 			PropertyView.Html,
 			newSet(
 					AUTOFOCUS_PROPERTY, DISABLED_PROPERTY, FORM_PROPERTY, FORMACTION_PROPERTY, FORMENCTYPE_PROPERTY,
-					FORMMETHOD_PROPERTY, FORMNOVALIDATE_PROPERTY, FORMTARGET_PROPERTY, TYPE_PROPERTY, VALUE_PROPERTY
+					FORMMETHOD_PROPERTY, FORMNOVALIDATE_PROPERTY, FORMTARGET_PROPERTY, NAME_PROPERTY, VALUE_PROPERTY
 			)
 		);
 	}
