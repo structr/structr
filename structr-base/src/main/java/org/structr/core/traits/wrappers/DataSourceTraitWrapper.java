@@ -29,11 +29,12 @@ import org.structr.core.traits.operations.datasource.DataSourceOperations;
 import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.FieldDefinition;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class DataSourceTraitWrapper extends AbstractNodeTraitWrapper implements DataSource<GraphObject> {
 
-	private ChannelResult<GraphObject> result;
+	private Map<ChannelInput, ChannelResult<GraphObject>> cachedResults = new LinkedHashMap<>();
 
 	public DataSourceTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
@@ -42,9 +43,12 @@ public class DataSourceTraitWrapper extends AbstractNodeTraitWrapper implements 
 	@Override
 	public final ChannelResult<GraphObject> getResult(final RenderContext renderContext, final ChannelInput input) throws FrameworkException {
 
+		ChannelResult<GraphObject> result = cachedResults.get(input);
 		if (result == null) {
 
 			result = ChannelResult.fromStream(traits.getMethod(DataSourceOperations.class).getValues(renderContext, this, input));
+
+			cachedResults.put(input, result);
 		}
 
 		return result;

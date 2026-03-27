@@ -101,6 +101,7 @@ public class StructrTraits {
 	public static final String SITE                                = "Site";
 	public static final String STORAGE_CONFIGURATION               = "StorageConfiguration";
 	public static final String STORAGE_CONFIGURATION_ENTRY         = "StorageConfigurationEntry";
+	public static final String SCRIPT_DATA_SOURCE                  = "ScriptDataSource";
 
 	public static final String FLOW_ACTION                  = "FlowAction";
 	public static final String FLOW_AGGREGATE               = "FlowAggregate";

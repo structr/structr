@@ -862,7 +862,6 @@ export class Frontend {
 
 	handlePagination(event, target, options) {
 
-		//let target       = event.target;
 		let data  = target.dataset;
 		let selector     = data.structrTarget;
 		let reloadTarget = data.structrSuccessTargets;
@@ -914,6 +913,12 @@ export class Frontend {
 					parameters[orderKey] = '';
 				}
 			}
+		}
+
+		// if this is a filter query, we need to reset the pagination value
+		if (options && options.resetPagination && options.resetPagination.length > 0) {
+			parameters[options.resetPagination] = 1;
+			options.updateHistory = true;
 		}
 
         // update history

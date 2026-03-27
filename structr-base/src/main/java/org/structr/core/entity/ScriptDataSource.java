@@ -18,5 +18,11 @@
  */
 package org.structr.core.entity;
 
-public interface ScriptDataSource extends DataSource {
+import org.structr.core.GraphObject;
+
+public interface ScriptDataSource<T extends GraphObject> extends DataSource<T> {
+
+	String getValuesScript();
+	String getFieldsScript();
+	String getDataType();
 }

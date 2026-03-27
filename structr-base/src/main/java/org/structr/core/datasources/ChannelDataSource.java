@@ -44,7 +44,6 @@ public class ChannelDataSource<T extends GraphObject> implements Channel<T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(ChannelDataSource.class);
 
-	private Map<ChannelInput, ChannelResult<T>> cachedResults = new LinkedHashMap<>();
 	private final ComponentConfiguration configuration;
 	private final String name;
 
@@ -57,65 +56,43 @@ public class ChannelDataSource<T extends GraphObject> implements Channel<T> {
 	@Override
 	public final ChannelResult<T> getResult(final RenderContext renderContext, final ChannelInput input) throws FrameworkException {
 
-		ChannelResult<T> result = cachedResults.get(input);
-		if (result == null) {
+		if (name != null) {
 
-			if (name != null) {
+			final String uuid = renderContext.getChannelValue(name);
+			if (uuid != null) {
 
-				final String uuid = renderContext.getChannelValue(name);
-				if (uuid != null) {
+				final NodeInterface node = StructrApp.getInstance(renderContext.getSecurityContext()).getNodeById(uuid);
+				if (node != null) {
 
-					final NodeInterface node = StructrApp.getInstance(renderContext.getSecurityContext()).getNodeById(uuid);
-					if (node != null) {
+					if (input != null) {
 
-						if (input != null) {
+						final String transform = input.transform();
+						if (transform != null) {
 
-							final String transform = input.transform();
-							if (transform != null) {
+							final Traits traits = node.getTraits();
+							final PropertyKey key = traits.key(transform);
 
-								final Traits traits = node.getTraits();
-								final PropertyKey key = traits.key(transform);
+							if (key != null) {
 
-								if (key != null) {
+								// this is where we need to implement pagination and filtering!
+								final Object value = node.getProperty(key);
 
-									// this is where we need to implement pagination and filtering!
-									final Object value = node.getProperty(key);
+								if (value != null && value instanceof Iterable iterable) {
 
-									if (value != null && value instanceof Iterable iterable) {
+									final String name                      = transform + " of " + node.getUuid();
+									final Iterable<T> filteredIterable     = Iterables.filter(input, iterable);
+									final PagingIterable<T> pagingIterable = new PagingIterable<>(name, filteredIterable, input.pageSize(), input.page());
 
-										final String name                      = transform + " of " + node.getUuid();
-										final Iterable<T> filteredIterable     = Iterables.filter(input, iterable);
-										final PagingIterable<T> pagingIterable = new PagingIterable<>(name, filteredIterable, input.pageSize(), input.page());
-
-										result = ChannelResult.fromIterable(pagingIterable);
-									}
-								}
-
-								// if a transform is set but no values are present,
-								// we cannot return the source node.
-								if (result == null) {
-									result = new ChannelResult<>();
+									return ChannelResult.fromIterable(pagingIterable);
 								}
 							}
-						}
-
-						// fallback (is this necessary?)
-						if (result == null) {
-							result = ChannelResult.fromObject((T) node);
 						}
 					}
 				}
 			}
-
-			// fallback to empty result
-			if (result == null) {
-				result = new ChannelResult<>();
-			}
-
-			cachedResults.put(input, result);
 		}
 
-		return result;
+		return new ChannelResult<>();
 	}
 
 	@Override

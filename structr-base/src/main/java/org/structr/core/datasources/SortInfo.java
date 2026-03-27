@@ -18,6 +18,8 @@
  */
 package org.structr.core.datasources;
 
+import java.util.Objects;
+
 public class SortInfo {
 
 	public final String sortKey;
@@ -30,6 +32,12 @@ public class SortInfo {
 		this.descending = descending;
 	}
 
+	@Override
+	public int hashCode() {
+		return Objects.hash(sortKey, descending, active);
+	}
+
+	@Override
 	public String toString() {
 		return sortKey + (descending ? ">" : "<");
 	}

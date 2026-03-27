@@ -26,6 +26,7 @@ import org.structr.web.datasource.DataField;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 public class ChannelInput implements Predicate<GraphObject> {
 
@@ -57,6 +58,16 @@ public class ChannelInput implements Predicate<GraphObject> {
 				}
 			}
 		}
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(sortInfos, searchableFields, filter, transform, pageSize, page);
+	}
+
+	@Override
+	public boolean equals(final Object other) {
+		return hashCode() == other.hashCode();
 	}
 
 	public List<SortInfo> sortKeys() {
@@ -107,5 +118,23 @@ public class ChannelInput implements Predicate<GraphObject> {
 		}
 
 		return true;
+	}
+
+	public static final void main(final String[] args) {
+
+		for (int i=0; i<3; i++) {
+
+			final List<String> list = new LinkedList<>();
+
+			list.add("one");
+			list.add("two");
+			list.add("three");
+			list.add("four");
+
+
+			System.out.println(Objects.hash("one", "two", "three", "four"));
+			System.out.println(Objects.hash(list));
+			System.out.println("\n");
+		}
 	}
 }

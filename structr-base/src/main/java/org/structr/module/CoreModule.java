@@ -116,6 +116,7 @@ public class CoreModule implements StructrModule {
 		StructrTraits.registerTrait(new CorsSettingTraitDefinition());
 		StructrTraits.registerTrait(new ResourceAccessTraitDefinition(StructrTraits.RESOURCE_ACCESS));
 		StructrTraits.registerTrait(new SessionDataNodeTraitDefinition());
+		StructrTraits.registerTrait(new ScriptDataSourceTraitDefinition());
 
 		// node types
 		StructrTraits.registerNodeType(StructrTraits.GENERIC_NODE);
@@ -139,6 +140,7 @@ public class CoreModule implements StructrModule {
 		StructrTraits.registerNodeType(StructrTraits.CORS_SETTING,             StructrTraits.CORS_SETTING);
 		StructrTraits.registerNodeType(StructrTraits.RESOURCE_ACCESS,          StructrTraits.RESOURCE_ACCESS);
 		StructrTraits.registerNodeType(StructrTraits.SESSION_DATA_NODE,        StructrTraits.SESSION_DATA_NODE);
+		StructrTraits.registerNodeType(StructrTraits.SCRIPT_DATA_SOURCE,       StructrTraits.DATA_SOURCE, StructrTraits.SCRIPT_DATA_SOURCE);
 
 	}
 

@@ -899,7 +899,14 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					final int windowSize                  = config.getPaginationWindowSize();
 					final int pageSize                    = config.getPageSize();
 					final int pageCount                   = (int) Math.ceil((double)resultCount / (double)pageSize);
-					final int currentPage                 = DOMElement.intOrOne(securityContext.getRequestParameter(paginationKey));
+
+					// adjust current page to max. number of pages
+					int currentPage = DOMElement.intOrOne(securityContext.getRequestParameter(paginationKey));
+					if (currentPage > pageCount && pageCount > 0) {
+
+						currentPage = pageCount;
+					}
+
 					final int value                       = DOMNodeTraitDefinition.getPaginationValue(currentPage, pageCount, windowSize, arguments);
 					final boolean hidden                  = DOMNodeTraitDefinition.isPaginationControlHidden(currentPage, pageCount, resultCount, arguments);
 
@@ -950,7 +957,13 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					final int windowSize                  = config.getPaginationWindowSize();
 					final int pageSize                    = config.getPageSize();
 					final int pageCount                   = (int) Math.ceil((double)resultCount / (double)pageSize);
-					final int currentPage                 = DOMElement.intOrOne(securityContext.getRequestParameter(paginationKey));
+
+					// adjust current page to max. number of pages
+					int currentPage = DOMElement.intOrOne(securityContext.getRequestParameter(paginationKey));
+					if (currentPage > pageCount && pageCount > 0) {
+
+						currentPage = pageCount;
+					}
 
 					return DOMNodeTraitDefinition.getPaginationValue(currentPage, pageCount, windowSize, arguments);
 				}
@@ -967,13 +980,15 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					final DOMNode component               = entity.as(DOMNode.class);
 					final ComponentConfiguration config   = component.getComponentConfiguration();
 					final Channel channel                 = config.getDataSource();
+					final String paginationKey            = channel.getPaginationKey();
 					final String filterKey                = channel.getFilterKey();
 					final String filterString             = renderContext.getRequestParameter(filterKey);
 
 					attributes.put("data-structr-success-target", "[data-channel~='" + channel.getName() + "']");
 					attributes.put("data-structr-events", "keyup");
 					attributes.put("data-structr-target", filterKey);
-					attributes.put("data-structr-options", "{ &quot;delay&quot;: 300, &quot;resetWithEsc&quot;: true }");
+					attributes.put("data-structr-options", "{ &quot;delay&quot;: 300, &quot;resetWithEsc&quot;: true, &quot;resetPagination&quot;: &quot;" + paginationKey + "&quot; }");
+					attributes.put("data-" + paginationKey, 1);
 					attributes.put("name", filterKey);
 
 					if (StringUtils.isNotBlank(filterString)) {

@@ -226,12 +226,12 @@ public class DataField extends LinkedHashMap<String, Object> {
 
 			} else {
 
-				System.out.println("Don't know how to handle property type " + key.valueType() + " in component search.");
+				//System.out.println("Don't know how to handle property type " + key.valueType() + " in component search.");
 			}
 
 		} else {
 
-			System.out.println("Unable to use search field " + getName() + ", no property found.");
+			//System.out.println("Unable to use search field " + getName() + ", no property found.");
 		}
 	}
 

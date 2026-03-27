@@ -19,9 +19,6 @@
 package org.structr.core.traits.definitions;
 
 import org.apache.commons.lang3.StringUtils;
-import org.structr.api.Predicate;
-import org.structr.api.util.Iterables;
-import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
 import org.structr.common.ChannelInput;
 import org.structr.common.PathResolvingComparator;
@@ -42,7 +39,6 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.core.graph.search.GraphSearchAttribute;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
