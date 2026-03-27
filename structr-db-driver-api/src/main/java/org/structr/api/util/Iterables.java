@@ -21,7 +21,6 @@ package org.structr.api.util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
-import org.structr.api.SyntaxErrorException;
 
 import java.io.Closeable;
 import java.util.*;

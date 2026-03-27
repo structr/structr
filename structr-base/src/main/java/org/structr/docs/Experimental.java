@@ -24,13 +24,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
-<<<<<<<< HEAD:structr-base/src/main/java/org/structr/docs/Documentations.java
-@Target({ElementType.TYPE, ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER})
-public @interface Documentations {
-	Documentation[] value();
-========
 @Target(ElementType.TYPE)
 
 public @interface Experimental {
->>>>>>>> main:structr-base/src/main/java/org/structr/docs/Experimental.java
 }

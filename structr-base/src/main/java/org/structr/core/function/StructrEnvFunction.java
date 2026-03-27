@@ -120,12 +120,6 @@ public class StructrEnvFunction extends AdvancedScriptingFunction {
 
 		info.setProperty(new GenericProperty("dashboardInfo"),   getStructrDashboardInfo());
 
-		info.setProperty(new StringProperty("debuggerActive"), Settings.ScriptingDebugger.getValue());
-
-		if (Settings.ScriptingDebugger.getValue()) {
-			info.setProperty(new StringProperty("debuggerPath"), ContextFactory.getDebuggerPath());
-		}
-
 		return info;
 	}
 

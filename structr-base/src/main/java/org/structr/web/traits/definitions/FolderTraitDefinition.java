@@ -40,8 +40,6 @@ import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnDeletion;
 import org.structr.core.traits.operations.graphobject.OnModification;
-import org.structr.docs.Documentation;
-import org.structr.docs.ontology.ConceptType;
 import org.structr.files.external.DirectoryWatchService;
 import org.structr.web.entity.Folder;
 import org.structr.web.traits.wrappers.FolderTraitWrapper;
