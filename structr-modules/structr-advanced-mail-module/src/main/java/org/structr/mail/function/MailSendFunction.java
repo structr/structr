@@ -55,19 +55,17 @@ public class MailSendFunction extends AdvancedMailModuleFunction {
 
 			return amc.send(ctx.getSecurityContext());
 
-		} catch (FrameworkException ex) {
+		} catch (final FrameworkException ex) {
 
 			logger.warn(ex.getMessage());
 
 			amc.setError(ex);
 
-		} catch (EmailException ex) {
-
-			logException(caller, ex, sources);
+		} catch (final EmailException ex) {
 
 			amc.setError(ex);
 
-		} catch (Throwable t) {
+		} catch (final Throwable t) {
 
 			logException(caller, t, sources);
 
@@ -97,7 +95,7 @@ public class MailSendFunction extends AdvancedMailModuleFunction {
 
 				If not all pre-conditions are met or the sending of the mail fails, an empty string will be returned and an error message is logged.
 				
-				A possible error message can be retrieved via `mailGetError()` and the presence of an error can be checked via `mailHasError()`.
+				A possible error object can be retrieved via `mailGetError()` and the presence of an error can be checked via `mailHasError()`.
 				
 				Before attempting to send the mail, the last error (if any) is cleared automatically.
 				""";

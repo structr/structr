@@ -28,6 +28,7 @@ import org.structr.core.app.Query;
 import org.structr.core.app.QueryGroup;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.property.RelationProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
@@ -382,6 +383,21 @@ public class SearchAttributeGroup<T> extends SearchAttribute<T> implements Query
 	public <P> QueryGroup<T> range(final PropertyKey<P> key, final P rangeStart, final P rangeEnd, final boolean includeStart, final boolean includeEnd) {
 
 		searchItems.add(new RangeSearchAttribute(key, rangeStart, rangeEnd, includeStart, includeEnd));
+
+		return this;
+	}
+
+	@Override
+	public <P> QueryGroup<T> any(final PropertyKey<P> key, final P value, final boolean exact) {
+
+		if (key instanceof RelationProperty) {
+
+			searchItems.add(new AnyGraphSearchAttribute<>(key, value, exact));
+
+		} else {
+
+			searchItems.add(new AnySearchAttribute(key, value, exact));
+		}
 
 		return this;
 	}

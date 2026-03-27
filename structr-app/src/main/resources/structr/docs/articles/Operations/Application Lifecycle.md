@@ -129,6 +129,10 @@ Files and folders in the virtual filesystem are not exported by default. To incl
 
 > **Note:** The flag is named `includeInFrontendExport` for historical reasons. It controls inclusion in application deployment exports.
 
+To stop export inclusion from propagating into a folder’s contents, set `excludeSubtreeFromExport` on that folder. The folder itself is still exported, but everything inside it (files and subfolders) is excluded. `excludeSubtreeFromExport` acts as an export boundary in the folder tree.
+
+> **Note:** excludeSubtreeFromExport does not exclude the folder it’s set on - only its contents.
+
 ### Pre- and Post-Deploy Scripts
 
 You can include scripts that run automatically before or after import.

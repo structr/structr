@@ -20,6 +20,7 @@ package org.structr.core.function.search;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
+import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
@@ -90,12 +91,22 @@ public class FindStartsWithFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.javaScript("""
+				{
+					let tasks = $.find('Task', $.predicate.startsWith('name', 'Spike'));
+				}""", "Find all tasks whose name starts with 'Spike'")
+		);
+	}
+
+	@Override
 	public List<Signature> getSignatures() {
 		return Signature.forAllScriptingLanguages("key, value");
 	}
 
 	@Override
 	public FunctionCategory getCategory() {
-		return FunctionCategory.Database;
+		return FunctionCategory.Predicate;
 	}
 }

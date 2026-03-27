@@ -20,6 +20,7 @@ package org.structr.core.function.search;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
+import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
@@ -81,7 +82,7 @@ public class FindWithinDistanceFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "This predicate type only works on types that extend the built-in Location trait.";
 	}
 
 	@Override
@@ -99,7 +100,20 @@ public class FindWithinDistanceFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.javaScript("""
+				{
+					let bakeriesNearEiffelTowser = $.find('PointOfInterest', $.predicate.and(
+						$.predicate.equals('poiType', 'BAKERY'),
+						$.predicate.withinDistance(48.8583701, 2.2919064, 2000),
+					));
+				}""", "Find bakeries within 2000m of the Eiffel Tower")
+		);
+	}
+
+	@Override
 	public FunctionCategory getCategory() {
-		return FunctionCategory.Database;
+		return FunctionCategory.Predicate;
 	}
 }

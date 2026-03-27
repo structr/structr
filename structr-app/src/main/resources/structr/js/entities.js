@@ -733,6 +733,7 @@ let _Entities = {
 		let fetchKey = key;
 		if (key === 'syncedNodesIds') { fetchKey = 'syncedNodes'; }
 		if (key === 'childrenIds') { fetchKey = 'children'; }
+		if (key === 'linkingElementsIds') { fetchKey = 'linkingElements'; }
 
 		fetch(`${Structr.rootUrl + entity.type}/${entity.id}/${fetchKey}?${Structr.getRequestParameterName('pageSize')}=${pageSize}&${Structr.getRequestParameterName('page')}=${page}`, {
 			headers: _Helpers.getHeadersForCustomView(['id', 'name'])
@@ -2986,7 +2987,7 @@ let _Entities = {
 
 		templates: {
 			nameTile: config => `
-				<div class="${(config.doubleWide === true ? 'col-span-2' : '')}">
+				<div class="${(config.doubleWide === true ? _Entities.generalTab.templates.colspan2Classes(config) : '')}">
 					<label class="block mb-2" for="name-input">Name</label>
 					<input type="text" id="name-input" autocomplete="off" name="name">
 				</div>
@@ -3004,7 +3005,7 @@ let _Entities = {
 				</div>
 			`,
 			htmlStyleTile: config => `
-				<div class="col-span-2">
+				<div class="${_Entities.generalTab.templates.colspan2Classes(config)}">
 					<label class="block mb-2" for="style-input">Style</label>
 					<input type="text" id="style-input" name="_html_style">
 				</div>
@@ -3022,9 +3023,9 @@ let _Entities = {
 				</div>
 			`,
 			aOptions: config => `
-				<div id="div-options" class="quick-access-options">
+				<div id="div-options" class="${_Entities.generalTab.templates.containerClasses(config)}">
 
-					<div class="grid grid-cols-2 gap-8">
+					<div class="${_Entities.generalTab.templates.gridClasses(config)}">
 
 						${_Entities.generalTab.templates.nameTile(Object.assign({ doubleWide: true }, config))}
 
@@ -3032,7 +3033,7 @@ let _Entities = {
 
 						${_Entities.generalTab.templates.htmlIdTile(config)}
 
-						<div class="col-span-2">
+						<div class="${_Entities.generalTab.templates.colspan2Classes(config)}">
 							<label class="block mb-2" for="href-input">HREF attribute</label>
 							<input type="text" id="href-input" name="_html_href">
 						</div>
@@ -3053,9 +3054,9 @@ let _Entities = {
 				</div>
 			`,
 			buttonOptions: config => `
-				<div id="div-options" class="quick-access-options">
+				<div id="div-options" class="${_Entities.generalTab.templates.containerClasses(config)}">
 
-					<div class="grid grid-cols-2 gap-8">
+					<div class="${_Entities.generalTab.templates.gridClasses(config)}">
 
 						${_Entities.generalTab.templates.nameTile(Object.assign({ doubleWide: true }, config))}
 
@@ -3082,9 +3083,9 @@ let _Entities = {
 				</div>
 			`,
 			contentOptions: config => `
-				<div id="default-dom-options" class="quick-access-options">
+				<div id="default-dom-options" class="${_Entities.generalTab.templates.containerClasses(config)}">
 
-					<div class="grid grid-cols-2 gap-8">
+					<div class="${_Entities.generalTab.templates.gridClasses(config)}">
 
 						${_Entities.generalTab.templates.nameTile(Object.assign({ doubleWide: true }, config))}
 
@@ -3098,15 +3099,15 @@ let _Entities = {
 				</div>
 			`,
 			textContentPartial: config => `
-				<div id="child-content-editor" class="col-span-2 hidden">
+				<div id="child-content-editor" class="${_Entities.generalTab.templates.colspan2Classes(config)} hidden">
 					<label class="block mb-2" for="content-input">Text Content</label>
 					<textarea id="content-input" name="content" data-defer-change-handler="true"></textarea>
 				</div>
 			`,
 			sharedComponentConfigurationPartial: config => `
-				<div id="shared-component-configuration-editor" class="col-span-2 hidden">
+				<div id="shared-component-configuration-editor" class="${_Entities.generalTab.templates.colspan2Classes(config)} hidden">
 					<label class="block mb-2" for="shared-component-configuration-input" ${_Helpers.getDataCommentAttributeForPropertyFromSchemaInfoHint('sharedComponentConfiguration', config.typeInfo)}>Shared Component Configuration</label>
-					${Structr.templates.autoScriptTextArea({ wrapperId: 'shared-component-configuration-editor', wrapperClassString: 'col-span-2', textareaId: 'shared-component-configuration-input', textareaAttributeString: 'name="sharedComponentConfiguration"' })}
+					${Structr.templates.autoScriptTextArea({ wrapperId: 'shared-component-configuration-editor', wrapperClassString: _Entities.generalTab.templates.colspan2Classes(config), textareaId: 'shared-component-configuration-input', textareaAttributeString: 'name="sharedComponentConfiguration"' })}
 				</div>
 			`,
 			customPropertiesPartial: config => `
@@ -3116,9 +3117,9 @@ let _Entities = {
 				</div>
 			`,
 			defaultDOMOptions: config => `
-				<div id="default-dom-options" class="quick-access-options">
+				<div id="default-dom-options" class="${_Entities.generalTab.templates.containerClasses(config)}">
 
-					<div class="grid grid-cols-2 gap-8">
+					<div class="${_Entities.generalTab.templates.gridClasses(config)}">
 
 						${_Entities.generalTab.templates.nameTile(Object.assign({ doubleWide: true }, config))}
 
@@ -3143,9 +3144,9 @@ let _Entities = {
 				</div>
 			`,
 			divOptions: config => `
-				<div id="div-options" class="quick-access-options">
+				<div id="div-options" class="${_Entities.generalTab.templates.containerClasses(config)}">
 
-					<div class="grid grid-cols-2 gap-8">
+					<div class="${_Entities.generalTab.templates.gridClasses(config)}">
 
 						${_Entities.generalTab.templates.nameTile(Object.assign({ doubleWide: true }, config))}
 
@@ -3176,10 +3177,16 @@ let _Entities = {
 					<label for="includeInFrontendExport" data-comment-config='{"insertAfter":true}' data-comment="${_Files.tooltips.includeInFrontendExport}">Include in frontend export</label>
 				</div>
 			`,
+			excludeSubtreeFromFrontendExport: config => `
+				<div class="mb-2 flex items-center">
+					<input type="checkbox" name="excludeSubtreeFromExport" id="excludeSubtreeFromExport">
+					<label for="excludeSubtreeFromExport" data-comment-config='{"insertAfter":true}' data-comment="${_Files.tooltips.excludeSubtreeFromExport}">Exclude subtree from frontend export</label>
+				</div>
+			`,
 			fileOptions: config => `
-				<div id="file-options" class="quick-access-options">
+				<div id="file-options" class="${_Entities.generalTab.templates.containerClasses(config)}">
 
-					<div class="grid grid-cols-2 gap-8">
+					<div class="${_Entities.generalTab.templates.gridClasses(config)}">
 
 						${_Entities.generalTab.templates.nameTile(config)}
 
@@ -3213,9 +3220,9 @@ let _Entities = {
 				</div>
 			`,
 			folderOptions: config => `
-				<div id="file-options" class="quick-access-options">
+				<div id="file-options" class="${_Entities.generalTab.templates.containerClasses(config)}">
 
-					<div class="grid grid-cols-2 gap-8">
+					<div class="${_Entities.generalTab.templates.gridClasses(config)}">
 
 						${_Entities.generalTab.templates.nameTile(config)}
 
@@ -3225,14 +3232,16 @@ let _Entities = {
 
 							${_Entities.generalTab.templates.includeInFrontendExport(config)}
 
+							${_Entities.generalTab.templates.excludeSubtreeFromFrontendExport(config)}
+
 						</div>
 					</div>
 				</div>
 			`,
 			inputOptions: config => `
-				<div id="div-options" class="quick-access-options">
+				<div id="div-options" class="${_Entities.generalTab.templates.containerClasses(config)}">
 
-					<div class="grid grid-cols-2 gap-8">
+					<div class="${_Entities.generalTab.templates.gridClasses(config)}">
 
 						${_Entities.generalTab.templates.nameTile(Object.assign({ doubleWide: true }, config))}
 
@@ -3294,9 +3303,9 @@ let _Entities = {
 				</div>
 			`,
 			optionOptions: config => `
-				<div id="div-options" class="quick-access-options">
+				<div id="div-options" class="${_Entities.generalTab.templates.containerClasses(config)}">
 
-					<div class="grid grid-cols-2 gap-8">
+					<div class="${_Entities.generalTab.templates.gridClasses(config)}">
 
 						${_Entities.generalTab.templates.nameTile(Object.assign({ doubleWide: true }, config))}
 
@@ -3323,7 +3332,7 @@ let _Entities = {
 							<input type="text" id="value-input" name="_html_value">
 						</div>
 
-						<div><!-- occupy space in grid UI --></div>
+						${_Entities.generalTab.templates.spacerItemForGrid(config)}
 
 						${_Entities.generalTab.templates.visibilityPartial(config)}
 
@@ -3339,9 +3348,9 @@ let _Entities = {
 				</div>
 			`,
 			pageOptions: config => `
-				<div id="div-options" class="quick-access-options">
+				<div id="div-options" class="${_Entities.generalTab.templates.containerClasses(config)}">
 
-					<div class="grid grid-cols-2 gap-8">
+					<div class="${_Entities.generalTab.templates.gridClasses(config)}">
 
 						${_Entities.generalTab.templates.nameTile(config)}
 
@@ -3366,14 +3375,6 @@ let _Entities = {
 						</div>
 
 						<div>
-							<label class="block mb-2" for="path-input" data-comment="If set, the page will be available under this path and not under its name.">Custom Path</label>
-							<input type="text" id="path-input" name="path">
-						</div>
-
-						<div><!-- occupy space in grid UI --></div>
-
-						<div>
-
 							<label class="block mb-2">Options</label>
 
 							<div class="mb-2 flex items-center">
@@ -3385,12 +3386,6 @@ let _Entities = {
 							<div class="mb-2 flex items-center">
 								<label for="page-creates-raw-data-checkbox">
 									<input type="checkbox" name="pageCreatesRawData" id="page-creates-raw-data-checkbox"> Use binary encoding for output
-								</label>
-							</div>
-
-							<div class="mb-2 flex items-center">
-								<label for="_auto-refresh" data-comment="Auto-refresh page preview on changes (if page preview is active)">
-									<input id="_auto-refresh" type="checkbox" ${(LSWrapper.getItem(_Pages.autoRefreshDisabledKey + config.entity.id) ? '' : ' checked="checked"')}> Auto-refresh
 								</label>
 							</div>
 
@@ -3418,7 +3413,7 @@ let _Entities = {
 				<div id="rendering-options-container" class="hidden">
 					<h3>Rendering Options</h3>
 
-					<div class="grid grid-cols-2 gap-8">
+					<div class="${_Entities.generalTab.templates.gridClasses(config)}">
 
 						<div>
 							<label class="block mb-2" for="rendering-mode-select" data-comment="Select update mode for this element to activate lazy or periodic loading.">Load/Update Mode</label>
@@ -3450,9 +3445,9 @@ let _Entities = {
 				</div>
 			`,
 			userOptions: config => `
-				<div id="div-options" class="quick-access-options">
+				<div id="div-options" class="${_Entities.generalTab.templates.containerClasses(config)}">
 
-					<div class="grid grid-cols-2 gap-8">
+					<div class="${_Entities.generalTab.templates.gridClasses(config)}">
 
 						${_Entities.generalTab.templates.nameTile(config)}
 
@@ -3510,7 +3505,7 @@ let _Entities = {
 						${Structr.templates.autoScriptInput({ inputAttributeString: 'id="show-conditions" name="showConditions"', wrapperClassString: 'w-full'})}
 
 						<div class="dropdown-menu dropdown-menu-large">
-							<button class="mr-0 dropdown-select rounded border ml-2">
+							<button class="dropdown-select rounded border mr-0 ml-2 hover:bg-gray-100 focus:border-gray-666 active:border-green" data-preferred-position-x="left">
 								${_Icons.getSvgIcon(_Icons.iconLightBulb, 16, 16, '', 'Examples')}
 							</button>
 
@@ -3552,7 +3547,11 @@ let _Entities = {
 				<div class="row">
 					<a class="block example-condition" data-value="${config.value}">${config.text ?? config.value}</a>
 				</div>
-			`
+			`,
+			spacerItemForGrid: config => `<div class="hidden @xl:block"><!-- occupy space in grid UI --></div>`,
+			containerClasses: config => `@container quick-access-options`,
+			gridClasses: config => `grid grid-cols-1 @xl:grid-cols-2 gap-8`,
+			colspan2Classes: config => `col-span-1 @xl:col-span-2`
 		}
 	}
 };

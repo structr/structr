@@ -473,7 +473,7 @@ let _Crud = {
 		},
 		showExportDialog: (type) => {
 
-			let { dialogText } = _Dialogs.custom.openDialog(`Export ${type} list as CSV`);
+			let { dialogText } = _Dialogs.custom.openDialog(`Export ${type} list as CSV`, undefined, ['crud-import-export-dialog']);
 
 			if (!Structr.activeModules.csv) {
 				dialogText.insertAdjacentHTML('beforeend', 'CSV Module is not included in the current license. See <a href="https://structr.com/editions">Structr Edition Info</a> for more information.');
@@ -512,7 +512,7 @@ let _Crud = {
 		},
 		showImportDialog: (type) => {
 
-			let { dialogText, dialogMeta } = _Dialogs.custom.openDialog(`Import CSV data for type ${type}`);
+			let { dialogText, dialogMeta } = _Dialogs.custom.openDialog(`Import CSV data for type ${type}`, undefined, ['crud-import-export-dialog']);
 			_Dialogs.custom.showMeta();
 
 			if (!Structr.activeModules.csv) {
@@ -1819,7 +1819,7 @@ let _Crud = {
 
 				let node = data.result;
 
-				let { dialogText } = _Dialogs.custom.openDialog(`Details of ${type} ${node?.name ?? node.id}`);
+				let { dialogText } = _Dialogs.custom.openDialog(`Details of ${type} ${node?.name ?? node.id}`, undefined, ['crud-node-dialog']);
 
 				let deleteBtn = _Dialogs.custom.appendCustomDialogButton(_Dialogs.custom.templates.deleteButton());
 
@@ -2622,7 +2622,7 @@ let _Crud = {
 		displaySearchDialog: (parentType, id, key, type, el, callbackOverride) => {
 
 			el.append(`
-				<div class="searchBox searchBoxDialog absolute top-12 right-4">
+				<div class="searchBox searchBoxDialog absolute right-8">
 					<input class="search mr-0" name="search" size="20" placeholder="Search">
 					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
 				</div>
@@ -3069,25 +3069,41 @@ let _Crud = {
 
 				for (let error of errors) {
 
-					let key      = error.property;
-					let errorMsg = error.token;
+					let errorMsg             = error.token;
+					let cellsForKeyWithError = [];
+					let keyOrKeys            = '';
 
-					let cellsForKeyWithError = dialogText.querySelectorAll(`td [name="${key}"]`);
+					if (error.property) {
+
+						keyOrKeys = error.property;
+
+						// single attribute uniqueness
+						cellsForKeyWithError = dialogText.querySelectorAll(`td [name="${keyOrKeys}"]`);
+
+					} else if (Array.isArray(error.keys) && error.keys.length > 0) {
+
+						keyOrKeys = error.keys.join(', ');
+
+						// composite uniqueness
+						for (let key of error.keys) {
+							cellsForKeyWithError.concat(dialogText.querySelectorAll(`td [name="${key}"]`));
+						}
+					}
+
+					// add "invalid" highlight from elements
+					for (let input of cellsForKeyWithError) {
+						input.classList.add('form-input', 'input-invalid');
+					}
+
+					let errorText = `"${keyOrKeys}" ${errorMsg.replace(/_/gi, ' ')}`;
+
+					if (error.detail) {
+						errorText += ` ${error.detail}`;
+					}
+
+					_Dialogs.custom.showAndHideInfoBoxMessage(errorText, 'error', 4000, 1000);
+
 					if (cellsForKeyWithError.length > 0) {
-
-						let errorText = `"${key}" ${errorMsg.replace(/_/gi, ' ')}`;
-
-						if (error.detail) {
-							errorText += ` ${error.detail}`;
-						}
-
-						_Dialogs.custom.showAndHideInfoBoxMessage(errorText, 'error', 4000, 1000);
-
-						// add "invalid" highlight from elements
-						for (let input of cellsForKeyWithError) {
-							input.classList.add('form-input', 'input-invalid');
-						}
-
 						cellsForKeyWithError[0].focus();
 					}
 				}
@@ -3111,7 +3127,7 @@ let _Crud = {
 				return;
 			}
 
-			let dialog = _Dialogs.custom.openDialog(`Create ${type}`);
+			let dialog = _Dialogs.custom.openDialog(`Create ${type}`, undefined, ['crud-node-dialog']);
 			_Dialogs.custom.noConfirmOnEscape();
 
 			dialog.dialogText.insertAdjacentHTML('beforeend', '<form id="entityForm"><table class="props"><tr><th>Property Name</th><th>Value</th></tr>');

@@ -1875,7 +1875,7 @@ let Structr = {
 	},
 	openPropertiesDialogForUserProvidedUUID: () => {
 
-		_Dialogs.readUUIDFromUser.showPromise('Enter the UUID for which you want to open the properties dialog').then(async (uuid) => {
+		_Dialogs.getArbitraryInputFromUser.showPromise('Enter the UUID for which you want to open the properties dialog', _Dialogs.getArbitraryInputFromUser.uuidValidationPromise).then(async (uuid) => {
 
 			let obj = await Command.getPromise(uuid, null);
 			_Entities.showProperties(obj, null, true);
@@ -1888,7 +1888,7 @@ let Structr = {
 	},
 	navigateToDOMElementDialogForUserProvidedUUID: () => {
 
-		_Dialogs.readUUIDFromUser.showPromise('Enter the UUID of the DOM element which you want to select.<br>The pages section and the appropriate elements will be loaded.').then(uuid => {
+		_Dialogs.getArbitraryInputFromUser.showPromise('Enter the UUID of the DOM element which you want to select.<br>The pages section and the appropriate elements will be loaded.', _Dialogs.getArbitraryInputFromUser.uuidValidationPromise).then(uuid => {
 			_Pages.selectAndShowArbitraryDOMElement(uuid);
 		}).catch(e => {
 			if (typeof e !== 'string') {
@@ -1898,9 +1898,9 @@ let Structr = {
 	},
 	openEditorDialogForUserProvidedUUID: () => {
 
-		_Dialogs.readUUIDFromUser.showPromise('Enter the UUID for which you want to open the content/template edit dialog', async (uuid) => {
+		_Dialogs.getArbitraryInputFromUser.showPromise('Enter the UUID for which you want to open the content/template edit dialog', async (uuid) => {
 
-			let validationResult = await _Dialogs.readUUIDFromUser.defaultUUIDValidationPromise(uuid);
+			let validationResult = await _Dialogs.getArbitraryInputFromUser.uuidValidationPromise(uuid);
 
 			if (validationResult.allow) {
 
@@ -1937,13 +1937,15 @@ let Structr = {
 			let form        = document.querySelector('#global-search-node-form');
 			let searchField = form.querySelector('[name="queryString"]');
 
+			let debouncedSearchFunction = _Helpers.debounce(Structr.globalSearch.doSearch, 300);
+
 			form.addEventListener('submit', e => {
 				e.preventDefault();
 
-				Structr.globalSearch.doSearch();
+				debouncedSearchFunction();
 			});
 
-			searchField.addEventListener('input', _Helpers.debounce(Structr.globalSearch.doSearch, 300));
+			searchField.addEventListener('input', debouncedSearchFunction);
 
 			searchField.addEventListener('search', () => {
 				if (searchField.value === '') {
@@ -1976,11 +1978,14 @@ let Structr = {
 
 				for (let result of results) {
 
-					for (let i=0; i<result.keys.length; i++) {
+					for (let i = 0; i < result.keys.length; i++) {
 
-						const key = result.keys[i], value = result.values[i];
+						const key   = result.keys[i];
+						const value = result.values[i];
 
-						let el = _Helpers.createSingleDOMElementFromHTML(Structr.globalSearch.templates.result(result, key, Structr.globalSearch.htmlCodeForKey(key), value, data.queryString));
+						let el = _Helpers.createSingleDOMElementFromHTML(Structr.globalSearch.templates.result(result, key));
+
+						Structr.globalSearch.insertValuePreview(el, value);
 
 						resultsElement.appendChild(el);
 
@@ -2002,6 +2007,7 @@ let Structr = {
 				_Code.search.goToResult(result, key, searchData);
 
 			} else {
+
 				console.log('not yet implemented to jump to: ', result);
 			}
 		},
@@ -2021,6 +2027,49 @@ let Structr = {
 			}
 
 			return data;
+		},
+		insertValuePreview: (element, value) => {
+
+			let beforeElement         = element.querySelector('[data-before-match]');
+			beforeElement.textContent = (value?.before ?? '');
+			beforeElement.classList.toggle('show-ellipsis-l', value?.before?.length > 23);
+
+			element.querySelector('[data-is-match]').textContent = value.match;
+
+			let afterElement          = element.querySelector('[data-after-match]');
+			afterElement.textContent  = (value?.after ?? '');
+			afterElement.classList.toggle('show-ellipsis-r', value?.after?.length > 23);
+		},
+		htmlCodeForKey: key => {
+
+			if (key.startsWith('_custom_html_data-')) {
+
+				return `${key.substring(18)} <div class="attr custom-html-data-attr">custom html data</div>`;
+
+			} else if (key.startsWith('_custom_html_')) {
+
+				return `${key.substring(13)}<div class="attr custom-html-attr">Custom HTML</div>`;
+
+			} else if (key === '_html_id') {
+
+				return `<div class="attr id-attr">id</div>`;
+
+			} else if (key === '_html_class') {
+
+				return `<div class="attr class-attr">class</div>`;
+
+			} else if (key.startsWith('_html_')) {
+
+				return `${key.substring(6)} <div class="attr html-attr">html</div>`;
+
+			} else if (key === 'content') {
+
+				return '<div class="attr content-attr">content</div>';
+
+			} else {
+
+				return key;
+			}
 		},
 		templates: {
 			popover: config => `
@@ -2057,39 +2106,15 @@ let Structr = {
 					</div>
 				</div>
 			`,
-			result: (result, key, htmlCodeForKey, value, searchString) => `
+			result: (result, key) => `
 				<tr class="cursor-pointer" data-id="${result.id}" data-key="${key}" title="${key}">
-					<td title="${result.id}">${result.id.substring(1, 5)}&hellip;</td>
+					<td title="${result.id}" class="show-ellipsis-r">${result.id.substring(1, 5)}</td>
 					<td class="name">${result.name ? `${result.name} [${result.type}]` : result.type}</td>
-					<td class="key">${htmlCodeForKey}</td>
-					<td class="value">${value?.before?.length > 23 ? '&hellip;' : ''}${value?.before||''}${Structr.globalSearch.highlightText(value.match, searchString)}${value?.after||''}${value?.after?.length > 23 ? '&hellip;' : ''}</td>
+					<td class="key">${Structr.globalSearch.htmlCodeForKey(key)}</td>
+					<td class="value"><span data-before-match></span><mark data-is-match></mark><span data-after-match></span></td>
 				</tr>
 			`
 		},
-		htmlCodeForKey: key => {
-
-			if (key.startsWith('_custom_html_data-')) {
-				return `${key.substring(18)} <div class="attr custom-html-data-attr">custom html data</div>`;
-			} else if (key.startsWith('_custom_html_')) {
-				return `${key.substring(13)}<div class="attr custom-html-attr">Custom HTML</div>`;
-			} else if (key === '_html_id') {
-				return `<div class="attr id-attr">id</div>`;
-			} else if (key === '_html_class') {
-				return `<div class="attr class-attr">class</div>`;
-			} else if (key.startsWith('_html_')) {
-				return `${key.substring(6)} <div class="attr html-attr">html</div>`;
-			} else if (key === 'content') {
-				return `<div class="attr content-attr">${key}</div>`;
-			} else {
-				return `${key}`;
-			}
-		},
-		highlightText: (str, searchString) => {
-			const escaped = searchString.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-			return str.replace(new RegExp(escaped, 'gi'), (match) => {
-				return `<mark>${match}</mark>`;
-			});
-		}
 	},
 
 	/* basically only exists to get rid of repeating strings. is also used to filter out internal keys from dialogs */

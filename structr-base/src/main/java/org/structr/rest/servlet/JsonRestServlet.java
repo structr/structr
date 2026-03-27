@@ -73,7 +73,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 	protected void service(HttpServletRequest request, HttpServletResponse resp) throws ServletException, IOException {
 
 		final String method = request.getMethod();
-	        if ("PATCH".equals(method)) {
+		if ("PATCH".equals(method)) {
 
 			doPatch(request, resp);
 			return;
@@ -625,17 +625,6 @@ public class JsonRestServlet extends AbstractDataServlet {
 			}
 
 		}
-	}
-
-	@Override
-	protected void doTrace(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
-		setCustomResponseHeaders(response);
-
-		response.setContentType("application/json; charset=UTF-8");
-		response.setCharacterEncoding("UTF-8");
-
-		writeJsonError(response, HttpServletResponse.SC_METHOD_NOT_ALLOWED, "TRACE method not allowed");
 	}
 
 	protected void doPatch(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

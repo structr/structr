@@ -321,7 +321,7 @@ input.readonly {
 }
 
 .dialogText .searchResults h2 {
-	margin-top: -4px;
+	margin-top: 0;
 }
 
 .searchResults h3 {

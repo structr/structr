@@ -437,10 +437,6 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 			return new StructrConsoleCommand(securityContext, ConsoleMode.AdminShell, command.substring(6));
 		}
 
-		if (command.startsWith("rest ")) {
-			return new StructrConsoleCommand(securityContext, ConsoleMode.REST, command.substring(5));
-		}
-
 		throw new IllegalStateException("Unknown subsystem for command '" + command + "'");
 	}
 

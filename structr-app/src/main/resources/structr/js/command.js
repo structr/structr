@@ -98,16 +98,21 @@ let Command = {
 	 * The server will return the result returned from the underlying
 	 * console infrastructure to the sending client (no broadcast).
 	 */
-	console: function(line, mode, callback, completion) {
+	console: (line, mode, callback, completion) => {
 		let obj = {
 			command: 'CONSOLE',
 			data: {
 				line: line,
 				mode: mode,
-				completion: (completion === true ? true : false)
+				completion: (completion === true)
 			}
 		};
 		return StructrWS.sendObj(obj, callback);
+	},
+	consolePromise: (line, mode, completion) => {
+		return new Promise((resolve) => {
+			Command.console(line, mode, resolve, completion);
+		});
 	},
 	/**
 	 * Send a single GET command to the server.

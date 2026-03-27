@@ -1681,12 +1681,12 @@ let _Schema = {
 					{ class: 'py-2 px-1 font-bold items-center justify-center ' + dbNameClass, title: 'DB Name' },
 					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Type' },
 					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Format' },
-					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Notnull' },
-					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Comp.' },
-					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Uniq.' },
-					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Idx' },
-					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Fulltext' },
-					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Default' },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Notnull', longTitle: 'Not Null'  },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Comp.', longTitle: 'Composite Uniqueness' },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Uniq.', longTitle: 'Unique'  },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Idx', longTitle: 'Indexed'  },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Fulltext', longTitle: 'Fulltext Indexed'  },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Default', longTitle: 'Default Value'  },
 					{ class: 'actions-col pb-1 px-1 font-bold flex items-center justify-center', title: 'Action' }
 				],
 				buttons: _Schema.templates.basicAddButton({ addButtonText: 'Add direct property' })
@@ -1750,6 +1750,20 @@ let _Schema = {
 
 						_Helpers.blink(indexedCb.parentNode, '#fff', '#bde5f8');
 						_Dialogs.custom.showAndHideInfoBoxMessage('Indexed flag set to default for this property type (overridable).', 'info', 2000, 500);
+					}
+
+					let allowUnique     = (selectedOption.value !== 'Function');
+					let uniqueCb        = gridRow.querySelector('.unique');
+					uniqueCb.disabled   = !allowUnique;
+					if (uniqueCb.checked && !allowUnique) {
+						uniqueCb.checked = false;
+					}
+
+					let allowCompUnique = (selectedOption.value !== 'Function');
+					let compUniqueCb    = gridRow.querySelector('.compound');
+					compUniqueCb.disabled = !allowCompUnique;
+					if (compUniqueCb.checked && !allowCompUnique) {
+						compUniqueCb.checked = false;
 					}
 
 					let allowFulltext   = (selectedOption.value === 'String' || selectedOption.value === 'StringArray');
@@ -1899,9 +1913,18 @@ let _Schema = {
 
 				let selectedOption = propertyTypeSelect.querySelector('option:checked');
 
-				let allowFulltext = (selectedOption.value === 'String' || selectedOption.value === 'StringArray');
+				let allowUnique   = (selectedOption.value !== 'Function');
+				let uniqueCb      = gridRow[0].querySelector('.unique');
+				uniqueCb.disabled = !allowUnique || isProtected;
+				uniqueCb.checked  = allowUnique && property.unique === true;
 
-				let fulltextCb = gridRow[0].querySelector('.fulltext-indexed');
+				let allowCompUnique   = (selectedOption.value !== 'Function');
+				let compUniqueCb      = gridRow[0].querySelector('.compound');
+				compUniqueCb.disabled = !allowCompUnique || isProtected;
+				compUniqueCb.checked  = allowCompUnique && property.compound === true;
+
+				let allowFulltext = (selectedOption.value === 'String' || selectedOption.value === 'StringArray');
+				let fulltextCb    = gridRow[0].querySelector('.fulltext-indexed');
 				fulltextCb.disabled = (!allowFulltext || isProtected);
 				fulltextCb.checked = allowFulltext && property.fulltext === true;
 
@@ -2437,10 +2460,10 @@ let _Schema = {
 						<input class="not-null" type="checkbox" style="margin-right: 0;">
 					</div>
 					<div class="flex items-center justify-center">
-						<input class="compound" type="checkbox" style="margin-right: 0;">
+						<input class="compound" type="checkbox" style="margin-right: 0;" disabled>
 					</div>
 					<div class="flex items-center justify-center">
-						<input class="unique" type="checkbox" style="margin-right: 0;">
+						<input class="unique" type="checkbox" style="margin-right: 0;" disabled>
 					</div>
 					<div class="flex items-center justify-center">
 						<input class="indexed" type="checkbox" style="margin-right: 0;">
@@ -3838,8 +3861,9 @@ let _Schema = {
 			let storagePrefix = 'schemaMethodParameters_';
 			let name          = (schemaMethod.schemaNode === null) ? schemaMethod.name : schemaMethod.schemaNode.name + '/' + schemaMethod.name;
 			let url           = _Schema.methods.getURLForSchemaMethod(schemaMethod);
+			let description   = (schemaMethod.schemaNode) ? 'static method' : 'user-defined function';
 
-			let { dialogText } = _Dialogs.custom.openDialog(`Run user-defined function ${name}`);
+			let { dialogText } = _Dialogs.custom.openDialog(`Run ${description} ${name}`, undefined, ['execute-method-dialog']);
 
 			let runButton = _Dialogs.custom.prependCustomDialogButton(`
 					<button id="run-method" class="flex items-center action focus:border-gray-666 active:border-green">
@@ -3863,7 +3887,7 @@ let _Schema = {
 							</div>
 						</div>
 						<h3 class="mt-4">Result</h3>
-						<pre id="log-output"></pre>
+						<pre id="log-output" class="whitespace-pre-wrap"></pre>
 					</div>
 				`);
 			dialogText.appendChild(paramsOuterBox);
@@ -4348,7 +4372,14 @@ let _Schema = {
 		let nodeTypeSelector = $('#node-type-selector');
 		Command.getSchemaInfo(null, types => {
 			_Helpers.sort(types);
-		 	nodeTypeSelector.append(types.filter(t => !t.isServiceClass && !t.isRel).map(type => `<option>${type.name}</option>`).join(''));
+
+			let customTypes  = types.filter(t => !t.isServiceClass && !t.isRel && !t.isBuiltin);
+			let builtinTypes = types.filter(t => !t.isServiceClass && !t.isRel && t.isBuiltin);
+
+			let mapFn = type => `<option>${type.name}</option>`;
+
+			nodeTypeSelector[0].querySelector('[data-custom-types-heading]')?.insertAdjacentHTML('afterbegin', customTypes.map(mapFn).join(''));
+			nodeTypeSelector[0].querySelector('[data-builtin-types-heading]')?.insertAdjacentHTML('afterbegin', builtinTypes.map(mapFn).join(''));
 		});
 
 		registerSchemaToolButtonAction($('#reindex-nodes'), 'rebuildIndex', nodeTypeSelector, (type) => {
@@ -4366,7 +4397,15 @@ let _Schema = {
 		let relTypeSelector = $('#rel-type-selector');
 		Command.getSchemaInfo(null, types => {
 			_Helpers.sort(types);
-			relTypeSelector.append(types.filter(t => !t.isServiceClass && t.isRel).map(rel => `<option>${rel.name}</option>`).join(''));
+
+			let customTypes  = types.filter(t => !t.isServiceClass && t.isRel && !t.isBuiltin);
+			let builtinTypes = types.filter(t => !t.isServiceClass && t.isRel && t.isBuiltin);
+
+			let mapFn = type => `<option>${type.name}</option>`;
+
+			relTypeSelector[0].querySelector('[data-custom-types-heading]')?.insertAdjacentHTML('afterbegin', customTypes.map(mapFn).join(''));
+			relTypeSelector[0].querySelector('[data-builtin-types-heading]')?.insertAdjacentHTML('afterbegin', builtinTypes.map(mapFn).join(''));
+
 		});
 
 		registerSchemaToolButtonAction($('#reindex-rels'), 'rebuildIndex', relTypeSelector, (type) => {
@@ -5304,7 +5343,7 @@ let _Schema = {
 					{ caption: "Other Types",      types: otherTypeNames     }
 				];
 
-				let { dialogText } = _Dialogs.custom.openDialog('Schema Type Visibility');
+				let { dialogText } = _Dialogs.custom.openDialog('Schema Type Visibility', undefined, ['schema-edit-dialog']);
 
 				let contentEl = _Helpers.createSingleDOMElementFromHTML('<div class="code-tabs flex flex-col h-full overflow-hidden"></div>');
 				dialogText.appendChild(contentEl);
@@ -5761,62 +5800,8 @@ let _Schema = {
 						</div>
 					</div>
 
-					<div class="dropdown-menu dropdown-menu-large">
-						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
-							${_Icons.getSvgIcon(_Icons.iconSettingsCog, 16, 16, ['mr-2'])} Admin
-						</button>
+					${_Schema.templates.adminDropdown.basic(config)}
 
-						<div class="dropdown-menu-container">
-							<div class="heading-row">
-								<h3>Indexing</h3>
-							</div>
-							<div class="row">
-								<select id="node-type-selector" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-									<option selected value="">-- Select Node Type --</option>
-									<option disabled>──────────</option>
-									<option value="allNodes">All Node Types</option>
-									<option disabled>──────────</option>
-								</select>
-								<button id="reindex-nodes" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Rebuild node index</button>
-								<button id="add-node-uuids" class="mt-1 inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Add UUIDs</button>
-								<button id="create-labels" class="mt-1 inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Create Labels</button>
-							</div>
-							<div class="row">
-								<select id="rel-type-selector" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-									<option selected value="">-- Select Relationship Type --</option>
-									<option disabled>──────────</option>
-									<option value="allRels">All Relationship Types</option>
-									<option disabled>──────────</option>
-								</select>
-								<button id="reindex-rels" class="mt-1 inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Rebuild relationship index</button>
-								<button id="add-rel-uuids" class="mt-1 inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Add UUIDs</button>
-							</div>
-							<div class="row flex items-center">
-								<button id="rebuild-index" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-									${_Icons.getSvgIcon(_Icons.iconRefreshArrows, 16, 16, 'mr-2')} Rebuild all indexes
-								</button>
-								<label for="rebuild-index">Rebuild indexes for entire database (all node and relationship indexes)</label>
-							</div>
-							<div class="separator"></div>
-							<div class="heading-row">
-								<h3>Maintenance</h3>
-							</div>
-							<div class="row flex items-center">
-								<button id="flush-caches" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-									${_Icons.getSvgIcon(_Icons.iconRefreshArrows, 16, 16, 'mr-2')} Flush Caches
-								</button>
-								<label for="flush-caches">Flushes internal caches to refresh schema information</label>
-							</div>
-
-							<div class="row flex items-center">
-								<button id="clear-schema" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-									${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, 'mr-2 icon-red')} Clear Schema
-								</button>
-								<label for="clear-schema">Delete all schema nodes and relationships in custom schema</label>
-							</div>
-						</div>
-					</div>
-					
 					<button id="hide-selected-types" class="btn hover:bg-gray-100 focus:border-gray-666 active:border-green">
 						Hide selected types
 					</button>
@@ -5869,6 +5854,70 @@ let _Schema = {
 				</div>
 			</div>
 		`,
+		adminDropdown: {
+			basic: config => `
+				<div class="dropdown-menu dropdown-menu-large">
+					<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
+						${_Icons.getSvgIcon(_Icons.iconSettingsCog, 16, 16, ['mr-2'])} Admin
+					</button>
+
+					<div class="dropdown-menu-container">
+						<div class="heading-row">
+							<h3>Indexing</h3>
+						</div>
+						<div class="row">
+							<select id="node-type-selector" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+								<option selected value="">-- Select Node Type --</option>
+								${_Schema.templates.adminDropdown.disabledSpacerOption}
+								<option value="allNodes">All Node Types</option>
+								${_Schema.templates.adminDropdown.disabledSpacerOption}
+								<optgroup data-custom-types-heading label="Custom Types"></optgroup>
+								<optgroup data-builtin-types-heading label="Builtin Types"></optgroup>
+							</select>
+							<button id="reindex-nodes" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Rebuild node index</button>
+							<button id="add-node-uuids" class="mt-1 inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Add UUIDs</button>
+							<button id="create-labels" class="mt-1 inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Create Labels</button>
+						</div>
+						<div class="row">
+							<select id="rel-type-selector" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+								<option selected value="">-- Select Relationship Type --</option>
+								${_Schema.templates.adminDropdown.disabledSpacerOption}
+								<option value="allRels">All Relationship Types</option>
+								${_Schema.templates.adminDropdown.disabledSpacerOption}
+								<optgroup data-custom-types-heading label="Custom Relationship Types"></optgroup>
+								<optgroup data-builtin-types-heading label="Builtin Relationship Types"></optgroup>
+							</select>
+							<button id="reindex-rels" class="mt-1 inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Rebuild relationship index</button>
+							<button id="add-rel-uuids" class="mt-1 inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Add UUIDs</button>
+						</div>
+						<div class="row flex items-center">
+							<button id="rebuild-index" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+								${_Icons.getSvgIcon(_Icons.iconRefreshArrows, 16, 16, 'mr-2')} Rebuild all indexes
+							</button>
+							<label for="rebuild-index">Rebuild indexes for entire database (all node and relationship indexes)</label>
+						</div>
+						<div class="separator"></div>
+						<div class="heading-row">
+							<h3>Maintenance</h3>
+						</div>
+						<div class="row flex items-center">
+							<button id="flush-caches" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+								${_Icons.getSvgIcon(_Icons.iconRefreshArrows, 16, 16, 'mr-2')} Flush Caches
+							</button>
+							<label for="flush-caches">Flushes internal caches to refresh schema information</label>
+						</div>
+
+						<div class="row flex items-center">
+							<button id="clear-schema" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+								${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, 'mr-2 icon-red')} Clear Schema
+							</button>
+							<label for="clear-schema">Delete all schema nodes and relationships in custom schema</label>
+						</div>
+					</div>
+				</div>
+			`,
+			disabledSpacerOption: `<option disabled>──────────</option>`
+		},
 		relationshipBasicTab: config => `
 			<div class="schema-details">
 				<div id="relationship-options">
@@ -6021,7 +6070,7 @@ let _Schema = {
 		schemaGrid: config => `
 			<div class="schema-grid ${config.class}" style="${config.style}">
 				<div class="schema-grid-header contents">
-					${config.cols.map(col=> `<div class="${col.class}">${col.title}</div>`).join('')}
+					${config.cols.map(col=> `<div class="${col.class}" ${col.longTitle ? `title="${_Helpers.escapeForHtmlAttributes(col.longTitle)}"` : ''}>${col.title}</div>`).join('')}
 				</div>
 				<div class="schema-grid-body contents">
 				</div>

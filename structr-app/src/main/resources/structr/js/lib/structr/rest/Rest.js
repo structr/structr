@@ -3,28 +3,25 @@
 export class Rest {
 
     constructor(basePath = '') {
-        this.config = {
-	        basePath: basePath,
-        };
+        this.config = { basePath };
     }
 
-    async get(url) {
+    async get(path) {
 
-        let response = (await fetch(this.config.basePath + url, {
+        let response = (await fetch(this.config.basePath + path, {
             headers: this.headers(),
             method: 'GET',
             credentials: 'same-origin'
         }));
-
 
         this.handleStatusCode(response.status);
 
         return response.json();
     }
 
-    async put(url, data) {
+    async put(path, data) {
 
-        let response = (await fetch(this.config.basePath + url, {
+        let response = (await fetch(this.config.basePath + path, {
             headers: this.headers(),
             method: 'PUT',
             body: JSON.stringify(data),
@@ -36,9 +33,9 @@ export class Rest {
         return response.json();
     }
 
-    async post(url, data) {
+    async post(path, data) {
 
-        let response = (await fetch(this.config.basePath + url, {
+        let response = (await fetch(this.config.basePath + path, {
             headers: this.headers(),
             method: 'POST',
             body: JSON.stringify(data),
@@ -50,9 +47,9 @@ export class Rest {
         return response.json();
     }
 
-    async delete(url, data) {
+    async delete(path, data) {
 
-        let response = (await fetch(this.config.basePath + url, {
+        let response = (await fetch(this.config.basePath + path, {
             headers: this.headers(),
             method: 'DELETE',
             body: JSON.stringify(data),

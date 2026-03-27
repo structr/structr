@@ -28,6 +28,7 @@ public interface Folder extends AbstractFile {
 	String getMountTargetFileType();
 	String getMountTargetFolderType();
 	String getEnabledChecksums();
+	boolean isExcludeSubtreeFromExport();
 
 	Iterable<AbstractFile> getChildren();
 	Iterable<Folder> getFolders();

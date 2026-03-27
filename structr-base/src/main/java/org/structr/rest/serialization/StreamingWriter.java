@@ -53,8 +53,8 @@ import java.util.*;
 public abstract class StreamingWriter {
 
 	private static final Logger logger                       = LoggerFactory.getLogger(StreamingWriter.class.getName());
-	private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(Settings.JsonOuputDateFormat.getValue("yyyy-MM-dd'T'HH:mm:ssZ"), Locale.ENGLISH);
-	private static final SimpleDateFormat dateFormatter = new SimpleDateFormat(Settings.JsonOuputDateFormat.getValue("yyyy-MM-dd'T'HH:mm:ssZ"), Locale.ENGLISH);
+	private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(Settings.JsonOutputDateFormat.getValue("yyyy-MM-dd'T'HH:mm:ssZ"), Locale.ENGLISH);
+	private static final SimpleDateFormat dateFormatter      = new SimpleDateFormat(Settings.JsonOutputDateFormat.getValue("yyyy-MM-dd'T'HH:mm:ssZ"), Locale.ENGLISH);
 
 	private static final Set<String> nonSerializerClasses = Set.of(
 		Object.class.getName(),

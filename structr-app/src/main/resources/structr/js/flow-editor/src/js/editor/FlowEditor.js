@@ -165,19 +165,21 @@ export class FlowEditor {
 				local: {
 					keydown: function (event) {
 
-						if ((navigator.platform !== 'MacIntel' && event.shiftKey === true && event.ctrlKey === true) || (navigator.platform === 'MacIntel' && event.shiftKey === true && event.metaKey === true)) {
+						let isMac = (navigator.platform === 'MacIntel');
+
+						if ((!isMac && event.shiftKey && event.ctrlKey) || (isMac && event.shiftKey && event.metaKey)) {
 							// Enable area selection on shift+ctrl
 							new AreaSelector(self).enable();
 							event.stopPropagation();
-						} else if (event.key === "a" && event.ctrlKey === true) {
+						} else if (event.key === "a" && ((!isMac && event.ctrlKey) || (isMac && event.metaKey))) {
 							// Select all nodes and prevent default selection
 							self.selectAllNodes();
 							event.preventDefault();
 							event.stopPropagation();
-						} else if (event.key === "c" && event.ctrlKey && event.altKey) {
+						} else if (event.key === "c" && ((!isMac && event.ctrlKey && event.altKey) || (isMac && event.metaKey))) {
 							event.stopPropagation();
 							self._copyElementsForCloning();
-						} else if (event.key === "v" && event.ctrlKey && event.altKey) {
+						} else if (event.key === "v" && ((!isMac && event.ctrlKey && event.altKey) || (isMac && event.metaKey))) {
 							event.stopPropagation();
 							self._pasteClonedElements();
 						}
@@ -349,13 +351,13 @@ export class FlowEditor {
 		// Copy selected elements
 		let editorNodes = this._editor.selected.list;
 
-		let cloneHandler = new CloneHandler();
+		let cloneHandler = new CloneHandler(this.options.basePath);
 		window._flow_clone_clipboard = cloneHandler.copyElements(editorNodes);
 	}
 
 	_pasteClonedElements() {
 
-		let cloneHandler = new CloneHandler();
+		let cloneHandler = new CloneHandler(this.options.basePath);
 		if (window._flow_clone_clipboard !== undefined) {
 			cloneHandler.pasteElements(this, window._flow_clone_clipboard);
 		}
@@ -380,7 +382,7 @@ export class FlowEditor {
 							let targetId = input.node.data.dbNode.id;
 							let relType = con.type;
 
-							let persistence = new Persistence();
+							let persistence = new Persistence(this.options.basePath);
 
 							persistence.getNodesByClass({type: relType}).then(result => {
 
@@ -411,14 +413,14 @@ export class FlowEditor {
 
 	_connectionDeletionHandler(connection) {
 		if (!this.disableRelationshipEvents) {
-			let persistence = new Persistence();
+			let persistence = new Persistence(this.options.basePath);
 			persistence.deleteNode(connection);
 		}
 	}
 
 	_nodeDeletionHandler(node) {
 		if (!this.disableRelationshipEvents) {
-			let persistence = new Persistence();
+			let persistence = new Persistence(this.options.basePath);
 			persistence.deleteNode(node.data.dbNode);
 		}
 	}
@@ -478,7 +480,7 @@ export class FlowEditor {
 		let self = this;
 		let entType = type;
 		return function() {
-			let persistence = new Persistence();
+			let persistence = new Persistence(self.options.basePath);
 			return persistence.createNode({type: entType}).then(node => {
 				if ((self.flowNodes.filter(node => node.dbNode.isStartNodeOfContainer !== undefined && node.dbNode.isStartNodeOfContainer !== null).length <= 0)
 					&& (FlowEditor._getViableStartNodes().indexOf(node.type) !== -1)) {
@@ -561,7 +563,6 @@ export class FlowEditor {
         rest.post('/structr/flow/' + this._flowContainer.effectiveName, {}, true).then((res) => {
             new ResultPanel(res, this);
         });
-      
 	}
 
 	async saveLayout(visibleForPublic, saveAsNewLayout) {
@@ -570,7 +571,6 @@ export class FlowEditor {
 
 		let layoutManager = new LayoutManager(this);
 		await layoutManager.saveLayout(pub, saveAsNewLayout);
-
 	}
 
 	async applySavedLayout() {
@@ -588,9 +588,7 @@ export class FlowEditor {
 		}
 
 		layoutManager.applySavedLayout(layout);
-
 	}
-
 
 	connectNodes(rel) {
 		let source = this.getFlowNodeForDbId(rel.sourceId);
@@ -614,9 +612,7 @@ export class FlowEditor {
 			} catch (e) {
 				console.log("Could not connect nodes: " + rel.sourceId + " and " + rel.targetId + " RelType: " + rel.type);
 			}
-
 		}
-
 	}
 
 	renderNode(node, preventViewUpdate) {

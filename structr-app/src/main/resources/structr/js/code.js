@@ -1284,6 +1284,8 @@ let _Code = {
 				_Helpers.fastRemoveElement(propertyUIContainer[0].querySelector('#property-readfunction-wrap').closest('[data-is-property-attribute-container]'));
 				_Helpers.fastRemoveElement(propertyUIContainer[0].querySelector('#property-writefunction-wrap').closest('[data-is-property-attribute-container]'));
 			} else {
+				propertyUIContainer[0].querySelector('#property-unique').disabled = true;
+				propertyUIContainer[0].querySelector('#property-composite').disabled = true;
 				$('#property-type-hint-input').val(property.typeHint || 'null');
 			}
 
@@ -2942,7 +2944,7 @@ let _Code = {
 						</div>
 						<div id="write-code-container" class="mb-4 flex flex-col h-1/2">
 							<div>
-								<h4 class="py-2 font-semibold" data-comment="To retrieve the parameter passed to the write function, use &lt;code&gt;Structr.get('value');&lt;/code&gt; in a JavaScript context or the keyword &lt;code&gt;value&lt;/code&gt; in a StructrScript context.">
+								<h4 class="py-2 font-semibold" data-comment="To retrieve the parameter passed to the write function, use &lt;code&gt;$.value;&lt;/code&gt; in a JavaScript context or the keyword &lt;code&gt;value&lt;/code&gt; in a StructrScript context.">
 									Write Function
 								</h4>
 							</div>

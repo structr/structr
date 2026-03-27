@@ -45,8 +45,10 @@ public class TextSetting extends StringSetting {
 
 		renderLabel(group);
 
-		group.block("textarea").attr(new Attr("name", getKey())).text(getValue(""));
+		final Tag settingInputContainer = group.block("div").css("flex items-center flex-grow");
 
-		renderResetButton(group);
+		settingInputContainer.block("textarea").attr(new Attr("name", getKey())).text(getValue(""));
+
+		renderResetButton(settingInputContainer);
 	}
 }

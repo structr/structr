@@ -31,5 +31,6 @@ public enum DatabaseFeature {
 	AuthenticationRequired,
 	RelationshipIndexes,
 	NewDBIndexesFormat,
-	ShowIndexesQuery
+	ShowIndexesQuery,
+	TypePredicateExpressions
 }

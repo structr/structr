@@ -92,12 +92,14 @@ public class StringMultiChoiceSetting extends Setting<String> {
 
 		renderLabel(group);
 
-		final Tag input = group.empty("input").attr(
+		final Tag settingInputContainer = group.block("div").css("flex items-center flex-grow");
+
+		final Tag input = settingInputContainer.empty("input").attr(
 			new Attr("type",         "text"),
 			new Attr("name",         getKey()),
 			new Attr("id",           id),
 			new Attr("class",        "ordered-multi-select hidden"),
-			new Attr("data-choices", StringUtils.join(AvailableOptions, ","))
+			new Attr("data-choices", StringUtils.join(AvailableOptions.stream().sorted(), ","))
 		);
 
 		final String value = getValue();
@@ -107,9 +109,9 @@ public class StringMultiChoiceSetting extends Setting<String> {
 			input.attr(new Attr("value", value));
 		}
 
-		final Tag options = group.block("div");
+		final Tag options = settingInputContainer.block("div");
 
-		for (final String option : AvailableOptions) {
+		for (final String option : AvailableOptions.stream().sorted().toList()) {
 			options.block("button").attr(
 				new Attr("type", "button"),
 				new Attr("class", "toggle-option hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666" + (value.contains(option) ? " active" : "")),

@@ -163,6 +163,8 @@ test('job-queue', async ({page}) => {
     await page.getByRole('button', {name: 'Close', exact: true}).click();
     await page.locator('#close-all-button').click();
 
+    await page.waitForTimeout(5000);
+
     // Check import processes
     await page.locator('.submenu-trigger').hover();
     await page.locator('#job-queue_').waitFor({state: 'visible'});

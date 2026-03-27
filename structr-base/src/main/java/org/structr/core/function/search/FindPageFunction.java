@@ -94,6 +94,6 @@ public class FindPageFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
-		return FunctionCategory.Database;
+		return FunctionCategory.Predicate;
 	}
 }

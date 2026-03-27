@@ -4,9 +4,10 @@ import {QueryBooleanValue} from "./QueryBooleanValue.js";
 
 export class QueryOperation {
 
-	constructor() {
+	constructor(flowEditor) {
 
-		this.handles = {};
+		this.handles    = {};
+		this.flowEditor = flowEditor;
 
 		this.model = new Proxy(
 			{
@@ -98,7 +99,7 @@ export class QueryOperation {
 				this.handles.key.removeChild(this.handles.key.firstChild);
 			}
 
-			const structrRest = new StructrRest();
+			const structrRest = new StructrRest(this.flowEditor.options.basePath);
 			await structrRest.get("_schema/" + queryType).then((res) => {
 				const properties = res.result[0].views.all;
 

@@ -3,7 +3,8 @@ import {Persistence} from "../../../../../lib/structr/persistence/Persistence.js
 
 export class LayoutModal {
 
-    constructor( editor) {
+    constructor(editor) {
+
         this._editor = editor;
 
         let modal = document.querySelector("div#layoutModal");
@@ -11,7 +12,6 @@ export class LayoutModal {
         if (modal === undefined || modal === null) {
 
             this._createLayoutModal();
-
         }
     }
 
@@ -108,7 +108,7 @@ export class LayoutModal {
 
 
         container.querySelector("button#layout-select-btn").addEventListener('click', () => {
-            let persistence = new Persistence();
+            let persistence = new Persistence(this._editor.options.basePath);
             let layoutManager = new LayoutManager(this._editor);
             let selectedId = container.querySelector("select#layout-select").value;
 
@@ -134,7 +134,7 @@ export class LayoutModal {
 
 		container.querySelector("button#layout-delete-btn").addEventListener('click', () => {
 			if (confirm("Delete currently selected layout?")) {
-				let persistence = new Persistence();
+				let persistence = new Persistence(this._editor.options.basePath);
 				let selectedId = container.querySelector("select#layout-select").value;
 
 				persistence.getNodesById(selectedId, {type: 'FlowContainerConfiguration'}, 'all').then(r => {
@@ -151,7 +151,7 @@ export class LayoutModal {
 		container.querySelector("button#layout-rename-btn").addEventListener('click',() => {
 			let name = prompt("Enter new layout name", "");
 			if (name !== null && name !== undefined && name.length > 0) {
-			    let persistence = new Persistence();
+			    let persistence = new Persistence(this._editor.options.basePath);
 				let selectedId = container.querySelector("select#layout-select").value;
 				persistence.getNodesById(selectedId, {type: 'FlowContainerConfiguration'}, 'all').then(config => {
 					if (config !== null && config !== undefined && config.length > 0) {

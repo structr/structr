@@ -12,8 +12,10 @@ export class FlowCall extends FlowNode {
     }
 
     getComponent() {
+
         let scopedDbNode = this.dbNode;
         let flowEditor = this.flowEditor;
+
         return new D3NE.Component('Call', {
             template: FlowCall._nodeTemplate(),
             builder(node) {
@@ -32,7 +34,7 @@ export class FlowCall extends FlowNode {
                 // Add select box and render all FlowContainer as Call options
                 let call = new D3NE.Control('<select class="control-select"><option disabled selected>None</option></select>', (element, control) =>{
 
-                    let persistence = new Persistence();
+                    let persistence = new Persistence(flowEditor.options.basePath);
 
                     persistence.getNodesByClass(new FlowContainer(), 'effectiveNameView').then(result => {
                         

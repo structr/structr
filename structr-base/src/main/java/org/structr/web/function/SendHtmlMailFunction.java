@@ -102,22 +102,16 @@ public class SendHtmlMailFunction extends UiAdvancedFunction {
 
 				return MailHelper.sendHtmlMail(from, fromName, to, toName, null, null, from, subject, htmlContent, textContent,attachments);
 
-			} catch (EmailException ex) {
+			} catch (EmailException eex) {
 
-				logException(caller, ex, sources);
+				throw new FrameworkException(422, eex.toString(), eex);
 			}
 
-		} catch (ArgumentNullException pe) {
+		} catch (ArgumentNullException | ArgumentCountException ex) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
-
-		} catch (ArgumentCountException pe) {
-
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			logParameterError(caller, sources, ex.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 		}
-
-		return "";
 	}
 
 	@Override
@@ -144,7 +138,8 @@ public class SendHtmlMailFunction extends UiAdvancedFunction {
 				"Attachments must be provided as a list, even when only a single file is included.",
 				"`htmlContent` and `textContent` are typically generated using the `template()` function.",
 				"Emails are sent based on the SMTP configuration defined in structr.conf.",
-				"For advanced scenarios, refer to the extended mail functions prefixed with `mail`, beginning with `mailBegin()`."
+				"For advanced scenarios, refer to the extended mail functions prefixed with `mail`, beginning with `mailBegin()`.",
+				"If an error occurs, an exception is thrown. In JavaScript, this can be caught via `try { ... } catch (e) { ... }`"
 		);
 	}
 

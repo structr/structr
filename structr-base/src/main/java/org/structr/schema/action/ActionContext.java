@@ -68,7 +68,38 @@ public class ActionContext {
 	private SecurityContext securityContext                                   = null;
 	private Predicate predicate                                               = null;
 	private boolean disableVerboseExceptionLogging                            = false;
-	private boolean javaScriptContext                                         = false;
+	private ScriptingEngine scriptingEngine                                   = ScriptingEngine.STRUCTR_SCRIPT;
+
+	public enum ScriptingEngine {
+		PYTHON("python", true),
+		JS("js", true),
+		STRUCTR_SCRIPT("structrScript", false);
+
+		private final String name;
+		private final boolean supportsExceptionHandling;
+
+		ScriptingEngine(final String name, final boolean supportsExceptionHandling) {
+			this.name = name;
+			this.supportsExceptionHandling = supportsExceptionHandling;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public boolean supportsExceptionHandling() {
+			return supportsExceptionHandling;
+		}
+
+		public static ScriptingEngine fromName(final String name) throws FrameworkException {
+			for (ScriptingEngine engine : values()) {
+				if (engine.name.equalsIgnoreCase(name)) {
+					return engine;
+				}
+			}
+			throw new FrameworkException(422, "Unsupported scripting engine: " + name);
+		}
+	}
 
 	public int level = 0;
 
@@ -182,18 +213,6 @@ public class ActionContext {
 		return errorBuffer.hasError();
 	}
 
-	public void incrementCounter(final int level) {
-		getContextStore().incrementCounter(level);
-	}
-
-	public int getCounter(final int level) {
-		return getContextStore().getCounter(level);
-	}
-
-	public void resetCounter(final int level) {
-		getContextStore().resetCounter(level);
-	}
-
 	public void store(final String key, final Object value) {
 		getContextStore().store(key, value);
 	}
@@ -206,12 +225,21 @@ public class ActionContext {
 		return getContextStore().getRequestStore();
 	}
 
-	public void addTimer(final String key) {
-		getContextStore().addTimer(key);
+	// --- Timers ---
+	public void startTimer(final String key) {
+		getContextStore().startTimer(key);
 	}
 
-	public Date getTimer(final String key) {
-		return getContextStore().getTimer(key);
+	public long pauseTimer(final String key) {
+		return getContextStore().pauseTimer(key);
+	}
+
+	public long clearTimer(final String key) {
+		return getContextStore().clearTimer(key);
+	}
+
+	public Long getTimerElapsedMs(final String key) {
+		return getContextStore().getTimerElapsedMs(key);
 	}
 
 	public void addHeader(final String key, final String value) {
@@ -551,18 +579,16 @@ public class ActionContext {
 		return out;
 	}
 
-	/**
-	 * @return the javaScriptContext
-	 */
 	public boolean isJavaScriptContext() {
-		return javaScriptContext;
+		return scriptingEngine.equals(ScriptingEngine.JS);
 	}
 
-	/**
-	 * @param javaScriptContext the javaScriptContext to set
-	 */
-	public void setJavaScriptContext(boolean javaScriptContext) {
-		this.javaScriptContext = javaScriptContext;
+	public void setScriptingEngine(final ScriptingEngine engine) {
+		this.scriptingEngine = engine;
+	}
+
+	public boolean supportsExceptionHandling() {
+		return scriptingEngine.supportsExceptionHandling();
 	}
 
 	public Locale getLocale() {

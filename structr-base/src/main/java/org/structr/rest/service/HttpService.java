@@ -21,6 +21,7 @@ package org.structr.rest.service;
 
 import jakarta.servlet.DispatcherType;
 import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -297,6 +298,21 @@ public class HttpService implements RunnableService, StatsCallback {
 
 		final List<Connector> connectors = new LinkedList<>();
 
+		// Block TRACE verb globally instead of adding code to every servlet
+		{
+			servletContext.addFilter(new FilterHolder((request, response, chain) -> {
+
+				if ("TRACE".equalsIgnoreCase(((HttpServletRequest) request).getMethod())) {
+
+					((HttpServletResponse) response).sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+					return;
+				}
+
+				chain.doFilter(request, response);
+
+			}), "/*", EnumSet.of(DispatcherType.REQUEST));
+		}
+
 		// Enable serving static resources for structr-ui (and redirect to config servlet if the system is not configured yet)
 		{
 			final ResourceHandler resourceHandler = new ResourceHandler(servletContext) {
@@ -430,6 +446,10 @@ public class HttpService implements RunnableService, StatsCallback {
 			servletContext.addFilter(MetricsFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
 		}
 
+		// docs
+		servletContext.addServlet(DocumentationServlet.class, "/structr/docs/ontology/*");
+		servletContext.addServlet(DocumentationServlet.class, "/structr/docs/ontology");
+
 		// add and configure DoSFilter
 		if (Settings.RateLimiting.getValue()) {
 
@@ -451,10 +471,6 @@ public class HttpService implements RunnableService, StatsCallback {
 
 			servletContext.addFilter(holder, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.ASYNC));
 		}
-
-		// docs
-		servletContext.addServlet(DocumentationServlet.class, "/structr/docs/ontology/*");
-		servletContext.addServlet(DocumentationServlet.class, "/structr/docs/ontology");
 
 		// Always add servletContext last because it's terminal in the resource chain
 		contexts.addHandler(servletContext);
@@ -961,7 +977,7 @@ public class HttpService implements RunnableService, StatsCallback {
 									}
 
 									final ServletHolder servletHolder = new ServletHolder(servlet);
-									((HttpServiceServlet) servlet).configureServletHolder(servletHolder);
+									httpServiceServlet.configureServletHolder(servletHolder);
 
 									if (servletPath.endsWith("*")) {
 

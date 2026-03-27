@@ -833,23 +833,26 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			config.put(folderPath, properties);
 		}
 
-		final List<Folder> folders    = Iterables.toList(folder.getFolders());
-		final PropertyKey<String> key = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
-		final Comparator comp         = key.sorted(false);
+		if (!folder.isExcludeSubtreeFromExport()) {
 
-		Collections.sort(folders, comp);
+			final List<Folder> folders    = Iterables.toList(folder.getFolders());
+			final PropertyKey<String> key = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+			final Comparator comp         = key.sorted(false);
 
-		for (final Folder child : folders) {
+			Collections.sort(folders, comp);
 
-			exportFilesAndFolders(path, child, config);
-		}
+			for (final Folder child : folders) {
 
-		final List<File> files = Iterables.toList(folder.getFiles());
-		Collections.sort(files, comp);
+				exportFilesAndFolders(path, child, config);
+			}
 
-		for (final File file : files) {
+			final List<File> files = Iterables.toList(folder.getFiles());
+			Collections.sort(files, comp);
 
-			exportFile(path, file, config);
+			for (final File file : files) {
+
+				exportFile(path, file, config);
+			}
 		}
 	}
 
@@ -1407,13 +1410,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			putData(config, LinkableTraitDefinition.ENABLE_BASIC_AUTH_PROPERTY, linkable.getEnableBasicAuth());
 			putData(config, NodeInterfaceTraitDefinition.HIDDEN_PROPERTY,       page.isHidden());
 			putData(config, PageTraitDefinition.PAGE_CREATES_RAW_DATA_PROPERTY, page.pageCreatesRawData());
-			putData(config, DOMElementTraitDefinition.PATH_PROPERTY,            page.getPath());
 			putData(config, PageTraitDefinition.POSITION_PROPERTY,              page.getPosition());
 			putData(config, PageTraitDefinition.SHOW_ON_ERROR_CODES_PROPERTY,   page.getShowOnErrorCodes());
-
-			// FIXME? show conditions for a page?
-			putData(config, DOMNodeTraitDefinition.SHOW_CONDITIONS_PROPERTY,    page.getShowConditions());
-			putData(config, DOMNodeTraitDefinition.HIDE_CONDITIONS_PROPERTY,    page.getHideConditions());
 		}
 
 		final Traits traits = node.getTraits();
@@ -1450,6 +1448,17 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 
 		putData(config, AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY, abstractFile.includeInFrontendExport(false));
+
+		if (abstractFile.is(StructrTraits.FOLDER)) {
+
+			final Folder folder = abstractFile.as(Folder.class);
+
+			final boolean isExcludeSubtreeFromExport = folder.isExcludeSubtreeFromExport();
+			if (isExcludeSubtreeFromExport) {
+
+				putData(config, FolderTraitDefinition.EXCLUDE_SUBTREE_FROM_EXPORT_PROPERTY, true);
+			}
+		}
 
 		if (abstractFile.is(StructrTraits.LINKABLE)) {
 

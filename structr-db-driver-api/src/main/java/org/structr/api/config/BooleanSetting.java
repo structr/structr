@@ -83,11 +83,13 @@ public class BooleanSetting extends Setting<Boolean> {
 
 		renderLabel(group);
 
-		final Tag trueLabel  = group.block("label").attr(new Attr("class", "flex items-center"));
+		final Tag settingInputContainer = group.block("div").css("flex items-center flex-grow");
+
+		final Tag trueLabel  = settingInputContainer.block("label").attr(new Attr("class", "flex items-center"));
 		final Tag trueInput  = trueLabel.empty("input").attr(new Attr("type", "radio"), new Attr("name", getKey()), new Attr("value",  "true"));
 		trueLabel.block("span").text("Enabled");
 
-		final Tag falseLabel = group.block("label").attr(new Attr("class", "flex items-center"));
+		final Tag falseLabel = settingInputContainer.block("label").attr(new Attr("class", "flex items-center"));
 		final Tag falseInput = falseLabel.empty("input").attr(new Attr("type", "radio"), new Attr("name", getKey()), new Attr("value", "false"));
 		falseLabel.block("span").text("Disabled");
 
@@ -100,7 +102,7 @@ public class BooleanSetting extends Setting<Boolean> {
 			falseInput.attr(new Attr("checked", "checked"));
 		}
 
-		renderResetButton(group);
+		renderResetButton(settingInputContainer);
 	}
 
 	@Override

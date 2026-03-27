@@ -82,7 +82,9 @@ public class IntegerSetting extends Setting<Integer> {
 
 		renderLabel(group);
 
-		final Tag input     = group.empty("input").attr(new Attr("type", "text"), new Attr("name", getKey()));
+		final Tag settingInputContainer = group.block("div").css("flex items-center flex-grow");
+
+		final Tag input     = settingInputContainer.empty("input").attr(new Attr("type", "text"), new Attr("name", getKey()));
 		final Integer value = getValue();
 
 		// display value if non-empty
@@ -90,7 +92,7 @@ public class IntegerSetting extends Setting<Integer> {
 			input.attr(new Attr("value", value));
 		}
 
-		renderResetButton(group);
+		renderResetButton(settingInputContainer);
 	}
 
 	@Override

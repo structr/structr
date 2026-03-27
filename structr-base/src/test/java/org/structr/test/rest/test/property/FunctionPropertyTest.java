@@ -32,8 +32,9 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.attribute.Name;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.*;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.Test;
@@ -371,5 +372,134 @@ public class FunctionPropertyTest extends StructrRestTestBase {
 			.when()
 			.get("/FunctionPropertyTest?_sort=sortTest&_order=desc");
 
+	}
+
+	@Test
+	public void testFunctionPropertySerializationWithNullValue() {
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface schemaNode = app.create(StructrTraits.SCHEMA_NODE,"FunctionPropertyTest");
+
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),            "fnBool"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY),   schemaNode),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Function"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.TYPE_HINT_PROPERTY),     "Boolean"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY), "{ return ($.this.name === 'shouldHaveNullValues') ? null : true; }")
+			);
+
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),            "fnDate"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY),   schemaNode),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Function"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.TYPE_HINT_PROPERTY),     "Date"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY), "{ return ($.this.name === 'shouldHaveNullValues') ? null : new Date(2026, 0, 1); }")
+			);
+
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),            "fnDouble"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY),   schemaNode),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Function"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.TYPE_HINT_PROPERTY),     "Double"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY), "{ return ($.this.name === 'shouldHaveNullValues') ? null : 13; }")
+			);
+
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),            "fnInt"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY),   schemaNode),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Function"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.TYPE_HINT_PROPERTY),     "Int"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY), "{ return ($.this.name === 'shouldHaveNullValues') ? null : 37; }")
+			);
+
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),            "fnLong"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY),   schemaNode),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Function"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.TYPE_HINT_PROPERTY),     "Long"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY), "{ return ($.this.name === 'shouldHaveNullValues') ? null : 42; }")
+			);
+
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),            "fnString"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY),   schemaNode),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Function"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.TYPE_HINT_PROPERTY),     "String"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY), "{ return ($.this.name === 'shouldHaveNullValues') ? null : 'some string'; }")
+			);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		String resource = "/FunctionPropertyTest";
+
+		final String uuidForNodeWithNulls = getUuidFromLocation(
+				RestAssured
+						.given()
+							.contentType("application/json; charset=UTF-8")
+							.header("Accept", "application/json; charset=UTF-8")
+						.body(" { 'name' : 'shouldHaveNullValues' } ")
+
+						.expect()
+							.statusCode(201)
+
+						.when()
+							.post(resource).getHeader("Location")
+		);
+
+		final String uuidForNodeWithoutNulls = getUuidFromLocation(
+				RestAssured
+						.given()
+							.contentType("application/json; charset=UTF-8")
+							.header("Accept", "application/json; charset=UTF-8")
+						.body(" { 'name' : 'shouldNOTHaveNullValues' } ")
+
+						.expect()
+							.statusCode(201)
+
+						.when()
+							.post(resource).getHeader("Location")
+		);
+
+		RestAssured
+				.given()
+					.contentType("application/json; charset=UTF-8")
+				.expect()
+					.statusCode(200)
+					.body("result_count",     equalTo(1))
+					.body("result",           isEntity("FunctionPropertyTest"))
+					.body("result.id",        equalTo(uuidForNodeWithoutNulls))
+					.body("result.name",      equalTo("shouldNOTHaveNullValues"))
+					.body("result.fnBool",    equalTo(true))
+					.body("result.fnDate",    equalTo("2026-01-01T00:00:00+0000"))
+					.body("result.fnDouble",  equalTo(13.0F))
+					.body("result.fnInt",     equalTo(37))
+					.body("result.fnLong",    equalTo(42))
+					.body("result.fnString",  equalTo("some string"))
+				.when()
+					.get(resource + "/" + uuidForNodeWithoutNulls + "/all");
+
+		RestAssured
+				.given()
+					.contentType("application/json; charset=UTF-8")
+				.expect()
+					.statusCode(200)
+					.body("result_count",     equalTo(1))
+					.body("result",           isEntity("FunctionPropertyTest"))
+					.body("result.id",        equalTo(uuidForNodeWithNulls))
+					.body("result.name",      equalTo("shouldHaveNullValues"))
+					.body("result.fnBool",    equalTo(false))                  // this WILL break once scripting returns real return values instead of empty string for null (just change "false" to null when this broader fix has arrived)
+					.body("result.fnDate",    equalTo(null))
+					.body("result.fnDouble",  equalTo(null))
+					.body("result.fnInt",     equalTo(null))
+					.body("result.fnLong",    equalTo(null))
+					.body("result.fnString",  equalTo(""))                     // this WILL break once scripting returns real return values instead of empty string for null (just change "false" to null when this broader fix has arrived)
+				.when()
+					.get(resource + "/" + uuidForNodeWithNulls + "/all");
 	}
 }

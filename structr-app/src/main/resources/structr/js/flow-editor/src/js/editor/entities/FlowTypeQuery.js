@@ -7,13 +7,15 @@ import {QueryBuilder} from "./components/QueryBuilder/QueryBuilder.js";
 
 export class FlowTypeQuery extends FlowNode {
 
-    constructor(node) {
-        super(node);
+    constructor(node, flowEditor) {
+        super(node, flowEditor);
     }
 
     getComponent() {
 
         let scopedDbNode = this.dbNode;
+		let flowEditor = this.flowEditor;
+
         return new D3NE.Component('TypeQuery', {
             template: FlowTypeQuery._nodeTemplate(),
             builder(node) {
@@ -27,13 +29,12 @@ export class FlowTypeQuery extends FlowNode {
                     node.isStartNode = false;
                 }
 
-
-                const builder = new QueryBuilder();
+                const builder = new QueryBuilder(flowEditor);
 
                 // Add select box and render all SchemaTypes as dataType options
                 let dataType = new D3NE.Control('<select class="control-select"><option>---- Select type ----</option></select>', (element, control) => {
 
-                    let persistence = new Persistence();
+                    let persistence = new Persistence(flowEditor.options.basePath);
                     persistence.getNodesByClass({type:"SchemaNode"},"ui").then(result => {
 
                         if (result && result.length > 0) {

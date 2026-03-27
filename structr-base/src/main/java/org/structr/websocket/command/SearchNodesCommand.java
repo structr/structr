@@ -18,15 +18,12 @@
  */
 package org.structr.websocket.command;
 
-import groovyjarjarantlr4.v4.misc.Graph;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.Services;
-import org.structr.core.property.GenericProperty;
-import org.structr.web.function.UiFunction;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;

@@ -47,13 +47,9 @@ public class Base64DecodeFunction extends CoreFunction {
 
 			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 3);
 
-			final String input    = sources[0].toString();
-			final Charset charset = (sources.length == 3) ? Charset.forName(sources[2].toString()) : Charset.defaultCharset();
-
-			String decodingScheme = "basic";
-			if (sources.length >= 2) {
-				decodingScheme = sources[1].toString();
-			}
+			final String input          = sources[0].toString();
+			final Charset charset       = (sources.length == 3) ? Charset.forName(sources[2].toString()) : Charset.defaultCharset();
+			final String decodingScheme = (sources.length >= 2) ? sources[1].toString() : "basic";
 
 			final Base64.Decoder decoder;
 
@@ -66,26 +62,48 @@ public class Base64DecodeFunction extends CoreFunction {
 					decoder = Base64.getMimeDecoder();
 					break;
 
-				default:
-					logger.warn("Unsupported base64 decoding scheme '{}' - using 'basic' scheme", decodingScheme);
-
 				case "basic":
 					decoder = Base64.getDecoder();
 					break;
+
+				default:
+
+					if (ctx.supportsExceptionHandling()) {
+
+						throw new FrameworkException(422, "%s: Unsupported base64 decoding scheme '%s' - supported values are 'basic', 'url' and 'mime'.".formatted(getName(), decodingScheme));
+
+					} else {
+
+						logger.warn("{}: Unsupported base64 decoding scheme '{}' - supported values are 'basic', ‘url' and 'mime'.", getName(), decodingScheme);
+						return null;
+					}
 			}
 
 			try {
 
 				return new String(decoder.decode(input), charset);
 
-			} catch (UnsupportedCharsetException uce) {
+			} catch (final Throwable t) {
 
-				logger.warn("base64decode: Unsupported charset {}", sources[2].toString(), uce);
+				if (ctx.supportsExceptionHandling()) {
 
-			} catch  (IllegalArgumentException iae) {
+					throw new FrameworkException(422, "%s: Exception encountered while decoding '%s' with scheme '%s'".formatted(getName(), input, decodingScheme), t);
 
-				logger.warn("Exception encountered while decoding '{}' with scheme '{}'", input, decodingScheme, iae);
-				return iae.getMessage();
+				} else {
+
+					logException(t, "{}: Exception encountered while decoding '{}' with scheme '{}'", new Object[] { getName(), input, decodingScheme });
+				}
+			}
+
+		} catch (final UnsupportedCharsetException uce) {
+
+			if (ctx.supportsExceptionHandling()) {
+
+				throw new FrameworkException(422, "%s: Unsupported charset %s".formatted(getName(), sources[2]), uce);
+
+			} else {
+
+				logException(uce, "{}: Unsupported charset {}", new Object[] { getName(), sources[2] });
 			}
 
 		} catch (ArgumentNullException pe) {
@@ -95,7 +113,6 @@ public class Base64DecodeFunction extends CoreFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
-			return usage(ctx.isJavaScriptContext());
 		}
 
 		return null;
@@ -109,29 +126,29 @@ public class Base64DecodeFunction extends CoreFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-		Valid values for `scheme` are `basic` (default), `url` and `mime`. The following explanation of the encoding schemes is taken directly from https://docs.oracle.com/javase/8/docs/api/java/util/Base64.html
-		
-		**Basic**
-		Uses "The Base64 Alphabet" as specified in Table 1 of RFC 4648 and RFC 2045 for encoding and decoding operation. The encoder does not add any line feed (line separator) character. The decoder rejects data that contains characters outside the base64 alphabet.
-		
-		**URL and Filename safe**
-		Uses the "URL and Filename safe Base64 Alphabet" as specified in Table 2 of RFC 4648 for encoding and decoding. The encoder does not add any line feed (line separator) character. The decoder rejects data that contains characters outside the base64 alphabet.
-		
-		**MIME**
-		Uses the "The Base64 Alphabet" as specified in Table 1 of RFC 2045 for encoding and decoding operation. The encoded output must be represented in lines of no more than 76 characters each and uses a carriage return '\\r' followed immediately by a linefeed '\\n' as the line separator. No line separator is added to the end of the encoded output. All line separators or other characters not found in the base64 alphabet table are ignored in decoding operation.
-		""";
+			Valid values for `scheme` are `basic` (default), `url` and `mime`. The following explanation of the encoding schemes is taken directly from https://docs.oracle.com/javase/8/docs/api/java/util/Base64.html
+
+			**Basic**
+			Uses "The Base64 Alphabet" as specified in Table 1 of RFC 4648 and RFC 2045 for encoding and decoding operation. The encoder does not add any line feed (line separator) character. The decoder rejects data that contains characters outside the base64 alphabet.
+
+			**URL and Filename safe**
+			Uses the "URL and Filename safe Base64 Alphabet" as specified in Table 2 of RFC 4648 for encoding and decoding. The encoder does not add any line feed (line separator) character. The decoder rejects data that contains characters outside the base64 alphabet.
+
+			**MIME**
+			Uses the "The Base64 Alphabet" as specified in Table 1 of RFC 2045 for encoding and decoding operation. The encoded output must be represented in lines of no more than 76 characters each and uses a carriage return '\\r' followed immediately by a linefeed '\\n' as the line separator. No line separator is added to the end of the encoded output. All line separators or other characters not found in the base64 alphabet table are ignored in decoding operation.
+			""";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("text [, scheme, charset ]");
+		return Signature.forAllScriptingLanguages("base64Text [, scheme [, charset ]]");
 	}
 
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${base64decode(text[, scheme[, charset]])}. Example: ${base64decode(\"Q2hlY2sgb3V0IGh0dHBzOi8vc3RydWN0ci5jb20=\")}"),
-			Usage.javaScript("Usage: ${{Structr.base64decode(text[, scheme[, charset]])}}. Example: ${{Structr.base64decode(\"Q2hlY2sgb3V0IGh0dHBzOi8vc3RydWN0ci5jb20=\")}}")
+			Usage.structrScript("Usage: ${base64decode(base64Text [, scheme [, charset ]])}. Example: ${base64decode(\"VmlzaXQgaHR0cHM6Ly9zdHJ1Y3RyLm9yZw==\")}"),
+			Usage.javaScript("Usage: ${{Structr.base64decode(base64Text [, scheme [, charset ]])}}. Example: ${{Structr.base64decode(\"VmlzaXQgaHR0cHM6Ly9zdHJ1Y3RyLm9yZw==\")}}")
 		);
 	}
 
@@ -141,14 +158,14 @@ public class Base64DecodeFunction extends CoreFunction {
 		return List.of(
 			Parameter.mandatory("base64Text", "base64-encoded text to decode"),
 			Parameter.optional("scheme", "decoding scheme, `url`, `mime` or `basic`, defaults to `basic`"),
-			Parameter.optional("charset", "charset to use, defaults to UTF-8")
+			Parameter.optional("charset", "charset to use, defaults to `UTF-8`")
 		);
 	}
 
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-			Example.structrScript("${base64decode(\"Q2hlY2sgb3V0IGh0dHBzOi8vc3RydWN0ci5jb20=\")}", "Decode a base64-encoded string")
+			Example.structrScript("${base64decode(\"VmlzaXQgaHR0cHM6Ly9zdHJ1Y3RyLm9yZw==\")}", "Decode a base64-encoded string")
 		);
 	}
 

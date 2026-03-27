@@ -16,30 +16,24 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.console.tabcompletion;
+package org.structr.core.graph.search;
 
-import org.structr.common.SecurityContext;
-import org.structr.console.rest.RestCommand;
+import org.structr.api.search.AnyQuery;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.RelationProperty;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+public class AnySearchAttribute<T> extends PropertySearchAttribute<T> implements AnyQuery {
 
-/**
- *
- */
-public class RestTabCompletionProvider extends AbstractTabCompletionProvider {
+	public AnySearchAttribute(final PropertyKey<T> key, final T value, final boolean isExactMatch) {
+		super(key, value, isExactMatch);
+	}
 
 	@Override
-	public List<TabCompletionResult> getTabCompletion(final SecurityContext securityContext, final String line) {
+	public Class getQueryType() {
+		return AnyQuery.class;
+	}
 
-		final List<TabCompletionResult> results = new LinkedList<>();
-		final String token                      = getToken(line, " /.");
-
-		results.addAll(getExactResultsForCollection(RestCommand.commandNames(), token, " "));
-
-		Collections.sort(results);
-
-		return results;
+	public boolean isRelationProperty() {
+		return (getKey() instanceof RelationProperty);
 	}
 }
