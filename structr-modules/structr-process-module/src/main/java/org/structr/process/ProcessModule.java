@@ -24,6 +24,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.module.StructrModule;
 import org.structr.process.function.ExportBPMNFunction;
 import org.structr.process.function.ImportBPMNFunction;
+import org.structr.process.function.NotifyFunction;
 import org.structr.process.traits.definitions.*;
 import org.structr.process.traits.rels.*;
 
@@ -117,6 +118,7 @@ public class ProcessModule implements StructrModule {
 
 		Functions.put(licenseManager, new ImportBPMNFunction());
 		Functions.put(licenseManager, new ExportBPMNFunction());
+		Functions.put(licenseManager, new NotifyFunction());
 	}
 
 	@Override
