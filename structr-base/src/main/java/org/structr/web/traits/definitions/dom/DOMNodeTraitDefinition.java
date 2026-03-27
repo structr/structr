@@ -987,7 +987,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					attributes.put("data-structr-success-target", "[data-channel~='" + channel.getName() + "']");
 					attributes.put("data-structr-events", "keyup");
 					attributes.put("data-structr-target", filterKey);
-					attributes.put("data-structr-options", "{ &quot;delay&quot;: 300, &quot;resetWithEsc&quot;: true, &quot;resetPagination&quot;: &quot;" + paginationKey + "&quot; }");
+					attributes.put("data-structr-options", "{ &quot;delay&quot;: 500, &quot;resetWithEsc&quot;: true, &quot;resetPagination&quot;: &quot;" + paginationKey + "&quot; }");
 					attributes.put("data-" + paginationKey, 1);
 					attributes.put("name", filterKey);
 

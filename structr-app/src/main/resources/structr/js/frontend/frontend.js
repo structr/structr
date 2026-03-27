@@ -563,7 +563,9 @@ export class Frontend {
 		let content = document.createElement('template');
 		content.insertAdjacentHTML('afterbegin', html);
 		if (content && content.children && content.children.length) {
-			container.replaceWith(content.children[0]);
+			let newNode = content.children[0];
+			container.replaceWith(newNode);
+			return newNode;
 		} else {
 			container.replaceWith('');
 		}
@@ -582,15 +584,15 @@ export class Frontend {
 			if (!response.ok) { throw { status: response.status, statusText: response.statusText } };
 			return response.text();
 		}).then(html => {
-			this.replaceContentInContainer(container, html);
-			container.dispatchEvent(new Event('structr-reload'));
-			this.fireEvent('reload', {target: container});
+			let newNode = this.replaceContentInContainer(container, html);
+			newNode.dispatchEvent(new Event('structr-reload'));
+			this.fireEvent('reload', {target: newNode});
 
-			let restoreFocus = container.querySelector('*[name="' + this.focusName + '"][data-structr-id="' + this.focusId + '"][data-structr-target="' + this.focusTarget + '"]');
+			let restoreFocus = newNode.querySelector('*[name="' + this.focusName + '"][data-structr-target="' + this.focusTarget + '"]');
 			if (restoreFocus) {
 
-				if (restoreFocus.focus && typeof restoreFocus.focus === 'function') { restoreFocus.focus(); }
-				if (restoreFocus.select && typeof restoreFocus.select === 'function') { restoreFocus.select(); }
+				restoreFocus.focus({ focusVisible: true });
+				restoreFocus.select();
 			}
 
 			if (!dontRebind) {
@@ -1060,7 +1062,7 @@ export class Frontend {
 				}
 			}
 
-			if (elem.dataset.structrId && elem.dataset.structrTarget && elem.name) {
+			if (elem.dataset.structrTarget && elem.name) {
 
 				// capture focus
 				elem.removeEventListener('focus', this.boundHandleFocus);
