@@ -22,9 +22,9 @@ import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
-import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.process.ProcessTraits;
 
 import java.util.Map;
 import java.util.Set;
@@ -43,7 +43,7 @@ public class BpmnDiDiagramTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String EDGES_PROPERTY       = "edges";
 
 	public BpmnDiDiagramTraitDefinition() {
-		super(StructrTraits.BPMN_DI_DIAGRAM);
+		super(ProcessTraits.BPMN_DI_DIAGRAM);
 	}
 
 	@Override
@@ -52,9 +52,9 @@ public class BpmnDiDiagramTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> diagramId                       = new StringProperty(DIAGRAM_ID_PROPERTY);
 		final Property<String> planeId                         = new StringProperty(PLANE_ID_PROPERTY);
 		final Property<String> planeElement                    = new StringProperty(PLANE_ELEMENT);
-		final Property<NodeInterface> def                      = new StartNode(traitsInstance, DEFINITION_PROPERTY, StructrTraits.BPMN_DEFINITIONS_HAS_DIAGRAM);
-		final Property<Iterable<NodeInterface>> shapes         = new EndNodes(traitsInstance, SHAPES_PROPERTY, StructrTraits.BPMN_DI_DIAGRAM_HAS_SHAPE);
-		final Property<Iterable<NodeInterface>> edges          = new EndNodes(traitsInstance, EDGES_PROPERTY, StructrTraits.BPMN_DI_DIAGRAM_HAS_EDGE);
+		final Property<NodeInterface> def                      = new StartNode(traitsInstance, DEFINITION_PROPERTY, ProcessTraits.BPMN_DEFINITIONS_HAS_DIAGRAM);
+		final Property<Iterable<NodeInterface>> shapes         = new EndNodes(traitsInstance, SHAPES_PROPERTY, ProcessTraits.BPMN_DI_DIAGRAM_HAS_SHAPE);
+		final Property<Iterable<NodeInterface>> edges          = new EndNodes(traitsInstance, EDGES_PROPERTY, ProcessTraits.BPMN_DI_DIAGRAM_HAS_EDGE);
 
 		return newSet(diagramId, planeId, planeElement, def, shapes, edges);
 	}

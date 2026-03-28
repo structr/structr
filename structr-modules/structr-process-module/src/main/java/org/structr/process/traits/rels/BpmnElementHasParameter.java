@@ -21,17 +21,17 @@ package org.structr.process.traits.rels;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.core.entity.Relation;
-import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
+import org.structr.process.ProcessTraits;
 
 /** BpmnElement -[HAS_PARAMETER]-> ProcessParameter */
 public class BpmnElementHasParameter extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	public BpmnElementHasParameter() { super(StructrTraits.BPMN_ELEMENT_HAS_PARAMETER); }
+	public BpmnElementHasParameter() { super(ProcessTraits.BPMN_ELEMENT_HAS_PARAMETER); }
 
-	@Override public String getSourceType() { return StructrTraits.BPMN_ELEMENT; }
-	@Override public String getTargetType() { return StructrTraits.PROCESS_PARAMETER; }
+	@Override public String getSourceType() { return ProcessTraits.BPMN_ELEMENT; }
+	@Override public String getTargetType() { return ProcessTraits.PROCESS_PARAMETER; }
 	@Override public String getRelationshipType() { return "HAS_PARAMETER"; }
 	@Override public Relation.Multiplicity getSourceMultiplicity() { return Relation.Multiplicity.One; }
 	@Override public Relation.Multiplicity getTargetMultiplicity() { return Relation.Multiplicity.Many; }

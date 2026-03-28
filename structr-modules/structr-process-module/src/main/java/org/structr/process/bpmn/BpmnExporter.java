@@ -25,9 +25,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.process.traits.definitions.*;
+import org.structr.process.ProcessTraits;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -109,7 +109,7 @@ public class BpmnExporter {
 			// Global definitions (message, signal, error, etc.)
 			final Iterable<NodeInterface> globalDefs = defNode.getProperty(defTraits.key(BpmnDefinitionsTraitDefinition.GLOBAL_DEFINITIONS_PROPERTY));
 			if (globalDefs != null) {
-				final Traits gdTraits = Traits.of(StructrTraits.BPMN_GLOBAL_DEFINITION);
+				final Traits gdTraits = Traits.of(ProcessTraits.BPMN_GLOBAL_DEFINITION);
 				for (final NodeInterface gdNode : globalDefs) {
 					w.writeCharacters("\n\n  ");
 					exportGlobalDefinition(w, gdNode, gdTraits);
@@ -129,7 +129,7 @@ public class BpmnExporter {
 			}
 
 			// Top-level elements
-			final Traits elemTraits = Traits.of(StructrTraits.BPMN_ELEMENT);
+			final Traits elemTraits = Traits.of(ProcessTraits.BPMN_ELEMENT);
 			final Iterable<NodeInterface> elements = defNode.getProperty(defTraits.key(BpmnDefinitionsTraitDefinition.ELEMENTS_PROPERTY));
 			if (elements != null) {
 				for (final NodeInterface elemNode : elements) {
@@ -139,7 +139,7 @@ public class BpmnExporter {
 			}
 
 			// Top-level sequence flows
-			final Traits flowTraits = Traits.of(StructrTraits.BPMN_SEQUENCE_FLOW);
+			final Traits flowTraits = Traits.of(ProcessTraits.BPMN_SEQUENCE_FLOW);
 			final Iterable<NodeInterface> flows = defNode.getProperty(defTraits.key(BpmnDefinitionsTraitDefinition.SEQUENCE_FLOWS_PROPERTY));
 			if (flows != null) {
 				for (final NodeInterface flowNode : flows) {
@@ -229,8 +229,8 @@ public class BpmnExporter {
 
 		// Recursively write graph children (sub-process containment hierarchy)
 		if (hasGraphChildren) {
-			final Traits childElemTraits = Traits.of(StructrTraits.BPMN_ELEMENT);
-			final Traits childFlowTraits = Traits.of(StructrTraits.BPMN_SEQUENCE_FLOW);
+			final Traits childElemTraits = Traits.of(ProcessTraits.BPMN_ELEMENT);
+			final Traits childFlowTraits = Traits.of(ProcessTraits.BPMN_SEQUENCE_FLOW);
 
 			if (childElements != null) {
 				for (final NodeInterface childElem : childElements) {
@@ -377,8 +377,8 @@ public class BpmnExporter {
 	private void exportDiagram(final XMLStreamWriter w, final NodeInterface diagramNode) throws XMLStreamException {
 
 		final Traits diagramTraits = diagramNode.getTraits();
-		final Traits shapeTraits   = Traits.of(StructrTraits.BPMN_DI_SHAPE);
-		final Traits edgeTraits    = Traits.of(StructrTraits.BPMN_DI_EDGE);
+		final Traits shapeTraits   = Traits.of(ProcessTraits.BPMN_DI_SHAPE);
+		final Traits edgeTraits    = Traits.of(ProcessTraits.BPMN_DI_EDGE);
 
 		w.writeStartElement(DI_NS, "BPMNDiagram");
 		writeAttrIfNotNull(w, "id", diagramNode.getProperty(diagramTraits.key(BpmnDiDiagramTraitDefinition.DIAGRAM_ID_PROPERTY)));

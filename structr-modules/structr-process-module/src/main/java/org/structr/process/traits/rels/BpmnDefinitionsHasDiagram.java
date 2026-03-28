@@ -21,16 +21,16 @@ package org.structr.process.traits.rels;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.core.entity.Relation;
-import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
+import org.structr.process.ProcessTraits;
 
 public class BpmnDefinitionsHasDiagram extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	public BpmnDefinitionsHasDiagram() { super(StructrTraits.BPMN_DEFINITIONS_HAS_DIAGRAM); }
+	public BpmnDefinitionsHasDiagram() { super(ProcessTraits.BPMN_DEFINITIONS_HAS_DIAGRAM); }
 
-	@Override public String getSourceType() { return StructrTraits.BPMN_DEFINITIONS; }
-	@Override public String getTargetType() { return StructrTraits.BPMN_DI_DIAGRAM; }
+	@Override public String getSourceType() { return ProcessTraits.BPMN_DEFINITIONS; }
+	@Override public String getTargetType() { return ProcessTraits.BPMN_DI_DIAGRAM; }
 	@Override public String getRelationshipType() { return "HAS_DIAGRAM"; }
 	@Override public Relation.Multiplicity getSourceMultiplicity() { return Relation.Multiplicity.One; }
 	@Override public Relation.Multiplicity getTargetMultiplicity() { return Relation.Multiplicity.Many; }

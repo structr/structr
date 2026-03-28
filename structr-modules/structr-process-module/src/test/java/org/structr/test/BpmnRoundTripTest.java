@@ -21,7 +21,6 @@ package org.structr.test;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.process.bpmn.BpmnExporter;
 import org.structr.process.bpmn.BpmnImporter;
@@ -31,7 +30,7 @@ import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-
+import org.structr.process.ProcessTraits;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.ByteArrayInputStream;
@@ -228,7 +227,7 @@ public class BpmnRoundTripTest extends StructrUiTest {
 				assertNotNull(defNode);
 
 				final Traits defTraits = defNode.getTraits();
-				final Traits elemTraits = Traits.of(StructrTraits.BPMN_ELEMENT);
+				final Traits elemTraits = Traits.of(ProcessTraits.BPMN_ELEMENT);
 
 				// Count top-level elements (connected to definition)
 				final Iterable<NodeInterface> topElements = defNode.getProperty(defTraits.key(BpmnDefinitionsTraitDefinition.ELEMENTS_PROPERTY));
@@ -484,13 +483,13 @@ public class BpmnRoundTripTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final String[] types = {
-				StructrTraits.BPMN_DI_EDGE,
-				StructrTraits.BPMN_DI_SHAPE,
-				StructrTraits.BPMN_DI_DIAGRAM,
-				StructrTraits.BPMN_SEQUENCE_FLOW,
-				StructrTraits.BPMN_ELEMENT,
-				StructrTraits.BPMN_GLOBAL_DEFINITION,
-				StructrTraits.BPMN_DEFINITIONS
+				ProcessTraits.BPMN_DI_EDGE,
+				ProcessTraits.BPMN_DI_SHAPE,
+				ProcessTraits.BPMN_DI_DIAGRAM,
+				ProcessTraits.BPMN_SEQUENCE_FLOW,
+				ProcessTraits.BPMN_ELEMENT,
+				ProcessTraits.BPMN_GLOBAL_DEFINITION,
+				ProcessTraits.BPMN_DEFINITIONS
 			};
 
 			for (final String type : types) {

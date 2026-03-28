@@ -26,11 +26,10 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.script.Scripting;
-import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.process.traits.definitions.*;
 import org.structr.schema.action.ActionContext;
-
+import org.structr.process.ProcessTraits;
 import java.util.*;
 
 /**
@@ -73,7 +72,7 @@ public class ProcessEngine {
 		}
 
 		// Create ProcessInstance
-		final NodeInterface instance = app.create(StructrTraits.PROCESS_INSTANCE, (String) null);
+		final NodeInterface instance = app.create(ProcessTraits.PROCESS_INSTANCE, (String) null);
 		final Traits instTraits = instance.getTraits();
 
 		instance.setProperty(instTraits.key(ProcessInstanceTraitDefinition.STATUS_PROPERTY), ProcessInstanceTraitDefinition.STATUS_RUNNING);
@@ -159,8 +158,8 @@ public class ProcessEngine {
 		}
 
 		// Find the catch event element by bpmnId
-		final Traits elemTraits = Traits.of(StructrTraits.BPMN_ELEMENT);
-		final NodeInterface catchElement = app.nodeQuery(StructrTraits.BPMN_ELEMENT)
+		final Traits elemTraits = Traits.of(ProcessTraits.BPMN_ELEMENT);
+		final NodeInterface catchElement = app.nodeQuery(ProcessTraits.BPMN_ELEMENT)
 			.and().key(elemTraits.key(BpmnElementTraitDefinition.BPMN_ID_PROPERTY), eventBpmnId)
 			.getFirst();
 
@@ -311,7 +310,7 @@ public class ProcessEngine {
 			throw new FrameworkException(422, "Exclusive gateway has no outgoing flows: " + getBpmnId(element));
 		}
 
-		final Traits flowTraits = Traits.of(StructrTraits.BPMN_SEQUENCE_FLOW);
+		final Traits flowTraits = Traits.of(ProcessTraits.BPMN_SEQUENCE_FLOW);
 		NodeInterface defaultFlow = null;
 		NodeInterface selectedFlow = null;
 
@@ -364,7 +363,7 @@ public class ProcessEngine {
 
 		final List<NodeInterface> outgoingFlows = getOutgoingFlows(element);
 		final List<NodeInterface> incomingFlows = getIncomingFlows(element);
-		final Traits flowTraits = Traits.of(StructrTraits.BPMN_SEQUENCE_FLOW);
+		final Traits flowTraits = Traits.of(ProcessTraits.BPMN_SEQUENCE_FLOW);
 
 		if (outgoingFlows.size() > 1 && incomingFlows.size() <= 1) {
 
@@ -416,7 +415,7 @@ public class ProcessEngine {
 
 		final List<NodeInterface> outgoingFlows = getOutgoingFlows(element);
 		final List<NodeInterface> incomingFlows = getIncomingFlows(element);
-		final Traits flowTraits = Traits.of(StructrTraits.BPMN_SEQUENCE_FLOW);
+		final Traits flowTraits = Traits.of(ProcessTraits.BPMN_SEQUENCE_FLOW);
 
 		if (outgoingFlows.size() > 1 && incomingFlows.size() <= 1) {
 
@@ -641,7 +640,7 @@ public class ProcessEngine {
 	private void createTaskInstance(final App app, final NodeInterface instance,
 									final NodeInterface userTaskElement) throws FrameworkException {
 
-		final NodeInterface task = app.create(StructrTraits.TASK_INSTANCE, (String) null);
+		final NodeInterface task = app.create(ProcessTraits.TASK_INSTANCE, (String) null);
 		final Traits taskTraits = task.getTraits();
 
 		task.setProperty(taskTraits.key(TaskInstanceTraitDefinition.STATUS_PROPERTY), TaskInstanceTraitDefinition.STATUS_CREATED);
@@ -671,7 +670,7 @@ public class ProcessEngine {
 	private NodeInterface createToken(final App app, final NodeInterface instance,
 									  final NodeInterface element) throws FrameworkException {
 
-		final NodeInterface token = app.create(StructrTraits.PROCESS_TOKEN, (String) null);
+		final NodeInterface token = app.create(ProcessTraits.PROCESS_TOKEN, (String) null);
 		final Traits tokenTraits = token.getTraits();
 
 		token.setProperty(tokenTraits.key(ProcessTokenTraitDefinition.STATUS_PROPERTY), ProcessTokenTraitDefinition.STATUS_ACTIVE);
@@ -704,7 +703,7 @@ public class ProcessEngine {
 											final NodeInterface token, final NodeInterface element) throws FrameworkException {
 
 		final List<NodeInterface> outgoingFlows = getOutgoingFlows(element);
-		final Traits flowTraits = Traits.of(StructrTraits.BPMN_SEQUENCE_FLOW);
+		final Traits flowTraits = Traits.of(ProcessTraits.BPMN_SEQUENCE_FLOW);
 
 		if (outgoingFlows.isEmpty()) {
 
@@ -822,7 +821,7 @@ public class ProcessEngine {
 
 		final Iterable<NodeInterface> elements = defNode.getProperty(defTraits.key(BpmnDefinitionsTraitDefinition.ELEMENTS_PROPERTY));
 		if (elements != null) {
-			final Traits elemTraits = Traits.of(StructrTraits.BPMN_ELEMENT);
+			final Traits elemTraits = Traits.of(ProcessTraits.BPMN_ELEMENT);
 			for (final NodeInterface elem : elements) {
 				final String type = elem.getProperty(elemTraits.key(BpmnElementTraitDefinition.BPMN_ELEMENT_TYPE_PROPERTY));
 				if ("startEvent".equals(type)) {
@@ -837,7 +836,7 @@ public class ProcessEngine {
 
 		final Traits instTraits = instance.getTraits();
 		final Iterable<NodeInterface> tokens = instance.getProperty(instTraits.key(ProcessInstanceTraitDefinition.TOKENS_PROPERTY));
-		final Traits tokenTraits = Traits.of(StructrTraits.PROCESS_TOKEN);
+		final Traits tokenTraits = Traits.of(ProcessTraits.PROCESS_TOKEN);
 
 		if (tokens != null) {
 			for (final NodeInterface t : tokens) {
@@ -856,7 +855,7 @@ public class ProcessEngine {
 
 		final Traits instTraits = instance.getTraits();
 		final Iterable<NodeInterface> tokens = instance.getProperty(instTraits.key(ProcessInstanceTraitDefinition.TOKENS_PROPERTY));
-		final Traits tokenTraits = Traits.of(StructrTraits.PROCESS_TOKEN);
+		final Traits tokenTraits = Traits.of(ProcessTraits.PROCESS_TOKEN);
 
 		int count = 0;
 		if (tokens != null) {
@@ -880,7 +879,7 @@ public class ProcessEngine {
 
 		final Traits instTraits = instance.getTraits();
 		final Iterable<NodeInterface> tokens = instance.getProperty(instTraits.key(ProcessInstanceTraitDefinition.TOKENS_PROPERTY));
-		final Traits tokenTraits = Traits.of(StructrTraits.PROCESS_TOKEN);
+		final Traits tokenTraits = Traits.of(ProcessTraits.PROCESS_TOKEN);
 
 		int count = 0;
 		if (tokens != null) {
@@ -903,7 +902,7 @@ public class ProcessEngine {
 
 		final Traits instTraits = instance.getTraits();
 		final Iterable<NodeInterface> tokens = instance.getProperty(instTraits.key(ProcessInstanceTraitDefinition.TOKENS_PROPERTY));
-		final Traits tokenTraits = Traits.of(StructrTraits.PROCESS_TOKEN);
+		final Traits tokenTraits = Traits.of(ProcessTraits.PROCESS_TOKEN);
 
 		if (tokens != null) {
 			for (final NodeInterface t : tokens) {
@@ -928,7 +927,7 @@ public class ProcessEngine {
 	private void storeParameterValues(final App app, final NodeInterface instance,
 									  final NodeInterface element, final Map<String, Object> parameters) throws FrameworkException {
 
-		final Traits pvTraits = Traits.of(StructrTraits.PROCESS_PARAMETER_VALUE);
+		final Traits pvTraits = Traits.of(ProcessTraits.PROCESS_PARAMETER_VALUE);
 		final Date now = new Date();
 
 		for (final Map.Entry<String, Object> entry : parameters.entrySet()) {
@@ -936,7 +935,7 @@ public class ProcessEngine {
 			final String paramName = entry.getKey();
 			final Object paramValue = entry.getValue();
 
-			final NodeInterface pvNode = app.create(StructrTraits.PROCESS_PARAMETER_VALUE, (String) null);
+			final NodeInterface pvNode = app.create(ProcessTraits.PROCESS_PARAMETER_VALUE, (String) null);
 
 			pvNode.setProperty(pvTraits.key(ProcessParameterValueTraitDefinition.STRING_VALUE_PROPERTY),
 				paramValue != null ? paramValue.toString() : null);
@@ -965,8 +964,8 @@ public class ProcessEngine {
 			return Collections.emptyMap();
 		}
 
-		final Traits pvTraits    = Traits.of(StructrTraits.PROCESS_PARAMETER_VALUE);
-		final Traits paramTraits = Traits.of(StructrTraits.PROCESS_PARAMETER);
+		final Traits pvTraits    = Traits.of(ProcessTraits.PROCESS_PARAMETER_VALUE);
+		final Traits paramTraits = Traits.of(ProcessTraits.PROCESS_PARAMETER);
 
 		// Collect all values, keeping only the most recent per parameter name
 		// (by comparing setAt timestamps)
@@ -1033,7 +1032,7 @@ public class ProcessEngine {
 			elemTraits.key(BpmnElementTraitDefinition.PARAMETERS_PROPERTY));
 
 		if (existingParams != null) {
-			final Traits paramTraits = Traits.of(StructrTraits.PROCESS_PARAMETER);
+			final Traits paramTraits = Traits.of(ProcessTraits.PROCESS_PARAMETER);
 			for (final NodeInterface param : existingParams) {
 				final String name = param.getProperty(paramTraits.key(ProcessParameterTraitDefinition.PARAMETER_NAME_PROPERTY));
 				if (paramName.equals(name)) {
@@ -1043,7 +1042,7 @@ public class ProcessEngine {
 		}
 
 		// Create new parameter definition
-		final NodeInterface paramDef = app.create(StructrTraits.PROCESS_PARAMETER, (String) null);
+		final NodeInterface paramDef = app.create(ProcessTraits.PROCESS_PARAMETER, (String) null);
 		final Traits paramTraits = paramDef.getTraits();
 
 		paramDef.setProperty(paramTraits.key(ProcessParameterTraitDefinition.PARAMETER_NAME_PROPERTY), paramName);

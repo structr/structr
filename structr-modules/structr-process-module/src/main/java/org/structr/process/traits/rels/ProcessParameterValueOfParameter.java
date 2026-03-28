@@ -21,17 +21,17 @@ package org.structr.process.traits.rels;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.core.entity.Relation;
-import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
+import org.structr.process.ProcessTraits;
 
 /** ProcessParameterValue -[OF_PARAMETER]-> ProcessParameter */
 public class ProcessParameterValueOfParameter extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	public ProcessParameterValueOfParameter() { super(StructrTraits.PROCESS_PARAMETER_VALUE_OF_PARAMETER); }
+	public ProcessParameterValueOfParameter() { super(ProcessTraits.PROCESS_PARAMETER_VALUE_OF_PARAMETER); }
 
-	@Override public String getSourceType() { return StructrTraits.PROCESS_PARAMETER_VALUE; }
-	@Override public String getTargetType() { return StructrTraits.PROCESS_PARAMETER; }
+	@Override public String getSourceType() { return ProcessTraits.PROCESS_PARAMETER_VALUE; }
+	@Override public String getTargetType() { return ProcessTraits.PROCESS_PARAMETER; }
 	@Override public String getRelationshipType() { return "OF_PARAMETER"; }
 	@Override public Relation.Multiplicity getSourceMultiplicity() { return Relation.Multiplicity.Many; }
 	@Override public Relation.Multiplicity getTargetMultiplicity() { return Relation.Multiplicity.One; }

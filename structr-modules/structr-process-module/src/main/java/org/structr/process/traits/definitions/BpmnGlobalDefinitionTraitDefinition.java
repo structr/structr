@@ -22,10 +22,9 @@ import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
-import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
-
+import org.structr.process.ProcessTraits;
 import java.util.Map;
 import java.util.Set;
 
@@ -46,7 +45,7 @@ public class BpmnGlobalDefinitionTraitDefinition extends AbstractNodeTraitDefini
 	public static final String DEFINITION_PROPERTY       = "definition";
 
 	public BpmnGlobalDefinitionTraitDefinition() {
-		super(StructrTraits.BPMN_GLOBAL_DEFINITION);
+		super(ProcessTraits.BPMN_GLOBAL_DEFINITION);
 	}
 
 	@Override
@@ -57,7 +56,7 @@ public class BpmnGlobalDefinitionTraitDefinition extends AbstractNodeTraitDefini
 		final Property<String> bpmnName       = new StringProperty(BPMN_NAME_PROPERTY).indexed();
 		final Property<String> errorCode      = new StringProperty(ERROR_CODE_PROPERTY);
 		final Property<String> structureRef   = new StringProperty(STRUCTURE_REF_PROPERTY);
-		final Property<NodeInterface> def     = new StartNode(traitsInstance, DEFINITION_PROPERTY, StructrTraits.BPMN_DEFINITIONS_HAS_GLOBAL_DEFINITION);
+		final Property<NodeInterface> def     = new StartNode(traitsInstance, DEFINITION_PROPERTY, ProcessTraits.BPMN_DEFINITIONS_HAS_GLOBAL_DEFINITION);
 
 		return newSet(bpmnId, definitionType, bpmnName, errorCode, structureRef, def);
 	}

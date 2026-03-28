@@ -21,9 +21,9 @@ package org.structr.process.traits.rels;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.core.entity.Relation;
-import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
+import org.structr.process.ProcessTraits;
 
 /**
  * Connects a BpmnDefinitions to its direct (top-level process) BpmnElement children.
@@ -32,14 +32,14 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class BpmnDefinitionsHasElement extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public BpmnDefinitionsHasElement() {
-		super(StructrTraits.BPMN_DEFINITIONS_HAS_ELEMENT);
+		super(ProcessTraits.BPMN_DEFINITIONS_HAS_ELEMENT);
 	}
 
 	@Override
-	public String getSourceType() { return StructrTraits.BPMN_DEFINITIONS; }
+	public String getSourceType() { return ProcessTraits.BPMN_DEFINITIONS; }
 
 	@Override
-	public String getTargetType() { return StructrTraits.BPMN_ELEMENT; }
+	public String getTargetType() { return ProcessTraits.BPMN_ELEMENT; }
 
 	@Override
 	public String getRelationshipType() { return "HAS_ELEMENT"; }

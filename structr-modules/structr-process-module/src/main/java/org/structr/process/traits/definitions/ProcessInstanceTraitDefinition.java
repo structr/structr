@@ -28,9 +28,9 @@ import org.structr.core.api.JavaMethod;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
-import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.process.ProcessTraits;
 import org.structr.process.engine.ProcessEngine;
 import org.structr.schema.action.EvaluationHints;
 
@@ -62,7 +62,7 @@ public class ProcessInstanceTraitDefinition extends AbstractNodeTraitDefinition 
 	public static final String STATUS_ERROR       = "error";
 
 	public ProcessInstanceTraitDefinition() {
-		super(StructrTraits.PROCESS_INSTANCE);
+		super(ProcessTraits.PROCESS_INSTANCE);
 	}
 
 	@Override
@@ -71,10 +71,10 @@ public class ProcessInstanceTraitDefinition extends AbstractNodeTraitDefinition 
 		final Property<String> status       = new StringProperty(STATUS_PROPERTY).indexed();
 		final Property<Date> startTime      = new DateProperty(START_TIME_PROPERTY);
 		final Property<Date> endTime        = new DateProperty(END_TIME_PROPERTY);
-		final Property<NodeInterface> def   = new EndNode(traitsInstance, DEFINITION_PROPERTY, StructrTraits.PROCESS_INSTANCE_OF_DEFINITION);
-		final Property<Iterable<NodeInterface>> tokens          = new EndNodes(traitsInstance, TOKENS_PROPERTY, StructrTraits.PROCESS_INSTANCE_HAS_TOKEN);
-		final Property<Iterable<NodeInterface>> tasks            = new StartNodes(traitsInstance, TASKS_PROPERTY, StructrTraits.TASK_INSTANCE_OF_PROCESS);
-		final Property<Iterable<NodeInterface>> parameterValues  = new EndNodes(traitsInstance, PARAMETER_VALUES_PROPERTY, StructrTraits.PROCESS_INSTANCE_HAS_PARAMETER_VALUE);
+		final Property<NodeInterface> def   = new EndNode(traitsInstance, DEFINITION_PROPERTY, ProcessTraits.PROCESS_INSTANCE_OF_DEFINITION);
+		final Property<Iterable<NodeInterface>> tokens          = new EndNodes(traitsInstance, TOKENS_PROPERTY, ProcessTraits.PROCESS_INSTANCE_HAS_TOKEN);
+		final Property<Iterable<NodeInterface>> tasks            = new StartNodes(traitsInstance, TASKS_PROPERTY, ProcessTraits.TASK_INSTANCE_OF_PROCESS);
+		final Property<Iterable<NodeInterface>> parameterValues  = new EndNodes(traitsInstance, PARAMETER_VALUES_PROPERTY, ProcessTraits.PROCESS_INSTANCE_HAS_PARAMETER_VALUE);
 
 		return newSet(status, startTime, endTime, def, tokens, tasks, parameterValues);
 	}

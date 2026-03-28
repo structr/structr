@@ -28,9 +28,9 @@ import org.structr.core.api.JavaMethod;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
-import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.process.ProcessTraits;
 import org.structr.process.engine.ProcessEngine;
 import org.structr.schema.action.EvaluationHints;
 
@@ -61,7 +61,7 @@ public class BpmnDefinitionsTraitDefinition extends AbstractNodeTraitDefinition 
 	public static final String DIAGRAMS_PROPERTY             = "diagrams";
 
 	public BpmnDefinitionsTraitDefinition() {
-		super(StructrTraits.BPMN_DEFINITIONS);
+		super(ProcessTraits.BPMN_DEFINITIONS);
 	}
 
 	@Override
@@ -75,11 +75,11 @@ public class BpmnDefinitionsTraitDefinition extends AbstractNodeTraitDefinition 
 		final Property<String> processName                        = new StringProperty(PROCESS_NAME_PROPERTY).indexed();
 		final Property<Boolean> processIsExecutable               = new BooleanProperty(PROCESS_IS_EXECUTABLE);
 		final Property<String> namespaceDeclarations              = new StringProperty(NAMESPACE_DECLARATIONS);
-		final Property<Iterable<NodeInterface>> globalDefinitions = new EndNodes(traitsInstance, GLOBAL_DEFINITIONS_PROPERTY, StructrTraits.BPMN_DEFINITIONS_HAS_GLOBAL_DEFINITION);
-		final Property<Iterable<NodeInterface>> processInstances  = new StartNodes(traitsInstance, PROCESS_INSTANCES_PROPERTY, StructrTraits.PROCESS_INSTANCE_OF_DEFINITION);
-		final Property<Iterable<NodeInterface>> elements          = new EndNodes(traitsInstance, ELEMENTS_PROPERTY, StructrTraits.BPMN_DEFINITIONS_HAS_ELEMENT);
-		final Property<Iterable<NodeInterface>> sequenceFlows     = new EndNodes(traitsInstance, SEQUENCE_FLOWS_PROPERTY, StructrTraits.BPMN_DEFINITIONS_HAS_SEQUENCE_FLOW);
-		final Property<Iterable<NodeInterface>> diagrams          = new EndNodes(traitsInstance, DIAGRAMS_PROPERTY, StructrTraits.BPMN_DEFINITIONS_HAS_DIAGRAM);
+		final Property<Iterable<NodeInterface>> globalDefinitions = new EndNodes(traitsInstance, GLOBAL_DEFINITIONS_PROPERTY, ProcessTraits.BPMN_DEFINITIONS_HAS_GLOBAL_DEFINITION);
+		final Property<Iterable<NodeInterface>> processInstances  = new StartNodes(traitsInstance, PROCESS_INSTANCES_PROPERTY, ProcessTraits.PROCESS_INSTANCE_OF_DEFINITION);
+		final Property<Iterable<NodeInterface>> elements          = new EndNodes(traitsInstance, ELEMENTS_PROPERTY, ProcessTraits.BPMN_DEFINITIONS_HAS_ELEMENT);
+		final Property<Iterable<NodeInterface>> sequenceFlows     = new EndNodes(traitsInstance, SEQUENCE_FLOWS_PROPERTY, ProcessTraits.BPMN_DEFINITIONS_HAS_SEQUENCE_FLOW);
+		final Property<Iterable<NodeInterface>> diagrams          = new EndNodes(traitsInstance, DIAGRAMS_PROPERTY, ProcessTraits.BPMN_DEFINITIONS_HAS_DIAGRAM);
 
 		return newSet(bpmnId, targetNamespace, exporter, exporterVersion, processId, processName, processIsExecutable, namespaceDeclarations, globalDefinitions, processInstances, elements, sequenceFlows, diagrams);
 	}

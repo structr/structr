@@ -22,9 +22,9 @@ import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
-import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.process.ProcessTraits;
 
 import java.util.Map;
 import java.util.Set;
@@ -51,15 +51,15 @@ public class ProcessTokenTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String STATUS_WAITING   = "waiting";
 
 	public ProcessTokenTraitDefinition() {
-		super(StructrTraits.PROCESS_TOKEN);
+		super(ProcessTraits.PROCESS_TOKEN);
 	}
 
 	@Override
 	public Set<PropertyKey> createPropertyKeys(final TraitsInstance traitsInstance) {
 
 		final Property<String> status              = new StringProperty(STATUS_PROPERTY).indexed();
-		final Property<NodeInterface> processInst  = new StartNode(traitsInstance, PROCESS_INSTANCE_PROPERTY, StructrTraits.PROCESS_INSTANCE_HAS_TOKEN);
-		final Property<NodeInterface> atElement    = new EndNode(traitsInstance, AT_ELEMENT_PROPERTY, StructrTraits.PROCESS_TOKEN_AT_ELEMENT);
+		final Property<NodeInterface> processInst  = new StartNode(traitsInstance, PROCESS_INSTANCE_PROPERTY, ProcessTraits.PROCESS_INSTANCE_HAS_TOKEN);
+		final Property<NodeInterface> atElement    = new EndNode(traitsInstance, AT_ELEMENT_PROPERTY, ProcessTraits.PROCESS_TOKEN_AT_ELEMENT);
 
 		return newSet(status, processInst, atElement);
 	}

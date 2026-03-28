@@ -28,10 +28,10 @@ import org.structr.core.api.JavaMethod;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
-import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.process.engine.ProcessEngine;
+import org.structr.process.ProcessTraits;
 import org.structr.schema.action.EvaluationHints;
 
 import java.util.Date;
@@ -64,7 +64,7 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String STATUS_CANCELLED = "cancelled";
 
 	public TaskInstanceTraitDefinition() {
-		super(StructrTraits.TASK_INSTANCE);
+		super(ProcessTraits.TASK_INSTANCE);
 	}
 
 	@Override
@@ -74,8 +74,8 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> assignee            = new StringProperty(ASSIGNEE_PROPERTY).indexed();
 		final Property<Date> createdTime           = new DateProperty(CREATED_TIME_PROPERTY);
 		final Property<Date> completedTime         = new DateProperty(COMPLETED_TIME_PROPERTY);
-		final Property<NodeInterface> processInst  = new EndNode(traitsInstance, PROCESS_INSTANCE_PROPERTY, StructrTraits.TASK_INSTANCE_OF_PROCESS);
-		final Property<NodeInterface> definedBy    = new EndNode(traitsInstance, DEFINED_BY_PROPERTY, StructrTraits.TASK_INSTANCE_DEFINED_BY);
+		final Property<NodeInterface> processInst  = new EndNode(traitsInstance, PROCESS_INSTANCE_PROPERTY, ProcessTraits.TASK_INSTANCE_OF_PROCESS);
+		final Property<NodeInterface> definedBy    = new EndNode(traitsInstance, DEFINED_BY_PROPERTY, ProcessTraits.TASK_INSTANCE_DEFINED_BY);
 
 		return newSet(status, assignee, createdTime, completedTime, processInst, definedBy);
 	}

@@ -21,17 +21,17 @@ package org.structr.process.traits.rels;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.core.entity.Relation;
-import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
+import org.structr.process.ProcessTraits;
 
 /** TaskInstance -[TASK_OF]-> ProcessInstance */
 public class TaskInstanceOfProcess extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	public TaskInstanceOfProcess() { super(StructrTraits.TASK_INSTANCE_OF_PROCESS); }
+	public TaskInstanceOfProcess() { super(ProcessTraits.TASK_INSTANCE_OF_PROCESS); }
 
-	@Override public String getSourceType() { return StructrTraits.TASK_INSTANCE; }
-	@Override public String getTargetType() { return StructrTraits.PROCESS_INSTANCE; }
+	@Override public String getSourceType() { return ProcessTraits.TASK_INSTANCE; }
+	@Override public String getTargetType() { return ProcessTraits.PROCESS_INSTANCE; }
 	@Override public String getRelationshipType() { return "TASK_OF"; }
 	@Override public Relation.Multiplicity getSourceMultiplicity() { return Relation.Multiplicity.Many; }
 	@Override public Relation.Multiplicity getTargetMultiplicity() { return Relation.Multiplicity.One; }

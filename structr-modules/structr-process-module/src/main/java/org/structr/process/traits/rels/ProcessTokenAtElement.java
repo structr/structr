@@ -21,17 +21,17 @@ package org.structr.process.traits.rels;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.core.entity.Relation;
-import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
+import org.structr.process.ProcessTraits;
 
 /** ProcessToken -[AT_ELEMENT]-> BpmnElement */
 public class ProcessTokenAtElement extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	public ProcessTokenAtElement() { super(StructrTraits.PROCESS_TOKEN_AT_ELEMENT); }
+	public ProcessTokenAtElement() { super(ProcessTraits.PROCESS_TOKEN_AT_ELEMENT); }
 
-	@Override public String getSourceType() { return StructrTraits.PROCESS_TOKEN; }
-	@Override public String getTargetType() { return StructrTraits.BPMN_ELEMENT; }
+	@Override public String getSourceType() { return ProcessTraits.PROCESS_TOKEN; }
+	@Override public String getTargetType() { return ProcessTraits.BPMN_ELEMENT; }
 	@Override public String getRelationshipType() { return "AT_ELEMENT"; }
 	@Override public Relation.Multiplicity getSourceMultiplicity() { return Relation.Multiplicity.Many; }
 	@Override public Relation.Multiplicity getTargetMultiplicity() { return Relation.Multiplicity.One; }

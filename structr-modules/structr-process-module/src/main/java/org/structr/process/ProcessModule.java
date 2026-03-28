@@ -62,27 +62,27 @@ public class ProcessModule implements StructrModule {
 		StructrTraits.registerTrait(new ProcessParameterValueSetByElement());
 
 		// Register relationship types
-		StructrTraits.registerRelationshipType(StructrTraits.BPMN_DEFINITIONS_HAS_ELEMENT,       StructrTraits.BPMN_DEFINITIONS_HAS_ELEMENT);
-		StructrTraits.registerRelationshipType(StructrTraits.BPMN_DEFINITIONS_HAS_SEQUENCE_FLOW, StructrTraits.BPMN_DEFINITIONS_HAS_SEQUENCE_FLOW);
-		StructrTraits.registerRelationshipType(StructrTraits.BPMN_DEFINITIONS_HAS_DIAGRAM,       StructrTraits.BPMN_DEFINITIONS_HAS_DIAGRAM);
-		StructrTraits.registerRelationshipType(StructrTraits.BPMN_SEQUENCE_FLOW_FROM,            StructrTraits.BPMN_SEQUENCE_FLOW_FROM);
-		StructrTraits.registerRelationshipType(StructrTraits.BPMN_SEQUENCE_FLOW_TO,              StructrTraits.BPMN_SEQUENCE_FLOW_TO);
-		StructrTraits.registerRelationshipType(StructrTraits.BPMN_DI_DIAGRAM_HAS_SHAPE,          StructrTraits.BPMN_DI_DIAGRAM_HAS_SHAPE);
-		StructrTraits.registerRelationshipType(StructrTraits.BPMN_DI_DIAGRAM_HAS_EDGE,           StructrTraits.BPMN_DI_DIAGRAM_HAS_EDGE);
-		StructrTraits.registerRelationshipType(StructrTraits.BPMN_DI_SHAPE_REFERENCES_ELEMENT,   StructrTraits.BPMN_DI_SHAPE_REFERENCES_ELEMENT);
-		StructrTraits.registerRelationshipType(StructrTraits.BPMN_DI_EDGE_REFERENCES_FLOW,       StructrTraits.BPMN_DI_EDGE_REFERENCES_FLOW);
-		StructrTraits.registerRelationshipType(StructrTraits.BPMN_ELEMENT_HAS_CHILD_ELEMENT,      StructrTraits.BPMN_ELEMENT_HAS_CHILD_ELEMENT);
-		StructrTraits.registerRelationshipType(StructrTraits.BPMN_ELEMENT_HAS_CHILD_FLOW,         StructrTraits.BPMN_ELEMENT_HAS_CHILD_FLOW);
-		StructrTraits.registerRelationshipType(StructrTraits.BPMN_DEFINITIONS_HAS_GLOBAL_DEFINITION, StructrTraits.BPMN_DEFINITIONS_HAS_GLOBAL_DEFINITION);
-		StructrTraits.registerRelationshipType(StructrTraits.PROCESS_INSTANCE_OF_DEFINITION,          StructrTraits.PROCESS_INSTANCE_OF_DEFINITION);
-		StructrTraits.registerRelationshipType(StructrTraits.PROCESS_INSTANCE_HAS_TOKEN,              StructrTraits.PROCESS_INSTANCE_HAS_TOKEN);
-		StructrTraits.registerRelationshipType(StructrTraits.PROCESS_TOKEN_AT_ELEMENT,                StructrTraits.PROCESS_TOKEN_AT_ELEMENT);
-		StructrTraits.registerRelationshipType(StructrTraits.TASK_INSTANCE_OF_PROCESS,                StructrTraits.TASK_INSTANCE_OF_PROCESS);
-		StructrTraits.registerRelationshipType(StructrTraits.TASK_INSTANCE_DEFINED_BY,                StructrTraits.TASK_INSTANCE_DEFINED_BY);
-		StructrTraits.registerRelationshipType(StructrTraits.BPMN_ELEMENT_HAS_PARAMETER,              StructrTraits.BPMN_ELEMENT_HAS_PARAMETER);
-		StructrTraits.registerRelationshipType(StructrTraits.PROCESS_INSTANCE_HAS_PARAMETER_VALUE,    StructrTraits.PROCESS_INSTANCE_HAS_PARAMETER_VALUE);
-		StructrTraits.registerRelationshipType(StructrTraits.PROCESS_PARAMETER_VALUE_OF_PARAMETER,    StructrTraits.PROCESS_PARAMETER_VALUE_OF_PARAMETER);
-		StructrTraits.registerRelationshipType(StructrTraits.PROCESS_PARAMETER_VALUE_SET_BY_ELEMENT,  StructrTraits.PROCESS_PARAMETER_VALUE_SET_BY_ELEMENT);
+		StructrTraits.registerRelationshipType(ProcessTraits.BPMN_DEFINITIONS_HAS_ELEMENT,       ProcessTraits.BPMN_DEFINITIONS_HAS_ELEMENT);
+		StructrTraits.registerRelationshipType(ProcessTraits.BPMN_DEFINITIONS_HAS_SEQUENCE_FLOW, ProcessTraits.BPMN_DEFINITIONS_HAS_SEQUENCE_FLOW);
+		StructrTraits.registerRelationshipType(ProcessTraits.BPMN_DEFINITIONS_HAS_DIAGRAM,       ProcessTraits.BPMN_DEFINITIONS_HAS_DIAGRAM);
+		StructrTraits.registerRelationshipType(ProcessTraits.BPMN_SEQUENCE_FLOW_FROM,            ProcessTraits.BPMN_SEQUENCE_FLOW_FROM);
+		StructrTraits.registerRelationshipType(ProcessTraits.BPMN_SEQUENCE_FLOW_TO,              ProcessTraits.BPMN_SEQUENCE_FLOW_TO);
+		StructrTraits.registerRelationshipType(ProcessTraits.BPMN_DI_DIAGRAM_HAS_SHAPE,          ProcessTraits.BPMN_DI_DIAGRAM_HAS_SHAPE);
+		StructrTraits.registerRelationshipType(ProcessTraits.BPMN_DI_DIAGRAM_HAS_EDGE,           ProcessTraits.BPMN_DI_DIAGRAM_HAS_EDGE);
+		StructrTraits.registerRelationshipType(ProcessTraits.BPMN_DI_SHAPE_REFERENCES_ELEMENT,   ProcessTraits.BPMN_DI_SHAPE_REFERENCES_ELEMENT);
+		StructrTraits.registerRelationshipType(ProcessTraits.BPMN_DI_EDGE_REFERENCES_FLOW,       ProcessTraits.BPMN_DI_EDGE_REFERENCES_FLOW);
+		StructrTraits.registerRelationshipType(ProcessTraits.BPMN_ELEMENT_HAS_CHILD_ELEMENT,     ProcessTraits.BPMN_ELEMENT_HAS_CHILD_ELEMENT);
+		StructrTraits.registerRelationshipType(ProcessTraits.BPMN_ELEMENT_HAS_CHILD_FLOW,        ProcessTraits.BPMN_ELEMENT_HAS_CHILD_FLOW);
+		StructrTraits.registerRelationshipType(ProcessTraits.BPMN_DEFINITIONS_HAS_GLOBAL_DEFINITION, ProcessTraits.BPMN_DEFINITIONS_HAS_GLOBAL_DEFINITION);
+		StructrTraits.registerRelationshipType(ProcessTraits.PROCESS_INSTANCE_OF_DEFINITION,     ProcessTraits.PROCESS_INSTANCE_OF_DEFINITION);
+		StructrTraits.registerRelationshipType(ProcessTraits.PROCESS_INSTANCE_HAS_TOKEN,         ProcessTraits.PROCESS_INSTANCE_HAS_TOKEN);
+		StructrTraits.registerRelationshipType(ProcessTraits.PROCESS_TOKEN_AT_ELEMENT,           ProcessTraits.PROCESS_TOKEN_AT_ELEMENT);
+		StructrTraits.registerRelationshipType(ProcessTraits.TASK_INSTANCE_OF_PROCESS,           ProcessTraits.TASK_INSTANCE_OF_PROCESS);
+		StructrTraits.registerRelationshipType(ProcessTraits.TASK_INSTANCE_DEFINED_BY,           ProcessTraits.TASK_INSTANCE_DEFINED_BY);
+		StructrTraits.registerRelationshipType(ProcessTraits.BPMN_ELEMENT_HAS_PARAMETER,         ProcessTraits.BPMN_ELEMENT_HAS_PARAMETER);
+		StructrTraits.registerRelationshipType(ProcessTraits.PROCESS_INSTANCE_HAS_PARAMETER_VALUE, ProcessTraits.PROCESS_INSTANCE_HAS_PARAMETER_VALUE);
+		StructrTraits.registerRelationshipType(ProcessTraits.PROCESS_PARAMETER_VALUE_OF_PARAMETER, ProcessTraits.PROCESS_PARAMETER_VALUE_OF_PARAMETER);
+		StructrTraits.registerRelationshipType(ProcessTraits.PROCESS_PARAMETER_VALUE_SET_BY_ELEMENT, ProcessTraits.PROCESS_PARAMETER_VALUE_SET_BY_ELEMENT);
 
 		// Register node traits
 		StructrTraits.registerTrait(new BpmnDefinitionsTraitDefinition());
@@ -98,19 +98,19 @@ public class ProcessModule implements StructrModule {
 		StructrTraits.registerTrait(new ProcessParameterTraitDefinition());
 		StructrTraits.registerTrait(new ProcessParameterValueTraitDefinition());
 
-		// Register node types (type name, then all traits that compose the type)
-		StructrTraits.registerNodeType(StructrTraits.BPMN_DEFINITIONS,   StructrTraits.BPMN_DEFINITIONS);
-		StructrTraits.registerNodeType(StructrTraits.BPMN_ELEMENT,       StructrTraits.BPMN_ELEMENT);
-		StructrTraits.registerNodeType(StructrTraits.BPMN_SEQUENCE_FLOW, StructrTraits.BPMN_SEQUENCE_FLOW);
-		StructrTraits.registerNodeType(StructrTraits.BPMN_DI_DIAGRAM,    StructrTraits.BPMN_DI_DIAGRAM);
-		StructrTraits.registerNodeType(StructrTraits.BPMN_DI_SHAPE,      StructrTraits.BPMN_DI_SHAPE);
-		StructrTraits.registerNodeType(StructrTraits.BPMN_DI_EDGE,       StructrTraits.BPMN_DI_EDGE);
-		StructrTraits.registerNodeType(StructrTraits.BPMN_GLOBAL_DEFINITION, StructrTraits.BPMN_GLOBAL_DEFINITION);
-		StructrTraits.registerNodeType(StructrTraits.PROCESS_INSTANCE,       StructrTraits.PROCESS_INSTANCE);
-		StructrTraits.registerNodeType(StructrTraits.PROCESS_TOKEN,          StructrTraits.PROCESS_TOKEN);
-		StructrTraits.registerNodeType(StructrTraits.TASK_INSTANCE,          StructrTraits.TASK_INSTANCE);
-		StructrTraits.registerNodeType(StructrTraits.PROCESS_PARAMETER,       StructrTraits.PROCESS_PARAMETER);
-		StructrTraits.registerNodeType(StructrTraits.PROCESS_PARAMETER_VALUE, StructrTraits.PROCESS_PARAMETER_VALUE);
+		// Register node types
+		StructrTraits.registerNodeType(ProcessTraits.BPMN_DEFINITIONS,        ProcessTraits.BPMN_DEFINITIONS);
+		StructrTraits.registerNodeType(ProcessTraits.BPMN_ELEMENT,            ProcessTraits.BPMN_ELEMENT);
+		StructrTraits.registerNodeType(ProcessTraits.BPMN_SEQUENCE_FLOW,      ProcessTraits.BPMN_SEQUENCE_FLOW);
+		StructrTraits.registerNodeType(ProcessTraits.BPMN_DI_DIAGRAM,         ProcessTraits.BPMN_DI_DIAGRAM);
+		StructrTraits.registerNodeType(ProcessTraits.BPMN_DI_SHAPE,           ProcessTraits.BPMN_DI_SHAPE);
+		StructrTraits.registerNodeType(ProcessTraits.BPMN_DI_EDGE,            ProcessTraits.BPMN_DI_EDGE);
+		StructrTraits.registerNodeType(ProcessTraits.BPMN_GLOBAL_DEFINITION,  ProcessTraits.BPMN_GLOBAL_DEFINITION);
+		StructrTraits.registerNodeType(ProcessTraits.PROCESS_INSTANCE,        ProcessTraits.PROCESS_INSTANCE);
+		StructrTraits.registerNodeType(ProcessTraits.PROCESS_TOKEN,           ProcessTraits.PROCESS_TOKEN);
+		StructrTraits.registerNodeType(ProcessTraits.TASK_INSTANCE,           ProcessTraits.TASK_INSTANCE);
+		StructrTraits.registerNodeType(ProcessTraits.PROCESS_PARAMETER,       ProcessTraits.PROCESS_PARAMETER);
+		StructrTraits.registerNodeType(ProcessTraits.PROCESS_PARAMETER_VALUE, ProcessTraits.PROCESS_PARAMETER_VALUE);
 	}
 
 	@Override

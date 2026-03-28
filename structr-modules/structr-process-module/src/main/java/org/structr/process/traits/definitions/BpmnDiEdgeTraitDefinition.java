@@ -22,9 +22,9 @@ import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
-import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.process.ProcessTraits;
 
 import java.util.Map;
 import java.util.Set;
@@ -45,7 +45,7 @@ public class BpmnDiEdgeTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String REFERENCES_FLOW_PROPERTY  = "referencesFlow";
 
 	public BpmnDiEdgeTraitDefinition() {
-		super(StructrTraits.BPMN_DI_EDGE);
+		super(ProcessTraits.BPMN_DI_EDGE);
 	}
 
 	@Override
@@ -56,8 +56,8 @@ public class BpmnDiEdgeTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> waypoints       = new StringProperty(WAYPOINTS_PROPERTY);
 		final Property<String> labelBounds     = new StringProperty(LABEL_BOUNDS_PROPERTY);
 		final Property<String> diAttributes    = new StringProperty(DI_ATTRIBUTES_PROPERTY);
-		final Property<NodeInterface> diagram  = new StartNode(traitsInstance, DIAGRAM_PROPERTY, StructrTraits.BPMN_DI_DIAGRAM_HAS_EDGE);
-		final Property<NodeInterface> refFlow  = new EndNode(traitsInstance, REFERENCES_FLOW_PROPERTY, StructrTraits.BPMN_DI_EDGE_REFERENCES_FLOW);
+		final Property<NodeInterface> diagram  = new StartNode(traitsInstance, DIAGRAM_PROPERTY, ProcessTraits.BPMN_DI_DIAGRAM_HAS_EDGE);
+		final Property<NodeInterface> refFlow  = new EndNode(traitsInstance, REFERENCES_FLOW_PROPERTY, ProcessTraits.BPMN_DI_EDGE_REFERENCES_FLOW);
 
 		return newSet(edgeId, bpmnElementRef, waypoints, labelBounds, diAttributes, diagram, refFlow);
 	}

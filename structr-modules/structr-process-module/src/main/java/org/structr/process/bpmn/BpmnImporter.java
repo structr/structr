@@ -27,9 +27,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.process.traits.definitions.*;
+import org.structr.process.ProcessTraits;
 import org.w3c.dom.*;
 import org.xml.sax.InputSource;
 
@@ -141,7 +141,7 @@ public class BpmnImporter {
 		final Map<String, String> namespaces = collectNamespaces(root);
 
 		// Create BpmnDefinitions node
-		final NodeInterface defNode = app.create(StructrTraits.BPMN_DEFINITIONS, (String) null);
+		final NodeInterface defNode = app.create(ProcessTraits.BPMN_DEFINITIONS, (String) null);
 		final Traits defTraits = defNode.getTraits();
 
 		defNode.setProperty(defTraits.key(BpmnDefinitionsTraitDefinition.BPMN_ID_PROPERTY), root.getAttribute("id"));
@@ -257,7 +257,7 @@ public class BpmnImporter {
 	private NodeInterface importElement(final App app, final NodeInterface defNode, final NodeInterface parentElement,
 										final Element el, final String elementType) throws FrameworkException {
 
-		final NodeInterface elemNode = app.create(StructrTraits.BPMN_ELEMENT, (String) null);
+		final NodeInterface elemNode = app.create(ProcessTraits.BPMN_ELEMENT, (String) null);
 		final Traits traits = elemNode.getTraits();
 
 		elemNode.setProperty(traits.key(BpmnElementTraitDefinition.BPMN_ID_PROPERTY), el.getAttribute("id"));
@@ -349,7 +349,7 @@ public class BpmnImporter {
 	private NodeInterface importSequenceFlow(final App app, final NodeInterface defNode, final NodeInterface parentElement,
 											 final Element el) throws FrameworkException {
 
-		final NodeInterface flowNode = app.create(StructrTraits.BPMN_SEQUENCE_FLOW, (String) null);
+		final NodeInterface flowNode = app.create(ProcessTraits.BPMN_SEQUENCE_FLOW, (String) null);
 		final Traits traits = flowNode.getTraits();
 
 		flowNode.setProperty(traits.key(BpmnSequenceFlowTraitDefinition.BPMN_ID_PROPERTY), el.getAttribute("id"));
@@ -401,7 +401,7 @@ public class BpmnImporter {
 	private void importDiagram(final App app, final NodeInterface defNode, final Element diagramEl,
 							   final Map<String, NodeInterface> elementMap, final Map<String, NodeInterface> flowMap) throws FrameworkException {
 
-		final NodeInterface diagramNode = app.create(StructrTraits.BPMN_DI_DIAGRAM, (String) null);
+		final NodeInterface diagramNode = app.create(ProcessTraits.BPMN_DI_DIAGRAM, (String) null);
 		final Traits diagramTraits = diagramNode.getTraits();
 
 		diagramNode.setProperty(diagramTraits.key(BpmnDiDiagramTraitDefinition.DIAGRAM_ID_PROPERTY), diagramEl.getAttribute("id"));
@@ -429,7 +429,7 @@ public class BpmnImporter {
 	private void importDiShape(final App app, final NodeInterface diagramNode, final Element shapeEl,
 							   final Map<String, NodeInterface> elementMap) throws FrameworkException {
 
-		final NodeInterface shapeNode = app.create(StructrTraits.BPMN_DI_SHAPE, (String) null);
+		final NodeInterface shapeNode = app.create(ProcessTraits.BPMN_DI_SHAPE, (String) null);
 		final Traits traits = shapeNode.getTraits();
 
 		shapeNode.setProperty(traits.key(BpmnDiShapeTraitDefinition.SHAPE_ID_PROPERTY), shapeEl.getAttribute("id"));
@@ -492,7 +492,7 @@ public class BpmnImporter {
 	private void importDiEdge(final App app, final NodeInterface diagramNode, final Element edgeEl,
 							  final Map<String, NodeInterface> flowMap) throws FrameworkException {
 
-		final NodeInterface edgeNode = app.create(StructrTraits.BPMN_DI_EDGE, (String) null);
+		final NodeInterface edgeNode = app.create(ProcessTraits.BPMN_DI_EDGE, (String) null);
 		final Traits traits = edgeNode.getTraits();
 
 		edgeNode.setProperty(traits.key(BpmnDiEdgeTraitDefinition.EDGE_ID_PROPERTY), edgeEl.getAttribute("id"));
@@ -546,7 +546,7 @@ public class BpmnImporter {
 	private void importGlobalDefinition(final App app, final NodeInterface defNode,
 										final Element el, final String definitionType) throws FrameworkException {
 
-		final NodeInterface gdNode = app.create(StructrTraits.BPMN_GLOBAL_DEFINITION, (String) null);
+		final NodeInterface gdNode = app.create(ProcessTraits.BPMN_GLOBAL_DEFINITION, (String) null);
 		final Traits traits = gdNode.getTraits();
 
 		gdNode.setProperty(traits.key(BpmnGlobalDefinitionTraitDefinition.BPMN_ID_PROPERTY), el.getAttribute("id"));

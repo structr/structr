@@ -22,10 +22,9 @@ import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
-import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
-
+import org.structr.process.ProcessTraits;
 import java.util.Map;
 import java.util.Set;
 
@@ -50,7 +49,7 @@ public class BpmnSequenceFlowTraitDefinition extends AbstractNodeTraitDefinition
 	public static final String DI_EDGE_PROPERTY                     = "diEdge";
 
 	public BpmnSequenceFlowTraitDefinition() {
-		super(StructrTraits.BPMN_SEQUENCE_FLOW);
+		super(ProcessTraits.BPMN_SEQUENCE_FLOW);
 	}
 
 	@Override
@@ -64,11 +63,11 @@ public class BpmnSequenceFlowTraitDefinition extends AbstractNodeTraitDefinition
 		final Property<String> conditionExpressionType = new StringProperty(CONDITION_EXPRESSION_TYPE_PROPERTY);
 		final Property<Boolean> isDefault              = new BooleanProperty(IS_DEFAULT_PROPERTY);
 		final Property<String> bpmnAttributes          = new StringProperty(BPMN_ATTRIBUTES_PROPERTY);
-		final Property<NodeInterface> def              = new StartNode(traitsInstance, DEFINITION_PROPERTY, StructrTraits.BPMN_DEFINITIONS_HAS_SEQUENCE_FLOW);
-		final Property<NodeInterface> parentElement    = new StartNode(traitsInstance, PARENT_ELEMENT_PROPERTY, StructrTraits.BPMN_ELEMENT_HAS_CHILD_FLOW);
-		final Property<NodeInterface> sourceElement    = new EndNode(traitsInstance, SOURCE_ELEMENT_PROPERTY, StructrTraits.BPMN_SEQUENCE_FLOW_FROM);
-		final Property<NodeInterface> targetElement    = new EndNode(traitsInstance, TARGET_ELEMENT_PROPERTY, StructrTraits.BPMN_SEQUENCE_FLOW_TO);
-		final Property<NodeInterface> diEdge           = new StartNode(traitsInstance, DI_EDGE_PROPERTY, StructrTraits.BPMN_DI_EDGE_REFERENCES_FLOW);
+		final Property<NodeInterface> def              = new StartNode(traitsInstance, DEFINITION_PROPERTY, ProcessTraits.BPMN_DEFINITIONS_HAS_SEQUENCE_FLOW);
+		final Property<NodeInterface> parentElement    = new StartNode(traitsInstance, PARENT_ELEMENT_PROPERTY, ProcessTraits.BPMN_ELEMENT_HAS_CHILD_FLOW);
+		final Property<NodeInterface> sourceElement    = new EndNode(traitsInstance, SOURCE_ELEMENT_PROPERTY, ProcessTraits.BPMN_SEQUENCE_FLOW_FROM);
+		final Property<NodeInterface> targetElement    = new EndNode(traitsInstance, TARGET_ELEMENT_PROPERTY, ProcessTraits.BPMN_SEQUENCE_FLOW_TO);
+		final Property<NodeInterface> diEdge           = new StartNode(traitsInstance, DI_EDGE_PROPERTY, ProcessTraits.BPMN_DI_EDGE_REFERENCES_FLOW);
 
 		return newSet(bpmnId, bpmnName, sourceRefId, targetRefId, conditionExpression, conditionExpressionType, isDefault, bpmnAttributes, def, parentElement, sourceElement, targetElement, diEdge);
 	}

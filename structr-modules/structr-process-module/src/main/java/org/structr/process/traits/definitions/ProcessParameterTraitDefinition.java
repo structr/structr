@@ -22,9 +22,9 @@ import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
-import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.process.ProcessTraits;
 
 import java.util.Map;
 import java.util.Set;
@@ -57,7 +57,7 @@ public class ProcessParameterTraitDefinition extends AbstractNodeTraitDefinition
 	public static final String DIRECTION_BOTH   = "both";
 
 	public ProcessParameterTraitDefinition() {
-		super(StructrTraits.PROCESS_PARAMETER);
+		super(ProcessTraits.PROCESS_PARAMETER);
 	}
 
 	@Override
@@ -67,7 +67,7 @@ public class ProcessParameterTraitDefinition extends AbstractNodeTraitDefinition
 		final Property<String> parameterType   = new StringProperty(PARAMETER_TYPE_PROPERTY);
 		final Property<String> direction       = new StringProperty(DIRECTION_PROPERTY);
 		final Property<Boolean> required       = new BooleanProperty(REQUIRED_PROPERTY);
-		final Property<NodeInterface> element  = new StartNode(traitsInstance, ELEMENT_PROPERTY, StructrTraits.BPMN_ELEMENT_HAS_PARAMETER);
+		final Property<NodeInterface> element  = new StartNode(traitsInstance, ELEMENT_PROPERTY, ProcessTraits.BPMN_ELEMENT_HAS_PARAMETER);
 
 		return newSet(parameterName, parameterType, direction, required, element);
 	}

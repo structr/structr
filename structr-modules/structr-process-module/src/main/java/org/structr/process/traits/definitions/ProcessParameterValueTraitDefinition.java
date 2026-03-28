@@ -22,9 +22,9 @@ import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
-import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.process.ProcessTraits;
 
 import java.util.Date;
 import java.util.Map;
@@ -49,7 +49,7 @@ public class ProcessParameterValueTraitDefinition extends AbstractNodeTraitDefin
 	public static final String SET_BY_ELEMENT_PROPERTY      = "setByElement";
 
 	public ProcessParameterValueTraitDefinition() {
-		super(StructrTraits.PROCESS_PARAMETER_VALUE);
+		super(ProcessTraits.PROCESS_PARAMETER_VALUE);
 	}
 
 	@Override
@@ -57,9 +57,9 @@ public class ProcessParameterValueTraitDefinition extends AbstractNodeTraitDefin
 
 		final Property<String> stringValue         = new StringProperty(STRING_VALUE_PROPERTY).indexed();
 		final Property<Date> setAt                 = new DateProperty(SET_AT_PROPERTY);
-		final Property<NodeInterface> processInst  = new StartNode(traitsInstance, PROCESS_INSTANCE_PROPERTY, StructrTraits.PROCESS_INSTANCE_HAS_PARAMETER_VALUE);
-		final Property<NodeInterface> parameter    = new EndNode(traitsInstance, PARAMETER_PROPERTY, StructrTraits.PROCESS_PARAMETER_VALUE_OF_PARAMETER);
-		final Property<NodeInterface> setByElement = new EndNode(traitsInstance, SET_BY_ELEMENT_PROPERTY, StructrTraits.PROCESS_PARAMETER_VALUE_SET_BY_ELEMENT);
+		final Property<NodeInterface> processInst  = new StartNode(traitsInstance, PROCESS_INSTANCE_PROPERTY, ProcessTraits.PROCESS_INSTANCE_HAS_PARAMETER_VALUE);
+		final Property<NodeInterface> parameter    = new EndNode(traitsInstance, PARAMETER_PROPERTY, ProcessTraits.PROCESS_PARAMETER_VALUE_OF_PARAMETER);
+		final Property<NodeInterface> setByElement = new EndNode(traitsInstance, SET_BY_ELEMENT_PROPERTY, ProcessTraits.PROCESS_PARAMETER_VALUE_SET_BY_ELEMENT);
 
 		return newSet(stringValue, setAt, processInst, parameter, setByElement);
 	}

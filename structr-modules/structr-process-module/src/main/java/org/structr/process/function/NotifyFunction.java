@@ -26,6 +26,13 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.MailHelper;
+import org.structr.core.app.QueryGroup;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.MailTemplate;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.MailTemplateTraitDefinition;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
@@ -33,8 +40,11 @@ import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
+import org.structr.web.resource.ResetPasswordResource;
+import org.structr.web.resource.ResetPasswordResourceHandler;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -59,6 +69,22 @@ import java.util.Map;
 public class NotifyFunction extends Function<Object, Object> {
 
 	private static final Logger logger = LoggerFactory.getLogger(NotifyFunction.class.getName());
+
+	private enum TemplateKey {
+		PROCESS_NOTIFICATION_SENDER_NAME,
+		PROCESS_NOTIFICATION_SENDER_ADDRESS,
+		PROCESS_NOTIFICATION_SUBJECT,
+		PROCESS_NOTIFICATION_TEXT_BODY,
+		PROCESS_NOTIFICATION_HTML_BODY,
+		PROCESS_NOTIFICATION_BASE_URL,
+		PROCESS_NOTIFICATION_TARGET_PAGE,
+		PROCESS_NOTIFICATION_ERROR_PAGE,
+		PROCESS_NOTIFICATION_PAGE,
+		PROCESS_NOTIFICATION_CONFIRMATION_KEY_KEY,
+		PROCESS_NOTIFICATION_TARGET_PAGE_KEY,
+		PROCESS_NOTIFICATION_ERROR_PAGE_KEY
+	}
+
 
 	@Override
 	public String getName() {
@@ -109,8 +135,11 @@ public class NotifyFunction extends Function<Object, Object> {
 	 */
 	private Object sendEmailNotification(final String recipient, final String subject, final String message) throws FrameworkException {
 
-		final String fromAddress = Settings.SmtpSender.getValue("noreply@structr.com");
-		final String fromName   = Settings.SmtpName.getValue("Structr Process Engine");
+		final String smtpUserSetting      = Settings.SmtpUser.getValue();
+		final String defaultSenderAddress = (Settings.isValidEmail(smtpUserSetting)) ? smtpUserSetting : "structr-mail-daemon@localhost";
+
+		final String fromAddress = getTemplateText(TemplateKey.PROCESS_NOTIFICATION_SENDER_ADDRESS, defaultSenderAddress, Locale.getDefault().toString());
+		final String fromName    = getTemplateText(TemplateKey.PROCESS_NOTIFICATION_SENDER_NAME, "Structr Mail Daemon", Locale.getDefault().toString());
 
 		try {
 
@@ -132,6 +161,35 @@ public class NotifyFunction extends Function<Object, Object> {
 
 			throw new FrameworkException(422, "Failed to send email notification: " + eex.getMessage(), eex);
 		}
+	}
+
+	private String getTemplateText(final TemplateKey key, final String defaultValue, final String localeString) {
+
+		try {
+
+			final QueryGroup<NodeInterface> query = StructrApp.getInstance().nodeQuery(StructrTraits.MAIL_TEMPLATE).name(key.name());
+
+			if (localeString != null) {
+				query.key(Traits.of(StructrTraits.MAIL_TEMPLATE).key(MailTemplateTraitDefinition.LOCALE_PROPERTY), localeString);
+			}
+
+			NodeInterface template = query.getFirst();
+			if (template != null) {
+
+				final String text = template.as(MailTemplate.class).getText();
+				return text != null ? text : defaultValue;
+
+			} else {
+
+				return defaultValue;
+			}
+
+		} catch (FrameworkException ex) {
+
+			LoggerFactory.getLogger(ResetPasswordResource.class.getName()).warn("Could not get mail template for key " + key, ex);
+		}
+
+		return null;
 	}
 
 	// --- Documentation methods ---

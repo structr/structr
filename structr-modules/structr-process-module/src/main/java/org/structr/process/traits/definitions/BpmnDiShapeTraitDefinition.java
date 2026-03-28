@@ -22,9 +22,9 @@ import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
-import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.process.ProcessTraits;
 
 import java.util.Map;
 import java.util.Set;
@@ -52,7 +52,7 @@ public class BpmnDiShapeTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String REFERENCES_ELEMENT        = "referencesElement";
 
 	public BpmnDiShapeTraitDefinition() {
-		super(StructrTraits.BPMN_DI_SHAPE);
+		super(ProcessTraits.BPMN_DI_SHAPE);
 	}
 
 	@Override
@@ -70,8 +70,8 @@ public class BpmnDiShapeTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Boolean> isHorizontal    = new BooleanProperty(IS_HORIZONTAL);
 		final Property<Boolean> hasLabel        = new BooleanProperty(HAS_LABEL_PROPERTY);
 		final Property<String> diAttributes     = new StringProperty(DI_ATTRIBUTES_PROPERTY);
-		final Property<NodeInterface> diagram   = new StartNode(traitsInstance, DIAGRAM_PROPERTY, StructrTraits.BPMN_DI_DIAGRAM_HAS_SHAPE);
-		final Property<NodeInterface> refElem   = new EndNode(traitsInstance, REFERENCES_ELEMENT, StructrTraits.BPMN_DI_SHAPE_REFERENCES_ELEMENT);
+		final Property<NodeInterface> diagram   = new StartNode(traitsInstance, DIAGRAM_PROPERTY, ProcessTraits.BPMN_DI_DIAGRAM_HAS_SHAPE);
+		final Property<NodeInterface> refElem   = new EndNode(traitsInstance, REFERENCES_ELEMENT, ProcessTraits.BPMN_DI_SHAPE_REFERENCES_ELEMENT);
 
 		return newSet(shapeId, bpmnElementRef, boundsX, boundsY, boundsWidth, boundsHeight, labelBounds, hasLabel, isMarkerVisible, isExpanded, isHorizontal, diAttributes, diagram, refElem);
 	}

@@ -22,10 +22,9 @@ import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
-import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
-
+import org.structr.process.ProcessTraits;
 import java.util.Map;
 import java.util.Set;
 
@@ -68,7 +67,7 @@ public class BpmnElementTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String DI_SHAPE_PROPERTY            = "diShape";
 
 	public BpmnElementTraitDefinition() {
-		super(StructrTraits.BPMN_ELEMENT);
+		super(ProcessTraits.BPMN_ELEMENT);
 	}
 
 	@Override
@@ -93,14 +92,14 @@ public class BpmnElementTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> timerValue           = new StringProperty(TIMER_VALUE_PROPERTY);
 
 		// Relationships
-		final Property<NodeInterface> def                        = new StartNode(traitsInstance, DEFINITION_PROPERTY, StructrTraits.BPMN_DEFINITIONS_HAS_ELEMENT);
-		final Property<NodeInterface> parentElement              = new StartNode(traitsInstance, PARENT_ELEMENT_PROPERTY, StructrTraits.BPMN_ELEMENT_HAS_CHILD_ELEMENT);
-		final Property<Iterable<NodeInterface>> childElements    = new EndNodes(traitsInstance, CHILD_ELEMENTS_PROPERTY, StructrTraits.BPMN_ELEMENT_HAS_CHILD_ELEMENT);
-		final Property<Iterable<NodeInterface>> childFlows       = new EndNodes(traitsInstance, CHILD_FLOWS_PROPERTY, StructrTraits.BPMN_ELEMENT_HAS_CHILD_FLOW);
-		final Property<Iterable<NodeInterface>> outgoingFlows    = new StartNodes(traitsInstance, OUTGOING_FLOWS_PROPERTY, StructrTraits.BPMN_SEQUENCE_FLOW_FROM);
-		final Property<Iterable<NodeInterface>> incomingFlows    = new StartNodes(traitsInstance, INCOMING_FLOWS_PROPERTY, StructrTraits.BPMN_SEQUENCE_FLOW_TO);
-		final Property<Iterable<NodeInterface>> parameters       = new EndNodes(traitsInstance, PARAMETERS_PROPERTY, StructrTraits.BPMN_ELEMENT_HAS_PARAMETER);
-		final Property<NodeInterface> diShape                    = new StartNode(traitsInstance, DI_SHAPE_PROPERTY, StructrTraits.BPMN_DI_SHAPE_REFERENCES_ELEMENT);
+		final Property<NodeInterface> def                        = new StartNode(traitsInstance, DEFINITION_PROPERTY, ProcessTraits.BPMN_DEFINITIONS_HAS_ELEMENT);
+		final Property<NodeInterface> parentElement              = new StartNode(traitsInstance, PARENT_ELEMENT_PROPERTY, ProcessTraits.BPMN_ELEMENT_HAS_CHILD_ELEMENT);
+		final Property<Iterable<NodeInterface>> childElements    = new EndNodes(traitsInstance, CHILD_ELEMENTS_PROPERTY, ProcessTraits.BPMN_ELEMENT_HAS_CHILD_ELEMENT);
+		final Property<Iterable<NodeInterface>> childFlows       = new EndNodes(traitsInstance, CHILD_FLOWS_PROPERTY, ProcessTraits.BPMN_ELEMENT_HAS_CHILD_FLOW);
+		final Property<Iterable<NodeInterface>> outgoingFlows    = new StartNodes(traitsInstance, OUTGOING_FLOWS_PROPERTY, ProcessTraits.BPMN_SEQUENCE_FLOW_FROM);
+		final Property<Iterable<NodeInterface>> incomingFlows    = new StartNodes(traitsInstance, INCOMING_FLOWS_PROPERTY, ProcessTraits.BPMN_SEQUENCE_FLOW_TO);
+		final Property<Iterable<NodeInterface>> parameters       = new EndNodes(traitsInstance, PARAMETERS_PROPERTY, ProcessTraits.BPMN_ELEMENT_HAS_PARAMETER);
+		final Property<NodeInterface> diShape                    = new StartNode(traitsInstance, DI_SHAPE_PROPERTY, ProcessTraits.BPMN_DI_SHAPE_REFERENCES_ELEMENT);
 
 		return newSet(bpmnId, bpmnElementType, bpmnName, bpmnAttributes,
 			documentation, scriptContent,
