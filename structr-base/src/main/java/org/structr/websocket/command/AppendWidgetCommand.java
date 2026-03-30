@@ -29,6 +29,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.web.entity.Widget;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -97,7 +98,6 @@ public class AppendWidgetCommand extends AbstractCommand {
 
 					// remove temporary parent
 					StructrApp.getInstance(securityContext).delete(tmpParent);
-
 
 					TransactionCommand.registerNodeCallback(parentDOMNode, callback);
 

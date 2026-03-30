@@ -20,6 +20,8 @@ package org.structr.websocket.command;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.nodes.Element;
+import org.jsoup.nodes.Node;
+import org.jsoup.parser.Parser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.ResultStream;
@@ -37,10 +39,7 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Websocket command to load suggestions for a given HTML element.
@@ -79,7 +78,14 @@ public class GetSuggestionsCommand extends AbstractCommand {
 							break;
 
 						case "replace":
-							result.addAll(getWidgetsForReplace(securityContext, domNode));
+							// replace is like insert in the parent!
+							result.addAll(getWidgetsForInsert(securityContext, domNode.getParent()));
+							break;
+
+						case "wrap":
+							// wrap is also like insert in the parent, with an additional filter
+							result.addAll(getWidgetsForWrap(securityContext, domNode));
+							break;
 					}
 
 					webSocketData.setResult(result);
@@ -104,6 +110,11 @@ public class GetSuggestionsCommand extends AbstractCommand {
 
 	// ----- private methods -----
 	private List<Widget> getWidgetsForInsert(final SecurityContext securityContext, final DOMNode domNode) throws FrameworkException {
+
+		// domNode can be null if we use the parent
+		if (domNode == null) {
+			return List.of();
+		}
 
 		final List<Widget> result  = new LinkedList<>();
 		final List<String> classes = splitClasses(domNode.getCssClass());
@@ -171,46 +182,71 @@ public class GetSuggestionsCommand extends AbstractCommand {
 		return result;
 	}
 
-	private List<Widget> getWidgetsForReplace(final SecurityContext securityContext, final DOMNode domNode) throws FrameworkException {
+	private List<Widget> getWidgetsForWrap(final SecurityContext securityContext, final DOMNode nodeToWrap) throws FrameworkException {
 
-		// We can only replace widgets with a matching data-type
-		final App app             = StructrApp.getInstance(securityContext);
-		final List<Widget> result = new LinkedList<>();
-		final String nodeType     = getComponentType(domNode);
-		final Integer dimensions  = getDimensions(domNode);
+		// domNode and parent must be non-null
+		final DOMNode domNode = nodeToWrap.getParent();
 
-		try (final ResultStream<NodeInterface> resultStream = app.nodeQuery(StructrTraits.WIDGET).getResultStream()) {
-
-			for (final NodeInterface node : resultStream) {
-
-				final Widget widget            = node.as(Widget.class);
-				final String widgetType        = widget.getComponentType();
-				final Integer widgetDimensions = widget.getDimensions();
-
-				if (widgetType != null && nodeType != null && widgetType.equals(nodeType)) {
-
-					// if dimensions are set, they must match
-					if (dimensions != null && widgetDimensions != null && dimensions != widgetDimensions) {
-						continue;
-					}
-
-					// mismatched dimensions
-					if (dimensions != null && widgetDimensions == null) {
-						continue;
-					}
-
-					// mismatched dimensions
-					if (dimensions == null && widgetDimensions != null) {
-						continue;
-					}
-
-				}
-				result.add(widget);
-			}
-
-			// sort result by treePath + name
-			Collections.sort(result, Comparator.comparing(w -> w.getTreePath() + "_" + w.getName()));
+		if (domNode == null) {
+			return List.of();
 		}
+
+		final List<Widget> result        = new LinkedList<>();
+		final App app                    = StructrApp.getInstance(securityContext);
+		final Element parentMatchElement = createMatchElementForSelectors(nodeToWrap.getParent());
+
+		final Map<String, Widget> widgets = app.nodeQuery(StructrTraits.WIDGET).getAsList().stream().map(w -> w.as(Widget.class)).collect(java.util.stream.Collectors.toMap(Widget::getName, w -> w));
+
+		// find Widget that was used to create the element that we want to wrap
+		final Widget sourceWidget = widgets.get(nodeToWrap.getName());
+
+		if (sourceWidget != null) {
+
+			final String[] sourceWidgetSelectors = sourceWidget.getSelectors();
+			if (sourceWidgetSelectors != null) {
+
+				for (final NodeInterface node : widgets.values()) {
+
+					final Widget widgetCandidate   = node.as(Widget.class);
+					final String[] widgetSelectors = widgetCandidate.getSelectors();
+
+					if (widgetSelectors != null) {
+
+						for (final String parentSelector : widgetSelectors) {
+
+							// 1. step: check the widget selectors against the PARENT
+							if (parentMatchElement.select(parentSelector).first() != null) {
+
+								// parse widget to discover the slots inside
+								final List<Node> nodes = Parser.parseXmlFragment(widgetCandidate.getSource(), "http://localhost");
+								for (final Node candidateElement : flatten(nodes)) {
+
+									if (candidateElement instanceof Element element) {
+
+										// selectors expect the "type" attribute to contain the component type
+										element.attr("type", element.attr("data-structr-meta-component-type"));
+
+										// 2. step: check selectors of wrapped (existing) element against slots of new widget
+										for (final String sourceWidgetSelector : sourceWidgetSelectors) {
+
+											if (element.select(sourceWidgetSelector).first() != null) {
+
+												result.add(widgetCandidate);
+												break;
+											}
+										}
+									}
+								}
+
+							}
+						}
+					}
+				}
+			}
+		}
+
+		// sort result by treePath + name
+		Collections.sort(result, Comparator.comparing(w -> w.getTreePath() + "_" + w.getName()));
 
 		return result;
 	}
@@ -286,5 +322,63 @@ public class GetSuggestionsCommand extends AbstractCommand {
 		}
 
 		return node.getDimensions();
+	}
+
+	private List<Node> flatten(final List<Node> input) {
+
+		final List<Node> output = new LinkedList<>();
+
+		for (final Node node : input) {
+
+			output.addAll(flatten(node));
+		}
+
+		return output;
+	}
+
+	private List<Node> flatten(final Node input) {
+
+		final List<Node> output = new LinkedList<>();
+
+		output.add(input);
+
+		for (final Node child : input.childNodes()) {
+			output.addAll(flatten(child));
+		}
+
+		return output;
+	}
+
+	private Element createMatchElementForSelectors(final DOMNode domNode) {
+
+		final List<String> classes     = splitClasses(domNode.getCssClass());
+		final String name              = domNode.getName();
+		final String htmlId            = getHtmlId(domNode);
+		final String tag               = getTag(domNode);
+		final Element element          = new Element(tag);
+		final String dataTypeAttribute = getComponentType(domNode);
+
+		for (final String css : classes) {
+			element.addClass(css);
+		}
+
+		if (domNode.hasSharedComponent()) {
+
+			element.attr("type", domNode.getSharedComponent().getComponentType());
+
+		} else if (dataTypeAttribute != null) {
+
+			element.attr("type", dataTypeAttribute);
+		}
+
+		if (name != null) {
+			element.attr("name", name);
+		}
+
+		if (htmlId != null) {
+			element.attr("id", htmlId);
+		}
+
+		return element;
 	}
 }

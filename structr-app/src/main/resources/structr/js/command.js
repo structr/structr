@@ -613,6 +613,30 @@ let Command = {
         return StructrWS.sendObj(obj, callback);
     },
 	/**
+	 * Send an WRAP_IN_WIDGET command to the server.
+	 *
+	 * The server will create nodes from the given source and
+	 * wrap the node with the given id with the newly created
+	 * node, moving all its children to the new node.
+	 */
+	wrapInWidget: function(source, nodeId, pageId, widgetHostBaseUrl, attributes, config, processDeploymentInfo, callback) {
+		let obj = {
+			command: 'WRAP_IN_WIDGET',
+			pageId: pageId,
+			data: {
+				widgetHostBaseUrl: widgetHostBaseUrl,
+				nodeId: nodeId,
+				source: source,
+				processDeploymentInfo: (processDeploymentInfo || false),
+				config: config
+			}
+		};
+		if (attributes) {
+			$.extend(obj.data, attributes);
+		}
+		return StructrWS.sendObj(obj, callback);
+	},
+	/**
 	 * Send an REPLACE_WIDGET command to the server.
 	 *
 	 * The server will create nodes from the given source and

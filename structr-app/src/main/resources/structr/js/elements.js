@@ -452,6 +452,30 @@ let _Elements = {
                     }
                 });
 
+				// prepend suggested elements for wrap action
+				_Elements.contextMenu.getSuggestedWidgets(entity, 'wrap', (widgets) => {
+
+					if (widgets && widgets.length) {
+
+						let replaceHandler = (result) => { _Widgets.wrapElementInWidget(result, entity, entity.pageId); };
+						let wrapElements = [];
+
+						for (let widget of widgets) {
+							_Elements.contextMenu.insertInTree(wrapElements, widget, replaceHandler);
+						}
+
+
+						let wrapList = mainMenuList.querySelector('#wrap-element-in');
+						if (wrapList) {
+							_Elements.contextMenu.addContextMenuElements({ ul: wrapList, element: [ '|', { name: 'Suggested Widgets', elements: wrapElements } ], prepend: true, cssPositionClasses, entity });
+						}
+
+						console.log(wrapList);
+
+						_Elements.contextMenu.updateMenuGroupVisibility();
+					}
+				});
+
 				// prepend suggested elements for replacement
 				_Elements.contextMenu.getSuggestedWidgets(entity, 'replace', (widgets) => {
 
@@ -468,6 +492,8 @@ let _Elements = {
                         if (replaceList) {
                             _Elements.contextMenu.addContextMenuElements({ ul: replaceList, element: [ '|', { name: 'Suggested Widgets', elements: replaceElements } ], prepend: true, cssPositionClasses, entity });
                         }
+
+						console.log(replaceList);
 
 						_Elements.contextMenu.updateMenuGroupVisibility();
 					}

@@ -667,6 +667,28 @@ let _Widgets = {
             Command.appendWidget(widget.source, target.id, pageId, url, {}, config, processDeploymentInfo, callback);
         }
     },
+	wrapElementInWidget: (widget, target, pageId, callback) => {
+
+		let url = _Widgets.getWidgetServerUrl();
+		let processDeploymentInfo = false;
+		let config = {
+			componentType: widget.componentType,
+			dimensions: widget.dimensions,
+		};
+
+		if (widget.configuration) {
+
+			processDeploymentInfo = widget.configuration.processDeploymentInfo;
+
+			_Widgets.showWidgetConfigurationDialog(widget, (attrs) => {
+				Command.wrapInWidget(widget.source, target.id, pageId, url, attrs, config, processDeploymentInfo, callback);
+			});
+
+		} else {
+
+			Command.wrapInWidget(widget.source, target.id, pageId, url, {}, config, processDeploymentInfo, callback);
+		}
+	},
 	replaceElementWithWidget: (widget, target, pageId, callback) => {
 
 		let url = _Widgets.getWidgetServerUrl();

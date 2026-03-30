@@ -131,7 +131,6 @@ public interface Widget extends NodeInterface {
 		if (!errorBuffer.hasError()) {
 
 			final ImporterWithXMLParser importer = new ImporterWithXMLParser(securityContext, _source, baseUrl, null, false, false, false, false);
-			final JsonSingleInput configData     = ((JsonSingleInput) parameters.get("config"));
 
 			importer.setIsDeployment(true);
 			importer.setCommentHandler(new DeploymentCommentHandler());
@@ -140,11 +139,16 @@ public interface Widget extends NodeInterface {
 
 				importer.createChildNodes(parent, page, true);
 
+
+				TODO: add componentType ONLY IF we're importing a template?
+
+
+
+				/* disabled because we dont use componentType on the inserted element
 				// Copy attributes from Widget to created nodes. This assumes that the parent node
 				// is a temporary parent to separate new widget nodes from existing nodes.
+				final JsonSingleInput configData     = ((JsonSingleInput) parameters.get("config"));
 				if (configData != null) {
-
-					final JsonInput config = configData.getFirst();
 
 					for (final DOMNode newChild : parent.getChildren()) {
 
@@ -160,8 +164,11 @@ public interface Widget extends NodeInterface {
 							newChild.setComponentType((String) config.get("componentType"));
 							newChild.setDimensions(toInt(config.get("dimensions")));
 						}
+
+						newChild.setIsComponentRoot(true);
 					}
 				}
+				*/
 
 				final String tableChildElement = importer.getTableChildElement();
 				if (tableChildElement != null) {

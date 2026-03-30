@@ -20,6 +20,9 @@ package org.structr.core.traits.definitions;
 
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
+import org.structr.api.util.PagingIterable;
+import org.structr.api.util.ResultStream;
+import org.structr.common.ChannelInput;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
@@ -30,14 +33,17 @@ import org.structr.core.entity.Relation;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.core.traits.operations.datasource.DataSourceOperations;
 import org.structr.core.traits.operations.graphobject.Evaluate;
 import org.structr.core.traits.wrappers.DataSourceTraitWrapper;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
+import org.structr.web.datasource.FieldDefinition;
 import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.event.ActionMapping;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -51,6 +57,26 @@ public class DataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
 
 		return Map.of(
+
+			DataSourceOperations.class,
+			new DataSourceOperations<AbstractNode>() {
+
+				@Override
+				public ResultStream<AbstractNode> getValues(RenderContext renderContext, DataSource provider, ChannelInput input) throws FrameworkException {
+					return new PagingIterable<>("empty", List.of());
+				}
+
+				@Override
+				public Map<String, FieldDefinition> getFields(RenderContext renderContext, DataSource provider) throws FrameworkException {
+					return Map.of();
+				}
+
+				@Override
+				public String getDataType(RenderContext renderContext, DataSource provider) throws FrameworkException {
+					return null;
+				}
+			},
+
 			Evaluate.class,
 			new Evaluate() {
 

@@ -212,10 +212,6 @@ public class ImporterWithXMLParser {
 
 				parsedDocument = Jsoup.parse(code, "", Parser.xmlParser()).childNodes();
 
-				//parsedDocument = Jsoup.parse(code);
-				//parsedDocument = Parser.parseXmlFragment(code, "http://localhost:8082");
-
-
 			} else {
 
 				throw new FrameworkException(422, "Could not parse requested url for import. Response body is empty.");

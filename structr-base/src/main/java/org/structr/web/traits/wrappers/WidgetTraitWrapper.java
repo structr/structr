@@ -18,11 +18,18 @@
  */
 package org.structr.web.traits.wrappers;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Node;
+import org.jsoup.parser.Parser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.web.entity.Widget;
+import org.structr.web.importer.ImporterWithXMLParser;
 import org.structr.web.traits.definitions.WidgetTraitDefinition;
+
+import java.util.List;
 
 public class WidgetTraitWrapper extends AbstractNodeTraitWrapper implements Widget {
 

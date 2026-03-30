@@ -37,21 +37,17 @@
     .text-muted { @apply text-${theme.text.muted}; }
 
     /* components */
-    .panel { @apply rounded-xl bg-${theme.surface.background} border border-${theme.surface.border}; }
-    .panel-heading { @apply py-4 px-6 border-b border-${theme.surface.border} text-${theme.text.heading}; }
-    .panel-content { @apply px-8 pb-8; }
-    .panel.panel-content { @apply pt-8; }
+    .card { @apply rounded-xl bg-${theme.surface.background} border border-${theme.surface.border}; }
+    .card-heading { @apply py-4 px-6 border-b border-${theme.surface.border} text-${theme.text.heading}; }
+    .card-content { @apply px-8 pb-8; }
+    .card.card-content { @apply pt-8; }
     .list-container { @apply overflow-hidden rounded-xl bg-${theme.surface.background} border border-${theme.surface.border}; }
-    .panel.centered { @apply w-[50%] mx-auto; margin-top: 20vh; }
+    .card.centered { @apply w-[50%] mx-auto; margin-top: 20vh; }
     ul, ol { @apply divide-y divide-${theme.surface.border}; }
     ol { @apply list-decimal ml-8; }
     li { @apply px-6 py-4 flex justify-between; }
     li .button { @apply button-sm; }
     li.no-items:not(:first-child) { @apply hidden; }
-    .card { @apply flex flex-row p-8 rounded-xl bg-${theme.surface.background} border border-${theme.surface.border}; }
-    .card.card-left .icon { @apply mr-4 rounded-lg border border-${theme.surface.border} w-14 h-14 flex-shrink-0; }
-    .card.card-right .icon { @apply ml-4 rounded-lg border border-${theme.surface.border} w-14 h-14 flex-shrink-0; }
-    .card h4 { @apply text-lg font-bold m-0 p-0 flex-grow; }
     .gallery {
         @apply gap-16;
         img { @apply w-full rounded-t-sm shadow-lg; }
@@ -122,8 +118,8 @@
     main > * + * { @apply mt-8; }
     structr-component > * + * { @apply mt-8; }
     .group > * + * { @apply mt-8; }
-    .panel > * + * { @apply mt-8; }
-    .panel-content > * + * { @apply mt-8; }
+    .card > * + * { @apply mt-8; }
+    .card-content > * + * { @apply mt-8; }
     .accordion > details > * + * { @apply mt-4; }
     form > * + * { @apply mt-8; }
 }
