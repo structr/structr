@@ -131,6 +131,7 @@ public interface Widget extends NodeInterface {
 		if (!errorBuffer.hasError()) {
 
 			final ImporterWithXMLParser importer = new ImporterWithXMLParser(securityContext, _source, baseUrl, null, false, false, false, false);
+			final JsonSingleInput configData     = ((JsonSingleInput) parameters.get("config"));
 
 			importer.setIsDeployment(true);
 			importer.setCommentHandler(new DeploymentCommentHandler());
@@ -139,18 +140,16 @@ public interface Widget extends NodeInterface {
 
 				importer.createChildNodes(parent, page, true);
 
+				final JsonInput config = configData.getFirst();
 
-				TODO: add componentType ONLY IF we're importing a template?
+				// set componentRoot flag so we don't cross component boundaries
+				for (final DOMNode newChild : parent.getChildren()) {
+
+					if (config != null) {
+
+						// FIXME: this must not be done if the widget is expanded directly in a page!!
 
 
-
-				/* disabled because we dont use componentType on the inserted element
-				// Copy attributes from Widget to created nodes. This assumes that the parent node
-				// is a temporary parent to separate new widget nodes from existing nodes.
-				final JsonSingleInput configData     = ((JsonSingleInput) parameters.get("config"));
-				if (configData != null) {
-
-					for (final DOMNode newChild : parent.getChildren()) {
 
 						// hasSharedComponent is not set yet, because it is set in a lifecycle method
 						final DOMNode sharedComponent = newChild.getSharedComponent();
@@ -168,7 +167,6 @@ public interface Widget extends NodeInterface {
 						newChild.setIsComponentRoot(true);
 					}
 				}
-				*/
 
 				final String tableChildElement = importer.getTableChildElement();
 				if (tableChildElement != null) {

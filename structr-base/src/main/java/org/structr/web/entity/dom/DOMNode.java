@@ -117,6 +117,12 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	boolean isHidden();
 	boolean isSynced();
 	boolean isSharedComponent();
+
+	/**
+	 * Caution: this method returns the wrong result when used in the same transaction that created the node.
+	 * The value returned by this method is determined at the end of the creation transaction.
+	 * @return
+	 */
 	boolean hasSharedComponent();
 	boolean contentEquals(final DOMNode otherNode);
 	boolean isVoidElement();

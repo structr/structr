@@ -149,6 +149,8 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 				final String itemType = slotNode.getItemType();
 				if (itemType != null) {
 
+					System.out.println("Storing slot data for itemType " + itemType + " in " + nameOrTag(slotNode) + " (uuid: " + slotNode.getUuid() + ")");
+
 					idsOfOldNodesWithItemType.add(slotNode.getUuid());
 
 					final ItemData slotData = new ItemData(slotNode, itemType);

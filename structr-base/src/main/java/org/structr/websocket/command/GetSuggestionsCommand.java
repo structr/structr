@@ -132,7 +132,7 @@ public class GetSuggestionsCommand extends AbstractCommand {
 				element.addClass(css);
 			}
 
-			if (domNode.hasSharedComponent()) {
+			if (domNode.getSharedComponent() != null) {
 
 				element.attr("type", domNode.getSharedComponent().getComponentType());
 
@@ -306,7 +306,7 @@ public class GetSuggestionsCommand extends AbstractCommand {
 
 	private String getComponentType(final DOMNode node) {
 
-		if (node.hasSharedComponent()) {
+		if (node.getSharedComponent() != null) {
 
 			return node.getSharedComponent().getComponentType();
 		}
@@ -316,7 +316,7 @@ public class GetSuggestionsCommand extends AbstractCommand {
 
 	private Integer getDimensions(final DOMNode node) {
 
-		if (node.hasSharedComponent()) {
+		if (node.getSharedComponent() != null) {
 
 			return node.getSharedComponent().getDimensions();
 		}
@@ -362,7 +362,7 @@ public class GetSuggestionsCommand extends AbstractCommand {
 			element.addClass(css);
 		}
 
-		if (domNode.hasSharedComponent()) {
+		if (domNode.getSharedComponent() != null) {
 
 			element.attr("type", domNode.getSharedComponent().getComponentType());
 
