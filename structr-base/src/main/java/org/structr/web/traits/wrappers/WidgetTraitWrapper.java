@@ -63,6 +63,16 @@ public class WidgetTraitWrapper extends AbstractNodeTraitWrapper implements Widg
 	}
 
 	@Override
+	public String getSvgPath() {
+		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.SVG_ICON_PATH_PROPERTY));
+	}
+
+	@Override
+	public String getThumbnailPath() {
+		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.THUMBNAIL_PATH_PROPERTY));
+	}
+
+	@Override
 	public String getTreePath() {
 		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.TREE_PATH_PROPERTY));
 	}

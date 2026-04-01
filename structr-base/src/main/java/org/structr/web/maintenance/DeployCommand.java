@@ -1385,6 +1385,18 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		putData(config, GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        node.isVisibleToPublicUsers());
 		putData(config, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, node.isVisibleToAuthenticatedUsers());
 
+		// export component information for shared components only
+		if (node.is(StructrTraits.DOM_NODE) && node.as(DOMNode.class).getSharedComponent() == null) {
+
+			System.out.println("EXPORTING COMPONENT DATA FOR " + node.getName() + ", " + node.getUuid());
+
+			putData(config, DOMNodeTraitDefinition.COMPONENT_TYPE_PROPERTY, node.as(DOMNode.class).getComponentType());
+			putData(config, DOMNodeTraitDefinition.DIMENSIONS_PROPERTY, node.as(DOMNode.class).getDimensions());
+			putData(config, DOMNodeTraitDefinition.ITEM_TYPE_PROPERTY, node.as(DOMNode.class).getItemType());
+			putData(config, DOMNodeTraitDefinition.REPEATER_TYPE_PROPERTY, node.as(DOMNode.class).getRepeaterType());
+			putData(config, DOMNodeTraitDefinition.IS_COMPONENT_ROOT_PROPERTY, node.as(DOMNode.class).isComponentRoot());
+		}
+
 		if (node.is(StructrTraits.CONTENT)) {
 			putData(config, ContentTraitDefinition.CONTENT_TYPE_PROPERTY, node.as(Content.class).getContentType());
 		}
@@ -1726,6 +1738,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				putData(entry, WidgetTraitDefinition.SELECTORS_PROPERTY,                           widget.getSelectors());
 				putData(entry, WidgetTraitDefinition.COMPONENT_TYPE_PROPERTY,                      widget.getComponentType());
 				putData(entry, WidgetTraitDefinition.DIMENSIONS_PROPERTY,                          widget.getDimensions());
+				putData(entry, WidgetTraitDefinition.SVG_ICON_PATH_PROPERTY,                       widget.getSvgPath());
+				putData(entry, WidgetTraitDefinition.THUMBNAIL_PATH_PROPERTY,                      widget.getThumbnailPath());
+				putData(entry, WidgetTraitDefinition.IS_PAGE_TEMPLATE_PROPERTY,                    widget.isPageTemplate());
 			}
 
 			tx.success();

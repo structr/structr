@@ -97,6 +97,7 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 
 						out.append("\"");
 
+						node.renderWidgetConfiguration(out, editMode);
 						node.renderSharedComponentConfiguration(out, editMode);
 						node.renderCustomAttributes(out, securityContext, renderContext); // include custom attributes in templates as well!
 

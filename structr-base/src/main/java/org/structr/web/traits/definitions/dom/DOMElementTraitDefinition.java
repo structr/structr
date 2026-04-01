@@ -475,6 +475,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 						out.append("\"");
 
+						node.renderWidgetConfiguration(out, editMode);
 						node.renderSharedComponentConfiguration(out, editMode);
 
 						// include data-* attributes in template
@@ -531,8 +532,10 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 							out.append(" data-repeater-data-object-id=\"").append(repeaterDataObject.getUuid()).append("\"");
 						}
 
-						// include arbitrary data-* attributes
+						node.renderWidgetConfiguration(out, editMode);
 						node.renderSharedComponentConfiguration(out, editMode);
+
+						// include arbitrary data-* attributes
 						node.renderCustomAttributes(out, renderContext.getSecurityContext(), renderContext);
 
 						// new: managed attributes (like selected

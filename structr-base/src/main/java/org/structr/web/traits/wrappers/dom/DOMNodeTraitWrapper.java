@@ -1605,6 +1605,32 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	}
 
 	@Override
+	public void renderWidgetConfiguration(AsyncBuffer out, EditMode editMode) {
+
+		if (EditMode.DEPLOYMENT.equals(editMode)) {
+
+			// render new component attributes as data attributes
+			if (getComponentType() != null) {
+				out.append(" data-structr-meta-component-type=\"").append(getComponentType()).append("\"");
+			}
+
+			if (getRepeaterType() != null) {
+				out.append(" data-structr-meta-repeater-type=\"").append(getRepeaterType()).append("\"");
+			}
+
+			if (getItemType() != null) {
+				out.append(" data-structr-meta-item-type=\"").append(getItemType()).append("\"");
+			}
+
+			if (getDimensions() != null) {
+				out.append(" data-structr-meta-dimensions=\"").append(getDimensions().toString()).append("\"");
+			}
+
+			out.append(" data-structr-meta-root=\"").append(isComponentRoot() ? "true" : "false").append("\"");
+		}
+	}
+
+	@Override
 	public final List<RelationshipInterface> getChildRelationships() {
 		return treeGetChildRelationships();
 	}

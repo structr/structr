@@ -28,7 +28,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
-import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.Widget;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMNode;
@@ -37,16 +36,16 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.command.GetSuggestionsCommand;
 import org.structr.websocket.command.ReplaceWidgetCommand;
 import org.structr.websocket.message.WebSocketMessage;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.*;
 
-import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.fail;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
-public class WidgetsTest extends StructrUiTest {
+public class WidgetsTest extends DeploymentTestBase {
 
 	@Test
 	public void testSimpleReplacementRoundtrip() {
@@ -271,6 +270,37 @@ public class WidgetsTest extends StructrUiTest {
 				assertWidgetResult(message, true, "Accordion", "Card", "Card with heading", "Centered Card", "Create Form", "Edit Form", "Gallery", "List", "Table", "Grid", "Page Heading");
 			}
 
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testDeploymentRoundtrip() {
+
+		setupUserAndWidgets();
+
+		try (final Tx tx = app.tx()) {
+
+			assertEquals("No DOMNodes should exist prior to test.", 0, app.nodeQuery(StructrTraits.DOM_NODE).getAsList().size());
+
+			final Page page = Page.createNewPage(securityContext, "test01");
+
+			assertEquals("Only one DOMNode should exist after creating a page.", 1, app.nodeQuery(StructrTraits.DOM_NODE).getAsList().size());
+
+			// import a page template
+			expandWidget(page, page, "Default Page");
+
+			// insert some widgets
+			expandWidget(page, "Main Content", "Card");
+			expandWidget(page, "Main Content", "Grid");
+			expandWidget(page, "Main Content", "Accordion");
+			expandWidget(page, "Main Content", "Table");
+			expandWidget(page, "Main Content", "List");
 
 			tx.success();
 
@@ -279,6 +309,8 @@ public class WidgetsTest extends StructrUiTest {
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
+
+		compare(calculateHash(), true);
 	}
 
 	// ----- private methods -----
@@ -469,7 +501,7 @@ public class WidgetsTest extends StructrUiTest {
 
 		// verify that there are no more results
 		if (exact) {
-			assertFalse(iterator.hasNext());
+			Assert.assertFalse(iterator.hasNext());
 		}
 	}
 

@@ -74,7 +74,9 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 		DOMElementTraitDefinition.PATH_PROPERTY, "relationshipId", DOMElementTraitDefinition.TRIGGERED_ACTIONS_PROPERTY,
 		DOMNodeTraitDefinition.RELOADING_ACTIONS_PROPERTY, DOMNodeTraitDefinition.FAILURE_ACTIONS_PROPERTY,
 		DOMNodeTraitDefinition.SUCCESS_NOTIFICATION_ACTIONS_PROPERTY, DOMNodeTraitDefinition.FAILURE_NOTIFICATION_ACTIONS_PROPERTY,
-		DOMNodeTraitDefinition.COMPONENT_CONFIGURATION_PROPERTY
+		DOMNodeTraitDefinition.COMPONENT_CONFIGURATION_PROPERTY, DOMNodeTraitDefinition.COMPONENT_TYPE_PROPERTY,
+		DOMNodeTraitDefinition.ITEM_TYPE_PROPERTY, DOMNodeTraitDefinition.REPEATER_TYPE_PROPERTY,
+		DOMNodeTraitDefinition.DIMENSIONS_PROPERTY, DOMNodeTraitDefinition.IS_COMPONENT_ROOT_PROPERTY
 	);
 
 	static void collectNodesByPredicate(final SecurityContext securityContext, DOMNode startNode, List<DOMNode> results, Predicate<DOMNode> predicate, int depth, boolean stopOnFirstHit) throws FrameworkException {
@@ -236,6 +238,7 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	void getLinkableInstructions(final Set<String> instructions);
 	void getContentInstructions(final Set<String> instructions);
 	void renderSharedComponentConfiguration(final AsyncBuffer out, final RenderContext.EditMode editMode);
+	void renderWidgetConfiguration(final AsyncBuffer out, final RenderContext.EditMode editMode);
 
 	List<RelationshipInterface> getChildRelationships();
 

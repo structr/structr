@@ -146,7 +146,7 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 				final DOMNode slotNode = node.as(DOMNode.class);
 
 				// itemType (=> children)
-				final String itemType = slotNode.getItemType();
+				final String itemType = getItemType(slotNode);
 				if (itemType != null) {
 
 					System.out.println("Storing slot data for itemType " + itemType + " in " + nameOrTag(slotNode) + " (uuid: " + slotNode.getUuid() + ")");
@@ -162,7 +162,7 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 				}
 
 				// repeaterType (=> queries)
-				final String repeaterType = slotNode.getRepeaterType();
+				final String repeaterType = getRepeaterType(slotNode);
 				if (repeaterType != null) {
 
 					final RepeaterData slotData = new RepeaterData(slotNode, repeaterType);
@@ -181,8 +181,8 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 			if (node.is(StructrTraits.DOM_NODE)) {
 
 				final DOMNode slotNode          = node.as(DOMNode.class);
-				final String itemType           = slotNode.getItemType();
-				final String repeaterType       = slotNode.getRepeaterType();
+				final String itemType           = getItemType(slotNode);
+				final String repeaterType       = getRepeaterType(slotNode);
 				final ItemData itemData         = items.get(itemType);
 				final RepeaterData repeaterData = repeaters.get(repeaterType);
 
@@ -233,6 +233,26 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 
 			throw new FrameworkException(422, "Widgets are not compatible: cannot replace \"" + sourceName + "\" with \"" + targetName + "\" because " + StringUtils.join(buffer, ", ") + ".");
 		}
+	}
+
+	private static String getItemType(final DOMNode node) {
+
+		if (node.getSharedComponent() != null) {
+
+			return node.getSharedComponent().getItemType();
+		}
+
+		return node.getItemType();
+	}
+
+	private static String getRepeaterType(final DOMNode node) {
+
+		if (node.getSharedComponent() != null) {
+
+			return node.getSharedComponent().getRepeaterType();
+		}
+
+		return node.getRepeaterType();
 	}
 
 	private static List<DOMNode> collectChildren(final DOMNode node) throws FrameworkException {

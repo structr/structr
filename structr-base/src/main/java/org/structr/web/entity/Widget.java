@@ -47,6 +47,8 @@ public interface Widget extends NodeInterface {
 	String getShortDescription();
 	String getDescription();
 	boolean isWidget();
+	String getSvgPath();
+	String getThumbnailPath();
 	String getTreePath();
 	String getConfiguration();
 	boolean isPageTemplate();
@@ -54,6 +56,7 @@ public interface Widget extends NodeInterface {
 	String[] getSelectors();
 	String getComponentType();
 	Integer getDimensions();
+
 
 	/**
 	 * Parses HTML code from the "source" entry in the given parameters map into a set of DOMNodes that are created
@@ -140,32 +143,32 @@ public interface Widget extends NodeInterface {
 
 				importer.createChildNodes(parent, page, true);
 
-				final JsonInput config = configData.getFirst();
+				final JsonInput config = configData != null ? configData.getFirst() : null;
 
 				// set componentRoot flag so we don't cross component boundaries
 				for (final DOMNode newChild : parent.getChildren()) {
 
 					if (config != null) {
 
-						// FIXME: this must not be done if the widget is expanded directly in a page!!
-
-
-
 						// hasSharedComponent is not set yet, because it is set in a lifecycle method
 						final DOMNode sharedComponent = newChild.getSharedComponent();
 						if (sharedComponent != null) {
+
+							System.out.println("Setting componentType and dimensions on shared component " + sharedComponent.getName());
 
 							sharedComponent.setComponentType((String) config.get("componentType"));
 							sharedComponent.setDimensions(toInt(config.get("dimensions")));
 
 						} else {
 
+							System.out.println("Setting componentType and dimensions on " + newChild.getType() + " with name " + newChild.getName());
+
 							newChild.setComponentType((String) config.get("componentType"));
 							newChild.setDimensions(toInt(config.get("dimensions")));
 						}
-
-						newChild.setIsComponentRoot(true);
 					}
+
+					newChild.setIsComponentRoot(true);
 				}
 
 				final String tableChildElement = importer.getTableChildElement();
