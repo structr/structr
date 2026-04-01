@@ -23,6 +23,7 @@ import org.structr.core.datasources.Channel;
 import org.structr.core.graph.NodeInterface;
 import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.DataField;
+import org.structr.web.entity.ComponentConfiguration;
 
 import java.util.Map;
 
@@ -31,4 +32,6 @@ public interface DataAdapter extends NodeInterface {
 	Map<String, DataField> augmentFields(final RenderContext renderContext, final Channel channel) throws FrameworkException;
 	Map<String, DataAdapterField> getFields();
 	String getDataKey();
+
+	ComponentConfiguration getComponentConfiguration();
 }

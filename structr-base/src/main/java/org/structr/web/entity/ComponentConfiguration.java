@@ -33,6 +33,7 @@ public interface ComponentConfiguration extends NodeInterface {
 	DataAdapter getDataAdapter();
 	Channel<GraphObject> getDataSource() throws FrameworkException;
 
+	String getDataSourceName() throws FrameworkException;
 	String getSelectionChannel() throws FrameworkException;
 	Integer getColumns();
 	String getDisplayMode();

@@ -71,91 +71,95 @@ public class RenderEachFunction extends UiCommunityFunction {
 
 		if (caller instanceof NodeInterface n && n.is(StructrTraits.DOM_NODE)) {
 
-			final DOMNode domNode                    = n.as(DOMNode.class);
-			final DOMNode component                  = domNode.getClosestComponent();
-			final ComponentConfiguration config      = component.getComponentConfiguration();
-			final DataAdapter dataAdapter            = config.getDataAdapter();
-			final Channel<GraphObject> sourceChannel = config.getDataSource();
-			final String dataKey                     = dataAdapter.getDataKey();
-			final GraphObject previousValue          = renderContext.getDataNode(dataKey);
+			final DOMNode domNode   = n.as(DOMNode.class);
+			final DOMNode component = domNode.getClosestComponent();
 
-			if (sourceChannel != null) {
+			if (component != null) {
 
-				final String reloadBehaviour  = domNode.getReloadBehaviourForComponent();
-				final String selectionChannel = config.getSelectionChannel();
-				final ChannelInput input      = config.getChannelInput(renderContext, dataAdapter);
-				final AsyncBuffer buffer      = renderContext.getBuffer();
-				final String role             = domNode.getRoleForComponent();
-				final String resets           = getChannelDependencies(domNode, selectionChannel);
+				final ComponentConfiguration config = component.getComponentConfiguration();
+				final DataAdapter dataAdapter = config.getDataAdapter();
+				final Channel<GraphObject> sourceChannel = config.getDataSource();
+				final String dataKey = dataAdapter.getDataKey();
+				final GraphObject previousValue = renderContext.getDataNode(dataKey);
 
-				final ChannelResult<GraphObject> result = sourceChannel.getResult(renderContext, input);
+				if (sourceChannel != null) {
 
-				for (final GraphObject item : result.getData()) {
+					final String reloadBehaviour = domNode.getReloadBehaviourForComponent();
+					final String selectionChannel = config.getSelectionChannel();
+					final ChannelInput input = config.getChannelInput(renderContext, dataAdapter);
+					final AsyncBuffer buffer = renderContext.getBuffer();
+					final String role = domNode.getRoleForComponent();
+					final String resets = getChannelDependencies(domNode, selectionChannel);
 
-					renderContext.putDataObject(dataKey, item);
+					final ChannelResult<GraphObject> result = sourceChannel.getResult(renderContext, input);
 
-					if (outerWrapper != null) {
+					for (final GraphObject item : result.getData()) {
 
-						final Map<String, String> data = new LinkedHashMap<>();
-						final Set<String> additionalCss = new LinkedHashSet<>();
-						final String uuid = item.getUuid();
+						renderContext.putDataObject(dataKey, item);
 
-						if ("controller".equals(role)) {
+						if (outerWrapper != null) {
 
-							if (selectionChannel != null) {
+							final Map<String, String> data = new LinkedHashMap<>();
+							final Set<String> additionalCss = new LinkedHashSet<>();
+							final String uuid = item.getUuid();
 
-								switch (reloadBehaviour) {
+							if ("controller".equals(role)) {
 
-									case "partial":
-									case "others":
+								if (selectionChannel != null) {
 
-										// partial reload is triggered via pagination mechanism
-										data.put("data-structr-success-target", "[data-channel]");
-										break;
+									switch (reloadBehaviour) {
 
-									case "page":
+										case "partial":
+										case "others":
 
-										data.put("data-structr-success-target", "url:");
-										break;
+											// partial reload is triggered via pagination mechanism
+											data.put("data-structr-success-target", "[data-channel]");
+											break;
 
-									default:
-										data.put("data-structr-success-target", reloadBehaviour);
-										break;
+										case "page":
 
-								}
+											data.put("data-structr-success-target", "url:");
+											break;
 
-								data.put("data-structr-events", "click");
-								data.put("data-structr-target", selectionChannel);
-								data.put("data-" + selectionChannel, uuid);
+										default:
+											data.put("data-structr-success-target", reloadBehaviour);
+											break;
 
-								additionalCss.add("controller");
+									}
 
-								final String selectedId = renderContext.getChannelValue(selectionChannel);
-								if (selectedId != null && uuid != null && uuid.equals(selectedId)) {
+									data.put("data-structr-events", "click");
+									data.put("data-structr-target", selectionChannel);
+									data.put("data-" + selectionChannel, uuid);
 
-									additionalCss.add("selected");
-								}
+									additionalCss.add("controller");
 
-								if (StringUtils.isNotEmpty(resets)) {
+									final String selectedId = renderContext.getChannelValue(selectionChannel);
+									if (selectedId != null && uuid != null && uuid.equals(selectedId)) {
 
-									data.put("data-resets", resets);
+										additionalCss.add("selected");
+									}
+
+									if (StringUtils.isNotEmpty(resets)) {
+
+										data.put("data-resets", resets);
+									}
 								}
 							}
+
+							outerWrapper.formatStartTag(buffer, data, additionalCss);
 						}
 
-						outerWrapper.formatStartTag(buffer, data, additionalCss);
-					}
+						func.applyTemplates(renderContext, dataAdapter, domNode, innerWrapper, slot, true);
 
-					func.applyTemplates(renderContext, dataAdapter, domNode, innerWrapper, slot, true);
-
-					if (outerWrapper != null) {
-						outerWrapper.formatEndTag(buffer);
+						if (outerWrapper != null) {
+							outerWrapper.formatEndTag(buffer);
+						}
 					}
 				}
-			}
 
-			// restore previous value
-			renderContext.putDataObject(dataKey, previousValue);
+				// restore previous value
+				renderContext.putDataObject(dataKey, previousValue);
+			}
 
 		} else {
 

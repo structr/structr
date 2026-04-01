@@ -136,6 +136,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private final static String PARAMETER_MAPPING_FILE_PATH                           = "events/parameter-mapping.json";
 	private final static String SITES_FILE_PATH                                       = "sites.json";
 	private final static String PAGE_PATHS_FILE_PATH                                  = "page-paths.json";
+	private final static String DATA_ADAPTERS_FILE_PATH                               = "data-adapters.json";
+	private final static String COMPONENT_CONFIGURATIONS_FILE_PATH                    = "component-configurations.json";
 	private final static String SCHEMA_FOLDER_PATH                                    = "schema";
 	private final static String COMPONENTS_FOLDER_PATH                                = "components";
 	protected final static String FILES_FOLDER_PATH                                   = "files";
@@ -318,6 +320,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path mailTemplatesMetadataFile                = source.resolve(MAIL_TEMPLATES_FILE_PATH);
 			final Path widgetsMetadataFile                      = source.resolve(WIDGETS_FILE_PATH);
 			final Path localizationsMetadataFile                = source.resolve(LOCALIZATIONS_FILE_PATH);
+			final Path dataAdaptersFile                         = source.resolve(DATA_ADAPTERS_FILE_PATH);
+			final Path componentConfigurationsFile              = source.resolve(COMPONENT_CONFIGURATIONS_FILE_PATH);
 			final Path applicationConfigurationDataMetadataFile = source.resolve(APPLICATION_CONFIGURATION_DATA_FILE_PATH);
 			final Path filesMetadataFile                        = source.resolve(FILES_FILE_PATH);
 			final Path pagesMetadataFile                        = source.resolve(PAGES_FILE_PATH);
@@ -338,6 +342,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				!Files.exists(mailTemplatesMetadataFile) &&
 				!Files.exists(widgetsMetadataFile) &&
 				!Files.exists(localizationsMetadataFile) &&
+				!Files.exists(dataAdaptersFile) &&
 				!Files.exists(applicationConfigurationDataMetadataFile) &&
 				!Files.exists(filesMetadataFile) &&
 				!Files.exists(pagesMetadataFile) &&
@@ -390,6 +395,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			importParameterMapping(parameterMappingMetadataFile);
 			importActionMapping(actionMappingMetadataFile);
 			importEmbeddedApplicationData(source);
+			importComponentConfigurations(componentConfigurationsFile);
+			importDataAdapters(dataAdaptersFile);
 
 			// import modules (including flow) after everything else so the DOMNode -> Flow-Relationship can be imported
 			importModuleData(source);
@@ -586,6 +593,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path parameterMappingConf                = target.resolve(PARAMETER_MAPPING_FILE_PATH);
 			final Path deploymentConfFile                  = target.resolve(DEPLOYMENT_CONF_FILE_PATH);
 			final Path applicationConfigurationData        = target.resolve(APPLICATION_CONFIGURATION_DATA_FILE_PATH);
+			final Path componentConfigurationsConf         = target.resolve(COMPONENT_CONFIGURATIONS_FILE_PATH);
+			final Path dataAdaptersConf                    = target.resolve(DATA_ADAPTERS_FILE_PATH);
 
 			final Path preDeployConf            = target.resolve(PRE_DEPLOY_CONF_FILE_PATH);
 			final Path postDeployConf           = target.resolve(POST_DEPLOY_CONF_FILE_PATH);
@@ -664,6 +673,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Widgets");
 			exportWidgets(widgetsConf);
+
+			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Component Configurations");
+			exportComponentConfigurations(componentConfigurationsConf);
+
+			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Data Adapters");
+			exportDataAdapters(dataAdaptersConf);
 
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Application Configuration Data");
 			exportApplicationConfigurationData(applicationConfigurationData);
@@ -1388,8 +1403,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		// export component information for shared components only
 		if (node.is(StructrTraits.DOM_NODE) && node.as(DOMNode.class).getSharedComponent() == null) {
 
-			System.out.println("EXPORTING COMPONENT DATA FOR " + node.getName() + ", " + node.getUuid());
-
 			putData(config, DOMNodeTraitDefinition.COMPONENT_TYPE_PROPERTY, node.as(DOMNode.class).getComponentType());
 			putData(config, DOMNodeTraitDefinition.DIMENSIONS_PROPERTY, node.as(DOMNode.class).getDimensions());
 			putData(config, DOMNodeTraitDefinition.ITEM_TYPE_PROPERTY, node.as(DOMNode.class).getItemType());
@@ -1741,6 +1754,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				putData(entry, WidgetTraitDefinition.SVG_ICON_PATH_PROPERTY,                       widget.getSvgPath());
 				putData(entry, WidgetTraitDefinition.THUMBNAIL_PATH_PROPERTY,                      widget.getThumbnailPath());
 				putData(entry, WidgetTraitDefinition.IS_PAGE_TEMPLATE_PROPERTY,                    widget.isPageTemplate());
+				putData(entry, WidgetTraitDefinition.IS_RENDER_TEMPLATE_PROPERTY,                  widget.isRenderTemplate());
 			}
 
 			tx.success();
@@ -1836,6 +1850,101 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				return (name != null ? name.toString() : "null").concat((domain != null ? domain.toString() : "00-nulldomain")).concat((locale != null ? locale.toString() : "null")).concat(id.toString());
 			}
 		});
+	}
+
+	private void exportComponentConfigurations(final Path target) throws FrameworkException {
+
+		logger.info("Exporting component configurations");
+
+		final Traits traits                           = Traits.of(StructrTraits.COMPONENT_CONFIGURATION);
+		final List<Map<String, Object>> dataAdapters = new LinkedList<>();
+		final App app                                 = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.COMPONENT_CONFIGURATION).sort(traits.key(GraphObjectTraitDefinition.ID_PROPERTY)).getAsList()) {
+
+				final Map<String, Object> entry     = new TreeMap<>(new IdFirstComparator());
+				final ComponentConfiguration config = node.as(ComponentConfiguration.class);
+
+				dataAdapters.add(entry);
+
+				entry.put(GraphObjectTraitDefinition.ID_PROPERTY,                                config.getUuid());
+				entry.put(NodeInterfaceTraitDefinition.NAME_PROPERTY,                            config.getName());
+				entry.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY,    config.isVisibleToAuthenticatedUsers());
+				entry.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,           config.isVisibleToPublicUsers());
+				entry.put(ComponentConfigurationTraitDefinition.DOM_NODE_PROPERTY,               config.getComponent().getUuid());
+				entry.put(ComponentConfigurationTraitDefinition.DATA_ADAPTER_PROPERTY,           config.getDataAdapter().getUuid());
+				entry.put(ComponentConfigurationTraitDefinition.DISPLAY_MODE_PROPERTY,           config.getDisplayMode());
+				entry.put(ComponentConfigurationTraitDefinition.SAVE_MODE_PROPERTY,              config.getSaveMode());
+				entry.put(ComponentConfigurationTraitDefinition.SHOW_LABELS_PROPERTY,            config.showLabels());
+				entry.put(ComponentConfigurationTraitDefinition.FIELD_SET_PROPERTY,              config.getFieldSet());
+				entry.put(ComponentConfigurationTraitDefinition.ROLE_PROPERTY,                   config.getRole());
+				entry.put(ComponentConfigurationTraitDefinition.RELOAD_BEHAVIOUR_PROPERTY,       config.getReloadBehaviour());
+				entry.put(ComponentConfigurationTraitDefinition.COLUMNS_PROPERTY,                config.getColumns());
+				entry.put(ComponentConfigurationTraitDefinition.DATA_SOURCE_PROPERTY,            config.getDataSourceName());
+				entry.put(ComponentConfigurationTraitDefinition.SELECTION_CHANNEL_PROPERTY,      config.getSelectionChannel());
+				entry.put(ComponentConfigurationTraitDefinition.TRANSFORM_PROPERTY,              config.getTransform());
+				entry.put(ComponentConfigurationTraitDefinition.PAGE_SIZE_PROPERTY,              config.getPageSize());
+				entry.put(ComponentConfigurationTraitDefinition.PAGINATION_WINDOW_SIZE_PROPERTY, config.getPaginationWindowSize());
+			}
+
+			tx.success();
+		}
+
+		writeJsonToFile(target, dataAdapters);
+	}
+
+	private void exportDataAdapters(final Path target) throws FrameworkException {
+
+		logger.info("Exporting data adapters");
+
+		final Traits traits                           = Traits.of(StructrTraits.DATA_ADAPTER);
+		final List<Map<String, Object>> dataAdapters = new LinkedList<>();
+		final App app                                 = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.DATA_ADAPTER).sort(traits.key(GraphObjectTraitDefinition.ID_PROPERTY)).getAsList()) {
+
+				final Map<String, Object> entry  = new TreeMap<>(new IdFirstComparator());
+				final List<Object> fields        = new LinkedList<>();
+				final DataAdapter dataAdapter    = node.as(DataAdapter.class);
+
+				dataAdapters.add(entry);
+
+				entry.put(GraphObjectTraitDefinition.ID_PROPERTY,                             dataAdapter.getUuid());
+				entry.put(NodeInterfaceTraitDefinition.NAME_PROPERTY,                         dataAdapter.getName());
+				entry.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, dataAdapter.isVisibleToAuthenticatedUsers());
+				entry.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        dataAdapter.isVisibleToPublicUsers());
+				entry.put(DataAdapterTraitDefinition.CONFIGURATION_PROPERTY,                  dataAdapter.getComponentConfiguration().getUuid());
+				entry.put(DataAdapterTraitDefinition.FIELDS_PROPERTY,                         fields);
+
+				for (final DataAdapterField field : dataAdapter.getFields().values()) {
+
+					final Map<String, Object> fieldMap = new TreeMap<>();
+
+					fields.add(fieldMap);
+
+					fieldMap.put(GraphObjectTraitDefinition.ID_PROPERTY,                   field.getUuid());
+					fieldMap.put(NodeInterfaceTraitDefinition.NAME_PROPERTY,               field.getName());
+					fieldMap.put(DataAdapterFieldTraitDefinition.RENDER_TEMPLATE_PROPERTY, field.getRenderTemplate());
+					fieldMap.put(DataAdapterFieldTraitDefinition.EDIT_TEMPLATE_PROPERTY,   field.getEditTemplate());
+					fieldMap.put(DataAdapterFieldTraitDefinition.LABEL_PROPERTY,           field.getLabel());
+					fieldMap.put(DataAdapterFieldTraitDefinition.CONFIG_PROPERTY,          field.getConfig());
+					fieldMap.put(DataAdapterFieldTraitDefinition.VALUE_PROPERTY,           field.getValue());
+					fieldMap.put(DataAdapterFieldTraitDefinition.DATA_TYPE_PROPERTY,       field.getDataType());
+					fieldMap.put(DataAdapterFieldTraitDefinition.SORT_KEY_PROPERTY,        field.getSortKey());
+					fieldMap.put(DataAdapterFieldTraitDefinition.IS_SEARCHABLE_PROPERTY,   field.isSearchable());
+					fieldMap.put(DataAdapterFieldTraitDefinition.ROWS_PROPERTY,            field.getRows());
+					fieldMap.put(DataAdapterFieldTraitDefinition.COLUMNS_PROPERTY,         field.getColumns());
+				}
+			}
+
+			tx.success();
+		}
+
+		writeJsonToFile(target, dataAdapters);
 	}
 
 	private boolean shouldExportActionMapping(final ActionMapping actionMapping) {
@@ -2305,6 +2414,34 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing localizations");
 
 			importListData(StructrTraits.LOCALIZATION, readConfigList(localizationsMetadataFile), additionalData);
+		}
+	}
+
+	private void importComponentConfigurations(final Path componentConfigurationsPath) throws FrameworkException {
+
+		if (Files.exists(componentConfigurationsPath)) {
+
+			final Traits traits              = Traits.of(StructrTraits.COMPONENT_CONFIGURATION);
+			final PropertyMap additionalData = new PropertyMap();
+
+			logger.info("Reading {}", componentConfigurationsPath);
+			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing component configurations");
+
+			importListData(StructrTraits.COMPONENT_CONFIGURATION, readConfigList(componentConfigurationsPath), additionalData);
+		}
+	}
+
+	private void importDataAdapters(final Path dataAdaptersFile) throws FrameworkException {
+
+		if (Files.exists(dataAdaptersFile)) {
+
+			final Traits traits              = Traits.of(StructrTraits.DATA_ADAPTER);
+			final PropertyMap additionalData = new PropertyMap();
+
+			logger.info("Reading {}", dataAdaptersFile);
+			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing data adapters");
+
+			importListData(StructrTraits.DATA_ADAPTER, readConfigList(dataAdaptersFile), additionalData);
 		}
 	}
 

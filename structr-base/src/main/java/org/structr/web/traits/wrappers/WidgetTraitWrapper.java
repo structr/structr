@@ -93,6 +93,11 @@ public class WidgetTraitWrapper extends AbstractNodeTraitWrapper implements Widg
 	}
 
 	@Override
+	public boolean isRenderTemplate() {
+		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.IS_RENDER_TEMPLATE_PROPERTY));
+	}
+
+	@Override
 	public String[] getSelectors() {
 		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.SELECTORS_PROPERTY));
 	}

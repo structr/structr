@@ -53,6 +53,7 @@ public interface Widget extends NodeInterface {
 	String getConfiguration();
 	boolean isPageTemplate();
 	boolean isExclusiveInParent();
+	boolean isRenderTemplate();
 	String[] getSelectors();
 	String getComponentType();
 	Integer getDimensions();
@@ -145,43 +146,41 @@ public interface Widget extends NodeInterface {
 
 				final JsonInput config = configData != null ? configData.getFirst() : null;
 
-				// set componentRoot flag so we don't cross component boundaries
-				for (final DOMNode newChild : parent.getChildren()) {
+				if (parent != null) {
+					// set componentRoot flag so we don't cross component boundaries
+					for (final DOMNode newChild : parent.getChildren()) {
 
-					if (config != null) {
+						if (config != null) {
 
-						// hasSharedComponent is not set yet, because it is set in a lifecycle method
-						final DOMNode sharedComponent = newChild.getSharedComponent();
-						if (sharedComponent != null) {
+							// hasSharedComponent is not set yet, because it is set in a lifecycle method
+							final DOMNode sharedComponent = newChild.getSharedComponent();
+							if (sharedComponent != null) {
 
-							System.out.println("Setting componentType and dimensions on shared component " + sharedComponent.getName());
+								sharedComponent.setComponentType((String) config.get("componentType"));
+								sharedComponent.setDimensions(toInt(config.get("dimensions")));
 
-							sharedComponent.setComponentType((String) config.get("componentType"));
-							sharedComponent.setDimensions(toInt(config.get("dimensions")));
+							} else {
 
-						} else {
-
-							System.out.println("Setting componentType and dimensions on " + newChild.getType() + " with name " + newChild.getName());
-
-							newChild.setComponentType((String) config.get("componentType"));
-							newChild.setDimensions(toInt(config.get("dimensions")));
+								newChild.setComponentType((String) config.get("componentType"));
+								newChild.setDimensions(toInt(config.get("dimensions")));
+							}
 						}
+
+						newChild.setIsComponentRoot(true);
 					}
 
-					newChild.setIsComponentRoot(true);
-				}
+					final String tableChildElement = importer.getTableChildElement();
+					if (tableChildElement != null) {
 
-				final String tableChildElement = importer.getTableChildElement();
-				if (tableChildElement != null) {
+						for (final NodeInterface child : parent.getAllChildNodes()) {
 
-					for (final NodeInterface child : parent.getAllChildNodes()) {
+							if (child.getType().toLowerCase().equals(tableChildElement)) {
 
-						if (child.getType().toLowerCase().equals(tableChildElement)) {
+								parent.appendChild(child.as(DOMNode.class));
 
-							parent.appendChild(child.as(DOMNode.class));
-
-						} else {
-							StructrApp.getInstance().delete(child);
+							} else {
+								StructrApp.getInstance().delete(child);
+							}
 						}
 					}
 				}

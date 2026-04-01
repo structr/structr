@@ -28,6 +28,7 @@ import org.structr.core.traits.definitions.DataAdapterTraitDefinition;
 import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.DataField;
 import org.structr.web.datasource.FieldDefinition;
+import org.structr.web.entity.ComponentConfiguration;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -91,5 +92,17 @@ public class DataAdapterTraitWrapper extends AbstractNodeTraitWrapper implements
 	@Override
 	public String getDataKey() {
 		return wrappedObject.getProperty(traits.key(DataAdapterTraitDefinition.DATA_KEY_PROPERTY));
+	}
+
+	@Override
+	public ComponentConfiguration getComponentConfiguration() {
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key(DataAdapterTraitDefinition.CONFIGURATION_PROPERTY));
+		if (node != null) {
+
+			return node.as(ComponentConfiguration.class);
+		}
+
+		return null;
 	}
 }

@@ -76,7 +76,7 @@ public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper
 
 		if (dataSource == null) {
 
-			final String dataSourceName = wrappedObject.getProperty(traits.key(ComponentConfigurationTraitDefinition.DATA_SOURCE_PROPERTY));
+			final String dataSourceName = getDataSourceName();
 			if (dataSourceName != null) {
 
 				if (dataSourceName.contains(":")) {
@@ -110,6 +110,11 @@ public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper
 		}
 
 		return dataSource;
+	}
+
+	@Override
+	public String getDataSourceName() {
+		return wrappedObject.getProperty(traits.key(ComponentConfigurationTraitDefinition.DATA_SOURCE_PROPERTY));
 	}
 
 	@Override

@@ -70,7 +70,7 @@ public class ThemeFunction extends UiCommunityFunction {
 				renderContext.getBuffer().append(Scripting.replaceVariables(ctx, null, styleSource));
 
 			} catch (IOException ioex) {
-				throw new FrameworkException(422, ioex.getMessage());
+				logger.warn("Unable to read theme file {}: {}", name, ioex.getMessage());
 			}
 		}
 

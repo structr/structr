@@ -1351,8 +1351,8 @@ body[style*=zoom] .non-block-ui-blocker-content {
 }
 
 #dialogBox.insert-widget-dialog {
-    width: calc(40vw);
-    height: calc(25vh);
+    width: calc(60vw);
+    height: calc(40vh);
 }
 
 #dialogBox.maximized.insert-widget-dialog {

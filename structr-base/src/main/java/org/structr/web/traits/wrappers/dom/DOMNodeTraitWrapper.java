@@ -866,7 +866,8 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	@Override
 	public final boolean displayForLocale(final RenderContext renderContext) {
 
-		final String localeString = renderContext.getLocale().toString();
+		final Locale locale       = renderContext.getLocale();
+		final String localeString = locale != null ? locale.toString() : null;
 		final String show         = getShowForLocales();
 		final String hide         = getHideForLocales();
 

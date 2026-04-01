@@ -38,6 +38,7 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ChannelDataSource<T extends GraphObject> implements Channel<T> {
@@ -88,6 +89,8 @@ public class ChannelDataSource<T extends GraphObject> implements Channel<T> {
 							}
 						}
 					}
+
+					return (ChannelResult<T>) ChannelResult.fromObject(node);
 				}
 			}
 		}

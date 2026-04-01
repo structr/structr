@@ -165,7 +165,27 @@ export async function resizePagesTree(page: Page, offset: number, wait = 100) {
 
 		console.log('box was null!');
 	}
+}
 
+export async function resizeRightFlyout(page: Page, offset: number, wait = 100) {
+
+	let resizer = page.locator('.column-resizer-right');
+
+	await resizer.isVisible();
+
+	let box = await resizer.boundingBox();
+	if (box && box.x) {
+
+		await resizer.hover();
+		await page.waitForTimeout(wait);
+		await page.mouse.down();
+		await page.waitForTimeout(wait);
+		await page.mouse.move(box.x + offset, 0, {steps: 20});
+		await page.waitForTimeout(100);
+		await page.waitForTimeout(wait);
+		await page.mouse.up();
+		await page.waitForTimeout(wait);
+	}
 }
 
 export async function insertInputWithLabel(page: Page, container: Container, name: string, inputOrSelect: string, wait = 100) {
