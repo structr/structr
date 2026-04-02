@@ -65,8 +65,8 @@ test('schema', async ({page}) => {
     await page.getByRole('button', {name: 'Add direct property', exact: true}).click();
     await page.getByPlaceholder('JSON name').click();
     await page.getByPlaceholder('JSON name').fill('projectId');
-    await page.locator('.unique').nth(0).check();
     await page.locator('.property-type').selectOption({value: 'String'});
+    await page.locator('.unique').nth(0).check();
     await page.waitForTimeout(1000);
     await page.screenshot({path: 'screenshots/schema_property-added_projectId.png'});
     await page.getByRole('button', {name: 'Save All', exact: true}).click();
@@ -92,8 +92,8 @@ test('schema', async ({page}) => {
     await page.getByRole('button', {name: 'Add direct property', exact: true}).click();
     await page.getByPlaceholder('JSON name').click();
     await page.getByPlaceholder('JSON name').fill('milestoneId');
-    await page.locator('.unique').nth(0).check();
     await page.locator('.property-type').selectOption({value: 'String'});
+    await page.locator('.unique').nth(0).check();
     await page.waitForTimeout(500);
     await page.getByRole('button', {name: 'Add direct property', exact: true}).click();
     await page.getByPlaceholder('JSON name').nth(1).click();
@@ -156,8 +156,8 @@ test('schema', async ({page}) => {
     await page.getByRole('button', {name: 'Add direct property', exact: true}).click();
     await page.getByPlaceholder('JSON name').click();
     await page.getByPlaceholder('JSON name').fill('taskId');
-    await page.locator('.unique').nth(0).check();
     await page.locator('.property-type').selectOption({value: 'String'});
+    await page.locator('.unique').nth(0).check();
     await page.waitForTimeout(500);
     await page.getByRole('button', {name: 'Add direct property', exact: true}).click();
     await page.getByPlaceholder('JSON name').nth(1).click();
