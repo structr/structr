@@ -347,7 +347,7 @@ The context menu provides quick access to common operations on page elements. Op
 The context menu varies depending on the element type. For page elements, it only allows inserting an `<html>` element or a template element, cloning the page, expanding or collapsing the tree, and deleting the page. For content elements, the insert options are limited to Insert Before and Insert After, since content elements cannot have children. The following sections describe the full context menu available for HTML and template elements.
 
 ### Suggested Widgets (when available)
-This menu item appears when a local or remote Widget exists whose `selectors` property matches the current element. Selectors are written like CSS selectors, for example `table` to match table elements or `div.container` to match div elements with the `container` class. This provides quick access to Widgets that are designed to work with the selected element type, allowing you to insert them directly as children.
+This menu item appears when a local Widget exists whose `selectors` property matches the current element. Selectors are standard CSS selectors, so you can match against any HTML attribute: `table` matches table elements, `div.container` matches div elements with the `container` class, and `#sidebar` matches the element with that id. In addition, Structr makes the `componentType` attribute available as `type` for selector matching. Widget libraries use this to enforce nesting rules, for example `[type='container']` makes a Widget appear inside any element whose componentType is `container`. See the [Widgets & Components](/structr/docs/ontology/Building%20Applications/Widgets%20&%20Components) chapter for details on the component type system.
 
 ### Suggested Elements (when available)
 This menu item appears for elements that have commonly used child elements. For example, when you open the context menu on a `<table>` element, Structr suggests `<thead>`, `<tbody>`, `<tr>`, and other table-related elements. Similarly, a `<ul>` element suggests `<li>`, a `<select>` suggests `<option>`, and so on. This speeds up page building by offering the most relevant elements for your current context.
@@ -445,9 +445,9 @@ Structr determines the current locale in the following order of priority:
 
 
 ## Widgets and Shared Components
-Widgets are reusable building blocks that you can drag into your pages from the Widgets flyout. They range from simple HTML snippets to complete, configurable page templates. Shared Components are referenced elements that stay in sync across all pages where they are used - editing a Shared Component updates every page that uses it. Widgets can define Shared Components in their source code, which forms the basis for building widget libraries with enforced nesting rules using the component type system.
+Widgets are reusable building blocks that you can insert into your pages from the context menu or the Widgets flyout. They range from simple HTML snippets to complete, configurable page templates. Shared Components are referenced elements that stay in sync across all pages where they are used. Widgets can define Shared Components in their source code, which forms the basis for building widget libraries with enforced nesting rules using the component type system. Some Widgets produce data-driven components that render their content from a DataSource at runtime, with configurable fields, pagination, and filtering.
 
-For details on creating, configuring, and organizing Widgets and Shared Components, including the component type system and how to build a widget library, see the [Widgets & Components](/structr/docs/ontology/Building%20Applications/Widgets%20&%20Components) chapter.
+For details on creating, configuring, and organizing Widgets and Shared Components, including the component type system, data-driven components, and how to build a widget library, see the [Widgets & Components](/structr/docs/ontology/Building%20Applications/Widgets%20&%20Components) chapter.
 
 ## Additional Tools
 The Pages area includes several additional tools for managing and searching page elements.

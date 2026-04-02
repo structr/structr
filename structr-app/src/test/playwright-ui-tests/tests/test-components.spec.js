@@ -150,20 +150,31 @@ test('pages', async ({page}) => {
     let editForm = pageContainer.getElement('Edit Form');
     editForm.getTextNode().click();
 
+    await page.waitForTimeout(5000);
+
     await page.locator('label').filter({ hasText: 'description' }).click();
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(5000);
     await page.locator('label').filter({ hasText: 'dueDate' }).click();
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(5000);
+
+    await page.waitForTimeout(5000);
 
     await page.getByText('textfield').nth(1).click();
+    // wait for context menu to appear
+    await page.waitForTimeout(5000);
     await page.getByText('textarea', { exact: true }).click();
+    await page.waitForTimeout(5000);
 
     // after changing the first textfield to a textarea, the next textfield to click is again the one with index 1!
     await page.getByText('textfield').nth(1).click();
+    // wait for context menu to appear
+    await page.waitForTimeout(5000);
+
     await page.getByText('datepicker').click();
 
     // go to projects page, select a project and edit the values
-    await page.goto('http://localhost:8082/projects');
+    await page.goto(process.env.BASE_URL + '/projects');
+
     await page.getByRole('cell', { name: 'Project #1' }).click();
     await page.getByRole('textbox', { name: 'Description' }).fill('This is a project with a new description');
     await page.getByPlaceholder('Due Date').fill('2027-01-01');
@@ -191,7 +202,7 @@ test('pages', async ({page}) => {
     await expect(await page.locator('table tr:nth-child(4) td:nth-child(1)')).toHaveText('Project #2');
     await expect(await page.locator('table tr:nth-child(5) td:nth-child(1)')).toHaveText('Project #1');
 
-    await page.pause();
+    await page.goto(process.env.BASE_URL + '/structr/');
 
     await logout(page);
 });

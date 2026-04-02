@@ -216,6 +216,10 @@ A Function Query can also return static data directly by defining a JavaScript o
 ${{ [{ name: 'Draft' }, { name: 'Active' }, { name: 'Completed' }] }}
 ```
 
+### Data-Driven Components
+
+Repeaters give you full control over how data is queried and rendered, but they require you to build the HTML structure manually: you create the elements, configure the query, set up the data key, and write the template expressions yourself. For common patterns like tables, lists, and forms, data-driven components offer a higher-level approach. You point a data-driven component at a DataSource, configure which fields to display in a dialog, and the component handles the rendering, pagination, filtering, and field layout automatically. See the [Widgets & Components](/structr/docs/ontology/Building%20Applications/Widgets%20&%20Components) chapter for details.
+
 ## Show and Hide Conditions
 
 Show and hide conditions control whether an element appears in the page output. Structr evaluates these conditions at render time, before the element and its children are rendered.
