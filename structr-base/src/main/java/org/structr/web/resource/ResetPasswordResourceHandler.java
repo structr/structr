@@ -128,9 +128,12 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 		final String userEmail  = user.getEMail();
 		final ActionContext ctx = new ActionContext(SecurityContext.getInstance(user, AccessMode.Frontend));
 
-		// Populate the replacement map with all POSTed values
-		// WARNING! This is unchecked user input!!
-		propertySetFromUserPOST.entrySet().forEach(entry -> ctx.setConstant(entry.getKey(), entry.getValue().toString()));
+		// Only pass whitelisted POST keys into the template context
+		// to prevent user-controlled values from overriding internal variables (e.g. 'link')
+		final Set<String> allowedPostKeys = Set.of(PrincipalTraitDefinition.EMAIL_PROPERTY, "locale");
+		propertySetFromUserPOST.entrySet().stream()
+			.filter(entry -> allowedPostKeys.contains(entry.getKey()))
+			.forEach(entry -> ctx.setConstant(entry.getKey(), entry.getValue().toString()));
 
 		ctx.setConstant(PrincipalTraitDefinition.EMAIL_PROPERTY, userEmail);
 		ctx.setConstant("link",
