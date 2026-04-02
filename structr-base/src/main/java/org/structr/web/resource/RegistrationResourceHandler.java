@@ -80,16 +80,13 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 	@Override
 	public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
-		boolean existingUser                  = false;
 		RestMethodResult returnedMethodResult = null;
 
 		if (propertySet.containsKey(PrincipalTraitDefinition.EMAIL_PROPERTY)) {
 
 			final PropertyKey<String> confKeyKey  = Traits.of(StructrTraits.USER).key(UserTraitDefinition.CONFIRMATION_KEY_PROPERTY);
 			final PropertyKey<String> eMailKey    = Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.EMAIL_PROPERTY);
-			final PropertyKey<String> passwordKey = Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY);
 			final String emailString              = (String) propertySet.get(eMailKey.jsonName());
-			final String passwordString           = (String) propertySet.get(passwordKey.jsonName());
 
 			if (StringUtils.isEmpty(emailString)) {
 				throw new FrameworkException(422, "No e-mail address given.");
@@ -114,8 +111,6 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 
 					// For existing users, update confirmation key
 					userNode.setProperty(confKeyKey, confKey);
-
-					existingUser = true;
 
 					user = userNode.as(User.class);
 
@@ -152,18 +147,8 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 					return returnedMethodResult;
 				}
 
-				// If we have just updated the confirmation key for an existing user,
-				// return 200 to distinguish from new users
-				if (existingUser) {
-
-					// return 200 OK
-					return new RestMethodResult(HttpServletResponse.SC_OK);
-
-				} else {
-
-					// return 201 Created
-					return new RestMethodResult(HttpServletResponse.SC_CREATED);
-				}
+				// return "201 Created" in both cases to avoid leaking whether the user already existed
+				return new RestMethodResult(HttpServletResponse.SC_CREATED);
 
 			} else {
 
