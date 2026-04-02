@@ -194,7 +194,7 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Integer> positionProperty                 = new IntProperty(POSITION_PROPERTY).indexed();
 		final Property<Integer> cacheForSecondsProperty          = new IntProperty(CACHE_FOR_SECONDS_PROPERTY);
 
-		final Property<Object> pathProperty                      = new FunctionProperty(PATH_PROPERTY).readFunction("concat('/', this.id)").typeHint("String").indexed();
+		final Property<Object> pathProperty                      = new FunctionProperty(PATH_PROPERTY).readFunction("concat('/', this.name)").typeHint("String").indexed();
 		final Property<String> showOnErrorCodesProperty          = new StringProperty(SHOW_ON_ERROR_CODES_PROPERTY).indexed();
 		final Property<String> contentTypeProperty               = new StringProperty(CONTENT_TYPE_PROPERTY).indexed();
 		final Property<String> categoryProperty                  = new StringProperty(CATEGORY_PROPERTY).indexed();
