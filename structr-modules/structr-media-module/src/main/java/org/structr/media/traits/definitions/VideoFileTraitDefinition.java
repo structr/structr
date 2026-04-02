@@ -41,6 +41,7 @@ import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.media.AVConv;
 import org.structr.media.VideoFile;
 import org.structr.media.traits.wrappers.VideoFileTraitWrapper;
+import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.File;
 import org.structr.web.traits.operations.OnUploadCompletion;
 
@@ -110,9 +111,9 @@ public class VideoFileTraitDefinition extends AbstractNodeTraitDefinition {
 			new InstanceMethod(StructrTraits.VIDEO_FILE, "updateVideoInfo") {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
 
-					VideoFileTraitDefinition.updateVideoInfo(entity.as(VideoFile.class), securityContext);
+					VideoFileTraitDefinition.updateVideoInfo(entity.as(VideoFile.class), actionContext.getSecurityContext());
 
 					return null;
 				}

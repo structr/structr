@@ -354,30 +354,18 @@ public class AuthHelper {
 
 	public static void sendLoginNotification (final Principal user, final HttpServletRequest request) throws FrameworkException {
 
-		try {
+		final Map<String, Object> params = new HashMap<>();
+		params.put("user", user);
 
-			final Map<String, Object> params = new HashMap<>();
-			params.put("user", user);
-
-			Actions.callAsSuperUser(Actions.NOTIFICATION_LOGIN, params, request);
-
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
+		Actions.callAsSuperUser(Actions.NOTIFICATION_LOGIN, params, request, "auth");
 	}
 
 	public static void sendLogoutNotification (final Principal user, final HttpServletRequest request) throws FrameworkException {
 
-		try {
+		final Map<String, Object> params = new HashMap<>();
+		params.put("user", user);
 
-			final Map<String, Object> params = new HashMap<>();
-			params.put("user", user);
-
-			Actions.callAsSuperUser(Actions.NOTIFICATION_LOGOUT, params, request);
-
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
+		Actions.callAsSuperUser(Actions.NOTIFICATION_LOGOUT, params, request, "auth");
 	}
 
 	/**

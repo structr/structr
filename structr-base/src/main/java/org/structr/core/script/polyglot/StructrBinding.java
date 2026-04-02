@@ -30,7 +30,6 @@ import org.structr.core.Services;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
 import org.structr.core.function.Functions;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.script.polyglot.function.CacheFunction;
 import org.structr.core.script.polyglot.function.DoAsFunction;
 import org.structr.core.script.polyglot.function.DoInNewTransactionFunction;
@@ -38,11 +37,12 @@ import org.structr.core.script.polyglot.function.DoPrivilegedFunction;
 import org.structr.core.script.polyglot.wrappers.*;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
+import org.structr.web.common.RenderContext;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Map;
 import java.util.Set;
 
 import static org.structr.core.script.polyglot.PolyglotWrapper.wrap;
@@ -170,7 +170,7 @@ public class StructrBinding implements ProxyObject {
 
 				try {
 
-					return PolyglotWrapper.wrap(actionContext, actionContext.evaluate(entity, name, null, null, 0, new EvaluationHints(), 1, 1));
+					return PolyglotWrapper.wrap(actionContext, actionContext.evaluate(entity, name, null, null, 0, entity, 1, 1));
 
 				} catch (FrameworkException ex) {
 
@@ -192,6 +192,7 @@ public class StructrBinding implements ProxyObject {
 		keys.add("request");
 		keys.add("session");
 		keys.add("cache");
+		keys.add("theme");
 		keys.add("applicationStore");
 		keys.add("methodParameters");
 		return keys;
@@ -203,7 +204,16 @@ public class StructrBinding implements ProxyObject {
 	}
 
 	@Override
-	public void putMember(String key, Value value) {
+	public void putMember(final String key, final Value value) {
+
+		if (actionContext instanceof RenderContext r && "theme".equals(key)) {
+
+			final Object data = PolyglotWrapper.unwrap(actionContext, value);
+			if (data instanceof Map m) {
+
+				r.getTheme().putAll(m);
+			}
+		}
 	}
 
 	public void setMethodParameters(final Value methodParameters) {
@@ -229,7 +239,7 @@ public class StructrBinding implements ProxyObject {
 						return new HttpServletRequestWrapper(actionContext, actionContext.getSecurityContext().getRequest());
 					}
 
-					final Object value = actionContext.evaluate(entity, args[0].toString(), null, null, 0, new EvaluationHints(), 1, 1);
+					final Object value = actionContext.evaluate(entity, args[0].toString(), null, null, 0, entity, 1, 1);
 
 					return PolyglotWrapper.wrap(actionContext, value);
 

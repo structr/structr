@@ -53,13 +53,10 @@ import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.operations.propertycontainer.GetPropertyKeys;
-import org.structr.docs.Documentation;
-import org.structr.docs.ontology.ConceptType;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.servlet.AbstractDataServlet;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.EventContext;
 import org.structr.web.common.RenderContext;
@@ -86,6 +83,8 @@ import org.structr.web.traits.definitions.ParameterMappingTraitDefinition;
 import org.structr.web.traits.operations.*;
 import org.structr.web.traits.wrappers.dom.DOMElementTraitWrapper;
 
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -476,6 +475,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 						out.append("\"");
 
+						node.renderWidgetConfiguration(out, editMode);
 						node.renderSharedComponentConfiguration(out, editMode);
 
 						// include data-* attributes in template
@@ -532,8 +532,10 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 							out.append(" data-repeater-data-object-id=\"").append(repeaterDataObject.getUuid()).append("\"");
 						}
 
-						// include arbitrary data-* attributes
+						node.renderWidgetConfiguration(out, editMode);
 						node.renderSharedComponentConfiguration(out, editMode);
+
+						// include arbitrary data-* attributes
 						node.renderCustomAttributes(out, renderContext.getSecurityContext(), renderContext);
 
 						// new: managed attributes (like selected
@@ -593,7 +595,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 									// support for configuration options
 									if (StringUtils.isNotBlank(options)) {
-										out.append(" data-structr-options=\"").append(uuid).append("\"");
+										out.append(" data-structr-options=\"").append(StringEscapeUtils.escapeJson(options)).append("\"");
 									}
 
 									String eventsString = null;
@@ -602,8 +604,17 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 										eventsString = StringUtils.join(mapping.keySet(), ",");
 									}
 
+									final Set<String> dynamicProperties = Set.of(
+										ActionMappingTraitDefinition.EVENT_PROPERTY,
+										ActionMappingTraitDefinition.ACTION_PROPERTY,
+										ActionMappingTraitDefinition.METHOD_PROPERTY,
+										ActionMappingTraitDefinition.FLOW_PROPERTY,
+										ActionMappingTraitDefinition.DATA_TYPE_PROPERTY,
+										ActionMappingTraitDefinition.ID_EXPRESSION_PROPERTY
+									);
+
 									// append all stored action mapping keys as data-structr-<key> attributes
-									for (final String key : Set.of(ActionMappingTraitDefinition.EVENT_PROPERTY, ActionMappingTraitDefinition.ACTION_PROPERTY, ActionMappingTraitDefinition.METHOD_PROPERTY, ActionMappingTraitDefinition.FLOW_PROPERTY, ActionMappingTraitDefinition.DATA_TYPE_PROPERTY, ActionMappingTraitDefinition.ID_EXPRESSION_PROPERTY)) {
+									for (final String key : dynamicProperties) {
 
 										final String value = actionNode.getPropertyWithVariableReplacement(renderContext, eamTraits.key(key));
 										if (StringUtils.isNotBlank(value)) {
@@ -625,8 +636,8 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 									renderDialogAttributes(renderContext, out, triggeredAction);
 									renderSuccessNotificationAttributes(renderContext, out, triggeredAction);
 									renderFailureNotificationAttributes(renderContext, out, triggeredAction);
-									renderSuccessBehaviourAttributes(renderContext, out, triggeredAction);
-									renderFailureBehaviourAttributes(renderContext, out, triggeredAction);
+									renderSuccessBehaviourAttributes(renderContext, out, triggeredAction, node);
+									renderFailureBehaviourAttributes(renderContext, out, triggeredAction, node);
 
 									/*
 									{ // TODO: Migrate tree handling to new action mapping
@@ -869,9 +880,10 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 			new InstanceMethod(StructrTraits.DOM_ELEMENT, "event") {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
 
-					final RenderContext renderContext = new RenderContext(securityContext);
+					// if we're called from within a page, we get a render context, otherwise we get a (new) action context
+					final RenderContext renderContext = actionContext instanceof  RenderContext ? (RenderContext) actionContext : new RenderContext(actionContext.getSecurityContext());
 					final EventContext  eventContext  = new EventContext();
 
 					final NodeInterface domElementNode = StructrApp.getInstance().getNodeById(StructrTraits.DOM_ELEMENT, entity.getUuid());
@@ -885,7 +897,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 					switch (action) {
 
 						// Note: if you add new actions here, please also add them to MigrationService.EventActionMappingActions so
-						// they are not migrated accidentially..
+						// they are not migrated accidentally.
 
 						case EventAction.Create:
 							return handleCreateAction(renderContext, domElementNode, parameters, eventContext);
@@ -1223,22 +1235,22 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 	private GraphObject handleCreateAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = renderContext.getSecurityContext();
-		final String dataTarget               = getDataTargetFromParameters(parameters, "create", true);
+		final String dataType                 = getDataTypeFromParameters(parameters, "create", true);
 
 		// resolve target type
-		Traits traits = Traits.of(dataTarget);
+		Traits traits = Traits.of(dataType);
 		if (traits == null) {
 
-			throw new FrameworkException(422, "Cannot execute create action with target type " + dataTarget + ", type does not exist.");
+			throw new FrameworkException(422, "Cannot execute create action with target type " + dataType + ", type does not exist.");
 		}
 
 		removeInternalDataBindingKeys(parameters);
 
 		// convert input
-		final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, dataTarget, parameters);
+		final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, dataType, parameters);
 
 		// create entity
-		return StructrApp.getInstance(securityContext).create(dataTarget, properties);
+		return StructrApp.getInstance(securityContext).create(dataType, properties);
 	}
 
 	private void handleUpdateAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
@@ -1255,7 +1267,6 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 			// update properties
 			target.setProperties(securityContext, properties);
-
 		}
 	}
 
@@ -1278,7 +1289,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		}
 	}
 
-	private Object handleAppendChildAction(final ActionContext actionContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
+	private Object handleAppendChildAction(final RenderContext actionContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
 		final String dataTarget = getDataTargetFromParameters(parameters, "append-child", true);
@@ -1611,7 +1622,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 			removeInternalDataBindingKeys(parameters);
 
-			return Actions.callWithSecurityContext(methodName, renderContext.getSecurityContext(), parameters);
+			return Actions.callWithSecurityContext(methodName, renderContext.getSecurityContext(), parameters, "custom");
 		}
 
 		if (Settings.isValidUuid(dataTarget)) {
@@ -1634,7 +1645,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 						renderContext.getSecurityContext().enableReturnRawResult();
 					}
 
-					return method.execute(renderContext.getSecurityContext(), target, NamedArguments.fromMap(parameters), new EvaluationHints());
+					return method.execute(renderContext, target, NamedArguments.fromMap(parameters));
 
 				} else {
 
@@ -1658,7 +1669,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 							renderContext.getSecurityContext().enableReturnRawResult();
 						}
 
-						return method.execute(renderContext.getSecurityContext(), null, NamedArguments.fromMap(parameters), new EvaluationHints());
+						return method.execute(renderContext, null, NamedArguments.fromMap(parameters));
 
 					} else {
 
@@ -1703,6 +1714,18 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRDIALOGTYPE);
 		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRDIALOGTITLE);
 		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRDIALOGTEXT);
+	}
+
+	private String getDataTypeFromParameters(final Map<String, Object> parameters, final String action, final boolean throwExceptionIfEmpty) throws FrameworkException {
+
+		final String dataType  = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRDATATYPE);
+
+		if (StringUtils.isBlank(dataType) && throwExceptionIfEmpty) {
+
+			throw new FrameworkException(422, "Cannot execute " + action + " action without target UUID (data-structr-target attribute).");
+		}
+
+		return dataType;
 	}
 
 	private String getDataTargetFromParameters(final Map<String, Object> parameters, final String action, final boolean throwExceptionIfEmpty) throws FrameworkException {
@@ -1851,7 +1874,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		}
 	}
 
-	public void renderSuccessBehaviourAttributes(final RenderContext renderContext, final AsyncBuffer out, final ActionMapping triggeredAction) throws FrameworkException {
+	public void renderSuccessBehaviourAttributes(final RenderContext renderContext, final AsyncBuffer out, final ActionMapping triggeredAction, final DOMNode node) throws FrameworkException {
 
 		final Traits traits = triggeredAction.getTraits();
 
@@ -1865,6 +1888,9 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		String successTargetString = null;
 
 		switch (successBehaviour) {
+			case EventBehaviour.ComponentBased:
+				successTargetString = getComponentBasedReloadTarget(renderContext, node);
+				break;
 			case EventBehaviour.PartialRefresh:
 				successTargetString = successPartial;
 				break;
@@ -1908,7 +1934,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		}
 	}
 
-	public void renderFailureBehaviourAttributes(final RenderContext renderContext, final AsyncBuffer out, final ActionMapping triggeredAction) throws FrameworkException {
+	public void renderFailureBehaviourAttributes(final RenderContext renderContext, final AsyncBuffer out, final ActionMapping triggeredAction, final DOMNode node) throws FrameworkException {
 
 		final Traits traits = triggeredAction.getTraits();
 
@@ -1922,6 +1948,9 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		String failureTargetString = null;
 
 		switch (failureBehaviour) {
+			case EventBehaviour.ComponentBased:
+				failureTargetString = getComponentBasedReloadTarget(renderContext, node);
+				break;
 			case EventBehaviour.PartialRefresh:
 				failureTargetString = failurePartial;
 				break;
@@ -1983,7 +2012,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		} else {
 
 			// evaluate single keyword
-			final Object result = entity.evaluate(actionContext, dataTarget, null, new EvaluationHints(), 1, 1);
+			final Object result = entity.evaluate(actionContext, dataTarget, null, entity, 1, 1);
 			if (result != null) {
 
 				if (result instanceof Iterable) {
@@ -2105,5 +2134,28 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		}
 
 		return StringUtils.join(selectors, ",");
+	}
+
+	private String getComponentBasedReloadTarget(final RenderContext renderContext, final DOMNode node) throws FrameworkException {
+
+		final String reloadBehaviour = coalesce(renderContext.getCurrentReloadBehaviour(), node.getReloadBehaviourForComponent());
+		if (reloadBehaviour != null) {
+
+			switch (reloadBehaviour) {
+
+				case "partial":
+				case "others":
+
+					return "[data-channel]";
+
+				case "page":
+					return "url:";
+
+				default:
+					return reloadBehaviour;
+			}
+		}
+
+		return null;
 	}
 }

@@ -632,7 +632,7 @@ let StructrWS = {
 
 			StructrModel.callCallback(data.callback, result);
 
-		} else if (command === 'APPEND_WIDGET') {
+		} else if (command === 'APPEND_WIDGET' || command === 'REPLACE_WIDGET') {
 
 			StructrModel.callCallback(data.callback, result);
 

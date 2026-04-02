@@ -50,8 +50,7 @@ import org.structr.websocket.command.CreateComponentCommand;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 import static org.testng.AssertJUnit.assertTrue;
@@ -63,22 +62,50 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 		compare(sourceHash, deleteTestDirectory, true);
 	}
 
-	protected void compare(final String sourceHash, final boolean deleteTestDirectory, final boolean cleanDatabase) {
+	protected void compare(final String expected, final boolean deleteTestDirectory, final boolean cleanDatabase) {
 
 		doImportExportRoundtrip(deleteTestDirectory, null, cleanDatabase);
 
-		final String roundtripHash = calculateHash();
+		final String actual = calculateHash();
 
-		if (!sourceHash.equals(roundtripHash)) {
+		if (!expected.equals(actual)) {
 
-			System.out.println("########## Expected:");
-			System.out.println(sourceHash);
+			final String[] lines1 = expected.split("\n");
+			final String[] lines2 = actual.split("\n");
+			final int max         = Math.max(lines1.length, lines2.length);
+			int index1 = 0, index2 = 0;
 
-			System.out.println("########## Actual:");
-			System.out.println(roundtripHash);
+			for (int i=0; i<max; i++) {
 
-			System.out.println("########## Difference:");
-			System.out.println(StringUtils.difference(sourceHash, roundtripHash));
+				final String line1 = lines1[index1];
+				final String line2 = lines2[index2];
+
+				if (!line1.equals(line2)) {
+
+					System.out.println("#### DIFFERENCE IN LINE " + i + ":");
+					System.out.println("EXPECTED: " + line1);
+					System.out.println("ACTUAL:   " + line2);
+
+					final String[] tokens1 = line1.split(";");
+					final String[] tokens2 = line2.split(";");
+
+					final Set<String> set1 = new HashSet<>(Arrays.asList(tokens1));
+					final Set<String> set2 = new HashSet<>(Arrays.asList(tokens2));
+					final Set<String> diff1 = new HashSet<>(set1);
+					final Set<String> diff2 = new HashSet<>(set2);
+
+					diff1.removeAll(set2);
+					diff2.removeAll(set1);
+
+					System.out.println("TOKENS ONLY IN EXPECTED STRING: " + diff1);
+					System.out.println("TOKENS ONLY IN ACTUAL STRING:   " + diff2);
+				}
+
+				index1++;
+				index2++;
+			}
+
+
 
 			fail("Invalid deployment roundtrip result");
 		}
@@ -310,6 +337,11 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.SHOW_FOR_LOCALES_PROPERTY)));
 		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.HIDE_FOR_LOCALES_PROPERTY)));
 		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.SHARED_COMPONENT_CONFIGURATION_PROPERTY)));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.COMPONENT_TYPE_PROPERTY)));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.DIMENSIONS_PROPERTY)));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.ITEM_TYPE_PROPERTY)));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.REPEATER_TYPE_PROPERTY)));
+		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.IS_COMPONENT_ROOT_PROPERTY)));
 
 		if (node.is(StructrTraits.DOM_NODE)) {
 
@@ -365,7 +397,7 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 		final Object value = obj.getProperty(key);
 		if (value != null) {
 
-			return key.jsonName() + ": \"" + value.toString() + "\";";
+			return key.jsonName() + ":\"" + value + "\";";
 		}
 
 		return "";

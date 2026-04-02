@@ -41,8 +41,8 @@ import org.structr.core.api.NamedArguments;
 import org.structr.core.entity.Principal;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
-import org.structr.schema.action.EvaluationHints;
 import java.net.URI;
 
 import java.util.HashMap;
@@ -328,7 +328,7 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 			arguments.add("provider", this.provider);
 			arguments.add("userinfo", this.getUserInfo());
 
-			method.execute(user.getSecurityContext(), user, arguments, new EvaluationHints());
+			method.execute(new ActionContext(user.getSecurityContext()), user, arguments);
 		}
 	}
 

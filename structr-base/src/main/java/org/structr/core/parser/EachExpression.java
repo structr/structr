@@ -30,7 +30,6 @@ import org.structr.core.graph.Tx;
 import org.structr.docs.*;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -91,13 +90,13 @@ public class EachExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedScriptException {
 
 		if (listExpression == null) {
 			return ERROR_MESSAGE_EACH;
 		}
 
-		Object listSource = listExpression.evaluate(ctx, entity, hints);
+		Object listSource = listExpression.evaluate(ctx, entity);
 
 		if (listSource != null && listSource.getClass().isArray()) {
 			listSource = Arrays.asList((Object[]) listSource);
@@ -121,7 +120,7 @@ public class EachExpression extends Expression {
 						while (iterator.hasNext()) {
 
 							ctx.setConstant("data", iterator.next());
-							eachExpression.evaluate(ctx, entity, hints);
+							eachExpression.evaluate(ctx, entity);
 
 							if ((++count % getBatchSize()) == 0) {
 								break;
@@ -147,7 +146,7 @@ public class EachExpression extends Expression {
 				for (Object obj : source) {
 
 					ctx.setConstant("data", obj);
-					eachExpression.evaluate(ctx, entity, hints);
+					eachExpression.evaluate(ctx, entity);
 				}
 			}
 
@@ -159,7 +158,7 @@ public class EachExpression extends Expression {
 	}
 
 	@Override
-	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException, UnlicensedScriptException {
 		return source;
 	}
 

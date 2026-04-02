@@ -20,27 +20,19 @@ package org.structr.core.entity;
 
 import org.structr.api.Predicate;
 import org.structr.api.graph.*;
-import org.structr.common.AccessControllable;
-import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Arguments;
-import org.structr.core.api.Methods;
-import org.structr.core.api.NamedArguments;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.operations.graphobject.Evaluate;
 import org.structr.core.traits.operations.nodeinterface.*;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
-import org.structr.schema.action.Function;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -296,55 +288,8 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 	}
 
 	@Override
-	public Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, final EvaluationHints hints, final int row, final int column) throws FrameworkException {
-
-		hints.reportUsedKey(key, row, column);
-
-		switch (key) {
-
-			case "owner":
-				hints.reportExistingKey(key);
-
-				final Principal owner = as(AccessControllable.class).getOwnerNode();
-				if (owner != null) {
-
-					return owner;
-				}
-
-				return null;
-
-			case "_path":
-				hints.reportExistingKey(key);
-				return getPath(actionContext.getSecurityContext());
-
-			default:
-
-				// evaluate object value or return default
-				if (typeHandler.hasKey(key)) {
-
-					final PropertyKey propertyKey = typeHandler.key(key);
-
-					hints.reportExistingKey(key);
-
-					final Object value = getProperty(propertyKey, actionContext.getPredicate());
-					if (value != null) {
-
-						return value;
-					}
-				}
-
-				final AbstractMethod method = Methods.resolveMethod(typeHandler, key);
-				if (method != null) {
-
-					final ContextStore contextStore = actionContext.getContextStore();
-					final Map<String, Object> temp  = contextStore.getTemporaryParameters();
-					final Arguments arguments       = NamedArguments.fromMap(temp);
-
-					return method.execute(actionContext.getSecurityContext(), this, arguments, hints);
-				}
-
-				return Function.numberOrString(defaultValue);
-		}
+	public Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, final GraphObject contextObject, final int row, final int column) throws FrameworkException {
+		return typeHandler.getMethod(Evaluate.class).evaluate(this, actionContext, key, defaultValue, contextObject, row, column);
 	}
 
 	@Override

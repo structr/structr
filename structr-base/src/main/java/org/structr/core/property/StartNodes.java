@@ -27,6 +27,7 @@ import org.structr.common.TruePredicate;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.QueryGroup;
+import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.ManyStartpoint;
 import org.structr.core.entity.Relation;
@@ -39,8 +40,11 @@ import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.TraitsInstance;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.openapi.common.OpenAPIAnyOf;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
+import org.structr.web.common.RenderContext;
+import org.structr.web.datasource.FieldDefinition;
 
 import java.util.*;
 
@@ -49,7 +53,7 @@ import java.util.*;
  *
  *
  */
-public class StartNodes extends Property<Iterable<NodeInterface>> implements RelationProperty {
+public class StartNodes extends Property<Iterable<NodeInterface>> implements RelationProperty, FieldDefinition {
 
 	private final Relation<ManyStartpoint, ? extends Target> relation;
 	private final Traits traits;
@@ -237,6 +241,11 @@ public class StartNodes extends Property<Iterable<NodeInterface>> implements Rel
 	}
 
 	@Override
+	public FieldDefinition getFieldDefinition() {
+		return this;
+	}
+
+	@Override
 	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Iterable<NodeInterface> searchValue, final boolean exactMatch, final QueryGroup query) {
 		return new GraphSearchAttribute<>(this, searchValue, exactMatch);
 	}
@@ -331,5 +340,40 @@ public class StartNodes extends Property<Iterable<NodeInterface>> implements Rel
 		}
 
 		return map;
+	}
+
+	// ----- interface FieldDefinition -----
+	@Override
+	public boolean hasOptions() {
+		return true;
+	}
+
+	@Override
+	public List<GraphObject> getOptions(final RenderContext renderContext, final String filter, final String label) throws FrameworkException {
+
+		final SecurityContext securityContext = renderContext.getSecurityContext();
+		final PropertyKey<String> nameKey     = Traits.of(getTargetType()).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+
+		return (List) StructrApp.getInstance(securityContext).nodeQuery(getSourceType()).sort(nameKey).getAsList();
+	}
+
+	@Override
+	public String renderTemplate() {
+		return "related-name";
+	}
+
+	@Override
+	public String editTemplate() {
+		return "select";
+	}
+
+	@Override
+	public String dataType() {
+		return "node";
+	}
+
+	@Override
+	public String nodeType() {
+		return relatedType();
 	}
 }

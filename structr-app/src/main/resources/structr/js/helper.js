@@ -235,6 +235,14 @@ let _Helpers = {
 	},
 	getHTMLTreeElementDisplayName: (entity) => {
 		if (entity) {
+            // show shared components
+            if (entity?.sharedComponent?.name) {
+                if (entity.name && entity.name !== entity.sharedComponent.name) {
+                    return entity.name;
+                } else {
+                    return entity.sharedComponent.name;
+                }
+            }
 			if (!entity.name) {
 				if (entity.tag === 'option' && entity._html_value) {
 					return `${entity.tag}[value="${_Helpers.escapeForHtmlAttributes(entity._html_value)}"]`;

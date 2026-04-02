@@ -25,7 +25,6 @@ import org.structr.core.GraphObject;
 import org.structr.docs.*;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 
 import java.util.List;
 
@@ -82,13 +81,13 @@ public class AnyExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedScriptException {
 
 		if (listExpression == null) {
 			return ERROR_MESSAGE_ANY;
 		}
 
-		final Object listSource = listExpression.evaluate(ctx, entity, hints);
+		final Object listSource = listExpression.evaluate(ctx, entity);
 
 		if (listSource != null && listSource instanceof Iterable) {
 
@@ -99,7 +98,7 @@ public class AnyExpression extends Expression {
 
 				ctx.setConstant("data", obj);
 
-				final Object resultObject = anyExpression.evaluate(ctx, entity, hints);
+				final Object resultObject = anyExpression.evaluate(ctx, entity);
 				if (resultObject != null) {
 
 					if (resultObject instanceof Boolean) {
@@ -124,7 +123,7 @@ public class AnyExpression extends Expression {
 	}
 
 	@Override
-	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException, UnlicensedScriptException {
 		return source;
 	}
 

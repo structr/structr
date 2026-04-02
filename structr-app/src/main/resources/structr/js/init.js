@@ -881,7 +881,7 @@ let Structr = {
 		lastMenuEntry: undefined,
 		lastMenuEntryKey: 'structrLastMenuEntry_' + location.port,
 		isBlocked: false,
-		defaultMainMenuItems: ['Dashboard', 'Pages', 'Files', 'Security', 'Schema', 'Code', 'Data'],
+		defaultMainMenuItems: ['Dashboard', 'Apps', 'Pages', 'Files', 'Security', 'Schema', 'Code', 'Data'],
 		getSavedMenuConfig: () => {
 
 			return LSWrapper.getItem(Structr.keyMenuConfig, {
@@ -2154,6 +2154,7 @@ let Structr = {
 							<ul id="submenu">
 								<li data-name="Dashboard"><a id="dashboard_" href="#dashboard" data-activate-module="dashboard">Dashboard</a></li>
 								<li data-name="Graph"><a id="graph_" href="#graph" data-activate-module="graph">Graph</a></li>
+								<li data-name="Apps"><a id="apps_" href="#apps" data-activate-module="apps">Apps</a></li>
 								<li data-name="Pages"><a id="pages_" href="#pages" data-activate-module="pages">Pages</a></li>
 								<li data-name="Files"><a id="files_" href="#files" data-activate-module="files">Files</a></li>
 								<li data-name="Security"><a id="security_" href="#security" data-activate-module="security">Security</a></li>

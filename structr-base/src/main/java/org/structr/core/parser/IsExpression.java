@@ -24,7 +24,6 @@ import org.structr.core.GraphObject;
 import org.structr.docs.*;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 
 import java.util.List;
 
@@ -63,7 +62,7 @@ public class IsExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedScriptException {
 
 		if (expressions.isEmpty()) {
 			return ERROR_MESSAGE_IS;
@@ -71,12 +70,12 @@ public class IsExpression extends Expression {
 
 		final Expression condition = expressions.get(0);
 
-		if (isTrue(condition.evaluate(ctx, entity, hints))) {
+		if (isTrue(condition.evaluate(ctx, entity))) {
 
 			if (expressions.size() > 1) {
 
 				final Expression trueExpression = expressions.get(1);
-				return trueExpression.evaluate(ctx, entity, hints);
+				return trueExpression.evaluate(ctx, entity);
 
 			} else {
 
@@ -95,7 +94,7 @@ public class IsExpression extends Expression {
 	}
 
 	@Override
-	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException, UnlicensedScriptException {
 		return source;
 	}
 

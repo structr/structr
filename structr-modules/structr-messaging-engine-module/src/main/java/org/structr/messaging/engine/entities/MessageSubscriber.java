@@ -18,16 +18,16 @@
  */
 package org.structr.messaging.engine.entities;
 
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.rest.RestMethodResult;
+import org.structr.schema.action.ActionContext;
 
 public interface MessageSubscriber extends NodeInterface {
 
 	String getTopic();
 	String getCallback();
 	Iterable<MessageClient> getClients();
-	void subscribeOnAllClients(final SecurityContext securityContext);
-	RestMethodResult onMessage(final SecurityContext securityContext, final String topic, final String message) throws FrameworkException;
+	void subscribeOnAllClients(final ActionContext actionContext);
+	RestMethodResult onMessage(final ActionContext actionContext, final String topic, final String message) throws FrameworkException;
 }

@@ -28,7 +28,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.rest.RestMethodResult;
-import org.structr.schema.action.EvaluationHints;
+import org.structr.schema.action.ActionContext;
 
 /**
  */
@@ -55,7 +55,7 @@ public abstract class RESTMethodCallHandler extends RESTCallHandler {
 				securityContext.enableReturnRawResult();
 			}
 
-			final RestMethodResult result = wrapInResult(method.execute(securityContext, entity, arguments, new EvaluationHints()));
+			final RestMethodResult result = wrapInResult(method.execute(new ActionContext(securityContext), entity, arguments));
 
 			tx.success();
 

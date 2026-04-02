@@ -28,6 +28,7 @@ import org.structr.core.converter.PropertyConverter;
 
 import javax.mail.internet.ContentType;
 import javax.mail.internet.ParseException;
+import java.util.List;
 import java.util.Map;
 
 /**

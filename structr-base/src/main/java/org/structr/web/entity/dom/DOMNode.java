@@ -27,6 +27,8 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
+import org.structr.core.entity.DataAdapter;
+import org.structr.core.entity.DataSource;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -36,19 +38,19 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
+import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.traits.definitions.LinkSourceTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 
-import java.util.Arrays;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
 //public interface DOMNode extends NodeTrait, LinkedTreeNode, Node, Renderable, DOMAdoptable, DOMImportable, ContextAwareEntity {
 public interface DOMNode extends NodeInterface, LinkedTreeNode {
 
+	String WIDGETS_CATEGORY              = "Widgets";
 	String PAGE_CATEGORY                 = "Page Structure";
 	String EDIT_MODE_BINDING_CATEGORY    = "Edit Mode Binding";
 	String EVENT_ACTION_MAPPING_CATEGORY = "Event Action Mapping";
@@ -64,13 +66,18 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	String HIERARCHY_REQUEST_ERR_MESSAGE_ELEMENT   = "A document may only accept an html element as its document element.";
 	String NOT_FOUND_ERR_MESSAGE                   = "Node is not a child.";
 
-	Set<String> cloneBlacklist = new LinkedHashSet<>(Arrays.asList(GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, DOMNodeTraitDefinition.OWNER_DOCUMENT_PROPERTY,
+	Set<String> cloneBlacklist = Set.of(
+		GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, DOMNodeTraitDefinition.OWNER_DOCUMENT_PROPERTY,
 		DOMNodeTraitDefinition.PAGE_ID_PROPERTY, DOMNodeTraitDefinition.PARENT_PROPERTY, DOMNodeTraitDefinition.PARENT_ID_PROPERTY,
 		DOMNodeTraitDefinition.SYNCED_NODES_PROPERTY, DOMNodeTraitDefinition.SYNCED_NODES_IDS_PROPERTY, DOMNodeTraitDefinition.CHILDREN_PROPERTY,
 		DOMNodeTraitDefinition.CHILDREN_IDS_PROPERTY, LinkSourceTraitDefinition.LINKABLE_PROPERTY, LinkSourceTraitDefinition.LINKABLE_ID_PROPERTY,
 		DOMElementTraitDefinition.PATH_PROPERTY, "relationshipId", DOMElementTraitDefinition.TRIGGERED_ACTIONS_PROPERTY,
 		DOMNodeTraitDefinition.RELOADING_ACTIONS_PROPERTY, DOMNodeTraitDefinition.FAILURE_ACTIONS_PROPERTY,
-		DOMNodeTraitDefinition.SUCCESS_NOTIFICATION_ACTIONS_PROPERTY, DOMNodeTraitDefinition.FAILURE_NOTIFICATION_ACTIONS_PROPERTY));
+		DOMNodeTraitDefinition.SUCCESS_NOTIFICATION_ACTIONS_PROPERTY, DOMNodeTraitDefinition.FAILURE_NOTIFICATION_ACTIONS_PROPERTY,
+		DOMNodeTraitDefinition.COMPONENT_CONFIGURATION_PROPERTY, DOMNodeTraitDefinition.COMPONENT_TYPE_PROPERTY,
+		DOMNodeTraitDefinition.ITEM_TYPE_PROPERTY, DOMNodeTraitDefinition.REPEATER_TYPE_PROPERTY,
+		DOMNodeTraitDefinition.DIMENSIONS_PROPERTY, DOMNodeTraitDefinition.IS_COMPONENT_ROOT_PROPERTY
+	);
 
 	static void collectNodesByPredicate(final SecurityContext securityContext, DOMNode startNode, List<DOMNode> results, Predicate<DOMNode> predicate, int depth, boolean stopOnFirstHit) throws FrameworkException {
 
@@ -103,10 +110,21 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	//void normalize() throws FrameworkException;
 	void setHidden(final boolean hidden) throws FrameworkException;
 	void setIdAttribute(final String id) throws FrameworkException;
+	void setComponentType(final String componentType) throws FrameworkException;
+	void setItemType(final String itemType) throws FrameworkException;
+	void setDimensions(final Integer dimensions) throws FrameworkException;
+	void setParent(final DOMNode parent) throws FrameworkException;
+	void setIsComponentRoot(boolean b) throws FrameworkException;
 
 	boolean isHidden();
 	boolean isSynced();
 	boolean isSharedComponent();
+
+	/**
+	 * Caution: this method returns the wrong result when used in the same transaction that created the node.
+	 * The value returned by this method is determined at the end of the creation transaction.
+	 * @return
+	 */
 	boolean hasSharedComponent();
 	boolean contentEquals(final DOMNode otherNode);
 	boolean isVoidElement();
@@ -118,6 +136,7 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	boolean shouldBeRendered(final RenderContext renderContext);
 	boolean isSameNode(final DOMNode otherNode);
 	boolean hasChildNodes();
+	boolean isComponentRoot();
 
 	int getChildPosition(final DOMNode otherNode);
 
@@ -133,6 +152,29 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	String getPositionPath();
 	String getCssClass();
 	String getNodeValue();
+	String getComponentType();
+	String getItemType();
+	String getRepeaterType();
+	Integer getDimensions();
+	String getDisplayMode();
+	String getFieldSet();
+	String getSaveMode();
+	String getRole();
+	String getReloadBehaviour();
+	Boolean showLabels();
+
+	ComponentConfiguration getOrCreateComponentConfiguration();
+	ComponentConfiguration getComponentConfiguration();
+	DataAdapter getDataAdapter();
+
+	// component-wide methods, traverse the parent hierarchy
+	String getComponentTypeForComponent();
+	String getItemTypeForComponent();
+	String getDisplayModeForComponent(final SecurityContext securityContext);
+	String getFieldSetForComponent();
+	String getRoleForComponent();
+	String getReloadBehaviourForComponent();
+	Boolean getShowLabelsFlagForComponent();
 
 	boolean renderDeploymentExportComments(AsyncBuffer out, boolean isContentNode);
 
@@ -152,6 +194,7 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	DOMNode getFirstChild() throws FrameworkException;
 	Iterable<DOMNode> getChildren();
 	Iterable<DOMNode> getSyncedNodes();
+	List<DOMNode> getChildrenWithName(final String name);
 
 	Iterable<ActionMapping> getReloadingActions();
 	Iterable<ActionMapping> getFailureActions();
@@ -172,6 +215,8 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	void setSharedComponent(final DOMNode sharedComponent) throws FrameworkException;
 
 	Template getClosestTemplate(final Page page);
+	DOMNode getClosestComponent();
+	boolean isEditable();
 
 	void updateFromNode(final DOMNode otherNode) throws FrameworkException;
 	void updateHasSharedComponentFlag() throws FrameworkException;
@@ -193,6 +238,7 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	void getLinkableInstructions(final Set<String> instructions);
 	void getContentInstructions(final Set<String> instructions);
 	void renderSharedComponentConfiguration(final AsyncBuffer out, final RenderContext.EditMode editMode);
+	void renderWidgetConfiguration(final AsyncBuffer out, final RenderContext.EditMode editMode);
 
 	List<RelationshipInterface> getChildRelationships();
 
@@ -237,7 +283,7 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 
 		for (int d = 0; d < depth; d++) {
 
-			indent.append("	");
+			indent.append('\t');
 
 		}
 
@@ -324,8 +370,6 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 
 		logger.error(message, arguments);
 	}
-
-
 
 	// ----- nested classes -----
 	class TextCollector implements Predicate<DOMNode> {

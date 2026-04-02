@@ -33,8 +33,11 @@ import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.DataAdapter;
+import org.structr.core.entity.DataSource;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.BooleanProperty;
@@ -51,11 +54,14 @@ import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.StringRenderBuffer;
+import org.structr.web.entity.Component;
+import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.dom.*;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.property.CustomHtmlAttributeProperty;
+import org.structr.web.traits.definitions.ComponentConfigurationTraitDefinition;
 import org.structr.web.traits.definitions.LinkSourceTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
@@ -65,7 +71,7 @@ import org.structr.websocket.command.CreateComponentCommand;
 import java.util.*;
 
 /**
- * Combines NodeInterface and DOMnode
+ * Combines NodeInterface and DOMNode
  */
 public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOMNode {
 
@@ -325,6 +331,22 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	}
 
 	@Override
+	public final List<DOMNode> getChildrenWithName(final String name) {
+
+		final List<DOMNode> children = new LinkedList<>();
+
+		for (final NodeInterface node : treeGetChildren()) {
+
+			if (node.getName().equals(name)) {
+
+				children.add(node.as(DOMNode.class));
+			}
+		}
+
+		return children;
+	}
+
+	@Override
 	public final int treeGetChildCount() {
 		return Iterables.count(this.getOutgoingRelationships(getChildLinkType()));
 	}
@@ -443,6 +465,31 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		return null;
 	}
 
+	/**
+	 * Returns the closes component in this element's
+	 * parent hierarchy, i.e. the first parent element
+	 * that has a ComponentConfiguration object.
+	 * @return
+	 */
+	@Override
+	public final DOMNode getClosestComponent() {
+
+		DOMNode node = this;
+
+		while (node != null) {
+
+			final ComponentConfiguration config = node.getComponentConfiguration();
+			if (config != null) {
+
+				return node;
+			}
+
+			node = node.getParent();
+		}
+
+		return null;
+	}
+
 	@Override
 	public final Page getClosestPage() {
 
@@ -513,6 +560,17 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		}
 
 		return null;
+	}
+
+	public final boolean isEditable() {
+
+		final ComponentConfiguration config = getComponentConfiguration();
+		if (config != null) {
+
+			return "input".equals(config.getDisplayMode());
+		}
+
+		return false;
 	}
 
 	public final boolean isSharedComponent() {
@@ -772,7 +830,10 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 			final List<DOMNode> syncedNodes = Iterables.toList(getSyncedNodes());
 			for (final DOMNode syncedNode : syncedNodes) {
 
-				syncedNode.setName(name);
+				if (syncedNode.getName() == null) {
+
+					syncedNode.setName(name);
+				}
 			}
 		}
 	}
@@ -805,7 +866,8 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	@Override
 	public final boolean displayForLocale(final RenderContext renderContext) {
 
-		final String localeString = renderContext.getLocale().toString();
+		final Locale locale       = renderContext.getLocale();
+		final String localeString = locale != null ? locale.toString() : null;
 		final String show         = getShowForLocales();
 		final String hide         = getHideForLocales();
 
@@ -983,6 +1045,144 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	}
 
 	@Override
+	public ComponentConfiguration getComponentConfiguration() {
+
+		final Map<String, Object> cache = getTemporaryStorage();
+		ComponentConfiguration config   = (ComponentConfiguration) cache.get("_cached_component_configuration");
+
+		if (config == null) {
+
+			final NodeInterface node = wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.COMPONENT_CONFIGURATION_PROPERTY));
+			if (node != null) {
+
+				config = node.as(ComponentConfiguration.class);
+
+				// step 1 is to cache the component configuration
+				cache.put("_cached_component_configuration", config);
+			}
+		}
+
+		return config;
+	}
+
+	@Override
+	public String getComponentType() {
+		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.COMPONENT_TYPE_PROPERTY));
+	}
+
+	@Override
+	public String getItemType() {
+		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.ITEM_TYPE_PROPERTY));
+	}
+
+	@Override
+	public String getRepeaterType() {
+		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.REPEATER_TYPE_PROPERTY));
+	}
+
+	@Override
+	public Integer getDimensions() {
+		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.DIMENSIONS_PROPERTY));
+	}
+
+	@Override
+	public boolean isComponentRoot() {
+		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.IS_COMPONENT_ROOT_PROPERTY));
+	}
+
+	@Override
+	public String getDisplayMode() {
+
+		final ComponentConfiguration config = getComponentConfiguration();
+		if (config != null) {
+
+			return config.getDisplayMode();
+		}
+
+		return null;
+	}
+
+	@Override
+	public String getFieldSet() {
+
+		final ComponentConfiguration config = getComponentConfiguration();
+		if (config != null) {
+
+			return config.getFieldSet();
+		}
+
+		return null;
+	}
+
+	@Override
+	public String getSaveMode() {
+
+		final ComponentConfiguration config = getComponentConfiguration();
+		if (config != null) {
+
+			return config.getSaveMode();
+		}
+
+		return null;
+	}
+
+	@Override
+	public String getRole() {
+
+		final ComponentConfiguration config = getComponentConfiguration();
+		if (config != null) {
+
+			return config.getRole();
+		}
+
+		return null;
+	}
+
+	@Override
+	public String getReloadBehaviour() {
+
+		final ComponentConfiguration config = getComponentConfiguration();
+		if (config != null) {
+
+			return config.getReloadBehaviour();
+		}
+
+		return null;
+	}
+
+	@Override
+	public Boolean showLabels() {
+
+		final ComponentConfiguration config = getComponentConfiguration();
+		if (config != null) {
+
+			return config.showLabels();
+		}
+
+		return null;
+	}
+
+	@Override
+	public void setIsComponentRoot(final boolean isComponentRoot) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(DOMNodeTraitDefinition.IS_COMPONENT_ROOT_PROPERTY), isComponentRoot);
+	}
+
+	@Override
+	public void setComponentType(final String componentType) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(DOMNodeTraitDefinition.COMPONENT_TYPE_PROPERTY), componentType);
+	}
+
+	@Override
+	public void setItemType(final String itemType) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(DOMNodeTraitDefinition.ITEM_TYPE_PROPERTY), itemType);
+	}
+
+	@Override
+	public void setDimensions(final Integer dimensions) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(DOMNodeTraitDefinition.DIMENSIONS_PROPERTY), dimensions);
+	}
+
+	@Override
 	public final void renderManagedAttributes(AsyncBuffer out, SecurityContext securityContext, RenderContext renderContext) throws FrameworkException {
 		traits.getMethod(RenderManagedAttributes.class).renderManagedAttributes(wrappedObject, out, securityContext, renderContext);
 	}
@@ -1010,6 +1210,10 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	@Override
 	public final String getSharedComponentConfiguration() {
 		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.SHARED_COMPONENT_CONFIGURATION_PROPERTY));
+	}
+
+	public final void setParent(final DOMNode parent) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(DOMNodeTraitDefinition.PARENT_PROPERTY), parent);
 	}
 
 	@Override
@@ -1398,6 +1602,32 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 				out.append(DOMNode.escapeForHtmlAttributes(configuration));
 				out.append("\"");
 			}
+		}
+	}
+
+	@Override
+	public void renderWidgetConfiguration(AsyncBuffer out, EditMode editMode) {
+
+		if (EditMode.DEPLOYMENT.equals(editMode)) {
+
+			// render new component attributes as data attributes
+			if (getComponentType() != null) {
+				out.append(" data-structr-meta-component-type=\"").append(getComponentType()).append("\"");
+			}
+
+			if (getRepeaterType() != null) {
+				out.append(" data-structr-meta-repeater-type=\"").append(getRepeaterType()).append("\"");
+			}
+
+			if (getItemType() != null) {
+				out.append(" data-structr-meta-item-type=\"").append(getItemType()).append("\"");
+			}
+
+			if (getDimensions() != null) {
+				out.append(" data-structr-meta-dimensions=\"").append(getDimensions().toString()).append("\"");
+			}
+
+			out.append(" data-structr-meta-root=\"").append(isComponentRoot() ? "true" : "false").append("\"");
 		}
 	}
 
@@ -1990,5 +2220,256 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	@Override
 	public void setIdAttribute(final String id) throws FrameworkException {
 		wrappedObject.setProperty(traits.key(DOMElementTraitDefinition._HTML_ID_PROPERTY), id);
+	}
+
+
+	/**
+	 * Returns the component type for this component, i.e. traverses
+	 * the parent nodes of an element up to the component root and
+	 * returns the first non-null componentType it finds.
+	 *
+	 * @return the item type or null
+	 */
+	@Override
+	public String getComponentTypeForComponent() {
+
+		DOMNode node = this;
+
+		while (node != null && !node.isComponentRoot()) {
+
+			final String componentType = node.getComponentType();
+			if (componentType != null) {
+
+				return componentType;
+			}
+
+			node = node.getParent();
+		}
+
+		if (node != null) {
+			return node.getComponentType();
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the item type for this component, i.e. traverses
+	 * the parent nodes of an element up to the component root
+	 * and returns the first non-null itemType it finds.
+	 *
+	 * @return the item type or null
+	 */
+	@Override
+	public String getItemTypeForComponent() {
+
+		DOMNode node = this;
+
+		while (node != null && !node.isComponentRoot()) {
+
+			final String itemType = node.getItemType();
+			if (itemType != null) {
+
+				return itemType;
+			}
+
+			node = node.getParent();
+		}
+
+		if (node != null) {
+			return node.getItemType();
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the display mode for this component, i.e. traverses
+	 * the parent nodes of an element up to the component root
+	 * and returns the first non-null displayMode it finds.
+	 *
+	 * @return the item type or null
+	 */
+	public String getDisplayModeForComponent(final SecurityContext securityContext) {
+
+		// can be switched via request parameter
+		// values are input, output and auto
+
+		DOMNode node = this;
+
+		while (node != null && !node.isComponentRoot()) {
+
+			final String displayMode = node.getDisplayMode();
+			if (displayMode != null) {
+
+				return displayMode;
+			}
+
+			node = node.getParent();
+		}
+
+		if (node != null) {
+			return node.getDisplayMode();
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the show labels flag for this component, i.e. traverses
+	 * the parent nodes of an element up to the component root
+	 * and returns the first non-null showLabels flag it finds.
+	 *
+	 * @return the item type or null
+	 */
+	public Boolean getShowLabelsFlagForComponent() {
+
+		DOMNode node = this;
+
+		while (node != null && !node.isComponentRoot()) {
+
+			final Boolean showLabels = node.showLabels();
+			if (showLabels != null && showLabels.booleanValue()) {
+
+				return true;
+			}
+
+			node = node.getParent();
+		}
+
+		if (node != null) {
+			return node.showLabels();
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the fieldSet for this component, i.e. traverses
+	 * the parent nodes of an element up to the component root
+	 * and returns the first non-null fieldSet it finds.
+	 *
+	 * @return the item type or null
+	 */
+	public String getFieldSetForComponent() {
+
+		DOMNode node = this;
+
+		while (node != null && !node.isComponentRoot()) {
+
+			final String fieldSet = node.getFieldSet();
+			if (fieldSet != null) {
+
+				return fieldSet;
+			}
+
+			node = node.getParent();
+		}
+
+		if (node != null) {
+			return node.getFieldSet();
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the reload behaviour for this component, i.e.
+	 * traverses the parent nodes of an element up to the
+	 * component root and returns the first non-null
+	 * reloadBehaviour it finds.
+	 *
+	 * @return the item type or null
+	 */
+	public String getReloadBehaviourForComponent() {
+
+		DOMNode node = this;
+
+		while (node != null && !node.isComponentRoot()) {
+
+			final String reloadBehaviour = node.getReloadBehaviour();
+			if (reloadBehaviour != null) {
+
+				return reloadBehaviour;
+			}
+
+			node = node.getParent();
+		}
+
+		if (node != null) {
+			return node.getReloadBehaviour();
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the role for this component, i.e. traverses
+	 * the parent nodes of an element up to the component root
+	 * and returns the first non-null role it finds.
+	 *
+	 * @return the item type or null
+	 */
+	public String getRoleForComponent() {
+
+		DOMNode node = this;
+
+		while (node != null && !node.isComponentRoot()) {
+
+			final String role = node.getRole();
+			if (role != null) {
+
+				return role;
+			}
+
+			node = node.getParent();
+		}
+
+		if (node != null) {
+			return node.getRole();
+		}
+
+		return null;
+	}
+
+	@Override
+	public ComponentConfiguration getOrCreateComponentConfiguration() {
+
+		final NodeInterface config = getComponentConfiguration();
+		if (config != null) {
+
+			return config.as(ComponentConfiguration.class);
+		}
+
+		try {
+
+			// create new configuration
+			final NodeInterface newConfig = StructrApp.getInstance(getSecurityContext()).create(StructrTraits.COMPONENT_CONFIGURATION,
+				new NodeAttribute<>(Traits.of(StructrTraits.COMPONENT_CONFIGURATION).key(ComponentConfigurationTraitDefinition.DOM_NODE_PROPERTY), this)
+			);
+
+			return newConfig.as(ComponentConfiguration.class);
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+		}
+
+		return null;
+	}
+
+	@Override
+	public DataAdapter getDataAdapter() {
+
+		final ComponentConfiguration config = getComponentConfiguration();
+		if (config != null) {
+
+			final DataAdapter dataAdapter = config.getDataAdapter();
+			if (dataAdapter != null) {
+
+				return dataAdapter;
+			}
+		}
+
+		return null;
 	}
 }

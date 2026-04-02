@@ -24,7 +24,6 @@ import org.structr.core.GraphObject;
 import org.structr.docs.*;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 
 import java.util.Arrays;
 import java.util.List;
@@ -72,14 +71,14 @@ public class ReduceExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedScriptException {
 
 		if (listExpression == null || initialValueExpression == null || reduceExpression == null) {
 			return ERROR_MESSAGE_MAP;
 		}
 
-		Object accumulator = initialValueExpression.evaluate(ctx, entity, hints);
-		Object listSource = listExpression.evaluate(ctx, entity, hints);
+		Object accumulator = initialValueExpression.evaluate(ctx, entity);
+		Object listSource = listExpression.evaluate(ctx, entity);
 
 		if (listSource != null && listSource.getClass().isArray()) {
 			listSource = Arrays.asList((Object[]) listSource);
@@ -96,7 +95,7 @@ public class ReduceExpression extends Expression {
 				ctx.setConstant("accumulator", accumulator);
 				ctx.setConstant("data", obj);
 
-				accumulator = reduceExpression.evaluate(ctx, entity, hints);
+				accumulator = reduceExpression.evaluate(ctx, entity);
 			}
 
 			ctx.setConstant("accumulator", oldAccValue);
@@ -107,7 +106,7 @@ public class ReduceExpression extends Expression {
 	}
 
 	@Override
-	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException, UnlicensedScriptException {
 		return source;
 	}
 

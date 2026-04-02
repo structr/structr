@@ -53,9 +53,7 @@ public class ChildrenCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(false);
 
-		final RelationshipFactory factory = new RelationshipFactory(getWebSocket().getSecurityContext());
-		final NodeInterface node          = getNode(webSocketData.getId());
-
+		final NodeInterface node = getNode(webSocketData.getId());
 		if (node == null) {
 
 			return;
@@ -63,11 +61,11 @@ public class ChildrenCommand extends AbstractCommand {
 
 		final List<GraphObject> result = new LinkedList();
 
-		if (node.is(StructrTraits.PAGE)) {
+		if (node.is(StructrTraits.DOM_NODE)) {
 
-			final Page page = node.as(Page.class);
+			final DOMNode domNode = node.as(DOMNode.class);
 
-			for (final DOMNode child : page.getChildren()) {
+			for (final DOMNode child : domNode.getChildren()) {
 
 				result.add(child);
 			}

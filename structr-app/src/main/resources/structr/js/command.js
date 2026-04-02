@@ -585,26 +585,74 @@ let Command = {
 			return StructrWS.sendObj(obj, resolve);
 		}));
 	},
+    /**
+     * Send an APPEND_WIDGET command to the server.
+     *
+     * The server will create nodes from the given source and
+     * append them as children of the node with the given parent id.
+     *
+     * If the node was child of a parent before, it will be
+     * removed from the former parent before being appended
+     * to the new one.
+     */
+    appendWidget: function(source, parentId, pageId, widgetHostBaseUrl, attributes, config, processDeploymentInfo, callback) {
+        let obj = {
+            command: 'APPEND_WIDGET',
+            pageId: pageId,
+            data: {
+                widgetHostBaseUrl: widgetHostBaseUrl,
+                parentId: parentId,
+                source: source,
+                processDeploymentInfo: (processDeploymentInfo || false),
+                config: config
+            }
+        };
+        if (attributes) {
+            $.extend(obj.data, attributes);
+        }
+        return StructrWS.sendObj(obj, callback);
+    },
 	/**
-	 * Send an APPEND_WIDGET command to the server.
+	 * Send an WRAP_IN_WIDGET command to the server.
 	 *
 	 * The server will create nodes from the given source and
-	 * append them as children of the node with the given parent id.
-	 *
-	 * If the node was child of a parent before, it will be
-	 * removed from the former parent before being appended
-	 * to the new one.
-	 *
+	 * wrap the node with the given id with the newly created
+	 * node, moving all its children to the new node.
 	 */
-	appendWidget: function(source, parentId, pageId, widgetHostBaseUrl, attributes, processDeploymentInfo, callback) {
+	wrapInWidget: function(source, nodeId, pageId, widgetHostBaseUrl, attributes, config, processDeploymentInfo, callback) {
 		let obj = {
-			command: 'APPEND_WIDGET',
+			command: 'WRAP_IN_WIDGET',
 			pageId: pageId,
 			data: {
 				widgetHostBaseUrl: widgetHostBaseUrl,
-				parentId: parentId,
+				nodeId: nodeId,
 				source: source,
-				processDeploymentInfo: (processDeploymentInfo || false)
+				processDeploymentInfo: (processDeploymentInfo || false),
+				config: config
+			}
+		};
+		if (attributes) {
+			$.extend(obj.data, attributes);
+		}
+		return StructrWS.sendObj(obj, callback);
+	},
+	/**
+	 * Send an REPLACE_WIDGET command to the server.
+	 *
+	 * The server will create nodes from the given source and
+	 * replace the node with the given id with the newly created
+     * node, moving all its children to the new node.
+	 */
+	replaceWidget: function(source, nodeId, pageId, widgetHostBaseUrl, attributes, config, processDeploymentInfo, callback) {
+		let obj = {
+			command: 'REPLACE_WIDGET',
+			pageId: pageId,
+			data: {
+				widgetHostBaseUrl: widgetHostBaseUrl,
+				nodeId: nodeId,
+				source: source,
+				processDeploymentInfo: (processDeploymentInfo || false),
+                config: config
 			}
 		};
 		if (attributes) {
@@ -1313,21 +1361,14 @@ let Command = {
 	},
 	/**
 	 * Send a GET_SUGGESTIONS command to the server.
-	 *
-	 * This command send id, name, tag and a list of
-	 * CSS classes to the server to obtain a list of widget-like
-	 * templates that the user can choose from.
-	 *
 	 */
-	getSuggestions: function(id, name, tag, classes, callback) {
+	getSuggestions: function(id, mode, callback) {
 		let obj  = {
 			command: 'GET_SUGGESTIONS',
-			data: {
-				htmlId: id,
-				name: name,
-				tag: tag,
-				classes: classes
-			}
+            id: id,
+            data: {
+                mode: mode
+            }
 		};
 		return StructrWS.sendObj(obj, callback);
 	},

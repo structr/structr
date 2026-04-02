@@ -27,6 +27,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.DataAdapter;
+import org.structr.core.entity.DataSource;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
@@ -77,14 +79,11 @@ public class IncludeFunction extends UiCommunityFunction {
 				return null;
 			}
 
-			final PropertyKey<DOMNode> sharedCompKey = Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.SHARED_COMPONENT_PROPERTY);
 			final SecurityContext securityContext    = ctx.getSecurityContext();
 			final App app                            = StructrApp.getInstance(securityContext);
-			final List<NodeInterface> nodeList       = app.nodeQuery(StructrTraits.DOM_NODE).name((String)sources[0]).getAsList();
 
 			RenderContext innerCtx = null;
 			boolean useBuffer      = false;
-			DOMNode node           = null;
 
 			if (ctx.isRenderContext()) {
 
@@ -101,40 +100,24 @@ public class IncludeFunction extends UiCommunityFunction {
 				innerCtx.getBuffer().append("<structr:include data-caller-id=\"").append(caller.toString()).append("\">");
 			}
 
-			/**
-			 * Nodes can be included via their name property These nodes MUST: 1. be unique in name 2. NOT be in the trash => have an ownerDocument AND a parent (public
-			 * users are not allowed to see the __ShadowDocument__ ==> this check must either be made in a superuser-context OR the __ShadowDocument could be made public?)
-			 *
-			 * These nodes can be: 1. somewhere in the pages tree 2. in the shared components 3. both ==> causes a problem because we now have multiple nodes with the same
-			 * name (one shared component and multiple linking instances of that component)
-			 *
-			 * INFOS:
-			 *
-			 * - If a DOMNode has "syncedNodes" it MUST BE a shared component - If a DOMNodes "sharedComponent" is set it MUST BE AN INSTANCE of a shared component => Can
-			 * we safely ignore these? I THINK SO!
-			 */
-			for (final NodeInterface n : nodeList) {
+			final DOMNode node = getNodeForInclude(app, sources[0].toString());
+			if (node != null) {
 
-				final DOMNode domNode = n.as(DOMNode.class);
+				// save current component
+				final DOMNode previousComponent = innerCtx.getCurrentComponent();
 
-				// IGNORE everything that REFERENCES a shared component! (or is in the trash)
-				if (n.getProperty(sharedCompKey) == null && !domNode.inTrash()) {
+				// store (possible) new current component
+				innerCtx.setPossibleCurrentComponent(caller);
 
-					// the DOMNode is either a shared component OR a named node in the pages tree
-					if (node == null) {
+				final String value = renderNode(securityContext, ctx, innerCtx, sources, app, node, useBuffer);
 
-						node = domNode;
+				// restore previous component
+				innerCtx.setCurrentComponent(previousComponent);
 
-					} else {
-
-						// ERROR: we have found multiple DOMNodes with the same name
-						logger.warn(getName() + "(): Ambiguous node name '" + sources[0] + "' (" + StringUtils.join(nodeList, ", ") + ")");
-						return "";
-					}
-				}
+				return value;
 			}
 
-			return renderNode(securityContext, ctx, innerCtx, sources, app, node, useBuffer);
+			return "";
 
 		} catch (ArgumentNullException pe) {
 
@@ -205,7 +188,7 @@ public class IncludeFunction extends UiCommunityFunction {
 
 			if (sources.length == 3 && sources[1] instanceof Iterable && sources[2] instanceof String dataKey) {
 
-				final Iterable<GraphObject> iterable = FunctionDataSource.map((Iterable)sources[1]);
+				final Iterable<GraphObject> iterable = FunctionDataSource.map((Iterable) sources[1]);
 
 				innerCtx.setListSource(iterable);
 				node.renderNodeList(securityContext, innerCtx, 0, dataKey);
@@ -284,6 +267,48 @@ public class IncludeFunction extends UiCommunityFunction {
 			// output needs to be returned as a function result
 			return StringUtils.join(innerCtx.getBuffer().getQueue(), "");
 		}
+	}
+
+	protected DOMNode getNodeForInclude(final App app, final String name) throws FrameworkException {
+
+		final PropertyKey<DOMNode> sharedCompKey = Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.SHARED_COMPONENT_PROPERTY);
+		final List<NodeInterface> nodeList       = app.nodeQuery(StructrTraits.DOM_NODE).name(name).getAsList();
+		DOMNode node = null;
+
+		/**
+		 * Nodes can be included via their name property These nodes MUST: 1. be unique in name 2. NOT be in the trash => have an ownerDocument AND a parent (public
+		 * users are not allowed to see the __ShadowDocument__ ==> this check must either be made in a superuser-context OR the __ShadowDocument could be made public?)
+		 *
+		 * These nodes can be: 1. somewhere in the pages tree 2. in the shared components 3. both ==> causes a problem because we now have multiple nodes with the same
+		 * name (one shared component and multiple linking instances of that component)
+		 *
+		 * INFOS:
+		 *
+		 * - If a DOMNode has "syncedNodes" it MUST BE a shared component - If a DOMNodes "sharedComponent" is set it MUST BE AN INSTANCE of a shared component => Can
+		 * we safely ignore these? I THINK SO!
+		 */
+		for (final NodeInterface n : nodeList) {
+
+			final DOMNode domNode = n.as(DOMNode.class);
+
+			// IGNORE everything that REFERENCES a shared component! (or is in the trash)
+			if (n.getProperty(sharedCompKey) == null && !domNode.inTrash()) {
+
+				// the DOMNode is either a shared component OR a named node in the pages tree
+				if (node == null) {
+
+					node = domNode;
+
+				} else {
+
+					// ERROR: we have found multiple DOMNodes with the same name
+					logger.warn(getName() + "(): Ambiguous node name '" + name + "' (" + StringUtils.join(nodeList, ", ") + ")");
+					return null;
+				}
+			}
+		}
+
+		return node;
 	}
 
 	@Override

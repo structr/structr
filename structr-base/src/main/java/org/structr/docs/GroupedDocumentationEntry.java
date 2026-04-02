@@ -38,27 +38,30 @@ public class GroupedDocumentationEntry extends DocumentationEntry {
 	@Override
 	public void addLines(final List<String> lines, final String... additionalInfo) {
 
-		final String category = additionalInfo[0];
+		if (additionalInfo.length > 0) {
 
-		List<String> list = linesPerCategory.get(category);
-		if (list == null) {
+			final String category = additionalInfo[0];
 
-			list = new LinkedList<>();
-			linesPerCategory.put(category, list);
+			List<String> list = linesPerCategory.get(category);
+			if (list == null) {
 
-			if (titleSuffix != null && !category.endsWith(titleSuffix)) {
+				list = new LinkedList<>();
+				linesPerCategory.put(category, list);
 
-				list.add("## " + category + " " + titleSuffix);
+				if (titleSuffix != null && !category.endsWith(titleSuffix)) {
 
-			} else {
+					list.add("## " + category + " " + titleSuffix);
 
-				list.add("## " + category);
+				} else {
+
+					list.add("## " + category);
+				}
+
+				list.add("");
 			}
 
-			list.add("");
+			list.addAll(lines);
 		}
-
-		list.addAll(lines);
 	}
 
 	@Override

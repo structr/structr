@@ -156,7 +156,7 @@ let _Pager = {
 
 						let prefix = (Structr.legacyRequestParameters === true) ? '' : '_';
 						let params = Object.assign({
-							[prefix + 'sort']:     _Pager.sortKey[id],
+                            [prefix + 'sort']:     _Pager.sortKey[id],
 							[prefix + 'order']:    _Pager.sortOrder[id],
 							[prefix + 'pageSize']: _Pager.pageSize[id],
 							[prefix + 'page']:     _Pager.page[id],

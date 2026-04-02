@@ -19,6 +19,7 @@
 package org.structr.schema.action;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +38,7 @@ import org.structr.core.property.*;
 import org.structr.core.traits.Traits;
 import org.structr.docs.*;
 import org.structr.schema.parser.DatePropertyGenerator;
+import org.structr.web.datasource.TagWithCSSInfo;
 
 import java.io.File;
 import java.io.IOException;
@@ -853,6 +855,23 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		return value;
 	}
 
+	public static Object intOrString(final Object value) {
+
+		if (value instanceof Number n) {
+			return n;
+		}
+
+		if (value instanceof String s) {
+
+			if (NumberUtils.isCreatable(s)) {
+
+				return NumberUtils.createNumber(s);
+			}
+		}
+
+		return value;
+	}
+
 	// ----- protected methods -----
 	protected List<Documentable> getContextHintsForTypes(final String lastToken) {
 
@@ -888,6 +907,91 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		}
 
 		return hints;
+	}
+
+	protected String getStringOrNull(final Object[] sources, final int index) {
+
+		if (index < sources.length && sources[index] != null) {
+
+			return sources[index].toString();
+		}
+
+		return null;
+	}
+
+	protected int getIntOrDefault(final Object[] sources, final int index, final int defaultValue) {
+
+		if (index < sources.length && sources[index] != null) {
+
+			if (sources[index] instanceof Number) {
+				return ((Number)sources[index]).intValue();
+			}
+		}
+
+		return defaultValue;
+	}
+
+	protected <T> T getOrNull(final List<T> sources, final int index) {
+
+		if (sources.size() > index) {
+
+			return sources.get(index);
+		}
+
+		return null;
+	}
+
+	protected List<String> splitAndTrim(final String source, final String separator) {
+
+		final List<String> list = new LinkedList<>();
+
+		if (source != null) {
+
+			for (final String part : source.split(separator)) {
+
+				final String trimmed = part.trim();
+
+				if (StringUtils.isNotBlank(trimmed)) {
+
+					list.add(trimmed);
+				}
+			}
+		}
+
+		return list;
+	}
+	protected void addStringOrNull(final Object[] sources, final int index, final List<String> toAdd) {
+
+		final String value = getStringOrNull(sources, index);
+		if (value != null) {
+
+			toAdd.add(value);
+		}
+	}
+
+	protected String joinNonNullStrings(final String... parts) {
+
+		final List<String> list = new ArrayList<>(5);
+
+		for (final String part : parts) {
+
+			if (part != null) {
+
+				list.add(part);
+			}
+		}
+
+		return StringUtils.join(list, "-");
+	}
+
+	protected TagWithCSSInfo getWrapperElement(final String source) {
+
+		if (source != null) {
+
+			return new TagWithCSSInfo(source);
+		}
+
+		return null;
 	}
 
 	// ----- private methods -----

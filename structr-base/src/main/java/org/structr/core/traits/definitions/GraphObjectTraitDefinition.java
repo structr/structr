@@ -22,13 +22,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.UnknownClientException;
 import org.structr.api.UnknownDatabaseException;
+import org.structr.common.AccessControllable;
+import org.structr.common.ContextStore;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
+import org.structr.core.api.Methods;
+import org.structr.core.api.NamedArguments;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
@@ -38,9 +46,12 @@ import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.AddToIndex;
+import org.structr.core.traits.operations.graphobject.Evaluate;
 import org.structr.core.traits.operations.graphobject.IndexPassiveProperties;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.core.traits.operations.propertycontainer.GetVisibilityFlags;
+import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Function;
 
 import java.util.*;
 
@@ -153,6 +164,56 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 					final Traits traits = obj.getTraits();
 
 					return obj.getProperty(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY));
+				}
+			},
+
+			Evaluate.class,
+			new Evaluate() {
+
+				@Override
+				public Object evaluate(final AbstractNode node, final ActionContext actionContext, final String key, final String defaultValue, final GraphObject contextObject, final int row, final int column) throws FrameworkException {
+
+					final Traits traits = node.getTraits();
+
+					switch (key) {
+
+						case "owner":
+							final Principal owner = node.as(AccessControllable.class).getOwnerNode();
+							if (owner != null) {
+
+								return owner;
+							}
+
+							return null;
+
+						case "_path":
+							return node.getPath(actionContext.getSecurityContext());
+
+						default:
+
+							// evaluate object value or return default
+							if (traits.hasKey(key)) {
+
+								final PropertyKey propertyKey = traits.key(key);
+								final Object value = node.getProperty(propertyKey, actionContext.getPredicate());
+								if (value != null) {
+
+									return value;
+								}
+							}
+
+							final AbstractMethod method = Methods.resolveMethod(traits, key);
+							if (method != null) {
+
+								final ContextStore contextStore = actionContext.getContextStore();
+								final Map<String, Object> temp  = contextStore.getTemporaryParameters();
+								final Arguments arguments       = NamedArguments.fromMap(temp);
+
+								return method.execute(actionContext, node, arguments);
+							}
+
+							return Function.numberOrString(defaultValue);
+					}
 				}
 			}
 		);

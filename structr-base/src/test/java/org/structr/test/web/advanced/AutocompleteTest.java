@@ -313,12 +313,14 @@ public class AutocompleteTest extends StructrUiTest {
 
 		int i=0;
 
+		assertEquals("Invalid autocomplete result", "adapter",                                  ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "applicationRootPath",                   ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "applicationStore",                      ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "baseUrl",                               ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "children",                              ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "current",                               ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "data",                                  ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		assertEquals("Invalid autocomplete result", "dataSource",                            ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "host",                                  ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "id",                                    ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "ip",                                    ((GraphObjectMap)result.get(i++)).toMap().get("text"));
@@ -335,6 +337,7 @@ public class AutocompleteTest extends StructrUiTest {
 		assertEquals("Invalid autocomplete result", "queryString",                           ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "request",                               ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "session",                               ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		assertEquals("Invalid autocomplete result", "template",                              ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "tenantIdentifier",                      ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "this",                                  ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "value",                                 ((GraphObjectMap)result.get(i++)).toMap().get("text"));

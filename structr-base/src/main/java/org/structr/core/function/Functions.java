@@ -35,7 +35,6 @@ import org.structr.core.script.polyglot.function.DoInNewTransactionFunction;
 import org.structr.core.script.polyglot.function.DoPrivilegedFunction;
 import org.structr.docs.Documentable;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
 import java.text.Normalizer;
@@ -195,7 +194,7 @@ public class Functions {
 					}
 					current = current.getParent();
 					if (current == null) {
-						throw new StructrScriptException(422, "Invalid expression: mismatched closing bracket after " + token.getContent(), token.getRow(), token.getColumn());
+						//throw new StructrScriptException(422, "Invalid expression: mismatched closing bracket after " + token.getContent(), token.getRow(), token.getColumn());
 					}
 					tokens.add(")");
 					level--;
@@ -259,11 +258,11 @@ public class Functions {
 		return root;
 	}
 
-	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final Snippet snippet, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
+	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final Snippet snippet) throws FrameworkException, UnlicensedScriptException {
 
 		final Expression root = parse(snippet, new ParseResult(), false);
 
-		return root.evaluate(actionContext, entity, hints);
+		return root.evaluate(actionContext, entity);
 	}
 
 	public static String cleanString(final Object input) {

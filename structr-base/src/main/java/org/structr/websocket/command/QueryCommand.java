@@ -89,10 +89,13 @@ public class QueryCommand extends AbstractCommand {
 
 		if (sortKey != null) {
 
-			final PropertyKey sortProperty = type.key(sortKey);
-			final String sortOrder         = webSocketData.getSortOrder();
+			for (final String key : sortKey.split(",")) {
 
-			query.sort(sortProperty, "desc".equals(sortOrder));
+				final PropertyKey sortProperty = type.key(key);
+				final String sortOrder = webSocketData.getSortOrder();
+
+				query.sort(sortProperty, "desc".equals(sortOrder));
+			}
 		}
 
 		if (andProperties != null) {

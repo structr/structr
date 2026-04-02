@@ -36,7 +36,7 @@ import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
-import org.structr.schema.action.EvaluationHints;
+import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.path.PagePath;
 import org.structr.web.traits.wrappers.PagePathTraitWrapper;
 
@@ -80,7 +80,8 @@ public class PagePathTraitDefinition extends AbstractNodeTraitDefinition {
 			new JavaMethod("updatePathAndParameters", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+					final SecurityContext securityContext = actionContext.getSecurityContext();
 					return entity.as(PagePath.class).updatePathAndParameters(securityContext, arguments.toMap());
 				}
 			}

@@ -22,7 +22,7 @@ export class Frontend {
 
 	constructor() {
 
-		// Javascript event handlers are called with 'this' bound to the current target,
+		// JavaScript event handlers are called with 'this' bound to the current target,
 		// but we need 'this' to be the current class instances, so we create bound
 		// functions that have 'this' bound to the class instance. This is necessary
 		// because we must remove and re-add event handlers after a partial reload,
@@ -46,31 +46,37 @@ export class Frontend {
 
 	resolveData(event, target) {
 
-		let data     = target.dataset;
-		let resolved = {};
+        let resolved = {};
+        let data = target.dataset;
 
-		// active input fields with a name
-		if (target.name && target.name.length > 0) {
+        // active input fields with a name
+        if (target.name && target.name.length > 0) {
 
-			resolved[target.name] = this.resolveElementValue(target);
-		}
+            resolved[target.name] = this.resolveElementValue(target);
+        }
 
-		for (const key in data) {
+        for (const key in data) {
 
-			let value = data[key];
-			if (!value) {
-				continue;
-			}
+            let value = data[key];
+            if (!value) {
+                continue;
+            }
 
-//            if (key.startsWith('structr') && key !== 'structrTarget' && key !== 'structrIdExpression' && key !== 'structrMethod') {
-//				continue;
-//            }
+            resolved[key] = this.resolveValue(key, value, data, event, target);
+        }
 
-			resolved[key] = this.resolveValue(key, value, data, event, target);
+        // form-based approach if the event target is a form
+        if (target.tagName === 'FORM' && event.type === 'submit') {
 
-		}
+            let formData = new FormData(target);
 
-		return resolved;
+            for (let key of new Set(formData.keys())) {
+                let element = target.elements[key];
+                resolved[key] = this.resolveElementValue(element);
+            }
+        }
+
+        return resolved;
 	}
 
 	resolveValue(key, value, data, event, target) {
@@ -215,7 +221,12 @@ export class Frontend {
 
 				// all other node types
 				return element.value;
-			}
+
+			} else if (element.length) {
+
+                // radionodelist?
+                return element.values().filter(v => v.checked).map(v => v.value).toArray();
+            }
 
 			return null;
 		}
@@ -259,8 +270,11 @@ export class Frontend {
 				window.location.href = headers.twofactorloginpage + '?' + params.toString();
 				break;
 
+            case 401:
+                this.handleLogout();
+                break;
+
 			case 400:
-			case 401:
 			case 403:
 			case 404:
 			case 405:
@@ -420,7 +434,7 @@ export class Frontend {
 
 		} else {
 
-			this.reloadPartial(targetString, parameters, element);
+			this.reloadPartial(targetString, parameters, element, false, options);
 		}
 	}
 
@@ -463,8 +477,6 @@ export class Frontend {
 
 	handleNetworkError(element, error, status) {
 
-		console.log(error);
-
 		console.error({element, error, status});
 
 		if (element) {
@@ -472,11 +484,16 @@ export class Frontend {
 		}
 
 		this.fireEvent('error', { target: element, data: {}, status: status });
+
+        this.handleLogout();
 	}
 
-	reloadPartial(selector, parameters, element, dontRebind) {
+	reloadPartial(selector, parameters, element, dontRebind, options) {
+
+        // TODO for later: avoid reload if all new arguments are identical to the currently loaded state
 
 		let reloadTargets = document.querySelectorAll(selector);
+        let resets = [];
 
 		if (!reloadTargets.length) {
 			console.log('Container with selector ' + selector + ' not found.');
@@ -509,32 +526,55 @@ export class Frontend {
 				}).then(data => {
 					if (data.result && data.result[0]) {
 						let id = data.result[0].id;
-						this.replacePartial(container, id, element, dataset, parameters, dontRebind);
+						this.replacePartial(container, id, element, dataset, parameters, dontRebind, options);
 					}
 				});
 
 			} else {
 
-				this.replacePartial(container, id, element, dataset, parameters, dontRebind);
+				this.replacePartial(container, id, element, dataset, parameters, dontRebind, options);
 			}
-
 		}
+
+        if (options && options.updateHistory && options.updateHistory == true) {
+
+            const url = new URL(window.location.href);
+
+            for (let key in parameters) {
+                if (parameters[key]) {
+                    if (key === 'current') {
+                        url.pathname = url.pathname.split('/').toSpliced(2, 1, parameters[key]).join('/');
+                    } else {
+                        url.searchParams.set(key, parameters[key]);
+                    }
+                } else {
+                    url.searchParams.delete(key);
+                }
+            }
+
+            for (const channel of options.resets) {
+                url.searchParams.delete(channel);
+            }
+            history.pushState({}, '', url);
+        }
 	}
 
 	replaceContentInContainer = (container, html) => {
 		let content = document.createElement('template');
 		content.insertAdjacentHTML('afterbegin', html);
 		if (content && content.children && content.children.length) {
-			container.replaceWith(content.children[0]);
+			let newNode = content.children[0];
+			container.replaceWith(newNode);
+			return newNode;
 		} else {
 			container.replaceWith('');
 		}
 	};
 
-	replacePartial(container, id, element, data, parameters, dontRebind) {
+	replacePartial(container, id, element, data, parameters, dontRebind, options) {
 
 		let base   = '/structr/html/' + id;
-		let params = this.encodeRequestParameters(data, parameters);
+		let params = this.encodeRequestParameters(data, parameters, options);
 		let uri    = base + params;
 
 		fetch(uri, {
@@ -544,15 +584,15 @@ export class Frontend {
 			if (!response.ok) { throw { status: response.status, statusText: response.statusText } };
 			return response.text();
 		}).then(html => {
-			this.replaceContentInContainer(container, html);
-			container.dispatchEvent(new Event('structr-reload'));
-			this.fireEvent('reload', {target: container});
+			let newNode = this.replaceContentInContainer(container, html);
+			newNode.dispatchEvent(new Event('structr-reload'));
+			this.fireEvent('reload', {target: newNode});
 
-			let restoreFocus = container.querySelector('*[name="' + this.focusName + '"][data-structr-id="' + this.focusId + '"][data-structr-target="' + this.focusTarget + '"]');
+			let restoreFocus = newNode.querySelector('*[name="' + this.focusName + '"][data-structr-target="' + this.focusTarget + '"]');
 			if (restoreFocus) {
 
-				if (restoreFocus.focus && typeof restoreFocus.focus === 'function') { restoreFocus.focus(); }
-				if (restoreFocus.select && typeof restoreFocus.select === 'function') { restoreFocus.select(); }
+				restoreFocus.focus({ focusVisible: true });
+				restoreFocus.select();
 			}
 
 			if (!dontRebind) {
@@ -641,10 +681,25 @@ export class Frontend {
 	 * @param {type} override
 	 * @returns {String} the URI-encoded objects
 	 */
-	encodeRequestParameters(fromDataset, override) {
+	encodeRequestParameters(fromDataset, override, options) {
 
-		let params  = {};
-		let current = '';
+        let searchParams = new URLSearchParams(window.location.search);
+        let params  = {};
+        let current = '';
+
+        if (options && options.resets && options.resets.length) {
+            for (const channel of options.resets) {
+                searchParams.delete(channel);
+            }
+        }
+
+        for (let key of new Set(searchParams.keys())) {
+            let values = searchParams.getAll(key);
+            params[key] = values.length === 1 ? values[0] : values;
+            if (params[key] === null) {
+                delete params[key];
+            }
+        }
 
 		// current object set?
 		if (fromDataset.currentObjectId) {
@@ -676,13 +731,17 @@ export class Frontend {
 			for (let key of Object.keys(override)) {
 
 				let value = override[key];
-				if (value === '') {
+				if (value === '' || value === null) {
 
 					delete params[key];
 
 				} else {
 
-					params[key] = value;
+                    if (key === 'current') {
+                        current = '/' + value;
+                    } else {
+                        params[key] = value;
+                    }
 				}
 			}
 		}
@@ -712,14 +771,11 @@ export class Frontend {
 		let preventDefault  = true;
 		let stopPropagation = true;
 
-		let target     = event.currentTarget;
-		let data       = target.dataset;
-		let id         = data.structrId;
-		let options    = this.parseOptions(target);
+		let target = event.currentTarget;
+		let data = target.dataset;
+		let id = data.structrId;
+		let options = this.parseOptions(target);
 		let delay      = 0;
-
-		// check browser validation
-		if (target.reportValidity && !target.reportValidity()) return;
 
 		// handle options
 		if (options.delay) { delay = options.delay; }
@@ -727,8 +783,11 @@ export class Frontend {
 		if (options.stopPropagation !== undefined) { stopPropagation = options.stopPropagation; }
 
 		// allow element to override preventDefault and stopPropagation
-		if (preventDefault) { event.preventDefault(); }
-		if (stopPropagation) { event.stopPropagation(); }
+        if (preventDefault) { event.preventDefault(); }
+        if (stopPropagation) { event.stopPropagation(); }
+
+        // check browser validation
+        if (target.reportValidity && !target.reportValidity()) return;
 
 		if (delay === 0) {
 
@@ -752,7 +811,7 @@ export class Frontend {
 		let sortKey = this.getFirst(data.structrTarget);
 
 		// special handling for frontend-only events (pagination, sorting)
-		if (sortKey && data[sortKey]) {
+		if (sortKey && (data[sortKey] || target.name === sortKey)) {
 
 			this.notifyElementActionStarted(target);
 
@@ -760,11 +819,11 @@ export class Frontend {
 			// data-structr-target attribute. This is currently only true for pagination and sorting, where
 			// data-structr-target="page" and data-page="1" (which comes from the backend), or
 			// data-structr-target="sort" and data-sort="sortKeyName".
+            // addition for filter fields: name=sortKeyName now also selects this branch
 
 			this.handlePagination(event, target, options);
 
 		} else if (id) {
-
 
 			// Dialog
 			if (data.structrDialogType === 'okcancel') {
@@ -805,7 +864,6 @@ export class Frontend {
 
 	handlePagination(event, target, options) {
 
-		//let target       = event.target;
 		let data  = target.dataset;
 		let selector     = data.structrTarget;
 		let reloadTarget = data.structrSuccessTargets;
@@ -828,6 +886,11 @@ export class Frontend {
 			sortKey  = parts[0].trim();
 			orderKey = parts[1].trim();
 		}
+
+        // check for key event and Escape key to reset the search field
+        if (options && options.resetWithEsc && event && event.key && event.key === 'Escape') {
+            event.target.value = '';
+        }
 
 		let resolved        = this.resolveData(event, target);
 		parameters[sortKey] = resolved[sortKey];
@@ -853,6 +916,20 @@ export class Frontend {
 				}
 			}
 		}
+
+		// if this is a filter query, we need to reset the pagination value
+		if (options && options.resetPagination && options.resetPagination.length > 0) {
+			parameters[options.resetPagination] = 1;
+			options.updateHistory = true;
+		}
+
+        // update history
+        options.updateHistory = true;
+        options.resets = [];
+
+        if (data.resets) {
+            options.resets = data.resets.split(' ');
+        }
 
 		this.handleResult(target, { result: parameters }, 200, options);
 	}
@@ -941,6 +1018,10 @@ export class Frontend {
 		this.reloadPartial('[data-structr-id="' + id + '"]', null, el, true);
 	}
 
+    handleLogout() {
+        window.alert('You have been logged out. Please log back in and reload the page.');
+    }
+
 	bindEvents() {
 
 		document.querySelectorAll('*[data-structr-rendering-mode]').forEach(elem => {
@@ -981,7 +1062,7 @@ export class Frontend {
 				}
 			}
 
-			if (elem.dataset.structrId && elem.dataset.structrTarget && elem.name) {
+			if (elem.dataset.structrTarget && elem.name) {
 
 				// capture focus
 				elem.removeEventListener('focus', this.boundHandleFocus);

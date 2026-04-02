@@ -18,11 +18,18 @@
  */
 package org.structr.web.traits.wrappers;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Node;
+import org.jsoup.parser.Parser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.web.entity.Widget;
+import org.structr.web.importer.ImporterWithXMLParser;
 import org.structr.web.traits.definitions.WidgetTraitDefinition;
+
+import java.util.List;
 
 public class WidgetTraitWrapper extends AbstractNodeTraitWrapper implements Widget {
 
@@ -46,8 +53,23 @@ public class WidgetTraitWrapper extends AbstractNodeTraitWrapper implements Widg
 	}
 
 	@Override
+	public String getShortDescription() {
+		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.SHORT_DESCRIPTION_PROPERTY));
+	}
+
+	@Override
 	public boolean isWidget() {
 		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.IS_WIDGET_PROPERTY));
+	}
+
+	@Override
+	public String getSvgPath() {
+		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.SVG_ICON_PATH_PROPERTY));
+	}
+
+	@Override
+	public String getThumbnailPath() {
+		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.THUMBNAIL_PATH_PROPERTY));
 	}
 
 	@Override
@@ -66,7 +88,27 @@ public class WidgetTraitWrapper extends AbstractNodeTraitWrapper implements Widg
 	}
 
 	@Override
+	public boolean isExclusiveInParent() {
+		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.IS_EXCLUSIVE_PROPERTY));
+	}
+
+	@Override
+	public boolean isRenderTemplate() {
+		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.IS_RENDER_TEMPLATE_PROPERTY));
+	}
+
+	@Override
 	public String[] getSelectors() {
 		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.SELECTORS_PROPERTY));
+	}
+
+	@Override
+	public String getComponentType() {
+		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.COMPONENT_TYPE_PROPERTY));
+	}
+
+	@Override
+	public Integer getDimensions() {
+		return wrappedObject.getProperty(traits.key(WidgetTraitDefinition.DIMENSIONS_PROPERTY));
 	}
 }

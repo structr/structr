@@ -500,6 +500,15 @@ public class ListActiveElementsCommand extends AbstractCommand {
 
 		} else */
 
+		if (node.getDataAdapter() != null) {
+
+			final String id = node.getDataAdapter().getUuid();
+
+			addIfNotPresent(nodes, createNodeFromMap(index, id, "DataSource", "ListDataSource"));
+
+			addEdge(edges, id, node.getUuid(), Map.of());
+		}
+
 		if (node.getFunctionQuery() != null) {
 
 			final String id = "repeater_" + Functions.cleanString(node.getFunctionQuery());
