@@ -1931,6 +1931,11 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		if (source != null) {
 
+			// Block protocol-relative URLs (e.g. //evil.com/path)
+			if (source.startsWith("//")) {
+				return null;
+			}
+
 			try {
 
 				final URI uri = URI.create(source).normalize();
