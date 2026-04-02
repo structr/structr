@@ -32,7 +32,7 @@ import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.process.ProcessTraits;
 import org.structr.process.engine.ProcessEngine;
-import org.structr.schema.action.EvaluationHints;
+import org.structr.schema.action.ActionContext;
 
 import java.util.Map;
 import java.util.Set;
@@ -101,7 +101,8 @@ public class BpmnDefinitionsTraitDefinition extends AbstractNodeTraitDefinition 
 			new JavaMethod("startProcess", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+					final SecurityContext securityContext = actionContext.getSecurityContext();
 					final ProcessEngine engine = new ProcessEngine(securityContext);
 					return engine.startProcess((NodeInterface) entity);
 				}

@@ -32,7 +32,7 @@ import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.process.ProcessTraits;
 import org.structr.process.engine.ProcessEngine;
-import org.structr.schema.action.EvaluationHints;
+import org.structr.schema.action.ActionContext;
 
 import java.util.Date;
 import java.util.Map;
@@ -96,7 +96,8 @@ public class ProcessInstanceTraitDefinition extends AbstractNodeTraitDefinition 
 			new JavaMethod("signalEvent", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+					final SecurityContext securityContext = actionContext.getSecurityContext();
 					final ProcessEngine engine = new ProcessEngine(securityContext);
 					final java.util.Map<String, Object> params = arguments.toMap();
 					final String eventBpmnId = (String) params.remove("eventBpmnId");

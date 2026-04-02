@@ -44,6 +44,7 @@ public class ProcessTokenTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String STATUS_PROPERTY           = "status";
 	public static final String PROCESS_INSTANCE_PROPERTY = "processInstance";
 	public static final String AT_ELEMENT_PROPERTY       = "atElement";
+	public static final String ACCESS_TOKEN_PROPERTY     = "accessToken";
 
 	// Status constants
 	public static final String STATUS_ACTIVE    = "active";
@@ -60,16 +61,17 @@ public class ProcessTokenTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> status              = new StringProperty(STATUS_PROPERTY).indexed();
 		final Property<NodeInterface> processInst  = new StartNode(traitsInstance, PROCESS_INSTANCE_PROPERTY, ProcessTraits.PROCESS_INSTANCE_HAS_TOKEN);
 		final Property<NodeInterface> atElement    = new EndNode(traitsInstance, AT_ELEMENT_PROPERTY, ProcessTraits.PROCESS_TOKEN_AT_ELEMENT);
+		final Property<String> accessToken         = new StringProperty(ACCESS_TOKEN_PROPERTY).unique().indexed();
 
-		return newSet(status, processInst, atElement);
+		return newSet(status, processInst, atElement, accessToken);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
 		return Map.of(
-			PropertyView.Public, newSet(STATUS_PROPERTY, AT_ELEMENT_PROPERTY),
-			PropertyView.Ui, newSet(STATUS_PROPERTY, PROCESS_INSTANCE_PROPERTY, AT_ELEMENT_PROPERTY)
+			PropertyView.Public, newSet(STATUS_PROPERTY, AT_ELEMENT_PROPERTY, ACCESS_TOKEN_PROPERTY),
+			PropertyView.Ui, newSet(STATUS_PROPERTY, PROCESS_INSTANCE_PROPERTY, AT_ELEMENT_PROPERTY, ACCESS_TOKEN_PROPERTY)
 		);
 	}
 

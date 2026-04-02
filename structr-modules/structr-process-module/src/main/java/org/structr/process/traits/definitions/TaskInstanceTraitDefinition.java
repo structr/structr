@@ -32,7 +32,7 @@ import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.process.engine.ProcessEngine;
 import org.structr.process.ProcessTraits;
-import org.structr.schema.action.EvaluationHints;
+import org.structr.schema.action.ActionContext;
 
 import java.util.Date;
 import java.util.Map;
@@ -97,7 +97,8 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 			new JavaMethod("complete", false, false) {
 
 				@Override
-				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+					final SecurityContext securityContext = actionContext.getSecurityContext();
 					final ProcessEngine engine = new ProcessEngine(securityContext);
 					// Pass the arguments map as process parameter values
 					final java.util.Map<String, Object> params = arguments.toMap();
