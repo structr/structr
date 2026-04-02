@@ -157,9 +157,9 @@ public class NotifyFunction extends Function<Object, Object> {
 				message      // plaintext fallback (same content, stripped by mail client)
 			);
 
-		} catch (EmailException eex) {
+		} catch (final EmailException eex) {
 
-			throw new FrameworkException(422, "Failed to send email notification: " + eex.getMessage(), eex);
+			throw new FrameworkException(422, "Failed to send email notification: " + eex.getMessage(), eex.getCause());
 		}
 	}
 
