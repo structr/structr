@@ -288,7 +288,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 							// check dynamic paths
 							final DOMNode pathResult = PagePaths.findPageAndResolveParameters(renderContext, path);
-							if (pathResult != null) {
+							if (pathResult != null && isVisibleForSite(request, pathResult.as(Page.class))) {
 
 								rootElement   = pathResult;
 							}
@@ -1708,9 +1708,10 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	 * @param page
 	 * @return
 	 */
-	public static boolean isVisibleForSite(final HttpServletRequest request, final Page page) {
+	public static boolean isVisibleForSite(final HttpServletRequest request, final Page page) throws FrameworkException {
 
-		final List<Site> sites = Iterables.toList(page.getSites());
+		final List<NodeInterface> sites = StructrApp.getInstance().nodeQuery(StructrTraits.SITE).getAsList();
+
 		if (sites == null || sites.isEmpty()) {
 
 			return true;
@@ -1721,7 +1722,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		boolean isVisible = false;
 
-		for (final Site site : sites) {
+		for (final Site site : Iterables.toList(page.getSites())) {
 
 				if (StringUtils.isBlank(serverName) || serverName.equals(site.getHostname())) {
 					isVisible = true;
