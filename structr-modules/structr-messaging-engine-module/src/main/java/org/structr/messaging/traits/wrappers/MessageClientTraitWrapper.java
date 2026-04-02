@@ -29,6 +29,7 @@ import org.structr.messaging.engine.entities.MessageSubscriber;
 import org.structr.messaging.traits.definitions.MessageClientTraitDefinition;
 import org.structr.messaging.traits.operations.MessageClientOperations;
 import org.structr.rest.RestMethodResult;
+import org.structr.schema.action.ActionContext;
 
 public class MessageClientTraitWrapper extends AbstractNodeTraitWrapper implements MessageClient {
 
@@ -53,36 +54,36 @@ public class MessageClientTraitWrapper extends AbstractNodeTraitWrapper implemen
 	}
 
 	@Override
-	public final RestMethodResult sendMessage(final SecurityContext securityContext, final String topic, final String message) throws FrameworkException {
+	public final RestMethodResult sendMessage(final ActionContext actionContext, final String topic, final String message) throws FrameworkException {
 
 		final MessageClientOperations operations = traits.getMethod(MessageClientOperations.class);
 		if (operations != null) {
 
-			return operations.sendMessage(securityContext, this, topic, message);
+			return operations.sendMessage(actionContext, this, topic, message);
 		}
 
 		return null;
 	}
 
 	@Override
-	public final RestMethodResult subscribeTopic(final SecurityContext securityContext, final String topic) throws FrameworkException {
+	public final RestMethodResult subscribeTopic(final ActionContext actionContext, final String topic) throws FrameworkException {
 
 		final MessageClientOperations operations = traits.getMethod(MessageClientOperations.class);
 		if (operations != null) {
 
-			return operations.subscribeTopic(securityContext, this, topic);
+			return operations.subscribeTopic(actionContext, this, topic);
 		}
 
 		return null;
 	}
 
 	@Override
-	public final RestMethodResult unsubscribeTopic(final SecurityContext securityContext, final String topic) throws FrameworkException {
+	public final RestMethodResult unsubscribeTopic(final ActionContext actionContext, final String topic) throws FrameworkException {
 
 		final MessageClientOperations operations = traits.getMethod(MessageClientOperations.class);
 		if (operations != null) {
 
-			return operations.unsubscribeTopic(securityContext, this, topic);
+			return operations.unsubscribeTopic(actionContext, this, topic);
 		}
 
 		return null;

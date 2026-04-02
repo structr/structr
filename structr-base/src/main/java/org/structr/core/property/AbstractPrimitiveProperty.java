@@ -40,6 +40,7 @@ import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.docs.*;
 import org.structr.docs.ontology.ConceptType;
 import org.structr.schema.Transformer;
+import org.structr.web.datasource.FieldDefinition;
 
 import java.util.*;
 

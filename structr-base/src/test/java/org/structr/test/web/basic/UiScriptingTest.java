@@ -56,7 +56,6 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.auth.UiAuthenticator;
@@ -1719,7 +1718,7 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface project1 = app.nodeQuery(projectType).name("Project 1").getFirst();
-			invokeMethod(securityContext, project1, "doTest", new LinkedHashMap<>(), false, new EvaluationHints());
+			invokeMethod(securityContext, project1, "doTest", new LinkedHashMap<>(), false);
 
 			tx.success();
 
@@ -1730,7 +1729,7 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface project2 = app.nodeQuery(projectType).name("Project 2").getFirst();
-			invokeMethod(securityContext, project2, "doTest", new LinkedHashMap<>(), false, new EvaluationHints());
+			invokeMethod(securityContext, project2, "doTest", new LinkedHashMap<>(), false);
 
 			tx.success();
 

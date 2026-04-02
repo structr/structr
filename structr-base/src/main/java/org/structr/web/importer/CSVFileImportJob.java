@@ -39,6 +39,7 @@ import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
 import org.structr.module.StructrModule;
 import org.structr.module.api.APIBuilder;
 import org.structr.rest.common.CsvHelper;
+import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.File;
 
 import java.io.InputStream;
@@ -190,7 +191,7 @@ public class CSVFileImportJob extends FileImportJob {
 
 							} else {
 
-								mapper.transformInput(threadContext, targetEntityType.getName(), input);
+								mapper.transformInput(new ActionContext(threadContext), targetEntityType.getName(), input);
 
 								if (currentImportType.equals(IMPORT_TYPE.NODE)) {
 

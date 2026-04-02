@@ -102,4 +102,16 @@ public abstract class AbstractTraitDefinition implements TraitDefinition {
 
 		return traits.getRelation();
 	}
+
+	protected <T> T coalesce(final T... options) {
+
+		for (final T option : options) {
+
+			if (option != null) {
+				return option;
+			}
+		}
+
+		return null;
+	}
 }

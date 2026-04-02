@@ -24,7 +24,6 @@ import org.structr.core.GraphObject;
 import org.structr.docs.*;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 
 import java.util.List;
 
@@ -54,16 +53,16 @@ public class RootExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedScriptException {
 
 		if (!expressions.isEmpty()) {
 
-			Object value = expressions.get(0).evaluate(ctx, entity, hints);
+			Object value = expressions.get(0).evaluate(ctx, entity);
 
 			for (final Expression expression : expressions) {
 
 				// evaluate expressions from left to right
-				value = expression.transform(ctx, entity, value, hints);
+				value = expression.transform(ctx, entity, value);
 			}
 
 			return value;
@@ -73,7 +72,7 @@ public class RootExpression extends Expression {
 	}
 
 	@Override
-	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException, UnlicensedScriptException {
 		return source;
 	}
 

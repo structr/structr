@@ -20,13 +20,16 @@ package org.structr.websocket.command;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.traits.StructrTraits;
 import org.structr.web.entity.Widget;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -46,6 +49,7 @@ public class AppendWidgetCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(true);
 
+		final SecurityContext securityContext = webSocketData.getSecurityContext();
 		final String pageId                   = webSocketData.getPageId();
 		final String parentId                 = webSocketData.getNodeDataStringValue("parentId");
 		final String baseUrl                  = webSocketData.getNodeDataStringValue("widgetHostBaseUrl");
@@ -82,7 +86,18 @@ public class AppendWidgetCommand extends AbstractCommand {
 
 				try {
 
-					Widget.expandWidget(getWebSocket().getSecurityContext(), page, parentDOMNode, baseUrl, webSocketData.getNodeData(), processDeploymentInfo);
+					// create temporary parent for Widget to expand in
+					final DOMNode tmpParent = page.createElement("div");
+
+					Widget.expandWidget(getWebSocket().getSecurityContext(), page, tmpParent, baseUrl, webSocketData.getNodeData(), processDeploymentInfo);
+
+					// move children
+					for (final DOMNode newNode : tmpParent.getChildren()) {
+						parentDOMNode.appendChild(newNode);
+					}
+
+					// remove temporary parent
+					StructrApp.getInstance(securityContext).delete(tmpParent);
 
 					TransactionCommand.registerNodeCallback(parentDOMNode, callback);
 

@@ -48,4 +48,7 @@ public class JsonSingleInput implements IJsonInput {
 		return jsonInputs;
 	}
 
+	public JsonInput getFirst() {
+		return jsonInputs.get(0);
+	}
 }

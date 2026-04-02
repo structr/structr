@@ -161,7 +161,7 @@ let _Widgets = {
 			}
 		});
 
-		_Pager.initPager('local-widgets', 'Widget', 1, 1000, 'treePath', 'asc');
+		_Pager.initPager('local-widgets', 'Widget', 1, 1000, 'treePath,name', 'asc');
 		let _wPager = _Pager.addPager('local-widgets', _Widgets.localWidgetsEl[0], true, 'Widget', 'public', (entities) => {
 
 			for (let entity of entities) {
@@ -645,147 +645,323 @@ let _Widgets = {
 			});
 		}
 	},
-	insertWidgetIntoPage: (widget, target, pageId, callback) => {
+    insertWidgetIntoPage: (widget, target, pageId, callback) => {
 
-		let url               = _Widgets.getWidgetServerUrl();
-		let widgetSource      = widget.source;
-		let widgetDescription = widget.description;
-		let widgetConfig      = widget.configuration;
+        let url = _Widgets.getWidgetServerUrl();
+        let processDeploymentInfo = false;
+        let config = {
+            componentType: widget.componentType,
+            dimensions: widget.dimensions,
+        };
 
-		if (widgetConfig) {
-			try {
-				widgetConfig = JSON.parse(widgetConfig);
-			} catch (e) {
-				new ErrorMessage().text("Cannot parse Widget configuration").show();
-				return;
-			}
-		}
+        if (widget.configuration) {
 
-		if (widgetSource) {
+            processDeploymentInfo = widget.configuration.processDeploymentInfo;
 
-			if ((widgetDescription !== null && widgetDescription !== "") || widgetConfig ) {
+            _Widgets.showWidgetConfigurationDialog(widget, (attrs) => {
+                Command.appendWidget(widget.source, target.id, pageId, url, attrs, config, processDeploymentInfo, callback);
+            });
 
-				let { dialogText } = _Dialogs.custom.openDialog('Configure Widget', undefined, ['insert-widget-dialog']);
-				let appendWidgetButton = _Dialogs.custom.appendCustomDialogButton('<button id="appendWidget">Append Widget</button>');
+        } else {
 
-				if ((widgetDescription === null || widgetDescription.trim() === "")) {
-					widgetDescription = '<p>Fill out the following parameters to correctly configure the widget.</p>'
-				}
+            Command.appendWidget(widget.source, target.id, pageId, url, {}, config, processDeploymentInfo, callback);
+        }
+    },
+	wrapElementInWidget: (widget, target, pageId, callback) => {
 
-				dialogText.insertAdjacentHTML('beforeend', `
-					${widgetDescription}
-					<table class="props widget-props"></table>
-				`);
+		let url = _Widgets.getWidgetServerUrl();
+		let processDeploymentInfo = false;
+		let config = {
+			componentType: widget.componentType,
+			dimensions: widget.dimensions,
+		};
 
-				let table = $('table', $(dialogText));
+		if (widget.configuration) {
 
-				let getOptionsAsText = (options, defaultValue) => {
+			processDeploymentInfo = widget.configuration.processDeploymentInfo;
 
-					if (Object.prototype.toString.call(options) === '[object Array]') {
-
-						return options.map(option => `<option ${((option === defaultValue) ? 'selected' : '')}>${option}</option>`).join('');
-
-					} else if (Object.prototype.toString.call(options) === '[object Object]') {
-
-						return Object.keys(options).map(option => `<option ${((option === defaultValue) ? 'selected' : '')} value="${option}">${options[option]}</option>`).join('');
-					}
-				};
-
-				let sortedWidgetConfig = _Widgets.sortWidgetConfigurationByPosition(widgetConfig);
-
-				for (let configElement of sortedWidgetConfig) {
-
-					let label = configElement[0];
-					if (label === 'processDeploymentInfo') {
-						return;
-					}
-
-					let cleanedLabel = label.replace(/[^\w]/g, '_');
-
-					let fieldConfig  = configElement[1];
-					let fieldType    = fieldConfig.type;
-					let defaultValue = fieldConfig.default || '';
-					let titleLabel   = fieldConfig.title || label;
-					let placeholder  = fieldConfig.placeholder || titleLabel;
-
-					switch (fieldType) {
-						case "select":
-							let options = fieldConfig.options || ["-"];
-
-							let buffer = `<tr><td><span id="label-${cleanedLabel}">${titleLabel}</span></td><td><select id="${cleanedLabel}" class="form-field" data-key="${label}">`;
-							let delayedAppendFunction;
-
-							if (fieldConfig.dynamicOptionsFunction) {
-
-								let dynamicOptionsFunction = new Function("callback", fieldConfig.dynamicOptionsFunction);
-
-								let delayedAppendOptions = function (options) {
-									delayedAppendFunction = new function() {
-										$(`select#${cleanedLabel}`).append(getOptionsAsText(options, defaultValue));
-									};
-								};
-
-								dynamicOptionsFunction(delayedAppendOptions);
-
-							} else {
-
-								buffer += getOptionsAsText(options, defaultValue);
-							}
-
-							buffer += '</select></td></tr>';
-
-							table.append(buffer);
-							if (delayedAppendFunction) {
-								delayedAppendFunction();
-							}
-							break;
-
-						case "textarea":
-							let rows = (fieldConfig.rows ? parseInt(fieldConfig.rows) || 5 : 5);
-							table.append(`<tr><td><span id="label-${cleanedLabel}">${titleLabel}</span></td><td><textarea rows=${rows} class="form-field" id="${label}" placeholder="${placeholder}" data-key="${label}">${defaultValue}</textarea></td></tr>`);
-							break;
-
-						case "input":
-						default:
-							table.append(`<tr><td><span id="label-${cleanedLabel}">${titleLabel}</span></td><td><input class="form-field" type="text" id="${label}" placeholder="${placeholder}" data-key="${label}" value="${defaultValue}"></td></tr>`);
-					}
-
-					if (fieldConfig.help) {
-						_Helpers.appendInfoTextToElement({
-							text: fieldConfig.help,
-							element: $(`#label-${cleanedLabel}`)
-						});
-					}
-				}
-
-				appendWidgetButton.addEventListener('click', (e) => {
-
-					e.stopPropagation();
-
-					let attrs = {};
-
-					for (let field of table[0].querySelectorAll('.form-field')) {
-						let key = field.dataset['key'];
-						if (widgetConfig[key]) {
-							attrs[key] = field.value;
-						}
-					}
-
-					Command.appendWidget(widgetSource, target.id, pageId, url, attrs, widgetConfig.processDeploymentInfo, callback);
-
-					_Dialogs.custom.clickDialogCancelButton();
-				});
-
-			} else {
-
-				Command.appendWidget(widgetSource, target.id, pageId, url, {}, (widgetConfig ? widgetConfig.processDeploymentInfo : false), callback);
-			}
+			_Widgets.showWidgetConfigurationDialog(widget, (attrs) => {
+				Command.wrapInWidget(widget.source, target.id, pageId, url, attrs, config, processDeploymentInfo, callback);
+			});
 
 		} else {
 
-			new WarningMessage().text("Ignoring empty Widget").show();
+			Command.wrapInWidget(widget.source, target.id, pageId, url, {}, config, processDeploymentInfo, callback);
 		}
 	},
+	replaceElementWithWidget: (widget, target, pageId, callback) => {
+
+		let url = _Widgets.getWidgetServerUrl();
+        let processDeploymentInfo = false;
+        let config = {
+            componentType: widget.componentType,
+            dimensions: widget.dimensions,
+        };
+
+		if (widget.configuration) {
+
+            processDeploymentInfo = widget.configuration.processDeploymentInfo;
+
+            _Widgets.showWidgetConfigurationDialog(widget, (attrs) => {
+                Command.replaceWidget(widget.source, target.id, pageId, url, attrs, config, processDeploymentInfo, callback);
+            });
+
+		} else {
+
+			Command.replaceWidget(widget.source, target.id, pageId, url, {}, config, processDeploymentInfo, callback);
+		}
+	},
+    showWidgetConfigurationDialog: async (widget, callback) => {
+
+        let widgetDescription = widget.description;
+        let widgetConfig      = widget.configuration;
+
+        if (widgetConfig) {
+            try {
+                widgetConfig = JSON.parse(widgetConfig);
+            } catch (e) {
+                new ErrorMessage().text("Cannot parse Widget configuration").show();
+                return;
+            }
+        }
+
+        let { dialogText } = _Dialogs.custom.openDialog('Insert Widget', undefined, ['insert-widget-dialog']);
+        let appendWidgetButton = _Dialogs.custom.appendCustomDialogButton('<button id="appendWidget" class="action">Append Widget</button>');
+
+        if ((widgetDescription === null || widgetDescription.trim() === "")) {
+            widgetDescription = ''
+        }
+
+        if (widgetDescription.length) {
+
+            dialogText.insertAdjacentHTML('beforeend', `
+                        <h3>Description</h3>
+                        <p>${widgetDescription}</p>
+                    `);
+        }
+
+        dialogText.insertAdjacentHTML('beforeend', `
+                        <h3>Settings</h3>
+                        <p>Please select values for the following settings before inserting the widget.</p>
+                        <form id="widget-form"><div class="widget-props grid grid-cols-3 gap-8"></div></formi>
+                    `);
+
+        let form = $('div', $(dialogText));
+
+        let getOptionsAsText = (options, defaultValue) => {
+
+            if (Object.prototype.toString.call(options) === '[object Array]') {
+
+                return options.map(option => `<option ${((option === defaultValue) ? 'selected' : '')}>${option}</option>`).join('');
+
+            } else if (Object.prototype.toString.call(options) === '[object Object]') {
+
+                return Object.keys(options).map(option => `<option ${((option === defaultValue) ? 'selected' : '')} value="${option}">${options[option]}</option>`).join('');
+            }
+        };
+
+        let sortedWidgetConfig = _Widgets.sortWidgetConfigurationByPosition(widgetConfig);
+
+        for (let configElement of sortedWidgetConfig) {
+
+            let label = configElement[0];
+            if (label === 'processDeploymentInfo') {
+                return;
+            }
+
+            let cleanedLabel = label.replace(/[^\w]/g, '_');
+            let fieldConfig  = configElement[1];
+            let fieldType    = fieldConfig.type;
+            let defaultValue = fieldConfig.default || '';
+            let titleLabel   = fieldConfig.title || label;
+            let placeholder  = fieldConfig.placeholder || titleLabel;
+
+            switch (fieldType) {
+
+                case 'datasource': {
+                        let sources = await Command.queryPromise('DataSource', 1000, 1, 'name', 'asc', {});
+                        let channels = await Command.queryPromise('ComponentConfiguration', 1000, 1, 'name', 'asc', {});
+                        let values = {};
+                        for (let value of sources) {
+                            values['node:' + value.name] = value.name;
+                        }
+                        for (let channel of channels) {
+                            if (channel.role === 'controller' && channel.selectionChannel && channel.selectionChannel !== 'current') {
+                                values['channel:' + channel.selectionChannel] = 'The "' + channel.selectionChannel + '" channel';
+                            }
+                        }
+                        form.append(`
+                            <div>
+                                <h4 id="label-${cleanedLabel}" data-comment="moep">${titleLabel}</h4>
+                                <select required data-info="select-source" id="${cleanedLabel}" class="form-field" data-key="${label}">
+                                    ${getOptionsAsText(values, defaultValue)}
+                                    <option value="channel:current">The "current" object</option>
+                                    <option value="create-new-data-source">+ New data source..</option>
+                                </select>
+                            </div>
+                        `);
+                        document.querySelector(`#${cleanedLabel}`).dispatchEvent(new CustomEvent('change', {}));
+                    }
+                    break;
+
+                case 'fields':
+                    form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select required id="${cleanedLabel}" class="form-field" data-key="${label}"></select></div>`);
+                    {
+                        let typeSelect = document.querySelector('select[data-info="select-type"]');
+                        if (typeSelect) {
+                            typeSelect.addEventListener('change', async (e) => {
+                                let id = typeSelect.value;
+                                Command.get(id, 'id,type,name,mapping', (info) => {
+                                    let s = document.querySelector(`select#${cleanedLabel}`);
+                                    let fields = JSON.parse(info.mapping); // right now it's JSON...
+                                    s.insertAdjacentHTML('beforeend', getOptionsAsText(Object.keys(fields).sort(), 'default'));
+                                    s.dispatchEvent(new CustomEvent('change', {}));
+                                });
+                            });
+                        } else {
+                            console.log('No typeselect');
+                        }
+                    }
+                    break;
+
+                case 'schema-type':
+                    let types = await _Schema.caches.getFilteredSchemaTypes(t => !t.isBuiltin);
+                    types = types.map(t => t.name);
+                    form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select required data-info="select-type" id="${cleanedLabel}" class="form-field" data-key="${label}"><option value="">--- Select type ---</option>${getOptionsAsText(types, defaultValue)}</select></div>`);
+                    break;
+
+                case 'schema-property':
+                    form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select required id="${cleanedLabel}" class="form-field" data-key="${label}"></select></div>`);
+                    {
+                        let typeSelect = document.querySelector('select[data-info="select-type"]');
+                        if (typeSelect) {
+                            typeSelect.addEventListener('change', async (e) => {
+                                let id = typeSelect.value;
+                                Command.get(id, 'id,type,name,keys', (info) => {
+                                    let s = document.querySelector(`select#${cleanedLabel}`);
+                                    s.insertAdjacentHTML('beforeend', getOptionsAsText(Object.keys(info.keys).sort(), 'name'));
+                                    s.dispatchEvent(new CustomEvent('change', {}));
+                                });
+                            });
+                        } else {
+                            console.log('No typeselect');
+                        }
+                    }
+                    break;
+
+                case 'schema-method':
+                    form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select required id="${cleanedLabel}" class="form-field" data-key="${label}"></select></div>`);
+                    {
+                        let typeSelect = document.querySelector('select[data-info="select-type"]');
+                        if (typeSelect) {
+                            typeSelect.addEventListener('change', async (e) => {
+                                Command.getTypeInfo(typeSelect.value, (types) => {
+                                    for (let info of types) {
+                                        let s = document.querySelector(`select#${cleanedLabel}`);
+                                        s.insertAdjacentHTML('beforeend', getOptionsAsText(info.schemaMethods.map(v => v.name).sort(), 'public'));
+                                        s.dispatchEvent(new CustomEvent('change', {}));
+                                    }
+                                });
+                            });
+                        }
+                    }
+                    break;
+
+                case 'select':
+                    let options = fieldConfig.options || ["-"];
+
+                    let buffer = `<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select required id="${cleanedLabel}" class="form-field" data-key="${label}">`;
+                    let delayedAppendFunction;
+
+                    if (fieldConfig.dynamicOptionsFunction) {
+
+                        let dynamicOptionsFunction = new Function("callback", fieldConfig.dynamicOptionsFunction);
+
+                        let delayedAppendOptions = function (options) {
+                            delayedAppendFunction = new function() {
+                                $(`select#${cleanedLabel}`).append(getOptionsAsText(options, defaultValue));
+                            };
+                        };
+
+                        dynamicOptionsFunction(delayedAppendOptions);
+
+                    } else {
+
+                        buffer += getOptionsAsText(options, defaultValue);
+                    }
+
+                    buffer += '</select></div>';
+
+                    form.append(buffer);
+                    if (delayedAppendFunction) {
+                        delayedAppendFunction();
+                    }
+                    break;
+
+                case 'textarea':
+                    let rows = (fieldConfig.rows ? parseInt(fieldConfig.rows) || 5 : 5);
+                    form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><textarea required rows=${rows} class="form-field" id="${label}" placeholder="${placeholder}" data-key="${label}">${defaultValue}</textarea></div>`);
+                    break;
+
+                case 'input':
+                default:
+                    form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><input required class="form-field" type="text" id="${label}" placeholder="${placeholder}" data-key="${label}" value="${defaultValue}"></div>`);
+            }
+
+            if (fieldConfig.help) {
+                _Helpers.appendInfoTextToElement({
+                    text: fieldConfig.help,
+                    element: $(`#label-${cleanedLabel}`)
+                });
+            }
+        }
+
+        // disable button until selections are made
+        appendWidgetButton.disabled = true;
+        appendWidgetButton.classList.add('disabled');
+
+        let formElement = document.querySelector('#widget-form');
+
+        let updateButtonState = () => {
+            if (formElement.checkValidity()) {
+                appendWidgetButton.classList.remove('disabled');
+                appendWidgetButton.disabled = false;
+            } else {
+                appendWidgetButton.disabled = true;
+                appendWidgetButton.classList.add('disabled');
+            }
+        };
+
+        for (let e of formElement.elements) {
+            e.addEventListener('change', updateButtonState);
+        }
+
+        appendWidgetButton.addEventListener('click', (e) => {
+
+            e.stopPropagation();
+
+            let attrs = {};
+
+            for (let field of form[0].querySelectorAll('.form-field')) {
+                let key = field.dataset['key'];
+                if (widgetConfig[key]) {
+                    attrs[key] = field.value;
+                }
+            }
+
+            // async callback
+            if (callback && typeof callback === 'function') {
+                callback(attrs);
+            }
+
+            _Dialogs.custom.clickDialogCancelButton();
+        });
+
+        _Helpers.activateCommentsInElement(dialogText, { helpElementCss: { 'font-size': '13px'} });
+
+        // update button state initially, just in case the form is already valid..
+        updateButtonState();
+    },
 	sortWidgetConfigurationByPosition: (config) => {
 
 		let entries = Object.entries(config);
@@ -857,6 +1033,64 @@ let _Widgets = {
 
 		return [];
 	},
+
+    sortables: {
+        enableDragSortForDetailsSummary: (container, callback) => {
+            let dragged = null;
+            const indicator = document.createElement('div');
+            indicator.style.cssText = 'height:4px; background:var(--structr-light-green);pointer-events:none;';
+
+            for (const child of container.children) {
+                const handle = document.createElement('span');
+                handle.textContent = '⠿';
+                handle.style.cssText = 'cursor: grab; flex-grow: 0; margin-top: 2px; margin-left: 1rem;';
+                child.querySelector('summary').appendChild(handle);
+                handle.setAttribute('draggable', 'true');
+                handle.addEventListener('dragstart', (e) => {
+                    dragged = child;
+                    const rect = child.getBoundingClientRect();
+                    e.dataTransfer.setDragImage(child, rect.width - 10, rect.height / 2);
+                    setTimeout(() => child.style.opacity = '0.8', 0);
+                });
+                handle.addEventListener('dragend', () => {
+                    child.style.opacity = '';
+                    dragged = null;
+                    indicator.remove();
+                });
+            }
+
+            function getDropTarget(y) {
+                for (const child of [...container.children]) {
+                    if (child === indicator || child === dragged) continue;
+                    const rect = child.getBoundingClientRect();
+                    if (y < rect.top + rect.height / 2) return child;
+                }
+                return null;
+            }
+
+            container.addEventListener('dragover', e => {
+                e.preventDefault();
+                if (!dragged) return;
+                const before = getDropTarget(e.clientY);
+                before ? container.insertBefore(indicator, before) : container.appendChild(indicator);
+            });
+
+            container.addEventListener('dragleave', e => {
+                if (!container.contains(e.relatedTarget)) indicator.remove();
+            });
+
+            container.addEventListener('drop', e => {
+                e.preventDefault();
+                if (!dragged) return;
+                indicator.remove();
+                const before = getDropTarget(e.clientY);
+                before ? container.insertBefore(dragged, before) : container.appendChild(dragged);
+                if (callback && typeof callback === 'function') {
+                    callback();
+                }
+            });
+        }
+    },
 
 	templates: {
 		slideout: config => `

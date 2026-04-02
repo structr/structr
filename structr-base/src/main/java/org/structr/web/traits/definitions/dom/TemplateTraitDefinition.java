@@ -22,6 +22,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.api.AbstractMethod;
+import org.structr.core.datasources.Channel;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
@@ -30,19 +31,17 @@ import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
-import org.structr.docs.Documentation;
-import org.structr.docs.ontology.ConceptType;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
+import org.structr.web.datasource.TagWithCSSInfo;
+import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Template;
 import org.structr.web.traits.operations.RenderContent;
 import org.structr.web.traits.wrappers.dom.TemplateTraitWrapper;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -98,6 +97,7 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 
 						out.append("\"");
 
+						node.renderWidgetConfiguration(out, editMode);
 						node.renderSharedComponentConfiguration(out, editMode);
 						node.renderCustomAttributes(out, securityContext, renderContext); // include custom attributes in templates as well!
 
@@ -125,8 +125,92 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 
 					} else {
 
-						// "super" call using static method..
+						final TagWithCSSInfo componentTag   = new TagWithCSSInfo("structr-component");
+						final ComponentConfiguration config = node.getComponentConfiguration();
+						final AsyncBuffer buffer            = renderContext.getBuffer();
+
+						// new code for components
+						if (config != null) {
+
+							final Map<String, String> data      = new LinkedHashMap<>();
+							final Set<String> classes           = new LinkedHashSet<>();
+
+							data.put("data-structr-id", node.getUuid());
+
+							final Integer columns = config.getColumns();
+							if (columns != null) {
+
+								classes.add("col-span-" + config.getColumns());
+
+							} else {
+
+								// default grid has 6 columns
+								classes.add("col-span-6");
+							}
+
+							final Channel sourceChannel   = config.getDataSource();
+							final String selectionChannel = config.getSelectionChannel();
+							final String paginationKey    = sourceChannel.getPaginationKey();
+
+
+							final String page = renderContext.getRequestParameter(paginationKey);
+							if (page != null) {
+
+								data.put("data-" + paginationKey, page);
+							}
+
+
+							// data-channel for reload selector, collect all relevant channel names
+							final Set<String> channelNames = new LinkedHashSet<>();
+							if (sourceChannel != null) {
+
+								channelNames.add(sourceChannel.getName());
+							}
+
+							if (selectionChannel != null) {
+								channelNames.add(selectionChannel);
+							}
+
+							// if reload behaviour is "others", we don't want to reload ourselves
+							if (!channelNames.isEmpty() && !"others".equals(node.getReloadBehaviour())) {
+								data.put("data-channel", String.join(" ", channelNames));
+							}
+
+							// current selected value
+							if (selectionChannel != null) {
+
+								final String selectedId  = renderContext.getChannelValue(selectionChannel);
+
+								if (selectedId != null) {
+
+									data.put("data-current-object-id", selectedId);
+									data.put("data-" + selectionChannel, selectedId);
+								}
+							}
+
+							// current selected value
+							if (sourceChannel != null) {
+
+								final String channelName = sourceChannel.getName();
+								final String selectedId  = renderContext.getChannelValue(channelName);
+
+								if (selectedId != null) {
+
+									data.put("data-current-object-id", selectedId);
+									data.put("data-" + channelName, selectedId);
+								}
+							}
+
+							componentTag.formatStartTag(buffer, data, classes);
+						}
+
+						// "super" call using static method.
 						getSuper().renderContent(node, renderContext, depth);
+
+						// new code for components
+						if (config != null) {
+							componentTag.formatEndTag(buffer);
+						}
 					}
 				}
 			}

@@ -26,7 +26,6 @@ import org.structr.core.Services;
 import org.structr.docs.*;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 
 import java.util.List;
 
@@ -71,13 +70,13 @@ public class CacheExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedScriptException {
 
 		if (keyExpression == null) {
 			return "Error: cache(): key expression may not be empty.";
 		}
 
-		final Object keyObject = keyExpression.evaluate(ctx, entity, hints);
+		final Object keyObject = keyExpression.evaluate(ctx, entity);
 		if (keyObject == null) {
 
 			return "Error: cache(): key may not be empty.";
@@ -93,7 +92,7 @@ public class CacheExpression extends Expression {
 			return "Error: cache(): timeout expression may not be empty.";
 		}
 
-		final Object timeoutValue = timeoutExpression.evaluate(ctx, entity, hints);
+		final Object timeoutValue = timeoutExpression.evaluate(ctx, entity);
 		if (timeoutValue == null || !(timeoutValue instanceof Number)) {
 
 			return "Error: cache(): timeout must be non-empty and a number.";
@@ -120,7 +119,7 @@ public class CacheExpression extends Expression {
 
 		// refresh value from value expression (this is the only place the value expression is evaluated)
 		if (cachedValue.isExpired()) {
-			cachedValue.refresh(valueExpression.evaluate(ctx, entity, hints));
+			cachedValue.refresh(valueExpression.evaluate(ctx, entity));
 		}
 
 		return cachedValue.getValue();
@@ -187,7 +186,7 @@ public class CacheExpression extends Expression {
 	}
 
 	@Override
-	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source, final EvaluationHints hints) throws FrameworkException {
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source) throws FrameworkException {
 		return source;
 	}
 

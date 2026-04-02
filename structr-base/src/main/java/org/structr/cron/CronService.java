@@ -36,8 +36,8 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaService;
+import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
-import org.structr.schema.action.EvaluationHints;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -124,7 +124,7 @@ public class CronService extends Thread implements RunnableService {
 											if (!taskClassName.contains(".")) {
 
 												// check for user-defined function with the given name
-												Actions.callWithSecurityContext(taskClassName, superUserSecurityContext, Collections.EMPTY_MAP);
+												Actions.callWithSecurityContext(taskClassName, superUserSecurityContext, Collections.EMPTY_MAP, "cron");
 
 											} else {
 
@@ -141,7 +141,7 @@ public class CronService extends Thread implements RunnableService {
 
 														if (method != null) {
 
-															method.execute(superUserSecurityContext, null,  new NamedArguments(), new EvaluationHints());
+															method.execute(new ActionContext(superUserSecurityContext), null,  new NamedArguments());
 
 														} else {
 

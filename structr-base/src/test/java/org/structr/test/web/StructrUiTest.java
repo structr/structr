@@ -43,7 +43,7 @@ import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.rest.service.HttpService;
 import org.structr.schema.SchemaService;
-import org.structr.schema.action.EvaluationHints;
+import org.structr.schema.action.ActionContext;
 import org.structr.test.web.entity.traits.definitions.*;
 import org.structr.test.web.entity.traits.definitions.relationships.FourThreeOneToOne;
 import org.structr.test.web.entity.traits.definitions.relationships.TwoFiveOneToMany;
@@ -98,7 +98,7 @@ public abstract class StructrUiTest {
 		Settings.ApplicationHost.setValue(host);
 		Settings.HttpPort.setValue(httpPort);
 
-		Settings.Servlets.setValue("JsonRestServlet WebSocketServlet HtmlServlet UploadServlet OpenAPIServlet");
+		Settings.Servlets.setValue("JsonRestServlet WebSocketServlet HtmlServlet UploadServlet OpenAPIServlet DeploymentServlet");
 
 		// allow use of EncryptedStringProperty
 		Settings.GlobalSecret.setValue("test_secret");
@@ -700,14 +700,12 @@ public abstract class StructrUiTest {
 		}
 	}
 
-	protected Object invokeMethod(final SecurityContext securityContext, final NodeInterface node, final String methodName, final Map<String, Object> parameters, final boolean throwIfNotExists, final EvaluationHints hints) throws FrameworkException {
+	protected Object invokeMethod(final SecurityContext securityContext, final NodeInterface node, final String methodName, final Map<String, Object> parameters, final boolean throwIfNotExists) throws FrameworkException {
 
 		final AbstractMethod method = Methods.resolveMethod(node.getTraits(), methodName);
 		if (method != null) {
 
-			hints.reportExistingKey(methodName);
-
-			method.execute(securityContext, node, NamedArguments.fromMap(parameters), new EvaluationHints());
+			method.execute(new ActionContext(securityContext), node, NamedArguments.fromMap(parameters));
 		}
 
 		if (throwIfNotExists) {

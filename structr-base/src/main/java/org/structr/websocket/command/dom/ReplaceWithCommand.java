@@ -131,40 +131,10 @@ public class ReplaceWithCommand extends CreateAndAppendDOMNodeCommand {
 			}
 
 			newNode = getDOMNode(newNode.getUuid());
-
 			if (newNode != null) {
 
-				// move all children from refNode to newNode
-				for (final DOMNode child : refNode.getChildren()) {
-					refNode.removeChild(child);
-					newNode.appendChild(child);
-				}
-
-				// replace current node with new one..
-				parentNode.replaceChild(newNode, refNode);
-
-				// copy attributes etc..
-				DOMNodeTraitWrapper.copyAllAttributes(refNode, newNode);
-
-				// Remove old node from page
-				final PropertyMap changedProperties = new PropertyMap();
-				final Traits traits                 = Traits.of(StructrTraits.DOM_NODE);
-
-				changedProperties.put(traits.key(DOMNodeTraitDefinition.SYNCED_NODES_PROPERTY), Collections.EMPTY_LIST);
-				changedProperties.put(traits.key(DOMNodeTraitDefinition.PAGE_ID_PROPERTY),      null);
-
-				refNode.setProperties(securityContext, changedProperties);
-
-
-				if (inheritVisibilityFlags) {
-
-					copyVisibilityFlags(parentNode, newNode);
-				}
-
-				if (inheritGrantees) {
-
-					copyGrantees(parentNode, newNode);
-				}
+				// do we really want to replace all properties? This might overwrite template source
+				ReplaceWithCommand.replaceNode(securityContext, parentNode, refNode, newNode, true, inheritVisibilityFlags, inheritGrantees);
 			}
 
 			TransactionCommand.registerNodeCallback(newNode, callback);
@@ -187,5 +157,44 @@ public class ReplaceWithCommand extends CreateAndAppendDOMNodeCommand {
 	@Override
 	public boolean requiresEnclosingTransaction() {
 		return true;
+	}
+
+	// ----- public static methods -----
+	public static void replaceNode(final SecurityContext securityContext, final DOMNode parentNode, final DOMNode refNode, final DOMNode newNode, final boolean copyAttributes, final boolean inheritVisibilityFlags, final boolean inheritGrantees) throws FrameworkException {
+
+
+		// move all children from refNode to newNode
+		for (final DOMNode child : refNode.getChildren()) {
+			refNode.removeChild(child);
+			newNode.appendChild(child);
+		}
+
+		// replace current node with new one..
+		parentNode.replaceChild(newNode, refNode);
+
+		// only copy attributes if requested by the caller
+		if (copyAttributes) {
+
+			DOMNodeTraitWrapper.copyAllAttributes(refNode, newNode);
+		}
+
+		// Remove old node from page
+		final PropertyMap changedProperties = new PropertyMap();
+		final Traits traits                 = Traits.of(StructrTraits.DOM_NODE);
+
+		changedProperties.put(traits.key(DOMNodeTraitDefinition.SYNCED_NODES_PROPERTY), Collections.EMPTY_LIST);
+		changedProperties.put(traits.key(DOMNodeTraitDefinition.PAGE_ID_PROPERTY),      null);
+
+		refNode.setProperties(securityContext, changedProperties);
+
+		if (inheritVisibilityFlags) {
+
+			copyVisibilityFlags(parentNode, newNode);
+		}
+
+		if (inheritGrantees) {
+
+			copyGrantees(parentNode, newNode);
+		}
 	}
 }

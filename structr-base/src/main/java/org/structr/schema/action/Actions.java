@@ -161,19 +161,14 @@ public class Actions {
 		}
 	}
 
-	public static Object callAsSuperUser(final String key, final Map<String, Object> parameters) throws FrameworkException, UnlicensedScriptException {
-
-		return callAsSuperUser(key, parameters, null);
-	}
-
-	public static Object callAsSuperUser(final String key, final Map<String, Object> parameters, final HttpServletRequest request) throws FrameworkException, UnlicensedScriptException {
+	public static Object callAsSuperUser(final String key, final Map<String, Object> parameters, final HttpServletRequest request, final String caller) throws FrameworkException, UnlicensedScriptException {
 
 		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance(request);
 
-		return callWithSecurityContext(key, superUserContext, parameters);
+		return callWithSecurityContext(key, superUserContext, parameters, caller);
 	}
 
-	public static Object callWithSecurityContext(final String key, final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException, UnlicensedScriptException {
+	public static Object callWithSecurityContext(final String key, final SecurityContext securityContext, final Map<String, Object> parameters, final String caller) throws FrameworkException, UnlicensedScriptException {
 
 		CachedMethod cachedSource = methodCache.get(key);
 		if (cachedSource == null) {
@@ -216,7 +211,11 @@ public class Actions {
 
 					} else {
 
-						logger.warn("Schema method {} is attached to an entity, will NOT be executed.", key);
+						if ("call".equals(caller)) {
+							throw new FrameworkException(422, "Cannot execute non-static method " + key + " via $.call().");
+						}
+
+						logger.warn("Schema method {} is not static and cannot be called in a static way.", key);
 					}
 				}
 			}

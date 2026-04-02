@@ -76,6 +76,8 @@ When you select an element in the page tree, the main area shows its properties 
 
 This contains basic settings: name, CSS classes, HTML ID, and inline styles. For repeaters, the Function Query and Data Key fields are located here. Show and Hide Conditions control whether the element appears in the output.
 
+When a template element has a ComponentConfiguration (because its Widget source contained a `config` attribute), the General tab shows the component configuration dialog. This dialog lets you set up the DataSource, configure which fields are displayed and how they are rendered, control pagination and filtering, and set the component's role in channel communication. For a detailed description of the dialog and all its settings, see the [Widgets & Components](/structr/docs/ontology/Building%20Applications/Widgets%20&%20Components) chapter.
+
 ### HTML Tab
 
 This is available for HTML elements. Here you can manage HTML attributes – both global attributes and tag-specific ones. Click "Show all attributes" to reveal event handlers like `onclick`. You can add custom attributes with the plus button.

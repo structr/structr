@@ -381,6 +381,7 @@ let _Pages = {
 
 			elements.push({
 				name: 'Wrap element in...',
+                id: 'wrap-element-in',
 				elements: [
 					{
 						name: '... HTML element',
@@ -402,31 +403,29 @@ let _Pages = {
 				]
 			});
 
-			if (entity.isContent !== true) {
-
-				elements.push({
-					name: 'Replace element with...',
-					elements: [
-						{
-							name: '... HTML element',
-							elements: _Elements.sortedElementGroups,
-							forcedClickHandler: handleReplaceWithAction
-						},
-						// {
-						// 	name: '... Template element',
-						// 	clickHandler: () => {
-						// 		handleReplaceWithAction('#template');
-						// 	}
-						// },
-						{
-							name: '... div element',
-							clickHandler: () => {
-								handleReplaceWithAction('div');
-							}
+			elements.push({
+				name: 'Replace element with...',
+                id: 'replace-element-with',
+				elements: [
+					{
+						name: '... HTML element',
+						elements: _Elements.sortedElementGroups,
+						forcedClickHandler: handleReplaceWithAction
+					},
+					// {
+					// 	name: '... Template element',
+					// 	clickHandler: () => {
+					// 		handleReplaceWithAction('#template');
+					// 	}
+					// },
+					{
+						name: '... div element',
+						clickHandler: () => {
+							handleReplaceWithAction('div');
 						}
-					]
-				});
-			}
+					}
+				]
+			});
 		}
 
 		if (isPage) {
@@ -562,9 +561,6 @@ let _Pages = {
 					}
 				]
 			});
-		} else {
-
-            console.log(entity)
         }
 
 		_Elements.contextMenu.appendContextMenuSeparator(elements);
@@ -748,7 +744,17 @@ let _Pages = {
 
 				default:
 
-					if (entity.isContent) {
+                    if (entity.componentConfiguration) {
+
+                        document.querySelector('a[href="#pages:html"]').closest('li').classList.add('hidden');
+                        document.querySelector('a[href="#pages:preview"]').closest('li').classList.add('hidden');
+                        document.querySelector('a[href="#pages:repeater"]').closest('li').classList.add('hidden');
+                        document.querySelector('a[href="#pages:events"]').closest('li').classList.add('hidden');
+                        document.querySelector('a[href="#pages:link"]').closest('li').classList.add('hidden');
+                        document.querySelector('a[href="#pages:active"]').closest('li').classList.add('hidden');
+                        document.querySelector('a[href="#pages:routing"]').closest('li').classList.add('hidden');
+
+                    } else if (entity.isContent) {
 						document.querySelector('a[href="#pages:html"]').closest('li').classList.add('hidden');
 						document.querySelector('a[href="#pages:editor"]').closest('li').classList.remove('hidden');
 						document.querySelector('a[href="#pages:events"]').closest('li').classList.add('hidden');
@@ -763,9 +769,9 @@ let _Pages = {
 					break;
 			}
 
-			if (!_Entities.isLinkableEntity(entity)) {
-				document.querySelector('a[href="#pages:link"]').closest('li').classList.add('hidden');
-			}
+            if (!_Entities.isLinkableEntity(entity)) {
+                document.querySelector('a[href="#pages:link"]').closest('li').classList.add('hidden');
+            }
 
 			let isEntityInSharedComponents = (entity.pageId === _Pages.shadowPage.id);
 			let isEntityInTrash = (!entity.isPage && !entity.pageId);
@@ -836,7 +842,9 @@ let _Pages = {
 				so, if no urlHash is present, we select a tab from the defaults
 			*/
 
-			if (obj.isContent) {
+            if (obj.componentConfiguration) {
+                urlHash = '#pages:general';
+            } else if (obj.isContent) {
 				urlHash = '#pages:editor';
 			} else if (obj.isDOMNode) {
 				urlHash = '#pages:html';
@@ -2297,7 +2305,8 @@ let _Pages = {
 						tile.addEventListener('click', () => {
 							Command.create({ type: 'Page' }, (page) => {
 								Structr.removeExpandedNode(page.id);
-								Command.appendWidget(widget.source, page.id, page.id, null, {}, true);
+                                let config = { componentType: widget.componentType, dimensions: widget.dimensions };
+								Command.appendWidget(widget.source, page.id, page.id, null, {}, config, true);
 								_Dialogs.custom.dialogCancelBaseAction();
 							});
 						});
@@ -2889,7 +2898,7 @@ let _Pages = {
 				_Pages.previews.getComments(element).forEach(function(c) {
 
 					let inner  = $(_Pages.previews.getNonCommentSiblings(c.node));
-					let newDiv = $(`<span data-structr-id="${c.id}" data-structr-raw-content="${_Helpers.escapeForHtmlAttributes(c.rawContent, false)}"></span>`);
+                    let newDiv = $(`<span data-structr-id="${c.id}" data-structr-raw-content="${_Helpers.escapeForHtmlAttributes(c.rawContent, false)}"></span>`);
 
 					newDiv.append(inner);
 					$(c.node).replaceWith(newDiv);
@@ -4523,6 +4532,7 @@ let _Pages = {
 										<option value="navigate-to-url">Navigate to a new page</option>
 										<option value="fire-event">Raise a custom event</option>
 										<option value="sign-out">Sign out</option>
+										<option value="component-based">Let enclosing component decide</option>
 									</select>
 								</div>
 
@@ -4565,6 +4575,7 @@ let _Pages = {
 										<option value="navigate-to-url">Navigate to a new page</option>
 										<option value="fire-event">Raise a custom event</option>
 										<option value="sign-out">Sign out</option>
+										<option value="component-based">Let enclosing component decide</option>
 									</select>
 								</div>
 

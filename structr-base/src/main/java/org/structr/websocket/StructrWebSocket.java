@@ -337,7 +337,7 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 
 					final FrameworkException fex = (FrameworkException)t;
 
-					send(MessageBuilder.status().code(fex.getStatus()).message(fex.toString()).jsonErrorObject(fex.toJSON()).callback(webSocketData.getCallback()).build(), true);
+					send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).jsonErrorObject(fex.toJSON()).callback(webSocketData.getCallback()).build(), true);
 
 				} else {
 

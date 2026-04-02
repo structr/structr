@@ -230,7 +230,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 		}
 	}
 
-	public void copyVisibilityFlags(final DOMNode sourceNode, final DOMNode targetNode) {
+	public static void copyVisibilityFlags(final DOMNode sourceNode, final DOMNode targetNode) {
 
 		final PropertyMap visibilityFlags = new PropertyMap();
 		final Traits traits               = Traits.of(StructrTraits.DOM_NODE);
@@ -248,7 +248,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 		}
 	}
 
-	public void copyGrantees(final DOMNode sourceNode, final DOMNode targetNode) {
+	public static void copyGrantees(final DOMNode sourceNode, final DOMNode targetNode) {
 
 		try {
 

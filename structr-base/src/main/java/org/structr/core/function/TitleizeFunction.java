@@ -27,6 +27,7 @@ import org.structr.docs.Parameter;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -61,13 +62,7 @@ public class TitleizeFunction extends CoreFunction {
 			separator = sources[1].toString();
 		}
 
-		String[] in = StringUtils.split(sources[0].toString(), separator);
-		String[] out = new String[in.length];
-		for (int i = 0; i < in.length; i++) {
-			out[i] = StringUtils.capitalize(in[i]);
-		}
-		return StringUtils.join(out, " ");
-
+		return TitleizeFunction.titleize(sources[0].toString(), separator);
 	}
 
 	@Override
@@ -114,5 +109,19 @@ public class TitleizeFunction extends CoreFunction {
 	@Override
 	public FunctionCategory getCategory() {
 		return FunctionCategory.String;
+	}
+
+	// ----- public static methods -----
+	public static String titleize(final String source, final String separator) {
+
+		final String[] in      = StringUtils.split(source, separator);
+		final List<String> out = new ArrayList<>(in.length);
+
+		for (int i = 0; i < in.length; i++) {
+
+			out.add(StringUtils.capitalize(in[i]));
+		}
+
+		return StringUtils.join(out, " ");
 	}
 }

@@ -2487,16 +2487,24 @@ let _Entities = {
 	isLinkableEntity: (entity) => {
 		return (entity.tag === 'a' || entity.tag === 'link' || entity.tag === 'script' || entity.tag === 'img' || entity.tag === 'video' || entity.tag === 'object');
 	},
-	setPropertyWithFeedback: (entity, key, newVal, input, blinkEl) => {
+	setPropertyWithFeedback: (entity, key, newVal, input, blinkEl, callback) => {
 
 		const oldVal = entity[key];
 		input.val(oldVal);
 
 		Command.setProperty(entity.id, key, newVal, false, (result) => {
 
-			let newVal = result[key];
+            let newVal = '';
 
-			// update entity so this works multiple times
+            if (result && result[key]) {
+                newVal = result[key];
+
+                if (typeof newVal === 'object' && newVal.id) {
+                    newVal = newVal.id;
+                }
+            }
+
+            // update entity so this works multiple times
 			entity[key] = newVal;
 
 			if (key === 'password' || newVal !== oldVal) {
@@ -2515,6 +2523,10 @@ let _Entities = {
 
 				input.val(oldVal);
 			}
+
+            if (callback && typeof callback === 'function') {
+                callback();
+            }
 		});
 	},
 	templates: {
@@ -2720,20 +2732,360 @@ let _Entities = {
 
 				_Entities.generalTab.showCustomProperties(el, entity);
 			},
-			page: async (el, entity) => {
+            page: async (el, entity) => {
 
-				el.html(_Entities.generalTab.templates.pageOptions({ entity: entity, page: entity }));
+                el.html(_Entities.generalTab.templates.pageOptions({ entity: entity, page: entity }));
 
-				_Entities.generalTab.populateInputFields(el, entity);
-				_Entities.generalTab.registerSimpleInputChangeHandlers(el, entity);
+                _Entities.generalTab.populateInputFields(el, entity);
+                _Entities.generalTab.registerSimpleInputChangeHandlers(el, entity);
 
-				_Pages.previews.configurePreview(entity, el[0]);
+                _Pages.previews.configurePreview(entity, el[0]);
+
+                _Entities.generalTab.focusInput(el);
+
+                await _Entities.generalTab.showCustomProperties(el, entity);
+            },
+			component: async (el, entity) => {
+
+                let config = await Command.getPromise(entity.componentConfiguration.id, '', 'ui');
+
+                el.html(_Entities.generalTab.templates.componentOptions({ entity: entity, config: config }));
+
+                let selectionChannelInput = document.querySelector('#data-selection-channel-input');
+
+                let checkRoleConstraints = (result) => {
+                    selectionChannelInput.setCustomValidity('');
+                    if (result && result.role &&  selectionChannelInput) {
+                        selectionChannelInput.required = (result.role !== 'none');
+                    }
+                }
+
+                let updateCallback = () => {
+                    _Pages.previews.updatePreviewSlideout();
+                    _Entities.generalTab.updateSortableDataFields(entity);
+                }
+
+                let addButton = document.querySelector('#add-adapter-field-button');
+                if (addButton) {
+                    addButton.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        let input = document.createElement('input');
+                        addButton.classList.add('editing');
+                        input.type = 'text';
+                        input.placeholder = 'Enter field name..';
+                        addButton.appendChild(input);
+                        input.focus();
+                        input.addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); });
+                        input.addEventListener('blur', (e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            addButton.classList.remove('editing');
+                            input.remove();
+                        });
+                        input.addEventListener('keyup', async (e) => {
+                            if (e.key === 'Enter') {
+                                if (input.value.length > 0 && input.value.trim().length > 0) {
+                                    await fetch(`${Structr.rootUrl}DOMNode/${entity.id}/updateDataSourceField`, {
+                                        method: 'POST',
+                                        body: JSON.stringify({
+                                            _fieldName: input.value,
+                                            _activate: true
+                                        })
+                                    });
+                                    let fieldSetInput = document.querySelector('#field-set-input');
+                                    fieldSetInput.value += ',' + input.value;
+                                }
+                                addButton.classList.remove('editing');
+                                input.remove();
+                                _Pages.previews.updatePreviewSlideout();
+                                _Entities.generalTab.updateSortableDataFields(entity);
+                            }
+                            if (e.key === 'Escape' || e.key === 'Tab') {
+                                addButton.classList.remove('editing');
+                                input.remove();
+                            }
+                        });
+                    });
+                }
+
+                _Entities.generalTab.loadOptions('#data-source-channel-select', 'DataSource', config.dataSource, {}, 'node:', 'name', (node) => 'All ' + node.name + ' nodes');
+                _Entities.generalTab.loadOptions('#data-source-channel-select', 'ComponentConfiguration', config.dataSource, { '!selectionChannel': null }, 'channel:', 'selectionChannel', node => 'The "' + node.selectionChannel + '" channel');
+
+                _Entities.generalTab.selectButtons('#role-buttons', config, 'role', [{ label: 'None', value: 'none' }, { label: 'Controller', value: 'controller' }, { label: 'Subscriber', value: 'subscriber' }], false, checkRoleConstraints, () => _Pages.previews.updatePreviewSlideout());
+                _Entities.generalTab.selectButtons('#display-mode-buttons', config, 'displayMode', [{ label: 'Input', value: 'input' }, { label: 'Output', value: 'output' }], false, () => {
+                    _Pages.previews.updatePreviewSlideout();
+                    _Entities.generalTab.updateSortableDataFields(entity);
+                });
+                _Entities.generalTab.selectButtons('#width-buttons', config, 'columns', [{ label: '1 col', value: 1 }, { label: '2 cols', value: 2 }, { label: '3 cols', value: 3 }, { label: '4 cols', value: 4 }, { label: '5 cols', value: 5 }, { label: '6 cols', value: 6 }], true, () => _Pages.previews.updatePreviewSlideout());
+
+                _Entities.generalTab.populateInputFields(el, { entity: entity, config: config });
+				_Entities.generalTab.populateSelectFields(el, { entity: entity, config: config });
+                _Entities.generalTab.registerSimpleInputChangeHandlers(el, { entity: entity, config: config }, false, false, updateCallback);
+				_Entities.generalTab.registerSimpleSelectChangeHandlers(el, { entity: entity, config: config }, false, false, updateCallback);
 
 				_Entities.generalTab.focusInput(el);
 
-				await _Entities.generalTab.showCustomProperties(el, entity);
+                _Entities.generalTab.updateSortableDataFields(entity);
 			},
 		},
+        loadAvailableDataFields: async (id) => {
+
+            // we need to get the augmented fields from adapter + data source
+            let response = await fetch(`${Structr.rootUrl}DOMNode/${id}/getDataSourceFields`, {
+                method: 'POST'
+            });
+
+            if (response.ok) {
+                let result = await response.json();
+                return result.result;
+            }
+        },
+        updateSortableDataFields: async (entity, openField) => {
+
+            // field set editor
+            let fields = await _Entities.generalTab.loadAvailableDataFields(entity.id) || {};
+            let sortable = document.querySelector('#sortable-list');
+            let available = document.querySelector('#available-list');
+            let fieldSetInput = document.querySelector('#field-set-input');
+            let displayMode = document.querySelector('#display-mode-buttons button.active').dataset.value;
+            let whichTemplate = displayMode === 'input' ? 'editTemplate' : 'template';
+            let currentFieldSet = [];
+
+            sortable.innerHTML = '';
+            available.innerHTML = '';
+
+            currentFieldSet = fieldSetInput.value.split(',').map(v => v.trim()).filter(v => v.length > 0);
+
+            // construct list of selected fields
+            if (currentFieldSet.length > 0) {
+                for (let fieldName of currentFieldSet) {
+                    let field = fields[fieldName];
+                    let renderTemplate = field?.[whichTemplate];
+                    let color = renderTemplate?.length ? 'text-gray-555' : 'text-gray-aaa';
+                    sortable.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.configuredFieldPartial({ fieldName, field, renderTemplate, color, open: openField === fieldName }));
+                    let editor = document.querySelector(`.field-details-editor[data-field-name="${fieldName}"]`);
+                    if (editor && field) {
+                        editor.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({ css: 'col-span-3', label: 'Label', name: 'label', fieldName, value: field.label, destination: 'field' }));
+                        editor.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({ css: 'col-span-3', label: 'Value Expression', name: 'value', fieldName, value: field.value, destination: 'field' }));
+                        editor.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({ css: 'col-span-2', label: 'Sort Key', name: 'sortKey', fieldName, value: field.sortKey, destination: 'field' }));
+                        editor.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({ css: 'col-span-2', label: 'Columns', name: 'columns', fieldName, value: field.columns, destination: 'field' }));
+						editor.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({ css: 'col-span-2', label: 'Data Type', name: 'dataType', fieldName, value: field.dataType, destination: 'field' }));
+                        editor.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailCheckbox({ css: 'col-span-3', label: 'Include in filter', name: 'isSearchable', fieldName, value: field.isSearchable, destination: 'field' }));
+                        editor.insertAdjacentHTML('beforeend', await _Entities.generalTab.templates.fieldConfigurationInput(field, renderTemplate));
+                        editor.querySelectorAll('input').forEach(input => {
+                            input.addEventListener('change', async e => {
+                                let data = { _fieldName: input.dataset.fieldName, _update: true };
+                                data[input.name] = input.value;
+                                data._destination = input.dataset.destination || 'config';
+                                await fetch(`${Structr.rootUrl}DOMNode/${entity.id}/updateDataSourceField`, {
+                                    method: 'POST',
+                                    body: JSON.stringify(data)
+                                });
+                                _Pages.previews.updatePreviewSlideout();
+                                await _Entities.generalTab.updateSortableDataFields(entity, input.dataset.fieldName);
+                            })
+                        })
+                    }
+                }
+            }
+
+            // construct list of available fields (all fields minus selected fields)
+            for (let fieldName in fields) {
+                if (!currentFieldSet.includes(fieldName)) {
+                    let field = fields[fieldName];
+                    let renderTemplate = field?.[whichTemplate];
+                    let color = field[whichTemplate]?.length ? 'text-gray-555' : 'text-gray-aaa';
+                    let iconClasses = (field?.source === 'adapter' ? 'delete-field-button text-gray-666 cursor-pointer' : 'text-gray-ddd');
+                    let iconTitle = (field?.source === 'adapter' ? 'Remove field from adapter.' : 'Data source field cannot be removed here.');
+                    available.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.availableFieldPartial({ fieldName, field, renderTemplate, color, iconClasses, iconTitle }));
+                }
+            }
+
+            let collectKeys = () => {
+                let fields = [];
+                sortable.querySelectorAll('input').forEach(input => {
+                    if (input.checked) {
+                        let key = input.dataset.key;
+                        fields.push(key);
+                    }
+                });
+                available.querySelectorAll('input').forEach(input => {
+                    if (input.checked) {
+                        let key = input.dataset.key;
+                        fields.push(key);
+                    }
+                });
+                return fields.join(',');
+            }
+
+            sortable.querySelectorAll('input[type="checkbox"]').forEach((input) => {
+                input.addEventListener('click', async (e) => {
+                    fieldSetInput.value = collectKeys();
+                    await _Entities.generalTab.updateSortableDataFields(entity);
+                });
+            });
+
+            // checked available fields go to sortable fields
+            available.querySelectorAll('input').forEach((input) => {
+                input.addEventListener('change', async (e) => {
+                    fieldSetInput.value = collectKeys();
+                    await _Entities.generalTab.updateSortableDataFields(entity);
+                });
+            });
+
+            // allow changing of edit templates
+            sortable.querySelectorAll('.select-render-template').forEach((span) => {
+                span.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    await _Entities.generalTab.showRenderTemplates(entity, displayMode, span);
+                })
+            });
+
+            // activate delete button(s) on available field
+            document.querySelectorAll('.delete-field-button').forEach((button) => {
+                button.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    button.classList.add('hidden');
+                    let data = button.dataset;
+                    let id = data.fieldId;
+                    let div = button.parentNode;
+                    div.insertAdjacentHTML('beforeend', `<svg id="confirm-deletion" class="ml-2 text-green" width="16" height="16"><title>Confirm deletion</title><use href="#checkmark_bold"></use></svg>`);
+                    div.insertAdjacentHTML('beforeend', `<svg id="cancel-deletion" class="ml-2 text-red" width="16" height="16"><title>Cancel</title><use href="#close-dialog-x"></use></svg>`);
+                    let confirm = document.querySelector('svg#confirm-deletion');
+                    let cancel = document.querySelector('svg#cancel-deletion');
+                    cancel.addEventListener('click', async (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        button.classList.remove('hidden');
+                        confirm.remove();
+                        cancel.remove();
+                    });
+                    confirm.addEventListener('click', async (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        await fetch(`${Structr.rootUrl}DOMNode/${entity.id}/updateDataSourceField`, {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                _fieldName: data.fieldName,
+                                _delete: true
+                            })
+                        });
+                        _Pages.previews.updatePreviewSlideout();
+                        await _Entities.generalTab.updateSortableDataFields(entity);
+                    })
+                })
+            })
+
+            _Widgets.sortables.enableDragSortForDetailsSummary(sortable, () => {
+                fieldSetInput.value = collectKeys();
+                fieldSetInput.dispatchEvent(new Event('change'));
+            });
+
+            fieldSetInput.dispatchEvent(new Event('change'));
+        },
+        showRenderTemplates: async (entity, displayMode, span) => {
+            let div = document.createElement('div');
+            let data = span.dataset;
+            div.classList.add('bg-white', 'border', 'border-gray-ddd', 'rounded', 'render-template-select');
+            let templates = await Command.queryPromise('Widget', 1000, 1, 'name', 'asc', { isRenderTemplate: true }, true, '', 'id,type,name,selectors');
+            templates.push({ separator: true });
+            templates.push({ name: '<b>Reset to default</b>', reset: true });
+            for (let template of templates) {
+                if (template.separator) {
+                    let hr = document.createElement('hr');
+                    div.appendChild(hr);
+                } else {
+                    if (data.fieldType && template.selectors && !template.selectors.includes(data.fieldType)) {
+                        continue;
+                    }
+                    let item = document.createElement('div');
+                    item.innerHTML = template.name;
+                    div.appendChild(item);
+                    item.addEventListener('click', async (e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        await fetch(`${Structr.rootUrl}DOMNode/${entity.id}/updateDataSourceField`, {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                _fieldName: data.fieldName,
+                                _templateName: template.reset ? null : template.name,
+                                _displayMode: displayMode,
+                                _reset: template.reset || false
+                            })
+                        });
+                        _Pages.previews.updatePreviewSlideout();
+                        await _Entities.generalTab.updateSortableDataFields(entity);
+                    });
+                }
+            }
+            span.appendChild(div);
+            div.addEventListener('mouseleave', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                div.remove();
+            })
+        },
+        loadOptions: async (selector, type, currentValue, query, prefix = 'node:', property = 'name', labelFunction) => {
+
+            let selectField = document.querySelector(selector);
+            if (selectField) {
+                let options = await Command.queryPromise(type, 1000, 1, 'name', 'asc', query);
+                if (options) {
+                    for (let option of options) {
+                        let text = option[property];
+                        if (labelFunction && typeof labelFunction === 'function') {
+                            text = labelFunction(option);
+                        }
+                        let value = prefix + option[property];
+                        let selected = value === currentValue ? 'selected' : '';
+                        selectField.insertAdjacentHTML('beforeend', `<option value="${value}" ${selected}>${text}</option>`);
+                    }
+                }
+            }
+        },
+        selectButtons: async (selector, entity, key, options, fill, callback) => {
+
+            let container = document.querySelector(selector);
+
+            for (let option of options) {
+                let active = (option.value === entity[key] ? 'active' : '');
+                if (!entity[key] && !option.value) active = 'active';
+                if (fill) active = (option.value <= entity[key] ? 'active' : '');
+                container.insertAdjacentHTML('beforeend', `<button data-value="${option.value}" class="${active} ${fill ? 'fill' : ''} button flex-1 hover:bg-gray-100 focus:border-gray-666 active:border-green">${option.label}</button>`);
+            }
+
+            let allButtons = container.querySelectorAll('button');
+
+            let clickAction = (e) => {
+
+                let value = e.target.dataset.value;
+                for (let button of allButtons) {
+                    if (fill && button.dataset.value <= value) {
+                        button.classList.add('active');
+                    } else {
+                        button.classList.remove('active');
+                    }
+                }
+                e.target.classList.add('active');
+
+                Command.setProperty(entity.id, key, value, false, (result) => {
+                    if (callback && typeof callback === 'function') {
+                        callback(result);
+                    }
+                });
+            };
+
+            for (let button of allButtons) {
+                button.addEventListener('click', clickAction);
+                if (fill) {
+                    button.addEventListener('mouseover', e => allButtons.forEach(b => { if (b.dataset.value <= e.target.dataset.value) { b.classList.add('hover')} }));
+                    button.addEventListener('mouseout', e => allButtons.forEach(b => b.classList.remove('hover')));
+                }
+            }
+        },
 		getGeneralTabConfig: (entity) => {
 
 			let registeredDialogs = {
@@ -2750,8 +3102,14 @@ let _Entities = {
 				'Option':           { id: 'general', title: 'General',     appendDialogForEntityToContainer: _Entities.generalTab.dialogs.option },
 				'Page':             { id: 'general', title: 'General',     appendDialogForEntityToContainer: _Entities.generalTab.dialogs.page },
 				'Template':         { id: 'general', title: 'General',     appendDialogForEntityToContainer: _Entities.generalTab.dialogs.content },
-				'User':             { id: 'general', title: 'General',     appendDialogForEntityToContainer: _Entities.generalTab.dialogs.user }
+                'User':             { id: 'general', title: 'General',     appendDialogForEntityToContainer: _Entities.generalTab.dialogs.user },
+				'Component':        { id: 'general', title: 'General',     appendDialogForEntityToContainer: _Entities.generalTab.dialogs.component }
 			};
+
+            // show special dialog for components with configuration
+            if (entity.componentConfiguration) {
+                return registeredDialogs['Component'];
+            }
 
 			let dialogConfig = registeredDialogs[entity.type];
 
@@ -2767,9 +3125,9 @@ let _Entities = {
 				dialogConfig = registeredDialogs['File'];
 			}
 
-			if (!dialogConfig && entity.isFolder) {
-				dialogConfig = registeredDialogs['Folder'];
-			}
+            if (!dialogConfig && entity.isFolder) {
+                dialogConfig = registeredDialogs['Folder'];
+            }
 
 			return dialogConfig;
 		},
@@ -2921,9 +3279,39 @@ let _Entities = {
 
 			_Entities.generalTab.registerSimpleInputChangeHandlers(el, entity, emptyStringInsteadOfNull, true);
 		},
-		registerSimpleInputChangeHandlers: (el, entity, emptyStringInsteadOfNull, isDeferredChangeHandler = false) => {
+        registerSimpleInputChangeHandlers: (el, src, emptyStringInsteadOfNull, isDeferredChangeHandler = false, callback) => {
 
-			for (let inputEl of el[0].querySelectorAll('textarea[name], input[name]')) {
+            for (let inputEl of el[0].querySelectorAll('textarea[name], input[name]')) {
+
+                let shouldDeferChangeHandler = inputEl.dataset['deferChangeHandler'];
+
+                if (shouldDeferChangeHandler !== 'true' || (shouldDeferChangeHandler === 'true' && isDeferredChangeHandler === true) ) {
+
+                    inputEl.addEventListener('change', () => {
+
+                        let entity = src;
+
+                        // let input decide what the data target is
+                        if (inputEl.dataset.which) { entity = src[inputEl.dataset.which]; }
+
+                        let key      = inputEl.name;
+                        let oldVal   = entity[key];
+                        let newVal   = _Entities.generalTab.getValueFromFormElement(inputEl);
+                        let isChange = (oldVal !== newVal) && !((oldVal === null || oldVal === undefined) && newVal === '');
+
+                        if (isChange) {
+
+                            let blinkElement = (inputEl.type === 'checkbox') ? $(inputEl).parent() : null;
+
+                            _Entities.setPropertyWithFeedback(entity, key, newVal || (emptyStringInsteadOfNull ? '' : null), $(inputEl), blinkElement, callback);
+                        }
+                    });
+                }
+            }
+        },
+		registerSimpleSelectChangeHandlers: (el, src, emptyStringInsteadOfNull, isDeferredChangeHandler = false, callback) => {
+
+			for (let inputEl of el[0].querySelectorAll('select[name]')) {
 
 				let shouldDeferChangeHandler = inputEl.dataset['deferChangeHandler'];
 
@@ -2931,7 +3319,12 @@ let _Entities = {
 
 					inputEl.addEventListener('change', () => {
 
-						let key      = inputEl.name;
+                        let entity = src;
+
+                        // let input decide what the data target is
+                        if (inputEl.dataset.which) { entity = src[inputEl.dataset.which]; }
+
+                        let key      = inputEl.name;
 						let oldVal   = entity[key];
 						let newVal   = _Entities.generalTab.getValueFromFormElement(inputEl);
 						let isChange = (oldVal !== newVal) && !((oldVal === null || oldVal === undefined) && newVal === '');
@@ -2940,24 +3333,39 @@ let _Entities = {
 
 							let blinkElement = (inputEl.type === 'checkbox') ? $(inputEl).parent() : null;
 
-							_Entities.setPropertyWithFeedback(entity, key, newVal || (emptyStringInsteadOfNull ? '' : null), $(inputEl), blinkElement);
+							_Entities.setPropertyWithFeedback(entity, key, newVal || (emptyStringInsteadOfNull ? '' : null), $(inputEl), blinkElement, callback);
 						}
 					});
 				}
 			}
 		},
-		populateInputFields: (el, entity) => {
-
-			for (let inputEl of el[0].querySelectorAll('textarea[name], input[name]')) {
-
+        populateInputFields: (el, src) => {
+            let entity = src;
+            for (let inputEl of el[0].querySelectorAll('textarea[name], input[name]')) {
+                if (inputEl.dataset.which) { entity = src[inputEl.dataset.which]; }
+                let val = entity[inputEl.name];
+                if (val != undefined && val != null) {
+                    if (inputEl.type === 'checkbox') {
+                        inputEl.checked = val;
+                    } else {
+                        inputEl.value = val;
+                    }
+                }
+            }
+        },
+		populateSelectFields: (el, src) => {
+            let entity = src;
+			for (let inputEl of el[0].querySelectorAll('select[name]')) {
+                if (inputEl.dataset.which) { entity = src[inputEl.dataset.which]; }
 				let val = entity[inputEl.name];
 				if (val != undefined && val != null) {
-					if (inputEl.type === 'checkbox') {
-						inputEl.checked = val;
-					} else {
-						inputEl.value = val;
-					}
-				}
+                    if (typeof val === 'object' && val.id) {
+                        inputEl.value = val.id;
+                    } else {
+                        inputEl.value = val;
+                    }
+                }
+                inputEl.dispatchEvent(new Event('change'));
 			}
 		},
 		focusInput: (el, selector) => {
@@ -3548,6 +3956,198 @@ let _Entities = {
 					<a class="block example-condition" data-value="${config.value}">${config.text ?? config.value}</a>
 				</div>
 			`,
+            componentOptions: (config) => `
+				  
+				<div id="div-options" class="${_Entities.generalTab.templates.containerClasses()}">
+				    ${_Entities.generalTab.templates.dataSourcePartial(config)}
+				    ${_Entities.generalTab.templates.fieldConfigPartial(config)}
+				</div>
+			`,
+
+            componentOptionsPartial: (config) => `
+                
+				<div class="${_Entities.generalTab.templates.gridClasses()}">
+                    
+                    <div>
+                        <label class="block mb-2" for="name-input" data-comment="The name of this component">Name</label>
+                        <input type="text" id="name-input" autocomplete="off" name="name" data-which="entity">
+                    </div>
+                
+                    <div>
+                        <label class="block mb-2" for="component-type-input" data-comment="The component type determines ...">Component Type</label>
+                        <input type="text" id="component-type-input" autocomplete="off" name="componentType" data-which="entity">
+                    </div>
+                
+                    <div>
+                        <label class="block mb-2" for="dimensions-input" data-comment="Dimensions are..">Dimensions</label>
+                        <input type="text" id="dimensions-input" autocomplete="off" name="dimensions" data-which="entity">
+                    </div>
+                
+                    <div>
+                        <label class="block mb-2" for="item-type-input" data-comment="The item type determines ...">Item Type</label>
+                        <input type="text" id="item-type-input" autocomplete="off" name="itemType" data-which="entity">
+                    </div>
+                
+                    <div>
+                        <label class="block mb-2" for="repeater-type-input" data-comment="The repeater type determines ...">Repeater Type</label>
+                        <input type="text" id="repeater-type-input" autocomplete="off" name="repeaterType" data-which="entity">
+                    </div>
+                    
+                    <div>
+                        <label class="block mb-4">Options</label>
+                        <div class="mb-2 flex items-center">
+                            <input type="checkbox" name="root" id="root" data-which="entity">
+                            <label for="root">Is Component Root</label>
+                        </div>
+                    </div>
+                    
+                </div>
+			`,
+
+            dataSourcePartial: (config) => `
+
+				<div class="${_Entities.generalTab.templates.gridClasses()}">
+
+                    <div>
+                        <label class="block mb-2" for="data-source-channel-select" data-comment="Source determines which objects are displayed in this component, and selection transforms the result.">Source & Selection</label>
+                        <div class="data-source-channel-options flex">
+                            <select class="select2 rounded-none rounded-l" id="data-source-channel-select" name="dataSource" data-which="config">
+                                <option value="">None</option>
+                            </select>
+                            <span class="inline-flex items-center bg-gray px-2 w-4 justify-center select-none border-0 border-t border-b border-solid border-gray-input">.</span>
+                            <input class="rounded-none rounded-r" type="text" id="transform-input" autocomplete="off" name="transform" data-which="config">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block mb-2" for="data-selection-channel-input" data-comment="Which channel the UUID of the selected object is made available on for other components to consume.">Selection Channel</label>
+                        <input class="validated" type="text" id="data-selection-channel-input" ${config.config.role === 'controller' ? 'required' : ''} autocomplete="off" name="selectionChannel" data-which="config">
+                    </div>
+
+                    <div>
+                        <label class="block mb-2" for="display-mode-select" data-comment="Controls the display mode of this component">Display Mode</label>
+                        <div id="display-mode-buttons" class="toggle-button-container"></div>
+                    </div>
+
+                    <div>
+                        <label class="block mb-2" for="role-select" data-comment="The role of a component determines whether it controls other components or is controlled by other components.">Role</label>
+                        <div id="role-buttons" class="toggle-button-container"></div>
+                    </div>
+                    
+                    <div>
+                        <label class="block mb-2" for="reload-select" data-comment="Controls the reloading behaviour of this component">Reload Behavior</label>
+                        <input type="text" id="reload-input" autocomplete="off" name="reload" data-which="config">
+                    </div>
+
+
+                    <!-- save mode inline is not implemented yet
+                    <div>
+                        <label class="block mb-2" for="save-mode-select" data-comment="Controls the save mode of this component">Save Mode</label>
+                        <select class="select2" id="save-mode-select" name="saveMode" data-which="config">
+                            <option value="">Save all fields at once using a button</option>
+                        </select>
+                    </div>
+                    -->
+                    
+                    <div>
+                        <label class="block mb-2" for="page-size-input" data-comment="Controls the page size of this component, defaults to 10">Page Size</label>
+                        <input type="text" id="page-size-input" autocomplete="off" name="pageSize" data-which="config">
+                    </div>
+                    
+                    <div></div>
+                    
+                    <div class="mb-2 mt-2 flex items-center">
+                        <input type="checkbox" name="labels" id="labels" data-which="config">
+                        <label for="labels">Show Labels</label>
+                    </div>
+                
+                    <div class="col-span-1 @xl:col-span-2">
+                        <label class="block mb-2" for="columns-select" data-comment="Controls the width of this component in grid views">Width</label>
+                        <div id="width-buttons" class="toggle-button-container"></div>
+                    </div>
+
+                </div>
+			`,
+
+            fieldConfigPartial: (config) => `
+				
+				<div class="${_Entities.generalTab.templates.gridClasses()} mt-8">
+    			    <h3>Configured Fields</h3>
+   			    </div>
+
+				<div class="${_Entities.generalTab.templates.gridClasses()}">
+                        
+                    <div class="${_Entities.generalTab.templates.colspan2Classes()}">
+                        <input type="text" required class="hidden form-field" id="field-set-input" name="fieldSet" data-which="config" />
+                        <div class="flex flex-col" id="sortable-list"></div>
+                        <label id="add-adapter-field-button" class="block py-2 px-2 flex flex-row justify-center flex-grow text-gray-999 hover:border-solid hover:text-gray-666 border cursor-pointer border-dashed rounded border-gray-ddd mb-1"><span>Add new field</span></label>
+                        <h4>Available Fields</h4>
+                        <div class="flex flex-col" id="available-list"></div>
+                    </div>
+
+                </div>
+			`,
+            configuredFieldPartial: (config) => `
+                <details class="shadow border rounded border-gray-ddd mb-1" ${config.open ? 'open' : ''} draggable title="Click to edit details.">
+                    <summary class="px-2 py-2 flex items-center">
+                        <div class="flex flex-grow items-center">
+                            <input type="checkbox" checked data-key="${config.fieldName}">
+                            <span>${config.fieldName}</span>
+                        </div>
+                        <span class="${config.color} italic font-normal cursor-pointer relative select-render-template" data-field-name="${config.fieldName}" data-field-type="${config.field?.dataType}" title="Click to change template.">${config.renderTemplate || 'Set template..'}</span>
+                    </summary>
+                    <div class="field-details-editor grid grid-cols-6 gap-4 bg-gray-f8 p-4 border border-0 border-t border-gray-ddd rounded-b font-normal" data-field-name="${config.fieldName}"></div>
+                </details>
+            `,
+            availableFieldPartial: (config) => `
+                <label class="block py-2 px-2 shadow flex flex-row justify-between items-center flex-grow border rounded border-gray-ddd mb-1" title="Click to add">
+                    <div>
+                        <input type="checkbox" data-key="${config.fieldName}">
+                        <span>${config.fieldName}</span>
+                    </div>
+                    <div class="text-right flex items-center">
+                        <span class="${config.color} italic font-normal mr-4" title="The render template used by this field.">${config.renderTemplate || ''}</span>
+                        <svg data-field-name="${config.fieldName}" data-field-id="${config.field.id}" class="${config.iconClasses}" width="16" height="16" title="${config.iconTitle}"><use href="#trashcan"></use></svg>
+                    </div>
+                </label>
+            `,
+			fieldDetailInput: (config) => `
+                <div class="${config.css || ''}">
+                    <label class="font-bold block mb-1 px-1">${config.label}</label>
+                    <input type="text" data-field-name="${config.fieldName}" data-destination="${config.destination}" autocomplete="off" name="${config.name}" value="${config.value || ''}">
+                </div>
+            `,
+            fieldDetailCheckbox: (config) => `
+                <div class="${config.css || ''}">
+                    <label class="font-bold block mb-1 px-1">Options</label>
+                    <label class="block mb-1 px-1">
+	                    <input type="checkbox" data-field-name="${config.fieldName}" data-destination="${config.destination}" name="${config.name}" ${config.value ? 'checked': ''}>
+    	                ${config.label}
+    	            </label>
+                </div>
+            `,
+            fieldConfigurationInput: async (field, templateName) => {
+                let templates = await Command.queryPromise('Widget', 1000, 1, 'name', 'asc', { isRenderTemplate: true, name: templateName }, true, null, 'id,type,name,configuration');
+                let fields = [];
+                if (templates && templates.length) {
+                    let template = templates[0];
+                    if (template && template?.configuration?.length > 0) {
+                        let config = JSON.parse(template.configuration);
+                        for (let key in config) {
+                            let label = config[key]?.label || key;
+                            let value = field?.config?.[key];
+                            fields.push(_Entities.generalTab.templates.fieldDetailInput({
+                                css: 'col-span-3',
+                                fieldName: field.name,
+                                name: key,
+                                value: value,
+                                label: label
+                            }));
+                        }
+                    }
+                }
+                return fields.join('\n');
+            },
 			spacerItemForGrid: config => `<div class="hidden @xl:block"><!-- occupy space in grid UI --></div>`,
 			containerClasses: config => `@container quick-access-options`,
 			gridClasses: config => `grid grid-cols-1 @xl:grid-cols-2 gap-8`,
@@ -3555,3 +4155,18 @@ let _Entities = {
 		}
 	}
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

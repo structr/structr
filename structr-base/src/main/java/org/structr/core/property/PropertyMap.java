@@ -494,6 +494,7 @@ public class PropertyMap {
 
 		return inputTypedProperties;
 	}
+
 	private static PropertyMap fallbackPropertyMap(Map<String, Object> source) {
 
 		PropertyMap map = new PropertyMap();

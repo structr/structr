@@ -45,6 +45,7 @@ import org.structr.messaging.implementation.kafka.entity.KafkaClient;
 import org.structr.messaging.traits.operations.MessageClientOperations;
 import org.structr.messaging.traits.wrappers.KafkaClientTraitWrapper;
 import org.structr.rest.RestMethodResult;
+import org.structr.schema.action.ActionContext;
 
 import java.util.Map;
 import java.util.Set;
@@ -113,11 +114,11 @@ public class KafkaClientTraitDefinition extends AbstractNodeTraitDefinition {
 
 
 				@Override
-				public RestMethodResult sendMessage(final SecurityContext securityContext, final MessageClient messageClient, final String topic, final String message) throws FrameworkException {
+				public RestMethodResult sendMessage(final ActionContext actionContext, final MessageClient messageClient, final String topic, final String message) throws FrameworkException {
 
 					final KafkaClient client = messageClient.as(KafkaClient.class);
 
-					getSuper().sendMessage(securityContext, client, topic, message);
+					getSuper().sendMessage(actionContext, client, topic, message);
 
 					if (client.getProducer() == null && client.getServers() != null && client.getServers().length > 0) {
 
@@ -139,12 +140,12 @@ public class KafkaClientTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 
 				@Override
-				public RestMethodResult subscribeTopic(final SecurityContext securityContext, final MessageClient client, final String topic) throws FrameworkException {
+				public RestMethodResult subscribeTopic(final ActionContext actionContext, final MessageClient client, final String topic) throws FrameworkException {
 					return new RestMethodResult(200);
 				}
 
 				@Override
-				public RestMethodResult unsubscribeTopic(final SecurityContext securityContext, final MessageClient client, final String topic) throws FrameworkException {
+				public RestMethodResult unsubscribeTopic(final ActionContext actionContext, final MessageClient client, final String topic) throws FrameworkException {
 					return new RestMethodResult(200);
 				}
 			}

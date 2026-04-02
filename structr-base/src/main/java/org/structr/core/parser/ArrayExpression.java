@@ -27,11 +27,11 @@ import org.structr.core.GraphObject;
 import org.structr.docs.*;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -69,7 +69,7 @@ public class ArrayExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedScriptException {
 
 		switch (expressions.size()) {
 
@@ -77,11 +77,15 @@ public class ArrayExpression extends Expression {
 				throw new FrameworkException(422, "Invalid expression: expected expression, found ].");
 
 			case 1:
-				final Object value  = expressions.get(0).evaluate(ctx, entity, hints);
-				final Object parsed = Function.parseInt(value);
+				final Object value  = expressions.get(0).evaluate(ctx, entity);
+				final Object parsed = Function.intOrString(value);
 				if (parsed instanceof Number) {
 
 					return ((Number)parsed).intValue();
+
+				} else if (parsed instanceof String) {
+
+					return parsed;
 				}
 		}
 
@@ -89,40 +93,52 @@ public class ArrayExpression extends Expression {
 	}
 
 	@Override
-	public Object transform(final ActionContext ctx, final GraphObject entity, final Object value, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
+	public Object transform(final ActionContext ctx, final GraphObject entity, final Object value) throws FrameworkException, UnlicensedScriptException {
 
 		if (value == null) {
 			return null;
 		}
 
-		final Integer index = (Integer)evaluate(ctx, entity, hints);
+		final Object index = evaluate(ctx, entity);
 		if (index != null) {
 
-			if (value instanceof Collection || value.getClass().isArray()) {
+			if (index instanceof Number n) {
 
-				try {
+				if (value instanceof Collection || value.getClass().isArray()) {
 
-					// silently ignore array index errors
-					return CollectionUtils.get(value, index);
+					try {
 
-				} catch (Throwable t) {}
+						// silently ignore array index errors
+						return CollectionUtils.get(value, n.intValue());
 
-			} else if (value instanceof Iterable) {
+					} catch (Throwable t) {
+					}
 
-				try {
+				} else if (value instanceof Iterable) {
 
-					return Iterables.nth((Iterable)value, index);
+					try {
 
-				} catch (Throwable t) {}
+						return Iterables.nth((Iterable) value, n.intValue());
 
-			} else {
+					} catch (Throwable t) {
+					}
 
-				throw new FrameworkException(422, "Invalid expression: expected collection, found " + value.getClass().getSimpleName() + ".");
+				} else {
+
+					throw new FrameworkException(422, "Invalid expression: expected collection, found " + value.getClass().getSimpleName() + ".");
+				}
+
+			} else if (index instanceof String s) {
+
+				if (value instanceof Map map) {
+
+					return map.get(s);
+
+				} else {
+
+					throw new FrameworkException(422, "Invalid expression: expected map, found " + value.getClass().getSimpleName() + ".");
+				}
 			}
-
-		} else {
-
-			throw new FrameworkException(422, "Invalid expression: invalid array index: null.");
 		}
 
 		return null;

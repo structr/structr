@@ -54,7 +54,7 @@ public class MQTTUnsubscribeTopicFunction extends MessagingModuleFunction {
 				return "";
 			}
 
-			client.unsubscribeTopic(ctx.getSecurityContext(), sources[1].toString());
+			client.unsubscribeTopic(ctx, sources[1].toString());
 
 		} else {
 

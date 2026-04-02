@@ -18,10 +18,10 @@
  */
 package org.structr.messaging.engine.entities;
 
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.rest.RestMethodResult;
+import org.structr.schema.action.ActionContext;
 
 public interface MessageClient extends NodeInterface {
 
@@ -30,7 +30,7 @@ public interface MessageClient extends NodeInterface {
 	Iterable<MessageSubscriber> getSubscribers();
 	void setSubscribers(final Iterable<MessageSubscriber> subscribers) throws FrameworkException;
 
-	RestMethodResult sendMessage(final SecurityContext securityContext, final String topic, final String message) throws FrameworkException;
-	RestMethodResult subscribeTopic(final SecurityContext securityContext, String topic) throws FrameworkException;
-	RestMethodResult unsubscribeTopic(final SecurityContext securityContext, String topic) throws FrameworkException;
+	RestMethodResult sendMessage(final ActionContext actionContext, final String topic, final String message) throws FrameworkException;
+	RestMethodResult subscribeTopic(final ActionContext actionContext, String topic) throws FrameworkException;
+	RestMethodResult unsubscribeTopic(final ActionContext actionContext, String topic) throws FrameworkException;
 }

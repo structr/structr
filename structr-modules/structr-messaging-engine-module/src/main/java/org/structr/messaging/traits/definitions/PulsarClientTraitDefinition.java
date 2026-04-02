@@ -45,6 +45,7 @@ import org.structr.messaging.engine.entities.MessageClient;
 import org.structr.messaging.traits.operations.MessageClientOperations;
 import org.structr.messaging.traits.wrappers.PulsarClientTraitWrapper;
 import org.structr.rest.RestMethodResult;
+import org.structr.schema.action.ActionContext;
 
 import java.util.Map;
 import java.util.Set;
@@ -112,11 +113,11 @@ public class PulsarClientTraitDefinition extends AbstractNodeTraitDefinition {
 			new MessageClientOperations() {
 
 				@Override
-				public RestMethodResult sendMessage(final SecurityContext securityContext, final MessageClient messageClient, final String topic, final String message) throws FrameworkException {
+				public RestMethodResult sendMessage(final ActionContext actionContext, final MessageClient messageClient, final String topic, final String message) throws FrameworkException {
 
 					final org.structr.messaging.implementation.pulsar.PulsarClient client = messageClient.as(org.structr.messaging.implementation.pulsar.PulsarClient.class);
 
-					getSuper().sendMessage(securityContext, client, topic, message);
+					getSuper().sendMessage(actionContext, client, topic, message);
 
 					if (client.getServers() == null || client.getServers().length == 0) {
 						return new RestMethodResult(400, "PulsarClient " + client.getUuid() + " has no servers specified");
@@ -146,12 +147,12 @@ public class PulsarClientTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 
 				@Override
-				public RestMethodResult subscribeTopic(final SecurityContext securityContext, final MessageClient client, final String topic) throws FrameworkException {
+				public RestMethodResult subscribeTopic(final ActionContext actionContext, final MessageClient client, final String topic) throws FrameworkException {
 					return new RestMethodResult(200);
 				}
 
 				@Override
-				public RestMethodResult unsubscribeTopic(final SecurityContext securityContext, final MessageClient client, final String topic) throws FrameworkException {
+				public RestMethodResult unsubscribeTopic(final ActionContext actionContext, final MessageClient client, final String topic) throws FrameworkException {
 					return new RestMethodResult(200);
 				}
 			}
