@@ -188,9 +188,12 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 		final String userEmail             = user.getProperty(eMailKey);
 		final ActionContext ctx            = new ActionContext(SecurityContext.getInstance(user, AccessMode.Frontend));
 
-		// Populate the replacement map with all POSTed values
-		// WARNING! This is unchecked user input!!
-		propertySetFromUserPOST.entrySet().forEach(entry -> ctx.setConstant(entry.getKey(), entry.getValue().toString()));
+		// Only pass whitelisted POST keys into the template context
+		// to prevent user-controlled values from overriding internal variables (e.g. 'link')
+		final Set<String> allowedPostKeys = Set.of(PrincipalTraitDefinition.EMAIL_PROPERTY, "locale");
+		propertySetFromUserPOST.entrySet().stream()
+			.filter(entry -> allowedPostKeys.contains(entry.getKey()))
+			.forEach(entry -> ctx.setConstant(entry.getKey(), entry.getValue().toString()));
 
 		String successPath = getTemplateText(TemplateKey.CONFIRM_REGISTRATION_TARGET_PAGE, AbstractDataServlet.prefixLocation("register_thanks"), localeString);
 		String failurePath  = getTemplateText(TemplateKey.CONFIRM_REGISTRATION_ERROR_PAGE, AbstractDataServlet.prefixLocation("register_error"), localeString);
