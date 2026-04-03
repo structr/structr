@@ -56,6 +56,11 @@ public class StructrFilesRootPath extends StructrPath {
 	}
 
 	@Override
+	public String toString() {
+		return "/";
+	}
+
+	@Override
 	public SeekableByteChannel newChannel(final Set<? extends OpenOption> options, final FileAttribute<?>... attrs) throws IOException {
 		throw new AccessDeniedException(toString());
 	}

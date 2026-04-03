@@ -127,7 +127,21 @@ public class StructrFilesystem extends FileSystem {
 				final String component = parts[i];
 				if (!component.isEmpty()) {
 
-					if (path != null) {
+					if ("..".equals(component)) {
+
+						// navigate to parent, but not above root
+						if (path != null && path.getParent() != null) {
+							final Path parent = path.getParent();
+							path = (parent instanceof StructrPath) ? (StructrPath) parent : root;
+						} else {
+							path = root;
+						}
+
+					} else if (".".equals(component)) {
+
+						// current directory, skip
+
+					} else if (path != null) {
 
 						// resolve against existing path
 						path = path.resolveStructrPath(component);
