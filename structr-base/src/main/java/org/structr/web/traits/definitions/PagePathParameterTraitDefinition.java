@@ -43,6 +43,7 @@ public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinitio
 	public static final String PATH_PROPERTY          = "path";
 	public static final String POSITION_PROPERTY      = "position";
 	public static final String VALUE_TYPE_PROPERTY    = "valueType";
+	public static final String FORMAT_PROPERTY        = "format";
 	public static final String DEFAULT_VALUE_PROPERTY = "defaultValue";
 	public static final String IS_OPTIONAL_PROPERTY   = "isOptional";
 
@@ -78,7 +79,8 @@ public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinitio
 
 		final Property<NodeInterface> pathProperty  = new StartNode(traitsInstance, PATH_PROPERTY, StructrTraits.PAGE_PATH_HAS_PARAMETER_PAGE_PATH_PARAMETER);
 		final Property<Integer> positionProperty    = new IntProperty(POSITION_PROPERTY).indexed();
-		final Property<String> valueTypeProperty    = new StringProperty(VALUE_TYPE_PROPERTY);
+		final Property<String> valueTypeProperty    = new EnumProperty(VALUE_TYPE_PROPERTY, newSet("String", "Integer", "Long", "Double", "Float", "Date", "Boolean", "Node")).defaultValue("String");
+		final Property<String> formatProperty       = new StringProperty(FORMAT_PROPERTY);
 		final Property<String> defaultValueProperty = new StringProperty(DEFAULT_VALUE_PROPERTY);
 		final Property<Boolean> isOptionalProperty  = new BooleanProperty(IS_OPTIONAL_PROPERTY);
 
@@ -86,6 +88,7 @@ public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinitio
 			pathProperty,
 			positionProperty,
 			valueTypeProperty,
+			formatProperty,
 			defaultValueProperty,
 			isOptionalProperty
 		);
@@ -96,10 +99,10 @@ public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinitio
 
 		return Map.of(
 				PropertyView.Public,
-				newSet(POSITION_PROPERTY, VALUE_TYPE_PROPERTY, DEFAULT_VALUE_PROPERTY, IS_OPTIONAL_PROPERTY),
+				newSet(POSITION_PROPERTY, VALUE_TYPE_PROPERTY, FORMAT_PROPERTY, DEFAULT_VALUE_PROPERTY, IS_OPTIONAL_PROPERTY),
 
 				PropertyView.Ui,
-				newSet(POSITION_PROPERTY, VALUE_TYPE_PROPERTY, DEFAULT_VALUE_PROPERTY, IS_OPTIONAL_PROPERTY)
+				newSet(POSITION_PROPERTY, VALUE_TYPE_PROPERTY, FORMAT_PROPERTY, DEFAULT_VALUE_PROPERTY, IS_OPTIONAL_PROPERTY)
 		);
 	}
 

@@ -61,7 +61,7 @@ public class PagePathHAS_PARAMETERPagePathParameter extends AbstractRelationship
 
 	@Override
 	public int getAutocreationFlag() {
-		return Relation.NONE;
+		return Relation.SOURCE_TO_TARGET;
 	}
 
 	@Override

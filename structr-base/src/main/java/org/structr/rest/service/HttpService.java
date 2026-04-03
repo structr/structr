@@ -86,9 +86,12 @@ public class HttpService implements RunnableService, StatsCallback {
 	private static final Logger logger = LoggerFactory.getLogger(HttpService.class.getName());
 
 	public static final StringMultiChoiceSetting UriComplianceAllowedViolations = (StringMultiChoiceSetting) new StringMultiChoiceSetting(Settings.serverGroup, "HTTP Settings", "httpservice.uricompliance.allowedviolations",
-			String.join(" ", List.of(UriCompliance.Violation.AMBIGUOUS_PATH_SEPARATOR.toString(), UriCompliance.Violation.AMBIGUOUS_EMPTY_SEGMENT.toString())),
+			String.join(" ", List.of(
+					UriCompliance.Violation.AMBIGUOUS_EMPTY_SEGMENT.getName(),		// for empty parts "//"
+					UriCompliance.Violation.AMBIGUOUS_PATH_SEPARATOR.getName(),		// for "%2f" => "/"
+					UriCompliance.Violation.AMBIGUOUS_PATH_ENCODING.getName()		// for "%25" => "%"
+			)),
 			new LinkedHashSet<>(Arrays.stream(UriCompliance.Violation.values())
-//										.filter(UriCompliance::isPathViolation)
 										.map(Enum::toString)
 										.toList()),
 			"These are URI \"violations\", which may be allowed by the compliance mode.").setLongDescription("""
@@ -104,7 +107,6 @@ public class HttpService implements RunnableService, StatsCallback {
 				</dl>
 				""".formatted(
 						Arrays.stream(UriCompliance.Violation.values())
-//								.filter(UriCompliance::isPathViolation)
 								.sorted(Comparator.comparing(UriCompliance.Violation::getName))
 								.map(v -> "<dt><a href=\"%s\">%s</a></dt><dd>%s</dd>".formatted(v.getURL(), v.getName(), v.getDescription()))
 								.collect(Collectors.joining("\n"))

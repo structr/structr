@@ -18,7 +18,6 @@
  */
 package org.structr.web.traits.wrappers;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
@@ -104,10 +103,10 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 					if (!parameters.containsKey(parameterName)) {
 
 						app.create(StructrTraits.PAGE_PATH_PARAMETER,
-							new NodeAttribute<>(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),      parameterName),
+							new NodeAttribute<>(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),           parameterName),
 							new NodeAttribute<>(traits.key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY), "String"),
-							new NodeAttribute<>(traits.key(PagePathParameterTraitDefinition.POSITION_PROPERTY),  count),
-							new NodeAttribute<>(traits.key(PagePathParameterTraitDefinition.PATH_PROPERTY),      wrappedObject)
+							new NodeAttribute<>(traits.key(PagePathParameterTraitDefinition.POSITION_PROPERTY),   count),
+							new NodeAttribute<>(traits.key(PagePathParameterTraitDefinition.PATH_PROPERTY),       wrappedObject)
 						);
 
 					} else {
@@ -181,7 +180,7 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 	 * @return the resolved arguments, or null if the path doesn't match
 	 */
 	@Override
-	public Map<String, Object> tryResolvePath(final String[] requestParts) {
+	public Map<String, Object> tryResolvePath(final SecurityContext securityContext, final String[] requestParts) {
 
 		final Map<String, Object> arguments = new LinkedHashMap<>();
 
@@ -198,47 +197,64 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 
 			for (final String pathPart : parts) {
 
-				final Matcher pathMatcher = PATH_COMPONENT_PATTERN.matcher(pathPart);
+				final Matcher pathMatcher = PATH_PARAMETER_PATTERN.matcher(pathPart);
 				final String requestPart  = getValueOrNull(requestParts, index);
 
 				// does the path part contain a parameter definition?
 				if (pathMatcher.find()) {
 
-					final String valueCapturePatternSource = PATH_COMPONENT_PATTERN.matcher(pathPart).replaceAll("(.*)");
-					final Pattern valueCapturePattern      = Pattern.compile(valueCapturePatternSource);
-					final Matcher valueCaptureMatcher      = valueCapturePattern.matcher(StringUtils.defaultIfBlank(requestPart, ""));
-					final String[] rawValues               = getValues(valueCaptureMatcher);
-					int valueIndex                         = 0;
+					final String valueCapturePatternSource = PATH_PARAMETER_PATTERN.matcher(pathPart).replaceAll("(.*)");
+					final Pattern valueCapturePattern      = Pattern.compile("\\A" + valueCapturePatternSource + "\\z");
+					final Matcher valueCaptureMatcher      = valueCapturePattern.matcher((requestPart == null ? "" : requestPart));
 
-					// reset so we find the first key again
-					pathMatcher.reset();
+					if (!valueCaptureMatcher.matches()) {
 
-					while (pathMatcher.find()) {
+						return null;
 
-						final String rawValue             = getValueOrNull(rawValues, valueIndex++);
-						final String key                  = pathMatcher.group(1);
-						final PagePathParameter parameter = parameters.get(key);
+					} else {
 
-						if (parameter != null) {
+						final String[] rawValues               = getValues(valueCaptureMatcher);
+						int valueIndex                         = 0;
 
-							final String defaultValue = parameter.getDefaultValue();
-							final Object converted = parameter.convert(rawValue);
+						// reset so we find the first key again
+						pathMatcher.reset();
 
-							if (converted != null) {
+						while (pathMatcher.find()) {
 
-								// only put value if conversion is successful
-								arguments.put(key, converted);
+							final String rawValue             = getValueOrNull(rawValues, valueIndex++);
+							final String key                  = pathMatcher.group(1);
+							final PagePathParameter parameter = parameters.get(key);
+
+							if (parameter != null) {
+
+								final Object converted = parameter.convert(securityContext, rawValue);
+
+								if (converted != null) {
+
+									// only put value if conversion is successful
+									arguments.put(key, converted);
+
+								} else {
+
+									// put default value otherwise (if default is set, run converter to ensure type is correct)
+									final String defaultValue = parameter.getDefaultValue();
+
+									if (defaultValue != null && !defaultValue.isEmpty()) {
+
+										final Object convertedDefault = parameter.convert(securityContext, defaultValue);
+
+										if (convertedDefault != null) {
+
+											arguments.put(key, convertedDefault);
+										}
+									}
+								}
 
 							} else {
 
-								// put default value otherwise
-								arguments.put(key, defaultValue);
+								// no matching parameter for key ""...
+								arguments.put(key, rawValue);
 							}
-
-						} else {
-
-							// no matching parameter for key ""...
-							arguments.put(key, rawValue);
 						}
 					}
 
@@ -266,20 +282,15 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 	@Override
 	public String[] getValues(final Matcher matcher) {
 
-		if (matcher.find()) {
+		final int groupCount = matcher.groupCount();
+		final String[] list  = new String[groupCount];
 
-			final int groupCount = matcher.groupCount();
-			final String[] list  = new String[groupCount];
+		for (int i=0; i<groupCount; i++) {
 
-			for (int i=0; i<groupCount; i++) {
-
-				list[i] = matcher.group(i+1);
-			}
-
-			return list;
+			list[i] = matcher.group(i+1);
 		}
 
-		return new String[0];
+		return list;
 	}
 
 	@Override
@@ -289,8 +300,7 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 
 			final String value = array[index];
 
-			// return empty strings as null
-			if (StringUtils.isNotBlank(value)) {
+			if (!value.isEmpty()) {
 
 				return value;
 			}

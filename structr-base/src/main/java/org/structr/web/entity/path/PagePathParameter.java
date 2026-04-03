@@ -18,6 +18,7 @@
  */
 package org.structr.web.entity.path;
 
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 
@@ -26,7 +27,8 @@ public interface PagePathParameter extends NodeInterface {
 	Integer getPosition();
 	void setPosition(final Integer position) throws FrameworkException;
 	String getValueType();
+	String getFormat();
 	String getDefaultValue();
 	boolean getIsOptional();
-	Object convert(final String src);
+	Object convert(final SecurityContext securityContext, final String src);
 }

@@ -3511,17 +3511,6 @@ div#custom-properties-container table td:nth-child(3) {
 	padding: 0;
 }
 
-/* routing dialog */
-.routing-container select,
-.routing-container input[type="text"],
-.routing-container input[type="password"],
-.routing-container input[type="number"],
-.routing-container textarea {
-	width: 100%;
-	box-sizing: border-box;
-}
-
-
 /* mount dialog */
 #mount-dialog input[type="text"] {
 	width: calc(100% - 10px);
@@ -4787,6 +4776,9 @@ ul.combined-input-select-field li:not(.nohover):hover {
 .cursor-text {
 	cursor: text;
 }
+.cursor-move {
+	cursor: move;
+}
 .gap-y-2 {
 	row-gap: .5rem;
 }
@@ -5057,6 +5049,10 @@ ul.combined-input-select-field li:not(.nohover):hover {
 .rounded-r {
 	border-top-right-radius: .25rem;
 	border-bottom-right-radius: .25rem;
+}
+.rounded-l-none {
+	border-top-left-radius: 0;
+	border-bottom-left-radius: 0;
 }
 .border-dashed {
     border-style: dashed;
