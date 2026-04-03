@@ -642,7 +642,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 							content = value.toString();
 						}
 
-						if (StringUtils.isNotBlank(content)) {
+						if (!content.isEmpty()) {
 
 							renderContext.getBuffer().append(transform(content));
 							isEmpty = false;
