@@ -159,7 +159,7 @@ public class AuthHelper {
 			throw new AuthenticationException(STANDARD_ERROR_MSG);
 		}
 
-		if (value.equals(superuserName) && password.equals(superUserPwd)) {
+		if (value.equals(superuserName) && java.security.MessageDigest.isEqual(password.getBytes(java.nio.charset.StandardCharsets.UTF_8), superUserPwd.getBytes(java.nio.charset.StandardCharsets.UTF_8))) {
 
 			principal = new SuperUser();
 

@@ -1883,7 +1883,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				if ("Basic".equals(authType)) {
 
 					final String value   = new String(Base64.decode(authValue), StandardCharsets.UTF_8);
-					final String[] parts = value.split(":");
+					final String[] parts = value.split(":", 2);
 
 					if (parts.length == 2) {
 
@@ -1930,6 +1930,11 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	public static String filterMaliciousRedirects(final String source) {
 
 		if (source != null) {
+
+			// Block protocol-relative URLs (e.g. //evil.com/path)
+			if (source.startsWith("//")) {
+				return null;
+			}
 
 			try {
 
