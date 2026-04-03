@@ -1883,7 +1883,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				if ("Basic".equals(authType)) {
 
 					final String value   = new String(Base64.decode(authValue), StandardCharsets.UTF_8);
-					final String[] parts = value.split(":");
+					final String[] parts = value.split(":", 2);
 
 					if (parts.length == 2) {
 
