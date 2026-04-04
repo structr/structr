@@ -45,6 +45,8 @@ import org.structr.schema.action.ActionContext;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -57,6 +59,12 @@ public class ConfigServlet extends AbstractServletBase {
 	private static final Logger logger                = LoggerFactory.getLogger(ConfigServlet.class);
 	private static final Set<String> sessions         = new HashSet<>();
 	private static final String TITLE                 = "Structr Configuration Editor";
+
+	// Brute-force protection for ConfigServlet login
+	private static int failedLoginAttempts             = 0;
+	private static long lockoutUntil                   = 0;
+	private static final int MAX_FAILED_ATTEMPTS       = 5;
+	private static final long LOCKOUT_DURATION_MS      = 30_000; // 30 seconds
 
 	private static final String ConfigServletLocation = "/structr/config";
 	private static final String AdminBackendLocation  = "/structr/";
@@ -267,6 +275,11 @@ public class ConfigServlet extends AbstractServletBase {
 
 		setCustomResponseHeaders(response);
 
+		// CSRF origin check for all ConfigServlet POST requests
+		if (!checkCsrfOrigin(request, response)) {
+			return;
+		}
+
 		final String action   = request.getParameter("action");
 		String redirectTarget = "";
 
@@ -276,8 +289,33 @@ public class ConfigServlet extends AbstractServletBase {
 
 				case "login":
 
-					if (StringUtils.isNoneBlank(Settings.SuperUserPassword.getValue(), request.getParameter("password")) && Settings.SuperUserPassword.getValue().equals(request.getParameter("password"))) {
+					// Brute-force protection: check lockout
+					if (System.currentTimeMillis() < lockoutUntil) {
+
+						logger.warn("ConfigServlet login attempt rejected: temporarily locked out after {} failed attempts", failedLoginAttempts);
+						break;
+					}
+
+					final String superUserPwd   = Settings.SuperUserPassword.getValue();
+					final String submittedPwd   = request.getParameter("password");
+
+					if (StringUtils.isNoneBlank(superUserPwd, submittedPwd)
+						&& MessageDigest.isEqual(superUserPwd.getBytes(StandardCharsets.UTF_8), submittedPwd.getBytes(StandardCharsets.UTF_8))) {
+
 						authenticateSession(request);
+
+						// Reset brute-force counter on successful login
+						failedLoginAttempts = 0;
+						lockoutUntil = 0;
+
+					} else {
+
+						failedLoginAttempts++;
+
+						if (failedLoginAttempts >= MAX_FAILED_ATTEMPTS) {
+							lockoutUntil = System.currentTimeMillis() + LOCKOUT_DURATION_MS;
+							logger.warn("ConfigServlet login locked out for {}ms after {} failed attempts", LOCKOUT_DURATION_MS, failedLoginAttempts);
+						}
 					}
 					break;
 
@@ -823,14 +861,16 @@ public class ConfigServlet extends AbstractServletBase {
 		final HttpSession session = request.getSession();
 		if (session != null) {
 
-			final String sessionId = session.getId();
-			if (sessionId != null) {
+			// Regenerate session ID to prevent session fixation attacks
+			final String newSessionId = request.changeSessionId();
 
-				sessions.add(sessionId);
+			if (newSessionId != null) {
+
+				sessions.add(newSessionId);
 
 			} else {
 
-				logger.warn("Cannot authenticate HTTP session without session ID, ignoring.");
+				logger.warn("Cannot authenticate HTTP session: changeSessionId() returned null.");
 			}
 
 		} else {
