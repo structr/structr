@@ -62,10 +62,14 @@ import org.structr.web.entity.User;
 import org.structr.web.resource.RegistrationResourceHandler;
 import org.structr.web.servlet.HtmlServlet;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -75,7 +79,10 @@ public class UiAuthenticator implements Authenticator {
 
 	private static final Logger logger = LoggerFactory.getLogger(UiAuthenticator.class.getName());
 
-	private static final Map<String, Map<String,String[]>> stateParameters = new HashMap<>();
+	private static final Cache<String, Map<String,String[]>> stateParameters = CacheBuilder.newBuilder()
+		.maximumSize(1000)
+		.expireAfterWrite(10, TimeUnit.MINUTES)
+		.build();
 	private static final Map<String, Method> methods                       = new HashMap();
 
 	protected boolean examined = false;
@@ -716,8 +723,8 @@ public class UiAuthenticator implements Authenticator {
 
 							// get the original request state and add the parameters to the redirect page
 							final String originalRequestState = request.getParameter("state");
-							Map<String, String[]> originalRequestParameters = stateParameters.get(originalRequestState);
-							stateParameters.remove(originalRequestState);
+							Map<String, String[]> originalRequestParameters = stateParameters.getIfPresent(originalRequestState);
+							stateParameters.invalidate(originalRequestState);
 
 							Boolean isTokenLogin = false;
 
