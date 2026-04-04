@@ -260,6 +260,12 @@ public class UiAuthenticator implements Authenticator {
 		final List<String> acceptedOrigins = Arrays.stream(acceptedOriginsString.split(",")).map(String::trim).collect(Collectors.toList());
 		final boolean wildcardAllowed = acceptedOrigins.contains("*");
 
+		// Warn about dangerous CORS misconfiguration
+		if (wildcardAllowed && StringUtils.equalsIgnoreCase(allowCredentials, "true")) {
+			logger.warn("Potentially dangerous CORS configuration: Access-Control-Allow-Credentials is 'true' while accepted origins contain '*'. " +
+				"This allows any origin to make credentialed cross-origin requests. Consider restricting the origin list.");
+		}
+
 		if (acceptedOrigins.contains(origin) || wildcardAllowed) {
 
 			// Respond with wildcard "*" only for non-credentialed requests (user == null)
