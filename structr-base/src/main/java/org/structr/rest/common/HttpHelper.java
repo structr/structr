@@ -735,6 +735,10 @@ public class HttpHelper {
 	 */
 	public static void validateUrl(final String address) throws FrameworkException {
 
+		if (!Settings.SsrfProtection.getValue()) {
+			return;
+		}
+
 		final URI uri;
 
 		try {
