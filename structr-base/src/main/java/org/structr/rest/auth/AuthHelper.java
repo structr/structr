@@ -48,6 +48,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.GeneralSecurityException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Utility class for authentication.
@@ -56,6 +57,9 @@ public class AuthHelper {
 
 	public static final String STANDARD_ERROR_MSG = "Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!";
 	private static final Logger logger            = LoggerFactory.getLogger(AuthHelper.class.getName());
+
+	// Per-user lock objects for atomic failed login counter updates
+	private static final ConcurrentHashMap<String, Object> userLocks = new ConcurrentHashMap<>();
 
 
 	/**
@@ -400,21 +404,26 @@ public class AuthHelper {
 
 	public static void incrementFailedLoginAttemptsCounter (final Principal principal) {
 
-		try {
+		final Object lock = userLocks.computeIfAbsent(principal.getUuid(), k -> new Object());
 
-			Integer failedAttempts = principal.getPasswordAttempts();
+		synchronized (lock) {
 
-			if (failedAttempts == null) {
-				failedAttempts = 0;
+			try {
+
+				Integer failedAttempts = principal.getPasswordAttempts();
+
+				if (failedAttempts == null) {
+					failedAttempts = 0;
+				}
+
+				failedAttempts++;
+
+				principal.setPasswordAttempts(failedAttempts);
+
+			} catch (FrameworkException fex) {
+
+				logger.warn("Exception while incrementing failed login attempts counter", fex);
 			}
-
-			failedAttempts++;
-
-			principal.setPasswordAttempts(failedAttempts);
-
-		} catch (FrameworkException fex) {
-
-			logger.warn("Exception while incrementing failed login attempts counter", fex);
 		}
 	}
 
@@ -446,14 +455,23 @@ public class AuthHelper {
 
 	public static void resetFailedLoginAttemptsCounter (final Principal principal) {
 
-		try {
+		final String uuid = principal.getUuid();
+		final Object lock = userLocks.computeIfAbsent(uuid, k -> new Object());
 
-			principal.setPasswordAttempts(0);
+		synchronized (lock) {
 
-		} catch (FrameworkException fex) {
+			try {
 
-			logger.warn("Exception while resetting failed login attempts counter", fex);
+				principal.setPasswordAttempts(0);
+
+			} catch (FrameworkException fex) {
+
+				logger.warn("Exception while resetting failed login attempts counter", fex);
+			}
 		}
+
+		// Remove lock entry on successful login to prevent unbounded map growth
+		userLocks.remove(uuid);
 	}
 
 	public static void handleForcePasswordChange (final Principal principal) throws PasswordChangeRequiredException {
