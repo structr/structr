@@ -296,10 +296,13 @@ public class ConfigServlet extends AbstractServletBase {
 						break;
 					}
 
+					final String superUserName  = Settings.SuperUserName.getValue();
 					final String superUserPwd   = Settings.SuperUserPassword.getValue();
-					final String submittedPwd   = request.getParameter("password");
+					final String submittedName  = request.getParameter("superuserName");
+					final String submittedPwd   = request.getParameter("superuserPassword");
 
-					if (StringUtils.isNoneBlank(superUserPwd, submittedPwd)
+					if (StringUtils.isNoneBlank(superUserName, superUserPwd, submittedName, submittedPwd)
+						&& MessageDigest.isEqual(superUserName.getBytes(StandardCharsets.UTF_8), submittedName.getBytes(StandardCharsets.UTF_8))
 						&& MessageDigest.isEqual(superUserPwd.getBytes(StandardCharsets.UTF_8), submittedPwd.getBytes(StandardCharsets.UTF_8))) {
 
 						authenticateSession(request);

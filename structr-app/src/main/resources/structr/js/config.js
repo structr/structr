@@ -638,27 +638,46 @@ let _Config = {
 	},
 	templates: {
 		configLoginDialogMarkup: `
-			<div id="login" class="dialog p-6 text-left">
+			<div id="login" class="dialog p-8 text-left" style="max-width: 480px; border: 2px solid #c62828; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
 
-				${_Icons.getSvgIcon(_Icons.iconStructrLogo, 90, 24, ['logo-login'])}
+				<div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #e0e0e0;">
+					${_Icons.getSvgIcon(_Icons.iconStructrLogo, 90, 24, ['logo-login'])}
+					<span style="font-size: 11px; font-weight: 600; color: #c62828; text-transform: uppercase; letter-spacing: 0.5px;">System Configuration</span>
+				</div>
 
-				<p>Welcome to the Structr Configuration Editor. Please log in with the <b>super-user</b> password which can be found in your structr.conf.</p>
+				<p style="font-size: 10pt; line-height: 1.5; color: #444; margin-bottom: 16px;">
+					This is the <b>Structr System Configuration Editor</b>. Access is restricted to the system superuser account.
+					Changes made here directly affect the server configuration, database connections, and service lifecycle.
+				</p>
+				<p style="font-size: 9pt; line-height: 1.4; color: #666; margin-bottom: 20px;">
+					Please sign in with the superuser credentials configured in <code style="background: #f5f5f5; padding: 1px 4px; border-radius: 3px; font-size: 9pt;">structr.conf</code>
+					(<code style="background: #f5f5f5; padding: 1px 4px; border-radius: 3px; font-size: 9pt;">superuser.username</code> and
+					<code style="background: #f5f5f5; padding: 1px 4px; border-radius: 3px; font-size: 9pt;">superuser.password</code>).
+				</p>
 
 				<form action="${_Helpers.getPrefixedRootUrl("/structr/config")}" method="post">
 
-					<div id="username-password" class="gap-y-2 grid ml-1 mr-4" style="grid-template-columns: 35fr 65fr;">
+					<div id="username-password" class="gap-y-2 grid ml-1 mr-4 mt-4" style="grid-template-columns: 35fr 65fr;">
 
 						<div class="self-center">
-							<label for="passwordField">Password:</label>
+							<label for="superuserNameField">Username:</label>
 						</div>
 
 						<div class="self-center">
-							<input id="passwordField" type="password" name="password" autocomplete="current-password" required class="w-full box-border">
+							<input id="superuserNameField" type="text" name="superuserName" autocomplete="username" required class="w-full box-border">
+						</div>
+
+						<div class="self-center">
+							<label for="superuserPasswordField">Password:</label>
+						</div>
+
+						<div class="self-center">
+							<input id="superuserPasswordField" type="password" name="superuserPassword" autocomplete="current-password" required class="w-full box-border">
 						</div>
 
 						<div class="self-center col-span-2 mt-2 text-right">
-							<button id="loginButton" name="login" class="inline-flex mr-0 items-center hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green">
-								${_Icons.getSvgIcon(_Icons.iconVisibilityKey, 16, 16, ['mr-2'])} Login
+							<button id="loginButton" name="login" class="inline-flex mr-0 items-center hover:bg-gray-100 focus:border-gray-666 active:border-green" style="font-weight: 600;">
+								${_Icons.getSvgIcon(_Icons.iconVisibilityKey, 16, 16, ['mr-2'])} Sign In
 							</button>
 
 							<input type="hidden" name="action" value="login">
