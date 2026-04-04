@@ -47,7 +47,9 @@ import org.structr.rest.servlet.AbstractServletBase;
 import org.structr.web.auth.UiAuthenticator;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Map;
@@ -162,6 +164,9 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 				return;
 			}
 
+			// Validate URL against SSRF (scheme, hostname, private IP ranges)
+			validateProxyUrl(address);
+
 			final URI url  = URI.create(address);
 
 			String proxyUrl      = request.getParameter("proxyUrl");
@@ -273,6 +278,54 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 
 	private String errorPage(final Throwable t) {
 		return "<html><head><title>Error in Structr Proxy</title></head><body><h1>Error in Proxy</h1><p>An error occurred while processing your request.</p></body></html>";
+	}
+
+	/**
+	 * Validates a proxy target URL against SSRF attacks.
+	 * Rejects non-HTTP schemes and URLs that resolve to private/internal IP ranges.
+	 */
+	private void validateProxyUrl(final String address) throws FrameworkException {
+
+		final URI uri;
+
+		try {
+			uri = URI.create(address);
+		} catch (IllegalArgumentException e) {
+			throw new FrameworkException(400, "Invalid URL: " + address);
+		}
+
+		// Only allow http and https schemes
+		final String scheme = uri.getScheme();
+		if (scheme == null || (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme))) {
+			throw new FrameworkException(400, "Only http and https URLs are allowed");
+		}
+
+		// Resolve hostname and check against private IP ranges
+		final String host = uri.getHost();
+		if (host == null) {
+			throw new FrameworkException(400, "URL has no host component");
+		}
+
+		try {
+
+			final InetAddress resolved = InetAddress.getByName(host);
+
+			if (resolved.isLoopbackAddress()
+				|| resolved.isLinkLocalAddress()
+				|| resolved.isSiteLocalAddress()
+				|| resolved.isAnyLocalAddress()
+				|| resolved.isMulticastAddress()) {
+
+				logger.warn("ProxyServlet: blocked request to internal address {} (resolved from {})", resolved.getHostAddress(), host);
+				throw new FrameworkException(403, "Requests to internal network addresses are not allowed");
+			}
+
+			// Also check for the cloud metadata endpoint (169.254.169.254)
+			// which isLinkLocalAddress() already covers, but be explicit
+
+		} catch (UnknownHostException e) {
+			throw new FrameworkException(400, "Unable to resolve hostname: " + host);
+		}
 	}
 
 }
