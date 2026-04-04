@@ -20,6 +20,7 @@ package org.structr.rest.servlet;
 
 
 import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -74,6 +75,47 @@ public abstract class AbstractServletBase extends HttpServlet {
 	protected void sendRedirectHeader(final HttpServletResponse response, final String location) throws IOException {
 
 		sendRedirectHeader(response, location, true);
+	}
+
+	/**
+	 * Checks the Origin header of a POST request against the server's host
+	 * to prevent cross-site request forgery. Returns true if the request
+	 * is safe to process, false if it should be rejected.
+	 *
+	 * A request is considered safe if:
+	 * - No Origin header is present (same-origin form submission)
+	 * - The Origin matches the request's server name and port
+	 */
+	protected boolean checkCsrfOrigin(final HttpServletRequest request, final HttpServletResponse response) throws IOException {
+
+		final String origin = request.getHeader("Origin");
+
+		if (origin != null) {
+
+			try {
+
+				final java.net.URI originUri = java.net.URI.create(origin);
+				final String originHost      = originUri.getHost();
+				final int originPort         = originUri.getPort();
+				final String serverHost      = request.getServerName();
+				final int serverPort         = request.getServerPort();
+
+				if (!serverHost.equals(originHost) || (originPort != -1 && originPort != serverPort)) {
+
+					logger.warn("CSRF check failed: Origin '{}' does not match server '{}:{}'", origin, serverHost, serverPort);
+					response.sendError(HttpServletResponse.SC_FORBIDDEN, "Cross-origin request rejected");
+					return false;
+				}
+
+			} catch (IllegalArgumentException e) {
+
+				logger.warn("CSRF check failed: Invalid Origin header '{}'", origin);
+				response.sendError(HttpServletResponse.SC_FORBIDDEN, "Invalid Origin header");
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	protected void sendRedirectHeader(final HttpServletResponse response, final String location, final boolean addPrefix) throws IOException {
