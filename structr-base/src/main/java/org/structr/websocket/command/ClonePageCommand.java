@@ -66,7 +66,6 @@ import java.util.Map;
 				if (pageToClone != null) {
 
 					final Page newPage = pageToClone.cloneNode(true).as(Page.class);
-					final Map<String, DOMNode> cloneMap = new LinkedHashMap<>();
 
 					newPage.setProperties(securityContext, new PropertyMap(Traits.of(StructrTraits.PAGE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), pageToClone.getName() + "-" + newPage.getNode().getId().toString()));
 				}
