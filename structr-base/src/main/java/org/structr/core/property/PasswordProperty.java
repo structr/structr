@@ -18,7 +18,6 @@
  */
 package org.structr.core.property;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.*;
@@ -36,9 +35,9 @@ import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import java.util.Date;
 
 /**
- * A {@link StringProperty} that converts its value to a hexadecimal SHA512 hash upon storage.
+ * A {@link StringProperty} that converts its value to an Argon2id hash upon storage.
  * The return value of this property will always be the password hash, the clear-text password
- * will be lost.
+ * will be lost. Legacy SHA-512 hashes are supported for verification during migration.
  *
  *
  */
@@ -101,7 +100,7 @@ public class PasswordProperty extends StringProperty {
 					final String oldSalt        = principal.getSalt();
 					final String oldEncPassword = principal.getEncryptedPassword();
 
-					boolean passwordChangedOrFirstPassword = (oldEncPassword == null || oldSalt == null || !oldEncPassword.equals(HashHelper.getHash(clearTextPassword, oldSalt)));
+					boolean passwordChangedOrFirstPassword = (oldEncPassword == null || !HashHelper.verifyPassword(clearTextPassword, oldEncPassword, oldSalt));
 					if (passwordChangedOrFirstPassword) {
 
 						obj.setProperty(traits.key(PrincipalTraitDefinition.PASSWORD_CHANGE_DATE_PROPERTY), new Date().getTime());
@@ -109,11 +108,8 @@ public class PasswordProperty extends StringProperty {
 				}
 			}
 
-			final String salt = RandomStringUtils.randomAlphanumeric(16);
-
-			obj.setProperty(traits.key(PrincipalTraitDefinition.SALT_PROPERTY), salt);
-
-			returnValue = super.setProperty(securityContext, obj, HashHelper.getHash(clearTextPassword, salt));
+			// Argon2id hash (salt is embedded in the hash output)
+			returnValue = super.setProperty(securityContext, obj, HashHelper.hashPassword(clearTextPassword));
 
 			if (Settings.PasswordClearSessionsOnChange.getValue() && wrappedObject != null && wrappedObject.is(StructrTraits.PRINCIPAL)) {
 				wrappedObject.removeProperty(traits.key(PrincipalTraitDefinition.SESSION_IDS_PROPERTY));

@@ -163,6 +163,9 @@ public class DataFeedTraitWrapper extends AbstractNodeTraitWrapper implements Da
 
 			try {
 
+				// Validate URL against SSRF (scheme, hostname, private IP ranges)
+				HttpHelper.validateUrl(remoteUrl);
+
 				final SyndFeedInput input = new SyndFeedInput();
 
 				InputStream inputStream = null;

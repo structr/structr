@@ -162,6 +162,9 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 				return;
 			}
 
+			// Validate URL against SSRF (scheme, hostname, private IP ranges)
+			HttpHelper.validateUrl(address);
+
 			final URI url  = URI.create(address);
 
 			String proxyUrl      = request.getParameter("proxyUrl");

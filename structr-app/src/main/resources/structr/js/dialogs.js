@@ -249,7 +249,7 @@ let _Dialogs = {
 				width: ''
 			});
 
-			document.querySelector('#passwordField').focus();
+			document.querySelector('#superuserNameField').focus();
 		}
 	},
 	confirmation: {

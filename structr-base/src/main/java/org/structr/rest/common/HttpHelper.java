@@ -47,7 +47,9 @@ import javax.net.ssl.SSLContext;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -722,6 +724,60 @@ public class HttpHelper {
 	}
 
 	// ----- private methods -----
+
+	/**
+	 * Validates a URL against SSRF attacks. Rejects non-HTTP schemes and
+	 * URLs that resolve to private/internal IP ranges (loopback, link-local,
+	 * site-local, any-local, multicast).
+	 *
+	 * @param address the URL to validate
+	 * @throws FrameworkException if the URL is invalid or resolves to a blocked address
+	 */
+	public static void validateUrl(final String address) throws FrameworkException {
+
+		if (!Settings.SsrfProtection.getValue()) {
+			return;
+		}
+
+		final URI uri;
+
+		try {
+			uri = URI.create(address);
+		} catch (IllegalArgumentException e) {
+			throw new FrameworkException(400, "Invalid URL: " + address);
+		}
+
+		// Only allow http and https schemes
+		final String scheme = uri.getScheme();
+		if (scheme == null || (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme))) {
+			throw new FrameworkException(400, "Only http and https URLs are allowed");
+		}
+
+		// Resolve hostname and check against private IP ranges
+		final String host = uri.getHost();
+		if (host == null) {
+			throw new FrameworkException(400, "URL has no host component");
+		}
+
+		try {
+
+			final InetAddress resolved = InetAddress.getByName(host);
+
+			if (resolved.isLoopbackAddress()
+				|| resolved.isLinkLocalAddress()
+				|| resolved.isSiteLocalAddress()
+				|| resolved.isAnyLocalAddress()
+				|| resolved.isMulticastAddress()) {
+
+				logger.warn("Blocked outbound request to internal address {} (resolved from {})", resolved.getHostAddress(), host);
+				throw new FrameworkException(403, "Requests to internal network addresses are not allowed");
+			}
+
+		} catch (UnknownHostException e) {
+			throw new FrameworkException(400, "Unable to resolve hostname: " + host);
+		}
+	}
+
 	private static URI checkAddressAgainstWhitelist(final String address) throws FrameworkException {
 
 		final String whitelist = Settings.OutgoingURLWhitelist.getValue(null);

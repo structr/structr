@@ -81,7 +81,6 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 	private static final Logger logger = LoggerFactory.getLogger(SSHService.class.getName());
 
 	private static final AttributeRepository.AttributeKey<SecurityContext> SECURITY_CONTEXT_KEY = new AttributeRepository.AttributeKey<>();
-	private static final AttributeRepository.AttributeKey<Tx> CURRENT_TRANSACTION_KEY           = new AttributeRepository.AttributeKey<>();
 
 	private final ScpCommandFactory scp = new ScpCommandFactory.Builder().build();
 	private SshServer server            = null;
@@ -337,52 +336,43 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 	// ----- interface SftpEventListener -----
 
-	// Note: beginTransaction/endTransaction use the session-scoped SecurityContext
-	// retrieved from the ServerSession passed to each SFTP event listener method.
+	// Note: Transaction management is handled by the StructrFilePath methods themselves
+	// (createDirectory, delete, move). The event listener methods are intentionally empty.
 
 	@Override
 	public void closing(ServerSession session, String remoteHandle, Handle localHandle) {
-		endTransaction(session);
 	}
 
 	@Override
 	public void creating(ServerSession session, Path path, Map<String, ?> attrs) {
-		beginTransaction(session);
 	}
 
 	@Override
 	public void created(ServerSession session, Path path, Map<String, ?> attrs, Throwable thrown) {
-		endTransaction(session);
 	}
 
 	@Override
 	public void moving(ServerSession session, Path srcPath, Path dstPath, Collection<CopyOption> opts) {
-		beginTransaction(session);
 	}
 
 	@Override
 	public void moved(ServerSession session, Path srcPath, Path dstPath, Collection<CopyOption> opts, Throwable thrown) {
-		endTransaction(session);
 	}
 
 	@Override
 	public void removing(ServerSession session, Path path, boolean isDirectory) {
-		beginTransaction(session);
 	}
 
 	@Override
 	public void removed(ServerSession session, Path path, boolean isDirectory, Throwable thrown) {
-		endTransaction(session);
 	}
 
 	@Override
 	public void linking(ServerSession session, Path source, Path target, boolean symLink) {
-		beginTransaction(session);
 	}
 
 	@Override
 	public void linked(ServerSession session, Path source, Path target, boolean symLink, Throwable thrown) {
-		endTransaction(session);
 	}
 
 	@Override
@@ -462,51 +452,6 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 		}
 
 		return null;
-	}
-
-	private void beginTransaction(final ServerSession session) {
-
-		final SecurityContext ctx = getSecurityContext(session);
-		if (ctx != null) {
-
-			final Tx existingTx = session.getAttribute(CURRENT_TRANSACTION_KEY);
-			if (existingTx == null) {
-
-				try {
-
-					final Tx tx = StructrApp.getInstance(ctx).tx(true, false, false);
-					session.setAttribute(CURRENT_TRANSACTION_KEY, tx);
-
-				} catch (FrameworkException fex) {
-
-					logger.warn("Unable to begin transaction.", fex);
-				}
-			}
-
-		} else {
-
-			logger.warn("Unable to begin transaction: no SecurityContext on session.");
-		}
-	}
-
-	private void endTransaction(final ServerSession session) {
-
-		final Tx tx = session.getAttribute(CURRENT_TRANSACTION_KEY);
-		if (tx != null) {
-
-			try {
-				tx.success();
-				tx.close();
-
-			} catch (Throwable t) {
-
-				logger.warn("", t);
-
-			} finally {
-
-				session.setAttribute(CURRENT_TRANSACTION_KEY, null);
-			}
-		}
 	}
 
 	private List<SubsystemFactory> getSubsystems() {

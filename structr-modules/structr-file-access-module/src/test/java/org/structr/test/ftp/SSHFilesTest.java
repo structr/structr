@@ -76,7 +76,7 @@ public class SSHFilesTest extends SSHTest {
 			assertEquals("Invalid permissions on . directory",          "drwxrwxr-x", currentDir.getAttrs().getPermissionsString());
 
 			// check flags (?)
-			assertEquals("Invalid flags on . directory",          12, currentDir.getAttrs().getFlags());
+			assertEquals("Invalid flags on . directory",          13, currentDir.getAttrs().getFlags());
 
 			// check size
 			assertEquals("Invalid size on . directory",          0, currentDir.getAttrs().getSize());

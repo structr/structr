@@ -19,6 +19,7 @@
 package org.structr.test;
 
 import io.restassured.RestAssured;
+import org.structr.api.config.Settings;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -45,6 +46,9 @@ public class FeedsTest extends StructrUiTest {
 		final Traits feedTraits = Traits.of(type);
 
 		assertNotNull("Type DataFeed should exist", feedTraits);
+
+		// Disable SSRF protection for this test because the feed URL points to localhost
+		Settings.SsrfProtection.setValue(false);
 
 		try (final Tx tx = app.tx()) {
 

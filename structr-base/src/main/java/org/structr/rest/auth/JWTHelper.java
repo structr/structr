@@ -465,6 +465,13 @@ public class JWTHelper {
 			throw new FrameworkException(500, "The configured secret is too weak (must be at least 32 characters) - see " + Settings.JWTSecret.getKey());
 		}
 
+		// Check for minimum entropy: reject secrets with fewer than 10 distinct characters
+		final long distinctChars = secret.chars().distinct().count();
+		if (distinctChars < 10) {
+
+			throw new FrameworkException(500, "The configured secret has insufficient entropy (only " + distinctChars + " distinct characters). Please use a more random secret - see " + Settings.JWTSecret.getKey());
+		}
+
 		try {
 
 			final Algorithm alg = Algorithm.HMAC256(secret.getBytes(StandardCharsets.UTF_8));

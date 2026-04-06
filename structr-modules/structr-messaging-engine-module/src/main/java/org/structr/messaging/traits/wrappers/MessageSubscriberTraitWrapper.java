@@ -93,6 +93,12 @@ public class MessageSubscriberTraitWrapper extends AbstractNodeTraitWrapper impl
 	@Override
 	public  RestMethodResult onMessage(final ActionContext actionContext, final String topic, final String message) throws FrameworkException {
 
+		// SECURITY NOTE: The 'topic' and 'message' values originate from an external message broker
+		// (MQTT, Kafka, Pulsar, etc.) and must be treated as untrusted input. The callback script
+		// should not use these values in string concatenation passed to find(), cypher(), or other
+		// functions that interpret their arguments as code or query language. Use them only as
+		// data parameters, not as part of dynamically constructed expressions.
+
 		if (!StringUtils.isEmpty(this.getCallback())) {
 
 			String script = "${" + this.getCallback().trim() + "}";
