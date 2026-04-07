@@ -3600,6 +3600,8 @@ let _Pages = {
 				await _Pages.routingDialog.drawPagePath(listContainer, path);
 			}
 
+			_Pages.routingDialog.toggleHoverDocumentation(listContainer);
+
 			$(listContainer).sortable({
 				handle: "[data-is-sortable-handle]",
 				placeholder: "border border-dashed border-gray-ddd h-16 mb-8 rounded-lg ui-sortable-placeholder",
@@ -3607,6 +3609,14 @@ let _Pages = {
 			});
 
 			_Helpers.activateCommentsInElement(container);
+		},
+		toggleHoverDocumentation: (container) => {
+
+			let routingContainer = container.closest('.routing-container');
+
+			let paths = routingContainer.querySelectorAll('[data-structr-page-path-id]');
+
+			routingContainer.querySelector('.inline-info').classList.toggle('force-hover', (paths.length === 0));
 		},
 		updatedSorting: async (event, ui) => {
 
@@ -3673,6 +3683,8 @@ let _Pages = {
 
 			listContainer.insertAdjacentHTML('beforeend', _Pages.routingDialog.templates.pagePathRow(path));
 
+			_Pages.routingDialog.toggleHoverDocumentation(listContainer);
+
 			_Helpers.activateCommentsInElement(listContainer);
 
 			let rowContainer = listContainer.querySelector(`[data-structr-page-path-id="${path.id}"]`);
@@ -3690,11 +3702,8 @@ let _Pages = {
 				}
 			});
 
-			let debouncedUpdateFunction = _Helpers.debounce(event => _Pages.routingDialog.updateParameters(event, path, paramsContainer), 500);
+			let debouncedUpdateFunction = _Helpers.debounce(event => _Pages.routingDialog.updateParameters(event, path, rowContainer), 500);
 			rowContainer.querySelector(`[data-structr-attribute="name"]`).addEventListener('input', debouncedUpdateFunction);
-
-			let paramsContainer = rowContainer.querySelector('.path-parameters');
-			paramsContainer.insertAdjacentHTML('beforeend', _Pages.routingDialog.getSortedParametersAsHTML(path.parameters));
 
 			rowContainer.querySelector('.routing-remove-button')?.addEventListener('click', async e => {
 
@@ -3702,45 +3711,46 @@ let _Pages = {
 
 				if (response.ok) {
 					listContainer.removeChild(rowContainer);
+
+					_Pages.routingDialog.toggleHoverDocumentation(listContainer);
 				}
 			});
 
-			await _Pages.routingDialog.initPagePathParameters(paramsContainer);
+			await _Pages.routingDialog.initPagePathParameters(rowContainer, path.parameters);
 		},
-		updateParameters: async (event, path, paramsContainer) => {
+		updateParameters: async (event, pathObj, row) => {
 
-			let string = event.target.value;
-			// TODO: extract parameter names serverside!
-			let names  = string.match(/(\{[_a-zA-Z0-9]+\})/g) || [];
+			let path = event.target.value;
 
-			// remove {} around parameter name
-			names = names.map(n => n.substring(1, n.length - 1));
-
-			let response = await fetch(`${Structr.rootUrl}PagePath/${path.id}/updatePathAndParameters`, {
+			let response = await fetch(`${Structr.rootUrl}PagePath/${pathObj.id}/updatePathAndParameters`, {
 				method: 'POST',
-				body: JSON.stringify({
-					path: string,
-					names: names
-				})
+				body: JSON.stringify({ path })
 			});
 
 			if (response.ok) {
 
-				let data = await response.json();
+				let { messages, parameters } = (await response.json()).result;
 
-				_Helpers.fastRemoveAllChildren(paramsContainer);
+				await _Pages.routingDialog.initPagePathParameters(row, parameters);
 
-				paramsContainer.insertAdjacentHTML('beforeend', _Pages.routingDialog.getSortedParametersAsHTML(data.result));
-
-				await _Pages.routingDialog.initPagePathParameters(paramsContainer);
+				let messagesContainer = row.querySelector('[data-structr-path-messages-container]');
+				_Helpers.fastRemoveAllChildren(messagesContainer);
+				messagesContainer.insertAdjacentHTML('beforeend', _Pages.routingDialog.templates.pagePathParametersMessages({ messages }));
 
 				_Helpers.blinkGreen(event.target);
 			}
 		},
-		getSortedParametersAsHTML:(params) => {
+		getSortedParametersAsHTML: (params) => {
 			return params.toSorted((a, b) => a.position - b.position).map(param => _Pages.routingDialog.templates.pagePathParameterRow(param)).join('\n');
 		},
-		initPagePathParameters: async (paramsContainer) => {
+		getPathParametersContainerFromRow: (row) => row.querySelector('[data-structr-path-parameters-container]'),
+		initPagePathParameters: async (row, parameters) => {
+
+			let paramsContainer = _Pages.routingDialog.getPathParametersContainerFromRow(row);
+
+			_Helpers.fastRemoveAllChildren(paramsContainer);
+
+			paramsContainer.insertAdjacentHTML('beforeend', _Pages.routingDialog.getSortedParametersAsHTML(parameters));
 
 			paramsContainer.querySelectorAll('[data-structr-attribute]').forEach(input => {
 
@@ -3788,12 +3798,46 @@ let _Pages = {
 					<div class="inline-info-icon">
 						${_Icons.getSvgIcon(_Icons.iconInfo, 24, 24)}
 					</div>
-					<div class="inline-info-text">
-						Here you can define URL Routes via which the page can be accessed. In the path, you can define path parameters using <code>{param1}</code> syntax. The parameters must begin with a letter or an underscore.
-						<br><br>
-						These path parameters are automatically extracted and can then be further configured to be of certain types and have default values and so on.
-						<br><br>
-						The order (from top to bottom) is the order in which the Routes are tested for a match to any requested URL. This order can be adjusted via drag and drop.
+					<div class="inline-info-text" style="width: 30rem;">
+
+						<h3 class="mt-0">URL Routes</h3>
+
+						<p>Define the URL routes through which this page can be accessed.</p>
+
+						<p>Routes are evaluated from top to bottom. The first matching route is used. You can change the evaluation order via drag and drop.</p>
+
+						<h3>Path Parameters</h3>
+
+						<p>Path parameters can be defined using <code>{param}</code> syntax. These parameters are automatically extracted and validated. You can further configure them (e.g. type, default values).</p>
+
+						<h3>Matching Behavior</h3>
+
+						<ul>
+						<li>Static parts of a route must match exactly.</li>
+						<li>Parameters are matched *greedily* within a path segment.</li>
+						</ul>
+
+						<p>This means multiple parameters in the same segment can lead to ambiguous matches:</p>
+
+						<ul>
+						<li><code>/{var1}{var2}/</code> → <code>var1</code> captures the entire segment, <code>var2</code> remains empty</li>
+						<li><code>/{var1}_{var2}/</code> → works because <code>_</code> enforces a boundary</li>
+						</ul>
+
+						<p>Use a separator character that cannot appear in either parameter.</p>
+
+						<em>Recommendation:</em> Prefer a single parameter per path segment to avoid ambiguity.
+
+						<h3>Avoid Catch-All Routes</h3>
+
+						<p>Routes like <code>/{variable}/</code> will match almost any request.</p>
+
+						<p>To prevent unintended matches, include at least one static (or clearly structured) segment at the beginning of the path, e.g.:</p>
+
+						<ul>
+						<li><code>/users/{id}/</code></li>
+						<li><code>/api/{resource}/</code></li>
+						</ul>
 					</div>
 				</div>
 				</div>
@@ -3807,12 +3851,12 @@ let _Pages = {
 							<input class="w-16 box-border" data-structr-attribute="priority" type="hidden" value="${config.priority ?? ''}">
 							<input class="flex-grow box-border rounded-l-none" data-structr-attribute="name" type="text" placeholder="/products/{name}/{amount}" value="${_Helpers.escapeForHtmlAttributes(config.name)}">
 						</div>
+						<div data-structr-path-messages-container></div>
 					</div>
 
 					<div class="col-span-3">
 						<label class="block" data-comment="Parameters names are managed automatically based on variables in the path and can be further configured here.">Path parameters</label>
-						<div class="path-parameters">
-						</div>
+						<div data-structr-path-parameters-container></div>
 					</div>
 
 					<div class="col-span-1">
@@ -3840,6 +3884,7 @@ let _Pages = {
 					</div>
 				</div>
 			`,
+			pagePathParametersMessages: config => `<ul>${config.messages.map(msg => `<li>${_Helpers.escapeTags(msg)}</li>`).join('\n')}</ul>`
 		}
 	},
 	ensureShadowPageExists: () => {

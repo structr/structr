@@ -36,9 +36,6 @@ import org.structr.web.traits.definitions.PagePathParameterTraitDefinition;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
-/**
- *
- */
 public class PagePathParameterTraitWrapper extends AbstractNodeTraitWrapper implements PagePathParameter {
 
 	public PagePathParameterTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {

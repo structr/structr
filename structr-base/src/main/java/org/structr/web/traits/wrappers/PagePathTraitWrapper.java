@@ -28,10 +28,12 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.script.polyglot.StructrBinding;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
+import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.path.PagePath;
 import org.structr.web.entity.path.PagePathParameter;
@@ -42,9 +44,6 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- *
- */
 public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements PagePath {
 
 	public PagePathTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
@@ -79,65 +78,82 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 	@Override
 	public Object updatePathAndParameters(final SecurityContext securityContext, final Map<String, Object> arguments) throws FrameworkException {
 
-		final Traits traits  = Traits.of(StructrTraits.PAGE_PATH_PARAMETER);
-		final Object rawList = arguments.get("names");
-		final Object rawPath = arguments.get("path");
+		final Traits traits         = Traits.of(StructrTraits.PAGE_PATH_PARAMETER);
+		final Object rawPath        = arguments.get("path");
+		final List<String> messages = new ArrayList<>();
 
 		if (rawPath instanceof String path) {
 
-			if (rawList instanceof List rawNames) {
+			wrappedObject.setProperty(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), path);
 
-				// update path
-				wrappedObject.setProperty(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), path);
+			final App app                                   = StructrApp.getInstance(securityContext);
+			final StructrBinding structrBinding             = new StructrBinding(new ActionContext(securityContext), null);
+			final Map<String, PagePathParameter> parameters = getMappedParameters();
+			final List<String> names                        = new ArrayList<>();
+			final List<String> toRemove                     = new LinkedList<>(parameters.keySet());
 
-				// update parameters
-				final App app                                   = StructrApp.getInstance(securityContext);
-				final Map<String, PagePathParameter> parameters = getMappedParameters();
-				final List<String> names                        = (List<String>)rawNames;
-				final List<String> toRemove                     = new LinkedList<>(parameters.keySet());
-				int count                                       = 0;
+			// extract path parameters and include messages for names that are not allowed
+			final Matcher pathParameterBaseMatcher = PATH_PARAMETER_BASE_PATTERN.matcher(path);
 
-				for (final String parameterName : names) {
+			while (pathParameterBaseMatcher.find()) {
 
-					// parameter doesn't exist yet, create
-					if (!parameters.containsKey(parameterName)) {
+				final String baseMatch             = pathParameterBaseMatcher.group(1);
+				final Matcher pathParameterMatcher = PATH_PARAMETER_PATTERN.matcher(baseMatch);
 
-						app.create(StructrTraits.PAGE_PATH_PARAMETER,
-							new NodeAttribute<>(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),           parameterName),
-							new NodeAttribute<>(traits.key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY), "String"),
-							new NodeAttribute<>(traits.key(PagePathParameterTraitDefinition.POSITION_PROPERTY),   count),
-							new NodeAttribute<>(traits.key(PagePathParameterTraitDefinition.PATH_PROPERTY),       wrappedObject)
-						);
+				if (pathParameterMatcher.find()) {
 
-					} else {
+					final String paramName = pathParameterMatcher.group(1);
+					names.add(paramName);
 
-						final PagePathParameter p = parameters.get(parameterName);
-						p.setPosition(count);
+					if (structrBinding.getMember(paramName) != null) {
+
+						messages.add("Parameter '" + baseMatch + "' conflicts with builtin functionality. Please choose a different name.");
 					}
 
-					toRemove.remove(parameterName);
+				} else {
 
-					count++;
+					messages.add("Parameter '" + baseMatch + "' does not match regex: " + PATH_PARAMETER_PATTERN + ". Will be interpreted literally.");
+				}
+			}
+
+			// check if first element is at the start of the path
+			if (!names.isEmpty()) {
+
+				final String catchAllParameter = "{" + names.get(0) + "}/";
+
+				if (path.startsWith(catchAllParameter) || path.startsWith("/" + catchAllParameter)) {
+
+					messages.addFirst("This path would result in a catch-all route because the first parameter spans the complete segment. Unless this is intended, the path should be changed.");
+				}
+			}
+
+			int count = 0;
+			for (final String parameterName : names) {
+
+				toRemove.remove(parameterName);
+
+				// parameter doesn't exist yet, create
+				if (!parameters.containsKey(parameterName)) {
+
+					app.create(StructrTraits.PAGE_PATH_PARAMETER,
+							new NodeAttribute<>(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), parameterName),
+							new NodeAttribute<>(traits.key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY), PagePathParameterTraitDefinition.PathParameterValueType.String.name()),
+							new NodeAttribute<>(traits.key(PagePathParameterTraitDefinition.POSITION_PROPERTY), count),
+							new NodeAttribute<>(traits.key(PagePathParameterTraitDefinition.PATH_PROPERTY), wrappedObject)
+					);
+
+				} else {
+
+					final PagePathParameter p = parameters.get(parameterName);
+					p.setPosition(count);
 				}
 
-				// remove parameters that are no longer present in the list
-				for (final String parameterName : toRemove) {
-					app.delete(parameters.get(parameterName));
-				}
+				count++;
+			}
 
-				// update positions
-				final Map<String, PagePathParameter> updatedParameters = getMappedParameters();
-				int index                                              = 0;
-
-				for (final String parameterName : names) {
-
-					final PagePathParameter param = updatedParameters.get(parameterName);
-					param.setPosition(index++);
-				}
-
-			} else {
-
-				throw new FrameworkException(422, "Missing or invalid argument: names");
+			// remove parameters that are no longer present in the list
+			for (final String parameterName : toRemove) {
+				app.delete(parameters.get(parameterName));
 			}
 
 		} else {
@@ -149,9 +165,11 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 
 		Collections.sort(sortedParameters, new DefaultSortOrder(traits.key(PagePathParameterTraitDefinition.POSITION_PROPERTY), false));
 
-		return sortedParameters;
+		return Map.of(
+				"parameters", sortedParameters,
+				"messages", messages
+		);
 	}
-
 
 	@Override
 	public Map<String, PagePathParameter> getMappedParameters() {

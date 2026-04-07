@@ -3790,7 +3790,8 @@ table.props td.__value {
 	z-index: 1001;
 }
 
-.inline-info:hover .inline-info-text {
+.inline-info:hover .inline-info-text,
+.inline-info.force-hover .inline-info-text {
 	display: block;
 	width: 20rem;
 	position: absolute;

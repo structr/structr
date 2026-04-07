@@ -35,9 +35,6 @@ import org.structr.web.traits.wrappers.PagePathParameterTraitWrapper;
 import java.util.Map;
 import java.util.Set;
 
-/**
- *
- */
 public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String PATH_PROPERTY          = "path";
@@ -79,7 +76,7 @@ public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinitio
 
 		final Property<NodeInterface> pathProperty  = new StartNode(traitsInstance, PATH_PROPERTY, StructrTraits.PAGE_PATH_HAS_PARAMETER_PAGE_PATH_PARAMETER);
 		final Property<Integer> positionProperty    = new IntProperty(POSITION_PROPERTY).indexed();
-		final Property<String> valueTypeProperty    = new EnumProperty(VALUE_TYPE_PROPERTY, newSet("String", "Integer", "Long", "Double", "Float", "Date", "Boolean", "Node")).defaultValue("String");
+		final Property<String> valueTypeProperty    = new EnumProperty(VALUE_TYPE_PROPERTY, PathParameterValueType.class).defaultValue(PathParameterValueType.String.name());
 		final Property<String> formatProperty       = new StringProperty(FORMAT_PROPERTY);
 		final Property<String> defaultValueProperty = new StringProperty(DEFAULT_VALUE_PROPERTY);
 		final Property<Boolean> isOptionalProperty  = new BooleanProperty(IS_OPTIONAL_PROPERTY);
@@ -109,5 +106,10 @@ public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinitio
 	@Override
 	public Relation getRelation() {
 		return null;
+	}
+
+	public enum PathParameterValueType {
+
+		String, Integer, Long, Double, Float, Date, Boolean, Node
 	}
 }

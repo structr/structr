@@ -29,7 +29,8 @@ import java.util.regex.Pattern;
 
 public interface PagePath extends NodeInterface {
 
-	Pattern PATH_PARAMETER_PATTERN = Pattern.compile("\\{([_a-zA-Z][_a-zA-Z0-9]*)\\}");
+	Pattern PATH_PARAMETER_BASE_PATTERN = Pattern.compile("(\\{[^}]*})");
+	Pattern PATH_PARAMETER_PATTERN      = Pattern.compile("\\{([_a-z][_a-zA-Z0-9]+)\\}");
 
 	Page getPage();
 	Integer getPriority();

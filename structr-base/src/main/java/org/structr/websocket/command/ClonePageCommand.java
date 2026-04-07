@@ -40,7 +40,7 @@ import java.util.Map;
 /**
  * Websocket command to clone a page.
  */
-	public class ClonePageCommand extends AbstractCommand {
+public class ClonePageCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(ClonePageCommand.class.getName());
 

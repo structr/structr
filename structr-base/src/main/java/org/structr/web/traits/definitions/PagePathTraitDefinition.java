@@ -43,9 +43,6 @@ import org.structr.web.traits.wrappers.PagePathTraitWrapper;
 import java.util.Map;
 import java.util.Set;
 
-/**
- *
- */
 public class PagePathTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String PAGE_PROPERTY       = "page";
