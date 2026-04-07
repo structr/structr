@@ -1138,6 +1138,8 @@ let _Pages = {
 
 					LSWrapper.setItem(_Entities.selectedObjectIdKey, entity.id);
 					_Pages.refreshCenterPane(entity);
+
+					_Pages.previews.updatePreviewSlideout(false);
 				}
 			});
 		}
@@ -2994,11 +2996,12 @@ let _Pages = {
 			let requestParameters = (LSWrapper.getItem(_Pages.requestParametersKey + entity.id) ? '&' + LSWrapper.getItem(_Pages.requestParametersKey + entity.id) : '');
 			return _Pages.previews.getBaseUrlForPage(entity) + '?' + Structr.getRequestParameterName('edit') + '=2' + requestParameters;
 		},
-		showPreviewInIframe: (pageId, highlightElementId, parentElement) => {
+		showPreviewInIframe: (pageId, highlightElementId, parentElement = _Pages.centerPane, modelChanged = true) => {
 
-			parentElement = (parentElement && parentElement.length) ? parentElement[0] : _Pages.centerPane;
+			let currentPreviewPage = parentElement.querySelector('.previewBox[data-id]')?.dataset.id ?? '';
+			let reloadRequired     = (modelChanged === true) || (pageId !== currentPreviewPage);
 
-			if (pageId && pageId !== _Pages.shadowPage.id) {
+			if (pageId && pageId !== _Pages.shadowPage.id && reloadRequired) {
 
 				let innerFn = () => {
 
@@ -3074,20 +3077,21 @@ let _Pages = {
 				_Pages.previews.reloadPreviewInIframe();
 			}
 
-			if (_Pages.previewSlideout.hasClass('open')) {
-				_Pages.previews.updatePreviewSlideout();
-			}
-
+			_Pages.previews.updatePreviewSlideout();
 		},
-		updatePreviewSlideout: () => {
+		updatePreviewSlideout: (modelChanged = true) => {
 
-			let elementId = _Pages.centerPane.dataset['elementId'] ?? LSWrapper.getItem(_Entities.selectedObjectIdKey);
+			if (_Pages.previewSlideout.hasClass('open')) {
 
-			if (elementId) {
-				Command.get(elementId, 'id,type,name,isPage,pageId', (entity) => {
-					_Helpers.fastRemoveAllChildren(_Pages.previewSlideout[0]);
-					_Pages.previews.showPreviewInIframe(entity.isPage ? entity.id : entity.pageId, elementId, _Pages.previewSlideout);
-				});
+				let elementId = _Pages.centerPane.dataset['elementId'] ?? LSWrapper.getItem(_Entities.selectedObjectIdKey);
+
+				if (elementId) {
+					Command.get(elementId, 'id,type,name,isPage,pageId', (entity) => {
+
+						let pageId = (entity.isPage ? entity.id : entity.pageId);
+						_Pages.previews.showPreviewInIframe(pageId, elementId, _Pages.previewSlideout[0], modelChanged);
+					});
+				}
 			}
 		},
 		configurePreview: (entity, container) => {
