@@ -25,7 +25,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -163,6 +162,9 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 				return;
 			}
 
+			// Validate URL against SSRF (scheme, hostname, private IP ranges)
+			HttpHelper.validateUrl(address);
+
 			final URI url  = URI.create(address);
 
 			String proxyUrl      = request.getParameter("proxyUrl");
@@ -209,7 +211,8 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 				throw new FrameworkException(422, "Request returned empty body");
 			}
 
-			content =  body.replace("<head>", "<head>\n  <base href=\"" + url + "\">");
+			final String sanitizedUrl = url.toString().replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;").replace("'", "&#x27;");
+			content =  body.replace("<head>", "<head>\n  <base href=\"" + sanitizedUrl + "\">");
 
 		} catch (Throwable t) {
 
@@ -272,7 +275,7 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 	}
 
 	private String errorPage(final Throwable t) {
-		return "<html><head><title>Error in Structr Proxy</title></head><body><h1>Error in Proxy</h1><p>" + t.getMessage() + "</p>\n<!--" + ExceptionUtils.getStackTrace(t) + "--></body></html>";
+		return "<html><head><title>Error in Structr Proxy</title></head><body><h1>Error in Proxy</h1><p>An error occurred while processing your request.</p></body></html>";
 	}
 
 }

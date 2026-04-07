@@ -19,6 +19,7 @@
 package org.structr.files.ssh;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.sshd.common.AttributeRepository;
 import org.apache.sshd.common.Factory;
 import org.apache.sshd.common.config.keys.KeyUtils;
 import org.apache.sshd.common.config.keys.PublicKeyEntry;
@@ -79,10 +80,11 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 	private static final Logger logger = LoggerFactory.getLogger(SSHService.class.getName());
 
-	private final ScpCommandFactory scp     = new ScpCommandFactory.Builder().build();
-	private SshServer server                = null;
-	private boolean running                 = false;
-	private SecurityContext securityContext = null;
+	private static final AttributeRepository.AttributeKey<SecurityContext> SECURITY_CONTEXT_KEY = new AttributeRepository.AttributeKey<>();
+
+	private final ScpCommandFactory scp = new ScpCommandFactory.Builder().build();
+	private SshServer server            = null;
+	private boolean running             = false;
 
 	@Override
 	public void injectArguments(final Command command) {
@@ -178,8 +180,15 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 	// ----- interface FileSystemFactory -----
 	@Override
 	public FileSystem createFileSystem(final SessionContext session) throws IOException {
-		return new StructrFilesystem(securityContext);
+
+		final SecurityContext ctx = getSecurityContext(session);
+		if (ctx == null) {
+			throw new IOException("No authenticated security context for this session.");
+		}
+
+		return new StructrFilesystem(ctx);
 	}
+
 	@Override
 	public Path getUserHomeDir(SessionContext sessionContext) throws IOException {
 		return Path.of("/");
@@ -214,7 +223,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 					if (principal != null) {
 
 						isValid = true;
-						securityContext = SecurityContext.getInstance(principal, principal.isAdmin() ? AccessMode.Backend : AccessMode.Frontend);
+						session.setAttribute(SECURITY_CONTEXT_KEY, SecurityContext.getInstance(principal, principal.isAdmin() ? AccessMode.Backend : AccessMode.Frontend));
 
 					}
 
@@ -263,9 +272,8 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 				final NodeInterface principalNode = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).name(username).getFirst();
 				if (principalNode != null) {
 
-				final Principal principal = principalNode.as(Principal.class);
-
-					securityContext = SecurityContext.getInstance(principal, principal.isAdmin() ? AccessMode.Backend : AccessMode.Frontend);
+					final Principal principal        = principalNode.as(Principal.class);
+					final SecurityContext sessionCtx = SecurityContext.getInstance(principal, principal.isAdmin() ? AccessMode.Backend : AccessMode.Frontend);
 
 					// check single (main) pubkey
 					final String pubKeyData = principal.getProperty(principal.getTraits().key(PrincipalTraitDefinition.PUBLIC_KEY_PROPERTY));
@@ -277,7 +285,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 					}
 
 					// check array of pubkeys for this user
-					final String[] pubKeysData = principal.getProperty(principal.getTraits().key( PrincipalTraitDefinition.PUBLIC_KEYS_PROPERTY));
+					final String[] pubKeysData = principal.getProperty(principal.getTraits().key(PrincipalTraitDefinition.PUBLIC_KEYS_PROPERTY));
 					if (pubKeysData != null) {
 
 						for (final String k : pubKeysData) {
@@ -293,7 +301,10 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 						}
 					}
 
-
+					// Store SecurityContext on the session only if authentication was successful
+					if (isValid) {
+						session.setAttribute(SECURITY_CONTEXT_KEY, sessionCtx);
+					}
 				}
 
 			} catch (UnauthorizedException ae) {
@@ -315,92 +326,53 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 		return isValid;
 	}
 
-	private Tx currentTransaction = null;
-
 	@Override
 	public org.apache.sshd.server.command.Command create() {
-		return new StructrConsoleCommand(securityContext);
-	}
-
-	// ----- private methods -----
-	private void beginTransaction() {
-
-		if (currentTransaction == null) {
-
-			try {
-				currentTransaction = StructrApp.getInstance(securityContext).tx(true, false, false);
-
-			} catch (FrameworkException fex) {
-
-				// transaction can fail here (theoretically...)
-				logger.warn("Unable to begin transaction.", fex);
-			}
-		}
-	}
-
-	private void endTransaction() {
-
-		if (currentTransaction != null) {
-
-			try {
-				currentTransaction.success();
-				currentTransaction.close();
-
-			} catch (Throwable t) {
-
-				logger.warn("", t);
-
-			} finally {
-
-				currentTransaction = null;
-			}
-		}
+		// Legacy Factory<Command> interface method. The ShellFactory.createShell(ChannelSession)
+		// method is used instead. This should not be called in normal operation.
+		logger.warn("SSHService.create() called without session context. Shell creation requires session-scoped authentication.");
+		throw new IllegalStateException("Cannot create shell without session context. Use createShell(ChannelSession) instead.");
 	}
 
 	// ----- interface SftpEventListener -----
+
+	// Note: Transaction management is handled by the StructrFilePath methods themselves
+	// (createDirectory, delete, move). The event listener methods are intentionally empty.
+
 	@Override
 	public void closing(ServerSession session, String remoteHandle, Handle localHandle) {
-		endTransaction();
 	}
 
 	@Override
 	public void creating(ServerSession session, Path path, Map<String, ?> attrs) {
-		beginTransaction();
 	}
 
 	@Override
 	public void created(ServerSession session, Path path, Map<String, ?> attrs, Throwable thrown) {
-		endTransaction();
 	}
 
 	@Override
 	public void moving(ServerSession session, Path srcPath, Path dstPath, Collection<CopyOption> opts) {
-		beginTransaction();
 	}
 
 	@Override
 	public void moved(ServerSession session, Path srcPath, Path dstPath, Collection<CopyOption> opts, Throwable thrown) {
-		endTransaction();
 	}
 
 	@Override
 	public void removing(ServerSession session, Path path, boolean isDirectory) {
-		beginTransaction();
 	}
 
 	@Override
 	public void removed(ServerSession session, Path path, boolean isDirectory, Throwable thrown) {
-		endTransaction();
 	}
 
 	@Override
 	public void linking(ServerSession session, Path source, Path target, boolean symLink) {
-		beginTransaction();
 	}
 
 	@Override
 	public void linked(ServerSession session, Path source, Path target, boolean symLink, Throwable thrown) {
-		endTransaction();
 	}
 
 	@Override
@@ -417,24 +389,35 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 	@Override
 	public org.apache.sshd.server.command.Command createCommand(final ChannelSession session, final String command) throws IOException {
 
+		final SecurityContext ctx = getSecurityContext(session.getSession());
+		if (ctx == null) {
+			throw new IOException("No authenticated security context for this session.");
+		}
+
+		// SCP is allowed for all authenticated users (goes through filesystem permission model)
 		if (command.startsWith("scp ")) {
 			return scp.createCommand(session, command);
 		}
 
+		// F-02: Console commands (javascript, structrscript, cypher, admin) require backend (admin) access
+		if (!ctx.isSuperUser() && !AccessMode.Backend.equals(ctx.getAccessMode())) {
+			throw new IOException("Access denied. Console commands require backend (admin) access.");
+		}
+
 		if (command.startsWith("javascript ")) {
-			return new StructrConsoleCommand(securityContext, ConsoleMode.JavaScript, command.substring(11));
+			return new StructrConsoleCommand(ctx, ConsoleMode.JavaScript, command.substring(11));
 		}
 
 		if (command.startsWith("structrscript ")) {
-			return new StructrConsoleCommand(securityContext, ConsoleMode.StructrScript, command.substring(14));
+			return new StructrConsoleCommand(ctx, ConsoleMode.StructrScript, command.substring(14));
 		}
 
 		if (command.startsWith("cypher ")) {
-			return new StructrConsoleCommand(securityContext, ConsoleMode.Cypher, command.substring(7));
+			return new StructrConsoleCommand(ctx, ConsoleMode.Cypher, command.substring(7));
 		}
 
 		if (command.startsWith("admin ")) {
-			return new StructrConsoleCommand(securityContext, ConsoleMode.AdminShell, command.substring(6));
+			return new StructrConsoleCommand(ctx, ConsoleMode.AdminShell, command.substring(6));
 		}
 
 		throw new IllegalStateException("Unknown subsystem for command '" + command + "'");
@@ -444,15 +427,33 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 	@Override
 	public org.apache.sshd.server.command.Command createShell(ChannelSession channelSession) throws IOException {
 
-		if (!(AccessMode.Backend.equals(securityContext.getAccessMode()))) {
-			throw new IOException("Access denied. User has no backend access.");
-
+		final SecurityContext ctx = getSecurityContext(channelSession.getSession());
+		if (ctx == null) {
+			throw new IOException("No authenticated security context for this session.");
 		}
-		return new StructrConsoleCommand(securityContext );
+
+		if (!AccessMode.Backend.equals(ctx.getAccessMode())) {
+			throw new IOException("Access denied. User has no backend access.");
+		}
+
+		return new StructrConsoleCommand(ctx);
 	}
 	// ----- -----
 
 	// ----- private methods -----
+
+	/**
+	 * Retrieve the per-session SecurityContext from a SessionContext (ServerSession).
+	 */
+	private SecurityContext getSecurityContext(final SessionContext session) {
+
+		if (session != null) {
+			return session.getAttribute(SECURITY_CONTEXT_KEY);
+		}
+
+		return null;
+	}
+
 	private List<SubsystemFactory> getSubsystems() {
 
 		final List<SubsystemFactory> list = new LinkedList<>();

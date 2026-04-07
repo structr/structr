@@ -2228,7 +2228,7 @@ let Structr = {
 
 				<form id="login-username-password" action="javascript:void(0);">
 
-					<div id="username-password" class="gap-y-2 grid ml-1 mr-4" style="grid-template-columns: 35fr 65fr;">
+					<div id="username-password" class="gap-y-2 grid ml-1 mr-4 mt-8" style="grid-template-columns: 35fr 65fr;">
 
 						<div class="self-center" style="">
 							<label for="usernameField">Username:</label>

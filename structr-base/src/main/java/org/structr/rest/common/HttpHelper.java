@@ -47,7 +47,9 @@ import javax.net.ssl.SSLContext;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -68,43 +70,18 @@ public class HttpHelper {
 
 	private static final Logger logger = LoggerFactory.getLogger(HttpHelper.class.getName());
 
-	private static String proxyUrl;
-	private static String proxyUsername;
-	private static String proxyPassword;
-	private static String cookie;
-	private static String charset;
+	/**
+	 * Per-request HTTP configuration returned by configure().
+	 */
+	private record HttpConfig(CloseableHttpClient client, String charset) {}
 
-	private static CloseableHttpClient client;
+	private static HttpConfig configure(final HttpRequestBase req, final String requestCharset, final String username, final String password, final String proxyUrlParameter, final String proxyUsernameParameter, final String proxyPasswordParameter, final String cookieParameter, final Map<String, String> headers, final boolean followRedirects, final boolean validateCertificates, final Integer timeout) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
 
-	private static void configure(final HttpRequestBase req, final String requestCharset, final String username, final String password, final String proxyUrlParameter, final String proxyUsernameParameter, final String proxyPasswordParameter, final String cookieParameter, final Map<String, String> headers, final boolean followRedirects, final boolean validateCertificates, final Integer timeout) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
-
-		if (StringUtils.isBlank(requestCharset)) {
-			charset = Settings.HttpDefaultCharset.getValue();
-		} else {
-			charset = requestCharset;
-		}
-
-		if (StringUtils.isBlank(proxyUrlParameter)) {
-			proxyUrl = Settings.HttpProxyUrl.getValue();
-		} else {
-			proxyUrl = proxyUrlParameter;
-		}
-
-		if (StringUtils.isBlank(proxyUsernameParameter)) {
-			proxyUsername = Settings.HttpProxyUser.getValue();
-		} else {
-			proxyUsername = proxyUsernameParameter;
-		}
-
-		if (StringUtils.isBlank(proxyPasswordParameter)) {
-			proxyPassword = Settings.HttpProxyPassword.getValue();
-		} else {
-			proxyPassword = proxyPasswordParameter;
-		}
-
-		if (!StringUtils.isBlank(cookieParameter)) {
-			cookie = cookieParameter;
-		}
+		final String charset        = StringUtils.isBlank(requestCharset)         ? Settings.HttpDefaultCharset.getValue() : requestCharset;
+		final String proxyUrl       = StringUtils.isBlank(proxyUrlParameter)      ? Settings.HttpProxyUrl.getValue()       : proxyUrlParameter;
+		final String proxyUsername  = StringUtils.isBlank(proxyUsernameParameter) ? Settings.HttpProxyUser.getValue()      : proxyUsernameParameter;
+		final String proxyPassword  = StringUtils.isBlank(proxyPasswordParameter) ? Settings.HttpProxyPassword.getValue()  : proxyPasswordParameter;
+		final String cookie         = StringUtils.isBlank(cookieParameter)        ? null                                   : cookieParameter;
 
 		HttpHost proxy                          = null;
 		final CredentialsProvider credsProvider = new BasicCredentialsProvider();
@@ -141,7 +118,7 @@ public class HttpHelper {
 			// trust every certificate
 			final SSLContext sslContext = SSLContexts.custom().loadTrustMaterial((x509Certificates, s) -> true).build();
 
-			final SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(sslContext, new String[]{"SSLv2Hello", "SSLv3", "TLSv1","TLSv1.1", "TLSv1.2" }, null, NoopHostnameVerifier.INSTANCE);
+			final SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(sslContext, null, null, NoopHostnameVerifier.INSTANCE);
 
 			final BasicHttpClientConnectionManager connectionManager = new BasicHttpClientConnectionManager(RegistryBuilder.<ConnectionSocketFactory>create()
 				.register("http", PlainConnectionSocketFactory.getSocketFactory())
@@ -151,7 +128,7 @@ public class HttpHelper {
 			clientBuilder.setConnectionManager(connectionManager);
 		}
 
-		client = clientBuilder.build();
+		final CloseableHttpClient client = clientBuilder.build();
 
 		final int connectTimeout = (timeout != null)? timeout : (Settings.HttpConnectTimeout.getValue() * 1000);
 
@@ -178,13 +155,14 @@ public class HttpHelper {
 		for (final Map.Entry<String, String> header : headers.entrySet()) {
 			req.addHeader(header.getKey(), header.getValue());
 		}
+
+		return new HttpConfig(client, charset);
 	}
 
 	public static String skipBOMIfPresent(final String content) {
 
 		// Skip BOM to work around this Jsoup bug: https://github.com/jhy/jsoup/issues/348
 		if (content != null && content.length() > 1 && content.charAt(0) == 65279) {
-			charset = "UTF-8";
 			return content.substring(1);
 		}
 
@@ -193,8 +171,7 @@ public class HttpHelper {
 
 	public static CloseableHttpClient getClient(final HttpRequestBase req, final String requestCharset, final String username, final String password, final String proxyUrlParameter, final String proxyUsernameParameter, final String proxyPasswordParameter, final String cookieParameter, final Map<String, String> headers, final boolean followRedirects, final boolean validateCertificates) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
 
-		configure(req, requestCharset, username, password, proxyUrlParameter, proxyUsernameParameter, proxyPasswordParameter, cookieParameter, headers, followRedirects, validateCertificates, null);
-		return client;
+		return configure(req, requestCharset, username, password, proxyUrlParameter, proxyUsernameParameter, proxyPasswordParameter, cookieParameter, headers, followRedirects, validateCertificates, null).client();
 	}
 
 	public static Map<String, Object> get(final String address) throws FrameworkException {
@@ -228,14 +205,13 @@ public class HttpHelper {
 
 		try {
 
-			final URI uri = HttpHelper.checkAddressAgainstWhitelist(address);
-			final HttpGet req = new HttpGet(uri);
+			final URI uri       = HttpHelper.checkAddressAgainstWhitelist(address);
+			final HttpGet req   = new HttpGet(uri);
+			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates, null);
 
-			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates, null);
+			final CloseableHttpResponse resp = hc.client().execute(req);
 
-			final CloseableHttpResponse resp = client.execute(req);
-
-			final String content = skipBOMIfPresent(IOUtils.toString(resp.getEntity().getContent(), charset(resp)));
+			final String content = skipBOMIfPresent(IOUtils.toString(resp.getEntity().getContent(), charset(resp, hc.charset())));
 			responseData.put(HttpHelper.FIELD_BODY, content);
 			responseData.put(HttpHelper.FIELD_STATUS, Integer.toString(resp.getStatusLine().getStatusCode()));
 			responseData.put(HttpHelper.FIELD_HEADERS, getHeadersAsMap(resp));
@@ -319,12 +295,11 @@ public class HttpHelper {
 
 		try {
 
-			final URI uri = HttpHelper.checkAddressAgainstWhitelist(address);
-			final HttpHead req = new HttpHead(uri);
+			final URI uri       = HttpHelper.checkAddressAgainstWhitelist(address);
+			final HttpHead req  = new HttpHead(uri);
+			final HttpConfig hc = configure(req, null, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, false, validateCertificates, null);
 
-			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, false, validateCertificates, null);
-
-			final CloseableHttpResponse response = client.execute(req);
+			final CloseableHttpResponse response = hc.client().execute(req);
 
 			responseHeaders.put(HttpHelper.FIELD_STATUS, Integer.toString(response.getStatusLine().getStatusCode()));
 			responseHeaders.put(HttpHelper.FIELD_HEADERS, Arrays.stream(response.getAllHeaders()).collect(Collectors.toMap(NameValuePair::getName, NameValuePair::getValue)));
@@ -349,14 +324,13 @@ public class HttpHelper {
 
 		try {
 
-			final URI url = HttpHelper.checkAddressAgainstWhitelist(address);
-			final HttpPut req = new HttpPatch(url);
+			final URI url       = HttpHelper.checkAddressAgainstWhitelist(address);
+			final HttpPut req   = new HttpPatch(url);
+			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates, null);
 
-			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates, null);
+			req.setEntity(new StringEntity(requestBody, hc.charset()));
 
-			req.setEntity(new StringEntity(requestBody, charset));
-
-			final CloseableHttpResponse response = client.execute(req);
+			final CloseableHttpResponse response = hc.client().execute(req);
 			final HttpEntity entity = response.getEntity();
 			String content = null;
 
@@ -366,7 +340,7 @@ public class HttpHelper {
 
 				if (responseContent != null) {
 
-					content = IOUtils.toString(responseContent, charset(response));
+					content = IOUtils.toString(responseContent, charset(response, hc.charset()));
 				}
 			}
 
@@ -439,16 +413,16 @@ public class HttpHelper {
 				}
 			}
 
-			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, followRedirects, validateCertificates, timeout);
+			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, followRedirects, validateCertificates, timeout);
 
-			req.setEntity(new StringEntity(requestBody, charset));
+			req.setEntity(new StringEntity(requestBody, hc.charset()));
 
-			final CloseableHttpResponse response = client.execute(req);
+			final CloseableHttpResponse response = hc.client().execute(req);
 			final HttpEntity responseEntity = response.getEntity();
 
 			String content = null;
 			if (responseEntity != null) {
-				content = IOUtils.toString(responseEntity.getContent(), charset(response));
+				content = IOUtils.toString(responseEntity.getContent(), charset(response, hc.charset()));
 			}
 
 			content = skipBOMIfPresent(content);
@@ -492,19 +466,18 @@ public class HttpHelper {
 
 		try {
 
-			final URI uri = HttpHelper.checkAddressAgainstWhitelist(address);
-			final HttpPut req = new HttpPut(uri);
+			final URI uri       = HttpHelper.checkAddressAgainstWhitelist(address);
+			final HttpPut req   = new HttpPut(uri);
+			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates, null);
 
-			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates, null);
+			req.setEntity(new StringEntity(requestBody, hc.charset()));
 
-			req.setEntity(new StringEntity(requestBody, charset));
-
-			final CloseableHttpResponse response = client.execute(req);
+			final CloseableHttpResponse response = hc.client().execute(req);
 			final HttpEntity responseEntity = response.getEntity();
 
 			String content = null;
 			if (responseEntity != null) {
-				content = IOUtils.toString(responseEntity.getContent(), charset(response));
+				content = IOUtils.toString(responseEntity.getContent(), charset(response, hc.charset()));
 			}
 
 			content = skipBOMIfPresent(content);
@@ -543,17 +516,16 @@ public class HttpHelper {
 
 		try {
 
-			final URI uri = HttpHelper.checkAddressAgainstWhitelist(address);
+			final URI uri        = HttpHelper.checkAddressAgainstWhitelist(address);
 			final HttpDelete req = new HttpDelete(uri);
+			final HttpConfig hc  = configure(req, null, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates, null);
 
-			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates, null);
-
-			final CloseableHttpResponse response = client.execute(req);
+			final CloseableHttpResponse response = hc.client().execute(req);
 			final HttpEntity responseEntity = response.getEntity();
 
 			String content = null;
 			if (responseEntity != null) {
-				content = IOUtils.toString(responseEntity.getContent(), charset(response));
+				content = IOUtils.toString(responseEntity.getContent(), charset(response, hc.charset()));
 			}
 
 			content = skipBOMIfPresent(content);
@@ -587,12 +559,11 @@ public class HttpHelper {
 
 			final Map<String, Object> responseData = new HashMap<>();
 
-			final URI uri = HttpHelper.checkAddressAgainstWhitelist(address);
-			final HttpGet req = new HttpGet(uri);
+			final URI uri       = HttpHelper.checkAddressAgainstWhitelist(address);
+			final HttpGet req   = new HttpGet(uri);
+			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, true, null);
 
-			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, true, null);
-
-			final CloseableHttpResponse resp = client.execute(req);
+			final CloseableHttpResponse resp = hc.client().execute(req);
 
 			InputStream stream = resp.getEntity().getContent();
 
@@ -626,13 +597,13 @@ public class HttpHelper {
 
 			final Map<String, Object> responseData = new HashMap<>();
 
-			final URI uri = HttpHelper.checkAddressAgainstWhitelist(address);
-			final HttpPost req = new HttpPost(uri);
+			final URI uri       = HttpHelper.checkAddressAgainstWhitelist(address);
+			final HttpPost req  = new HttpPost(uri);
+			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, true, null);
 
-			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, true, null);
-			req.setEntity(new StringEntity(requestBody, charset));
+			req.setEntity(new StringEntity(requestBody, hc.charset()));
 
-			final CloseableHttpResponse resp = client.execute(req);
+			final CloseableHttpResponse resp = hc.client().execute(req);
 
 			InputStream stream = resp.getEntity().getContent();
 
@@ -650,14 +621,27 @@ public class HttpHelper {
 		return null;
 	}
 
+	/**
+	 * Determine the charset from the response Content-Type header,
+	 * falling back to the configured default charset.
+	 */
 	public static String charset(final HttpResponse response) {
+
+		return charset(response, Settings.HttpDefaultCharset.getValue());
+	}
+
+	/**
+	 * Determine the charset from the response Content-Type header,
+	 * falling back to the provided default charset.
+	 */
+	public static String charset(final HttpResponse response, final String defaultCharset) {
 
 		final ContentType contentType = ContentType.get(response.getEntity());
 		if (contentType != null && contentType.getCharset() != null) {
-			charset = contentType.getCharset().toString();
+			return contentType.getCharset().toString();
 		}
 
-		return charset;
+		return defaultCharset;
 	}
 
 	public static void streamURLToFile(final String address, final java.io.File fileOnDisk) throws FrameworkException {
@@ -689,11 +673,11 @@ public class HttpHelper {
 
 			logger.info("Downloading from {}", address);
 
-			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, true, null);
+			final HttpConfig hc = configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, true, null);
 
 			req.addHeader("User-Agent", "curl/7.35.0");
 
-			final CloseableHttpResponse resp = client.execute(req);
+			final CloseableHttpResponse resp = hc.client().execute(req);
 
 			final int statusCode = resp.getStatusLine().getStatusCode();
 
@@ -709,7 +693,7 @@ public class HttpHelper {
 
 			} else {
 
-				String content = IOUtils.toString(resp.getEntity().getContent(), HttpHelper.charset(resp));
+				String content = IOUtils.toString(resp.getEntity().getContent(), charset(resp, hc.charset()));
 
 				// FIXME: what do we do with the content here??
 				content = skipBOMIfPresent(content);
@@ -740,6 +724,60 @@ public class HttpHelper {
 	}
 
 	// ----- private methods -----
+
+	/**
+	 * Validates a URL against SSRF attacks. Rejects non-HTTP schemes and
+	 * URLs that resolve to private/internal IP ranges (loopback, link-local,
+	 * site-local, any-local, multicast).
+	 *
+	 * @param address the URL to validate
+	 * @throws FrameworkException if the URL is invalid or resolves to a blocked address
+	 */
+	public static void validateUrl(final String address) throws FrameworkException {
+
+		if (!Settings.SsrfProtection.getValue()) {
+			return;
+		}
+
+		final URI uri;
+
+		try {
+			uri = URI.create(address);
+		} catch (IllegalArgumentException e) {
+			throw new FrameworkException(400, "Invalid URL: " + address);
+		}
+
+		// Only allow http and https schemes
+		final String scheme = uri.getScheme();
+		if (scheme == null || (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme))) {
+			throw new FrameworkException(400, "Only http and https URLs are allowed");
+		}
+
+		// Resolve hostname and check against private IP ranges
+		final String host = uri.getHost();
+		if (host == null) {
+			throw new FrameworkException(400, "URL has no host component");
+		}
+
+		try {
+
+			final InetAddress resolved = InetAddress.getByName(host);
+
+			if (resolved.isLoopbackAddress()
+				|| resolved.isLinkLocalAddress()
+				|| resolved.isSiteLocalAddress()
+				|| resolved.isAnyLocalAddress()
+				|| resolved.isMulticastAddress()) {
+
+				logger.warn("Blocked outbound request to internal address {} (resolved from {})", resolved.getHostAddress(), host);
+				throw new FrameworkException(403, "Requests to internal network addresses are not allowed");
+			}
+
+		} catch (UnknownHostException e) {
+			throw new FrameworkException(400, "Unable to resolve hostname: " + host);
+		}
+	}
+
 	private static URI checkAddressAgainstWhitelist(final String address) throws FrameworkException {
 
 		final String whitelist = Settings.OutgoingURLWhitelist.getValue(null);

@@ -41,13 +41,18 @@ import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.action.Actions;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import java.math.BigInteger;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
+import java.security.SecureRandom;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Utility class for authentication.
@@ -56,6 +61,9 @@ public class AuthHelper {
 
 	public static final String STANDARD_ERROR_MSG = "Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!";
 	private static final Logger logger            = LoggerFactory.getLogger(AuthHelper.class.getName());
+
+	// Per-user lock objects for atomic failed login counter updates
+	private static final ConcurrentHashMap<String, Object> userLocks = new ConcurrentHashMap<>();
 
 
 	/**
@@ -159,7 +167,7 @@ public class AuthHelper {
 			throw new AuthenticationException(STANDARD_ERROR_MSG);
 		}
 
-		if (value.equals(superuserName) && password.equals(superUserPwd)) {
+		if (value.equals(superuserName) && java.security.MessageDigest.isEqual(password.getBytes(java.nio.charset.StandardCharsets.UTF_8), superUserPwd.getBytes(java.nio.charset.StandardCharsets.UTF_8))) {
 
 			principal = new SuperUser();
 
@@ -369,30 +377,54 @@ public class AuthHelper {
 	}
 
 	/**
-	 * @return A confirmation key with the current timestamp
+	 * @return An opaque confirmation key with an HMAC-protected creation timestamp.
+	 *
+	 * Format: <random_hex>.<base64url_timestamp>.<hmac_base64url>
+	 *
+	 * The random portion provides uniqueness and unpredictability (128 bits from SecureRandom).
+	 * The timestamp is Base64url-encoded (not plaintext) so it does not directly reveal server time.
+	 * The HMAC-SHA256 signature prevents tampering with the timestamp and binds it to the random portion.
 	 */
 	public static String getConfirmationKey() {
 
-		return UUID.randomUUID().toString() + "!" + new Date().getTime();
+		return generateOpaqueToken();
 	}
 
 	/**
-	 * Determines if the key is valid or not. If the key has no timestamp the configuration setting for keys without timestamp is used
+	 * Determines if the key is valid or not. Supports both the new HMAC-signed format
+	 * (random.timestamp_b64.hmac_b64) and the legacy format (uuid!timestamp) for
+	 * backward compatibility during migration.
 	 *
 	 * @param confirmationKey The confirmation key to check
 	 * @param validityPeriod The validity period for the key (in minutes)
-	 * @return
+	 * @return true if the key is within its validity period
 	 */
 	public static boolean isConfirmationKeyValid(final String confirmationKey, final Integer validityPeriod) {
 
-		final String[] parts = confirmationKey.split("!");
+		// Try new HMAC-signed format first
+		final Long created = extractTimestampFromToken(confirmationKey);
+		if (created != null) {
 
+			final long maxValidity = created + validityPeriod * 60 * 1000L;
+			return (maxValidity >= System.currentTimeMillis());
+		}
+
+		// Legacy format: uuid!timestamp
+		final String[] parts = confirmationKey.split("!");
 		if (parts.length == 2) {
 
-			final long confirmationKeyCreated = Long.parseLong(parts[1]);
-			final long maxValidity            = confirmationKeyCreated + validityPeriod * 60 * 1000;
+			try {
 
-			return (maxValidity >= new Date().getTime());
+				final long confirmationKeyCreated = Long.parseLong(parts[1]);
+				final long maxValidity            = confirmationKeyCreated + validityPeriod * 60 * 1000L;
+
+				return (maxValidity >= System.currentTimeMillis());
+
+			} catch (NumberFormatException e) {
+
+				logger.warn("Invalid legacy confirmation key format");
+				return false;
+			}
 		}
 
 		return Settings.ConfirmationKeyValidWithoutTimestamp.getValue();
@@ -400,21 +432,26 @@ public class AuthHelper {
 
 	public static void incrementFailedLoginAttemptsCounter (final Principal principal) {
 
-		try {
+		final Object lock = userLocks.computeIfAbsent(principal.getUuid(), k -> new Object());
 
-			Integer failedAttempts = principal.getPasswordAttempts();
+		synchronized (lock) {
 
-			if (failedAttempts == null) {
-				failedAttempts = 0;
+			try {
+
+				Integer failedAttempts = principal.getPasswordAttempts();
+
+				if (failedAttempts == null) {
+					failedAttempts = 0;
+				}
+
+				failedAttempts++;
+
+				principal.setPasswordAttempts(failedAttempts);
+
+			} catch (FrameworkException fex) {
+
+				logger.warn("Exception while incrementing failed login attempts counter", fex);
 			}
-
-			failedAttempts++;
-
-			principal.setPasswordAttempts(failedAttempts);
-
-		} catch (FrameworkException fex) {
-
-			logger.warn("Exception while incrementing failed login attempts counter", fex);
 		}
 	}
 
@@ -446,14 +483,23 @@ public class AuthHelper {
 
 	public static void resetFailedLoginAttemptsCounter (final Principal principal) {
 
-		try {
+		final String uuid = principal.getUuid();
+		final Object lock = userLocks.computeIfAbsent(uuid, k -> new Object());
 
-			principal.setPasswordAttempts(0);
+		synchronized (lock) {
 
-		} catch (FrameworkException fex) {
+			try {
 
-			logger.warn("Exception while resetting failed login attempts counter", fex);
+				principal.setPasswordAttempts(0);
+
+			} catch (FrameworkException fex) {
+
+				logger.warn("Exception while resetting failed login attempts counter", fex);
+			}
 		}
+
+		// Remove lock entry on successful login to prevent unbounded map growth
+		userLocks.remove(uuid);
 	}
 
 	public static void handleForcePasswordChange (final Principal principal) throws PasswordChangeRequiredException {
@@ -511,14 +557,30 @@ public class AuthHelper {
 
 	public static boolean isTwoFactorTokenValid(final String twoFactorIdentificationToken) {
 
-		final String[] parts = twoFactorIdentificationToken.split("!");
+		// Try new HMAC-signed format first
+		final Long created = extractTimestampFromToken(twoFactorIdentificationToken);
+		if (created != null) {
 
+			final long maxTokenValidity = created + Settings.TwoFactorLoginTimeout.getValue() * 1000L;
+			return (maxTokenValidity >= System.currentTimeMillis());
+		}
+
+		// Legacy format: uuid!timestamp
+		final String[] parts = twoFactorIdentificationToken.split("!");
 		if (parts.length == 2) {
 
-			final long tokenCreatedTimestamp = Long.parseLong(parts[1]);
-			final long maxTokenValidity      = tokenCreatedTimestamp + Settings.TwoFactorLoginTimeout.getValue() * 1000;
+			try {
 
-			return (maxTokenValidity >= new Date().getTime());
+				final long tokenCreatedTimestamp = Long.parseLong(parts[1]);
+				final long maxTokenValidity      = tokenCreatedTimestamp + Settings.TwoFactorLoginTimeout.getValue() * 1000L;
+
+				return (maxTokenValidity >= System.currentTimeMillis());
+
+			} catch (NumberFormatException e) {
+
+				logger.warn("Invalid legacy two-factor token format");
+				return false;
+			}
 		}
 
 		return false;
@@ -675,7 +737,146 @@ public class AuthHelper {
 	}
 
 	public static String getIdentificationTokenForPrincipal () {
-		return UUID.randomUUID().toString() + "!" + new Date().getTime();
+		return generateOpaqueToken();
+	}
+
+	// --- HMAC-signed opaque token infrastructure ---
+
+	// Ephemeral fallback key used when no JWT secret is configured.
+	// Regenerated on each JVM start, which is acceptable because tokens
+	// are short-lived and stored in the database.
+	private static final byte[] EPHEMERAL_KEY = new byte[32];
+
+	static {
+		new SecureRandom().nextBytes(EPHEMERAL_KEY);
+	}
+
+	/**
+	 * Generates an opaque, HMAC-signed token that embeds a creation timestamp
+	 * without leaking it in plaintext.
+	 *
+	 * Format: <random_hex>.<base64url_timestamp>.<hmac_base64url>
+	 *
+	 * The HMAC covers both the random portion and the timestamp bytes,
+	 * preventing tampering with either part.
+	 */
+	private static String generateOpaqueToken() {
+
+		final byte[] randomBytes = new byte[16];
+		new SecureRandom().nextBytes(randomBytes);
+		final String randomHex = bytesToHex(randomBytes);
+
+		final long now = System.currentTimeMillis();
+		final byte[] timestampBytes = ByteBuffer.allocate(8).putLong(now).array();
+		final String timestampB64 = Base64.getUrlEncoder().withoutPadding().encodeToString(timestampBytes);
+
+		final byte[] hmacKey = getTokenHmacKey();
+		final byte[] hmacInput = new byte[randomBytes.length + timestampBytes.length];
+		System.arraycopy(randomBytes, 0, hmacInput, 0, randomBytes.length);
+		System.arraycopy(timestampBytes, 0, hmacInput, randomBytes.length, timestampBytes.length);
+
+		try {
+
+			final Mac mac = Mac.getInstance("HmacSHA256");
+			mac.init(new SecretKeySpec(hmacKey, "HmacSHA256"));
+			final byte[] hmacResult = mac.doFinal(hmacInput);
+			final String hmacB64 = Base64.getUrlEncoder().withoutPadding().encodeToString(hmacResult);
+
+			return randomHex + "." + timestampB64 + "." + hmacB64;
+
+		} catch (Exception e) {
+
+			// Should never happen with HmacSHA256, but fall back to legacy format
+			logger.warn("Failed to generate HMAC-signed token, falling back to legacy format: {}", e.getMessage());
+			return UUID.randomUUID().toString() + "!" + now;
+		}
+	}
+
+	/**
+	 * Extracts and verifies the creation timestamp from an HMAC-signed token.
+	 *
+	 * @return the creation timestamp in milliseconds, or null if the token is
+	 *         not in the new format or the HMAC verification fails
+	 */
+	private static Long extractTimestampFromToken(final String token) {
+
+		if (token == null) {
+			return null;
+		}
+
+		final String[] parts = token.split("\\.");
+		if (parts.length != 3) {
+			return null;
+		}
+
+		try {
+
+			final byte[] randomBytes    = hexToBytes(parts[0]);
+			final byte[] timestampBytes = Base64.getUrlDecoder().decode(parts[1]);
+			final byte[] providedHmac   = Base64.getUrlDecoder().decode(parts[2]);
+
+			if (timestampBytes.length != 8) {
+				return null;
+			}
+
+			// Recompute HMAC and verify
+			final byte[] hmacKey = getTokenHmacKey();
+			final byte[] hmacInput = new byte[randomBytes.length + timestampBytes.length];
+			System.arraycopy(randomBytes, 0, hmacInput, 0, randomBytes.length);
+			System.arraycopy(timestampBytes, 0, hmacInput, randomBytes.length, timestampBytes.length);
+
+			final Mac mac = Mac.getInstance("HmacSHA256");
+			mac.init(new SecretKeySpec(hmacKey, "HmacSHA256"));
+			final byte[] expectedHmac = mac.doFinal(hmacInput);
+
+			// Constant-time comparison
+			if (!java.security.MessageDigest.isEqual(expectedHmac, providedHmac)) {
+				logger.warn("HMAC verification failed for token");
+				return null;
+			}
+
+			return ByteBuffer.wrap(timestampBytes).getLong();
+
+		} catch (Exception e) {
+
+			// Not in new format, or corrupted
+			return null;
+		}
+	}
+
+	/**
+	 * Returns the HMAC key for token signing/verification.
+	 * Uses the JWT secret if configured (>= 32 chars), otherwise falls back
+	 * to an ephemeral per-instance key.
+	 */
+	private static byte[] getTokenHmacKey() {
+
+		final String jwtSecret = Settings.JWTSecret.getValue();
+		if (jwtSecret != null && jwtSecret.length() >= 32) {
+			return jwtSecret.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+		}
+
+		return EPHEMERAL_KEY;
+	}
+
+	private static String bytesToHex(final byte[] bytes) {
+
+		final StringBuilder sb = new StringBuilder(bytes.length * 2);
+		for (final byte b : bytes) {
+			sb.append(String.format("%02x", b));
+		}
+		return sb.toString();
+	}
+
+	private static byte[] hexToBytes(final String hex) {
+
+		final int len = hex.length();
+		final byte[] data = new byte[len / 2];
+		for (int i = 0; i < len; i += 2) {
+			data[i / 2] = (byte) ((Character.digit(hex.charAt(i), 16) << 4)
+				+ Character.digit(hex.charAt(i + 1), 16));
+		}
+		return data;
 	}
 
 	// The StandardName for the given SHA algorithm.
