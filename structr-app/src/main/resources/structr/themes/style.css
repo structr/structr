@@ -90,7 +90,7 @@
     label { @apply block text-xs font-medium text-${theme.text.heading}; }
     input[type]:not([type="checkbox"]), textarea, select { @apply mt-1 block rounded-md text-${theme.input.text} bg-${theme.input.background} border border-${theme.input.border} py-2 px-3 shadow-sm focus:border-${theme.input.focus} focus:outline-none focus:ring-${theme.input.focus} sm:text-sm; }
     input[type="checkbox"] { @apply m-0 mr-2 p-0 text-xs text-${theme.input.text} bg-${theme.input.background} rounded-sm border-${theme.input.border} focus:border-${theme.input.focus} focus:outline-none focus:ring-${theme.input.focus}; }
-    .button { @apply inline-flex items-center rounded-md border border-transparent px-4 py-2 text-sm font-medium shadow-sm focus:ring-offset-2 focus:outline-none focus:ring-2; }
+    .button { @apply rounded-md border border-transparent px-4 py-2 text-sm font-medium shadow-sm focus:ring-offset-2 focus:outline-none focus:ring-2; }
     .button:disabled { @apply cursor-not-allowed; }
     .button-sm { @apply inline-flex items-center rounded-md border border-transparent px-2 py-1 text-xs font-medium shadow-sm focus:ring-offset-2 focus:outline-none focus:ring-2; }
     .button-primary { @apply bg-${theme.button.primary.background} text-${theme.button.primary.text} hover:bg-${theme.button.primary.focus} focus:ring-${theme.button.primary.focus}; }

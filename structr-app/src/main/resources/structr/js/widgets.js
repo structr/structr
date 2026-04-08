@@ -779,27 +779,8 @@ let _Widgets = {
             switch (fieldType) {
 
                 case 'datasource': {
-                        let sources = await Command.queryPromise('DataSource', 1000, 1, 'name', 'asc', {});
-                        let channels = await Command.queryPromise('ComponentConfiguration', 1000, 1, 'name', 'asc', {});
-                        let values = {};
-                        for (let value of sources) {
-                            values['node:' + value.name] = value.name;
-                        }
-                        for (let channel of channels) {
-                            if (channel.role === 'controller' && channel.selectionChannel && channel.selectionChannel !== 'current') {
-                                values['channel:' + channel.selectionChannel] = 'The "' + channel.selectionChannel + '" channel';
-                            }
-                        }
-                        form.append(`
-                            <div>
-                                <h4 id="label-${cleanedLabel}" data-comment="moep">${titleLabel}</h4>
-                                <select required data-info="select-source" id="${cleanedLabel}" class="form-field" data-key="${label}">
-                                    ${getOptionsAsText(values, defaultValue)}
-                                    <option value="channel:current">The "current" object</option>
-                                    <option value="create-new-data-source">+ New data source..</option>
-                                </select>
-                            </div>
-                        `);
+
+                        form.append(await _Widgets.templates.dataSourcesSelector({ cleanedLabel, titleLabel, label, defaultValue, titleComment: 'Select the data source for this component.' }));
                         document.querySelector(`#${cleanedLabel}`).dispatchEvent(new CustomEvent('change', {}));
                     }
                     break;
@@ -1292,5 +1273,60 @@ let _Widgets = {
 				}).join('')}
 			</div>
 		`,
+		dataSourcesSelector: async config => {
+			let cleanedLabel = config.cleanedLabel;
+			let titleLabel   = config.titleLabel;
+			let titleComment = config.titleComment;
+			let defaultValue = config.defaultValue;
+			let label        = config.label;
+			let values       = await _Widgets.templates.getAvailableDataSources();
+			return `
+				<div>
+					<h4 id="label-${cleanedLabel}" data-comment="${titleComment}">${titleLabel}</h4>
+					<select required data-info="select-source" id="${cleanedLabel}" class="form-field" data-key="${label}">
+						${_Widgets.templates.getOptionsAsText(values, defaultValue)}
+						<option value="channel:current">The "current" object</option>
+						<option value="create-new-data-source">+ New data source..</option>
+					</select>
+				</div>
+			`;
+		},
+		getAvailableDataSources: async config => {
+			let sources = await Command.queryPromise('DataSource', 1000, 1, 'name', 'asc', {});
+			let channels = await Command.queryPromise('ComponentConfiguration', 1000, 1, 'name', 'asc', {});
+			// initialize data sources with some default sources that are created on demand (will be overwritten if actual data sources exist)
+			let values = {
+				'node:File': 'All File nodes',
+				'node:Folder': 'All Folder nodes',
+				'node:Group': 'All Group nodes',
+				'node:Image': 'All Image nodes',
+				'node:Page': 'All Page nodes',
+				'node:User': 'All User nodes',
+			};
+			for (let value of sources) {
+				if (value.type === 'SchemaNode') {
+					values['node:' + value.name] = 'All ' + value.name + ' nodes';
+				} else {
+					values['node:' + value.name] = value.name;
+				}
+			}
+			for (let channel of channels) {
+				if (channel.role === 'controller' && channel.selectionChannel && channel.selectionChannel !== 'current') {
+					values['channel:' + channel.selectionChannel] = 'The "' + channel.selectionChannel + '" channel';
+				}
+			}
+			return Object.fromEntries(Object.entries(values).sort(([a], [b]) => a.localeCompare(b)));
+		},
+		getOptionsAsText: (options, defaultValue) => {
+
+			if (Object.prototype.toString.call(options) === '[object Array]') {
+
+				return options.map(option => `<option ${((option === defaultValue) ? 'selected' : '')}>${option}</option>`).join('');
+
+			} else if (Object.prototype.toString.call(options) === '[object Object]') {
+
+				return Object.keys(options).map(option => `<option ${((option === defaultValue) ? 'selected' : '')} value="${option}">${options[option]}</option>`).join('');
+			}
+		}
 	}
 };

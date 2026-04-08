@@ -24,8 +24,10 @@ import org.structr.api.util.ResultStream;
 import org.structr.common.ChannelInput;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.DataSource;
 import org.structr.core.entity.Relation;
+import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.ScriptDataSource;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
@@ -103,7 +105,20 @@ public class ScriptDataSourceTraitDefinition extends AbstractNodeTraitDefinition
 
 				@Override
 				public Map<String, FieldDefinition> getFields(final RenderContext renderContext, final DataSource provider) throws FrameworkException {
-					// no fields in script data source (yet?)
+
+					// if the data source has a data type set, return the fields of that data type
+					final String dataType = provider.as(ScriptDataSource.class).getDataType();
+					if (dataType != null) {
+
+						final NodeInterface node = StructrApp.getInstance(renderContext.getSecurityContext()).nodeQuery(StructrTraits.SCHEMA_NODE).name(dataType).getFirst();
+						if (node != null) {
+
+							final SchemaNode schemaNode = node.as(SchemaNode.class);
+							return schemaNode.getFields(renderContext);
+						}
+					}
+
+					// no fields in script data source
 					return Map.of();
 				}
 

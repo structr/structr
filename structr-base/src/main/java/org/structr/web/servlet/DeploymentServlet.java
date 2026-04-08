@@ -320,9 +320,6 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 				try {
 
-					// Validate URL against SSRF (scheme, hostname, private IP ranges)
-					HttpHelper.validateUrl(downloadUrl);
-
 					HttpHelper.streamURLToFile(downloadUrl, file);
 
 				} catch (final Throwable t) {

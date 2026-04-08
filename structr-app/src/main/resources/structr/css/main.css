@@ -3069,7 +3069,7 @@ img#image-editor.orientation-8 {
 }
 
 /**
- * widget / component styles
+ * widgets / components styles
  */
 .widget-props {
     background-color: transparent !important;
@@ -3235,6 +3235,13 @@ div.toggle-button-container button:last-child {
 
 #add-adapter-field-button.editing span {
     display: none;
+}
+
+.data-field-detail-settings {
+	border-left-width: 6px;
+	border-left-style: solid;
+	border-left-color: var(--gray-ddd);
+	padding: 2rem;
 }
 
 /**

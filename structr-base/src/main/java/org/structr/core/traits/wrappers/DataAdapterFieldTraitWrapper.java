@@ -19,11 +19,15 @@
 package org.structr.core.traits.wrappers;
 
 import com.google.gson.GsonBuilder;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.datasources.Channel;
 import org.structr.core.entity.DataAdapterField;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.DataAdapterFieldTraitDefinition;
+import org.structr.web.entity.ComponentConfiguration;
 
 import java.util.Map;
 
@@ -73,6 +77,14 @@ public class DataAdapterFieldTraitWrapper extends AbstractNodeTraitWrapper imple
 
 	public Integer getColumns() {
 		return wrappedObject.getProperty(traits.key(DataAdapterFieldTraitDefinition.COLUMNS_PROPERTY));
+	}
+
+	public String getColumnDataSource() {
+		return wrappedObject.getProperty(traits.key(DataAdapterFieldTraitDefinition.COLUMN_DATA_SOURCE_PROPERTY));
+	}
+
+	public String getColumnKey() {
+		return wrappedObject.getProperty(traits.key(DataAdapterFieldTraitDefinition.COLUMN_KEY_PROPERTY));
 	}
 
 	@Override

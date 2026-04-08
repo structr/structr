@@ -19,11 +19,18 @@
 package org.structr.core.datasources;
 
 import org.structr.common.ChannelInput;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.DataSource;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.FieldDefinition;
+import org.structr.web.entity.ComponentConfiguration;
 
 import java.util.Map;
 
@@ -56,5 +63,46 @@ public interface Channel<T> {
 
 	default String getFilterKey() {
 		return getName().toLowerCase() + ".filter";
+	}
+
+	static <T> Channel<T> forName(final SecurityContext securityContext, final ComponentConfiguration config, final String dataSourceName) throws FrameworkException {
+
+		if (dataSourceName != null) {
+
+			if (dataSourceName.contains(":")) {
+
+				final String[] parts = dataSourceName.split(":");
+				final String type    = parts[0];
+				final String name    = parts[1];
+
+				switch (type) {
+
+					case "node":
+						final NodeInterface node = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.DATA_SOURCE).name(name).getFirst();
+						if (node != null) {
+
+							return node.as(DataSource.class);
+
+						} else {
+
+							// check if name is an existing trait & override if we are super user
+							if (Traits.exists(name) && securityContext.isSuperUser()) {
+
+								final NodeInterface newNode = StructrApp.getInstance().create(StructrTraits.SCHEMA_NODE, name);
+
+								return newNode.as(DataSource.class);
+							}
+
+						}
+						break;
+
+					case "channel":
+						return new ChannelDataSource(config, name);
+
+				}
+			}
+		}
+
+		return null;
 	}
 }

@@ -105,11 +105,7 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 
 		setCustomResponseHeaders(response);
 
-		final Traits traits                        = Traits.of(StructrTraits.USER);
-		final PropertyKey<String> proxyUrlKey      = traits.key(PrincipalTraitDefinition.PROXY_URL_PROPERTY);
-		final PropertyKey<String> proxyUsernameKey = traits.key(PrincipalTraitDefinition.PROXY_USERNAME_PROPERTY);
-		final PropertyKey<String> proxyPasswordKey = traits.key(PrincipalTraitDefinition.PROXY_PASSWORD_PROPERTY);
-
+		final Traits traits      = Traits.of(StructrTraits.USER);
 		final Authenticator auth = getConfig().getAuthenticator();
 
 		SecurityContext securityContext;

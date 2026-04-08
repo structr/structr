@@ -43,28 +43,32 @@ public class DataAdapterTraitWrapper extends AbstractNodeTraitWrapper implements
 	}
 
 	@Override
-	public Map<String, DataField> augmentFields(final RenderContext renderContext, Channel channel) throws FrameworkException {
+	public Map<String, DataField> augmentFields(final RenderContext renderContext, final Channel channel, boolean loadOptions) throws FrameworkException {
 
-		final Map<String, FieldDefinition> sourceFields        = channel.getFields(renderContext);
-		final Map<String, DataAdapterField> augmentationFields = getFields();
-		final Map<String, DataField> augmentedFields           = new TreeMap<>();
+		final Map<String, DataField> augmentedFields = new TreeMap<>();
 
-		// augment fields from data source with fields from adapter
-		for (final String name : sourceFields.keySet()) {
+		if (channel != null) {
 
-			final FieldDefinition sourceField        = sourceFields.get(name);
-			final DataAdapterField augmentationField = augmentationFields.get(name);
+			final Map<String, FieldDefinition> sourceFields = channel.getFields(renderContext);
+			final Map<String, DataAdapterField> augmentationFields = getFields();
 
-			augmentedFields.put(name, DataField.from(renderContext, this, name, sourceField, augmentationField));
-		}
+			// augment fields from data source with fields from adapter
+			for (final String name : sourceFields.keySet()) {
 
-		// add adapter fields that are not present in the data source
-		for (final String name : augmentationFields.keySet()) {
+				final FieldDefinition sourceField = sourceFields.get(name);
+				final DataAdapterField augmentationField = augmentationFields.get(name);
 
-			// don't overwrite existing fields, should have been processed already
-			if (!augmentedFields.containsKey(name)) {
+				augmentedFields.put(name, DataField.from(renderContext, this, name, sourceField, augmentationField, loadOptions));
+			}
 
-				augmentedFields.put(name, DataField.from(renderContext, this, name, null, augmentationFields.get(name)));
+			// add adapter fields that are not present in the data source
+			for (final String name : augmentationFields.keySet()) {
+
+				// don't overwrite existing fields, should have been processed already
+				if (!augmentedFields.containsKey(name)) {
+
+					augmentedFields.put(name, DataField.from(renderContext, this, name, null, augmentationFields.get(name), loadOptions));
+				}
 			}
 		}
 

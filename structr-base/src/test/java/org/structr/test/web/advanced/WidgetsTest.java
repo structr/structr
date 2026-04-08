@@ -998,10 +998,10 @@ public class WidgetsTest extends DeploymentTestBase {
 
 		// all other buttons are hidden
 		assertAttributes(prevButton, Map.of("disabled", "true"));
-		assertAttributes(firstPageButton, Map.of("data-hidden", "true"));
-		assertAttributes(lowEllipsisButton, Map.of("data-hidden", "true"));
-		assertAttributes(windowButton1, Map.of("data-hidden", "true"));
-		assertAttributes(windowButton2, Map.of("data-hidden", "true"));
+		assertAttributes(firstPageButton, Map.of("hidden", "true"));
+		assertAttributes(lowEllipsisButton, Map.of("hidden", "true"));
+		assertAttributes(windowButton1, Map.of("hidden", "true"));
+		assertAttributes(windowButton2, Map.of("hidden", "true"));
 
 		assertAttributes(windowButton3, Map.of(
 			"data-structr-success-target", "[data-channel~='Project']",
@@ -1012,10 +1012,10 @@ public class WidgetsTest extends DeploymentTestBase {
 		));
 
 		// all other buttons are hidden
-		assertAttributes(windowButton4, Map.of("data-hidden", "true"));
-		assertAttributes(windowButton5, Map.of("data-hidden", "true"));
-		assertAttributes(highEllipsisButton, Map.of("data-hidden", "true"));
-		assertAttributes(lastPageButton, Map.of("data-hidden", "true"));
+		assertAttributes(windowButton4, Map.of("hidden", "true"));
+		assertAttributes(windowButton5, Map.of("hidden", "true"));
+		assertAttributes(highEllipsisButton, Map.of("hidden", "true"));
+		assertAttributes(lastPageButton, Map.of("hidden", "true"));
 		assertAttributes(nextButton, Map.of("disabled", "true"));
 	}
 
@@ -1037,10 +1037,10 @@ public class WidgetsTest extends DeploymentTestBase {
 
 		// all other buttons are hidden
 		assertAttributes(prevButton, Map.of("disabled", "true"));
-		assertAttributes(firstPageButton, Map.of("data-hidden", "true"));
-		assertAttributes(lowEllipsisButton, Map.of("data-hidden", "true"));
-		assertAttributes(windowButton1, Map.of("data-hidden", "true"));
-		assertAttributes(windowButton2, Map.of("data-hidden", "true"));
+		assertAttributes(firstPageButton, Map.of("hidden", "true"));
+		assertAttributes(lowEllipsisButton, Map.of("hidden", "true"));
+		assertAttributes(windowButton1, Map.of("hidden", "true"));
+		assertAttributes(windowButton2, Map.of("hidden", "true"));
 
 		assertAttributes(windowButton3, Map.of(
 			"data-structr-success-target", "[data-channel~='Project']",
