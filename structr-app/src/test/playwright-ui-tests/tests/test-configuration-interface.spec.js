@@ -30,14 +30,15 @@ test('configuration-interface', async ({page}) => {
 
     await page.goto(process.env.BASE_URL + '/structr/config');
 
-    await expect(page.locator('#passwordField')).toBeVisible();
+    await expect(page.locator('#superuserPasswordField')).toBeVisible();
     await expect(page.locator('#loginButton')).toBeVisible();
 
     await page.waitForTimeout(1000);
     await page.screenshot({path: 'screenshots/configuration-interface_login.png'});
 
     // Login with admin/admin
-    await page.locator('#passwordField').fill(process.env.SUPERUSER_PASSWORD);
+    await page.locator('#superuserNameField').fill('superadmin');
+    await page.locator('#superuserPasswordField').fill(process.env.SUPERUSER_PASSWORD);
     await page.waitForTimeout(500);
     await page.locator('#loginButton').click();
     await page.waitForTimeout(1000);
