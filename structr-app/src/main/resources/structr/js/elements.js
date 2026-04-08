@@ -312,25 +312,39 @@ let _Elements = {
 
 		_Entities.appendContextMenuIcon(iconsContainer[0], entity);
 
+		_Elements.updateElementIfLinkableEntity(nodeContainer[0], entity);
+
+		_Entities.appendNewAccessControlIcon(iconsContainer, entity);
+
+		_Elements.clickOrSelectElementIfLastSelected(div, entity);
+
+		return div;
+	},
+	updateElementIfLinkableEntity: (nodeContainer, entity) => {
+
 		if (_Entities.isLinkableEntity(entity)) {
+
+			nodeContainer.querySelector('.linkable')?.remove();
 
 			if (entity.linkableId) {
 
+				let iconsContainer = nodeContainer.querySelector('.icons-container');
+
 				Command.get(entity.linkableId, 'id,type,name,isFile,isImage,isPage,isTemplate,path', (linkedEntity) => {
 
-					let linkableText = $(`<span class="linkable${(linkedEntity.isImage ? ' default-cursor' : '')}">${linkedEntity.name}</span>`);
-					iconsContainer.before(linkableText);
+					let linkableTextElement = _Helpers.createSingleDOMElementFromHTML(`<span class="linkable${(linkedEntity.isImage ? ' default-cursor' : '')}">${linkedEntity.name}</span>`);
+					iconsContainer.insertAdjacentElement('beforebegin', linkableTextElement);
 
 					if (linkedEntity.isImage) {
 
-						linkableText.on('click', (e) => {
+						linkableTextElement.addEventListener('click', (e) => {
 							e.stopPropagation();
 							_Files.editImage(linkedEntity);
 						});
 
 					} else if (linkedEntity.isFile) {
 
-						linkableText.on('click', (e) => {
+						linkableTextElement.addEventListener('click', (e) => {
 							e.stopPropagation();
 							_Files.editFile(linkedEntity, $('#dialogBox .dialogText'));
 						});
@@ -338,12 +352,6 @@ let _Elements = {
 				});
 			}
 		}
-
-		_Entities.appendNewAccessControlIcon(iconsContainer, entity);
-
-		_Elements.clickOrSelectElementIfLastSelected(div, entity);
-
-		return div;
 	},
 	clickOrSelectElementIfLastSelected: (div, entity) => {
 
