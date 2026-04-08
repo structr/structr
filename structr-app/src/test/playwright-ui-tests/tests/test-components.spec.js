@@ -109,6 +109,8 @@ test('pages', async ({page}) => {
 
     await page.screenshot({path: 'screenshots/widgets_insert-table-dialog.png'});
 
+    await page.locator('#dataSource').selectOption('All Project nodes');
+
     await page.getByRole('button', { name: 'Append Widget' }).click();
 
     let table = pageContainer.getElement('Table');
@@ -129,6 +131,9 @@ test('pages', async ({page}) => {
 
     await page.waitForTimeout(200);
     await page.getByText('dueDate formatted-date ⠿').click();
+
+    // open "Render Template Settings"
+    await page.getByText('Render Template Settings').click();
 
     await page.locator('input[name="dateFormat"]').fill('dd.MM.yyyy');
 
