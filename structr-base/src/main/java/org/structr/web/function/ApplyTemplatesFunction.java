@@ -22,13 +22,14 @@ import org.apache.tika.utils.StringUtils;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.datasources.Channel;
 import org.structr.core.datasources.SortInfo;
 import org.structr.core.entity.DataAdapter;
-import org.structr.core.entity.DataSource;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
@@ -97,7 +98,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 
 					} else {
 
-						logger.warn("{}: cannot store value for channel {}, data adapter {} does not define a dataKey.", getName(), channelName, dataAdapter.getName());
+						logger.warn("{}: cannot store value for channel '{}', data adapter {} does not specify a dataKey.", getName(), channelName, dataAdapter.getUuid());
 					}
 
 				} else {
@@ -110,7 +111,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 		}
 
 		// fetch augmented fields from data adapter
-		final Map<String, DataField> augmentedFields = dataAdapter.augmentFields(innerCtx, sourceChannel);
+		final Map<String, DataField> augmentedFields = dataAdapter.augmentFields(innerCtx, sourceChannel, true);
 		final List<String> fieldSetFromComponent     = splitAndTrim(requestedFieldSet, ",");
 
 		for (final String field : fieldSetFromComponent) {
@@ -128,94 +129,104 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 					// no slot => iterate over all fields or just one slot, or name
 					if (slot == null || slots.contains(slot) || slot.equals(augmentedField.getName())) {
 
-						final Set<String> cssClasses    = new LinkedHashSet<>();
-						final String editTemplate       = augmentedField.getEditTemplate();
-						final String template           = augmentedField.getTemplate();
-						final String valueSource        = augmentedField.getValue();
-						final String label              = augmentedField.getLabel();
-						final Boolean showLabelOverride = augmentedField.showLabel();
-						Object value                    = null;
+						for (final Map.Entry<String, GraphObject> column : augmentedField.expandColumns(innerCtx, config).entrySet()) {
 
-						// apply field-dependent CSS classes to the wrapper element
-						augmentedField.applyCssClasses(cssClasses);
+							final String label              = column.getKey();
+							final Set<String> cssClasses    = new LinkedHashSet<>();
+							final String editTemplate       = augmentedField.getEditTemplate();
+							final String template           = augmentedField.getTemplate();
+							final String valueSource        = augmentedField.getValue();
+							final Boolean showLabelOverride = augmentedField.showLabel();
+							final GraphObject columnValue   = column.getValue();
+							Object value = null;
 
-						// make field information available in context
-						innerCtx.setConstant("field", augmentedField);
+							// apply field-dependent CSS classes to the wrapper element
+							augmentedField.applyCssClasses(cssClasses);
 
-						// value present?
-						if (valueSource != null) {
+							// make field information available in context
+							innerCtx.setConstant("field", augmentedField);
 
-							value = innerCtx.getReferencedProperty(null, valueSource, null, 0, 0, 0);
-
-							// make iterables permanent
-							if (value instanceof Iterable) {
-								value = Iterables.toList((Iterable) value);
+							// make column value available in context, if applicable
+							if (columnValue != null) {
+								innerCtx.setConstant(augmentedField.getColumnKey(), columnValue);
 							}
 
-							innerCtx.setConstant("value", value);
+							// value present?
+							if (valueSource != null) {
 
-						} else {
+								value = Scripting.evaluate(innerCtx, null, "${" + valueSource + "}", "Value expression of data field '" + field + "' in component '" + component.getName() + "' of page '" + component.getOwnerDocument().getName() + "'");
+								//value = innerCtx.getReferencedProperty(null, valueSource, null, 0, 0, 0);
 
-							logger.warn("{}: field {} from data source {} has no value expression and will therefore produce no output.", getName(), field, dataAdapter.getName());
-						}
-
-						if (wrapper != null) {
-							wrapper.formatStartTag(buffer, Map.of(), cssClasses);
-						}
-
-						// render labels?
-						if (label != null) {
-
-							boolean doShow = showLabels != null && showLabels;
-
-							if (showLabelOverride != null) {
-								doShow = showLabelOverride;
-							}
-
-							if (doShow) {
-								buffer.append("<label>" + label + "</label>");
-							}
-						}
-
-						if (useEditTemplate && StringUtils.isEmpty(editTemplate)) {
-
-							logger.warn("{}: field {} from data source {} cannot be used with displayMode input because it doesn't specify a value for `editTemplate`.", getName(), field, dataAdapter.getName());
-							buffer.append("<span class=\"error\">No edit template.</span>");
-
-						} else {
-
-							final DOMNode templateNode = getTemplate(app, slot, useEditTemplate ? editTemplate : template);
-							if (templateNode != null) {
-
-								final DataAdapter previousDataAdapter = innerCtx.getCurrentAdapter();
-								final Channel previousDataSource      = innerCtx.getCurrentDataSource();
-								final String previousReloadBehaviour  = innerCtx.getCurrentReloadBehaviour();
-
-								// we need to make the current data source available to the inner template
-								innerCtx.setCurrentAdapter(dataAdapter);
-								innerCtx.setCurrentDataSource(sourceChannel);
-								innerCtx.setCurrentReloadBehaviour(reloadBehaviour);
-
-								try {
-									templateNode.render(innerCtx, 0);
-
-								} finally {
-
-									innerCtx.setCurrentAdapter(previousDataAdapter);
-									innerCtx.setCurrentDataSource(previousDataSource);
-									innerCtx.setCurrentReloadBehaviour(previousReloadBehaviour);
+								// make iterables permanent
+								if (value instanceof Iterable) {
+									value = Iterables.toList((Iterable) value);
 								}
+
+								innerCtx.setConstant("value", value);
 
 							} else {
 
-								if (value != null) {
-									buffer.append(value.toString());
+								logger.warn("{}: field '{}' from data source '{}' has no value expression and will therefore produce no output.", getName(), field, dataAdapter.getName());
+							}
+
+							if (wrapper != null) {
+								wrapper.formatStartTag(buffer, Map.of(), cssClasses);
+							}
+
+							// render labels?
+							if (label != null) {
+
+								boolean doShow = showLabels != null && showLabels;
+
+								if (showLabelOverride != null) {
+									doShow = showLabelOverride;
+								}
+
+								if (doShow) {
+									buffer.append("<label>" + label + "</label>");
 								}
 							}
-						}
 
-						if (wrapper != null) {
-							wrapper.formatEndTag(buffer);
+							if (useEditTemplate && StringUtils.isEmpty(editTemplate)) {
+
+								logger.warn("{}: field '{}' from data source '{}' cannot be used with displayMode 'input' because it doesn't specify a value for `editTemplate`.", getName(), field, dataAdapter.getName());
+								buffer.append("<span class=\"error\">No edit template.</span>");
+
+							} else {
+
+								final DOMNode templateNode = getTemplate(app, slot, useEditTemplate ? editTemplate : template);
+								if (templateNode != null) {
+
+									final DataAdapter previousDataAdapter = innerCtx.getCurrentAdapter();
+									final Channel previousDataSource = innerCtx.getCurrentDataSource();
+									final String previousReloadBehaviour = innerCtx.getCurrentReloadBehaviour();
+
+									// we need to make the current data source available to the inner template
+									innerCtx.setCurrentAdapter(dataAdapter);
+									innerCtx.setCurrentDataSource(sourceChannel);
+									innerCtx.setCurrentReloadBehaviour(reloadBehaviour);
+
+									try {
+										templateNode.render(innerCtx, 0);
+
+									} finally {
+
+										innerCtx.setCurrentAdapter(previousDataAdapter);
+										innerCtx.setCurrentDataSource(previousDataSource);
+										innerCtx.setCurrentReloadBehaviour(previousReloadBehaviour);
+									}
+
+								} else {
+
+									if (value != null) {
+										buffer.append(value.toString());
+									}
+								}
+							}
+
+							if (wrapper != null) {
+								wrapper.formatEndTag(buffer);
+							}
 						}
 					}
 				}
@@ -232,7 +243,13 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 		final DOMNode component               = domNode.getClosestComponent();
 		final ComponentConfiguration config   = component.getComponentConfiguration();
 		final Channel sourceChannel           = config.getDataSource();
-		final Map<String, DataField> fields   = dataAdapter.augmentFields(innerCtx, sourceChannel);
+
+		// no data source => nothing to do
+		if (sourceChannel == null) {
+			return;
+		}
+
+		final Map<String, DataField> fields   = dataAdapter.augmentFields(innerCtx, sourceChannel, true);
 		final TagWithCSSInfo wrapper          = getWrapperElement(templateWrapper);
 		final AsyncBuffer buffer              = innerCtx.getBuffer();
 		final String requestedFieldSet        = domNode.getFieldSetForComponent();
@@ -253,48 +270,56 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 				// no slot => iterate over all fields or just one slot
 				if (slot == null || slots.contains(slot)) {
 
-					final String label      = dataField.getLabel();
-					final SortInfo sortInfo = getSortInfo(innerCtx, sortKey, dataField.getSortKey());
+					for (final Map.Entry<String, GraphObject> column : dataField.expandColumns(innerCtx, config).entrySet()) {
 
-					innerCtx.setConstant("value", label);
-					innerCtx.setConstant("field", dataField);
+						final String label            = column.getKey();
+						final GraphObject columnValue = column.getValue();
+						final SortInfo sortInfo       = getSortInfo(innerCtx, sortKey, dataField.getSortKey());
 
-					// format sort controls on labels
-					final Map<String, String> data = new LinkedHashMap<>();
-					data.put("data-structr-success-target", "[data-channel]");
-					data.put("data-structr-events", "click");
-					data.put("data-structr-target", sortKey);
+						innerCtx.setConstant("value", label);
+						innerCtx.setConstant("field", dataField);
 
-					final Set<String> classes = new LinkedHashSet<>();
-					if (sortInfo != null && !dataField.isCollection()) {
+						if (columnValue != null) {
+							innerCtx.setConstant(dataField.getColumnKey(), columnValue);
+						}
 
-						classes.add("sortable");
+						// format sort controls on labels
+						final Map<String, String> data = new LinkedHashMap<>();
+						data.put("data-structr-success-target", "[data-channel]");
+						data.put("data-structr-events", "click");
+						data.put("data-structr-target", sortKey);
 
-						data.put("data-" + sortKey, sortInfo.toString());
+						final Set<String> classes = new LinkedHashSet<>();
+						if (sortInfo != null && !dataField.isCollection()) {
 
-						if (sortInfo.active) {
+							classes.add("sortable");
 
-							if (sortInfo.descending) {
+							data.put("data-" + sortKey, sortInfo.toString());
 
-								classes.add("descending");
+							if (sortInfo.active) {
 
-							} else {
+								if (sortInfo.descending) {
 
-								classes.add("ascending");
+									classes.add("descending");
+
+								} else {
+
+									classes.add("ascending");
+								}
 							}
 						}
-					}
 
-					if (wrapper != null) {
-						wrapper.formatStartTag(buffer, data, classes);
-					}
+						if (wrapper != null) {
+							wrapper.formatStartTag(buffer, data, classes);
+						}
 
-					if (label != null) {
-						buffer.append(label);
-					}
+						if (label != null) {
+							buffer.append(label);
+						}
 
-					if (wrapper != null) {
-						wrapper.formatEndTag(buffer);
+						if (wrapper != null) {
+							wrapper.formatEndTag(buffer);
+						}
 					}
 				}
 			}

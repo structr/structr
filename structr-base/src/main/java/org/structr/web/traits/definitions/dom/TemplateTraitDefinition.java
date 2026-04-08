@@ -150,13 +150,15 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 
 							final Channel sourceChannel   = config.getDataSource();
 							final String selectionChannel = config.getSelectionChannel();
-							final String paginationKey    = sourceChannel.getPaginationKey();
 
+							if (sourceChannel != null) {
 
-							final String page = renderContext.getRequestParameter(paginationKey);
-							if (page != null) {
+								final String paginationKey = sourceChannel.getPaginationKey();
+								final String page = renderContext.getRequestParameter(paginationKey);
+								if (page != null) {
 
-								data.put("data-" + paginationKey, page);
+									data.put("data-" + paginationKey, page);
+								}
 							}
 
 

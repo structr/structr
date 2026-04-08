@@ -20,18 +20,26 @@ package org.structr.web.datasource;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.structr.api.util.ResultStream;
+import org.structr.common.ChannelInput;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.CaseHelper;
+import org.structr.core.GraphObject;
 import org.structr.core.app.QueryGroup;
+import org.structr.core.datasources.Channel;
+import org.structr.core.datasources.ChannelResult;
 import org.structr.core.entity.DataAdapter;
 import org.structr.core.entity.DataAdapterField;
 import org.structr.core.function.TitleizeFunction;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.GraphSearchAttribute;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.script.Scripting;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
+import org.structr.web.entity.ComponentConfiguration;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -165,22 +173,32 @@ public class DataField extends LinkedHashMap<String, Object> {
 		return getName();
 	}
 
+	public String getColumnDataSource() {
+		return (String) get("columnDataSource");
+	}
+
+	public String getColumnKey() {
+		return (String) get("columnKey");
+	}
+
 	public void applyCssClasses(final Set<String> cssClasses) {
 
 		cssClasses.add("col-span-" + getColumns());
 	}
 
-	public void augment(final DataAdapterField augmentation) {
+	public void augment(final DataAdapterField augmentation) throws FrameworkException {
 
-		putIfNotEmpty(this, "template",     augmentation.getRenderTemplate());
-		putIfNotEmpty(this, "editTemplate", augmentation.getEditTemplate());
-		putIfNotEmpty(this, "label",        augmentation.getLabel());
-		putIfNotEmpty(this, "value",        augmentation.getValue());
-		putIfNotEmpty(this, "dataType",     augmentation.getDataType());
-		putIfNotEmpty(this, "sortKey",      augmentation.getSortKey());
-		putIfNotEmpty(this, "isSearchable", augmentation.isSearchable());
-		putIfNotEmpty(this, "rows",         augmentation.getRows());
-		putIfNotEmpty(this, "columns",      augmentation.getColumns());
+		putIfNotEmpty(this, "template",         augmentation.getRenderTemplate());
+		putIfNotEmpty(this, "editTemplate",     augmentation.getEditTemplate());
+		putIfNotEmpty(this, "label",            augmentation.getLabel());
+		putIfNotEmpty(this, "value",            augmentation.getValue());
+		putIfNotEmpty(this, "dataType",         augmentation.getDataType());
+		putIfNotEmpty(this, "sortKey",          augmentation.getSortKey());
+		putIfNotEmpty(this, "isSearchable",     augmentation.isSearchable());
+		putIfNotEmpty(this, "rows",             augmentation.getRows());
+		putIfNotEmpty(this, "columns",          augmentation.getColumns());
+		putIfNotEmpty(this, "columnDataSource", augmentation.getColumnDataSource());
+		putIfNotEmpty(this, "columnKey",        augmentation.getColumnKey());
 
 		// only adapter fields can be deleted in UI
 		putIfAbsent("source", "adapter");
@@ -235,8 +253,44 @@ public class DataField extends LinkedHashMap<String, Object> {
 		}
 	}
 
+	public Map<String, GraphObject> expandColumns(final RenderContext renderContext, final ComponentConfiguration config) throws FrameworkException {
+
+		final Map<String, GraphObject> columns = new LinkedHashMap<>();
+		final String dataSourceName            = getColumnDataSource();
+		final String label                     = getLabel();
+		final Channel<GraphObject> channel     = Channel.forName(renderContext.getSecurityContext(), config, dataSourceName);
+
+		if (channel != null) {
+
+			// evaluate column query
+			final ChannelInput input              = config.getChannelInput(renderContext, null);
+			final ChannelResult<GraphObject> data = channel.getResult(renderContext, input);
+
+			for (final Object item : data.getData()) {
+
+				if (item instanceof GraphObject g) {
+
+					renderContext.setConstant(getColumnKey(), g);
+
+					final Object expandedLabel = Scripting.evaluate(renderContext, g, "${" + label + "}", "Label expression of data field '" + getName() + "'");
+					if (expandedLabel != null) {
+
+						columns.put(expandedLabel.toString(), g);
+					}
+				}
+			}
+
+		} else {
+
+			// default case: only one column
+			columns.put(label, null);
+		}
+
+		return columns;
+	}
+
 	// ----- public static methods -----
-	public static DataField from(final RenderContext renderContext, final DataAdapter adapter, final String name,  final FieldDefinition fieldDefinition, final DataAdapterField augmentation) throws FrameworkException {
+	public static DataField from(final RenderContext renderContext, final DataAdapter adapter, final String name, final FieldDefinition fieldDefinition, final DataAdapterField augmentation, final boolean loadOptions) throws FrameworkException {
 
 		final DataField field = new DataField(name);
 
@@ -255,7 +309,7 @@ public class DataField extends LinkedHashMap<String, Object> {
 			field.put("isCollection",   fieldDefinition.isCollection());
 			field.put("source",         "datasource");
 
-			if (fieldDefinition.hasOptions()) {
+			if (loadOptions && fieldDefinition.hasOptions()) {
 
 				String label = "name";
 				String filter = null;

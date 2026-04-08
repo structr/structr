@@ -2773,7 +2773,7 @@ let _Entities = {
                         let input = document.createElement('input');
                         addButton.classList.add('editing');
                         input.type = 'text';
-                        input.placeholder = 'Enter field name..';
+                        input.placeholder = 'Enter field name and press Enter..';
                         addButton.appendChild(input);
                         input.focus();
                         input.addEventListener('click', (e) => { e.stopPropagation(); e.preventDefault(); });
@@ -2809,7 +2809,10 @@ let _Entities = {
                     });
                 }
 
-                _Entities.generalTab.loadOptions('#data-source-channel-select', 'DataSource', config.dataSource, {}, 'node:', 'name', (node) => 'All ' + node.name + ' nodes');
+				let dataSources = await _Widgets.templates.getAvailableDataSources();
+				let options = Object.keys(dataSources).map(k => ({ name: dataSources[k], value: k }));
+
+                _Entities.generalTab.useOptions('#data-source-channel-select', config.dataSource, options);
                 _Entities.generalTab.loadOptions('#data-source-channel-select', 'ComponentConfiguration', config.dataSource, { '!selectionChannel': null }, 'channel:', 'selectionChannel', node => 'The "' + node.selectionChannel + '" channel');
 
                 _Entities.generalTab.selectButtons('#role-buttons', config, 'role', [{ label: 'None', value: 'none' }, { label: 'Controller', value: 'controller' }, { label: 'Subscriber', value: 'subscriber' }], false, checkRoleConstraints, () => _Pages.previews.updatePreviewSlideout());
@@ -2848,7 +2851,7 @@ let _Entities = {
             let sortable = document.querySelector('#sortable-list');
             let available = document.querySelector('#available-list');
             let fieldSetInput = document.querySelector('#field-set-input');
-            let displayMode = document.querySelector('#display-mode-buttons button.active').dataset.value;
+            let displayMode = document.querySelector('#display-mode-buttons button.active')?.dataset?.value;
             let whichTemplate = displayMode === 'input' ? 'editTemplate' : 'template';
             let currentFieldSet = [];
 
@@ -2866,14 +2869,59 @@ let _Entities = {
                     sortable.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.configuredFieldPartial({ fieldName, field, renderTemplate, color, open: openField === fieldName }));
                     let editor = document.querySelector(`.field-details-editor[data-field-name="${fieldName}"]`);
                     if (editor && field) {
-                        editor.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({ css: 'col-span-3', label: 'Label', name: 'label', fieldName, value: field.label, destination: 'field' }));
-                        editor.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({ css: 'col-span-3', label: 'Value Expression', name: 'value', fieldName, value: field.value, destination: 'field' }));
-                        editor.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({ css: 'col-span-2', label: 'Sort Key', name: 'sortKey', fieldName, value: field.sortKey, destination: 'field' }));
-                        editor.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({ css: 'col-span-2', label: 'Columns', name: 'columns', fieldName, value: field.columns, destination: 'field' }));
-						editor.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({ css: 'col-span-2', label: 'Data Type', name: 'dataType', fieldName, value: field.dataType, destination: 'field' }));
-                        editor.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailCheckbox({ css: 'col-span-3', label: 'Include in filter', name: 'isSearchable', fieldName, value: field.isSearchable, destination: 'field' }));
-                        editor.insertAdjacentHTML('beforeend', await _Entities.generalTab.templates.fieldConfigurationInput(field, renderTemplate));
-                        editor.querySelectorAll('input').forEach(input => {
+
+						// standard settings (always visible)
+                        editor.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({ css: 'col-span-2', label: 'Label', name: 'label', fieldName, value: field.label, destination: 'field' }));
+						editor.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({ css: 'col-span-2', label: 'Columns', name: 'columns', fieldName, value: field.columns, destination: 'field' }));
+						editor.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailCheckbox({ css: 'col-span-2', label: 'Include in filter', name: 'isSearchable', fieldName, value: field.isSearchable, destination: 'field' }));
+
+						// render template settings
+						let renderTemplateSettings = _Entities.generalTab.createAppendAndReturnDetailsSummary(editor, 'Render Template Settings');
+						renderTemplateSettings.insertAdjacentHTML('beforeend', await _Entities.generalTab.templates.fieldConfigurationInput(field, renderTemplate));
+						console.log(renderTemplateSettings);
+						// remove element if no render template settings exist
+						if (renderTemplateSettings.children.length === 0) {
+							renderTemplateSettings.parentNode.remove();
+						}
+
+						// expert settings
+						let expertSettings = _Entities.generalTab.createAppendAndReturnDetailsSummary(editor, 'Expert Settings');
+						expertSettings.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({ css: 'col-span-3', label: 'Value Expression', name: 'value', fieldName, value: field.value, destination: 'field' }));
+						expertSettings.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailDropdown({ css: 'col-span-3', label: 'Data Type', name: 'dataType', fieldName, value: field.dataType, destination: 'field', options: [
+							{ name: 'String', value: 'string' },
+							{ name: 'Boolean', value: 'boolean' },
+							{ name: 'Date', value: 'date' },
+							{ name: 'Node', value: 'node' },
+							{ name: 'Custom', value: 'custom' },
+						]}));
+
+						// functions returns map but we need a list of { name, value }
+						let dataSources = await _Widgets.templates.getAvailableDataSources();
+						let options = Object.keys(dataSources).map(k => ({ name: dataSources[k], value: k }));
+
+						expertSettings.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailDropdown({ css: 'col-span-3', label: 'Column Data Source', name: 'columnDataSource', fieldName, value: field.columnDataSource, destination: 'field', options }));
+						expertSettings.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({ css: 'col-span-3', label: 'Column Data Key', name: 'columnKey', fieldName, value: field.columnKey, destination: 'field' }));
+
+						// sortKey override is disabled for now
+						//expertSettings.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({ css: 'col-span-2', label: 'Sort Key', name: 'sortKey', fieldName, value: field.sortKey, destination: 'field' }));
+
+
+
+						editor.querySelectorAll('input').forEach(input => {
+							input.addEventListener('change', async e => {
+								let data = { _fieldName: input.dataset.fieldName, _update: true };
+								data[input.name] = input.value;
+								data._destination = input.dataset.destination || 'config';
+								await fetch(`${Structr.rootUrl}DOMNode/${entity.id}/updateDataSourceField`, {
+									method: 'POST',
+									body: JSON.stringify(data)
+								});
+								_Pages.previews.updatePreviewSlideout();
+								await _Entities.generalTab.updateSortableDataFields(entity, input.dataset.fieldName);
+							})
+						})
+
+                        editor.querySelectorAll('select').forEach(input => {
                             input.addEventListener('change', async e => {
                                 let data = { _fieldName: input.dataset.fieldName, _update: true };
                                 data[input.name] = input.value;
@@ -3028,21 +3076,32 @@ let _Entities = {
                 div.remove();
             })
         },
-        loadOptions: async (selector, type, currentValue, query, prefix = 'node:', property = 'name', labelFunction) => {
+		loadOptions: async (selector, type, currentValue, query, prefix = 'node:', property = 'name', labelFunction) => {
 
+			let selectField = document.querySelector(selector);
+			if (selectField) {
+				let options = await Command.queryPromise(type, 1000, 1, 'name', 'asc', query);
+				if (options) {
+					for (let option of options) {
+						let text = option[property];
+						if (labelFunction && typeof labelFunction === 'function') {
+							text = labelFunction(option);
+						}
+						let value = prefix + option[property];
+						let selected = value === currentValue ? 'selected' : '';
+						selectField.insertAdjacentHTML('beforeend', `<option value="${value}" ${selected}>${text}</option>`);
+					}
+				}
+			}
+		},
+        useOptions: async (selector, currentValue, options) => {
             let selectField = document.querySelector(selector);
             if (selectField) {
-                let options = await Command.queryPromise(type, 1000, 1, 'name', 'asc', query);
-                if (options) {
-                    for (let option of options) {
-                        let text = option[property];
-                        if (labelFunction && typeof labelFunction === 'function') {
-                            text = labelFunction(option);
-                        }
-                        let value = prefix + option[property];
-                        let selected = value === currentValue ? 'selected' : '';
-                        selectField.insertAdjacentHTML('beforeend', `<option value="${value}" ${selected}>${text}</option>`);
-                    }
+				for (let option of options) {
+					let value = option.value;
+					let text = option.name;
+					let selected = value === currentValue ? 'selected' : '';
+					selectField.insertAdjacentHTML('beforeend', `<option value="${value}" ${selected}>${text}</option>`);
                 }
             }
         },
@@ -3391,6 +3450,27 @@ let _Entities = {
 			StructrModel.update(Object.assign(htmlProperties, entity));
 
 			return entity;
+		},
+		createAppendAndReturnDetailsSummary: (parent, label) => {
+
+			let details = document.createElement('details');
+			details.classList.add('col-span-6');
+
+			let summary = document.createElement('summary');
+
+			summary.classList.add('cursor-pointer', 'font-bold');
+			summary.innerHTML = label;
+
+			details.appendChild(summary);
+			parent.appendChild(details);
+
+			let div = document.createElement('div');
+
+			details.appendChild(div);
+
+			div.classList.add('grid', 'grid-cols-6', 'gap-4', 'data-field-detail-settings');
+
+			return div;
 		},
 
 		templates: {
@@ -4025,7 +4105,7 @@ let _Entities = {
                     </div>
 
                     <div>
-                        <label class="block mb-2" for="display-mode-select" data-comment="Controls the display mode of this component">Display Mode</label>
+                        <label class="block mb-2" for="display-mode-select" data-comment="The display mode controls which render template the component uses. You can switch between two different render templates based on the display mode.">Display Mode</label>
                         <div id="display-mode-buttons" class="toggle-button-container"></div>
                     </div>
 
@@ -4035,7 +4115,7 @@ let _Entities = {
                     </div>
                     
                     <div>
-                        <label class="block mb-2" for="reload-select" data-comment="Controls the reloading behaviour of this component">Reload Behavior</label>
+                        <label class="block mb-2" for="reload-select" data-comment="Controls the reloading behaviour of this component.">Reload Behavior</label>
                         <input type="text" id="reload-input" autocomplete="off" name="reload" data-which="config">
                     </div>
 
@@ -4117,13 +4197,21 @@ let _Entities = {
                     <input type="text" data-field-name="${config.fieldName}" data-destination="${config.destination}" autocomplete="off" name="${config.name}" value="${config.value || ''}">
                 </div>
             `,
-            fieldDetailCheckbox: (config) => `
+			fieldDetailCheckbox: (config) => `
                 <div class="${config.css || ''}">
                     <label class="font-bold block mb-1 px-1">Options</label>
                     <label class="block mb-1 px-1">
 	                    <input type="checkbox" data-field-name="${config.fieldName}" data-destination="${config.destination}" name="${config.name}" ${config.value ? 'checked': ''}>
     	                ${config.label}
     	            </label>
+                </div>
+            `,
+            fieldDetailDropdown: (config) => `
+                <div class="${config.css || ''}">
+                    <label class="font-bold block mb-1 px-1">${config.label}</label>
+                    <select class="select2 rounded-none rounded-l" data-field-name="${config.fieldName}" data-destination="${config.destination}" name="${config.name}">
+                    	${config.options.map(o => `<option value="${o.value}" ${config.value === o.value ? 'selected' : ''}>${o.name}</option>`).join('\n')}
+                    </select>
                 </div>
             `,
             fieldConfigurationInput: async (field, templateName) => {
@@ -4155,18 +4243,3 @@ let _Entities = {
 		}
 	}
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
