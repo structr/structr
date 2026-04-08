@@ -63,6 +63,7 @@ import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.property.CustomHtmlAttributeProperty;
 import org.structr.web.traits.definitions.ComponentConfigurationTraitDefinition;
 import org.structr.web.traits.definitions.LinkSourceTraitDefinition;
+import org.structr.web.traits.definitions.LinkableTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.structr.web.traits.operations.*;
@@ -2068,6 +2069,21 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 						}
 
 						clonedElement.setProperty(clonedElement.getTraits().key(DOMElementTraitDefinition.TRIGGERED_ACTIONS_PROPERTY), clonedActionMappings);
+					}
+				}
+			}
+
+			// ensure that links pointing to this page, which are now in the cloned page, correctly point to the cloned page
+			// those links must have been in the cloned page and pointed to itself
+			if (this.is(StructrTraits.PAGE)) {
+
+				final Iterable<NodeInterface> linkSourcesPointingToPageToClone = this.getProperty(this.getTraits().key(LinkableTraitDefinition.LINKING_ELEMENTS_PROPERTY));
+				for (final NodeInterface n : linkSourcesPointingToPageToClone) {
+
+					final LinkSource linkSource = n.as(LinkSource.class);
+
+					if (clone.equals(linkSource.getProperty(clone.getTraits().key(DOMNodeTraitDefinition.OWNER_DOCUMENT_PROPERTY)))) {
+						linkSource.setLinkable(clone.as(Linkable.class));
 					}
 				}
 			}

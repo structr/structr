@@ -41,6 +41,7 @@ import org.structr.web.common.RenderContext;
 import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.traits.definitions.LinkSourceTraitDefinition;
+import org.structr.web.traits.definitions.LinkableTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.structr.web.traits.definitions.dom.PageTraitDefinition;
@@ -77,7 +78,8 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 		DOMNodeTraitDefinition.SUCCESS_NOTIFICATION_ACTIONS_PROPERTY, DOMNodeTraitDefinition.FAILURE_NOTIFICATION_ACTIONS_PROPERTY,
 		DOMNodeTraitDefinition.COMPONENT_CONFIGURATION_PROPERTY, DOMNodeTraitDefinition.COMPONENT_TYPE_PROPERTY,
 		DOMNodeTraitDefinition.ITEM_TYPE_PROPERTY, DOMNodeTraitDefinition.REPEATER_TYPE_PROPERTY,
-		DOMNodeTraitDefinition.DIMENSIONS_PROPERTY, DOMNodeTraitDefinition.IS_COMPONENT_ROOT_PROPERTY
+		DOMNodeTraitDefinition.DIMENSIONS_PROPERTY, DOMNodeTraitDefinition.IS_COMPONENT_ROOT_PROPERTY,
+		LinkableTraitDefinition.LINKING_ELEMENTS_PROPERTY, LinkableTraitDefinition.LINKING_ELEMENTS_IDS_PROPERTY
 	);
 
 	static void collectNodesByPredicate(final SecurityContext securityContext, DOMNode startNode, List<DOMNode> results, Predicate<DOMNode> predicate, int depth, boolean stopOnFirstHit) throws FrameworkException {

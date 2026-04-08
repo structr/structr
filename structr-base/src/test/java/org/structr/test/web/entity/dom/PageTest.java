@@ -387,18 +387,9 @@ public class PageTest extends StructrUiTest {
 		// clone page
 		try (final Tx tx = app.tx()) {
 
-			newPage = pageToClone.cloneNode(false).as(Page.class);
+			newPage = pageToClone.cloneNode(true).as(Page.class);
 
 			newPage.setName(pageToClone.getName() + "-" + newPage.getNode().getId().toString());
-
-			DOMNode firstChild = pageToClone.getFirstChild();
-			if (firstChild != null) {
-
-				final DOMNode newHtmlNode = DOMNodeTraitWrapper.cloneAndAppendChildren(securityContext, firstChild, new LinkedHashMap<>());
-
-				newPage.adoptNode(newHtmlNode);
-				newPage.appendChild(newHtmlNode);
-			}
 
 //			System.out.println(newPage.getContent(RenderContext.EditMode.NONE));
 
@@ -450,7 +441,6 @@ public class PageTest extends StructrUiTest {
 			t.printStackTrace();
 			fail("Unexpected exception");
 		}
-
 	}
 
 	@Test
@@ -556,7 +546,6 @@ public class PageTest extends StructrUiTest {
 
 				assertEquals("The link in the newly cloned page should point to the newly cloned page", clonedPage, linkInNewlyClonedPage.as(LinkSource.class).getLinkable());
 
-
 			} catch (AssertionError err) {
 
 				throw err;
@@ -567,9 +556,6 @@ public class PageTest extends StructrUiTest {
 				fail("Unexpected exception");
 			}
 		}
-
-
-		fail("Not fully implemented yet");
 	}
 
 	private boolean isClone(final DOMNode n1, final DOMNode n2) throws FrameworkException {
