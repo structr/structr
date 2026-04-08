@@ -3604,7 +3604,7 @@ let _Pages = {
 
 			$(listContainer).sortable({
 				handle: "[data-is-sortable-handle]",
-				placeholder: "border border-dashed border-gray-ddd h-16 mb-8 rounded-lg ui-sortable-placeholder",
+				placeholder: "border border-dashed border-gray-ddd h-20 bg-gray mb-8 rounded-lg ui-sortable-placeholder",
 				stop: _Pages.routingDialog.updatedSorting
 			});
 
@@ -3806,6 +3806,8 @@ let _Pages = {
 
 						<p>Routes are evaluated from top to bottom. The first matching route is used. You can change the evaluation order via drag and drop.</p>
 
+						<p><em>Note:</em> Using a UUID to automatically resolve to a <code>current</code> object, which is possible with default page access, is not possible with URL Routes. A separate path parameter for a <code>current</code> object must be explicitly introduced in the route.</p>
+
 						<h3>Path Parameters</h3>
 
 						<p>Path parameters can be defined using <code>{param}</code> syntax. These parameters are automatically extracted and validated. You can further configure them (e.g. type, default values).</p>
@@ -3813,20 +3815,20 @@ let _Pages = {
 						<h3>Matching Behavior</h3>
 
 						<ul>
-						<li>Static parts of a route must match exactly.</li>
-						<li>Parameters are matched *greedily* within a path segment.</li>
+							<li>Static parts of a route must match exactly.</li>
+							<li>Parameters are matched *greedily* within a path segment.</li>
 						</ul>
 
 						<p>This means multiple parameters in the same segment can lead to ambiguous matches:</p>
 
 						<ul>
-						<li><code>/{var1}{var2}/</code> → <code>var1</code> captures the entire segment, <code>var2</code> remains empty</li>
-						<li><code>/{var1}_{var2}/</code> → works because <code>_</code> enforces a boundary</li>
+							<li><code>/{var1}{var2}/</code> → <code>var1</code> captures the entire segment, <code>var2</code> remains empty</li>
+							<li><code>/{var1}_{var2}/</code> → works because <code>_</code> enforces a boundary</li>
 						</ul>
 
 						<p>Use a separator character that cannot appear in either parameter.</p>
 
-						<em>Recommendation:</em> Prefer a single parameter per path segment to avoid ambiguity.
+						<p><em>Recommendation:</em> Prefer a single parameter per path segment to avoid ambiguity.</p>
 
 						<h3>Avoid Catch-All Routes</h3>
 
@@ -3835,15 +3837,15 @@ let _Pages = {
 						<p>To prevent unintended matches, include at least one static (or clearly structured) segment at the beginning of the path, e.g.:</p>
 
 						<ul>
-						<li><code>/users/{id}/</code></li>
-						<li><code>/api/{resource}/</code></li>
+							<li><code>/users/{id}/</code></li>
+							<li><code>/api/{resource}/</code></li>
 						</ul>
 					</div>
 				</div>
 				</div>
 			`,
 			pagePathRow: config => `
-				<div class="mb-8 grid grid-cols-7 gap-8" data-structr-page-path-id="${config.id}">
+				<div class="mb-12 grid grid-cols-7 gap-8" data-structr-page-path-id="${config.id}">
 					<div class="col-span-3">
 						<label class="block" data-comment="Enter the URL path that should route to this page.">Path</label>
 						<div class="flex">

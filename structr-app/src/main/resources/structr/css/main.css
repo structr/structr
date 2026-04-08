@@ -4425,6 +4425,9 @@ ul.combined-input-select-field li:not(.nohover):hover {
 .mb-8 {
 	margin-bottom: 2rem;
 }
+.mb-12 {
+	margin-bottom: 3rem;
+}
 .mx-2 {
 	margin-left: .5rem;
 	margin-right: .5rem;
