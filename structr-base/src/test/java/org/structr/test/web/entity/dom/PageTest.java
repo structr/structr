@@ -30,12 +30,16 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.RenderContext;
+import org.structr.web.entity.LinkSource;
+import org.structr.web.entity.Linkable;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.Template;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.structr.web.traits.wrappers.dom.DOMNodeTraitWrapper;
 import org.testng.annotations.Test;
 import org.w3c.dom.DOMException;
@@ -46,10 +50,6 @@ import java.util.Set;
 
 import static org.testng.AssertJUnit.*;
 
-/**
- *
- *
- */
 public class PageTest extends StructrUiTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(PageTest.class.getName());
@@ -374,7 +374,7 @@ public class PageTest extends StructrUiTest {
 			pageToClone.adoptNode(templ);
 			pageToClone.appendChild(templ);
 
-			System.out.println(pageToClone.getContent(RenderContext.EditMode.NONE));
+//			System.out.println(pageToClone.getContent(RenderContext.EditMode.NONE));
 
 			tx.success();
 
@@ -400,7 +400,7 @@ public class PageTest extends StructrUiTest {
 				newPage.appendChild(newHtmlNode);
 			}
 
-			System.out.println(newPage.getContent(RenderContext.EditMode.NONE));
+//			System.out.println(newPage.getContent(RenderContext.EditMode.NONE));
 
 			tx.success();
 
@@ -451,6 +451,125 @@ public class PageTest extends StructrUiTest {
 			fail("Unexpected exception");
 		}
 
+	}
+
+	@Test
+	public void testClonePageWithElementsLinkingToIt() {
+
+		Page pageToClone                         = null;
+		Page otherPageWithLinkToPageToClone      = null;
+		DOMNode linkToPageToCloneInPageToClone   = null;
+		DOMNode linkToPageToCloneInDifferentPage = null;
+		Page clonedPage                          = null;
+
+		{
+			try (final Tx tx = app.tx()) {
+
+				// pageToClone
+				{
+					pageToClone = app.create(StructrTraits.PAGE, "pageToClone").as(Page.class);
+
+					final Template tpl = app.create(StructrTraits.TEMPLATE).as(Template.class);
+
+					tpl.setContent("Template: ${render(children)}");
+					tpl.setContentType("text/html");
+
+					linkToPageToCloneInPageToClone = pageToClone.createElement("a");
+					linkToPageToCloneInPageToClone.appendChild(pageToClone.createTextNode("link to this page"));
+					linkToPageToCloneInPageToClone.as(LinkSource.class).setLinkable(pageToClone.as(Linkable.class));
+
+					tpl.appendChild(linkToPageToCloneInPageToClone);
+
+					pageToClone.appendChild(tpl);
+				}
+
+				// other page with element linking to pageToClone
+				{
+					otherPageWithLinkToPageToClone = app.create(StructrTraits.PAGE, "otherPageWithLinkToPageToClone").as(Page.class);
+
+					final Template tpl = app.create(StructrTraits.TEMPLATE).as(Template.class);
+
+					tpl.setContent("This is another page linking to a page which will be cloned. ${render(children)}");
+					tpl.setContentType("text/html");
+
+					linkToPageToCloneInDifferentPage = otherPageWithLinkToPageToClone.createElement("a");
+					linkToPageToCloneInDifferentPage.appendChild(otherPageWithLinkToPageToClone.createTextNode("link to page that will be cloned"));
+					linkToPageToCloneInDifferentPage.as(LinkSource.class).setLinkable(pageToClone.as(Linkable.class));
+
+					tpl.appendChild(linkToPageToCloneInDifferentPage);
+
+					otherPageWithLinkToPageToClone.appendChild(tpl);
+				}
+
+				tx.success();
+
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+				fail("Unexpected exception");
+			}
+		}
+
+		// assert that both links point to pageToClone initially
+		{
+			try (final Tx tx = app.tx()) {
+
+				assertEquals("The link in pageToClone (linking to pageToClone) should point to pageToClone", pageToClone, linkToPageToCloneInPageToClone.as(LinkSource.class).getLinkable());
+
+				assertEquals("The link in other page should point to pageToClone", pageToClone, linkToPageToCloneInDifferentPage.as(LinkSource.class).getLinkable());
+
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+				fail("Unexpected exception");
+			}
+		}
+
+		// clone page
+		{
+			try (final Tx tx = app.tx()) {
+
+				clonedPage = pageToClone.cloneNode(true).as(Page.class);
+
+				clonedPage.setName(pageToClone.getName() + " - " + clonedPage.getNode().getId().toString());
+
+				tx.success();
+
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+				fail("Unexpected exception");
+			}
+		}
+
+		// - assert that the initial links STILL point to their initial link targets
+		// - assert that the link inside the newly cloned page does NOT point to the initial pageToClone but to the newly cloned page
+		{
+			try (final Tx tx = app.tx()) {
+
+				assertEquals("The link in pageToClone (linking to pageToClone) should STILL point to pageToClone", pageToClone, linkToPageToCloneInPageToClone.as(LinkSource.class).getLinkable());
+				assertEquals("The link in other page should STILL point to pageToClone", pageToClone, linkToPageToCloneInDifferentPage.as(LinkSource.class).getLinkable());
+
+				final DOMNode linkInNewlyClonedPage = app.nodeQuery(StructrTraits.A).and().key(Traits.of(StructrTraits.A).key(DOMNodeTraitDefinition.PAGE_ID_PROPERTY), clonedPage.getUuid()).getFirst().as(DOMNode.class);
+
+				assertEquals("Query should have identified the only A element inside the newly cloned page", clonedPage, linkInNewlyClonedPage.getOwnerDocument());
+
+				assertEquals("The link in the newly cloned page should point to the newly cloned page", clonedPage, linkInNewlyClonedPage.as(LinkSource.class).getLinkable());
+
+
+			} catch (AssertionError err) {
+
+				throw err;
+
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+				fail("Unexpected exception");
+			}
+		}
+
+
+		fail("Not fully implemented yet");
 	}
 
 	private boolean isClone(final DOMNode n1, final DOMNode n2) throws FrameworkException {
