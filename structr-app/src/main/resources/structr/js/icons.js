@@ -545,5 +545,29 @@ let _Icons = {
 		}
 
 		return _Icons.iconCrossIcon;
+	},
+	showAllAvailableSymbols: () => {
+
+		let { dialogText } = _Dialogs.custom.openDialog(`Available Icons`, undefined, ['show-icons-dialog']);
+
+		let allSymbols = document.querySelector('#structr-logo').closest('svg').querySelectorAll('symbol');
+		let w = 32;
+		let h = 32;
+		let extraClasses = [];
+
+		let dialogMessage = `
+			<div class="confirmationText text-center">
+				<div class="mb-6">
+					<div class="mb-4 grid grid-cols-2">
+						${[...allSymbols].map(s => `
+							<div>${s.id}</div>
+							<div>${_Icons.getSvgIcon(s.id, w, h, extraClasses)}</div>
+						`).join('')}
+					</div>
+				</div>
+			</div>
+		`;
+
+		dialogText.appendChild(_Helpers.createSingleDOMElementFromHTML(dialogMessage));
 	}
 };
