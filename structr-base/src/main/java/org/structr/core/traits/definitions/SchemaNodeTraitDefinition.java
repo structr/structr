@@ -56,6 +56,8 @@ import org.structr.schema.ReloadSchema;
 import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.DataField;
 import org.structr.web.datasource.FieldDefinition;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
+import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 
 import java.util.*;
 

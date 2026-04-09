@@ -18,8 +18,12 @@
  */
 package org.structr.core.entity;
 
+import ch.qos.logback.core.joran.node.ComponentNode;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.datasources.Channel;
 import org.structr.core.graph.NodeInterface;
+import org.structr.web.entity.ComponentConfiguration;
 
 import java.util.Map;
 
@@ -34,6 +38,8 @@ public interface DataAdapterField extends NodeInterface {
 	Boolean isSearchable();
 	Integer getRows();
 	Integer getColumns();
+	String getColumnDataSource();
+	Object getColumnKey();
 
 	Map<String, Object> getConfig();
 

@@ -777,11 +777,11 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 					if (actionContext instanceof RenderContext renderContext) {
 
-						return adapter.augmentFields(renderContext, dataSource);
+						return adapter.augmentFields(renderContext, dataSource, false);
 					}
 
 					// this is called in case
-					return adapter.augmentFields(new RenderContext(actionContext.getSecurityContext()), dataSource);
+					return adapter.augmentFields(new RenderContext(actionContext.getSecurityContext()), dataSource, false);
 				}
 			},
 
@@ -891,6 +891,11 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					final DOMNode component               = entity.as(DOMNode.class);
 					final ComponentConfiguration config   = component.getComponentConfiguration();
 					final Channel channel                 = config.getDataSource();
+
+					if (channel == null) {
+						return " hidden ";
+					}
+
 					final DataAdapter adapter             = config.getDataAdapter();
 					final ChannelInput input              = config.getChannelInput(renderContext, adapter);
 					final String paginationKey            = channel.getPaginationKey();
@@ -912,7 +917,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 					if (hidden) {
 
-						attributes.put("data-hidden", true);
+						attributes.put("hidden", true);
 
 					} else {
 
@@ -949,6 +954,11 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					final RenderContext renderContext     = (RenderContext) actionContext;
 					final ComponentConfiguration config   = component.getComponentConfiguration();
 					final Channel channel                 = config.getDataSource();
+
+					if (channel == null) {
+						return "";
+					}
+
 					final DataAdapter adapter             = config.getDataAdapter();
 					final ChannelInput input              = config.getChannelInput(renderContext, adapter);
 					final String paginationKey            = channel.getPaginationKey();
@@ -980,6 +990,11 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					final DOMNode component               = entity.as(DOMNode.class);
 					final ComponentConfiguration config   = component.getComponentConfiguration();
 					final Channel channel                 = config.getDataSource();
+
+					if (channel == null) {
+						return " hidden ";
+					}
+
 					final String paginationKey            = channel.getPaginationKey();
 					final String filterKey                = channel.getFilterKey();
 					final String filterString             = renderContext.getRequestParameter(filterKey);

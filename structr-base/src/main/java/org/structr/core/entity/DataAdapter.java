@@ -29,7 +29,7 @@ import java.util.Map;
 
 public interface DataAdapter extends NodeInterface {
 
-	Map<String, DataField> augmentFields(final RenderContext renderContext, final Channel channel) throws FrameworkException;
+	Map<String, DataField> augmentFields(final RenderContext renderContext, final Channel channel, final boolean loadOptions) throws FrameworkException;
 	Map<String, DataAdapterField> getFields();
 	String getDataKey();
 

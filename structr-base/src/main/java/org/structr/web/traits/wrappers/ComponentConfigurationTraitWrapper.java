@@ -76,32 +76,7 @@ public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper
 
 		if (dataSource == null) {
 
-			final String dataSourceName = getDataSourceName();
-			if (dataSourceName != null) {
-
-				if (dataSourceName.contains(":")) {
-
-					final String[] parts = dataSourceName.split(":");
-					final String type = parts[0];
-					final String name = parts[1];
-
-					switch (type) {
-
-						case "node":
-							final NodeInterface node = StructrApp.getInstance(getSecurityContext()).nodeQuery(StructrTraits.DATA_SOURCE).name(name).getFirst();
-							if (node != null) {
-
-								dataSource = node.as(DataSource.class);
-							}
-							break;
-
-						case "channel":
-							dataSource = new ChannelDataSource(this, name);
-
-					}
-				}
-			}
-
+			dataSource = Channel.forName(getSecurityContext(), this, getDataSourceName());
 			if (dataSource != null) {
 
 				// step 2: cache data source
@@ -189,32 +164,41 @@ public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper
 	@Override
 	public ChannelInput getChannelInput(final RenderContext renderContext, final DataAdapter dataAdapter) throws FrameworkException {
 
-		final Channel channel      = getDataSource();
-		final String sortKey       = channel.getSortKey();
-		final String filterKey     = channel.getFilterKey();
-		final String paginationKey = channel.getPaginationKey();
-		final String[] sortStrings = renderContext.getRequestParameterValues(sortKey);
-		final String filterString  = renderContext.getRequestParameter(filterKey);
-		final String pageString    = renderContext.getRequestParameter(paginationKey);
+		final Channel channel = getDataSource();
+		if (channel != null) {
 
-		int pageSize = getPageSize();
-		int page     = 1;
+			final String sortKey = channel.getSortKey();
+			final String filterKey = channel.getFilterKey();
+			final String paginationKey = channel.getPaginationKey();
+			final String[] sortStrings = renderContext.getRequestParameterValues(sortKey);
+			final String filterString = renderContext.getRequestParameter(filterKey);
+			final String pageString = renderContext.getRequestParameter(paginationKey);
 
-		if (pageString != null) {
+			int pageSize = getPageSize();
+			int page = 1;
 
-			page = Integer.valueOf(pageString);
-		}
+			if (pageString != null) {
 
-		final ChannelInput input = new ChannelInput(getTransform(), filterString, sortStrings, pageSize, page);
-
-		for (final DataField field : dataAdapter.augmentFields(renderContext, channel).values()) {
-
-			if (field.isSearchable()) {
-				input.searchableFields().add(field);
+				page = Integer.valueOf(pageString);
 			}
+
+			final ChannelInput input = new ChannelInput(getTransform(), filterString, sortStrings, pageSize, page);
+
+			if (dataAdapter != null) {
+
+				for (final DataField field : dataAdapter.augmentFields(renderContext, channel, false).values()) {
+
+					if (field.isSearchable()) {
+						input.searchableFields().add(field);
+					}
+				}
+			}
+
+			return input;
 		}
 
-		return input;
+		return null;
+
 	}
 
 	@Override
