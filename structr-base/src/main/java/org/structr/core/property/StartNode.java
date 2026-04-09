@@ -330,12 +330,12 @@ public class StartNode extends Property<NodeInterface> implements RelationProper
 
 	@Override
 	public String renderTemplate() {
-		return "related-name";
+		return null;
 	}
 
 	@Override
 	public String editTemplate() {
-		return "select";
+		return null;
 	}
 
 	@Override
