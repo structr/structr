@@ -88,5 +88,5 @@
 }
 
 #mail-templates-list-container {
-	:qoverflow: auto;
+	overflow: auto;
 }
