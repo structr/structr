@@ -86,3 +86,7 @@
 #mail-templates-pager {
 	display: inline-block;
 }
+
+#mail-templates-list-container {
+	:qoverflow: auto;
+}
