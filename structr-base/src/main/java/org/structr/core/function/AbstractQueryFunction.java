@@ -246,6 +246,8 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 
 				if (keyName.startsWith("$")) {
 
+					logger.warn("Using deprecated query syntax '{}'. This notation is less expressive than predicate notation and will be removed in an upcoming version. Please migrate to predicate notation.", keyName);
+
 					final String operator = keyName.substring(1).toLowerCase();
 					switch (operator) {
 

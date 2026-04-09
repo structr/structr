@@ -237,43 +237,6 @@ public class FindFunction extends AbstractQueryFunction {
 
 			Example.javaScript("""
 			${{
-				let projects = $.find(
-					'Project',
-					{
-						$and: {
-							'name': 'structr',
-							'age': $.predicate.range(30, 50)
-						}
-					},
-					$.predicate.sort('name', true),
-					$.predicate.page(1, 10)
-				);
-
-				return users;
-			}}
-			""", "Return the first 10 projects (sorted descending by name) where `name` equals \"structr\" and `age` is between 30 and 50 (inclusive)"),
-
-			Example.javaScript("""
-			${{
-				// Showcasing the *limitation* of the MAP SYNTAX: OR on the same property is not possible.
-				let users = $.find(
-					'User',
-					{
-						$or: {
-							'name': 'jeff',
-							'name': 'joe'
-						}
-					}
-				);
-
-				// Note: this returns the WRONG result!
-				return users;
-			}}
-			""", "Only the user \"joe\" will be returned because the map key `name` is used twice (which overrides the first entry)"),
-
-			Example.javaScript("""
-			${{
-				// Showcasing the *advantage* of the PREDICATE SYNTAX: OR on the same property is possible.
 				let users = $.find(
 					'User',
 					$.predicate.or(
@@ -313,7 +276,7 @@ public class FindFunction extends AbstractQueryFunction {
 					$.predicate.equal('isAdmin', true),
 					$.predicate.or(nameConditions)
 				);
-				
+
 				// This showcases how to create the complete predicate before the query
 				let users = $.find('User', rootPredicate);
 
