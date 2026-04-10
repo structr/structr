@@ -467,4 +467,65 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 				.when()
 				.delete("/" + testTypeName + "/" + uuid);
 	}
+
+	@Test
+	public void test008EnsureResponseKeywordDoesNotBreakRESTRequest() {
+
+		final String expected = "yes, response keyword is not available via REST (and therefor does not break REST)";
+
+		try (final Tx tx = app.tx()) {
+
+			// create global schema which does not have any visibility flags
+			app.create(StructrTraits.SCHEMA_METHOD,
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "myTestMethod01"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), """
+				{
+					let res = $.response;
+					$.assert(res === null, 422, 'response keyword should not be available via REST, only in a render context (in a page)');
+					return '%s';
+				}
+				""".formatted(expected))
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test that resource access grant is required
+		RestAssured
+				.given()
+				.contentType("application/json; charset=UTF-8")
+				.expect()
+				.statusCode(401)
+				.when()
+				.post("/myTestMethod01");
+
+
+		// Add Grant and allow POST for public users
+		try (final Tx tx = app.tx()) {
+
+			app.create(StructrTraits.RESOURCE_ACCESS,
+					new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY), "myTestMethod01"),
+					new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key(ResourceAccessTraitDefinition.FLAGS_PROPERTY), 64L),
+					new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test that the call succeeds with the grant
+		RestAssured
+				.given()
+				.contentType("application/json; charset=UTF-8")
+				.expect()
+				.statusCode(200)
+				.body("result", equalTo(expected))
+				.when()
+				.post("/myTestMethod01");
+	}
 }
