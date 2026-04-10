@@ -153,6 +153,12 @@ document.addEventListener("DOMContentLoaded", () => {
 			new RefactoringHelper(dialogText).show();
 		}
 
+		// ctrl-alt-a
+		if ((code === 'KeyA' || keyCode === 65) && event.altKey && event.ctrlKey) {
+			event.preventDefault();
+			_Icons.showAllAvailableSymbols();
+		}
+
 	}, { capture: true });
 
 	window.addEventListener('resize', Structr.resize);

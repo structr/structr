@@ -416,7 +416,7 @@ public class WidgetsTest extends DeploymentTestBase {
 
 			// test1: check list component attributes and content with a single page
 			{
-				final List<Node> parsedOutput = fetchAndParseHTML("test01", "List", Map.of());
+				final List<Node> parsedOutput = fetchAndParseHTML("test01", "List", Map.of("project.sort", "name<"));
 
 				// check HTML of component shell
 				final Element componentElement = (Element) parsedOutput.getFirst();
@@ -431,11 +431,13 @@ public class WidgetsTest extends DeploymentTestBase {
 				assertAttributes(listElement, Map.of("role", "list"));
 
 				// check HTML of li elements
-				final List<String> expectedItemsAscending = List.of("Project #01", "Project #02", "Project #03", "Project #04", "Project #05", "Project #06", "Project #07", "Project #08", "Project #09", "No items");
+				final List<String> expectedItems = List.of("Project #01", "Project #02", "Project #03", "Project #04", "Project #05", "Project #06", "Project #07", "Project #08", "Project #09", "No items");
 				int index = 0;
 
+				assertEquals("List has incorrect unexpected number of entries", expectedItems.size(), listElement.children().size());
+
 				for (final Element li : listElement.children()) {
-					assertEquals("List item text has wrong value", expectedItemsAscending.get(index++), li.text());
+					assertEquals("List item text has wrong value", expectedItems.get(index++), li.text());
 				}
 
 				// check HTML of pagination buttons
@@ -452,11 +454,13 @@ public class WidgetsTest extends DeploymentTestBase {
 				final Element listElement      = divElement.children().getFirst();
 
 				// check HTML of li elements
-				final List<String> expectedItemsAscending = List.of("Project #09", "Project #08", "Project #07", "Project #06", "Project #05", "Project #04", "Project #03", "Project #02", "Project #01", "No items");
+				final List<String> expectedItems = List.of("Project #09", "Project #08", "Project #07", "Project #06", "Project #05", "Project #04", "Project #03", "Project #02", "Project #01", "No items");
 				int index = 0;
 
+				assertEquals("List has incorrect unexpected number of entries", expectedItems.size(), listElement.children().size());
+
 				for (final Element li : listElement.children()) {
-					assertEquals("List item text has wrong value", expectedItemsAscending.get(index++), li.text());
+					assertEquals("List item text has wrong value", expectedItems.get(index++), li.text());
 				}
 
 				// check HTML of pagination buttons
@@ -473,11 +477,13 @@ public class WidgetsTest extends DeploymentTestBase {
 				final Element listElement      = divElement.children().getFirst();
 
 				// check HTML of li elements
-				final List<String> expectedItemsAscending = List.of("Project #01", "Project #02", "Project #03", "Project #04", "Project #05", "Project #06", "Project #07", "Project #08", "Project #09", "No items");
+				final List<String> expectedItems = List.of("Project #01", "Project #02", "Project #03", "Project #04", "Project #05", "Project #06", "Project #07", "Project #08", "Project #09", "No items");
 				int index = 0;
 
+				assertEquals("List has incorrect unexpected number of entries", expectedItems.size(), listElement.children().size());
+
 				for (final Element li : listElement.children()) {
-					assertEquals("List item text has wrong value", expectedItemsAscending.get(index++), li.text());
+					assertEquals("List item text has wrong value", expectedItems.get(index++), li.text());
 				}
 
 				// check HTML of pagination buttons
@@ -494,11 +500,13 @@ public class WidgetsTest extends DeploymentTestBase {
 				final Element listElement      = divElement.children().getFirst();
 
 				// check HTML of li elements
-				final List<String> expectedItemsAscending = List.of("Project #07", "No items");
+				final List<String> expectedItems = List.of("Project #07", "No items");
 				int index = 0;
 
+				assertEquals("List has incorrect unexpected number of entries", expectedItems.size(), listElement.children().size());
+
 				for (final Element li : listElement.children()) {
-					assertEquals("List item text has wrong value", expectedItemsAscending.get(index++), li.text());
+					assertEquals("List item text has wrong value", expectedItems.get(index++), li.text());
 				}
 
 				// check HTML of pagination buttons
@@ -520,11 +528,13 @@ public class WidgetsTest extends DeploymentTestBase {
 				final Element listElement      = divElement.children().getFirst();
 
 				// check HTML of li elements
-				final List<String> expectedItemsAscending = List.of("Project #01", "Project #02", "Project #03", "Project #04", "Project #05", "Project #06", "Project #07", "Project #08", "Project #09", "Project #10", "No items");
+				final List<String> expectedItems = List.of("Project #01", "Project #02", "Project #03", "Project #04", "Project #05", "Project #06", "Project #07", "Project #08", "Project #09", "Project #10", "No items");
 				int index = 0;
 
+				assertEquals("List has incorrect unexpected number of entries", expectedItems.size(), listElement.children().size());
+
 				for (final Element li : listElement.children()) {
-					assertEquals("List item text has wrong value", expectedItemsAscending.get(index++), li.text());
+					assertEquals("List item text has wrong value", expectedItems.get(index++), li.text());
 				}
 
 				// check HTML of pagination buttons
@@ -560,11 +570,13 @@ public class WidgetsTest extends DeploymentTestBase {
 				final Element listElement      = divElement.children().getFirst();
 
 				// check HTML of li elements
-				final List<String> expectedItemsAscending = List.of("Project #01", "Project #02", "Project #03", "Project #04", "Project #05", "Project #06", "Project #07", "Project #08", "Project #09", "No items");
+				final List<String> expectedItems = List.of("Project #01", "Project #02", "Project #03", "Project #04", "Project #05", "Project #06", "Project #07", "Project #08", "Project #09", "No items");
 				int index = 0;
 
+				assertEquals("List has incorrect unexpected number of entries", expectedItems.size(), listElement.children().size());
+
 				for (final Element li : listElement.children()) {
-					assertEquals("List item text has wrong value", expectedItemsAscending.get(index++), li.text());
+					assertEquals("List item text has wrong value", expectedItems.get(index++), li.text());
 				}
 
 				// check HTML of pagination buttons
@@ -712,11 +724,11 @@ public class WidgetsTest extends DeploymentTestBase {
 			final Element tableElement = divElement.children().get(1);
 			final Element trhead        = tableElement.children().getFirst().children().getFirst();
 
-			final List<String> expectedItemsAscending = List.of("Name", "Description", "Due Date", "Done");
+			final List<String> expectedItems = List.of("Name", "Description", "Due Date", "Done");
 			int index = 0;
 
 			for (final Element th : trhead.children()) {
-				assertEquals("Table header cell text has wrong value", expectedItemsAscending.get(index++), th.text());
+				assertEquals("Table header cell text has wrong value", expectedItems.get(index++), th.text());
 			}
 
 			final Element tbody = tableElement.children().get(1);

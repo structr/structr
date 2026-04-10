@@ -340,12 +340,12 @@ public class EndNode extends Property<NodeInterface> implements RelationProperty
 
 	@Override
 	public String renderTemplate() {
-		return "related-name";
+		return null;
 	}
 
 	@Override
 	public String editTemplate() {
-		return "select";
+		return null;
 	}
 
 	@Override

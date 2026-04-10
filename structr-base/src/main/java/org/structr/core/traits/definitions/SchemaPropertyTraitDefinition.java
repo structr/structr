@@ -41,6 +41,7 @@ import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.wrappers.SchemaPropertyTraitWrapper;
 import org.structr.schema.ReloadSchema;
+import org.structr.schema.SchemaHelper;
 
 import java.util.Map;
 import java.util.Set;
@@ -145,7 +146,7 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String>             staticSchemaNodeName    = new StringProperty(STATIC_SCHEMA_NODE_NAME_PROPERTY);
 		final Property<String>             declaringClass          = new StringProperty(DECLARING_CLASS_PROPERTY);
 		final Property<String>             defaultValue            = new StringProperty(DEFAULT_VALUE_PROPERTY);
-		final Property<String>             propertyType            = new StringProperty(PROPERTY_TYPE_PROPERTY).indexed();
+		final Property<String>             propertyType            = new EnumProperty(PROPERTY_TYPE_PROPERTY, SchemaHelper.Type.class).notNull().indexed();
 		final Property<String>             dbName                  = new StringProperty(DB_NAME_PROPERTY);
 		final Property<String>             fqcn                    = new StringProperty(FQCN_PROPERTY);
 		final Property<String>             format                  = new StringProperty(FORMAT_PROPERTY);

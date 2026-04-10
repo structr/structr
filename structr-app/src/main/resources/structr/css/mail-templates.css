@@ -28,6 +28,7 @@
 	vertical-align: top;
 	height: 100%;
 	padding-top: 1rem;
+	overflow: auto;
 }
 
 #mail-templates-table {
