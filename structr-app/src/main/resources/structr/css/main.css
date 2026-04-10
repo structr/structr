@@ -894,7 +894,7 @@ img.disabled {
 
 #tabs li:not(.active):hover,
 .data-tabs li:not(.active):hover,
-.files-tabs li:not(.active):hover,
+.files-tabs > ul > li:not(.active):hover,
 .code-tabs > ul > li:not(.active):hover,
 .favs-tabs li:not(.active):hover,
 .widgets-tabs > ul > li:not(.active):hover,
