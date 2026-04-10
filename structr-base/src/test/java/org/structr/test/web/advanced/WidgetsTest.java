@@ -710,7 +710,7 @@ public class WidgetsTest extends DeploymentTestBase {
 
 			final Page page = app.nodeQuery(StructrTraits.PAGE).name("test01").getFirst().as(Page.class);
 			final DOMNode tableComponent  = getDOMNode(page, "Table");
-			final List<Node> parsedOutput = fetchAndParseHTML("test01", "Table", Map.of());
+			final List<Node> parsedOutput = fetchAndParseHTML("test01", "Table", Map.of("project.sort", "name<"));
 
 			// check HTML of component shell
 			final Element componentElement = (Element) parsedOutput.getFirst();
@@ -760,20 +760,20 @@ public class WidgetsTest extends DeploymentTestBase {
 		// check deployment roundtrip
 		compare(calculateHash(), true);
 
-		try (final Tx tx = app.tx()) {
-
-			// create some projects
-			for (int i=1; i<10; i++) {
-				app.create("Project", "Project #0" + i);
-			}
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			fex.printStackTrace();
-			fail("Unexpected exception");
-		}
+//		try (final Tx tx = app.tx()) {
+//
+//			// create some projects
+//			for (int i=1; i<10; i++) {
+//				app.create("Project", "Project #0" + i);
+//			}
+//
+//			tx.success();
+//
+//		} catch (FrameworkException fex) {
+//
+//			fex.printStackTrace();
+//			fail("Unexpected exception");
+//		}
 	}
 
 	// ----- private methods -----
