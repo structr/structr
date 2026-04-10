@@ -3690,14 +3690,13 @@ let _Pages = {
 			let rowContainer = listContainer.querySelector(`[data-structr-page-path-id="${path.id}"]`);
 
 			rowContainer.querySelector(`[data-structr-attribute="priority"]`).addEventListener('change', async e => {
+
 				let response = await fetch(`${Structr.rootUrl}PagePath/${path.id}`, {
 					method: 'PUT',
-					body: JSON.stringify({
-						priority: e.target.value
-					})
+					body: JSON.stringify({ priority: e.target.value })
 				});
 
-				if(response.ok) {
+				if (response.ok) {
 					_Helpers.blinkGreen(e.target);
 				}
 			});
@@ -3707,12 +3706,16 @@ let _Pages = {
 
 			rowContainer.querySelector('.routing-remove-button')?.addEventListener('click', async e => {
 
-				let response = await fetch(`${Structr.rootUrl}PagePath/${path.id}`, { method: 'DELETE' });
+				let confirm = await _Dialogs.confirmation.showPromise(`Are you sure you want to delete this URL Route?`);
+				if (confirm === true) {
 
-				if (response.ok) {
-					listContainer.removeChild(rowContainer);
+					let response = await fetch(`${Structr.rootUrl}PagePath/${path.id}`, { method: 'DELETE' });
 
-					_Pages.routingDialog.toggleHoverDocumentation(listContainer);
+					if (response.ok) {
+						listContainer.removeChild(rowContainer);
+
+						_Pages.routingDialog.toggleHoverDocumentation(listContainer);
+					}
 				}
 			});
 
@@ -3847,7 +3850,7 @@ let _Pages = {
 			pagePathRow: config => `
 				<div class="mb-12 grid grid-cols-7 gap-8" data-structr-page-path-id="${config.id}">
 					<div class="col-span-3">
-						<label class="block" data-comment="Enter the URL path that should route to this page.">Path</label>
+						<label class="block mb-2" data-comment="Enter the URL path that should route to this page.">Path</label>
 						<div class="flex">
 							<div class="border border-gray-ddd border-r-0 flex items-center px-2 rounded-l cursor-move" data-is-sortable-handle>⠿</div>
 							<input class="w-16 box-border" data-structr-attribute="priority" type="hidden" value="${config.priority ?? ''}">
@@ -3857,12 +3860,12 @@ let _Pages = {
 					</div>
 
 					<div class="col-span-3">
-						<label class="block" data-comment="Parameters names are managed automatically based on variables in the path and can be further configured here.">Path parameters</label>
+						<label class="block mb-2" data-comment="Parameters names are managed automatically based on variables in the path and can be further configured here.">Path parameters</label>
 						<div data-structr-path-parameters-container></div>
 					</div>
 
 					<div class="col-span-1">
-						<label class="block mb-2">Actions</label>
+						<label class="block mb-2">&nbsp;</label>
 						<i class="block mt-2 routing-remove-button" data-structr-id="${config.id}">${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red']))}</i>
 					</div>
 				</div>
