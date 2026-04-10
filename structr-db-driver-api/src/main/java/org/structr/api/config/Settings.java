@@ -343,6 +343,7 @@ public class Settings {
 		"Servlets that are listed in this configuration key will be available in the HttpService. Changes to this setting require a restart of the HttpService in the 'Services' tab.");
 
 	public static final Setting<Boolean> ConfigServletEnabled = new BooleanSetting(servletsGroup,  "ConfigServlet", "configservlet.enabled",             true, "Enables the config servlet (available under <code>http(s)://&lt;your-server&gt;/structr/config</code>)");
+	public static final Setting<Boolean> ConfigServletSessionFixationProtection = new BooleanSetting(servletsGroup, "ConfigServlet", "configservlet.sessionfixation.protection", false, "Regenerates the HTTP session ID on successful login to the ConfigServlet to prevent session fixation attacks. Disabled by default because it can cause issues with certain reverse proxy or load balancer configurations.");
 
 	public static final Setting<String> RestServletPath       = new StringSetting(servletsGroup,            "hidden", "jsonrestservlet.path",                         "/structr/rest/*", "URL pattern for REST server. Do not change unless you know what you are doing.");
 	public static final Setting<String> RestServletClass      = new StringSetting(servletsGroup,            "hidden", "jsonrestservlet.class",                        "org.structr.rest.servlet.JsonRestServlet", "FQCN of servlet class to use in the REST server. Do not change unless you know what you are doing.");
