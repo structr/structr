@@ -1,0 +1,171 @@
+/**
+ * Copyright (C) 2010-2026 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/* ============================================
+ * Structr Widget Design Tokens
+ * ============================================ */
+
+/* --- Default theme --- */
+:root {
+    --sw-canvas: #f8fafc;                    /* slate-50 */
+
+    --sw-header-bg: #ffffff;
+    --sw-header-border: #e5e7eb;             /* gray-200 */
+
+    --sw-sidebar-bg: #ffffff;
+    --sw-sidebar-border: #e5e7eb;
+
+    --sw-nav-bg: transparent;
+    --sw-nav-hover: #fef3c7;                 /* amber-100 */
+    --sw-nav-active: #fde68a;                /* amber-200 */
+    --sw-nav-text: #000000;
+
+    --sw-surface-bg: #ffffff;
+    --sw-surface-border: #e5e7eb;            /* gray-200 */
+    --sw-surface-divider: #f3f4f6;           /* gray-100 */
+    --sw-surface-hover: #fef3c7;             /* amber-100 */
+
+    --sw-text-page-heading: #334155;         /* slate-700 */
+    --sw-text-heading: #020617;              /* slate-950 */
+    --sw-text-paragraph: #475569;            /* slate-600 */
+    --sw-text-muted: #cbd5e1;               /* slate-300 */
+
+    --sw-input-bg: #f8fafc40;               /* slate-50 at 25% opacity */
+    --sw-input-border: #e5e7eb;              /* gray-200 */
+    --sw-input-focus: #fbbf24;               /* amber-400 */
+    --sw-input-text: #475569;                /* slate-600 */
+
+    --sw-btn-primary-bg: #f59e0b;            /* amber-500 */
+    --sw-btn-primary-hover: #d97706;         /* amber-600 */
+    --sw-btn-primary-text: #ffffff;
+
+    --sw-btn-secondary-bg: #e5e7eb;          /* gray-200 */
+    --sw-btn-secondary-hover: #d1d5db;       /* gray-300 */
+    --sw-btn-secondary-text: #000000;
+
+    --sw-btn-success-bg: #10b981;            /* emerald-500 */
+    --sw-btn-success-hover: #059669;         /* emerald-600 */
+    --sw-btn-success-text: #ffffff;
+
+    --sw-btn-warning-bg: #f97316;            /* orange-500 */
+    --sw-btn-warning-hover: #ea580c;         /* orange-600 */
+    --sw-btn-warning-text: #ffffff;
+
+    --sw-btn-danger-bg: #ef4444;             /* red-500 */
+    --sw-btn-danger-hover: #dc2626;          /* red-600 */
+    --sw-btn-danger-text: #ffffff;
+
+    --sw-color-primary-bg: #f59e0b;          /* amber-500 */
+    --sw-color-primary-text: #ffffff;
+}
+
+/* --- Dark theme --- */
+[data-sw-theme="dark"] {
+    --sw-canvas: #0f172a;                    /* slate-900 */
+
+    --sw-header-bg: #0f172a;
+    --sw-header-border: #334155;             /* slate-700 */
+
+    --sw-sidebar-bg: #0f172a;
+    --sw-sidebar-border: #334155;
+
+    --sw-nav-bg: transparent;
+    --sw-nav-hover: #374151;                 /* gray-700 */
+    --sw-nav-active: #6b7280;                /* gray-500 */
+    --sw-nav-text: #ffffff;
+
+    --sw-surface-bg: #1e293b;               /* slate-800 */
+    --sw-surface-border: #475569;            /* slate-600 */
+    --sw-surface-divider: #334155;           /* slate-700 */
+    --sw-surface-hover: #374151;             /* gray-700 */
+
+    --sw-text-page-heading: #e2e8f0;         /* slate-200 */
+    --sw-text-heading: #f1f5f9;              /* slate-100 */
+    --sw-text-paragraph: #cbd5e1;            /* slate-300 */
+    --sw-text-muted: #475569;                /* slate-600 */
+
+    --sw-input-bg: #0f172a;                  /* slate-900 */
+    --sw-input-border: #334155;              /* slate-700 */
+    --sw-input-focus: #475569;               /* slate-600 */
+    --sw-input-text: #cbd5e1;                /* slate-300 */
+
+    --sw-btn-primary-bg: #b45309;            /* amber-700 */
+    --sw-btn-primary-hover: #92400e;         /* amber-800 */
+    --sw-btn-primary-text: #ffffff;
+
+    --sw-btn-secondary-bg: #374151;          /* gray-700 */
+    --sw-btn-secondary-hover: #1f2937;       /* gray-800 */
+    --sw-btn-secondary-text: #ffffff;
+
+    --sw-btn-success-bg: #047857;            /* emerald-700 */
+    --sw-btn-success-hover: #065f46;         /* emerald-800 */
+    --sw-btn-success-text: #ffffff;
+
+    --sw-btn-warning-bg: #c2410c;            /* orange-700 (fixed: was emerald-700 in original) */
+    --sw-btn-warning-hover: #9a3412;         /* orange-800 (fixed: was emerald-800 in original) */
+    --sw-btn-warning-text: #ffffff;
+
+    --sw-btn-danger-bg: #b91c1c;             /* red-700 */
+    --sw-btn-danger-hover: #991b1b;          /* red-800 */
+    --sw-btn-danger-text: #ffffff;
+
+    --sw-color-primary-bg: #b45309;          /* amber-700 */
+    --sw-color-primary-text: #ffffff;
+}
+
+/* --- Register as Tailwind v4 colors --- */
+@theme {
+    --color-sw-canvas:              var(--sw-canvas);
+    --color-sw-header-bg:           var(--sw-header-bg);
+    --color-sw-header-border:       var(--sw-header-border);
+    --color-sw-sidebar-bg:          var(--sw-sidebar-bg);
+    --color-sw-sidebar-border:      var(--sw-sidebar-border);
+    --color-sw-nav-hover:           var(--sw-nav-hover);
+    --color-sw-nav-active:          var(--sw-nav-active);
+    --color-sw-nav-text:            var(--sw-nav-text);
+    --color-sw-surface-bg:          var(--sw-surface-bg);
+    --color-sw-surface-border:      var(--sw-surface-border);
+    --color-sw-surface-divider:     var(--sw-surface-divider);
+    --color-sw-surface-hover:       var(--sw-surface-hover);
+    --color-sw-text-page-heading:   var(--sw-text-page-heading);
+    --color-sw-text-heading:        var(--sw-text-heading);
+    --color-sw-text-paragraph:      var(--sw-text-paragraph);
+    --color-sw-text-muted:          var(--sw-text-muted);
+    --color-sw-input-bg:            var(--sw-input-bg);
+    --color-sw-input-border:        var(--sw-input-border);
+    --color-sw-input-focus:         var(--sw-input-focus);
+    --color-sw-input-text:          var(--sw-input-text);
+    --color-sw-btn-primary-bg:      var(--sw-btn-primary-bg);
+    --color-sw-btn-primary-hover:   var(--sw-btn-primary-hover);
+    --color-sw-btn-primary-text:    var(--sw-btn-primary-text);
+    --color-sw-btn-secondary-bg:    var(--sw-btn-secondary-bg);
+    --color-sw-btn-secondary-hover: var(--sw-btn-secondary-hover);
+    --color-sw-btn-secondary-text:  var(--sw-btn-secondary-text);
+    --color-sw-btn-success-bg:      var(--sw-btn-success-bg);
+    --color-sw-btn-success-hover:   var(--sw-btn-success-hover);
+    --color-sw-btn-success-text:    var(--sw-btn-success-text);
+    --color-sw-btn-warning-bg:      var(--sw-btn-warning-bg);
+    --color-sw-btn-warning-hover:   var(--sw-btn-warning-hover);
+    --color-sw-btn-warning-text:    var(--sw-btn-warning-text);
+    --color-sw-btn-danger-bg:       var(--sw-btn-danger-bg);
+    --color-sw-btn-danger-hover:    var(--sw-btn-danger-hover);
+    --color-sw-btn-danger-text:     var(--sw-btn-danger-text);
+    --color-sw-color-primary-bg:    var(--sw-color-primary-bg);
+    --color-sw-color-primary-text:  var(--sw-color-primary-text);
+}
