@@ -3791,60 +3791,60 @@ let _Pages = {
 					<div id="routing-entries">
 					</div>
 					
-				<div class="inline-info">
-					<div class="inline-info-icon">
-						${_Icons.getSvgIcon(_Icons.iconInfo, 24, 24)}
+					<div class="inline-info">
+						<div class="inline-info-icon">
+							${_Icons.getSvgIcon(_Icons.iconInfo, 24, 24)}
+						</div>
+						<div class="inline-info-text" style="width: 36rem;">
+
+							<h3 class="mt-0">URL Routes</h3>
+
+							<p>Define the URL routes through which this page can be accessed.</p>
+
+							<p>Routes are evaluated from top to bottom. The first matching route is used. You can change the evaluation order via drag and drop.</p>
+
+							<p><em>Note:</em> Using a UUID to automatically resolve to a <code>current</code> object, which is possible with default page access, is not possible with URL Routes. A separate path parameter for a <code>current</code> object must be explicitly introduced in the route.</p>
+
+							<h3>Path Parameters</h3>
+
+							<p>Path parameters can be defined using <code>{param}</code> syntax. These parameters are automatically extracted and validated. You can further configure them (e.g. type, default values).</p>
+
+							<h3>Matching Behavior</h3>
+
+							<ul>
+								<li>Static parts of a route must match exactly.</li>
+								<li>Parameters are matched *greedily* within a path segment.</li>
+							</ul>
+
+							<p>This means multiple parameters in the same segment can lead to ambiguous matches:</p>
+
+							<ul>
+								<li><code>/{var1}{var2}/</code> → <code>var1</code> captures the entire segment, <code>var2</code> remains empty</li>
+								<li><code>/{var1}_{var2}/</code> → works because <code>_</code> enforces a boundary</li>
+							</ul>
+
+							<p>Use a separator character that cannot appear in either parameter.</p>
+
+							<p><em>Recommendation:</em> Prefer a single parameter per path segment to avoid ambiguity.</p>
+
+							<h3>Catch-All Routes</h3>
+
+							<p>Routes like <code>/{variable}/</code> match almost any request, causing nearly all traffic - including requests for other pages - to be routed to this page.</p>
+
+							<p>To prevent unintended matches, include at least one static (or clearly structured) segment at the beginning of the path, e.g.:</p>
+
+							<ul>
+								<li><code>/users/{id}/</code></li>
+								<li><code>/api/{resource}/</code></li>
+							</ul>
+
+							<p>However, catch-all routes can be useful in specific scenarios, such as debugging another clients' behaviour.</p>
+
+							<p>If used, place them at the end of the route list and use them deliberately (e.g. for diagnostics or controlled fallback handling).</p>
+
+							<p>But be aware that this will make other pages unreachable.</p>
+						</div>
 					</div>
-					<div class="inline-info-text" style="width: 36rem;">
-
-						<h3 class="mt-0">URL Routes</h3>
-
-						<p>Define the URL routes through which this page can be accessed.</p>
-
-						<p>Routes are evaluated from top to bottom. The first matching route is used. You can change the evaluation order via drag and drop.</p>
-
-						<p><em>Note:</em> Using a UUID to automatically resolve to a <code>current</code> object, which is possible with default page access, is not possible with URL Routes. A separate path parameter for a <code>current</code> object must be explicitly introduced in the route.</p>
-
-						<h3>Path Parameters</h3>
-
-						<p>Path parameters can be defined using <code>{param}</code> syntax. These parameters are automatically extracted and validated. You can further configure them (e.g. type, default values).</p>
-
-						<h3>Matching Behavior</h3>
-
-						<ul>
-							<li>Static parts of a route must match exactly.</li>
-							<li>Parameters are matched *greedily* within a path segment.</li>
-						</ul>
-
-						<p>This means multiple parameters in the same segment can lead to ambiguous matches:</p>
-
-						<ul>
-							<li><code>/{var1}{var2}/</code> → <code>var1</code> captures the entire segment, <code>var2</code> remains empty</li>
-							<li><code>/{var1}_{var2}/</code> → works because <code>_</code> enforces a boundary</li>
-						</ul>
-
-						<p>Use a separator character that cannot appear in either parameter.</p>
-
-						<p><em>Recommendation:</em> Prefer a single parameter per path segment to avoid ambiguity.</p>
-
-						<h3>Catch-All Routes</h3>
-
-						<p>Routes like <code>/{variable}/</code> will match almost any request.</p>
-
-						<p>In most cases, this is undesirable because it can lead to unintended matches and make route behavior harder to reason about.</p>
-
-						<p>To prevent unintended matches, include at least one static (or clearly structured) segment at the beginning of the path, e.g.:</p>
-
-						<ul>
-							<li><code>/users/{id}/</code></li>
-							<li><code>/api/{resource}/</code></li>
-						</ul>
-
-						<p>However, catch-all routes can be useful in specific scenarios, such as debugging another clients' behaviour.</p>
-
-						<p>If used, place them at the end of the route list and use them deliberately (e.g. for diagnostics or controlled fallback handling).</p>
-					</div>
-				</div>
 				</div>
 			`,
 			pagePathRow: config => `
