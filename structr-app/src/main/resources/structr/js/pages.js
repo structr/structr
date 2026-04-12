@@ -3689,17 +3689,7 @@ let _Pages = {
 
 			let rowContainer = listContainer.querySelector(`[data-structr-page-path-id="${path.id}"]`);
 
-			rowContainer.querySelector(`[data-structr-attribute="priority"]`).addEventListener('change', async e => {
-
-				let response = await fetch(`${Structr.rootUrl}PagePath/${path.id}`, {
-					method: 'PUT',
-					body: JSON.stringify({ priority: e.target.value })
-				});
-
-				if (response.ok) {
-					_Helpers.blinkGreen(e.target);
-				}
-			});
+			_Pages.routingDialog.updateMessages(rowContainer, path.messages ?? []);
 
 			let debouncedUpdateFunction = _Helpers.debounce(event => _Pages.routingDialog.updateParameters(event, path, rowContainer), 500);
 			rowContainer.querySelector(`[data-structr-attribute="name"]`).addEventListener('input', debouncedUpdateFunction);
@@ -3736,12 +3726,16 @@ let _Pages = {
 
 				await _Pages.routingDialog.initPagePathParameters(row, parameters);
 
-				let messagesContainer = row.querySelector('[data-structr-path-messages-container]');
-				_Helpers.fastRemoveAllChildren(messagesContainer);
-				messagesContainer.insertAdjacentHTML('beforeend', _Pages.routingDialog.templates.pagePathParametersMessages({ messages }));
+				_Pages.routingDialog.updateMessages(row, messages);
 
 				_Helpers.blinkGreen(event.target);
 			}
+		},
+		updateMessages: (row, messages) => {
+
+			let messagesContainer = row.querySelector('[data-structr-path-messages-container]');
+			_Helpers.fastRemoveAllChildren(messagesContainer);
+			messagesContainer.insertAdjacentHTML('beforeend', _Pages.routingDialog.templates.pagePathParametersMessages({ messages }));
 		},
 		getSortedParametersAsHTML: (params) => {
 			return params.toSorted((a, b) => a.position - b.position).map(param => _Pages.routingDialog.templates.pagePathParameterRow(param)).join('\n');
@@ -3801,7 +3795,7 @@ let _Pages = {
 					<div class="inline-info-icon">
 						${_Icons.getSvgIcon(_Icons.iconInfo, 24, 24)}
 					</div>
-					<div class="inline-info-text" style="width: 30rem;">
+					<div class="inline-info-text" style="width: 36rem;">
 
 						<h3 class="mt-0">URL Routes</h3>
 
@@ -3833,9 +3827,11 @@ let _Pages = {
 
 						<p><em>Recommendation:</em> Prefer a single parameter per path segment to avoid ambiguity.</p>
 
-						<h3>Avoid Catch-All Routes</h3>
+						<h3>Catch-All Routes</h3>
 
 						<p>Routes like <code>/{variable}/</code> will match almost any request.</p>
+
+						<p>In most cases, this is undesirable because it can lead to unintended matches and make route behavior harder to reason about.</p>
 
 						<p>To prevent unintended matches, include at least one static (or clearly structured) segment at the beginning of the path, e.g.:</p>
 
@@ -3843,6 +3839,10 @@ let _Pages = {
 							<li><code>/users/{id}/</code></li>
 							<li><code>/api/{resource}/</code></li>
 						</ul>
+
+						<p>However, catch-all routes can be useful in specific scenarios, such as debugging another clients' behaviour.</p>
+
+						<p>If used, place them at the end of the route list and use them deliberately (e.g. for diagnostics or controlled fallback handling).</p>
 					</div>
 				</div>
 				</div>

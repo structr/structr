@@ -112,18 +112,21 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 
 				} else {
 
-					messages.add("Parameter '" + baseMatch + "' does not match regex: " + PATH_PARAMETER_PATTERN + ". Will be interpreted literally.");
+					messages.add("'" + baseMatch + "' does not match the required path parameter pattern (" + PATH_PARAMETER_PATTERN + ") - it will be treated as a literal.");
 				}
 			}
 
-			// check if first element is at the start of the path
+			// check for catch-all
 			if (!names.isEmpty()) {
 
-				final String catchAllParameter = "{" + names.get(0) + "}/";
+				final String firstParameter = "{" + names.getFirst() + "}";
 
-				if (path.startsWith(catchAllParameter) || path.startsWith("/" + catchAllParameter)) {
+				if (
+						path.equals(firstParameter) || path.equals("/" + firstParameter) ||
+						path.startsWith(firstParameter + "/") || path.startsWith("/" + firstParameter + "/")
+				) {
 
-					messages.addFirst("This path would result in a catch-all route because the first parameter spans the complete segment. Unless this is intended, the path should be changed.");
+					messages.addFirst("This becomes a catch-all route since the first parameter spans the full segment. Adjust the path if unintended.");
 				}
 			}
 
@@ -164,6 +167,8 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 		final List<PagePathParameter> sortedParameters = new LinkedList<>(getMappedParameters().values());
 
 		Collections.sort(sortedParameters, new DefaultSortOrder(traits.key(PagePathParameterTraitDefinition.POSITION_PROPERTY), false));
+
+		this.setProperty(this.getTraits().key(PagePathTraitDefinition.MESSAGES_PROPERTY), messages.toArray(new String[0]));
 
 		return Map.of(
 				"parameters", sortedParameters,
