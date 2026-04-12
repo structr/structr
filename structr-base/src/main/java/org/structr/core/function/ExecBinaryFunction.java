@@ -73,8 +73,21 @@ public class ExecBinaryFunction extends ExecFunction {
 					final File f = node.as(File.class);
 					out = f.getOutputStream();
 
-				} else {
+				} else if (sources[0] instanceof OutputStream) {
+
 					out = (OutputStream)sources[0];
+
+				} else {
+
+					if (ctx.supportsExceptionHandling()) {
+
+						throw new FrameworkException(422, "%s: Unable to execute: 'output' parameter is not a file or an OutputStream: %s".formatted(getName(), sources[0]));
+
+					} else {
+
+						logger.warn("{}(): Unable to execute: 'output' parameter is not a file or an OutputStream: {}.", getName(), sources[0]);
+						return null;
+					}
 				}
 
 				final ScriptingProcess scriptingProcess = new ScriptingProcess(ctx.getSecurityContext(), sanityCheckedAbsolutePathOrNull, out);
@@ -178,10 +191,11 @@ public class ExecBinaryFunction extends ExecFunction {
 		return List.of(
 				"Scripts are executed using `/bin/sh` - thus this function is only supported in environments where this exists.",
 				"All script files are looked up inside the `scripts` folder in the main folder of the installation (not in the files area).",
-				"Symlinks are not allowed, director traversal is not allowed.",
+				"Symlinks are are allowed, if `scripts.path.allowsymboliclinks` is enabled.",
+				"Directory traversal are allowed, if `scripts.path.allowpathtraversal` is enabled.",
 				"The key of the script must be all-lowercase.",
 				"The script must be executable (`chmod +x`)",
-				"The first parameter can be a file or `response` which streams the output to the HTTP response, usually used in a page context.",
+				"The first parameter can be a file or `response` which streams the output to the HTTP response and is only possible in a page context.",
 				"A page using this should have the correct content-type and have the `pageCreatesRawData` flag enabled",
 				"Caution: Supplying unvalidated user input to this command may introduce security vulnerabilities.",
 				"All parameters are automatically put in double-quotes",

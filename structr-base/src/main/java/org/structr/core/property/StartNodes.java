@@ -359,12 +359,12 @@ public class StartNodes extends Property<Iterable<NodeInterface>> implements Rel
 
 	@Override
 	public String renderTemplate() {
-		return "related-name";
+		return null;
 	}
 
 	@Override
 	public String editTemplate() {
-		return "select";
+		return null;
 	}
 
 	@Override

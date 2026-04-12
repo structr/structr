@@ -4210,6 +4210,7 @@ let _Entities = {
                 <div class="${config.css || ''}">
                     <label class="font-bold block mb-1 px-1">${config.label}</label>
                     <select class="select2 rounded-none rounded-l" data-field-name="${config.fieldName}" data-destination="${config.destination}" name="${config.name}">
+                    	<option value="">None</option>
                     	${config.options.map(o => `<option value="${o.value}" ${config.value === o.value ? 'selected' : ''}>${o.name}</option>`).join('\n')}
                     </select>
                 </div>

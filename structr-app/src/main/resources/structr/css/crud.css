@@ -36,7 +36,6 @@
 
 #crud-types-list, #crud-recent-types-list {
 	padding: 1px 0 0 0;
-	margin: 0;
 	overflow-y: scroll;
 }
 

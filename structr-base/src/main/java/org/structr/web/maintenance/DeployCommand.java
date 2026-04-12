@@ -2493,28 +2493,23 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void importModuleData(final Path source) throws FrameworkException {
 
-		for (StructrModule module : StructrApp.getConfiguration().getModules().values()) {
+		final Path modulesFolder = source.resolve(MODULES_FOLDER_PATH);
 
-			if (module.hasDeploymentData()) {
+		if (Files.exists(modulesFolder)) {
 
-				final Path moduleFolder = source.resolve("modules/" + module.getName() + "/");
+			for (final StructrModule module : StructrApp.getConfiguration().getModules().values()) {
 
-				if (!Files.exists(moduleFolder)) {
-					try {
+				if (module.hasDeploymentData()) {
 
-						Files.createDirectory(moduleFolder);
-					} catch (IOException ioex) {
+					final Path folderForModule = modulesFolder.resolve(module.getName());
 
-						logger.warn("Could not create missing module folder during import {}", moduleFolder, ioex);
+					if (Files.exists(folderForModule)) {
+
+						logger.info("Importing deployment data for module {}", module.getName());
+						publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing deployment data for module " + module.getName());
+
+						module.importDeploymentData(folderForModule, getGson());
 					}
-				}
-
-				if (Files.exists(moduleFolder)) {
-
-					logger.info("Importing deployment data for module {}", module.getName());
-					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing deployment data for module " + module.getName());
-
-					module.importDeploymentData(moduleFolder, getGson());
 				}
 			}
 		}

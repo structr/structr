@@ -382,12 +382,12 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 
 	@Override
 	public String renderTemplate() {
-		return "related-name";
+		return null;
 	}
 
 	@Override
 	public String editTemplate() {
-		return "select";
+		return null;
 	}
 
 	@Override
