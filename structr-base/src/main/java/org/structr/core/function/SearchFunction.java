@@ -56,11 +56,6 @@ public class SearchFunction extends AbstractQueryFunction {
 
 		try {
 
-			if (sources == null) {
-
-				throw new IllegalArgumentException();
-			}
-
 			final QueryGroup query = StructrApp.getInstance(securityContext).nodeQuery().and();
 
 			applyQueryParameters(securityContext, query);
@@ -73,7 +68,7 @@ public class SearchFunction extends AbstractQueryFunction {
 
 				if (StructrTraits.GRAPH_OBJECT.equals(typeString)) {
 
-					throw new FrameworkException(422, "Type GraphObject not supported in search(), please use type NodeInterface to search for nodes of all types.");
+					return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, ERROR_MESSAGE_TYPE_GRAPHOBJECT_USED.formatted(getName(), getName()));
 				}
 
 				if (Traits.exists(typeString)) {
@@ -84,16 +79,13 @@ public class SearchFunction extends AbstractQueryFunction {
 
 				} else {
 
-					logger.warn("Error in search(): type '{}' not found.", typeString);
-					return "Error in search(): type " + typeString + " not found.";
+					return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, ERROR_MESSAGE_TYPE_NOT_FOUND.formatted(getName(), typeString));
 				}
 			}
 
-			// exit gracefully instead of crashing..
 			if (type == null) {
 
-				logger.warn("Error in search(): no type specified. Parameters: {}", getParametersAsString(sources));
-				return "Error in search(): no type specified.";
+				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, ERROR_MESSAGE_NO_TYPE_SPECIFIED.formatted(getName(), getParametersAsString(sources)));
 			}
 
 			// apply sorting and pagination by surrounding sort() and slice() expressions
