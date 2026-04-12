@@ -420,6 +420,24 @@ public class RenderContext extends ActionContext {
 		final Object value = super.evaluate(entity, key, data, defaultValue, depth, contextObject, row, column);
 		if (value == null) {
 
+			final HttpServletResponse response = getSecurityContext().getResponse();
+			if (response != null) {
+
+				if (key.equals("response")) {
+
+					try {
+
+						// return output stream of HTTP response for streaming (execBinary)
+						return response.getOutputStream();
+
+					} catch (IOException ioex) {
+
+						LoggerFactory.getLogger(RenderContext.class).warn("", ioex);
+						return null;
+					}
+				}
+			}
+
 			if (data != null) {
 
 				switch (key) {

@@ -434,18 +434,6 @@ public class ActionContext {
 
 							switch (key) {
 
-								case "response": {
-
-									try {
-										// return output stream of HTTP response for streaming
-										return response.getOutputStream();
-
-									} catch (IOException ioex) {
-										logger.warn("", ioex);
-									}
-									return null;
-								}
-
 								case "statusCode":
 								case "status_code":
 									return response.getStatus();

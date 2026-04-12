@@ -864,16 +864,33 @@ public class ConfigServlet extends AbstractServletBase {
 		final HttpSession session = request.getSession();
 		if (session != null) {
 
-			// Regenerate session ID to prevent session fixation attacks
-			final String newSessionId = request.changeSessionId();
+			if (Settings.ConfigServletSessionFixationProtection.getValue()) {
 
-			if (newSessionId != null) {
+				// Regenerate session ID to prevent session fixation attacks
+				final String newSessionId = request.changeSessionId();
 
-				sessions.add(newSessionId);
+				if (newSessionId != null) {
+
+					sessions.add(newSessionId);
+
+				} else {
+
+					logger.warn("Cannot authenticate HTTP session: changeSessionId() returned null.");
+				}
 
 			} else {
 
-				logger.warn("Cannot authenticate HTTP session: changeSessionId() returned null.");
+				// Use existing session ID without regeneration
+				final String sessionId = session.getId();
+
+				if (sessionId != null) {
+
+					sessions.add(sessionId);
+
+				} else {
+
+					logger.warn("Cannot authenticate HTTP session without session ID, ignoring.");
+				}
 			}
 
 		} else {
