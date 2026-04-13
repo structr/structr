@@ -20,7 +20,6 @@ package org.structr.core.function;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
 import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
 import org.structr.core.traits.StructrTraits;
@@ -35,9 +34,6 @@ import java.util.List;
 
 public class FindFunction extends AbstractQueryFunction {
 
-	public static final String ERROR_MESSAGE_FIND_NO_TYPE_SPECIFIED = "Error in find(): no type specified.";
-	public static final String ERROR_MESSAGE_FIND_TYPE_NOT_FOUND    = "Error in find(): type not found: ";
-
 	@Override
 	public String getNamespaceIdentifier() {
 		return "find";
@@ -50,15 +46,8 @@ public class FindFunction extends AbstractQueryFunction {
 
 		try {
 
-			if (sources == null) {
+			final QueryGroup query = StructrApp.getInstance(securityContext).nodeQuery().and();
 
-				throw new IllegalArgumentException();
-			}
-
-			final App app          = StructrApp.getInstance(securityContext);
-			final QueryGroup query = app.nodeQuery().and();
-
-			// the type to query for
 			Traits type = null;
 
 			if (sources.length >= 1 && sources[0] != null) {
@@ -67,7 +56,7 @@ public class FindFunction extends AbstractQueryFunction {
 
 				if (StructrTraits.GRAPH_OBJECT.equals(typeString)) {
 
-					throw new FrameworkException(422, "Type GraphObject not supported in find(), please use type NodeInterface to search for nodes of all types.");
+					return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, ERROR_MESSAGE_TYPE_GRAPHOBJECT_USED.formatted(getName(), getName()));
 				}
 
 				if (Traits.exists(typeString)) {
@@ -78,28 +67,19 @@ public class FindFunction extends AbstractQueryFunction {
 
 				} else {
 
-					logger.warn("Error in find(): type '{}' not found.", typeString);
-					return ERROR_MESSAGE_FIND_TYPE_NOT_FOUND + typeString;
-
+					return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, ERROR_MESSAGE_TYPE_NOT_FOUND.formatted(getName(), typeString));
 				}
 			}
 
-			// exit gracefully instead of crashing..
 			if (type == null) {
-				logger.warn("Error in find(): no type specified. Parameters: {}", getParametersAsString(sources));
-				return ERROR_MESSAGE_FIND_NO_TYPE_SPECIFIED;
+
+				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, ERROR_MESSAGE_NO_TYPE_SPECIFIED.formatted(getName(), getParametersAsString(sources)));
 			}
 
 			// apply sorting and pagination by surrounding sort() and slice() expressions
 			applyQueryParameters(securityContext, query);
 
 			return handleQuerySources(securityContext, type, query, sources, true, usage(ctx.isJavaScriptContext()));
-
-		} catch (final IllegalArgumentException e) {
-
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
-
-			return usage(ctx.isJavaScriptContext());
 
 		} finally {
 
@@ -128,32 +108,33 @@ public class FindFunction extends AbstractQueryFunction {
 		
 		Please note that in JavaScript, the predicates need to be prefixed with `$.predicate` to avoid confusing them with built-in functions of the same name.
 		
-		|Predicate              |Description|
-		|-----------------------|-----------|
+		| Predicate             | Description |
+		| --- | --- |
 		| `and(...)`            | Logical AND |
-		| `or(...)`             | Logical OR |
+		| `or(...)`             | Logical OR  |
 		| `not(...)`            | Logical NOT |
 		| `equals(key, value)`  | Returns only those nodes that match the given (key, value) pair |
 		| `contains(key, text)` | Returns only those nodes whose value contains the given text |
-		| `empty(key)`        | Returns only those nodes that don't have a value set for the given key |
-		| `lt(upperBound)`    | Returns nodes where a key is less than `upperBound` [Only available in Structr version > 6.0] |
-		| `lte(upperBound)`    | Returns nodes where a key is less than or equal to `upperBound`[Only available in Structr version > 6.0] |
-		| `gte(lowerBound)`    | Returns nodes where a key is greater than or equal to `lowerBound` [Only available in Structr version > 6.0]|
-		| `gt(lowerBound)`    | Returns nodes where a key is greater than `lowerBound` [Only available in Structr version > 6.0]|
+		| `empty(key)`          | Returns only those nodes that don't have a value set for the given key |
+		| `lt(upperBound)`      | Returns nodes where a key is less than `upperBound` [Only available in Structr version >= 6.0] |
+		| `lte(upperBound)`     | Returns nodes where a key is less than or equal to `upperBound` [Only available in Structr version >= 6.0] |
+		| `gte(lowerBound)`     | Returns nodes where a key is greater than or equal to `lowerBound` [Only available in Structr version >= 6.0]|
+		| `gt(lowerBound)`      | Returns nodes where a key is greater than `lowerBound` [Only available in Structr version >= 6.0]|
 		| `range(start, end [, withStart = true [, withEnd = true ]] )` | Returns only those nodes where the given propertyKey is in the range between start and end |
 		| `range(null, end)`    | Unbounded `range()` to emulate "lower than or equal" |
 		| `range(start, null)`  | Unbounded `range()` to emulate "greater than or equal" |
 		| `startsWith(key, prefix)` | Returns only those nodes whose value for the given key starts with the given prefix |
-		| `endsWith(key, suffix)` | Returns only those nodes whose value for the given key ends with the given suffix |
+		| `endsWith(key, suffix)`   | Returns only those nodes whose value for the given key ends with the given suffix |
 		| `withinDistance(latitude, longitude, distance)`  | Returns only those nodes that are within `distance` meters around the given coordinates. The type that is being searched for needs to extend the built-in type `Location` |
+		| `any(...)`            | Returns only those nodes that match any of the given criteria. [Only available in Structr version >= 6.3] |
 		
 		**Options**
 		
-		|Option   |Description|
-		|---------|-----------|
-		|`sort(key)`|Sorts the result according to the given property key (ascending)|
-		|`sort(key, true)`|Sorts the result according to the given property key (descending)|
-		|`page(page, pageSize)`|Limits the result size to `pageSize`, returning the given `page`|
+		| Option | Description |
+		| --- | --- |
+		| `sort(key)` | Sorts the result according to the given property key (ascending) |
+		| `sort(key, true)` | Sorts the result according to the given property key (descending) |
+		| `page(page, pageSize)` | Limits the result size to `pageSize`, returning the given `page` |
 		
 		""";
 	}
@@ -292,7 +273,7 @@ public class FindFunction extends AbstractQueryFunction {
 		return List.of(
 			"In a StructrScript environment parameters are passed as pairs of 'key1', 'value1'.",
 			"In a JavaScript environment, the function can be used just as in a StructrScript environment. Alternatively it can take a map as the second parameter.",
-			"The `find()` method will always use **exact** search, if you are interested in inexact / case-insensitive search, use `search()`.",
+			"The `find()` method will almost always use **exact** search (the `contains` predicate being the exception), if you are interested in inexact / case-insensitive search, use `search()`.",
 			"Calling `find()` with only a single parameter will return all the nodes of the given type (which might be problematic if there are so many of them in the database so that they do not fit in the available memory)."
 		);
 	}

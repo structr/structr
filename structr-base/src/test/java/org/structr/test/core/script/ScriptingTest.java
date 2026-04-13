@@ -39,7 +39,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.*;
 import org.structr.core.function.DateFormatFunction;
-import org.structr.core.function.FindFunction;
+import org.structr.core.function.AbstractQueryFunction;
 import org.structr.core.function.FunctionInfoFunction;
 import org.structr.core.function.NumberFormatFunction;
 import org.structr.core.graph.NodeAttribute;
@@ -77,11 +77,6 @@ import java.util.List;
 
 import static org.testng.AssertJUnit.*;
 
-
-/**
- *
- *
- */
 public class ScriptingTest extends StructrTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(ScriptingTest.class.getName());
@@ -1912,11 +1907,31 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid find() result for empty values", testThree.getUuid(), Scripting.replaceVariables(ctx, testOne, "${first(find('TestThree', 'oneToOneTestSix', this.alwaysNull))}"));
 			assertEquals("Invalid find() result for empty values", testThree.getUuid(), Scripting.replaceVariables(ctx, testOne, "${first(find('TestThree', 'oneToManyTestSix', this.alwaysNull))}"));
 
-			// find with incorrect number of parameters
-			assertEquals("Invalid find() result", FindFunction.ERROR_MESSAGE_FIND_NO_TYPE_SPECIFIED, Scripting.replaceVariables(ctx, testOne, "${find()}"));
-			assertEquals("Invalid find() result", FindFunction.ERROR_MESSAGE_FIND_NO_TYPE_SPECIFIED, Scripting.replaceVariables(ctx, testOne, "${find(this.alwaysNull)}"));
-			assertEquals("Invalid find() result", FindFunction.ERROR_MESSAGE_FIND_NO_TYPE_SPECIFIED, Scripting.replaceVariables(ctx, testOne, "${find(this.alwaysNull, this.alwaysNull)}"));
-			assertEquals("Invalid find() result", FindFunction.ERROR_MESSAGE_FIND_TYPE_NOT_FOUND + "NonExistingType", Scripting.replaceVariables(ctx, testOne, "${find('NonExistingType')}"));
+			// find with incorrect number of parameters (StructrScript -> null should be returned because exceptions are not supported)
+			assertEquals("Invalid find() result", "", Scripting.replaceVariables(ctx, testOne, "${find()}"));
+			assertEquals("Invalid find() result", "", Scripting.replaceVariables(ctx, testOne, "${find(this.alwaysNull)}"));
+			assertEquals("Invalid find() result", "", Scripting.replaceVariables(ctx, testOne, "${find(this.alwaysNull, this.alwaysNull)}"));
+			assertEquals("Invalid find() result", "", Scripting.replaceVariables(ctx, testOne, "${find('NonExistingType')}"));
+			assertEquals("Invalid find() result", "", Scripting.replaceVariables(ctx, testOne, "${find('GraphObject')}"));
+
+			// find with incorrect number of parameters (JavaScript -> exception is thrown)
+			assertEquals("Invalid find() result", "FrameworkException(422): " + AbstractQueryFunction.ERROR_MESSAGE_NO_TYPE_SPECIFIED.formatted("find", "[]"), Scripting.replaceVariables(ctx, testOne, "${{ try { $.find(); } catch (e) { e.getMessage(); } }}"));
+			assertEquals("Invalid find() result", "FrameworkException(422): " + AbstractQueryFunction.ERROR_MESSAGE_NO_TYPE_SPECIFIED.formatted("find", "[null]"), Scripting.replaceVariables(ctx, testOne, "${{ try { $.find($.this.alwaysNull); } catch (e) { e.getMessage(); } }}"));
+			assertEquals("Invalid find() result", "FrameworkException(422): " + AbstractQueryFunction.ERROR_MESSAGE_NO_TYPE_SPECIFIED.formatted("find", "[null, null]"), Scripting.replaceVariables(ctx, testOne, "${{ try { $.find($.this.alwaysNull, $.this.alwaysNull); } catch (e) { e.getMessage(); } }}"));
+			assertEquals("Invalid find() result", "FrameworkException(422): " + AbstractQueryFunction.ERROR_MESSAGE_TYPE_NOT_FOUND.formatted("find", "NonExistingType"), Scripting.replaceVariables(ctx, testOne, "${{ try { $.find('NonExistingType'); } catch (e) { e.getMessage(); } }}"));
+			assertEquals("Invalid find() result", "FrameworkException(422): " + AbstractQueryFunction.ERROR_MESSAGE_TYPE_GRAPHOBJECT_USED.formatted("find", "find"), Scripting.replaceVariables(ctx, testOne, "${{ try { $.find('GraphObject'); } catch (e) { e.getMessage(); } }}"));
+
+			// create with incorrect number of parameters (StructrScript -> null should be returned because exceptions are not supported)
+			assertEquals("Invalid create() result", "", Scripting.replaceVariables(ctx, testOne, "${create()}"));
+			assertEquals("Invalid create() result", "", Scripting.replaceVariables(ctx, testOne, "${create(this.alwaysNull)}"));
+			assertEquals("Invalid create() result", "", Scripting.replaceVariables(ctx, testOne, "${create(this.alwaysNull, this.alwaysNull)}"));
+			assertEquals("Invalid create() result", "", Scripting.replaceVariables(ctx, testOne, "${create('NonExistingType')}"));
+
+			// create with incorrect number of parameters (JavaScript -> exception is thrown)
+			assertEquals("Invalid create() result", "FrameworkException(422): " + AbstractQueryFunction.ERROR_MESSAGE_NO_TYPE_SPECIFIED.formatted("create", "[]"), Scripting.replaceVariables(ctx, testOne, "${{ try { $.create(); } catch (e) { e.getMessage(); } }}"));
+			assertEquals("Invalid create() result", "FrameworkException(422): " + AbstractQueryFunction.ERROR_MESSAGE_NO_TYPE_SPECIFIED.formatted("create", "[null]"), Scripting.replaceVariables(ctx, testOne, "${{ try { $.create($.this.alwaysNull); } catch (e) { e.getMessage(); } }}"));
+			assertEquals("Invalid create() result", "FrameworkException(422): " + AbstractQueryFunction.ERROR_MESSAGE_NO_TYPE_SPECIFIED.formatted("create", "[null, null]"), Scripting.replaceVariables(ctx, testOne, "${{ try { $.create($.this.alwaysNull, $.this.alwaysNull); } catch (e) { e.getMessage(); } }}"));
+			assertEquals("Invalid create() result", "FrameworkException(422): " + AbstractQueryFunction.ERROR_MESSAGE_TYPE_NOT_FOUND.formatted("create", "NonExistingType"), Scripting.replaceVariables(ctx, testOne, "${{ try { $.create('NonExistingType'); } catch (e) { e.getMessage(); } }}"));
 
 			// search
 			assertEquals("Invalid search() result", testOne.getUuid(), Scripting.replaceVariables(ctx, testTwo, "${first(search('TestOne', 'name', 'A-nice-little-name-for-my-test-object'))}"));
