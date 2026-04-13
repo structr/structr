@@ -225,6 +225,14 @@ public interface Documentable {
 	String getShortDescription();
 
 	/**
+	 * Returns replacement hint for editor autocomplete. Only for functions.
+	 * @return replacement hint
+	 */
+	default String getReplacementHint() {
+		return getName();
+	}
+
+	/**
 	 * Returns the long description of this Documentable. This method
 	 * may return null or the empty string to indicate that the object
 	 * has no long description.

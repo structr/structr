@@ -306,6 +306,42 @@ public class AutocompleteTest extends StructrUiTest {
 		}
 	}
 
+	@Test
+	public void testJavascriptAutocompleteForPredicateKeyword() {
+
+		final ActionContext actionContext = new ActionContext(securityContext);
+
+		final List<GraphObject> result = AbstractHintProvider.getHints(actionContext, false, null, "${{ $.find('User', $.predica", "", 0, 0);
+
+		final String[] predicateChecks = {
+			"predicate.and",
+			"predicate.any",
+			"predicate.contains",
+			"predicate.empty",
+			"predicate.endsWith",
+			"predicate.equals",
+			"predicate.gt",
+			"predicate.gte",
+			"predicate.lt",
+			"predicate.lte",
+			"predicate.not",
+			"predicate.or",
+			"predicate.page",
+			"predicate.range",
+			"predicate.sort",
+			"predicate.startsWith",
+			"predicate.withinDistance",
+		};
+
+		int resultIndex =1; // ignore first entry of result (should be predicate without anything)
+
+		for (String predicateCheck : predicateChecks) {
+			final Map<String, Object> entry = ((GraphObjectMap) result.get(resultIndex++)).toMap();
+			assertEquals("Invalid autocomplete result", predicateCheck, entry.get("text"));
+			assertEquals("Invalid autocomplete replacement", predicateCheck, entry.get("replacement"));
+		}
+	}
+
 	// ----- private methods -----
 	void assertFullResult(final List<GraphObject> result) {
 

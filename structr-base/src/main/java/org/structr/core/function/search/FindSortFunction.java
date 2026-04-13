@@ -37,6 +37,11 @@ public class FindSortFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public String getReplacementHint() {
+		return "predicate.sort";
+	}
+
+	@Override
 	public String getDisplayName(boolean includeParameters) {
 		return "predicate.sort";
 	}

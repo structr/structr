@@ -36,6 +36,11 @@ public class FindOrFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getReplacementHint() {
+		return "predicate.or";
+	}
+
+	@Override
 	public String getDisplayName(boolean includeParameters) {
 		return "predicate.or";
 	}

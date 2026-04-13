@@ -36,6 +36,11 @@ public class FindEqualsFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public String getReplacementHint() {
+		return "predicate.equals";
+	}
+
+	@Override
 	public String getDisplayName(boolean includeParameters) {
 		return "predicate.equals";
 	}
