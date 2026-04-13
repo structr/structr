@@ -73,15 +73,16 @@ For a complete list of available functions like `$.sendPlaintextMail()`, see the
 
 Certain built-in types provide additional callbacks for specific events:
 
-| Method | Type                  | When it runs                                   |
-| --- |-----------------------|------------------------------------------------|
-| `onNodeCreation` | All types |  During low-level node creation                |
-| `onUpload` | File | When a file is uploaded                        |
-| `onDownload` | File | When a file is downloaded                      |
-| `onOAuthLogin` | User | When a user logs in via OAuth                  |
-| `onStructrLogin` | User-defined function | When a user logs in via Structr authentication |
-| `onStructrLogout` | User-defined function | When a user logs out                           |
-| `onAcmeChallenge` | User-defined function | When an ACME certificate challenge is received |
+| Method               | Type                  | When it runs                                                |
+|----------------------|-----------------------|-------------------------------------------------------------|
+| `onNodeCreation`     | All types | During low-level node creation                              |
+| `onUpload`           | File | When a file is uploaded                                     |
+| `onDownload`         | File | When a file is downloaded                                   |
+| `onOAuthLogin`       | User | When a user logs in via OAuth                               |
+| `onStructrLogin`     | User-defined function | When a user logs in via Structr authentication              |
+| `onStructrLogout`    | User-defined function | When a user logs out                                        |
+| `onAcmeChallenge`    | User-defined function | When an ACME certificate challenge is received              |
+| `afterAcmeChallenge` | User-defined function | After an ACME certificate challenge has finished |
 
 ### Schema Methods
 

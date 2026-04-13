@@ -62,11 +62,12 @@ public class Actions {
 	private static final Map<String, CachedMethod> methodCache = new ConcurrentHashMap<>();
 
 	// if you add notifications / callbacks here, please add them at the bottom of class LifecycleBase as well!
-	public static final String NOTIFICATION_DOWNLOAD       = "onDownload";
-	public static final String NOTIFICATION_LOGIN          = "onStructrLogin";
-	public static final String NOTIFICATION_LOGOUT         = "onStructrLogout";
-	public static final String NOTIFICATION_ACME_CHALLENGE = "onAcmeChallenge";
-	public static final String NOTIFICATION_OAUTH_LOGIN    = "onOAuthLogin";
+	public static final String NOTIFICATION_ON_DOWNLOAD          = "onDownload";
+	public static final String NOTIFICATION_ON_LOGIN             = "onStructrLogin";
+	public static final String NOTIFICATION_ON_LOGOUT            = "onStructrLogout";
+	public static final String NOTIFICATION_ON_ACME_CHALLENGE    = "onAcmeChallenge";
+	public static final String NOTIFICATION_AFTER_ACME_CHALLENGE = "afterAcmeChallenge";
+	public static final String NOTIFICATION_ON_OAUTH_LOGIN       = "onOAuthLogin";
 
 	public enum Type {
 
@@ -179,7 +180,7 @@ public class Actions {
 
 			if (methods.isEmpty()) {
 
-				if (!NOTIFICATION_LOGIN.equals(key) && !NOTIFICATION_LOGOUT.equals(key)) {
+				if (!NOTIFICATION_ON_LOGIN.equals(key) && !NOTIFICATION_ON_LOGOUT.equals(key) && !NOTIFICATION_ON_ACME_CHALLENGE.equals(key) && !NOTIFICATION_AFTER_ACME_CHALLENGE.equals(key)) {
 
 					logger.warn("Tried to call method {} but no SchemaMethod entity was found.", key);
 

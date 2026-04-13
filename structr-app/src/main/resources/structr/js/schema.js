@@ -4098,8 +4098,8 @@ let _Schema = {
 					<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-wants-fixed="false" data-test-purpose="create-schema-method">
 						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['icon-green', 'mr-2'])}
 					</button>
-					<div class="dropdown-menu-container ml-px w-64">
-						<div class="flex flex-col divide-x-0 divide-y">
+					<div class="dropdown-menu-container ml-px">
+						<div class="flex flex-col divide-x-0 divide-y whitespace-nowrap">
 							<a data-prefix="" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
 								${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add method
 							</a>

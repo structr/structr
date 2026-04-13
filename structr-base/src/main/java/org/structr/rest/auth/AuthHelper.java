@@ -25,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.UnlicensedScriptException;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -365,7 +364,7 @@ public class AuthHelper {
 		final Map<String, Object> params = new HashMap<>();
 		params.put("user", user);
 
-		Actions.callAsSuperUser(Actions.NOTIFICATION_LOGIN, params, request, "auth");
+		Actions.callAsSuperUser(Actions.NOTIFICATION_ON_LOGIN, params, request, "auth");
 	}
 
 	public static void sendLogoutNotification (final Principal user, final HttpServletRequest request) throws FrameworkException {
@@ -373,7 +372,7 @@ public class AuthHelper {
 		final Map<String, Object> params = new HashMap<>();
 		params.put("user", user);
 
-		Actions.callAsSuperUser(Actions.NOTIFICATION_LOGOUT, params, request, "auth");
+		Actions.callAsSuperUser(Actions.NOTIFICATION_ON_LOGOUT, params, request, "auth");
 	}
 
 	/**

@@ -2568,6 +2568,20 @@ class LifecycleMethods {
 				</div>`,
 			isPrefix: false
 		},
+		{
+			name: 'afterAcmeChallenge',
+			available: LifecycleMethods.onlyAvailableWithoutSchemaNodeContext,
+			comment: `This method is called after an ACME challenge of type <strong>dns</strong> is finished. The primary use case of this method is cleaning up a DNS TXT record via an external API call to a DNS provider.
+				<br><br>
+				<div class="grid grid-cols-2">
+					<div class="font-bold">Parameter name</div><div class="font-bold">Description</div>
+					<div><code>type</code></div><div> The type of the ACME authorisation challenge</div>
+					<div><code>domain</code></div><div> The domain the ACME challenge is created for</div>
+					<div><code>record</code></div><div> The name of the DNS record including prefix <code>_acme-challenge.</code> and suffix <code>.</code> </div>
+					<div><code>digest</code> </div><div> The token string that is probed by the ACME server to validate the challenge </div>
+				</div>`,
+			isPrefix: false
+		},
 		/** AbstractNode */
 		{
 			name: 'onNodeCreation',
