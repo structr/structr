@@ -640,20 +640,10 @@ let _Config = {
 		configLoginDialogMarkup: `
 			<div id="login" class="dialog p-8 text-left" style="max-width: 480px; border: 2px solid #c62828; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
 
-				<div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #e0e0e0;">
+				<div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
 					${_Icons.getSvgIcon(_Icons.iconStructrLogo, 90, 24, ['logo-login'])}
 					<span style="font-size: 11px; font-weight: 600; color: #c62828; text-transform: uppercase; letter-spacing: 0.5px;">System Configuration</span>
 				</div>
-
-				<p style="font-size: 10pt; line-height: 1.5; color: #444; margin-bottom: 16px;">
-					This is the <b>Structr System Configuration Editor</b>. Access is restricted to the system superuser account.
-					Changes made here directly affect the server configuration, database connections, and service lifecycle.
-				</p>
-				<p style="font-size: 9pt; line-height: 1.4; color: #666; margin-bottom: 20px;">
-					Please sign in with the superuser credentials configured in <code style="background: #f5f5f5; padding: 1px 4px; border-radius: 3px; font-size: 9pt;">structr.conf</code>
-					(<code style="background: #f5f5f5; padding: 1px 4px; border-radius: 3px; font-size: 9pt;">superuser.username</code> and
-					<code style="background: #f5f5f5; padding: 1px 4px; border-radius: 3px; font-size: 9pt;">superuser.password</code>).
-				</p>
 
 				<form action="${_Helpers.getPrefixedRootUrl("/structr/config")}" method="post">
 

@@ -520,6 +520,7 @@ public class DocumentationServlet extends HttpServlet {
 		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.Glossary,           new MarkdownGlossaryFormatter());
 
 		settings.setFormatterForOutputFormatModeAndType("html", "overview", ConceptType.Function, new MarkdownFunctionDetailsFormatter());
+		settings.setFormatterForOutputFormatModeAndType("html", "overview", ConceptType.Setting,  new MarkdownFunctionDetailsFormatter());
 
 		// wildcard
 		//settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.Unknown,        new ToplevelTopicsMarkdownFormatter());
