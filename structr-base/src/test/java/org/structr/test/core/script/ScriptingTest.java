@@ -1921,6 +1921,18 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid find() result", "FrameworkException(422): " + AbstractQueryFunction.ERROR_MESSAGE_TYPE_NOT_FOUND.formatted("find", "NonExistingType"), Scripting.replaceVariables(ctx, testOne, "${{ try { $.find('NonExistingType'); } catch (e) { e.getMessage(); } }}"));
 			assertEquals("Invalid find() result", "FrameworkException(422): " + AbstractQueryFunction.ERROR_MESSAGE_TYPE_GRAPHOBJECT_USED.formatted("find", "find"), Scripting.replaceVariables(ctx, testOne, "${{ try { $.find('GraphObject'); } catch (e) { e.getMessage(); } }}"));
 
+			// create with incorrect number of parameters (StructrScript -> null should be returned because exceptions are not supported)
+			assertEquals("Invalid create() result", "", Scripting.replaceVariables(ctx, testOne, "${create()}"));
+			assertEquals("Invalid create() result", "", Scripting.replaceVariables(ctx, testOne, "${create(this.alwaysNull)}"));
+			assertEquals("Invalid create() result", "", Scripting.replaceVariables(ctx, testOne, "${create(this.alwaysNull, this.alwaysNull)}"));
+			assertEquals("Invalid create() result", "", Scripting.replaceVariables(ctx, testOne, "${create('NonExistingType')}"));
+
+			// create with incorrect number of parameters (JavaScript -> exception is thrown)
+			assertEquals("Invalid create() result", "FrameworkException(422): " + AbstractQueryFunction.ERROR_MESSAGE_NO_TYPE_SPECIFIED.formatted("create", "[]"), Scripting.replaceVariables(ctx, testOne, "${{ try { $.create(); } catch (e) { e.getMessage(); } }}"));
+			assertEquals("Invalid create() result", "FrameworkException(422): " + AbstractQueryFunction.ERROR_MESSAGE_NO_TYPE_SPECIFIED.formatted("create", "[null]"), Scripting.replaceVariables(ctx, testOne, "${{ try { $.create($.this.alwaysNull); } catch (e) { e.getMessage(); } }}"));
+			assertEquals("Invalid create() result", "FrameworkException(422): " + AbstractQueryFunction.ERROR_MESSAGE_NO_TYPE_SPECIFIED.formatted("create", "[null, null]"), Scripting.replaceVariables(ctx, testOne, "${{ try { $.create($.this.alwaysNull, $.this.alwaysNull); } catch (e) { e.getMessage(); } }}"));
+			assertEquals("Invalid create() result", "FrameworkException(422): " + AbstractQueryFunction.ERROR_MESSAGE_TYPE_NOT_FOUND.formatted("create", "NonExistingType"), Scripting.replaceVariables(ctx, testOne, "${{ try { $.create('NonExistingType'); } catch (e) { e.getMessage(); } }}"));
+
 			// search
 			assertEquals("Invalid search() result", testOne.getUuid(), Scripting.replaceVariables(ctx, testTwo, "${first(search('TestOne', 'name', 'A-nice-little-name-for-my-test-object'))}"));
 			assertEquals("Invalid search() result", testOne.getUuid(), Scripting.replaceVariables(ctx, testTwo, "${first(search('TestOne', 'name', 'little-name-for-my-test-object'))}"));

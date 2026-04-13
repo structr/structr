@@ -81,12 +81,6 @@ public class FindFunction extends AbstractQueryFunction {
 
 			return handleQuerySources(securityContext, type, query, sources, true, usage(ctx.isJavaScriptContext()));
 
-		} catch (final IllegalArgumentException e) {
-
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
-
-			return usage(ctx.isJavaScriptContext());
-
 		} finally {
 
 			resetQueryParameters(securityContext);
