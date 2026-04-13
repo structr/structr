@@ -35,7 +35,7 @@ Topic References has topics "System Keywords", "Built-in Functions", "System Typ
 # resources from Java
 "System Keywords" has code-source "keyword" as table
 "Built-in Functions" has code-source "function" as table-with-details
-"Settings" has code-source "setting" as table
+"Settings" has code-source "setting" as table-with-details
 "Maintenance Commands" has code-source "maintenance-command" as table
 "Services" has code-source "service" as sorted-children
 "System Types" has code-source "system-type" as sorted-children
