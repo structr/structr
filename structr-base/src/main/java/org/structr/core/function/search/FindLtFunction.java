@@ -36,6 +36,11 @@ public class FindLtFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public String getReplacementHint() {
+		return "predicate.lt";
+	}
+
+	@Override
 	public String getDisplayName(boolean includeParameters) {
 		return "predicate.lt";
 	}

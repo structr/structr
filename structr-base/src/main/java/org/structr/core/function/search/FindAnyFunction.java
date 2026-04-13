@@ -38,6 +38,11 @@ public class FindAnyFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public String getReplacementHint() {
+		return "predicate.any";
+	}
+
+	@Override
 	public String getDisplayName(boolean includeParameters) {
 		return "predicate.any";
 	}

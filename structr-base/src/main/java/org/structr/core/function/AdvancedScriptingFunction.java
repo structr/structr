@@ -26,4 +26,6 @@ public abstract class AdvancedScriptingFunction extends Function<Object, Object>
 	public String getRequiredModule() {
 		return "advanced-scripting";
 	}
+
+
 }
