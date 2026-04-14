@@ -4141,7 +4141,7 @@ let _Entities = {
                         <label for="labels">Show Labels</label>
                     </div>
                 
-                    <div class="col-span-1 @xl:col-span-2">
+                    <div class="col-span-1 @md:col-span-2">
                         <label class="block mb-2" for="columns-select" data-comment="Controls the width of this component in grid views">Width</label>
                         <div id="width-buttons" class="toggle-button-container"></div>
                     </div>
@@ -4237,10 +4237,10 @@ let _Entities = {
                 }
                 return fields.join('\n');
             },
-			spacerItemForGrid: config => `<div class="hidden @xl:block"><!-- occupy space in grid UI --></div>`,
+			spacerItemForGrid: config => `<div class="hidden @md:block"><!-- occupy space in grid UI --></div>`,
 			containerClasses: config => `@container quick-access-options`,
-			gridClasses: config => `grid grid-cols-1 @xl:grid-cols-2 gap-8`,
-			colspan2Classes: config => `col-span-1 @xl:col-span-2`
+			gridClasses: config => `grid grid-cols-1 @md:grid-cols-2 gap-8`,
+			colspan2Classes: config => `col-span-1 @md:col-span-2`
 		}
 	}
 };
