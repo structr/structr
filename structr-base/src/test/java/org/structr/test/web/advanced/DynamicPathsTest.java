@@ -106,7 +106,8 @@ public class DynamicPathsTest extends DeploymentTestBase {
 					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "key2"),
 					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      1),
 					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "Integer"),
-					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "1")
+					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "1"),
+					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.USE_DEFAULT_IF_INVALID_PROPERTY), true)
 				);
 			}
 
@@ -266,7 +267,8 @@ public class DynamicPathsTest extends DeploymentTestBase {
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "key2"),
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      1),
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "Integer"),
-						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "1")
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "1"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.USE_DEFAULT_IF_INVALID_PROPERTY), true)
 					);
 				}
 
@@ -772,6 +774,23 @@ public class DynamicPathsTest extends DeploymentTestBase {
 
 		// a space character (%20) should be treated as a value
 		assertEquals("Invalid path resolution result", "value1, ,value3", getContent(200, "/structr/html/defaultValueTest_2/value1/%20/value3"));
+	}
+
+	@Test
+	public void testPagePathParameterDefaultValuesWhenValueParsingFails() {
+
+		fail("Not yet implemented");
+
+		// we want to expose to the user the option to select the fallback behaviour when a value fails parsing or a node ist not found
+		// "Use default value if parsing fails" and "Use default value if node can not be found" (which defaults to false)
+
+		// mandatory field => no default value can be used
+		// what happens when the value can not be parsed? does the route still apply?
+
+		// when value fails parsing, default value should be used
+		// when mandatory is set, default value should not be available
+
+		// ==> use default value ONLY if parsing fails AND mandatory
 	}
 
 	@Test

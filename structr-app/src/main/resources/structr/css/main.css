@@ -4447,6 +4447,10 @@ ul.combined-input-select-field li:not(.nohover):hover {
 	margin-left: 2rem;
 	margin-right: 2rem;
 }
+.my-0 {
+	margin-top: 0;
+	margin-bottom: 0;
+}
 .my-2 {
 	margin-top: .5rem;
 	margin-bottom: .5rem;
@@ -4850,6 +4854,9 @@ ul.combined-input-select-field li:not(.nohover):hover {
 .col-span-6 {
 	grid-column: span 6 / span 6;
 }
+.col-span-7 {
+	grid-column: span 7 / span 7;
+}
 .grid-cols-1 {
 	grid-template-columns: repeat(1, minmax(0, 1fr));
 }
@@ -4870,6 +4877,9 @@ ul.combined-input-select-field li:not(.nohover):hover {
 }
 .grid-cols-7 {
 	grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+.grid-cols-12 {
+	grid-template-columns: repeat(12, minmax(0, 1fr));
 }
 .overflow-hidden {
 	overflow: hidden;
@@ -4999,10 +5009,10 @@ ul.combined-input-select-field li:not(.nohover):hover {
 	border-right-width: 1px;
 }
 .border-r-0 {
-	border-right: 0px;
+	border-right: 0;
 }
 .border-l-0 {
-	border-left: 0px;
+	border-left: 0;
 }
 .border-l {
 	border-left-width: 1px;
@@ -5012,6 +5022,10 @@ ul.combined-input-select-field li:not(.nohover):hover {
 }
 .border-b {
 	border-bottom-width: 1px;
+}
+.border-x-0 {
+	border-left-width: 0;
+	border-right-width: 0;
 }
 .border-x {
 	border-left-width: 1px;
@@ -5215,6 +5229,18 @@ ul.combined-input-select-field li:not(.nohover):hover {
 	}
 }
 
+.\@lg\:grid-cols-3 {
+	@container (width >= 48rem) {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+
+.\@xl\:grid-cols-3 {
+	@container (width >= 64rem) {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+
 .\@md\:block {
 	@container (width >= 40rem) {
 		display: block;
@@ -5224,6 +5250,12 @@ ul.combined-input-select-field li:not(.nohover):hover {
 .\@md\:col-span-2 {
 	@container (width >= 40rem) {
 		grid-column: span 2 / span 2;
+	}
+}
+
+.\@xl\:col-span-1 {
+	@container (width >= 64rem) {
+		grid-column: span 1 / span 1;
 	}
 }
 

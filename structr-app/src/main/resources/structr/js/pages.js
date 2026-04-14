@@ -3604,7 +3604,9 @@ let _Pages = {
 
 			$(listContainer).sortable({
 				handle: "[data-is-sortable-handle]",
-				placeholder: "border border-dashed border-gray-ddd h-20 bg-gray mb-8 rounded-lg ui-sortable-placeholder",
+				placeholder: "border border-dashed border-gray-ddd bg-gray mb-8 rounded-lg ui-sortable-placeholder",
+				forcePlaceholderSize: true,
+				axis: 'y',
 				stop: _Pages.routingDialog.updatedSorting
 			});
 
@@ -3658,14 +3660,7 @@ let _Pages = {
 				body: JSON.stringify({
 					page: page.id,
 					name: `/${page.name}/{example}`,
-					priority: priority,
-					parameters: [
-						{
-							position: 0,
-							name: 'example',
-							valueType: 'String'
-						}
-					]
+					priority: priority
 				})
 			});
 
@@ -3694,9 +3689,9 @@ let _Pages = {
 			let debouncedUpdateFunction = _Helpers.debounce(event => _Pages.routingDialog.updateParameters(event, path, rowContainer), 500);
 			rowContainer.querySelector(`[data-structr-attribute="name"]`).addEventListener('input', debouncedUpdateFunction);
 
-			rowContainer.querySelector('.routing-remove-button')?.addEventListener('click', async e => {
+			rowContainer.querySelector('[data-structr-is-delete-button]')?.addEventListener('click', async e => {
 
-				let confirm = await _Dialogs.confirmation.showPromise(`Are you sure you want to delete this URL Route?`);
+				let confirm = await _Dialogs.confirmation.showPromise(`Are you sure you want to delete this URL Route with all its parameters?`);
 				if (confirm === true) {
 
 					let response = await fetch(`${Structr.rootUrl}PagePath/${path.id}`, { method: 'DELETE' });
@@ -3753,11 +3748,14 @@ let _Pages = {
 
 				input.addEventListener('change', event => {
 
-					let element = event.target;
-					let row     = element.closest('[data-structr-id]');
+					let element     = event.target;
+					let row         = element.closest('[data-structr-id]');
+					let newValue    = (element.type === 'checkbox') ? element.checked : element.value;
+					let blinkTarget = (element.type === 'checkbox') ? element.parentElement : element;
 
-					Command.setProperty(row.dataset.structrId, input.dataset.structrAttribute, element.value, false, () => {
-						_Helpers.blinkGreen(element);
+					Command.setProperty(row.dataset.structrId, input.dataset.structrAttribute, newValue, false, () => {
+
+						_Helpers.blinkGreen(blinkTarget);
 
 						_Pages.routingDialog.updateParameterRowUI(row);
 					});
@@ -3770,14 +3768,16 @@ let _Pages = {
 
 			let placeholderForFormat = {
 				'Date': 'Date Format',
-				'Node': 'Node Type'
+				'Node': 'Node Type',
+				'Base64UrlString': 'Content encoding'
 			};
 
 			let valueTypeField = row.querySelector('[data-structr-attribute="valueType"]');
 			let formatField    = row.querySelector('[data-structr-attribute="format"]');
 
-			let showFormatField = ['Date', 'Node'].includes(valueTypeField.value);
+			let showFormatField = !!placeholderForFormat[valueTypeField.value];
 
+			formatField.title       = placeholderForFormat[valueTypeField.value] ?? '';
 			formatField.placeholder = placeholderForFormat[valueTypeField.value] ?? '';
 			formatField.classList.toggle('hidden', !showFormatField);
 		},
@@ -3788,108 +3788,150 @@ let _Pages = {
 						Routes
 						<span class="m-2 add-route-button cursor-pointer align-middle icon-grey icon-inactive hover:icon-active">${_Icons.getSvgIcon(_Icons.iconAdd,16,16,[], 'Add route')}</span>
 					</h3>
-					<div id="routing-entries">
+					<div id="routing-entries" class="@container">
 					</div>
 					
 					<div class="inline-info">
 						<div class="inline-info-icon">
 							${_Icons.getSvgIcon(_Icons.iconInfo, 24, 24)}
 						</div>
-						<div class="inline-info-text" style="width: 36rem;">
-
-							<h3 class="mt-0">URL Routes</h3>
-
-							<p>Define the URL routes through which this page can be accessed.</p>
-
-							<p>Routes are evaluated from top to bottom. The first matching route is used. You can change the evaluation order via drag and drop.</p>
-
-							<p><em>Note:</em> Using a UUID to automatically resolve to a <code>current</code> object, which is possible with default page access, is not possible with URL Routes. A separate path parameter for a <code>current</code> object must be explicitly introduced in the route.</p>
-
-							<h3>Path Parameters</h3>
-
-							<p>Path parameters can be defined using <code>{param}</code> syntax. These parameters are automatically extracted and validated. You can further configure them (e.g. type, default values).</p>
-
-							<h3>Matching Behavior</h3>
-
-							<ul>
-								<li>Static parts of a route must match exactly.</li>
-								<li>Parameters are matched *greedily* within a path segment.</li>
-							</ul>
-
-							<p>This means multiple parameters in the same segment can lead to ambiguous matches:</p>
-
-							<ul>
-								<li><code>/{var1}{var2}/</code> → <code>var1</code> captures the entire segment, <code>var2</code> remains empty</li>
-								<li><code>/{var1}_{var2}/</code> → works because <code>_</code> enforces a boundary</li>
-							</ul>
-
-							<p>Use a separator character that cannot appear in either parameter.</p>
-
-							<p><em>Recommendation:</em> Prefer a single parameter per path segment to avoid ambiguity.</p>
-
-							<h3>Catch-All Routes</h3>
-
-							<p>Routes like <code>/{variable}/</code> match almost any request, causing nearly all traffic - including requests for other pages - to be routed to this page.</p>
-
-							<p>To prevent unintended matches, include at least one static (or clearly structured) segment at the beginning of the path, e.g.:</p>
-
-							<ul>
-								<li><code>/users/{id}/</code></li>
-								<li><code>/api/{resource}/</code></li>
-							</ul>
-
-							<p>However, catch-all routes can be useful in specific scenarios, such as debugging another clients' behaviour.</p>
-
-							<p>If used, place them at the end of the route list and use them deliberately (e.g. for diagnostics or controlled fallback handling).</p>
-
-							<p>But be aware that this will make other pages unreachable.</p>
+						<div class="inline-info-text" style="width: 36rem; max-height: calc(100% - 6rem); overflow: auto;">
+							${_Pages.routingDialog.templates.routingHelp()}
 						</div>
 					</div>
 				</div>
 			`,
 			pagePathRow: config => `
-				<div class="mb-12 grid grid-cols-7 gap-8" data-structr-page-path-id="${config.id}">
-					<div class="col-span-3">
+				<div class="mb-12 grid grid-cols-2 @xl:grid-cols-3  gap-8 pr-2" data-structr-page-path-id="${config.id}">
+
+					<div class="col-span-2 @xl:col-span-1">
 						<label class="block mb-2" data-comment="Enter the URL path that should route to this page.">Path</label>
 						<div class="flex">
-							<div class="border border-gray-ddd border-r-0 flex items-center px-2 rounded-l cursor-move" data-is-sortable-handle>⠿</div>
+							<div class="text-lg border border-gray-ddd flex items-center px-2 rounded-l cursor-move hover:bg-gray-100" data-is-sortable-handle>⠿</div>
 							<input class="w-16 box-border" data-structr-attribute="priority" type="hidden" value="${config.priority ?? ''}">
-							<input class="flex-grow box-border rounded-l-none" data-structr-attribute="name" type="text" placeholder="/products/{name}/{amount}" value="${_Helpers.escapeForHtmlAttributes(config.name)}">
+							<input class="flex-grow box-border rounded-none border-x-0" data-structr-attribute="name" type="text" placeholder="/products/{name}/{amount}" value="${_Helpers.escapeForHtmlAttributes(config.name)}">
+							<button class="border border-gray-ddd flex items-center px-2 rounded-r rounded-l-none mr-0 hover:bg-gray-100" data-structr-is-delete-button>
+								${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red']))}
+							</button>
 						</div>
 						<div data-structr-path-messages-container></div>
 					</div>
 
-					<div class="col-span-3">
+					<div class="col-span-2">
 						<label class="block mb-2" data-comment="Parameters names are managed automatically based on variables in the path and can be further configured here.">Path parameters</label>
 						<div data-structr-path-parameters-container></div>
 					</div>
 
-					<div class="col-span-1">
-						<label class="block mb-2">&nbsp;</label>
-						<i class="block mt-2 routing-remove-button" data-structr-id="${config.id}">${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red']))}</i>
-					</div>
 				</div>
 			`,
 			pagePathParameterRow: config => `
-				<div class="grid grid-cols-4 gap-4" data-structr-id="${config.id}">
-					<div class="m-0">
-						<pre class="block bold mt-3">${config.name}</pre>
+				<div class="flex-grow grid grid-cols-3 gap-4 my-3" data-structr-id="${config.id}">
+
+					<div class="flex items-center gap-2">
+						<pre class="flex-grow bold truncate my-2" title="${config.name}">${config.name}</pre>
+						<div class="flex h-full">
+							<input class="mr-0" type="checkbox" title="Mandatory?" data-structr-attribute="isMandatory" ${config.isMandatory ? 'checked' : ''}>
+						</div>
 					</div>
-					<div>
-						<select class="w-full box-border" data-structr-attribute="valueType">
+					
+					<div class="flex items-center gap-3 col-span-2">
+						<select data-structr-attribute="valueType" title="Value Type" style="max-width: calc(14ch + 2rem);" class="w-full">
 							<option value="">Select value type..</option>
-							${['String', 'Integer', 'Long', 'Double', 'Float', 'Date', 'Boolean', 'Node'].map(type => `<option ${(type === config.valueType ? 'selected' : '')}>${type}</option>`).join('\n')}
-						</select>
-					</div>
-					<div>
+							${['String', 'Base64UrlString', 'Integer', 'Long', 'Double', 'Float', 'Date', 'Boolean', 'Node'].map(type => `<option ${(type === config.valueType ? 'selected' : '')}>${type}</option>`).join('\n')}
+						</select>						
+
 						<input class="w-full box-border" type="text" data-structr-attribute="format" value="${_Helpers.escapeForHtmlAttributes(config.format ?? '')}">
+						
+						<input class="w-full box-border" type="text" title="Default Value" data-structr-attribute="defaultValue" placeholder="Default Value" value="${_Helpers.escapeForHtmlAttributes(config.defaultValue ?? '')}">
+						<div class="flex h-full">
+							<input class="mr-0" type="checkbox" title="Use Default if invalid?" data-structr-attribute="useDefaultIfInvalid" ${config.useDefaultIfInvalid ? 'checked' : ''}>
+						</div>
 					</div>
-					<div>
-						<input class="w-full box-border" type="text" data-structr-attribute="defaultValue" placeholder="Default Value" value="${_Helpers.escapeForHtmlAttributes(config.defaultValue ?? '')}">
-					</div>
+
 				</div>
 			`,
-			pagePathParametersMessages: config => `<ul>${config.messages.map(msg => `<li>${_Helpers.escapeTags(msg)}</li>`).join('\n')}</ul>`
+			pagePathParametersMessages: config => `<ul>${config.messages.map(msg => `<li>${_Helpers.escapeTags(msg)}</li>`).join('\n')}</ul>`,
+			routingHelp: config => `
+				<h3 class="mt-0">URL Routes</h3>
+
+				<p>Define the URL routes through which this page can be accessed.</p>
+
+				<p>Routes are evaluated from top to bottom. The first matching route is used. You can change the evaluation order via drag and drop.</p>
+
+				<p><em>Note:</em> Using a UUID to automatically resolve to a <code>current</code> object, which is possible with default page access, is not possible with URL Routes. A separate path parameter for a <code>current</code> object must be explicitly introduced in the route.</p>
+
+				<h3>Path Parameters</h3>
+
+				<p>Path parameters can be defined using <code>{param}</code> syntax. These parameters are automatically extracted and validated. You can further configure them (e.g. type, default values).</p>
+
+				<h3>Matching Behavior</h3>
+
+				<ul>
+					<li>Static parts of a route must match exactly.</li>
+					<li>Parameters are matched *greedily* within a path segment.</li>
+				</ul>
+
+				<p>This means multiple parameters in the same segment can lead to ambiguous matches:</p>
+
+				<ul>
+					<li><code>/{var1}{var2}/</code> → <code>var1</code> captures the entire segment, <code>var2</code> remains empty</li>
+					<li><code>/{var1}_{var2}/</code> → works because <code>_</code> enforces a boundary</li>
+				</ul>
+
+				<p>Use a separator character that cannot appear in either parameter.</p>
+
+				<p><em>Recommendation:</em> Prefer a single parameter per path segment to avoid ambiguity.</p>
+
+				<h3>Catch-All Routes</h3>
+
+				<p>Routes like <code>/{variable}/</code> match almost any request, causing nearly all traffic - including requests for other pages - to be routed to this page.</p>
+
+				<p>To prevent unintended matches, include at least one static (or clearly structured) segment at the beginning of the path, e.g.:</p>
+
+				<ul>
+					<li><code>/users/{id}/</code></li>
+					<li><code>/api/{resource}/</code></li>
+				</ul>
+
+				<p>However, catch-all routes can be useful in specific scenarios, such as debugging another clients' behaviour.</p>
+
+				<p>If used, place them at the end of the route list and use them deliberately (e.g. for diagnostics or controlled fallback handling).</p>
+
+				<p>But be aware that this will make other pages unreachable.</p>
+				
+				**URL Compliance**
+				
+				By default, no URL violations are allowed.
+				
+				When using plain string path parameters (i.e. accepting arbitrary user input), you may need to explicitly allow certain URL violations via the configuration:
+				
+				\`httpservice.uricompliance.allowedviolations\`
+				
+				Relevant options include:
+				
+				* \`AMBIGUOUS_EMPTY_SEGMENT\` – allows empty path segments
+				* \`AMBIGUOUS_PATH_SEPARATOR\` – allows \`%2f\` (\`/\`) within user-provided values
+				* \`AMBIGUOUS_PATH_ENCODING\` – allows \`%25\` (\`%\`) within user-provided values
+				
+				Base64URL encoding avoids the need for these exceptions in most cases, since it produces URL-safe output by design.
+				
+				**Limitations:**
+				
+				* URLs are limited to a maximum length of 8192 characters. This constrains the maximum size of transferable data when using this type.
+				* Encoding overhead (Base64) further reduces the effective payload size.
+				
+**StringBase64URL**
+
+The \`StringBase64URL\` type represents Base64URL-encoded data within a path segment.
+
+By default, decoded values are interpreted as a UTF-8 string.
+
+If you need to transport arbitrary binary data, you can set the content charset to \`ISO-8859-1\`. This allows a direct byte-to-character mapping without data loss.
+
+Using Base64URL encoding also helps avoid common pitfalls of URL data transmission. Reserved characters such as \`/\` or \`%\`, as well as special path segments like \`/./\` and \`/../\`, can interfere with routing and normalization. Encoding the data prevents these issues by ensuring the path segment remains structurally safe.
+
+
+			`
 		}
 	},
 	ensureShadowPageExists: () => {

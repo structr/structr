@@ -32,8 +32,10 @@ import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.web.entity.path.PagePathParameter;
 import org.structr.web.traits.wrappers.PagePathParameterTraitWrapper;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -42,7 +44,8 @@ public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinitio
 	public static final String VALUE_TYPE_PROPERTY    = "valueType";
 	public static final String FORMAT_PROPERTY        = "format";
 	public static final String DEFAULT_VALUE_PROPERTY = "defaultValue";
-	public static final String IS_OPTIONAL_PROPERTY   = "isOptional";
+	public static final String IS_MANDATORY_PROPERTY  = "isMandatory";
+	public static final String USE_DEFAULT_IF_INVALID_PROPERTY  = "useDefaultIfInvalid";
 
 	public PagePathParameterTraitDefinition() {
 		super(StructrTraits.PAGE_PATH_PARAMETER);
@@ -74,12 +77,13 @@ public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinitio
 	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> pathProperty  = new StartNode(traitsInstance, PATH_PROPERTY, StructrTraits.PAGE_PATH_HAS_PARAMETER_PAGE_PATH_PARAMETER);
-		final Property<Integer> positionProperty    = new IntProperty(POSITION_PROPERTY).indexed();
-		final Property<String> valueTypeProperty    = new EnumProperty(VALUE_TYPE_PROPERTY, PathParameterValueType.class).defaultValue(PathParameterValueType.String.name());
-		final Property<String> formatProperty       = new StringProperty(FORMAT_PROPERTY);
-		final Property<String> defaultValueProperty = new StringProperty(DEFAULT_VALUE_PROPERTY);
-		final Property<Boolean> isOptionalProperty  = new BooleanProperty(IS_OPTIONAL_PROPERTY);
+		final Property<NodeInterface> pathProperty          = new StartNode(traitsInstance, PATH_PROPERTY, StructrTraits.PAGE_PATH_HAS_PARAMETER_PAGE_PATH_PARAMETER);
+		final Property<Integer> positionProperty            = new IntProperty(POSITION_PROPERTY).indexed();
+		final Property<String> valueTypeProperty            = new EnumProperty(VALUE_TYPE_PROPERTY, PathParameterValueType.class).defaultValue(PathParameterValueType.String.name());
+		final Property<String> formatProperty               = new StringProperty(FORMAT_PROPERTY);
+		final Property<String> defaultValueProperty         = new StringProperty(DEFAULT_VALUE_PROPERTY);
+		final Property<Boolean> isMandatoryProperty         = new BooleanProperty(IS_MANDATORY_PROPERTY);
+		final Property<Boolean> useDefaultIfInvalidProperty = new BooleanProperty(USE_DEFAULT_IF_INVALID_PROPERTY);
 
 		return Set.of(
 			pathProperty,
@@ -87,7 +91,8 @@ public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinitio
 			valueTypeProperty,
 			formatProperty,
 			defaultValueProperty,
-			isOptionalProperty
+			isMandatoryProperty,
+			useDefaultIfInvalidProperty
 		);
 	}
 
@@ -96,10 +101,10 @@ public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinitio
 
 		return Map.of(
 				PropertyView.Public,
-				newSet(POSITION_PROPERTY, VALUE_TYPE_PROPERTY, FORMAT_PROPERTY, DEFAULT_VALUE_PROPERTY, IS_OPTIONAL_PROPERTY),
+				newSet(POSITION_PROPERTY, VALUE_TYPE_PROPERTY, FORMAT_PROPERTY, DEFAULT_VALUE_PROPERTY, IS_MANDATORY_PROPERTY, USE_DEFAULT_IF_INVALID_PROPERTY),
 
 				PropertyView.Ui,
-				newSet(POSITION_PROPERTY, VALUE_TYPE_PROPERTY, FORMAT_PROPERTY, DEFAULT_VALUE_PROPERTY, IS_OPTIONAL_PROPERTY)
+				newSet(POSITION_PROPERTY, VALUE_TYPE_PROPERTY, FORMAT_PROPERTY, DEFAULT_VALUE_PROPERTY, IS_MANDATORY_PROPERTY, USE_DEFAULT_IF_INVALID_PROPERTY)
 		);
 	}
 
@@ -110,6 +115,21 @@ public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinitio
 
 	public enum PathParameterValueType {
 
-		String, Integer, Long, Double, Float, Date, Boolean, Node
+		String, Base64UrlString, Integer, Long, Double, Float, Date, Boolean, Node;
+
+		private static final Map<String, PathParameterValueType> LOOKUP_TBL = Arrays.stream(values()).collect(Collectors.toMap(Enum::name, e -> e));
+
+		public static PathParameterValueType fromString(final String value) {
+			return LOOKUP_TBL.get(value);
+		}
+
+		public static boolean isValid(final String value) {
+			return LOOKUP_TBL.containsKey(value);
+		}
+
+		public static boolean hasFormat(final String value) {
+
+			return String.name().equals(value) || Base64UrlString.name().equals(value) || Date.name().equals(value);
+		}
 	}
 }

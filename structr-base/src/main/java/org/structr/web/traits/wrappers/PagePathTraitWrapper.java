@@ -37,6 +37,7 @@ import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.path.PagePath;
 import org.structr.web.entity.path.PagePathParameter;
+import org.structr.web.error.ParseFailureException;
 import org.structr.web.traits.definitions.PagePathParameterTraitDefinition;
 import org.structr.web.traits.definitions.PagePathTraitDefinition;
 
@@ -236,8 +237,8 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 
 					} else {
 
-						final String[] rawValues               = getValues(valueCaptureMatcher);
-						int valueIndex                         = 0;
+						final String[] rawValues = getValues(valueCaptureMatcher);
+						int valueIndex           = 0;
 
 						// reset so we find the first key again
 						pathMatcher.reset();
@@ -250,32 +251,50 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 
 							if (parameter != null) {
 
-								final Object converted = parameter.convert(securityContext, rawValue);
+								Object converted     = null;
+								boolean inputInvalid = false;
 
-								if (converted != null) {
+								try {
 
-									// only put value if conversion is successful
-									arguments.put(key, converted);
+									converted = parameter.convert(securityContext, rawValue);
 
-								} else {
+								} catch (ParseFailureException e) {
 
-									// put default value otherwise (if default is set, run converter to ensure type is correct)
-									final String defaultValue = parameter.getDefaultValue();
+									inputInvalid = true;
 
-									if (defaultValue != null && !defaultValue.isEmpty()) {
+									// make original value available
+									arguments.put("_" + key, rawValue);
+								}
 
-										final Object convertedDefault = parameter.convert(securityContext, defaultValue);
+								if (converted == null) {
 
-										if (convertedDefault != null) {
+									boolean rawValueMissing = (rawValue == null || rawValue.isEmpty());
 
-											arguments.put(key, convertedDefault);
+									if (rawValueMissing || (inputInvalid && parameter.useDefaultIfInvalid())) {
+
+										try {
+
+											final String defaultValue = parameter.getDefaultValue();
+
+											if (defaultValue != null && !defaultValue.isEmpty()) {
+
+												converted = parameter.convert(securityContext, defaultValue);
+											}
+
+										} catch (ParseFailureException e) {
+
+											// parsing failure in default value - no more fallbacks
 										}
 									}
 								}
 
+								// put value, even if it is null
+								arguments.put(key, converted);
+
 							} else {
 
-								// no matching parameter for key ""...
+								LoggerFactory.getLogger(PagePath.class).warn("No PagePathParameter found for name '{}' in PagePath '{}', treating as string type.", key, getUuid());
+
 								arguments.put(key, rawValue);
 							}
 						}

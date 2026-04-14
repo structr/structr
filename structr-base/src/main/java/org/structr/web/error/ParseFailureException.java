@@ -16,21 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.entity.path;
+package org.structr.web.error;
 
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.NodeInterface;
-import org.structr.web.error.ParseFailureException;
-
-public interface PagePathParameter extends NodeInterface {
-
-	Integer getPosition();
-	void setPosition(final Integer position) throws FrameworkException;
-	String getValueType();
-	String getFormat();
-	String getDefaultValue();
-	boolean getIsMandatory();
-	boolean useDefaultIfInvalid();
-	Object convert(final SecurityContext securityContext, final String src) throws ParseFailureException;
+public class ParseFailureException extends Exception {
+	
 }

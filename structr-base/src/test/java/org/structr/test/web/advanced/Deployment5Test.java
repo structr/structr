@@ -21,7 +21,6 @@ package org.structr.test.web.advanced;
 import io.restassured.RestAssured;
 import org.hamcrest.Matchers;
 import org.structr.api.schema.JsonSchema;
-import org.structr.api.util.ResultStream;
 import org.structr.common.AccessMode;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
@@ -52,7 +51,6 @@ import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.structr.web.traits.definitions.html.Option;
 import org.structr.web.traits.definitions.html.Select;
 import org.structr.websocket.command.CreateComponentCommand;
-import org.structr.websocket.command.RemoveCommand;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -651,7 +649,7 @@ public class Deployment5Test extends DeploymentTestBase {
 				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "test1"),
 				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "String"),
 				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "TEST"),
-				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.IS_OPTIONAL_PROPERTY),   true)
+				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.IS_MANDATORY_PROPERTY),   true)
 			);
 
 			// create one parameter with only required values

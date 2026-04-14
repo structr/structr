@@ -987,16 +987,16 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					putIfNotNull(data, NodeInterfaceTraitDefinition.NAME_PROPERTY,              parameter.getName());
 					putIfNotNull(data, PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY,    valueType);
 
-					// only export format for Date/Node
-					if (List.of("Date", "Node").contains(valueType)) {
+					if (PagePathParameterTraitDefinition.PathParameterValueType.hasFormat(valueType)) {
 
-						putIfNotNull(data, PagePathParameterTraitDefinition.FORMAT_PROPERTY,        parameter.getFormat());
+						putIfNotNull(data, PagePathParameterTraitDefinition.FORMAT_PROPERTY,    parameter.getFormat());
 					}
 
 					putIfNotNull(data, PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY, parameter.getDefaultValue());
 					putIfNotNull(data, PagePathParameterTraitDefinition.POSITION_PROPERTY,      parameter.getPosition());
 
-					data.put(PagePathParameterTraitDefinition.IS_OPTIONAL_PROPERTY,   parameter.getIsOptional());
+					data.put(PagePathParameterTraitDefinition.IS_MANDATORY_PROPERTY,            parameter.getIsMandatory());
+					data.put(PagePathParameterTraitDefinition.USE_DEFAULT_IF_INVALID_PROPERTY,  parameter.useDefaultIfInvalid());
 				}
 
 				entry.put(PagePathTraitDefinition.PARAMETERS_PROPERTY, parameters);
