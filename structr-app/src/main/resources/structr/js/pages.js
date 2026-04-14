@@ -3825,29 +3825,26 @@ let _Pages = {
 				</div>
 			`,
 			pagePathParameterRow: config => `
-				<div class="flex-grow grid grid-cols-3 gap-4 my-3" data-structr-id="${config.id}">
+				<div class="flex items-center gap-4 my-3" data-structr-id="${config.id}">
 
-					<div class="flex items-center gap-2">
-						<pre class="flex-grow bold truncate my-2" title="${config.name}">${config.name}</pre>
-						<div class="flex h-full">
-							<input class="mr-0" type="checkbox" title="Mandatory?" data-structr-attribute="isMandatory" ${config.isMandatory ? 'checked' : ''}>
-						</div>
-					</div>
+					<pre class="w-1/5 truncate my-2" title="${config.name}">${config.name}</pre>
 					
-					<div class="flex items-center gap-3 col-span-2">
-						<select data-structr-attribute="valueType" title="Value Type" style="max-width: calc(14ch + 2rem);" class="w-full">
-							<option value="">Select value type..</option>
-							${['String', 'Base64UrlString', 'Integer', 'Long', 'Double', 'Float', 'Date', 'Boolean', 'Node'].map(type => `<option ${(type === config.valueType ? 'selected' : '')}>${type}</option>`).join('\n')}
-						</select>						
-
-						<input class="w-full box-border" type="text" data-structr-attribute="format" value="${_Helpers.escapeForHtmlAttributes(config.format ?? '')}">
-						
-						<input class="w-full box-border" type="text" title="Default Value" data-structr-attribute="defaultValue" placeholder="Default Value" value="${_Helpers.escapeForHtmlAttributes(config.defaultValue ?? '')}">
-						<div class="flex h-full">
-							<input class="mr-0" type="checkbox" title="Use Default if invalid?" data-structr-attribute="useDefaultIfInvalid" ${config.useDefaultIfInvalid ? 'checked' : ''}>
-						</div>
+					<div class="flex h-full">
+						<input class="mr-0" type="checkbox" title="Mandatory?" data-structr-attribute="isMandatory" ${config.isMandatory ? 'checked' : ''}>
 					</div>
 
+					<select data-structr-attribute="valueType" title="Value Type" style="max-width: calc(14ch + 2rem);" class="w-full flex-1">
+						<option value="">Select value type..</option>
+						${['String', 'Base64UrlString', 'Integer', 'Long', 'Double', 'Float', 'Date', 'Boolean', 'Node'].map(type => `<option ${(type === config.valueType ? 'selected' : '')}>${type}</option>`).join('\n')}
+					</select>
+
+					<input class="w-full flex-1 box-border" type="text" data-structr-attribute="format" value="${_Helpers.escapeForHtmlAttributes(config.format ?? '')}">
+
+					<input class="w-full flex-1 box-border" type="text" title="Default Value" data-structr-attribute="defaultValue" placeholder="Default Value" value="${_Helpers.escapeForHtmlAttributes(config.defaultValue ?? '')}">
+
+					<div class="flex h-full">
+						<input class="mr-0" type="checkbox" title="Use Default if invalid?" data-structr-attribute="useDefaultIfInvalid" ${config.useDefaultIfInvalid ? 'checked' : ''}>
+					</div>
 				</div>
 			`,
 			pagePathParametersMessages: config => `<ul>${config.messages.map(msg => `<li>${_Helpers.escapeTags(msg)}</li>`).join('\n')}</ul>`,
