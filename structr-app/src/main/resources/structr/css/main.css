@@ -5193,26 +5193,36 @@ ul.combined-input-select-field li:not(.nohover):hover {
 	container-type: inline-size;
 }
 
-.\@xl\:grid-cols-2 {
-	@container (width >= 36rem) {
+/**
+	Container sizes
+	Breakpoint	Min width	Container max-width
+	sm	        640px	    640px (40rem)
+	md	        768px	    768px (48rem)
+	lg	        1024px	    1024px (64rem)
+	xl	        1280px	    1280px (80rem)
+	2xl	        1536px	    1536px (96rem)
+ */
+
+.\@md\:grid-cols-2 {
+	@container (width >= 40rem) {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 }
 
-.\@xl\:grid-cols-3 {
-    @container (width >= 36rem) {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
+.\@md\:grid-cols-3 {
+	@container (width >= 40rem) {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
 }
 
-.\@xl\:block {
-	@container (width >= 36rem) {
+.\@md\:block {
+	@container (width >= 40rem) {
 		display: block;
 	}
 }
 
-.\@xl\:col-span-2 {
-	@container (width >= 36rem) {
+.\@md\:col-span-2 {
+	@container (width >= 40rem) {
 		grid-column: span 2 / span 2;
 	}
 }
