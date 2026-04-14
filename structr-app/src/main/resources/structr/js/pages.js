@@ -3795,7 +3795,7 @@ let _Pages = {
 						<div class="inline-info-icon">
 							${_Icons.getSvgIcon(_Icons.iconInfo, 24, 24)}
 						</div>
-						<div class="inline-info-text" style="width: 36rem; max-height: calc(100% - 6rem); overflow: auto;">
+						<div class="inline-info-text" style="width: 50%; max-height: calc(100% - 6rem); overflow: auto;">
 							${_Pages.routingDialog.templates.routingHelp()}
 						</div>
 					</div>
@@ -3830,7 +3830,7 @@ let _Pages = {
 					<pre class="w-1/5 truncate my-2" title="${config.name}">${config.name}</pre>
 					
 					<div class="flex h-full">
-						<input class="mr-0" type="checkbox" title="Mandatory?" data-structr-attribute="isMandatory" ${config.isMandatory ? 'checked' : ''}>
+						<input style="margin: .25rem!important;" type="checkbox" title="Mandatory?" data-structr-attribute="isMandatory" ${config.isMandatory ? 'checked' : ''}>
 					</div>
 
 					<select data-structr-attribute="valueType" title="Value Type" style="max-width: calc(14ch + 2rem);" class="w-full flex-1">
@@ -3843,7 +3843,7 @@ let _Pages = {
 					<input class="w-full flex-1 box-border" type="text" title="Default Value" data-structr-attribute="defaultValue" placeholder="Default Value" value="${_Helpers.escapeForHtmlAttributes(config.defaultValue ?? '')}">
 
 					<div class="flex h-full">
-						<input class="mr-0" type="checkbox" title="Use Default if invalid?" data-structr-attribute="useDefaultIfInvalid" ${config.useDefaultIfInvalid ? 'checked' : ''}>
+						<input style="margin: .25rem!important;" type="checkbox" title="Use Default if invalid?" data-structr-attribute="useDefaultIfInvalid" ${config.useDefaultIfInvalid ? 'checked' : ''}>
 					</div>
 				</div>
 			`,
@@ -3851,15 +3851,108 @@ let _Pages = {
 			routingHelp: config => `
 				<h3 class="mt-0">URL Routes</h3>
 
-				<p>Define the URL routes through which this page can be accessed.</p>
+				<p>In the URL Routing tab of a page, you define path expressions using placeholders following the pattern
+				<code>/static-page-part/{param1}/{param2}/.../{paramN}/{paramN}</code> that allow URL parameters to be mapped to a page and multiple parameters.</p>
 
-				<p>Routes are evaluated from top to bottom. The first matching route is used. You can change the evaluation order via drag and drop.</p>
+				<p>By default, Structr automatically maps pages to URLs based only on their name. URL Routing extends this by
+				allowing the user to define custom routing schemes with typed parameters that Structr validates and makes
+				available in the page, giving the user full control over the URL structure beyond the built-in automatic routing.</p>
 
-				<p><em>Note:</em> Using a UUID to automatically resolve to a <code>current</code> object, which is possible with default page access, is not possible with URL Routes. A separate path parameter for a <code>current</code> object must be explicitly introduced in the route.</p>
+				<p>A page can have multiple routes. Structr evaluates all URL routes (sorted by priority) before checking page names.
+				The priority can be changed via drag and drop in the user interface.</p>
+				
+				<p>This means that custom routes take precedence over the default name-based resolution. If a route matches,
+				the corresponding page is rendered and the matched parameters are made available using their placeholder names.
+				In StructrScript, parameters are accessed with using <code>paramName</code> in a scripting context <code>\${...}</code>.
+				In JavaScript contexts <code>\${{...}}</code>, the parameters care accessed using <code>$.paramName</code>.</p>
+				
+				<p>Multiple routes can point to the same page, allowing a single page to serve different URL patterns.
+				For example, a product page could be reachable via both <code>/product/{id}</code> and <code>/shop/{category}/{id}</code>.</p>
 
-				<h3>Path Parameters</h3>
+				<p><em>Note:</em> Using a UUID to automatically resolve to a <code>current</code> object, which is possible
+				with default page access, is not possible with URL Routes. If such functionality is desired, a separate
+				path parameter must be explicitly introduced in the route.</p>
 
-				<p>Path parameters can be defined using <code>{param}</code> syntax. These parameters are automatically extracted and validated. You can further configure them (e.g. type, default values).</p>
+				<h3>Path Parameters and Configuration</h3>
+
+				<p>Path parameters can be defined using <code>{param}</code> syntax. These parameters are automatically
+				extracted and validated and can be further configured (e.g. type, default values, behaviour).</p>
+				
+				<p>Parameters can be optional (default) or mandatory. If a parameter is mandatory, the route will only
+				match for an incoming request if a parameter value is present.</p>
+				
+				<p>Parameters can also have default values. If a parameter value is missing (and the parameter is optional),
+				the default value will be used instead. If a parameter value is present but fails to parse for the given
+				parameter type, the default value will only be used if the <code>useDefaultIfInvalid</code> flag is set.
+				This does not affect if the route matches or not.</p>
+				
+				> **Note:** Do not use parameter names that are also used as data keys in repeaters, as they will not work.
+				> For other built-in functionality, warnings will be generated in the configuration dialog for URL Routes.
+				
+				> **Note:** URLs are limited to a maximum length of 8192 characters. This constrains the maximum size of
+				> transferable data via parameters.
+				
+				<h4>Parameter Types</h4>
+				
+				<p>The parameter types available are: String, Base64UrlString, Integer, Long, Double, Float, Date, Boolean, Node.</p>
+				
+				<p>All parameters undergo conversion from the string representation in the URL to their configured parameter type.</p>
+				
+				<h5>String</h5>
+				
+				<p>Any input (following URL compliance rules) is accepted as-is and returned without conversion. This is the default type.
+				For any unknown type, Structr logs a warning and falls back to this behavior.</p>
+				
+				<h5>StringBase64URL</h5>
+				
+				<p>The <code>StringBase64URL</code> type represents Base64URL-encoded data within a path segment.
+				By default, decoded values are interpreted as a UTF-8 string.</p>
+				
+				<p>If you need to transport arbitrary binary data, you can set the content charset to <code>ISO-8859-1</code>.
+				This allows a direct byte-to-character mapping without data loss.</p>
+				
+				<p>Using Base64URL encoding helps avoid common pitfalls of URL data transmission. Reserved characters
+				such as <code>/</code> or <code>%</code>, as well as special path segments like <code>/./</code> and
+				<code>/../</code>, can interfere with routing and normalization.
+				Encoding the data prevents these issues by ensuring the path segment remains structurally safe.</p>
+				
+				<h5>Double, Float, Integer, or Long</h5>
+
+				<p>The input string is parsed using the Java parsing method specific for the type.</p>
+				
+				<p>If parsing fails, a warning is logged that identifies the target type and parameter name.
+				If the parameter is configured to return the default value in such error cases, the default value is returned.
+				Otherwise <code>null</code> is returned.</p>
+
+				<h5>Boolean</h5>
+
+				<p>The input is converted to <code>true</code> only if the input equals "true" ignoring case, and <code>false</code> only if the input equals "false" ignoring case.</p>
+				
+				<p>Any other input is treated as invalid and a warning is logged. If the parameter is configured to return the default value in such cases, the default value is returned.
+				Otherwise <code>null</code> is returned.</p>
+
+				<h5>Date</h5>
+				
+				<p>A date parameter can have a custom format the user can configure (e.g. <code>yyyyMMdd</code>). If no custom format is configured, the input
+				is parsed as an ISO 8601 date string. The following formats are supported:</p>
+				
+				- <code>yyyy-MM-dd'T'HH:mm:ss.SSSXXX</code> (e.g. <code>2026-02-14T12:34:56.000+01:00</code>)
+				- <code>yyyy-MM-dd'T'HH:mm:ssXXX</code> (e.g. <code>2026-02-14T12:34:56+01:00</code>)
+				- <code>yyyy-MM-dd'T'HH:mm:ssZ</code> (e.g. <code>2026-02-14T12:34:56Z</code>)
+				- <code>yyyy-MM-dd'T'HH:mm:ss.SSSZ</code> (e.g. <code>2026-02-14T12:34:56.000Z</code>)
+				
+				<p>If parsing fails for a configured custom format or all of the supported formats, a warning is logged.
+				If the parameter is configured to return the default value in such error cases, the default value is parsed and returned according to the format.
+				Otherwise <code>null</code> is returned.</p>
+				
+				<h5>Node</h5>
+				
+				<p>A node parameter can have a type configuration that determines which types of nodes can be found via the URL route. By default,
+				this is empty and nodes of all types can be found. Given a type name A, all nodes of that type and inheriting types will be able to be found.</p>
+				
+				<p>Node lookup uses the same basic mechanism as the current object resolution, meaning that by default UUIDs can be used but also all attributes configured in <code>htmlservlet.resolveproperties</code>.</p>
+				
+				<p>If no value is given, the default value is used. If a value is given but no node can be found, the default value will NOT be used.</p>
 
 				<h3>Matching Behavior</h3>
 
@@ -3871,63 +3964,45 @@ let _Pages = {
 				<p>This means multiple parameters in the same segment can lead to ambiguous matches:</p>
 
 				<ul>
-					<li><code>/{var1}{var2}/</code> → <code>var1</code> captures the entire segment, <code>var2</code> remains empty</li>
+					<li><code>/{var1}{var2}/</code> → <code>var1</code> captures the entire segment, <code>var2</code>remains empty</li>
 					<li><code>/{var1}_{var2}/</code> → works because <code>_</code> enforces a boundary</li>
 				</ul>
 
 				<p>Use a separator character that cannot appear in either parameter.</p>
 
-				<p><em>Recommendation:</em> Prefer a single parameter per path segment to avoid ambiguity.</p>
+				<p><em>Recommendation:</em> Prefer a single parameter per path segment to avoid ambiguity. If values can
+				be empty, add a prefix or suffix to ensure no empty URL segments can be present. Otherwise, a URL compliance
+				violation has to be allowed.</p>
 
 				<h3>Catch-All Routes</h3>
 
-				<p>Routes like <code>/{variable}/</code> match almost any request, causing nearly all traffic - including requests for other pages - to be routed to this page.</p>
+				<p>Routes like <code>/{variable}/</code> match almost any request, causing nearly all traffic - including
+				requests for other pages - to be routed to this page.</p>
 
-				<p>To prevent unintended matches, include at least one static (or clearly structured) segment at the beginning of the path, e.g.:</p>
+				<p>To prevent unintended matches, include at least one static (or clearly structured) segment in the path.
+				For easier reasoning about paths, it is recommended to put statis parts at the start of the path, e.g.:</p>
 
 				<ul>
 					<li><code>/users/{id}/</code></li>
 					<li><code>/api/{resource}/</code></li>
 				</ul>
 
-				<p>However, catch-all routes can be useful in specific scenarios, such as debugging another clients' behaviour.</p>
+				<p>However, catch-all routes can be useful in specific (mostly temporary) scenarios, such as debugging
+				another clients' behaviour.</p>
+				
+				<h3>URL Compliance</h3>
+				
+				<p>By default, no URL violations are allowed. When using plain string path parameters (i.e. accepting
+				arbitrary user input), you may need to explicitly allow certain URL violations via the configuration:
+				<code>httpservice.uricompliance.allowedviolations</code>. Relevant options include:</p>
 
-				<p>If used, place them at the end of the route list and use them deliberately (e.g. for diagnostics or controlled fallback handling).</p>
-
-				<p>But be aware that this will make other pages unreachable.</p>
+				<ul>
+					<li><code>AMBIGUOUS_EMPTY_SEGMENT</code> - allows empty path segments</li>
+					<li><code>AMBIGUOUS_PATH_SEPARATOR</code> - allows <code>%2f</code> (<code>/</code>) within user-provided values</li>
+					<li><code>AMBIGUOUS_PATH_ENCODING</code> - allows <code>%25</code> (<code>%</code>) within user-provided values</li>
+				</ul>
 				
-				**URL Compliance**
-				
-				By default, no URL violations are allowed.
-				
-				When using plain string path parameters (i.e. accepting arbitrary user input), you may need to explicitly allow certain URL violations via the configuration:
-				
-				\`httpservice.uricompliance.allowedviolations\`
-				
-				Relevant options include:
-				
-				* \`AMBIGUOUS_EMPTY_SEGMENT\` – allows empty path segments
-				* \`AMBIGUOUS_PATH_SEPARATOR\` – allows \`%2f\` (\`/\`) within user-provided values
-				* \`AMBIGUOUS_PATH_ENCODING\` – allows \`%25\` (\`%\`) within user-provided values
-				
-				Base64URL encoding avoids the need for these exceptions in most cases, since it produces URL-safe output by design.
-				
-				**Limitations:**
-				
-				* URLs are limited to a maximum length of 8192 characters. This constrains the maximum size of transferable data when using this type.
-				* Encoding overhead (Base64) further reduces the effective payload size.
-				
-**StringBase64URL**
-
-The \`StringBase64URL\` type represents Base64URL-encoded data within a path segment.
-
-By default, decoded values are interpreted as a UTF-8 string.
-
-If you need to transport arbitrary binary data, you can set the content charset to \`ISO-8859-1\`. This allows a direct byte-to-character mapping without data loss.
-
-Using Base64URL encoding also helps avoid common pitfalls of URL data transmission. Reserved characters such as \`/\` or \`%\`, as well as special path segments like \`/./\` and \`/../\`, can interfere with routing and normalization. Encoding the data prevents these issues by ensuring the path segment remains structurally safe.
-
-
+				<p>Using Base64URL encoding avoids the need for these exceptions in most cases, since it produces URL-safe output by design.</p>
 			`
 		}
 	},

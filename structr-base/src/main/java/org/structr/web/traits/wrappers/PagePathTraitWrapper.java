@@ -104,11 +104,17 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 				if (pathParameterMatcher.find()) {
 
 					final String paramName = pathParameterMatcher.group(1);
+
+					if (names.contains(paramName)) {
+
+						messages.add("Parameter '" + paramName + "' occurs multiple times. This will not work.");
+					}
+
 					names.add(paramName);
 
 					if (structrBinding.getMember(paramName) != null) {
 
-						messages.add("Parameter '" + baseMatch + "' conflicts with builtin functionality. Please choose a different name.");
+						messages.add("Parameter '" + paramName + "' conflicts with builtin functionality. Please choose a different name.");
 					}
 
 				} else {
@@ -227,7 +233,17 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 				// does the path part contain a parameter definition?
 				if (pathMatcher.find()) {
 
-					final String valueCapturePatternSource = PATH_PARAMETER_PATTERN.matcher(pathPart).replaceAll("(.*)");
+					final String valueCapturePatternSource = PATH_PARAMETER_PATTERN.matcher(pathPart).replaceAll(result -> {
+
+						final String key                  = result.group(1);
+						final PagePathParameter parameter = parameters.get(key);
+
+						if (parameter != null && parameter.getIsMandatory()) {
+							return "(.+)";
+						}
+
+						return "(.*)";
+					});
 					final Pattern valueCapturePattern      = Pattern.compile("\\A" + valueCapturePatternSource + "\\z");
 					final Matcher valueCaptureMatcher      = valueCapturePattern.matcher((requestPart == null ? "" : requestPart));
 
