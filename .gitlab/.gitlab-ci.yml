@@ -135,7 +135,27 @@ snapshot-build:
         
         This release is automatically updated with each commit to main." \
         structr-app/target/*.deb structr-app/target/*.zip
-        
+      
+        echo "Cleaning up old packages for $STRUCTR_VERSION..."
+        PACKAGES=$(curl --silent \
+          --header "PRIVATE-TOKEN: $CI_RELEASE_TOKEN" \
+          "$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages?package_name=$STRUCTR_VERSION&per_page=100&order_by=created_at&sort=asc")
+
+        TOTAL=$(echo "$PACKAGES" | jq '. | length')
+        echo "Found $TOTAL package(s)"
+
+        if [ "$TOTAL" -gt 1 ]; then
+          # Keep the latest (last in asc), delete the rest
+          echo "$PACKAGES" | jq -r '.[].id' | head -n -1 | while read ID; do
+            echo "Deleting old package ID: $ID"
+            curl --silent --request DELETE \
+              --header "PRIVATE-TOKEN: $CI_RELEASE_TOKEN" \
+              "$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/$ID"
+          done
+        else
+          echo "Nothing to clean up."
+        fi
+      
         echo "SNAPSHOT build and release completed successfully"
       else
         echo "Skipping build because version is no SNAPSHOT and/or not on main branch"
