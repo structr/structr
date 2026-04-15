@@ -93,6 +93,11 @@ public class LoginServlet extends AbstractDataServlet implements HttpServiceServ
 
 		try {
 
+			// CSRF origin check for form-based login
+			if (!checkCsrfOrigin(request, response)) {
+				return;
+			}
+
 			// first thing to do!
 			request.setCharacterEncoding("UTF-8");
 			response.setCharacterEncoding("UTF-8");

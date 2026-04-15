@@ -48,7 +48,7 @@ public class EncodingTest extends StructrUiTest {
 	public void testEncoding() {
 
 		final String testString = "abcdefgjihklmnopqrstuvwxyzäöüßóñABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÜ";
-		final int port          = 54678;
+		final int port          = 54679;
 
 		final SocketConfig socketConfig = SocketConfig.custom()
 			.setSoTimeout(1000)

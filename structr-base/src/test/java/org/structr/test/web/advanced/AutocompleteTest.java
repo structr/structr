@@ -306,6 +306,42 @@ public class AutocompleteTest extends StructrUiTest {
 		}
 	}
 
+	@Test
+	public void testJavascriptAutocompleteForPredicateKeyword() {
+
+		final ActionContext actionContext = new ActionContext(securityContext);
+
+		final List<GraphObject> result = AbstractHintProvider.getHints(actionContext, false, null, "${{ $.find('User', $.predica", "", 0, 0);
+
+		final String[] predicateChecks = {
+			"predicate.and",
+			"predicate.any",
+			"predicate.contains",
+			"predicate.empty",
+			"predicate.endsWith",
+			"predicate.equals",
+			"predicate.gt",
+			"predicate.gte",
+			"predicate.lt",
+			"predicate.lte",
+			"predicate.not",
+			"predicate.or",
+			"predicate.page",
+			"predicate.range",
+			"predicate.sort",
+			"predicate.startsWith",
+			"predicate.withinDistance",
+		};
+
+		int resultIndex =1; // ignore first entry of result (should be predicate without anything)
+
+		for (String predicateCheck : predicateChecks) {
+			final Map<String, Object> entry = ((GraphObjectMap) result.get(resultIndex++)).toMap();
+			assertEquals("Invalid autocomplete result", predicateCheck, entry.get("text"));
+			assertEquals("Invalid autocomplete replacement", predicateCheck, entry.get("replacement"));
+		}
+	}
+
 	// ----- private methods -----
 	void assertFullResult(final List<GraphObject> result) {
 
@@ -313,12 +349,14 @@ public class AutocompleteTest extends StructrUiTest {
 
 		int i=0;
 
+		assertEquals("Invalid autocomplete result", "adapter",                                  ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "applicationRootPath",                   ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "applicationStore",                      ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "baseUrl",                               ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "children",                              ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "current",                               ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "data",                                  ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		assertEquals("Invalid autocomplete result", "dataSource",                            ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "host",                                  ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "id",                                    ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "ip",                                    ((GraphObjectMap)result.get(i++)).toMap().get("text"));
@@ -335,6 +373,7 @@ public class AutocompleteTest extends StructrUiTest {
 		assertEquals("Invalid autocomplete result", "queryString",                           ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "request",                               ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "session",                               ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		assertEquals("Invalid autocomplete result", "template",                              ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "tenantIdentifier",                      ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "this",                                  ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "value",                                 ((GraphObjectMap)result.get(i++)).toMap().get("text"));

@@ -43,7 +43,6 @@ import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.rest.service.HttpService;
 import org.structr.schema.SchemaService;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.test.web.entity.traits.definitions.*;
 import org.structr.test.web.entity.traits.definitions.relationships.FourThreeOneToOne;
 import org.structr.test.web.entity.traits.definitions.relationships.TwoFiveOneToMany;
@@ -646,62 +645,5 @@ public abstract class CsvTestBase {
 		}
 		Settings.ConnectionDatabaseName.setValue("neo4j");
 		Settings.TenantIdentifier.setValue(randomTenantId);
-	}
-
-	protected void tryWithTimeout(final Supplier<Boolean> workload, final Runnable onTimeout, final int timeoutInMS) {
-
-		if (workload != null && timeoutInMS >= 0) {
-			final long startTime = System.currentTimeMillis();
-
-			do {
-				if (workload.get()) {
-					return;
-				}
-			} while ((startTime + timeoutInMS) >= System.currentTimeMillis());
-		}
-
-		if (onTimeout != null) {
-			onTimeout.run();
-		}
-	}
-
-	protected void tryWithTimeout(final Supplier<Boolean> workload, final Runnable onTimeout, final int timeoutInMS, final int retryDelayInMS) {
-
-		final long startTime = System.currentTimeMillis();
-
-		if (workload != null && onTimeout != null && timeoutInMS >= 0 && retryDelayInMS > 0) {
-			do {
-				if (workload.get()) {
-					return;
-				}
-
-				try {
-
-					Thread.sleep(retryDelayInMS);
-				} catch (InterruptedException ex) {
-
-					return;
-				}
-			} while ((startTime + timeoutInMS) >= System.currentTimeMillis());
-
-			onTimeout.run();
-		}
-	}
-
-	protected Object invokeMethod(final SecurityContext securityContext, final NodeInterface node, final String methodName, final Map<String, Object> parameters, final boolean throwIfNotExists, final EvaluationHints hints) throws FrameworkException {
-
-		final AbstractMethod method = Methods.resolveMethod(node.getTraits(), methodName);
-		if (method != null) {
-
-			hints.reportExistingKey(methodName);
-
-			method.execute(securityContext, node, NamedArguments.fromMap(parameters), new EvaluationHints());
-		}
-
-		if (throwIfNotExists) {
-			throw new FrameworkException(400, "Method " + methodName + " not found in type " + node.getType());
-		}
-
-		return null;
 	}
 }

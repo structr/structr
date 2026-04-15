@@ -36,6 +36,11 @@ public class FindEmptyFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public String getReplacementHint() {
+		return "predicate.empty";
+	}
+
+	@Override
 	public String getDisplayName(boolean includeParameters) {
 		return "predicate.empty";
 	}

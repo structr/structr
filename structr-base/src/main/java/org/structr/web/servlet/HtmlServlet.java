@@ -53,9 +53,7 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
@@ -69,7 +67,6 @@ import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.rest.servlet.AbstractServletBase;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.util.Base64;
 import org.structr.web.auth.UiAuthenticator;
@@ -291,7 +288,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 							// check dynamic paths
 							final DOMNode pathResult = PagePaths.findPageAndResolveParameters(renderContext, path);
-							if (pathResult != null) {
+							if (pathResult != null && isVisibleForSite(request, pathResult.as(Page.class))) {
 
 								rootElement   = pathResult;
 							}
@@ -385,7 +382,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 									rootElement = findPartialByName(securityContext, PathHelper.getName(pagePart));
 								}
 
-								dataNode = findNodeByUuid(securityContext, PathHelper.getName(path));
+								final String uuid = PathHelper.getName(path);
+								dataNode = findNodeByUuid(securityContext, uuid);
 
 								if (dataNode == null) {
 									dataNode = findFirstNodeByName(securityContext, path);
@@ -430,7 +428,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 							} else if (result.is(StructrTraits.FILE)) {
 
-								streamFile(authResult.getSecurityContext(), result.as(File.class), request, response, EditMode.NONE, true);
+								streamFile(new ActionContext(authResult.getSecurityContext()), result.as(File.class), request, response, EditMode.NONE, true);
 								tx.success();
 								return;
 
@@ -468,7 +466,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				if (file != null && securityContext.isVisible(file)) {
 
-					streamFile(securityContext, file, request, response, edit, true);
+					streamFile(renderContext, file, request, response, edit, true);
 					tx.success();
 
 					return;
@@ -668,7 +666,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					File file = findFile(securityContext, request, path);
 					if (file != null) {
 
-						streamFile(securityContext, file, request, response, edit, false);
+						streamFile(renderContext, file, request, response, edit, false);
 						tx.success();
 						return;
 
@@ -732,7 +730,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 							} else if (result.is(StructrTraits.FILE)) {
 
-								streamFile(authResult.getSecurityContext(), result.as(File.class), request, response, EditMode.NONE, true);
+								streamFile(new ActionContext(authResult.getSecurityContext()), result.as(File.class), request, response, EditMode.NONE, true);
 								tx.success();
 								return;
 
@@ -1524,8 +1522,9 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		return notModified;
 	}
 
-	private void streamFile(final SecurityContext securityContext, final File file, HttpServletRequest request, HttpServletResponse response, final EditMode edit, final boolean sendContent) throws IOException {
+	private void streamFile(final ActionContext actionContext, final File file, HttpServletRequest request, HttpServletResponse response, final EditMode edit, final boolean sendContent) throws IOException {
 
+		final SecurityContext securityContext = actionContext.getSecurityContext();
 		if (!securityContext.isVisible(file)) {
 
 			response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -1692,7 +1691,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				final AbstractMethod method = Methods.resolveMethod(file.getTraits(), Actions.NOTIFICATION_DOWNLOAD);
 				if (method != null) {
 
-					method.execute(securityContext, file, NamedArguments.fromMap(callbackMap), new EvaluationHints());
+					method.execute(actionContext, file, NamedArguments.fromMap(callbackMap));
 				}
 
 			} catch (FrameworkException fex) {
@@ -1709,9 +1708,10 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	 * @param page
 	 * @return
 	 */
-	public static boolean isVisibleForSite(final HttpServletRequest request, final Page page) {
+	public static boolean isVisibleForSite(final HttpServletRequest request, final Page page) throws FrameworkException {
 
-		final List<Site> sites = Iterables.toList(page.getSites());
+		final List<NodeInterface> sites = StructrApp.getInstance().nodeQuery(StructrTraits.SITE).getAsList();
+
 		if (sites == null || sites.isEmpty()) {
 
 			return true;
@@ -1722,7 +1722,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		boolean isVisible = false;
 
-		for (final Site site : sites) {
+		for (final Site site : Iterables.toList(page.getSites())) {
 
 				if (StringUtils.isBlank(serverName) || serverName.equals(site.getHostname())) {
 					isVisible = true;
@@ -1883,7 +1883,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				if ("Basic".equals(authType)) {
 
 					final String value   = new String(Base64.decode(authValue), StandardCharsets.UTF_8);
-					final String[] parts = value.split(":");
+					final String[] parts = value.split(":", 2);
 
 					if (parts.length == 2) {
 
@@ -1930,6 +1930,11 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	public static String filterMaliciousRedirects(final String source) {
 
 		if (source != null) {
+
+			// Block protocol-relative URLs (e.g. //evil.com/path)
+			if (source.startsWith("//")) {
+				return null;
+			}
 
 			try {
 

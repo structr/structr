@@ -139,7 +139,7 @@ html.documentation {
     border: none;
     height: calc(100vh - 10rem);
     margin: 0;
-    padding: 1rem 0;
+    padding: 1rem 0 4rem 0;
     width: 80%;
 }
 
@@ -208,7 +208,7 @@ html.documentation {
 .article h2 {
     font-size: 2.3rem;
     padding: 2.5rem 0 0 0;
-    margin: 1rem 0 .5rem 0;
+    margin: 1rem 0 0 0;
 }
 
 .article h3 {

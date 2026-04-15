@@ -48,69 +48,69 @@ public class CreateFunction extends CoreFunction {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		if (sources != null && sources.length > 0) {
+		Traits type = null;
 
-			final SecurityContext securityContext = ctx.getSecurityContext();
-			PropertyMap propertyMap;
-			Traits type = null;
+		if (sources.length >= 1 && sources[0] != null) {
 
-			if (sources.length >= 1 && sources[0] != null) {
+			final String typeString = sources[0].toString();
 
-				type = Traits.of(sources[0].toString());
-			}
+			if (Traits.exists(typeString)) {
 
-			if (type == null) {
-
-				throw new FrameworkException(422, "Unknown type '" + sources[0].toString() + "' in create() method!");
-			}
-
-			// extension for native javascript objects
-			if (sources.length == 2 && sources[1] instanceof Map) {
-
-				propertyMap = PropertyMap.inputTypeToJavaType(securityContext, type.getName(), (Map)sources[1]);
-
-			} else if (sources.length == 2 && sources[1] instanceof GraphObjectMap) {
-
-				propertyMap = PropertyMap.inputTypeToJavaType(securityContext, type.getName(), ((GraphObjectMap)sources[1]).toMap());
+				type = Traits.of(typeString);
 
 			} else {
 
-				propertyMap               = new PropertyMap();
-				final int parameterCount = sources.length;
-
-				if (parameterCount % 2 == 0) {
-
-					throw new FrameworkException(400, "Invalid number of parameters: " + parameterCount + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
-				}
-
-				for (int c = 1; c < parameterCount; c += 2) {
-
-					final PropertyKey key = type.key(sources[c].toString());
-
-					if (key != null) {
-
-						final PropertyConverter inputConverter = key.inputConverter(securityContext, false);
-						Object value = sources[c + 1];
-
-						if (inputConverter != null) {
-
-							value = inputConverter.convert(value);
-						}
-
-						propertyMap.put(key, value);
-					}
-
-				}
+				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, AbstractQueryFunction.ERROR_MESSAGE_TYPE_NOT_FOUND.formatted(getName(), typeString));
 			}
+		}
 
-			return StructrApp.getInstance(securityContext).create(type.getName(), propertyMap);
+		if (type == null) {
+
+			return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, AbstractQueryFunction.ERROR_MESSAGE_NO_TYPE_SPECIFIED.formatted(getName(), getParametersAsString(sources)));
+		}
+
+		final SecurityContext securityContext = ctx.getSecurityContext();
+		PropertyMap propertyMap;
+
+		// extension for native javascript objects
+		if (sources.length == 2 && sources[1] instanceof Map) {
+
+			propertyMap = PropertyMap.inputTypeToJavaType(securityContext, type.getName(), (Map)sources[1]);
+
+		} else if (sources.length == 2 && sources[1] instanceof GraphObjectMap) {
+
+			propertyMap = PropertyMap.inputTypeToJavaType(securityContext, type.getName(), ((GraphObjectMap)sources[1]).toMap());
 
 		} else {
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+			propertyMap               = new PropertyMap();
+			final int parameterCount = sources.length;
 
-			return usage(ctx.isJavaScriptContext());
+			if (parameterCount % 2 == 0) {
+
+				throw new FrameworkException(400, "Invalid number of parameters: " + parameterCount + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
+			}
+
+			for (int c = 1; c < parameterCount; c += 2) {
+
+				final PropertyKey key = type.key(sources[c].toString());
+
+				if (key != null) {
+
+					final PropertyConverter inputConverter = key.inputConverter(securityContext, false);
+					Object value = sources[c + 1];
+
+					if (inputConverter != null) {
+
+						value = inputConverter.convert(value);
+					}
+
+					propertyMap.put(key, value);
+				}
+			}
 		}
+
+		return StructrApp.getInstance(securityContext).create(type.getName(), propertyMap);
 	}
 
 	@Override

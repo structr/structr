@@ -50,7 +50,14 @@ public class IncludeChildFunction extends IncludeFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("name [, collection, dataKey]");
+		return List.of(
+			Signature.structrScript("name"),
+			Signature.structrScript("name, collection, dataKey"),
+			Signature.structrScript("name, dataSource"),
+			Signature.javaScript("name"),
+			Signature.javaScript("name, collection, dataKey"),
+			Signature.javaScript("name, dataSource")
+		);
 	}
 
 	@Override
@@ -81,14 +88,14 @@ public class IncludeChildFunction extends IncludeFunction {
 					innerCtx.getBuffer().append("<structr:include-child data-caller-id=\"").append(caller.toString()).append("\">");
 				}
 
-				final Template templateNode                = n.as(Template.class);
-				final List<NodeInterface> childrenWithName = templateNode.treeGetChildren().stream().filter(ni -> (sources[0]).equals(ni.as(DOMNode.class).getName())).toList();
-				final int childrenWithNameCount            = childrenWithName.size();
+				final Template templateNode          = n.as(Template.class);
+				final List<DOMNode> childrenWithName = templateNode.getChildrenWithName(sources[0].toString());
+				final int childrenWithNameCount      = childrenWithName.size();
 
 				if (childrenWithNameCount == 1) {
 
 					// Exactly one child found => use this node
-					return renderNode(securityContext, ctx, innerCtx, sources, app, childrenWithName.getFirst().as(DOMNode.class), true);
+					return renderNode(securityContext, ctx, innerCtx, sources, app, childrenWithName.getFirst(), true);
 
 				} else if (childrenWithNameCount > 1) {
 
@@ -142,7 +149,8 @@ public class IncludeChildFunction extends IncludeFunction {
 
 		return List.of(
 			Example.structrScript("${includeChild('Child1')}", "Render the contents of the child node named \"Child1\" into the output buffer"),
-			Example.structrScript("${includeChild('Item Template', find('Item'), 'item')}", "Render the contents of the child node named \"Item Template\" once for every Item node in the database")
+			Example.structrScript("${includeChild('Item Template', find('Item'), 'item')}", "Render the contents of the child node named \"Item Template\" once for every Item node in the database"),
+			Example.structrScript("${includeChild('Item Template', currentDataSource)}", "Render the contents of the child node named \"Item Template\" once for every item from the data source")
 		);
 	}
 

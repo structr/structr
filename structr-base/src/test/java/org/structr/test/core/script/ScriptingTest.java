@@ -39,7 +39,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.*;
 import org.structr.core.function.DateFormatFunction;
-import org.structr.core.function.FindFunction;
+import org.structr.core.function.AbstractQueryFunction;
 import org.structr.core.function.FunctionInfoFunction;
 import org.structr.core.function.NumberFormatFunction;
 import org.structr.core.graph.NodeAttribute;
@@ -55,7 +55,6 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.parser.DatePropertyGenerator;
 import org.structr.test.common.StructrTest;
@@ -78,11 +77,6 @@ import java.util.List;
 
 import static org.testng.AssertJUnit.*;
 
-
-/**
- *
- *
- */
 public class ScriptingTest extends StructrTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(ScriptingTest.class.getName());
@@ -207,30 +201,29 @@ public class ScriptingTest extends StructrTest {
 			}
 
 			final NodeInterface sourceNode = app.nodeQuery(sourceType).getFirst();
-			final EvaluationHints hints   = new EvaluationHints();
 
 			// set testEnum property to OPEN via doTest01 function call, check result
-			invokeMethod(securityContext, sourceNode, "doTest01", Collections.EMPTY_MAP, true, hints);
+			invokeMethod(securityContext, sourceNode, "doTest01", Collections.EMPTY_MAP, true);
 			assertEquals("Invalid setProperty result for EnumProperty", "OPEN", sourceNode.getProperty(testEnumProperty));
 
 			// set testEnum property to CLOSED via doTest02 function call, check result
-			invokeMethod(securityContext, sourceNode, "doTest02", Collections.EMPTY_MAP, true, hints);
+			invokeMethod(securityContext, sourceNode, "doTest02", Collections.EMPTY_MAP, true);
 			assertEquals("Invalid setProperty result for EnumProperty", "CLOSED", sourceNode.getProperty(testEnumProperty));
 
 			// set testEnum property to TEST via doTest03 function call, check result
-			invokeMethod(securityContext, sourceNode, "doTest03", Collections.EMPTY_MAP, true, hints);
+			invokeMethod(securityContext, sourceNode, "doTest03", Collections.EMPTY_MAP, true);
 			assertEquals("Invalid setProperty result for EnumProperty", "TEST", sourceNode.getProperty(testEnumProperty));
 
 			// set testEnum property to INVALID via doTest03 function call, expect previous value & error
 			try {
-				invokeMethod(securityContext, sourceNode, "doTest04", Collections.EMPTY_MAP, true, hints);
+				invokeMethod(securityContext, sourceNode, "doTest04", Collections.EMPTY_MAP, true);
 				assertEquals("Invalid setProperty result for EnumProperty", "TEST", sourceNode.getProperty(testEnumProperty));
 				fail("Setting EnumProperty to invalid value should result in an Exception!");
 
 			} catch (FrameworkException fx) {}
 
 			// test other property types
-			invokeMethod(securityContext, sourceNode, "doTest05", Collections.EMPTY_MAP, true, hints);
+			invokeMethod(securityContext, sourceNode, "doTest05", Collections.EMPTY_MAP, true);
 			assertEquals("Invalid setProperty result for BooleanProperty",                         true, sourceNode.getProperty(testBooleanProperty));
 			assertEquals("Invalid setProperty result for IntegerProperty",                          123, sourceNode.getProperty(testIntegerProperty));
 			assertEquals("Invalid setProperty result for StringProperty",                   "testing..", sourceNode.getProperty(testStringProperty));
@@ -314,7 +307,7 @@ public class ScriptingTest extends StructrTest {
 			final AbstractMethod method = Methods.resolveMethod(node.getTraits(), "doTest01");
 			if (method != null) {
 
-				method.execute(securityContext, node, new UnnamedArguments(), new EvaluationHints());
+				method.execute(new ActionContext(securityContext), node, new UnnamedArguments());
 			}
 
 			tx.success();
@@ -1914,11 +1907,31 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid find() result for empty values", testThree.getUuid(), Scripting.replaceVariables(ctx, testOne, "${first(find('TestThree', 'oneToOneTestSix', this.alwaysNull))}"));
 			assertEquals("Invalid find() result for empty values", testThree.getUuid(), Scripting.replaceVariables(ctx, testOne, "${first(find('TestThree', 'oneToManyTestSix', this.alwaysNull))}"));
 
-			// find with incorrect number of parameters
-			assertEquals("Invalid find() result", FindFunction.ERROR_MESSAGE_FIND_NO_TYPE_SPECIFIED, Scripting.replaceVariables(ctx, testOne, "${find()}"));
-			assertEquals("Invalid find() result", FindFunction.ERROR_MESSAGE_FIND_NO_TYPE_SPECIFIED, Scripting.replaceVariables(ctx, testOne, "${find(this.alwaysNull)}"));
-			assertEquals("Invalid find() result", FindFunction.ERROR_MESSAGE_FIND_NO_TYPE_SPECIFIED, Scripting.replaceVariables(ctx, testOne, "${find(this.alwaysNull, this.alwaysNull)}"));
-			assertEquals("Invalid find() result", FindFunction.ERROR_MESSAGE_FIND_TYPE_NOT_FOUND + "NonExistingType", Scripting.replaceVariables(ctx, testOne, "${find('NonExistingType')}"));
+			// find with incorrect number of parameters (StructrScript -> null should be returned because exceptions are not supported)
+			assertEquals("Invalid find() result", "", Scripting.replaceVariables(ctx, testOne, "${find()}"));
+			assertEquals("Invalid find() result", "", Scripting.replaceVariables(ctx, testOne, "${find(this.alwaysNull)}"));
+			assertEquals("Invalid find() result", "", Scripting.replaceVariables(ctx, testOne, "${find(this.alwaysNull, this.alwaysNull)}"));
+			assertEquals("Invalid find() result", "", Scripting.replaceVariables(ctx, testOne, "${find('NonExistingType')}"));
+			assertEquals("Invalid find() result", "", Scripting.replaceVariables(ctx, testOne, "${find('GraphObject')}"));
+
+			// find with incorrect number of parameters (JavaScript -> exception is thrown)
+			assertEquals("Invalid find() result", "FrameworkException(422): " + AbstractQueryFunction.ERROR_MESSAGE_NO_TYPE_SPECIFIED.formatted("find", "[]"), Scripting.replaceVariables(ctx, testOne, "${{ try { $.find(); } catch (e) { e.getMessage(); } }}"));
+			assertEquals("Invalid find() result", "FrameworkException(422): " + AbstractQueryFunction.ERROR_MESSAGE_NO_TYPE_SPECIFIED.formatted("find", "[null]"), Scripting.replaceVariables(ctx, testOne, "${{ try { $.find($.this.alwaysNull); } catch (e) { e.getMessage(); } }}"));
+			assertEquals("Invalid find() result", "FrameworkException(422): " + AbstractQueryFunction.ERROR_MESSAGE_NO_TYPE_SPECIFIED.formatted("find", "[null, null]"), Scripting.replaceVariables(ctx, testOne, "${{ try { $.find($.this.alwaysNull, $.this.alwaysNull); } catch (e) { e.getMessage(); } }}"));
+			assertEquals("Invalid find() result", "FrameworkException(422): " + AbstractQueryFunction.ERROR_MESSAGE_TYPE_NOT_FOUND.formatted("find", "NonExistingType"), Scripting.replaceVariables(ctx, testOne, "${{ try { $.find('NonExistingType'); } catch (e) { e.getMessage(); } }}"));
+			assertEquals("Invalid find() result", "FrameworkException(422): " + AbstractQueryFunction.ERROR_MESSAGE_TYPE_GRAPHOBJECT_USED.formatted("find", "find"), Scripting.replaceVariables(ctx, testOne, "${{ try { $.find('GraphObject'); } catch (e) { e.getMessage(); } }}"));
+
+			// create with incorrect number of parameters (StructrScript -> null should be returned because exceptions are not supported)
+			assertEquals("Invalid create() result", "", Scripting.replaceVariables(ctx, testOne, "${create()}"));
+			assertEquals("Invalid create() result", "", Scripting.replaceVariables(ctx, testOne, "${create(this.alwaysNull)}"));
+			assertEquals("Invalid create() result", "", Scripting.replaceVariables(ctx, testOne, "${create(this.alwaysNull, this.alwaysNull)}"));
+			assertEquals("Invalid create() result", "", Scripting.replaceVariables(ctx, testOne, "${create('NonExistingType')}"));
+
+			// create with incorrect number of parameters (JavaScript -> exception is thrown)
+			assertEquals("Invalid create() result", "FrameworkException(422): " + AbstractQueryFunction.ERROR_MESSAGE_NO_TYPE_SPECIFIED.formatted("create", "[]"), Scripting.replaceVariables(ctx, testOne, "${{ try { $.create(); } catch (e) { e.getMessage(); } }}"));
+			assertEquals("Invalid create() result", "FrameworkException(422): " + AbstractQueryFunction.ERROR_MESSAGE_NO_TYPE_SPECIFIED.formatted("create", "[null]"), Scripting.replaceVariables(ctx, testOne, "${{ try { $.create($.this.alwaysNull); } catch (e) { e.getMessage(); } }}"));
+			assertEquals("Invalid create() result", "FrameworkException(422): " + AbstractQueryFunction.ERROR_MESSAGE_NO_TYPE_SPECIFIED.formatted("create", "[null, null]"), Scripting.replaceVariables(ctx, testOne, "${{ try { $.create($.this.alwaysNull, $.this.alwaysNull); } catch (e) { e.getMessage(); } }}"));
+			assertEquals("Invalid create() result", "FrameworkException(422): " + AbstractQueryFunction.ERROR_MESSAGE_TYPE_NOT_FOUND.formatted("create", "NonExistingType"), Scripting.replaceVariables(ctx, testOne, "${{ try { $.create('NonExistingType'); } catch (e) { e.getMessage(); } }}"));
 
 			// search
 			assertEquals("Invalid search() result", testOne.getUuid(), Scripting.replaceVariables(ctx, testTwo, "${first(search('TestOne', 'name', 'A-nice-little-name-for-my-test-object'))}"));
@@ -6369,7 +6382,7 @@ public class ScriptingTest extends StructrTest {
 			type.addMethod("getName", "{ return $.this.name; }");
 
 			// native object created inline
-			type.addMethod("test",  "{ let names = []; for (let t of $.find('Test')) { names.push(t.getName()); } return names.join(''); }");
+			type.addMethod("test",  "{ let names = []; for (let t of $.find('Test', $.predicate.sort('name'))) { names.push(t.getName()); } return names.join(''); }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 

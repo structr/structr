@@ -27,6 +27,7 @@ import org.apache.commons.codec.binary.Base64InputStream;
 import org.apache.commons.codec.binary.Base64OutputStream;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.RequestParameters;
@@ -35,27 +36,28 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.datasources.Channel;
+import org.structr.core.entity.DataAdapter;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 import org.structr.web.entity.LinkSource;
+import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.event.ActionMapping;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Stack;
 
 /**
  * Holds information about the context in which a resource is rendered, like
@@ -67,6 +69,11 @@ public class RenderContext extends ActionContext {
 
 	private final Map<String, GraphObject> dataObjects = new HashMap<>();
 	private final Stack<SecurityContext> scStack       = new Stack<>();
+	private final Map<String, Object> theme            = new LinkedHashMap<>();
+	private DOMNode currentComponent                   = null;
+	private Channel currentDataSource                  = null;
+	private DataAdapter currentAdapter                 = null;
+	private String currentReloadBehaviour              = null;
 	private EditMode editMode                          = EditMode.NONE;
 	private AsyncBuffer buffer                         = null;
 	private int depth                                  = 0;
@@ -109,6 +116,7 @@ public class RenderContext extends ActionContext {
 		super(other);
 
 		this.dataObjects.putAll(other.dataObjects);
+		this.theme.putAll(other.theme);
 
 		this.editMode                   = other.editMode;
 		this.inBody                     = other.inBody;
@@ -152,7 +160,7 @@ public class RenderContext extends ActionContext {
 
 	}
 
-	public void setDetailsDataObject(GraphObject detailsDataObject) {
+	public void setDetailsDataObject(final GraphObject detailsDataObject) {
 		this.detailsDataObject = detailsDataObject;
 	}
 
@@ -370,6 +378,16 @@ public class RenderContext extends ActionContext {
 		return indentHtml;
 	}
 
+	public String[] getRequestParameterValues(final String name) {
+
+		if (request != null) {
+
+			return request.getParameterValues(name);
+		}
+
+		return null;
+	}
+
 	public String getRequestParameter(final String name) {
 
 		if (request != null) {
@@ -390,25 +408,35 @@ public class RenderContext extends ActionContext {
 	}
 
 	@Override
-	public Object evaluate(final GraphObject entity, final String key, final Object data, final String defaultValue, final int depth, final EvaluationHints hints, final int row, final int column) throws FrameworkException {
-
-		// report usage for toplevel keys only
-		if (data == null) {
-
-			// report key as used to identify unresolved keys later
-			hints.reportUsedKey(key, row, column);
-		}
+	public Object evaluate(final GraphObject entity, final String key, final Object data, final String defaultValue, final int depth, final GraphObject contextObject, final int row, final int column) throws FrameworkException {
 
 		// data key can only be used as the very first token
 		if (depth == 0 && hasDataForKey(key)) {
 
-			hints.reportExistingKey(key);
 			return getDataNode(key);
 		}
 
 		// evaluate non-ui specific context
-		final Object value = super.evaluate(entity, key, data, defaultValue, depth, hints, row, column);
+		final Object value = super.evaluate(entity, key, data, defaultValue, depth, contextObject, row, column);
 		if (value == null) {
+
+			final HttpServletResponse response = getSecurityContext().getResponse();
+			if (response != null) {
+
+				if (key.equals("response")) {
+
+					try {
+
+						// return output stream of HTTP response for streaming (execBinary)
+						return response.getOutputStream();
+
+					} catch (IOException ioex) {
+
+						LoggerFactory.getLogger(RenderContext.class).warn("", ioex);
+						return null;
+					}
+				}
+			}
 
 			if (data != null) {
 
@@ -418,8 +446,6 @@ public class RenderContext extends ActionContext {
 					case "link":
 
 						if (data instanceof NodeInterface node && node.is(StructrTraits.LINK_SOURCE)) {
-
-							hints.reportExistingKey(key);
 
 							final LinkSource linkSource = node.as(LinkSource.class);
 							return linkSource.getLinkable();
@@ -434,7 +460,6 @@ public class RenderContext extends ActionContext {
 
 					case "id":
 
-						hints.reportExistingKey(key);
 						GraphObject detailsObject = this.getDetailsDataObject();
 						if (detailsObject != null) {
 
@@ -447,19 +472,59 @@ public class RenderContext extends ActionContext {
 						break;
 
 					case "current":
-						hints.reportExistingKey(key);
 						return getDetailsDataObject();
+
+					case "theme":
+						return this.theme;
 
 					case "template":
 
 						if (entity.is(StructrTraits.DOM_NODE)) {
-							hints.reportExistingKey(key);
 							return entity.as(DOMNode.class).getClosestTemplate(getPage());
 						}
 						break;
 
+					case "component":
+
+						if (currentComponent != null) {
+							return currentComponent;
+						}
+						return resolveClosestComponent(entity);
+
+					case "dataSource":
+
+						// provide access to the current data source in render templates
+						// that are included via renderEach or renderFields
+						if (currentDataSource != null) {
+							return currentDataSource;
+						}
+
+						final DOMNode forDataSource = resolveClosestComponent(entity);
+						if (forDataSource != null) {
+
+							return forDataSource.getComponentConfiguration().getDataSource();
+						}
+						break;
+
+
+					case "adapter":
+
+						// provide access to the current adapter in render templates
+						// that are included via renderEach or renderFields
+						if (currentAdapter != null) {
+							return currentAdapter;
+						}
+
+						final DOMNode forAdapter = resolveClosestComponent(entity);
+						if (forAdapter != null) {
+
+							return forAdapter.getComponentConfiguration().getDataAdapter();
+						}
+
+						LoggerFactory.getLogger(RenderContext.class).warn("{} with UUID {} has no data adapter in its context or any of its parents.", entity.getType(), entity.getUuid());
+						break;
+
 					case "page":
-						hints.reportExistingKey(key);
 						Page page = getPage();
 						if (page == null && entity.is(StructrTraits.DOM_NODE)) {
 							page = entity.as(DOMNode.class).getOwnerDocument();
@@ -469,7 +534,6 @@ public class RenderContext extends ActionContext {
 					case "parent":
 
 						if (entity.is(StructrTraits.DOM_NODE)) {
-							hints.reportExistingKey(key);
 							return entity.as(DOMNode.class).getParent();
 						}
 						break;
@@ -478,7 +542,6 @@ public class RenderContext extends ActionContext {
 
 						if (entity.is(StructrTraits.DOM_NODE)) {
 
-							hints.reportExistingKey(key);
 							return Iterables.toList(entity.as(DOMNode.class).getChildren());
 
 						}
@@ -488,8 +551,6 @@ public class RenderContext extends ActionContext {
 					case "link":
 
 						if (entity.is(StructrTraits.LINK_SOURCE)) {
-
-							hints.reportExistingKey(key);
 
 							final LinkSource linkSource = entity.as(LinkSource.class);
 
@@ -583,8 +644,100 @@ public class RenderContext extends ActionContext {
 		}
 	}
 
+	public Map<String, Object> getTheme() {
+		return theme;
+	}
+
+	public void setCurrentAdapter(final DataAdapter newDataSource) {
+		this.currentAdapter = newDataSource;
+	}
+
+	public DataAdapter getCurrentAdapter() {
+		return currentAdapter;
+	}
+
+	public void setCurrentReloadBehaviour(final String reloadBehaviour) {
+		this.currentReloadBehaviour = reloadBehaviour;
+	}
+
+	public String getCurrentReloadBehaviour() {
+		return currentReloadBehaviour;
+	}
+
+	public void setCurrentDataSource(final Channel newDataSource) {
+		this.currentDataSource = newDataSource;
+	}
+
+	public Channel getCurrentDataSource() {
+		return currentDataSource;
+	}
+
+	public void setPossibleCurrentComponent(final Object candidate) {
+
+		if (candidate == null && candidate instanceof GraphObject g && g.is(StructrTraits.DOM_NODE)) {
+			this.currentComponent = g.as(DOMNode.class).getClosestComponent();
+		}
+	}
+
+	public void setCurrentComponent(final DOMNode currentComponent) {
+		this.currentComponent = currentComponent;
+	}
+
+	public DOMNode getCurrentComponent() {
+		return currentComponent;
+	}
+
+	public String getChannelValue(final String name) {
+
+		if (name != null) {
+
+			switch (name) {
+
+				case "current":
+					if (detailsDataObject != null) {
+
+						return detailsDataObject.getUuid();
+					}
+					break;
+
+				default:
+					final HttpServletRequest request = getSecurityContext().getRequest();
+					if (request != null) {
+						return request.getParameter(name);
+					}
+			}
+		}
+
+		return null;
+	}
+
 	// ----- private methods -----
 	private void readConfigParameters () {
 		indentHtml = Settings.HtmlIndentation.getValue();
+	}
+
+	private DOMNode resolveClosestComponent(final GraphObject entity) {
+
+		if (entity.is(StructrTraits.DOM_NODE)) {
+
+			return entity.as(DOMNode.class).getClosestComponent();
+		}
+
+		// ActionMapping can have a closest data source via DOMElements
+		if (entity.is(StructrTraits.ACTION_MAPPING)) {
+
+			final ActionMapping actionMapping = entity.as(ActionMapping.class);
+
+			for (final DOMElement element : actionMapping.getTriggerElements()) {
+
+				final DOMNode component = element.as(DOMNode.class).getClosestComponent();
+				if (component != null) {
+
+					return component;
+				}
+			}
+		}
+
+		return null;
 	}
 }

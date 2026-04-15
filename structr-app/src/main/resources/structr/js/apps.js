@@ -25,13 +25,14 @@ let _Apps = {
 	appsContainer: undefined,
 	deployServletAvailable: true,
 
-	init: function() {},
+	init: function() {
+    },
 	unload: function() {},
 	onload: function() {
 
 		_Apps.init();
 
-		fetch(Structr.deployRoot).then((result) => {
+		fetch(Structr.deployRoot + '?mode=test').then((result) => {
 			_Apps.deployServletAvailable = (result.status !== 404);
 		}).then(() => {
 
@@ -46,7 +47,8 @@ let _Apps = {
 	},
 	loadData: async () => {
 
-		let response = await fetch('https://structr.com/structr/rest/StructrApplicationCategory?' + Structr.getRequestParameterName('sort') + '=position');
+        let response = await fetch('/structr/rest/StructrApplicationCategory?' + Structr.getRequestParameterName('sort') + '=position');
+		//let response = await fetch('https://apps.structr.com/structr/rest/StructrApplicationCategory?' + Structr.getRequestParameterName('sort') + '=position');
 
 		if (response.ok) {
 			let data = await response.json();
@@ -115,23 +117,24 @@ let _Apps = {
 
 	templates: {
 		apps: config => `
+			<link rel="stylesheet" type="text/css" media="screen" href="css/apps.css">
 			<div class="main-app-box" id="apps"></div>
 		`,
 		category: config => `
 			<div class="app-category">
-				<h2>${config.name}</h2>
+				<h1>${config.name}</h1>
 				<p>${config.description}</p>
 				<div id="${config.id}"></div>
 			</div>
 		`,
 		tile: config => `
 			<div class="app-tile">
-				<h4>${config.name}</h4>
+				<h3>${config.name}</h3>
 				<p>${config.description}</p>
 				<form action="/structr/deploy" method="POST" enctype="multipart/form-data">
 					<input type="hidden" name="downloadUrl" value="${config.url}">
 					<input type="hidden" name="redirectUrl" value="${window.location.pathname}">
-					<input type="hidden" name="mode" value="import">
+					<input type="hidden" name="mode" value="app">
 					<button class="action" type="submit">Install</button>
 				</form>
 			</div>

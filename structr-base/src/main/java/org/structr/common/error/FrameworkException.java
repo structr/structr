@@ -141,7 +141,9 @@ public class FrameworkException extends Exception implements JsonException {
 				errors.add(errorToken.toJSON());
 			}
 
-			container.add("errors", errors);
+			if (!errors.isEmpty()) {
+				container.add("errors", errors);
+			}
 		}
 
 		return container;

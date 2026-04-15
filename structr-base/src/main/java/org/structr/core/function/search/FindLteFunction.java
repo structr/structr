@@ -36,6 +36,11 @@ public class FindLteFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public String getReplacementHint() {
+		return "predicate.lte";
+	}
+
+	@Override
 	public String getDisplayName(boolean includeParameters) {
 		return "predicate.lte";
 	}

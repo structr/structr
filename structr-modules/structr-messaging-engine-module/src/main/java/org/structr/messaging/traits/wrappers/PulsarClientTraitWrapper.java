@@ -30,6 +30,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.traits.Traits;
 import org.structr.messaging.engine.entities.MessageSubscriber;
 import org.structr.messaging.traits.definitions.PulsarClientTraitDefinition;
+import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -82,8 +83,8 @@ public class PulsarClientTraitWrapper extends MessageClientTraitWrapper implemen
 	}
 
 	@Override
-	public void forwardReceivedMessage(final SecurityContext securityContext, String topic, String message) throws FrameworkException {
-		sendMessage(securityContext, topic, message);
+	public void forwardReceivedMessage(final ActionContext actionContext, String topic, String message) throws FrameworkException {
+		sendMessage(actionContext, topic, message);
 	}
 
 	@Override
@@ -223,7 +224,7 @@ public class PulsarClientTraitWrapper extends MessageClientTraitWrapper implemen
 
 								String[] topicFragments = msg.getTopicName().split("/");
 								String topic = topicFragments[topicFragments.length - 1];
-								forwardReceivedMessage(getSecurityContext(), topic, new String(msg.getData()));
+								forwardReceivedMessage(new ActionContext(getSecurityContext()), topic, new String(msg.getData()));
 								consumer.acknowledge(msg);
 							} catch (Exception e) {
 

@@ -343,6 +343,7 @@ public class Settings {
 		"Servlets that are listed in this configuration key will be available in the HttpService. Changes to this setting require a restart of the HttpService in the 'Services' tab.");
 
 	public static final Setting<Boolean> ConfigServletEnabled = new BooleanSetting(servletsGroup,  "ConfigServlet", "configservlet.enabled",             true, "Enables the config servlet (available under <code>http(s)://&lt;your-server&gt;/structr/config</code>)");
+	public static final Setting<Boolean> ConfigServletSessionFixationProtection = new BooleanSetting(servletsGroup, "ConfigServlet", "configservlet.sessionfixation.protection", false, "Regenerates the HTTP session ID on successful login to the ConfigServlet to prevent session fixation attacks. Disabled by default because it can cause issues with certain reverse proxy or load balancer configurations.");
 
 	public static final Setting<String> RestServletPath       = new StringSetting(servletsGroup,            "hidden", "jsonrestservlet.path",                         "/structr/rest/*", "URL pattern for REST server. Do not change unless you know what you are doing.");
 	public static final Setting<String> RestServletClass      = new StringSetting(servletsGroup,            "hidden", "jsonrestservlet.class",                        "org.structr.rest.servlet.JsonRestServlet", "FQCN of servlet class to use in the REST server. Do not change unless you know what you are doing.");
@@ -498,6 +499,7 @@ public class Settings {
 	public static final Setting<String> SuperUserPassword              = new PasswordSetting(securityGroup,   "Superuser",            "superuser.password",                    null, "Password of the superuser").setIsProtected();
 	public static final Setting<Integer> ResolutionDepth               = new IntegerSetting(applicationGroup, "Application Security", "application.security.resolution.depth", 5);
 	public static final Setting<Boolean> XMLParserSecurity             = new BooleanSetting(applicationGroup, "Application Security", "application.xml.parser.security", true, "Enables various security measures for XML parsing to prevent exploits.");
+	public static final Setting<Boolean> SsrfProtection               = new BooleanSetting(applicationGroup, "Application Security", "application.security.ssrf.protection", true, "Enables SSRF protection for outbound HTTP requests. When enabled, requests to private/internal IP ranges (loopback, link-local, site-local) are blocked. Disable only for testing or when internal network access is explicitly required.");
 
 	public static final Setting<String> AuthenticationPropertyKeys      = new StringSetting(securityGroup,     "Authentication", "security.authentication.propertykeys", null, "List of property keys separated by space in the form of <Type>.<key> (example: 'Member.memberId') to be used in addition to the default 'Principal.name Principal.eMail'");
 

@@ -91,19 +91,38 @@ public interface DOMElement extends DOMNode  {
 
 	Map<String, Object> getMappedEvents();
 
-	static int intOrOne(final String source) {
+	static int intOrOne(final Object source) {
 
 		if (source != null) {
 
 			try {
 
-				return Integer.valueOf(source);
+				return Integer.valueOf(source.toString());
 
 			} catch (Throwable t) {
 			}
 		}
 
 		return 1;
+	}
+
+	static int intOrZero(final Object source) {
+
+		if (source != null) {
+
+			if (source instanceof Number n) {
+				return n.intValue();
+			}
+
+			try {
+
+				return Integer.valueOf(source.toString());
+
+			} catch (Throwable t) {
+			}
+		}
+
+		return 0;
 	}
 
 	static String toHtmlAttributeName(final String camelCaseName) {

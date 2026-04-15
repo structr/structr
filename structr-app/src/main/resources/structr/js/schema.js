@@ -4456,7 +4456,7 @@ let _Schema = {
 		_schema: {},
 		getFilteredSchemaTypes: async (filterFn) => {
 
-			if (!_Schema.caches._schema) {
+			if (!_Schema.caches._schema || Object.keys(_Schema.caches._schema).length === 0) {
 				await _Schema.caches.populateBasicSchemaInformation();
 			}
 

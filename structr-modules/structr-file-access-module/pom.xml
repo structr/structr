@@ -10,10 +10,6 @@
 	<artifactId>structr-file-access-module</artifactId>
 	<packaging>jar</packaging>
 
-	<properties>
-		<apache.sshd.version>2.15.0</apache.sshd.version>
-	</properties>
-
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>

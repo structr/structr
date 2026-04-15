@@ -36,7 +36,6 @@ import org.structr.messaging.engine.entities.MessageSubscriber;
 import org.structr.messaging.traits.definitions.MessageSubscriberTraitDefinition;
 import org.structr.rest.RestMethodResult;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -63,7 +62,7 @@ public class MessageSubscriberTraitWrapper extends AbstractNodeTraitWrapper impl
 	}
 
 	@Override
-	public void subscribeOnAllClients(final SecurityContext securityContext) {
+	public void subscribeOnAllClients(final ActionContext actionContext) {
 
 		if (!StringUtils.isEmpty(this.getTopic()) && (this.getTopic() != null)) {
 
@@ -79,7 +78,7 @@ public class MessageSubscriberTraitWrapper extends AbstractNodeTraitWrapper impl
 
 						params.add("topic", this.getTopic());
 
-						method.execute(securityContext, client, params, new EvaluationHints());
+						method.execute(actionContext, client, params);
 					}
 
 				} catch (FrameworkException e) {
@@ -92,7 +91,13 @@ public class MessageSubscriberTraitWrapper extends AbstractNodeTraitWrapper impl
 	}
 
 	@Override
-	public  RestMethodResult onMessage(final SecurityContext securityContext, final String topic, final String message) throws FrameworkException {
+	public  RestMethodResult onMessage(final ActionContext actionContext, final String topic, final String message) throws FrameworkException {
+
+		// SECURITY NOTE: The 'topic' and 'message' values originate from an external message broker
+		// (MQTT, Kafka, Pulsar, etc.) and must be treated as untrusted input. The callback script
+		// should not use these values in string concatenation passed to find(), cypher(), or other
+		// functions that interpret their arguments as code or query language. Use them only as
+		// data parameters, not as part of dynamically constructed expressions.
 
 		if (!StringUtils.isEmpty(this.getCallback())) {
 
@@ -102,7 +107,7 @@ public class MessageSubscriberTraitWrapper extends AbstractNodeTraitWrapper impl
 			params.put("topic", topic);
 			params.put("message", message);
 
-			ActionContext ac = new ActionContext(securityContext, params);
+			ActionContext ac = new ActionContext(actionContext.getSecurityContext(), params);
 			ac.setConstant("topic", topic);
 			ac.setConstant("message", message);
 

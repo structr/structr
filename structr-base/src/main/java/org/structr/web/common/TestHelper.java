@@ -43,6 +43,7 @@ public class TestHelper {
 		final Map<String, Map<String, List<String>>> viewMap = new LinkedHashMap<>();
 		final Map<String, List<String>> requiredAttributes   = new LinkedHashMap<>();
 		final Map<String, List<String>> baseMap              = new LinkedHashMap<>();
+		final List<String> log                               = new LinkedList<>();
 		boolean fail                                         = false;
 
 		baseMap.put("ui",     Arrays.asList(
@@ -190,7 +191,7 @@ public class TestHelper {
 
 						if (!expectedKeys.isEmpty()) {
 
-							System.out.println(type.getName() + "." + viewName + " is missing the following keys: " + expectedKeys);
+							log.add(type.getName() + "." + viewName + " is missing the following keys: " + expectedKeys);
 							fail = true;
 						}
 
@@ -201,7 +202,7 @@ public class TestHelper {
 
 						if (!itemKeySet.isEmpty()) {
 
-							System.out.println(type.getName() + "." + viewName + " contains keys that are not listed in the specification: " + itemKeySet);
+							log.add(type.getName() + "." + viewName + " contains keys that are not listed in the specification: " + itemKeySet);
 							fail = true;
 						}
 					}
@@ -210,7 +211,7 @@ public class TestHelper {
 		}
 
 		if (fail) {
-			throw new AssertionError("View configuration does not match expected configuration, see log output for details.");
+			throw new AssertionError("View configuration does not match expected configuration:\n" + StringUtils.join(log, "\n"));
 		}
 	}
 

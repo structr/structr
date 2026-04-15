@@ -24,7 +24,6 @@ import org.structr.core.GraphObject;
 import org.structr.docs.*;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 
 import java.util.List;
 
@@ -56,16 +55,16 @@ public class FunctionValueExpression extends Expression {
 	}
 
 	@Override
-	public Object evaluate(final ActionContext ctx, final GraphObject entity, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
+	public Object evaluate(final ActionContext ctx, final GraphObject entity) throws FrameworkException, UnlicensedScriptException {
 
-		Object value = functionExpression.evaluate(ctx, entity, hints);
+		Object value = functionExpression.evaluate(ctx, entity);
 
-		value = valueExpression.transform(ctx, entity, value, hints);
+		value = valueExpression.transform(ctx, entity, value);
 
 		for (final Expression expression : valueExpression.expressions) {
 
 			// evaluate expressions from left to right
-			value = expression.transform(ctx, entity, value, hints);
+			value = expression.transform(ctx, entity, value);
 		}
 
 		return value;
@@ -73,7 +72,7 @@ public class FunctionValueExpression extends Expression {
 	}
 
 	@Override
-	public Object transform(ActionContext ctx, GraphObject entity, Object source, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
+	public Object transform(ActionContext ctx, GraphObject entity, Object source) throws FrameworkException, UnlicensedScriptException {
 		return source;
 	}
 

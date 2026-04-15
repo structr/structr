@@ -62,7 +62,7 @@ public class SettingDocumentable implements Documentable {
 
 	@Override
 	public String getLongDescription() {
-		return null;
+		return this.setting.getLongDescription();
 	}
 
 	@Override

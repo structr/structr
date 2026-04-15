@@ -18,16 +18,21 @@
  */
 package org.structr.web.entity;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.ThreadLocalMatcher;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.JsonInput;
+import org.structr.core.JsonSingleInput;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.importer.Importer;
+import org.structr.web.importer.ImporterWithXMLParser;
 import org.structr.web.maintenance.deploy.DeploymentCommentHandler;
 
 import java.util.ArrayList;
@@ -39,18 +44,42 @@ public interface Widget extends NodeInterface {
 	ThreadLocalMatcher threadLocalTemplateMatcher = new ThreadLocalMatcher("\\[[^\\]]+\\]");
 
 	String getSource();
+	String getShortDescription();
 	String getDescription();
 	boolean isWidget();
+	String getSvgPath();
+	String getThumbnailPath();
 	String getTreePath();
 	String getConfiguration();
 	boolean isPageTemplate();
+	boolean isExclusiveInParent();
+	boolean isRenderTemplate();
 	String[] getSelectors();
+	String getComponentType();
+	Integer getDimensions();
 
+
+	/**
+	 * Parses HTML code from the "source" entry in the given parameters map into a set of DOMNodes that are created
+	 * in the given page, with the given parent. An additional config entry in the parameters can be specified to
+	 * add the "componentType" and "dimensions" attributes to the newly created widget, but for historical reasons,
+	 * the config object must be of type JsonSingleInput! Caution: this method uses the XML-based HTML parser to
+	 * import fragments, so there might be subtle errors in the imported structure..
+	 *
+	 * @param securityContext
+	 * @param page
+	 * @param parent
+	 * @param baseUrl
+	 * @param parameters
+	 * @param processDeploymentInfo
+	 * @throws FrameworkException
+	 */
 	static void expandWidget(final SecurityContext securityContext, final Page page, final DOMNode parent, final String baseUrl, final Map<String, Object> parameters, final boolean processDeploymentInfo) throws FrameworkException {
 
-		String _source = (String) parameters.get("source");
-		ErrorBuffer errorBuffer = new ErrorBuffer();
+		final App app                 = StructrApp.getInstance(securityContext);
+		final ErrorBuffer errorBuffer = new ErrorBuffer();
 
+		String _source = (String) parameters.get("source");
 		if (_source == null) {
 
 			errorBuffer.add(new EmptyPropertyToken(Widget.class.getSimpleName(), "source"));
@@ -58,10 +87,33 @@ public interface Widget extends NodeInterface {
 		} else {
 
 			// check source for mandatory parameters
-			Matcher matcher = threadLocalTemplateMatcher.get();
+			final Matcher matcher = threadLocalTemplateMatcher.get();
 
 			// initialize with source
 			matcher.reset(_source);
+
+			// create default objects if keywords from append widget dialog are present
+			if ("create-new-data-source".equals(parameters.get("dataSource"))) {
+
+				final NodeInterface dataSource = app.create(StructrTraits.DATA_SOURCE, "New DataSource");
+				parameters.put("dataSource", dataSource.getUuid());
+			}
+
+			if ("create-new-data-adapter".equals(parameters.get("dataAdapter"))) {
+
+				String type = "Unnamed";
+
+				// determine name from data source
+				final String dataSource = (String) parameters.get("dataSource");
+				if (dataSource != null && dataSource.startsWith("node:")) {
+
+					// use type from data source
+					type = StringUtils.substringAfterLast(dataSource, ":");
+				}
+
+				final NodeInterface dataAdapter = app.create(StructrTraits.DATA_ADAPTER, type + " Adapter");
+				parameters.put("dataAdapter", dataAdapter.getUuid());
+			}
 
 			while (matcher.find()) {
 
@@ -82,35 +134,53 @@ public interface Widget extends NodeInterface {
 
 		if (!errorBuffer.hasError()) {
 
-			Importer importer = new Importer(securityContext, _source, baseUrl, null, false, false, false, false);
+			final ImporterWithXMLParser importer = new ImporterWithXMLParser(securityContext, _source, baseUrl, null, false, false, false, false);
+			final JsonSingleInput configData     = ((JsonSingleInput) parameters.get("config"));
 
-			if (processDeploymentInfo) {
-				importer.setIsDeployment(true);
-				importer.setCommentHandler(new DeploymentCommentHandler());
-			}
-
-			// test: insert widget into Page object directly
-			if (parent.equals(page)) {
-				importer.setIsDeployment(true);
-			}
-
-			//importer.setIsWidgetImport(true);
+			importer.setIsDeployment(true);
+			importer.setCommentHandler(new DeploymentCommentHandler());
 
 			if (importer.parse(true)) {
 
 				importer.createChildNodes(parent, page, true);
 
-				final String tableChildElement = importer.getTableChildElement();
-				if (tableChildElement != null) {
+				final JsonInput config = configData != null ? configData.getFirst() : null;
 
-					for (final NodeInterface child : parent.getAllChildNodes()) {
+				if (parent != null) {
+					// set componentRoot flag so we don't cross component boundaries
+					for (final DOMNode newChild : parent.getChildren()) {
 
-						if (child.getType().toLowerCase().equals(tableChildElement)) {
+						if (config != null) {
 
-							parent.appendChild(child.as(DOMNode.class));
+							// hasSharedComponent is not set yet, because it is set in a lifecycle method
+							final DOMNode sharedComponent = newChild.getSharedComponent();
+							if (sharedComponent != null) {
 
-						} else {
-							StructrApp.getInstance().delete(child);
+								sharedComponent.setComponentType((String) config.get("componentType"));
+								sharedComponent.setDimensions(toInt(config.get("dimensions")));
+
+							} else {
+
+								newChild.setComponentType((String) config.get("componentType"));
+								newChild.setDimensions(toInt(config.get("dimensions")));
+							}
+						}
+
+						newChild.setIsComponentRoot(true);
+					}
+
+					final String tableChildElement = importer.getTableChildElement();
+					if (tableChildElement != null) {
+
+						for (final NodeInterface child : parent.getAllChildNodes()) {
+
+							if (child.getType().toLowerCase().equals(tableChildElement)) {
+
+								parent.appendChild(child.as(DOMNode.class));
+
+							} else {
+								StructrApp.getInstance().delete(child);
+							}
 						}
 					}
 				}
@@ -121,6 +191,15 @@ public interface Widget extends NodeInterface {
 			// report error to ui
 			throw new FrameworkException(422, "Unable to import the given source code", errorBuffer);
 		}
+	}
+
+	static Integer toInt(final Object value) {
+
+		if (value != null && value instanceof Number number) {
+			return number.intValue();
+		}
+
+		return null;
 	}
 
 	class ReplacementInfo {

@@ -37,6 +37,11 @@ public class FindRangeFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public String getReplacementHint() {
+		return "predicate.range";
+	}
+
+	@Override
 	public String getDisplayName(boolean includeParameters) {
 		return "predicate.range";
 	}

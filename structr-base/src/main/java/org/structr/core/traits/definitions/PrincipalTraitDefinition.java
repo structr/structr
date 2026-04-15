@@ -18,6 +18,7 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.common.EMailValidator;
 import org.structr.common.LowercaseTransformator;
@@ -146,11 +147,25 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 					final String encryptedPasswordFromDatabase = principal.getEncryptedPassword();
 					if (encryptedPasswordFromDatabase != null) {
 
-						final String encryptedPasswordToCheck = HashHelper.getHash(password, principal.getSalt());
+						final boolean valid = HashHelper.verifyPassword(password, encryptedPasswordFromDatabase, principal.getSalt());
 
-						if (encryptedPasswordFromDatabase.equals(encryptedPasswordToCheck)) {
-							return true;
+						// Transparent migration: re-hash legacy SHA-512 to Argon2id on successful login
+						if (valid && !HashHelper.isArgon2Hash(encryptedPasswordFromDatabase)) {
+
+							try {
+
+								final PropertyKey<String> passwordKey = principal.getTraits().key(PASSWORD_PROPERTY);
+								principal.setProperty(passwordKey, password);
+
+							} catch (FrameworkException e) {
+
+								// Re-hashing failed; not critical, login still succeeds.
+								// The password will be migrated on the next login attempt.
+								LoggerFactory.getLogger(PrincipalTraitDefinition.class).warn("Unable to re-hash password for user {}: {}", principal.getName(), e.getMessage());
+							}
 						}
+
+						return valid;
 					}
 
 					return false;

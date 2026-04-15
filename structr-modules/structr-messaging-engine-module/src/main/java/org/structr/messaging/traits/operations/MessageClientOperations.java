@@ -23,10 +23,11 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.messaging.engine.entities.MessageClient;
 import org.structr.rest.RestMethodResult;
+import org.structr.schema.action.ActionContext;
 
 public abstract class MessageClientOperations extends FrameworkMethod<MessageClientOperations> {
 
-	public abstract RestMethodResult sendMessage(final SecurityContext securityContext, final MessageClient client, final String topic, final String message) throws FrameworkException;
-	public abstract RestMethodResult subscribeTopic(final SecurityContext securityContext, final MessageClient client, String topic) throws FrameworkException;
-	public abstract RestMethodResult unsubscribeTopic(final SecurityContext securityContext, final MessageClient client, String topic) throws FrameworkException;
+	public abstract RestMethodResult sendMessage(final ActionContext actionContext, final MessageClient client, final String topic, final String message) throws FrameworkException;
+	public abstract RestMethodResult subscribeTopic(final ActionContext actionContext, final MessageClient client, String topic) throws FrameworkException;
+	public abstract RestMethodResult unsubscribeTopic(final ActionContext actionContext, final MessageClient client, String topic) throws FrameworkException;
 }

@@ -153,6 +153,18 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 		setCustomResponseHeaders(response);
 
+		// CSRF origin check for form-based upload
+		try {
+
+			if (!checkCsrfOrigin(request, response)) {
+				return;
+			}
+
+		} catch (IOException ioex) {
+			logger.warn("Unable to send response", ioex);
+			return;
+		}
+
 		try {
 
 			final String contentType  = request.getContentType();
@@ -453,13 +465,23 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 			// send redirect to allow form-based file upload without JavaScript...
 			if (StringUtils.isNotBlank(redirectUrl)) {
 
-				if (appendUuidOnRedirect) {
+				// Validate redirect URL to prevent open redirect attacks
+				final String safeRedirectUrl = HtmlServlet.filterMaliciousRedirects(redirectUrl);
 
-					sendRedirectHeader(response, redirectUrl + (redirectUrl.endsWith("/") ? "" : "/") + uuid, false);    // user-provided, should be already prefixed
+				if (StringUtils.isNotBlank(safeRedirectUrl)) {
+
+					if (appendUuidOnRedirect) {
+
+						sendRedirectHeader(response, safeRedirectUrl + (safeRedirectUrl.endsWith("/") ? "" : "/") + uuid, false);
+
+					} else {
+
+						sendRedirectHeader(response, safeRedirectUrl, false);
+					}
 
 				} else {
 
-					sendRedirectHeader(response, redirectUrl, false);    // user-provided, should be already prefixed
+					logger.warn("Blocked potentially malicious upload redirect URL: {}", redirectUrl);
 				}
 
 			} else {

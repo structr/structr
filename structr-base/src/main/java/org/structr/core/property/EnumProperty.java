@@ -24,18 +24,19 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ValueToken;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.docs.DocumentableType;
+import org.structr.web.common.RenderContext;
+import org.structr.web.datasource.FieldDefinition;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * A property that stores and retrieves a simple enum value of the given type.
  *
  *
  */
-public class EnumProperty extends AbstractPrimitiveProperty<String> {
+public class EnumProperty extends AbstractPrimitiveProperty<String> implements FieldDefinition {
 
 	private final Set<String> enumConstants = new LinkedHashSet<>();
 
@@ -113,6 +114,11 @@ public class EnumProperty extends AbstractPrimitiveProperty<String> {
 	@Override
 	public SortType getSortType() {
 		return SortType.Default;
+	}
+
+	@Override
+	public FieldDefinition getFieldDefinition() {
+		return this;
 	}
 
 	@Override
@@ -228,5 +234,24 @@ public class EnumProperty extends AbstractPrimitiveProperty<String> {
 		}
 
 		return normalized;
+	}
+
+	// ----- interface FieldDefinition -----
+	@Override
+	public boolean hasOptions() {
+		return true;
+	}
+
+	@Override
+	public List<GraphObject> getOptions(final RenderContext renderContext, final String filter, final String label) throws FrameworkException {
+
+		final List<GraphObject> options = new LinkedList<>();
+
+		for (final String c : getEnumConstants()) {
+
+			options.add(GraphObjectMap.fromMap(Map.of("name", c, "value", c)));
+		}
+
+		return options;
 	}
 }

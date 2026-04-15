@@ -29,11 +29,11 @@ import org.structr.api.graph.PropagationMode;
  */
 public interface PermissionPropagation {
 
-	public PropagationDirection getPropagationDirection();
-	public PropagationMode getReadPropagation();
-	public PropagationMode getWritePropagation();
-	public PropagationMode getDeletePropagation();
-	public PropagationMode getAccessControlPropagation();
+	PropagationDirection getPropagationDirection();
+	PropagationMode getReadPropagation();
+	PropagationMode getWritePropagation();
+	PropagationMode getDeletePropagation();
+	PropagationMode getAccessControlPropagation();
 
-	public String getDeltaProperties();
+	String getDeltaProperties();
 }

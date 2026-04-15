@@ -27,8 +27,8 @@ import org.structr.core.entity.SchemaMethod;
 import org.structr.core.script.Scripting;
 import org.structr.core.script.Snippet;
 import org.structr.core.script.polyglot.config.ScriptConfig;
+import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
-import org.structr.schema.action.EvaluationHints;
 
 /**
  */
@@ -146,9 +146,9 @@ public class ScriptMethod extends AbstractMethod {
 	}
 
 	@Override
-	public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+	public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
-		final Arguments converted = checkAndConvertArguments(securityContext, arguments, false);
+		final Arguments converted = checkAndConvertArguments(actionContext, arguments, false);
 
 		try {
 
@@ -157,7 +157,7 @@ public class ScriptMethod extends AbstractMethod {
 					.currentMethod(this)
 					.build();
 
-			return Actions.execute(securityContext, entity, "${" + source.trim() + "}", converted.toMap(), name, uuid, scriptConfig);
+			return Actions.execute(actionContext.getSecurityContext(), entity, "${" + source.trim() + "}", converted.toMap(), name, uuid, scriptConfig);
 
 		} catch (AssertException e)   {
 			throw new FrameworkException(e.getStatus(), e.getMessage());

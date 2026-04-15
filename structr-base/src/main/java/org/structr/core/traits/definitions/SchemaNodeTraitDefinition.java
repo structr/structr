@@ -18,6 +18,10 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.apache.commons.lang3.StringUtils;
+import org.structr.api.util.ResultStream;
+import org.structr.common.ChannelInput;
+import org.structr.common.PathResolvingComparator;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -25,6 +29,11 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
+import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
+import org.structr.core.app.StructrApp;
+import org.structr.core.datasources.SortInfo;
+import org.structr.core.entity.DataSource;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.ModificationQueue;
@@ -35,24 +44,34 @@ import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.TraitsInstance;
+import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.operations.datasource.DataSourceOperations;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.operations.nodeinterface.OnNodeDeletion;
 import org.structr.core.traits.wrappers.SchemaNodeTraitWrapper;
 import org.structr.schema.ReloadSchema;
+import org.structr.web.common.RenderContext;
+import org.structr.web.datasource.DataField;
+import org.structr.web.datasource.FieldDefinition;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
+import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  *
  *
  */
 public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
+
+	private static final Set<String> PROPERTY_KEY_BLACKLIST_FOR_COMPONENTS = Set.of(
+		NodeInterfaceTraitDefinition.GRANTEES_PROPERTY,
+		NodeInterfaceTraitDefinition.HIDDEN_PROPERTY,
+		NodeInterfaceTraitDefinition.OWNER_ID_PROPERTY
+	);
 
 	public static final String RELATED_TO_PROPERTY                = "relatedTo";
 	public static final String RELATED_FROM_PROPERTY              = "relatedFrom";
@@ -142,6 +161,106 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 			SchemaNode.class, (traits, node) -> new SchemaNodeTraitWrapper(traits, node)
+		);
+	}
+
+	@Override
+	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
+		return Map.of(
+
+			DataSourceOperations.class, new DataSourceOperations<NodeInterface>() {
+
+				@Override
+				public ResultStream<NodeInterface> getValues(final RenderContext renderContext, final DataSource provider, final ChannelInput input) throws FrameworkException {
+
+					final SecurityContext securityContext = renderContext.getSecurityContext();
+					final SchemaNode schemaNode           = provider.as(SchemaNode.class);
+					final String name                     = schemaNode.getName();
+					final Traits traits                   = Traits.of(name);
+					final int pageSize                    = input != null ? input.pageSize() : Integer.MAX_VALUE;
+					final int page                        = input != null ? input.page() : 1;
+					final Query<NodeInterface> query      = StructrApp.getInstance(securityContext).nodeQuery(name);
+
+					if (input != null) {
+
+						final List<SortInfo> sortKeys = input.sortKeys();
+						if (sortKeys != null) {
+
+							for (final SortInfo sortInfo : sortKeys) {
+
+								if (sortInfo.sortKey.contains(".")) {
+
+									// this is the place where path-based sort keys are resolved in this data source
+									query.comparator((Comparator) new PathResolvingComparator(renderContext, sortInfo.sortKey, sortInfo.descending));
+
+								} else {
+
+									if (traits.hasKey(sortInfo.sortKey)) {
+
+										final PropertyKey sortKey = traits.key(sortInfo.sortKey);
+										if (sortKey != null) {
+
+											query.sort(sortKey, sortInfo.descending);
+										}
+									}
+								}
+							}
+						}
+
+						// use contains query over the searchable fields
+						if (input.filter() != null) {
+
+							for (final String part : input.filter().split(" ")) {
+
+								final String trimmed = part.trim();
+
+								if (StringUtils.isNotBlank(trimmed)) {
+
+									// we AND together the individual parts of the filter string
+									final QueryGroup<NodeInterface> andGroup = query.and();
+									final QueryGroup<NodeInterface> orGroup = andGroup.or();
+
+									for (final DataField searchableField : input.searchableFields()) {
+
+										searchableField.configureQuery(traits, orGroup, trimmed);
+									}
+								}
+							}
+						}
+
+						// apply pagination etc.
+						query.pageSize(pageSize).page(page);
+					}
+
+					return query.getResultStream();
+				}
+
+				@Override
+				public Map<String, FieldDefinition> getFields(final RenderContext renderContext, final DataSource provider) throws FrameworkException {
+
+					final Map<String, FieldDefinition> output = new LinkedHashMap<>();
+					final SchemaNode schemaNode               = provider.as(SchemaNode.class);
+					final String name                         = schemaNode.getName();
+					final Traits traits                       = Traits.of(name);
+
+					// transform input
+					for (final PropertyKey key : traits.getPropertyKeysForView(PropertyView.All)) {
+
+						// hide some internal properties
+						if (!PROPERTY_KEY_BLACKLIST_FOR_COMPONENTS.contains(key.jsonName())) {
+							output.put(key.jsonName(), key.getFieldDefinition());
+						}
+					}
+
+					return output;
+				}
+
+				@Override
+				public String getDataType(final RenderContext renderContext, final DataSource provider) throws FrameworkException {
+					return provider.as(SchemaNode.class).getTypeName();
+				}
+			}
 		);
 	}
 

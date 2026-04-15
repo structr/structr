@@ -44,8 +44,6 @@ import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
-import org.structr.docs.Documentation;
-import org.structr.docs.ontology.ConceptType;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
@@ -112,7 +110,9 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 					// sync content only
 					map.put(traits.key(ContentTraitDefinition.CONTENT_PROPERTY),      content.getContent());
 					map.put(traits.key(ContentTraitDefinition.CONTENT_TYPE_PROPERTY), content.getContentType());
-					map.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),   obj.getProperty(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
+
+					// don't sync name to shared component (is used differently now)
+					//map.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),   obj.getProperty(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
 
 					for (final DOMNode syncedNode : domNode.getSyncedNodes()) {
 

@@ -36,6 +36,11 @@ public class FindEndsWithFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public String getReplacementHint() {
+		return "predicate.endsWith";
+	}
+
+	@Override
 	public String getDisplayName(boolean includeParameters) {
 		return "predicate.endsWith";
 	}

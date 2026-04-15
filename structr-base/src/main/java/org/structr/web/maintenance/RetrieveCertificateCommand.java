@@ -750,7 +750,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 		final String record = ACME_DNS_CHALLENGE_PREFIX + domain + ACME_DNS_CHALLENGE_SUFFIX;
 		final String digest = challenge.get().getDigest();
 
-		final Object result = Actions.callWithSecurityContext(Actions.NOTIFICATION_ACME_CHALLENGE, SecurityContext.getSuperUserInstance(), Map.of("type", "dns", "domain", domain, "record", record, "digest", digest));
+		final Object result = Actions.callWithSecurityContext(Actions.NOTIFICATION_ACME_CHALLENGE, SecurityContext.getSuperUserInstance(), Map.of("type", "dns", "domain", domain, "record", record, "digest", digest), "letsencrypt");
 		if (result == null) {
 
 			publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Lifecycle method 'onAcmeChallenge' not found! Within the next " + waitForSeconds + " seconds, create a DNS record for " + domain + " with the following data: Name: '" + record + "', Type: 'TXT', Value: '" + digest + "'");

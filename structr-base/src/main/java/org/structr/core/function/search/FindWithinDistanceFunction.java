@@ -37,6 +37,11 @@ public class FindWithinDistanceFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public String getReplacementHint() {
+		return "predicate.withinDistance";
+	}
+
+	@Override
 	public String getDisplayName(boolean includeParameters) {
 		return "predicate.withinDistance";
 	}

@@ -300,7 +300,7 @@ let _Config = {
 			let newParent = _Helpers.createSingleDOMElementFromHTML(`
 				<div class="flex flex-col w-full">
 
-					<div class="mt-1 mb-2" data-cron-description></div>
+					<div class="mt-1 mb-4 text-sm text-gray-999" data-cron-description></div>
 				</div>
 			`);
 
@@ -638,27 +638,36 @@ let _Config = {
 	},
 	templates: {
 		configLoginDialogMarkup: `
-			<div id="login" class="dialog p-6 text-left">
+			<div id="login" class="dialog p-8 text-left" style="max-width: 480px; border: 2px solid #c62828; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
 
-				${_Icons.getSvgIcon(_Icons.iconStructrLogo, 90, 24, ['logo-login'])}
-
-				<p>Welcome to the Structr Configuration Editor. Please log in with the <b>super-user</b> password which can be found in your structr.conf.</p>
+				<div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+					${_Icons.getSvgIcon(_Icons.iconStructrLogo, 90, 24, ['logo-login'])}
+					<span style="font-size: 11px; font-weight: 600; color: #c62828; text-transform: uppercase; letter-spacing: 0.5px;">System Configuration</span>
+				</div>
 
 				<form action="${_Helpers.getPrefixedRootUrl("/structr/config")}" method="post">
 
-					<div id="username-password" class="gap-y-2 grid ml-1 mr-4" style="grid-template-columns: 35fr 65fr;">
+					<div id="username-password" class="gap-y-2 grid ml-1 mr-4 mt-4" style="grid-template-columns: 35fr 65fr;">
 
 						<div class="self-center">
-							<label for="passwordField">Password:</label>
+							<label for="superuserNameField">Username:</label>
 						</div>
 
 						<div class="self-center">
-							<input id="passwordField" type="password" name="password" autocomplete="current-password" required class="w-full box-border">
+							<input id="superuserNameField" type="text" name="superuserName" autocomplete="username" required class="w-full box-border">
+						</div>
+
+						<div class="self-center">
+							<label for="superuserPasswordField">Password:</label>
+						</div>
+
+						<div class="self-center">
+							<input id="superuserPasswordField" type="password" name="superuserPassword" autocomplete="current-password" required class="w-full box-border">
 						</div>
 
 						<div class="self-center col-span-2 mt-2 text-right">
-							<button id="loginButton" name="login" class="inline-flex mr-0 items-center hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green">
-								${_Icons.getSvgIcon(_Icons.iconVisibilityKey, 16, 16, ['mr-2'])} Login
+							<button id="loginButton" name="login" class="inline-flex mr-0 items-center hover:bg-gray-100 focus:border-gray-666 active:border-green" style="font-weight: 600;">
+								${_Icons.getSvgIcon(_Icons.iconVisibilityKey, 16, 16, ['mr-2'])} Sign In
 							</button>
 
 							<input type="hidden" name="action" value="login">

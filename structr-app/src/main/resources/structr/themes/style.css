@@ -1,0 +1,135 @@
+/**
+ * Copyright (C) 2010-2026 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+@layer base {
+
+    /* tags */
+    .sw-nav { @apply mt-12 p-4; }
+    .sw-main { @apply p-8 mx-auto w-full max-w-7xl; }
+    .sw-text { @apply text-sm text-sw-text-paragraph; }
+    structr-component { @apply block; }
+
+    /* main layout */
+    .sw-canvas { @apply flex flex-col flex-1 h-full overflow-auto; }
+    .sw-header { @apply h-20 overflow-auto bg-sw-header-bg border-b border-sw-header-border shadow-sm; }
+    .sw-sidebar { @apply w-40 lg:w-72 bg-sw-sidebar-bg border-r border-sw-sidebar-border shadow-sm; }
+    .sw-logo { @apply flex flex-shrink-0 items-center justify-center p-8 h-20; }
+    .sw-logo-dark { @apply hidden; }
+    [data-sw-theme="dark"] .sw-logo-default { @apply hidden; }
+    [data-sw-theme="dark"] .sw-logo-dark { @apply block; }
+    .sw-menu-item { @apply block px-6 py-3 text-sw-nav-text cursor-pointer hover:bg-sw-nav-hover text-sm rounded-lg; background-color: var(--sw-nav-bg); }
+    .sw-menu-item.active { @apply bg-sw-nav-active cursor-pointer hover:bg-sw-nav-hover text-sm rounded-lg; }
+    .sw-page-heading { @apply mx-auto w-full font-bold text-xl text-sw-text-page-heading; }
+    .sw-text-muted { @apply text-sw-text-muted; }
+
+    /* components */
+    .sw-card { @apply rounded-xl bg-sw-surface-bg border border-sw-surface-border; }
+    .sw-card-heading { @apply py-4 px-6 border-b border-sw-surface-border text-sw-text-heading; }
+    .sw-card-content { @apply px-8 pb-8; }
+    .sw-card.sw-card-content { @apply pt-8; }
+    .sw-list-container { @apply overflow-hidden rounded-xl bg-sw-surface-bg border border-sw-surface-border; }
+    .sw-card.sw-centered { @apply w-[50%] mx-auto; margin-top: 20vh; }
+    .sw-list { @apply divide-y divide-sw-surface-border; }
+    ol.sw-list { @apply list-decimal ml-8; }
+    .sw-list-item { @apply px-6 py-4 flex justify-between; }
+    .sw-list-item .sw-button { @apply inline-flex items-center rounded-md border border-transparent px-2 py-1 text-xs font-medium shadow-sm focus:ring-offset-2 focus:outline-none focus:ring-2; }
+    .sw-list-item.sw-no-items:not(:first-child) { @apply hidden; }
+    .sw-gallery {
+        @apply gap-16;
+        img { @apply w-full rounded-t-sm shadow-lg; }
+        div.sw-info { @apply p-4 text-xs font-medium bg-sw-surface-bg text-sw-text-heading rounded-b-sm shadow-lg whitespace-nowrap truncate; }
+    }
+    .sw-selected { @apply bg-sw-nav-active; }
+    .sw-controller { @apply cursor-pointer; }
+    .sw-controller:hover { @apply bg-sw-nav-hover; }
+
+    /* accordion */
+    .sw-accordion {
+        @apply rounded-xl bg-sw-surface-bg border border-sw-surface-border divide-y divide-sw-surface-border;
+        details { @apply py-3 px-8 hover:bg-sw-surface-hover; }
+        details:first-child { @apply rounded-t-xl; }
+        details:last-child {  @apply rounded-b-xl; }
+        details[open] { @apply p-0 hover:bg-transparent; }
+        details[open] summary { @apply py-3 px-8 border-b border-sw-surface-border hover:bg-sw-surface-hover; }
+        details[open]:first-child summary { @apply rounded-t-xl; }
+        details[open]:last-child > *:last-child { @apply rounded-b-xl; }
+        details[open] > :not(summary) { @apply m-8; }
+        details[open] summary::after { transform: rotate(180deg); }
+        summary {
+            @apply flex items-center justify-between cursor-pointer rounded-[inherit];
+            &::marker { content: ""; }
+            &::after { content: ""; width: 1em; height: 1em; flex-shrink: 0; background-color: currentColor; mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); mask-size: contain; mask-repeat: no-repeat; transition: transform 0.2s; }
+        }
+    }
+
+    /* table */
+    .sw-table { @apply py-2 min-w-full bg-sw-surface-bg border border-sw-surface-border rounded-xl; }
+    .sw-table table { @apply min-w-full divide-y divide-sw-surface-border; }
+    .sw-table thead { @apply divide-y divide-sw-surface-border bg-sw-surface-bg; }
+    .sw-table-header { @apply py-3.5 px-4 text-left text-sm font-semibold text-sw-text-heading sm:pl-6; }
+    .sw-table tbody { @apply divide-y divide-sw-surface-border bg-sw-surface-bg; }
+    .sw-table-cell { @apply whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-sw-text-paragraph sm:pl-6; }
+    .sw-table-cell .sw-button { @apply inline-flex items-center rounded-md border border-transparent px-2 py-1 text-xs font-medium shadow-sm focus:ring-offset-2 focus:outline-none focus:ring-2; }
+
+    /* forms */
+    .sw-label { @apply block text-xs font-medium text-sw-text-heading; }
+    .sw-input { @apply mt-1 block rounded-md text-sw-input-text bg-sw-input-bg border border-sw-input-border py-2 px-3 shadow-sm focus:border-sw-input-focus focus:outline-none focus:ring-sw-input-focus sm:text-sm; }
+    .sw-checkbox { @apply m-0 mr-2 p-0 text-xs text-sw-input-text bg-sw-input-bg rounded-sm border-sw-input-border focus:border-sw-input-focus focus:outline-none focus:ring-sw-input-focus; }
+
+    /* dynamic form descendants (renderFields inner elements, if class injection is not available) */
+    .sw-form label { @apply block text-xs font-medium text-sw-text-heading; }
+    .sw-form input[type]:not([type="checkbox"]), .sw-form textarea, .sw-form select { @apply mt-1 block rounded-md text-sw-input-text bg-sw-input-bg border border-sw-input-border py-2 px-3 shadow-sm focus:border-sw-input-focus focus:outline-none focus:ring-sw-input-focus sm:text-sm; }
+    .sw-form input[type="checkbox"] { @apply m-0 mr-2 p-0 text-xs text-sw-input-text bg-sw-input-bg rounded-sm border-sw-input-border focus:border-sw-input-focus focus:outline-none focus:ring-sw-input-focus; }
+
+    /* buttons */
+    .sw-button { @apply rounded-md border border-transparent px-4 py-2 text-sm font-medium shadow-sm focus:ring-offset-2 focus:outline-none focus:ring-2; }
+    .sw-button:disabled { @apply cursor-not-allowed; }
+    .sw-button-sm { @apply inline-flex items-center rounded-md border border-transparent px-2 py-1 text-xs font-medium shadow-sm focus:ring-offset-2 focus:outline-none focus:ring-2; }
+    .sw-button-primary { @apply bg-sw-btn-primary-bg text-sw-btn-primary-text hover:bg-sw-btn-primary-hover focus:ring-sw-btn-primary-hover; }
+    .sw-button-secondary { @apply bg-sw-btn-secondary-bg text-sw-btn-secondary-text hover:bg-sw-btn-secondary-hover focus:ring-sw-btn-secondary-hover; }
+    .sw-button-secondary[data-current-page] { @apply bg-sw-btn-primary-bg text-sw-btn-primary-text hover:bg-sw-btn-primary-hover focus:ring-sw-btn-primary-hover; }
+    .sw-button-success { @apply bg-sw-btn-success-bg text-sw-btn-success-text hover:bg-sw-btn-success-hover focus:ring-sw-btn-success-hover; }
+    .sw-button-warning { @apply bg-sw-btn-warning-bg text-sw-btn-warning-text hover:bg-sw-btn-warning-hover focus:ring-sw-btn-warning-hover; }
+    .sw-button-danger { @apply bg-sw-btn-danger-bg text-sw-btn-danger-text hover:bg-sw-btn-danger-hover focus:ring-sw-btn-danger-hover; }
+
+    /* badges */
+    .sw-badge { @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-medium; }
+    .sw-badge.primary { @apply bg-sw-color-primary-bg text-sw-color-primary-text; }
+    .sw-badge-success { @apply bg-sw-btn-success-bg text-sw-btn-success-text; }
+    .sw-badge-warning { @apply bg-sw-btn-warning-bg text-sw-btn-warning-text; }
+    .sw-badge-danger { @apply bg-sw-btn-danger-bg text-sw-btn-danger-text; }
+
+    /* internal */
+    span.sw-error { @apply text-xs text-red-600; }
+    span.sw-empty { @apply text-xs text-gray-400 text-center block; }
+    [data-hidden="true"] { display: none; }
+    .sw-sortable { cursor: pointer; }
+    .sw-sortable:hover::after { content: "↑"; position: absolute; }
+    .sw-sortable.ascending::after { content: "↓"; position: absolute; }
+    .sw-sortable.descending::after { content: "↑"; position: absolute; }
+
+    /* margins */
+    .sw-main > * + * { @apply mt-8; }
+    structr-component > * + * { @apply mt-8; }
+    .sw-group > * + * { @apply mt-8; }
+    .sw-card > * + * { @apply mt-8; }
+    .sw-card-content > * + * { @apply mt-8; }
+    .sw-accordion > details > * + * { @apply mt-4; }
+    .sw-form > * + * { @apply mt-8; }
+}

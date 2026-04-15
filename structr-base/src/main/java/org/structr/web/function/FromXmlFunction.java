@@ -18,6 +18,7 @@
  */
 package org.structr.web.function;
 
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
@@ -50,7 +51,16 @@ public class FromXmlFunction extends UiAdvancedFunction {
 
 			try {
 
-				return org.json.XML.toJSONObject(sources[0].toString()).toString(4);
+				// Security: org.json.XML uses a custom tokenizer that does not resolve
+				// external entities or process DTDs. Since version 20230227, org.json also
+				// enforces a configurable maxNestingDepth to prevent entity expansion attacks
+				// ("billion laughs"). We set an explicit nesting depth limit of 128 when
+				// XMLParserSecurity is enabled (consistent with the xml() function's behavior).
+				final org.json.XMLParserConfiguration config = Settings.XMLParserSecurity.getValue()
+					? org.json.XMLParserConfiguration.ORIGINAL.withMaxNestingDepth(128)
+					: org.json.XMLParserConfiguration.ORIGINAL;
+
+				return org.json.XML.toJSONObject(sources[0].toString(), config).toString(4);
 
 			} catch (Throwable t) {
 

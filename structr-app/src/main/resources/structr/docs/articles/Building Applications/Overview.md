@@ -97,9 +97,9 @@ A Structr application's user interface consists of one or more HTML pages. Each 
 
 ### Pages and Elements
 
-Individual pages consist of larger template blocks, nested HTML elements, or a combination of both. You can also use reusable elements called Shared Components and insertable templates known as Widgets to build your interface.
+Individual pages consist of larger template blocks, nested HTML elements, or a combination of both. You can also use reusable elements called Shared Components and insertable templates known as Widgets to build your interface. Widgets can be assembled into widget libraries with enforced nesting rules, and some Widgets produce data-driven components that render tables, lists, and forms directly from a DataSource.
 
-[Read more about Pages & Templates.](/structr/docs/ontology/Building%20Applications/Pages%20&%20Templates)
+[Read more about Pages & Templates.](/structr/docs/ontology/Building%20Applications/Pages%20&%20Templates) [Read more about Widgets & Components.](/structr/docs/ontology/Building%20Applications/Widgets%20&%20Components)
 
 ### CSS, Javascript, Images
 

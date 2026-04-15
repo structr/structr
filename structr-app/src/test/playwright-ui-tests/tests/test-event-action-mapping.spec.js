@@ -546,26 +546,3 @@ test('pages', async ({page}) => {
 	await logout(page);
 
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

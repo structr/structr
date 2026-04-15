@@ -35,6 +35,11 @@ public class FindPageFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public String getReplacementHint() {
+		return "predicate.page";
+	}
+
+	@Override
 	public String getDisplayName(boolean includeParameters) {
 		return "predicate.page";
 	}

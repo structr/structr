@@ -53,6 +53,9 @@ public class StructrTraits {
 	public static final String PAGE_PATH_PARAMETER                 = "PagePathParameter";
 	public static final String TEMPLATE                            = "Template";
 	public static final String CONTENT                             = "Content";
+	public static final String DATA_ADAPTER                        = "DataAdapter";
+	public static final String DATA_ADAPTER_FIELD                  = "DataAdapterField";
+	public static final String DATA_SOURCE                         = "DataSource";
 	public static final String ACTION_MAPPING                      = "ActionMapping";
 	public static final String PARAMETER_MAPPING                   = "ParameterMapping";
 	public static final String LOCALIZATION                        = "Localization";
@@ -90,6 +93,7 @@ public class StructrTraits {
 	public static final String APPLICATION_CONFIGURATION_DATA_NODE = "ApplicationConfigurationDataNode";
 	public static final String COMMENT                             = "Comment";
 	public static final String COMPONENT                           = "Component";
+	public static final String COMPONENT_CONFIGURATION             = "ComponentConfiguration";
 	public static final String CSS_DECLARATION                     = "CssDeclaration";
 	public static final String CSS_RULE                            = "CssRule";
 	public static final String CSS_SELECTOR                        = "CssSelector";
@@ -97,6 +101,7 @@ public class StructrTraits {
 	public static final String SITE                                = "Site";
 	public static final String STORAGE_CONFIGURATION               = "StorageConfiguration";
 	public static final String STORAGE_CONFIGURATION_ENTRY         = "StorageConfigurationEntry";
+	public static final String SCRIPT_DATA_SOURCE                  = "ScriptDataSource";
 
 	public static final String FLOW_ACTION                  = "FlowAction";
 	public static final String FLOW_AGGREGATE               = "FlowAggregate";
@@ -291,11 +296,13 @@ public class StructrTraits {
 	public static final String CSS_RULE_HAS_DECLARATION_CSS_DECLARATION                       = "CssRuleHAS_DECLARATIONCssDeclaration";
 	public static final String CSS_RULE_HAS_SELECTOR_CSS_SELECTOR                             = "CssRuleHAS_SELECTORCssSelector";
 	public static final String CSS_SEMANTIC_CLASS_MAPS_TO_CSS_SELECTOR                        = "CssSemanticClassMAPS_TOCssSelector";
+	public static final String COMPONENT_CONFIGURATION_HAS_DATA_ADAPTER                       = "ComponentConfigurationHAS_DATA_SOURCEDataAdapter";
 	public static final String DOM_ELEMENT_INPUT_ELEMENT_PARAMETER_MAPPING                    = "DOMElementINPUT_ELEMENTParameterMapping";
 	public static final String DOM_ELEMENT_RELOADS_DOM_ELEMENT                                = "DOMElementRELOADSDOMElement";
 	public static final String DOM_ELEMENT_TRIGGERED_BY_ACTION_MAPPING                        = "DOMElementTRIGGERED_BYActionMapping";
 	public static final String DOM_NODE_CONTAINS_DOM_NODE                                     = "DOMNodeCONTAINSDOMNode";
 	public static final String DOM_NODE_CONTAINS_NEXT_SIBLING_DOM_NODE                        = "DOMNodeCONTAINS_NEXT_SIBLINGDOMNode";
+	public static final String DOM_NODE_HAS_COMPONENT_CONFIGURATION                           = "DOMNodeHAS_COMPONENT_CONFIGURATIONComponentConfiguration";
 	public static final String DOM_NODE_FAILURE_TARGET_ACTION_MAPPING                         = "DOMNodeFAILURE_TARGETActionMapping";
 	public static final String DOM_NODE_PAGE_PAGE                                             = "DOMNodePAGEPage";
 	public static final String DOM_NODE_SUCCESS_NOTIFICATION_ELEMENT_ACTION_MAPPING           = "DOMNodeSUCCESS_NOTIFICATION_ELEMENTActionMapping";
@@ -316,6 +323,7 @@ public class StructrTraits {
 	public static final String USER_HOME_DIR_FOLDER                                           = "UserHOME_DIRFolder";
 	public static final String USER_WORKING_DIR_FOLDER                                        = "UserWORKING_DIRFolder";
 	public static final String DOM_NODE_FLOW_FLOW_CONTAINER                                   = "DOMNodeFLOWFlowContainer";
+	public static final String DATA_ADAPTER_HAS_FIELD_DATA_ADAPTER_FIELD                      = "DataAdapterHAS_FIELDDataAdapterField";
 	public static final String FLOW_ACTIVE_CONTAINER_CONFIGURATION                            = "FlowActiveContainerConfiguration";
 	public static final String FLOW_AGGREGATE_START_VALUE                                     = "FlowAggregateStartValue";
 	public static final String FLOW_CALL_CONTAINER                                            = "FlowCallContainer";

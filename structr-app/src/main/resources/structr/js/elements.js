@@ -434,12 +434,67 @@ let _Elements = {
 
 			if (Structr.getActiveModule() === _Pages) {
 
-				// prepend suggested elements if present
-				_Elements.contextMenu.getSuggestedWidgets(entity, (data) => {
+                // prepend suggested widgets for inserting
+                _Elements.contextMenu.getSuggestedWidgets(entity, 'insert', (widgets) => {
 
-					if (data && data.length) {
+                    if (widgets && widgets.length) {
 
-						_Elements.contextMenu.addContextMenuElements({ ul: mainMenuList, element: [ '|', { name: 'Suggested Widgets', elements: data } ], prepend: true, cssPositionClasses, entity });
+                        let insertHandler  = (result) => { _Widgets.insertWidgetIntoPage(result, entity, entity.pageId); };
+                        let insertElements = [];
+
+                        for (let widget of widgets) {
+
+                            _Elements.contextMenu.insertInTree(insertElements, widget, insertHandler);
+                        }
+
+                        _Elements.contextMenu.addContextMenuElements({ ul: mainMenuList, element: [ '|', { name: 'Suggested Widgets', elements: insertElements } ], prepend: true, cssPositionClasses, entity });
+                        _Elements.contextMenu.updateMenuGroupVisibility();
+                    }
+                });
+
+				// prepend suggested elements for wrap action
+				_Elements.contextMenu.getSuggestedWidgets(entity, 'wrap', (widgets) => {
+
+					if (widgets && widgets.length) {
+
+						let replaceHandler = (result) => { _Widgets.wrapElementInWidget(result, entity, entity.pageId); };
+						let wrapElements = [];
+
+						for (let widget of widgets) {
+							_Elements.contextMenu.insertInTree(wrapElements, widget, replaceHandler);
+						}
+
+
+						let wrapList = mainMenuList.querySelector('#wrap-element-in');
+						if (wrapList) {
+							_Elements.contextMenu.addContextMenuElements({ ul: wrapList, element: [ '|', { name: 'Suggested Widgets', elements: wrapElements } ], prepend: true, cssPositionClasses, entity });
+						}
+
+						console.log(wrapList);
+
+						_Elements.contextMenu.updateMenuGroupVisibility();
+					}
+				});
+
+				// prepend suggested elements for replacement
+				_Elements.contextMenu.getSuggestedWidgets(entity, 'replace', (widgets) => {
+
+					if (widgets && widgets.length) {
+
+                        let replaceHandler = (result) => { _Widgets.replaceElementWithWidget(result, entity, entity.pageId); };
+                        let replaceElements = [];
+
+                        for (let widget of widgets) {
+                            _Elements.contextMenu.insertInTree(replaceElements, widget, replaceHandler);
+                        }
+
+                        let replaceList = mainMenuList.querySelector('#replace-element-with');
+                        if (replaceList) {
+                            _Elements.contextMenu.addContextMenuElements({ ul: replaceList, element: [ '|', { name: 'Suggested Widgets', elements: replaceElements } ], prepend: true, cssPositionClasses, entity });
+                        }
+
+						console.log(replaceList);
+
 						_Elements.contextMenu.updateMenuGroupVisibility();
 					}
 				});
@@ -448,6 +503,36 @@ let _Elements = {
 			_Elements.contextMenu.updateMenuGroupVisibility();
 			_Elements.contextMenu.repositionMenu(x, y);
 		},
+        insertInTree: (destination, widget, clickHandler) => {
+            let current = destination;
+            let treePath = widget.treePath || 'Uncategorized';
+            for (let part of treePath.split('/')) {
+                if (part.length == 0) { continue; }
+                let element = current.find(e => e.name === part);
+                if (!element) {
+                    element = { name: part, elements: [] };
+                    current.push(element);
+                }
+                current = element.elements;
+            }
+            current.push(_Elements.contextMenu.createEntryForWidget(widget, clickHandler));
+        },
+        createEntryForWidget: (widget, clickHandler) => {
+            return {
+                id:           widget.id,
+                name:         _Elements.contextMenu.getSuggestedWidgetName(widget),
+                clickHandler: () => {
+                    Command.get(widget.id, undefined, (result) => {
+                        clickHandler(result);
+                    });
+                }
+            };
+        },
+        getSuggestedWidgetName: (widget) => {
+            //return '<b>' + widget.name + '</b>' + (widget.shortDescription ? (' - ' + widget.shortDescription) : '')
+            //return widget.name + ' ' + widget.componentType + ' ' + widget.dimensions;
+            return widget.name;
+        },
 		addContextMenuElements: ({ ul, element, hidden = false, forcedClickHandler, prepend = false, cssPositionClasses, entity }) => {
 
 			if (hidden) {
@@ -510,9 +595,10 @@ let _Elements = {
 
 					menuEntryContent.insertAdjacentHTML('beforeend', _Icons.getSvgIcon(_Icons.iconChevronRightFilled, 10, 10, ['icon-grey']));
 
-					let subListElement = _Helpers.createSingleDOMElementFromHTML(`<ul class="element-group ${cssPositionClasses}"></ul>`);
+                    let idString = (element?.id ? `id="${element.id}" ` : '');
+					let subListElement = _Helpers.createSingleDOMElementFromHTML(`<ul ${idString} class="element-group ${cssPositionClasses}"></ul>`);
 					menuEntry.appendChild(subListElement);
-					_Elements.contextMenu.addContextMenuElements({ ul: subListElement, element: element.elements, hidden: true, forcedClickHandler: (forcedClickHandler ? forcedClickHandler : element.forcedClickHandler), prepend, cssPositionClasses, entity });
+					_Elements.contextMenu.addContextMenuElements({ ul: subListElement, element: element.elements, hidden: true, forcedClickHandler: (forcedClickHandler ? forcedClickHandler : element.forcedClickHandler), prepend: false, cssPositionClasses, entity });
 				}
 			}
 		},
@@ -682,29 +768,11 @@ let _Elements = {
 				_Elements.contextMenu.remove();
 			});
 		},
-		getSuggestedWidgets: (entity, callback) => {
+		getSuggestedWidgets: (entity, mode, callback) => {
 
-			if (!entity.isPage && !entity.isContent) {
+			if (!entity.isPage && (!entity.isContent || entity.type === 'Template')) {
 
-				let classes = entity._html_class && entity._html_class.length ? entity._html_class.split(' ') : [];
-
-				Command.getSuggestions(entity._html_id, entity.name, entity.tag, classes, (result) => {
-
-					let data = (result ?? []).map(r => {
-						return {
-							id:           r.id,
-							name:         r.name,
-							source:       r.source,
-							clickHandler: () => {
-								Command.get(r.id, undefined, (result) => {
-									_Widgets.insertWidgetIntoPage(result, entity, entity.pageId);
-								});
-							}
-						}
-					});
-
-					callback(data);
-				});
+				Command.getSuggestions(entity.id, mode, callback);
 			}
 		},
 		prevAnimFrameReqId_updateMenuGroupVisibility: undefined,
@@ -816,12 +884,13 @@ let _Elements = {
 		}
 
 		let isActiveNode          = entity.isActiveNode();
-		let isTemplate            = (entity.type === 'Template');
+		let isTemplate   = (entity.type === 'Template');
 		let name                  = entity.name;
 		let displayName           = _Helpers.getHTMLTreeElementDisplayName(entity);
 		let nameText              = (name ? `<b title="${_Helpers.escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>` : `<span class="content_">${_Helpers.escapeTags(entity.content) || '&nbsp;'}</span>`);
 		let isRootSharedComponent = (entity.parent === null && entity.pageId === _Pages.shadowPage.id);
-		let isRootTrashElement    = (entity.parent === null && entity.pageId === null);
+		let isRootTrashElement = (entity.parent === null && entity.pageId === null);
+        let sharedComponentString = ((entity?.sharedComponent?.name && entity.name !== entity.sharedComponent.name) ? `<span class="shared-component-name">${entity.sharedComponent.name}</span>` : '');
 
 		let html = `
 			<div id="id_${entity.id}" class="node content ${(isActiveNode ? ' activeNode' : 'staticNode') + (_Elements.isEntitySelected(entity) ? ' nodeSelectedFromContextMenu' : '')}" draggable="true">
@@ -831,6 +900,7 @@ let _Elements = {
 				<div class="node-container flex items-center">
 					${_Icons.getSvgIconForContentNode(entity, ['typeIcon', _Icons.typeIconClassNoChildren], entity.getActiveNodeInfoAsString())}
 					<span class="abbr-ellipsis abbr-pages-tree">${nameText}</span>
+					${sharedComponentString}
 					<div class="icons-container flex items-center"></div>
 				</div>
 
@@ -853,8 +923,10 @@ let _Elements = {
 		let nodeContainer  = $('.node-container', div);
 		let iconsContainer = $('.icons-container', div);
 
-		_Dragndrop.enableDraggable(entity, div[0], _Dragndrop.dropActions.domElement, true, _Dragndrop.pages.dragStart, _Dragndrop.pages.dragEnd);
-		_Dragndrop.pages.enableDroppable(entity, div[0], nodeContainer[0]);
+        if (div && div.length) {
+            _Dragndrop.enableDraggable(entity, div[0], _Dragndrop.dropActions.domElement, true, _Dragndrop.pages.dragStart, _Dragndrop.pages.dragEnd);
+            _Dragndrop.pages.enableDroppable(entity, div[0], nodeContainer[0]);
+        }
 
 		if (isTemplate) {
 			let hasChildren = entity.childrenIds && entity.childrenIds.length;

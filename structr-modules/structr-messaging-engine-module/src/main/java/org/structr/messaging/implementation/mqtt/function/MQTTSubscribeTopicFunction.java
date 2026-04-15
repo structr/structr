@@ -54,7 +54,7 @@ public class MQTTSubscribeTopicFunction extends MessagingModuleFunction {
 				return "";
 			}
 
-			client.subscribeTopic(ctx.getSecurityContext(), sources[1].toString());
+			client.subscribeTopic(ctx, sources[1].toString());
 
 		} else {
 

@@ -31,6 +31,8 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.RenderContext;
+import org.structr.web.entity.Widget;
+import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.importer.Importer;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
@@ -39,6 +41,7 @@ import org.testng.annotations.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.testng.AssertJUnit.*;
 
@@ -49,6 +52,23 @@ import static org.testng.AssertJUnit.*;
 public class ImporterTest extends StructrUiTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(ImporterTest.class.getName());
+
+	@Test
+	public void testParsingOfTableCellFragments() {
+
+		Settings.HtmlIndentation.setValue(false);
+
+		compareParsedFragmentWithSource("<table><tbody><tr><td>Test</td></tr></tbody></table>");
+		compareParsedFragmentWithSource("<tbody><tr><td>Test</td></tr></tbody>");
+		compareParsedFragmentWithSource("<tr><td>Test</td></tr>");
+		compareParsedFragmentWithSource("<td>Test</td>");
+		compareParsedFragmentWithSource("<th>Test</th>");
+		compareParsedFragmentWithSource("<tbody><tr>Test</tr></tbody>");
+		compareParsedFragmentWithSource("<thead><tr><th>Test</th></tr></thead>");
+		compareParsedFragmentWithSource("<tr>Test</tr>");
+		compareParsedFragmentWithSource("<tr></tr>");
+
+	}
 
 	@Test
 	public void testBootstrapJumbotronEditModeNone() {
@@ -370,7 +390,8 @@ public class ImporterTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
-			logger.warn("", ex);
+			ex.printStackTrace();
+			fail(ex.getMessage());
 		}
 	}
 
@@ -403,32 +424,29 @@ public class ImporterTest extends StructrUiTest {
 
 		} catch (FrameworkException ex) {
 			ex.printStackTrace();
-			fail("Unexpected exception");
+			fail(ex.getMessage());
 		}
 	}
 
 	private String testImport(final String address, final RenderContext.EditMode editMode) {
 
-		String sourceHtml = null;
+		String sourceHtml = "";
 
-		try {
+		// render page into HTML string
+		try (final Tx tx = app.tx()) {
 
-			// render page into HTML string
-			try (final Tx tx = app.tx()) {
+			final Importer importer = new Importer(securityContext, null, address, "testpage", true, true, false, false);
 
-				final Importer importer = new Importer(securityContext, null, address, "testpage", true, true, false, false);
+			importer.parse();
 
-				importer.parse();
+			// create page from source
+			final Page sourcePage = importer.readPage();
+			sourceHtml = sourcePage.getContent(editMode);
+			tx.success();
 
-				// create page from source
-				final Page sourcePage = importer.readPage();
-				sourceHtml = sourcePage.getContent(editMode);
-				tx.success();
-			}
-
-		} catch (Throwable t) {
-
-			logger.warn("", t);
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail(fex.getMessage());
 		}
 
 		return sourceHtml;
@@ -482,7 +500,7 @@ public class ImporterTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
-			logger.warn("", ex);
+			ex.printStackTrace();
 		}
 	}
 
@@ -499,7 +517,7 @@ public class ImporterTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
-			logger.warn("", ex);
+			ex.printStackTrace();
 		}
 	}
 
@@ -512,6 +530,8 @@ public class ImporterTest extends StructrUiTest {
 		final List<Node> expectedNodes = new ArrayList<>();
 		final List<Node> actualNodes   = new ArrayList<>();
 
+		System.out.println(actual);
+
 		collectNodes(expectedNodes, Jsoup.parse(expected));
 		collectNodes(actualNodes, Jsoup.parse(actual));
 
@@ -520,6 +540,8 @@ public class ImporterTest extends StructrUiTest {
 			final Node expectedNode = expectedNodes.get(i);
 			final Node actualNode   = actualNodes.get(i);
 			final String acName     = actualNode.nodeName();
+
+			System.out.println(expectedNode.nodeName() + " -> " + actualNode.nodeName());
 
 			assertEquals("Tag name mismatch", expectedNode.nodeName(), actualNode.nodeName());
 			assertEquals("Attribute mismatch in " + acName, expectedNode.attributes(), actualNode.attributes());
@@ -533,5 +555,35 @@ public class ImporterTest extends StructrUiTest {
 		for (final Node child : current.childNodes()) {
 			collectNodes(target, child);
 		}
+	}
+
+	private void compareParsedFragmentWithSource(final String source) {
+
+		final String parsed = parseFragmentToText(source);
+
+		assertEquals("Parsed fragment differs from source", source, parsed);
+	}
+
+	private String parseFragmentToText(final String source) {
+
+		try (final Tx tx = app.tx()) {
+
+			// page is only needed to create elements
+			final Page page      = Page.createNewPage(securityContext, "compareFragmentParsing");
+			final DOMNode parent = page.createElement("div");
+
+			Widget.expandWidget(securityContext, page, parent, "http://localhost", Map.of("source", source), false);
+
+			return parent.getFirstChild().getContent(RenderContext.EditMode.NONE);
+
+			// no commit => don't write anything to the database!
+			//tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail(fex.getMessage());
+		}
+
+		return null;
 	}
 }

@@ -58,7 +58,7 @@ public class MQTTPublishFunction extends MessagingModuleFunction {
 				return "";
 			}
 
-			client.sendMessage(ctx.getSecurityContext(), sources[1].toString(), sources[2].toString());
+			client.sendMessage(ctx, sources[1].toString(), sources[2].toString());
 
 		} else {
 

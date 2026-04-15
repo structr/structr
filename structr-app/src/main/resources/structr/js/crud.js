@@ -3268,7 +3268,7 @@ let _Crud = {
 
 				<div class="column-resizer"></div>
 
-				<div id="crud-left" class="resourceBox gap-y-12 pt-4 flex flex-col mr-8">
+				<div id="crud-left" class="resourceBox pt-4 flex flex-col mr-8">
 
 					<div id="crud-types" class="h-1/2 flex flex-col">
 					
@@ -3279,7 +3279,7 @@ let _Crud = {
 						
 						${_Crud.typeList.filtering.templates.filterInput(config)}
 
-						<div id="crud-types-list" class="flex-grow"></div>
+						<div id="crud-types-list" class="flex-grow mb-8"></div>
 					</div>
 
 					<div id="crud-recent-types" class="h-1/2 flex flex-col">

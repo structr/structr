@@ -36,6 +36,11 @@ public class FindAndFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getReplacementHint() {
+		return "predicate.and";
+	}
+
+	@Override
 	public String getDisplayName(boolean includeParameters) {
 		return "predicate.and";
 	}

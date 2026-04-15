@@ -381,6 +381,7 @@ let _Pages = {
 
 			elements.push({
 				name: 'Wrap element in...',
+                id: 'wrap-element-in',
 				elements: [
 					{
 						name: '... HTML element',
@@ -402,31 +403,29 @@ let _Pages = {
 				]
 			});
 
-			if (entity.isContent !== true) {
-
-				elements.push({
-					name: 'Replace element with...',
-					elements: [
-						{
-							name: '... HTML element',
-							elements: _Elements.sortedElementGroups,
-							forcedClickHandler: handleReplaceWithAction
-						},
-						// {
-						// 	name: '... Template element',
-						// 	clickHandler: () => {
-						// 		handleReplaceWithAction('#template');
-						// 	}
-						// },
-						{
-							name: '... div element',
-							clickHandler: () => {
-								handleReplaceWithAction('div');
-							}
+			elements.push({
+				name: 'Replace element with...',
+                id: 'replace-element-with',
+				elements: [
+					{
+						name: '... HTML element',
+						elements: _Elements.sortedElementGroups,
+						forcedClickHandler: handleReplaceWithAction
+					},
+					// {
+					// 	name: '... Template element',
+					// 	clickHandler: () => {
+					// 		handleReplaceWithAction('#template');
+					// 	}
+					// },
+					{
+						name: '... div element',
+						clickHandler: () => {
+							handleReplaceWithAction('div');
 						}
-					]
-				});
-			}
+					}
+				]
+			});
 		}
 
 		if (isPage) {
@@ -562,9 +561,6 @@ let _Pages = {
 					}
 				]
 			});
-		} else {
-
-            console.log(entity)
         }
 
 		_Elements.contextMenu.appendContextMenuSeparator(elements);
@@ -748,7 +744,17 @@ let _Pages = {
 
 				default:
 
-					if (entity.isContent) {
+                    if (entity.componentConfiguration) {
+
+                        document.querySelector('a[href="#pages:html"]').closest('li').classList.add('hidden');
+                        document.querySelector('a[href="#pages:preview"]').closest('li').classList.add('hidden');
+                        document.querySelector('a[href="#pages:repeater"]').closest('li').classList.add('hidden');
+                        document.querySelector('a[href="#pages:events"]').closest('li').classList.add('hidden');
+                        document.querySelector('a[href="#pages:link"]').closest('li').classList.add('hidden');
+                        document.querySelector('a[href="#pages:active"]').closest('li').classList.add('hidden');
+                        document.querySelector('a[href="#pages:routing"]').closest('li').classList.add('hidden');
+
+                    } else if (entity.isContent) {
 						document.querySelector('a[href="#pages:html"]').closest('li').classList.add('hidden');
 						document.querySelector('a[href="#pages:editor"]').closest('li').classList.remove('hidden');
 						document.querySelector('a[href="#pages:events"]').closest('li').classList.add('hidden');
@@ -763,9 +769,9 @@ let _Pages = {
 					break;
 			}
 
-			if (!_Entities.isLinkableEntity(entity)) {
-				document.querySelector('a[href="#pages:link"]').closest('li').classList.add('hidden');
-			}
+            if (!_Entities.isLinkableEntity(entity)) {
+                document.querySelector('a[href="#pages:link"]').closest('li').classList.add('hidden');
+            }
 
 			let isEntityInSharedComponents = (entity.pageId === _Pages.shadowPage.id);
 			let isEntityInTrash = (!entity.isPage && !entity.pageId);
@@ -836,7 +842,9 @@ let _Pages = {
 				so, if no urlHash is present, we select a tab from the defaults
 			*/
 
-			if (obj.isContent) {
+            if (obj.componentConfiguration) {
+                urlHash = '#pages:general';
+            } else if (obj.isContent) {
 				urlHash = '#pages:editor';
 			} else if (obj.isDOMNode) {
 				urlHash = '#pages:html';
@@ -1133,6 +1141,8 @@ let _Pages = {
 
 					LSWrapper.setItem(_Entities.selectedObjectIdKey, entity.id);
 					_Pages.refreshCenterPane(entity);
+
+					_Pages.previews.updatePreviewSlideout(false);
 				}
 			});
 		}
@@ -2297,7 +2307,8 @@ let _Pages = {
 						tile.addEventListener('click', () => {
 							Command.create({ type: 'Page' }, (page) => {
 								Structr.removeExpandedNode(page.id);
-								Command.appendWidget(widget.source, page.id, page.id, null, {}, true);
+                                let config = { componentType: widget.componentType, dimensions: widget.dimensions };
+								Command.appendWidget(widget.source, page.id, page.id, null, {}, config, true);
 								_Dialogs.custom.dialogCancelBaseAction();
 							});
 						});
@@ -2889,7 +2900,7 @@ let _Pages = {
 				_Pages.previews.getComments(element).forEach(function(c) {
 
 					let inner  = $(_Pages.previews.getNonCommentSiblings(c.node));
-					let newDiv = $(`<span data-structr-id="${c.id}" data-structr-raw-content="${_Helpers.escapeForHtmlAttributes(c.rawContent, false)}"></span>`);
+                    let newDiv = $(`<span data-structr-id="${c.id}" data-structr-raw-content="${_Helpers.escapeForHtmlAttributes(c.rawContent, false)}"></span>`);
 
 					newDiv.append(inner);
 					$(c.node).replaceWith(newDiv);
@@ -2988,11 +2999,12 @@ let _Pages = {
 			let requestParameters = (LSWrapper.getItem(_Pages.requestParametersKey + entity.id) ? '&' + LSWrapper.getItem(_Pages.requestParametersKey + entity.id) : '');
 			return _Pages.previews.getBaseUrlForPage(entity) + '?' + Structr.getRequestParameterName('edit') + '=2' + requestParameters;
 		},
-		showPreviewInIframe: (pageId, highlightElementId, parentElement) => {
+		showPreviewInIframe: (pageId, highlightElementId, parentElement = _Pages.centerPane, modelChanged = true) => {
 
-			parentElement = (parentElement && parentElement.length) ? parentElement[0] : _Pages.centerPane;
+			let currentPreviewPage = parentElement.querySelector('.previewBox[data-id]')?.dataset.id ?? '';
+			let reloadRequired     = (modelChanged === true) || (pageId !== currentPreviewPage);
 
-			if (pageId && pageId !== _Pages.shadowPage.id) {
+			if (pageId && pageId !== _Pages.shadowPage.id && reloadRequired) {
 
 				let innerFn = () => {
 
@@ -3068,20 +3080,21 @@ let _Pages = {
 				_Pages.previews.reloadPreviewInIframe();
 			}
 
-			if (_Pages.previewSlideout.hasClass('open')) {
-				_Pages.previews.updatePreviewSlideout();
-			}
-
+			_Pages.previews.updatePreviewSlideout();
 		},
-		updatePreviewSlideout: () => {
+		updatePreviewSlideout: (modelChanged = true) => {
 
-			let elementId = _Pages.centerPane.dataset['elementId'] ?? LSWrapper.getItem(_Entities.selectedObjectIdKey);
+			if (_Pages.previewSlideout.hasClass('open')) {
 
-			if (elementId) {
-				Command.get(elementId, 'id,type,name,isPage,pageId', (entity) => {
-					_Helpers.fastRemoveAllChildren(_Pages.previewSlideout[0]);
-					_Pages.previews.showPreviewInIframe(entity.isPage ? entity.id : entity.pageId, elementId, _Pages.previewSlideout);
-				});
+				let elementId = _Pages.centerPane.dataset['elementId'] ?? LSWrapper.getItem(_Entities.selectedObjectIdKey);
+
+				if (elementId) {
+					Command.get(elementId, 'id,type,name,isPage,pageId', (entity) => {
+
+						let pageId = (entity.isPage ? entity.id : entity.pageId);
+						_Pages.previews.showPreviewInIframe(pageId, elementId, _Pages.previewSlideout[0], modelChanged);
+					});
+				}
 			}
 		},
 		configurePreview: (entity, container) => {
@@ -4523,6 +4536,7 @@ let _Pages = {
 										<option value="navigate-to-url">Navigate to a new page</option>
 										<option value="fire-event">Raise a custom event</option>
 										<option value="sign-out">Sign out</option>
+										<option value="component-based">Let enclosing component decide</option>
 									</select>
 								</div>
 
@@ -4565,6 +4579,7 @@ let _Pages = {
 										<option value="navigate-to-url">Navigate to a new page</option>
 										<option value="fire-event">Raise a custom event</option>
 										<option value="sign-out">Sign out</option>
+										<option value="component-based">Let enclosing component decide</option>
 									</select>
 								</div>
 

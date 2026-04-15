@@ -34,6 +34,7 @@ import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.docs.Documentable;
 import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.FunctionCategory;
+import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 import java.util.Map;
@@ -43,6 +44,10 @@ import java.util.Map.Entry;
  * Abstract implementation of the basic functions of the Interface QueryFunction.
  */
 public abstract class AbstractQueryFunction extends CoreFunction implements QueryFunction {
+
+	public static final String ERROR_MESSAGE_NO_TYPE_SPECIFIED     = "%s(): No type specified. Parameters: %s";
+	public static final String ERROR_MESSAGE_TYPE_NOT_FOUND        = "%s(): Type not found: %s";
+	public static final String ERROR_MESSAGE_TYPE_GRAPHOBJECT_USED = "%s(): Type GraphObject not supported in %s(), please use type NodeInterface to operate on nodes of all types.";
 
 	@Override
 	public List<Link> getLinkedConcepts() {
@@ -245,6 +250,8 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 				final Object value   = entry.getValue();
 
 				if (keyName.startsWith("$")) {
+
+					logger.warn("Using deprecated query syntax '{}'. This notation is less expressive than predicate notation and will be removed in an upcoming version. Please migrate to predicate notation.", keyName);
 
 					final String operator = keyName.substring(1).toLowerCase();
 					switch (operator) {

@@ -444,7 +444,7 @@ public abstract class AbstractHintProvider {
 
 		item.put(text,             documentable.getDisplayName(false));
 		item.put(documentationKey, getDocumentation(documentable));
-		item.put(replacementKey,   documentable.getName());
+		item.put(replacementKey,   documentable.getReplacementHint());
 		item.put(typeKey,          documentable.getDocumentableType().getDisplayName());
 
 		return item;
@@ -462,6 +462,7 @@ public abstract class AbstractHintProvider {
 		hints.add(0, new ValueHint());
 		hints.add(0, new ThisHint());
 		hints.add(0, new TenantIdentifierHint());
+		hints.add(0, new TemplateHint());
 		hints.add(0, new SessionHint());
 		hints.add(0, new RequestHint());
 		hints.add(0, new QueryStringHint());
@@ -478,12 +479,14 @@ public abstract class AbstractHintProvider {
 		hints.add(0, new IPHint());
 		hints.add(0, new IdHint());
 		hints.add(0, new HostHint());
+		hints.add(0, new DataSourceHint());
 		hints.add(0, new DataHint());
 		hints.add(0, new CurrentHint());
 		hints.add(0, new ChildrenHint());
 		hints.add(0, new BaseUrlHint());
 		hints.add(0, new ApplicationStoreHint());
 		hints.add(0, new ApplicationRootPathHint());
+		hints.add(0, new AdapterHint());
 
 	}
 

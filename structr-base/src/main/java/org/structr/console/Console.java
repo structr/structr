@@ -43,7 +43,6 @@ import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.TraitsManager;
 import org.structr.docs.Documentation;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.EvaluationHints;
 import org.structr.util.CommandLineUtils;
 import org.structr.util.Writable;
 
@@ -277,8 +276,7 @@ public class Console {
 
 		try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
 
-			final EvaluationHints hints = new EvaluationHints();
-			final Object result = Functions.evaluate(actionContext, null, new Snippet("console", line), hints);
+			final Object result = Functions.evaluate(actionContext, null, new Snippet("console", line));
 			if (result != null) {
 
 				if (result instanceof Iterable) {
