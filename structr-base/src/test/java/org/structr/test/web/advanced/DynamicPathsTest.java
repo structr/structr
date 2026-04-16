@@ -51,8 +51,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static org.hamcrest.Matchers.equalTo;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.fail;
+import static org.testng.AssertJUnit.*;
 
 /**
  */
@@ -918,11 +917,12 @@ public class DynamicPathsTest extends DeploymentTestBase {
 	@Test
 	public void testPagePathWarningMessages() {
 
-		NodeInterface catchAllPathWithoutMandatoryParams = null;
-		NodeInterface catchAllPathWithMandatoryParams = null;
-		NodeInterface pathWithDuplicateParameter = null;
-		NodeInterface pathWithConflictingParameter = null;
-
+		String catchAllPathWithoutMandatoryParams = null;
+		String catchAllPathWithMandatoryParams = null;
+		String pathWithDuplicateParameter = null;
+		String pathWithConflictingParameter = null;
+		String pathWithConflictingRenderContextParameter = null;
+		String pathWithNonMatchingParameter = null;
 
 		try (final Tx tx = app.tx()) {
 
@@ -932,18 +932,19 @@ public class DynamicPathsTest extends DeploymentTestBase {
 				catchAllPathWithoutMandatoryParams = app.create(StructrTraits.PAGE_PATH,
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(PagePathTraitDefinition.PAGE_PROPERTY), page),
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/{key1}/{key2}")
-				);
+				).getUuid();
 			}
 
 			{
 				// we want a mandatory parameter so we create the params manually
-				catchAllPathWithMandatoryParams = app.create(StructrTraits.PAGE_PATH,
+				final NodeInterface path = app.create(StructrTraits.PAGE_PATH,
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(PagePathTraitDefinition.PAGE_PROPERTY), page),
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/{key1}/{key2}")
 				);
+				catchAllPathWithMandatoryParams = path.getUuid();
 
 				app.create(StructrTraits.PAGE_PATH_PARAMETER,
-						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          catchAllPathWithMandatoryParams),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          path),
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "key1"),
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      0),
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "String"),
@@ -951,7 +952,7 @@ public class DynamicPathsTest extends DeploymentTestBase {
 				);
 
 				app.create(StructrTraits.PAGE_PATH_PARAMETER,
-						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          catchAllPathWithMandatoryParams),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          path),
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "key2"),
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      1),
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "String"),
@@ -964,21 +965,28 @@ public class DynamicPathsTest extends DeploymentTestBase {
 				pathWithDuplicateParameter = app.create(StructrTraits.PAGE_PATH,
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(PagePathTraitDefinition.PAGE_PROPERTY), page),
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/test_{key1}/{key1}")
-				);
+				).getUuid();
 			}
 
 			{
 				pathWithConflictingParameter = app.create(StructrTraits.PAGE_PATH,
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(PagePathTraitDefinition.PAGE_PROPERTY), page),
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/test_{key1}/{now}")
-				);
+				).getUuid();
 			}
 
 			{
-				pathWithConflictingParameter = app.create(StructrTraits.PAGE_PATH,
+				pathWithConflictingRenderContextParameter = app.create(StructrTraits.PAGE_PATH,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(PagePathTraitDefinition.PAGE_PROPERTY), page),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/test_{key1}/{page}/{children}")
+				).getUuid();
+			}
+
+			{
+				pathWithNonMatchingParameter = app.create(StructrTraits.PAGE_PATH,
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(PagePathTraitDefinition.PAGE_PROPERTY), page),
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/test_{key1}/{a}/{0test}")
-				);
+				).getUuid();
 			}
 
 			tx.success();
@@ -989,27 +997,49 @@ public class DynamicPathsTest extends DeploymentTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			CollectionUtils.isEqualCollection(Arrays.stream(catchAllPathWithoutMandatoryParams.as(PagePath.class).getMessages()).toList(), List.of(
-					PagePathTraitWrapper.CATCH_ALL_ROUTE_NO_MANDATORY_PARAMS_WARNING
-			));
+			/*
+				In this case the order does not matter so we could use "CollectionUtils.isEqualCollection" at the cost of not having nice failure messages.
+				We want nice failure messages, so we use simple "assertEquals", which also requires the order to be identical.
+				That means that we have to know the order of the warnings which is dictated by the code...
+			 */
+			assertEquals("Path warnings mismatch", List.of(PagePathTraitWrapper.CATCH_ALL_ROUTE_NO_MANDATORY_PARAMS_WARNING), Arrays.stream(app.getNodeById(catchAllPathWithoutMandatoryParams).as(PagePath.class).getWarnings()).toList());
+			assertEquals("Path warnings mismatch", List.of(PagePathTraitWrapper.CATCH_ALL_ROUTE_WITH_MANDATORY_PARAMS_WARNING), Arrays.stream(app.getNodeById(catchAllPathWithMandatoryParams).as(PagePath.class).getWarnings()).toList());
+			assertEquals("Path warnings mismatch", List.of(PagePathTraitWrapper.DUPLICATE_PARAMETER_WARNING.formatted("key1")), Arrays.stream(app.getNodeById(pathWithDuplicateParameter).as(PagePath.class).getWarnings()).toList());
+			assertEquals("Path warnings mismatch", List.of(PagePathTraitWrapper.CONFLICTING_PARAMETER_WARNING.formatted("now")), Arrays.stream(app.getNodeById(pathWithConflictingParameter).as(PagePath.class).getWarnings()).toList());
+			assertEquals("Path warnings mismatch for renderContext keys", List.of(
+							PagePathTraitWrapper.CONFLICTING_PARAMETER_WARNING.formatted("page"),
+							PagePathTraitWrapper.CONFLICTING_PARAMETER_WARNING.formatted("children")
+					), Arrays.stream(app.getNodeById(pathWithConflictingRenderContextParameter).as(PagePath.class).getWarnings()).toList()
+			);
+			assertEquals("Path warnings mismatch", List.of(
+							PagePathTraitWrapper.PARAMETER_PATTERN_MISMATCH_WARNING.formatted("{a}", PagePathTraitWrapper.PATH_PARAMETER_PATTERN),
+							PagePathTraitWrapper.PARAMETER_PATTERN_MISMATCH_WARNING.formatted("{0test}", PagePathTraitWrapper.PATH_PARAMETER_PATTERN)
+					), Arrays.stream(app.getNodeById(pathWithNonMatchingParameter).as(PagePath.class).getWarnings()).toList()
+			);
 
-			CollectionUtils.isEqualCollection(Arrays.stream(catchAllPathWithMandatoryParams.as(PagePath.class).getMessages()).toList(), List.of(
-					PagePathTraitWrapper.CATCH_ALL_ROUTE_WITH_MANDATORY_PARAMS_WARNING
-			));
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
 
-			CollectionUtils.isEqualCollection(Arrays.stream(pathWithDuplicateParameter.as(PagePath.class).getMessages()).toList(), List.of(
-					PagePathTraitWrapper.DUPLICATE_PARAMETER_WARNING.formatted("key1")
-			));
+		// ensure warning messages are re-created after deployment (because they are not in the export)
+		doImportExportRoundtrip(true, null, false);
 
-			CollectionUtils.isEqualCollection(Arrays.stream(pathWithConflictingParameter.as(PagePath.class).getMessages()).toList(), List.of(
-					PagePathTraitWrapper.CONFLICTING_PARAMETER_WARNING.formatted("date")
-			));
+		try (final Tx tx = app.tx()) {
 
-			CollectionUtils.isEqualCollection(Arrays.stream(pathWithConflictingParameter.as(PagePath.class).getMessages()).toList(), List.of(
-					PagePathTraitWrapper.PARAMETER_PATTERN_MISMATCH_WARNING.formatted("a", PagePathTraitWrapper.PATH_PARAMETER_PATTERN),
-					PagePathTraitWrapper.PARAMETER_PATTERN_MISMATCH_WARNING.formatted("0test", PagePathTraitWrapper.PATH_PARAMETER_PATTERN)
-			));
-
+			assertEquals("Path warnings mismatch", List.of(PagePathTraitWrapper.CATCH_ALL_ROUTE_NO_MANDATORY_PARAMS_WARNING), Arrays.stream(app.getNodeById(catchAllPathWithoutMandatoryParams).as(PagePath.class).getWarnings()).toList());
+			assertEquals("Path warnings mismatch", List.of(PagePathTraitWrapper.CATCH_ALL_ROUTE_WITH_MANDATORY_PARAMS_WARNING), Arrays.stream(app.getNodeById(catchAllPathWithMandatoryParams).as(PagePath.class).getWarnings()).toList());
+			assertEquals("Path warnings mismatch", List.of(PagePathTraitWrapper.DUPLICATE_PARAMETER_WARNING.formatted("key1")), Arrays.stream(app.getNodeById(pathWithDuplicateParameter).as(PagePath.class).getWarnings()).toList());
+			assertEquals("Path warnings mismatch", List.of(PagePathTraitWrapper.CONFLICTING_PARAMETER_WARNING.formatted("now")), Arrays.stream(app.getNodeById(pathWithConflictingParameter).as(PagePath.class).getWarnings()).toList());
+			assertEquals("Path warnings mismatch for renderContext keys", List.of(
+							PagePathTraitWrapper.CONFLICTING_PARAMETER_WARNING.formatted("page"),
+							PagePathTraitWrapper.CONFLICTING_PARAMETER_WARNING.formatted("children")
+					), Arrays.stream(app.getNodeById(pathWithConflictingRenderContextParameter).as(PagePath.class).getWarnings()).toList()
+			);
+			assertEquals("Path warnings mismatch", List.of(
+							PagePathTraitWrapper.PARAMETER_PATTERN_MISMATCH_WARNING.formatted("{a}", PagePathTraitWrapper.PATH_PARAMETER_PATTERN),
+							PagePathTraitWrapper.PARAMETER_PATTERN_MISMATCH_WARNING.formatted("{0test}", PagePathTraitWrapper.PATH_PARAMETER_PATTERN)
+					), Arrays.stream(app.getNodeById(pathWithNonMatchingParameter).as(PagePath.class).getWarnings()).toList()
+			);
 
 		} catch (FrameworkException fex) {
 			fail("Unexpected exception.");

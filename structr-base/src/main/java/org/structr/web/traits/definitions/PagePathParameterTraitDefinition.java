@@ -44,12 +44,12 @@ import java.util.stream.Collectors;
 
 public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinition {
 
-	public static final String PATH_PROPERTY          = "path";
-	public static final String POSITION_PROPERTY      = "position";
-	public static final String VALUE_TYPE_PROPERTY    = "valueType";
-	public static final String FORMAT_PROPERTY        = "format";
-	public static final String DEFAULT_VALUE_PROPERTY = "defaultValue";
-	public static final String IS_MANDATORY_PROPERTY  = "isMandatory";
+	public static final String PATH_PROPERTY                    = "path";
+	public static final String POSITION_PROPERTY                = "position";
+	public static final String VALUE_TYPE_PROPERTY              = "valueType";
+	public static final String FORMAT_PROPERTY                  = "format";
+	public static final String DEFAULT_VALUE_PROPERTY           = "defaultValue";
+	public static final String IS_MANDATORY_PROPERTY            = "isMandatory";
 	public static final String USE_DEFAULT_IF_INVALID_PROPERTY  = "useDefaultIfInvalid";
 
 	public PagePathParameterTraitDefinition() {

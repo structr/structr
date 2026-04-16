@@ -52,7 +52,7 @@ public class PagePathTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String PARAMETERS_PROPERTY = "parameters";
 	public static final String NAME_PROPERTY       = "name";
 	public static final String PRIORITY_PROPERTY   = "priority";
-	public static final String MESSAGES_PROPERTY   = "messages";
+	public static final String WARNINGS_PROPERTY   = "warnings";
 
 	public PagePathTraitDefinition() {
 		super(StructrTraits.PAGE_PATH);
@@ -135,14 +135,14 @@ public class PagePathTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Iterable<NodeInterface>> parametersProperty = new EndNodes(traitsInstance, PARAMETERS_PROPERTY, StructrTraits.PAGE_PATH_HAS_PARAMETER_PAGE_PATH_PARAMETER);
 		final Property<String> nameProperty                        = new StringProperty(NAME_PROPERTY).notNull();		// Custom name property because we need a not null constraint on the name.
 		final Property<Integer> priorityProperty                   = new IntProperty(PRIORITY_PROPERTY);
-		final Property<String[]> messagesProperty                  = new ArrayProperty(MESSAGES_PROPERTY, String.class).indexed();
+		final Property<String[]> warningsProperty                  = new ArrayProperty(WARNINGS_PROPERTY, String.class).indexed();
 
 		return Set.of(
 			pageProperty,
 			parametersProperty,
 			nameProperty,
 			priorityProperty,
-			messagesProperty
+			warningsProperty
 		);
 	}
 
@@ -151,10 +151,10 @@ public class PagePathTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 			PropertyView.Public,
-			newSet(PRIORITY_PROPERTY, PARAMETERS_PROPERTY, MESSAGES_PROPERTY),
+			newSet(PRIORITY_PROPERTY, PARAMETERS_PROPERTY, WARNINGS_PROPERTY),
 
 			PropertyView.Ui,
-			newSet(PRIORITY_PROPERTY, PARAMETERS_PROPERTY, MESSAGES_PROPERTY)
+			newSet(PRIORITY_PROPERTY, PARAMETERS_PROPERTY, WARNINGS_PROPERTY)
 		);
 	}
 

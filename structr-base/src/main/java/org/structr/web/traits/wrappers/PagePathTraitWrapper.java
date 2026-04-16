@@ -47,8 +47,8 @@ import java.util.regex.Pattern;
 
 public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements PagePath {
 
-	public static String CATCH_ALL_ROUTE_NO_MANDATORY_PARAMS_WARNING   = "The absence of static elements and mandatory parameters makes this route a catch-all.";
-	public static String CATCH_ALL_ROUTE_WITH_MANDATORY_PARAMS_WARNING = "The absence of static elements makes this route a catch-all, matching any URL that provides the mandatory parameters.";
+	public static String CATCH_ALL_ROUTE_NO_MANDATORY_PARAMS_WARNING   = "The absence of static path elements and mandatory parameters makes this route a catch-all.";
+	public static String CATCH_ALL_ROUTE_WITH_MANDATORY_PARAMS_WARNING = "The absence of static path elements makes this route a catch-all, matching any URL that provides the mandatory parameters.";
 	public static String DUPLICATE_PARAMETER_WARNING                   = "Parameter '%s' occurs multiple times. This will not work.";
 	public static String CONFLICTING_PARAMETER_WARNING                 = "Parameter '%s' conflicts with builtin functionality. Please choose a different name.";
 	public static String PARAMETER_PATTERN_MISMATCH_WARNING            = "'%s' does not match the required path parameter pattern '%s' - it will be treated as a literal.";
@@ -84,8 +84,15 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 
 
 	@Override
-	public String[] getMessages() {
-		return wrappedObject.getProperty(traits.key(PagePathTraitDefinition.MESSAGES_PROPERTY));
+	public String[] getWarnings() {
+
+		final String[] warnings = wrappedObject.getProperty(traits.key(PagePathTraitDefinition.WARNINGS_PROPERTY));
+
+		if (warnings == null) {
+			return new String[0];
+		}
+
+		return warnings;
 	}
 
 	@Override
@@ -93,7 +100,7 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 
 		final Traits traits         = Traits.of(StructrTraits.PAGE_PATH_PARAMETER);
 		final Object rawPath        = arguments.get("path");
-		final List<String> messages = new ArrayList<>();
+		final List<String> warnings = new ArrayList<>();
 
 		if (rawPath instanceof String path) {
 
@@ -119,19 +126,19 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 
 					if (names.contains(paramName)) {
 
-						messages.add(DUPLICATE_PARAMETER_WARNING.formatted(paramName));
+						warnings.add(DUPLICATE_PARAMETER_WARNING.formatted(paramName));
 					}
 
 					names.add(paramName);
 
 					if (structrBinding.getMember(paramName) != null) {
 
-						messages.add(CONFLICTING_PARAMETER_WARNING.formatted(paramName));
+						warnings.add(CONFLICTING_PARAMETER_WARNING.formatted(paramName));
 					}
 
 				} else {
 
-					messages.add(PARAMETER_PATTERN_MISMATCH_WARNING.formatted(baseMatch, PATH_PARAMETER_PATTERN));
+					warnings.add(PARAMETER_PATTERN_MISMATCH_WARNING.formatted(baseMatch, PATH_PARAMETER_PATTERN));
 				}
 			}
 
@@ -176,11 +183,11 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 
 					if (hasAnyMandatoryParameter) {
 
-						messages.addFirst(CATCH_ALL_ROUTE_WITH_MANDATORY_PARAMS_WARNING);
+						warnings.addFirst(CATCH_ALL_ROUTE_WITH_MANDATORY_PARAMS_WARNING);
 
 					} else {
 
-						messages.addFirst(CATCH_ALL_ROUTE_NO_MANDATORY_PARAMS_WARNING);
+						warnings.addFirst(CATCH_ALL_ROUTE_NO_MANDATORY_PARAMS_WARNING);
 					}
 				}
 			}
@@ -194,11 +201,11 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 
 		Collections.sort(sortedParameters, new DefaultSortOrder(traits.key(PagePathParameterTraitDefinition.POSITION_PROPERTY), false));
 
-		this.setProperty(this.getTraits().key(PagePathTraitDefinition.MESSAGES_PROPERTY), messages.toArray(new String[0]));
+		this.setProperty(this.getTraits().key(PagePathTraitDefinition.WARNINGS_PROPERTY), warnings.toArray(new String[0]));
 
 		return Map.of(
 				"parameters", sortedParameters,
-				"messages", messages
+				"warnings", warnings
 		);
 	}
 

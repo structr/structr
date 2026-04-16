@@ -3684,7 +3684,7 @@ let _Pages = {
 
 			let rowContainer = listContainer.querySelector(`[data-structr-page-path-id="${path.id}"]`);
 
-			_Pages.routingDialog.updateMessages(rowContainer, path.messages ?? []);
+			_Pages.routingDialog.updateWarningMessages(rowContainer, path.warnings ?? []);
 
 			let debouncedUpdateFunction = _Helpers.debounce(event => _Pages.routingDialog.updateParameters(event, path, rowContainer), 500);
 			rowContainer.querySelector(`[data-structr-attribute="name"]`).addEventListener('input', debouncedUpdateFunction);
@@ -3717,20 +3717,20 @@ let _Pages = {
 
 			if (response.ok) {
 
-				let { messages, parameters } = (await response.json()).result;
+				let { warnings, parameters } = (await response.json()).result;
 
 				await _Pages.routingDialog.initPagePathParameters(row, parameters);
 
-				_Pages.routingDialog.updateMessages(row, messages);
+				_Pages.routingDialog.updateWarningMessages(row, warnings);
 
 				_Helpers.blinkGreen(event.target);
 			}
 		},
-		updateMessages: (row, messages) => {
+		updateWarningMessages: (row, warnings) => {
 
-			let messagesContainer = row.querySelector('[data-structr-path-messages-container]');
-			_Helpers.fastRemoveAllChildren(messagesContainer);
-			messagesContainer.insertAdjacentHTML('beforeend', _Pages.routingDialog.templates.pagePathParametersMessages({ messages }));
+			let warningsContainer = row.querySelector('[data-structr-path-warnings-container]');
+			_Helpers.fastRemoveAllChildren(warningsContainer);
+			warningsContainer.insertAdjacentHTML('beforeend', _Pages.routingDialog.templates.pagePathParametersWarnings({ warnings }));
 		},
 		getSortedParametersAsHTML: (params) => {
 			return params.toSorted((a, b) => a.position - b.position).map(param => _Pages.routingDialog.templates.pagePathParameterRow(param)).join('\n');
@@ -3762,10 +3762,10 @@ let _Pages = {
 
 						if (attrName === 'isMandatory') {
 
-							let data = await Command.getPromise(pagePathRow.dataset.structrPagePathId, 'messages');
-							let messages = data.messages ?? [];
+							let data = await Command.getPromise(pagePathRow.dataset.structrPagePathId, 'warnings');
+							let warnings = data.warnings ?? [];
 
-							_Pages.routingDialog.updateMessages(pagePathRow, messages);
+							_Pages.routingDialog.updateWarningMessages(pagePathRow, warnings);
 						}
 					});
 				});
@@ -3823,7 +3823,7 @@ let _Pages = {
 								${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red']))}
 							</button>
 						</div>
-						<div data-structr-path-messages-container></div>
+						<div data-structr-path-warnings-container></div>
 					</div>
 
 					<div class="col-span-2">
@@ -3856,7 +3856,7 @@ let _Pages = {
 					</div>
 				</div>
 			`,
-			pagePathParametersMessages: config => `<ul>${config.messages.map(msg => `<li>${_Helpers.escapeTags(msg)}</li>`).join('\n')}</ul>`,
+			pagePathParametersWarnings: config => `<ul class="pl-6 mt-2 text-sm text-red">${config.warnings.map(msg => `<li>${_Helpers.escapeTags(msg)}</li>`).join('\n')}</ul>`,
 			routingHelp: config => `
 				<h3 class="mt-0">URL Routes</h3>
 
