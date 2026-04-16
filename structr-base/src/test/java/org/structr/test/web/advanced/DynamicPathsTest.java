@@ -20,6 +20,7 @@ package org.structr.test.web.advanced;
 
 import io.restassured.RestAssured;
 import io.restassured.response.ResponseBody;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeAttribute;
@@ -28,16 +29,17 @@ import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.test.web.basic.FrontendTest;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.Template;
+import org.structr.web.entity.path.PagePath;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.web.traits.definitions.PagePathParameterTraitDefinition;
 import org.structr.web.traits.definitions.PagePathTraitDefinition;
 import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
 import org.structr.web.traits.definitions.dom.PageTraitDefinition;
+import org.structr.web.traits.wrappers.PagePathTraitWrapper;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -46,7 +48,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.util.Random;
+import java.util.*;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.testng.AssertJUnit.assertEquals;
@@ -562,11 +564,6 @@ public class DynamicPathsTest extends DeploymentTestBase {
 					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/both/prefix_{key1}_suffix")
 			);
 
-			app.create(StructrTraits.PAGE_PATH,
-					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(PagePathTraitDefinition.PAGE_PROPERTY), page),
-					new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/both_two_keys/prefix_{key1}_{key2}_suffix")
-			);
-
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -575,17 +572,17 @@ public class DynamicPathsTest extends DeploymentTestBase {
 
 		RestAssured.basePath = "/";
 
-		assertEquals("Invalid path resolution result", notFoundPageContent, getContent(404, "/structr/html/prefixed/USED_TO_WORK_prefix_SHOULD_NOT_WORK"));
-		assertEquals("Invalid path resolution result", notFoundPageContent, getContent(404, "/structr/html/prefixed/USED_TO_WORK_SHOULD_NOT_WORK"));
-		assertEquals("Invalid path resolution result", "value1,",  getContent(200, "/structr/html/prefixed/prefix_value1"));
+		assertEquals("Invalid path resolution result: static parts of path segments should be required to strictly match", notFoundPageContent, getContent(404, "/structr/html/prefixed/USED_TO_WORK_prefix_SHOULD_NOT_WORK"));
+		assertEquals("Invalid path resolution result: static parts of path segments should be required to strictly match", notFoundPageContent, getContent(404, "/structr/html/prefixed/USED_TO_WORK_SHOULD_NOT_WORK"));
+		assertEquals("Invalid path resolution result: static parts of path segments should be required to strictly match", "value1,",  getContent(200, "/structr/html/prefixed/prefix_value1"));
 
-		assertEquals("Invalid path resolution result", notFoundPageContent, getContent(404, "/structr/html/suffixed/USED_TO_WORK_value1_SHOULD_NOT_WORK"));
-		assertEquals("Invalid path resolution result", notFoundPageContent, getContent(404, "/structr/html/suffixed/USED_TO_WORK_SHOULD_NOT_WORK"));
-		assertEquals("Invalid path resolution result", "value2,",  getContent(200, "/structr/html/suffixed/value2_suffix"));
+		assertEquals("Invalid path resolution result: static parts of path segments should be required to strictly match", notFoundPageContent, getContent(404, "/structr/html/suffixed/USED_TO_WORK_value1_SHOULD_NOT_WORK"));
+		assertEquals("Invalid path resolution result: static parts of path segments should be required to strictly match", notFoundPageContent, getContent(404, "/structr/html/suffixed/USED_TO_WORK_SHOULD_NOT_WORK"));
+		assertEquals("Invalid path resolution result: static parts of path segments should be required to strictly match", "value2,",  getContent(200, "/structr/html/suffixed/value2_suffix"));
 
-		assertEquals("Invalid path resolution result", notFoundPageContent, getContent(404, "/structr/html/both/USED_TO_WORK_prefix_value1_suffix_SHOULD_NOT_WORK"));
-		assertEquals("Invalid path resolution result", notFoundPageContent, getContent(404, "/structr/html/both/USED_TO_WORK_SHOULD_NOT_WORK"));
-		assertEquals("Invalid path resolution result", "value3,",  getContent(200, "/structr/html/both/prefix_value3_suffix"));
+		assertEquals("Invalid path resolution result: static parts of path segments should be required to strictly match", notFoundPageContent, getContent(404, "/structr/html/both/USED_TO_WORK_prefix_value1_suffix_SHOULD_NOT_WORK"));
+		assertEquals("Invalid path resolution result: static parts of path segments should be required to strictly match", notFoundPageContent, getContent(404, "/structr/html/both/USED_TO_WORK_SHOULD_NOT_WORK"));
+		assertEquals("Invalid path resolution result: static parts of path segments should be required to strictly match", "value3,",  getContent(200, "/structr/html/both/prefix_value3_suffix"));
 	}
 
 	@Test
@@ -642,7 +639,7 @@ public class DynamicPathsTest extends DeploymentTestBase {
 			} catch (FrameworkException fex) {
 				fail("Unexpected exception.");
 			}
-			assertEquals("Invalid path resolution result", "value_suffix", getContent(200, "/structr/html/priorityTest/prefix_value_suffix"));
+			assertEquals("Invalid path resolution result: path priority should produce the correct result", "value_suffix", getContent(200, "/structr/html/priorityTest/prefix_value_suffix"));
 		}
 
 		// set order to suffix, both, prefix
@@ -658,7 +655,8 @@ public class DynamicPathsTest extends DeploymentTestBase {
 			} catch (FrameworkException fex) {
 				fail("Unexpected exception.");
 			}
-			assertEquals("Invalid path resolution result", "prefix_value", getContent(200, "/structr/html/priorityTest/prefix_value_suffix"));
+
+			assertEquals("Invalid path resolution result: path priority should produce the correct result", "prefix_value", getContent(200, "/structr/html/priorityTest/prefix_value_suffix"));
 		}
 
 		{
@@ -674,14 +672,14 @@ public class DynamicPathsTest extends DeploymentTestBase {
 			} catch (FrameworkException fex) {
 				fail("Unexpected exception.");
 			}
-			assertEquals("Invalid path resolution result", "value", getContent(200, "/structr/html/priorityTest/prefix_value_suffix"));
+			assertEquals("Invalid path resolution result: path priority should produce the correct result", "value", getContent(200, "/structr/html/priorityTest/prefix_value_suffix"));
 		}
 	}
 
 	@Test
 	public void testPagePathParameterDefaultValue() {
 
-		createEntityAsSuperUser("/User", "{ name: admin, password: admin, isAdmin: true }");
+		final String userUUID = createEntityAsSuperUser("/User", "{ name: admin, password: admin, isAdmin: true }");
 
 		try (final Tx tx = app.tx()) {
 
@@ -691,13 +689,13 @@ public class DynamicPathsTest extends DeploymentTestBase {
 			page.setProperty(Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.CONTENT_TYPE_PROPERTY), "text/plain");
 			page.appendChild(template);
 
-			template.setContent("${key1},${key2},${key3}");
+			template.setContent("${key1},${key2},${key3},${key4Node}");
 			template.setProperty(Traits.of(StructrTraits.TEMPLATE).key(ContentTraitDefinition.CONTENT_TYPE_PROPERTY), "text/plain");
 
 			{
 				final NodeInterface path = app.create(StructrTraits.PAGE_PATH,
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(PagePathTraitDefinition.PAGE_PROPERTY), page),
-						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/defaultValueTest_1/prefix_{key1}/prefix_{key2}/prefix_{key3}")
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/defaultValueTest_1/prefix_{key1}/prefix_{key2}/prefix_{key3}/prefix_{key4Node}")
 				);
 
 				app.create(StructrTraits.PAGE_PATH_PARAMETER,
@@ -722,13 +720,21 @@ public class DynamicPathsTest extends DeploymentTestBase {
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      2),
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "String"),
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "DEFAULT3")
+				);
+
+				app.create(StructrTraits.PAGE_PATH_PARAMETER,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          path),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "key4Node"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      3),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "Node"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), userUUID)
 				);
 			}
 
 			{
 				final NodeInterface path = app.create(StructrTraits.PAGE_PATH,
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(PagePathTraitDefinition.PAGE_PROPERTY), page),
-						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/defaultValueTest_2/{key1}/{key2}/{key3}")
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/defaultValueTest_2/{key1}/{key2}/{key3}/{key4Node}")
 				);
 
 				app.create(StructrTraits.PAGE_PATH_PARAMETER,
@@ -753,6 +759,14 @@ public class DynamicPathsTest extends DeploymentTestBase {
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      2),
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "String"),
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "DEFAULT3")
+				);
+
+				app.create(StructrTraits.PAGE_PATH_PARAMETER,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          path),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "key4Node"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      3),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "Node"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), userUUID)
 				);
 			}
 
@@ -762,24 +776,18 @@ public class DynamicPathsTest extends DeploymentTestBase {
 			fail("Unexpected exception.");
 		}
 
-		// no value should return the default value
-		assertEquals("Invalid path resolution result", "value1,DEFAULT2,value3", getContent(200, "/structr/html/defaultValueTest_1/prefix_value1/prefix_/prefix_value3"));
-
-		// a space character (%20) should be treated as a value
-		assertEquals("Invalid path resolution result", "value1, ,value3", getContent(200, "/structr/html/defaultValueTest_1/prefix_value1/prefix_%20/prefix_value3"));
+		assertEquals("Invalid path resolution result: no value should return the default value", "value1,DEFAULT2,value3," + userUUID, getContent(200, "/structr/html/defaultValueTest_1/prefix_value1/prefix_/prefix_value3/prefix_"));
+		assertEquals("Invalid path resolution result: a space character (%20) should be treated as a value", "value1, ,value3,", getContent(200, "/structr/html/defaultValueTest_1/prefix_value1/prefix_%20/prefix_value3/prefix_ANYTHING"));
 
 		// this requires AMBIGUOUS_EMPTY_SEGMENT violation to be allowed
-		// no value should return the default value
-		assertEquals("Invalid path resolution result", "value1,DEFAULT2,value3", getContent(200, "/structr/html/defaultValueTest_2/value1//value3"));
-
-		// a space character (%20) should be treated as a value
-		assertEquals("Invalid path resolution result", "value1, ,value3", getContent(200, "/structr/html/defaultValueTest_2/value1/%20/value3"));
+		assertEquals("Invalid path resolution result: no value should return the default value", "value1,DEFAULT2,value3," + userUUID, getContent(200, "/structr/html/defaultValueTest_2/value1//value3/"));
+		assertEquals("Invalid path resolution result: a space character (%20) should be treated as a value", "value1, ,value3,", getContent(200, "/structr/html/defaultValueTest_2/value1/%20/value3/ANYTHING"));
 	}
 
 	@Test
 	public void testPagePathParameterDefaultValuesWhenValueParsingFails() {
 
-		fail("Not yet implemented");
+//		fail("Not yet implemented");
 
 		// we want to expose to the user the option to select the fallback behaviour when a value fails parsing or a node ist not found
 		// "Use default value if parsing fails" and "Use default value if node can not be found" (which defaults to false)
@@ -791,6 +799,221 @@ public class DynamicPathsTest extends DeploymentTestBase {
 		// when mandatory is set, default value should not be available
 
 		// ==> use default value ONLY if parsing fails AND mandatory
+
+		final String userUUID = createEntityAsSuperUser("/User", "{ name: admin, password: admin, isAdmin: true }");
+
+		try (final Tx tx = app.tx()) {
+
+			final Page page         = Page.createNewPage(securityContext, "pagePathParseFailDefaultValueFallbackTest");
+			final Template template = app.create(StructrTraits.TEMPLATE).as(Template.class);
+
+			page.setProperty(Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.CONTENT_TYPE_PROPERTY), "text/plain");
+			page.appendChild(template);
+
+			template.setContent("${kInt},${kFloat},${kDouble},${kLong}");
+			template.setProperty(Traits.of(StructrTraits.TEMPLATE).key(ContentTraitDefinition.CONTENT_TYPE_PROPERTY), "text/plain");
+
+			{
+				final NodeInterface path = app.create(StructrTraits.PAGE_PATH,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(PagePathTraitDefinition.PAGE_PROPERTY), page),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/defaultValueTest_1/int_{kInt}/float_{kFloat}/double_{kDouble}/long_{kLong}")
+				);
+
+				app.create(StructrTraits.PAGE_PATH_PARAMETER,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          path),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "kInt"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      0),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "Integer"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "1234"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.USE_DEFAULT_IF_INVALID_PROPERTY), true)
+				);
+
+				app.create(StructrTraits.PAGE_PATH_PARAMETER,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          path),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "kFloat"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      1),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "Float"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "123.45"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.USE_DEFAULT_IF_INVALID_PROPERTY), true)
+				);
+
+				app.create(StructrTraits.PAGE_PATH_PARAMETER,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          path),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "kDouble"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      2),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "Double"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "234.56"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.USE_DEFAULT_IF_INVALID_PROPERTY), true)
+				);
+
+				app.create(StructrTraits.PAGE_PATH_PARAMETER,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          path),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "kLong"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      3),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "Long"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "1234567890123456789"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.USE_DEFAULT_IF_INVALID_PROPERTY), true)
+				);
+			}
+
+			{
+				final NodeInterface path = app.create(StructrTraits.PAGE_PATH,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(PagePathTraitDefinition.PAGE_PROPERTY), page),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/defaultValueTest_2/{kInt}/{kFloat}/{kDouble}/{kLong}")
+				);
+
+				app.create(StructrTraits.PAGE_PATH_PARAMETER,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          path),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "kInt"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      0),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "Integer"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "1234"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.USE_DEFAULT_IF_INVALID_PROPERTY), true)
+				);
+
+				app.create(StructrTraits.PAGE_PATH_PARAMETER,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          path),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "kFloat"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      1),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "Float"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "123.45"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.USE_DEFAULT_IF_INVALID_PROPERTY), true)
+				);
+
+				app.create(StructrTraits.PAGE_PATH_PARAMETER,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          path),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "kDouble"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      2),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "Double"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "234.56"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.USE_DEFAULT_IF_INVALID_PROPERTY), true)
+				);
+
+				app.create(StructrTraits.PAGE_PATH_PARAMETER,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          path),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "kLong"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      3),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "Long"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "1234567890123456789"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.USE_DEFAULT_IF_INVALID_PROPERTY), true)
+				);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		assertEquals("Invalid path resolution result: no value should return the default value", "1234,123.45,234.56,1234567890123456789", getContent(200, "/structr/html/defaultValueTest_1/int_/float_/double_/long_"));
+		assertEquals("Invalid path resolution result: valid values should be parsed and used", "12,23.45,45.67,24682468", getContent(200, "/structr/html/defaultValueTest_1/int_12/float_23.45/double_45.67/long_24682468"));
+		assertEquals("Invalid path resolution result: parse failures should return the defaults because we have allowed this explicitly", "1234,123.45,234.56,1234567890123456789", getContent(200, "/structr/html/defaultValueTest_1/int_ONE/float_23,45/double_45,67/long_TWO_MILLION"));
+
+		// this requires AMBIGUOUS_EMPTY_SEGMENT violation to be allowed
+		assertEquals("Invalid path resolution result: no value should return the default value", "1234,123.45,234.56,1234567890123456789", getContent(200, "/structr/html/defaultValueTest_2////"));
+		assertEquals("Invalid path resolution result: valid values should be parsed and used", "12,23.45,45.67,24682468", getContent(200, "/structr/html/defaultValueTest_2/12/23.45/45.67/24682468"));
+		assertEquals("Invalid path resolution result: parse failures should return the defaults because we have allowed this explicitly", "1234,123.45,234.56,1234567890123456789", getContent(200, "/structr/html/defaultValueTest_2/ONE/23,45/45,67/TWO_MILLION"));
+	}
+
+	@Test
+	public void testPagePathWarningMessages() {
+
+		NodeInterface catchAllPathWithoutMandatoryParams = null;
+		NodeInterface catchAllPathWithMandatoryParams = null;
+		NodeInterface pathWithDuplicateParameter = null;
+		NodeInterface pathWithConflictingParameter = null;
+
+
+		try (final Tx tx = app.tx()) {
+
+			final Page page = Page.createNewPage(securityContext, "pagePathDefaultValueTest");
+
+			{
+				catchAllPathWithoutMandatoryParams = app.create(StructrTraits.PAGE_PATH,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(PagePathTraitDefinition.PAGE_PROPERTY), page),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/{key1}/{key2}")
+				);
+			}
+
+			{
+				// we want a mandatory parameter so we create the params manually
+				catchAllPathWithMandatoryParams = app.create(StructrTraits.PAGE_PATH,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(PagePathTraitDefinition.PAGE_PROPERTY), page),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/{key1}/{key2}")
+				);
+
+				app.create(StructrTraits.PAGE_PATH_PARAMETER,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          catchAllPathWithMandatoryParams),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "key1"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      0),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "String"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "DEFAULT1")
+				);
+
+				app.create(StructrTraits.PAGE_PATH_PARAMETER,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          catchAllPathWithMandatoryParams),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "key2"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      1),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "String"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "DEFAULT2"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.IS_MANDATORY_PROPERTY), true)
+				);
+			}
+
+			{
+				pathWithDuplicateParameter = app.create(StructrTraits.PAGE_PATH,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(PagePathTraitDefinition.PAGE_PROPERTY), page),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/test_{key1}/{key1}")
+				);
+			}
+
+			{
+				pathWithConflictingParameter = app.create(StructrTraits.PAGE_PATH,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(PagePathTraitDefinition.PAGE_PROPERTY), page),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/test_{key1}/{now}")
+				);
+			}
+
+			{
+				pathWithConflictingParameter = app.create(StructrTraits.PAGE_PATH,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(PagePathTraitDefinition.PAGE_PROPERTY), page),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/test_{key1}/{a}/{0test}")
+				);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			CollectionUtils.isEqualCollection(Arrays.stream(catchAllPathWithoutMandatoryParams.as(PagePath.class).getMessages()).toList(), List.of(
+					PagePathTraitWrapper.CATCH_ALL_ROUTE_NO_MANDATORY_PARAMS_WARNING
+			));
+
+			CollectionUtils.isEqualCollection(Arrays.stream(catchAllPathWithMandatoryParams.as(PagePath.class).getMessages()).toList(), List.of(
+					PagePathTraitWrapper.CATCH_ALL_ROUTE_WITH_MANDATORY_PARAMS_WARNING
+			));
+
+			CollectionUtils.isEqualCollection(Arrays.stream(pathWithDuplicateParameter.as(PagePath.class).getMessages()).toList(), List.of(
+					PagePathTraitWrapper.DUPLICATE_PARAMETER_WARNING.formatted("key1")
+			));
+
+			CollectionUtils.isEqualCollection(Arrays.stream(pathWithConflictingParameter.as(PagePath.class).getMessages()).toList(), List.of(
+					PagePathTraitWrapper.CONFLICTING_PARAMETER_WARNING.formatted("date")
+			));
+
+			CollectionUtils.isEqualCollection(Arrays.stream(pathWithConflictingParameter.as(PagePath.class).getMessages()).toList(), List.of(
+					PagePathTraitWrapper.PARAMETER_PATTERN_MISMATCH_WARNING.formatted("a", PagePathTraitWrapper.PATH_PARAMETER_PATTERN),
+					PagePathTraitWrapper.PARAMETER_PATTERN_MISMATCH_WARNING.formatted("0test", PagePathTraitWrapper.PATH_PARAMETER_PATTERN)
+			));
+
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
 	}
 
 	@Test
@@ -897,8 +1120,7 @@ public class DynamicPathsTest extends DeploymentTestBase {
 			fail("Unexpected exception.");
 		}
 
-		// omit all variables and expect the default value strings to be converted correctly
-		assertEquals("Invalid path resolution result", """
+		assertEquals("Invalid path resolution result: default values should be converted correctly", """
 				DEFAULT_string - string
 				1337 - number
 				42 - number
@@ -912,8 +1134,7 @@ public class DynamicPathsTest extends DeploymentTestBase {
 
 		doImportExportRoundtrip(true, null, false);
 
-		// check that everything still works after deployment
-		assertEquals("Invalid path resolution result", """
+		assertEquals("Invalid path resolution result: after a deployment, default values should still be converted correctly", """
 				DEFAULT_string - string
 				1337 - number
 				42 - number
@@ -1012,13 +1233,10 @@ public class DynamicPathsTest extends DeploymentTestBase {
 
 		// for this to work, the following violations have to be allowed:
 		// AMBIGUOUS_PATH_SEPARATOR to allow %2f (which translates to "/") in the URL.
-		// AMBIGUOUS_PATH_ENCODING to allow %25 (which translates to "%") in the URL. This could possibly be used in double-encoding attacks (if the target does not ensure this does not happen)
+		// AMBIGUOUS_PATH_ENCODING to allow %25 (which translates to "%") in the URL.
 
-		// urlencoded characters with prefixed path parts
-		assertEquals("Invalid path resolution result", "1a/1b/1c,10% of 100 = 10,2 + 2 = 4", getContent(200, "/structr/html/urlencodedTest_1/prefix_1a%2f1b%2f1c/prefix_10%25%20of%20100%20=%2010/prefix_2%20+%202%20=%204"));
-
-		// urlencoded characters with unprefixed path parts
-		assertEquals("Invalid path resolution result", "1a/1b/1c,10% of 100 = 10,2 + 2 = 4", getContent(200, "/structr/html/urlencodedTest_2/1a%2f1b%2f1c/10%25%20of%20100%20=%2010/2%20+%202%20=%204"));
+		assertEquals("Invalid path resolution result: urlencoded characters should be usable (requires AMBIGUOUS_PATH_SEPARATOR and AMBIGUOUS_PATH_ENCODING)", "1a/1b/1c,10% of 100 = 10,2 + 2 = 4", getContent(200, "/structr/html/urlencodedTest_1/prefix_1a%2f1b%2f1c/prefix_10%25%20of%20100%20=%2010/prefix_2%20+%202%20=%204"));
+		assertEquals("Invalid path resolution result: urlencoded characters should be usable (requires AMBIGUOUS_PATH_SEPARATOR and AMBIGUOUS_PATH_ENCODING)", "1a/1b/1c,10% of 100 = 10,2 + 2 = 4", getContent(200, "/structr/html/urlencodedTest_2/1a%2f1b%2f1c/10%25%20of%20100%20=%2010/2%20+%202%20=%204"));
 	}
 
 	@Test
@@ -1096,33 +1314,33 @@ public class DynamicPathsTest extends DeploymentTestBase {
 		}
 
 		// check with admin user
-		assertEquals("Invalid path resolution result", "admin - object",                getContent(200, "/structr/html/nodeParameterTest_1/" + userUUID));
-		assertEquals("Invalid path resolution result", "NO NODE! - object",             getContent(200, "/structr/html/nodeParameterTest_1/"));
-		assertEquals("Invalid path resolution result", "pagePathNodeTypeTest - object", getContent(200, "/structr/html/nodeParameterTest_1/" + pageUUID));
+		assertEquals("Invalid path resolution result: as admin, admin should be found", "admin - object",                                         getContent(200, "/structr/html/nodeParameterTest_1/" + userUUID));
+		assertEquals("Invalid path resolution result: as admin, without a default, no node should be found", "NO NODE! - object",                 getContent(200, "/structr/html/nodeParameterTest_1/"));
+		assertEquals("Invalid path resolution result: as admin, page should be found", "pagePathNodeTypeTest - object",                           getContent(200, "/structr/html/nodeParameterTest_1/" + pageUUID));
 
-		assertEquals("Invalid path resolution result", "admin - object",                getContent(200, "/structr/html/nodeParameterTest_2/" + userUUID));
-		assertEquals("Invalid path resolution result", "admin - object",                getContent(200, "/structr/html/nodeParameterTest_2/"));
-		assertEquals("Invalid path resolution result", "pagePathNodeTypeTest - object", getContent(200, "/structr/html/nodeParameterTest_2/" + pageUUID));
+		assertEquals("Invalid path resolution result: as admin, admin should be found", "admin - object",                                         getContent(200, "/structr/html/nodeParameterTest_2/" + userUUID));
+		assertEquals("Invalid path resolution result: as admin, admin should be found as default", "admin - object",                              getContent(200, "/structr/html/nodeParameterTest_2/"));
+		assertEquals("Invalid path resolution result: as admin, page should be found", "pagePathNodeTypeTest - object",                           getContent(200, "/structr/html/nodeParameterTest_2/" + pageUUID));
 
-		assertEquals("Invalid path resolution result", "admin - object",                getContent(200, "/structr/html/nodeParameterTest_3/" + userUUID));
-		assertEquals("Invalid path resolution result", "NO NODE! - object",             getContent(200, "/structr/html/nodeParameterTest_3/"));
-		assertEquals("Invalid path resolution result", "NO NODE! - object",             getContent(200, "/structr/html/nodeParameterTest_3/" + pageUUID));
+		assertEquals("Invalid path resolution result: as admin, admin should be found", "admin - object",                                         getContent(200, "/structr/html/nodeParameterTest_3/" + userUUID));
+		assertEquals("Invalid path resolution result: as admin, without a default, no node should be found", "NO NODE! - object",                 getContent(200, "/structr/html/nodeParameterTest_3/"));
+		assertEquals("Invalid path resolution result: as admin, page should NOT be found when parameter requires Principal", "NO NODE! - object", getContent(200, "/structr/html/nodeParameterTest_3/" + pageUUID));
 
 
 		// check without user
 		// - admin can NOT be seen by public users. Not by ID and also not as the default value
 		// - the page can be seen
-		assertEquals("Invalid path resolution result", "NO NODE! - object",             getPublicContent(200, "/structr/html/nodeParameterTest_1/" + userUUID));
-		assertEquals("Invalid path resolution result", "NO NODE! - object",             getPublicContent(200, "/structr/html/nodeParameterTest_1/"));
-		assertEquals("Invalid path resolution result", "pagePathNodeTypeTest - object", getPublicContent(200, "/structr/html/nodeParameterTest_1/" + pageUUID));
+		assertEquals("Invalid path resolution result: as anonymous user, admin node should not be found, even when knowing the UUID", "NO NODE! - object", getPublicContent(200, "/structr/html/nodeParameterTest_1/" + userUUID));
+		assertEquals("Invalid path resolution result: as anonymous user, without a default, no node should be found", "NO NODE! - object",                 getPublicContent(200, "/structr/html/nodeParameterTest_1/"));
+		assertEquals("Invalid path resolution result: as anonymous user, page should be found", "pagePathNodeTypeTest - object",                           getPublicContent(200, "/structr/html/nodeParameterTest_1/" + pageUUID));
 
-		assertEquals("Invalid path resolution result", "NO NODE! - object",             getPublicContent(200, "/structr/html/nodeParameterTest_2/" + userUUID));
-		assertEquals("Invalid path resolution result", "NO NODE! - object",             getPublicContent(200, "/structr/html/nodeParameterTest_2/"));
-		assertEquals("Invalid path resolution result", "pagePathNodeTypeTest - object", getPublicContent(200, "/structr/html/nodeParameterTest_2/" + pageUUID));
+		assertEquals("Invalid path resolution result: as anonymous user, admin node should not be found, even when knowing the UUID", "NO NODE! - object", getPublicContent(200, "/structr/html/nodeParameterTest_2/" + userUUID));
+		assertEquals("Invalid path resolution result: as anonymous user, admin node should not be found, even if it is the default", "NO NODE! - object",  getPublicContent(200, "/structr/html/nodeParameterTest_2/"));
+		assertEquals("Invalid path resolution result: as anonymous user, page should be found", "pagePathNodeTypeTest - object",                           getPublicContent(200, "/structr/html/nodeParameterTest_2/" + pageUUID));
 
-		assertEquals("Invalid path resolution result", "NO NODE! - object",             getPublicContent(200, "/structr/html/nodeParameterTest_3/" + userUUID));
-		assertEquals("Invalid path resolution result", "NO NODE! - object",             getPublicContent(200, "/structr/html/nodeParameterTest_3/"));
-		assertEquals("Invalid path resolution result", "NO NODE! - object",             getPublicContent(200, "/structr/html/nodeParameterTest_3/" + pageUUID));
+		assertEquals("Invalid path resolution result: as anonymous user, admin node should not be found, even when knowing the UUID", "NO NODE! - object", getPublicContent(200, "/structr/html/nodeParameterTest_3/" + userUUID));
+		assertEquals("Invalid path resolution result: as anonymous user, without a default, no node should be found", "NO NODE! - object",                 getPublicContent(200, "/structr/html/nodeParameterTest_3/"));
+		assertEquals("Invalid path resolution result: as anonymous user, page should NOT be found when parameter requires Principal", "NO NODE! - object", getPublicContent(200, "/structr/html/nodeParameterTest_3/" + pageUUID));
 	}
 
 	@Test
@@ -1141,7 +1359,7 @@ public class DynamicPathsTest extends DeploymentTestBase {
 			template.setContent("${{ $.print($.kDate + ' - ' + typeof $.kDate); }}");
 			template.setProperty(Traits.of(StructrTraits.TEMPLATE).key(ContentTraitDefinition.CONTENT_TYPE_PROPERTY), "text/html");
 
-			// 1. Basic date without format (requires on of multiple ISO date formats)
+			// 1. Basic date without format (requires one of multiple ISO date formats)
 			{
 				final NodeInterface path = app.create(StructrTraits.PAGE_PATH,
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(PagePathTraitDefinition.PAGE_PROPERTY), page),
@@ -1181,11 +1399,11 @@ public class DynamicPathsTest extends DeploymentTestBase {
 			fail("Unexpected exception.");
 		}
 
-		assertEquals("Invalid path resolution result", "null - object",                         getContent(200, "/structr/html/dateParameter_1/"));
-		assertEquals("Invalid path resolution result", "Mon Dec 15 12:34:56 UTC 2025 - object", getContent(200, "/structr/html/dateParameter_1/2025-12-15T12:34:56.000Z"));
+		assertEquals("Invalid path resolution result: no default should yield null for empty value", "null - object",                                         getContent(200, "/structr/html/dateParameter_1/"));
+		assertEquals("Invalid path resolution result: without a format, a date should be parsed from an ISO string", "Mon Dec 15 12:34:56 UTC 2025 - object", getContent(200, "/structr/html/dateParameter_1/2025-12-15T12:34:56.000Z"));
 
-		assertEquals("Invalid path resolution result", "Mon Dec 15 09:12:34 UTC 2025 - object", getContent(200, "/structr/html/dateParameter_2/15.12.2025%2009:12:34"));
-		assertEquals("Invalid path resolution result", "Mon Apr 13 12:34:56 UTC 2026 - object", getContent(200, "/structr/html/dateParameter_2/"));
+		assertEquals("Invalid path resolution result: with a date format, a correctly formatted value should be parsed correctly", "Mon Dec 15 09:12:34 UTC 2025 - object",         getContent(200, "/structr/html/dateParameter_2/15.12.2025%2009:12:34"));
+		assertEquals("Invalid path resolution result: with a date format, a correctly formatted default value should be parsed correctly", "Mon Apr 13 12:34:56 UTC 2026 - object", getContent(200, "/structr/html/dateParameter_2/"));
 	}
 
 	@Test

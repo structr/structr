@@ -47,6 +47,12 @@ import java.util.regex.Pattern;
 
 public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements PagePath {
 
+	public static String CATCH_ALL_ROUTE_NO_MANDATORY_PARAMS_WARNING   = "The absence of static elements and mandatory parameters makes this route a catch-all.";
+	public static String CATCH_ALL_ROUTE_WITH_MANDATORY_PARAMS_WARNING = "The absence of static elements makes this route a catch-all, matching any URL that provides the mandatory parameters.";
+	public static String DUPLICATE_PARAMETER_WARNING                   = "Parameter '%s' occurs multiple times. This will not work.";
+	public static String CONFLICTING_PARAMETER_WARNING                 = "Parameter '%s' conflicts with builtin functionality. Please choose a different name.";
+	public static String PARAMETER_PATTERN_MISMATCH_WARNING            = "'%s' does not match the required path parameter pattern '%s' - it will be treated as a literal.";
+
 	public PagePathTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
 	}
@@ -74,6 +80,12 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 		final PropertyKey<Iterable<NodeInterface>> key = traits.key(PagePathTraitDefinition.PARAMETERS_PROPERTY);
 
 		return Iterables.map(n -> n.as(PagePathParameter.class), wrappedObject.getProperty(key));
+	}
+
+
+	@Override
+	public String[] getMessages() {
+		return wrappedObject.getProperty(traits.key(PagePathTraitDefinition.MESSAGES_PROPERTY));
 	}
 
 	@Override
@@ -107,33 +119,19 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 
 					if (names.contains(paramName)) {
 
-						messages.add("Parameter '" + paramName + "' occurs multiple times. This will not work.");
+						messages.add(DUPLICATE_PARAMETER_WARNING.formatted(paramName));
 					}
 
 					names.add(paramName);
 
 					if (structrBinding.getMember(paramName) != null) {
 
-						messages.add("Parameter '" + paramName + "' conflicts with builtin functionality. Please choose a different name.");
+						messages.add(CONFLICTING_PARAMETER_WARNING.formatted(paramName));
 					}
 
 				} else {
 
-					messages.add("'" + baseMatch + "' does not match the required path parameter pattern (" + PATH_PARAMETER_PATTERN + ") - it will be treated as a literal.");
-				}
-			}
-
-			// check for catch-all
-			if (!names.isEmpty()) {
-
-				final String firstParameter = "{" + names.getFirst() + "}";
-
-				if (
-						path.equals(firstParameter) || path.equals("/" + firstParameter) ||
-						path.startsWith(firstParameter + "/") || path.startsWith("/" + firstParameter + "/")
-				) {
-
-					messages.addFirst("This becomes a catch-all route since the first parameter spans the full segment. Adjust the path if unintended.");
+					messages.add(PARAMETER_PATTERN_MISMATCH_WARNING.formatted(baseMatch, PATH_PARAMETER_PATTERN));
 				}
 			}
 
@@ -164,6 +162,27 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 			// remove parameters that are no longer present in the list
 			for (final String parameterName : toRemove) {
 				app.delete(parameters.get(parameterName));
+			}
+
+			// check for catch-all
+			if (!names.isEmpty()) {
+
+				final String staticPathElements = PATH_PARAMETER_PATTERN.matcher(path).replaceAll("").replaceAll("/", "");
+
+				final List<PagePathParameter> pathParameters = Iterables.toList(getParameters());
+				final boolean hasAnyMandatoryParameter       = pathParameters.stream().anyMatch(PagePathParameter::getIsMandatory);
+
+				if (staticPathElements.isEmpty()) {
+
+					if (hasAnyMandatoryParameter) {
+
+						messages.addFirst(CATCH_ALL_ROUTE_WITH_MANDATORY_PARAMS_WARNING);
+
+					} else {
+
+						messages.addFirst(CATCH_ALL_ROUTE_NO_MANDATORY_PARAMS_WARNING);
+					}
+				}
 			}
 
 		} else {
@@ -286,7 +305,7 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 
 									boolean rawValueMissing = (rawValue == null || rawValue.isEmpty());
 
-									if (rawValueMissing || (inputInvalid && parameter.useDefaultIfInvalid())) {
+									if (rawValueMissing || (inputInvalid && parameter.getUseDefaultIfInvalid())) {
 
 										try {
 

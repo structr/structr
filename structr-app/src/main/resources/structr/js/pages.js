@@ -3736,9 +3736,9 @@ let _Pages = {
 			return params.toSorted((a, b) => a.position - b.position).map(param => _Pages.routingDialog.templates.pagePathParameterRow(param)).join('\n');
 		},
 		getPathParametersContainerFromRow: (row) => row.querySelector('[data-structr-path-parameters-container]'),
-		initPagePathParameters: async (row, parameters) => {
+		initPagePathParameters: async (pagePathRow, parameters) => {
 
-			let paramsContainer = _Pages.routingDialog.getPathParametersContainerFromRow(row);
+			let paramsContainer = _Pages.routingDialog.getPathParametersContainerFromRow(pagePathRow);
 
 			_Helpers.fastRemoveAllChildren(paramsContainer);
 
@@ -3749,15 +3749,24 @@ let _Pages = {
 				input.addEventListener('change', event => {
 
 					let element     = event.target;
-					let row         = element.closest('[data-structr-id]');
+					let paramRow    = element.closest('[data-structr-id]');
+					let attrName    = input.dataset.structrAttribute;
 					let newValue    = (element.type === 'checkbox') ? element.checked : element.value;
 					let blinkTarget = (element.type === 'checkbox') ? element.parentElement : element;
 
-					Command.setProperty(row.dataset.structrId, input.dataset.structrAttribute, newValue, false, () => {
+					Command.setProperty(paramRow.dataset.structrId, attrName, newValue, false, async () => {
 
 						_Helpers.blinkGreen(blinkTarget);
 
-						_Pages.routingDialog.updateParameterRowUI(row);
+						_Pages.routingDialog.updateParameterRowUI(paramRow);
+
+						if (attrName === 'isMandatory') {
+
+							let data = await Command.getPromise(pagePathRow.dataset.structrPagePathId, 'messages');
+							let messages = data.messages ?? [];
+
+							_Pages.routingDialog.updateMessages(pagePathRow, messages);
+						}
 					});
 				});
 			});
@@ -3805,7 +3814,7 @@ let _Pages = {
 				<div class="mb-12 grid grid-cols-2 @xl:grid-cols-3  gap-8 pr-2" data-structr-page-path-id="${config.id}">
 
 					<div class="col-span-2 @xl:col-span-1">
-						<label class="block mb-2" data-comment="Enter the URL path that should route to this page.">Path</label>
+						<label class="block font-medium mb-2">Path</label>
 						<div class="flex">
 							<div class="text-lg border border-gray-ddd flex items-center px-2 rounded-l cursor-move hover:bg-gray-100" data-is-sortable-handle>⠿</div>
 							<input class="w-16 box-border" data-structr-attribute="priority" type="hidden" value="${config.priority ?? ''}">
@@ -3818,7 +3827,7 @@ let _Pages = {
 					</div>
 
 					<div class="col-span-2">
-						<label class="block mb-2" data-comment="Parameters names are managed automatically based on variables in the path and can be further configured here.">Path parameters</label>
+						<label class="block font-medium mb-2">Path parameters</label>
 						<div data-structr-path-parameters-container></div>
 					</div>
 
@@ -3843,7 +3852,7 @@ let _Pages = {
 					<input class="w-full flex-1 box-border" type="text" title="Default Value" data-structr-attribute="defaultValue" placeholder="Default Value" value="${_Helpers.escapeForHtmlAttributes(config.defaultValue ?? '')}">
 
 					<div class="flex h-full">
-						<input style="margin: .25rem!important;" type="checkbox" title="Use Default if invalid?" data-structr-attribute="useDefaultIfInvalid" ${config.useDefaultIfInvalid ? 'checked' : ''}>
+						<input style="margin: .25rem!important;" type="checkbox" title="Use default if conversion fails?" data-structr-attribute="useDefaultIfInvalid" ${config.useDefaultIfInvalid ? 'checked' : ''}>
 					</div>
 				</div>
 			`,
@@ -3976,8 +3985,8 @@ let _Pages = {
 
 				<h3>Catch-All Routes</h3>
 
-				<p>Routes like <code>/{variable}/</code> match almost any request, causing nearly all traffic - including
-				requests for other pages - to be routed to this page.</p>
+				<p>Routes without any static parts and no mandatory parameters (e.g. <code>/{variable}/</code>) match almost any request,
+				causing nearly all traffic - including requests for other pages - to be routed to this page.</p>
 
 				<p>To prevent unintended matches, include at least one static (or clearly structured) segment in the path.
 				For easier reasoning about paths, it is recommended to put statis parts at the start of the path, e.g.:</p>

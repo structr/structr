@@ -28,6 +28,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.schema.parser.DatePropertyGenerator;
+import org.structr.web.entity.path.PagePath;
 import org.structr.web.entity.path.PagePathParameter;
 import org.structr.web.error.ParseFailureException;
 import org.structr.web.servlet.HtmlServlet;
@@ -45,6 +46,17 @@ public class PagePathParameterTraitWrapper extends AbstractNodeTraitWrapper impl
 
 	public PagePathParameterTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
+	}
+
+	@Override
+	public PagePath getPagePath() {
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key(PagePathParameterTraitDefinition.PATH_PROPERTY));
+		if (node != null) {
+			return node.as(PagePath.class);
+		}
+
+		return null;
 	}
 
 	@Override
@@ -78,7 +90,7 @@ public class PagePathParameterTraitWrapper extends AbstractNodeTraitWrapper impl
 	}
 
 	@Override
-	public boolean useDefaultIfInvalid() {
+	public boolean getUseDefaultIfInvalid() {
 		return wrappedObject.getProperty(traits.key(PagePathParameterTraitDefinition.USE_DEFAULT_IF_INVALID_PROPERTY));
 	}
 

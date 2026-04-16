@@ -19,16 +19,21 @@
 package org.structr.web.traits.definitions;
 
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.entity.Relation;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
-import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.StructrTraits;
-import org.structr.core.traits.TraitsInstance;
+import org.structr.core.traits.*;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.operations.graphobject.OnCreation;
+import org.structr.core.traits.operations.graphobject.OnModification;
+import org.structr.web.entity.path.PagePath;
 import org.structr.web.entity.path.PagePathParameter;
 import org.structr.web.traits.wrappers.PagePathParameterTraitWrapper;
 
@@ -53,7 +58,35 @@ public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinitio
 
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
-		return Map.of();
+
+		return Map.of(
+
+				OnCreation.class,
+				new OnCreation() {
+					@Override
+					public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+						final PagePath pagePath = graphObject.as(PagePathParameter.class).getPagePath();
+						if (pagePath != null) {
+
+							pagePath.updatePathAndParameters(securityContext, Map.of("path", pagePath.getName()));
+						}
+					}
+				},
+
+				OnModification.class,
+				new OnModification() {
+					@Override
+					public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+						final PagePath pagePath = graphObject.as(PagePathParameter.class).getPagePath();
+						if (pagePath != null) {
+
+							pagePath.updatePathAndParameters(securityContext, Map.of("path", pagePath.getName()));
+						}
+					}
+				}
+		);
 	}
 
 	@Override

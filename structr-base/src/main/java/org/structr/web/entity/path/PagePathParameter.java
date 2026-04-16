@@ -25,12 +25,13 @@ import org.structr.web.error.ParseFailureException;
 
 public interface PagePathParameter extends NodeInterface {
 
+	PagePath getPagePath();
 	Integer getPosition();
 	void setPosition(final Integer position) throws FrameworkException;
 	String getValueType();
 	String getFormat();
 	String getDefaultValue();
 	boolean getIsMandatory();
-	boolean useDefaultIfInvalid();
+	boolean getUseDefaultIfInvalid();
 	Object convert(final SecurityContext securityContext, final String src) throws ParseFailureException;
 }

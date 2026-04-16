@@ -34,6 +34,7 @@ public interface PagePath extends NodeInterface {
 
 	Page getPage();
 	Integer getPriority();
+	String[] getMessages();
 	Iterable<PagePathParameter> getParameters();
 	Object updatePathAndParameters(final SecurityContext securityContext, final Map<String, Object> arguments) throws FrameworkException;
 	Map<String, PagePathParameter> getMappedParameters();
