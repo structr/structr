@@ -3772,8 +3772,7 @@ table.props td.__value {
 #template-preview {
 	display: none;
 	position: absolute;
-	margin-left: 12px;
-	top: 26px;
+	top: 0;
 	right: 0;
 	left: 50%;
 	bottom: 0;
@@ -3785,7 +3784,6 @@ table.props td.__value {
 	bottom: 0;
 	border: none;
 	border-radius: 0;
-	line-height: 1.0;
 }
 
 /**
