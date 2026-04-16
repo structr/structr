@@ -3834,12 +3834,15 @@ let _Pages = {
 				</div>
 			`,
 			pagePathParameterRow: config => `
-				<div class="flex items-center gap-4 my-3" data-structr-id="${config.id}">
+				<div class="flex items-start gap-4 my-3" data-structr-id="${config.id}">
 
-					<pre class="w-1/5 truncate my-2" title="${config.name}">${config.name}</pre>
-					
-					<div class="flex h-full">
-						<input style="margin: .25rem!important;" type="checkbox" title="Mandatory?" data-structr-attribute="isMandatory" ${config.isMandatory ? 'checked' : ''}>
+					<div class="w-1/4 flex flex-col gap-1">
+						<div class="font-mono my-2 px-1 truncate" title="${config.name}">${config.name}</div>
+
+						<label class="flex items-start p-1" title="For a route with a mandatory parameter to match a request, a value must be present for all mandatory parameters.">
+							<input class="mt-1" type="checkbox" data-structr-attribute="isMandatory" ${config.isMandatory ? 'checked' : ''}>
+							<div class="text-sm mt-0.5">Mandatory?</div>
+						</label>
 					</div>
 
 					<select data-structr-attribute="valueType" title="Value Type" style="max-width: calc(14ch + 2rem);" class="w-full flex-1">
@@ -3847,12 +3850,18 @@ let _Pages = {
 						${['String', 'Base64UrlString', 'Integer', 'Long', 'Double', 'Float', 'Date', 'Boolean', 'Node'].map(type => `<option ${(type === config.valueType ? 'selected' : '')}>${type}</option>`).join('\n')}
 					</select>
 
-					<input class="w-full flex-1 box-border" type="text" data-structr-attribute="format" value="${_Helpers.escapeForHtmlAttributes(config.format ?? '')}">
+					<div class="flex-1 flex flex-col hide-if-no-visible-children">
+						<input class="w-full flex-1 box-border" type="text" data-structr-attribute="format" value="${_Helpers.escapeForHtmlAttributes(config.format ?? '')}">
+					</div>
 
-					<input class="w-full flex-1 box-border" type="text" title="Default Value" data-structr-attribute="defaultValue" placeholder="Default Value" value="${_Helpers.escapeForHtmlAttributes(config.defaultValue ?? '')}">
+					<div class="flex-1 flex flex-col gap-1">
 
-					<div class="flex h-full">
-						<input style="margin: .25rem!important;" type="checkbox" title="Use default if conversion fails?" data-structr-attribute="useDefaultIfInvalid" ${config.useDefaultIfInvalid ? 'checked' : ''}>
+						<input class="w-full flex-1 box-border" type="text" title="Default Value" data-structr-attribute="defaultValue" placeholder="Default Value" value="${_Helpers.escapeForHtmlAttributes(config.defaultValue ?? '')}">
+
+						<label class="flex items-start p-1" title="If conversion for the value in the URL fails, use the default value in favor of returning null.">
+							<input class="mt-1" type="checkbox" data-structr-attribute="useDefaultIfInvalid" ${config.useDefaultIfInvalid ? 'checked' : ''}>
+							<div class="text-sm mt-0.5">Use default if conversion fails?</div>
+						</label>
 					</div>
 				</div>
 			`,

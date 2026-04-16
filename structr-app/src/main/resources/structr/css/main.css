@@ -5278,6 +5278,9 @@ ul.combined-input-select-field li:not(.nohover):hover {
  * END Tailwind classes
  */
 
+.hide-if-no-visible-children:not(:has(:not(.hidden))) {
+	display: none;
+}
 
 /* BEGIN special tailwind-style classes */
 /* conditionally show spinner if group has class show-spinner */
