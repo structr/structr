@@ -786,19 +786,6 @@ public class DynamicPathsTest extends DeploymentTestBase {
 	@Test
 	public void testPagePathParameterDefaultValuesWhenValueParsingFails() {
 
-//		fail("Not yet implemented");
-
-		// we want to expose to the user the option to select the fallback behaviour when a value fails parsing or a node ist not found
-		// "Use default value if parsing fails" and "Use default value if node can not be found" (which defaults to false)
-
-		// mandatory field => no default value can be used
-		// what happens when the value can not be parsed? does the route still apply?
-
-		// when value fails parsing, default value should be used
-		// when mandatory is set, default value should not be available
-
-		// ==> use default value ONLY if parsing fails AND mandatory
-
 		final String userUUID = createEntityAsSuperUser("/User", "{ name: admin, password: admin, isAdmin: true }");
 
 		try (final Tx tx = app.tx()) {

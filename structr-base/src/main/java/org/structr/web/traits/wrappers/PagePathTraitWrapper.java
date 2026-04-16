@@ -34,6 +34,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.schema.action.ActionContext;
+import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.path.PagePath;
 import org.structr.web.entity.path.PagePathParameter;
@@ -132,6 +133,10 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 					names.add(paramName);
 
 					if (structrBinding.getMember(paramName) != null) {
+
+						warnings.add(CONFLICTING_PARAMETER_WARNING.formatted(paramName));
+
+					} else if (RenderContext.isRenderContextKeyword(paramName)) {
 
 						warnings.add(CONFLICTING_PARAMETER_WARNING.formatted(paramName));
 					}
