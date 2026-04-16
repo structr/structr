@@ -416,14 +416,14 @@ public class RenderContext extends ActionContext {
 			return getDataNode(key);
 		}
 
-		// ensure keyword list is maintained properly
-		if (!isRenderContextKeyword(key)) {
-			return null;
-		}
-
 		// evaluate non-ui specific context
 		final Object value = super.evaluate(entity, key, data, defaultValue, depth, contextObject, row, column);
-		if (value == null) {
+		if (value != null) {
+			return value;
+		}
+
+		// ensure keyword list is maintained properly
+		if (isRenderContextKeyword(key)) {
 
 			final HttpServletResponse response = getSecurityContext().getResponse();
 			if (response != null) {
@@ -565,7 +565,7 @@ public class RenderContext extends ActionContext {
 			}
 		}
 
-		return value;
+		return null;
 	}
 
 	public static boolean isRenderContextKeyword(final String keyword) {
