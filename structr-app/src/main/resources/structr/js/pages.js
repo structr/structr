@@ -3811,7 +3811,7 @@ let _Pages = {
 				</div>
 			`,
 			pagePathRow: config => `
-				<div class="mb-12 grid grid-cols-2 @xl:grid-cols-3  gap-8 pr-2" data-structr-page-path-id="${config.id}">
+				<div class="mb-12 grid grid-cols-2 @xl:grid-cols-3 gap-x-8 gap-y-4 pr-2" data-structr-page-path-id="${config.id}">
 
 					<div class="col-span-2 @xl:col-span-1">
 						<label class="block font-medium mb-2">Path</label>
