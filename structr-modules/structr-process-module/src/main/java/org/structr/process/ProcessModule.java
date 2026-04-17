@@ -25,6 +25,8 @@ import org.structr.module.StructrModule;
 import org.structr.process.function.ExportBPMNFunction;
 import org.structr.process.function.ImportBPMNFunction;
 import org.structr.process.function.NotifyFunction;
+import org.structr.process.function.ProcessTokenFunction;
+import org.structr.process.function.ValidateProcessTokenFunction;
 import org.structr.process.traits.definitions.*;
 import org.structr.process.traits.rels.*;
 
@@ -60,6 +62,7 @@ public class ProcessModule implements StructrModule {
 		StructrTraits.registerTrait(new ProcessInstanceHasParameterValue());
 		StructrTraits.registerTrait(new ProcessParameterValueOfParameter());
 		StructrTraits.registerTrait(new ProcessParameterValueSetByElement());
+		StructrTraits.registerTrait(new ProcessTokenAccessTokenUser());
 
 		// Register relationship types
 		StructrTraits.registerRelationshipType(ProcessTraits.BPMN_DEFINITIONS_HAS_ELEMENT,       ProcessTraits.BPMN_DEFINITIONS_HAS_ELEMENT);
@@ -83,6 +86,7 @@ public class ProcessModule implements StructrModule {
 		StructrTraits.registerRelationshipType(ProcessTraits.PROCESS_INSTANCE_HAS_PARAMETER_VALUE, ProcessTraits.PROCESS_INSTANCE_HAS_PARAMETER_VALUE);
 		StructrTraits.registerRelationshipType(ProcessTraits.PROCESS_PARAMETER_VALUE_OF_PARAMETER, ProcessTraits.PROCESS_PARAMETER_VALUE_OF_PARAMETER);
 		StructrTraits.registerRelationshipType(ProcessTraits.PROCESS_PARAMETER_VALUE_SET_BY_ELEMENT, ProcessTraits.PROCESS_PARAMETER_VALUE_SET_BY_ELEMENT);
+		StructrTraits.registerRelationshipType(ProcessTraits.PROCESS_TOKEN_ACCESS_TOKEN_USER,         ProcessTraits.PROCESS_TOKEN_ACCESS_TOKEN_USER);
 
 		// Register node traits
 		StructrTraits.registerTrait(new BpmnDefinitionsTraitDefinition());
@@ -119,6 +123,8 @@ public class ProcessModule implements StructrModule {
 		Functions.put(licenseManager, new ImportBPMNFunction());
 		Functions.put(licenseManager, new ExportBPMNFunction());
 		Functions.put(licenseManager, new NotifyFunction());
+		Functions.put(licenseManager, new ProcessTokenFunction());
+		Functions.put(licenseManager, new ValidateProcessTokenFunction());
 	}
 
 	@Override

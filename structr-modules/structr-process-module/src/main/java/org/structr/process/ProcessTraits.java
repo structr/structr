@@ -68,4 +68,7 @@ public class ProcessTraits {
 	public static final String PROCESS_INSTANCE_HAS_PARAMETER_VALUE    = "ProcessInstanceHAS_PARAMETER_VALUEProcessParameterValue";
 	public static final String PROCESS_PARAMETER_VALUE_OF_PARAMETER    = "ProcessParameterValueOF_PARAMETERProcessParameter";
 	public static final String PROCESS_PARAMETER_VALUE_SET_BY_ELEMENT  = "ProcessParameterValueSET_BY_ELEMENTBpmnElement";
+
+	// Access token relationship type
+	public static final String PROCESS_TOKEN_ACCESS_TOKEN_USER         = "ProcessTokenACCESS_TOKEN_USERPrincipal";
 }

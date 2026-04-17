@@ -59,6 +59,11 @@ public class BpmnDefinitionsTraitDefinition extends AbstractNodeTraitDefinition 
 	public static final String ELEMENTS_PROPERTY             = "elements";
 	public static final String SEQUENCE_FLOWS_PROPERTY       = "sequenceFlows";
 	public static final String DIAGRAMS_PROPERTY             = "diagrams";
+	public static final String SECURITY_LEVEL_PROPERTY       = "securityLevel";
+
+	// Security level constants
+	public static final String SECURITY_LEVEL_LOW            = "low";
+	public static final String SECURITY_LEVEL_HIGH           = "high";
 
 	public BpmnDefinitionsTraitDefinition() {
 		super(ProcessTraits.BPMN_DEFINITIONS);
@@ -80,16 +85,17 @@ public class BpmnDefinitionsTraitDefinition extends AbstractNodeTraitDefinition 
 		final Property<Iterable<NodeInterface>> elements          = new EndNodes(traitsInstance, ELEMENTS_PROPERTY, ProcessTraits.BPMN_DEFINITIONS_HAS_ELEMENT);
 		final Property<Iterable<NodeInterface>> sequenceFlows     = new EndNodes(traitsInstance, SEQUENCE_FLOWS_PROPERTY, ProcessTraits.BPMN_DEFINITIONS_HAS_SEQUENCE_FLOW);
 		final Property<Iterable<NodeInterface>> diagrams          = new EndNodes(traitsInstance, DIAGRAMS_PROPERTY, ProcessTraits.BPMN_DEFINITIONS_HAS_DIAGRAM);
+		final Property<String> securityLevel                      = new EnumProperty(SECURITY_LEVEL_PROPERTY, Set.of(SECURITY_LEVEL_LOW, SECURITY_LEVEL_HIGH)).defaultValue(SECURITY_LEVEL_HIGH).indexed();
 
-		return newSet(bpmnId, targetNamespace, exporter, exporterVersion, processId, processName, processIsExecutable, namespaceDeclarations, globalDefinitions, processInstances, elements, sequenceFlows, diagrams);
+		return newSet(bpmnId, targetNamespace, exporter, exporterVersion, processId, processName, processIsExecutable, namespaceDeclarations, globalDefinitions, processInstances, elements, sequenceFlows, diagrams, securityLevel);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
 		return Map.of(
-			PropertyView.Public, newSet(BPMN_ID_PROPERTY, PROCESS_ID_PROPERTY, PROCESS_NAME_PROPERTY, GLOBAL_DEFINITIONS_PROPERTY, ELEMENTS_PROPERTY, SEQUENCE_FLOWS_PROPERTY, DIAGRAMS_PROPERTY),
-			PropertyView.Ui, newSet(BPMN_ID_PROPERTY, TARGET_NAMESPACE_PROPERTY, EXPORTER_PROPERTY, EXPORTER_VERSION_PROPERTY, PROCESS_ID_PROPERTY, PROCESS_NAME_PROPERTY, PROCESS_IS_EXECUTABLE, NAMESPACE_DECLARATIONS, GLOBAL_DEFINITIONS_PROPERTY, ELEMENTS_PROPERTY, SEQUENCE_FLOWS_PROPERTY, DIAGRAMS_PROPERTY)
+			PropertyView.Public, newSet(BPMN_ID_PROPERTY, PROCESS_ID_PROPERTY, PROCESS_NAME_PROPERTY, SECURITY_LEVEL_PROPERTY, GLOBAL_DEFINITIONS_PROPERTY, ELEMENTS_PROPERTY, SEQUENCE_FLOWS_PROPERTY, DIAGRAMS_PROPERTY),
+			PropertyView.Ui, newSet(BPMN_ID_PROPERTY, TARGET_NAMESPACE_PROPERTY, EXPORTER_PROPERTY, EXPORTER_VERSION_PROPERTY, PROCESS_ID_PROPERTY, PROCESS_NAME_PROPERTY, PROCESS_IS_EXECUTABLE, NAMESPACE_DECLARATIONS, SECURITY_LEVEL_PROPERTY, GLOBAL_DEFINITIONS_PROPERTY, ELEMENTS_PROPERTY, SEQUENCE_FLOWS_PROPERTY, DIAGRAMS_PROPERTY)
 		);
 	}
 
