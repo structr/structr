@@ -4819,6 +4819,9 @@ ul.combined-input-select-field li:not(.nohover):hover {
 .gap-x-4 {
 	column-gap: 1rem;
 }
+.gap-x-6 {
+	column-gap: 1.5rem;
+}
 .gap-x-8 {
 	column-gap: 2rem;
 }

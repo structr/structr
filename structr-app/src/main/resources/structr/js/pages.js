@@ -3811,7 +3811,7 @@ let _Pages = {
 				</div>
 			`,
 			pagePathRow: config => `
-				<div class="mb-12 grid grid-cols-2 @xl:grid-cols-3 gap-x-8 gap-y-4 pr-2" data-structr-page-path-id="${config.id}">
+				<div class="mb-12 grid grid-cols-2 @xl:grid-cols-3 gap-x-6 gap-y-4 pr-2" data-structr-page-path-id="${config.id}">
 
 					<div class="col-span-2 @xl:col-span-1">
 						<label class="block font-medium mb-2">Path</label>
@@ -3834,14 +3834,14 @@ let _Pages = {
 				</div>
 			`,
 			pagePathParameterRow: config => `
-				<div class="flex items-start gap-4 my-3" data-structr-id="${config.id}">
+				<div class="flex items-start gap-4 px-2 pt-3 pb-2" data-structr-id="${config.id}">
 
-					<div class="w-1/4 flex flex-col gap-1">
+					<div class="w-1/4 flex flex-col">
 						<div class="font-mono my-2 px-1 truncate" title="${config.name}">${config.name}</div>
 
 						<label class="flex items-start p-1" title="For a route with a mandatory parameter to match a request, a value must be present for all mandatory parameters.">
 							<input class="mt-1" type="checkbox" data-structr-attribute="isMandatory" ${config.isMandatory ? 'checked' : ''}>
-							<div class="text-sm mt-0.5">Mandatory?</div>
+							<div class="text-sm mt-0.5">Mandatory</div>
 						</label>
 					</div>
 
@@ -3854,13 +3854,13 @@ let _Pages = {
 						<input class="w-full flex-1 box-border" type="text" data-structr-attribute="format" value="${_Helpers.escapeForHtmlAttributes(config.format ?? '')}">
 					</div>
 
-					<div class="flex-1 flex flex-col gap-1">
+					<div class="flex-1 flex flex-col">
 
 						<input class="w-full flex-1 box-border" type="text" title="Default Value" data-structr-attribute="defaultValue" placeholder="Default Value" value="${_Helpers.escapeForHtmlAttributes(config.defaultValue ?? '')}">
 
 						<label class="flex items-start p-1" title="If conversion for the value in the URL fails, use the default value in favor of returning null.">
 							<input class="mt-1" type="checkbox" data-structr-attribute="useDefaultIfInvalid" ${config.useDefaultIfInvalid ? 'checked' : ''}>
-							<div class="text-sm mt-0.5">Use default if conversion fails?</div>
+							<div class="text-sm mt-0.5">Use default if conversion fails</div>
 						</label>
 					</div>
 				</div>
@@ -3954,10 +3954,12 @@ let _Pages = {
 				<p>A date parameter can have a custom format the user can configure (e.g. <code>yyyyMMdd</code>). If no custom format is configured, the input
 				is parsed as an ISO 8601 date string. The following formats are supported:</p>
 				
-				- <code>yyyy-MM-dd'T'HH:mm:ss.SSSXXX</code> (e.g. <code>2026-02-14T12:34:56.000+01:00</code>)
-				- <code>yyyy-MM-dd'T'HH:mm:ssXXX</code> (e.g. <code>2026-02-14T12:34:56+01:00</code>)
-				- <code>yyyy-MM-dd'T'HH:mm:ssZ</code> (e.g. <code>2026-02-14T12:34:56Z</code>)
-				- <code>yyyy-MM-dd'T'HH:mm:ss.SSSZ</code> (e.g. <code>2026-02-14T12:34:56.000Z</code>)
+				<ul>
+					<li><code>yyyy-MM-dd'T'HH:mm:ss.SSSXXX</code> (e.g. <code>2026-02-14T12:34:56.000+01:00</code>)</li>
+					<li><code>yyyy-MM-dd'T'HH:mm:ssXXX</code> (e.g. <code>2026-02-14T12:34:56+01:00</code>)</li>
+					<li><code>yyyy-MM-dd'T'HH:mm:ssZ</code> (e.g. <code>2026-02-14T12:34:56Z</code>)</li>
+					<li><code>yyyy-MM-dd'T'HH:mm:ss.SSSZ</code> (e.g. <code>2026-02-14T12:34:56.000Z</code>)</li>
+				</ul>
 				
 				<p>If parsing fails for a configured custom format or all of the supported formats, a warning is logged.
 				If the parameter is configured to return the default value in such error cases, the default value is parsed and returned according to the format.
@@ -3995,7 +3997,7 @@ let _Pages = {
 				<h3>Catch-All Routes</h3>
 
 				<p>Routes without any static parts and no mandatory parameters (e.g. <code>/{variable}/</code>) match almost any request,
-				causing nearly all traffic - including requests for other pages - to be routed to this page.</p>
+				causing nearly all traffic - including requests for other pages and files - to be routed to this page.</p>
 
 				<p>To prevent unintended matches, include at least one static (or clearly structured) segment in the path.
 				For easier reasoning about paths, it is recommended to put statis parts at the start of the path, e.g.:</p>

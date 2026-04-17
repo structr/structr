@@ -442,3 +442,10 @@ svg g.diagram-element[data-type="ActionMapping"] rect {
 svg *[data-type="ListDataSource"] {
 	fill: #2222aa;
 }
+
+/*
+URL Routing custom styles
+ */
+div[data-structr-path-parameters-container] > div[data-structr-id]:nth-child(2n+1) {
+	background-color: var(--light-gray-bg-f7);
+}
