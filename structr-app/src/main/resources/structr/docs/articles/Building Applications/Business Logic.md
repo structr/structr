@@ -226,7 +226,7 @@ To queue code for later execution without blocking the current request, use `$.s
 External systems can trigger your business logic in several ways:
 
 #### REST API
-External systems can call your schema methods via REST, or create and modify data through Structr's automatically generated endpoints. When data changes via REST, the same lifecycle methods execute as when changes come from the UI.
+External systems can call your schema methods via REST, or create and modify data through Structr's automatically generated endpoints. When data changes via REST, the same lifecycle methods execute as when changes come from the UI. For details on how to pass and access parameters when calling methods via REST, see the [Method Parameters](/structr/docs/ontology/REST%20Interface/Method%20Parameters) article.
 
 #### Message Brokers
 You can connect Structr to MQTT, Kafka, or Apache Pulsar. Incoming messages trigger lifecycle methods on specialized client types. See the [Message Brokers](/structr/docs/ontology/APIs%20&%20Integrations/Message%20Brokers) chapter.
@@ -462,6 +462,8 @@ POST /api/Project/findOverdue
 **Access Control** – Resource Access Permissions let you control who can call specific endpoints. Configure them in the [Security](/structr/docs/ontology/Admin%20User%20Interface/Security) area.
 
 **Result Format** – By default, results are wrapped in a metadata object. Enable "Return Raw Result" to return just the data – useful for external integrations.
+
+For details on how to pass and access parameters when calling methods via REST, see the [Method Parameters](/structr/docs/ontology/REST%20Interface/Method%20Parameters) article.
 
 ### OpenAPI
 

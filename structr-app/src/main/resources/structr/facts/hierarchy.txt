@@ -66,6 +66,7 @@ Topic "Admin User Interface" has markdown-file "articles/Admin User Interface/Co
 Topic "REST Interface" has markdown-file "articles/REST Interface/Overview.md"
 Topic "REST Interface" has markdown-file "articles/REST Interface/Authentication.md"
 Topic "REST Interface" has markdown-file "articles/REST Interface/Data Access.md"
+Topic "REST Interface" has markdown-file "articles/REST Interface/Method Parameters.md"
 Topic "REST Interface" has markdown-file "articles/REST Interface/Virtual Types.md"
 
 Topic "REST Interface" has topics "System endpoints" as table, "Servlets" as table, "Request parameters" as table, "Request headers" as table
