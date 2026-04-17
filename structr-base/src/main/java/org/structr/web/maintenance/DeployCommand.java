@@ -995,7 +995,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					putIfNotNull(data, PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY, parameter.getDefaultValue());
 					putIfNotNull(data, PagePathParameterTraitDefinition.POSITION_PROPERTY,      parameter.getPosition());
 
-					data.put(PagePathParameterTraitDefinition.IS_MANDATORY_PROPERTY,            parameter.getIsMandatory());
+					data.put(PagePathParameterTraitDefinition.IS_REQUIRED_PROPERTY,            parameter.getIsRequired());
 					data.put(PagePathParameterTraitDefinition.USE_DEFAULT_IF_INVALID_PROPERTY,  parameter.getUseDefaultIfInvalid());
 				}
 

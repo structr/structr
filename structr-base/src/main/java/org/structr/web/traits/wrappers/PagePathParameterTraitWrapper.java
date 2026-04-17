@@ -85,8 +85,8 @@ public class PagePathParameterTraitWrapper extends AbstractNodeTraitWrapper impl
 	}
 
 	@Override
-	public boolean getIsMandatory() {
-		return wrappedObject.getProperty(traits.key(PagePathParameterTraitDefinition.IS_MANDATORY_PROPERTY));
+	public boolean getIsRequired() {
+		return wrappedObject.getProperty(traits.key(PagePathParameterTraitDefinition.IS_REQUIRED_PROPERTY));
 	}
 
 	@Override

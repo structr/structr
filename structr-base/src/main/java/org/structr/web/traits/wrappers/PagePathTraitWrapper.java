@@ -48,11 +48,12 @@ import java.util.regex.Pattern;
 
 public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements PagePath {
 
-	public static String CATCH_ALL_ROUTE_NO_MANDATORY_PARAMS_WARNING   = "The absence of static path elements and mandatory parameters makes this route a catch-all.";
-	public static String CATCH_ALL_ROUTE_WITH_MANDATORY_PARAMS_WARNING = "The absence of static path elements makes this route a catch-all, matching any URL that provides the mandatory parameters.";
-	public static String DUPLICATE_PARAMETER_WARNING                   = "Parameter '%s' occurs multiple times. This will not work.";
-	public static String CONFLICTING_PARAMETER_WARNING                 = "Parameter '%s' conflicts with builtin functionality. Please choose a different name.";
-	public static String PARAMETER_PATTERN_MISMATCH_WARNING            = "'%s' does not match the required path parameter pattern '%s' - it will be treated as a literal.";
+	public static String CATCH_ALL_ROUTE_NO_REQUIRED_PARAMS_WARNING   = "The absence of static path elements and required parameters makes this route a catch-all.";
+	public static String CATCH_ALL_ROUTE_WITH_REQUIRED_PARAMS_WARNING = "The absence of static path elements makes this route a catch-all, matching any URL that provides the required parameters.";
+	public static String DUPLICATE_PARAMETER_WARNING                  = "Parameter '%s' occurs multiple times. This will not work.";
+	public static String CONFLICTING_PARAMETER_WARNING                = "Parameter '%s' conflicts with builtin functionality. Please choose a different name.";
+	public static String PARAMETER_PATTERN_MISMATCH_WARNING           = "'%s' does not match the required path parameter pattern '%s' - it will be treated as a literal.";
+	public static String PARAMETER_SHADOWS_ORIGINAL_VALUE_WARNING     = "Parameter '_%s' conflicts with the original value of parameter '%s'. It is recommended to choose a different name.";
 
 	public PagePathTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
@@ -176,23 +177,34 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 				app.delete(parameters.get(parameterName));
 			}
 
-			// check for catch-all
 			if (!names.isEmpty()) {
 
-				final String staticPathElements = PATH_PARAMETER_PATTERN.matcher(path).replaceAll("").replaceAll("/", "");
+				// check for catch-all
+				{
+					final String staticPathElements = PATH_PARAMETER_PATTERN.matcher(path).replaceAll("").replaceAll("/", "");
 
-				final List<PagePathParameter> pathParameters = Iterables.toList(getParameters());
-				final boolean hasAnyMandatoryParameter       = pathParameters.stream().anyMatch(PagePathParameter::getIsMandatory);
+					final List<PagePathParameter> pathParameters = Iterables.toList(getParameters());
+					final boolean hasAnyMandatoryParameter       = pathParameters.stream().anyMatch(PagePathParameter::getIsRequired);
 
-				if (staticPathElements.isEmpty()) {
+					if (staticPathElements.isEmpty()) {
 
-					if (hasAnyMandatoryParameter) {
+						if (hasAnyMandatoryParameter) {
 
-						warnings.addFirst(CATCH_ALL_ROUTE_WITH_MANDATORY_PARAMS_WARNING);
+							warnings.addFirst(CATCH_ALL_ROUTE_WITH_REQUIRED_PARAMS_WARNING);
 
-					} else {
+						} else {
 
-						warnings.addFirst(CATCH_ALL_ROUTE_NO_MANDATORY_PARAMS_WARNING);
+							warnings.addFirst(CATCH_ALL_ROUTE_NO_REQUIRED_PARAMS_WARNING);
+						}
+					}
+				}
+
+				// check for situations where a key could override the original value of another key
+				for (final String parameterName : names) {
+
+					if (names.contains("_" + parameterName)) {
+
+						warnings.add(PARAMETER_SHADOWS_ORIGINAL_VALUE_WARNING.formatted(parameterName, parameterName));
 					}
 				}
 			}
@@ -269,7 +281,7 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 						final String key                  = result.group(1);
 						final PagePathParameter parameter = parameters.get(key);
 
-						if (parameter != null && parameter.getIsMandatory()) {
+						if (parameter != null && parameter.getIsRequired()) {
 							return "(.+)";
 						}
 
@@ -296,6 +308,9 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 							final String key                  = pathMatcher.group(1);
 							final PagePathParameter parameter = parameters.get(key);
 
+							// always make the original value available
+							arguments.put("_" + key, rawValue);
+
 							if (parameter != null) {
 
 								Object converted     = null;
@@ -308,9 +323,6 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 								} catch (ParseFailureException e) {
 
 									inputInvalid = true;
-
-									// make original value available
-									arguments.put("_" + key, rawValue);
 								}
 
 								if (converted == null) {

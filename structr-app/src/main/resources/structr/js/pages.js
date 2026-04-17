@@ -3583,9 +3583,12 @@ let _Pages = {
 	},
 
 	routingDialog: {
+		routingHelpText: undefined,
 		drawInContainer: async (container, page) => {
 
 			container.insertAdjacentHTML('beforeend', _Pages.routingDialog.templates.routing());
+
+			_Pages.routingDialog.updateDocumentationText(container).then(/*ignore*/);
 
 			let addButton     = container.querySelector('.add-route-button');
 			let listContainer = container.querySelector('#routing-entries');
@@ -3611,6 +3614,26 @@ let _Pages = {
 			});
 
 			_Helpers.activateCommentsInElement(container);
+		},
+		updateDocumentationText: async (container) => {
+
+			let targetEl = container.querySelector('[data-structr-routing-help-container]');
+
+			if (_Pages.routingDialog.routingHelpText) {
+				targetEl.insertAdjacentHTML('afterbegin', _Pages.routingDialog.routingHelpText);
+			} else {
+
+				let res = await fetch(Structr.docsUrl + 'ontology/Navigation%20&%20Routing/URL%20Routing');
+
+				if (res.ok) {
+
+					let html = await res.text();
+					_Pages.routingDialog.routingHelpText = html;
+					targetEl.insertAdjacentHTML('afterbegin', html);
+				}
+			}
+
+
 		},
 		toggleHoverDocumentation: (container) => {
 
@@ -3804,8 +3827,7 @@ let _Pages = {
 						<div class="inline-info-icon">
 							${_Icons.getSvgIcon(_Icons.iconInfo, 24, 24)}
 						</div>
-						<div class="inline-info-text" style="width: 50%; max-height: calc(100% - 6rem); overflow: auto;">
-							${_Pages.routingDialog.templates.routingHelp()}
+						<div class="inline-info-text" style="width: 50%; max-height: calc(100% - 6rem); overflow: auto;" data-structr-routing-help-container>
 						</div>
 					</div>
 				</div>
@@ -3839,9 +3861,9 @@ let _Pages = {
 					<div class="w-1/4 flex flex-col">
 						<div class="font-mono my-2 px-1 truncate" title="${config.name}">${config.name}</div>
 
-						<label class="flex items-start p-1" title="For a route with a mandatory parameter to match a request, a value must be present for all mandatory parameters.">
-							<input class="mt-1" type="checkbox" data-structr-attribute="isMandatory" ${config.isMandatory ? 'checked' : ''}>
-							<div class="text-sm mt-0.5">Mandatory</div>
+						<label class="flex items-start p-1" title="For a route with a required parameter to match a request, a value must be present for all required parameters.">
+							<input class="mt-1" type="checkbox" data-structr-attribute="isRequired" ${config.isRequired ? 'checked' : ''}>
+							<div class="text-sm mt-0.5">Required</div>
 						</label>
 					</div>
 
@@ -3866,164 +3888,6 @@ let _Pages = {
 				</div>
 			`,
 			pagePathParametersWarnings: config => `<ul class="pl-6 mt-2 text-sm text-red">${config.warnings.map(msg => `<li>${_Helpers.escapeTags(msg)}</li>`).join('\n')}</ul>`,
-			routingHelp: config => `
-				<h3 class="mt-0">URL Routes</h3>
-
-				<p>In the URL Routing tab of a page, you define path expressions using placeholders following the pattern
-				<code>/static-page-part/{param1}/{param2}/.../{paramN}/{paramN}</code> that allow URL parameters to be mapped to a page and multiple parameters.</p>
-
-				<p>By default, Structr automatically maps pages to URLs based only on their name. URL Routing extends this by
-				allowing the user to define custom routing schemes with typed parameters that Structr validates and makes
-				available in the page, giving the user full control over the URL structure beyond the built-in automatic routing.</p>
-
-				<p>A page can have multiple routes. Structr evaluates all URL routes (sorted by priority) before checking page names.
-				The priority can be changed via drag and drop in the user interface.</p>
-				
-				<p>This means that custom routes take precedence over the default name-based resolution. If a route matches,
-				the corresponding page is rendered and the matched parameters are made available using their placeholder names.
-				In StructrScript, parameters are accessed with using <code>paramName</code> in a scripting context <code>\${...}</code>.
-				In JavaScript contexts <code>\${{...}}</code>, the parameters care accessed using <code>$.paramName</code>.</p>
-				
-				<p>Multiple routes can point to the same page, allowing a single page to serve different URL patterns.
-				For example, a product page could be reachable via both <code>/product/{id}</code> and <code>/shop/{category}/{id}</code>.</p>
-
-				<p><em>Note:</em> Using a UUID to automatically resolve to a <code>current</code> object, which is possible
-				with default page access, is not possible with URL Routes. If such functionality is desired, a separate
-				path parameter must be explicitly introduced in the route.</p>
-
-				<h3>Path Parameters and Configuration</h3>
-
-				<p>Path parameters can be defined using <code>{param}</code> syntax. These parameters are automatically
-				extracted and validated and can be further configured (e.g. type, default values, behaviour).</p>
-				
-				<p>Parameters can be optional (default) or mandatory. If a parameter is mandatory, the route will only
-				match for an incoming request if a parameter value is present.</p>
-				
-				<p>Parameters can also have default values. If a parameter value is missing (and the parameter is optional),
-				the default value will be used instead. If a parameter value is present but fails to parse for the given
-				parameter type, the default value will only be used if the <code>useDefaultIfInvalid</code> flag is set.
-				This does not affect if the route matches or not.</p>
-				
-				> **Note:** Do not use parameter names that are also used as data keys in repeaters, as they will not work.
-				> For other built-in functionality, warnings will be generated in the configuration dialog for URL Routes.
-				
-				> **Note:** URLs are limited to a maximum length of 8192 characters. This constrains the maximum size of
-				> transferable data via parameters.
-				
-				<h4>Parameter Types</h4>
-				
-				<p>The parameter types available are: String, Base64UrlString, Integer, Long, Double, Float, Date, Boolean, Node.</p>
-				
-				<p>All parameters undergo conversion from the string representation in the URL to their configured parameter type.</p>
-				
-				<h5>String</h5>
-				
-				<p>Any input (following URL compliance rules) is accepted as-is and returned without conversion. This is the default type.
-				For any unknown type, Structr logs a warning and falls back to this behavior.</p>
-				
-				<h5>StringBase64URL</h5>
-				
-				<p>The <code>StringBase64URL</code> type represents Base64URL-encoded data within a path segment.
-				By default, decoded values are interpreted as a UTF-8 string.</p>
-				
-				<p>If you need to transport arbitrary binary data, you can set the content charset to <code>ISO-8859-1</code>.
-				This allows a direct byte-to-character mapping without data loss.</p>
-				
-				<p>Using Base64URL encoding helps avoid common pitfalls of URL data transmission. Reserved characters
-				such as <code>/</code> or <code>%</code>, as well as special path segments like <code>/./</code> and
-				<code>/../</code>, can interfere with routing and normalization.
-				Encoding the data prevents these issues by ensuring the path segment remains structurally safe.</p>
-				
-				<h5>Double, Float, Integer, or Long</h5>
-
-				<p>The input string is parsed using the Java parsing method specific for the type.</p>
-				
-				<p>If parsing fails, a warning is logged that identifies the target type and parameter name.
-				If the parameter is configured to return the default value in such error cases, the default value is returned.
-				Otherwise <code>null</code> is returned.</p>
-
-				<h5>Boolean</h5>
-
-				<p>The input is converted to <code>true</code> only if the input equals "true" ignoring case, and <code>false</code> only if the input equals "false" ignoring case.</p>
-				
-				<p>Any other input is treated as invalid and a warning is logged. If the parameter is configured to return the default value in such cases, the default value is returned.
-				Otherwise <code>null</code> is returned.</p>
-
-				<h5>Date</h5>
-				
-				<p>A date parameter can have a custom format the user can configure (e.g. <code>yyyyMMdd</code>). If no custom format is configured, the input
-				is parsed as an ISO 8601 date string. The following formats are supported:</p>
-				
-				<ul>
-					<li><code>yyyy-MM-dd'T'HH:mm:ss.SSSXXX</code> (e.g. <code>2026-02-14T12:34:56.000+01:00</code>)</li>
-					<li><code>yyyy-MM-dd'T'HH:mm:ssXXX</code> (e.g. <code>2026-02-14T12:34:56+01:00</code>)</li>
-					<li><code>yyyy-MM-dd'T'HH:mm:ssZ</code> (e.g. <code>2026-02-14T12:34:56Z</code>)</li>
-					<li><code>yyyy-MM-dd'T'HH:mm:ss.SSSZ</code> (e.g. <code>2026-02-14T12:34:56.000Z</code>)</li>
-				</ul>
-				
-				<p>If parsing fails for a configured custom format or all of the supported formats, a warning is logged.
-				If the parameter is configured to return the default value in such error cases, the default value is parsed and returned according to the format.
-				Otherwise <code>null</code> is returned.</p>
-				
-				<h5>Node</h5>
-				
-				<p>A node parameter can have a type configuration that determines which types of nodes can be found via the URL route. By default,
-				this is empty and nodes of all types can be found. Given a type name A, all nodes of that type and inheriting types will be able to be found.</p>
-				
-				<p>Node lookup uses the same basic mechanism as the current object resolution, meaning that by default UUIDs can be used but also all attributes configured in <code>htmlservlet.resolveproperties</code>.</p>
-				
-				<p>If no value is given, the default value is used. If a value is given but no node can be found, the default value will NOT be used.</p>
-
-				<h3>Matching Behavior</h3>
-
-				<ul>
-					<li>Static parts of a route must match exactly.</li>
-					<li>Parameters are matched *greedily* within a path segment.</li>
-				</ul>
-
-				<p>This means multiple parameters in the same segment can lead to ambiguous matches:</p>
-
-				<ul>
-					<li><code>/{var1}{var2}/</code> → <code>var1</code> captures the entire segment, <code>var2</code>remains empty</li>
-					<li><code>/{var1}_{var2}/</code> → works because <code>_</code> enforces a boundary</li>
-				</ul>
-
-				<p>Use a separator character that cannot appear in either parameter.</p>
-
-				<p><em>Recommendation:</em> Prefer a single parameter per path segment to avoid ambiguity. If values can
-				be empty, add a prefix or suffix to ensure no empty URL segments can be present. Otherwise, a URL compliance
-				violation has to be allowed.</p>
-
-				<h3>Catch-All Routes</h3>
-
-				<p>Routes without any static parts and no mandatory parameters (e.g. <code>/{variable}/</code>) match almost any request,
-				causing nearly all traffic - including requests for other pages and files - to be routed to this page.</p>
-
-				<p>To prevent unintended matches, include at least one static (or clearly structured) segment in the path.
-				For easier reasoning about paths, it is recommended to put statis parts at the start of the path, e.g.:</p>
-
-				<ul>
-					<li><code>/users/{id}/</code></li>
-					<li><code>/api/{resource}/</code></li>
-				</ul>
-
-				<p>However, catch-all routes can be useful in specific (mostly temporary) scenarios, such as debugging
-				another clients' behaviour.</p>
-				
-				<h3>URL Compliance</h3>
-				
-				<p>By default, no URL violations are allowed. When using plain string path parameters (i.e. accepting
-				arbitrary user input), you may need to explicitly allow certain URL violations via the configuration:
-				<code>httpservice.uricompliance.allowedviolations</code>. Relevant options include:</p>
-
-				<ul>
-					<li><code>AMBIGUOUS_EMPTY_SEGMENT</code> - allows empty path segments</li>
-					<li><code>AMBIGUOUS_PATH_SEPARATOR</code> - allows <code>%2f</code> (<code>/</code>) within user-provided values</li>
-					<li><code>AMBIGUOUS_PATH_ENCODING</code> - allows <code>%25</code> (<code>%</code>) within user-provided values</li>
-				</ul>
-				
-				<p>Using Base64URL encoding avoids the need for these exceptions in most cases, since it produces URL-safe output by design.</p>
-			`
 		}
 	},
 	ensureShadowPageExists: () => {

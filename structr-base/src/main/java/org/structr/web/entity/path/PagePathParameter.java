@@ -31,7 +31,7 @@ public interface PagePathParameter extends NodeInterface {
 	String getValueType();
 	String getFormat();
 	String getDefaultValue();
-	boolean getIsMandatory();
+	boolean getIsRequired();
 	boolean getUseDefaultIfInvalid();
 	Object convert(final SecurityContext securityContext, final String src) throws ParseFailureException;
 }

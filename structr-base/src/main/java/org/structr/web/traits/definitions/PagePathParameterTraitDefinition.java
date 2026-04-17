@@ -49,7 +49,7 @@ public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinitio
 	public static final String VALUE_TYPE_PROPERTY              = "valueType";
 	public static final String FORMAT_PROPERTY                  = "format";
 	public static final String DEFAULT_VALUE_PROPERTY           = "defaultValue";
-	public static final String IS_MANDATORY_PROPERTY            = "isMandatory";
+	public static final String IS_REQUIRED_PROPERTY             = "isRequired";
 	public static final String USE_DEFAULT_IF_INVALID_PROPERTY  = "useDefaultIfInvalid";
 
 	public PagePathParameterTraitDefinition() {
@@ -115,7 +115,7 @@ public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinitio
 		final Property<String> valueTypeProperty            = new EnumProperty(VALUE_TYPE_PROPERTY, PathParameterValueType.class).defaultValue(PathParameterValueType.String.name());
 		final Property<String> formatProperty               = new StringProperty(FORMAT_PROPERTY);
 		final Property<String> defaultValueProperty         = new StringProperty(DEFAULT_VALUE_PROPERTY);
-		final Property<Boolean> isMandatoryProperty         = new BooleanProperty(IS_MANDATORY_PROPERTY);
+		final Property<Boolean> isRequiredProperty          = new BooleanProperty(IS_REQUIRED_PROPERTY);
 		final Property<Boolean> useDefaultIfInvalidProperty = new BooleanProperty(USE_DEFAULT_IF_INVALID_PROPERTY);
 
 		return Set.of(
@@ -124,7 +124,7 @@ public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinitio
 			valueTypeProperty,
 			formatProperty,
 			defaultValueProperty,
-			isMandatoryProperty,
+			isRequiredProperty,
 			useDefaultIfInvalidProperty
 		);
 	}
@@ -133,11 +133,12 @@ public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinitio
 	public Map<String, Set<String>> getViews() {
 
 		return Map.of(
+
 				PropertyView.Public,
-				newSet(POSITION_PROPERTY, VALUE_TYPE_PROPERTY, FORMAT_PROPERTY, DEFAULT_VALUE_PROPERTY, IS_MANDATORY_PROPERTY, USE_DEFAULT_IF_INVALID_PROPERTY),
+				newSet(POSITION_PROPERTY, VALUE_TYPE_PROPERTY, FORMAT_PROPERTY, DEFAULT_VALUE_PROPERTY, IS_REQUIRED_PROPERTY, USE_DEFAULT_IF_INVALID_PROPERTY),
 
 				PropertyView.Ui,
-				newSet(POSITION_PROPERTY, VALUE_TYPE_PROPERTY, FORMAT_PROPERTY, DEFAULT_VALUE_PROPERTY, IS_MANDATORY_PROPERTY, USE_DEFAULT_IF_INVALID_PROPERTY)
+				newSet(POSITION_PROPERTY, VALUE_TYPE_PROPERTY, FORMAT_PROPERTY, DEFAULT_VALUE_PROPERTY, IS_REQUIRED_PROPERTY, USE_DEFAULT_IF_INVALID_PROPERTY)
 		);
 	}
 

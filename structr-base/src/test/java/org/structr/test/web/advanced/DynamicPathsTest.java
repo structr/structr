@@ -20,7 +20,6 @@ package org.structr.test.web.advanced;
 
 import io.restassured.RestAssured;
 import io.restassured.response.ResponseBody;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeAttribute;
@@ -910,6 +909,7 @@ public class DynamicPathsTest extends DeploymentTestBase {
 		String pathWithConflictingParameter = null;
 		String pathWithConflictingRenderContextParameter = null;
 		String pathWithNonMatchingParameter = null;
+		String pathWithPossibleConflictForOriginalValue = null;
 
 		try (final Tx tx = app.tx()) {
 
@@ -944,7 +944,7 @@ public class DynamicPathsTest extends DeploymentTestBase {
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      1),
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "String"),
 						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "DEFAULT2"),
-						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.IS_MANDATORY_PROPERTY), true)
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.IS_REQUIRED_PROPERTY),   true)
 				);
 			}
 
@@ -976,6 +976,13 @@ public class DynamicPathsTest extends DeploymentTestBase {
 				).getUuid();
 			}
 
+			{
+				pathWithPossibleConflictForOriginalValue = app.create(StructrTraits.PAGE_PATH,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(PagePathTraitDefinition.PAGE_PROPERTY), page),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/test_{key1}/{myKey}/{_myKey}")
+				).getUuid();
+			}
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -989,8 +996,8 @@ public class DynamicPathsTest extends DeploymentTestBase {
 				We want nice failure messages, so we use simple "assertEquals", which also requires the order to be identical.
 				That means that we have to know the order of the warnings which is dictated by the code...
 			 */
-			assertEquals("Path warnings mismatch", List.of(PagePathTraitWrapper.CATCH_ALL_ROUTE_NO_MANDATORY_PARAMS_WARNING), Arrays.stream(app.getNodeById(catchAllPathWithoutMandatoryParams).as(PagePath.class).getWarnings()).toList());
-			assertEquals("Path warnings mismatch", List.of(PagePathTraitWrapper.CATCH_ALL_ROUTE_WITH_MANDATORY_PARAMS_WARNING), Arrays.stream(app.getNodeById(catchAllPathWithMandatoryParams).as(PagePath.class).getWarnings()).toList());
+			assertEquals("Path warnings mismatch", List.of(PagePathTraitWrapper.CATCH_ALL_ROUTE_NO_REQUIRED_PARAMS_WARNING), Arrays.stream(app.getNodeById(catchAllPathWithoutMandatoryParams).as(PagePath.class).getWarnings()).toList());
+			assertEquals("Path warnings mismatch", List.of(PagePathTraitWrapper.CATCH_ALL_ROUTE_WITH_REQUIRED_PARAMS_WARNING), Arrays.stream(app.getNodeById(catchAllPathWithMandatoryParams).as(PagePath.class).getWarnings()).toList());
 			assertEquals("Path warnings mismatch", List.of(PagePathTraitWrapper.DUPLICATE_PARAMETER_WARNING.formatted("key1")), Arrays.stream(app.getNodeById(pathWithDuplicateParameter).as(PagePath.class).getWarnings()).toList());
 			assertEquals("Path warnings mismatch", List.of(PagePathTraitWrapper.CONFLICTING_PARAMETER_WARNING.formatted("now")), Arrays.stream(app.getNodeById(pathWithConflictingParameter).as(PagePath.class).getWarnings()).toList());
 			assertEquals("Path warnings mismatch for renderContext keys", List.of(
@@ -1003,6 +1010,7 @@ public class DynamicPathsTest extends DeploymentTestBase {
 							PagePathTraitWrapper.PARAMETER_PATTERN_MISMATCH_WARNING.formatted("{0test}", PagePathTraitWrapper.PATH_PARAMETER_PATTERN)
 					), Arrays.stream(app.getNodeById(pathWithNonMatchingParameter).as(PagePath.class).getWarnings()).toList()
 			);
+			assertEquals("Path warnings mismatch", List.of(PagePathTraitWrapper.PARAMETER_SHADOWS_ORIGINAL_VALUE_WARNING.formatted("myKey", "myKey")), Arrays.stream(app.getNodeById(pathWithPossibleConflictForOriginalValue).as(PagePath.class).getWarnings()).toList());
 
 		} catch (FrameworkException fex) {
 			fail("Unexpected exception.");
@@ -1013,8 +1021,8 @@ public class DynamicPathsTest extends DeploymentTestBase {
 
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("Path warnings mismatch", List.of(PagePathTraitWrapper.CATCH_ALL_ROUTE_NO_MANDATORY_PARAMS_WARNING), Arrays.stream(app.getNodeById(catchAllPathWithoutMandatoryParams).as(PagePath.class).getWarnings()).toList());
-			assertEquals("Path warnings mismatch", List.of(PagePathTraitWrapper.CATCH_ALL_ROUTE_WITH_MANDATORY_PARAMS_WARNING), Arrays.stream(app.getNodeById(catchAllPathWithMandatoryParams).as(PagePath.class).getWarnings()).toList());
+			assertEquals("Path warnings mismatch", List.of(PagePathTraitWrapper.CATCH_ALL_ROUTE_NO_REQUIRED_PARAMS_WARNING), Arrays.stream(app.getNodeById(catchAllPathWithoutMandatoryParams).as(PagePath.class).getWarnings()).toList());
+			assertEquals("Path warnings mismatch", List.of(PagePathTraitWrapper.CATCH_ALL_ROUTE_WITH_REQUIRED_PARAMS_WARNING), Arrays.stream(app.getNodeById(catchAllPathWithMandatoryParams).as(PagePath.class).getWarnings()).toList());
 			assertEquals("Path warnings mismatch", List.of(PagePathTraitWrapper.DUPLICATE_PARAMETER_WARNING.formatted("key1")), Arrays.stream(app.getNodeById(pathWithDuplicateParameter).as(PagePath.class).getWarnings()).toList());
 			assertEquals("Path warnings mismatch", List.of(PagePathTraitWrapper.CONFLICTING_PARAMETER_WARNING.formatted("now")), Arrays.stream(app.getNodeById(pathWithConflictingParameter).as(PagePath.class).getWarnings()).toList());
 			assertEquals("Path warnings mismatch for renderContext keys", List.of(
@@ -1027,6 +1035,7 @@ public class DynamicPathsTest extends DeploymentTestBase {
 							PagePathTraitWrapper.PARAMETER_PATTERN_MISMATCH_WARNING.formatted("{0test}", PagePathTraitWrapper.PATH_PARAMETER_PATTERN)
 					), Arrays.stream(app.getNodeById(pathWithNonMatchingParameter).as(PagePath.class).getWarnings()).toList()
 			);
+			assertEquals("Path warnings mismatch", List.of(PagePathTraitWrapper.PARAMETER_SHADOWS_ORIGINAL_VALUE_WARNING.formatted("myKey", "myKey")), Arrays.stream(app.getNodeById(pathWithPossibleConflictForOriginalValue).as(PagePath.class).getWarnings()).toList());
 
 		} catch (FrameworkException fex) {
 			fail("Unexpected exception.");
@@ -1162,6 +1171,125 @@ public class DynamicPathsTest extends DeploymentTestBase {
 				admin - object
 				admin - object
 				""", getContent(200, "/structr/html/defaultValueConversionTest_1/"));
+	}
+
+	@Test
+	public void testPagePathParameterOriginalValueIsPresent() {
+
+		final String userUUID = createEntityAsSuperUser("/User", "{ name: admin, password: admin, isAdmin: true }");
+
+		try (final Tx tx = app.tx()) {
+
+			final Page page         = Page.createNewPage(securityContext, "pagePathOriginalValueTest");
+			final Template template = app.create(StructrTraits.TEMPLATE).as(Template.class);
+
+			page.setProperty(Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.CONTENT_TYPE_PROPERTY), "text/plain");
+			page.appendChild(template);
+
+			template.setContent("""
+					Only original values (not matter if parsing failed):
+					${{ $.print('kString: ' + $._kString + ' - ' + typeof $._kString); }}
+					${{ $.print('kInteger: ' + $._kInteger + ' - ' + typeof $._kInteger); }}
+					${{ $.print('kLong: ' + $._kLong + ' - ' + typeof $._kLong); }}
+					${{ $.print('kDouble: ' + $._kDouble + ' - ' + typeof $._kDouble); }}
+					${{ $.print('kFloat: ' + $._kFloat + ' - ' + typeof $._kFloat); }}
+					${{ $.print('kDate: ' + $._kDate + ' - ' + typeof $._kDate); }}
+					${{ $.print('kBool: ' + $._kBool + ' - ' + typeof $._kBool); }}
+					${{ $.print('kNodeByUUID: ' + $._kNodeByUUID + ' - ' + typeof $._kNodeByUUID); }}
+					${{ $.print('kNodeByName: ' + $._kNodeByName + ' - ' + typeof $._kNodeByName); }}
+					""");
+			template.setProperty(Traits.of(StructrTraits.TEMPLATE).key(ContentTraitDefinition.CONTENT_TYPE_PROPERTY), "text/html");
+
+			{
+				final NodeInterface path = app.create(StructrTraits.PAGE_PATH,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(PagePathTraitDefinition.PAGE_PROPERTY), page),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/originalValueTest_1/{kString}/{kInteger}/{kLong}/{kDouble}/{kFloat}/{kDate}/{kBool}/{kNodeByUUID}/{kNodeByName}")
+				);
+
+				app.create(StructrTraits.PAGE_PATH_PARAMETER,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          path),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "kString"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      0),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "String"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "DEFAULT_string")
+				);
+				app.create(StructrTraits.PAGE_PATH_PARAMETER,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          path),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "kInteger"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      1),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "Integer"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "1337")
+				);
+				app.create(StructrTraits.PAGE_PATH_PARAMETER,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          path),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "kLong"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      2),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "Long"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "42")
+				);
+				app.create(StructrTraits.PAGE_PATH_PARAMETER,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          path),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "kDouble"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      3),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "Double"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "42.1337")
+				);
+				app.create(StructrTraits.PAGE_PATH_PARAMETER,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          path),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "kFloat"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      4),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "Float"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "42.5")
+				);
+				app.create(StructrTraits.PAGE_PATH_PARAMETER,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          path),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "kDate"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      5),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "Date"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.FORMAT_PROPERTY),        "dd.MM.yyyy HH:mm:ss"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "13.04.2026 12:34:56")
+				);
+				app.create(StructrTraits.PAGE_PATH_PARAMETER,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          path),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "kBool"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      6),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "Boolean"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "true")
+				);
+				app.create(StructrTraits.PAGE_PATH_PARAMETER,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          path),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "kNodeByUUID"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      7),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "Node"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), userUUID)
+				);
+				app.create(StructrTraits.PAGE_PATH_PARAMETER,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          path),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "kNodeByName"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      8),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "Node"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "admin")
+				);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		assertEquals("Invalid path resolution result: default values should be converted correctly", """
+				Only original values (not matter if parsing failed):
+				kString: ABC - string
+				kInteger: DEF - string
+				kLong: GHI - string
+				kDouble: JKL - string
+				kFloat: MNO - string
+				kDate: PQR - string
+				kBool: STU - string
+				kNodeByUUID: VWX - string
+				kNodeByName: YZ - string
+				""", getContent(200, "/structr/html/originalValueTest_1/ABC/DEF/GHI/JKL/MNO/PQR/STU/VWX/YZ"));
 	}
 
 	@Test
