@@ -18,6 +18,7 @@
  */
 package org.structr.web.function;
 
+import org.apache.commons.io.IOUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -32,6 +33,7 @@ import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.File;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 
@@ -69,6 +71,18 @@ public class SetContentFunction extends UiAdvancedFunction {
 						logger.warn("setContent(): Unable to write binary data to file '{}'", file.getPath(), ioex);
 					}
 
+				} else if (sources[1] instanceof InputStream is) {
+
+					try (final OutputStream fos = file.getOutputStream(true, false)) {
+
+						IOUtils.copy(is, fos);
+
+					} catch (IOException ioex) {
+						logger.warn("setContent(): Unable to stream content to file '{}'", file.getPath(), ioex);
+					} finally {
+						try { is.close(); } catch (IOException ignore) {}
+					}
+
 				} else if (sources[1] instanceof String) {
 
 					final String content = (String)sources[1];
@@ -87,7 +101,7 @@ public class SetContentFunction extends UiAdvancedFunction {
 
 				} else {
 
-					throw new FrameworkException(422, getName() + "(): Content must be of type String or byte[]. Found: " + sources[1].getClass().getSimpleName());
+					throw new FrameworkException(422, getName() + "(): Content must be of type String, byte[] or InputStream. Found: " + sources[1].getClass().getSimpleName());
 				}
 			}
 
@@ -114,7 +128,7 @@ public class SetContentFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Sets the content of the given file. Content can either be of type String or byte[].";
+		return "Sets the content of the given file. Content can be of type String, byte[] or InputStream.";
 	}
 
 	@Override

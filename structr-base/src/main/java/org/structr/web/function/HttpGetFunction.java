@@ -27,7 +27,6 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.property.ByteArrayProperty;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
@@ -39,6 +38,7 @@ import org.structr.docs.ontology.FunctionCategory;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
 
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.ArrayList;
@@ -139,9 +139,10 @@ public class HttpGetFunction extends UiAdvancedFunction {
 					}
 				} else if ("application/octet-stream".equals(contentType)) {
 
-					responseData = getBinaryFromUrl(ctx, address, charset, username, password);
+					// Stream binary data instead of buffering into byte[] to avoid the 2 GB limit
+					responseData = getStreamFromUrl(ctx, address, charset, username, password);
 
-					response.setProperty(new ByteArrayProperty(HttpHelper.FIELD_BODY), responseData.get(HttpHelper.FIELD_BODY));
+					response.setProperty(new GenericProperty<InputStream>(HttpHelper.FIELD_BODY), (InputStream) responseData.get(HttpHelper.FIELD_BODY));
 				} else {
 
 					responseData = getFromUrl(ctx, address, charset, username, password);
@@ -200,7 +201,7 @@ public class HttpGetFunction extends UiAdvancedFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${GET(URL[, contentType[, username, password]])}. Example: ${GET('http://structr.org', 'text/html')}"),
-			Usage.javaScript("Usage: ${{Structr.GET(URL[, contentType[, username, password]])}}. Example: ${{Structr.GET('http://structr.org', 'text/html')}}")
+			Usage.javaScript("Usage: ${{$.GET(URL[, contentType[, username, password]])}}. Example: ${{$.GET('http://structr.org', 'text/html')}}")
 		);
 	}
 
@@ -220,7 +221,9 @@ public class HttpGetFunction extends UiAdvancedFunction {
 			| --- | --- | --- |
 			status | HTTP status of the request | Integer |
 			headers | Response headers | Map |
-			body | Response body | Map or String |
+			body | Response body | String, InputStream or Map |
+
+			When the `contentType` parameter is set to `application/octet-stream`, the response body is returned as a streaming `InputStream` instead of a `byte[]` array. This removes the previous 2 GB file size limit for binary downloads. The stream can be passed directly to `setContent()` which will stream the data to the file storage without buffering the entire content in memory.
 			""";
 	}
 
@@ -242,7 +245,8 @@ public class HttpGetFunction extends UiAdvancedFunction {
 			Example.structrScript("${GET('http://www.google.com', 'text/html; charset=UTF-8')}", "Return the HTML source code of the front page of google.com (since the server sends a charset in the response, the given charset parameter is overridden)."),
 			Example.structrScript("${GET('http://www.google.com', 'text/html; charset=ISO-8859-1')}", "Return the HTML source code of the front page of google.com (since the server sends a charset in the response, the given charset parameter is overridden)."),
 			Example.structrScript("${GET('http://www.google.com', 'text/html', '#footer')}", "Return the HTML content of the element with the ID 'footer' from google.com."),
-			Example.structrScript("${setContent(create('File', 'name', 'googleLogo.png'), GET('https://www.google.com/images/branding/googlelogo/1x/googlelogoLightColor_272x92dp.png', 'application/octet-stream'))}", "Create a new file with the google logo in the local Structr instance.")
+			Example.structrScript("${setContent(create('File', 'name', 'googleLogo.png'), GET('https://www.google.com/images/branding/googlelogo/1x/googlelogoLightColor_272x92dp.png', 'application/octet-stream'))}", "Create a new file with the google logo in the local Structr instance."),
+			Example.javaScript("${{\n\t$.addHeader('Authorization', 'Bearer ...');\n\t$.setContent(file, $.GET('https://example.com/large-file.zip', 'application/octet-stream').body, 'application/octet-stream');\n}}", "Stream a large binary file directly into a Structr File node without size limit.")
 		);
 	}
 
@@ -254,7 +258,8 @@ public class HttpGetFunction extends UiAdvancedFunction {
 			"Prior to v4.0: `contentType` is the **expected** response content type (it does not influence the charset of the response - the charset from the **sending server** will be used).",
 			"The parameters `username` and `password` are intended for HTTP Basic Auth. For header authentication use `addHeader()`.",
 			"The `GET()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `addHeader()` (see the related articles for more information).",
-			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls."
+			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls.",
+			"v6.4+: When using `application/octet-stream`, the response body is returned as a streaming `InputStream` instead of a `byte[]` array. This removes the previous 2 GB file size limit and avoids buffering the entire response in memory. The stream is consumed when passed to `setContent()` and should not be read more than once."
 		);
 	}
 
