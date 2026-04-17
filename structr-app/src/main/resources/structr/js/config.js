@@ -300,7 +300,7 @@ let _Config = {
 			let newParent = _Helpers.createSingleDOMElementFromHTML(`
 				<div class="flex flex-col w-full">
 
-					<div class="mt-1 mb-2" data-cron-description></div>
+					<div class="mt-1 mb-4 text-sm text-gray-999" data-cron-description></div>
 				</div>
 			`);
 
