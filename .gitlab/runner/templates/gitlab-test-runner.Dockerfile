@@ -43,6 +43,7 @@ RUN microdnf install -y dnf dnf-plugins-core \
      && dnf config-manager --add-repo "https://download.docker.com/linux/centos/docker-ce.repo" \
      && dnf -y install docker-ce-cli git \
      && dnf -y install socat \
+  	 && dnf -y install jq \
      && dnf install -y glab_${GLAB_VERSION}_linux_${TARGETARCH}.rpm \
      && dnf clean all \
      && rm -f *.rpm

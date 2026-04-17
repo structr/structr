@@ -1399,7 +1399,7 @@ let _Files = {
 				loadedEditors++;
 
 				let tab             = _Helpers.createSingleDOMElementFromHTML(`<li id="tab-${entity.id}" class="file-tab">${entity.name}</li>`);
-				let editorContainer = _Helpers.createSingleDOMElementFromHTML(`<div id="content-tab-${entity.id}" class="content-tab-editor flex-grow flex"></div>`);
+				let editorContainer = _Helpers.createSingleDOMElementFromHTML(`<div id="content-tab-${entity.id}" class="content-tab-editor flex-grow flex relative"></div>`);
 
 				filesTabsUl.appendChild(tab);
 				filesTabs.appendChild(editorContainer);
