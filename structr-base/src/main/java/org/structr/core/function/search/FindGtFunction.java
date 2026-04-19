@@ -36,6 +36,11 @@ public class FindGtFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public String getReplacementHint() {
+		return "predicate.gt";
+	}
+
+	@Override
 	public String getDisplayName(boolean includeParameters) {
 		return "predicate.gt";
 	}

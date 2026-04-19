@@ -40,6 +40,11 @@ public abstract class UiFunction extends Function<Object, Object> {
 		return HttpHelper.getBinary(requestUrl, charset, username, password, ctx.getHeaders(), ctx.isValidateCertificates());
 	}
 
+	protected Map<String, Object> getStreamFromUrl(final ActionContext ctx, final String requestUrl, final String charset, final String username, final String password) {
+
+		return HttpHelper.getAsStream(requestUrl, charset, username, password, null, null, null, null, ctx.getHeaders());
+	}
+
 	protected Map<String, Object> headFromUrl(final ActionContext ctx, final String requestUrl, final String username, final String password) throws FrameworkException {
 
 		return HttpHelper.head(requestUrl, password, username, ctx.getHeaders(), ctx.isValidateCertificates());

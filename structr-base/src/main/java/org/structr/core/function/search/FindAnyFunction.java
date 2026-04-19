@@ -38,6 +38,11 @@ public class FindAnyFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public String getReplacementHint() {
+		return "predicate.any";
+	}
+
+	@Override
 	public String getDisplayName(boolean includeParameters) {
 		return "predicate.any";
 	}
@@ -75,7 +80,7 @@ public class FindAnyFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns a query predicate that can be used with find() and search() .";
+		return "Returns a query predicate that can be used with find() and search().";
 	}
 
 	@Override
@@ -143,7 +148,6 @@ public class FindAnyFunction extends AdvancedScriptingFunction {
 
 			$.find('User', $.predicate.contains('jobSkills', $.predicate.any( [ waiterSkills, pizzaMakerSkills ] )));
 			```
-
 			""";
 	}
 

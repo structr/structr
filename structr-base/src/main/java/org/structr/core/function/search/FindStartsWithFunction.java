@@ -36,6 +36,11 @@ public class FindStartsWithFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public String getReplacementHint() {
+		return "predicate.startsWith";
+	}
+
+	@Override
 	public String getDisplayName(boolean includeParameters) {
 		return "predicate.startsWith";
 	}

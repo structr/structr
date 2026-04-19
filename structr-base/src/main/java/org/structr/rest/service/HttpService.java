@@ -51,6 +51,7 @@ import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.websocket.server.WebSocketUpgradeHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
 import org.structr.api.service.*;
 import org.structr.core.Services;
@@ -439,6 +440,9 @@ public class HttpService implements RunnableService, StatsCallback {
 			logger.info("Adding servlet {} for {}", servletHolder, path);
 
 			servletContext.addServlet(servletHolder, path);
+
+			// configure per-servlet DoSFilter (no-op if disabled or main switch is off)
+			configureDoSFilter(servletContext, servletHolder.getName(), path);
 		}
 
 		// only add metrics filter if metrics servlet is enabled
@@ -449,28 +453,6 @@ public class HttpService implements RunnableService, StatsCallback {
 		// docs
 		servletContext.addServlet(DocumentationServlet.class, "/structr/docs/ontology/*");
 		servletContext.addServlet(DocumentationServlet.class, "/structr/docs/ontology");
-
-		// add and configure DoSFilter
-		if (Settings.RateLimiting.getValue()) {
-
-			final FilterHolder holder = new FilterHolder(DoSFilter.class);
-
-			holder.setInitParameter("maxRequestsPerSec", Settings.MaxRequestsPerSec.getValue().toString());
-			holder.setInitParameter("maxRequestsPerSec", Settings.MaxRequestsPerSec.getValue().toString());
-			holder.setInitParameter("delayMs", Settings.DelayMs.getValue().toString());
-			holder.setInitParameter("maxWaitMs", Settings.MaxWaitMs.getValue().toString());
-			holder.setInitParameter("throttledRequests", Settings.ThrottledRequests.getValue().toString());
-			holder.setInitParameter("throttleMs", Settings.ThrottleMs.getValue().toString());
-			holder.setInitParameter("maxRequestMs", Settings.MaxRequestMs.getValue().toString());
-			holder.setInitParameter("maxIdleTrackerMs", Settings.MaxIdleTrackerMs.getValue().toString());
-			holder.setInitParameter("insertHeaders", Settings.InsertHeaders.getValue().toString());
-			holder.setInitParameter("remotePort", Settings.RemotePort.getValue().toString());
-			holder.setInitParameter("ipWhitelist", Settings.IpWhitelist.getValue());
-			holder.setInitParameter("managedAttr", Settings.ManagedAttr.getValue().toString());
-			holder.setInitParameter("tooManyCode", Settings.TooManyCode.getValue().toString());
-
-			servletContext.addFilter(holder, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.ASYNC));
-		}
 
 		// Always add servletContext last because it's terminal in the resource chain
 		contexts.addHandler(servletContext);
@@ -948,6 +930,196 @@ public class HttpService implements RunnableService, StatsCallback {
 	}
 
 	// ----- private methods -----
+	/**
+	 * Dispatches to attachDoSFilter with the correct per-servlet Setting objects based on
+	 * the servlet's short name. Only known servlets are covered; any servlet without a
+	 * matching case is left without a DoSFilter.
+	 */
+	private void configureDoSFilter(final ServletContextHandler servletContext, final String servletName, final String path) {
+
+		if (!Settings.RateLimiting.getValue()) {
+			return;
+		}
+
+		switch (servletName) {
+
+			case "JsonRestServlet":
+				attachDoSFilter(servletContext, path, servletName,
+					Settings.JsonRestDosEnabled, Settings.JsonRestDosMaxRequestsPerSec, Settings.JsonRestDosDelayMs,
+					Settings.JsonRestDosMaxWaitMs, Settings.JsonRestDosThrottledRequests, Settings.JsonRestDosThrottleMs,
+					Settings.JsonRestDosMaxRequestMs, Settings.JsonRestDosMaxIdleTrackerMs, Settings.JsonRestDosInsertHeaders,
+					Settings.JsonRestDosRemotePort, Settings.JsonRestDosIpWhitelist, Settings.JsonRestDosManagedAttr,
+					Settings.JsonRestDosTooManyCode);
+				break;
+
+			case "HtmlServlet":
+				attachDoSFilter(servletContext, path, servletName,
+					Settings.HtmlDosEnabled, Settings.HtmlDosMaxRequestsPerSec, Settings.HtmlDosDelayMs,
+					Settings.HtmlDosMaxWaitMs, Settings.HtmlDosThrottledRequests, Settings.HtmlDosThrottleMs,
+					Settings.HtmlDosMaxRequestMs, Settings.HtmlDosMaxIdleTrackerMs, Settings.HtmlDosInsertHeaders,
+					Settings.HtmlDosRemotePort, Settings.HtmlDosIpWhitelist, Settings.HtmlDosManagedAttr,
+					Settings.HtmlDosTooManyCode);
+				break;
+
+			case "CsvServlet":
+				attachDoSFilter(servletContext, path, servletName,
+					Settings.CsvDosEnabled, Settings.CsvDosMaxRequestsPerSec, Settings.CsvDosDelayMs,
+					Settings.CsvDosMaxWaitMs, Settings.CsvDosThrottledRequests, Settings.CsvDosThrottleMs,
+					Settings.CsvDosMaxRequestMs, Settings.CsvDosMaxIdleTrackerMs, Settings.CsvDosInsertHeaders,
+					Settings.CsvDosRemotePort, Settings.CsvDosIpWhitelist, Settings.CsvDosManagedAttr,
+					Settings.CsvDosTooManyCode);
+				break;
+
+			case "UploadServlet":
+				attachDoSFilter(servletContext, path, servletName,
+					Settings.UploadDosEnabled, Settings.UploadDosMaxRequestsPerSec, Settings.UploadDosDelayMs,
+					Settings.UploadDosMaxWaitMs, Settings.UploadDosThrottledRequests, Settings.UploadDosThrottleMs,
+					Settings.UploadDosMaxRequestMs, Settings.UploadDosMaxIdleTrackerMs, Settings.UploadDosInsertHeaders,
+					Settings.UploadDosRemotePort, Settings.UploadDosIpWhitelist, Settings.UploadDosManagedAttr,
+					Settings.UploadDosTooManyCode);
+				break;
+
+			case "ProxyServlet":
+				attachDoSFilter(servletContext, path, servletName,
+					Settings.ProxyDosEnabled, Settings.ProxyDosMaxRequestsPerSec, Settings.ProxyDosDelayMs,
+					Settings.ProxyDosMaxWaitMs, Settings.ProxyDosThrottledRequests, Settings.ProxyDosThrottleMs,
+					Settings.ProxyDosMaxRequestMs, Settings.ProxyDosMaxIdleTrackerMs, Settings.ProxyDosInsertHeaders,
+					Settings.ProxyDosRemotePort, Settings.ProxyDosIpWhitelist, Settings.ProxyDosManagedAttr,
+					Settings.ProxyDosTooManyCode);
+				break;
+
+			case "DeploymentServlet":
+				attachDoSFilter(servletContext, path, servletName,
+					Settings.DeploymentDosEnabled, Settings.DeploymentDosMaxRequestsPerSec, Settings.DeploymentDosDelayMs,
+					Settings.DeploymentDosMaxWaitMs, Settings.DeploymentDosThrottledRequests, Settings.DeploymentDosThrottleMs,
+					Settings.DeploymentDosMaxRequestMs, Settings.DeploymentDosMaxIdleTrackerMs, Settings.DeploymentDosInsertHeaders,
+					Settings.DeploymentDosRemotePort, Settings.DeploymentDosIpWhitelist, Settings.DeploymentDosManagedAttr,
+					Settings.DeploymentDosTooManyCode);
+				break;
+
+			case "FlowServlet":
+				attachDoSFilter(servletContext, path, servletName,
+					Settings.FlowDosEnabled, Settings.FlowDosMaxRequestsPerSec, Settings.FlowDosDelayMs,
+					Settings.FlowDosMaxWaitMs, Settings.FlowDosThrottledRequests, Settings.FlowDosThrottleMs,
+					Settings.FlowDosMaxRequestMs, Settings.FlowDosMaxIdleTrackerMs, Settings.FlowDosInsertHeaders,
+					Settings.FlowDosRemotePort, Settings.FlowDosIpWhitelist, Settings.FlowDosManagedAttr,
+					Settings.FlowDosTooManyCode);
+				break;
+
+			case "LoginServlet":
+				attachDoSFilter(servletContext, path, servletName,
+					Settings.LoginDosEnabled, Settings.LoginDosMaxRequestsPerSec, Settings.LoginDosDelayMs,
+					Settings.LoginDosMaxWaitMs, Settings.LoginDosThrottledRequests, Settings.LoginDosThrottleMs,
+					Settings.LoginDosMaxRequestMs, Settings.LoginDosMaxIdleTrackerMs, Settings.LoginDosInsertHeaders,
+					Settings.LoginDosRemotePort, Settings.LoginDosIpWhitelist, Settings.LoginDosManagedAttr,
+					Settings.LoginDosTooManyCode);
+				break;
+
+			case "LogoutServlet":
+				attachDoSFilter(servletContext, path, servletName,
+					Settings.LogoutDosEnabled, Settings.LogoutDosMaxRequestsPerSec, Settings.LogoutDosDelayMs,
+					Settings.LogoutDosMaxWaitMs, Settings.LogoutDosThrottledRequests, Settings.LogoutDosThrottleMs,
+					Settings.LogoutDosMaxRequestMs, Settings.LogoutDosMaxIdleTrackerMs, Settings.LogoutDosInsertHeaders,
+					Settings.LogoutDosRemotePort, Settings.LogoutDosIpWhitelist, Settings.LogoutDosManagedAttr,
+					Settings.LogoutDosTooManyCode);
+				break;
+
+			case "TokenServlet":
+				attachDoSFilter(servletContext, path, servletName,
+					Settings.TokenDosEnabled, Settings.TokenDosMaxRequestsPerSec, Settings.TokenDosDelayMs,
+					Settings.TokenDosMaxWaitMs, Settings.TokenDosThrottledRequests, Settings.TokenDosThrottleMs,
+					Settings.TokenDosMaxRequestMs, Settings.TokenDosMaxIdleTrackerMs, Settings.TokenDosInsertHeaders,
+					Settings.TokenDosRemotePort, Settings.TokenDosIpWhitelist, Settings.TokenDosManagedAttr,
+					Settings.TokenDosTooManyCode);
+				break;
+
+			case "EventSourceServlet":
+				attachDoSFilter(servletContext, path, servletName,
+					Settings.EventSourceDosEnabled, Settings.EventSourceDosMaxRequestsPerSec, Settings.EventSourceDosDelayMs,
+					Settings.EventSourceDosMaxWaitMs, Settings.EventSourceDosThrottledRequests, Settings.EventSourceDosThrottleMs,
+					Settings.EventSourceDosMaxRequestMs, Settings.EventSourceDosMaxIdleTrackerMs, Settings.EventSourceDosInsertHeaders,
+					Settings.EventSourceDosRemotePort, Settings.EventSourceDosIpWhitelist, Settings.EventSourceDosManagedAttr,
+					Settings.EventSourceDosTooManyCode);
+				break;
+
+			case "HealthCheckServlet":
+				attachDoSFilter(servletContext, path, servletName,
+					Settings.HealthCheckDosEnabled, Settings.HealthCheckDosMaxRequestsPerSec, Settings.HealthCheckDosDelayMs,
+					Settings.HealthCheckDosMaxWaitMs, Settings.HealthCheckDosThrottledRequests, Settings.HealthCheckDosThrottleMs,
+					Settings.HealthCheckDosMaxRequestMs, Settings.HealthCheckDosMaxIdleTrackerMs, Settings.HealthCheckDosInsertHeaders,
+					Settings.HealthCheckDosRemotePort, Settings.HealthCheckDosIpWhitelist, Settings.HealthCheckDosManagedAttr,
+					Settings.HealthCheckDosTooManyCode);
+				break;
+
+			case "HistogramServlet":
+				attachDoSFilter(servletContext, path, servletName,
+					Settings.HistogramDosEnabled, Settings.HistogramDosMaxRequestsPerSec, Settings.HistogramDosDelayMs,
+					Settings.HistogramDosMaxWaitMs, Settings.HistogramDosThrottledRequests, Settings.HistogramDosThrottleMs,
+					Settings.HistogramDosMaxRequestMs, Settings.HistogramDosMaxIdleTrackerMs, Settings.HistogramDosInsertHeaders,
+					Settings.HistogramDosRemotePort, Settings.HistogramDosIpWhitelist, Settings.HistogramDosManagedAttr,
+					Settings.HistogramDosTooManyCode);
+				break;
+
+			case "OpenAPIServlet":
+				attachDoSFilter(servletContext, path, servletName,
+					Settings.OpenAPIDosEnabled, Settings.OpenAPIDosMaxRequestsPerSec, Settings.OpenAPIDosDelayMs,
+					Settings.OpenAPIDosMaxWaitMs, Settings.OpenAPIDosThrottledRequests, Settings.OpenAPIDosThrottleMs,
+					Settings.OpenAPIDosMaxRequestMs, Settings.OpenAPIDosMaxIdleTrackerMs, Settings.OpenAPIDosInsertHeaders,
+					Settings.OpenAPIDosRemotePort, Settings.OpenAPIDosIpWhitelist, Settings.OpenAPIDosManagedAttr,
+					Settings.OpenAPIDosTooManyCode);
+				break;
+
+			case "MetricsServlet":
+				attachDoSFilter(servletContext, path, servletName,
+					Settings.MetricsDosEnabled, Settings.MetricsDosMaxRequestsPerSec, Settings.MetricsDosDelayMs,
+					Settings.MetricsDosMaxWaitMs, Settings.MetricsDosThrottledRequests, Settings.MetricsDosThrottleMs,
+					Settings.MetricsDosMaxRequestMs, Settings.MetricsDosMaxIdleTrackerMs, Settings.MetricsDosInsertHeaders,
+					Settings.MetricsDosRemotePort, Settings.MetricsDosIpWhitelist, Settings.MetricsDosManagedAttr,
+					Settings.MetricsDosTooManyCode);
+				break;
+
+			default:
+				logger.debug("No DoSFilter settings defined for servlet '{}', skipping filter attachment", servletName);
+				break;
+		}
+	}
+
+	/**
+	 * Attaches a Jetty DoSFilter to the given servlet path, configured from the supplied
+	 * per-servlet settings. No filter is attached if the enabled setting is false.
+	 */
+	private void attachDoSFilter(final ServletContextHandler servletContext, final String path, final String servletName,
+		final Setting<Boolean> enabled,
+		final Setting<Integer> maxRequestsPerSec, final Setting<Integer> delayMs, final Setting<Integer> maxWaitMs,
+		final Setting<Integer> throttledRequests, final Setting<Integer> throttleMs, final Setting<Integer> maxRequestMs,
+		final Setting<Integer> maxIdleTrackerMs, final Setting<Boolean> insertHeaders,
+		final Setting<Boolean> remotePort, final Setting<String> ipWhitelist, final Setting<Boolean> managedAttr,
+		final Setting<Integer> tooManyCode) {
+
+		if (!enabled.getValue()) {
+			return;
+		}
+
+		final FilterHolder holder = new FilterHolder(DoSFilter.class);
+
+		holder.setInitParameter("maxRequestsPerSec", maxRequestsPerSec.getValue().toString());
+		holder.setInitParameter("delayMs",           delayMs.getValue().toString());
+		holder.setInitParameter("maxWaitMs",         maxWaitMs.getValue().toString());
+		holder.setInitParameter("throttledRequests", throttledRequests.getValue().toString());
+		holder.setInitParameter("throttleMs",        throttleMs.getValue().toString());
+		holder.setInitParameter("maxRequestMs",      maxRequestMs.getValue().toString());
+		holder.setInitParameter("maxIdleTrackerMs",  maxIdleTrackerMs.getValue().toString());
+		holder.setInitParameter("insertHeaders",     insertHeaders.getValue().toString());
+		holder.setInitParameter("remotePort",        remotePort.getValue().toString());
+		holder.setInitParameter("ipWhitelist",       ipWhitelist.getValue());
+		holder.setInitParameter("managedAttr",       managedAttr.getValue().toString());
+		holder.setInitParameter("tooManyCode",       tooManyCode.getValue().toString());
+
+		servletContext.addFilter(holder, path, EnumSet.of(DispatcherType.REQUEST, DispatcherType.ASYNC));
+
+		logger.info("Attached DoSFilter to servlet {} at path {}", servletName, path);
+	}
+
 	private Map<String, ServletHolder> collectServlets(final LicenseManager licenseManager) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		final Map<String, ServletHolder> servlets = new LinkedHashMap<>();
@@ -977,6 +1149,7 @@ public class HttpService implements RunnableService, StatsCallback {
 									}
 
 									final ServletHolder servletHolder = new ServletHolder(servlet);
+									servletHolder.setName(servletName);
 									httpServiceServlet.configureServletHolder(servletHolder);
 
 									if (servletPath.endsWith("*")) {

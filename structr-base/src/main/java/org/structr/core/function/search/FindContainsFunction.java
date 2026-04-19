@@ -36,6 +36,11 @@ public class FindContainsFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public String getReplacementHint() {
+		return "predicate.contains";
+	}
+
+	@Override
 	public String getDisplayName(boolean includeParameters) {
 		return "predicate.contains";
 	}

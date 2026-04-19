@@ -193,6 +193,19 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		}
 	}
 
+	public Object throwExceptionIfSupportedElseLogWarningAndReturnNull(final ActionContext ctx, final String message) throws FrameworkException {
+
+		if (ctx.supportsExceptionHandling()) {
+
+			throw new FrameworkException(422, message);
+
+		} else {
+
+			logger.warn(message);
+			return null;
+		}
+	}
+
 	protected static String getParametersAsString (final Object[] sources) {
 		return Arrays.toString(sources);
 	}
@@ -1046,13 +1059,11 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 			} else {
 
 				return compareStringString(o1.toString(), o2.toString()) == 0;
-
 			}
 
 		} catch (NumberFormatException nfe) {
 
 			return false;
-
 		}
 	}
 
@@ -1133,8 +1144,6 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		}
 
 		return value1.compareTo(value2);
-
-
 	}
 
 	private int compareStringNumber(final String o1, final Number o2) {

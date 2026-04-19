@@ -135,7 +135,36 @@ snapshot-build:
         
         This release is automatically updated with each commit to main." \
         structr-app/target/*.deb structr-app/target/*.zip
-        
+      
+        echo "Cleaning up old package files for $STRUCTR_VERSION..."
+
+        # Get the package ID
+        PACKAGE_ID=$(curl --silent \
+          --header "PRIVATE-TOKEN: $CI_RELEASE_TOKEN" \
+          "$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages?package_name=release-assets&package_version=$STRUCTR_VERSION&per_page=100" \
+          | jq -r '.[0].id')
+
+        echo "Package ID: $PACKAGE_ID"
+
+        FILE_IDS=$(curl --silent \
+          --header "PRIVATE-TOKEN: $CI_RELEASE_TOKEN" \
+          "$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/$PACKAGE_ID/package_files?per_page=100&order_by=created_at&sort=asc" \
+          | jq -r '.[].id' | head -n -2)
+
+        TOTAL=$(echo "$FILE_IDS" | grep -c '[0-9]' || true)
+        echo "Found $TOTAL old file(s) to delete"
+
+        if [ "$TOTAL" -gt 0 ]; then
+          echo "$FILE_IDS" | while read FILE_ID; do
+            echo "Deleting file ID: $FILE_ID"
+            curl --silent --request DELETE \
+              --header "PRIVATE-TOKEN: $CI_RELEASE_TOKEN" \
+              "$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/$PACKAGE_ID/package_files/$FILE_ID"
+          done
+        else
+          echo "Nothing to clean up."
+        fi
+      
         echo "SNAPSHOT build and release completed successfully"
       else
         echo "Skipping build because version is no SNAPSHOT and/or not on main branch"

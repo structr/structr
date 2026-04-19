@@ -35,6 +35,11 @@ public class FindNotFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getReplacementHint() {
+		return "predicate.not";
+	}
+
+	@Override
 	public String getDisplayName(boolean includeParameters) {
 		return "predicate.not";
 	}
