@@ -313,6 +313,8 @@ public class ConfigServlet extends AbstractServletBase {
 
 					} else {
 
+						redirectTarget = "?loginFailed";
+
 						failedLoginAttempts++;
 
 						if (failedLoginAttempts >= MAX_FAILED_ATTEMPTS) {
