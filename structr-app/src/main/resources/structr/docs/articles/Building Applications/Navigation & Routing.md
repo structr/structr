@@ -178,15 +178,7 @@ To prevent unintended matches, include at least one static (or clearly structure
 
 However, catch-all routes can be useful in specific (mostly temporary) scenarios, such as debugging another clients' behaviour.
 
-### URL Compliance
-
-By default, no URL violations are allowed. When using plain string path parameters (i.e. accepting arbitrary user input), you may need to explicitly allow certain URL violations via the configuration key `httpservice.uricompliance.allowedviolations`. Relevant options include:
-
-- `AMBIGUOUS_EMPTY_SEGMENT` - allows empty path segments
-- `AMBIGUOUS_PATH_SEPARATOR` - allows `%2f` (`/`) within user-provided values
-- `AMBIGUOUS_PATH_ENCODING` - allows `%25` (`%`) within user-provided values
-
-Using Base64URL encoding avoids the need for these exceptions in most cases, since it produces URL-safe output by design.
+{{"URL Compliance",h2,shortDescription,children}}
 
 ### Example
 

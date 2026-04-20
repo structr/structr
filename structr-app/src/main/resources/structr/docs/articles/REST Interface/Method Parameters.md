@@ -78,6 +78,8 @@ For a function with declared parameters `foo` and `bar`, a request to `/structr/
 
 To pass values to a GET/DELETE method without declaring parameters, use query string parameters and read them via `$.request` inside the function (see Accessing Query String Parameters below).
 
+{{"URL Compliance",h2,shortDescription,children}}
+
 ## Accessing Parameters in Code
 
 ### JavaScript
