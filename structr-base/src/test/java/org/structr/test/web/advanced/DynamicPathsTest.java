@@ -54,6 +54,24 @@ import static org.testng.AssertJUnit.*;
 
 public class DynamicPathsTest extends DeploymentTestBase {
 
+	final static String ambiguousEmptyURLSegmentError = """
+				<html>
+				<head>
+				<meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-1"/>
+				<title>Error 400 Ambiguous URI empty segment</title>
+				</head>
+				<body>
+				<h2>HTTP ERROR 400 Ambiguous URI empty segment</h2>
+				<table>
+				<tr><th>URI:</th><td>/badURI</td></tr>
+				<tr><th>STATUS:</th><td>400</td></tr>
+				<tr><th>MESSAGE:</th><td>Ambiguous URI empty segment</td></tr>
+				</table>
+				
+				</body>
+				</html>
+				""";
+
 	@Test
 	public void test001DynamicPathResolution() {
 
@@ -147,22 +165,28 @@ public class DynamicPathsTest extends DeploymentTestBase {
 		RestAssured.basePath = "/";
 
 		// /test1/prefix_{key1}/{key2} with both parameters defined, default values "defaultValue1" and 1
-		assertEquals("Invalid path resolution result", "one,5,",    getContent(200, "/structr/html/test1/prefix_one/5/three"));
-		assertEquals("Invalid path resolution result", "one,1,",    getContent(200, "/structr/html/test1/prefix_one/two/three/four/five"));
-		assertEquals("Invalid path resolution result", notFoundPageContent,  getContent(404, "/structr/html/test1"));
-		assertEquals("Invalid path resolution result", notFoundPageContent,  getContent(404, "/structr/html/test1/"));
-		assertEquals("Invalid path resolution result", "value1,1,", getContent(200, "/structr/html/test1/prefix_value1"));
-		assertEquals("Invalid path resolution result", notFoundPageContent,  getContent(404, "/structr/html/test1/value1"));
-		assertEquals("Invalid path resolution result", notFoundPageContent,  getContent(404, "/structr/html/test1/value1/1234"));
-		assertEquals("Invalid path resolution result", notFoundPageContent,  getContent(404, "/structr/html/test1/value1/two"));
+		assertEquals("Invalid path resolution result", "one,5,",              getContent(200, "/structr/html/test1/prefix_one/5/three"));
+		assertEquals("Invalid path resolution result", "one,1,",              getContent(200, "/structr/html/test1/prefix_one/two/three/four/five"));
+		assertEquals("Invalid path resolution result", notFoundPageContent,            getContent(404, "/structr/html/test1"));
+		assertEquals("Invalid path resolution result", notFoundPageContent,            getContent(404, "/structr/html/test1/"));
+		assertEquals("Invalid path resolution result", ambiguousEmptyURLSegmentError,  getContent(400, "/structr/html/test1//"));
+		assertEquals("Invalid path resolution result", ambiguousEmptyURLSegmentError,  getContent(400, "/structr/html/test1///"));
+		assertEquals("Invalid path resolution result", ambiguousEmptyURLSegmentError,  getContent(400, "/structr/html/test1////"));
+		assertEquals("Invalid path resolution result", ambiguousEmptyURLSegmentError,  getContent(400, "/structr/html/test1/////"));
+		assertEquals("Invalid path resolution result", "value1,1,",           getContent(200, "/structr/html/test1/prefix_value1"));
+		assertEquals("Invalid path resolution result", notFoundPageContent,            getContent(404, "/structr/html/test1/value1"));
+		assertEquals("Invalid path resolution result", notFoundPageContent,            getContent(404, "/structr/html/test1/value1/1234"));
+		assertEquals("Invalid path resolution result", notFoundPageContent,            getContent(404, "/structr/html/test1/value1/two"));
 
 		// /test2/{key1}_{key2}_{key3} with only one parameter defined, default value "defaultValue2"
 		assertEquals("Invalid path resolution result", "one,two,three",           getContent(200, "/structr/html/test2/one_two_three"));
 		assertEquals("Invalid path resolution result", "one_two_three,four,five", getContent(200, "/structr/html/test2/one_two_three_four_five"));
 		assertEquals("Invalid path resolution result", notFoundPageContent,                getContent(404, "/structr/html/test2"));
-		assertEquals("Invalid path resolution result", notFoundPageContent,                getContent(404, "/structr/html/test2"));
 		assertEquals("Invalid path resolution result", notFoundPageContent,                getContent(404, "/structr/html/test2/"));
-		assertEquals("Invalid path resolution result", notFoundPageContent,                getContent(404, "/structr/html/test2/"));
+		assertEquals("Invalid path resolution result", ambiguousEmptyURLSegmentError,      getContent(400, "/structr/html/test2//"));
+		assertEquals("Invalid path resolution result", ambiguousEmptyURLSegmentError,      getContent(400, "/structr/html/test2///"));
+		assertEquals("Invalid path resolution result", ambiguousEmptyURLSegmentError,      getContent(400, "/structr/html/test2////"));
+		assertEquals("Invalid path resolution result", ambiguousEmptyURLSegmentError,      getContent(400, "/structr/html/test2/////"));
 		assertEquals("Invalid path resolution result", notFoundPageContent,                getContent(404, "/structr/html/test2/_"));
 		assertEquals("Invalid path resolution result", "defaultValue2,,",         getContent(200, "/structr/html/test2/__"));
 		assertEquals("Invalid path resolution result", "_,,",                     getContent(200, "/structr/html/test2/___"));
@@ -172,20 +196,29 @@ public class DynamicPathsTest extends DeploymentTestBase {
 		assertEquals("Invalid path resolution result", notFoundPageContent,                getContent(404, "/structr/html/test2/value1/two"));
 
 		// /test3/{key1}/{key2}/{key3} with no parameters defined
-		assertEquals("Invalid path resolution result", "one,two,three", getContent(200, "/structr/html/test3/one/two/three"));
-		assertEquals("Invalid path resolution result", "one,two,three", getContent(200, "/structr/html/test3/one/two/three/four/five"));
-		assertEquals("Invalid path resolution result", ",,",            getContent(200, "/structr/html/test3"));
-		assertEquals("Invalid path resolution result", ",,",            getContent(200, "/structr/html/test3/"));
-		assertEquals("Invalid path resolution result", "value1,,",      getContent(200, "/structr/html/test3/value1"));
-		assertEquals("Invalid path resolution result", "value1,1234,",  getContent(200, "/structr/html/test3/value1/1234"));
-		assertEquals("Invalid path resolution result", "value1,two,",   getContent(200, "/structr/html/test3/value1/two"));
+		assertEquals("Invalid path resolution result", "one,two,three",      getContent(200, "/structr/html/test3/one/two/three"));
+		assertEquals("Invalid path resolution result", "one,two,three",      getContent(200, "/structr/html/test3/one/two/three/four/five"));
+		assertEquals("Invalid path resolution result", ",,",                 getContent(200, "/structr/html/test3"));
+		assertEquals("Invalid path resolution result", ",,",                 getContent(200, "/structr/html/test3/"));
+		assertEquals("Invalid path resolution result", ambiguousEmptyURLSegmentError, getContent(400, "/structr/html/test3//"));
+		assertEquals("Invalid path resolution result", ambiguousEmptyURLSegmentError, getContent(400, "/structr/html/test3///"));
+		assertEquals("Invalid path resolution result", ambiguousEmptyURLSegmentError, getContent(400, "/structr/html/test3////"));
+		assertEquals("Invalid path resolution result", ambiguousEmptyURLSegmentError, getContent(400, "/structr/html/test3/////"));
+		assertEquals("Invalid path resolution result", "value1,,",           getContent(200, "/structr/html/test3/value1"));
+		assertEquals("Invalid path resolution result", "value1,1234,",       getContent(200, "/structr/html/test3/value1/1234"));
+		assertEquals("Invalid path resolution result", "value1,two,",        getContent(200, "/structr/html/test3/value1/two"));
 
 		// /{key1}/test4/{key2}/{key3} with no parameters defined
-		assertEquals("Invalid path resolution result", "one,two,three", getContent(200, "/structr/html/one/test4/two/three"));
-		assertEquals("Invalid path resolution result", "one,two,three", getContent(200, "/structr/html/one/test4/two/three/four/five"));
-		assertEquals("Invalid path resolution result", "value1,,",      getContent(200, "/structr/html/value1/test4"));
-		assertEquals("Invalid path resolution result", "value1,1234,",  getContent(200, "/structr/html/value1/test4/1234"));
-		assertEquals("Invalid path resolution result", "value1,two,",   getContent(200, "/structr/html/value1/test4/two"));
+		assertEquals("Invalid path resolution result", "one,two,three",      getContent(200, "/structr/html/one/test4/two/three"));
+		assertEquals("Invalid path resolution result", "one,two,three",      getContent(200, "/structr/html/one/test4/two/three/four/five"));
+		assertEquals("Invalid path resolution result", ambiguousEmptyURLSegmentError, getContent(400, "/structr/html//test4"));
+		assertEquals("Invalid path resolution result", ambiguousEmptyURLSegmentError, getContent(400, "/structr/html//test4//"));
+		assertEquals("Invalid path resolution result", ambiguousEmptyURLSegmentError, getContent(400, "/structr/html//test4///"));
+		assertEquals("Invalid path resolution result", ambiguousEmptyURLSegmentError, getContent(400, "/structr/html//test4////"));
+		assertEquals("Invalid path resolution result", ambiguousEmptyURLSegmentError, getContent(400, "/structr/html//test4/////"));
+		assertEquals("Invalid path resolution result", "value1,,",           getContent(200, "/structr/html/value1/test4"));
+		assertEquals("Invalid path resolution result", "value1,1234,",       getContent(200, "/structr/html/value1/test4/1234"));
+		assertEquals("Invalid path resolution result", "value1,two,",        getContent(200, "/structr/html/value1/test4/two"));
 
 		// status code check only!
 		getContent(404, "/structr/html/test4");
@@ -294,22 +327,28 @@ public class DynamicPathsTest extends DeploymentTestBase {
 		final String pageNumber    = StringUtils.leftPad(Integer.toString(randomPageNumber), 3, "0");
 
 		// /test1/prefix_{key1}/{key2} with both parameters defined, default values "defaultValue1" and 1
-		assertEquals("Invalid path resolution result", "one,5,",    getContent(200, "/structr/html/test" + pageNumber + "_1/prefix_one/5/three"));
-		assertEquals("Invalid path resolution result", "one,1,",    getContent(200, "/structr/html/test" + pageNumber + "_1/prefix_one/two/three/four/five"));
-		assertEquals("Invalid path resolution result", notFoundPageContent,  getContent(404, "/structr/html/test" + pageNumber + "_1"));
-		assertEquals("Invalid path resolution result", notFoundPageContent,  getContent(404, "/structr/html/test" + pageNumber + "_1/"));
-		assertEquals("Invalid path resolution result", "value1,1,", getContent(200, "/structr/html/test" + pageNumber + "_1/prefix_value1"));
-		assertEquals("Invalid path resolution result", notFoundPageContent,  getContent(404, "/structr/html/test" + pageNumber + "_1/value1"));
-		assertEquals("Invalid path resolution result", notFoundPageContent,  getContent(404, "/structr/html/test" + pageNumber + "_1/value1/1234"));
-		assertEquals("Invalid path resolution result", notFoundPageContent,  getContent(404, "/structr/html/test" + pageNumber + "_1/value1/two"));
+		assertEquals("Invalid path resolution result", "one,5,",             getContent(200, "/structr/html/test" + pageNumber + "_1/prefix_one/5/three"));
+		assertEquals("Invalid path resolution result", "one,1,",             getContent(200, "/structr/html/test" + pageNumber + "_1/prefix_one/two/three/four/five"));
+		assertEquals("Invalid path resolution result", notFoundPageContent,           getContent(404, "/structr/html/test" + pageNumber + "_1"));
+		assertEquals("Invalid path resolution result", notFoundPageContent,           getContent(404, "/structr/html/test" + pageNumber + "_1/"));
+		assertEquals("Invalid path resolution result", ambiguousEmptyURLSegmentError, getContent(400, "/structr/html/test" + pageNumber + "_1//"));
+		assertEquals("Invalid path resolution result", ambiguousEmptyURLSegmentError, getContent(400, "/structr/html/test" + pageNumber + "_1///"));
+		assertEquals("Invalid path resolution result", ambiguousEmptyURLSegmentError, getContent(400, "/structr/html/test" + pageNumber + "_1////"));
+		assertEquals("Invalid path resolution result", ambiguousEmptyURLSegmentError, getContent(400, "/structr/html/test" + pageNumber + "_1/////"));
+		assertEquals("Invalid path resolution result", "value1,1,",          getContent(200, "/structr/html/test" + pageNumber + "_1/prefix_value1"));
+		assertEquals("Invalid path resolution result", notFoundPageContent,           getContent(404, "/structr/html/test" + pageNumber + "_1/value1"));
+		assertEquals("Invalid path resolution result", notFoundPageContent,           getContent(404, "/structr/html/test" + pageNumber + "_1/value1/1234"));
+		assertEquals("Invalid path resolution result", notFoundPageContent,           getContent(404, "/structr/html/test" + pageNumber + "_1/value1/two"));
 
 		// /test2/{key1}_{key2}_{key3} with only one parameter defined, default value "defaultValue2"
 		assertEquals("Invalid path resolution result", "one,two,three",           getContent(200, "/structr/html/test" + pageNumber + "_2/one_two_three"));
 		assertEquals("Invalid path resolution result", "one_two_three,four,five", getContent(200, "/structr/html/test" + pageNumber + "_2/one_two_three_four_five"));
 		assertEquals("Invalid path resolution result", notFoundPageContent,                getContent(404, "/structr/html/test" + pageNumber + "_2"));
-		assertEquals("Invalid path resolution result", notFoundPageContent,                getContent(404, "/structr/html/test" + pageNumber + "_2"));
 		assertEquals("Invalid path resolution result", notFoundPageContent,                getContent(404, "/structr/html/test" + pageNumber + "_2/"));
-		assertEquals("Invalid path resolution result", notFoundPageContent,                getContent(404, "/structr/html/test" + pageNumber + "_2/"));
+		assertEquals("Invalid path resolution result", ambiguousEmptyURLSegmentError,      getContent(400, "/structr/html/test" + pageNumber + "_2//"));
+		assertEquals("Invalid path resolution result", ambiguousEmptyURLSegmentError,      getContent(400, "/structr/html/test" + pageNumber + "_2///"));
+		assertEquals("Invalid path resolution result", ambiguousEmptyURLSegmentError,      getContent(400, "/structr/html/test" + pageNumber + "_2////"));
+		assertEquals("Invalid path resolution result", ambiguousEmptyURLSegmentError,      getContent(400, "/structr/html/test" + pageNumber + "_2/////"));
 		assertEquals("Invalid path resolution result", notFoundPageContent,                getContent(404, "/structr/html/test" + pageNumber + "_2/_"));
 		assertEquals("Invalid path resolution result", "defaultValue2,,",         getContent(200, "/structr/html/test" + pageNumber + "_2/__"));
 		assertEquals("Invalid path resolution result", "_,,",                     getContent(200, "/structr/html/test" + pageNumber + "_2/___"));
@@ -319,20 +358,29 @@ public class DynamicPathsTest extends DeploymentTestBase {
 		assertEquals("Invalid path resolution result", notFoundPageContent,                getContent(404, "/structr/html/test" + pageNumber + "_2/value1/two"));
 
 		// /test3/{key1}/{key2}/{key3} with no parameters defined
-		assertEquals("Invalid path resolution result", "one,two,three", getContent(200, "/structr/html/test" + pageNumber + "_3/one/two/three"));
-		assertEquals("Invalid path resolution result", "one,two,three", getContent(200, "/structr/html/test" + pageNumber + "_3/one/two/three/four/five"));
-		assertEquals("Invalid path resolution result", ",,",            getContent(200, "/structr/html/test" + pageNumber + "_3"));
-		assertEquals("Invalid path resolution result", ",,",            getContent(200, "/structr/html/test" + pageNumber + "_3/"));
-		assertEquals("Invalid path resolution result", "value1,,",      getContent(200, "/structr/html/test" + pageNumber + "_3/value1"));
-		assertEquals("Invalid path resolution result", "value1,1234,",  getContent(200, "/structr/html/test" + pageNumber + "_3/value1/1234"));
-		assertEquals("Invalid path resolution result", "value1,two,",   getContent(200, "/structr/html/test" + pageNumber + "_3/value1/two"));
+		assertEquals("Invalid path resolution result", "one,two,three",      getContent(200, "/structr/html/test" + pageNumber + "_3/one/two/three"));
+		assertEquals("Invalid path resolution result", "one,two,three",      getContent(200, "/structr/html/test" + pageNumber + "_3/one/two/three/four/five"));
+		assertEquals("Invalid path resolution result", ",,",                 getContent(200, "/structr/html/test" + pageNumber + "_3"));
+		assertEquals("Invalid path resolution result", ",,",                 getContent(200, "/structr/html/test" + pageNumber + "_3/"));
+		assertEquals("Invalid path resolution result", ambiguousEmptyURLSegmentError, getContent(400, "/structr/html/test" + pageNumber + "_3//"));
+		assertEquals("Invalid path resolution result", ambiguousEmptyURLSegmentError, getContent(400, "/structr/html/test" + pageNumber + "_3///"));
+		assertEquals("Invalid path resolution result", ambiguousEmptyURLSegmentError, getContent(400, "/structr/html/test" + pageNumber + "_3////"));
+		assertEquals("Invalid path resolution result", ambiguousEmptyURLSegmentError, getContent(400, "/structr/html/test" + pageNumber + "_3/////"));
+		assertEquals("Invalid path resolution result", "value1,,",           getContent(200, "/structr/html/test" + pageNumber + "_3/value1"));
+		assertEquals("Invalid path resolution result", "value1,1234,",       getContent(200, "/structr/html/test" + pageNumber + "_3/value1/1234"));
+		assertEquals("Invalid path resolution result", "value1,two,",        getContent(200, "/structr/html/test" + pageNumber + "_3/value1/two"));
 
 		// /{key1}/test4/{key2}/{key3} with no parameters defined
-		assertEquals("Invalid path resolution result", "one,two,three", getContent(200, "/structr/html/one/test" + pageNumber + "_4/two/three"));
-		assertEquals("Invalid path resolution result", "one,two,three", getContent(200, "/structr/html/one/test" + pageNumber + "_4/two/three/four/five"));
-		assertEquals("Invalid path resolution result", "value1,,",      getContent(200, "/structr/html/value1/test" + pageNumber + "_4"));
-		assertEquals("Invalid path resolution result", "value1,1234,",  getContent(200, "/structr/html/value1/test" + pageNumber + "_4/1234"));
-		assertEquals("Invalid path resolution result", "value1,two,",   getContent(200, "/structr/html/value1/test" + pageNumber + "_4/two"));
+		assertEquals("Invalid path resolution result", "one,two,three",      getContent(200, "/structr/html/one/test" + pageNumber + "_4/two/three"));
+		assertEquals("Invalid path resolution result", "one,two,three",      getContent(200, "/structr/html/one/test" + pageNumber + "_4/two/three/four/five"));
+		assertEquals("Invalid path resolution result", ambiguousEmptyURLSegmentError, getContent(400, "/structr/html//test" + pageNumber + "_4"));
+		assertEquals("Invalid path resolution result", ambiguousEmptyURLSegmentError, getContent(400, "/structr/html//test" + pageNumber + "_4//"));
+		assertEquals("Invalid path resolution result", ambiguousEmptyURLSegmentError, getContent(400, "/structr/html//test" + pageNumber + "_4///"));
+		assertEquals("Invalid path resolution result", ambiguousEmptyURLSegmentError, getContent(400, "/structr/html//test" + pageNumber + "_4////"));
+		assertEquals("Invalid path resolution result", ambiguousEmptyURLSegmentError, getContent(400, "/structr/html//test" + pageNumber + "_4/////"));
+		assertEquals("Invalid path resolution result", "value1,,",           getContent(200, "/structr/html/value1/test" + pageNumber + "_4"));
+		assertEquals("Invalid path resolution result", "value1,1234,",       getContent(200, "/structr/html/value1/test" + pageNumber + "_4/1234"));
+		assertEquals("Invalid path resolution result", "value1,two,",        getContent(200, "/structr/html/value1/test" + pageNumber + "_4/two"));
 
 		// status code check only!
 		getContent(404, "/structr/html/test4");
@@ -739,6 +787,9 @@ public class DynamicPathsTest extends DeploymentTestBase {
 		assertEquals("Invalid path resolution result: no value should return the default value", "value1,DEFAULT2,value3," + userUUID, getContent(200, "/structr/html/defaultValueTest_1/prefix_value1/prefix_/prefix_value3/prefix_"));
 		assertEquals("Invalid path resolution result: a space character (%20) should be treated as a value", "value1, ,value3,", getContent(200, "/structr/html/defaultValueTest_1/prefix_value1/prefix_%20/prefix_value3/prefix_ANYTHING"));
 
+		// this requires AMBIGUOUS_EMPTY_SEGMENT violation to be allowed (-> 400 error)
+		assertEquals("Invalid path resolution result: in the default config empty segments should result in a 400 error", ambiguousEmptyURLSegmentError, getContent(400, "/structr/html/defaultValueTest_2/value1//value3/"));
+
 		assertEquals("Invalid path resolution result: a space character (%20) should be treated as a value", "value1, ,value3,", getContent(200, "/structr/html/defaultValueTest_2/value1/%20/value3/ANYTHING"));
 	}
 
@@ -854,8 +905,140 @@ public class DynamicPathsTest extends DeploymentTestBase {
 		assertEquals("Invalid path resolution result: valid values should be parsed and used", "12,23.45,45.67,24682468", getContent(200, "/structr/html/defaultValueTest_1/int_12/float_23.45/double_45.67/long_24682468"));
 		assertEquals("Invalid path resolution result: parse failures should return the defaults because we have allowed this explicitly", "1234,123.45,234.56,1234567890123456789", getContent(200, "/structr/html/defaultValueTest_1/int_ONE/float_23,45/double_45,67/long_TWO_MILLION"));
 
+		// this requires AMBIGUOUS_EMPTY_SEGMENT violation to be allowed (-> 400 error)
+		assertEquals("Invalid path resolution result: in the default config empty segments should result in a 400 error", ambiguousEmptyURLSegmentError, getContent(400, "/structr/html/defaultValueTest_2////"));
+
 		assertEquals("Invalid path resolution result: valid values should be parsed and used", "12,23.45,45.67,24682468", getContent(200, "/structr/html/defaultValueTest_2/12/23.45/45.67/24682468"));
 		assertEquals("Invalid path resolution result: parse failures should return the defaults because we have allowed this explicitly", "1234,123.45,234.56,1234567890123456789", getContent(200, "/structr/html/defaultValueTest_2/ONE/23,45/45,67/TWO_MILLION"));
+	}
+
+	@Test
+	public void testPagePathWithURLEncodedSpecialCharacters() {
+
+		createEntityAsSuperUser("/User", "{ name: admin, password: admin, isAdmin: true }");
+
+		try (final Tx tx = app.tx()) {
+
+			final Page page         = Page.createNewPage(securityContext, "urlencoded_page_parameters_test_page");
+			final Template template = app.create(StructrTraits.TEMPLATE).as(Template.class);
+
+			page.setProperty(Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.CONTENT_TYPE_PROPERTY), "text/plain");
+			page.appendChild(template);
+
+			template.setContent("${key1},${key2},${key3}");
+			template.setProperty(Traits.of(StructrTraits.TEMPLATE).key(ContentTraitDefinition.CONTENT_TYPE_PROPERTY), "text/plain");
+
+			{
+				final NodeInterface path = app.create(StructrTraits.PAGE_PATH,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(PagePathTraitDefinition.PAGE_PROPERTY), page),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/urlencodedTest_1/prefix_{key1}/prefix_{key2}/prefix_{key3}")
+				);
+
+				app.create(StructrTraits.PAGE_PATH_PARAMETER,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          path),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "key1"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      0),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "String"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "DEFAULT1")
+				);
+
+				app.create(StructrTraits.PAGE_PATH_PARAMETER,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          path),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "key2"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      1),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "String"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "DEFAULT2")
+				);
+
+				app.create(StructrTraits.PAGE_PATH_PARAMETER,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          path),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "key3"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      2),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "String"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "DEFAULT3")
+				);
+			}
+
+			{
+				final NodeInterface path = app.create(StructrTraits.PAGE_PATH,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(PagePathTraitDefinition.PAGE_PROPERTY), page),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "/urlencodedTest_2/{key1}/{key2}/{key3}")
+				);
+
+				app.create(StructrTraits.PAGE_PATH_PARAMETER,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          path),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "key1"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      0),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "String"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "DEFAULT1")
+				);
+
+				app.create(StructrTraits.PAGE_PATH_PARAMETER,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          path),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "key2"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      1),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "String"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "DEFAULT2")
+				);
+
+				app.create(StructrTraits.PAGE_PATH_PARAMETER,
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.PATH_PROPERTY),          path),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),              "key3"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.POSITION_PROPERTY),      2),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY),    "String"),
+						new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH_PARAMETER).key(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY), "DEFAULT3")
+				);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// for this to work, the following violations have to be allowed: (-> 400 error)
+		// AMBIGUOUS_PATH_SEPARATOR to allow %2f (which translates to "/") in the URL.
+		// AMBIGUOUS_PATH_ENCODING to allow %25 (which translates to "%") in the URL.
+
+		final String ambiguousURIPathSeparatorError = """
+				<html>
+				<head>
+				<meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-1"/>
+				<title>Error 400 Ambiguous URI path separator</title>
+				</head>
+				<body>
+				<h2>HTTP ERROR 400 Ambiguous URI path separator</h2>
+				<table>
+				<tr><th>URI:</th><td>/badURI</td></tr>
+				<tr><th>STATUS:</th><td>400</td></tr>
+				<tr><th>MESSAGE:</th><td>Ambiguous URI path separator</td></tr>
+				</table>
+				
+				</body>
+				</html>
+				""";
+
+		final String ambiguousURIPathEncodingPercentError = """
+				<html>
+				<head>
+				<meta http-equiv="Content-Type" content="text/html;charset=ISO-8859-1"/>
+				<title>Error 400 Ambiguous URI path encoding</title>
+				</head>
+				<body>
+				<h2>HTTP ERROR 400 Ambiguous URI path encoding</h2>
+				<table>
+				<tr><th>URI:</th><td>/badURI</td></tr>
+				<tr><th>STATUS:</th><td>400</td></tr>
+				<tr><th>MESSAGE:</th><td>Ambiguous URI path encoding</td></tr>
+				</table>
+				
+				</body>
+				</html>
+				""";
+
+		// only test status code
+		assertEquals("Invalid path resolution result: encoded slash should not be possible in the default config", ambiguousURIPathSeparatorError, getContent(400, "/structr/html/urlencodedTest_1/prefix_1a%2f1b%2f1c/prefix_100%20%2f%2010%20=%2010/prefix_2%20+%202%20=%204"));
+		assertEquals("Invalid path resolution result: encoded percent should not be possible in the default config", ambiguousURIPathEncodingPercentError, getContent(400, "/structr/html/urlencodedTest_2/%25%25%25/10%25%20of%20100%20=%2010/2%20+%202%20=%204"));
 	}
 
 	@Test
