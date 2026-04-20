@@ -27,20 +27,16 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 import org.w3c.dom.DOMException;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 /**
  * Websocket command to clone a page.
  */
-	public class ClonePageCommand extends AbstractCommand {
+public class ClonePageCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(ClonePageCommand.class.getName());
 
@@ -62,11 +58,11 @@ import java.util.Map;
 		if (nodeToClone != null) {
 
 			try {
-				final Page pageToClone = nodeToClone.is(StructrTraits.PAGE) ? nodeToClone.as(Page.class) : null;
-				if (pageToClone != null) {
 
-					final Page newPage = pageToClone.cloneNode(true).as(Page.class);
-					final Map<String, DOMNode> cloneMap = new LinkedHashMap<>();
+				if (nodeToClone.is(StructrTraits.PAGE)) {
+
+					final Page pageToClone = nodeToClone.as(Page.class);
+					final Page newPage     = pageToClone.cloneNode(true).as(Page.class);
 
 					newPage.setProperties(securityContext, new PropertyMap(Traits.of(StructrTraits.PAGE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), pageToClone.getName() + "-" + newPage.getNode().getId().toString()));
 				}

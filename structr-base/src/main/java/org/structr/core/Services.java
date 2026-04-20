@@ -43,10 +43,8 @@ import org.structr.core.cluster.ClusterManager;
 import org.structr.core.cluster.StructrMessage;
 import org.structr.core.function.SetLogLevelFunction;
 import org.structr.core.graph.*;
-import org.structr.cron.CronService;
 import org.structr.docs.Documentable;
 import org.structr.docs.documentables.service.*;
-import org.structr.files.external.DirectoryWatchService;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaService;
@@ -409,7 +407,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 	private void startServices() {
 
-		final List<Class> configuredServiceClasses = getCongfiguredServiceClasses();
+		final List<Class> configuredServiceClasses = getConfiguredServiceClasses();
 
 		logger.info("Starting services: {}", configuredServiceClasses.stream().map(Class::getSimpleName).collect(Collectors.toList()));
 
@@ -607,7 +605,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 			logger.info("Shutting down..");
 
-			final List<Class> configuredServiceClasses = getCongfiguredServiceClasses();
+			final List<Class> configuredServiceClasses = getConfiguredServiceClasses();
 			final List<Class> reverseServiceClassNames = new LinkedList<>(configuredServiceClasses);
 			Collections.reverse(reverseServiceClassNames);
 
@@ -653,7 +651,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 						logger.info("Setting maintenace mode = {}", maintenanceEnabled);
 
-						final List<Class> configuredServiceClasses = getCongfiguredServiceClasses();
+						final List<Class> configuredServiceClasses = getConfiguredServiceClasses();
 						final List<Class> reverseServiceClassNames = new LinkedList<>(configuredServiceClasses);
 						Collections.reverse(reverseServiceClassNames);
 
@@ -793,7 +791,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 	}
 
 	public boolean isConfigured(final Class serviceClass) {
-		return getCongfiguredServiceClasses().contains(serviceClass);
+		return getConfiguredServiceClasses().contains(serviceClass);
 	}
 
 	public ServiceResult startService(final Class serviceClass, final String serviceName, final boolean disableRetry) throws FrameworkException {
@@ -806,7 +804,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 			reloading.readLock().lock();
 
-			if (!getCongfiguredServiceClasses().contains(serviceClass)) {
+			if (!getConfiguredServiceClasses().contains(serviceClass)) {
 
 				logger.warn("Service {} is not listed in {}, will not be started.", serviceClass.getName(), "configured.services");
 				return new ServiceResult("Service is not listed in configured.services", false);
@@ -1041,9 +1039,9 @@ public class Services implements StructrServices, BroadcastReceiver {
 		return resources;
 	}
 
-	public List<Class> getCongfiguredServiceClasses() {
+	public List<Class> getConfiguredServiceClasses() {
 
-		final String[] names                  = Settings.Services.getValue("").split("[ ,]+");
+		final String[] names                  = Settings.Services.getSelectedOptions();
 		final Map<Class, Class> dependencyMap = new LinkedHashMap<>();
 		final List<Class> classes             = new LinkedList<>();
 

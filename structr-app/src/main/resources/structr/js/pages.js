@@ -916,10 +916,7 @@ let _Pages = {
 
 			case '#pages:routing':
 
-				_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.routing());
-				let routingContainer = document.querySelector('#center-pane .routing-container');
-
-				_Pages.routingDialog(obj, routingContainer);
+				_Pages.routingDialog.drawInContainer(_Pages.centerPane, obj);
 				break;
 
 			case '#pages:general':
@@ -3585,123 +3582,313 @@ let _Pages = {
 		},
 	},
 
-	routingDialog: async (page, container) => {
+	routingDialog: {
+		routingHelpText: undefined,
+		drawInContainer: async (container, page) => {
 
-		let addButton     = document.querySelector('.add-route-button');
-		let listContainer = document.querySelector('#routing-entries');
+			container.insertAdjacentHTML('beforeend', _Pages.routingDialog.templates.routing());
 
-		let ifok = (response) => { if (response.ok) return response.json(); }
+			_Pages.routingDialog.updateDocumentationText(container).then(/*ignore*/);
 
-		let enableUpdateEvents = async (paramsContainer) => {
+			let addButton     = container.querySelector('.add-route-button');
+			let listContainer = container.querySelector('#routing-entries');
 
-			paramsContainer.querySelectorAll('.value-type-select').forEach(input => {
-				input.addEventListener('change', event => {
-					let select = event.target;
-					let id     = select.dataset.structrId;
-					Command.setProperty(id, 'valueType', select.value, false, () => _Helpers.blinkGreen(select));
-				});
+			addButton.addEventListener('click', () => {
+				_Pages.routingDialog.createPagePath(listContainer, page);
 			});
-		}
 
-		let addPathObject = async (p) => {
+			let paths = await Command.queryPromise('PagePath', 1000, 1, 'priority', false, { page: page.id }, true, 'ui');
 
-			let path = await Command.getPromise(p.id, '', 'ui');
+			for (let path of paths) {
+				await _Pages.routingDialog.drawPagePath(listContainer, path);
+			}
 
-			path.page = page;
+			_Pages.routingDialog.toggleHoverDocumentation(listContainer);
 
-			listContainer.insertAdjacentHTML('beforeend', _Pages.templates.routingRow(path));
+			$(listContainer).sortable({
+				handle: "[data-is-sortable-handle]",
+				placeholder: "border border-dashed border-gray-ddd bg-gray mb-8 rounded-lg ui-sortable-placeholder",
+				forcePlaceholderSize: true,
+				axis: 'y',
+				stop: _Pages.routingDialog.updatedSorting
+			});
 
-			let rowContainer    = listContainer.querySelector(`#routing-entry-${path.id}`);
-			let paramsContainer = rowContainer.querySelector('.path-parameters');
+			_Helpers.activateCommentsInElement(container);
+		},
+		updateDocumentationText: async (container) => {
 
-			for (let param of path.parameters) {
-				paramsContainer.insertAdjacentHTML('beforeend', _Pages.templates.routingParameterRow(param));
-				let select = paramsContainer.querySelector(`#routing-parameter-${param.id} select`);
-				if (select) {
-					select.value = param.valueType;
+			let targetEl = container.querySelector('[data-structr-routing-help-container]');
+
+			if (_Pages.routingDialog.routingHelpText) {
+				targetEl.insertAdjacentHTML('afterbegin', _Pages.routingDialog.routingHelpText);
+			} else {
+
+				let res = await fetch(Structr.docsUrl + 'ontology/Navigation%20&%20Routing/URL%20Routing');
+
+				if (res.ok) {
+
+					let html = await res.text();
+					_Pages.routingDialog.routingHelpText = html;
+					targetEl.insertAdjacentHTML('afterbegin', html);
 				}
 			}
 
-			let pathInput = rowContainer.querySelector(`#routing-path-${path.id}`);
-			if (pathInput) {
-				let func = _Helpers.debounce(event => updateParameters(event, path, paramsContainer), 500);
-				pathInput.addEventListener('input', func);
-			}
 
-			let removeButton = rowContainer.querySelector('.routing-remove-button');
-			if (removeButton) {
+		},
+		toggleHoverDocumentation: (container) => {
 
-				removeButton.addEventListener('click', async (event) => {
+			let routingContainer = container.closest('.routing-container');
 
-					await fetch(`${Structr.rootUrl}PagePath/${path.id}`, { method: 'DELETE' }).then(ifok);
-					listContainer.removeChild(rowContainer);
+			let paths = routingContainer.querySelectorAll('[data-structr-page-path-id]');
+
+			routingContainer.querySelector('.inline-info').classList.toggle('force-hover', (paths.length === 0));
+		},
+		updatedSorting: async (event, ui) => {
+
+			let container = event.target;
+			let priority = 1;
+			let dataObj = [];
+			container.querySelectorAll('[data-structr-attribute="priority"]').forEach(priorityInput => {
+
+				let prio = priority++;
+				priorityInput.value = prio;
+
+				dataObj.push({
+					id: priorityInput.closest('[data-structr-page-path-id]').dataset.structrPagePathId,
+					priority:prio
 				});
+			});
+
+			let response = await fetch(`${Structr.rootUrl}PagePath`, {
+				method: 'PATCH',
+				body: JSON.stringify(dataObj)
+			});
+
+			if (!response.ok) {
+				alert('Unable to save path order - please try again');
 			}
+		},
+		createPagePath: async (listContainer, page) => {
 
-			enableUpdateEvents(paramsContainer);
-		};
+			let existingPagePaths = listContainer.querySelectorAll('[data-structr-page-path-id]');
+			let priority = existingPagePaths.length;
+			for (let p of existingPagePaths) {
+				let pathPriority = p.querySelector('[data-structr-attribute="priority"]').value ?? 0;
+				priority = Math.max(priority, pathPriority);
+			}
+			priority += 1;
 
-		let createParameter = async () => {
-
-			let data = await fetch(`${Structr.rootUrl}PagePath`, {
+			let response = await fetch(`${Structr.rootUrl}PagePath`, {
 				method: 'POST',
 				body: JSON.stringify({
 					page: page.id,
-					name: '/' + page.name + '/'
+					name: `/${page.name}/{example}`,
+					priority: priority
 				})
-  			}).then(ifok);
+			});
 
-			if (data && data.result && data.result.length === 1) {
-				let path = await Command.getPromise(data.result[0], '', 'ui');
-				addPathObject(path);
+			if (response.ok) {
+
+				let data = await response.json();
+
+				if (data && data.result && data.result.length === 1) {
+					let path = await Command.getPromise(data.result[0], '', 'ui');
+					await _Pages.routingDialog.drawPagePath(listContainer, path);
+				}
 			}
-		};
+		},
+		drawPagePath: async (listContainer, path) => {
 
-		let updateParameters = async (event, path, paramsContainer) => {
+			listContainer.insertAdjacentHTML('beforeend', _Pages.routingDialog.templates.pagePathRow(path));
 
-			let string = event.target.value;
-			let names  = string.match(/(\{[a-zA-Z0-9]+\})/g) || [];
+			_Pages.routingDialog.toggleHoverDocumentation(listContainer);
 
-			// remove {} around parameter name
-			names = names.map(n => n.substring(1, n.length - 1));
+			_Helpers.activateCommentsInElement(listContainer);
 
-			// update parameters
-			let data = await fetch(`${Structr.rootUrl}PagePath/${path.id}/updatePathAndParameters`, {
-				method: 'POST',
-				body: JSON.stringify({
-					path: string,
-					names: names
-				})
-  			}).then(ifok);
+			let rowContainer = listContainer.querySelector(`[data-structr-page-path-id="${path.id}"]`);
 
-			paramsContainer.replaceChildren();
+			_Pages.routingDialog.updateWarningMessages(rowContainer, path.warnings ?? []);
 
-			if (data && data.result) {
+			let debouncedUpdateFunction = _Helpers.debounce(event => _Pages.routingDialog.updateParameters(event, path, rowContainer), 500);
+			rowContainer.querySelector(`[data-structr-attribute="name"]`).addEventListener('input', debouncedUpdateFunction);
 
-				for (let param of data.result) {
+			rowContainer.querySelector('[data-structr-is-delete-button]')?.addEventListener('click', async e => {
 
-					paramsContainer.insertAdjacentHTML('beforeend', _Pages.templates.routingParameterRow(param));
-					let select = paramsContainer.querySelector(`#routing-parameter-${param.id} select`);
-					if (select) {
-						select.value = param.valueType;
+				let confirm = await _Dialogs.confirmation.showPromise(`Are you sure you want to delete this URL Route with all its parameters?`);
+				if (confirm === true) {
+
+					let response = await fetch(`${Structr.rootUrl}PagePath/${path.id}`, { method: 'DELETE' });
+
+					if (response.ok) {
+						listContainer.removeChild(rowContainer);
+
+						_Pages.routingDialog.toggleHoverDocumentation(listContainer);
 					}
 				}
+			});
 
-				enableUpdateEvents(paramsContainer);
+			await _Pages.routingDialog.initPagePathParameters(rowContainer, path.parameters);
+		},
+		updateParameters: async (event, pathObj, row) => {
+
+			let path = event.target.value;
+
+			let response = await fetch(`${Structr.rootUrl}PagePath/${pathObj.id}/updatePathAndParameters`, {
+				method: 'POST',
+				body: JSON.stringify({ path })
+			});
+
+			if (response.ok) {
+
+				let { warnings, parameters } = (await response.json()).result;
+
+				await _Pages.routingDialog.initPagePathParameters(row, parameters);
+
+				_Pages.routingDialog.updateWarningMessages(row, warnings);
 
 				_Helpers.blinkGreen(event.target);
 			}
-		};
+		},
+		updateWarningMessages: (row, warnings) => {
 
-		addButton.addEventListener('click', createParameter);
+			let warningsContainer = row.querySelector('[data-structr-path-warnings-container]');
+			_Helpers.fastRemoveAllChildren(warningsContainer);
+			warningsContainer.insertAdjacentHTML('beforeend', _Pages.routingDialog.templates.pagePathParametersWarnings({ warnings }));
+		},
+		getSortedParametersAsHTML: (params) => {
+			return params.toSorted((a, b) => a.position - b.position).map(param => _Pages.routingDialog.templates.pagePathParameterRow(param)).join('\n');
+		},
+		getPathParametersContainerFromRow: (row) => row.querySelector('[data-structr-path-parameters-container]'),
+		initPagePathParameters: async (pagePathRow, parameters) => {
 
-		let paths = await Command.queryPromise('PagePath', 1000, 1, 'name', false, { page: page.id }, true, 'ui');
+			let paramsContainer = _Pages.routingDialog.getPathParametersContainerFromRow(pagePathRow);
 
-		for (let path of paths) {
-			await addPathObject(path);
+			_Helpers.fastRemoveAllChildren(paramsContainer);
+
+			paramsContainer.insertAdjacentHTML('beforeend', _Pages.routingDialog.getSortedParametersAsHTML(parameters));
+
+			paramsContainer.querySelectorAll('[data-structr-attribute]').forEach(input => {
+
+				input.addEventListener('change', event => {
+
+					let element     = event.target;
+					let paramRow    = element.closest('[data-structr-id]');
+					let attrName    = input.dataset.structrAttribute;
+					let newValue    = (element.type === 'checkbox') ? element.checked : element.value;
+					let blinkTarget = (element.type === 'checkbox') ? element.parentElement : element;
+
+					Command.setProperty(paramRow.dataset.structrId, attrName, newValue, false, async () => {
+
+						_Helpers.blinkGreen(blinkTarget);
+
+						_Pages.routingDialog.updateParameterRowUI(paramRow);
+
+						if (attrName === 'isMandatory') {
+
+							let data = await Command.getPromise(pagePathRow.dataset.structrPagePathId, 'warnings');
+							let warnings = data.warnings ?? [];
+
+							_Pages.routingDialog.updateWarningMessages(pagePathRow, warnings);
+						}
+					});
+				});
+			});
+
+			paramsContainer.querySelectorAll('[data-structr-id]').forEach(_Pages.routingDialog.updateParameterRowUI);
+		},
+		updateParameterRowUI: (row) => {
+
+			let placeholderForFormat = {
+				'Date': 'Date Format',
+				'Node': 'Node Type',
+				'Base64UrlString': 'Content encoding'
+			};
+
+			let valueTypeField = row.querySelector('[data-structr-attribute="valueType"]');
+			let formatField    = row.querySelector('[data-structr-attribute="format"]');
+
+			let showFormatField = !!placeholderForFormat[valueTypeField.value];
+
+			formatField.title       = placeholderForFormat[valueTypeField.value] ?? '';
+			formatField.placeholder = placeholderForFormat[valueTypeField.value] ?? '';
+			formatField.classList.toggle('hidden', !showFormatField);
+		},
+		templates: {
+			routing: config => `
+				<div class="content-container routing-container">
+					<h3>
+						Routes
+						<span class="m-2 add-route-button cursor-pointer align-middle icon-grey icon-inactive hover:icon-active">${_Icons.getSvgIcon(_Icons.iconAdd,16,16,[], 'Add route')}</span>
+					</h3>
+					<div id="routing-entries" class="@container">
+					</div>
+					
+					<div class="inline-info">
+						<div class="inline-info-icon">
+							${_Icons.getSvgIcon(_Icons.iconInfo, 24, 24)}
+						</div>
+						<div class="inline-info-text" style="width: 50%; max-height: calc(100% - 6rem); overflow: auto;" data-structr-routing-help-container>
+						</div>
+					</div>
+				</div>
+			`,
+			pagePathRow: config => `
+				<div class="mb-12 grid grid-cols-2 @xl:grid-cols-3 gap-x-6 gap-y-4 pr-2" data-structr-page-path-id="${config.id}">
+
+					<div class="col-span-2 @xl:col-span-1">
+						<label class="block font-medium mb-2">Path</label>
+						<div class="flex">
+							<div class="text-lg border border-gray-ddd flex items-center px-2 rounded-l cursor-move hover:bg-gray-100" data-is-sortable-handle>⠿</div>
+							<input class="w-16 box-border" data-structr-attribute="priority" type="hidden" value="${config.priority ?? ''}">
+							<input class="flex-grow box-border rounded-none border-x-0" data-structr-attribute="name" type="text" placeholder="/products/{name}/{amount}" value="${_Helpers.escapeForHtmlAttributes(config.name)}">
+							<button class="border border-gray-ddd flex items-center px-2 rounded-r rounded-l-none mr-0 hover:bg-gray-100" data-structr-is-delete-button>
+								${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red']))}
+							</button>
+						</div>
+						<div data-structr-path-warnings-container></div>
+					</div>
+
+					<div class="col-span-2">
+						<label class="block font-medium mb-2">Path parameters</label>
+						<div data-structr-path-parameters-container></div>
+					</div>
+
+				</div>
+			`,
+			pagePathParameterRow: config => `
+				<div class="flex items-start gap-4 px-2 pt-3 pb-2" data-structr-id="${config.id}">
+
+					<div class="w-1/4 flex flex-col">
+						<div class="font-mono my-2 px-1 truncate" title="${config.name}">${config.name}</div>
+
+						<label class="flex items-start p-1" title="For a route with a required parameter to match a request, a value must be present for all required parameters.">
+							<input class="mt-1" type="checkbox" data-structr-attribute="isRequired" ${config.isRequired ? 'checked' : ''}>
+							<div class="text-sm mt-0.5">Required</div>
+						</label>
+					</div>
+
+					<select data-structr-attribute="valueType" title="Value Type" style="max-width: calc(14ch + 2rem);" class="w-full flex-1">
+						<option value="">Select value type..</option>
+						${['String', 'Base64UrlString', 'Integer', 'Long', 'Double', 'Float', 'Date', 'Boolean', 'Node'].map(type => `<option ${(type === config.valueType ? 'selected' : '')}>${type}</option>`).join('\n')}
+					</select>
+
+					<div class="flex-1 flex flex-col hide-if-no-visible-children">
+						<input class="w-full flex-1 box-border" type="text" data-structr-attribute="format" value="${_Helpers.escapeForHtmlAttributes(config.format ?? '')}">
+					</div>
+
+					<div class="flex-1 flex flex-col">
+
+						<input class="w-full flex-1 box-border" type="text" title="Default Value" data-structr-attribute="defaultValue" placeholder="Default Value" value="${_Helpers.escapeForHtmlAttributes(config.defaultValue ?? '')}">
+
+						<label class="flex items-start p-1" title="If conversion for the value in the URL fails, use the default value in favor of returning null.">
+							<input class="mt-1" type="checkbox" data-structr-attribute="useDefaultIfInvalid" ${config.useDefaultIfInvalid ? 'checked' : ''}>
+							<div class="text-sm mt-0.5">Use default if conversion fails</div>
+						</label>
+					</div>
+				</div>
+			`,
+			pagePathParametersWarnings: config => `<ul class="pl-6 mt-2 text-sm text-red">${config.warnings.map(msg => `<li>${_Helpers.escapeTags(msg)}</li>`).join('\n')}</ul>`,
 		}
-
-		_Helpers.activateCommentsInElement(container);
 	},
 	ensureShadowPageExists: () => {
 
@@ -4195,53 +4382,6 @@ let _Pages = {
 		`,
 		general: config => `
 			<div class="content-container general-container"></div>
-		`,
-		routing: config => `
-			<div class="content-container routing-container">
-				<h3>
-					Routes
-					<i class="m-2 add-route-button cursor-pointer align-middle icon-grey icon-inactive hover:icon-active">${_Icons.getSvgIcon(_Icons.iconAdd,16,16,[], 'Add route')}</i>
-				</h3>
-				<div id="routing-entries">
-				</div>
-			</div>
-		`,
-		routingRow: config => `
-			<div class="mb-4 grid grid-cols-3 gap-8" id="routing-entry-${config.id}">
-				<div class="m-0">
-					<label class="block" data-comment="Enter the URL path that should route to this page.">Path</label>
-					<input id="routing-path-${config.id}" type="text" class="parameter-url-input" placeholder="/products/{name}/{amount}" value="${config.name}">
-				</div>
-				<div>
-					<label class="block" data-comment="Parameters are managed automatically based on variables in the path.">Path parameters</label>
-					<div class="path-parameters"></div>
-				</div>
-				<div>
-					<label class="block mb-2">Actions</label>
-					<i class="block mt-2 routing-remove-button" data-structr-id="${config.id}">${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red']))}</i>
-				</div>
-				<div>
-				</div>
-			</div>
-		`,
-		routingParameterRow: config => `
-			<div class="grid grid-cols-2 gap-4" id="routing-parameter-${config.id}">
-				<div class="m-0">
-					<pre class="block bold mt-3" id="routing-parameter-name-${config.id}">${config.name}</pre>
-				</div>
-				<div>
-					<select class="select2 value-type-select" data-structr-id="${config.id}">
-						<option value="">Select value type..</option>
-						<option>String</option>
-						<option>Integer</option>
-						<option>Long</option>
-						<option>Double</option>
-						<option>Float</option>
-						<option>Date</option>
-						<option>Boolean</option>
-					</select>
-				</div>
-			</div>
 		`,
 		contentEditor: config => `
 			<div class="content-container content-editor-container flex flex-col">

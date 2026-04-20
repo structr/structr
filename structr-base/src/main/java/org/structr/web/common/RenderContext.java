@@ -418,7 +418,12 @@ public class RenderContext extends ActionContext {
 
 		// evaluate non-ui specific context
 		final Object value = super.evaluate(entity, key, data, defaultValue, depth, contextObject, row, column);
-		if (value == null) {
+		if (value != null) {
+			return value;
+		}
+
+		// ensure keyword list is maintained properly
+		if (isRenderContextKeyword(key)) {
 
 			final HttpServletResponse response = getSecurityContext().getResponse();
 			if (response != null) {
@@ -506,7 +511,6 @@ public class RenderContext extends ActionContext {
 						}
 						break;
 
-
 					case "adapter":
 
 						// provide access to the current adapter in render templates
@@ -561,7 +565,12 @@ public class RenderContext extends ActionContext {
 			}
 		}
 
-		return value;
+		return null;
+	}
+
+	public static boolean isRenderContextKeyword(final String keyword) {
+
+		return List.of("response", "id", "current", "theme", "template", "component", "dataSource", "adapter", "page", "parent", "children", "link").contains(keyword);
 	}
 
 	@Override

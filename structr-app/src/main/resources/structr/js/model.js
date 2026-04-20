@@ -391,6 +391,11 @@ let StructrModel = {
 				}
 			}
 
+			// update linkable
+			if (Structr.isModuleActive(_Pages)) {
+				_Elements.updateElementIfLinkableEntity(element.children('.node-container')[0], obj);
+			}
+
 			if (obj.hidden === true) {
 				element.addClass('is-hidden');
 			} else {

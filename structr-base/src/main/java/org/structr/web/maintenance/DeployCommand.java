@@ -982,19 +982,21 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					data.put(GraphObjectTraitDefinition.ID_PROPERTY, parameter.getUuid());
 
-					if (parameter.getValueType() != null) {
-						data.put(PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY, parameter.getValueType());
+					final String valueType = parameter.getValueType();
+
+					putIfNotNull(data, NodeInterfaceTraitDefinition.NAME_PROPERTY,              parameter.getName());
+					putIfNotNull(data, PagePathParameterTraitDefinition.VALUE_TYPE_PROPERTY,    valueType);
+
+					if (PagePathParameterTraitDefinition.PathParameterValueType.hasFormat(valueType)) {
+
+						putIfNotNull(data, PagePathParameterTraitDefinition.FORMAT_PROPERTY,    parameter.getFormat());
 					}
 
-					if (parameter.getDefaultValue() != null) {
-						data.put(PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY, parameter.getDefaultValue());
-					}
+					putIfNotNull(data, PagePathParameterTraitDefinition.DEFAULT_VALUE_PROPERTY, parameter.getDefaultValue());
+					putIfNotNull(data, PagePathParameterTraitDefinition.POSITION_PROPERTY,      parameter.getPosition());
 
-					if (parameter.getPosition() != null) {
-						data.put(PagePathParameterTraitDefinition.POSITION_PROPERTY, parameter.getPosition());
-					}
-
-					data.put(PagePathParameterTraitDefinition.IS_OPTIONAL_PROPERTY,   parameter.getIsOptional());
+					data.put(PagePathParameterTraitDefinition.IS_REQUIRED_PROPERTY,            parameter.getIsRequired());
+					data.put(PagePathParameterTraitDefinition.USE_DEFAULT_IF_INVALID_PROPERTY,  parameter.getUseDefaultIfInvalid());
 				}
 
 				entry.put(PagePathTraitDefinition.PARAMETERS_PROPERTY, parameters);
@@ -3350,6 +3352,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				.stream().sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
 				.map(entry -> entry.getValue() + "x " + entry.getKey())
 				.collect(Collectors.joining(separator));
+	}
+
+	private static void putIfNotNull(final Map<String, Object> map, final String key, final Object value) {
+
+		if (value != null) {
+
+			map.put(key, value);
+		}
 	}
 
 	// ----- public static methods -----

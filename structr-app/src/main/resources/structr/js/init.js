@@ -176,6 +176,7 @@ let Structr = {
 	viewRootUrl    : _Helpers.getPrefixedRootUrl('/'),
 	wsRoot         : _Helpers.getPrefixedRootUrl('/structr/ws'),
 	deployRoot     : _Helpers.getPrefixedRootUrl('/structr/deploy'),
+	docsUrl        : _Helpers.getPrefixedRootUrl('/structr/docs/'),
 	dynamicClassPrefix: 'org.structr.dynamic.',
 	notificationIconId: 'notifications-icon',
 	ignoreKeyUp: undefined,

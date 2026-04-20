@@ -41,8 +41,10 @@ import org.structr.web.common.RenderContext;
 import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.traits.definitions.LinkSourceTraitDefinition;
+import org.structr.web.traits.definitions.LinkableTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
+import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 
 import java.util.List;
 import java.util.Set;
@@ -71,12 +73,13 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 		DOMNodeTraitDefinition.PAGE_ID_PROPERTY, DOMNodeTraitDefinition.PARENT_PROPERTY, DOMNodeTraitDefinition.PARENT_ID_PROPERTY,
 		DOMNodeTraitDefinition.SYNCED_NODES_PROPERTY, DOMNodeTraitDefinition.SYNCED_NODES_IDS_PROPERTY, DOMNodeTraitDefinition.CHILDREN_PROPERTY,
 		DOMNodeTraitDefinition.CHILDREN_IDS_PROPERTY, LinkSourceTraitDefinition.LINKABLE_PROPERTY, LinkSourceTraitDefinition.LINKABLE_ID_PROPERTY,
-		DOMElementTraitDefinition.PATH_PROPERTY, "relationshipId", DOMElementTraitDefinition.TRIGGERED_ACTIONS_PROPERTY,
+		DOMElementTraitDefinition.PATH_PROPERTY, PageTraitDefinition.PATHS_PROPERTY, "relationshipId", DOMElementTraitDefinition.TRIGGERED_ACTIONS_PROPERTY,
 		DOMNodeTraitDefinition.RELOADING_ACTIONS_PROPERTY, DOMNodeTraitDefinition.FAILURE_ACTIONS_PROPERTY,
 		DOMNodeTraitDefinition.SUCCESS_NOTIFICATION_ACTIONS_PROPERTY, DOMNodeTraitDefinition.FAILURE_NOTIFICATION_ACTIONS_PROPERTY,
 		DOMNodeTraitDefinition.COMPONENT_CONFIGURATION_PROPERTY, DOMNodeTraitDefinition.COMPONENT_TYPE_PROPERTY,
 		DOMNodeTraitDefinition.ITEM_TYPE_PROPERTY, DOMNodeTraitDefinition.REPEATER_TYPE_PROPERTY,
-		DOMNodeTraitDefinition.DIMENSIONS_PROPERTY, DOMNodeTraitDefinition.IS_COMPONENT_ROOT_PROPERTY
+		DOMNodeTraitDefinition.DIMENSIONS_PROPERTY, DOMNodeTraitDefinition.IS_COMPONENT_ROOT_PROPERTY,
+		LinkableTraitDefinition.LINKING_ELEMENTS_PROPERTY, LinkableTraitDefinition.LINKING_ELEMENTS_IDS_PROPERTY
 	);
 
 	static void collectNodesByPredicate(final SecurityContext securityContext, DOMNode startNode, List<DOMNode> results, Predicate<DOMNode> predicate, int depth, boolean stopOnFirstHit) throws FrameworkException {

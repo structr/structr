@@ -78,91 +78,111 @@ With this configuration, navigating to `/products/my-product-name` resolves the 
 
 ## URL Routing
 
-By default, Structr automatically maps pages to URLs based on their name. URL Routing extends this by allowing you to define custom routing schemes with typed parameters that Structr validates and makes available in the page. This gives you full control over your URL structure beyond the built-in automatic routing.
+In the URL Routing tab of a page, you define path expressions using placeholders following the pattern `/static-page-part/{param1}/{param2}/.../{paramN}/{paramN}` that allow URL parameters to be mapped to a page and multiple parameters.
 
-### How it works
+By default, Structr automatically maps pages to URLs based only on their name. URL Routing extends this by allowing the user to define custom routing schemes with typed parameters that Structr validates and makes available in the page, giving the user full control over the URL structure beyond the built-in automatic routing.
 
-A page can have multiple routes. Structr evaluates URL routes before checking page names, so custom routes take priority over the default name-based resolution. If a route matches, the corresponding page is rendered and the matched parameters are available in template expressions and scripts.
+A page can have multiple routes. Structr evaluates all URL routes (sorted by priority) before checking page names. The priority can be changed via drag and drop in the user interface.
 
-Parameters are optional. If a path segment is missing, the parameter value is `null`. If a value does not match the expected type (for example `"abc"` for an Integer parameter), the page is still rendered but the parameter value is `null` and Structr logs an error.
+This means that custom routes take precedence over the default name-based resolution. If a route matches, the corresponding page is rendered and the matched parameters are made available using their placeholder names. In StructrScript, parameters are accessed with using `paramName` in a scripting context `${...}`. In JavaScript contexts `${{...}}`, the parameters care accessed using `$.paramName`.
 
 Multiple routes can point to the same page, allowing a single page to serve different URL patterns. For example, a product page could be reachable via both `/product/{id}` and `/shop/{category}/{id}`.
 
-### Defining routes
+> **Note:** Using a UUID to automatically resolve to a `current` object, which is possible with default page access, is not possible with URL Routes. If such functionality is desired, a separate path parameter must be explicitly introduced in the route.
 
-In the URL Routing tab of a page, you define path expressions using placeholders following the pattern `/<page>/<param1>/<param2>/.../<paramN>` that allow URL parameters to be mapped to a page and multiple parameters.
+### Path Parameters and Configuration
 
-The parameters are then available in the page context using their placeholder names. In StructrScript, parameters are accessed with single braces `${paramName}`, while JavaScript blocks use double braces `${{ ... }}`.
+Path parameters can be defined using `{param}` syntax. These parameters are automatically extracted and validated and can be further configured (e.g. type, default values, behaviour).
 
-> **Note:** Do not use parameter names that are also used as data keys in repeaters, as they will not work.
+Parameters can be optional (default) or required. If a parameter is required, the route will only match for an incoming request if a parameter value is present.
 
-### Parameter types and validation
+Parameters can also have default values. If a parameter value is missing (and the parameter is optional), the default value will be used instead. If a parameter value is present but fails to parse for the given parameter type, the default value will only be used if the `useDefaultIfInvalid` flag is set. This does not affect if the route matches or not.
 
-For each placeholder, you can select a type that determines how Structr validates and converts the input value. The available types are:
+Furthermore, the original parameter value from URL (as a string) is always made available as `_ + paramName` (e.g. `_param` for `{param}`) to enable users to do custom error handling or other tasks.
 
-- String
-- Integer
-- Long
-- Double
-- Float
-- Date
-- Boolean
+> **Note:** Do not use parameter names that are also used as data keys in repeaters, as they will not work. For other built-in functionality, warnings will be generated in the configuration dialog for URL Routes.
+
+> **Note:** URLs are limited to a maximum length of 8192 characters. This constrains the maximum size of transferable data via parameters.
+
+### Parameter Types
+
+The parameter types available are: String, Base64UrlString, Integer, Long, Double, Float, Date, Boolean, Node. All parameters undergo conversion from the string representation in the URL to their configured parameter type.
 
 #### String
 
-Any input is accepted as-is and returned without conversion. This is the default type. If an unknown type is configured, Structr logs a warning and falls back to this behavior.
+Any input (following URL compliance rules) is accepted as-is and returned without conversion. This is the default type. For any unknown type, Structr logs a warning and falls back to this behavior.
 
-#### Integer and Long
+#### StringBase64URL
 
-The input is first parsed as a Double, then converted to the target type. This means decimal input is accepted but truncated to the integer part without rounding (e.g. `3.9` becomes `3`, `3.1` becomes `3`). If the input is not a valid number, the parameter value will be `null` and Structr logs a warning:
+The `StringBase64URL` type represents Base64URL-encoded data. By default, decoded values are interpreted as a UTF-8 string.
 
-`WARN o.s.w.entity.path.PagePathParameter - Exception while converting input for PagePathParameter with path aLong: For input string: "123ssdfgsdgf"`
+If you need to transport arbitrary binary data, you can set the content charset to `ISO-8859-1`. This allows a direct byte-to-character mapping without data loss.
 
-#### Float and Double
+Using Base64URL encoding helps avoid common pitfalls of URL data transmission. Reserved characters such as `/` or `%`, as well as special path segments like `/./` and `/../`, can interfere with routing and normalization. Encoding the data prevents these issues by ensuring the path segment remains structurally safe.
 
-The input is parsed as a Double. For Float, the value is then narrowed to float precision, which may cause rounding. Float has approximately 7 significant digits of precision, Double has approximately 15. If the input is not a valid number, the parameter value will be `null` and Structr logs a warning.
+If conversion fails, a warning is logged. If the parameter is configured to return the default value in such error cases, the default value is returned. Otherwise `null` is returned.
+
+#### Double, Float, Integer, or Long
+
+The input string is parsed using the Java parsing method specific for the type.
+
+If parsing fails, a warning is logged that identifies the target type and parameter name. If the parameter is configured to return the default value in such error cases, the default value is returned. Otherwise `null` is returned.
 
 #### Boolean
 
-The input is converted using Java's `Boolean.valueOf()`, which returns `true` only if the input string is `"true"` (case-insensitive). Any other value, including `"1"`, `"yes"`, or `"on"`, results in `false`.
+The input is converted to `true` only if the input equals "true" ignoring case, and `false` only if the input equals "false" ignoring case.
+
+Any other input is treated as invalid and a warning is logged. If the parameter is configured to return the default value in such cases, the default value is returned. Otherwise `null` is returned.
 
 #### Date
 
-The input is parsed as an ISO 8601 date string. The following formats are supported:
+A date parameter can have a custom format the user can configure (e.g. `yyyyMMdd`). If no custom format is configured, the input is parsed as an ISO 8601 date string. The following formats are supported:
 
 - `yyyy-MM-dd'T'HH:mm:ss.SSSXXX` (e.g. `2026-02-14T12:34:56.000+01:00`)
 - `yyyy-MM-dd'T'HH:mm:ssXXX` (e.g. `2026-02-14T12:34:56+01:00`)
 - `yyyy-MM-dd'T'HH:mm:ssZ` (e.g. `2026-02-14T12:34:56Z`)
 - `yyyy-MM-dd'T'HH:mm:ss.SSSZ` (e.g. `2026-02-14T12:34:56.000Z`)
 
-If none of the supported formats can parse the input, the parameter value will be `null`. No exception is thrown.
+If parsing fails for a configured custom format or, if no custom format is configured, for all of the supported formats, a warning is logged. If the parameter is configured to return the default value in such error cases, the default value is parsed and returned according to the format. Otherwise `null` is returned.
 
+#### Node
 
-### Examples
+A node parameter can have a type configuration that determines which types of nodes can be found via the URL route. By default, this is empty and nodes of all types can be found. Given a type name A, all nodes of that type and inheriting types will be able to be found.
 
-#### A single parameter
+Node lookup uses the same basic mechanism as the current object resolution, meaning that by default UUIDs can be used but also all attributes configured in `htmlservlet.resolveproperties`.
 
-Path: `/project/{name}`
+If no value is given, the default value is used. If a value is given but no node can be found, the default value will NOT be used.
 
-In the page `project`, access the value of the first URL parameter as follows:
+### Matching Behavior
 
-In StructrScript:
+- Static parts of a route must match exactly.
+- Parameters are matched *greedily* within a path segment.
 
-`${name}`
+This means multiple parameters in the same segment can lead to ambiguous matches:
 
-In JavaScript:
+- `/{var1}{var2}/` → `var1` captures the entire segment, `var2`remains empty
+- `/{var1}_{var2}/` → works because `_` enforces a boundary
 
-```
-${{
-    const projectName = $.name;
-}}
-```
+Use a separator character that cannot appear in either parameter.
 
-#### Multiple parameters
+> **Recommendation:** Prefer a single parameter per path segment to avoid ambiguity. If values can be empty, add a prefix or suffix to ensure no empty URL segments can be present. Otherwise, a URL compliance violation has to be allowed.
+
+### Catch-All Routes
+
+Routes without any static parts and no required parameters (e.g. `/{variable}/`) match almost any request, causing nearly all traffic - including requests for other pages and files - to be routed to that page.
+
+To prevent unintended matches, include at least one static (or clearly structured) segment in the path. For easier reasoning about paths, it is recommended to put static parts at the start of the path, e.g.:
+
+- `/users/{id}/`
+- `/api/{resource}/`
+
+However, catch-all routes can be useful in specific (mostly temporary) scenarios, such as debugging another clients' behaviour.
+
+{{"URL Compliance",h2,shortDescription,children}}
+
+### Example
 
 Path: `/blog/{lang}/{title}`
-
-In the page `blog`, access the value of the first and second URL parameters as follows:
 
 In StructrScript:
 
@@ -179,29 +199,6 @@ ${{
 }}
 ```
 
-#### Blog-style URLs
-
-Path: `/{category}/{year}/{title}` – for blog-style URLs
-
-Structr uses the value of the first path segment (`category`) to resolve the target page by name.
-
-In StructrScript:
-
-```
-${
-    log('Year: ', year, ', Category: ', category, ', Title: ', title)
-}
-```
-
-In JavaScript:
-
-```
-${{
-    const year        = $.year;
-    const category    = $.category;
-    const title       = $.title;
-}}
-```
 
 ### Use cases
 
