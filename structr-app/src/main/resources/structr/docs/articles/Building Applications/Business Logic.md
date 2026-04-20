@@ -232,7 +232,7 @@ External systems can call your schema methods via REST, or create and modify dat
 You can connect Structr to MQTT, Kafka, or Apache Pulsar. Incoming messages trigger lifecycle methods on specialized client types. See the [Message Brokers](/structr/docs/ontology/APIs%20&%20Integrations/Message%20Brokers) chapter.
 
 #### Email
-Structr can monitor inboxes and trigger logic when messages arrive. See the [SMTP](/structr/docs/ontology/APIs%20&%20Integrations/SMTP) chapter.
+Structr can monitor inboxes and trigger logic when messages arrive. See the [Email](/structr/docs/ontology/APIs%20&%20Integrations/Email) chapter.
 
 ### Choosing the Right Mechanism
 

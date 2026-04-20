@@ -164,7 +164,7 @@ Structr provides two categories of application-wide functions: built-in function
 
 Built-in functions offer ready-to-use functionality for common tasks like sending emails, making HTTP requests, parsing JSON and XML, working with files, and querying the database. These functions are available throughout the platform wherever you write script code.
 
-[Read more about Built-in functions.](/structr/docs/ontology/References/Built-in%20functions)
+[Read more about Built-in functions.](/structr/docs/ontology/References/Built-in%20Functions)
 
 #### User-defined Functions
 You can also create user-defined functions for custom application-wide logic. These functions can be called from anywhere in your application and can be scheduled for automatic execution using the cron service, useful for maintenance tasks, periodic imports, or automated reports. For scheduling, Structr uses an extended cron syntax that supports second-precision scheduling, allowing for more granular control than standard cron expressions.
@@ -208,7 +208,7 @@ Structr allows you to send plain text or HTML emails with attachments from any b
         $.sendPlaintextMail(fromAddress, fromName, toAddress, toName, subject, content);
     }
 
-[Read more about Emails & SMTP.](/structr/docs/ontology/APIs%20&%20Integrations/SMTP)
+[Read more about Emails & SMTP.](/structr/docs/ontology/APIs%20&%20Integrations/Email)
 
 ### REST Interface
 
@@ -271,4 +271,4 @@ The built-in `jdbc()` function allows you to execute SQL queries directly agains
 
 Similar to jdbc(), the built-in `mongodb()` function enables direct access to collections in external MongoDB databases.
 
-[Read more about Built-in functions.](/structr/docs/ontology/References/Built-in%20functions)
+[Read more about Built-in functions.](/structr/docs/ontology/References/Built-in%20Functions)
