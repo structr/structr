@@ -107,6 +107,7 @@ public abstract class LifecycleBase implements Documentable {
 		documentables.add(new OnStructrLogin());
 		documentables.add(new OnStructrLogout());
 		documentables.add(new OnAcmeChallenge());
+		documentables.add(new AfterAcmeChallenge());
 
 
 	}

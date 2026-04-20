@@ -82,8 +82,8 @@ public class Prefetch2Function extends CoreFunction {
 	public List<Usage> getUsages() {
 
 		return List.of(
-				Usage.javaScript("Usage: ${{ $.prefetch(query, listOfOutgoingKeys, listOfIncomingKeys [, id]); }}. Example: ${{ $.prefetch2('MATCH (n:User { id: $id })-[r:HAS_TASK]->(m:Task) RETURN collect(n) + collect(m) AS nodes, collect(r) AS rels', ['all/OUTGOING/HAS_TASK'], ['all/INCOMING/HAS_TASK'], uuid); }}"),
-				Usage.structrScript("Usage: ${prefetch(query, listOfOutgoingKeys, listOfIncomingKeys [, id])}. Example: ${prefetch2('MATCH (n:User { id: $id })-[r:HAS_TASK]->(m:Task) RETURN collect(n) + collect(m) AS nodes, collect(r) AS rels', merge('all/OUTGOING/HAS_TASK'), merge('all/INCOMING/HAS_TASK'), uuid)}")
+				Usage.javaScript("Usage: ${{ $.prefetch2(query, listOfOutgoingKeys, listOfIncomingKeys [, id]); }}. Example: ${{ $.prefetch2('MATCH (n:User { id: $id })-[r:HAS_TASK]->(m:Task) RETURN collect(n) + collect(m) AS nodes, collect(r) AS rels', ['all/OUTGOING/HAS_TASK'], ['all/INCOMING/HAS_TASK'], uuid); }}"),
+				Usage.structrScript("Usage: ${prefetch2(query, listOfOutgoingKeys, listOfIncomingKeys [, id])}. Example: ${prefetch2('MATCH (n:User { id: $id })-[r:HAS_TASK]->(m:Task) RETURN collect(n) + collect(m) AS nodes, collect(r) AS rels', merge('all/OUTGOING/HAS_TASK'), merge('all/INCOMING/HAS_TASK'), uuid)}")
 		);
 	}
 

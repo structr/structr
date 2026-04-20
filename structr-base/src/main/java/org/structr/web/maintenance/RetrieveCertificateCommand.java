@@ -23,7 +23,6 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.jruby.Main;
 import org.shredzone.acme4j.*;
 import org.shredzone.acme4j.challenge.Challenge;
 import org.shredzone.acme4j.challenge.Dns01Challenge;
@@ -47,7 +46,6 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
-import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.docs.*;
 import org.structr.rest.service.HttpService;
 import org.structr.schema.action.Actions;
@@ -242,6 +240,17 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 			success = false;
 
 		} finally {
+
+			// Call afterAcmeChallenge lifecycle method to allow cleanup (e.g. DNS record removal) and notifications
+			try {
+
+				Actions.callWithSecurityContext(Actions.NOTIFICATION_AFTER_ACME_CHALLENGE, SecurityContext.getSuperUserInstance(), Map.of("success", success, "errors", errorMessages), "letsencrypt");
+
+			} catch (FrameworkException fex) {
+
+				// Log at debug level because the method is optional and may not be defined
+				logger.debug("afterAcmeChallenge lifecycle method not called: {}", fex.getMessage());
+			}
 
 			cleanUpChallengeFiles();
 		}
@@ -750,7 +759,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 		final String record = ACME_DNS_CHALLENGE_PREFIX + domain + ACME_DNS_CHALLENGE_SUFFIX;
 		final String digest = challenge.get().getDigest();
 
-		final Object result = Actions.callWithSecurityContext(Actions.NOTIFICATION_ACME_CHALLENGE, SecurityContext.getSuperUserInstance(), Map.of("type", "dns", "domain", domain, "record", record, "digest", digest), "letsencrypt");
+		final Object result = Actions.callWithSecurityContext(Actions.NOTIFICATION_ON_ACME_CHALLENGE, SecurityContext.getSuperUserInstance(), Map.of("type", "dns", "domain", domain, "record", record, "digest", digest), "letsencrypt");
 		if (result == null) {
 
 			publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Lifecycle method 'onAcmeChallenge' not found! Within the next " + waitForSeconds + " seconds, create a DNS record for " + domain + " with the following data: Name: '" + record + "', Type: 'TXT', Value: '" + digest + "'");

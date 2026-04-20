@@ -1336,21 +1336,25 @@ public class FileHelper {
 
 	public static void prefetchFileData(final String uuid) {
 
+		// This prefetch walks up the ancestor chain from the given file (or folder)
+		// to the root folder via incoming CONTAINS relationships. Each intermediate
+		// node in the chain has exactly one incoming CONTAINS (its parent), so the
+		// incoming side IS fully prefetched for every node in the result. The
+		// outgoing side, however, is NOT fully loaded: an intermediate folder may
+		// have many outgoing CONTAINS (to its other children), but this traversal
+		// only carries the one edge that continues the chain. Therefore we must not
+		// claim outgoing CONTAINS is prefetched - doing so would cause properties
+		// like .folders / .files / .children to return incomplete results served
+		// from the partial cache instead of querying the database.
 		TransactionCommand.getCurrentTransaction().prefetch2(
+				"MATCH (n:NodeInterface:AbstractFile { id: $id })<-[r:CONTAINS*]-(x) WITH collect(DISTINCT x) AS nodes, collect(DISTINCT last(r)) AS rels RETURN nodes, rels",
 
-			"MATCH (n:NodeInterface:AbstractFile { id: $id })<-[r:CONTAINS*]-(x) WITH collect(DISTINCT x) AS nodes, collect(DISTINCT last(r)) AS rels RETURN nodes, rels",
+				Set.of(),
+				Set.of(
+						"all/INCOMING/CONTAINS"
+				),
 
-			Set.of(
-				"all/OUTGOING/CONTAINS",
-				"all/INCOMING/CONTAINS"
-			),
-
-			Set.of(
-				"all/OUTGOING/CONTAINS",
-				"all/INCOMING/CONTAINS"
-			),
-
-			uuid
+				uuid
 		);
 
 		TransactionCommand.getCurrentTransaction().prefetch(

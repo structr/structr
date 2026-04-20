@@ -1683,7 +1683,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			// call onDownload callback
 			try {
 
-				final AbstractMethod method = Methods.resolveMethod(file.getTraits(), Actions.NOTIFICATION_DOWNLOAD);
+				final AbstractMethod method = Methods.resolveMethod(file.getTraits(), Actions.NOTIFICATION_ON_DOWNLOAD);
 				if (method != null) {
 
 					method.execute(actionContext, file, NamedArguments.fromMap(callbackMap));

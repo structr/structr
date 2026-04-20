@@ -321,7 +321,7 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 	@Override
 	public void invokeOnLoginMethod(final Principal user) throws FrameworkException {
 
-		final AbstractMethod method = Methods.resolveMethod(Traits.of(StructrTraits.USER), Actions.NOTIFICATION_OAUTH_LOGIN);
+		final AbstractMethod method = Methods.resolveMethod(Traits.of(StructrTraits.USER), Actions.NOTIFICATION_ON_OAUTH_LOGIN);
 
 		if (method != null) {
 			final NamedArguments arguments = new NamedArguments();

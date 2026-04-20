@@ -806,7 +806,74 @@ public class HttpHelper {
 		return uri;
 	}
 
+	// ----- generic fetch -----
+
+	public static Map<String, Object> fetch(final String address, final String method, final String requestBody, final String username, final String password, final Map<String, String> headers, final String charset, final boolean validateCertificates, final boolean followRedirects, final Integer timeout) throws FrameworkException {
+
+		HttpHelper.validateUrl(address);
+
+		final Map<String, Object> responseData = new HashMap<>();
+
+		try {
+
+			final URI uri                 = HttpHelper.checkAddressAgainstWhitelist(address);
+			final HttpGenericMethod req    = new HttpGenericMethod(uri, method.toUpperCase());
+			final HttpConfig hc            = configure(req, charset, username, password, null, null, null, null, headers, followRedirects, validateCertificates, timeout);
+
+			if (StringUtils.isNotBlank(requestBody)) {
+				req.setEntity(new StringEntity(requestBody, hc.charset()));
+			}
+
+			final CloseableHttpResponse response = hc.client().execute(req);
+			final HttpEntity responseEntity       = response.getEntity();
+
+			String content = null;
+			if (responseEntity != null) {
+				content = IOUtils.toString(responseEntity.getContent(), charset(response, hc.charset()));
+			}
+
+			content = skipBOMIfPresent(content);
+
+			responseData.put(HttpHelper.FIELD_BODY, content);
+			responseData.put(HttpHelper.FIELD_STATUS, Integer.toString(response.getStatusLine().getStatusCode()));
+			responseData.put(HttpHelper.FIELD_HEADERS, getHeadersAsMap(response));
+
+		} catch (final FrameworkException fe) {
+
+			throw fe;
+
+		} catch (final Throwable t) {
+
+			logger.error("Unable to issue {} request to address {}, {}", new Object[]{method, address, t.getMessage()});
+			throw new FrameworkException(422, "Unable to issue " + method + " request to address " + address + ": " + t.getMessage(), t);
+		}
+
+		return responseData;
+	}
+
 	// ----- nested classes -----
+
+	/**
+	 * Generic HTTP method class that supports arbitrary HTTP verbs.
+	 * Extends HttpEntityEnclosingRequestBase to allow sending a request body
+	 * with any method (e.g. PROPFIND, REPORT, SEARCH).
+	 */
+	public static class HttpGenericMethod extends HttpEntityEnclosingRequestBase {
+
+		private final String method;
+
+		public HttpGenericMethod(final URI uri, final String method) {
+			super();
+			setURI(uri);
+			this.method = method;
+		}
+
+		@Override
+		public String getMethod() {
+			return method;
+		}
+	}
+
 	public static class HttpPatch extends HttpPut {
 
 		public HttpPatch(final URI uri) {

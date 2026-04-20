@@ -584,11 +584,22 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 				final NodeWrapper end                = getNodeWrapper(rel.endNodeId());
 				final RelationshipWrapper relWrapper = getRelationshipWrapper(rel);
 
-				start.storeRelationship(relWrapper, true);
-				start.storePrefetchInfo(outgoingKeys);
+				// Only populate each node's relationship cache if the caller is claiming
+				// that the corresponding direction is fully prefetched. Otherwise the
+				// cache would be left with a partial set of relationships (e.g. after an
+				// ancestor-chain traversal that loads only one outgoing and one incoming
+				// CONTAINS per intermediate node). Later reads from the NodeWrapper's
+				// relationship cache would silently return that partial set instead of
+				// falling through to a real query.
+				if (!outgoingKeys.isEmpty()) {
+					start.storeRelationship(relWrapper, true);
+					start.storePrefetchInfo(outgoingKeys);
+				}
 
-				end.storeRelationship(relWrapper, true);
-				end.storePrefetchInfo(incomingKeys);
+				if (!incomingKeys.isEmpty()) {
+					end.storeRelationship(relWrapper, true);
+					end.storePrefetchInfo(incomingKeys);
+				}
 
 				count++;
 			}
