@@ -2205,6 +2205,12 @@ let Structr = {
 					</div>
 
 					<div>
+						<a href="#docs">
+							${_Icons.getSvgIcon(_Icons.iconDocumentation, 20,20, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1.5']), 'Documentation')}
+						</a>
+					</div>
+
+					<div>
 						${_Icons.getSvgIconWithID('terminal-icon', _Icons.iconTerminal, 26,26, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), 'Toggle Console')}
 					</div>
 
