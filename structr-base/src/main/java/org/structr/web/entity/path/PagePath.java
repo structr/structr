@@ -29,15 +29,16 @@ import java.util.regex.Pattern;
 
 public interface PagePath extends NodeInterface {
 
-	Pattern PATH_COMPONENT_PATTERN = Pattern.compile("\\{([a-z][a-zA-Z0-9]+)\\}");
+	Pattern PATH_PARAMETER_BASE_PATTERN = Pattern.compile("(\\{[^}]*})");
+	Pattern PATH_PARAMETER_PATTERN      = Pattern.compile("\\{([_a-z][_a-zA-Z0-9]+)\\}");
 
 	Page getPage();
 	Integer getPriority();
+	String[] getWarnings();
 	Iterable<PagePathParameter> getParameters();
 	Object updatePathAndParameters(final SecurityContext securityContext, final Map<String, Object> arguments) throws FrameworkException;
 	Map<String, PagePathParameter> getMappedParameters();
-	Map<String, Object> tryResolvePath(final String[] requestParts);
+	Map<String, Object> tryResolvePath(final SecurityContext securityContext, final String[] requestParts);
 	String[] getValues(final Matcher matcher);
 	String getValueOrNull(final String[] array, final int index);
-
 }

@@ -170,6 +170,7 @@ let _Icons = {
 	iconWaitingSpinner:      'waiting-spinner',
 	iconHistory:             'history',
 	iconWrench:              'wrench',
+	iconDocumentation:       'documentation-icon',
 
 	iconLogoAuth0:           'logo-auth0',
 	iconLogoMicrosoft:       'logo-microsoft',

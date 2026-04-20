@@ -1,6 +1,6 @@
 # CronService
 
-Executes global schema methods on a configurable schedule. Tasks run as superuser.
+Executes user-defined functions, static schema methods and service class methods on a configurable schedule. Tasks run as superuser.
 
 ## Settings
 

@@ -176,6 +176,7 @@ let Structr = {
 	viewRootUrl    : _Helpers.getPrefixedRootUrl('/'),
 	wsRoot         : _Helpers.getPrefixedRootUrl('/structr/ws'),
 	deployRoot     : _Helpers.getPrefixedRootUrl('/structr/deploy'),
+	docsUrl        : _Helpers.getPrefixedRootUrl('/structr/docs/'),
 	dynamicClassPrefix: 'org.structr.dynamic.',
 	notificationIconId: 'notifications-icon',
 	ignoreKeyUp: undefined,
@@ -2200,6 +2201,12 @@ let Structr = {
 					<div>
 						<a target="_blank" href="${_Helpers.getPrefixedRootUrl('/structr/config')}">
 							${_Icons.getSvgIconWithID('settings-icon', _Icons.iconSettingsWrench, 20,20, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), 'System Settings')}
+						</a>
+					</div>
+
+					<div>
+						<a href="#docs">
+							${_Icons.getSvgIcon(_Icons.iconDocumentation, 20,20, _Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1.5']), 'Documentation')}
 						</a>
 					</div>
 

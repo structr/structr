@@ -116,7 +116,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	private static final ExecutorService threadPool                   = Executors.newCachedThreadPool();
 	private final Pattern FilenameCleanerPattern                      = Pattern.compile("[\n\r]", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
 	private final StructrHttpServiceConfig config                     = new StructrHttpServiceConfig();
-	private final Set<String> possiblePropertyNamesForEntityResolving = new HashSet<>();
+	private static final Set<String> possiblePropertyNamesForEntityResolving = new HashSet<>();
 
 	private boolean isAsync = false;
 
@@ -287,12 +287,13 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						if (rootElement == null) {
 
 							// check dynamic paths
-							final DOMNode pathResult = PagePaths.findPageAndResolveParameters(renderContext, path);
-							if (pathResult != null && isVisibleForSite(request, pathResult.as(Page.class))) {
+							final String pathForPagePaths = request.getRequestURI().substring(request.getServletPath().length());
+							final DOMNode pathResult      = PagePaths.findPageAndResolveParameters(renderContext, pathForPagePaths);
+
+							if (pathResult != null) {
 
 								rootElement   = pathResult;
 							}
-
 						}
 
 						if (rootElement == null) {
@@ -1045,13 +1046,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			final Query<NodeInterface> query = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.NODE_INTERFACE);
 
-			if (!possiblePropertyNamesForEntityResolving.isEmpty()) {
-
-				// FIXME: default is and so we don't need the additional and() here?
-				//query.and();
-				resolvePossiblePropertyNamesForObjectResolution(query, name);
-				//query.parent();
-			}
+			processConfiguredPropertyNamesForObjectResolution(query, name);
 
 			return query.getFirst();
 		}
@@ -1736,10 +1731,20 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		}
 
 		return isVisible;
-
 	}
 
-	private void resolvePossiblePropertyNamesForObjectResolution(final Query query, final String name) {
+	public static void processConfiguredPropertyNamesForObjectResolution(final Query query, final String value) {
+
+		if (!possiblePropertyNamesForEntityResolving.isEmpty()) {
+
+			// FIXME: default is and so we don't need the additional and() here?
+			//query.and();
+			resolvePossiblePropertyNamesForObjectResolution(query, value);
+			//query.parent();
+		}
+	}
+
+	private static void resolvePossiblePropertyNamesForObjectResolution(final Query query, final String name) {
 
 		final QueryGroup orGroup = query.or();
 

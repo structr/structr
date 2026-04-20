@@ -15,7 +15,7 @@ The way you pass and access parameters is identical across all of these. Only `t
 
 The REST endpoint depends on the method type:
 
-    /structr/rest/<functionName>                     (user-defined function)
+    /structr/rest/<functionName>                      (user-defined function)
     /structr/rest/<TypeName>/<methodName>             (static method)
     /structr/rest/<TypeName>/<uuid>/<methodName>      (instance method)
     /structr/rest/me/<methodName>                     (method on current user)
@@ -55,18 +55,18 @@ fetch('/structr/rest/processOrder', {
 
 ### GET and DELETE
 
-For GET and DELETE requests, there is no request body. Instead, values can be passed as additional path segments after the function name:
+For GET and DELETE requests, there is no request body. Instead, values can be passed as additional path segments:
 
-    /structr/rest/<functionName>/value1/value2
+    /structr/rest/myTestFunction/value1/value2
 
 **Path segments require declared parameters.** Structr maps each segment to the corresponding declared parameter by position. Without declared parameters (or with fewer declared parameters than path segments), the request fails with a `422 Unprocessable Entity` error:
 
     {
       "code": 422,
-      "message": "Tried to call user-defined function „test‛ with illegal arguments. To fix this error, you can either specify method parameters, or call the method with a single argument of type object, e.g. { \"name\": \"example\" }."
+      "message": "Tried to call user-defined function 'myTestFunction‛ with illegal arguments. To fix this error, you can either specify method parameters, or call the method with a single argument of type object, e.g. { \"name\": \"example\" }."
     }
 
-For a function with declared parameters `foo` and `bar`, a request to `/structr/rest/test/x/y` gives you:
+For a function with declared parameters `foo` and `bar`, a request to `/structr/rest/myTestFunction/x/y` gives you:
 
 ```javascript
 {
@@ -77,6 +77,8 @@ For a function with declared parameters `foo` and `bar`, a request to `/structr/
 ```
 
 To pass values to a GET/DELETE method without declaring parameters, use query string parameters and read them via `$.request` inside the function (see Accessing Query String Parameters below).
+
+{{"URL Compliance",h2,shortDescription,children}}
 
 ## Accessing Parameters in Code
 

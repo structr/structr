@@ -592,15 +592,11 @@ public class MethodTest extends StructrRestTestBase {
 			.given()
 				.contentType("application/json; charset=UTF-8")
 			.expect()
-				.statusCode(422)
-				.body("code",                equalTo(422))
-				.body("message",             equalTo("Cannot parse input for ‛key2‛ in method ‛BaseType.test1‛"))
-				.body("errors[0].method",    equalTo("test1"))
-				.body("errors[0].parameter", equalTo("key2"))
-				.body("errors[0].token",     equalTo("must_be_numerical"))
-				.body("errors[0].value",     equalTo("two"))
+				.statusCode(400)
 			.when()
 				.get("/BaseType/" + base + "/test1//two");
+				// RestAssured translates this to /test1%2f/two - this will fail as soon as these escape characters are not interpreted as actual slashes anymore (for a solution, see DynamicPathsTest)
+				// In DynamicPathsTest we use raw HttpRequest to allow us to request such seemingly "broken" resources
 	}
 
 }

@@ -555,6 +555,10 @@
 		<path d="M9.75 11.25 12 13.5l2.25 -2.25"/>
 	</symbol>
 
+	<symbol id="documentation-icon" viewBox="0 0 24 24" fill="currentColor">
+		<path d="M8.67578 17.5996C7.60938 16.6563 6.1 16 4 16v-2L4 3V0c3.32472 0 5.16903 1.64491 6.1189 3.46985 0 0.00015 0.0001 0.00031 0.0002 0.00046C10.7689 4.71908 11 6.05208 11 7l0 10.1605V23c0 -1.3656 -0.4796 -3.5305 -2 -5.0913 -0.10322 -0.106 -0.21123 -0.2091 -0.32422 -0.3091ZM2 18h2c2.14816 0 3.29773 0.8503 3.97693 1.7936 0.27253 0.3785 0.48183 0.7923 0.63796 1.2064H0v-1L0 4V3l1 0h1l0 13v2ZM23 3h1v1l0 16v1h-9c-1.1046 0 -2 0.8954 -2 2l0 -16 0 -3.00037C13.8357 3.37194 14.8744 3 16 3l7 0Z"></path>
+	</symbol>
+
 	<!-- icons for pages tree -->
 	<symbol id="dom-page" viewBox="0 0 24 24" stroke-width="1.5px" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
 		<rect x="1.51" y="2.253" width="21" height="19.5" rx="1.5" ry="1.5"/>

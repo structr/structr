@@ -28,6 +28,7 @@ import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.JavaMethod;
 import org.structr.core.entity.Relation;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.*;
@@ -36,6 +37,8 @@ import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
+import org.structr.core.traits.operations.graphobject.OnCreation;
+import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.path.PagePath;
 import org.structr.web.traits.wrappers.PagePathTraitWrapper;
@@ -43,15 +46,13 @@ import org.structr.web.traits.wrappers.PagePathTraitWrapper;
 import java.util.Map;
 import java.util.Set;
 
-/**
- *
- */
 public class PagePathTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String PAGE_PROPERTY       = "page";
 	public static final String PARAMETERS_PROPERTY = "parameters";
 	public static final String NAME_PROPERTY       = "name";
 	public static final String PRIORITY_PROPERTY   = "priority";
+	public static final String WARNINGS_PROPERTY   = "warnings";
 
 	public PagePathTraitDefinition() {
 		super(StructrTraits.PAGE_PATH);
@@ -62,14 +63,34 @@ public class PagePathTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			IsValid.class,
-			new IsValid() {
+				IsValid.class,
+				new IsValid() {
 
-				@Override
-				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
-					return ValidationHelper.isValidPropertyNotNull(obj, Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), errorBuffer);
+					@Override
+					public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
+						return ValidationHelper.isValidPropertyNotNull(obj, Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), errorBuffer);
+					}
+				},
+
+				OnCreation.class,
+				new OnCreation() {
+					@Override
+					public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+						final PagePath self = graphObject.as(PagePath.class);
+						self.updatePathAndParameters(securityContext, Map.of("path", self.getName()));
+					}
+				},
+
+				OnModification.class,
+				new OnModification() {
+					@Override
+					public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+						final PagePath self = graphObject.as(PagePath.class);
+						self.updatePathAndParameters(securityContext, Map.of("path", self.getName()));
+					}
 				}
-			}
 		);
 	}
 
@@ -114,12 +135,14 @@ public class PagePathTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Iterable<NodeInterface>> parametersProperty = new EndNodes(traitsInstance, PARAMETERS_PROPERTY, StructrTraits.PAGE_PATH_HAS_PARAMETER_PAGE_PATH_PARAMETER);
 		final Property<String> nameProperty                        = new StringProperty(NAME_PROPERTY).notNull();		// Custom name property because we need a not null constraint on the name.
 		final Property<Integer> priorityProperty                   = new IntProperty(PRIORITY_PROPERTY);
+		final Property<String[]> warningsProperty                  = new ArrayProperty(WARNINGS_PROPERTY, String.class).indexed();
 
 		return Set.of(
 			pageProperty,
 			parametersProperty,
 			nameProperty,
-			priorityProperty
+			priorityProperty,
+			warningsProperty
 		);
 	}
 
@@ -128,10 +151,10 @@ public class PagePathTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 			PropertyView.Public,
-			newSet(PRIORITY_PROPERTY, PARAMETERS_PROPERTY),
+			newSet(PRIORITY_PROPERTY, PARAMETERS_PROPERTY, WARNINGS_PROPERTY),
 
 			PropertyView.Ui,
-			newSet(PRIORITY_PROPERTY, PARAMETERS_PROPERTY)
+			newSet(PRIORITY_PROPERTY, PARAMETERS_PROPERTY, WARNINGS_PROPERTY)
 		);
 	}
 

@@ -672,6 +672,10 @@ let _Config = {
 
 							<input type="hidden" name="action" value="login">
 						</div>
+
+						<div class="col-span-2 mt-2 text-red font-medium ${new URLSearchParams(location.search).has('loginFailed') ? '' : 'hidden'}">
+							Invalid username or password.
+						</div>
 					</div>
 
 			</div>

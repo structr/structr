@@ -19,32 +19,38 @@
 package org.structr.web.traits.definitions;
 
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.entity.Relation;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
-import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.StructrTraits;
-import org.structr.core.traits.TraitsInstance;
+import org.structr.core.traits.*;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.operations.graphobject.OnCreation;
+import org.structr.core.traits.operations.graphobject.OnModification;
+import org.structr.web.entity.path.PagePath;
 import org.structr.web.entity.path.PagePathParameter;
 import org.structr.web.traits.wrappers.PagePathParameterTraitWrapper;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-/**
- *
- */
 public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinition {
 
-	public static final String PATH_PROPERTY          = "path";
-	public static final String POSITION_PROPERTY      = "position";
-	public static final String VALUE_TYPE_PROPERTY    = "valueType";
-	public static final String DEFAULT_VALUE_PROPERTY = "defaultValue";
-	public static final String IS_OPTIONAL_PROPERTY   = "isOptional";
+	public static final String PATH_PROPERTY                    = "path";
+	public static final String POSITION_PROPERTY                = "position";
+	public static final String VALUE_TYPE_PROPERTY              = "valueType";
+	public static final String FORMAT_PROPERTY                  = "format";
+	public static final String DEFAULT_VALUE_PROPERTY           = "defaultValue";
+	public static final String IS_REQUIRED_PROPERTY             = "isRequired";
+	public static final String USE_DEFAULT_IF_INVALID_PROPERTY  = "useDefaultIfInvalid";
 
 	public PagePathParameterTraitDefinition() {
 		super(StructrTraits.PAGE_PATH_PARAMETER);
@@ -52,7 +58,35 @@ public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinitio
 
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
-		return Map.of();
+
+		return Map.of(
+
+				OnCreation.class,
+				new OnCreation() {
+					@Override
+					public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+
+						final PagePath pagePath = graphObject.as(PagePathParameter.class).getPagePath();
+						if (pagePath != null) {
+
+							pagePath.updatePathAndParameters(securityContext, Map.of("path", pagePath.getName()));
+						}
+					}
+				},
+
+				OnModification.class,
+				new OnModification() {
+					@Override
+					public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+						final PagePath pagePath = graphObject.as(PagePathParameter.class).getPagePath();
+						if (pagePath != null) {
+
+							pagePath.updatePathAndParameters(securityContext, Map.of("path", pagePath.getName()));
+						}
+					}
+				}
+		);
 	}
 
 	@Override
@@ -76,18 +110,22 @@ public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinitio
 	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> pathProperty  = new StartNode(traitsInstance, PATH_PROPERTY, StructrTraits.PAGE_PATH_HAS_PARAMETER_PAGE_PATH_PARAMETER);
-		final Property<Integer> positionProperty    = new IntProperty(POSITION_PROPERTY).indexed();
-		final Property<String> valueTypeProperty    = new StringProperty(VALUE_TYPE_PROPERTY);
-		final Property<String> defaultValueProperty = new StringProperty(DEFAULT_VALUE_PROPERTY);
-		final Property<Boolean> isOptionalProperty  = new BooleanProperty(IS_OPTIONAL_PROPERTY);
+		final Property<NodeInterface> pathProperty          = new StartNode(traitsInstance, PATH_PROPERTY, StructrTraits.PAGE_PATH_HAS_PARAMETER_PAGE_PATH_PARAMETER);
+		final Property<Integer> positionProperty            = new IntProperty(POSITION_PROPERTY).indexed();
+		final Property<String> valueTypeProperty            = new EnumProperty(VALUE_TYPE_PROPERTY, PathParameterValueType.class).defaultValue(PathParameterValueType.String.name());
+		final Property<String> formatProperty               = new StringProperty(FORMAT_PROPERTY);
+		final Property<String> defaultValueProperty         = new StringProperty(DEFAULT_VALUE_PROPERTY);
+		final Property<Boolean> isRequiredProperty          = new BooleanProperty(IS_REQUIRED_PROPERTY);
+		final Property<Boolean> useDefaultIfInvalidProperty = new BooleanProperty(USE_DEFAULT_IF_INVALID_PROPERTY);
 
 		return Set.of(
 			pathProperty,
 			positionProperty,
 			valueTypeProperty,
+			formatProperty,
 			defaultValueProperty,
-			isOptionalProperty
+			isRequiredProperty,
+			useDefaultIfInvalidProperty
 		);
 	}
 
@@ -95,16 +133,37 @@ public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinitio
 	public Map<String, Set<String>> getViews() {
 
 		return Map.of(
+
 				PropertyView.Public,
-				newSet(POSITION_PROPERTY, VALUE_TYPE_PROPERTY, DEFAULT_VALUE_PROPERTY, IS_OPTIONAL_PROPERTY),
+				newSet(POSITION_PROPERTY, VALUE_TYPE_PROPERTY, FORMAT_PROPERTY, DEFAULT_VALUE_PROPERTY, IS_REQUIRED_PROPERTY, USE_DEFAULT_IF_INVALID_PROPERTY),
 
 				PropertyView.Ui,
-				newSet(POSITION_PROPERTY, VALUE_TYPE_PROPERTY, DEFAULT_VALUE_PROPERTY, IS_OPTIONAL_PROPERTY)
+				newSet(POSITION_PROPERTY, VALUE_TYPE_PROPERTY, FORMAT_PROPERTY, DEFAULT_VALUE_PROPERTY, IS_REQUIRED_PROPERTY, USE_DEFAULT_IF_INVALID_PROPERTY)
 		);
 	}
 
 	@Override
 	public Relation getRelation() {
 		return null;
+	}
+
+	public enum PathParameterValueType {
+
+		String, Base64UrlString, Integer, Long, Double, Float, Date, Boolean, Node;
+
+		private static final Map<String, PathParameterValueType> LOOKUP_TBL = Arrays.stream(values()).collect(Collectors.toMap(Enum::name, e -> e));
+
+		public static PathParameterValueType fromString(final String value) {
+			return LOOKUP_TBL.get(value);
+		}
+
+		public static boolean isValid(final String value) {
+			return LOOKUP_TBL.containsKey(value);
+		}
+
+		public static boolean hasFormat(final String value) {
+
+			return String.name().equals(value) || Base64UrlString.name().equals(value) || Date.name().equals(value);
+		}
 	}
 }
