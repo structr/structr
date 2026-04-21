@@ -69,8 +69,6 @@ test('pages', async ({page}) => {
     await page.waitForTimeout(1000);
     await page.screenshot({path: 'screenshots/pages_page-created.png'});
 
-    await page.reload();
-
     await page.locator('#pagesTree .node-container:nth-child(1)').click({button: 'right'});
     await page.getByText('Expand / Collapse').waitFor({state: 'visible'});
     await page.getByText('Expand / Collapse').hover();

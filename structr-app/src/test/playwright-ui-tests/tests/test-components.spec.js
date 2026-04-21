@@ -95,9 +95,6 @@ test('pages', async ({page}) => {
 
     await createAndRenamePage(page, 4, 'projects');
 
-    // reload still necessary to see the correct context menu entries...
-    await page.reload();
-
     await expandPageTree(page, 'projects');
 
     let pageContainer = getPageContainer(page, 'projects');
