@@ -160,14 +160,19 @@ let _Documentation = {
 
 	},
 	loadDoc: (id, hash, parents, searchHit) => {
+
         let iframe = document.querySelector('div#docs-area iframe');
         if (iframe) {
+
             let hash = '';
-            if (parents && parents.length > 1) {
+			if (['Function', 'Setting'].includes(searchHit?.type)) {
+				hash = '#' + searchHit.name;
+			} else if (parents && parents.length > 1) {
                 hash = '#' + _Documentation.cleanStringForLink(parents[parents.length - 1].name);
             } else if (searchHit) {
-                hash = '#' + _Documentation.cleanStringForLink(searchHit);
+                hash = '#' + _Documentation.cleanStringForLink(searchHit.name);
             }
+
             iframe.src = `/structr/docs/ontology?id=${id}&details=all&format=markdown${hash}`;
             _Documentation.loadContext(id);
 
@@ -184,7 +189,6 @@ let _Documentation = {
                     }
                 });
             });
-
         }
 	},
     loadContext: (id) => {
@@ -341,7 +345,7 @@ let _Documentation = {
 
                                             result.addEventListener('click', e => {
                                                 _Documentation.search.hideSearch();
-                                                _Documentation.loadDoc(`${id}`, null, parents, entry.name);
+                                                _Documentation.loadDoc(`${id}`, null, parents, entry);
                                             });
 
                                             _Documentation.search.searchResultsList.appendChild(result);
