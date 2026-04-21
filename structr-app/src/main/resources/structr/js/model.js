@@ -789,7 +789,10 @@ StructrPage.prototype.setProperty = function(key, value, recursive, callback) {
 };
 
 StructrPage.prototype.append = function() {
-	if (Structr.isModuleActive(_Pages)) {
+
+	if (this.type === 'ShadowDocument') {
+		_Pages.shadowPage = this;
+	} else if (Structr.isModuleActive(_Pages)) {
 		StructrModel.expand(_Pages.appendPageElement(this), this);
 	}
 };
