@@ -18,6 +18,7 @@
  */
 package org.structr.core.function;
 
+import org.structr.common.PropertyView;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -84,7 +85,7 @@ public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 					final PropertyKey<String> classNameKey        = new StringProperty("className");
 					final PropertyKey<String> relationshipTypeKey = new StringProperty("relationshipType");
 
-					final List<GraphObjectMap> propertyList = SchemaHelper.getSchemaTypeInfo(ctx.getSecurityContext(), node.getType(), "all");
+					final List<GraphObjectMap> propertyList = SchemaHelper.getSchemaTypeInfo(ctx.getSecurityContext(), node.getType(), PropertyView.All);
 
 					switch(direction) {
 						case "incoming":
