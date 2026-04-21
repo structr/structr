@@ -676,7 +676,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			.expect()
 				.statusCode(200)
 
-				.body("result",	                  hasSize(7))
+				.body("result",	                 hasSize(7))
 				.body("result[0].jsonName",       equalTo("type"))
 				.body("result[1].jsonName",       equalTo("one"))
 				.body("result[2].jsonName",       equalTo("id"))
