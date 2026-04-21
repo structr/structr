@@ -31,6 +31,7 @@
 
 html.documentation {
     background-color: white;
+    padding: 1rem 0;
 }
 
 #docs-area {
@@ -137,9 +138,8 @@ html.documentation {
 
 #docs-area iframe {
     border: none;
-    height: calc(100vh - 10rem);
     margin: 0;
-    padding: 1rem 0 4rem 0;
+    padding: 0;
     width: 80%;
 }
 

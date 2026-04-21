@@ -417,7 +417,7 @@ let _Documentation = {
 	templates: {
 		main: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/docs.css">
-			<div id="docs-area">
+			<div id="docs-area" class="h-full">
 				<nav>
 					<ul id="docs-main-navigation">
 					</ul>
