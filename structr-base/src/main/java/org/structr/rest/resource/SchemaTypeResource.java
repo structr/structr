@@ -65,11 +65,11 @@ public class SchemaTypeResource extends ExactMatchEndpoint {
 
 				if (call.isDefaultView()) {
 
-					return new SchemaTypeResourceHandler(call, typeName, null);
+					return new SchemaTypeResourceHandler(call, typeName);
 
 				} else {
 
-					return new SchemaTypeResourceHandler(call, typeName, call.getViewName());
+					return new SchemaTypeViewResourceHandler(call, typeName, call.getViewName());
 				}
 			}
 		}
@@ -82,12 +82,12 @@ public class SchemaTypeResource extends ExactMatchEndpoint {
 		return new PagingIterable<>("getSchemaTypeResult(" + type + ")", SchemaHelper.getSchemaTypeInfo(securityContext, type, propertyView));
 	}
 
-	private class SchemaTypeResourceHandler extends RESTCallHandler {
+	private class SchemaTypeViewResourceHandler extends RESTCallHandler {
 
 		private String typeName   = null;
 		private String viewName   = null;
 
-		public SchemaTypeResourceHandler(final RESTCall call, final String typeName, final String viewName) {
+		public SchemaTypeViewResourceHandler(final RESTCall call, final String typeName, final String viewName) {
 
 			super(call);
 
@@ -116,4 +116,16 @@ public class SchemaTypeResource extends ExactMatchEndpoint {
 		}
 	}
 
+	private class SchemaTypeResourceHandler extends SchemaTypeViewResourceHandler {
+
+		public SchemaTypeResourceHandler(final RESTCall call, final String typeName) {
+
+			super(call, typeName, null);
+		}
+
+		@Override
+		public boolean isCollection() {
+			return false;
+		}
+	}
 }
