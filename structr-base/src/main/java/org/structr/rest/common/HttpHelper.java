@@ -666,6 +666,8 @@ public class HttpHelper {
 
 	public static void streamURLToFile(final String address, final String charset, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final java.io.File fileOnDisk) throws FrameworkException {
 
+		HttpHelper.validateUrl(address);
+
 		try {
 
 			final URI url = HttpHelper.checkAddressAgainstWhitelist(address);
