@@ -28,6 +28,7 @@ import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.auth0.jwt.interfaces.Verification;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -606,7 +607,7 @@ public class JWTHelper {
 
 			Algorithm alg = Algorithm.HMAC256(secret.getBytes(StandardCharsets.UTF_8));
 
-			JWTVerifier verifier = JWT.require(alg).build();
+			JWTVerifier verifier = buildVerifier(alg);
 
 			DecodedJWT decodedJWT = verifier.verify(token);
 			return decodedJWT.getClaims();
@@ -621,7 +622,7 @@ public class JWTHelper {
 	private static Map<String, Claim> validateTokenWithKeystore(String token, Algorithm alg) {
 		try {
 
-			JWTVerifier verifier = JWT.require(alg).build();
+			JWTVerifier verifier = buildVerifier(alg);
 
 			DecodedJWT decodedJWT = verifier.verify(token);
 			return decodedJWT.getClaims();
@@ -631,6 +632,24 @@ public class JWTHelper {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Builds a verifier that enforces the configured JWT issuer in addition to
+	 * the signature and standard time-based claims checked by auth0-java.
+	 * Without the issuer check, any token signed with the same secret or key
+	 * would be accepted regardless of which service issued it.
+	 */
+	private static JWTVerifier buildVerifier(final Algorithm alg) {
+
+		Verification verification = JWT.require(alg);
+
+		final String jwtIssuer = Settings.JWTIssuer.getValue();
+		if (StringUtils.isNotBlank(jwtIssuer)) {
+			verification = verification.withIssuer(jwtIssuer);
+		}
+
+		return verification.build();
 	}
 
 
