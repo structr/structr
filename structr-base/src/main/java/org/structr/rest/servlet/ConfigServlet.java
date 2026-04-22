@@ -93,6 +93,10 @@ public class ConfigServlet extends AbstractServletBase {
 
 		} else {
 
+			if (isStateChangingGetRequest(request) && !checkCsrfOrigin(request, response)) {
+				return;
+			}
+
 			if (request.getParameter("reload") != null) {
 
 				// reload data
@@ -678,6 +682,18 @@ public class ConfigServlet extends AbstractServletBase {
 		}
 
 		return body;
+	}
+
+	private boolean isStateChangingGetRequest(final HttpServletRequest request) {
+
+		return request.getParameter("reload")         != null
+			|| request.getParameter("reset")          != null
+			|| request.getParameter("start")          != null
+			|| request.getParameter("stop")           != null
+			|| request.getParameter("restart")        != null
+			|| request.getParameter("finish")         != null
+			|| request.getParameter("useDefault")     != null
+			|| request.getParameter("setMaintenance") != null;
 	}
 
 	private boolean isAuthenticated(final HttpServletRequest request) {
