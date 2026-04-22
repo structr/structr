@@ -57,17 +57,16 @@ public class PropertyInfoFunction extends AdvancedScriptingFunction {
 			final String typeName = sources[0].toString();
 			final String keyName  = sources[1].toString();
 
-			final Traits traits   = Traits.of(typeName);
-
-			if (traits == null) {
+			final Traits type = Traits.of(typeName);
+			if (type == null) {
 				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, TypeInfoFunction.UNKNOWN_TYPE_ERROR_MESSAGE.formatted(getName(), typeName));
 			}
 
-			if (!traits.hasKey(keyName)) {
+			if (!type.hasKey(keyName)) {
 				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, UNKNOWN_PROPERTY_ERROR_MESSAGE.formatted(getName(), typeName, keyName));
 			}
 
-			return SchemaHelper.getPropertyInfo(ctx.getSecurityContext(), traits.key(keyName));
+			return SchemaHelper.getPropertyInfo(ctx.getSecurityContext(), type.key(keyName));
 
 		} catch (ArgumentNullException pe) {
 
@@ -77,7 +76,7 @@ public class PropertyInfoFunction extends AdvancedScriptingFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 
@@ -139,6 +138,14 @@ public class PropertyInfoFunction extends AdvancedScriptingFunction {
 		return List.of(
 				Parameter.mandatory("type", "name of the schema type"),
 				Parameter.mandatory("property", "name of the property for the given schema type")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"If the requested type does not exist, a catchable error is produced (where applicable) and/or null will be returned.",
+				"If the requested property does not exist on the given type, a catchable error is produced (where applicable) and/or null will be returned."
 		);
 	}
 

@@ -37,6 +37,8 @@ import java.util.Set;
 
 public class EnumInfoFunction extends AdvancedScriptingFunction {
 
+	public static final String NOT_AN_ENUM_PROPERTY_WARNING_MESSAGE = "%s(): Not an Enum property '%s.%s'";
+
 	@Override
 	public String getName() {
 		return "enumInfo";
@@ -59,66 +61,56 @@ public class EnumInfoFunction extends AdvancedScriptingFunction {
 			final boolean rawList         = (sources.length == 3) ? Boolean.parseBoolean(sources[2].toString()) : false;
 			final Traits type             = Traits.of(typeName);
 
-			if (type != null) {
+			if (type == null) {
+				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, TypeInfoFunction.UNKNOWN_TYPE_ERROR_MESSAGE.formatted(getName(), typeName));
+			}
 
-				final PropertyKey key = type.key(enumPropertyName);
-				if (key != null) {
+			if (!type.hasKey(enumPropertyName)) {
+				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, PropertyInfoFunction.UNKNOWN_PROPERTY_ERROR_MESSAGE.formatted(getName(), typeName, enumPropertyName));
+			}
 
-					if (key instanceof EnumProperty) {
+			final PropertyKey key = type.key(enumPropertyName);
 
-						final EnumProperty enumProperty = (EnumProperty)key;
-						final Set<String> enumConstants = enumProperty.getEnumConstants();
+			if (key instanceof EnumProperty enumProperty) {
 
-						if (rawList) {
+				final Set<String> enumConstants = enumProperty.getEnumConstants();
 
-							return enumConstants;
+				if (rawList) {
 
-						} else {
-
-							final ArrayList<GraphObjectMap> resultList = new ArrayList();
-
-							for (final String value : enumConstants) {
-
-								final GraphObjectMap valueMap = new GraphObjectMap();
-								resultList.add(valueMap);
-
-								valueMap.put(new StringProperty("value"), value);
-
-							}
-
-							return resultList;
-						}
-
-					} else {
-
-						logger.warn("Error: Not an Enum property \"{}.{}\"", typeName, enumPropertyName);
-						return "Not an Enum property " + typeName + "." + enumPropertyName;
-					}
+					return enumConstants;
 
 				} else {
 
-					logger.warn("Error: Unknown property \"{}.{}\"", typeName, enumPropertyName);
-					return "Unknown property " + typeName + "." + enumPropertyName;
+					final ArrayList<GraphObjectMap> resultList = new ArrayList<>();
+
+					for (final String value : enumConstants) {
+
+						final GraphObjectMap valueMap = new GraphObjectMap();
+						resultList.add(valueMap);
+
+						valueMap.put(new StringProperty("value"), value);
+					}
+
+					return resultList;
 				}
 
 			} else {
 
-				logger.warn("Error: Unknown type \"{}\"", typeName);
-				return "Unknown type " + typeName;
+				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, NOT_AN_ENUM_PROPERTY_WARNING_MESSAGE.formatted(getName(), typeName, enumPropertyName));
 			}
 
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${enumInfo(type, enumProperty[, raw])}. Example ${enumInfo('Document', 'documentType')}"),
-			Usage.javaScript("Usage: ${{ $.enumInfo(type, enumProperty[, raw])}}. Example ${{ $.enumInfo('Document', 'documentType')}}")
+			Usage.structrScript("Usage: ${enumInfo(type, enumProperty[, raw = false ])}. Example ${enumInfo('Document', 'documentType')}"),
+			Usage.javaScript("Usage: ${{ $.enumInfo(type, enumProperty[, raw = false ])}}. Example ${{ $.enumInfo('Document', 'documentType')}}")
 		);
 	}
 
@@ -130,17 +122,17 @@ public class EnumInfoFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-		The default behaviour of this function is to return a list of objects with a single `value` entry that contains the enum value, so it can be used in a repeater to configure HTML select dropdowns etc:
-		
-		```
-		[ { value: 'ExampleEnum1' }, { value: 'ExampleEnum2' }, { value: 'ExampleEnum3' } ]
-		```
-		
-		If the `raw` parameter is set to `true`, a simple list will be returned:
-		```
-		[ 'ExampleEnum1', 'ExampleEnum2', 'ExampleEnum3' } ]
-		```
-		""";
+			The default behaviour of this function is to return a list of objects with a single `value` entry that contains the enum value, so it can be used in a repeater to configure HTML select dropdowns etc:
+
+			```
+			[ { value: 'EnumValue1' }, { value: 'EnumValue2' }, { value: 'EnumValue3' } ]
+			```
+
+			If the `raw` parameter is set to `true`, a simple list will be returned:
+			```
+			[ 'EnumValue1', 'EnumValue2', 'EnumValue3' } ]
+			```
+			""";
 	}
 
 	@Override
@@ -149,7 +141,7 @@ public class EnumInfoFunction extends AdvancedScriptingFunction {
 		return List.of(
 			Parameter.mandatory("type", "type on which the property is defined"),
 			Parameter.mandatory("propertyName", "name of the property"),
-			Parameter.optional("raw", "whether to return a raw list of enum values or a list of objects")
+			Parameter.optional("raw", "whether to return a raw list (`true`) of enum values or a list of objects (`false`). Default: `false`")
 		);
 	}
 
@@ -162,6 +154,15 @@ public class EnumInfoFunction extends AdvancedScriptingFunction {
 				<option data-structr-meta-data-key="activityType" data-structr-meta-function-query="enumInfo('Activity', 'activityType')">${activityType.value}</option>
 			</select>
 			""", "Configure an HTML select element with the enum options of a property")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"If the requested type does not exist, a catchable error is produced (where applicable) and/or null will be returned.",
+				"If the requested property does not exist on the given type, a catchable error is produced (where applicable) and/or null will be returned.",
+				"If the requested property on the given type is not an enum property, a catchable error is produced (where applicable) and/or null will be returned."
 		);
 	}
 

@@ -52,9 +52,8 @@ public class TypeInfoFunction extends AdvancedScriptingFunction {
 			final String typeName = sources[0].toString();
 			final String viewName = (sources.length == 2 ? sources[1].toString() : null);
 
-			final Traits traits   = Traits.of(typeName);
-
-			if (traits == null) {
+			final Traits type = Traits.of(typeName);
+			if (type == null) {
 
 				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, UNKNOWN_TYPE_ERROR_MESSAGE.formatted(getName(), typeName));
 			}
@@ -65,7 +64,7 @@ public class TypeInfoFunction extends AdvancedScriptingFunction {
 
 			} else {
 
-				if (!traits.getViewNames().contains(viewName)) {
+				if (!type.getViewNames().contains(viewName)) {
 
 					return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, UNKNOWN_VIEW_ERROR_MESSAGE.formatted(getName(), viewName, typeName));
 				}
@@ -76,7 +75,7 @@ public class TypeInfoFunction extends AdvancedScriptingFunction {
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 

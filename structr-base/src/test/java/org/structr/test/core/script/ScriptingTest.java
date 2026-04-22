@@ -8450,6 +8450,208 @@ public class ScriptingTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testTypeInfoFunction() {
+
+		final ActionContext actionContext = new ActionContext(securityContext);
+
+		// StructrScript
+		{
+			try (final Tx tx = app.tx()) {
+
+				assertEquals("Invalid result for typeInfo()", "Group", Scripting.replaceVariables(actionContext, null, "${typeInfo('Group').name}"));
+				assertEquals("Invalid result for typeInfo()", "3",     Scripting.replaceVariables(actionContext, null, "${size(typeInfo('Group', 'custom'))}"));
+
+				// error cases where null is expected
+				assertNull(Scripting.evaluate(actionContext, null, "${typeInfo('DoesNotExist')}", "test1"));
+				assertNull(Scripting.evaluate(actionContext, null, "${typeInfo('Group', 'doesNotExist')}", "test1"));
+
+				tx.success();
+
+			} catch (FrameworkException t) {
+				t.printStackTrace();
+				fail("Unexpected exception");
+			}
+		}
+
+		// JavaScript
+		{
+			// tests
+			try (final Tx tx = app.tx()) {
+
+				assertEquals("Invalid result for typeInfo()", "Group", Scripting.replaceVariables(actionContext, null, "${{ $.typeInfo('Group').name }}"));
+				assertEquals("Invalid result for typeInfo()", "3",     Scripting.replaceVariables(actionContext, null, "${{ $.size($.typeInfo('Group', 'custom')) }}"));
+
+				// error cases where an exception is expected
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.typeInfo('DoesNotExist'); }}", "test1");
+					fail("Exception should have been thrown");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for typeInfo() when supplying non-node as first parameter!", TypeInfoFunction.UNKNOWN_TYPE_ERROR_MESSAGE.formatted("typeInfo", "DoesNotExist"), expected.getMessage());
+				}
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.typeInfo('Group', 'doesNotExist'); }}", "test1");
+					fail("Exception should have been thrown");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for typeInfo() when using invalid lookupType!", TypeInfoFunction.UNKNOWN_VIEW_ERROR_MESSAGE.formatted("typeInfo", "doesNotExist", "Group"), expected.getMessage());
+				}
+
+			} catch (FrameworkException t) {
+				t.printStackTrace();
+				fail("Unexpected exception");
+			}
+		}
+	}
+
+	@Test
+	public void testPropertyInfoFunction() {
+
+		final ActionContext actionContext = new ActionContext(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createEmptySchema();
+
+			schema.addType("Test").addBooleanProperty("boolTest").setIndexed(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException | InvalidSchemaException | URISyntaxException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// StructrScript
+		{
+			try (final Tx tx = app.tx()) {
+
+				assertEquals("Invalid result for propertyInfo()", "Boolean", Scripting.replaceVariables(actionContext, null, "${propertyInfo('Test', 'boolTest').type}"));
+				assertEquals("Invalid result for propertyInfo()", "Test",    Scripting.replaceVariables(actionContext, null, "${propertyInfo('Test', 'boolTest').declaringClass}"));
+				assertEquals("Invalid result for propertyInfo()", "true",    Scripting.replaceVariables(actionContext, null, "${propertyInfo('Test', 'boolTest').indexed}"));
+
+				// error cases where null is expected
+				assertNull(Scripting.evaluate(actionContext, null, "${propertyInfo('DoesNotExist', 'doesnotmatter')}", "test1"));
+				assertNull(Scripting.evaluate(actionContext, null, "${propertyInfo('Test', 'doesNotExist')}", "test1"));
+
+				tx.success();
+
+			} catch (FrameworkException t) {
+				t.printStackTrace();
+				fail("Unexpected exception");
+			}
+		}
+
+		// JavaScript
+		{
+			// tests
+			try (final Tx tx = app.tx()) {
+
+				assertEquals("Invalid result for propertyInfo()", "Boolean", Scripting.replaceVariables(actionContext, null, "${{ $.propertyInfo('Test', 'boolTest').type }}"));
+				assertEquals("Invalid result for propertyInfo()", "Test",    Scripting.replaceVariables(actionContext, null, "${{ $.propertyInfo('Test', 'boolTest').declaringClass }}"));
+				assertEquals("Invalid result for propertyInfo()", "true",    Scripting.replaceVariables(actionContext, null, "${{ $.propertyInfo('Test', 'boolTest').indexed }}"));
+
+				// error cases where an exception is expected
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.propertyInfo('DoesNotExist', 'doesnotmatter'); }}", "test1");
+					fail("Exception should have been thrown");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for propertyInfo() when supplying non-node as first parameter!", TypeInfoFunction.UNKNOWN_TYPE_ERROR_MESSAGE.formatted("propertyInfo", "DoesNotExist"), expected.getMessage());
+				}
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.propertyInfo('Group', 'DoesNotExist'); }}", "test1");
+					fail("Exception should have been thrown");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for propertyInfo() when using invalid lookupType!", PropertyInfoFunction.UNKNOWN_PROPERTY_ERROR_MESSAGE.formatted("propertyInfo", "Group", "DoesNotExist"), expected.getMessage());
+				}
+
+			} catch (FrameworkException t) {
+				t.printStackTrace();
+				fail("Unexpected exception");
+			}
+		}
+	}
+
+	@Test
+	public void testEnumInfoFunction() {
+
+		final ActionContext actionContext = new ActionContext(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createEmptySchema();
+
+			final JsonType testType = schema.addType("Test");
+			testType.addEnumProperty("enumTest").setFormat("VALUE1, VALUE2, VALUE3").setIndexed(true);
+			testType.addStringProperty("notAnEnum");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException | InvalidSchemaException | URISyntaxException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// StructrScript
+		{
+			try (final Tx tx = app.tx()) {
+
+				assertEquals("Invalid result for enumInfo()", "[{value=VALUE1}, {value=VALUE2}, {value=VALUE3}]", Scripting.replaceVariables(actionContext, null, "${enumInfo('Test', 'enumTest')}"));
+				assertEquals("Invalid result for enumInfo()", "[VALUE1, VALUE2, VALUE3]", Scripting.replaceVariables(actionContext, null, "${enumInfo('Test', 'enumTest', true)}"));
+
+				// error cases where null is expected
+				assertNull(Scripting.evaluate(actionContext, null, "${enumInfo('DoesNotExist', 'doesnotmatter')}", "test1"));
+				assertNull(Scripting.evaluate(actionContext, null, "${enumInfo('Test', 'doesNotExist')}", "test1"));
+				assertNull(Scripting.evaluate(actionContext, null, "${enumInfo('Test', 'notAnEnum')}", "test1"));
+
+				tx.success();
+
+			} catch (FrameworkException t) {
+				t.printStackTrace();
+				fail("Unexpected exception");
+			}
+		}
+
+		// JavaScript
+		{
+			// tests
+			try (final Tx tx = app.tx()) {
+
+				assertEquals("Invalid result for enumInfo()", "[{value=VALUE1}, {value=VALUE2}, {value=VALUE3}]", Scripting.replaceVariables(actionContext, null, "${{ $.enumInfo('Test', 'enumTest') }}"));
+				assertEquals("Invalid result for enumInfo()", "[VALUE1, VALUE2, VALUE3]",                         Scripting.replaceVariables(actionContext, null, "${{ $.enumInfo('Test', 'enumTest', true) }}"));
+
+				// error cases where an exception is expected
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.enumInfo('DoesNotExist', 'doesnotmatter') }}", "test1");
+					fail("Exception should have been thrown");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for enumInfo() when supplying non-node as first parameter!", TypeInfoFunction.UNKNOWN_TYPE_ERROR_MESSAGE.formatted("enumInfo", "DoesNotExist"), expected.getMessage());
+				}
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.enumInfo('Test', 'doesNotExist') }}", "test1");
+					fail("Exception should have been thrown");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for enumInfo() when using invalid lookupType!", PropertyInfoFunction.UNKNOWN_PROPERTY_ERROR_MESSAGE.formatted("enumInfo", "Test", "doesNotExist"), expected.getMessage());
+				}
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.enumInfo('Test', 'notAnEnum') }}", "test1");
+					fail("Exception should have been thrown");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for enumInfo() when using invalid lookupType!", EnumInfoFunction.NOT_AN_ENUM_PROPERTY_WARNING_MESSAGE.formatted("enumInfo", "Test", "notAnEnum"), expected.getMessage());
+				}
+
+			} catch (FrameworkException t) {
+				t.printStackTrace();
+				fail("Unexpected exception");
+			}
+		}
+	}
+
 	// ----- private methods ----
 	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource) {
 
