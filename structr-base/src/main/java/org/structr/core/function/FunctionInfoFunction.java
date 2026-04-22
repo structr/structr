@@ -38,7 +38,8 @@ import java.util.Map;
 
 public class FunctionInfoFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE_FUNCTION_INFO_JS = "Usage: ${{ $.functionInfo([type, name]) }}. Example ${{ $.functionInfo() }}";
+	public static final String UNKNOWN_FUNCTION_ERROR_MESSAGE           = "%s(): Unknown function '%s' for type '%s'.";
+	public static final String UNSUPPORTED_ARGUMENT_COUNT_ERROR_MESSAGE = "%s(): Expected 0 or 2 arguments but got %d.";
 
 	public static final String DECLARING_TRAIT_KEY          = "declaringTrait";
 	public static final String IS_USER_DEFINED_FUNCTION_KEY = "isUserDefinedFunction";
@@ -56,50 +57,38 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
-		try {
+		if (sources.length == 0) {
 
-			if (sources.length == 0) {
+			final AbstractMethod currentMethod = ctx.getCurrentMethod();
+			if (currentMethod != null) {
 
-				final AbstractMethod currentMethod = ctx.getCurrentMethod();
-				if (currentMethod != null) {
-
-					return getFunctionInfo(currentMethod);
-				}
-
-			} else if (sources.length == 2) {
-
-				final String typeName     = sources[0].toString();
-				final String functionName = sources[1].toString();
-
-				if (Traits.exists(typeName)) {
-
-					final Traits type           = Traits.of(typeName);
-					final AbstractMethod method = Methods.resolveMethod(type, functionName);
-
-					if (method != null) {
-
-						return getFunctionInfo(method);
-					}
-
-					logParameterError(caller, sources, "Type " + typeName + " does not have a method named " + functionName + ". Source:", ctx.isJavaScriptContext());
-					return usage(ctx.isJavaScriptContext());
-
-				} else {
-
-					logParameterError(caller, sources, "Type " + typeName + " does not exist. Source:", ctx.isJavaScriptContext());
-					return usage(ctx.isJavaScriptContext());
-				}
-
-			} else {
-
-				logParameterError(caller, sources, "Expected zero or two arguments but got " + sources.length + ". Source:", ctx.isJavaScriptContext());
-				return usage(ctx.isJavaScriptContext());
+				return getFunctionInfo(currentMethod);
 			}
 
-		} catch (IllegalArgumentException e) {
+		} else if (sources.length == 2) {
 
-			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
-			return usage(ctx.isJavaScriptContext());
+			final String typeName     = sources[0].toString();
+			final String functionName = sources[1].toString();
+
+			final Traits type = Traits.of(typeName);
+
+			if (type == null) {
+
+				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, TypeInfoFunction.UNKNOWN_TYPE_ERROR_MESSAGE.formatted(getName(), typeName));
+			}
+
+			final AbstractMethod method = Methods.resolveMethod(type, functionName);
+
+			if (method == null) {
+
+				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, UNKNOWN_FUNCTION_ERROR_MESSAGE.formatted(getName(), typeName, functionName));
+			}
+
+			return getFunctionInfo(method);
+
+		} else {
+
+			return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, UNSUPPORTED_ARGUMENT_COUNT_ERROR_MESSAGE.formatted(getName(), sources.length));
 		}
 
 		return null;
@@ -159,6 +148,15 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 					$.log(`[${info.declaringClass}][${info.name}] task finished...`);
 				}
 				""", "Add function information to log output")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"If the requested type does not exist, a catchable error is produced (where applicable) and/or null will be returned.",
+				"If the requested function does not exist on the given type, a catchable error is produced (where applicable) and/or null will be returned.",
+				"If anything other than 0 or 2 arguments are passed, a catchable error is produced (where applicable) and/or null will be returned."
 		);
 	}
 

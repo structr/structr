@@ -6811,7 +6811,7 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface test            = app.create("Test", "test");
+			final NodeInterface test = app.create("Test", "test");
 
 			// test successful execution
 			final Map<String, Object> result1 = (Map) Scripting.evaluate(new ActionContext(securityContext), test, "${{ $.this.doTest1(); }}", "test");
@@ -6820,11 +6820,6 @@ public class ScriptingTest extends StructrTest {
 			final Map<String, Object> result4 = (Map) Scripting.evaluate(new ActionContext(securityContext), test, "${{ $.this.doTest4(); }}", "test");
 			final Map<String, Object> result5 = (Map) Scripting.evaluate(new ActionContext(securityContext), test, "${{ $.this.doTest5(); }}", "test");
 			final Map<String, Object> result6 = (Map) Scripting.evaluate(new ActionContext(securityContext), test, "${{ $.functionInfo('Test', 'doTest1'); }}", "test");
-
-			final String result7 = (String)Scripting.evaluate(new ActionContext(securityContext), test, "${{ $.functionInfo('TestWrong', 'doTest1'); }}", "test");
-			final String result8 = (String)Scripting.evaluate(new ActionContext(securityContext), test, "${{ $.functionInfo('Test', 'wrongName'); }}", "test");
-			final String result9 = (String)Scripting.evaluate(new ActionContext(securityContext), test, "${{ $.functionInfo('Test'); }}", "test");
-
 
 			assertEquals("Invalid functionInfo() result", "doTest1", result1.get(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 			assertEquals("Invalid functionInfo() result", "doTest2", result2.get(NodeInterfaceTraitDefinition.NAME_PROPERTY));
@@ -6856,9 +6851,25 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid functionInfo() result", "string", ((Map)result6.get(SchemaMethodTraitDefinition.PARAMETERS_PROPERTY)).get("id"));
 			assertEquals("Invalid functionInfo() result", "date",   ((Map)result6.get(SchemaMethodTraitDefinition.PARAMETERS_PROPERTY)).get("date"));
 
-			assertEquals("Invalid functionInfo() error result", FunctionInfoFunction.ERROR_MESSAGE_FUNCTION_INFO_JS,  result7);
-			assertEquals("Invalid functionInfo() error result", FunctionInfoFunction.ERROR_MESSAGE_FUNCTION_INFO_JS,  result8);
-			assertEquals("Invalid functionInfo() error result", FunctionInfoFunction.ERROR_MESSAGE_FUNCTION_INFO_JS,  result9);
+			// error cases
+			try {
+				Scripting.evaluate(new ActionContext(securityContext), test, "${{ $.functionInfo('DoesNotExist', 'doTest1'); }}", "test");
+				fail("Exception should have been thrown");
+			} catch (FrameworkException expected) {
+				assertEquals("Invalid error message for functionInfo() when supplying non-existent type name!", TypeInfoFunction.UNKNOWN_TYPE_ERROR_MESSAGE.formatted("functionInfo", "DoesNotExist"), expected.getMessage());
+			}
+			try {
+				Scripting.evaluate(new ActionContext(securityContext), test, "${{ $.functionInfo('Test', 'wrongName'); }}", "test");
+				fail("Exception should have been thrown");
+			} catch (FrameworkException expected) {
+				assertEquals("Invalid error message for functionInfo() when supplying non-existent function name!", FunctionInfoFunction.UNKNOWN_FUNCTION_ERROR_MESSAGE.formatted("functionInfo", "Test", "wrongName"), expected.getMessage());
+			}
+			try {
+				Scripting.evaluate(new ActionContext(securityContext), test, "${{ $.functionInfo('Test'); }}", "test");
+				fail("Exception should have been thrown");
+			} catch (FrameworkException expected) {
+				assertEquals("Invalid error message for functionInfo() when supplying only one parameter!", FunctionInfoFunction.UNSUPPORTED_ARGUMENT_COUNT_ERROR_MESSAGE.formatted("functionInfo", 1), expected.getMessage());
+			}
 
 			tx.success();
 
@@ -8348,7 +8359,6 @@ public class ScriptingTest extends StructrTest {
 			fail("Unexpected exception");
 		}
 	}
-
 
 	@Test
 	public void testGetRelationshipTypesFunction() {

@@ -127,6 +127,14 @@ public class TypeInfoFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"If the requested type does not exist, a catchable error is produced (where applicable) and/or null will be returned.",
+				"If the requested view does not exist on the given type, a catchable error is produced (where applicable) and/or null will be returned."
+		);
+	}
+
+	@Override
 	public FunctionCategory getCategory() {
 		return FunctionCategory.Schema;
 	}

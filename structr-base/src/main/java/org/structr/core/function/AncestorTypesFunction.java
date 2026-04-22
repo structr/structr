@@ -133,7 +133,7 @@ public class AncestorTypesFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-				"If the first parameter does not exist as a type name, a catchable error is produced (where applicable) and/or null will be returned.",
+				"If the requested type does not exist, a catchable error is produced (where applicable) and/or null will be returned.",
 				"The types in the blacklist collection are not validated and are just removed from the result set.",
 				"This function is not applicable to service classes and will produce a catchable error (where applicable) and/or null will be returned."
 		);
