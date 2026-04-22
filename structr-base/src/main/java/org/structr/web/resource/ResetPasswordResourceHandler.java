@@ -90,6 +90,15 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 			// cleanup user input
 			emailString = emailString.trim().toLowerCase();
 
+			// Rate-limit before any DB lookup or mail send. If over the limit,
+			// return the same 200 response as for a non-existent user so the
+			// client cannot distinguish "blocked" from "unknown address".
+			final String remoteIp = securityContext.getRequest() != null ? securityContext.getRequest().getRemoteAddr() : "unknown";
+			if (!EmailRateLimiter.allow("reset-password", remoteIp, 20, emailString, 3)) {
+				logger.warn("Password reset rate limit hit (ip={}, email={})", remoteIp, emailString);
+				return new RestMethodResult(HttpServletResponse.SC_OK);
+			}
+
 			final Traits traits                       = Traits.of(StructrTraits.USER);
 			final PropertyKey<String> confirmationKey = traits.key(UserTraitDefinition.CONFIRMATION_KEY_PROPERTY);
 			final PropertyKey<String> eMail           = traits.key(PrincipalTraitDefinition.EMAIL_PROPERTY);
