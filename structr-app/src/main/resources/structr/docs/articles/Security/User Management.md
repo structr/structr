@@ -456,6 +456,55 @@ Structr creates SECURITY relationships automatically when users create objects. 
 
 > **Note:** If you skip both OWNS and SECURITY relationships, the creating user may lose access to the object. Use `grant()` or `copy_permissions()` to assign appropriate access.
 
+#### The `grantees` Property
+
+Every node exposes a read-only `grantees` property that returns the principals (users and groups) connected to it via an incoming SECURITY relationship. It is the lightweight counterpart to `owner`: where `owner` gives you the single principal at the end of the OWNS relationship, `grantees` gives you every principal at the end of a SECURITY relationship.
+
+```javascript
+const principals = $.this.grantees;
+for (const p of principals) {
+    $.log(p.name + ' (' + p.type + ')');
+}
+```
+
+The property returns only the principals, not the permissions attached to each SECURITY edge. Use it when you need a quick list of "who has any direct grant on this node" - for example, to populate a dropdown of existing grantees in a permission-editing UI, or to decide whether a node has any access control at all. When you also need the permissions and the full provenance, use `getDirectAccessEntries()` or `getEffectiveAccessEntries()` (see next subsection).
+
+To modify who has access, use `grant()` and `revoke()`. Writing to `grantees` directly is rejected with a read-only property error, because a bulk write would replace the whole set of SECURITY relationships and discard the permission flags in the process.
+
+Because `grantees` is defined on `NodeInterface`, the base trait of every node, it is available on all types without any configuration. It is not included in the default `public` or `ui` views, so you will not see it in REST output unless you add it to a custom view or request it explicitly.
+
+### Inspecting Permissions
+
+To answer the question "who has access to this object, and how?", Structr exposes two read-only scripting functions that project the current permission state into a list of entries. Unlike `isAllowed()`, which checks whether a specific principal has a specific permission, these functions enumerate all principals and the permissions each one has.
+
+`$.getDirectAccessEntries(node)` returns the entries that come from direct sources: the owner (if any) and principals connected to the node via an incoming SECURITY relationship. `$.getEffectiveAccessEntries(node)` extends that result with entries derived from transitive group membership (a user appearing because a group they belong to has a direct grant) and from schema-based permissions on the node's type.
+
+Each entry is an object with the following fields:
+
+| Field | Description |
+|-------|-------------|
+| `grantee` | UUID of the principal |
+| `granteeName` | Display name of the principal |
+| `granteeType` | Type of the principal, typically `User` or `Group` |
+| `permissions` | Array of permission names: any combination of `read`, `write`, `delete`, `accessControl` |
+| `via` | Provenance string describing which paths contributed to this entry |
+
+The `via` field is a `+`-joined composite of path tokens. A single direct grant produces `direct`; the owner produces `owner`; a schema grant produces `schema`; and a permission inherited through a group produces `group:<uuid>:<name>`, naming the group that has the direct SECURITY edge (not intermediate groups on the membership chain). When a principal receives permissions through more than one path, the tokens are concatenated in the order `owner`, `direct`, `schema`, `group:…`. For example, a user who is both the owner and a member of a group called `Editors` that was granted write access produces a single entry with `via` equal to `owner+group:abc123:Editors` and the union of all permissions.
+
+**Example:**
+
+```javascript
+const entries = $.getEffectiveAccessEntries($.this);
+for (const entry of entries) {
+    $.log(entry.granteeName + ' (' + entry.granteeType + '): '
+        + entry.permissions.join(', ') + ' via ' + entry.via);
+}
+```
+
+The result is always sorted by `granteeName` for stable, diff-friendly output. Permission propagation along domain relationships (see Graph-Based Permission Resolution below) is intentionally not included in either function, because propagation is unbounded in the general case. Use `isAllowed()` when you need a propagation-aware decision for a specific principal.
+
+These functions are particularly useful for audit UIs, permission-inspection dialogs in custom admin pages, and migration scripts that need to reason about existing access before modifying it.
+
 ### Graph-Based Permission Resolution
 
 For complex scenarios, Structr can propagate permissions through relationships. This enables domain-specific security models where access to one object grants access to related objects.
