@@ -38,6 +38,9 @@ public interface AccessControllable extends NodeInterface {
 	List<Security> getSecurityRelationships();
 	Security getSecurityRelationship(final Principal principal);
 
+	List<AccessEntry> getDirectAccessEntries();
+	List<AccessEntry> getEffectiveAccessEntries();
+
 	boolean allowedBySchema(final Principal principal, final Permission permission);
 	boolean isGranted(final Permission permission, final SecurityContext securityContext);
 

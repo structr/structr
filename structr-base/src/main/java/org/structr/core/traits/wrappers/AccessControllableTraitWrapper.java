@@ -19,6 +19,7 @@
 package org.structr.core.traits.wrappers;
 
 import org.structr.common.AccessControllable;
+import org.structr.common.AccessEntry;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -66,6 +67,16 @@ public class AccessControllableTraitWrapper extends AbstractNodeTraitWrapper imp
 	@Override
 	public List<Security> getSecurityRelationships() {
 		return traits.getMethod(GetSecurityRelationships.class).getSecurityRelationships(wrappedObject);
+	}
+
+	@Override
+	public List<AccessEntry> getDirectAccessEntries() {
+		return traits.getMethod(GetAccessEntries.class).getDirectAccessEntries(wrappedObject);
+	}
+
+	@Override
+	public List<AccessEntry> getEffectiveAccessEntries() {
+		return traits.getMethod(GetAccessEntries.class).getEffectiveAccessEntries(wrappedObject);
 	}
 
 	@Override
