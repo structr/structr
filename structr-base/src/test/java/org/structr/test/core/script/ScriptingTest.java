@@ -8349,6 +8349,97 @@ public class ScriptingTest extends StructrTest {
 		}
 	}
 
+
+	@Test
+	public void testGetRelationshipTypesFunction() {
+
+		final ActionContext actionContext = new ActionContext(securityContext);
+
+		NodeInterface testOne             = null;
+		NodeInterface testTwo             = null;
+		NodeInterface testThree           = null;
+		NodeInterface testFour            = null;
+		List<NodeInterface> testSixs      = null;
+
+		try (final Tx tx = app.tx()) {
+
+			testOne        = createTestNode("TestOne");
+			testTwo        = createTestNode("TestTwo");
+			testThree      = createTestNode("TestThree");
+			testFour       = createTestNode("TestFour");
+			testSixs       = createTestNodes("TestSix", 20, 1);
+
+			testOne.setProperty(Traits.of("TestOne").key("testTwo"), testTwo);
+			testOne.setProperty(Traits.of("TestOne").key("testThree"), testThree);
+			testOne.setProperty(Traits.of("TestOne").key("testFour"),  testFour);
+			testOne.setProperty(Traits.of("TestOne").key("manyToManyTestSixs"), testSixs);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+
+			fail("Unexpected exception");
+		}
+
+		// test functions in StructrScript
+		{
+			try (final Tx tx = app.tx()) {
+
+				assertEquals("Invalid result for getRelationshipTypes()", "[IS_AT, MANY_TO_MANY, OWNS]", Scripting.replaceVariables(actionContext, testOne, "${sort(getRelationshipTypes(this))}"));
+				assertEquals("Invalid result for getRelationshipTypes()", "[IS_AT, MANY_TO_MANY, ONE_TO_ONE, OWNS, SECURITY]", Scripting.replaceVariables(actionContext, testOne, "${sort(getRelationshipTypes(this, 'schema'))}"));
+				assertEquals("Invalid result for getRelationshipTypes()", "[IS_AT, OWNS]", Scripting.replaceVariables(actionContext, testOne, "${sort(getRelationshipTypes(this, 'schema', 'outgoing'))}"));
+
+				// error cases where null is expected
+				assertNull(Scripting.evaluate(actionContext, testOne, "${getRelationshipTypes('NotANode')}", "test1"));
+				assertNull(Scripting.evaluate(actionContext, testOne, "${getRelationshipTypes(this, 'invalid_lookup_type')}", "test1"));
+				assertNull(Scripting.evaluate(actionContext, testOne, "${getRelationshipTypes(this, 'schema', 'invalid_direction')}", "test1"));
+
+				tx.success();
+
+			} catch (FrameworkException t) {
+				t.printStackTrace();
+				fail("Unexpected exception");
+			}
+		}
+
+		// test functions in JavaScript
+		{
+			// tests
+			try (final Tx tx = app.tx()) {
+
+				assertEquals("Invalid result for getRelationshipTypes()", "[IS_AT, MANY_TO_MANY, OWNS]", Scripting.replaceVariables(actionContext, testOne, "${{$.sort($.getRelationshipTypes($.this))}}"));
+				assertEquals("Invalid result for getRelationshipTypes()", "[IS_AT, MANY_TO_MANY, ONE_TO_ONE, OWNS, SECURITY]", Scripting.replaceVariables(actionContext, testOne, "${{$.sort($.getRelationshipTypes($.this, 'schema'))}}"));
+				assertEquals("Invalid result for getRelationshipTypes()", "[IS_AT, OWNS]", Scripting.replaceVariables(actionContext, testOne, "${{$.sort($.getRelationshipTypes($.this, 'schema', 'outgoing'))}}"));
+
+				// error cases where an exception is expected
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.getRelationshipTypes('DoesNotExist'); }}", "test1");
+					fail("Exception should have been thrown");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for getRelationshipTypes() when supplying non-node as first parameter!", GetRelationshipTypesFunction.UNSUPPORTED_TYPE_PARAMETER_NODE.formatted("getRelationshipTypes", "DoesNotExist"), expected.getMessage());
+				}
+				try {
+					Scripting.evaluate(actionContext, testOne, "${{ $.getRelationshipTypes($.this, 'INVALID_LOOKUP_TYPE'); }}", "test1");
+					fail("Exception should have been thrown");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for getRelationshipTypes() when using invalid lookupType!", GetRelationshipTypesFunction.UNSUPPORTED_TYPE_PARAMETER_LOOKUPTYPE.formatted("getRelationshipTypes", "INVALID_LOOKUP_TYPE"), expected.getMessage());
+				}
+				try {
+					Scripting.evaluate(actionContext, testOne, "${{ $.getRelationshipTypes($.this, 'schema', 'INVALID_DIRECTION'); }}", "test1");
+					fail("Exception should have been thrown");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for getRelationshipTypes() when using invalid direction!", GetRelationshipTypesFunction.UNSUPPORTED_TYPE_PARAMETER_DIRECTION.formatted("getRelationshipTypes", "INVALID_DIRECTION"), expected.getMessage());
+				}
+
+			} catch (FrameworkException t) {
+				t.printStackTrace();
+				fail("Unexpected exception");
+			}
+		}
+	}
+
 	// ----- private methods ----
 	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource) {
 

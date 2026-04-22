@@ -42,6 +42,10 @@ import java.util.Set;
 
 public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 
+	public static final String UNSUPPORTED_TYPE_PARAMETER_NODE       = "%s(): Parameter 'node' is not a node. Input: %s";
+	public static final String UNSUPPORTED_TYPE_PARAMETER_LOOKUPTYPE = "%s(): Parameter 'lookupType' invalid. Input: %s";
+	public static final String UNSUPPORTED_TYPE_PARAMETER_DIRECTION  = "%s(): Parameter 'direction' invalid. Input: %s";
+
 	@Override
 	public String getName() {
 		return "getRelationshipTypes";
@@ -49,101 +53,107 @@ public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("node, lookupType [, direction ]");
+		return Signature.forAllScriptingLanguages("node, [ lookupType = 'existing' [, direction = 'both' ]]");
 	}
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		final Set<String> resultSet = new HashSet();
+		final Set<String> resultSet = new HashSet<>();
 
 		try {
 
 			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 3);
 
-			final Object param1 = sources[0];
-			NodeInterface node = null;
+			if (sources[0] instanceof NodeInterface node) {
 
-			if (param1 instanceof NodeInterface) {
+				final String lookupType = (sources.length >= 2) ? sources[1].toString() : "existing";
+				final String direction  = (sources.length >= 3) ? sources[2].toString() : "both";
 
-				node = (NodeInterface)param1;
+				switch (lookupType) {
+
+					case "schema": {
+
+						final PropertyKey<String> relatedTypeKey      = new StringProperty("relatedType");
+						final PropertyKey<String> classNameKey        = new StringProperty("className");
+						final PropertyKey<String> relationshipTypeKey = new StringProperty("relationshipType");
+
+						final List<GraphObjectMap> propertyList = SchemaHelper.getSchemaTypeInfo(ctx.getSecurityContext(), node.getType(), PropertyView.All);
+
+						switch (direction) {
+
+							case "incoming":
+								for (final GraphObjectMap gom : propertyList) {
+
+									if (gom.containsKey(relatedTypeKey) && gom.get(classNameKey).startsWith("org.structr.core.property.StartNode")) {
+										resultSet.add(gom.get(relationshipTypeKey));
+									}
+								}
+								break;
+
+							case "outgoing":
+								for (final GraphObjectMap gom : propertyList) {
+
+									if (gom.containsKey(relatedTypeKey) && gom.get(classNameKey).startsWith("org.structr.core.property.EndNode")) {
+										resultSet.add(gom.get(relationshipTypeKey));
+									}
+								}
+								break;
+
+							case "both":
+								for (final GraphObjectMap gom : propertyList) {
+
+									if (gom.containsKey(relatedTypeKey) && (gom.get(classNameKey).startsWith("org.structr.core.property.StartNode") || gom.get(classNameKey).startsWith("org.structr.core.property.EndNode"))) {
+										resultSet.add(gom.get(relationshipTypeKey));
+									}
+								}
+								break;
+
+							default:
+								return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, UNSUPPORTED_TYPE_PARAMETER_DIRECTION.formatted(getName(), direction));
+						}
+
+						break;
+					}
+
+					case "existing": {
+
+						switch (direction) {
+							case "incoming":
+								for (final RelationshipInterface rel : node.getIncomingRelationships()) {
+
+									resultSet.add(rel.getRelType().name());
+								}
+								break;
+
+							case "outgoing":
+								for (final RelationshipInterface rel : node.getOutgoingRelationships()) {
+
+									resultSet.add(rel.getRelType().name());
+								}
+								break;
+
+							case "both":
+								for (final RelationshipInterface rel : node.getRelationships()) {
+
+									resultSet.add(rel.getRelType().name());
+								}
+								break;
+
+							default:
+								return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, UNSUPPORTED_TYPE_PARAMETER_DIRECTION.formatted(getName(), direction));
+						}
+
+						break;
+					}
+
+					default:
+						return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, UNSUPPORTED_TYPE_PARAMETER_LOOKUPTYPE.formatted(getName(), lookupType));
+				}
 
 			} else {
 
-				logger.warn("Error: entity is not a node. Parameters: {}", getParametersAsString(sources));
-				return "Error: entity is not a node.";
-			}
-
-			final String lookupType = (sources.length >= 2) ? sources[1].toString() : "existing";
-			final String direction  = (sources.length >= 3) ? sources[2].toString() : "both";
-
-			switch(lookupType) {
-
-				case "schema":
-
-					final PropertyKey<String> relatedTypeKey      = new StringProperty("relatedType");
-					final PropertyKey<String> classNameKey        = new StringProperty("className");
-					final PropertyKey<String> relationshipTypeKey = new StringProperty("relationshipType");
-
-					final List<GraphObjectMap> propertyList = SchemaHelper.getSchemaTypeInfo(ctx.getSecurityContext(), node.getType(), PropertyView.All);
-
-					switch(direction) {
-						case "incoming":
-							for (final GraphObjectMap gom : propertyList) {
-
-								if (gom.containsKey(relatedTypeKey) && gom.get(classNameKey).startsWith("org.structr.core.property.StartNode")) {
-									resultSet.add(gom.get(relationshipTypeKey));
-								}
-							}
-							break;
-
-						case "outgoing":
-							for (final GraphObjectMap gom : propertyList) {
-
-								if (gom.containsKey(relatedTypeKey) && gom.get(classNameKey).startsWith("org.structr.core.property.EndNode")) {
-									resultSet.add(gom.get(relationshipTypeKey));
-								}
-							}
-							break;
-
-						default:
-						case "both":
-							for (final GraphObjectMap gom : propertyList) {
-
-								if (gom.containsKey(relatedTypeKey) && (gom.get(classNameKey).startsWith("org.structr.core.property.StartNode") || gom.get(classNameKey).startsWith("org.structr.core.property.EndNode"))) {
-									resultSet.add(gom.get(relationshipTypeKey));
-								}
-							}
-							break;
-					}
-					break;
-
-				default:
-				case "existing":
-
-					switch(direction) {
-						case "incoming":
-							for (final RelationshipInterface rel : node.getIncomingRelationships()) {
-
-								resultSet.add(rel.getRelType().name());
-							}
-							break;
-
-						case "outgoing":
-							for (final RelationshipInterface rel : node.getOutgoingRelationships()) {
-
-								resultSet.add(rel.getRelType().name());
-							}
-							break;
-
-						default:
-						case "both":
-							for (final RelationshipInterface rel : node.getRelationships()) {
-
-								resultSet.add(rel.getRelType().name());
-							}
-							break;
-					}
+				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, UNSUPPORTED_TYPE_PARAMETER_NODE.formatted(getName(), sources[0].toString()));
 			}
 
 		} catch (ArgumentNullException pe) {
@@ -162,8 +172,8 @@ public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${getRelationshipTypes(node, lookupType [, direction])}. Example: ${getRelationshipTypes(me, 'existing', 'both')}"),
-			Usage.javaScript("Usage: ${{$.getRelationshipTypes(node, lookupType [, direction ])}}. Example: ${{$.getRelationshipTypes(me, 'existing', 'both')}}")
+			Usage.structrScript("Usage: ${getRelationshipTypes(node, [ lookupType [, direction ]])}. Example: ${getRelationshipTypes(me, 'existing', 'both')}"),
+			Usage.javaScript("Usage: ${{$.getRelationshipTypes(node, [ lookupType [, direction ]])}}. Example: ${{$.getRelationshipTypes(me, 'existing', 'both')}}")
 		);
 	}
 
@@ -206,6 +216,14 @@ public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 				Parameter.mandatory("node", "node for which possible relationship types should be checked"),
 				Parameter.optional("lookupType", "`existing` or `schema` - default: `existing`"),
 				Parameter.optional("direction", "`incoming`, `outgoing` or `both` - default: `both`")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"If the first parameter is not a node, a catchable error is produced (where applicable) and/or null will be returned.",
+				"If invalid values are provided for the parameters `lookupType` or `direction`, a catchable error is produced (where applicable) and/or null will be returned."
 		);
 	}
 
