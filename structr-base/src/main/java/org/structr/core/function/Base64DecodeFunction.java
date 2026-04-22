@@ -35,6 +35,10 @@ import java.util.List;
 
 public class Base64DecodeFunction extends CoreFunction {
 
+	public static final String ERROR_MESSAGE_UNSUPPORTED_DECODING_SCHEME  = "%s(): Unsupported base64 decoding scheme '%s' - supported values are 'basic', 'url' and 'mime'.";
+	public static final String ERROR_MESSAGE_EXCEPTION_IN_DECODING        = "%s(): Exception encountered while decoding '%s' with scheme '%s'";
+	public static final String ERROR_MESSAGE_UNSUPPORTED_CHARSET          = "%s(): Unsupported charset %s";
+
 	@Override
 	public String getName() {
 		return "base64decode";
@@ -68,15 +72,7 @@ public class Base64DecodeFunction extends CoreFunction {
 
 				default:
 
-					if (ctx.supportsExceptionHandling()) {
-
-						throw new FrameworkException(422, "%s: Unsupported base64 decoding scheme '%s' - supported values are 'basic', 'url' and 'mime'.".formatted(getName(), decodingScheme));
-
-					} else {
-
-						logger.warn("{}: Unsupported base64 decoding scheme '{}' - supported values are 'basic', ‘url' and 'mime'.", getName(), decodingScheme);
-						return null;
-					}
+					return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, ERROR_MESSAGE_UNSUPPORTED_DECODING_SCHEME.formatted(getName(), decodingScheme));
 			}
 
 			try {
@@ -85,26 +81,12 @@ public class Base64DecodeFunction extends CoreFunction {
 
 			} catch (final Throwable t) {
 
-				if (ctx.supportsExceptionHandling()) {
-
-					throw new FrameworkException(422, "%s: Exception encountered while decoding '%s' with scheme '%s'".formatted(getName(), input, decodingScheme), t);
-
-				} else {
-
-					logException(t, "{}: Exception encountered while decoding '{}' with scheme '{}'", new Object[] { getName(), input, decodingScheme });
-				}
+				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, ERROR_MESSAGE_EXCEPTION_IN_DECODING.formatted(getName(), input, decodingScheme), t);
 			}
 
 		} catch (final UnsupportedCharsetException uce) {
 
-			if (ctx.supportsExceptionHandling()) {
-
-				throw new FrameworkException(422, "%s: Unsupported charset %s".formatted(getName(), sources[2]), uce);
-
-			} else {
-
-				logException(uce, "{}: Unsupported charset {}", new Object[] { getName(), sources[2] });
-			}
+			return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, ERROR_MESSAGE_UNSUPPORTED_CHARSET.formatted(getName(), sources[2]), uce);
 
 		} catch (ArgumentNullException pe) {
 

@@ -38,10 +38,7 @@ import org.structr.core.api.UnnamedArguments;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.*;
-import org.structr.core.function.DateFormatFunction;
-import org.structr.core.function.AbstractQueryFunction;
-import org.structr.core.function.FunctionInfoFunction;
-import org.structr.core.function.NumberFormatFunction;
+import org.structr.core.function.*;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -7491,50 +7488,6 @@ public class ScriptingTest extends StructrTest {
 	}
 
 	@Test
-	public void testInheritingAndAncestorTypesFunctionsInStructrScript() {
-
-		final ActionContext actionContext = new ActionContext(securityContext);
-
-		// schema setup
-		try (final Tx tx = app.tx()) {
-
-			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
-			final JsonType subUser    = schema.addType("SubUser").addTrait(StructrTraits.USER);
-			final JsonType subSubUser = schema.addType("SubSubUser").addTrait("SubUser");
-
-			final JsonType serviceClass = schema.addType("SomeServiceClass").setIsServiceClass();
-
-			StructrSchema.replaceDatabaseSchema(app, schema);
-
-			tx.success();
-
-		} catch (FrameworkException t) {
-			logger.error("", t);
-			fail("Unexpected exception during test setup.");
-		}
-
-		// test
-		try (final Tx tx = app.tx()) {
-
-			final String result1 = Scripting.evaluate(actionContext, null, "${sort(inheritingTypes('Principal'))}", "test1").toString();
-			final String result2 = Scripting.evaluate(actionContext, null, "${sort(inheritingTypes('Principal', merge('SubUser', 'SubSubUser')))}", "test1").toString();
-			final String result3 = Scripting.evaluate(actionContext, null, "${sort(ancestorTypes('SubSubUser'))}", "test1").toString();
-			final String result4 = Scripting.evaluate(actionContext, null, "${sort(ancestorTypes('SubSubUser', merge('SubUser', 'User')))}", "test1").toString();
-
-			assertEquals("Invalid result for inheritingTypes() function.", "[Group, SubSubUser, SubUser, User]", result1);
-			assertEquals("Invalid result for inheritingTypes() function.", "[Group, User]", result2);
-			assertEquals("Invalid result for ancestorTypes() function.", "[Principal, SubUser, User]", result3);
-			assertEquals("Invalid result for ancestorTypes() function.", "[Principal]", result4);
-
-			tx.success();
-
-		} catch (FrameworkException t) {
-			t.printStackTrace();
-			fail("Unexpected exception during test setup.");
-		}
-	}
-
-	@Test
 	public void testInheritingAndAncestorTypesFunctions() {
 
 		final ActionContext actionContext = new ActionContext(securityContext);
@@ -7557,101 +7510,131 @@ public class ScriptingTest extends StructrTest {
 			fail("Unexpected exception during test setup.");
 		}
 
-		// tests
-		try (final Tx tx = app.tx()) {
+		// test functions in StructrScript
+		{
+			try (final Tx tx = app.tx()) {
 
-			// happy path
-			{
-				final String result1 = (String) Scripting.evaluate(actionContext, null, "${{ JSON.stringify($.inheritingTypes('Principal').sort()); }}", "test1");
-				final String result2 = (String) Scripting.evaluate(actionContext, null, "${{ JSON.stringify($.inheritingTypes('Principal', ['SubUser', 'SubSubUser']).sort()); }}", "test1");
-				final String result3 = (String) Scripting.evaluate(actionContext, null, "${{ JSON.stringify($.ancestorTypes('SubSubUser').sort()); }}", "test1");
-				final String result4 = (String) Scripting.evaluate(actionContext, null, "${{ JSON.stringify($.ancestorTypes('SubSubUser', ['SubUser', 'User']).sort()); }}", "test1");
+				assertEquals("Invalid result for inheritingTypes()", "[Group, SubSubUser, SubUser, User]", Scripting.replaceVariables(actionContext, null, "${sort(inheritingTypes('Principal'))}"));
+				assertEquals("Invalid result for inheritingTypes()", "[Group, User]",                      Scripting.replaceVariables(actionContext, null, "${sort(inheritingTypes('Principal', merge('SubUser', 'SubSubUser')))}"));
+				assertEquals("Invalid result for ancestorTypes()",   "[Principal, SubUser, User]",         Scripting.replaceVariables(actionContext, null, "${sort(ancestorTypes('SubSubUser'))}"));
+				assertEquals("Invalid result for ancestorTypes()",   "[Principal]",                        Scripting.replaceVariables(actionContext, null, "${sort(ancestorTypes('SubSubUser', merge('SubUser', 'User')))}"));
 
-				assertEquals("Invalid result for inheritingTypes() function.", "[\"Group\",\"SubSubUser\",\"SubUser\",\"User\"]", result1);
-				assertEquals("Invalid result for inheritingTypes() function.", "[\"Group\",\"User\"]", result2);
-				assertEquals("Invalid result for ancestorTypes() function.", "[\"Principal\",\"SubUser\",\"User\"]", result3);
-				assertEquals("Invalid result for ancestorTypes() function.", "[\"Principal\"]", result4);
+				assertNull(Scripting.evaluate(actionContext, null, "${inheritingTypes('DoesNotExist')}", "test1"));
+				assertNull(Scripting.evaluate(actionContext, null, "${ancestorTypes('DoesNotExist')}", "test1"));
+
+				assertNull(Scripting.evaluate(actionContext, null, "${inheritingTypes('Principal', 12345)}", "test1"));
+				assertNull(Scripting.evaluate(actionContext, null, "${ancestorTypes('SubSubUser', 12345)}", "test1"));
+
+				assertNull(Scripting.evaluate(actionContext, null, "${inheritingTypes('SomeServiceClass')}", "test1"));
+				assertNull(Scripting.evaluate(actionContext, null, "${ancestorTypes('SomeServiceClass')}", "test1"));
+
+				tx.success();
+
+			} catch (FrameworkException t) {
+				t.printStackTrace();
+				fail("Unexpected exception");
 			}
+		}
 
-			// test wrong type name
-			{
-				try {
-					Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('DoesNotExist'); }}", "test1");
-				} catch (FrameworkException expected) {
-					assertEquals("Invalid error message for inheritingTypes() when querying type that does not exist!", "inheritingTypes(): Type 'DoesNotExist' not found.", expected.getMessage());
+		// test functions in JavaScript
+		{
+			// tests
+			try (final Tx tx = app.tx()) {
+
+				// happy path
+				{
+					assertEquals("Invalid result for inheritingTypes()", "[Group, SubSubUser, SubUser, User]", Scripting.replaceVariables(actionContext, null, "${{ $.inheritingTypes('Principal').sort(); }}"));
+					assertEquals("Invalid result for inheritingTypes()", "[Group, User]",                      Scripting.replaceVariables(actionContext, null, "${{ $.inheritingTypes('Principal', ['SubUser', 'SubSubUser']).sort(); }}"));
+					assertEquals("Invalid result for inheritingTypes()", "[Group, User]",                      Scripting.replaceVariables(actionContext, null, "${{ $.inheritingTypes('Principal', new Set(['SubUser', 'SubSubUser'])).sort(); }}"));
+					assertEquals("Invalid result for inheritingTypes()", "[Group, User]",                      Scripting.replaceVariables(actionContext, null, "${{ $.inheritingTypes('Principal', new Array('SubUser', 'SubSubUser')).sort(); }}"));
+					assertEquals("Invalid result for inheritingTypes()", "[Group, User]",                      Scripting.replaceVariables(actionContext, null, "${{ $.inheritingTypes('Principal', $.merge('SubUser', 'SubSubUser')).sort(); }}"));
+					assertEquals("Invalid result for ancestorTypes()",   "[Principal, SubUser, User]",         Scripting.replaceVariables(actionContext, null, "${{ $.ancestorTypes('SubSubUser').sort(); }}"));
+					assertEquals("Invalid result for ancestorTypes()",   "[Principal]",                        Scripting.replaceVariables(actionContext, null, "${{ $.ancestorTypes('SubSubUser', ['SubUser', 'User']).sort(); }}"));
+					assertEquals("Invalid result for ancestorTypes()",   "[Principal]",                        Scripting.replaceVariables(actionContext, null, "${{ $.ancestorTypes('SubSubUser', new Set(['SubUser', 'User'])).sort(); }}"));
+					assertEquals("Invalid result for ancestorTypes()",   "[Principal]",                        Scripting.replaceVariables(actionContext, null, "${{ $.ancestorTypes('SubSubUser', new Array('SubUser', 'User')).sort(); }}"));
+					assertEquals("Invalid result for ancestorTypes()",   "[Principal]",                        Scripting.replaceVariables(actionContext, null, "${{ $.ancestorTypes('SubSubUser', $.merge('SubUser', 'User')).sort(); }}"));
 				}
-				try {
-					Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('DoesNotExist'); }}", "test1");
-				} catch (FrameworkException expected) {
-					assertEquals("Invalid error message for ancestorTypes() when querying type that does not exist!", "ancestorTypes(): Type 'DoesNotExist' not found.", expected.getMessage());
+
+				// test wrong type name
+				{
+					try {
+						Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('DoesNotExist'); }}", "test1");
+					} catch (FrameworkException expected) {
+						assertEquals("Invalid error message for inheritingTypes() when querying type that does not exist!", TypeInfoFunction.UNKNOWN_TYPE_ERROR_MESSAGE.formatted("inheritingTypes", "DoesNotExist"), expected.getMessage());
+					}
+					try {
+						Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('DoesNotExist'); }}", "test1");
+					} catch (FrameworkException expected) {
+						assertEquals("Invalid error message for ancestorTypes() when querying type that does not exist!", TypeInfoFunction.UNKNOWN_TYPE_ERROR_MESSAGE.formatted("ancestorTypes", "DoesNotExist"), expected.getMessage());
+					}
 				}
+
+				// test service class
+				{
+					try {
+						Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('SomeServiceClass'); }}", "test1");
+					} catch (FrameworkException expected) {
+						assertEquals("Invalid error message for inheritingTypes() when querying type that is a service class!", AncestorTypesFunction.UNSUPPORTED_TYPE_PARAMETER_TYPE_SERVICE_CLASS.formatted("inheritingTypes", "SomeServiceClass"), expected.getMessage());
+					}
+					try {
+						Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('SomeServiceClass'); }}", "test1");
+					} catch (FrameworkException expected) {
+						assertEquals("Invalid error message for ancestorTypes() when querying type that is a service class!", AncestorTypesFunction.UNSUPPORTED_TYPE_PARAMETER_TYPE_SERVICE_CLASS.formatted("ancestorTypes", "SomeServiceClass"), expected.getMessage());
+					}
+				}
+
+				// test wrong parameter type for blacklist parameter
+				{
+					final String expectedErrorNonListParameterInheriting = AncestorTypesFunction.UNSUPPORTED_TYPE_PARAMETER_BLACKLIST.formatted("inheritingTypes");
+					final String expectedErrorNonListParameterAncestor   = AncestorTypesFunction.UNSUPPORTED_TYPE_PARAMETER_BLACKLIST.formatted("ancestorTypes");
+					try {
+						Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('User', 'This is wrong'); }}", "test1");
+					} catch (FrameworkException expected) {
+						assertEquals("Invalid error message for inheritingTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterInheriting, expected.getMessage());
+					}
+					try {
+						Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('User', 'This is wrong'); }}", "test1");
+					} catch (FrameworkException expected) {
+						assertEquals("Invalid error message for ancestorTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterAncestor, expected.getMessage());
+					}
+					try {
+						Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('User', 42); }}", "test1");
+					} catch (FrameworkException expected) {
+						assertEquals("Invalid error message for inheritingTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterInheriting, expected.getMessage());
+					}
+					try {
+						Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('User', 42); }}", "test1");
+					} catch (FrameworkException expected) {
+						assertEquals("Invalid error message for ancestorTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterAncestor, expected.getMessage());
+					}
+					try {
+						Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('User', new Date()); }}", "test1");
+					} catch (FrameworkException expected) {
+						assertEquals("Invalid error message for inheritingTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterInheriting, expected.getMessage());
+					}
+					try {
+						Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('User', new Date()); }}", "test1");
+					} catch (FrameworkException expected) {
+						assertEquals("Invalid error message for ancestorTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterAncestor, expected.getMessage());
+					}
+					try {
+						Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('User', { test: 'blah' }); }}", "test1");
+					} catch (FrameworkException expected) {
+						assertEquals("Invalid error message for inheritingTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterInheriting, expected.getMessage());
+					}
+					try {
+						Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('User', { test: 'blah' }); }}", "test1");
+					} catch (FrameworkException expected) {
+						assertEquals("Invalid error message for ancestorTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterAncestor, expected.getMessage());
+					}
+				}
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+				fail("Unexpected exception");
 			}
-
-			// test service class
-			{
-				try {
-					Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('SomeServiceClass'); }}", "test1");
-				} catch (FrameworkException expected) {
-					assertEquals("Invalid error message for inheritingTypes() when querying type that is a service class!", "inheritingTypes(): Not applicable to service class 'SomeServiceClass'.", expected.getMessage());
-				}
-				try {
-					Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('SomeServiceClass'); }}", "test1");
-				} catch (FrameworkException expected) {
-					assertEquals("Invalid error message for ancestorTypes() when querying type that is a service class!", "ancestorTypes(): Not applicable to service class 'SomeServiceClass'.", expected.getMessage());
-				}
-			}
-
-			// test wrong parameter type for blacklist parameter
-			{
-				final String expectedErrorNonListParameterInheriting = "inheritingTypes(): Expected 'blacklist' parameter to be of type List.";
-				final String expectedErrorNonListParameterAncestor   = "ancestorTypes(): Expected 'blacklist' parameter to be of type List.";
-				try {
-					Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('User', 'This is wrong'); }}", "test1");
-				} catch (FrameworkException expected) {
-					assertEquals("Invalid error message for inheritingTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterInheriting, expected.getMessage());
-				}
-				try {
-					Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('User', 'This is wrong'); }}", "test1");
-				} catch (FrameworkException expected) {
-					assertEquals("Invalid error message for ancestorTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterAncestor, expected.getMessage());
-				}
-				try {
-					Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('User', 42); }}", "test1");
-				} catch (FrameworkException expected) {
-					assertEquals("Invalid error message for inheritingTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterInheriting, expected.getMessage());
-				}
-				try {
-					Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('User', 42); }}", "test1");
-				} catch (FrameworkException expected) {
-					assertEquals("Invalid error message for ancestorTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterAncestor, expected.getMessage());
-				}
-				try {
-					Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('User', new Date()); }}", "test1");
-				} catch (FrameworkException expected) {
-					assertEquals("Invalid error message for inheritingTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterInheriting, expected.getMessage());
-				}
-				try {
-					Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('User', new Date()); }}", "test1");
-				} catch (FrameworkException expected) {
-					assertEquals("Invalid error message for ancestorTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterAncestor, expected.getMessage());
-				}
-				try {
-					Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('User', { test: 'blah' }); }}", "test1");
-				} catch (FrameworkException expected) {
-					assertEquals("Invalid error message for inheritingTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterInheriting, expected.getMessage());
-				}
-				try {
-					Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('User', { test: 'blah' }); }}", "test1");
-				} catch (FrameworkException expected) {
-					assertEquals("Invalid error message for ancestorTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterAncestor, expected.getMessage());
-				}
-			}
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-			fail("Unexpected exception");
 		}
 	}
 
@@ -8128,6 +8111,10 @@ public class ScriptingTest extends StructrTest {
 				assertEquals(null, Scripting.evaluate(actionContext, null, structrScript_not_working_illegal_charset, "test1"));
 			}
 
+			final String expectedErrorMessage_ExceptionInDecoding       = "FrameworkException(422): " + Base64DecodeFunction.ERROR_MESSAGE_EXCEPTION_IN_DECODING.formatted("base64decode", " not part of base64 alphabet ; ", "basic") + " (Illegal base64 character 20)"; // suffix is from the "cause"
+			final String expectedErrorMessage_UnsupportedDecodingScheme = "FrameworkException(422): " + Base64DecodeFunction.ERROR_MESSAGE_UNSUPPORTED_DECODING_SCHEME.formatted("base64decode", "WRONG_SCHEME");
+			final String expectedErrorMessage_UnsupportedCharset        = "FrameworkException(422): " + Base64DecodeFunction.ERROR_MESSAGE_UNSUPPORTED_CHARSET.formatted("base64decode", "WRONG_CHARSET") + " (WRONG_CHARSET)"; // suffix is from the "cause"
+
 			// JavaScript (with exception handling)
 			{
 				final String javaScript_working = """
@@ -8146,8 +8133,7 @@ public class ScriptingTest extends StructrTest {
 							}
 						}}
 						""";
-				final String expectedErrorMessage1 = "FrameworkException(422): base64decode: Exception encountered while decoding ' not part of base64 alphabet ; ' with scheme 'basic' (Illegal base64 character 20)";
-				assertEquals(expectedErrorMessage1, Scripting.evaluate(actionContext, null, javaScript_not_working_illegal_character, "test1"));
+				assertEquals(expectedErrorMessage_ExceptionInDecoding, Scripting.evaluate(actionContext, null, javaScript_not_working_illegal_character, "test1"));
 
 				final String javaScript_not_working_illegal_scheme = """
 						${{
@@ -8158,8 +8144,7 @@ public class ScriptingTest extends StructrTest {
 							}
 						}}
 						""";
-				final String expectedErrorMessage2 = "FrameworkException(422): base64decode: Unsupported base64 decoding scheme 'WRONG_SCHEME' - supported values are 'basic', 'url' and 'mime'.";
-				assertEquals(expectedErrorMessage2, Scripting.evaluate(actionContext, null, javaScript_not_working_illegal_scheme, "test1"));
+				assertEquals(expectedErrorMessage_UnsupportedDecodingScheme, Scripting.evaluate(actionContext, null, javaScript_not_working_illegal_scheme, "test1"));
 
 				final String javaScript_not_working_illegal_charset = """
 						${{
@@ -8170,8 +8155,7 @@ public class ScriptingTest extends StructrTest {
 							}
 						}}
 						""";
-				final String expectedErrorMessage3 = "FrameworkException(422): base64decode: Unsupported charset WRONG_CHARSET (WRONG_CHARSET)";
-				assertEquals(expectedErrorMessage3, Scripting.evaluate(actionContext, null, javaScript_not_working_illegal_charset, "test1"));
+				assertEquals(expectedErrorMessage_UnsupportedCharset, Scripting.evaluate(actionContext, null, javaScript_not_working_illegal_charset, "test1"));
 			}
 
 			// JavaScript (without exception handling)
@@ -8197,8 +8181,7 @@ public class ScriptingTest extends StructrTest {
 
 				} catch (FrameworkException fex) {
 
-					final String expectedErrorMessage = "FrameworkException(422): base64decode: Exception encountered while decoding ' not part of base64 alphabet ; ' with scheme 'basic' (Illegal base64 character 20)";
-					assertEquals(expectedErrorMessage, fex.toString());
+					assertEquals(expectedErrorMessage_ExceptionInDecoding, fex.toString());
 				}
 
 				try {
@@ -8215,8 +8198,7 @@ public class ScriptingTest extends StructrTest {
 
 				} catch (FrameworkException fex) {
 
-					final String expectedErrorMessage = "FrameworkException(422): base64decode: Unsupported base64 decoding scheme 'WRONG_SCHEME' - supported values are 'basic', 'url' and 'mime'.";
-					assertEquals(expectedErrorMessage, fex.toString());
+					assertEquals(expectedErrorMessage_UnsupportedDecodingScheme, fex.toString());
 				}
 
 				try {
@@ -8233,8 +8215,7 @@ public class ScriptingTest extends StructrTest {
 
 				} catch (FrameworkException fex) {
 
-					final String expectedErrorMessage = "FrameworkException(422): base64decode: Unsupported charset WRONG_CHARSET (WRONG_CHARSET)";
-					assertEquals(expectedErrorMessage, fex.toString());
+					assertEquals(expectedErrorMessage_UnsupportedCharset, fex.toString());
 				}
 			}
 
@@ -8257,8 +8238,7 @@ public class ScriptingTest extends StructrTest {
 						result
 						}}
 						""";
-				final String expectedErrorMessage1 = "FrameworkException(422): base64decode: Exception encountered while decoding ' not part of base64 alphabet ; ' with scheme 'basic' (Illegal base64 character 20)";
-				assertEquals(expectedErrorMessage1, Scripting.evaluate(actionContext, null, python_not_working_illegal_character, "test1"));
+				assertEquals(expectedErrorMessage_ExceptionInDecoding, Scripting.evaluate(actionContext, null, python_not_working_illegal_character, "test1"));
 
 				final String python_not_working_illegal_scheme = """
 						${python{
@@ -8270,8 +8250,7 @@ public class ScriptingTest extends StructrTest {
 						result
 						}}
 						""";
-				final String expectedErrorMessage2 = "FrameworkException(422): base64decode: Unsupported base64 decoding scheme 'WRONG_SCHEME' - supported values are 'basic', 'url' and 'mime'.";
-				assertEquals(expectedErrorMessage2, Scripting.evaluate(actionContext, null, python_not_working_illegal_scheme, "test1"));
+				assertEquals(expectedErrorMessage_UnsupportedDecodingScheme, Scripting.evaluate(actionContext, null, python_not_working_illegal_scheme, "test1"));
 
 				final String python_not_working_illegal_charset = """
 						${python{
@@ -8283,8 +8262,7 @@ public class ScriptingTest extends StructrTest {
 						result
 						}}
 						""";
-				final String expectedErrorMessage3 = "FrameworkException(422): base64decode: Unsupported charset WRONG_CHARSET (WRONG_CHARSET)";
-				assertEquals(expectedErrorMessage3, Scripting.evaluate(actionContext, null, python_not_working_illegal_charset, "test1"));
+				assertEquals(expectedErrorMessage_UnsupportedCharset, Scripting.evaluate(actionContext, null, python_not_working_illegal_charset, "test1"));
 			}
 
 			// Python (without exception handling)
@@ -8309,8 +8287,7 @@ public class ScriptingTest extends StructrTest {
 
 				} catch (FrameworkException fex) {
 
-					final String expectedErrorMessage = "FrameworkException(422): base64decode: Exception encountered while decoding ' not part of base64 alphabet ; ' with scheme 'basic' (Illegal base64 character 20)";
-					assertEquals(expectedErrorMessage, fex.toString());
+					assertEquals(expectedErrorMessage_ExceptionInDecoding, fex.toString());
 				}
 
 				try {
@@ -8326,8 +8303,7 @@ public class ScriptingTest extends StructrTest {
 
 				} catch (FrameworkException fex) {
 
-					final String expectedErrorMessage = "FrameworkException(422): base64decode: Unsupported base64 decoding scheme 'WRONG_SCHEME' - supported values are 'basic', 'url' and 'mime'.";
-					assertEquals(expectedErrorMessage, fex.toString());
+					assertEquals(expectedErrorMessage_UnsupportedDecodingScheme, fex.toString());
 				}
 
 				try {
@@ -8343,19 +8319,18 @@ public class ScriptingTest extends StructrTest {
 
 				} catch (FrameworkException fex) {
 
-					final String expectedErrorMessage = "FrameworkException(422): base64decode: Unsupported charset WRONG_CHARSET (WRONG_CHARSET)";
-					assertEquals(expectedErrorMessage, fex.toString());
+					assertEquals(expectedErrorMessage_UnsupportedCharset, fex.toString());
 				}
 			}
 
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 	}
-
 
 	// ----- private methods ----
 	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource) {
