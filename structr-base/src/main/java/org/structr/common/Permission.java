@@ -17,26 +17,23 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.common;
-
 /**
- * A type-safe enumeration of structr's access privileges.
- *
- *
+ * A type-safe enumeration of Structr's access privileges.
  */
 public interface Permission {
 
-	public static final Permission read             = new PermissionImpl("read");
-	public static final Permission write            = new PermissionImpl("write");
-	public static final Permission delete           = new PermissionImpl("delete");
-	public static final Permission accessControl    = new PermissionImpl("accessControl");
+	Permission read             = new PermissionImpl("read");
+	Permission write            = new PermissionImpl("write");
+	Permission delete           = new PermissionImpl("delete");
+	Permission accessControl    = new PermissionImpl("accessControl");
 
-	public static final Permission[] allPermissions = { read, write, delete, accessControl };
+	Permission[] allPermissions = { read, write, delete, accessControl };
 
-	public String name();
+	String name();
 
-	static class PermissionImpl implements Permission {
+	class PermissionImpl implements Permission {
 
-		private String name = null;
+		private final String name;
 
 		private PermissionImpl(final String name) {
 
