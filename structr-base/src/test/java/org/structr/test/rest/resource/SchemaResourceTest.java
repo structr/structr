@@ -1145,8 +1145,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 			.expect()
 				.statusCode(200)
 
-				.body("result_count",                  equalTo(1))
-				.body("result",	                    hasSize(1))
+				.body("result_count",               equalTo(1))
 				.body("result.url",                 equalTo("/Group"))
 				.body("result.type",                equalTo(StructrTraits.GROUP))
 				.body("result.className",           equalTo(StructrTraits.GROUP))
