@@ -685,7 +685,7 @@ public class ScriptingTest extends StructrTest {
 			template2.setProperty(getKey(StructrTraits.MAIL_TEMPLATE, MailTemplateTraitDefinition.LOCALE_PROPERTY), "en_EN");
 			template2.setProperty(getKey(StructrTraits.MAIL_TEMPLATE, MailTemplateTraitDefinition.TEXT_PROPERTY), "${this.aDouble}");
 
-			// check existance
+			// check existence
 			assertNotNull(testOne);
 
 			testOne.setProperty(Traits.of("TestOne").key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "A-nice-little-name-for-my-test-object");
@@ -1797,7 +1797,7 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid result of has_outgoing_relationship", "false", Scripting.replaceVariables(ctx, testOne, "${has_outgoing_relationship(this, first(find('TestThree', 'name', 'testThree_name')), 'THIS_DOES_NOT_EXIST')}"));
 			assertEquals("Invalid result of has_outgoing_relationship", "false", Scripting.replaceVariables(ctx, testOne, "${has_outgoing_relationship(first(find('TestThree', 'name', 'testThree_name')), this, 'THIS_DOES_NOT_EXIST')}"));
 
-			// get_relationships (CAUTION! If the method returns a string (error-case) the size-method returns "1" => it seems like there is one relationsh)
+			// get_relationships (CAUTION! If the method returns a string (error-case) the size-method returns "1" => it seems like there is one relationship)
 			assertEquals("Invalid number of relationships", "0",  Scripting.replaceVariables(ctx, testOne, "${size(get_relationships(this, this))}"));
 
 			// non-existent relType between nodes which have a relationship
@@ -1810,7 +1810,7 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid number of relationships", "1",  Scripting.replaceVariables(ctx, testTwo, "${size(get_relationships(this, first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), 'IS_AT'))}"));
 
 
-			// get_incoming_relationships (CAUTION! If the method returns a string (error-case) the size-method returns "1" => it seems like there is one relationsh)
+			// get_incoming_relationships (CAUTION! If the method returns a string (error-case) the size-method returns "1" => it seems like there is one relationship)
 			assertEquals("Invalid number of incoming relationships", "0",  Scripting.replaceVariables(ctx, testOne, "${size(get_incoming_relationships(this, this))}"));
 
 			assertEquals("Invalid number of incoming relationships", "0",  Scripting.replaceVariables(ctx, testOne, "${size(get_incoming_relationships(this, first(find('TestTwo', 'name', 'testTwo_name'))))}"));
@@ -1890,11 +1890,16 @@ public class ScriptingTest extends StructrTest {
 			// sort with extract
 			assertEquals("Invalid sort result", "[b, a, c]", Scripting.replaceVariables(ctx, null, "${merge('b', 'a', 'c')}"));
 			assertEquals("Invalid sort result", "[a, b, c]", Scripting.replaceVariables(ctx, null, "${sort(merge('b', 'a', 'c'))}"));
+			assertEquals("Invalid sort result", "[c, b, a]", Scripting.replaceVariables(ctx, null, "${sort(merge('b', 'a', 'c'), '', true)}"));
 			assertEquals("Invalid sort result", "",          Scripting.replaceVariables(ctx, null, "${sort()}"));
 			assertEquals("Invalid sort result", "[TestSix19, TestSix18, TestSix17, TestSix16, TestSix15, TestSix14, TestSix13, TestSix12, TestSix11, TestSix10, TestSix09, TestSix08, TestSix07, TestSix06, TestSix05, TestSix04, TestSix03, TestSix02, TestSix01, TestSix00]",          Scripting.replaceVariables(ctx, testOne, "${extract(sort(this.manyToManyTestSixs, 'index', true), 'name')}"));
 			assertEquals("Invalid sort result", "[A-nice-little-name-for-my-test-object, testThree_name, testTwo_name]", Scripting.replaceVariables(ctx, testOne, "${extract(sort(merge(this, this.testTwo, this.testThree), 'name'), 'name')}"));
 			assertEquals("Invalid sort result", "[A-nice-little-name-for-my-test-object, testThree_name, testTwo_name]", Scripting.replaceVariables(ctx, testOne, "${extract(sort(merge(this.testTwo, this, this.testThree), 'name'), 'name')}"));
 			assertEquals("Invalid sort result", "[A-nice-little-name-for-my-test-object, testThree_name, testTwo_name]", Scripting.replaceVariables(ctx, testOne, "${extract(sort(merge(this.testTwo, this.testThree, this), 'name'), 'name')}"));
+
+			// sort with a Set as input
+			assertEquals("Invalid ascending sort result for Set input", "[IS_AT, MANY_TO_MANY, OWNS]", Scripting.replaceVariables(ctx, testOne, "${sort(getRelationshipTypes(this))}"));
+			assertEquals("Invalid descending sort result for Set input", "[OWNS, MANY_TO_MANY, IS_AT]", Scripting.replaceVariables(ctx, testOne, "${sort(getRelationshipTypes(this), '', true)}"));
 
 			// extract
 			assertEquals("Invalid extract() result for relationship property", "[[" + StringUtils.join(testSixs, ", ") +  "]]", Scripting.replaceVariables(ctx, testOne, "${extract(find('TestOne'), 'manyToManyTestSixs')}"));
@@ -7559,11 +7564,13 @@ public class ScriptingTest extends StructrTest {
 				{
 					try {
 						Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('DoesNotExist'); }}", "test1");
+						fail("Exception should have been thrown");
 					} catch (FrameworkException expected) {
 						assertEquals("Invalid error message for inheritingTypes() when querying type that does not exist!", TypeInfoFunction.UNKNOWN_TYPE_ERROR_MESSAGE.formatted("inheritingTypes", "DoesNotExist"), expected.getMessage());
 					}
 					try {
 						Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('DoesNotExist'); }}", "test1");
+						fail("Exception should have been thrown");
 					} catch (FrameworkException expected) {
 						assertEquals("Invalid error message for ancestorTypes() when querying type that does not exist!", TypeInfoFunction.UNKNOWN_TYPE_ERROR_MESSAGE.formatted("ancestorTypes", "DoesNotExist"), expected.getMessage());
 					}
@@ -7573,11 +7580,13 @@ public class ScriptingTest extends StructrTest {
 				{
 					try {
 						Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('SomeServiceClass'); }}", "test1");
+						fail("Exception should have been thrown");
 					} catch (FrameworkException expected) {
 						assertEquals("Invalid error message for inheritingTypes() when querying type that is a service class!", AncestorTypesFunction.UNSUPPORTED_TYPE_PARAMETER_TYPE_SERVICE_CLASS.formatted("inheritingTypes", "SomeServiceClass"), expected.getMessage());
 					}
 					try {
 						Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('SomeServiceClass'); }}", "test1");
+						fail("Exception should have been thrown");
 					} catch (FrameworkException expected) {
 						assertEquals("Invalid error message for ancestorTypes() when querying type that is a service class!", AncestorTypesFunction.UNSUPPORTED_TYPE_PARAMETER_TYPE_SERVICE_CLASS.formatted("ancestorTypes", "SomeServiceClass"), expected.getMessage());
 					}
@@ -7589,41 +7598,49 @@ public class ScriptingTest extends StructrTest {
 					final String expectedErrorNonListParameterAncestor   = AncestorTypesFunction.UNSUPPORTED_TYPE_PARAMETER_BLACKLIST.formatted("ancestorTypes");
 					try {
 						Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('User', 'This is wrong'); }}", "test1");
+						fail("Exception should have been thrown");
 					} catch (FrameworkException expected) {
 						assertEquals("Invalid error message for inheritingTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterInheriting, expected.getMessage());
 					}
 					try {
 						Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('User', 'This is wrong'); }}", "test1");
+						fail("Exception should have been thrown");
 					} catch (FrameworkException expected) {
 						assertEquals("Invalid error message for ancestorTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterAncestor, expected.getMessage());
 					}
 					try {
 						Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('User', 42); }}", "test1");
+						fail("Exception should have been thrown");
 					} catch (FrameworkException expected) {
 						assertEquals("Invalid error message for inheritingTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterInheriting, expected.getMessage());
 					}
 					try {
 						Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('User', 42); }}", "test1");
+						fail("Exception should have been thrown");
 					} catch (FrameworkException expected) {
 						assertEquals("Invalid error message for ancestorTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterAncestor, expected.getMessage());
 					}
 					try {
 						Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('User', new Date()); }}", "test1");
+						fail("Exception should have been thrown");
 					} catch (FrameworkException expected) {
 						assertEquals("Invalid error message for inheritingTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterInheriting, expected.getMessage());
 					}
 					try {
 						Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('User', new Date()); }}", "test1");
+						fail("Exception should have been thrown");
 					} catch (FrameworkException expected) {
 						assertEquals("Invalid error message for ancestorTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterAncestor, expected.getMessage());
 					}
 					try {
 						Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('User', { test: 'blah' }); }}", "test1");
+						fail("Exception should have been thrown");
 					} catch (FrameworkException expected) {
 						assertEquals("Invalid error message for inheritingTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterInheriting, expected.getMessage());
 					}
 					try {
 						Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('User', { test: 'blah' }); }}", "test1");
+						fail("Exception should have been thrown");
 					} catch (FrameworkException expected) {
 						assertEquals("Invalid error message for ancestorTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterAncestor, expected.getMessage());
 					}
