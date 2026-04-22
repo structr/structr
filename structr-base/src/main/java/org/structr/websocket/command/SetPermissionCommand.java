@@ -60,9 +60,6 @@ public class SetPermissionCommand extends AbstractCommand {
 		StructrWebSocket.addCommand(SetPermissionCommand.class);
 	}
 
-	private int sum   = 0;
-	private int count = 0;
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
@@ -80,6 +77,14 @@ public class SetPermissionCommand extends AbstractCommand {
 
 			logger.error("This command needs a principalId");
 			getWebSocket().send(MessageBuilder.status().code(400).build(), true);
+			return;
+		}
+
+		if (permissions == null) {
+
+			logger.error("This command needs a permissions value");
+			getWebSocket().send(MessageBuilder.status().code(400).build(), true);
+			return;
 		}
 
 		Principal principal = getNodeAs(principalId, Principal.class, StructrTraits.PRINCIPAL);
@@ -87,6 +92,7 @@ public class SetPermissionCommand extends AbstractCommand {
 
 			logger.error("No principal found with id {}", principalId);
 			getWebSocket().send(MessageBuilder.status().code(400).build(), true);
+			return;
 		}
 
 		webSocketData.getNodeData().remove(RECURSIVE_KEY);
@@ -133,7 +139,9 @@ public class SetPermissionCommand extends AbstractCommand {
 					}
 				}
 
-				setPermission(value, app, obj.as(AccessControllable.class), principal, action, permissionSet, recursive);
+				final int[] counters = new int[] { 0, 0 }; // [sum, count]
+
+				setPermission(value, app, obj.as(AccessControllable.class), principal, action, permissionSet, recursive, counters);
 
 				final LinkedHashSet<DOMNode> entities = new LinkedHashSet<>();
 
@@ -141,7 +149,7 @@ public class SetPermissionCommand extends AbstractCommand {
 
 				for (final DOMNode syncedNode : entities) {
 
-					setPermission(value, app, syncedNode.as(AccessControllable.class), principal, action, permissionSet, false);
+					setPermission(value, app, syncedNode.as(AccessControllable.class), principal, action, permissionSet, false, counters);
 				}
 
 				// commit and close transaction
@@ -185,7 +193,7 @@ public class SetPermissionCommand extends AbstractCommand {
 		return "SET_PERMISSION";
 	}
 
-	private void setPermission(final Value<Tx> transaction, final App app, final AccessControllable obj, final Principal principal, final String action, final Set<Permission> permissions, final boolean recursive) throws FrameworkException {
+	private void setPermission(final Value<Tx> transaction, final App app, final AccessControllable obj, final Principal principal, final String action, final Set<Permission> permissions, final boolean recursive, final int[] counters) throws FrameworkException {
 
 		// create new transaction if not already present
 		Tx tx = transaction.get(null);
@@ -210,14 +218,14 @@ public class SetPermissionCommand extends AbstractCommand {
 				break;
 		}
 
-		sum++;
+		counters[0]++; // sum
 
 		// commit transaction after 100 nodes
-		if (++count == 100) {
+		if (++counters[1] == 100) { // count
 
-			logger.info("Committing transaction after {} objects..", sum);
+			logger.info("Committing transaction after {} objects..", counters[0]);
 
-			count = 0;
+			counters[1] = 0;
 
 			// commit and close old transaction
 			try {
@@ -244,9 +252,12 @@ public class SetPermissionCommand extends AbstractCommand {
 				children.addAll(obj.as(Folder.class).getAllChildNodes());
 			}
 
+			// getAllChildNodes() already returns the entire subtree, so we must NOT
+			// recurse again on each child - otherwise each descendant is processed
+			// exponentially many times.
 			for (final NodeInterface t : children) {
 
-				setPermission(transaction, app, t.as(AccessControllable.class), principal, action, permissions, recursive);
+				setPermission(transaction, app, t.as(AccessControllable.class), principal, action, permissions, false, counters);
 			}
 		}
 	}
