@@ -30,8 +30,10 @@ import org.structr.common.*;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
+import org.structr.core.entity.SchemaGrant;
 import org.structr.core.entity.Security;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -298,6 +300,20 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 						p,
 						AccessControllableTraitDefinition.mapSecurityRelationshipsMapped(node.getIncomingRelationshipsAsSuperUser(StructrTraits.SECURITY, null))
 					);
+				}
+			},
+
+			GetAccessEntries.class,
+			new GetAccessEntries() {
+
+				@Override
+				public List<AccessEntry> getDirectAccessEntries(final NodeInterface node) {
+					return AccessControllableTraitDefinition.computeDirectAccessEntries(node);
+				}
+
+				@Override
+				public List<AccessEntry> getEffectiveAccessEntries(final NodeInterface node) {
+					return AccessControllableTraitDefinition.computeEffectiveAccessEntries(node);
 				}
 			},
 
@@ -764,7 +780,326 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 		return "Access control not permitted! " + userString + " can not " + action + " rights (" + permissionString + ") for " + principalString + " to node " + thisNodeString;
 	}
 
+	// ----- access-entry computation -----
+
+	/**
+	 * Tier 1 + 2: owner plus direct SECURITY relationships.
+	 * Returns a list sorted by grantee name for stable output.
+	 */
+	private static List<AccessEntry> computeDirectAccessEntries(final NodeInterface node) {
+
+		final Map<String, RawEntry> byPrincipal = new LinkedHashMap<>();
+
+		collectOwnerAndDirect(node, byPrincipal);
+
+		return mergeAndSort(byPrincipal);
+	}
+
+	/**
+	 * Tiers 1-4: owner, direct SECURITY, transitive group membership, and schema grants.
+	 * Permission propagation along domain relationships (tier 5) is intentionally excluded -
+	 * use {@code isGranted()} for propagation-aware checks.
+	 * Returns a list sorted by grantee name for stable output.
+	 */
+	private static List<AccessEntry> computeEffectiveAccessEntries(final NodeInterface node) {
+
+		final Map<String, RawEntry> byPrincipal = new LinkedHashMap<>();
+
+		collectOwnerAndDirect(node, byPrincipal);
+		collectGroupMembers(node, byPrincipal);
+		collectSchemaGrants(node, byPrincipal);
+
+		return mergeAndSort(byPrincipal);
+	}
+
+	private static void collectOwnerAndDirect(final NodeInterface node, final Map<String, RawEntry> byPrincipal) {
+
+		// tier 1: owner
+		final Principal owner = node.as(AccessControllable.class).getOwnerNode();
+		if (owner != null) {
+
+			final Set<Permission> all = new LinkedHashSet<>();
+			for (final Permission p : Permission.allPermissions) {
+				all.add(p);
+			}
+			addRaw(byPrincipal, owner, all, "owner", 0);
+		}
+
+		// tier 2: direct SECURITY relationships
+		for (final RelationshipInterface rel : node.getIncomingRelationshipsAsSuperUser(StructrTraits.SECURITY, null)) {
+
+			final NodeInterface source = rel.getSourceNode();
+			if (source == null) {
+				continue;
+			}
+
+			final Principal principal   = source.as(Principal.class);
+			final Security security     = rel.as(Security.class);
+			final Set<Permission> perms = parsePermissions(security.getPermissions());
+
+			if (perms.isEmpty()) {
+				continue;
+			}
+
+			addRaw(byPrincipal, principal, perms, "direct", 1);
+		}
+	}
+
+	private static void collectGroupMembers(final NodeInterface node, final Map<String, RawEntry> byPrincipal) {
+
+		// snapshot of direct SECURITY edges pointing at groups: each such group is a
+		// seed from which we expand downward via Group.getMembers(), carrying the
+		// group's permission set to every leaf principal reached.
+		final List<GroupSeed> seeds = new ArrayList<>();
+
+		for (final RelationshipInterface rel : node.getIncomingRelationshipsAsSuperUser(StructrTraits.SECURITY, null)) {
+
+			final NodeInterface source = rel.getSourceNode();
+			if (source == null) {
+				continue;
+			}
+
+			if (!source.getTraits().contains(StructrTraits.GROUP)) {
+				continue;
+			}
+
+			final Group group           = source.as(Group.class);
+			final Security security     = rel.as(Security.class);
+			final Set<Permission> perms = parsePermissions(security.getPermissions());
+
+			if (perms.isEmpty()) {
+				continue;
+			}
+
+			seeds.add(new GroupSeed(group, perms));
+		}
+
+		for (final GroupSeed seed : seeds) {
+
+			final Set<String> visited = new HashSet<>();
+			expandGroup(seed.group, seed.group, seed.perms, byPrincipal, visited);
+		}
+	}
+
+	private static void expandGroup(final Group originatingGroup, final Group current, final Set<Permission> perms, final Map<String, RawEntry> byPrincipal, final Set<String> visited) {
+
+		if (!visited.add(current.getUuid())) {
+			return;
+		}
+
+		for (final Principal member : current.getMembers()) {
+
+			if (member == null) {
+				continue;
+			}
+
+			if (member.getTraits().contains(StructrTraits.GROUP)) {
+
+				expandGroup(originatingGroup, member.as(Group.class), perms, byPrincipal, visited);
+
+			} else {
+
+				final String token = "group:" + originatingGroup.getUuid() + ":" + nullSafe(originatingGroup.getName());
+				addRaw(byPrincipal, member, perms, token, 3);
+			}
+		}
+	}
+
+	private static void collectSchemaGrants(final NodeInterface node, final Map<String, RawEntry> byPrincipal) {
+
+		// TODO: multi-trait resolution. A node's effective type is the union of all its traits,
+		// and schema grants may be attached to any of them. This implementation looks up only the
+		// primary type name and therefore misses grants defined on parent or sibling traits.
+		// Revisit once the trait-inheritance semantics are settled (diamond-problem discussion).
+		final String typeName = node.getType();
+		if (typeName == null) {
+			return;
+		}
+
+		try {
+
+			final NodeInterface schemaNodeNode = StructrApp.getInstance()
+				.nodeQuery(StructrTraits.SCHEMA_NODE)
+				.key(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), typeName)
+				.getFirst();
+
+			if (schemaNodeNode == null) {
+				return;
+			}
+
+			final Iterable<NodeInterface> grants = schemaNodeNode.getProperty(
+				Traits.of(StructrTraits.SCHEMA_NODE).key(SchemaNodeTraitDefinition.SCHEMA_GRANTS_PROPERTY)
+			);
+
+			if (grants == null) {
+				return;
+			}
+
+			for (final NodeInterface grantNode : grants) {
+
+				if (grantNode == null) {
+					continue;
+				}
+
+				final SchemaGrant grant   = grantNode.as(SchemaGrant.class);
+				final Principal principal = grant.getPrincipal();
+
+				if (principal == null) {
+					continue;
+				}
+
+				final Set<Permission> perms = new LinkedHashSet<>();
+				if (grant.allowRead())          { perms.add(Permission.read); }
+				if (grant.allowWrite())         { perms.add(Permission.write); }
+				if (grant.allowDelete())        { perms.add(Permission.delete); }
+				if (grant.allowAccessControl()) { perms.add(Permission.accessControl); }
+
+				if (perms.isEmpty()) {
+					continue;
+				}
+
+				addRaw(byPrincipal, principal, perms, "schema", 2);
+			}
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("Unable to resolve schema grants for type {}: {}", typeName, fex.getMessage());
+		}
+	}
+
+	private static void addRaw(final Map<String, RawEntry> byPrincipal, final Principal principal, final Set<Permission> perms, final String viaToken, final int viaOrder) {
+
+		if (principal == null || perms.isEmpty()) {
+			return;
+		}
+
+		final String uuid = principal.getUuid();
+
+		RawEntry existing = byPrincipal.get(uuid);
+		if (existing == null) {
+
+			existing = new RawEntry(uuid, nullSafe(principal.getName()), principal.getType());
+			byPrincipal.put(uuid, existing);
+		}
+
+		existing.perms.addAll(perms);
+		existing.viaTokens.add(new ViaToken(viaToken, viaOrder));
+	}
+
+	private static Set<Permission> parsePermissions(final Set<String> names) {
+
+		final Set<Permission> result = new LinkedHashSet<>();
+		if (names == null) {
+			return result;
+		}
+
+		for (final String name : names) {
+
+			final Permission p = Permissions.valueOf(name);
+			if (p != null) {
+
+				result.add(p);
+
+			} else {
+
+				logger.warn("Unknown permission name on SECURITY relationship: {}", name);
+			}
+		}
+
+		return result;
+	}
+
+	private static List<AccessEntry> mergeAndSort(final Map<String, RawEntry> byPrincipal) {
+
+		final List<AccessEntry> result = new ArrayList<>(byPrincipal.size());
+
+		for (final RawEntry raw : byPrincipal.values()) {
+
+			final List<ViaToken> tokens = new ArrayList<>(raw.viaTokens);
+			tokens.sort((a, b) -> {
+				if (a.order != b.order) {
+					return Integer.compare(a.order, b.order);
+				}
+				return a.token.compareTo(b.token);
+			});
+
+			final String via = tokens.stream().map(t -> t.token).collect(Collectors.joining("+"));
+
+			result.add(new AccessEntry(
+				raw.uuid,
+				raw.name,
+				raw.type,
+				new LinkedHashSet<>(raw.perms),
+				via
+			));
+		}
+
+		result.sort((a, b) -> {
+			final String n1 = a.granteeName();
+			final String n2 = b.granteeName();
+			if (n1 != null && n2 != null) { return n1.compareTo(n2); }
+			if (n1 != null) { return 1; }
+			if (n2 != null) { return -1; }
+			return 0;
+		});
+
+		return result;
+	}
+
+	private static String nullSafe(final String s) {
+		return s != null ? s : "";
+	}
+
 	// ----- nested classes -----
+	private static class RawEntry {
+
+		final String uuid;
+		final String name;
+		final String type;
+		final Set<Permission> perms = new LinkedHashSet<>();
+		final Set<ViaToken> viaTokens = new LinkedHashSet<>();
+
+		RawEntry(final String uuid, final String name, final String type) {
+			this.uuid = uuid;
+			this.name = name;
+			this.type = type;
+		}
+	}
+
+	private static final class ViaToken {
+
+		final String token;
+		final int order;
+
+		ViaToken(final String token, final int order) {
+			this.token = token;
+			this.order = order;
+		}
+
+		@Override
+		public boolean equals(final Object o) {
+			if (this == o) return true;
+			if (!(o instanceof ViaToken other)) return false;
+			return this.order == other.order && this.token.equals(other.token);
+		}
+
+		@Override
+		public int hashCode() {
+			return token.hashCode() * 31 + order;
+		}
+	}
+
+	private static final class GroupSeed {
+
+		final Group group;
+		final Set<Permission> perms;
+
+		GroupSeed(final Group group, final Set<Permission> perms) {
+			this.group = group;
+			this.perms = perms;
+		}
+	}
+
 	private static class AlreadyTraversed {
 
 		private Map<String, Set<String>> sets = new HashMap<>();
