@@ -542,10 +542,13 @@ let StructrWS = {
 
 						entity = StructrModel.create(entity, null, false);
 						let sharedComponentsArea = $('#componentsArea');
-						let el = (entity.isContent || entity.type === 'Template') ? _Elements.appendContentElement(entity, sharedComponentsArea, true) : _Pages.appendElementElement(entity, sharedComponentsArea, true);
+						if (sharedComponentsArea.length > 0) {
 
-						if (Structr.isExpanded(entity.id)) {
-							_Entities.ensureExpanded(el);
+							let el = (entity.isContent || entity.type === 'Template') ? _Elements.appendContentElement(entity, sharedComponentsArea, true) : _Pages.appendElementElement(entity, sharedComponentsArea, true);
+
+							if (Structr.isExpanded(entity.id)) {
+								_Entities.ensureExpanded(el);
+							}
 						}
 
 						let synced = entity.syncedNodesIds;

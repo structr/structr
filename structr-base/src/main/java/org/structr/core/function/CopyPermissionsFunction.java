@@ -37,7 +37,7 @@ public class CopyPermissionsFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("source, target [, overwrite ]");
+		return Signature.forAllScriptingLanguages("sourceNode, targetNode [, syncPermissions = false ]");
 	}
 
 	@Override
@@ -75,8 +75,8 @@ public class CopyPermissionsFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${copyPermissions(source, target[, syncPermissions])}. Example: ${copyPermissions(this, this.child)}"),
-			Usage.javaScript("Usage: ${{ $..copyPermissions(source, target[, syncPermissions]); }}. Example: ${{ $.copyPermissions($.this, $.this.child); }}")
+			Usage.structrScript("Usage: ${copyPermissions(sourceNode, targetNode [, syncPermissions = false ])}. Example: ${copyPermissions(this, this.child)}"),
+			Usage.javaScript("Usage: ${{ $.copyPermissions(sourceNode, targetNode [, syncPermissions = false ]); }}. Example: ${{ $.copyPermissions($.this, $.this.child); }}")
 		);
 	}
 
@@ -87,7 +87,14 @@ public class CopyPermissionsFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "If the `syncPermissions` parameter is set to `true`, the permissions of existing security relationships are aligned between source and target nodes. If it is not set (or omitted) the function just adds the permissions to the existing permissions.";
+		return """
+			Copies permissions from `sourceNode` to `targetNode` for all users and groups defined on `sourceNode`.
+
+			Permissions on `targetNode` for other users or groups are always left unchanged.
+
+			With `syncPermissions = false`, source permissions are merged into target without removing stronger existing target permissions.
+			With `syncPermissions = true`, target permissions for the affected users/groups are adjusted to match source exactly.
+			""";
 	}
 
 	@Override
@@ -95,7 +102,7 @@ public class CopyPermissionsFunction extends CoreFunction {
 		return List.of(
 			Parameter.mandatory("sourceNode", "source node to copy permissions from"),
 			Parameter.mandatory("targetNode",  "target node to copy permissions to"),
-			Parameter.optional("syncPermissions", "synchronize permissions between source and target nodes")
+			Parameter.optional("syncPermissions", "synchronize permissions between source and target nodes (default = false)")
 		);
 	}
 

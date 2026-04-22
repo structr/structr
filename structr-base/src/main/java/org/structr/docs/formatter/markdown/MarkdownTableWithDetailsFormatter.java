@@ -28,6 +28,7 @@ import org.structr.docs.ontology.Link;
 import org.structr.docs.ontology.Verb;
 
 import java.util.*;
+import org.structr.web.entity.dom.DOMNode;
 
 public class MarkdownTableWithDetailsFormatter extends Formatter {
 
@@ -108,7 +109,7 @@ public class MarkdownTableWithDetailsFormatter extends Formatter {
 				if (headerName.startsWith("`") && headerName.endsWith("`")) {
 
 					final String name = headerName.substring(1, headerName.length() - 1);
-					row.add("`" + documentable.get(name) + "`");
+					row.add("<code id=\"" + DOMNode.escapeForHtmlAttributes(documentable.get(name)) + "\">" + documentable.get(name) + "</code>");
 
 				} else {
 
