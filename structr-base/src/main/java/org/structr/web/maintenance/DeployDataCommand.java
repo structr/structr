@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.PropertyContainer;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
@@ -1235,7 +1236,7 @@ public class DeployDataCommand extends DeployCommand {
 
 	private void correctNumberFormats(final SecurityContext context, final Map<String, Object> map, final String type) throws FrameworkException {
 
-		final List<GraphObjectMap> allProperties = SchemaHelper.getSchemaTypeInfo(context, type, "all");
+		final List<GraphObjectMap> allProperties = SchemaHelper.getSchemaTypeInfo(context, type, PropertyView.All);
 		final Map<String, DataType> props        = new HashMap();
 
 		for (final GraphObjectMap propertyInfo : allProperties) {

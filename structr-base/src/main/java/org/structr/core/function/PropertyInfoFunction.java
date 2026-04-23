@@ -35,6 +35,7 @@ import java.util.List;
 
 public class PropertyInfoFunction extends AdvancedScriptingFunction {
 
+	public static final String UNKNOWN_PROPERTY_ERROR_MESSAGE = "%s(): Unknown property '%s.%s'.";
 
 	@Override
 	public String getName() {
@@ -43,7 +44,7 @@ public class PropertyInfoFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("type, propertyName");
+		return Signature.forAllScriptingLanguages("type, property");
 	}
 
 	@Override
@@ -54,28 +55,18 @@ public class PropertyInfoFunction extends AdvancedScriptingFunction {
 			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
 
 			final String typeName = sources[0].toString();
-			final String keyName = sources[1].toString();
+			final String keyName  = sources[1].toString();
 
-			Traits traits = Traits.of(typeName);
-
-			if (traits != null) {
-
-				final PropertyKey key = traits.key(keyName);
-				if (key != null) {
-
-					return SchemaHelper.getPropertyInfo(ctx.getSecurityContext(), key);
-
-				} else {
-
-					logger.warn("Error: Unknown property \"{}.{}\". Parameters: {}", typeName, keyName, getParametersAsString(sources));
-					return "Unknown property " + typeName + "." + keyName;
-				}
-
-			} else {
-
-				logger.warn("Error: Unknown type \"{}\". Parameters: {}", typeName, getParametersAsString(sources));
-				return "Unknown type " + typeName;
+			final Traits type = Traits.of(typeName);
+			if (type == null) {
+				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, TypeInfoFunction.UNKNOWN_TYPE_ERROR_MESSAGE.formatted(getName(), typeName));
 			}
+
+			if (!type.hasKey(keyName)) {
+				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, UNKNOWN_PROPERTY_ERROR_MESSAGE.formatted(getName(), typeName, keyName));
+			}
+
+			return SchemaHelper.getPropertyInfo(ctx.getSecurityContext(), type.key(keyName));
 
 		} catch (ArgumentNullException pe) {
 
@@ -85,21 +76,21 @@ public class PropertyInfoFunction extends AdvancedScriptingFunction {
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-				Usage.structrScript("Usage: ${propertyInfo(type, name)}."),
-				Usage.javaScript("Usage: ${{ $.propertyInfo(type, name) }}.")
+				Usage.structrScript("Usage: ${propertyInfo(type, property)}."),
+				Usage.javaScript("Usage: ${{ $.propertyInfo(type, property) }}.")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the schema information for the given property.";
+		return "Returns the schema information for the given property on the given type.";
 	}
 
 	@Override
@@ -145,8 +136,16 @@ public class PropertyInfoFunction extends AdvancedScriptingFunction {
 	public List<Parameter> getParameters() {
 
 		return List.of(
-				Parameter.mandatory("type", "type of the object"),
-				Parameter.mandatory("name", "name of the object")
+				Parameter.mandatory("type", "name of the schema type"),
+				Parameter.mandatory("property", "name of the property for the given schema type")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"If the requested type does not exist, a catchable error is produced (where applicable) and/or null will be returned.",
+				"If the requested property does not exist on the given type, a catchable error is produced (where applicable) and/or null will be returned."
 		);
 	}
 

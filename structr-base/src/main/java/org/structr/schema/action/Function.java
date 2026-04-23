@@ -195,9 +195,21 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 
 	public Object throwExceptionIfSupportedElseLogWarningAndReturnNull(final ActionContext ctx, final String message) throws FrameworkException {
 
+		return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, message, null);
+	}
+
+	public Object throwExceptionIfSupportedElseLogWarningAndReturnNull(final ActionContext ctx, final String message, final Throwable cause) throws FrameworkException {
+
 		if (ctx.supportsExceptionHandling()) {
 
-			throw new FrameworkException(422, message);
+			if (cause == null) {
+
+				throw new FrameworkException(422, message);
+
+			} else {
+
+				throw new FrameworkException(422, message, cause);
+			}
 
 		} else {
 

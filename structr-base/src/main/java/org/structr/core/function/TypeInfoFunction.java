@@ -19,6 +19,7 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.core.traits.Traits;
 import org.structr.docs.*;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.SchemaHelper;
@@ -27,6 +28,9 @@ import org.structr.schema.action.ActionContext;
 import java.util.List;
 
 public class TypeInfoFunction extends AdvancedScriptingFunction {
+
+	public static final String UNKNOWN_TYPE_ERROR_MESSAGE = "%s(): Unknown type '%s'.";
+	public static final String UNKNOWN_VIEW_ERROR_MESSAGE = "%s(): Unknown view '%s' for type '%s'.";
 
 	@Override
 	public String getName() {
@@ -48,12 +52,30 @@ public class TypeInfoFunction extends AdvancedScriptingFunction {
 			final String typeName = sources[0].toString();
 			final String viewName = (sources.length == 2 ? sources[1].toString() : null);
 
-			return SchemaHelper.getSchemaTypeInfo(ctx.getSecurityContext(), typeName, viewName);
+			final Traits type = Traits.of(typeName);
+			if (type == null) {
+
+				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, UNKNOWN_TYPE_ERROR_MESSAGE.formatted(getName(), typeName));
+			}
+
+			if (viewName == null) {
+
+				return SchemaHelper.getSchemaTypeInfo(ctx.getSecurityContext(), typeName, null).getFirst();
+
+			} else {
+
+				if (!type.getViewNames().contains(viewName)) {
+
+					return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, UNKNOWN_VIEW_ERROR_MESSAGE.formatted(getName(), viewName, typeName));
+				}
+
+				return SchemaHelper.getSchemaTypeInfo(ctx.getSecurityContext(), typeName, viewName);
+			}
 
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 
@@ -65,8 +87,8 @@ public class TypeInfoFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${typeInfo(type[, view])}."),
-			Usage.javaScript("Usage: ${$.typeInfo(type[, view])}.")
+			Usage.structrScript("Usage: ${typeInfo(type [, view ])}."),
+			Usage.javaScript("Usage: ${{ $.typeInfo(type [, view ]) }}.")
 		);
 	}
 
@@ -78,9 +100,10 @@ public class TypeInfoFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-		If called with a view, all properties of that view are returned as a list. The items of the list are in the same 
+		If called with a view, all properties of that view are returned as a list. The items of the list are in the same
 		format as `property_info()` returns. This is identical to the result one would get from `/structr/rest/_schema/<type>/<view>`.
-		If called without a view, the complete type information is returned as an object. 
+		
+		If called without a view, the complete type information is returned as an object.
 		This is identical to the result one would get from `/structr/rest/_schema/<type>`.
 		""";
 	}
@@ -97,9 +120,17 @@ public class TypeInfoFunction extends AdvancedScriptingFunction {
 	public List<Parameter> getParameters() {
 
 		return List.of(
-				Parameter.mandatory("type", "schema type"),
-				Parameter.optional("view", "view (default: `public`)")
-				);
+				Parameter.mandatory("type", "name of the schema type"),
+				Parameter.optional("view", "name of the view for the given schema type")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"If the requested type does not exist, a catchable error is produced (where applicable) and/or null will be returned.",
+				"If the requested view does not exist on the given type, a catchable error is produced (where applicable) and/or null will be returned."
+		);
 	}
 
 	@Override

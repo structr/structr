@@ -18,7 +18,6 @@
  */
 package org.structr.rest.resource;
 
-
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
@@ -36,10 +35,6 @@ import org.structr.schema.SchemaHelper;
 
 import java.util.Set;
 
-/**
- *
- *
- */
 @Documentation(name="Schema information endpoint", type= ConceptType.RestEndpoint, parent="System endpoints")
 public class SchemaTypeResource extends ExactMatchEndpoint {
 
@@ -65,11 +60,11 @@ public class SchemaTypeResource extends ExactMatchEndpoint {
 
 				if (call.isDefaultView()) {
 
-					return new SchemaTypeResourceHandler(call, typeName, null);
+					return new SchemaTypeResourceHandler(call, typeName);
 
 				} else {
 
-					return new SchemaTypeResourceHandler(call, typeName, call.getViewName());
+					return new SchemaTypeViewResourceHandler(call, typeName, call.getViewName());
 				}
 			}
 		}
@@ -82,12 +77,12 @@ public class SchemaTypeResource extends ExactMatchEndpoint {
 		return new PagingIterable<>("getSchemaTypeResult(" + type + ")", SchemaHelper.getSchemaTypeInfo(securityContext, type, propertyView));
 	}
 
-	private class SchemaTypeResourceHandler extends RESTCallHandler {
+	private class SchemaTypeViewResourceHandler extends RESTCallHandler {
 
 		private String typeName   = null;
 		private String viewName   = null;
 
-		public SchemaTypeResourceHandler(final RESTCall call, final String typeName, final String viewName) {
+		public SchemaTypeViewResourceHandler(final RESTCall call, final String typeName, final String viewName) {
 
 			super(call);
 
@@ -97,6 +92,10 @@ public class SchemaTypeResource extends ExactMatchEndpoint {
 
 		@Override
 		public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
+
+			// only disable softLimit for REST requests
+			securityContext.setDisableSoftLimit(true);
+
 			return SchemaTypeResource.getSchemaTypeResult(securityContext, typeName, viewName);
 		}
 
@@ -116,4 +115,16 @@ public class SchemaTypeResource extends ExactMatchEndpoint {
 		}
 	}
 
+	private class SchemaTypeResourceHandler extends SchemaTypeViewResourceHandler {
+
+		public SchemaTypeResourceHandler(final RESTCall call, final String typeName) {
+
+			super(call, typeName, null);
+		}
+
+		@Override
+		public boolean isCollection() {
+			return false;
+		}
+	}
 }
