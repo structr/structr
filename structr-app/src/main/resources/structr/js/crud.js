@@ -2706,7 +2706,7 @@ let _Crud = {
 
 				if (response.ok) {
 
-					let typeInfo = data?.result?.[0];
+					let typeInfo = data?.result;
 
 					if (typeInfo) {
 
