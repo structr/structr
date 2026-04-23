@@ -21,9 +21,14 @@ package org.structr.core.script.polyglot;
 import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.PolyglotAccess;
 import org.graalvm.polyglot.io.IOAccess;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.core.script.polyglot.filesystem.PolyglotFilesystem;
 
 public abstract class AccessProvider {
+
+	private static final Logger logger = LoggerFactory.getLogger(AccessProvider.class);
 
 	public static HostAccess getHostAccessConfig() {
 
@@ -37,6 +42,17 @@ public abstract class AccessProvider {
 	}
 
 	public static PolyglotAccess getPolyglotAccessConfig() {
+
+		final String configured = Settings.ScriptingPolyglotAccess.getValue("ALL");
+
+		if ("NONE".equalsIgnoreCase(configured)) {
+			return PolyglotAccess.NONE;
+		}
+
+		if (!"ALL".equalsIgnoreCase(configured)) {
+
+			logger.warn("Unrecognised value '{}' for {}; falling back to ALL.", configured, Settings.ScriptingPolyglotAccess.getKey());
+		}
 
 		return PolyglotAccess.ALL;
 	}

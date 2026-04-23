@@ -109,6 +109,7 @@ public class Settings {
 	public static final Setting<Boolean> WrapJSInMainFunction       = new BooleanSetting(generalGroup,         "Scripting",   "application.scripting.js.wrapinmainfunction",  false,"Forces js scripts to be wrapped in a main function for legacy behaviour.");
 
 	public static final Setting<String> AllowedHostClasses          = new StringSetting(generalGroup,          "Scripting",   "application.scripting.allowedhostclasses",     "", "Space-separated list of fully-qualified Java class names that you can load dynamically in a scripting environment.");
+	public static final Setting<String> ScriptingPolyglotAccess     = new StringSetting(generalGroup,          "Scripting",   "application.scripting.polyglot.access",        "ALL", "Controls cross-language interop inside GraalVM scripting contexts. <code>ALL</code> (default) permits unrestricted cross-language calls such as <code>Polyglot.eval('python', ...)</code> from JavaScript. <code>NONE</code> blocks cross-language calls for a tighter sandbox; scripts that stay within one language are unaffected. Requires a restart to take effect.");
 
 	// clustering
 	public static final Setting<Boolean> ClusterModeEnabled            = new BooleanSetting(generalGroup,         "Application", "application.cluster.enabled",                  false, "Enables cluster mode (experimental)");
