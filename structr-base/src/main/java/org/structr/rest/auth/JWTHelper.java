@@ -22,6 +22,7 @@ import com.auth0.jwk.Jwk;
 import com.auth0.jwk.JwkProvider;
 import com.auth0.jwk.UrlJwkProvider;
 import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTCreator;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
@@ -516,20 +517,21 @@ public class JWTHelper {
 
 			tokenId = tokenStringBuilder.toString();
 
-			String refreshToken = JWT.create()
+			final JWTCreator.Builder refreshBuilder = JWT.create()
 				.withSubject(user.getName())
 				.withExpiresAt(refreshTokenExpirationDate)
 				.withIssuer(jwtIssuer)
 				.withClaim("tokenId", tokenId)
-				.withClaim("tokenType", "refresh_token")
-				.sign(alg);
+				.withClaim("tokenType", "refresh_token");
+			applyAudience(refreshBuilder);
+			String refreshToken = refreshBuilder.sign(alg);
 
 
 			user.addRefreshToken(tokenId);
 			tokens.put("refresh_token", refreshToken);
 		}
 
-		String accessToken = JWT.create()
+		final JWTCreator.Builder accessBuilder = JWT.create()
 			.withSubject(user.getName())
 			.withExpiresAt(accessTokenExpirationDate)
 			.withIssuer(jwtIssuer)
@@ -537,8 +539,9 @@ public class JWTHelper {
 			.withClaim("uuid", user.getUuid())
 			.withClaim("eMail", user.getEMail())
 			.withClaim("tokenType", "access_token")
-			.withClaim("tokenId", tokenId)
-			.sign(alg);
+			.withClaim("tokenId", tokenId);
+		applyAudience(accessBuilder);
+		String accessToken = accessBuilder.sign(alg);
 
 		tokens.put("access_token", accessToken);
 		tokens.put("expiration_date", Long.toString(accessTokenExpirationDate.getTime()));
@@ -635,12 +638,13 @@ public class JWTHelper {
 	}
 
 	/**
-	 * Builds a verifier that enforces the configured JWT issuer in addition to
-	 * the signature and standard time-based claims checked by auth0-java.
-	 * Without the issuer check, any token signed with the same secret or key
-	 * would be accepted regardless of which service issued it.
+	 * Builds a verifier that enforces the configured JWT issuer (and, when
+	 * configured, audience) in addition to the signature and standard
+	 * time-based claims checked by auth0-java. Without these checks, any
+	 * token signed with the same secret or key would be accepted regardless
+	 * of which service issued it or whom it was intended for.
 	 */
-	private static JWTVerifier buildVerifier(final Algorithm alg) {
+	public static JWTVerifier buildVerifier(final Algorithm alg) {
 
 		Verification verification = JWT.require(alg);
 
@@ -649,7 +653,48 @@ public class JWTHelper {
 			verification = verification.withIssuer(jwtIssuer);
 		}
 
+		final String[] audiences = configuredAudiences();
+		if (audiences.length > 0) {
+			// "any of" semantics: the token is accepted if its aud claim
+			// contains at least one of the configured values. Default
+			// withAudience requires all of them, which is rarely what a
+			// recipient actually wants.
+			verification = verification.withAnyOfAudience(audiences);
+		}
+
 		return verification.build();
+	}
+
+	/**
+	 * Returns the configured audience values as a trimmed, empty-filtered
+	 * array. An empty array means audience binding is disabled: no claim
+	 * is emitted on new tokens and no check is applied on verification.
+	 */
+	public static String[] configuredAudiences() {
+
+		final String raw = Settings.JWTAudience.getValue("");
+		if (StringUtils.isBlank(raw)) {
+			return new String[0];
+		}
+
+		return java.util.Arrays.stream(raw.split(","))
+			.map(String::trim)
+			.filter(s -> !s.isEmpty())
+			.toArray(String[]::new);
+	}
+
+	/**
+	 * Attaches the configured audience list to a token builder when set.
+	 * Mutates and returns the same builder (auth0-jwt builders are mutable
+	 * fluent builders).
+	 */
+	public static JWTCreator.Builder applyAudience(final JWTCreator.Builder builder) {
+
+		final String[] audiences = configuredAudiences();
+		if (audiences.length > 0) {
+			builder.withAudience(audiences);
+		}
+		return builder;
 	}
 
 
