@@ -884,12 +884,20 @@ let _Helpers = {
 	createRandomName: (type = 'object') => `New ${type} ${Math.floor(Math.random() * (999999 - 1))}`,
 	softlimit: {
 		resultCountSoftLimit: 10000,
-		getSoftLimitedPageCount: (pageSize) => Math.ceil(_Helpers.softlimit.getSoftLimitedResultCount() / pageSize),
+		getSoftLimitedPageCount: () => {
+			// we let the user go as many pages as he wants. on the last page structr sends the correct page_count
+			return Number.MAX_SAFE_INTEGER;
+		},
 		getSoftLimitedResultCount: () => _Helpers.softlimit.resultCountSoftLimit,
 		getSoftLimitMessage: () => 'Result count exceeds soft limit (' + _Helpers.softlimit.resultCountSoftLimit + '). Page count may be higher than displayed.',
 		showSoftLimitAlert: (el) => {
-			el.attr('style', 'background-color: #fc0 !important;');
+			// set foreground and background color identical so the element shows nothing but can be queried as usual
+			el.attr('style', 'background-color: #fc0 !important; color: #fc0 !important;');
 			el.attr('title', _Helpers.softlimit.getSoftLimitMessage());
+		},
+		removeSoftLimitAlert: (el) => {
+			el.attr('style', '');
+			el.attr('title', '');
 		},
 		showActualResultCount: (el, pageSize) => {
 			el.attr('title', 'Result count = ' + pageSize);
