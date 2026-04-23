@@ -94,10 +94,19 @@ public class HttpService implements RunnableService, StatsCallback {
 				These are actual violations of the RFC, as they represent additional requirements in excess of the strict compliance of <a href="https://datatracker.ietf.org/doc/html/rfc3986">RFC 3986</a>.
 				Allowing these violations allows requests to violate the corresponding additional requirement.
 
-				The main use case for allowing some of these violations is the URL Routes feature for pages when URL variables are used.
-				For example to support empty variable values, AMBIGUOUS_EMPTY_SEGMENT must be allowed.
-				By default, AMBIGUOUS_PATH_SEPARATOR is the only allowed violation as this is useful for variables in custom URL Routes for pages.
+				The main use cases for allowing some of these violations are the "URL Routing" feature for pages when URL variables are used.
 
+				By default, no violations are allowed.
+
+				The following violations can be useful when using the features mentioned above or when handling files with these special characters in their names:
+
+				<ul>
+					<li><code>AMBIGUOUS_EMPTY_SEGMENT</code> to allow empty URL segments "//"</li>
+					<li><code>AMBIGUOUS_PATH_SEPARATOR</code> to allow using encoded slashes "%%2f"</li>
+					<li><code>AMBIGUOUS_PATH_ENCODING</code> to allow using encoding percent signs "%%25"</li>
+				</ul>
+
+				These are all possible values:
 				<dl>
 					%s
 				</dl>
