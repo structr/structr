@@ -385,7 +385,6 @@ public class SchemaResourceTest extends StructrRestTestBase {
 
 	}
 
-
 	@Test
 	public void testCustomSchema10() {
 
@@ -608,7 +607,6 @@ public class SchemaResourceTest extends StructrRestTestBase {
 				.get("/_schema/TestType15/custom");
 
 	}
-
 
 	@Test
 	public void testCustomSchema16() {
@@ -1177,5 +1175,73 @@ public class SchemaResourceTest extends StructrRestTestBase {
 			.when()
 				.get("/_schema/Group");
 
+	}
+
+	@Test
+	public void testSchemaResourceResponseNotAffectedBySoftLimit() {
+
+		final String resourceURI = "/_schema";
+
+		final Integer correctNumberOfSchemaTypes = RestAssured
+				.given()
+					.contentType("application/json; charset=UTF-8")
+				.expect()
+					.statusCode(200)
+				.when()
+					.get(resourceURI)
+				.then()
+					.extract()
+					.path("result_count");
+
+		final Integer originalResultCountSoftLimit = Settings.ResultCountSoftLimit.getValue();
+
+		Settings.ResultCountSoftLimit.setValue(1);
+
+		RestAssured
+				.given()
+					.contentType("application/json; charset=UTF-8")
+				.expect()
+					.statusCode(200)
+					.body("result", hasSize(correctNumberOfSchemaTypes))
+					.body("result_count", equalTo(correctNumberOfSchemaTypes))
+				.when()
+					.get(resourceURI);
+
+		// set back to initial
+		Settings.ResultCountSoftLimit.setValue(originalResultCountSoftLimit);
+	}
+
+	@Test
+	public void testSchemaTypeResourceResponseNotAffectedBySoftLimit() {
+
+		final String resourceURI = "/_schema/Group/all";
+
+		final Integer correctNumberOfSchemaPropertiesForGroupAllView = RestAssured
+				.given()
+					.contentType("application/json; charset=UTF-8")
+				.expect()
+					.statusCode(200)
+				.when()
+					.get(resourceURI)
+				.then()
+					.extract()
+					.path("result_count");
+
+		final Integer originalResultCountSoftLimit = Settings.ResultCountSoftLimit.getValue();
+
+		Settings.ResultCountSoftLimit.setValue(1);
+
+		RestAssured
+				.given()
+					.contentType("application/json; charset=UTF-8")
+				.expect()
+					.statusCode(200)
+					.body("result", hasSize(correctNumberOfSchemaPropertiesForGroupAllView))
+					.body("result_count", equalTo(correctNumberOfSchemaPropertiesForGroupAllView))
+				.when()
+					.get(resourceURI);
+
+		// set back to initial
+		Settings.ResultCountSoftLimit.setValue(originalResultCountSoftLimit);
 	}
 }

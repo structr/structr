@@ -879,6 +879,10 @@ public class SecurityContext {
 		return disableSoftLimit;
 	}
 
+	public void setDisableSoftLimit(final boolean disableSoftLimit) {
+		this.disableSoftLimit = disableSoftLimit;
+	}
+
 	public boolean preventDuplicateRelationships() {
 		return preventDuplicateRelationships;
 	}

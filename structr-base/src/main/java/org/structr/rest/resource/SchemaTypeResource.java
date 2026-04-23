@@ -18,7 +18,6 @@
  */
 package org.structr.rest.resource;
 
-
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
@@ -36,10 +35,6 @@ import org.structr.schema.SchemaHelper;
 
 import java.util.Set;
 
-/**
- *
- *
- */
 @Documentation(name="Schema information endpoint", type= ConceptType.RestEndpoint, parent="System endpoints")
 public class SchemaTypeResource extends ExactMatchEndpoint {
 
@@ -97,6 +92,10 @@ public class SchemaTypeResource extends ExactMatchEndpoint {
 
 		@Override
 		public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
+
+			// only disable softLimit for REST requests
+			securityContext.setDisableSoftLimit(true);
+
 			return SchemaTypeResource.getSchemaTypeResult(securityContext, typeName, viewName);
 		}
 
