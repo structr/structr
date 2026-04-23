@@ -385,7 +385,6 @@ public class SchemaResourceTest extends StructrRestTestBase {
 
 	}
 
-
 	@Test
 	public void testCustomSchema10() {
 
@@ -608,7 +607,6 @@ public class SchemaResourceTest extends StructrRestTestBase {
 				.get("/_schema/TestType15/custom");
 
 	}
-
 
 	@Test
 	public void testCustomSchema16() {
@@ -1145,38 +1143,105 @@ public class SchemaResourceTest extends StructrRestTestBase {
 			.expect()
 				.statusCode(200)
 
-				.body("result_count",                  equalTo(1))
-				.body("result",	                    hasSize(1))
-				.body("result[0].url",                 equalTo("/Group"))
-				.body("result[0].type",                equalTo(StructrTraits.GROUP))
-				.body("result[0].className",           equalTo(StructrTraits.GROUP))
-				.body("result[0].traits",              equalTo(List.of(StructrTraits.PROPERTY_CONTAINER, StructrTraits.GRAPH_OBJECT, StructrTraits.ACCESS_CONTROLLABLE, StructrTraits.NODE_INTERFACE, StructrTraits.PRINCIPAL, StructrTraits.GROUP)))
-				.body("result[0].isRel",               equalTo(false))
-				.body("result[0].flags",               equalTo(0))
+				.body("result_count",               equalTo(1))
+				.body("result.url",                 equalTo("/Group"))
+				.body("result.type",                equalTo(StructrTraits.GROUP))
+				.body("result.className",           equalTo(StructrTraits.GROUP))
+				.body("result.traits",              equalTo(List.of(StructrTraits.PROPERTY_CONTAINER, StructrTraits.GRAPH_OBJECT, StructrTraits.ACCESS_CONTROLLABLE, StructrTraits.NODE_INTERFACE, StructrTraits.PRINCIPAL, StructrTraits.GROUP)))
+				.body("result.isRel",               equalTo(false))
+				.body("result.flags",               equalTo(0))
 
-				.body("result[0].views.all.id.jsonName",    equalTo("id"))
-				.body("result[0].views.all.id.className",   equalTo("org.structr.core.property.UuidProperty"))
-				.body("result[0].views.all.type.jsonName",  equalTo("type"))
-				.body("result[0].views.all.type.className", equalTo("org.structr.core.property.TypeProperty"))
-				.body("result[0].views.all.name.jsonName",  equalTo("name"))
-				.body("result[0].views.all.name.className", equalTo("org.structr.core.property.StringProperty"))
+				.body("result.views.all.id.jsonName",    equalTo("id"))
+				.body("result.views.all.id.className",   equalTo("org.structr.core.property.UuidProperty"))
+				.body("result.views.all.type.jsonName",  equalTo("type"))
+				.body("result.views.all.type.className", equalTo("org.structr.core.property.TypeProperty"))
+				.body("result.views.all.name.jsonName",  equalTo("name"))
+				.body("result.views.all.name.className", equalTo("org.structr.core.property.StringProperty"))
 
-				.body("result[0].views.ui.id.jsonName",    equalTo("id"))
-				.body("result[0].views.ui.id.className",   equalTo("org.structr.core.property.UuidProperty"))
-				.body("result[0].views.ui.type.jsonName",  equalTo("type"))
-				.body("result[0].views.ui.type.className", equalTo("org.structr.core.property.TypeProperty"))
-				.body("result[0].views.ui.name.jsonName",  equalTo("name"))
-				.body("result[0].views.ui.name.className", equalTo("org.structr.core.property.StringProperty"))
+				.body("result.views.ui.id.jsonName",    equalTo("id"))
+				.body("result.views.ui.id.className",   equalTo("org.structr.core.property.UuidProperty"))
+				.body("result.views.ui.type.jsonName",  equalTo("type"))
+				.body("result.views.ui.type.className", equalTo("org.structr.core.property.TypeProperty"))
+				.body("result.views.ui.name.jsonName",  equalTo("name"))
+				.body("result.views.ui.name.className", equalTo("org.structr.core.property.StringProperty"))
 
-				.body("result[0].views.public.id.jsonName",    equalTo("id"))
-				.body("result[0].views.public.id.className",   equalTo("org.structr.core.property.UuidProperty"))
-				.body("result[0].views.public.type.jsonName",  equalTo("type"))
-				.body("result[0].views.public.type.className", equalTo("org.structr.core.property.TypeProperty"))
-				.body("result[0].views.public.name.jsonName",  equalTo("name"))
-				.body("result[0].views.public.name.className", equalTo("org.structr.core.property.StringProperty"))
+				.body("result.views.public.id.jsonName",    equalTo("id"))
+				.body("result.views.public.id.className",   equalTo("org.structr.core.property.UuidProperty"))
+				.body("result.views.public.type.jsonName",  equalTo("type"))
+				.body("result.views.public.type.className", equalTo("org.structr.core.property.TypeProperty"))
+				.body("result.views.public.name.jsonName",  equalTo("name"))
+				.body("result.views.public.name.className", equalTo("org.structr.core.property.StringProperty"))
 
 			.when()
 				.get("/_schema/Group");
 
+	}
+
+	@Test
+	public void testSchemaResourceResponseNotAffectedBySoftLimit() {
+
+		final String resourceURI = "/_schema";
+
+		final Integer correctNumberOfSchemaTypes = RestAssured
+				.given()
+					.contentType("application/json; charset=UTF-8")
+				.expect()
+					.statusCode(200)
+				.when()
+					.get(resourceURI)
+				.then()
+					.extract()
+					.path("result_count");
+
+		final Integer originalResultCountSoftLimit = Settings.ResultCountSoftLimit.getValue();
+
+		Settings.ResultCountSoftLimit.setValue(1);
+
+		RestAssured
+				.given()
+					.contentType("application/json; charset=UTF-8")
+				.expect()
+					.statusCode(200)
+					.body("result", hasSize(correctNumberOfSchemaTypes))
+					.body("result_count", equalTo(correctNumberOfSchemaTypes))
+				.when()
+					.get(resourceURI);
+
+		// set back to initial
+		Settings.ResultCountSoftLimit.setValue(originalResultCountSoftLimit);
+	}
+
+	@Test
+	public void testSchemaTypeResourceResponseNotAffectedBySoftLimit() {
+
+		final String resourceURI = "/_schema/Group/all";
+
+		final Integer correctNumberOfSchemaPropertiesForGroupAllView = RestAssured
+				.given()
+					.contentType("application/json; charset=UTF-8")
+				.expect()
+					.statusCode(200)
+				.when()
+					.get(resourceURI)
+				.then()
+					.extract()
+					.path("result_count");
+
+		final Integer originalResultCountSoftLimit = Settings.ResultCountSoftLimit.getValue();
+
+		Settings.ResultCountSoftLimit.setValue(1);
+
+		RestAssured
+				.given()
+					.contentType("application/json; charset=UTF-8")
+				.expect()
+					.statusCode(200)
+					.body("result", hasSize(correctNumberOfSchemaPropertiesForGroupAllView))
+					.body("result_count", equalTo(correctNumberOfSchemaPropertiesForGroupAllView))
+				.when()
+					.get(resourceURI);
+
+		// set back to initial
+		Settings.ResultCountSoftLimit.setValue(originalResultCountSoftLimit);
 	}
 }

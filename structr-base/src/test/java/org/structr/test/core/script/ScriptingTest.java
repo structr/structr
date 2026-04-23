@@ -38,10 +38,7 @@ import org.structr.core.api.UnnamedArguments;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.*;
-import org.structr.core.function.DateFormatFunction;
-import org.structr.core.function.AbstractQueryFunction;
-import org.structr.core.function.FunctionInfoFunction;
-import org.structr.core.function.NumberFormatFunction;
+import org.structr.core.function.*;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -688,7 +685,7 @@ public class ScriptingTest extends StructrTest {
 			template2.setProperty(getKey(StructrTraits.MAIL_TEMPLATE, MailTemplateTraitDefinition.LOCALE_PROPERTY), "en_EN");
 			template2.setProperty(getKey(StructrTraits.MAIL_TEMPLATE, MailTemplateTraitDefinition.TEXT_PROPERTY), "${this.aDouble}");
 
-			// check existance
+			// check existence
 			assertNotNull(testOne);
 
 			testOne.setProperty(Traits.of("TestOne").key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "A-nice-little-name-for-my-test-object");
@@ -1800,7 +1797,7 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid result of has_outgoing_relationship", "false", Scripting.replaceVariables(ctx, testOne, "${has_outgoing_relationship(this, first(find('TestThree', 'name', 'testThree_name')), 'THIS_DOES_NOT_EXIST')}"));
 			assertEquals("Invalid result of has_outgoing_relationship", "false", Scripting.replaceVariables(ctx, testOne, "${has_outgoing_relationship(first(find('TestThree', 'name', 'testThree_name')), this, 'THIS_DOES_NOT_EXIST')}"));
 
-			// get_relationships (CAUTION! If the method returns a string (error-case) the size-method returns "1" => it seems like there is one relationsh)
+			// get_relationships (CAUTION! If the method returns a string (error-case) the size-method returns "1" => it seems like there is one relationship)
 			assertEquals("Invalid number of relationships", "0",  Scripting.replaceVariables(ctx, testOne, "${size(get_relationships(this, this))}"));
 
 			// non-existent relType between nodes which have a relationship
@@ -1813,7 +1810,7 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid number of relationships", "1",  Scripting.replaceVariables(ctx, testTwo, "${size(get_relationships(this, first(find('TestOne', 'name', 'A-nice-little-name-for-my-test-object')), 'IS_AT'))}"));
 
 
-			// get_incoming_relationships (CAUTION! If the method returns a string (error-case) the size-method returns "1" => it seems like there is one relationsh)
+			// get_incoming_relationships (CAUTION! If the method returns a string (error-case) the size-method returns "1" => it seems like there is one relationship)
 			assertEquals("Invalid number of incoming relationships", "0",  Scripting.replaceVariables(ctx, testOne, "${size(get_incoming_relationships(this, this))}"));
 
 			assertEquals("Invalid number of incoming relationships", "0",  Scripting.replaceVariables(ctx, testOne, "${size(get_incoming_relationships(this, first(find('TestTwo', 'name', 'testTwo_name'))))}"));
@@ -1893,11 +1890,16 @@ public class ScriptingTest extends StructrTest {
 			// sort with extract
 			assertEquals("Invalid sort result", "[b, a, c]", Scripting.replaceVariables(ctx, null, "${merge('b', 'a', 'c')}"));
 			assertEquals("Invalid sort result", "[a, b, c]", Scripting.replaceVariables(ctx, null, "${sort(merge('b', 'a', 'c'))}"));
+			assertEquals("Invalid sort result", "[c, b, a]", Scripting.replaceVariables(ctx, null, "${sort(merge('b', 'a', 'c'), '', true)}"));
 			assertEquals("Invalid sort result", "",          Scripting.replaceVariables(ctx, null, "${sort()}"));
 			assertEquals("Invalid sort result", "[TestSix19, TestSix18, TestSix17, TestSix16, TestSix15, TestSix14, TestSix13, TestSix12, TestSix11, TestSix10, TestSix09, TestSix08, TestSix07, TestSix06, TestSix05, TestSix04, TestSix03, TestSix02, TestSix01, TestSix00]",          Scripting.replaceVariables(ctx, testOne, "${extract(sort(this.manyToManyTestSixs, 'index', true), 'name')}"));
 			assertEquals("Invalid sort result", "[A-nice-little-name-for-my-test-object, testThree_name, testTwo_name]", Scripting.replaceVariables(ctx, testOne, "${extract(sort(merge(this, this.testTwo, this.testThree), 'name'), 'name')}"));
 			assertEquals("Invalid sort result", "[A-nice-little-name-for-my-test-object, testThree_name, testTwo_name]", Scripting.replaceVariables(ctx, testOne, "${extract(sort(merge(this.testTwo, this, this.testThree), 'name'), 'name')}"));
 			assertEquals("Invalid sort result", "[A-nice-little-name-for-my-test-object, testThree_name, testTwo_name]", Scripting.replaceVariables(ctx, testOne, "${extract(sort(merge(this.testTwo, this.testThree, this), 'name'), 'name')}"));
+
+			// sort with a Set as input
+			assertEquals("Invalid ascending sort result for Set input", "[IS_AT, MANY_TO_MANY, OWNS]", Scripting.replaceVariables(ctx, testOne, "${sort(getRelationshipTypes(this))}"));
+			assertEquals("Invalid descending sort result for Set input", "[OWNS, MANY_TO_MANY, IS_AT]", Scripting.replaceVariables(ctx, testOne, "${sort(getRelationshipTypes(this), '', true)}"));
 
 			// extract
 			assertEquals("Invalid extract() result for relationship property", "[[" + StringUtils.join(testSixs, ", ") +  "]]", Scripting.replaceVariables(ctx, testOne, "${extract(find('TestOne'), 'manyToManyTestSixs')}"));
@@ -6809,7 +6811,7 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface test            = app.create("Test", "test");
+			final NodeInterface test = app.create("Test", "test");
 
 			// test successful execution
 			final Map<String, Object> result1 = (Map) Scripting.evaluate(new ActionContext(securityContext), test, "${{ $.this.doTest1(); }}", "test");
@@ -6818,11 +6820,6 @@ public class ScriptingTest extends StructrTest {
 			final Map<String, Object> result4 = (Map) Scripting.evaluate(new ActionContext(securityContext), test, "${{ $.this.doTest4(); }}", "test");
 			final Map<String, Object> result5 = (Map) Scripting.evaluate(new ActionContext(securityContext), test, "${{ $.this.doTest5(); }}", "test");
 			final Map<String, Object> result6 = (Map) Scripting.evaluate(new ActionContext(securityContext), test, "${{ $.functionInfo('Test', 'doTest1'); }}", "test");
-
-			final String result7 = (String)Scripting.evaluate(new ActionContext(securityContext), test, "${{ $.functionInfo('TestWrong', 'doTest1'); }}", "test");
-			final String result8 = (String)Scripting.evaluate(new ActionContext(securityContext), test, "${{ $.functionInfo('Test', 'wrongName'); }}", "test");
-			final String result9 = (String)Scripting.evaluate(new ActionContext(securityContext), test, "${{ $.functionInfo('Test'); }}", "test");
-
 
 			assertEquals("Invalid functionInfo() result", "doTest1", result1.get(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 			assertEquals("Invalid functionInfo() result", "doTest2", result2.get(NodeInterfaceTraitDefinition.NAME_PROPERTY));
@@ -6854,9 +6851,25 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid functionInfo() result", "string", ((Map)result6.get(SchemaMethodTraitDefinition.PARAMETERS_PROPERTY)).get("id"));
 			assertEquals("Invalid functionInfo() result", "date",   ((Map)result6.get(SchemaMethodTraitDefinition.PARAMETERS_PROPERTY)).get("date"));
 
-			assertEquals("Invalid functionInfo() error result", FunctionInfoFunction.ERROR_MESSAGE_FUNCTION_INFO_JS,  result7);
-			assertEquals("Invalid functionInfo() error result", FunctionInfoFunction.ERROR_MESSAGE_FUNCTION_INFO_JS,  result8);
-			assertEquals("Invalid functionInfo() error result", FunctionInfoFunction.ERROR_MESSAGE_FUNCTION_INFO_JS,  result9);
+			// error cases
+			try {
+				Scripting.evaluate(new ActionContext(securityContext), test, "${{ $.functionInfo('DoesNotExist', 'doTest1'); }}", "test");
+				fail("Exception should have been thrown");
+			} catch (FrameworkException expected) {
+				assertEquals("Invalid error message for functionInfo() when supplying non-existent type name!", TypeInfoFunction.UNKNOWN_TYPE_ERROR_MESSAGE.formatted("functionInfo", "DoesNotExist"), expected.getMessage());
+			}
+			try {
+				Scripting.evaluate(new ActionContext(securityContext), test, "${{ $.functionInfo('Test', 'wrongName'); }}", "test");
+				fail("Exception should have been thrown");
+			} catch (FrameworkException expected) {
+				assertEquals("Invalid error message for functionInfo() when supplying non-existent function name!", FunctionInfoFunction.UNKNOWN_FUNCTION_ERROR_MESSAGE.formatted("functionInfo", "Test", "wrongName"), expected.getMessage());
+			}
+			try {
+				Scripting.evaluate(new ActionContext(securityContext), test, "${{ $.functionInfo('Test'); }}", "test");
+				fail("Exception should have been thrown");
+			} catch (FrameworkException expected) {
+				assertEquals("Invalid error message for functionInfo() when supplying only one parameter!", FunctionInfoFunction.UNSUPPORTED_ARGUMENT_COUNT_ERROR_MESSAGE.formatted("functionInfo", 1), expected.getMessage());
+			}
 
 			tx.success();
 
@@ -7491,50 +7504,6 @@ public class ScriptingTest extends StructrTest {
 	}
 
 	@Test
-	public void testInheritingAndAncestorTypesFunctionsInStructrScript() {
-
-		final ActionContext actionContext = new ActionContext(securityContext);
-
-		// schema setup
-		try (final Tx tx = app.tx()) {
-
-			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
-			final JsonType subUser    = schema.addType("SubUser").addTrait(StructrTraits.USER);
-			final JsonType subSubUser = schema.addType("SubSubUser").addTrait("SubUser");
-
-			final JsonType serviceClass = schema.addType("SomeServiceClass").setIsServiceClass();
-
-			StructrSchema.replaceDatabaseSchema(app, schema);
-
-			tx.success();
-
-		} catch (FrameworkException t) {
-			logger.error("", t);
-			fail("Unexpected exception during test setup.");
-		}
-
-		// test
-		try (final Tx tx = app.tx()) {
-
-			final String result1 = Scripting.evaluate(actionContext, null, "${sort(inheritingTypes('Principal'))}", "test1").toString();
-			final String result2 = Scripting.evaluate(actionContext, null, "${sort(inheritingTypes('Principal', merge('SubUser', 'SubSubUser')))}", "test1").toString();
-			final String result3 = Scripting.evaluate(actionContext, null, "${sort(ancestorTypes('SubSubUser'))}", "test1").toString();
-			final String result4 = Scripting.evaluate(actionContext, null, "${sort(ancestorTypes('SubSubUser', merge('SubUser', 'User')))}", "test1").toString();
-
-			assertEquals("Invalid result for inheritingTypes() function.", "[Group, SubSubUser, SubUser, User]", result1);
-			assertEquals("Invalid result for inheritingTypes() function.", "[Group, User]", result2);
-			assertEquals("Invalid result for ancestorTypes() function.", "[Principal, SubUser, User]", result3);
-			assertEquals("Invalid result for ancestorTypes() function.", "[Principal]", result4);
-
-			tx.success();
-
-		} catch (FrameworkException t) {
-			t.printStackTrace();
-			fail("Unexpected exception during test setup.");
-		}
-	}
-
-	@Test
 	public void testInheritingAndAncestorTypesFunctions() {
 
 		final ActionContext actionContext = new ActionContext(securityContext);
@@ -7557,101 +7526,143 @@ public class ScriptingTest extends StructrTest {
 			fail("Unexpected exception during test setup.");
 		}
 
-		// tests
-		try (final Tx tx = app.tx()) {
+		// test functions in StructrScript
+		{
+			try (final Tx tx = app.tx()) {
 
-			// happy path
-			{
-				final String result1 = (String) Scripting.evaluate(actionContext, null, "${{ JSON.stringify($.inheritingTypes('Principal').sort()); }}", "test1");
-				final String result2 = (String) Scripting.evaluate(actionContext, null, "${{ JSON.stringify($.inheritingTypes('Principal', ['SubUser', 'SubSubUser']).sort()); }}", "test1");
-				final String result3 = (String) Scripting.evaluate(actionContext, null, "${{ JSON.stringify($.ancestorTypes('SubSubUser').sort()); }}", "test1");
-				final String result4 = (String) Scripting.evaluate(actionContext, null, "${{ JSON.stringify($.ancestorTypes('SubSubUser', ['SubUser', 'User']).sort()); }}", "test1");
+				assertEquals("Invalid result for inheritingTypes()", "[Group, SubSubUser, SubUser, User]", Scripting.replaceVariables(actionContext, null, "${sort(inheritingTypes('Principal'))}"));
+				assertEquals("Invalid result for inheritingTypes()", "[Group, User]",                      Scripting.replaceVariables(actionContext, null, "${sort(inheritingTypes('Principal', merge('SubUser', 'SubSubUser')))}"));
+				assertEquals("Invalid result for ancestorTypes()",   "[Principal, SubUser, User]",         Scripting.replaceVariables(actionContext, null, "${sort(ancestorTypes('SubSubUser'))}"));
+				assertEquals("Invalid result for ancestorTypes()",   "[Principal]",                        Scripting.replaceVariables(actionContext, null, "${sort(ancestorTypes('SubSubUser', merge('SubUser', 'User')))}"));
 
-				assertEquals("Invalid result for inheritingTypes() function.", "[\"Group\",\"SubSubUser\",\"SubUser\",\"User\"]", result1);
-				assertEquals("Invalid result for inheritingTypes() function.", "[\"Group\",\"User\"]", result2);
-				assertEquals("Invalid result for ancestorTypes() function.", "[\"Principal\",\"SubUser\",\"User\"]", result3);
-				assertEquals("Invalid result for ancestorTypes() function.", "[\"Principal\"]", result4);
+				assertNull(Scripting.evaluate(actionContext, null, "${inheritingTypes('DoesNotExist')}", "test1"));
+				assertNull(Scripting.evaluate(actionContext, null, "${ancestorTypes('DoesNotExist')}", "test1"));
+
+				assertNull(Scripting.evaluate(actionContext, null, "${inheritingTypes('Principal', 12345)}", "test1"));
+				assertNull(Scripting.evaluate(actionContext, null, "${ancestorTypes('SubSubUser', 12345)}", "test1"));
+
+				assertNull(Scripting.evaluate(actionContext, null, "${inheritingTypes('SomeServiceClass')}", "test1"));
+				assertNull(Scripting.evaluate(actionContext, null, "${ancestorTypes('SomeServiceClass')}", "test1"));
+
+				tx.success();
+
+			} catch (FrameworkException t) {
+				t.printStackTrace();
+				fail("Unexpected exception");
 			}
+		}
 
-			// test wrong type name
-			{
-				try {
-					Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('DoesNotExist'); }}", "test1");
-				} catch (FrameworkException expected) {
-					assertEquals("Invalid error message for inheritingTypes() when querying type that does not exist!", "inheritingTypes(): Type 'DoesNotExist' not found.", expected.getMessage());
+		// test functions in JavaScript
+		{
+			// tests
+			try (final Tx tx = app.tx()) {
+
+				// happy path
+				{
+					assertEquals("Invalid result for inheritingTypes()", "[Group, SubSubUser, SubUser, User]", Scripting.replaceVariables(actionContext, null, "${{ $.inheritingTypes('Principal').sort(); }}"));
+					assertEquals("Invalid result for inheritingTypes()", "[Group, User]",                      Scripting.replaceVariables(actionContext, null, "${{ $.inheritingTypes('Principal', ['SubUser', 'SubSubUser']).sort(); }}"));
+					assertEquals("Invalid result for inheritingTypes()", "[Group, User]",                      Scripting.replaceVariables(actionContext, null, "${{ $.inheritingTypes('Principal', new Set(['SubUser', 'SubSubUser'])).sort(); }}"));
+					assertEquals("Invalid result for inheritingTypes()", "[Group, User]",                      Scripting.replaceVariables(actionContext, null, "${{ $.inheritingTypes('Principal', new Array('SubUser', 'SubSubUser')).sort(); }}"));
+					assertEquals("Invalid result for inheritingTypes()", "[Group, User]",                      Scripting.replaceVariables(actionContext, null, "${{ $.inheritingTypes('Principal', $.merge('SubUser', 'SubSubUser')).sort(); }}"));
+					assertEquals("Invalid result for ancestorTypes()",   "[Principal, SubUser, User]",         Scripting.replaceVariables(actionContext, null, "${{ $.ancestorTypes('SubSubUser').sort(); }}"));
+					assertEquals("Invalid result for ancestorTypes()",   "[Principal]",                        Scripting.replaceVariables(actionContext, null, "${{ $.ancestorTypes('SubSubUser', ['SubUser', 'User']).sort(); }}"));
+					assertEquals("Invalid result for ancestorTypes()",   "[Principal]",                        Scripting.replaceVariables(actionContext, null, "${{ $.ancestorTypes('SubSubUser', new Set(['SubUser', 'User'])).sort(); }}"));
+					assertEquals("Invalid result for ancestorTypes()",   "[Principal]",                        Scripting.replaceVariables(actionContext, null, "${{ $.ancestorTypes('SubSubUser', new Array('SubUser', 'User')).sort(); }}"));
+					assertEquals("Invalid result for ancestorTypes()",   "[Principal]",                        Scripting.replaceVariables(actionContext, null, "${{ $.ancestorTypes('SubSubUser', $.merge('SubUser', 'User')).sort(); }}"));
 				}
-				try {
-					Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('DoesNotExist'); }}", "test1");
-				} catch (FrameworkException expected) {
-					assertEquals("Invalid error message for ancestorTypes() when querying type that does not exist!", "ancestorTypes(): Type 'DoesNotExist' not found.", expected.getMessage());
+
+				// test wrong type name
+				{
+					try {
+						Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('DoesNotExist'); }}", "test1");
+						fail("Exception should have been thrown");
+					} catch (FrameworkException expected) {
+						assertEquals("Invalid error message for inheritingTypes() when querying type that does not exist!", TypeInfoFunction.UNKNOWN_TYPE_ERROR_MESSAGE.formatted("inheritingTypes", "DoesNotExist"), expected.getMessage());
+					}
+					try {
+						Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('DoesNotExist'); }}", "test1");
+						fail("Exception should have been thrown");
+					} catch (FrameworkException expected) {
+						assertEquals("Invalid error message for ancestorTypes() when querying type that does not exist!", TypeInfoFunction.UNKNOWN_TYPE_ERROR_MESSAGE.formatted("ancestorTypes", "DoesNotExist"), expected.getMessage());
+					}
 				}
+
+				// test service class
+				{
+					try {
+						Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('SomeServiceClass'); }}", "test1");
+						fail("Exception should have been thrown");
+					} catch (FrameworkException expected) {
+						assertEquals("Invalid error message for inheritingTypes() when querying type that is a service class!", AncestorTypesFunction.UNSUPPORTED_TYPE_PARAMETER_TYPE_SERVICE_CLASS.formatted("inheritingTypes", "SomeServiceClass"), expected.getMessage());
+					}
+					try {
+						Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('SomeServiceClass'); }}", "test1");
+						fail("Exception should have been thrown");
+					} catch (FrameworkException expected) {
+						assertEquals("Invalid error message for ancestorTypes() when querying type that is a service class!", AncestorTypesFunction.UNSUPPORTED_TYPE_PARAMETER_TYPE_SERVICE_CLASS.formatted("ancestorTypes", "SomeServiceClass"), expected.getMessage());
+					}
+				}
+
+				// test wrong parameter type for blacklist parameter
+				{
+					final String expectedErrorNonListParameterInheriting = AncestorTypesFunction.UNSUPPORTED_TYPE_PARAMETER_BLACKLIST.formatted("inheritingTypes");
+					final String expectedErrorNonListParameterAncestor   = AncestorTypesFunction.UNSUPPORTED_TYPE_PARAMETER_BLACKLIST.formatted("ancestorTypes");
+					try {
+						Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('User', 'This is wrong'); }}", "test1");
+						fail("Exception should have been thrown");
+					} catch (FrameworkException expected) {
+						assertEquals("Invalid error message for inheritingTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterInheriting, expected.getMessage());
+					}
+					try {
+						Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('User', 'This is wrong'); }}", "test1");
+						fail("Exception should have been thrown");
+					} catch (FrameworkException expected) {
+						assertEquals("Invalid error message for ancestorTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterAncestor, expected.getMessage());
+					}
+					try {
+						Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('User', 42); }}", "test1");
+						fail("Exception should have been thrown");
+					} catch (FrameworkException expected) {
+						assertEquals("Invalid error message for inheritingTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterInheriting, expected.getMessage());
+					}
+					try {
+						Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('User', 42); }}", "test1");
+						fail("Exception should have been thrown");
+					} catch (FrameworkException expected) {
+						assertEquals("Invalid error message for ancestorTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterAncestor, expected.getMessage());
+					}
+					try {
+						Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('User', new Date()); }}", "test1");
+						fail("Exception should have been thrown");
+					} catch (FrameworkException expected) {
+						assertEquals("Invalid error message for inheritingTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterInheriting, expected.getMessage());
+					}
+					try {
+						Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('User', new Date()); }}", "test1");
+						fail("Exception should have been thrown");
+					} catch (FrameworkException expected) {
+						assertEquals("Invalid error message for ancestorTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterAncestor, expected.getMessage());
+					}
+					try {
+						Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('User', { test: 'blah' }); }}", "test1");
+						fail("Exception should have been thrown");
+					} catch (FrameworkException expected) {
+						assertEquals("Invalid error message for inheritingTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterInheriting, expected.getMessage());
+					}
+					try {
+						Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('User', { test: 'blah' }); }}", "test1");
+						fail("Exception should have been thrown");
+					} catch (FrameworkException expected) {
+						assertEquals("Invalid error message for ancestorTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterAncestor, expected.getMessage());
+					}
+				}
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+				fail("Unexpected exception");
 			}
-
-			// test service class
-			{
-				try {
-					Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('SomeServiceClass'); }}", "test1");
-				} catch (FrameworkException expected) {
-					assertEquals("Invalid error message for inheritingTypes() when querying type that is a service class!", "inheritingTypes(): Not applicable to service class 'SomeServiceClass'.", expected.getMessage());
-				}
-				try {
-					Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('SomeServiceClass'); }}", "test1");
-				} catch (FrameworkException expected) {
-					assertEquals("Invalid error message for ancestorTypes() when querying type that is a service class!", "ancestorTypes(): Not applicable to service class 'SomeServiceClass'.", expected.getMessage());
-				}
-			}
-
-			// test wrong parameter type for blacklist parameter
-			{
-				final String expectedErrorNonListParameterInheriting = "inheritingTypes(): Expected 'blacklist' parameter to be of type List.";
-				final String expectedErrorNonListParameterAncestor   = "ancestorTypes(): Expected 'blacklist' parameter to be of type List.";
-				try {
-					Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('User', 'This is wrong'); }}", "test1");
-				} catch (FrameworkException expected) {
-					assertEquals("Invalid error message for inheritingTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterInheriting, expected.getMessage());
-				}
-				try {
-					Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('User', 'This is wrong'); }}", "test1");
-				} catch (FrameworkException expected) {
-					assertEquals("Invalid error message for ancestorTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterAncestor, expected.getMessage());
-				}
-				try {
-					Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('User', 42); }}", "test1");
-				} catch (FrameworkException expected) {
-					assertEquals("Invalid error message for inheritingTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterInheriting, expected.getMessage());
-				}
-				try {
-					Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('User', 42); }}", "test1");
-				} catch (FrameworkException expected) {
-					assertEquals("Invalid error message for ancestorTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterAncestor, expected.getMessage());
-				}
-				try {
-					Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('User', new Date()); }}", "test1");
-				} catch (FrameworkException expected) {
-					assertEquals("Invalid error message for inheritingTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterInheriting, expected.getMessage());
-				}
-				try {
-					Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('User', new Date()); }}", "test1");
-				} catch (FrameworkException expected) {
-					assertEquals("Invalid error message for ancestorTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterAncestor, expected.getMessage());
-				}
-				try {
-					Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('User', { test: 'blah' }); }}", "test1");
-				} catch (FrameworkException expected) {
-					assertEquals("Invalid error message for inheritingTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterInheriting, expected.getMessage());
-				}
-				try {
-					Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('User', { test: 'blah' }); }}", "test1");
-				} catch (FrameworkException expected) {
-					assertEquals("Invalid error message for ancestorTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterAncestor, expected.getMessage());
-				}
-			}
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-			fail("Unexpected exception");
 		}
 	}
 
@@ -8128,6 +8139,10 @@ public class ScriptingTest extends StructrTest {
 				assertEquals(null, Scripting.evaluate(actionContext, null, structrScript_not_working_illegal_charset, "test1"));
 			}
 
+			final String expectedErrorMessage_ExceptionInDecoding       = "FrameworkException(422): " + Base64DecodeFunction.ERROR_MESSAGE_EXCEPTION_IN_DECODING.formatted("base64decode", " not part of base64 alphabet ; ", "basic") + " (Illegal base64 character 20)"; // suffix is from the "cause"
+			final String expectedErrorMessage_UnsupportedDecodingScheme = "FrameworkException(422): " + Base64DecodeFunction.ERROR_MESSAGE_UNSUPPORTED_DECODING_SCHEME.formatted("base64decode", "WRONG_SCHEME");
+			final String expectedErrorMessage_UnsupportedCharset        = "FrameworkException(422): " + Base64DecodeFunction.ERROR_MESSAGE_UNSUPPORTED_CHARSET.formatted("base64decode", "WRONG_CHARSET") + " (WRONG_CHARSET)"; // suffix is from the "cause"
+
 			// JavaScript (with exception handling)
 			{
 				final String javaScript_working = """
@@ -8146,8 +8161,7 @@ public class ScriptingTest extends StructrTest {
 							}
 						}}
 						""";
-				final String expectedErrorMessage1 = "FrameworkException(422): base64decode: Exception encountered while decoding ' not part of base64 alphabet ; ' with scheme 'basic' (Illegal base64 character 20)";
-				assertEquals(expectedErrorMessage1, Scripting.evaluate(actionContext, null, javaScript_not_working_illegal_character, "test1"));
+				assertEquals(expectedErrorMessage_ExceptionInDecoding, Scripting.evaluate(actionContext, null, javaScript_not_working_illegal_character, "test1"));
 
 				final String javaScript_not_working_illegal_scheme = """
 						${{
@@ -8158,8 +8172,7 @@ public class ScriptingTest extends StructrTest {
 							}
 						}}
 						""";
-				final String expectedErrorMessage2 = "FrameworkException(422): base64decode: Unsupported base64 decoding scheme 'WRONG_SCHEME' - supported values are 'basic', 'url' and 'mime'.";
-				assertEquals(expectedErrorMessage2, Scripting.evaluate(actionContext, null, javaScript_not_working_illegal_scheme, "test1"));
+				assertEquals(expectedErrorMessage_UnsupportedDecodingScheme, Scripting.evaluate(actionContext, null, javaScript_not_working_illegal_scheme, "test1"));
 
 				final String javaScript_not_working_illegal_charset = """
 						${{
@@ -8170,8 +8183,7 @@ public class ScriptingTest extends StructrTest {
 							}
 						}}
 						""";
-				final String expectedErrorMessage3 = "FrameworkException(422): base64decode: Unsupported charset WRONG_CHARSET (WRONG_CHARSET)";
-				assertEquals(expectedErrorMessage3, Scripting.evaluate(actionContext, null, javaScript_not_working_illegal_charset, "test1"));
+				assertEquals(expectedErrorMessage_UnsupportedCharset, Scripting.evaluate(actionContext, null, javaScript_not_working_illegal_charset, "test1"));
 			}
 
 			// JavaScript (without exception handling)
@@ -8197,8 +8209,7 @@ public class ScriptingTest extends StructrTest {
 
 				} catch (FrameworkException fex) {
 
-					final String expectedErrorMessage = "FrameworkException(422): base64decode: Exception encountered while decoding ' not part of base64 alphabet ; ' with scheme 'basic' (Illegal base64 character 20)";
-					assertEquals(expectedErrorMessage, fex.toString());
+					assertEquals(expectedErrorMessage_ExceptionInDecoding, fex.toString());
 				}
 
 				try {
@@ -8215,8 +8226,7 @@ public class ScriptingTest extends StructrTest {
 
 				} catch (FrameworkException fex) {
 
-					final String expectedErrorMessage = "FrameworkException(422): base64decode: Unsupported base64 decoding scheme 'WRONG_SCHEME' - supported values are 'basic', 'url' and 'mime'.";
-					assertEquals(expectedErrorMessage, fex.toString());
+					assertEquals(expectedErrorMessage_UnsupportedDecodingScheme, fex.toString());
 				}
 
 				try {
@@ -8233,8 +8243,7 @@ public class ScriptingTest extends StructrTest {
 
 				} catch (FrameworkException fex) {
 
-					final String expectedErrorMessage = "FrameworkException(422): base64decode: Unsupported charset WRONG_CHARSET (WRONG_CHARSET)";
-					assertEquals(expectedErrorMessage, fex.toString());
+					assertEquals(expectedErrorMessage_UnsupportedCharset, fex.toString());
 				}
 			}
 
@@ -8257,8 +8266,7 @@ public class ScriptingTest extends StructrTest {
 						result
 						}}
 						""";
-				final String expectedErrorMessage1 = "FrameworkException(422): base64decode: Exception encountered while decoding ' not part of base64 alphabet ; ' with scheme 'basic' (Illegal base64 character 20)";
-				assertEquals(expectedErrorMessage1, Scripting.evaluate(actionContext, null, python_not_working_illegal_character, "test1"));
+				assertEquals(expectedErrorMessage_ExceptionInDecoding, Scripting.evaluate(actionContext, null, python_not_working_illegal_character, "test1"));
 
 				final String python_not_working_illegal_scheme = """
 						${python{
@@ -8270,8 +8278,7 @@ public class ScriptingTest extends StructrTest {
 						result
 						}}
 						""";
-				final String expectedErrorMessage2 = "FrameworkException(422): base64decode: Unsupported base64 decoding scheme 'WRONG_SCHEME' - supported values are 'basic', 'url' and 'mime'.";
-				assertEquals(expectedErrorMessage2, Scripting.evaluate(actionContext, null, python_not_working_illegal_scheme, "test1"));
+				assertEquals(expectedErrorMessage_UnsupportedDecodingScheme, Scripting.evaluate(actionContext, null, python_not_working_illegal_scheme, "test1"));
 
 				final String python_not_working_illegal_charset = """
 						${python{
@@ -8283,8 +8290,7 @@ public class ScriptingTest extends StructrTest {
 						result
 						}}
 						""";
-				final String expectedErrorMessage3 = "FrameworkException(422): base64decode: Unsupported charset WRONG_CHARSET (WRONG_CHARSET)";
-				assertEquals(expectedErrorMessage3, Scripting.evaluate(actionContext, null, python_not_working_illegal_charset, "test1"));
+				assertEquals(expectedErrorMessage_UnsupportedCharset, Scripting.evaluate(actionContext, null, python_not_working_illegal_charset, "test1"));
 			}
 
 			// Python (without exception handling)
@@ -8309,8 +8315,7 @@ public class ScriptingTest extends StructrTest {
 
 				} catch (FrameworkException fex) {
 
-					final String expectedErrorMessage = "FrameworkException(422): base64decode: Exception encountered while decoding ' not part of base64 alphabet ; ' with scheme 'basic' (Illegal base64 character 20)";
-					assertEquals(expectedErrorMessage, fex.toString());
+					assertEquals(expectedErrorMessage_ExceptionInDecoding, fex.toString());
 				}
 
 				try {
@@ -8326,8 +8331,7 @@ public class ScriptingTest extends StructrTest {
 
 				} catch (FrameworkException fex) {
 
-					final String expectedErrorMessage = "FrameworkException(422): base64decode: Unsupported base64 decoding scheme 'WRONG_SCHEME' - supported values are 'basic', 'url' and 'mime'.";
-					assertEquals(expectedErrorMessage, fex.toString());
+					assertEquals(expectedErrorMessage_UnsupportedDecodingScheme, fex.toString());
 				}
 
 				try {
@@ -8343,19 +8347,310 @@ public class ScriptingTest extends StructrTest {
 
 				} catch (FrameworkException fex) {
 
-					final String expectedErrorMessage = "FrameworkException(422): base64decode: Unsupported charset WRONG_CHARSET (WRONG_CHARSET)";
-					assertEquals(expectedErrorMessage, fex.toString());
+					assertEquals(expectedErrorMessage_UnsupportedCharset, fex.toString());
 				}
 			}
 
 			tx.success();
 
 		} catch (FrameworkException fex) {
+
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 	}
 
+	@Test
+	public void testGetRelationshipTypesFunction() {
+
+		final ActionContext actionContext = new ActionContext(securityContext);
+
+		NodeInterface testOne             = null;
+		NodeInterface testTwo             = null;
+		NodeInterface testThree           = null;
+		NodeInterface testFour            = null;
+		List<NodeInterface> testSixs      = null;
+
+		try (final Tx tx = app.tx()) {
+
+			testOne        = createTestNode("TestOne");
+			testTwo        = createTestNode("TestTwo");
+			testThree      = createTestNode("TestThree");
+			testFour       = createTestNode("TestFour");
+			testSixs       = createTestNodes("TestSix", 20, 1);
+
+			testOne.setProperty(Traits.of("TestOne").key("testTwo"), testTwo);
+			testOne.setProperty(Traits.of("TestOne").key("testThree"), testThree);
+			testOne.setProperty(Traits.of("TestOne").key("testFour"),  testFour);
+			testOne.setProperty(Traits.of("TestOne").key("manyToManyTestSixs"), testSixs);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+
+			fail("Unexpected exception");
+		}
+
+		// test functions in StructrScript
+		{
+			try (final Tx tx = app.tx()) {
+
+				assertEquals("Invalid result for getRelationshipTypes()", "[IS_AT, MANY_TO_MANY, OWNS]", Scripting.replaceVariables(actionContext, testOne, "${sort(getRelationshipTypes(this))}"));
+				assertEquals("Invalid result for getRelationshipTypes()", "[IS_AT, MANY_TO_MANY, ONE_TO_ONE, OWNS, SECURITY]", Scripting.replaceVariables(actionContext, testOne, "${sort(getRelationshipTypes(this, 'schema'))}"));
+				assertEquals("Invalid result for getRelationshipTypes()", "[IS_AT, OWNS]", Scripting.replaceVariables(actionContext, testOne, "${sort(getRelationshipTypes(this, 'schema', 'outgoing'))}"));
+
+				// error cases where null is expected
+				assertNull(Scripting.evaluate(actionContext, testOne, "${getRelationshipTypes('NotANode')}", "test1"));
+				assertNull(Scripting.evaluate(actionContext, testOne, "${getRelationshipTypes(this, 'invalid_lookup_type')}", "test1"));
+				assertNull(Scripting.evaluate(actionContext, testOne, "${getRelationshipTypes(this, 'schema', 'invalid_direction')}", "test1"));
+
+				tx.success();
+
+			} catch (FrameworkException t) {
+				t.printStackTrace();
+				fail("Unexpected exception");
+			}
+		}
+
+		// test functions in JavaScript
+		{
+			// tests
+			try (final Tx tx = app.tx()) {
+
+				assertEquals("Invalid result for getRelationshipTypes()", "[IS_AT, MANY_TO_MANY, OWNS]", Scripting.replaceVariables(actionContext, testOne, "${{$.sort($.getRelationshipTypes($.this))}}"));
+				assertEquals("Invalid result for getRelationshipTypes()", "[IS_AT, MANY_TO_MANY, ONE_TO_ONE, OWNS, SECURITY]", Scripting.replaceVariables(actionContext, testOne, "${{$.sort($.getRelationshipTypes($.this, 'schema'))}}"));
+				assertEquals("Invalid result for getRelationshipTypes()", "[IS_AT, OWNS]", Scripting.replaceVariables(actionContext, testOne, "${{$.sort($.getRelationshipTypes($.this, 'schema', 'outgoing'))}}"));
+
+				// error cases where an exception is expected
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.getRelationshipTypes('DoesNotExist'); }}", "test1");
+					fail("Exception should have been thrown");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for getRelationshipTypes() when supplying non-node as first parameter!", GetRelationshipTypesFunction.UNSUPPORTED_TYPE_PARAMETER_NODE.formatted("getRelationshipTypes", "DoesNotExist"), expected.getMessage());
+				}
+				try {
+					Scripting.evaluate(actionContext, testOne, "${{ $.getRelationshipTypes($.this, 'INVALID_LOOKUP_TYPE'); }}", "test1");
+					fail("Exception should have been thrown");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for getRelationshipTypes() when using invalid lookupType!", GetRelationshipTypesFunction.UNSUPPORTED_TYPE_PARAMETER_LOOKUPTYPE.formatted("getRelationshipTypes", "INVALID_LOOKUP_TYPE"), expected.getMessage());
+				}
+				try {
+					Scripting.evaluate(actionContext, testOne, "${{ $.getRelationshipTypes($.this, 'schema', 'INVALID_DIRECTION'); }}", "test1");
+					fail("Exception should have been thrown");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for getRelationshipTypes() when using invalid direction!", GetRelationshipTypesFunction.UNSUPPORTED_TYPE_PARAMETER_DIRECTION.formatted("getRelationshipTypes", "INVALID_DIRECTION"), expected.getMessage());
+				}
+
+			} catch (FrameworkException t) {
+				t.printStackTrace();
+				fail("Unexpected exception");
+			}
+		}
+	}
+
+	@Test
+	public void testTypeInfoFunction() {
+
+		final ActionContext actionContext = new ActionContext(securityContext);
+
+		// StructrScript
+		{
+			try (final Tx tx = app.tx()) {
+
+				assertEquals("Invalid result for typeInfo()", "Group", Scripting.replaceVariables(actionContext, null, "${typeInfo('Group').name}"));
+				assertEquals("Invalid result for typeInfo()", "3",     Scripting.replaceVariables(actionContext, null, "${size(typeInfo('Group', 'custom'))}"));
+
+				// error cases where null is expected
+				assertNull(Scripting.evaluate(actionContext, null, "${typeInfo('DoesNotExist')}", "test1"));
+				assertNull(Scripting.evaluate(actionContext, null, "${typeInfo('Group', 'doesNotExist')}", "test1"));
+
+				tx.success();
+
+			} catch (FrameworkException t) {
+				t.printStackTrace();
+				fail("Unexpected exception");
+			}
+		}
+
+		// JavaScript
+		{
+			// tests
+			try (final Tx tx = app.tx()) {
+
+				assertEquals("Invalid result for typeInfo()", "Group", Scripting.replaceVariables(actionContext, null, "${{ $.typeInfo('Group').name }}"));
+				assertEquals("Invalid result for typeInfo()", "3",     Scripting.replaceVariables(actionContext, null, "${{ $.size($.typeInfo('Group', 'custom')) }}"));
+
+				// error cases where an exception is expected
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.typeInfo('DoesNotExist'); }}", "test1");
+					fail("Exception should have been thrown");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for typeInfo() when supplying non-node as first parameter!", TypeInfoFunction.UNKNOWN_TYPE_ERROR_MESSAGE.formatted("typeInfo", "DoesNotExist"), expected.getMessage());
+				}
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.typeInfo('Group', 'doesNotExist'); }}", "test1");
+					fail("Exception should have been thrown");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for typeInfo() when using invalid lookupType!", TypeInfoFunction.UNKNOWN_VIEW_ERROR_MESSAGE.formatted("typeInfo", "doesNotExist", "Group"), expected.getMessage());
+				}
+
+			} catch (FrameworkException t) {
+				t.printStackTrace();
+				fail("Unexpected exception");
+			}
+		}
+	}
+
+	@Test
+	public void testPropertyInfoFunction() {
+
+		final ActionContext actionContext = new ActionContext(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createEmptySchema();
+
+			schema.addType("Test").addBooleanProperty("boolTest").setIndexed(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException | InvalidSchemaException | URISyntaxException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// StructrScript
+		{
+			try (final Tx tx = app.tx()) {
+
+				assertEquals("Invalid result for propertyInfo()", "Boolean", Scripting.replaceVariables(actionContext, null, "${propertyInfo('Test', 'boolTest').type}"));
+				assertEquals("Invalid result for propertyInfo()", "Test",    Scripting.replaceVariables(actionContext, null, "${propertyInfo('Test', 'boolTest').declaringClass}"));
+				assertEquals("Invalid result for propertyInfo()", "true",    Scripting.replaceVariables(actionContext, null, "${propertyInfo('Test', 'boolTest').indexed}"));
+
+				// error cases where null is expected
+				assertNull(Scripting.evaluate(actionContext, null, "${propertyInfo('DoesNotExist', 'doesnotmatter')}", "test1"));
+				assertNull(Scripting.evaluate(actionContext, null, "${propertyInfo('Test', 'doesNotExist')}", "test1"));
+
+				tx.success();
+
+			} catch (FrameworkException t) {
+				t.printStackTrace();
+				fail("Unexpected exception");
+			}
+		}
+
+		// JavaScript
+		{
+			// tests
+			try (final Tx tx = app.tx()) {
+
+				assertEquals("Invalid result for propertyInfo()", "Boolean", Scripting.replaceVariables(actionContext, null, "${{ $.propertyInfo('Test', 'boolTest').type }}"));
+				assertEquals("Invalid result for propertyInfo()", "Test",    Scripting.replaceVariables(actionContext, null, "${{ $.propertyInfo('Test', 'boolTest').declaringClass }}"));
+				assertEquals("Invalid result for propertyInfo()", "true",    Scripting.replaceVariables(actionContext, null, "${{ $.propertyInfo('Test', 'boolTest').indexed }}"));
+
+				// error cases where an exception is expected
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.propertyInfo('DoesNotExist', 'doesnotmatter'); }}", "test1");
+					fail("Exception should have been thrown");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for propertyInfo() when supplying non-node as first parameter!", TypeInfoFunction.UNKNOWN_TYPE_ERROR_MESSAGE.formatted("propertyInfo", "DoesNotExist"), expected.getMessage());
+				}
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.propertyInfo('Group', 'DoesNotExist'); }}", "test1");
+					fail("Exception should have been thrown");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for propertyInfo() when using invalid lookupType!", PropertyInfoFunction.UNKNOWN_PROPERTY_ERROR_MESSAGE.formatted("propertyInfo", "Group", "DoesNotExist"), expected.getMessage());
+				}
+
+			} catch (FrameworkException t) {
+				t.printStackTrace();
+				fail("Unexpected exception");
+			}
+		}
+	}
+
+	@Test
+	public void testEnumInfoFunction() {
+
+		final ActionContext actionContext = new ActionContext(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createEmptySchema();
+
+			final JsonType testType = schema.addType("Test");
+			testType.addEnumProperty("enumTest").setFormat("VALUE1, VALUE2, VALUE3").setIndexed(true);
+			testType.addStringProperty("notAnEnum");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException | InvalidSchemaException | URISyntaxException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// StructrScript
+		{
+			try (final Tx tx = app.tx()) {
+
+				assertEquals("Invalid result for enumInfo()", "[{value=VALUE1}, {value=VALUE2}, {value=VALUE3}]", Scripting.replaceVariables(actionContext, null, "${enumInfo('Test', 'enumTest')}"));
+				assertEquals("Invalid result for enumInfo()", "[VALUE1, VALUE2, VALUE3]", Scripting.replaceVariables(actionContext, null, "${enumInfo('Test', 'enumTest', true)}"));
+
+				// error cases where null is expected
+				assertNull(Scripting.evaluate(actionContext, null, "${enumInfo('DoesNotExist', 'doesnotmatter')}", "test1"));
+				assertNull(Scripting.evaluate(actionContext, null, "${enumInfo('Test', 'doesNotExist')}", "test1"));
+				assertNull(Scripting.evaluate(actionContext, null, "${enumInfo('Test', 'notAnEnum')}", "test1"));
+
+				tx.success();
+
+			} catch (FrameworkException t) {
+				t.printStackTrace();
+				fail("Unexpected exception");
+			}
+		}
+
+		// JavaScript
+		{
+			// tests
+			try (final Tx tx = app.tx()) {
+
+				assertEquals("Invalid result for enumInfo()", "[{value=VALUE1}, {value=VALUE2}, {value=VALUE3}]", Scripting.replaceVariables(actionContext, null, "${{ $.enumInfo('Test', 'enumTest') }}"));
+				assertEquals("Invalid result for enumInfo()", "[VALUE1, VALUE2, VALUE3]",                         Scripting.replaceVariables(actionContext, null, "${{ $.enumInfo('Test', 'enumTest', true) }}"));
+
+				// error cases where an exception is expected
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.enumInfo('DoesNotExist', 'doesnotmatter') }}", "test1");
+					fail("Exception should have been thrown");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for enumInfo() when supplying non-node as first parameter!", TypeInfoFunction.UNKNOWN_TYPE_ERROR_MESSAGE.formatted("enumInfo", "DoesNotExist"), expected.getMessage());
+				}
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.enumInfo('Test', 'doesNotExist') }}", "test1");
+					fail("Exception should have been thrown");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for enumInfo() when using invalid lookupType!", PropertyInfoFunction.UNKNOWN_PROPERTY_ERROR_MESSAGE.formatted("enumInfo", "Test", "doesNotExist"), expected.getMessage());
+				}
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.enumInfo('Test', 'notAnEnum') }}", "test1");
+					fail("Exception should have been thrown");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for enumInfo() when using invalid lookupType!", EnumInfoFunction.NOT_AN_ENUM_PROPERTY_WARNING_MESSAGE.formatted("enumInfo", "Test", "notAnEnum"), expected.getMessage());
+				}
+
+			} catch (FrameworkException t) {
+				t.printStackTrace();
+				fail("Unexpected exception");
+			}
+		}
+	}
 
 	// ----- private methods ----
 	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource) {

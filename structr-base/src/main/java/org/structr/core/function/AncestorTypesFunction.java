@@ -30,13 +30,22 @@ import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 public class AncestorTypesFunction extends AdvancedScriptingFunction {
 
+	public static final String UNSUPPORTED_TYPE_PARAMETER_BLACKLIST          = "%s(): Expected 'blacklist' parameter to be a collection.";
+	public static final String UNSUPPORTED_TYPE_PARAMETER_TYPE_SERVICE_CLASS = "%s(): Not applicable to service class '%s'.";
+
 	@Override
 	public String getName() {
 		return "ancestorTypes";
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("type [, blacklist ]");
 	}
 
 	@Override
@@ -46,69 +55,61 @@ public class AncestorTypesFunction extends AdvancedScriptingFunction {
 
 			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2);
 
-			final String typeName = sources[0].toString();
-			if (!Traits.exists(typeName)) {
+			final String typeName        = sources[0].toString();
+			final Traits type            = Traits.of(typeName);
+			final List<String> blacklist = new ArrayList<>(Arrays.asList(typeName, StructrTraits.NODE_INTERFACE, StructrTraits.PROPERTY_CONTAINER, StructrTraits.GRAPH_OBJECT, StructrTraits.ACCESS_CONTROLLABLE));
 
-				throw new FrameworkException(422, new StringBuilder(getName()).append("(): Type '").append(typeName).append("' not found.").toString());
+			if (type == null) {
+
+				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, TypeInfoFunction.UNKNOWN_TYPE_ERROR_MESSAGE.formatted(getName(), typeName));
 			}
-
-			final Traits type                     = Traits.of(typeName);
-			final ArrayList<String> ancestorTypes = new ArrayList();
-			final List<String> blackList          = new ArrayList(Arrays.asList(typeName, StructrTraits.NODE_INTERFACE, StructrTraits.PROPERTY_CONTAINER, StructrTraits.GRAPH_OBJECT, StructrTraits.ACCESS_CONTROLLABLE));
 
 			if (sources.length == 2) {
 
-				if (sources[1] instanceof List) {
+				if (sources[1] instanceof Collection<?> blCollection) {
 
-					blackList.addAll((List)sources[1]);
-
-				} else {
-
-					throw new FrameworkException(422, new StringBuilder(getName()).append("(): Expected 'blacklist' parameter to be of type List.").toString());
-				}
-			}
-
-			if (type != null) {
-
-				if (type.isServiceClass() == false) {
-
-					ancestorTypes.addAll(type.getAllTraits());
-					ancestorTypes.removeAll(blackList);
+					blCollection.forEach(blEntry -> blacklist.add(blEntry.toString()));
 
 				} else {
 
-					throw new FrameworkException(422, new StringBuilder(getName()).append("(): Not applicable to service class '").append(type.getName()).append("'.").toString());
+					return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, UNSUPPORTED_TYPE_PARAMETER_BLACKLIST.formatted(getName()));
 				}
-
-			} else {
-
-				logger.warn("{}(): Type not found: {}" + (caller != null ? " (source of call: " + caller.toString() + ")" : ""), getName(), sources[0]);
 			}
+
+			if (type.isServiceClass()) {
+
+				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, UNSUPPORTED_TYPE_PARAMETER_TYPE_SERVICE_CLASS.formatted(getName(), typeName));
+			}
+
+			final ArrayList<String> ancestorTypes = new ArrayList<>(type.getAllTraits());
+			ancestorTypes.removeAll(blacklist);
 
 			return ancestorTypes;
 
 		} catch (IllegalArgumentException e) {
 
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the list of parent types of the given type **including** the type itself.";
+		return "Returns the list of type names the given type has and inherits.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "The blacklist of type names can be extended by passing a list as the second parameter. If omitted, the function uses the following blacklist: [AccessControllable, GraphObject, NodeInterface, PropertyContainer].";
+		return """
+			   The blacklist of type names can be extended by passing a collection as the second parameter. By default, the base system types are always removed from the result set: [AccessControllable, GraphObject, NodeInterface, PropertyContainer].
+			   """;
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 		return List.of(
 			Parameter.mandatory("type", "type to fetch ancestor types for"),
-			Parameter.optional("blacklist", "blacklist to remove unwanted types from result")
+			Parameter.optional("blacklist", "collection of unwanted type names that are removed from the result")
 		);
 	}
 
@@ -122,15 +123,19 @@ public class AncestorTypesFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("type [, blacklist ]");
-	}
-
-	@Override
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${ancestorTypes(type[, blacklist])}. Example ${ancestorTypes('User', merge('Principal'))}"),
-			Usage.javaScript("Usage: ${{ $.ancestorTypes(type[, blacklist])}. Example ${{ $.ancestorTypes('User', ['Principal']) }}")
+			Usage.javaScript("Usage: ${{ $.ancestorTypes(type[, blacklist]) }}. Example ${{ $.ancestorTypes('User', ['Principal']) }}")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"If the requested type does not exist, a catchable error is produced (where applicable) and/or null will be returned.",
+				"The types in the blacklist collection are not validated and are just removed from the result set.",
+				"This function is not applicable to service classes and will produce a catchable error (where applicable) and/or null will be returned."
 		);
 	}
 

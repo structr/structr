@@ -2105,7 +2105,7 @@ let _Crud = {
 				$('.pageNo', typeNode).val(_Crud.page[type]);
 
 				if (pageCount === undefined) {
-					pageCount = _Helpers.softlimit.getSoftLimitedPageCount(data.page_size);
+					pageCount = _Helpers.softlimit.getSoftLimitedPageCount();
 					softLimited = true;
 				}
 
@@ -2116,10 +2116,11 @@ let _Crud = {
 				if (softLimited) {
 					_Helpers.softlimit.showSoftLimitAlert(pageCountInput);
 				} else {
+					_Helpers.softlimit.removeSoftLimitAlert(pageCountInput);
 					_Helpers.softlimit.showActualResultCount(pageCountInput, data.result_count);
 				}
 
-				let pageLeft = $('.pageLeft', typeNode);
+				let pageLeft  = $('.pageLeft', typeNode);
 				let pageRight = $('.pageRight', typeNode);
 
 				if (_Crud.page[type] < 2) {
@@ -2128,7 +2129,7 @@ let _Crud = {
 					pageLeft.removeAttr('disabled').removeClass('disabled');
 				}
 
-				if (!_Crud.pageCount || _Crud.pageCount === 0 || (_Crud.page[type] === _Crud.pageCount)) {
+				if (!softLimited && (!_Crud.pageCount || _Crud.pageCount === 0 || (_Crud.page[type] === _Crud.pageCount))) {
 					pageRight.attr('disabled', 'disabled').addClass('disabled');
 				} else {
 					pageRight.removeAttr('disabled').removeClass('disabled');
@@ -2242,7 +2243,7 @@ let _Crud = {
 							// handle new soft-limited REST result without counts
 							if (data.result_count === undefined && data.page_count === undefined) {
 								resultCount = _Helpers.softlimit.getSoftLimitedResultCount();
-								pageCount   = _Helpers.softlimit.getSoftLimitedPageCount(pageSize);
+								pageCount   = _Helpers.softlimit.getSoftLimitedPageCount();
 								softLimited = true;
 							}
 
@@ -2287,7 +2288,9 @@ let _Crud = {
 							});
 
 							if (softLimited) {
-								_Helpers.softlimit.showSoftLimitAlert($('input.page-count'));
+								_Helpers.softlimit.showSoftLimitAlert($('input.page-count', el));
+							} else {
+								_Helpers.softlimit.removeSoftLimitAlert($('input.page-count', el));
 							}
 						}
 					});
@@ -2305,7 +2308,7 @@ let _Crud = {
 
 							// handle new soft-limited REST result without counts
 							if (data.result_count === undefined && data.page_count === undefined) {
-								pageCount = _Helpers.softlimit.getSoftLimitedPageCount(pageSize);
+								pageCount = _Helpers.softlimit.getSoftLimitedPageCount();
 								softLimited = true;
 							}
 
@@ -2332,7 +2335,9 @@ let _Crud = {
 							}
 
 							if (softLimited) {
-								_Helpers.softlimit.showSoftLimitAlert($('input.page-count'));
+								_Helpers.softlimit.showSoftLimitAlert($('input.page-count', el));
+							} else {
+								_Helpers.softlimit.removeSoftLimitAlert($('input.page-count', el));
 							}
 						}
 					});
@@ -2706,7 +2711,7 @@ let _Crud = {
 
 				if (response.ok) {
 
-					let typeInfo = data?.result?.[0];
+					let typeInfo = data?.result;
 
 					if (typeInfo) {
 
