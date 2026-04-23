@@ -234,6 +234,9 @@ let Pager = function(id, el, rootOnly, type, view, callback, startPaused = false
 	this.internalCallback = (result, count) => {
 
 		_Pager.rawResultCount[this.id] = count;
+
+		let softLimited = this.isSoftLimited();
+
 		_Pager.pageCount[this.id] = Math.max(1, Math.ceil(_Pager.rawResultCount[this.id] / _Pager.pageSize[this.id]));
 		this.pageCount.value = _Pager.pageCount[this.id];
 
@@ -242,7 +245,7 @@ let Pager = function(id, el, rootOnly, type, view, callback, startPaused = false
 			this.pageNo.value = _Pager.page[this.id];
 		}
 
-		if (_Pager.page[this.id] > _Pager.pageCount[this.id]) {
+		if (!softLimited && (_Pager.page[this.id] > _Pager.pageCount[this.id])) {
 			_Pager.page[this.id] = _Pager.pageCount[this.id];
 			this.pageNo.value = _Pager.page[this.id];
 		}
@@ -294,8 +297,11 @@ let Pager = function(id, el, rootOnly, type, view, callback, startPaused = false
 		});
 
 		let limitPager = (inputEl) => {
+
+			let softLimited = this.isSoftLimited();
+
 			let val = parseInt(inputEl.value);
-			if (val < 1 || val > _Pager.pageCount[this.id]) {
+			if (val < 1 || (!softLimited && val > _Pager.pageCount[this.id])) {
 				inputEl.value = _Pager.page[this.id];
 			} else {
 				_Pager.page[this.id] = val;
@@ -344,12 +350,27 @@ let Pager = function(id, el, rootOnly, type, view, callback, startPaused = false
 	 */
 	this.updatePager = () => {
 
+		let softLimited = this.isSoftLimited();
+		if (softLimited) {
+			console.log('pfui', this.pageCount)
+		}
+
+		if (softLimited) {
+			_Helpers.softlimit.showSoftLimitAlert($(this.pageCount));
+		} else {
+			_Helpers.softlimit.removeSoftLimitAlert($(this.pageCount));
+		}
+
 		_Helpers.disableElements((_Pager.page[this.id] === 1), this.pageLeft);
-		_Helpers.disableElements((_Pager.pageCount[this.id] === 1 || (_Pager.page[this.id] === _Pager.pageCount[this.id])), this.pageRight);
+		_Helpers.disableElements(!softLimited && (_Pager.pageCount[this.id] === 1 || (_Pager.page[this.id] === _Pager.pageCount[this.id])), this.pageRight);
 		_Helpers.disableElements((_Pager.pageCount[this.id] === 1), this.pageNo);
 
 		_Pager.storePagerData(this.id, _Pager.pagerType[this.id], _Pager.page[this.id], _Pager.pageSize[this.id], _Pager.sortKey[this.id], _Pager.sortOrder[this.id], _Pager.pagerFilters[this.id]);
 	};
+
+	this.isSoftLimited = () => {
+		return (_Pager.rawResultCount[this.id] === -1);
+	}
 
 	/**
 	 * Gets called whenever a change has been made (e.g. a button has been pressed)

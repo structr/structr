@@ -33,6 +33,7 @@ import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class SortFunction extends CoreFunction {
@@ -44,7 +45,7 @@ public class SortFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("list [, propertyName [, descending=false] ]");
+		return Signature.forAllScriptingLanguages("collection [, sortKey = 'name' [, descending = false ]]");
 	}
 
 	@Override
@@ -109,7 +110,16 @@ public class SortFunction extends CoreFunction {
 
 					} else if (firstElement instanceof String) {
 
-						Collections.sort(list);
+						final boolean descending       = (sources.length >= 3 && "true".equals(sources[2].toString()));
+						final Comparator<String> order = descending ? Comparator.reverseOrder() : Comparator.naturalOrder();
+
+						list.sort(order);
+
+						return list;
+
+					} else {
+
+						logger.warn("{}(): Only collections of nodes or strings are supported. Returning input as-is. Parameters: {}", getName(), getParametersAsString(sources));
 					}
 				}
 			}
@@ -122,28 +132,27 @@ public class SortFunction extends CoreFunction {
 		return sources[0];
 	}
 
-
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.javaScript("Usage: ${{$.sort(list1, [key [, descending=false]])}}."),
-			Usage.structrScript("Usage: ${sort(list1, [key [, descending=false]])}.")
+				Usage.structrScript("Usage: ${sort(collection, [ sortKey = 'name' [, descending = false ]])}."),
+				Usage.javaScript("Usage: ${{ $.sort(collection, [ sortKey = 'name' [, descending = false ]]) }}.")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Sorts the given collection or array according to the given property key. Default sort key is 'name'.";
+		return "Sorts a collection and returns a new sorted collection.";
 	}
 
 	@Override
 	public String getLongDescription() {
 		return """
-		Sorts the given collection according to the given property key and returns the result in a new collection. 
-		The optional parameter `sortDescending` is a **boolean flag** that indicates whether the sort order is ascending (default) or descending. 
-		This function is often used in conjunction with `find()`.
-		The `sort()` and `find()` functions are often used in repeater elements in a function query, see Repeater Elements.
-		""";
+			Supported collection types:
+
+			* **Collection of nodes**: Sorted by `sortKey`. The `descending` flag controls the order.
+			* **Collection of strings**: Sorted lexicographically. The `sortKey` is ignored. The `descending` flag controls the order.
+			""";
 	}
 
 	@Override
@@ -160,15 +169,17 @@ public class SortFunction extends CoreFunction {
 
 		return List.of(
 				Parameter.mandatory("collection", "collection to be sorted"),
-				Parameter.mandatory("propertyKey", "name of the property"),
-				Parameter.optional("sortDescending", "sort descending, if true. Default: false)")
-				);
+				Parameter.optional("sortKey", "property name used for sorting (applies only to collections of nodes). Default: `name`"),
+				Parameter.optional("descending", "if `true`, sorts in descending order; otherwise ascending. Default: `false`")
+		);
 	}
 
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-				"Do not use JavaScript build-in function `sort` on node collections! This can damage relationships of sorted nodes"
+				"This function is often used in conjunction with `find()`",
+				"The `sort()` and `find()` functions are often used in repeater elements in a function query, see Repeater Elements.",
+				"Do not use JavaScript built-in function `sort` on remote collections for a node because it mutates the collection which leads to database writes and can lead to undesired effects."
 		);
 	}
 

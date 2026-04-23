@@ -282,6 +282,10 @@ public class SchemaResource extends ExactMatchEndpoint {
 
 		@Override
 		public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
+
+			// only disable softLimit for REST requests
+			securityContext.setDisableSoftLimit(true);
+
 			return getSchemaOverviewResult();
 		}
 

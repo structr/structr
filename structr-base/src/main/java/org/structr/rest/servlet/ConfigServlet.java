@@ -19,6 +19,8 @@
 package org.structr.rest.servlet;
 
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -49,6 +51,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 
 /**
  *
@@ -60,11 +63,19 @@ public class ConfigServlet extends AbstractServletBase {
 	private static final Set<String> sessions         = new HashSet<>();
 	private static final String TITLE                 = "Structr Configuration Editor";
 
-	// Brute-force protection for ConfigServlet login
-	private static int failedLoginAttempts             = 0;
-	private static long lockoutUntil                   = 0;
-	private static final int MAX_FAILED_ATTEMPTS       = 5;
-	private static final long LOCKOUT_DURATION_MS      = 30_000; // 30 seconds
+	// Brute-force protection for ConfigServlet login. Keyed by remote IP so
+	// one attacker cannot lock out the admin from every source address.
+	private static final int MAX_FAILED_ATTEMPTS                   = 5;
+	private static final long LOCKOUT_DURATION_MS                  = 30_000; // 30 seconds
+	private static final Cache<String, AttemptState> loginAttempts = CacheBuilder.newBuilder()
+		.maximumSize(10_000)
+		.expireAfterWrite(1, TimeUnit.HOURS)
+		.build();
+
+	private static final class AttemptState {
+		int attempts;
+		long lockoutUntil;
+	}
 
 	private static final String ConfigServletLocation = "/structr/config";
 	private static final String AdminBackendLocation  = "/structr/";
@@ -92,6 +103,10 @@ public class ConfigServlet extends AbstractServletBase {
 			}
 
 		} else {
+
+			if (isStateChangingGetRequest(request) && !checkCsrfOrigin(request, response)) {
+				return;
+			}
 
 			if (request.getParameter("reload") != null) {
 
@@ -289,17 +304,20 @@ public class ConfigServlet extends AbstractServletBase {
 
 				case "login":
 
-					// Brute-force protection: check lockout
-					if (System.currentTimeMillis() < lockoutUntil) {
+					final String remoteIp      = request.getRemoteAddr();
+					final AttemptState state   = getOrCreateAttemptState(remoteIp);
 
-						logger.warn("ConfigServlet login attempt rejected: temporarily locked out after {} failed attempts", failedLoginAttempts);
+					// Brute-force protection: check lockout for this IP
+					if (System.currentTimeMillis() < state.lockoutUntil) {
+
+						logger.warn("ConfigServlet login attempt rejected for {}: temporarily locked out after {} failed attempts", remoteIp, state.attempts);
 						break;
 					}
 
-					final String superUserName  = Settings.SuperUserName.getValue();
-					final String superUserPwd   = Settings.SuperUserPassword.getValue();
-					final String submittedName  = request.getParameter("superuserName");
-					final String submittedPwd   = request.getParameter("superuserPassword");
+					final String superUserName = Settings.SuperUserName.getValue();
+					final String superUserPwd  = Settings.SuperUserPassword.getValue();
+					final String submittedName = request.getParameter("superuserName");
+					final String submittedPwd  = request.getParameter("superuserPassword");
 
 					if (StringUtils.isNoneBlank(superUserName, superUserPwd, submittedName, submittedPwd)
 						&& MessageDigest.isEqual(superUserName.getBytes(StandardCharsets.UTF_8), submittedName.getBytes(StandardCharsets.UTF_8))
@@ -307,19 +325,18 @@ public class ConfigServlet extends AbstractServletBase {
 
 						authenticateSession(request);
 
-						// Reset brute-force counter on successful login
-						failedLoginAttempts = 0;
-						lockoutUntil = 0;
+						// Reset brute-force counter for this IP on successful login
+						loginAttempts.invalidate(remoteIp);
 
 					} else {
 
 						redirectTarget = "?loginFailed";
 
-						failedLoginAttempts++;
+						state.attempts++;
 
-						if (failedLoginAttempts >= MAX_FAILED_ATTEMPTS) {
-							lockoutUntil = System.currentTimeMillis() + LOCKOUT_DURATION_MS;
-							logger.warn("ConfigServlet login locked out for {}ms after {} failed attempts", LOCKOUT_DURATION_MS, failedLoginAttempts);
+						if (state.attempts >= MAX_FAILED_ATTEMPTS) {
+							state.lockoutUntil = System.currentTimeMillis() + LOCKOUT_DURATION_MS;
+							logger.warn("ConfigServlet login locked out for {} for {}ms after {} failed attempts", remoteIp, LOCKOUT_DURATION_MS, state.attempts);
 						}
 					}
 					break;
@@ -678,6 +695,30 @@ public class ConfigServlet extends AbstractServletBase {
 		}
 
 		return body;
+	}
+
+	private AttemptState getOrCreateAttemptState(final String remoteIp) {
+
+		try {
+			return loginAttempts.get(remoteIp, AttemptState::new);
+		} catch (Exception ex) {
+			// AttemptState::new is total; this branch is defensive only.
+			final AttemptState fallback = new AttemptState();
+			loginAttempts.put(remoteIp, fallback);
+			return fallback;
+		}
+	}
+
+	private boolean isStateChangingGetRequest(final HttpServletRequest request) {
+
+		return request.getParameter("reload")         != null
+			|| request.getParameter("reset")          != null
+			|| request.getParameter("start")          != null
+			|| request.getParameter("stop")           != null
+			|| request.getParameter("restart")        != null
+			|| request.getParameter("finish")         != null
+			|| request.getParameter("useDefault")     != null
+			|| request.getParameter("setMaintenance") != null;
 	}
 
 	private boolean isAuthenticated(final HttpServletRequest request) {

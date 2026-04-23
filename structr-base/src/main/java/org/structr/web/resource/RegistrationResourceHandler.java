@@ -92,6 +92,15 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 				throw new FrameworkException(422, "No e-mail address given.");
 			}
 
+			// Rate-limit before any user creation or mail send. If over the
+			// limit, return the same 201 response the handler normally emits
+			// so the client cannot distinguish "blocked" from "accepted".
+			final String remoteIp = securityContext.getRequest() != null ? securityContext.getRequest().getRemoteAddr() : "unknown";
+			if (!EmailRateLimiter.allow("registration", remoteIp, 20, emailString.trim().toLowerCase(), 3)) {
+				logger.warn("Registration rate limit hit (ip={}, email={})", remoteIp, emailString);
+				return new RestMethodResult(HttpServletResponse.SC_CREATED);
+			}
+
 			final String localeString = (String) propertySet.get("locale");
 			final String confKey      = AuthHelper.getConfirmationKey();
 
