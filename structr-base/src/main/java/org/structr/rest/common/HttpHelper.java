@@ -115,10 +115,25 @@ public class HttpHelper {
 
 		if (!validateCertificates) {
 
+			final boolean lenientHostnameCheck = "LENIENT".equalsIgnoreCase(Settings.HttpHostnameVerification.getValue());
+
+			logger.warn("TLS certificate validation disabled for outbound request to {} (hostname verification: {}). This accepts self-signed and untrusted certificates{}.",
+				req.getURI(),
+				lenientHostnameCheck ? "LENIENT" : "STRICT",
+				lenientHostnameCheck ? " and any hostname mismatch" : "");
+
 			// trust every certificate
 			final SSLContext sslContext = SSLContexts.custom().loadTrustMaterial((x509Certificates, s) -> true).build();
 
-			final SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(sslContext, null, null, NoopHostnameVerifier.INSTANCE);
+			// Keep hostname verification on by default so a certificate
+			// still has to be presented for the host we are contacting —
+			// even when the chain itself is not being checked. The legacy
+			// "verify nothing" behaviour is opt-in via the setting.
+			final javax.net.ssl.HostnameVerifier hostnameVerifier = lenientHostnameCheck
+				? NoopHostnameVerifier.INSTANCE
+				: SSLConnectionSocketFactory.getDefaultHostnameVerifier();
+
+			final SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(sslContext, null, null, hostnameVerifier);
 
 			final BasicHttpClientConnectionManager connectionManager = new BasicHttpClientConnectionManager(RegistryBuilder.<ConnectionSocketFactory>create()
 				.register("http", PlainConnectionSocketFactory.getSocketFactory())
