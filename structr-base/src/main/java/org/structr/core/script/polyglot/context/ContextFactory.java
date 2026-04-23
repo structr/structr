@@ -20,6 +20,8 @@ package org.structr.core.script.polyglot.context;
 
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Engine;
+import org.graalvm.polyglot.ResourceLimits;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
@@ -37,12 +39,13 @@ import java.util.stream.Collectors;
 
 public abstract class ContextFactory {
 
+	private static final Logger ctxLogger          = LoggerFactory.getLogger(ContextFactory.class);
 	private static final String debuggerPath        = "/structr/scripting/remotedebugger/";
 	private static String currentDebuggerUUID = "";
 	private static Engine engine              = buildEngine();
 
 	// javascript context builder
-	private static final Context.Builder jsBuilder = Context.newBuilder("js")
+	private static final Context.Builder jsBuilder = applyResourceLimits(Context.newBuilder("js")
 				.engine(engine)
 				.out(new PolyglotOutputStream(LoggerFactory.getLogger("JavaScriptPolyglotContext")))
 				.allowPolyglotAccess(AccessProvider.getPolyglotAccessConfig())
@@ -52,11 +55,11 @@ public abstract class ContextFactory {
 				.allowExperimentalOptions(true)
 				.option("js.foreign-object-prototype", "true")
 				.option("js.ecmascript-version", "latest")
-				.option("js.temporal", "true");
+				.option("js.temporal", "true"));
 
 
 	// Python context builder
-	private static final Context.Builder pythonBuilder = Context.newBuilder("python")
+	private static final Context.Builder pythonBuilder = applyResourceLimits(Context.newBuilder("python")
 			.engine(engine)
 			.out(new PolyglotOutputStream(LoggerFactory.getLogger("PythonPolyglotContext")))
 			.allowPolyglotAccess(AccessProvider.getPolyglotAccessConfig())
@@ -71,7 +74,7 @@ public abstract class ContextFactory {
 			)
 			.allowCreateThread(true)
 			*/
-			.allowExperimentalOptions(true);
+			.allowExperimentalOptions(true));
 			//.option("python.CoreHome", "/.python/core")
 			//.option("python.PythonHome", "/.python/.venv")
 			//.option("python.StdLibHome", "/.python/lib/std")
@@ -83,12 +86,34 @@ public abstract class ContextFactory {
 
 
 	// other languages context builder
-	private static final Context.Builder genericBuilder = Context.newBuilder()
+	private static final Context.Builder genericBuilder = applyResourceLimits(Context.newBuilder()
 				.engine(engine)
 				.allowPolyglotAccess(AccessProvider.getPolyglotAccessConfig())
 				.allowHostAccess(AccessProvider.getHostAccessConfig())
 				.allowIO(AccessProvider.getIOAccessConfig())
-				.allowHostClassLookup(allowedHostClassPredicate());
+				.allowHostClassLookup(allowedHostClassPredicate()));
+
+	/**
+	 * Attaches a statement-count resource limit to the supplied builder so
+	 * runaway scripts (e.g. tight infinite loops) cannot keep a JVM thread
+	 * spinning forever. The limit is configured via the
+	 * {@code application.scripting.polyglot.statement.limit} setting; a value
+	 * of {@code 0} leaves the builder unchanged and imposes no limit.
+	 */
+	private static Context.Builder applyResourceLimits(final Context.Builder builder) {
+
+		final int limit = Settings.ScriptingStatementLimit.getValue(0);
+		if (limit <= 0) {
+			return builder;
+		}
+
+		final ResourceLimits limits = ResourceLimits.newBuilder()
+			.statementLimit(limit, null)
+			.onLimit(event -> ctxLogger.warn("Scripting context cancelled: statement limit of {} exceeded", limit))
+			.build();
+
+		return builder.resourceLimits(limits);
+	}
 
 	public static String getDebuggerPath() {
 
