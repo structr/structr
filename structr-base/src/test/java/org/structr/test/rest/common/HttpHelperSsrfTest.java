@@ -37,15 +37,13 @@ import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 
 /**
- * Regression guard for the SSRF fix in {@link HttpHelper#streamURLToFile}
- * (security audit finding F-47, 22 April 2026).
+ * Regression guard for the SSRF check in {@link HttpHelper#streamURLToFile}.
  *
- * Audit v1 added {@code HttpHelper.validateUrl()} to the {@code fetch()}
- * path but missed the {@code streamURLToFile()} overload used by
- * DeploymentServlet. F-47 patched that gap; this test pins the behaviour
- * against future regressions by asserting that a loopback URL is rejected
- * under the default settings ({@code SsrfProtection=true},
- * {@code OutgoingURLWhitelist="*"}).
+ * {@link HttpHelper#validateUrl} must reject outbound requests to
+ * loopback and other internal IP ranges under the default settings
+ * ({@code SsrfProtection=true}, {@code OutgoingURLWhitelist="*"}), and
+ * {@code streamURLToFile} must route through it so callers such as
+ * DeploymentServlet inherit the check automatically.
  */
 public class HttpHelperSsrfTest {
 
@@ -100,8 +98,7 @@ public class HttpHelperSsrfTest {
 	 * {@link HttpHelper#validateUrl} enforces for {@link HttpHelper#fetch}.
 	 *
 	 * If this test fails, {@code streamURLToFile} has lost its
-	 * {@code validateUrl()} call and the SSRF from audit finding F-47
-	 * has come back.
+	 * {@code validateUrl()} call and the SSRF hole it closes has come back.
 	 */
 	@Test
 	public void streamURLToFile_shouldRejectLoopbackWithDefaultSettings() throws IOException {
