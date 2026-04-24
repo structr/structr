@@ -1,0 +1,154 @@
+/**
+ * Copyright (C) 2010-2026 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+#processes {
+	height: 100%;
+	margin-bottom: 0;
+}
+
+#processes .tab-content {
+	display: none;
+	height: calc(100% - 4rem);
+	overflow: auto;
+}
+
+#processes .tab-content.active {
+	display: block;
+}
+
+.processes-controls {
+	padding: 0;
+	margin: 0;
+}
+
+.processes-controls > div {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	flex-wrap: wrap;
+}
+
+.processes-pager-filters {
+	margin-left: 1rem;
+}
+
+.processes-pager-filters input.filter {
+	padding: 0.25rem 0.5rem;
+	min-width: 10rem;
+}
+
+.processes-table {
+	margin: 1.5rem 0 0 0;
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.processes-table th,
+.processes-table td {
+	padding: 0.5rem;
+	vertical-align: middle;
+	text-align: left;
+	white-space: nowrap;
+}
+
+.processes-table th {
+	background: var(--input-background);
+	color: var(--gray-333);
+	vertical-align: top;
+	font-weight: 600;
+}
+
+.processes-table th.actions-col {
+	text-align: right;
+}
+
+.processes-table tbody tr:hover {
+	background-color: var(--structr-light-green-transparent) !important;
+}
+
+.processes-table tr:nth-child(odd) {
+	background: var(--light-gray-bg-f7) !important;
+}
+
+.processes-table tr:nth-child(even) {
+	background: var(--solid-white) !important;
+}
+
+.processes-table td.mono {
+	font-family: monospace;
+	font-size: 0.875rem;
+}
+
+.processes-table td.actions {
+	text-align: right;
+	white-space: nowrap;
+}
+
+.processes-table td.actions i {
+	cursor: pointer;
+	display: inline-flex;
+	align-items: center;
+	margin-left: 0.25rem;
+}
+
+.processes-table td.actions svg.disabled {
+	opacity: 0.35;
+	cursor: not-allowed;
+}
+
+.status-badge {
+	display: inline-block;
+	padding: 0.125rem 0.5rem;
+	border-radius: 0.75rem;
+	font-size: 0.75rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	background: var(--gray-eee, #eee);
+	color: var(--gray-333, #333);
+}
+
+.status-badge.status-running,
+.status-badge.status-active {
+	background: #dbf0dd;
+	color: #1d6a2c;
+}
+
+.status-badge.status-completed {
+	background: #d9e8ff;
+	color: #1d4a9e;
+}
+
+.status-badge.status-suspended,
+.status-badge.status-waiting,
+.status-badge.status-assigned {
+	background: #fff1c8;
+	color: #7a5800;
+}
+
+.status-badge.status-terminated,
+.status-badge.status-cancelled,
+.status-badge.status-error {
+	background: #fcd9d4;
+	color: #8a1d1d;
+}
+
+.status-badge.status-created {
+	background: #e6e6f7;
+	color: #3a3a7a;
+}

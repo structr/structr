@@ -20,12 +20,17 @@ package org.structr.process.engine;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.AccessControllable;
+import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Principal;
+import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.process.traits.definitions.*;
 import org.structr.schema.action.ActionContext;
@@ -49,9 +54,34 @@ public class ProcessEngine {
 	private static final Logger logger = LoggerFactory.getLogger(ProcessEngine.class);
 
 	private final SecurityContext securityContext;
+	private final Principal caller;
 
-	public ProcessEngine(final SecurityContext securityContext) {
-		this.securityContext = securityContext;
+	/**
+	 * Construct an engine for the given caller's security context. The engine
+	 * internally runs as superuser so that newly created ProcessInstance /
+	 * ProcessToken / TaskInstance / ProcessParameterValue nodes have no owner
+	 * (engine-managed). The caller principal is remembered so the engine can
+	 * grant access where appropriate (e.g. read on the ProcessInstance to the
+	 * user who started it).
+	 */
+	public ProcessEngine(final SecurityContext callerContext) {
+		final Principal callerPrincipal = (callerContext != null) ? callerContext.getUser(false) : null;
+		// SuperUser is a singleton with no backing graph node and cannot be a grant endpoint.
+		this.caller = (callerPrincipal instanceof SuperUser) ? null : callerPrincipal;
+		this.securityContext = SecurityContext.getSuperUserInstance();
+	}
+
+	private void grant(final NodeInterface node, final Principal principal, final Permission... permissions) throws FrameworkException {
+		if (node == null || principal == null || permissions.length == 0) {
+			return;
+		}
+		if (principal instanceof SuperUser) {
+			return;
+		}
+		final AccessControllable ac = node.as(AccessControllable.class);
+		for (final Permission p : permissions) {
+			ac.grant(p, principal);
+		}
 	}
 
 	/**
@@ -81,6 +111,9 @@ public class ProcessEngine {
 
 		final String processName = defNode.getProperty(defTraits.key(BpmnDefinitionsTraitDefinition.PROCESS_NAME_PROPERTY));
 		instance.setProperty(instTraits.key("name"), processName != null ? processName : "Process Instance");
+
+		// Grant the initiator read access on the ProcessInstance so they can observe their own instance.
+		grant(instance, caller, Permission.read);
 
 		// Create token at start event
 		final NodeInterface token = createToken(app, instance, startEvent);
@@ -658,6 +691,14 @@ public class ProcessEngine {
 		if (assignee != null) {
 			task.setProperty(taskTraits.key(TaskInstanceTraitDefinition.ASSIGNEE_PROPERTY), assignee);
 			task.setProperty(taskTraits.key(TaskInstanceTraitDefinition.STATUS_PROPERTY), TaskInstanceTraitDefinition.STATUS_ASSIGNED);
+
+			// Grant the assignee read + write on this TaskInstance so they can see and complete it.
+			final NodeInterface assigneeNode = app.nodeQuery(StructrTraits.PRINCIPAL).name(assignee).getFirst();
+			if (assigneeNode != null) {
+				grant(task, assigneeNode.as(Principal.class), Permission.read, Permission.write);
+			} else {
+				logger.warn("Assignee '{}' for task '{}' could not be resolved to a Principal; no ACL grant applied.", assignee, taskName);
+			}
 		}
 
 		logger.info("Created task instance '{}' for process {}", taskName, instance.getUuid());

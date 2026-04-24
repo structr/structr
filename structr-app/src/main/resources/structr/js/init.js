@@ -2168,6 +2168,7 @@ let Structr = {
 								<li data-name="Schema"><a id="schema_" href="#schema" data-activate-module="schema">Schema</a></li>
 								<li data-name="Code"><a id="code_" href="#code" data-activate-module="code">Code</a></li>
 								<li data-name="Flows"><a id="flows_" href="#flows" data-activate-module="flows">Flows</a></li>
+								<li data-name="Processes"><a id="processes_" href="#processes" data-activate-module="processes">Processes</a></li>
 								<li data-name="Data"><a id="crud_" href="#crud" data-activate-module="crud">Data</a></li>
 								<li data-name="Job Queue"><a id="job-queue_" href="#job-queue" data-activate-module="job-queue">Job Queue</a></li>
 								<li data-name="Localization"><a id="localization_" href="#localization" data-activate-module="localization">Localization</a></li>
