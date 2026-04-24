@@ -56,9 +56,7 @@ let _Schema = {
 			Structr.updateMainHelpLink(_Helpers.getDocumentationURLForTopic('schema'));
 		});
 	},
-	reload: (callback) => {
-
-		_Schema.caches.clearTypeInfoCache();
+	reload: (callback = null, clearCaches = true) => {
 
 		if (_Schema.isReloading) {
 			return;
@@ -67,10 +65,10 @@ let _Schema = {
 		_Schema.isReloading = true;
 
 		_Helpers.fastRemoveAllChildren(_Schema.ui.canvas[0]);
-		_Schema.init(callback);
+		_Schema.init(callback, clearCaches);
 		Structr.resize();
 	},
-	init: (callback) => {
+	init: (callback, clearCaches = true) => {
 
 		_Schema.schemaLoading = false;
 
@@ -109,6 +107,9 @@ let _Schema = {
 				]
 			});
 
+			if (clearCaches) {
+				_Schema.caches.clearCaches();
+			}
 			await _Schema.loadSchema();
 
 			_Schema.ui.jsPlumbInstance.setZoom(_Schema.ui.zoomLevel);
@@ -200,13 +201,11 @@ let _Schema = {
 	},
 	loadSchema: async () => {
 
-		// Avoid duplicate loading of schema
 		if (_Schema.schemaLoading) {
 			return;
 		}
 		_Schema.schemaLoading = true;
 
-		// populate basic schema information before anything else
 		await _Schema.caches.populateBasicSchemaInformation();
 
 		// only restore initial layout if node positions are not loaded
@@ -219,7 +218,7 @@ let _Schema = {
 	},
 	processSchemaRecompileNotification: () => {
 
-		_Schema.caches.clearTypeInfoCache();
+		_Schema.caches.clearCaches();
 
 		if (Structr.isModuleActive(_Schema)) {
 
@@ -566,25 +565,36 @@ let _Schema = {
 			let customTypeNames                 = Object.keys(nameToSchemaNodeMap).sort();
 			let otherNodeTypes                  = await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && !type.isServiceClass && !customTypeNames.includes(type.name));
 			let firstCustomThenBuiltinTypeNames = [...customTypeNames, ...otherNodeTypes.map(type => type.name).sort()];
+			let visibleTypes                    = firstCustomThenBuiltinTypeNames.filter(t => _Schema.ui.visibility.isTypeVisible(t));
 
-			for (let typeName of firstCustomThenBuiltinTypeNames) {
+			// sort by availability of node position
+			let typesWithPosition    = [];
+			let typesWithoutPosition = [];
+			for (let typeName of visibleTypes) {
+				if (_Schema.ui.layouts.nodePositions[typeName]) {
+					typesWithPosition.push(typeName);
+				} else {
+					typesWithoutPosition.push(typeName);
+				}
+			}
+			let typesSortedByAvailabilityOfPosition = [...typesWithPosition, ...typesWithoutPosition];
 
-				if (_Schema.ui.visibility.isTypeVisible(typeName)) {
+			for (let typeName of typesSortedByAvailabilityOfPosition) {
 
-					let customSchemaNode = nameToSchemaNodeMap[typeName];
+				let customSchemaNode       = nameToSchemaNodeMap[typeName];
+				let initialPositionForType = _Schema.ui.layouts.nodePositions[typeName] ?? initialPosition;
 
-					if (customSchemaNode) {
+				if (customSchemaNode) {
 
-						initialPosition = _Schema.nodes.addTypeToCanvas(customSchemaNode, initialPosition);
+					initialPosition = _Schema.nodes.addTypeToCanvas(customSchemaNode, initialPositionForType);
 
-					} else {
+				} else {
 
-						initialPosition = _Schema.nodes.addTypeToCanvas({
-							id: _Schema.nodes.getIdForBuiltinTypePlacerHolder(typeName),
-							name: typeName,
-							isBuiltinType: true
-						}, initialPosition);
-					}
+					initialPosition = _Schema.nodes.addTypeToCanvas({
+						id: _Schema.nodes.getIdForBuiltinTypePlacerHolder(typeName),
+						name: typeName,
+						isBuiltinType: true
+					}, initialPositionForType);
 				}
 			}
 
@@ -1026,8 +1036,6 @@ let _Schema = {
 					response.json().then(responseData => {
 
 						if (response.ok) {
-
-							_Schema.ui.visibility.setTypeVisibility(data.name, true);
 
 							resolve(responseData);
 
@@ -4476,8 +4484,9 @@ let _Schema = {
 		},
 
 		_schema_slash_type: {},
-		clearTypeInfoCache: () => {
+		clearCaches: () => {
 			_Schema.caches.nodeData = {};
+			_Schema.ui.layouts.nodePositions = {};
 			_Schema.caches._schema_slash_type = {};
 		},
 		invalidateTypeInfoCache: (typeName) => {
@@ -4800,7 +4809,10 @@ let _Schema = {
 				for (let el of _Schema.ui.canvas[0].querySelectorAll('.node')) {
 					let $el = $(el);
 					if (_Schema.ui.selection.isNodeInSelection($el, selectionRect)) {
-						_Schema.ui.selection.selectedNodes.push($el);
+						_Schema.ui.selection.selectedNodes.push({
+							nodeId: $el.attr('id'),
+							name: $el.children('b').text()
+						});
 						$el.addClass('selected');
 					} else {
 						$el.removeClass('selected');
@@ -4877,10 +4889,8 @@ let _Schema = {
 				if (_Schema.ui.selection.selectedNodes.length > 0) {
 
 					let typesToHide = _Schema.ui.selection.selectedNodes.map(n => n.name);
-					let visibleTypes = _Schema.ui.visibility.visibleTypes.filter(type => !typesToHide.includes(type));
-					_Schema.ui.visibility.setVisibleTypes(visibleTypes);
 
-					_Schema.reload();
+					_Schema.ui.visibility.hideTypes(typesToHide);
 				}
 
 				_Schema.ui.selection.updateHideSelectedTypesButton();
@@ -4942,7 +4952,7 @@ let _Schema = {
 				_Schema.ui.showSchemaOverlays      = true;
 				_Schema.ui.showInheritanceArrows   = true;
 				_Schema.ui.layouts.nodePositions   = {};
-				_Schema.ui.visibility.visibleTypes = (await _Schema.caches.getFilteredSchemaTypes(type => (type.isBuiltin === false && type.isRel === false))).map(type => type.name);
+				_Schema.ui.visibility.setVisibleTypes(await _Schema.caches.getCustomTypeNames(), false);
 
 				// Then check localstorage or load from server
 				let savedLayoutData = LSWrapper.getItem(_Schema.ui.getSavedSchemaLayoutKey());
@@ -4962,7 +4972,11 @@ let _Schema = {
 				}
 			},
 			saveCurrentSchemaLayoutToLocalstorage: () => {
-				LSWrapper.setItem(_Schema.ui.getSavedSchemaLayoutKey(), _Schema.ui.layouts.getCurrentSchemaLayoutConfiguration());
+
+				_Schema.ui.layouts.getCurrentSchemaLayoutConfiguration().then(schemaLayoutConfig => {
+
+					LSWrapper.setItem(_Schema.ui.getSavedSchemaLayoutKey(), schemaLayoutConfig);
+				});
 			},
 			applyLayoutFromApplicationConfigurationDataNode: async (node, isInitialRestore = false) => {
 
@@ -4970,7 +4984,7 @@ let _Schema = {
 
 					let loadedConfig = JSON.parse(node.content);
 
-					await _Schema.ui.layouts.applyLayout(loadedConfig, isInitialRestore);
+					await _Schema.ui.layouts.applyLayout(loadedConfig, isInitialRestore, true);
 
 					if (isInitialRestore === true) {
 						new SuccessMessage().text(`No saved schema layout detected, loaded "${node.name}"`).show();
@@ -4980,18 +4994,18 @@ let _Schema = {
 					Structr.error('Unreadable JSON - please make sure you are using JSON exported from this dialog!', true);
 				}
 			},
-			applyLayout: async (layoutData, isInitialRestore = false) => {
+			applyLayout: async (layoutData, isInitialRestore = false, sourceIsSavedLayout = false) => {
 
 				if (layoutData._version) {
 
 					switch (layoutData._version) {
 						case 2: {
 
-							_Schema.ui.setZoom(layoutData.zoom);
-							_Schema.ui.setOverlayVisibility(layoutData.showRelLabels);
-							_Schema.ui.setInheritanceArrowsVisibility(layoutData.showInheritanceArrows);
-							_Schema.ui.setConnectorStyle(layoutData.connectorStyle);
-							_Schema.ui.layouts.setNodePositions(layoutData.positions);
+							_Schema.ui.setZoom(layoutData.zoom, false);
+							_Schema.ui.setOverlayVisibility(layoutData.showRelLabels, false);
+							_Schema.ui.setInheritanceArrowsVisibility(layoutData.showInheritanceArrows, false);
+							_Schema.ui.setConnectorStyle(layoutData.connectorStyle, false);
+							_Schema.ui.layouts.setNodePositions(layoutData.positions, false);
 
 							// process hidden types: translate them to VISIBLE_TYPES (from old config we only show nodes if they are custom)
 							let hiddenTypes = new Set(layoutData.hiddenTypes);
@@ -5003,46 +5017,89 @@ let _Schema = {
 							let notOverriddenBuiltinTypes = new Set(allBuiltinTypeNames).difference(new Set(customTypeNames));
 
 							let visibleTypes = [...allTypes.difference(hiddenTypes).difference(notOverriddenBuiltinTypes)];
-							_Schema.ui.visibility.setVisibleTypes(visibleTypes);
+							_Schema.ui.visibility.setVisibleTypes(visibleTypes, false);
+
+							break;
 						}
-						break;
 
 						case 3: {
-							_Schema.ui.setZoom(layoutData.zoom);
-							_Schema.ui.setPan(layoutData.pan);
-							_Schema.ui.setOverlayVisibility(layoutData.showRelLabels);
-							_Schema.ui.setInheritanceArrowsVisibility(layoutData.showInheritanceArrows);
-							_Schema.ui.setConnectorStyle(layoutData.connectorStyle);
-							_Schema.ui.layouts.setNodePositions(layoutData.positions);
-							_Schema.ui.visibility.setVisibleTypes(layoutData.visibleTypes);
-						}
-						break;
 
-						default:
-							Structr.error('Unable to restore layout: Unknown layout version - was this layout created with a newer version of structr than the one currently running?');
+							_Schema.ui.setZoom(layoutData.zoom, false);
+							_Schema.ui.setPan(layoutData.pan, false);
+							_Schema.ui.setOverlayVisibility(layoutData.showRelLabels, false);
+							_Schema.ui.setInheritanceArrowsVisibility(layoutData.showInheritanceArrows, false);
+							_Schema.ui.setConnectorStyle(layoutData.connectorStyle, false);
+							_Schema.ui.layouts.setNodePositions(layoutData.positions, false);
+
+							_Schema.ui.visibility.setVisibleTypes(layoutData.visibleTypes, false);
+
+							break;
+						}
+
+						case 4: {
+
+							_Schema.ui.setZoom(layoutData.zoom, false);
+							_Schema.ui.setPan(layoutData.pan, false);
+							_Schema.ui.setOverlayVisibility(layoutData.showRelLabels, false);
+							_Schema.ui.setInheritanceArrowsVisibility(layoutData.showInheritanceArrows, false);
+							_Schema.ui.setConnectorStyle(layoutData.connectorStyle, false);
+							_Schema.ui.layouts.setNodePositions(layoutData.positions, false);
+
+							let customTypeNames     = new Set(await _Schema.caches.getCustomTypeNames());
+							let visibleCustomTypes  = new Set(layoutData.visibleCustomTypes);
+							let hiddenCustomTypes   = new Set(layoutData.hiddenCustomTypes);
+							let visibleBuiltinTypes = new Set(layoutData.visibleBuiltinTypes);
+							let visibleTypes        = visibleBuiltinTypes.union(customTypeNames.difference(hiddenCustomTypes));
+
+							if (sourceIsSavedLayout) {
+
+								// explicitly hide new types to not pollute saved layout
+								let unknownCustomTypes = customTypeNames.difference(visibleCustomTypes.union(hiddenCustomTypes));
+								visibleTypes = visibleTypes.difference(unknownCustomTypes);
+							}
+
+							_Schema.ui.visibility.setVisibleTypes([...visibleTypes], false);
+
+							break;
+						}
 					}
 				}
 
+				_Schema.ui.layouts.saveCurrentSchemaLayoutToLocalstorage();
 				LSWrapper.save();
 
 				if (isInitialRestore !== true) {
-					_Schema.reload();
+					_Schema.reload(null, false);
 				}
 			},
-			getCurrentSchemaLayoutConfiguration: () => {
+			getCurrentSchemaLayoutConfiguration: async () => {
+
+				let customTypeNames  = new Set(await _Schema.caches.getCustomTypeNames());
+				let builtinTypeNames = new Set((await _Schema.caches.getFilteredSchemaTypes(type => (type.isRel === false && type.isBuiltin === true))).map(type => type.name))
+											.difference(customTypeNames);	// remove overridden schema types
+
+				let allVisibleTypes = new Set(_Schema.ui.visibility.getVisibleTypes());
+
+				let visibleCustomTypes = allVisibleTypes.difference(builtinTypeNames);
+				let hiddenCustomTypes =  customTypeNames.difference(visibleCustomTypes);
+
+				let visibleBuiltinTypes = allVisibleTypes.difference(customTypeNames);
 
 				return {
-					_version:              3,
+					_version:              4,
 					positions:             _Schema.ui.layouts.nodePositions,
 					zoom:                  _Schema.ui.zoomLevel,
 					pan:                   _Schema.ui.panPos,
 					connectorStyle:        _Schema.ui.connectorStyle,
-					visibleTypes:          _Schema.ui.visibility.visibleTypes,
 					showRelLabels:         _Schema.ui.showSchemaOverlays,
-					showInheritanceArrows: _Schema.ui.showInheritanceArrows
+					showInheritanceArrows: _Schema.ui.showInheritanceArrows,
+
+					visibleCustomTypes:    [...visibleCustomTypes],	// this will ONLY be used for situations where an actual layout is restored actively. when restoring from LS, we ignore this to always show new types
+					hiddenCustomTypes:     [...hiddenCustomTypes],
+					visibleBuiltinTypes:   [...visibleBuiltinTypes]
 				};
 			},
-			setNodePositions: (positions) => {
+			setNodePositions: (positions, triggerSave = true) => {
 
 				_Schema.ui.layouts.nodePositions = positions;
 
@@ -5056,7 +5113,9 @@ let _Schema = {
 					}
 				}
 
-				_Schema.ui.layouts.saveCurrentSchemaLayoutToLocalstorage();
+				if (triggerSave) {
+					_Schema.ui.layouts.saveCurrentSchemaLayoutToLocalstorage();
+				}
 			},
 			saveCurrentNodePositions: () => {
 
@@ -5303,13 +5362,18 @@ let _Schema = {
 		visibility: {
 			visibleTypes: [],
 			isTypeVisible: (name) => {
-				return (_Schema.ui.visibility.visibleTypes ?? []).includes(name);
+				return (_Schema.ui.visibility.getVisibleTypes() ?? []).includes(name);
 			},
-			setVisibleTypes: (types) => {
+			getVisibleTypes: () => {
+				return _Schema.ui.visibility.visibleTypes;
+			},
+			setVisibleTypes: (types, triggerSave = true) => {
 
 				_Schema.ui.visibility.visibleTypes = types;
 
-				_Schema.ui.layouts.saveCurrentSchemaLayoutToLocalstorage();
+				if (triggerSave) {
+					_Schema.ui.layouts.saveCurrentSchemaLayoutToLocalstorage();
+				}
 			},
 			setTypeVisibility: (typeName, isVisible) => {
 
@@ -5322,6 +5386,13 @@ let _Schema = {
 				}
 
 				_Schema.ui.visibility.setVisibleTypes([...visibleTypes]);
+			},
+			hideTypes: (types) => {
+
+				let updatedVisibleTypes = _Schema.ui.visibility.getVisibleTypes().filter(type => !types.includes(type));
+				_Schema.ui.visibility.setVisibleTypes(updatedVisibleTypes);
+
+				_Schema.reload(null, false);
 			},
 			openTypeVisibilityDialog: async () => {
 
@@ -5391,7 +5462,7 @@ let _Schema = {
 
 					_Schema.ui.visibility.setVisibleTypes(visibleTypes);
 
-					_Schema.reload();
+					_Schema.reload(null, false);
 				};
 
 				let setIdenticalCheckboxesForOverriddenTypes = (type, visible) => {
@@ -5520,7 +5591,9 @@ let _Schema = {
 
 					if (confirm === true) {
 
-						Command.setProperty(selectedLayout, 'content', JSON.stringify(_Schema.ui.layouts.getCurrentSchemaLayoutConfiguration()), false, (data) => {
+						let schemaLayoutConfig = await _Schema.ui.layouts.getCurrentSchemaLayoutConfiguration();
+
+						Command.setProperty(selectedLayout, 'content', JSON.stringify(schemaLayoutConfig), false, (data) => {
 
 							if (!data.error) {
 
@@ -5557,13 +5630,15 @@ let _Schema = {
 					}
 				});
 
-				createNewLayoutButton.addEventListener('click', () => {
+				createNewLayoutButton.addEventListener('click', async () => {
 
 					let layoutName = layoutNameInput.value;
 
 					if (layoutName && layoutName.length) {
 
-						Command.createApplicationConfigurationDataNode('layout', layoutName, JSON.stringify(_Schema.ui.layouts.getCurrentSchemaLayoutConfiguration()), async (data) => {
+						let schemaLayoutConfig = await _Schema.ui.layouts.getCurrentSchemaLayoutConfiguration();
+
+						Command.createApplicationConfigurationDataNode('layout', layoutName, JSON.stringify(schemaLayoutConfig), async (data) => {
 
 							if (!data.error) {
 
@@ -5606,29 +5681,35 @@ let _Schema = {
 				Structr.dropdowns.hideOpenDropdownsExcept();
 			});
 		},
-		setConnectorStyle: (style = 'Flowchart') => {
+		setConnectorStyle: (style = 'Flowchart', triggerSave = true) => {
 
 			$('#connector-style').val(style);
 			_Schema.ui.connectorStyle = style;
 
-			_Schema.ui.layouts.saveCurrentSchemaLayoutToLocalstorage();
+			if (triggerSave) {
+				_Schema.ui.layouts.saveCurrentSchemaLayoutToLocalstorage();
+			}
 		},
-		setZoom: (zoom = 1.0) => {
+		setZoom: (zoom = 1.0, triggerSave = true) => {
 
 			_Schema.ui.zoomLevel = zoom;
 			_Schema.ui.panzoomInstance?.zoom(zoom);
 			_Schema.ui.jsPlumbInstance.setZoom(zoom);
 
-			_Schema.ui.layouts.saveCurrentSchemaLayoutToLocalstorage();
+			if (triggerSave) {
+				_Schema.ui.layouts.saveCurrentSchemaLayoutToLocalstorage();
+			}
 		},
-		setPan: (pan = { x: 0, y: 0 }) => {
+		setPan: (pan = { x: 0, y: 0 }, triggerSave = true) => {
 
 			_Schema.ui.panPos = pan;
 			_Schema.ui.panzoomInstance?.pan(pan.x, pan.y);
 
-			_Schema.ui.layouts.saveCurrentSchemaLayoutToLocalstorage();
+			if (triggerSave) {
+				_Schema.ui.layouts.saveCurrentSchemaLayoutToLocalstorage();
+			}
 		},
-		setOverlayVisibility: (show = true) => {
+		setOverlayVisibility: (show = true, triggerSave = true) => {
 
 			_Schema.ui.showSchemaOverlays = show;
 
@@ -5639,16 +5720,20 @@ let _Schema = {
 				_Schema.ui.canvas.addClass('hide-relationship-labels');
 			}
 
-			_Schema.ui.layouts.saveCurrentSchemaLayoutToLocalstorage();
+			if (triggerSave) {
+				_Schema.ui.layouts.saveCurrentSchemaLayoutToLocalstorage();
+			}
 		},
-		setInheritanceArrowsVisibility: (showArrows = true) => {
+		setInheritanceArrowsVisibility: (showArrows = true, triggerSave = true) => {
 
 			_Schema.ui.showInheritanceArrows = showArrows;
 
 			$('#schema-show-inheritance').prop('checked', showArrows);
 			_Schema.ui.canvas[0]?.classList.toggle('hide-inheritance-arrows', !showArrows);
 
-			_Schema.ui.layouts.saveCurrentSchemaLayoutToLocalstorage();
+			if (triggerSave) {
+				_Schema.ui.layouts.saveCurrentSchemaLayoutToLocalstorage();
+			}
 		},
 		getAllNodeRects: () => {
 
