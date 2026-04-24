@@ -37,8 +37,8 @@ public class BpmnSequenceFlowTo extends AbstractRelationshipTraitDefinition impl
 	@Override public int getCascadingDeleteFlag() { return Relation.NONE; }
 	@Override public int getAutocreationFlag() { return Relation.NONE; }
 	@Override public boolean isInternal() { return false; }
-	@Override public PropagationDirection getPropagationDirection() { return PropagationDirection.None; }
-	@Override public PropagationMode getReadPropagation() { return PropagationMode.Keep; }
+	@Override public PropagationDirection getPropagationDirection() { return PropagationDirection.Both; }
+	@Override public PropagationMode getReadPropagation() { return PropagationMode.Add; }
 	@Override public PropagationMode getWritePropagation() { return PropagationMode.Keep; }
 	@Override public PropagationMode getDeletePropagation() { return PropagationMode.Keep; }
 	@Override public PropagationMode getAccessControlPropagation() { return PropagationMode.Keep; }
