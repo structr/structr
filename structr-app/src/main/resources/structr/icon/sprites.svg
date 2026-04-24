@@ -66,6 +66,17 @@
 		<path d="M.75 11.998a11.25 11.25 0 1 0 22.5 0 11.25 11.25 0 1 0-22.5 0z"/><path d="M9 15.613a1.636 1.636 0 0 0 2.712 1.231L17.25 12l-5.538-4.847A1.635 1.635 0 0 0 9 8.384z"/>
 	</symbol>
 
+	<symbol id="play_button" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+		<path d="M2.338 3.255v17.49a1.5 1.5 0 0 0 2.209 1.322l16.323 -8.745a1.5 1.5 0 0 0 0 -2.644L4.547 1.933a1.5 1.5 0 0 0 -2.209 1.322Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
+	</symbol>
+	<symbol id="stop_button" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+		<path d="M5.25 3.75h13.5s1.5 0 1.5 1.5v13.5s0 1.5 -1.5 1.5H5.25s-1.5 0 -1.5 -1.5V5.25s0 -1.5 1.5 -1.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
+	</symbol>
+	<symbol id="pause_button" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+		<path d="M6.75 3.75h1.5s1.5 0 1.5 1.5v13.5s0 1.5 -1.5 1.5h-1.5s-1.5 0 -1.5 -1.5V5.25s0 -1.5 1.5 -1.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
+		<path d="M15.75 3.75h1.5s1.5 0 1.5 1.5v13.5s0 1.5 -1.5 1.5h-1.5s-1.5 0 -1.5 -1.5V5.25s0 -1.5 1.5 -1.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
+	</symbol>
+
 	<symbol id="folder-open-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 		<path d="M20.25,9.75v-3a1.5,1.5,0,0,0-1.5-1.5H8.25V3.75a1.5,1.5,0,0,0-1.5-1.5H2.25a1.5,1.5,0,0,0-1.5,1.5v16.3a1.7,1.7,0,0,0,3.336.438l2.351-9.657A1.5,1.5,0,0,1,7.879,9.75H21.75A1.5,1.5,0,0,1,23.2,11.636l-2.2,9A1.5,1.5,0,0,1,19.55,21.75H2.447"/>
 	</symbol>
