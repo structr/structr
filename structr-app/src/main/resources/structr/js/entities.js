@@ -2749,7 +2749,7 @@ let _Entities = {
 
                 let config = await Command.getPromise(entity.componentConfiguration.id, '', 'ui');
 
-                el.html(_Entities.generalTab.templates.componentOptions({ entity: entity, config: config }));
+                el.html(await _Entities.generalTab.templates.componentOptions({ entity: entity, config: config }));
 
                 let selectionChannelInput = document.querySelector('#data-selection-channel-input');
 
@@ -2809,12 +2809,7 @@ let _Entities = {
                     });
                 }
 
-				let dataSources = await _Widgets.templates.getAvailableDataSources();
-				let options = Object.keys(dataSources).map(k => ({ name: dataSources[k], value: k }));
-
-                _Entities.generalTab.useOptions('#data-source-channel-select', config.dataSource, options);
                 _Entities.generalTab.loadOptions('#data-source-channel-select', 'ComponentConfiguration', config.dataSource, { '!selectionChannel': null }, 'channel:', 'selectionChannel', node => 'The "' + node.selectionChannel + '" channel');
-
                 _Entities.generalTab.selectButtons('#role-buttons', config, 'role', [{ label: 'None', value: 'none' }, { label: 'Controller', value: 'controller' }, { label: 'Subscriber', value: 'subscriber' }], false, checkRoleConstraints, () => _Pages.previews.updatePreviewSlideout());
                 _Entities.generalTab.selectButtons('#display-mode-buttons', config, 'displayMode', [{ label: 'Input', value: 'input' }, { label: 'Output', value: 'output' }], false, () => {
                     _Pages.previews.updatePreviewSlideout();
@@ -2872,13 +2867,12 @@ let _Entities = {
 
 						// standard settings (always visible)
                         editor.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({ css: 'col-span-2', label: 'Label', name: 'label', fieldName, value: field.label, destination: 'field' }));
-						editor.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({ css: 'col-span-2', label: 'Columns', name: 'columns', fieldName, value: field.columns, destination: 'field' }));
+						editor.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({ css: 'col-span-2', label: 'Width (columns)', name: 'columns', fieldName, value: field.columns, destination: 'field' }));
 						editor.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailCheckbox({ css: 'col-span-2', label: 'Include in filter', name: 'isSearchable', fieldName, value: field.isSearchable, destination: 'field' }));
 
 						// render template settings
 						let renderTemplateSettings = _Entities.generalTab.createAppendAndReturnDetailsSummary(editor, 'Render Template Settings');
 						renderTemplateSettings.insertAdjacentHTML('beforeend', await _Entities.generalTab.templates.fieldConfigurationInput(field, renderTemplate));
-						console.log(renderTemplateSettings);
 						// remove element if no render template settings exist
 						if (renderTemplateSettings.children.length === 0) {
 							renderTemplateSettings.parentNode.remove();
@@ -3108,6 +3102,10 @@ let _Entities = {
         selectButtons: async (selector, entity, key, options, fill, callback) => {
 
             let container = document.querySelector(selector);
+
+			if (container === null) {
+				throw new Error(`Could not find element with selector "${selector}".`);
+			}
 
             for (let option of options) {
                 let active = (option.value === entity[key] ? 'active' : '');
@@ -4036,14 +4034,15 @@ let _Entities = {
 					<a class="block example-condition" data-value="${config.value}">${config.text ?? config.value}</a>
 				</div>
 			`,
-            componentOptions: (config) => `
+            componentOptions: async (config) => `
 				  
 				<div id="div-options" class="${_Entities.generalTab.templates.containerClasses()}">
-				    ${_Entities.generalTab.templates.dataSourcePartial(config)}
-				    ${_Entities.generalTab.templates.fieldConfigPartial(config)}
+				    ${await _Entities.generalTab.templates.dataSourcePartial(config)}
+				    ${await _Entities.generalTab.templates.fieldConfigPartial(config)}
 				</div>
 			`,
 
+			// currently unused
             componentOptionsPartial: (config) => `
                 
 				<div class="${_Entities.generalTab.templates.gridClasses()}">
@@ -4084,16 +4083,14 @@ let _Entities = {
                 </div>
 			`,
 
-            dataSourcePartial: (config) => `
+            dataSourcePartial: async (config) => `
 
 				<div class="${_Entities.generalTab.templates.gridClasses()}">
 
                     <div>
                         <label class="block mb-2" for="data-source-channel-select" data-comment="Source determines which objects are displayed in this component, and selection transforms the result.">Source & Selection</label>
                         <div class="data-source-channel-options flex">
-                            <select class="select2 rounded-none rounded-l" id="data-source-channel-select" name="dataSource" data-which="config">
-                                <option value="">None</option>
-                            </select>
+                        	${await _Widgets.templates.dataSourcesSelector('data-source-channel-select', 'dataSource', config.config.dataSource, 'rounded-none rounded-l', 'general')}
                             <span class="inline-flex items-center bg-gray px-2 w-4 justify-center select-none border-0 border-t border-b border-solid border-gray-input">.</span>
                             <input class="rounded-none rounded-r" type="text" id="transform-input" autocomplete="off" name="transform" data-which="config">
                         </div>

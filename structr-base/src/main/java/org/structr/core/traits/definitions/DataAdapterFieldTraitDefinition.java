@@ -74,6 +74,8 @@ public class DataAdapterFieldTraitDefinition extends AbstractNodeTraitDefinition
 			new OnCreation() {
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+					// all fields are searchable by default
+					graphObject.as(DataAdapterField.class).setIsSearchable(true);
 				}
 			}
 		);

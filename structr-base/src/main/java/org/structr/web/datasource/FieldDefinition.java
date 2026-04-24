@@ -35,6 +35,7 @@ public interface FieldDefinition {
 	boolean hasOptions();
 	boolean isRequired();
 	boolean isCollection();
+	boolean isIndexed();
 
 	List<GraphObject> getOptions(final RenderContext renderContext, final String filter, final String label) throws FrameworkException;
 }

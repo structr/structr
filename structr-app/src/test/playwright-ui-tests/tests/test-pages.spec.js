@@ -20,6 +20,7 @@
 import {test} from '@playwright/test';
 import {initialize} from "./helpers/init";
 import {login, logout} from "./helpers/auth";
+import {focusCenterPaneMonacoEditor, sendCtrlPlusA} from "./helpers/pages";
 
 test.beforeAll(async ({playwright}) => {
     await initialize(playwright);
@@ -38,15 +39,15 @@ test('pages', async ({page}) => {
     await page.screenshot({path: 'screenshots/pages.png'});
 
     // Open import dialog and create a screenshot
-    await page.locator('#pages-actions .dropdown-select').click();
-    await page.locator('#create_page').waitFor({state: 'visible'});
-    await page.locator('#import_page').click();
+    await page.locator('#create_page').click();
+    await page.waitForTimeout(1000);
+    await page.locator('#template-tiles .page-tile:nth-child(3)').click();
     await page.waitForTimeout(1000);
     await page.screenshot({path: 'screenshots/pages_import-page.png'});
     await page.getByRole('button', {name: 'Close'}).click();
     await page.waitForTimeout(200);
 
-    // Create new page (dropdown stays open from previous action!)
+    // Create new page
     await page.locator('#create_page').click();
     await page.waitForTimeout(1000);
     await page.screenshot({path: 'screenshots/pages_create-page.png'});
@@ -100,9 +101,50 @@ test('pages', async ({page}) => {
     // Drag 'Simple Table' widget onto 'Main Container'
     await page.locator('#widgetsTab').click();
     await page.waitForTimeout(1000);
+
+    await page.pause();
+
+    // create simple table widget
+    await page.locator('svg.add_widgets_icon').click();
+    await page.locator('#uncategorized_local_folder div').click({ button: 'right'});
+    await page.getByText('Edit', { exact: true }).click();
+    await page.locator('.view-lines').first().click();
+    await page.keyboard.type("<div data-structr-meta-name=\"Simple Table Widget\" class=\"overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg\">\n" +
+        "<table class=\"min-w-full divide-y divide-gray-300\">\n" +
+        "<thead class=\"bg-gray-50\">\n" +
+        "<tr>\n" +
+        "<th scope=\"col\" class=\"py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6\">Name</th>\n" +
+        "<th scope=\"col\" class=\"px-3 py-3.5 text-left text-sm font-semibold text-gray-900\">Title</th>\n" +
+        "<th scope=\"col\" class=\"px-3 py-3.5 text-left text-sm font-semibold text-gray-900\">Email</th>\n" +
+        "<th scope=\"col\" class=\"px-3 py-3.5 text-left text-sm font-semibold text-gray-900\">Role</th>\n" +
+        "<th scope=\"col\" class=\"relative py-3.5 pl-3 pr-4 sm:pr-6\">\n" +
+        "<span class=\"sr-only\">Edit</span>\n" +
+        "</th>\n" +
+        "</tr>\n" +
+        "</thead>\n" +
+        "<tbody class=\"divide-y divide-gray-200 bg-white\">\n" +
+        "<tr>\n" +
+        "<td class=\"whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6\">Firstname Lastname</td>\n" +
+        "<td class=\"whitespace-nowrap px-3 py-4 text-sm text-gray-500\">Example Job Title</td>\n" +
+        "<td class=\"whitespace-nowrap px-3 py-4 text-sm text-gray-500\">firstname.lastname@example.com</td>\n" +
+        "<td class=\"whitespace-nowrap px-3 py-4 text-sm text-gray-500\">Example Role</td>\n" +
+        "<td class=\"relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6\">\n" +
+        "<a href=\"#\" class=\"text-gray-600 hover:text-gray-900\">Edit<span class=\"sr-only\"></span></a>\n" +
+        "</td>\n" +
+        "</tr>\n" +
+        "</tbody>\n" +
+        "</table>\n" +
+        "</div>");
+
+    await page.getByRole('button', { name: 'Save and close' }).click();
+    await page.locator('#uncategorized_local_folder div').click();
+    await page.keyboard.type('Simple Table');
+    await page.keyboard.press('Tab');
+
+    await page.waitForTimeout(1000);
     await page.getByText('Simple Table', {exact: true}).hover();
     await page.mouse.down();
-    await page.locator('#pagesTree').getByText('Main Container', {exact: true}).hover();
+    await page.locator('#pagesTree').getByText('body', {exact: true}).hover();
     await page.mouse.up();
     await page.waitForTimeout(1000);
     await page.screenshot({path: 'screenshots/pages_simple-table-added.png'});

@@ -126,7 +126,7 @@ public class ConstantBooleanProperty extends AbstractPrimitiveProperty<Boolean>	
 
 	// ----- OpenAPI -----
 	@Override
-	public Object getExampleValue(final String type, final String viewName) {
+	public Object getExampleValue(final int index) {
 		return constantValue;
 	}
 

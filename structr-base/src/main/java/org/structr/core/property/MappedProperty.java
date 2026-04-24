@@ -90,8 +90,8 @@ public class MappedProperty<T> extends AbstractPrimitiveProperty<T> {
 
 	// ----- OpenAPI -----
 	@Override
-	public Object getExampleValue(final String type, final String viewName) {
-		return mappedKey.getExampleValue(type, viewName);
+	public Object getExampleValue(final int index) {
+		return mappedKey.getExampleValue(index);
 	}
 
 	@Override

@@ -18,7 +18,9 @@
  */
 package org.structr.core.property;
 
+import com.ibm.icu.impl.Grego;
 import org.apache.commons.lang3.StringUtils;
+import org.bouncycastle.asn1.cmp.GenRepContent;
 import org.structr.api.config.Settings;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
@@ -33,10 +35,7 @@ import org.structr.schema.parser.DatePropertyGenerator;
 
 import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
 * A property that stores and retrieves a simple string-based Date with
@@ -229,8 +228,15 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 
 	// ----- OpenAPI -----
 	@Override
-	public Object getExampleValue(final String type, final String viewName) {
-		return new SimpleDateFormat(this.format).format(System.currentTimeMillis());
+	public Object getExampleValue(final int index) {
+
+		final Calendar calendar = GregorianCalendar.getInstance();
+
+		calendar.set(Calendar.YEAR, 2020 + index);
+		calendar.set(Calendar.MONTH, Calendar.JANUARY);
+		calendar.set(Calendar.DAY_OF_MONTH, 1);
+
+		return calendar.getTime();
 	}
 
 	@Override

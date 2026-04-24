@@ -108,7 +108,7 @@ public class CypherProperty<T> extends AbstractPrimitiveProperty<T> {
 
 	// ----- OpenAPI -----
 	@Override
-	public Object getExampleValue(final String type, final String viewName) {
+	public Object getExampleValue(final int index) {
 		return null;
 	}
 

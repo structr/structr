@@ -28,7 +28,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
-import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.FieldDefinition;
 import org.structr.web.entity.ComponentConfiguration;
 
@@ -45,24 +44,24 @@ import java.util.Map;
  */
 public interface Channel<T> {
 
-	ChannelResult<T> getResult(final RenderContext renderContext, final ChannelInput input) throws FrameworkException;
-	Map<String, FieldDefinition> getFields(final RenderContext renderContext) throws FrameworkException;
+	ChannelResult<T> getResult(final ActionContext actionContext, final ChannelInput input) throws FrameworkException;
+	Map<String, FieldDefinition> getFields(final ActionContext actionContext) throws FrameworkException;
 
-	String getDataType(final RenderContext renderContext) throws FrameworkException;
-	String getName();
+	String getDataType(final ActionContext actionContext) throws FrameworkException;
+	String getChannelName();
 
 	Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, final GraphObject contextObject, final int row, final int column) throws FrameworkException;
 
 	default String getSortKey() {
-		return getName().toLowerCase() + ".sort";
+		return getChannelName().toLowerCase() + ".sort";
 	}
 
 	default String getPaginationKey() {
-		return getName().toLowerCase() + ".page";
+		return getChannelName().toLowerCase() + ".page";
 	}
 
 	default String getFilterKey() {
-		return getName().toLowerCase() + ".filter";
+		return getChannelName().toLowerCase() + ".filter";
 	}
 
 	static <T> Channel<T> forName(final SecurityContext securityContext, final ComponentConfiguration config, final String dataSourceName) throws FrameworkException {
@@ -85,6 +84,12 @@ public interface Channel<T> {
 
 						} else {
 
+							final NodeInterface byUuid = StructrApp.getInstance(securityContext).getNodeById(name);
+							if (byUuid != null) {
+
+								return byUuid.as(DataSource.class);
+							}
+
 							// check if name is an existing trait & override if we are super user
 							if (Traits.exists(name) && securityContext.isSuperUser()) {
 
@@ -99,6 +104,17 @@ public interface Channel<T> {
 					case "channel":
 						return new ChannelDataSource(config, name);
 
+				}
+
+			} else {
+
+				switch (dataSourceName) {
+
+					case "root-folders":
+						return new RootFoldersDataSource(config, "root-folders");
+
+					default:
+						throw new IllegalStateException("Unknown data source type: " + dataSourceName);
 				}
 			}
 		}

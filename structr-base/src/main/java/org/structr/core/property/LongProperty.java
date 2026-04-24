@@ -179,8 +179,8 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 
 	// ----- OpenAPI -----
 	@Override
-	public Object getExampleValue(final String type, final String viewName) {
-		return 1L;
+	public Object getExampleValue(final int index) {
+		return Long.valueOf(index);
 	}
 
 	@Override

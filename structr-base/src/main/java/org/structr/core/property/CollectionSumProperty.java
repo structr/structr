@@ -132,7 +132,7 @@ public class CollectionSumProperty<T extends NodeInterface, S extends Number> ex
 
 	// ----- OpenAPI -----
 	@Override
-	public Object getExampleValue(java.lang.String type, final String viewName) {
+	public Object getExampleValue(final int index) {
 		return 1;
 	}
 

@@ -27,7 +27,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.DataSource;
 import org.structr.core.entity.Relation;
-import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.ScriptDataSource;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
@@ -38,8 +37,8 @@ import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.datasource.DataSourceOperations;
 import org.structr.core.traits.wrappers.ScriptDataSourceTraitWrapper;
+import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
-import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.FieldDefinition;
 
 import java.util.LinkedHashMap;
@@ -73,7 +72,7 @@ public class ScriptDataSourceTraitDefinition extends AbstractNodeTraitDefinition
 			DataSourceOperations.class, new DataSourceOperations<NodeInterface>() {
 
 				@Override
-				public ResultStream<NodeInterface> getValues(final RenderContext renderContext, final DataSource provider, final ChannelInput input) throws FrameworkException {
+				public ResultStream<NodeInterface> getValues(final ActionContext actionContext, final DataSource provider, final ChannelInput input) throws FrameworkException {
 
 					final ScriptDataSource<NodeInterface> source = provider.as(ScriptDataSource.class);
 					final Map<String, Object> parameters         = new LinkedHashMap<>();
@@ -85,7 +84,7 @@ public class ScriptDataSourceTraitDefinition extends AbstractNodeTraitDefinition
 
 					if (StringUtils.isNotBlank(valuesScript)) {
 
-						final Object result = Actions.execute(renderContext.getSecurityContext(), source, valuesScript, parameters, "getValues", source.getUuid());
+						final Object result = Actions.execute(actionContext.getSecurityContext(), source, valuesScript, parameters, "getValues", source.getUuid());
 						if (result instanceof Iterable iterable) {
 
 							return new PagingIterable<>("ScriptDataSource " + getName(), iterable, input.pageSize(), input.page());
@@ -104,17 +103,17 @@ public class ScriptDataSourceTraitDefinition extends AbstractNodeTraitDefinition
 				}
 
 				@Override
-				public Map<String, FieldDefinition> getFields(final RenderContext renderContext, final DataSource provider) throws FrameworkException {
+				public Map<String, FieldDefinition> getFields(final ActionContext actionContext, final DataSource provider) throws FrameworkException {
 
 					// if the data source has a data type set, return the fields of that data type
 					final String dataType = provider.as(ScriptDataSource.class).getDataType();
 					if (dataType != null) {
 
-						final NodeInterface node = StructrApp.getInstance(renderContext.getSecurityContext()).nodeQuery(StructrTraits.SCHEMA_NODE).name(dataType).getFirst();
+						final NodeInterface node = StructrApp.getInstance(actionContext.getSecurityContext()).nodeQuery(StructrTraits.SCHEMA_NODE).name(dataType).getFirst();
 						if (node != null) {
 
-							final SchemaNode schemaNode = node.as(SchemaNode.class);
-							return schemaNode.getFields(renderContext);
+							final DataSource schemaNode = node.as(DataSource.class);
+							return schemaNode.getFields(actionContext);
 						}
 					}
 
@@ -123,7 +122,7 @@ public class ScriptDataSourceTraitDefinition extends AbstractNodeTraitDefinition
 				}
 
 				@Override
-				public String getDataType(final RenderContext renderContext, final DataSource provider) throws FrameworkException {
+				public String getDataType(final ActionContext actionContext, final DataSource provider) throws FrameworkException {
 					return provider.as(ScriptDataSource.class).getDataType();
 				}
 			}

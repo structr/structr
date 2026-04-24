@@ -67,7 +67,6 @@ export class Container {
 
 export async function createAndRenamePage(page: Page, whichTemplate, name, wait = 100) {
 
-	await page.locator('#pages-actions .dropdown-select').click();
 	await page.locator('#create_page').click();
 	await page.waitForTimeout(wait);
 	await page.locator(`#template-tiles .page-tile:nth-child(${whichTemplate})`).click();

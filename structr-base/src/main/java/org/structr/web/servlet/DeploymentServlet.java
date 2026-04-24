@@ -511,7 +511,8 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 			deployCommand.execute(Map.of(
 					"mode", "import",
-					"source", deploymentFolderSourcePath
+					"source", deploymentFolderSourcePath,
+					"quiet", "true"
 			));
 
 			response.setStatus(deployCommand.getCommandStatusCode());

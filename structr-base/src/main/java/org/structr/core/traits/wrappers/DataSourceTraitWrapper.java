@@ -25,10 +25,12 @@ import org.structr.core.datasources.ChannelResult;
 import org.structr.core.entity.DataSource;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.DataSourceTraitDefinition;
 import org.structr.core.traits.operations.datasource.DataSourceOperations;
-import org.structr.web.common.RenderContext;
+import org.structr.schema.action.ActionContext;
 import org.structr.web.datasource.FieldDefinition;
 
+import javax.swing.*;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -41,12 +43,12 @@ public class DataSourceTraitWrapper extends AbstractNodeTraitWrapper implements 
 	}
 
 	@Override
-	public final ChannelResult<GraphObject> getResult(final RenderContext renderContext, final ChannelInput input) throws FrameworkException {
+	public final ChannelResult<GraphObject> getResult(final ActionContext actionContext, final ChannelInput input) throws FrameworkException {
 
 		ChannelResult<GraphObject> result = cachedResults.get(input);
 		if (result == null) {
 
-			result = ChannelResult.fromStream(traits.getMethod(DataSourceOperations.class).getValues(renderContext, this, input));
+			result = ChannelResult.fromStream(traits.getMethod(DataSourceOperations.class).getValues(actionContext, this, input));
 
 			cachedResults.put(input, result);
 		}
@@ -55,12 +57,17 @@ public class DataSourceTraitWrapper extends AbstractNodeTraitWrapper implements 
 	}
 
 	@Override
-	public final Map<String, FieldDefinition> getFields(final RenderContext renderContext) throws FrameworkException {
-		return traits.getMethod(DataSourceOperations.class).getFields(renderContext, this);
+	public final Map<String, FieldDefinition> getFields(final ActionContext actionContext) throws FrameworkException {
+		return traits.getMethod(DataSourceOperations.class).getFields(actionContext, this);
 	}
 
 	@Override
-	public String getDataType(final RenderContext renderContext) throws FrameworkException {
-		return traits.getMethod(DataSourceOperations.class).getDataType(renderContext, this);
+	public String getDataType(final ActionContext actionContext) throws FrameworkException {
+		return traits.getMethod(DataSourceOperations.class).getDataType(actionContext, this);
+	}
+
+	@Override
+	public boolean includeHidden() {
+		return wrappedObject.getProperty(traits.key(DataSourceTraitDefinition.INCLUDE_HIDDEN_PROPERTY));
 	}
 }

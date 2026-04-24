@@ -20,7 +20,6 @@ package org.structr.web.datasource;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.structr.api.util.ResultStream;
 import org.structr.common.ChannelInput;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.CaseHelper;
@@ -37,7 +36,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.ComponentConfiguration;
 
@@ -301,6 +299,7 @@ public class DataField extends LinkedHashMap<String, Object> {
 		// data from field definition
 		if (fieldDefinition != null) {
 
+			field.put("isSearchable",   fieldDefinition.isIndexed());
 			field.put("required",       fieldDefinition.isRequired());
 			field.put("multiple",       fieldDefinition.isCollection());
 			field.put("template",       fieldDefinition.renderTemplate());

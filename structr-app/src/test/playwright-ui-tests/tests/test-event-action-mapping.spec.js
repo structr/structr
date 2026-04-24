@@ -116,12 +116,21 @@ test('pages', async ({page}) => {
 
 	await resizePagesTree(page, -200);
 
+	// import widgets
+	await page.locator('#create_page').click();
+	await page.locator('#import-widget-set').click();
+
+	await page.waitForTimeout(1000);
+
+	// close create page dialog again
+	await page.getByRole('button', { name: 'Close' }).click();
+
 	await page.waitForTimeout(1000);
 
 	// create projects page
 	if (runTests.includes(1)) {
 
-		await createAndRenamePage(page, 4, 'projects');
+		await createAndRenamePage(page, 2, 'projects');
 		await expandPageTree(page, 'projects');
 		await insertFrontendJs(page, 'projects');
 
@@ -218,7 +227,7 @@ test('pages', async ({page}) => {
 	// create project page
 	if (runTests.includes(2)) {
 
-		await createAndRenamePage(page, 4, 'project');
+		await createAndRenamePage(page, 2, 'project');
 		await expandPageTree(page, 'project');
 		await insertFrontendJs(page, 'project');
 
@@ -378,7 +387,7 @@ test('pages', async ({page}) => {
 
 	// next part: advanced example
 	if (runTests.includes(3)) {
-		await createAndRenamePage(page, 4, 'advanced');
+		await createAndRenamePage(page, 2, 'advanced');
 		await expandPageTree(page, 'advanced');
 		await insertFrontendJs(page, 'advanced');
 

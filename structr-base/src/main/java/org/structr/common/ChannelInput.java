@@ -41,7 +41,7 @@ public class ChannelInput implements Predicate<GraphObject> {
 		this(transform, null, null, Integer.MAX_VALUE, 1);
 	}
 
-	public ChannelInput(final String transform, final String filter, final String[] sortStrings, final int pageSize, final int page) {
+	public ChannelInput(final String transform, final String filter, final List<String> sortStrings, final int pageSize, final int page) {
 
 		this.filter    = filter != null ? filter.toLowerCase() : null;
 		this.transform = transform;
@@ -118,23 +118,5 @@ public class ChannelInput implements Predicate<GraphObject> {
 		}
 
 		return true;
-	}
-
-	public static final void main(final String[] args) {
-
-		for (int i=0; i<3; i++) {
-
-			final List<String> list = new LinkedList<>();
-
-			list.add("one");
-			list.add("two");
-			list.add("three");
-			list.add("four");
-
-
-			System.out.println(Objects.hash("one", "two", "three", "four"));
-			System.out.println(Objects.hash(list));
-			System.out.println("\n");
-		}
 	}
 }

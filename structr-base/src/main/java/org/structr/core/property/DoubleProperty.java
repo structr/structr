@@ -212,8 +212,8 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 
 	// ----- OpenAPI -----
 	@Override
-	public Object getExampleValue(final String type, final String viewName) {
-		return 1.0;
+	public Object getExampleValue(final int index) {
+		return Double.valueOf(index);
 	}
 
 	@Override

@@ -20,18 +20,17 @@ package org.structr.core.traits.operations.datasource;
 
 import org.structr.api.util.ResultStream;
 import org.structr.common.ChannelInput;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.DataSource;
 import org.structr.core.traits.operations.FrameworkMethod;
-import org.structr.web.common.RenderContext;
+import org.structr.schema.action.ActionContext;
 import org.structr.web.datasource.FieldDefinition;
 
 import java.util.Map;
 
 public abstract class DataSourceOperations<T> extends FrameworkMethod<DataSourceOperations<T>> {
 
-	public abstract ResultStream<T> getValues(final RenderContext renderContext, final DataSource provider, final ChannelInput input) throws FrameworkException;
-	public abstract Map<String, FieldDefinition> getFields(final RenderContext renderContext, final DataSource provider) throws FrameworkException;
-	public abstract String getDataType(final RenderContext renderContext, final DataSource provider) throws FrameworkException;
+	public abstract ResultStream<T> getValues(final ActionContext actionContext, final DataSource provider, final ChannelInput input) throws FrameworkException;
+	public abstract Map<String, FieldDefinition> getFields(final ActionContext actionContext, final DataSource provider) throws FrameworkException;
+	public abstract String getDataType(final ActionContext actionContext, final DataSource provider) throws FrameworkException;
 }

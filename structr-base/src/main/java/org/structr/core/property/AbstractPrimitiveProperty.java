@@ -282,7 +282,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> implement
 			}
 
 			map.put("type", simpleName);
-			map.put("example", getExampleValue(type, viewName));
+			map.put("example", getExampleValue(1));
 
 			if (this.isReadOnly()) {
 				map.put("readOnly", true);
@@ -307,7 +307,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> implement
 			}
 
 			map.put("type", valueTypeName);
-			map.put("example", getExampleValue(type, viewName));
+			map.put("example", getExampleValue(1));
 
 			if (this.isReadOnly()) {
 				map.put("readOnly", true);

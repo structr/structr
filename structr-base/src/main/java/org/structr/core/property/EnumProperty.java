@@ -141,8 +141,12 @@ public class EnumProperty extends AbstractPrimitiveProperty<String> implements F
 
 	// ----- OpenAPI -----
 	@Override
-	public Object getExampleValue(final String type, final String viewName) {
-		return "abc";
+	public Object getExampleValue(final int index) {
+		final List<Object> constants = new LinkedList<>(enumConstants);
+		if (constants.size() > index) {
+			return constants.get(index);
+		}
+		return null;
 	}
 
 	@Override

@@ -85,7 +85,7 @@ public class OpenAPIStructrTypeExample extends TreeMap<String, Object> {
 
 		} else {
 
-			final Object exampleValue = property.getExampleValue(type.getName(), viewName);
+			final Object exampleValue = property.getExampleValue(1);
 			if (exampleValue != null) {
 
 				put(property.jsonName(), exampleValue);

@@ -224,7 +224,7 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 
 	// ----- OpenAPI -----
 	@Override
-	public Object getExampleValue(java.lang.String type, final String viewName) {
+	public Object getExampleValue(final int index) {
 		return null;
 	}
 

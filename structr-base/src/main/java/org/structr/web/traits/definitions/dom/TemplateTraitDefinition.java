@@ -166,7 +166,7 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 							final Set<String> channelNames = new LinkedHashSet<>();
 							if (sourceChannel != null) {
 
-								channelNames.add(sourceChannel.getName());
+								channelNames.add(sourceChannel.getChannelName());
 							}
 
 							if (selectionChannel != null) {
@@ -193,7 +193,7 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 							// current selected value
 							if (sourceChannel != null) {
 
-								final String channelName = sourceChannel.getName();
+								final String channelName = sourceChannel.getChannelName();
 								final String selectedId  = renderContext.getChannelValue(channelName);
 
 								if (selectedId != null) {

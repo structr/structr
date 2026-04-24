@@ -20,13 +20,9 @@ package org.structr.web.traits.wrappers;
 
 import org.structr.common.ChannelInput;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.core.datasources.Channel;
-import org.structr.core.datasources.ChannelDataSource;
 import org.structr.core.entity.DataAdapter;
-import org.structr.core.entity.DataSource;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.web.common.RenderContext;
@@ -35,6 +31,7 @@ import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.traits.definitions.ComponentConfigurationTraitDefinition;
 
+import java.util.Arrays;
 import java.util.Map;
 
 public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper implements ComponentConfiguration {
@@ -167,14 +164,14 @@ public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper
 		final Channel channel = getDataSource();
 		if (channel != null) {
 
-			final String sortKey = channel.getSortKey();
-			final String filterKey = channel.getFilterKey();
+			final String transform     = getTransform();
+			final String sortKey       = channel.getSortKey();
+			final String filterKey     = channel.getFilterKey();
 			final String paginationKey = channel.getPaginationKey();
 			final String[] sortStrings = renderContext.getRequestParameterValues(sortKey);
-			final String filterString = renderContext.getRequestParameter(filterKey);
-			final String pageString = renderContext.getRequestParameter(paginationKey);
+			final String filterString  = renderContext.getRequestParameter(filterKey);
+			final String pageString    = renderContext.getRequestParameter(paginationKey);
 
-			int pageSize = getPageSize();
 			int page = 1;
 
 			if (pageString != null) {
@@ -182,7 +179,7 @@ public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper
 				page = Integer.valueOf(pageString);
 			}
 
-			final ChannelInput input = new ChannelInput(getTransform(), filterString, sortStrings, pageSize, page);
+			final ChannelInput input = new ChannelInput(transform, filterString, sortStrings != null ? Arrays.asList(sortStrings) : null, getPageSize(), page);
 
 			if (dataAdapter != null) {
 

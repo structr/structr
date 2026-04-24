@@ -544,6 +544,14 @@ img.disabled {
 	z-index: 1;
 }
 
+.reset_widgets_icon {
+	position: absolute;
+	right: 8rem;
+	top: 1rem;
+	cursor: pointer;
+	z-index: 1;
+}
+
 #add-widget-server td:first-of-type {
 	width: 100px;
 }
@@ -2130,8 +2138,7 @@ th.center {
 	padding: 0;
 	position: relative;
 	width: 14rem;
-	min-width: 14rem;
-	min-height: 17rem;
+	height: 17rem;
 	display: inline-block;
 	vertical-align: text-top;
 	border-radius: .5rem;
@@ -3242,6 +3249,87 @@ div.toggle-button-container button:last-child {
 	border-left-style: solid;
 	border-left-color: var(--gray-ddd);
 	padding: 2rem;
+}
+
+.data-source-menu {
+
+	position: relative;
+	display: inline-block;
+	cursor: default;
+
+	& > ul {
+		display: none;
+		position: absolute;
+		top: calc(100% - 1px);
+		left: 0;
+		margin: 0;
+		padding: 0;
+		border: 1px solid var(--input-field-border);
+		box-shadow: 0 0 .625rem 0 rgba(0,0,0,0.1);
+		list-style: none;
+		z-index: 99999;
+		box-sizing: border-box;
+		white-space: nowrap;
+	}
+
+	&:focus-within > div {
+		border-bottom-left-radius: 0;
+		border-bottom-right-radius: 0;
+	}
+
+	&:focus-within > ul {
+		display: block;
+	}
+
+	li {
+		position: relative;
+		cursor: default;
+		padding: .25rem;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	li > ul {
+		display: none;
+		position: absolute;
+		left: 100%;
+		top: 0;
+		margin: 0;
+		padding: 0;
+		border: 1px solid var(--input-field-border);
+		box-shadow: 0 0 .625rem 0 rgba(0,0,0,0.1);
+		background-color: white;
+		list-style: none;
+		z-index: 99999;
+	}
+
+	li:hover > ul {
+		display: block;
+	}
+
+	li:hover {
+		background: var(--structr-green);
+	}
+
+	span.caret {
+		font-weight: bold;
+		font-size: 1.25rem;
+		line-height: 1.75rem;
+		color: var(--icon-stroke);
+		padding: 0;
+		margin: 0 0 0 1rem;
+	}
+
+	hr {
+		width: 100%;
+		margin: 0;
+		padding: 0;
+		height: 1px;
+		border: none;
+		color: var(--gray-eee);
+		background-color: var(--gray-ccc);
+	}
 }
 
 /**
@@ -4578,6 +4666,9 @@ ul.combined-input-select-field li:not(.nohover):hover {
 .text-gray-ddd,
 .hover\:text-gray-ddd:hover {
 	color: var(--gray-ddd);
+}
+.text-gray-ccc {
+	color: var(--gray-ccc);
 }
 .text-gray-aaa {
     color: var(--gray-aaa);

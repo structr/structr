@@ -388,14 +388,14 @@ public class FunctionProperty<T> extends Property<T> implements Documentable {
 
 	// ----- OpenAPI -----
 	@Override
-	public Object getExampleValue(final String type, final String viewName) {
+	public Object getExampleValue(final int index) {
 
 		if (typeHint != null) {
 
 			final Property tmp = createTempProperty(typeHint.toLowerCase(), jsonName);
 			if (tmp != null) {
 
-				return tmp.getExampleValue(type, viewName);
+				return tmp.getExampleValue(index);
 			}
 		}
 

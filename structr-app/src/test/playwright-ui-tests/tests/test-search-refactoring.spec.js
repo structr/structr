@@ -49,12 +49,28 @@ test('search-and-refactor-code', async ({ page }) => {
 
 	await login(page);
 
-    // create example page
+	// Pages
+	await page.locator('#pages_').waitFor({state: 'visible'});
+	await page.locator('#pages_').click();
 
+	// Wait for Pages UI to load all components
+	await page.waitForTimeout(1000);
+	//await page.screenshot({ path: 'screenshots/pages.png' });
+
+	// import widgets
+	await page.locator('#create_page').click();
+	await page.locator('#import-widget-set').click();
+
+	await page.waitForTimeout(1000);
+
+	// close create page dialog again
+	await page.getByRole('button', { name: 'Close' }).click();
+
+	// create example page
     await page.locator('#header #pages_').waitFor({state: 'visible'});
     await page.locator('#header #pages_').click();
 
-    await createAndRenamePage(page, 4, 'test');
+    await createAndRenamePage(page, 2, 'test');
 
     let pageContainer = getPageContainer(page, 'test');
     await expandPageTree(page, 'test');

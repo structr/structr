@@ -92,6 +92,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private int statusCode      = HttpServletResponse.SC_OK;
 	private Object customResult = null;
+	private boolean isQuiet     = false;
 
 	private static final Map<String, String> deferredPageLinks        = new LinkedHashMap<>();
 	private final Map<DOMNode, PropertyMap> deferredNodesAndTheirProperties = new LinkedHashMap<>();
@@ -155,6 +156,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		if (Boolean.FALSE.equals(isDeploymentActive())) {
 
+			// allow users to prevent notifications (for widget import etc.)
+			final String quiet = (String) parameters.get("quiet");
+			if ("true".equalsIgnoreCase(quiet)) {
+				this.isQuiet = true;
+			}
+
 			try {
 
 				deploymentActive.set(true);
@@ -192,6 +199,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	@Override
 	public boolean requiresFlushingOfCaches() {
 		return false;
+	}
+
+	@Override
+	public boolean isQuietMode() {
+		return isQuiet;
 	}
 
 	public Map<String, Object> readMetadataFileIntoMap(final Path metadataFile) {

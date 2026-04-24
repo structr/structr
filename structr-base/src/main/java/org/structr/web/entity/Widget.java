@@ -28,14 +28,22 @@ import org.structr.core.JsonInput;
 import org.structr.core.JsonSingleInput;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.datasources.ExampleData;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.importer.ImporterWithXMLParser;
 import org.structr.web.maintenance.deploy.DeploymentCommentHandler;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 
@@ -77,6 +85,7 @@ public interface Widget extends NodeInterface {
 	static void expandWidget(final SecurityContext securityContext, final Page page, final DOMNode parent, final String baseUrl, final Map<String, Object> parameters, final boolean processDeploymentInfo) throws FrameworkException {
 
 		final App app                 = StructrApp.getInstance(securityContext);
+		final List<String> attributes = new LinkedList<>();
 		final ErrorBuffer errorBuffer = new ErrorBuffer();
 
 		String _source = (String) parameters.get("source");
@@ -92,27 +101,21 @@ public interface Widget extends NodeInterface {
 			// initialize with source
 			matcher.reset(_source);
 
-			// create default objects if keywords from append widget dialog are present
-			if ("create-new-data-source".equals(parameters.get("dataSource"))) {
+			// create default objects if keywords from "append widget" dialog are present
+			if ("create:schema".equals(parameters.get("dataSource"))) {
 
-				final NodeInterface dataSource = app.create(StructrTraits.DATA_SOURCE, "New DataSource");
-				parameters.put("dataSource", dataSource.getUuid());
+				attributes.addAll(createSchemaDataSource(app, parameters));
+			}
+
+			if ("create:datasource".equals(parameters.get("dataSource"))) {
+
+				final String name              = (String) parameters.get("dataSourceName");
+				final NodeInterface dataSource = app.create(StructrTraits.SCRIPT_DATA_SOURCE, name);
+				parameters.put("dataSource", "node:" + dataSource.getUuid());
 			}
 
 			if ("create-new-data-adapter".equals(parameters.get("dataAdapter"))) {
-
-				String type = "Unnamed";
-
-				// determine name from data source
-				final String dataSource = (String) parameters.get("dataSource");
-				if (dataSource != null && dataSource.startsWith("node:")) {
-
-					// use type from data source
-					type = StringUtils.substringAfterLast(dataSource, ":");
-				}
-
-				final NodeInterface dataAdapter = app.create(StructrTraits.DATA_ADAPTER, type + " Adapter");
-				parameters.put("dataAdapter", dataAdapter.getUuid());
+				throw new IllegalStateException("Data adapter creation is done elsewhere now, please do not use this special key.");
 			}
 
 			while (matcher.find()) {
@@ -147,6 +150,7 @@ public interface Widget extends NodeInterface {
 				final JsonInput config = configData != null ? configData.getFirst() : null;
 
 				if (parent != null) {
+
 					// set componentRoot flag so we don't cross component boundaries
 					for (final DOMNode newChild : parent.getChildren()) {
 
@@ -167,6 +171,15 @@ public interface Widget extends NodeInterface {
 						}
 
 						newChild.setIsComponentRoot(true);
+
+						if (!attributes.isEmpty()) {
+
+							final ComponentConfiguration componentConfiguration = newChild.getComponentConfiguration();
+							if (componentConfiguration != null) {
+
+								componentConfiguration.setFieldSet(StringUtils.join(attributes, ","));
+							}
+						}
 					}
 
 					final String tableChildElement = importer.getTableChildElement();
@@ -191,6 +204,53 @@ public interface Widget extends NodeInterface {
 			// report error to ui
 			throw new FrameworkException(422, "Unable to import the given source code", errorBuffer);
 		}
+	}
+
+	static List<String> createSchemaDataSource(final App app, final Map<String, Object> parameters) throws FrameworkException {
+
+		final String name              = (String) parameters.get("dataSourceName");
+		final NodeInterface dataSource = app.create(StructrTraits.SCHEMA_NODE, name);
+		final List<String> attributes  = new LinkedList<>();
+
+		parameters.put("dataSource", "node:" + dataSource.getName());
+
+		// process attributes
+		if (parameters.containsKey("dataSourceAttribute0") && parameters.containsKey("dataSourceType0")) {
+
+			final Traits schemaPropertyTraits = Traits.of(StructrTraits.SCHEMA_PROPERTY);
+			boolean found                     = true;
+			int index                         = 0;
+
+			while (found) {
+
+				found = false;
+
+				final String attributeName = (String) parameters.get("dataSourceAttribute" + index);
+				final String attributeType = (String) parameters.get("dataSourceType" + index);
+
+				if (attributeName != null && attributeType != null) {
+
+					attributes.add(attributeName);
+
+					app.create(StructrTraits.SCHEMA_PROPERTY,
+						new NodeAttribute<>(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), dataSource),
+						new NodeAttribute<>(schemaPropertyTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), attributeName),
+						new NodeAttribute<>(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), attributeType)
+					);
+
+					found = true;
+				}
+
+				index++;
+			}
+		}
+
+		// checkbox without value sends the string "on"
+		if ("on".equals(parameters.get("dataSourceCreateExampleData"))) {
+			TransactionCommand.registerTransactionListener(ExampleData.postProcess(name, attributes, 5));
+		}
+
+		return attributes;
 	}
 
 	static Integer toInt(final Object value) {

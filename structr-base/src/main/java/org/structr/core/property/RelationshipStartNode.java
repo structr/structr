@@ -112,7 +112,7 @@ public class RelationshipStartNode<T extends NodeInterface> extends AbstractRead
 
 	// ----- OpenAPI -----
 	@Override
-	public Object getExampleValue(final String type, final String viewName) {
+	public Object getExampleValue(final int index) {
 		return null;
 	}
 

@@ -215,8 +215,8 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 
 	// ----- OpenAPI -----
 	@Override
-	public Object getExampleValue(final String type, final String viewName) {
-		return 1;
+	public Object getExampleValue(final int index) {
+		return index;
 	}
 
 	@Override

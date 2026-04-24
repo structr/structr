@@ -2222,105 +2222,15 @@ let _Pages = {
 
 			$('#import_page').on('click', (e) => {
 				e.stopPropagation();
-
-				let { dialogText } = _Dialogs.custom.openDialog('Import Template');
-
-				dialogText.insertAdjacentHTML('beforeend', `
-					<h3>Create page from source code ...</h3>
-					<textarea id="_code" name="code" cols="40" rows="5" placeholder="Paste HTML code here"></textarea>
-
-					<h3>... or fetch page from URL: <input id="_address" name="address" size="40" value="http://"></h3>
-					<table class="props">
-						<tr>
-							<td><label for="name">Name of new page:</label></td>
-							<td><input id="_name" name="name" size="20"></td></tr>
-						<tr>
-							<td><label for="publicVisibility">Visible to public</label></td>
-							<td><input type="checkbox" id="_publicVisible" name="publicVisibility"></td></tr>
-						<tr>
-							<td><label for="authVisibilty">Visible to authenticated users</label></td>
-							<td><input type="checkbox" id="_authVisible" name="authVisibilty"></td></tr>
-						<tr>
-							<td><label for="includeInExport">Include imported files in deployment export</label></td>
-							<td><input type="checkbox" id="_includeInExport" name="includeInExport" checked="checked"></td></tr>
-						<tr>
-							<td><label for="processDeploymentInfo">Process deployment annotations</label></td>
-							<td><input type="checkbox" id="_processDeploymentInfo" name="processDeploymentInfo"></td></tr>
-					</table>
-				`);
-
-				$('#_address', $(dialogText)).on('blur', function() {
-					let addr = $(this).val().replace(/\/+$/, "");
-					$('#_name', $(dialogText)).val(addr.substring(addr.lastIndexOf("/") + 1));
-				});
-
-				let startImportButton = _Dialogs.custom.appendCustomDialogButton('<button class="action" id="startImport">Start Import</button>');
-
-				startImportButton.addEventListener('click', (e) => {
-					e.stopPropagation();
-
-					let code                  = $('#_code', $(dialogText)).val();
-					let address               = $('#_address', $(dialogText)).val();
-					let name                  = $('#_name', $(dialogText)).val();
-					let publicVisible         = $('#_publicVisible', $(dialogText)).prop('checked');
-					let authVisible           = $('#_authVisible', $(dialogText)).prop('checked');
-					let includeInExport       = $('#_includeInExport', $(dialogText)).prop('checked');
-					let processDeploymentInfo = $('#_processDeploymentInfo', $(dialogText)).prop('checked');
-
-					if (code.length > 0) {
-						address = null;
-					}
-
-					return Command.importPage(code, address, name, publicVisible, authVisible, includeInExport, processDeploymentInfo);
-				});
+				_Pages.importPageDialog();
 			});
 
 			// Display 'Create Page' dialog
 			let smallTransparentGIF = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
 			let createPageButton = document.querySelector('#create_page');
-			createPageButton.addEventListener('click', async (e) => {
-
+			createPageButton.addEventListener('click', (e) => {
 				e.stopPropagation();
-
-				let pageTemplates = await _Widgets.fetchAllPageTemplateWidgets();
-
-				if (pageTemplates.length === 0) {
-
-					Command.createSimplePage();
-
-				} else {
-
-					let { dialogText } = _Dialogs.custom.openDialog('Select Template to Create New Page');
-
-					let container = _Helpers.createSingleDOMElementFromHTML('<div id="template-tiles"></div>');
-					dialogText.appendChild(container);
-
-					for (let widget of pageTemplates) {
-
-						let id = 'create-from-' + widget.id;
-						let tile = _Helpers.createSingleDOMElementFromHTML(`<div id="${id}" class="page-tile"><div class="page-thumbnail-frame"><img src="${widget.newThumbnailPath ?? widget.thumbnailPath ?? smallTransparentGIF}"/><h4>${widget.name}</h4><p>${(widget.description || '')}</p></div></div>`);
-						container.append(tile);
-
-						tile.addEventListener('click', () => {
-							Command.create({ type: 'Page' }, (page) => {
-								Structr.removeExpandedNode(page.id);
-                                let config = { componentType: widget.componentType, dimensions: widget.dimensions };
-								Command.appendWidget(widget.source, page.id, page.id, null, {}, config, true);
-								_Dialogs.custom.dialogCancelBaseAction();
-							});
-						});
-					}
-
-					// default page
-					let defaultTile = _Helpers.createSingleDOMElementFromHTML('<div id="create-simple-page" class="page-tile"><div class="page-thumbnail-frame"><img src="https://apps.structr.com/assets/images/simple-new.png"/><h4>Simple Page</h4><p>Creates a simple page with a minimal set of HTML elements.</p></div></div>');
-					container.append(defaultTile);
-
-					let createSimplePageButton = container.querySelector('#create-simple-page');
-					createSimplePageButton.addEventListener('click', () => {
-						Command.createSimplePage();
-						_Dialogs.custom.dialogCancelBaseAction();
-					});
-				}
+				_Pages.createPageDialog();
 			});
 
 			let selectedObjectId = LSWrapper.getItem(_Entities.selectedObjectIdKey);
@@ -2349,6 +2259,119 @@ let _Pages = {
 				if (!isOpen) {
 					slideoutAction();
 				}
+			});
+		}
+	},
+	importPageDialog: async () => {
+
+		let { dialogText } = _Dialogs.custom.openDialog('Import Template');
+
+		dialogText.insertAdjacentHTML('beforeend', `
+			<h3>Create page from source code ...</h3>
+			<textarea id="_code" name="code" cols="40" rows="5" placeholder="Paste HTML code here"></textarea>
+
+			<h3>... or fetch page from URL: <input id="_address" name="address" size="40" value="http://"></h3>
+			<table class="props">
+				<tr>
+					<td><label for="name">Name of new page:</label></td>
+					<td><input id="_name" name="name" size="20"></td></tr>
+				<tr>
+					<td><label for="publicVisibility">Visible to public</label></td>
+					<td><input type="checkbox" id="_publicVisible" name="publicVisibility"></td></tr>
+				<tr>
+					<td><label for="authVisibilty">Visible to authenticated users</label></td>
+					<td><input type="checkbox" id="_authVisible" name="authVisibilty"></td></tr>
+				<tr>
+					<td><label for="includeInExport">Include imported files in deployment export</label></td>
+					<td><input type="checkbox" id="_includeInExport" name="includeInExport" checked="checked"></td></tr>
+				<tr>
+					<td><label for="processDeploymentInfo">Process deployment annotations</label></td>
+					<td><input type="checkbox" id="_processDeploymentInfo" name="processDeploymentInfo"></td></tr>
+			</table>
+		`);
+
+		$('#_address', $(dialogText)).on('blur', function() {
+			let addr = $(this).val().replace(/\/+$/, "");
+			$('#_name', $(dialogText)).val(addr.substring(addr.lastIndexOf("/") + 1));
+		});
+
+		let startImportButton = _Dialogs.custom.appendCustomDialogButton('<button class="action" id="startImport">Start Import</button>');
+
+		startImportButton.addEventListener('click', (e) => {
+			e.stopPropagation();
+
+			let code                  = $('#_code', $(dialogText)).val();
+			let address               = $('#_address', $(dialogText)).val();
+			let name                  = $('#_name', $(dialogText)).val();
+			let publicVisible         = $('#_publicVisible', $(dialogText)).prop('checked');
+			let authVisible           = $('#_authVisible', $(dialogText)).prop('checked');
+			let includeInExport       = $('#_includeInExport', $(dialogText)).prop('checked');
+			let processDeploymentInfo = $('#_processDeploymentInfo', $(dialogText)).prop('checked');
+
+			if (code.length > 0) {
+				address = null;
+			}
+
+			return Command.importPage(code, address, name, publicVisible, authVisible, includeInExport, processDeploymentInfo);
+		});
+	},
+	createPageDialog: async () => {
+
+		let pageTemplates = await _Widgets.fetchAllPageTemplateWidgets();
+		let { dialogText } = _Dialogs.custom.openDialog('Create New Page');
+
+		let container = _Helpers.createSingleDOMElementFromHTML('<div id="template-tiles"></div>');
+		dialogText.appendChild(container);
+
+		// empty page
+		let emptyPage = _Helpers.createSingleDOMElementFromHTML('<div id="create-empty-page" class="page-tile"><div class="page-thumbnail-frame"><img src="https://apps.structr.com/assets/images/empty-new.png"/><h4>Empty Page</h4><p>Creates a page with no children.</p></div></div>');
+		container.append(emptyPage);
+
+		// simple page
+		let simplePageTile = _Helpers.createSingleDOMElementFromHTML('<div id="create-simple-page" class="page-tile"><div class="page-thumbnail-frame"><img src="https://apps.structr.com/assets/images/simple-new.png"/><h4>Simple Page</h4><p>Creates a simple page with a minimal set of HTML elements.</p></div></div>');
+		container.append(simplePageTile);
+
+		// custom page
+		let customPageTile = _Helpers.createSingleDOMElementFromHTML('<div id="create-custom-page" class="page-tile"><div class="page-thumbnail-frame"><img src="https://apps.structr.com/assets/images/white.png"/><h4>Custom Page</h4><p>Creates a page from HTML source code or from a URL.</p></div></div>');
+		container.append(customPageTile);
+
+		// page templates from widgets
+		for (let widget of pageTemplates) {
+
+			let id = 'create-from-' + widget.id;
+			let tile = _Helpers.createSingleDOMElementFromHTML(`<div id="${id}" class="page-tile"><div class="page-thumbnail-frame"><img src="${widget.newThumbnailPath ?? widget.thumbnailPath ?? smallTransparentGIF}"/><h4>${widget.name}</h4><p>${(widget.description || '')}</p></div></div>`);
+			container.append(tile);
+
+			tile.addEventListener('click', () => {
+				Command.create({ type: 'Page' }, (page) => {
+					Structr.removeExpandedNode(page.id);
+					let config = { componentType: widget.componentType, dimensions: widget.dimensions };
+					Command.appendWidget(widget.source, page.id, page.id, null, {}, config, true);
+					_Dialogs.custom.dialogCancelBaseAction();
+				});
+			});
+		}
+
+		let createSimplePageButton = container.querySelector('#create-simple-page');
+		createSimplePageButton.addEventListener('click', () => {
+			Command.createSimplePage();
+			_Dialogs.custom.dialogCancelBaseAction();
+		});
+
+		let createEmptyPageButton = container.querySelector('#create-empty-page');
+		createEmptyPageButton.addEventListener('click', () => {
+			Command.create({ type: 'Page' });
+			_Dialogs.custom.dialogCancelBaseAction();
+		});
+
+		let createCustomPageButton = container.querySelector('#create-custom-page');
+		createCustomPageButton.addEventListener('click', () => {
+			_Pages.importPageDialog();
+		});
+
+		if (pageTemplates.length === 0) {
+			_Widgets.createImportWidgetsButton(container, "Import Widget Set", () => {
+				_Pages.createPageDialog();
 			});
 		}
 	},
@@ -4189,26 +4212,10 @@ let _Pages = {
 
 	templates: {
 		pagesActions: config => `
-			<div id="pages-actions" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
-				<button class="action button btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
-					${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Create Page
+			<div id="pages-actions">
+				<button id="create_page" title="Create Page" class="action button btn flex items-center active:border-green">
+					${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'mr-2')} Create Page
 				</button>
-				<div class="dropdown-menu-container">
-
-					<div class="flex flex-col divide-x-0 divide-y">
-						<a id="create_page" title="Create Page" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
-							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'mr-2')} Create Page
-						</a>
-
-						<a id="import_page" title="Import Template" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
-							${_Icons.getSvgIcon(_Icons.iconCreateFile, 16, 16, 'mr-2')} Import Page
-						</a>
-
-						<!--a id="add_template" title="Add Template" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
-							${_Icons.getSvgIcon(_Icons.iconMagicWand)} Add Template
-						</a-->
-					</div>
-				</div>
 			</div>
 		`,
 		main: config => `
