@@ -420,7 +420,7 @@ public class WidgetsTest extends DeploymentTestBase {
 
 				// check HTML of component shell
 				final Element componentElement = (Element) parsedOutput.getFirst();
-				assertAttributes(componentElement, Map.of("data-structr-id", listComponent.getUuid(), "data-channel", "Project"));
+				assertAttributes(componentElement, Map.of("data-structr-id", listComponent.getUuid(), "data-channel", "project"));
 
 				// check HTML of list container
 				final Element divElement = componentElement.children().getFirst();
@@ -628,7 +628,7 @@ public class WidgetsTest extends DeploymentTestBase {
 			// import a page template
 			expandWidget(page, page, "Default Page");
 
-			// insert List widget
+			// insert table widget
 			expandWidget(page, "Main Content", "Table");
 
 			tx.success();
@@ -714,7 +714,7 @@ public class WidgetsTest extends DeploymentTestBase {
 
 			// check HTML of component shell
 			final Element componentElement = (Element) parsedOutput.getFirst();
-			assertAttributes(componentElement, Map.of("data-structr-id", tableComponent.getUuid(), "data-channel", "Project"));
+			assertAttributes(componentElement, Map.of("data-structr-id", tableComponent.getUuid(), "data-channel", "project"));
 
 			// check HTML of list container
 			final Element divElement = componentElement.children().getFirst();
@@ -759,21 +759,71 @@ public class WidgetsTest extends DeploymentTestBase {
 
 		// check deployment roundtrip
 		compare(calculateHash(), true);
+	}
 
-//		try (final Tx tx = app.tx()) {
-//
-//			// create some projects
-//			for (int i=1; i<10; i++) {
-//				app.create("Project", "Project #0" + i);
-//			}
-//
-//			tx.success();
-//
-//		} catch (FrameworkException fex) {
-//
-//			fex.printStackTrace();
-//			fail("Unexpected exception");
-//		}
+	@Test
+	public void testDataSourceCreationInWidgetDialog() {
+
+		setupUserAndWidgets();
+
+		// Widget.expandWidget() supports the following special values that are sent from the
+		// insert widget dialog:
+		// create:schema creates a new schema node with name and optional example data
+		// create:datasource creates a new named ScriptDataSource
+
+		try (final Tx tx = app.tx()) {
+
+			assertEquals("No DOMNodes should exist prior to test.", 0, app.nodeQuery(StructrTraits.DOM_NODE).getAsList().size());
+
+			final Page page = Page.createNewPage(securityContext, "test01");
+
+			assertEquals("Only one DOMNode should exist after creating a page.", 1, app.nodeQuery(StructrTraits.DOM_NODE).getAsList().size());
+
+			expandWidget(page, page, "Default Page");
+
+			expandWidget(page, "Main Content", "Table", Map.of(
+				"dataSource", "create:schema",
+				"dataSourceName", "Test",
+				"dataSourceCreateExampleData", "on",
+				"dataSourceAttribute0", "name",
+				"dataSourceType0", "String",
+				"dataSourceAttribute1", "description",
+				"dataSourceType1", "String",
+				"dataSourceAttribute2", "date",
+				"dataSourceType2", "Date"
+			));
+
+			expandWidget(page, "Main Content", "List", Map.of(
+				"dataSource", "create:datasource",
+				"dataSourceName", "my-new-data-source"
+			));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			assertEquals("Schema node was not created", 1, app.nodeQuery(StructrTraits.SCHEMA_NODE).name("Test").getAsList().size());
+			assertTrue("Schema node was not created", Traits.exists("Test"));
+			assertTrue("Attribute was not created", Traits.of("Test").hasKey("name"));
+			assertTrue("Attribute was not created", Traits.of("Test").hasKey("description"));
+			assertTrue("Attribute was not created", Traits.of("Test").hasKey("date"));
+			assertEquals("Attribute was not created with correct type", "String", Traits.of("Test").key("name").typeName());
+			assertEquals("Attribute was not created with correct type", "String",Traits.of("Test").key("description").typeName());
+			assertEquals("Attribute was not created with correct type", "Date",Traits.of("Test").key("date").typeName());
+
+			assertEquals("ScriptDataSource was not created", 1, app.nodeQuery(StructrTraits.SCRIPT_DATA_SOURCE).name("my-new-data-source").getAsList().size());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
 	}
 
 	// ----- private methods -----
@@ -789,13 +839,26 @@ public class WidgetsTest extends DeploymentTestBase {
 	}
 
 	private void expandWidget(final Page page, final String targetElement, final String widgetName) throws FrameworkException {
-		expandWidget(page, getDOMNode(page, targetElement), widgetName);
+		expandWidget(page, targetElement, widgetName, Map.of());
+	}
+
+	private void expandWidget(final Page page, final String targetElement, final String widgetName, final Map<String, Object> additionalData) throws FrameworkException {
+		expandWidget(page, getDOMNode(page, targetElement), widgetName, additionalData);
 	}
 
 	private void expandWidget(final Page page, final DOMNode targetElement, final String widgetName) throws FrameworkException {
+		expandWidget(page, targetElement, widgetName, Map.of());
+	}
+
+	private void expandWidget(final Page page, final DOMNode targetElement, final String widgetName, final Map<String, Object> additionalData) throws FrameworkException {
 
 		final Widget widget            = StructrApp.getInstance().nodeQuery(StructrTraits.WIDGET).name(widgetName).getFirst().as(Widget.class);
 		final Map<String, Object> data = prepareData(widget);
+
+		// add additional data to the data map
+		if (additionalData != null) {
+			data.putAll(additionalData);
+		}
 
 		// create temporary parent for Widget to expand in
 		final DOMNode tmpParent = page.createElement("div");
@@ -1016,7 +1079,7 @@ public class WidgetsTest extends DeploymentTestBase {
 		assertAttributes(windowButton2, Map.of("hidden", "true"));
 
 		assertAttributes(windowButton3, Map.of(
-			"data-structr-success-target", "[data-channel~='Project']",
+			"data-structr-success-target", "[data-channel~='project']",
 			"data-structr-events", "click",
 			"data-structr-target", "project.page",
 			"data-project.page", "1",
@@ -1055,7 +1118,7 @@ public class WidgetsTest extends DeploymentTestBase {
 		assertAttributes(windowButton2, Map.of("hidden", "true"));
 
 		assertAttributes(windowButton3, Map.of(
-			"data-structr-success-target", "[data-channel~='Project']",
+			"data-structr-success-target", "[data-channel~='project']",
 			"data-structr-events", "click",
 			"data-structr-target", "project.page",
 			"data-project.page", "1",
@@ -1063,14 +1126,14 @@ public class WidgetsTest extends DeploymentTestBase {
 		));
 
 		assertAttributes(windowButton4, Map.of(
-			"data-structr-success-target", "[data-channel~='Project']",
+			"data-structr-success-target", "[data-channel~='project']",
 			"data-structr-events", "click",
 			"data-structr-target", "project.page",
 			"data-project.page", "2"
 		));
 
 		assertAttributes(windowButton5, Map.of(
-			"data-structr-success-target", "[data-channel~='Project']",
+			"data-structr-success-target", "[data-channel~='project']",
 			"data-structr-events", "click",
 			"data-structr-target", "project.page",
 			"data-project.page", "3"
@@ -1080,14 +1143,14 @@ public class WidgetsTest extends DeploymentTestBase {
 		assertAttributes(highEllipsisButton, Map.of("disabled", "true"));
 
 		assertAttributes(lastPageButton, Map.of(
-			"data-structr-success-target", "[data-channel~='Project']",
+			"data-structr-success-target", "[data-channel~='project']",
 			"data-structr-events", "click",
 			"data-structr-target", "project.page",
 			"data-project.page", "10"
 		));
 
 		assertAttributes(nextButton, Map.of(
-			"data-structr-success-target", "[data-channel~='Project']",
+			"data-structr-success-target", "[data-channel~='project']",
 			"data-structr-events", "click",
 			"data-structr-target", "project.page",
 			"data-project.page", "2"

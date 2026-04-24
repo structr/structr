@@ -159,8 +159,8 @@ public class LowercaseStringProperty extends AbstractPrimitiveProperty<String> {
 
 	// ----- OpenAPI -----
 	@Override
-	public Object getExampleValue(final String type, final String viewName) {
-		return "lowercase string example";
+	public Object getExampleValue(final int index) {
+		return jsonName().toLowerCase() + " #" + index;
 	}
 
 	@Override

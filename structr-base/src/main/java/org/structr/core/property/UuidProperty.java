@@ -54,7 +54,7 @@ public class UuidProperty extends StringProperty {
 
 	// ----- OpenAPI -----
 	@Override
-	public Object getExampleValue(java.lang.String type, final String viewName) {
+	public Object getExampleValue(final int index) {
 		return NodeServiceCommand.getNextUuid();
 	}
 
@@ -64,7 +64,7 @@ public class UuidProperty extends StringProperty {
 		final Map<String, Object> map = new TreeMap<>();
 
 		map.put("type",   "string");
-		map.put("example", getExampleValue(type, viewName));
+		map.put("example", getExampleValue(1));
 
 		if (this.isReadOnly()) {
 			map.put("readOnly", true);
@@ -79,7 +79,7 @@ public class UuidProperty extends StringProperty {
 		final Map<String, Object> map = new TreeMap<>();
 
 		map.put("type",   "string");
-		map.put("example", getExampleValue(type, viewName));
+		map.put("example", getExampleValue(1));
 
 		if (this.isReadOnly()) {
 			map.put("readOnly", true);

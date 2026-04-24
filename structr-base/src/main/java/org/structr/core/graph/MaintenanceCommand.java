@@ -51,6 +51,10 @@ public interface MaintenanceCommand extends Documentable {
 	boolean requiresFlushingOfCaches();
 	Map<String, String> getCustomHeaders();
 
+	default boolean isQuietMode() {
+		return false;
+	}
+
 	@Override
 	default List<ConceptReference> getParentConcepts() {
 
@@ -91,6 +95,10 @@ public interface MaintenanceCommand extends Documentable {
 
 	default void publishWarningMessage (final String title, final String text) {
 
+		if (isQuietMode()) {
+			return;
+		}
+
 		final Map<String, Object> warningMsgData = new HashMap<>();
 		warningMsgData.put(COMMAND_TYPE_KEY,    COMMAND_SUBTYPE_WARNING);
 		warningMsgData.put(COMMAND_TITLE_KEY,   title);
@@ -100,6 +108,10 @@ public interface MaintenanceCommand extends Documentable {
 	}
 
 	default void publishInfoMessage (final String title, final String text) {
+
+		if (isQuietMode()) {
+			return;
+		}
 
 		final Map<String, Object> warningMsgData = new HashMap<>();
 		warningMsgData.put(COMMAND_TYPE_KEY,    COMMAND_SUBTYPE_INFO);
@@ -115,6 +127,10 @@ public interface MaintenanceCommand extends Documentable {
 	}
 
 	default void publishCustomMessage (final String type, final String subType, final String message, final Map<String, Object> additionalInfo) {
+
+		if (isQuietMode()) {
+			return;
+		}
 
 		final Map<String, Object> msgData = new HashMap<>();
 		msgData.put(COMMAND_TYPE_KEY,    type);

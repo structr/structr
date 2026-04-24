@@ -188,7 +188,7 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 
 	// ----- OpenAPI -----
 	@Override
-	public Object getExampleValue(final String type, final String viewName) {
+	public Object getExampleValue(final int index) {
 		return null;
 	}
 

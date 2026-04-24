@@ -416,7 +416,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	String getDescription();
 
 	// ----- OpenAPI -----
-	Object getExampleValue(final String type, final String viewName);
+	Object getExampleValue(final int index);
 	Map<String, Object> describeOpenAPIOutputSchema(final String type, final String viewName);
 	Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level);
 	Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level);

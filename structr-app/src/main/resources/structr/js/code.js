@@ -189,6 +189,19 @@ let _Code = {
 						},
 					},
 					{
+						id:       path + '/datasources',
+						text:     'Data Sources',
+						children: true,
+						icon:     _Icons.nonExistentEmptyIcon,
+						li_attr:  { 'data-id': 'datasources' },
+						data: {
+							svgIcon: _Icons.getSvgIcon(_Icons.iconSchemaPropertyCypher, 18, 24),
+							key:     'datasources',
+							content: 'datasources',
+							path:    path + '/datasources'
+						},
+					},
+					{
 						id:      '/root',
 						text:    'Types',
 						icon:    _Icons.nonExistentEmptyIcon,
@@ -282,6 +295,13 @@ let _Code = {
 						_Code.tree.displayFunction(_Code.availableTags.map(t => { return { id: t, name: t, type: "OpenAPITag" } }), data);
 						break;
 
+					case 'datasources':
+						Command.query('DataSource', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', {}, result => {
+							let sources = result.filter(s => s.type !== 'SchemaNode' && s.type !== 'Folder');
+							_Code.tree.displayFunction(sources, data);
+						}, true, 'ui');
+							break;
+
 					case 'remoteproperties':
 						_Code.tree.loadRemoteProperties(data);
 						break;
@@ -359,6 +379,23 @@ let _Code = {
 
 							break;
 						}
+
+						case 'ScriptDataSource':
+						case 'DataSource':
+							list.push({
+								id:       path + '/' + entity.id,
+								text:     entity.name,
+								children: false,
+								icon:     _Icons.iconSchemaPropertyCypher,
+								li_attr:  { 'data-id': entity.id },
+								data: {
+									svgIcon: _Icons.getSvgIcon(_Icons.iconScriptWrapped, 16, 24),
+									key:     entity.type,
+									id:      entity.id,
+									path:    path + '/' + entity.id
+								},
+							});
+							break;
 
 						case 'SchemaNode': {
 

@@ -18,12 +18,8 @@
  */
 package org.structr.core.entity;
 
-import ch.qos.logback.core.joran.node.ComponentNode;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.datasources.Channel;
 import org.structr.core.graph.NodeInterface;
-import org.structr.web.entity.ComponentConfiguration;
 
 import java.util.Map;
 
@@ -44,5 +40,8 @@ public interface DataAdapterField extends NodeInterface {
 	Map<String, Object> getConfig();
 
 	void setConfig(final Map<String, Object> detailConfig) throws FrameworkException;
+	void setEditTemplate(final String editTemplateName) throws FrameworkException;
+	void setRenderTemplate(final String renderTemplateName) throws FrameworkException;
 
+	void setIsSearchable(boolean b) throws FrameworkException;
 }

@@ -120,9 +120,9 @@
     span.sw-empty { @apply text-xs text-gray-400 text-center block; }
     [data-hidden="true"] { display: none; }
     .sw-sortable { cursor: pointer; }
-    .sw-sortable:hover::after { content: "↑"; position: absolute; }
-    .sw-sortable.ascending::after { content: "↓"; position: absolute; }
-    .sw-sortable.descending::after { content: "↑"; position: absolute; }
+    .sw-sortable:hover::after { content: "\2191"; position: absolute; }
+    .sw-sortable.ascending::after { content: "\2193"; position: absolute; }
+    .sw-sortable.descending::after { content: "\2191"; position: absolute; }
 
     /* margins */
     .sw-main > * + * { @apply mt-8; }

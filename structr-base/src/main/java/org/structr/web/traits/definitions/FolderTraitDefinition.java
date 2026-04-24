@@ -18,6 +18,12 @@
  */
 package org.structr.web.traits.definitions;
 
+import org.apache.commons.collections.comparators.ComparatorChain;
+import org.structr.api.util.Iterables;
+import org.structr.api.util.PagingIterable;
+import org.structr.api.util.ResultStream;
+import org.structr.common.ChannelInput;
+import org.structr.common.PathResolvingComparator;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -25,27 +31,30 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
+import org.structr.core.datasources.SortInfo;
+import org.structr.core.entity.DataSource;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.property.*;
-import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.StructrTraits;
-import org.structr.core.traits.TraitsInstance;
+import org.structr.core.traits.*;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.operations.datasource.DataSourceOperations;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnDeletion;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.files.external.DirectoryWatchService;
+import org.structr.schema.action.ActionContext;
+import org.structr.web.datasource.FieldDefinition;
 import org.structr.web.entity.Folder;
 import org.structr.web.traits.wrappers.FolderTraitWrapper;
 
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -129,7 +138,100 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
-		return Map.of();
+
+		return Map.of(
+
+			DataSourceOperations.class, new DataSourceOperations<NodeInterface>() {
+
+				@Override
+				public ResultStream<NodeInterface> getValues(final ActionContext actionContext, final DataSource provider, final ChannelInput input) throws FrameworkException {
+
+					final Folder               folder          = provider.as(Folder.class);
+					final Traits               traits          = Traits.of(StructrTraits.FILE);
+					final int                  pageSize        = input != null ? input.pageSize() : Integer.MAX_VALUE;
+					final int                  page            = input != null ? input.page() : 1;
+					final boolean              includeHidden   = provider.includeHidden();
+
+					// start with all files
+					Iterable<NodeInterface > result = folder.getProperty(folder.getTraits().key(FolderTraitDefinition.FILES_PROPERTY));
+
+					// filter based on includeHidden flag
+					result = Iterables.filter(f -> includeHidden || !f.isHidden(), result);
+
+					// filter based on channel input
+					if (input != null) {
+
+						result = Iterables.filter(input, result);
+
+						final List<SortInfo> sortKeys = input.sortKeys();
+						if (sortKeys != null) {
+
+							final ComparatorChain comparator         = new ComparatorChain();
+							final DefaultSortOrder  sortOrder        = new DefaultSortOrder();
+
+							for (final SortInfo sortInfo : sortKeys) {
+
+								if (sortInfo.sortKey.contains(".")) {
+
+									comparator.addComparator(new PathResolvingComparator(actionContext, sortInfo.sortKey, sortInfo.descending));
+
+								} else {
+
+									if (traits.hasKey(sortInfo.sortKey)) {
+
+										final PropertyKey sortKey = traits.key(sortInfo.sortKey);
+										if (sortKey != null) {
+
+											sortOrder.addElement(sortKey, sortInfo.descending);
+										}
+									}
+								}
+							}
+
+							if (!sortOrder.isEmpty()) {
+								comparator.addComparator(sortOrder);
+							}
+
+							if (comparator.size() > 0) {
+
+								// sort
+								final List<NodeInterface> filteredResult = Iterables.toList(result);
+
+								filteredResult.sort(comparator);
+
+								result = filteredResult;
+							}
+
+						}
+					}
+
+					return new PagingIterable<>("Folder contents of " + folder.getUuid(), result, pageSize, page);
+				}
+
+				@Override
+				public Map<String, FieldDefinition> getFields(final ActionContext actionContext, final DataSource provider) throws FrameworkException {
+
+					final Map<String, FieldDefinition> output = new LinkedHashMap<>();
+					final Traits traits                       = Traits.of(StructrTraits.FILE);
+
+					// transform input
+					for (final PropertyKey key : traits.getPropertyKeysForView(PropertyView.All)) {
+
+						// hide some internal properties
+						if (!SchemaNodeTraitDefinition.PROPERTY_KEY_BLACKLIST_FOR_COMPONENTS.contains(key.jsonName())) {
+							output.put(key.jsonName(), key.getFieldDefinition());
+						}
+					}
+
+					return output;
+				}
+
+				@Override
+				public String getDataType(final ActionContext actionContext, final DataSource provider) throws FrameworkException {
+					return StructrTraits.FILE;
+				}
+			}
+		);
 	}
 
 	@Override

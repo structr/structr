@@ -178,7 +178,7 @@ public class ZonedDateTimeProperty extends AbstractPrimitiveProperty<ZonedDateTi
 
 	// Open API
 	@Override
-	public Object getExampleValue(String type, String viewName) {
+	public Object getExampleValue(final int index) {
 		return ZonedDateTime.now();
 	}
 

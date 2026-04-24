@@ -166,7 +166,7 @@ public class UiModule implements StructrModule {
 		StructrTraits.registerNodeType(StructrTraits.DOM_ELEMENT,                         StructrTraits.DOM_NODE, StructrTraits.DOM_ELEMENT);
 		StructrTraits.registerNodeType(StructrTraits.FILE,                                StructrTraits.ABSTRACT_FILE, StructrTraits.LINKABLE, StructrTraits.FILE);
 		StructrTraits.registerNodeType(StructrTraits.IMAGE,                               StructrTraits.ABSTRACT_FILE, StructrTraits.LINKABLE, StructrTraits.FILE, StructrTraits.IMAGE);
-		StructrTraits.registerNodeType(StructrTraits.FOLDER,                              StructrTraits.ABSTRACT_FILE, StructrTraits.FOLDER);
+		StructrTraits.registerNodeType(StructrTraits.FOLDER,                              StructrTraits.DATA_SOURCE, StructrTraits.ABSTRACT_FILE, StructrTraits.FOLDER);
 		StructrTraits.registerNodeType(StructrTraits.LINKABLE,                            StructrTraits.LINKABLE);
 		StructrTraits.registerNodeType(StructrTraits.LINK_SOURCE,                         StructrTraits.LINK_SOURCE);
 		StructrTraits.registerNodeType(StructrTraits.PAGE,                                StructrTraits.DOM_NODE, StructrTraits.LINKABLE, StructrTraits.PAGE);

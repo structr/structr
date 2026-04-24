@@ -76,11 +76,11 @@ public class RenderEachFunction extends UiCommunityFunction {
 
 			if (component != null) {
 
-				final ComponentConfiguration config = component.getComponentConfiguration();
-				final DataAdapter dataAdapter = config.getDataAdapter();
+				final ComponentConfiguration config      = component.getComponentConfiguration();
+				final DataAdapter dataAdapter            = config.getDataAdapter();
 				final Channel<GraphObject> sourceChannel = config.getDataSource();
-				final String dataKey = dataAdapter.getDataKey();
-				final GraphObject previousValue = renderContext.getDataNode(dataKey);
+				final String dataKey                     = dataAdapter.getDataKey();
+				final GraphObject previousValue          = renderContext.getDataNode(dataKey);
 
 				if (sourceChannel != null) {
 
@@ -99,9 +99,9 @@ public class RenderEachFunction extends UiCommunityFunction {
 
 						if (outerWrapper != null) {
 
-							final Map<String, String> data = new LinkedHashMap<>();
+							final Map<String, String> data  = new LinkedHashMap<>();
 							final Set<String> additionalCss = new LinkedHashSet<>();
-							final String uuid = item.getUuid();
+							final String uuid               = item.getUuid();
 
 							if ("controller".equals(role)) {
 
@@ -131,12 +131,12 @@ public class RenderEachFunction extends UiCommunityFunction {
 									data.put("data-structr-target", selectionChannel);
 									data.put("data-" + selectionChannel, uuid);
 
-									additionalCss.add("controller");
+									additionalCss.add("sw-controller");
 
 									final String selectedId = renderContext.getChannelValue(selectionChannel);
 									if (selectedId != null && uuid != null && uuid.equals(selectedId)) {
 
-										additionalCss.add("selected");
+										additionalCss.add("sw-selected");
 									}
 
 									if (StringUtils.isNotEmpty(resets)) {
@@ -246,7 +246,7 @@ public class RenderEachFunction extends UiCommunityFunction {
 						final Channel sourceChannel = config.getDataSource();
 						if (sourceChannel != null) {
 
-							final String source = sourceChannel.getName();
+							final String source = sourceChannel.getChannelName();
 							final String target = selectionChannel;
 
 							dependencies.computeIfAbsent(source, key -> new LinkedHashSet<>()).add(target);

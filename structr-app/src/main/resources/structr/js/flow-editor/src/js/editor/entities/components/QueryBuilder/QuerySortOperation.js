@@ -87,7 +87,7 @@ export class QuerySortOperation {
 
 			const structrRest = new StructrRest(this.flowEditor.options.basePath);
 			await structrRest.get("_schema/" + queryType).then((res) => {
-				const properties = res.result[0].views.all;
+				const properties = res.result.views.all;
 
 				let entries = Object.entries(properties).sort();
 

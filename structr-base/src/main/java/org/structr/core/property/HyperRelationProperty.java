@@ -95,7 +95,7 @@ public class HyperRelationProperty<S extends NodeInterface, T extends NodeInterf
 
 	// ----- OpenAPI -----
 	@Override
-	public Object getExampleValue(java.lang.String type, final String viewName) {
+	public Object getExampleValue(final int index) {
 		return null;
 	}
 

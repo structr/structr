@@ -77,7 +77,7 @@ public class DOMNodeSortedChildrenProperty extends AbstractReadOnlyCollectionPro
 	}
 
 	@Override
-	public Object getExampleValue(String type, String viewName) {
+	public Object getExampleValue(final int index) {
 		return null;
 	}
 

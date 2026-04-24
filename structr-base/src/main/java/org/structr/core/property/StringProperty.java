@@ -18,6 +18,7 @@
  */
 package org.structr.core.property;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.SortType;
@@ -137,8 +138,8 @@ public class StringProperty extends AbstractPrimitiveProperty<String> {
 
 	// ----- OpenAPI -----
 	@Override
-	public Object getExampleValue(final String type, final String viewName) {
-		return "Example value";
+	public Object getExampleValue(final int index) {
+		return StringUtils.capitalize(jsonName() + " #" + (index + 1));
 	}
 
 	@Override

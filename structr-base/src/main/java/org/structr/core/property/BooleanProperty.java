@@ -135,8 +135,8 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 
 	// ----- OpenAPI -----
 	@Override
-	public Object getExampleValue(final String type, final String viewName) {
-		return true;
+	public Object getExampleValue(final int index) {
+		return index % 2 == 0;
 	}
 
 	@Override

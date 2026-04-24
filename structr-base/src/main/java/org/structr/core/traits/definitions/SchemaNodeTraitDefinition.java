@@ -29,9 +29,13 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
+import org.structr.core.api.JavaMethod;
 import org.structr.core.app.Query;
 import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
+import org.structr.core.datasources.ExampleData;
 import org.structr.core.datasources.SortInfo;
 import org.structr.core.entity.DataSource;
 import org.structr.core.entity.Relation;
@@ -53,13 +57,13 @@ import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.operations.nodeinterface.OnNodeDeletion;
 import org.structr.core.traits.wrappers.SchemaNodeTraitWrapper;
 import org.structr.schema.ReloadSchema;
-import org.structr.web.common.RenderContext;
+import org.structr.schema.action.ActionContext;
 import org.structr.web.datasource.DataField;
 import org.structr.web.datasource.FieldDefinition;
-import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
-import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  *
@@ -67,7 +71,7 @@ import java.util.*;
  */
 public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
-	private static final Set<String> PROPERTY_KEY_BLACKLIST_FOR_COMPONENTS = Set.of(
+	public static final Set<String> PROPERTY_KEY_BLACKLIST_FOR_COMPONENTS = Set.of(
 		NodeInterfaceTraitDefinition.GRANTEES_PROPERTY,
 		NodeInterfaceTraitDefinition.HIDDEN_PROPERTY,
 		NodeInterfaceTraitDefinition.OWNER_ID_PROPERTY
@@ -172,15 +176,23 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 			DataSourceOperations.class, new DataSourceOperations<NodeInterface>() {
 
 				@Override
-				public ResultStream<NodeInterface> getValues(final RenderContext renderContext, final DataSource provider, final ChannelInput input) throws FrameworkException {
+				public ResultStream<NodeInterface> getValues(final ActionContext actionContext, final DataSource provider, final ChannelInput input) throws FrameworkException {
 
-					final SecurityContext securityContext = renderContext.getSecurityContext();
+					final SecurityContext securityContext = actionContext.getSecurityContext();
 					final SchemaNode schemaNode           = provider.as(SchemaNode.class);
 					final String name                     = schemaNode.getName();
 					final Traits traits                   = Traits.of(name);
 					final int pageSize                    = input != null ? input.pageSize() : Integer.MAX_VALUE;
 					final int page                        = input != null ? input.page() : 1;
 					final Query<NodeInterface> query      = StructrApp.getInstance(securityContext).nodeQuery(name);
+
+					// do not return hidden nodes by default
+					//if (provider.includeHidden()) {
+						//query.includeHidden(true);
+					//}
+
+					// broken?
+					query.includeHidden(provider.includeHidden());
 
 					if (input != null) {
 
@@ -192,7 +204,7 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 								if (sortInfo.sortKey.contains(".")) {
 
 									// this is the place where path-based sort keys are resolved in this data source
-									query.comparator((Comparator) new PathResolvingComparator(renderContext, sortInfo.sortKey, sortInfo.descending));
+									query.comparator((Comparator) new PathResolvingComparator(actionContext, sortInfo.sortKey, sortInfo.descending));
 
 								} else {
 
@@ -206,6 +218,11 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 									}
 								}
 							}
+
+						} else {
+
+							// sort by name by default
+							query.sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), false);
 						}
 
 						// use contains query over the searchable fields
@@ -231,13 +248,18 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 						// apply pagination etc.
 						query.pageSize(pageSize).page(page);
+
+					} else {
+
+						// sort by name by default
+						query.sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), false);
 					}
 
 					return query.getResultStream();
 				}
 
 				@Override
-				public Map<String, FieldDefinition> getFields(final RenderContext renderContext, final DataSource provider) throws FrameworkException {
+				public Map<String, FieldDefinition> getFields(final ActionContext actionContext, final DataSource provider) throws FrameworkException {
 
 					final Map<String, FieldDefinition> output = new LinkedHashMap<>();
 					final SchemaNode schemaNode               = provider.as(SchemaNode.class);
@@ -257,8 +279,58 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 
 				@Override
-				public String getDataType(final RenderContext renderContext, final DataSource provider) throws FrameworkException {
+				public String getDataType(final ActionContext actionContext, final DataSource provider) throws FrameworkException {
 					return provider.as(SchemaNode.class).getTypeName();
+				}
+			}
+		);
+	}
+
+	@Override
+	public Set<AbstractMethod> getDynamicMethods() {
+
+		return newSet(
+			new JavaMethod("checkValidity", false, true) {
+
+				@Override
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
+					final String name = (String) arguments.get(0);
+					if (name != null) {
+
+						final Pattern pattern = Pattern.compile(SchemaNode.schemaNodeNamePattern);
+						final Matcher matcher = pattern.matcher(name);
+
+						if (matcher.matches()) {
+
+							if (StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_NODE).name(name).getFirst() != null) {
+								return "Type '" + name + "' already exists.";
+							}
+
+						} else {
+
+							return "Type name must begin with an uppercase letter and may only contain letters, numbers and underscores.";
+						}
+					}
+
+					return null;
+				}
+			},
+			new JavaMethod("getExampleData", false, true) {
+
+				@Override
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
+					final String typeOfExampleData = (String) arguments.get("typeOfExampleData");
+					final String resultFormat      = (String) arguments.get("resultFormat");
+					final String inputValue        = (String) arguments.get("inputValue");
+
+					if (StringUtils.isNotBlank(typeOfExampleData) && StringUtils.isNotBlank(inputValue) && StringUtils.isNotBlank(resultFormat)) {
+
+						return ExampleData.get(typeOfExampleData, resultFormat, inputValue);
+					}
+
+					return null;
 				}
 			}
 		);

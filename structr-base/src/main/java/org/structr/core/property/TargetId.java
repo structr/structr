@@ -137,7 +137,7 @@ public class TargetId extends Property<String> {
 
 	// ----- OpenAPI -----
 	@Override
-	public Object getExampleValue(final String type, final String viewName) {
+	public Object getExampleValue(final int index) {
 		return null;
 	}
 

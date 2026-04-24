@@ -64,34 +64,19 @@ test('pages', async ({page}) => {
 
     await login(page);
 
-    // Dashboard
-    await page.locator('#dashboard_').waitFor({state: 'visible'});
-    await page.locator('#dashboard_').click();
-    await page.getByRole('link', { name: 'Deployment' }).click();
-    await page.waitForTimeout(200);
-
-    await page.locator('label[for="deploy-action-import"]').click();
-    await page.locator('label[for="deploy-type-data"]').click();
-    await page.locator('label[for="deploy-target-zip"]').click();
-    await page.waitForTimeout(200);
-
-    await page.locator('#data-deployment-url-input').fill('http://localhost:8082/structr/widgets.zip');
-    await page.waitForTimeout(200);
-
-    await page.locator('#do-data-import-from-zip').click();
-    await page.waitForTimeout(200);
-
-    await page.getByRole('button', { name: 'Yes' }).click();
-
-    await page.getByRole('button', { name: 'Reload Page' }).isVisible();
-    await page.waitForTimeout(200);
-    await page.getByRole('button', { name: 'Reload Page' }).click();
-
-    // Pages
+    // import widgets
     await page.locator('#pages_').waitFor({state: 'visible'});
     await page.locator('#pages_').click();
 
     await resizePagesTree(page, -200);
+
+    await page.locator('#create_page').click();
+    await page.locator('#import-widget-set').click();
+
+    await page.waitForTimeout(1000);
+
+    // close create page dialog again
+    await page.getByRole('button', { name: 'Close' }).click();
 
     await createAndRenamePage(page, 4, 'projects');
 
@@ -104,9 +89,19 @@ test('pages', async ({page}) => {
 
     await useContextMenu(page, mainContent, 'Suggested Widgets', 'Components', 'Table');
 
-    await page.screenshot({path: 'screenshots/widgets_insert-table-dialog.png'});
+    // make screenshot when widget form is visible
+    await page.locator('#widget-form').isVisible();
 
-    await page.locator('#dataSource').selectOption('All Project nodes');
+    {
+        let widgetForm = page.locator('#widget-form');
+
+        await widgetForm.getByText('No Data Source⏷').click();
+        await widgetForm.getByText('Use Existing Data Source').hover();
+        await widgetForm.getByText('Custom Types').hover();
+        await widgetForm.getByText('All Project Nodes').click();
+    }
+
+    await page.screenshot({path: 'screenshots/widgets_insert-table-dialog.png'});
 
     await page.getByRole('button', { name: 'Append Widget' }).click();
 
@@ -146,7 +141,16 @@ test('pages', async ({page}) => {
 
     // insert edit form
     await useContextMenu(page, mainContent, 'Suggested Widgets', 'Components', 'Edit Form');
-    await page.locator('select#dataSource').selectOption('The "current" object');
+
+    {
+        let widgetForm = page.locator('#widget-form');
+
+        await widgetForm.getByText('No Data Source⏷').click();
+        await widgetForm.getByText('Use Existing Data Source').hover();
+        await widgetForm.getByText('Channels').hover();
+        await widgetForm.getByText('current', {exact: true}).click();
+    }
+
     await page.getByRole('button', { name: 'Append Widget' }).click();
 
     let editForm = pageContainer.getElement('Edit Form');

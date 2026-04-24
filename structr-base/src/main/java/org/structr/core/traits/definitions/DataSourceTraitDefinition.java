@@ -20,7 +20,6 @@ package org.structr.core.traits.definitions;
 
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
-import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
 import org.structr.common.ChannelInput;
 import org.structr.common.error.FrameworkException;
@@ -30,8 +29,10 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.DataAdapter;
 import org.structr.core.entity.DataSource;
 import org.structr.core.entity.Relation;
+import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.datasource.DataSourceOperations;
 import org.structr.core.traits.operations.graphobject.Evaluate;
@@ -43,11 +44,12 @@ import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.event.ActionMapping;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public class DataSourceTraitDefinition extends AbstractNodeTraitDefinition {
+
+	public static final String INCLUDE_HIDDEN_PROPERTY = "includeHidden";
 
 	public DataSourceTraitDefinition() {
 		super(StructrTraits.DATA_SOURCE);
@@ -62,18 +64,18 @@ public class DataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 			new DataSourceOperations<AbstractNode>() {
 
 				@Override
-				public ResultStream<AbstractNode> getValues(RenderContext renderContext, DataSource provider, ChannelInput input) throws FrameworkException {
-					return new PagingIterable<>("empty", List.of());
+				public ResultStream<AbstractNode> getValues(ActionContext actionContext, DataSource provider, ChannelInput input) throws FrameworkException {
+					throw new UnsupportedOperationException("No implementation for getValues().");
 				}
 
 				@Override
-				public Map<String, FieldDefinition> getFields(RenderContext renderContext, DataSource provider) throws FrameworkException {
-					return Map.of();
+				public Map<String, FieldDefinition> getFields(ActionContext actionContext, DataSource provider) throws FrameworkException {
+					throw new UnsupportedOperationException("No implementation for getFields().");
 				}
 
 				@Override
-				public String getDataType(RenderContext renderContext, DataSource provider) throws FrameworkException {
-					return null;
+				public String getDataType(ActionContext actionContext, DataSource provider) throws FrameworkException {
+					throw new UnsupportedOperationException("No implementation for getDataType().");
 				}
 			},
 
@@ -83,23 +85,25 @@ public class DataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public Object evaluate(final AbstractNode node, final ActionContext actionContext, final String key, final String defaultValue, final GraphObject contextObject, final int row, final int column) throws FrameworkException {
 
-					final RenderContext renderContext = (RenderContext) actionContext;
-					final DataSource dataSource       = node.as(DataSource.class);
+					if (actionContext instanceof RenderContext renderContext) {
 
-					switch (key) {
+						final DataSource dataSource = node.as(DataSource.class);
 
-						case "values":
-							// FIXME: we need to get the channel input object in here somehow..
-							return dataSource.getResult(renderContext, null);
+						switch (key) {
 
-						case "dataType":
-							return dataSource.getDataType(renderContext);
+							case "values":
+								// FIXME: we need to get the channel input object in here somehow..
+								return dataSource.getResult(renderContext, null);
 
-						case "selectedValue":
-							throw new RuntimeException("selectedValue requested, dont know how to handle it yet.");
+							case "dataType":
+								return dataSource.getDataType(renderContext);
 
-						case "currentValue":
-							return getCurrentValue(renderContext, contextObject);
+							case "selectedValue":
+								throw new RuntimeException("selectedValue requested, dont know how to handle it yet.");
+
+							case "currentValue":
+								return getCurrentValue(renderContext, contextObject);
+						}
 					}
 
 					return getSuper().evaluate(node, actionContext, key, defaultValue, contextObject, row, column);
@@ -117,10 +121,20 @@ public class DataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
+
+		final Property<Boolean> includeHiddenProperty = new BooleanProperty(INCLUDE_HIDDEN_PROPERTY);
+
+		return newSet(
+			includeHiddenProperty
+		);
+	}
+
+	@Override
 	public Map<String, Set<String>> getViews() {
 
 		return Map.of(
-			"dataSource", newSet(GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY)
+			"dataSource", newSet(GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY, INCLUDE_HIDDEN_PROPERTY)
 		);
 	}
 

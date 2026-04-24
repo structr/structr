@@ -115,7 +115,7 @@ public abstract class AbstractReadOnlyProperty<T> extends Property<T> {
 			}
 
 			map.put("type", simpleName);
-			map.put("example", getExampleValue(type, viewName));
+			map.put("example", getExampleValue(1));
 
 			if (this.isReadOnly()) {
 				map.put("readOnly", true);
@@ -134,7 +134,7 @@ public abstract class AbstractReadOnlyProperty<T> extends Property<T> {
 		if (valueType != null) {
 
 			map.put("type", valueType.getSimpleName().toLowerCase());
-			map.put("example", getExampleValue(type, viewName));
+			map.put("example", getExampleValue(1));
 
 			if (this.isReadOnly()) {
 				map.put("readOnly", true);

@@ -34,62 +34,36 @@ let _Widgets = {
 
 		let elements = [];
 
-		if (entity.isLocalWidget === true) {
+		elements.push({
+			icon: _Icons.getMenuSvgIcon(_Icons.iconPencilEdit),
+			name: 'Edit',
+			clickHandler: () => {
 
-			elements.push({
-				icon: _Icons.getMenuSvgIcon(_Icons.iconPencilEdit),
-				name: 'Edit',
-				clickHandler: () => {
-
-					Command.get(entity.id, 'id,type,name,source,configuration,description', (entity) => {
-						_Widgets.editWidget(entity, true);
-					});
-				}
-			});
-
-		} else {
-
-			elements.push({
-				icon: _Icons.getMenuSvgIcon(_Icons.iconEyeOpen),
-				name: 'View',
-				clickHandler: () => {
-					_Widgets.editWidget(entity, false);
-				}
-			});
-		}
+				Command.get(entity.id, 'id,type,name,source,configuration,description', (entity) => {
+					_Widgets.editWidget(entity, true);
+				});
+			}
+		});
 
 		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
-		if (entity.isLocalWidget === true) {
+		elements.push({
+			name: 'Advanced',
+			clickHandler: () => {
+				_Entities.showProperties(entity, 'ui');
+			}
+		});
 
-			elements.push({
-				name: 'Advanced',
-				clickHandler: () => {
-					_Entities.showProperties(entity, 'ui');
-				}
-			});
+		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
-			_Elements.contextMenu.appendContextMenuSeparator(elements);
-
-			elements.push({
-				icon: _Icons.getMenuSvgIcon(_Icons.iconTrashcan),
-				classes: ['menu-bolder', 'danger'],
-				name: 'Delete Widget',
-				clickHandler: () => {
-					_Entities.deleteNode(entity);
-				}
-			});
-
-		} else {
-
-			elements.push({
-				icon: _Icons.getMenuSvgIcon(_Icons.iconClone),
-				name: 'Copy to Local Widgets',
-				clickHandler: () => {
-					_Widgets.copyRemoteWidgetToLocalWidget(entity);
-				}
-			});
-		}
+		elements.push({
+			icon: _Icons.getMenuSvgIcon(_Icons.iconTrashcan),
+			classes: ['menu-bolder', 'danger'],
+			name: 'Delete Widget',
+			clickHandler: () => {
+				_Entities.deleteNode(entity);
+			}
+		});
 
 		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
@@ -131,42 +105,36 @@ let _Widgets = {
 				var sourceId = Structr.getId($(ui.draggable));
 				var sourceWidget = StructrModel.obj(sourceId);
 
-				if (sourceWidget && sourceWidget.isWidget) {
+				// Drop widget from local DOM element
 
-					// drop widget from remote widgets
+				fetch(`${Structr.viewRootUrl}${sourceId}?${Structr.getRequestParameterName('edit')}=1`).then(async response => {
 
-					if (sourceWidget.treePath) {
+					if (response.ok) {
 
-						_Widgets.copyRemoteWidgetToLocalWidget(sourceWidget, (entity) => {
+						let text = await response.text();
+
+						Command.createLocalWidget(sourceId, `New Widget (${sourceId})`, text, (entity) => {
 							_Elements.dropBlocked = false;
 						});
 					}
-
-				} else if (sourceId) {
-
-					// Drop widget from local DOM element
-
-					fetch(`${Structr.viewRootUrl}${sourceId}?${Structr.getRequestParameterName('edit')}=1`).then(async response => {
-
-						if (response.ok) {
-
-							let text = await response.text();
-
-							Command.createLocalWidget(sourceId, `New Widget (${sourceId})`, text, (entity) => {
-								_Elements.dropBlocked = false;
-							});
-						}
-					});
-				}
+				});
 			}
 		});
 
 		_Pager.initPager('local-widgets', 'Widget', 1, 1000, 'treePath,name', 'asc');
 		let _wPager = _Pager.addPager('local-widgets', _Widgets.localWidgetsEl[0], true, 'Widget', 'public', (entities) => {
-
-			for (let entity of entities) {
-				StructrModel.create(entity, null, false);
-				_Widgets.appendWidgetElement(entity, false, _Widgets.localWidgetsEl);
+			if (entities.length === 0) {
+				let container = document.createElement('div');
+				container.classList.add('flex', 'items-center', 'justify-center', 'h-full', 'text-gray-999', 'mt-8');
+				_Widgets.localWidgetsEl.append(container);
+				_Widgets.createImportWidgetsButton(container, 'Import Widget Set', () => {
+					_Widgets.reloadWidgets();
+				});
+			} else {
+				for (let entity of entities) {
+					StructrModel.create(entity, null, false);
+					_Widgets.appendWidgetElement(entity, false, _Widgets.localWidgetsEl);
+				}
 			}
 		}, undefined, undefined, true);
 
@@ -174,37 +142,34 @@ let _Widgets = {
 		_wPager.activateFilterElements();
 		_wPager.setIsPaused(false);
 		_wPager.refresh();
-
-		_Widgets.remoteWidgetsEl = $('#remoteWidgets', _Pages.widgetsSlideout);
-
-		_Widgets.remoteWidgetFilterEl = $('#remoteWidgetsFilter');
-		_Widgets.remoteWidgetFilterEl.keyup(function (e) {
-			if (e.keyCode === 27) {
-				$(this).val('');
-			}
-
-			_Widgets.repaintRemoteWidgets();
-		});
-
-		document.querySelector('.edit-widget-servers').addEventListener('click', _Widgets.showWidgetServersDialog);
-
-		_Widgets.updateWidgetServerSelector(() => {
-			_Widgets.refreshRemoteWidgets();
-		});
 	},
-	copyRemoteWidgetToLocalWidget: (sourceWidget, callback) => {
+	createImportWidgetsButton: (container, title, callback) => {
+		let importTile = _Helpers.createSingleDOMElementFromHTML(
+			`<div id="import-widget-set" class="page-tile bg-gray-f8"><div class="h-full flex flex-column items-center" title="${title}">
+							<div class="text-gray-555">
+								<div class="text-center mt-4">${_Icons.getSvgIcon(_Icons.iconAdd, 24, 24, '', title)}</div>
+								<div class="text-center mt-4 px-4">Click here to import the default widget set from structr.com.</div>
+							</div>
+						</div></div>`
+		);
+		container.append(importTile);
 
-		let copiedRemoteWidget = {
-			type: 'Widget',
-			name: `${sourceWidget.name} (copied)`,
-			source: sourceWidget.source,
-			description: sourceWidget.description,
-			configuration: sourceWidget.configuration,
-			svgIconPath: sourceWidget.svgIconPath,
-			// treePath: sourceWidget.treePath
-		};
-
-		Command.create(copiedRemoteWidget, callback);
+		let importWidgetsButton = container.querySelector('#import-widget-set');
+		importWidgetsButton.addEventListener('click', () => {
+			let formData = new FormData();
+			formData.append('downloadUrl', 'https://gitlab.structr.com/structr/widgets/-/archive/0.0.3/widgets-0.0.3.zip');
+			formData.append('mode', 'app'); // mode "app" implies "quiet mode", i.e. no notifications
+			fetch(`${Structr.deployRoot}`, {
+				method: 'POST',
+				body: formData
+			}).then(response => {
+				if (response.ok) {
+					if (callback && typeof callback === 'function') {
+						callback();
+					}
+				}
+			})
+		});
 	},
 	getWidgetServerUrl: () => {
 
@@ -223,177 +188,6 @@ let _Widgets = {
 			// else return unmodified URL
 			return url;
 		}
-	},
-	getConfiguredWidgetServers: (callback) => {
-
-		Command.getApplicationConfigurationDataNodes(_Widgets.applicationConfigurationDataNodeKey, null, (appConfigDataNodes) => {
-
-			appConfigDataNodes.push({id: '', name: 'default', content: _Widgets.defaultWidgetServerUrl, editable: false});
-
-			callback(appConfigDataNodes);
-		});
-	},
-	showWidgetServersDialog: () => {
-
-		let { dialogText } = _Dialogs.custom.openDialog('Widget Servers');
-
-		dialogText.insertAdjacentHTML('beforeend', _Widgets.templates.serversDialog());
-
-		_Helpers.activateCommentsInElement(dialogText, { helpElementCss: { 'font-size': '13px'} });
-
-		_Widgets.updateWidgetServersTable(dialogText);
-
-		dialogText.querySelector('button#save-widget-server').addEventListener('click', () => {
-			let name = document.querySelector('#new-widget-server-name').value;
-			let url  = document.querySelector('#new-widget-server-url').value;
-
-			Command.createApplicationConfigurationDataNode(_Widgets.applicationConfigurationDataNodeKey, name, url, () => {
-				_Widgets.updateWidgetServersTable(dialogText);
-				_Widgets.updateWidgetServerSelector();
-			});
-		});
-	},
-	updateWidgetServersTable: (dialogText) => {
-
-		_Widgets.getConfiguredWidgetServers((appConfigDataNodes) => {
-
-			let html      = _Widgets.templates.serversTable({ servers: appConfigDataNodes });
-			let container = dialogText.querySelector('#widget-servers-container');
-
-			_Helpers.fastRemoveAllChildren(container);
-			container.innerHTML = html;
-
-			for (let deleteIcon of container.querySelectorAll('.delete')) {
-
-				deleteIcon.addEventListener('click', async (e) => {
-
-					let el      = e.target;
-					let acdnID  = el.closest('div').dataset.acdnId;
-					let confirm = await _Dialogs.confirmation.showPromise('Really delete Widget Server URL?');
-
-					if (confirm === true) {
-
-						Command.deleteNode(acdnID, false, () => {
-
-							let currentServer = LSWrapper.getItem(_Widgets.widgetServerKey);
-							let needsRefresh = (_Widgets.widgetServerSelector.value === currentServer);
-							if (needsRefresh) {
-								LSWrapper.removeItem(_Widgets.widgetServerKey);
-							}
-
-							_Widgets.updateWidgetServerSelector(() => {
-								if (needsRefresh) {
-									_Widgets.refreshRemoteWidgets();
-								}
-							});
-
-							_Widgets.showWidgetServersDialog();
-						});
-					}
-				});
-			}
-
-			for (let input of container.querySelectorAll('input')) {
-
-				input.addEventListener('change', (e) => {
-					let el     = e.target;
-					let acdnID = el.closest('div').dataset.acdnId;
-					let key    = el.dataset.key;
-
-					Command.setProperty(acdnID, key, el.value, false, () => {
-
-						_Helpers.blinkGreen($(el));
-
-						_Widgets.updateWidgetServerSelector();
-					});
-				});
-			}
-		});
-	},
-	updateWidgetServerSelector: (callback) => {
-
-		_Widgets.getConfiguredWidgetServers((appConfigDataNodes) => {
-
-			let templateConfig = {
-				servers: appConfigDataNodes,
-				selectedServerURL: LSWrapper.getItem(_Widgets.widgetServerKey, _Widgets.defaultWidgetServerUrl)
-			};
-
-			let newElement = _Helpers.createSingleDOMElementFromHTML(_Widgets.templates.serversSelector(templateConfig));
-
-			if (_Widgets.widgetServerSelector && _Widgets.widgetServerSelector?.parentNode) {
-
-				_Widgets.widgetServerSelector.replaceWith(newElement);
-
-			} else {
-
-				let selectorContainer = document.querySelector('#widget-server-selector-container');
-				selectorContainer.prepend(newElement);
-			}
-
-			_Widgets.widgetServerSelector = document.querySelector('#widget-server-selector');
-			_Widgets.widgetServerSelector.addEventListener('change', _Widgets.refreshRemoteWidgets);
-
-			if (typeof callback === 'function') {
-				callback();
-			}
-		});
-	},
-	refreshRemoteWidgets: () => {
-
-		let url = _Widgets.getWidgetServerUrl();
-
-		LSWrapper.setItem(_Widgets.widgetServerKey, url);
-
-		if (!url.startsWith(document.location.origin)) {
-
-			_Widgets.remoteWidgetsEl.empty();
-			_Widgets.remoteWidgetData = [];
-
-			_Widgets.fetchRemoteWidgets(url + '?_sort=treePath&_sort=name', url + '?sort=treePath&sort=name').then(function(data) {
-
-				for (let entity of data) {
-					let obj = StructrModel.create(entity, null, false);
-					obj.srcUrl = url + '/' + entity.id;
-					_Widgets.remoteWidgetData.push(obj);
-				}
-
-				_Widgets.repaintRemoteWidgets();
-
-			}).catch((e) => {
-				_Widgets.remoteWidgetFilterEl.hide();
-				_Widgets.remoteWidgetsEl.empty();
-				_Widgets.remoteWidgetsEl.html('Could not fetch widget data from server (' + url + '). Make sure that the resource loads correctly and check CORS settings.<br>Also check your adblocker settings for possible conflicts.');
-			});
-
-		} else {
-			new WarningMessage().text('Can not display local widgets as remote widgets. Please select another widget server!').show();
-		}
-	},
-	repaintRemoteWidgets: () => {
-
-		_Widgets.remoteWidgetFilterEl.show();
-		let search = _Widgets.remoteWidgetFilterEl.val();
-		_Widgets.remoteWidgetsEl.empty();
-
-		if (search && search.length > 0) {
-
-			search = search.toLowerCase();
-
-			for (let obj of _Widgets.remoteWidgetData) {
-				if (obj.name.toLowerCase().indexOf(search) !== -1) {
-					_Widgets.appendWidgetElement(obj, true, _Widgets.remoteWidgetsEl);
-				}
-			}
-
-		} else {
-
-			for (let obj of _Widgets.remoteWidgetData) {
-				_Widgets.appendWidgetElement(obj, true, _Widgets.remoteWidgetsEl);
-			}
-		}
-
-		Structr.resize();
 	},
 	getTreeParent: (element, treePath, suffix) => {
 
@@ -464,8 +258,6 @@ let _Widgets = {
 				});
 			});
 		}
-
-		widget.isLocalWidget = (remote === false);
 
 		_Elements.contextMenu.enableContextMenuOnElement(div[0], widget);
 
@@ -747,6 +539,7 @@ let _Widgets = {
                     `);
 
         let form = $('div', $(dialogText));
+		let formElement = document.querySelector('#widget-form');
 
         let getOptionsAsText = (options, defaultValue) => {
 
@@ -759,6 +552,16 @@ let _Widgets = {
                 return Object.keys(options).map(option => `<option ${((option === defaultValue) ? 'selected' : '')} value="${option}">${options[option]}</option>`).join('');
             }
         };
+
+		let updateButtonState = () => {
+			if (formElement.checkValidity()) {
+				appendWidgetButton.classList.remove('disabled');
+				appendWidgetButton.disabled = false;
+			} else {
+				appendWidgetButton.disabled = true;
+				appendWidgetButton.classList.add('disabled');
+			}
+		};
 
         let sortedWidgetConfig = _Widgets.sortWidgetConfigurationByPosition(widgetConfig);
 
@@ -778,11 +581,113 @@ let _Widgets = {
 
             switch (fieldType) {
 
-                case 'datasource': {
+                case 'datasource':
+                    form.append(await _Widgets.templates.dataSourcesInput({ cleanedLabel, titleLabel, label, defaultValue, titleComment: 'Select the data source for this component.' }));
+					form.append(
+						`<div id="new-schema-node-name-input" class="hidden">
+							<h4>New Type</h4>
+							<input required class="form-field validated" type="text" name="${cleanedLabel}Name" data-key="${cleanedLabel}Name" placeholder="Enter a name for the new type.."/>
+							<label class="block mx-2 mt-4"><input type="checkbox" class="form-field" name="${cleanedLabel}CreateExampleData" data-key="${cleanedLabel}CreateExampleData">Create example data</label>
+						</div>`
+					);
+					form.append(
+						`<div id="new-data-source-name-input" class="hidden">
+							<h4>New Data Source</h4>
+							<input required class="form-field validated" type="text" name="${cleanedLabel}Name" data-key="${cleanedLabel}Name" placeholder="Enter a name for the new data source.."/>
+						</div>`
+					);
+					form.append(
+						`<div id="new-schema-node-attributes" class="hidden">
+							<h4>Attributes</h4>
+							<div id="schema-node-attribute-container" class="w-full">
+								<button type="button" class="w-full bg-gray-f8 flex items-center justify-center" id="add-schema-node-attribute-button">
+									<svg class="mr-2" width="12" height="12">
+										<use href="#circle_plus"></use>
+									</svg>Add attribute
+								</button>
+							</div>
+						</div>`
+					);
+                    let input           = document.querySelector(`#${cleanedLabel}`);
+					let sourceNameDiv   = document.querySelector('#new-data-source-name-input');
+					let schemaNameDiv   = document.querySelector('#new-schema-node-name-input');
+					let attributesDiv   = document.querySelector('#new-schema-node-attributes');
+					let sourceNameInput = sourceNameDiv.querySelector('input');
+					let schemaNameInput = schemaNameDiv.querySelector('input');
+					input.dispatchEvent(new CustomEvent('change', {}));
+					input.addEventListener('change', async (e) => {
+						sourceNameDiv.classList.add('hidden');
+						schemaNameDiv.classList.add('hidden');
+						sourceNameInput.classList.remove('form-field')
+						schemaNameInput.classList.remove('form-field')
+						sourceNameInput.type = 'hidden'; // hidden fields are not validated
+						schemaNameInput.type = 'hidden';
+						delete widgetConfig.dataSourceName;
+						let value = e?.target?.value;
+						if (value === 'create:schema') {
+							schemaNameInput.classList.add('form-field')
+							schemaNameInput.type = 'text';
+							schemaNameDiv.classList.remove('hidden');
+							attributesDiv.classList.remove('hidden');
+							widgetConfig.dataSourceName = 'input';
+							widgetConfig.dataSourceCreateExampleData = 'input';
+						} else if (value === 'create:datasource') {
+							sourceNameInput.classList.add('form-field')
+							sourceNameInput.type = 'text';
+							sourceNameDiv.classList.remove('hidden');
+							attributesDiv.classList.add('hidden');
+							widgetConfig.dataSourceName = 'input';
+						}
+					});
+					schemaNameInput.addEventListener('keyup', _Helpers.debounce(async (e) => {
+						let result = await fetch(`${Structr.rootUrl}SchemaNode/checkValidity`, {
+							method: 'POST',
+							body: JSON.stringify({
+								name: encodeURI(e.target.value)
+							})
+						});
+						let data = await result.json();
+						if (data?.result?.length) {
+							e.target.setCustomValidity(data.result);
+						} else {
+							e.target.setCustomValidity('');
+						}
+						updateButtonState();
 
-                        form.append(await _Widgets.templates.dataSourcesSelector({ cleanedLabel, titleLabel, label, defaultValue, titleComment: 'Select the data source for this component.' }));
-                        document.querySelector(`#${cleanedLabel}`).dispatchEvent(new CustomEvent('change', {}));
-                    }
+					}, 300));
+					document.querySelector('#add-schema-node-attribute-button').addEventListener('click', async () => {
+						let attributeContainer = document.querySelector('#schema-node-attribute-container');
+						let index = attributeContainer.children.length - 1;
+						let nameAttributeName = cleanedLabel + 'Attribute' + index;
+						let typeAttributeName = cleanedLabel + 'Type' + index;
+						let attributeDiv = document.createElement('div');
+						let exampleValues = await _Widgets.templates.getExampleValuesForType('attribute-names', 'name-type-list', schemaNameInput.value);
+						attributeDiv.classList.add('mt-1', 'grid', 'grid-cols-7', 'gap-4');
+						attributeDiv.innerHTML = `
+							<input required class="form-field col-span-3 validated" type="text" name="${nameAttributeName}" data-key="${nameAttributeName}" placeholder="Enter name.." value="${exampleValues?.[index]?.name || ''}"/>
+							<select required class="form-field col-span-3" type="text" name="${typeAttributeName}" data-key="${typeAttributeName}">
+								<option ${exampleValues?.[index]?.type === 'boolean' ? 'selected' : ''}>Boolean</option>
+								<option ${exampleValues?.[index]?.type === 'date' ? 'selected' : ''}>Date</option>
+								<option ${exampleValues?.[index]?.type === 'float' ? 'selected' : ''}>Float</option>
+								<option ${exampleValues?.[index]?.type === 'integer' ? 'selected' : ''}>Integer</option>
+								<option ${(exampleValues?.[index]?.type === 'string' || !exampleValues?.[index]) ? 'selected' : ''}>String</option>
+							</select>
+							<div class="flex items-center justify-end text-red"><svg width="16" height="16"><title>Remove attribute</title><use href="#trashcan"></use></svg></div>
+							`;
+						attributeContainer.appendChild(attributeDiv);
+						widgetConfig[nameAttributeName] = 'input';
+						widgetConfig[typeAttributeName] = 'input';
+						updateButtonState();
+						let removeButton = attributeDiv.querySelector('svg');
+						removeButton.addEventListener('click', () => {
+							attributeDiv.remove();
+							delete widgetConfig[nameAttributeName];
+							delete widgetConfig[typeAttributeName];
+							updateButtonState();
+						});
+						attributeDiv.querySelector('input').addEventListener('keyup', _Helpers.debounce(updateButtonState, 300));
+						attributeDiv.querySelector('select').addEventListener('change', updateButtonState);
+					});
                     break;
 
                 case 'fields':
@@ -901,20 +806,9 @@ let _Widgets = {
         appendWidgetButton.disabled = true;
         appendWidgetButton.classList.add('disabled');
 
-        let formElement = document.querySelector('#widget-form');
-
-        let updateButtonState = () => {
-            if (formElement.checkValidity()) {
-                appendWidgetButton.classList.remove('disabled');
-                appendWidgetButton.disabled = false;
-            } else {
-                appendWidgetButton.disabled = true;
-                appendWidgetButton.classList.add('disabled');
-            }
-        };
-
         for (let e of formElement.elements) {
-            e.addEventListener('change', updateButtonState);
+			e.addEventListener('change', updateButtonState);
+            e.addEventListener('input', _Helpers.debounce(updateButtonState, 500));
         }
 
         appendWidgetButton.addEventListener('click', (e) => {
@@ -952,20 +846,6 @@ let _Widgets = {
 
 		return entries;
 	},
-	fetchRemotePageTemplateWidgets: async () => {
-
-		let url = _Widgets.getWidgetServerUrl() || _Widgets.defaultWidgetServerUrl;
-
-		LSWrapper.setItem(_Widgets.widgetServerKey, url);
-
-		if (!url.startsWith(document.location.origin)) {
-
-			let widgets = await _Widgets.fetchRemoteWidgets(`${url}/pages?isPageTemplate=true&_sort=name`, url + '/pages?isPageTemplate=true&sort=name');
-			return widgets;
-		}
-
-		return [];
-	},
 	fetchLocalPageTemplateWidgets: async () => {
 
 		try {
@@ -981,38 +861,7 @@ let _Widgets = {
 		return [];
 	},
 	fetchAllPageTemplateWidgets: async () => {
-
-		let widgets = [];
-
-		let remotePageWidgets = await _Widgets.fetchRemotePageTemplateWidgets();
-		let localPageWidgets  = await _Widgets.fetchLocalPageTemplateWidgets();
-
-		return widgets.concat(remotePageWidgets).concat(localPageWidgets);
-	},
-	fetchRemoteWidgets: async (url, fallbackUrl) => {
-
-		try {
-			// stick with legacy sort parameter for widget instance - if a newer widget instance is used, retry with _sort
-			let response = await fetch(url);
-
-			if (response && response.ok) {
-
-				let json = await response.json();
-				return json.result;
-
-			} else {
-
-				let response = await fetch(fallbackUrl);
-				if (response && response.ok) {
-
-					let json = await response.json();
-					return json.result;
-				}
-			}
-
-		} catch (e) {}
-
-		return [];
+		return await _Widgets.fetchLocalPageTemplateWidgets();
 	},
 
     sortables: {
@@ -1025,16 +874,22 @@ let _Widgets = {
                 const handle = document.createElement('span');
                 handle.textContent = '⠿';
                 handle.style.cssText = 'cursor: grab; flex-grow: 0; margin-top: 2px; margin-left: 1rem;';
-                child.querySelector('summary').appendChild(handle);
+                let summary = child.querySelector('summary');
+				summary.appendChild(handle);
                 handle.setAttribute('draggable', 'true');
                 handle.addEventListener('dragstart', (e) => {
                     dragged = child;
-                    const rect = child.getBoundingClientRect();
-                    e.dataTransfer.setDragImage(child, rect.width - 10, rect.height / 2);
-                    setTimeout(() => child.style.opacity = '0.8', 0);
+                    const rect = summary.getBoundingClientRect();
+					summary.style.backgroundColor = 'var(--very-light-structr-green-2)';
+					summary.style.borderRadius = '.25rem';
+					summary.style.border = '1px solid #ddd';
+					summary.style.opacity = '0.4';
+                    e.dataTransfer.setDragImage(summary, rect.width - 10, rect.height / 2);
                 });
                 handle.addEventListener('dragend', () => {
-                    child.style.opacity = '';
+					summary.style.backgroundColor = 'transparent';
+					summary.style.border = 'none';
+                    summary.style.opacity = '';
                     dragged = null;
                     indicator.remove();
                 });
@@ -1075,40 +930,11 @@ let _Widgets = {
 
 	templates: {
 		slideout: config => `
-			${_Icons.getSvgIcon(_Icons.iconAdd, 20, 20, _Icons.getSvgIconClassesNonColorIcon(['add_widgets_icon'], 'Create Widget'))}
-
-			<div class="inner">
-
-				<div class="tab-group${config.localCollapsed ? ' collapsed' : ''}" data-key="${_Widgets.localWidgetsCollapsedKey}">
-					<a href="javascript:void(0);" class="tab-group-toggle">
-						<h3 class="flex items-center">
-							<i title="Expand Elements" class="expanded expand_icon_svg ${_Icons.expandedClass}"></i>
-							<i title="Collapse Elements" class="collapsed expand_icon_svg ${_Icons.collapsedClass}"></i> Local Widgets
-						</h3>
-					</a>
-
-					<div class="tab-group-content">
-						<div id="widgets"></div>
-					</div>
-				</div>
-
-				<div class="tab-group${config.remoteCollapsed ? ' collapsed' : ''}" data-key="${_Widgets.remoteWidgetsCollapsedKey}">
-					<a href="javascript:void(0);" class="tab-group-toggle">
-						<h3 class="flex items-center">
-							<i title="Expand Elements" class="expanded expand_icon_svg ${_Icons.expandedClass}"></i>
-							<i title="Collapse Elements" class="collapsed expand_icon_svg ${_Icons.collapsedClass}"></i> Remote Widgets
-						</h3>
-					</a>
-
-					<div class="tab-group-content">
-						<div class="flex items-center mb-4" id="widget-server-selector-container">
-							${_Icons.getSvgIcon(_Icons.iconListWithCog, 20, 20, _Icons.getSvgIconClassesNonColorIcon(['edit-widget-servers', 'ml-1', 'mr-8'], 'Edit Widget Servers'))}
-
-							<input placeholder="Filter..." size="10" id="remoteWidgetsFilter">
-						</div>
-
-						<div id="remoteWidgets"></div>
-					</div>
+			<div class="flex">
+				${_Icons.getSvgIcon(_Icons.iconAdd, 20, 20, _Icons.getSvgIconClassesNonColorIcon(['add_widgets_icon']), 'Create New Widget')}
+			</div>
+			<div class="inner mt-8">
+				<div id="widgets"></div>
 				</div>
 			</div>
 		`,
@@ -1273,23 +1099,174 @@ let _Widgets = {
 				}).join('')}
 			</div>
 		`,
-		dataSourcesSelector: async config => {
+		dataSourcesInput: async config => {
 			let cleanedLabel = config.cleanedLabel;
 			let titleLabel   = config.titleLabel;
 			let titleComment = config.titleComment;
-			let defaultValue = config.defaultValue;
 			let label        = config.label;
-			let values       = await _Widgets.templates.getAvailableDataSources();
 			return `
-				<div>
+				<div class="relative">
 					<h4 id="label-${cleanedLabel}" data-comment="${titleComment}">${titleLabel}</h4>
-					<select required data-info="select-source" id="${cleanedLabel}" class="form-field" data-key="${label}">
-						${_Widgets.templates.getOptionsAsText(values, defaultValue)}
-						<option value="channel:current">The "current" object</option>
-						<option value="create-new-data-source">+ New data source..</option>
-					</select>
+					${await _Widgets.templates.dataSourcesSelector(cleanedLabel, label, '', 'rounded', 'widgets')}
 				</div>
 			`;
+		},
+		dataSourcesSelector: async (id, key, selectedValue, css, attributeSet) => {
+			let tmp = {};
+			let items = []
+
+			items.push({
+				name: 'No Data Source',
+				value: '',
+				reset: true
+			});
+			items.push({ isSeparator: true });
+			items.push(
+			{
+				name: 'Use Existing Data Source',
+				children: [
+					{ name: 'User-defined Data Sources', children: await _Widgets.templates.getUserDefinedSourcesForMenu() },
+					{ isSeparator: true },
+					{ name: 'Custom Types', children: await _Widgets.templates.getCustomTypesForMenu() },
+					{ name: 'System Types', children: await _Widgets.templates.getSystemTypesForMenu() },
+					{ isSeparator: true },
+					{ name: 'Folders', children: await _Widgets.templates.getFoldersForMenu({ parent: null }, { name: 'All root folders', icon: '#database-icon', value: 'root-folders' }) },
+					{ isSeparator: true },
+					{ name: 'Channels', children: await _Widgets.templates.getChannelsForMenu() },
+				]
+			});
+
+			// only allow creation of new data sources in widgets dialog
+			if (attributeSet === 'widgets') {
+				items.push(
+					{
+						name: 'Create New Data Source',
+						icon: '#circle_plus',
+						children: [
+							{ name: 'Create New Custom Type', value: 'create:schema', icon: '#database-add' },
+							{ name: 'Create New Data Source', value: 'create:datasource', icon: '#database-add' }
+						]
+					});
+			}
+
+			let menu = _Widgets.templates.createMenu(items, 'w-full', id, selectedValue, tmp);
+
+			// we need to set different data attributes for the Insert widget dialog and the General tab!
+			let widgetDialogAttributes = { 'id': id, 'data-info': 'select-source', 'data-key': key };
+			let generalTabAttributes = { 'id': id, 'name': key, 'data-which': 'config' };
+			let desiredAttributes = attributeSet === 'widgets' ? widgetDialogAttributes : generalTabAttributes;
+
+			return `
+				<div class="data-source-menu w-full" tabindex="0">
+					<input type="text" class="form-field hidden" required ${Object.keys(desiredAttributes).map(k => `${k}="${desiredAttributes[k]}"`).join(' ')} />
+					<div tabindex="0" class="flex items-center justify-between px-3 py-1 border-gray-input border ${css}"><span class="block truncate" id="${id}-output">${tmp.selectedValue ? tmp.selectedValue : 'Select Data Source'}</span><span class="font-bold text-xl">⏷</span></div>
+					${menu}
+				</div>
+			`;
+		},
+		// this function is used in the onclick handler of the data source selector!
+		setDataSourceValue: (inputId, name, value) => {
+			let input = document.querySelector(`#${inputId}`);
+			if (input) {
+				input.value = value;
+				input.dispatchEvent(new CustomEvent('change'));
+				document.activeElement.blur();
+				document.querySelector(`#${inputId}-output`).innerHTML = name;
+			}
+		},
+		createMenu: (items, css = '', inputId, selectedValue, tmp) => `
+			<ul class="${css} border-gray-input border bg-white border-box">
+				${items.map(item => {
+					if (!item?.children?.length && !item.value && !item.reset && !item.isSeparator && !item.isInputField) { return ''; }
+					if (item.isInputField) {
+						return `
+						<li tabindex="0" class="m-0 p-0">
+							<input autofocus placeholder="Enter name of new type.."  class="m-0 px-2 py-1" style="width: 200px;" type="text" name=""/>
+						</li>
+						`;
+					} else if (item.isSeparator) {
+						return '<hr>';
+					} else {
+						let onclick = '';
+						if (item?.value || item?.reset) {
+							onclick = `onclick="_Widgets.templates.setDataSourceValue('${inputId}', '${item.name}', '${item.value}')"`;
+						}
+						if (item?.value === selectedValue) {
+							tmp.selectedValue = item.name;
+						}
+						return `
+						<li tabindex="0">
+							<div ${onclick} class="w-full px-2 ${item?.children?.length ? '' : 'py-1'} flex items-center justify-between">
+								<div class="flex items-center justify-between">${item.icon ? `<svg class="mr-2" width="12" height="12"><use href="${item.icon}"></use></svg>` : ''}<span>${item.name}</span></div>
+								${item?.children?.length ? '<span class="caret">&#x23f5;</span>' : ''}
+							</div>
+							${item?.children?.length ? _Widgets.templates.createMenu(item.children, '', inputId, selectedValue, tmp) : ''}
+						</li>`;
+					}
+				}
+				).join('')}
+			</ul>
+		`,
+		getUserDefinedSourcesForMenu: async () => {
+			let values = [];
+			let sources = await _Widgets.templates.getFetchResult('DataSource', t => t.type !== 'SchemaNode' && t.type !== 'Folder');
+			for (let value of sources) {
+				values.push({ name: `${value.name}`, icon: '#database-icon', value: `node:${value.id}` });
+			}
+			return values;
+		},
+		getCustomTypesForMenu: async () => {
+			let sources = await _Widgets.templates.getFetchResult('_schema', t => !t.isBuiltin && !t.isRel);
+			let values = [];
+			for (let value of sources) {
+				values.push(await _Widgets.templates.getCustomTypeOptions(value.className, value.className, value.className + " nodes"));
+			}
+			return values;
+		},
+		getCustomTypeOptions: async (type, id, plural) => {
+			return { name: `All ${plural}`, icon: '#database-icon', value: `node:${type}` };
+		},
+		getSystemTypesForMenu: async () => {
+			return [
+				await _Widgets.templates.getSystemTypeOptions('File', 'Files'),
+				await _Widgets.templates.getSystemTypeOptions('Folder', 'Folders'),
+				await _Widgets.templates.getSystemTypeOptions('Group', 'Groups'),
+				await _Widgets.templates.getSystemTypeOptions('Image', 'Images'),
+				await _Widgets.templates.getSystemTypeOptions('Page', 'Pages'),
+				await _Widgets.templates.getSystemTypeOptions('User', 'Users'),
+			];
+		},
+		getSystemTypeOptions: async (type, plural) => {
+			return { name: `All ${plural}`, icon: '#database-icon', value: `node:${type}` };
+		},
+		getFoldersForMenu: async (properties, firstItem) => {
+			let sources = await Command.queryPromise('Folder', 1000, 1, 'name', 'asc', properties);
+			let values = [];
+			if (firstItem) { values.push(firstItem); }
+			if (sources.length) {
+				if (firstItem) { values.push({ isSeparator: true }); }
+				for (let value of sources) {
+					values.push({
+						name: value.name,
+						children: await _Widgets.templates.getFoldersForMenu({parent: value.id}, {
+							name: `All files in ${value.name}`,
+							icon: '#database-icon',
+							value: `node:${value.id}`
+						})
+					});
+				}
+			}
+			return values;
+		},
+		getChannelsForMenu: async () => {
+			let channels = await Command.queryPromise('ComponentConfiguration', 1000, 1, 'name', 'asc', {});
+			let values = [ { name: 'current', value: 'channel:current'} ];
+			for (let channel of channels) {
+				if (channel.role === 'controller' && channel.selectionChannel && channel.selectionChannel !== 'current') {
+					values.push({ name: `${channel.selectionChannel}`, value: `channel:${channel.selectionChannel}` });
+				}
+			}
+			return values;
 		},
 		getAvailableDataSources: async config => {
 			let sources = await Command.queryPromise('DataSource', 1000, 1, 'name', 'asc', {});
@@ -1317,6 +1294,20 @@ let _Widgets = {
 			}
 			return Object.fromEntries(Object.entries(values).sort(([a], [b]) => a.localeCompare(b)));
 		},
+		getFetchResult: async (url, filter) => {
+			let response = await fetch(`${Structr.rootUrl}${url}`);
+			if (response.ok) {
+				let result = await response.json();
+				if (result && result.result) {
+					if (filter && typeof filter === 'function') {
+						return result.result.filter(filter);
+					} else {
+						return result.result;
+					}
+				}
+			}
+			return [];
+		},
 		getOptionsAsText: (options, defaultValue) => {
 
 			if (Object.prototype.toString.call(options) === '[object Array]') {
@@ -1327,6 +1318,14 @@ let _Widgets = {
 
 				return Object.keys(options).map(option => `<option ${((option === defaultValue) ? 'selected' : '')} value="${option}">${options[option]}</option>`).join('');
 			}
+		},
+		getExampleValuesForType: async (typeOfExampleData, resultFormat, inputValue) => {
+			let request = await fetch(`${Structr.rootUrl}SchemaNode/getExampleData`, {
+				method: 'POST',
+				body: JSON.stringify({ typeOfExampleData, resultFormat, inputValue })
+			});
+			let result = await request.json();
+			return result.result;
 		}
 	}
 };

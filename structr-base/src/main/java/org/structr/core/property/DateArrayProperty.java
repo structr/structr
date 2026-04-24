@@ -243,7 +243,7 @@ public class DateArrayProperty extends ArrayProperty<Date> {
 
 	// ----- OpenAPI -----
 	@Override
-	public Object getExampleValue(final String type, final String viewName) {
+	public Object getExampleValue(final int index) {
 		return List.of(new SimpleDateFormat(this.format).format(System.currentTimeMillis()));
 	}
 

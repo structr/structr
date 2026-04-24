@@ -18,7 +18,8 @@
  */
 package org.structr.web.function;
 
-import org.apache.tika.utils.StringUtils;
+import com.google.gson.GsonBuilder;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -76,7 +77,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 			final String role = domNode.getRoleForComponent();
 			if ("subscriber".equals(role)) {
 
-				final String channelName = sourceChannel.getName();
+				final String channelName = sourceChannel.getChannelName();
 
 				selectedValue = innerCtx.getChannelValue(channelName);
 				if (selectedValue != null) {
@@ -197,9 +198,11 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 								final DOMNode templateNode = getTemplate(app, slot, useEditTemplate ? editTemplate : template);
 								if (templateNode != null) {
 
+
+
 									final DataAdapter previousDataAdapter = innerCtx.getCurrentAdapter();
-									final Channel previousDataSource = innerCtx.getCurrentDataSource();
-									final String previousReloadBehaviour = innerCtx.getCurrentReloadBehaviour();
+									final Channel previousDataSource      = innerCtx.getCurrentDataSource();
+									final String previousReloadBehaviour  = innerCtx.getCurrentReloadBehaviour();
 
 									// we need to make the current data source available to the inner template
 									innerCtx.setCurrentAdapter(dataAdapter);
@@ -292,7 +295,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 						final Set<String> classes = new LinkedHashSet<>();
 						if (sortInfo != null && !dataField.isCollection()) {
 
-							classes.add("sortable");
+							classes.add("sw-sortable");
 
 							data.put("data-" + sortKey, sortInfo.toString());
 
@@ -349,7 +352,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 		// instantiate as superuser
 		final SecurityContext superAdminContext = SecurityContext.getSuperUserInstance();
 		final Traits widgetTraits               = Traits.of(StructrTraits.WIDGET);
-		final NodeInterface widgetNode              = StructrApp.getInstance(superAdminContext).nodeQuery(StructrTraits.WIDGET)
+		final NodeInterface widgetNode          = StructrApp.getInstance(superAdminContext).nodeQuery(StructrTraits.WIDGET)
 			.key(widgetTraits.key(WidgetTraitDefinition.IS_RENDER_TEMPLATE_PROPERTY), true)
 			.key(widgetTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), templateName)
 			.getFirst();

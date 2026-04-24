@@ -123,8 +123,8 @@ public class TypeProperty extends StringProperty {
 
 	// ----- OpenAPI -----
 	@Override
-	public Object getExampleValue(final String type, final String viewName) {
-		return type;
+	public Object getExampleValue(final int index) {
+		return "Type";
 	}
 
 	@Override
@@ -133,7 +133,7 @@ public class TypeProperty extends StringProperty {
 		final Map<String, Object> map = new TreeMap<>();
 
 		map.put("type",   "string");
-		map.put("example", getExampleValue(type, viewName));
+		map.put("example", getExampleValue(1));
 
 		if (this.isReadOnly()) {
 			map.put("readOnly", true);
@@ -149,7 +149,7 @@ public class TypeProperty extends StringProperty {
 		final Map<String, Object> map = new TreeMap<>();
 
 		map.put("type",   "string");
-		map.put("example", getExampleValue(type, viewName));
+		map.put("example", getExampleValue(1));
 
 		if (this.isReadOnly()) {
 			map.put("readOnly", true);

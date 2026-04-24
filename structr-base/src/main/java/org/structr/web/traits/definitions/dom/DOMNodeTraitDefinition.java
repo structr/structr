@@ -820,11 +820,11 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 						if ("input".equals(displayMode)) {
 
-							field.setProperty(fieldTraits.key(DataAdapterFieldTraitDefinition.EDIT_TEMPLATE_PROPERTY), templateName);
+							field.setEditTemplate(templateName);
 
 						} else {
 
-							field.setProperty(fieldTraits.key(DataAdapterFieldTraitDefinition.RENDER_TEMPLATE_PROPERTY), templateName);
+							field.setRenderTemplate(templateName);
 						}
 					}
 
@@ -832,11 +832,11 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 						if ("input".equals(displayMode)) {
 
-							field.setProperty(fieldTraits.key(DataAdapterFieldTraitDefinition.EDIT_TEMPLATE_PROPERTY), null);
+							field.setEditTemplate(null);
 
 						} else {
 
-							field.setProperty(fieldTraits.key(DataAdapterFieldTraitDefinition.RENDER_TEMPLATE_PROPERTY), null);
+							field.setRenderTemplate(null);
 						}
 					}
 
@@ -923,7 +923,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 						if (value > 0 && (resultCount == -1 || value <= pageCount)) {
 
-							attributes.put("data-structr-success-target", "[data-channel~='" + channel.getName() + "']");
+							attributes.put("data-structr-success-target", "[data-channel~='" + channel.getChannelName() + "']");
 							attributes.put("data-structr-events", "click");
 							attributes.put("data-structr-target", paginationKey);
 							attributes.put("data-" + paginationKey, value);
@@ -999,7 +999,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					final String filterKey                = channel.getFilterKey();
 					final String filterString             = renderContext.getRequestParameter(filterKey);
 
-					attributes.put("data-structr-success-target", "[data-channel~='" + channel.getName() + "']");
+					attributes.put("data-structr-success-target", "[data-channel~='" + channel.getChannelName() + "']");
 					attributes.put("data-structr-events", "keyup");
 					attributes.put("data-structr-target", filterKey);
 					attributes.put("data-structr-options", "{ &quot;delay&quot;: 500, &quot;resetWithEsc&quot;: true, &quot;resetPagination&quot;: &quot;" + paginationKey + "&quot; }");
