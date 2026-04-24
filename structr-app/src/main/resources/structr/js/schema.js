@@ -5401,8 +5401,9 @@ let _Schema = {
 				let principalTypeNames = (await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.isBuiltin && type.traits.includes('Principal'))).map(type => type.name).sort();
 				let htmlTypeNames      = (await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.isBuiltin && type.traits.includes('DOMNode'))).map(type => type.name).sort();
 				let flowTypeNames      = (await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.isBuiltin && type.traits.includes('FlowBaseNode'))).map(type => type.name).sort();
+				let processTypeNames   = (await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.isBuiltin && (type.name.startsWith('Bpmn') || type.name.startsWith('Process') || type.name.startsWith('Task')))).map(type => type.name).sort();
 				let schemaTypeNames    = (await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.isBuiltin && type.traits.includes('SchemaReloadingNode'))).map(type => type.name).sort();
-				let otherTypeNames     = [...new Set((await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.isBuiltin && !type.isServiceClass)).map(type => type.name)).difference(new Set([...customTypeNames, ...principalTypeNames, ...htmlTypeNames, ...fileTypeNames, ...flowTypeNames, ...schemaTypeNames]))].sort();
+				let otherTypeNames     = [...new Set((await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.isBuiltin && !type.isServiceClass)).map(type => type.name)).difference(new Set([...customTypeNames, ...principalTypeNames, ...htmlTypeNames, ...fileTypeNames, ...flowTypeNames, ...processTypeNames, ...schemaTypeNames]))].sort();
 
 				let visibilityTables = [
 					{ caption: "Custom Types",     types: customTypeNames    },
@@ -5410,6 +5411,7 @@ let _Schema = {
 					{ caption: "File Types",       types: fileTypeNames      },
 					{ caption: "HTML Types",       types: htmlTypeNames      },
 					{ caption: "Flow Types",       types: flowTypeNames      },
+					{ caption: "Process Types",    types: processTypeNames   },
 					{ caption: "Schema Types",     types: schemaTypeNames    },
 					{ caption: "Other Types",      types: otherTypeNames     }
 				];
