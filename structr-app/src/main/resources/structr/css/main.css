@@ -1387,7 +1387,9 @@ body[style*=zoom] .non-block-ui-blocker-content {
 	height: calc(45vh);
 }
 
-#dialogBox.file-edit-dialog.popup-dialog-with-editor {
+#dialogBox.file-edit-dialog.popup-dialog-with-editor,
+#dialogBox.schema-edit-dialog:has(div#tabs),
+#dialogBox.schema-edit-dialog:has(div.code-tabs){
 	height: calc(60vh);
 }
 #dialogBox.file-edit-dialog.popup-dialog-with-editor .dialogText {

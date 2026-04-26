@@ -1445,7 +1445,7 @@ let _Schema = {
 		},
 		showCreateRelationshipDialog: (sourceId, targetId, connection) => {
 
-			let { dialogText } = _Dialogs.custom.openDialog("Create Relationship", ['schema-edit-dialog']);
+			let { dialogText } = _Dialogs.custom.openDialog("Create Relationship", null, ['schema-edit-dialog']);
 
 			dialogText.insertAdjacentHTML('beforeend', _Schema.templates.relationshipBasicTab());
 
