@@ -4045,7 +4045,7 @@ let _Schema = {
 
 						<div class="more-method-settings-container hidden absolute" style="z-index: 1; top: calc(100% - 1rem); right: 0; ">
 							<div class="bg-white border border-gray-ddd flex flex-shrink flex-wrap px-4 py-2 rounded-sm">
-								${_Schema.methods.templates.methodFlags(Object.assign({ cols: 1 }, config))}
+								${_Schema.methods.templates.methodFlags(Object.assign({ cssClasses: 'flex flex-col' }, config))}
 							</div>
 						</div>
 
@@ -4060,7 +4060,7 @@ let _Schema = {
 				</div>
 			`,
 			methodFlags: config => `
-				<div class="grid grid grid-cols-${config.cols ?? 2} gap-x-2">
+				<div class="${(config.cssClasses ?? '')}">
 
 					<div>
 						<div class="method-config-element entity-method py-1">

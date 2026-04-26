@@ -3015,7 +3015,7 @@ let _Code = {
 			<div id="method-buttons">
 				<div id="method-options" class="flex flex-wrap gap-x-4">
 					<div id="method-actions"></div>
-					${_Schema.methods.templates.methodFlags(config)}
+					${_Schema.methods.templates.methodFlags(Object.assign({ cssClasses: 'flex gap-x-2' }, config))}
 				</div>
 			</div>
 			<div id="method-code-container" class="code-tabs level-two flex flex-col flex-grow">
