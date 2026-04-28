@@ -278,11 +278,14 @@ let _Dialogs = {
 						<div class="mb-4">
 							${text}
 						</div>
+						<div data-button-container class="flex items-center gap-4 justify-center">
+						</div>
 					</div>
 				`;
 
 				let messageDiv            = _Dialogs.basic.append(multipleChoiceMessage);
 				let confirmationContainer = messageDiv.querySelector('.confirmationText');
+				let buttonContainer       = messageDiv.querySelector('[data-button-container]');
 
 				let answerFunction = (e, response) => {
 					e.stopPropagation();
@@ -299,7 +302,7 @@ let _Dialogs = {
 
 				if (allowSaveDecision === true) {
 
-					let button = _Helpers.createSingleDOMElementFromHTML(`
+					let saveDecisionCheckbox = _Helpers.createSingleDOMElementFromHTML(`
 						<div class="pb-4">
 							<label class="flex items-center justify-center">
 								<input type="checkbox" id="save-decision">
@@ -308,18 +311,18 @@ let _Dialogs = {
 						</div>
 					`);
 
-					confirmationContainer.appendChild(button);
+					confirmationContainer.appendChild(saveDecisionCheckbox);
 				}
 
 				for (let choice of choices) {
 
 					let button = _Helpers.createSingleDOMElementFromHTML(`
-						<button class="inline-flex items-center hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+						<button class="inline-flex items-center gap-2 hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green mr-0">
 							${choice.buttonText}
 						</button>
 					`);
 
-					confirmationContainer.appendChild(button);
+					buttonContainer.appendChild(button);
 
 					if (defaultOption === choice.result) {
 						button.focus();
@@ -336,6 +339,21 @@ let _Dialogs = {
 					}
 				});
 			});
+		},
+	},
+	deleteOrRemoveFromCollection: {
+		REMOVE_FROM_COLLECTION : 1,
+		DELETE_OBJECT          : 2,
+		CANCEL                 : 3,
+		ask: async () => {
+
+			let options = [
+				{ buttonText: 'Remove from Collection', result: _Dialogs.deleteOrRemoveFromCollection.REMOVE_FROM_COLLECTION },
+				{ buttonText: _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red']), ' Delete') + ' Delete Object',          result: _Dialogs.deleteOrRemoveFromCollection.DELETE_OBJECT },
+				{ buttonText: 'Cancel',                 result: _Dialogs.deleteOrRemoveFromCollection.CANCEL }
+			];
+
+			return _Dialogs.multipleChoiceQuestion.askPromise('Do you want to <span class="font-bold">remove</span> the object from the collection or <span class="font-bold">delete</span> it?', options, _Dialogs.deleteOrRemoveFromCollection.CANCEL, _Dialogs.deleteOrRemoveFromCollection.CANCEL);
 		},
 	},
 	getArbitraryInputFromUser: {
