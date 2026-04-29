@@ -223,6 +223,37 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	}
 
 	/**
+	 * Test if the given object array has no null values.
+	 *
+	 * @param array
+	 * @throws ArgumentNullException in case of a null parameter
+	 */
+	protected void assertArrayHasNoNullValues(final Object[] array) throws ArgumentCountException {
+
+		for (final Object element : array) {
+
+			if (element == null) {
+				throw new ArgumentNullException();
+			}
+		}
+	}
+
+	/**
+	 * Test if the given object array has a length in a minimum and maximum range.
+	 *
+	 * @param array
+	 * @param minLength
+	 * @param maxLength
+	 * @throws ArgumentCountException in case of wrong number of parameters
+	 */
+	protected void assertArrayHasMinLengthAndMaxLength(final Object[] array, final Integer minLength, final Integer maxLength) throws ArgumentCountException {
+
+		if (array.length < minLength || array.length > maxLength) {
+			throw ArgumentCountException.notBetween(array.length, minLength, maxLength);
+		}
+	}
+
+	/**
 	 * Test if the given object array has a minimum length and all its elements are not null.
 	 *
 	 * @param array
@@ -235,12 +266,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 			throw ArgumentCountException.tooFew(array.length, minLength);
 		}
 
-		for (final Object element : array) {
-
-			if (element == null) {
-				throw new ArgumentNullException();
-			}
-		}
+		assertArrayHasNoNullValues(array);
 	}
 
 	/**
@@ -254,16 +280,9 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	 */
 	protected void assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(final Object[] array, final Integer minLength, final Integer maxLength) throws ArgumentCountException, ArgumentNullException {
 
-		if (array.length < minLength || array.length > maxLength) {
-			throw ArgumentCountException.notBetween(array.length, minLength, maxLength);
-		}
+		assertArrayHasMinLengthAndMaxLength(array, minLength, maxLength);
 
-		for (final Object element : array) {
-
-			if (element == null) {
-				throw new ArgumentNullException();
-			}
-		}
+		assertArrayHasNoNullValues(array);
 	}
 
 	/**
