@@ -64,6 +64,20 @@ public class TraitsInstance {
 		return globalTypeMap.get(name);
 	}
 
+	/**
+	 * Drop the cached dynamic-method map on every registered type. Called when
+	 * a SchemaMethod is created / modified / deleted so subsequent method
+	 * lookups rebuild the cache and pick up the new source. Without this, edits
+	 * to a method's source don't propagate -- stale code keeps running.
+	 */
+	public void clearAllDynamicMethodCaches() {
+		for (final Traits traits : globalTypeMap.values()) {
+			if (traits instanceof TraitsImplementation impl) {
+				impl.clearDynamicMethodCache();
+			}
+		}
+	}
+
 	// ----- public methods -----
 	public void registerTrait(final Trait trait) {
 

@@ -31,6 +31,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.core.api.Methods;
+import org.structr.core.traits.TraitsManager;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
@@ -244,6 +245,9 @@ public class Actions {
 		FunctionProperty.clearCache();
 		Methods.clearMethodCache();
 		methodCache.clear();
+		// Per-type dynamic method caches in TraitsImplementation: invalidate too,
+		// otherwise type-bound SchemaMethod edits keep running stale source.
+		TraitsManager.getCurrentInstance().clearAllDynamicMethodCaches();
 	}
 
 	// ----- nested classes -----
