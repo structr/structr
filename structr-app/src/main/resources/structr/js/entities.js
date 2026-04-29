@@ -806,15 +806,30 @@ let _Entities = {
 
 							_Entities.appendRelatedNode(cell, node, (nodeEl) => {
 
-								nodeEl[0].querySelector('.remove')?.addEventListener('click', e => {
+								nodeEl[0].querySelector('.remove')?.addEventListener('click', async e => {
 
 									e.stopPropagation();
 
-									Command.removeFromCollection(entity.id, fetchKey, node.id, () => {
-										nodeEl.remove();
-										_Helpers.blinkGreen(cell);
-										_Dialogs.custom.showAndHideInfoBoxMessage(`Related node "${node.name || node.id}" has been removed from property "${key}".`, 'success', 2000, 1000);
-									});
+									let answer = await _Dialogs.deleteOrRemoveFromCollection.ask();
+
+									if (answer === _Dialogs.deleteOrRemoveFromCollection.REMOVE_FROM_COLLECTION) {
+
+										Command.removeFromCollection(entity.id, fetchKey, node.id, () => {
+
+											// update pager on same page
+											_Entities.displayCollectionPager(tempNodeCache, entity, key, page, container);
+											_Helpers.blinkGreen(cell);
+											_Dialogs.custom.showAndHideInfoBoxMessage(`Related node "${node.name || node.id}" has been removed from property "${key}".`, 'success', 2000, 1000);
+										});
+
+									} else if (answer === _Dialogs.deleteOrRemoveFromCollection.DELETE_OBJECT) {
+
+										Command.deleteNode(node.id, false, () => {
+											_Entities.displayCollectionPager(tempNodeCache, entity, key, page, container);
+											_Helpers.blinkGreen(cell);
+											_Dialogs.custom.showAndHideInfoBoxMessage(`Related node "${node.name || node.id}" has been deleted.`, 'success', 2000, 1000);
+										});
+									}
 								});
 							});
 						});
@@ -945,6 +960,23 @@ let _Entities = {
 
 						} else if (isRelated) {
 
+							let addIconClasses = ['add', 'icon-green'];
+
+							// append add-icon if isCollection || empty
+							let addIconVisible = (isCollection || res[key] == null);
+							if (!addIconVisible) {
+								addIconClasses.push('hidden');
+							}
+
+							let addIcon = _Helpers.createSingleDOMElementFromHTML(_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(addIconClasses)))
+
+							valueCell[0].appendChild(addIcon);
+
+							addIcon.addEventListener('click', () => {
+								let { dialogText } = _Dialogs.custom.openDialog(`Add ${typeInfo[key].type}`);
+								_Entities.displaySearch(id, key, typeInfo[key].type, $(dialogText), isCollection);
+							});
+
 							if (res[key]) {
 
 								if (!isCollection) {
@@ -966,6 +998,8 @@ let _Entities = {
 														_Helpers.blinkGreen(valueCell);
 														_Dialogs.custom.showAndHideInfoBoxMessage(`Related node "${node.name || node.id}" has been removed from property "${key}".`, 'success', 2000, 1000);
 
+														addIcon.classList.remove('hidden');
+
 													} else {
 
 														_Helpers.blinkRed(valueCell);
@@ -977,16 +1011,9 @@ let _Entities = {
 									});
 
 								} else {
-									// will be appended asynchronously
+									// will be appended asynchronously (via pager)
 								}
 							}
-
-							valueCell.append(_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['add', 'icon-green'])));
-
-							$('.add', valueCell).on('click', function() {
-								let { dialogText } = _Dialogs.custom.openDialog(`Add ${typeInfo[key].type}`);
-								_Entities.displaySearch(id, key, typeInfo[key].type, $(dialogText), isCollection);
-							});
 
 						} else {
 
@@ -1022,11 +1049,11 @@ let _Entities = {
 
 					_Entities.setProperty(id, key, null, false, (newVal = null) => {
 
-						if (!newVal) {
+						if (newVal === null || (Array.isArray(newVal) && newVal.length === 0)) {
 
 							if (key.indexOf('_custom_html_') === -1) {
 
-								if (isCollection) {
+								if (!isRelated && isCollection) {
 
 									let cell = valueCell[0];
 									_Helpers.fastRemoveAllChildren(cell);
@@ -1058,7 +1085,14 @@ let _Entities = {
 							}
 
 							if (isRelated) {
-								valueCell.empty();
+
+								// remove related nodes and make sure add icon is visible
+								let cell = valueCell[0];
+								for (let relatedNode of cell.querySelectorAll('.related-node')) {
+									_Helpers.fastRemoveElement(relatedNode);
+								}
+
+								cell.querySelector('.add').classList.remove('hidden');
 							}
 
 							onUpdateCallback?.(row, newVal);

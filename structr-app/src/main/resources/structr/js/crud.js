@@ -1542,6 +1542,8 @@ let _Crud = {
 		},
 		getAndAppendNode: (parentType, parentId, key, obj, cell, preloadedNode, insertFakeInput) => {
 
+			let inCreateDialog = !parentId;
+
 			if (!obj) {
 				return;
 			}
@@ -1607,16 +1609,9 @@ let _Crud = {
 				$('.remove', nodeEl).on('click', function(e) {
 					e.preventDefault();
 
-					let parentObjStub = {
-						type: parentType,
-						id: parentId
-					};
+					let isCollection = _Crud.helpers.isCollection(key, parentType);
 
-					if (parentId) {
-
-						_Crud.objectList.removeRelatedObject(parentObjStub, key, obj);
-
-					} else {
+					if (inCreateDialog) {
 
 						_Helpers.fastRemoveElement(newElement);
 
@@ -1624,12 +1619,41 @@ let _Crud = {
 
 							_Crud.objectList.populateCell(null, key, parentType, null, cell);
 						}
+
+					} else {
+
+						let parentObjStub = {
+							type: parentType,
+							id:   parentId
+						};
+
+						if (!isCollection) {
+
+							_Crud.objectList.removeRelatedObject(parentObjStub, key, obj);
+
+						} else {
+
+							_Dialogs.deleteOrRemoveFromCollection.ask().then(answer => {
+
+								if (answer === _Dialogs.deleteOrRemoveFromCollection.REMOVE_FROM_COLLECTION) {
+
+									_Crud.objectList.removeRelatedObject(parentObjStub, key, obj);
+
+								} else if (answer === _Dialogs.deleteOrRemoveFromCollection.DELETE_OBJECT) {
+
+									_Crud.helpers.crudDelete(node.type, node.id).then(() => {
+										_Helpers.fastRemoveElement(newElement);
+									});
+								}
+							});
+						}
 					}
 
 					return false;
 				});
 
-				if (parentId) {
+				if (!inCreateDialog) {
+
 					nodeEl.on('click', function(e) {
 						e.preventDefault();
 						_Crud.objectList.showDetails(node.id, node.type);
@@ -1641,7 +1665,7 @@ let _Crud = {
 			if (preloadedNode) {
 				nodeHandler(preloadedNode);
 			} else {
-				_Crud.crudCache.registerCallback({ id: id, type: type }, id, nodeHandler);
+				_Crud.crudCache.registerCallback({ id, type }, id, nodeHandler);
 			}
 		},
 		removeRelatedObject: (parentObj, key, relatedObj, callback) => {
@@ -2940,7 +2964,7 @@ let _Crud = {
 				}
 			}
 
-			// filter our empty strings and empty arrays
+			// filter out empty strings and empty arrays
 			let filteredData = Object.fromEntries(Object.entries(returnObject).filter(([key, value]) => (value !== '' && !(Array.isArray(value) && value.length === 0))));
 
 			return filteredData;
@@ -2949,30 +2973,30 @@ let _Crud = {
 
 			let confirm = await _Dialogs.confirmation.showPromise(`Are you sure you want to delete <b>${type}</b> ${id}?`);
 			if (confirm === true) {
-				_Crud.helpers.crudDelete(type, id);
+				await _Crud.helpers.crudDelete(type, id);
 			}
 
 			return confirm;
 		},
-		crudDelete: (type, id) => {
+		crudDelete: async (type, id) => {
 
 			let url = `${Structr.rootUrl}${type}/${id}`;
 
-			fetch(url, {
+			let response = await fetch(url, {
 				method: 'DELETE'
-			}).then(async response => {
-
-				let data = await response.json();
-
-				if (response.ok) {
-
-					let row = _Crud.objectList.getRow(id);
-					_Helpers.fastRemoveElement(row[0]);
-
-				} else {
-					Structr.errorFromResponse(data, url, { statusCode: response.status, requiresConfirmation: true });
-				}
 			});
+
+			let data = await response.json();
+
+			if (response.ok) {
+
+				let row = _Crud.objectList.getRow(id);
+				_Helpers.fastRemoveElement(row[0]);
+
+			} else {
+
+				Structr.errorFromResponse(data, url, { statusCode: response.status, requiresConfirmation: true });
+			}
 		},
 		delayedMessage: {
 			messageTimeout: undefined,
