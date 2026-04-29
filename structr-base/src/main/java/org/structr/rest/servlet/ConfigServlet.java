@@ -328,9 +328,11 @@ public class ConfigServlet extends AbstractServletBase {
 						// Reset brute-force counter for this IP on successful login
 						loginAttempts.invalidate(remoteIp);
 
+						redirectTarget = request.getParameter("active_section");
+
 					} else {
 
-						redirectTarget = "?loginFailed";
+						redirectTarget = "?loginFailed" + request.getParameter("active_section");
 
 						state.attempts++;
 
@@ -343,6 +345,9 @@ public class ConfigServlet extends AbstractServletBase {
 
 				case "logout":
 					invalidateSession(request);
+
+					redirectTarget = request.getParameter("active_section");
+
 					break;
 
 			}
@@ -688,10 +693,12 @@ public class ConfigServlet extends AbstractServletBase {
 
 		if (isAuthenticated(request)) {
 
-			final Tag form = menu.block("form").attr(new Attr("action", prefixLocation(ConfigServletLocation)), new Attr("method", "post"), new Style("display: none")).id("logout-form");
+			final Tag form = menu.block("form").attr(new Attr("action", prefixLocation(ConfigServletLocation)), new Attr("method", "post")).id("logout-form");
 
 			form.empty("input").attr(new Type("hidden"), new Name("action"), new Value("logout"));
-			menu.block("a").text("Logout").attr(new Attr("href", "javascript:$('#logout-form').submit();"));
+			form.empty("input").attr(new Type("hidden"), new Name("active_section"));
+
+			form.block("button").attr(new Type("submit")).css("bg-none bg-transparent border-0 hover:bg-transparent mr-0 text-white text-xl").text("Logout");
 		}
 
 		return body;
