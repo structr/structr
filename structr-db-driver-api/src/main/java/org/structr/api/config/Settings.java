@@ -1034,12 +1034,7 @@ public class Settings {
 
 		try {
 
-			FileBasedConfigurationBuilder<PropertiesConfiguration> builder = new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
-					.configure(new Parameters().fileBased()
-							.setFileName(fileName)
-							.setThrowExceptionOnMissing(true)
-							.setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
-					);
+			final FileBasedConfigurationBuilder<PropertiesConfiguration> builder = getDefaultPropertiesConfigurationBuilder(fileName);
 
 			// If file does not exist, create it and set default permissions
 			final Path filePath     = Path.of(fileName);
@@ -1074,7 +1069,7 @@ public class Settings {
 			final FileHandler fileHandler = builder.getFileHandler();
 			final long freeSpace          = fileHandler.getFile().getFreeSpace();
 
-			if (freeSpace < 1024 * 1024){
+			if (freeSpace < 1024 * 1024) {
 				logger.error("Refusing to start with less than 1 MB of disk space.");
 				System.exit(1);
 			}
@@ -1091,12 +1086,17 @@ public class Settings {
 
 	public static FileBasedConfigurationBuilder<PropertiesConfiguration> getDefaultPropertiesConfigurationBuilder() {
 
-        return new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
-                .configure(new Parameters().fileBased()
-                        .setFileName(Settings.ConfigFileName)
-                        .setThrowExceptionOnMissing(true)
-                        .setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
-                );
+        return getDefaultPropertiesConfigurationBuilder(Settings.ConfigFileName);
+	}
+
+	private static FileBasedConfigurationBuilder<PropertiesConfiguration> getDefaultPropertiesConfigurationBuilder(final String fileName) {
+
+		return new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
+				   .configure(new Parameters().fileBased()
+							  .setFileName(fileName)
+							  .setThrowExceptionOnMissing(true)
+							  .setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
+				   );
 	}
 
 	public static String getExpectedConfigurationFilePermissionsAsString () {
@@ -1160,14 +1160,7 @@ public class Settings {
 
 		try {
 
-			final File configFile = new File(fileName);
-
-			FileBasedConfigurationBuilder<PropertiesConfiguration> builder = new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
-					.configure(new Parameters().fileBased()
-							.setFile(configFile)
-							.setThrowExceptionOnMissing(true)
-							.setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
-					);
+			final FileBasedConfigurationBuilder<PropertiesConfiguration> builder = getDefaultPropertiesConfigurationBuilder(fileName);
 
 			final PropertiesConfiguration config = builder.getConfiguration();
 			final Iterator<String> keys          = config.getKeys();
@@ -1178,7 +1171,7 @@ public class Settings {
 
 				final String key   = keys.next();
 				final String lcKey = key.toLowerCase();
-				final String value = trim(config.getString(key));
+				final String value = config.getString(key);
 				Setting<?> setting = Settings.getSetting(lcKey);
 
 				if (setting != null && setting.isDynamic()) {
@@ -1213,16 +1206,6 @@ public class Settings {
 		} catch (ConfigurationException ex) {
 
 			logger.error("Unable to load configuration: " + ex.getMessage());
-		}
-	}
-
-	public static String trim(final String value) {
-		return StringUtils.trim(value);
-	}
-
-	public static void trim(final Properties properties) {
-		for (Object k : properties.keySet()) {
-			properties.put(k, trim((String) properties.get(k)));
 		}
 	}
 

@@ -53,7 +53,11 @@ let _Config = {
 
 			_Dialogs.configLoginDialog.show();
 
+			_Config.attachActiveSectionStoringBehaviourToForm(document.getElementById('login-form'));
+
 		} else {
+
+			_Config.attachActiveSectionStoringBehaviourToForm(document.getElementById('logout-form'));
 
 			document.querySelector('#new-entry-button')?.addEventListener('click', () => {
 				_Config.createNewEntry();
@@ -176,6 +180,11 @@ let _Config = {
 			_Config.cron.init();
 			_Search.init();
 		}
+	},
+	attachActiveSectionStoringBehaviourToForm: (form) => {
+		form?.addEventListener('submit', e => {
+			e.target.querySelector('[name="active_section"]').value = location.hash;
+		});
 	},
 	createNewEntry: (text = 'Enter a key for the new configuration entry', suffix = '') => {
 
@@ -645,9 +654,11 @@ let _Config = {
 					<span style="font-size: 11px; font-weight: 600; color: #c62828; text-transform: uppercase; letter-spacing: 0.5px;">System Configuration</span>
 				</div>
 
-				<form action="${_Helpers.getPrefixedRootUrl("/structr/config")}" method="post">
+				<form id="login-form" method="post">
 
 					<div id="username-password" class="gap-y-2 grid ml-1 mr-4 mt-4" style="grid-template-columns: 35fr 65fr;">
+
+						<input name="active_section" type="hidden">
 
 						<div class="self-center">
 							<label for="superuserNameField">Username:</label>

@@ -8060,7 +8060,6 @@ public class ScriptingTest extends StructrTest {
 	@Test
 	public void testConfigNullValues() {
 
-		// setup
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
@@ -8068,6 +8067,12 @@ public class ScriptingTest extends StructrTest {
 
 			type.addMethod("readConfig", "{ return $.config('testKey', 123); }");
 			type.addMethod("isConfigNull", "{ return ($.config('testKey') === null); }");
+			type.addMethod("isConfigFunctionNullDefaultValueAllowed", "{ return ($.config('testKey', null) === 'abc'); }");
+
+			type.addMethod("isTypeSafetyEnsured1", "{ return ($.config('doesNotExist', true) === true); }");
+			type.addMethod("isTypeSafetyEnsured2", "{ return ($.config('doesNotExist', 123) === 123); }");
+
+			type.addMethod("isDefaultValueReturnedForNullKey", "{ return ($.config(null, 123) === 123); }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -8086,9 +8091,18 @@ public class ScriptingTest extends StructrTest {
 
 			assertEquals("true", Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.isConfigNull();}"));
 			assertEquals("123", Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.readConfig();}"));
+			assertEquals("false", Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.isConfigFunctionNullDefaultValueAllowed();}"));
+
 			Settings.getOrCreateStringSetting("testKey").setValue("abc");
 			assertEquals("false", Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.isConfigNull();}"));
 			assertEquals("abc", Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.readConfig();}"));
+
+			assertEquals("true", Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.isConfigFunctionNullDefaultValueAllowed();}"));
+
+			assertEquals("true", Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.isTypeSafetyEnsured1();}"));
+			assertEquals("true", Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.isTypeSafetyEnsured2();}"));
+
+			assertEquals("true", Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.isDefaultValueReturnedForNullKey();}"));
 
 			tx.success();
 

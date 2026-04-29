@@ -43,7 +43,7 @@ public class ConfigFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("configKey [, defaultValue ]");
+		return Signature.forAllScriptingLanguages("key [, defaultValue = null ]");
 	}
 
 	@Override
@@ -51,15 +51,20 @@ public class ConfigFunction extends AdvancedScriptingFunction {
 
 		try {
 
-			try {
-				assert (sources.length >= 1 && sources.length <= 2);
-			} catch (AssertionError e) {
-				throw new ArgumentCountException("Expected 1 or 2 arguments, but got " + sources.length + ".");
+			assertArrayHasMinLengthAndMaxLength(sources, 1, 2);
+
+			final Object defaultValue = (sources.length >= 2 && sources[1] != null) ? sources[1] : null;
+
+			if (sources[0] == null) {
+
+				// null config keys can not exist, return default value but log a warning
+				logParameterError(caller, sources, "null configuration keys can not exist, returning defaultValue parameter.", ctx.isJavaScriptContext());
+
+				return defaultValue;
 			}
 
-			final String configKey    = sources[0].toString();
-			final String defaultValue = sources.length >= 2 ? sources[1].toString() : null;
-			Setting setting           = Settings.getSetting(configKey);
+			final String configKey = sources[0].toString();
+			Setting setting        = Settings.getSetting(configKey);
 
 			if (setting == null) {
 
@@ -82,23 +87,18 @@ public class ConfigFunction extends AdvancedScriptingFunction {
 				return defaultValue;
 			}
 
-		} catch (ArgumentNullException pe) {
-
-			// silently ignore null arguments
-			return null;
-
 		} catch (ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${config(keyFromStructrConf[, \"default\"])}. Example: ${config(\"base.path\")}"),
-			Usage.javaScript("Usage: ${{Structr.config(keyFromStructrConf[, \"default\"])}}. Example: ${{Structr.config(\"base.path\")}}")
+				Usage.structrScript("Usage: ${config(key [, defaultValue = null ])}. Example: ${config(\"base.path\")}"),
+				Usage.javaScript("Usage: ${{ $.config(key [, defaultValue = null ]) }}. Example: ${{ $.config(\"base.path\") }}")
 		);
 	}
 
@@ -109,15 +109,15 @@ public class ConfigFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "This function can be used to read values from the configuration file and use it to configure frontend behaviour, default values etc. The optional second parameter is the default value to be returned if the configuration key is not present.";
+		return "This function can be used to read values from the configuration file and use it to configure frontend behaviour, default values etc. The optional second parameter is the default value to be returned if the configuration key does not exist.";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 
 		return List.of(
-			Parameter.mandatory("key", "key to read from structr.conf"),
-			Parameter.optional("defaultValue", "default value to use if the configuration key is not present")
+				Parameter.mandatory("key", "key to read from structr.conf"),
+				Parameter.optional("defaultValue", "default value to return if the configuration key does not exist. Default = null")
 		);
 	}
 
@@ -129,7 +129,7 @@ public class ConfigFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-			"For security reasons the superuser password can not be read with this function."
+				"For security reasons, protected settings, like the superuser password and other passwords/encryption keys, can not be read with this function."
 		);
 	}
 

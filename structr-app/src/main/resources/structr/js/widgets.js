@@ -94,7 +94,9 @@ let _Widgets = {
 
 		_Pages.widgetsSlideout[0].querySelector('.add_widgets_icon').addEventListener('click', (e) => {
 			e.preventDefault();
-			Command.create({ type: 'Widget' });
+			Command.create({ type: 'Widget' }, (widget) => {
+				_Widgets.editWidget(widget, true);
+			});
 		});
 
 		_Widgets.localWidgetsEl.droppable({
@@ -930,11 +932,9 @@ let _Widgets = {
 
 	templates: {
 		slideout: config => `
-			<div class="flex">
-				${_Icons.getSvgIcon(_Icons.iconAdd, 20, 20, _Icons.getSvgIconClassesNonColorIcon(['add_widgets_icon']), 'Create New Widget')}
-			</div>
-			<div class="inner mt-8">
-				<div id="widgets"></div>
+			${_Icons.getSvgIcon(_Icons.iconAdd, 20, 20, _Icons.getSvgIconClassesNonColorIcon(['add_widgets_icon']), 'Create New Widget')}
+			<div class="inner">
+				<div id="widgets" class="mt-9"></div>
 				</div>
 			</div>
 		`,

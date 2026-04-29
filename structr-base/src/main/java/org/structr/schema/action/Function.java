@@ -160,7 +160,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	 * @param inJavaScriptContext Has the function been called from a JavaScript context?
 	 */
 	protected void logParameterError(final Object caller, final Object[] parameters, final String message, final boolean inJavaScriptContext) {
-		logger.warn("{}: {} '{}'. Parameters: {}. {}", new Object[] { getDisplayName(), message, caller, getParametersAsString(parameters), usage(inJavaScriptContext) });
+		logger.warn("{}: {} '{}'. Parameters: {}. {}", new Object[] { getDisplayName(false), message, caller, getParametersAsString(parameters), usage(inJavaScriptContext) });
 	}
 
 	/**
@@ -171,7 +171,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	 * @param parameters The method parameters
 	 */
 	protected void logException (final Object caller, final Throwable t, final Object[] parameters) {
-		logException(t, "{}: Exception in '{}' for parameters: {}", new Object[] { getDisplayName(), caller, getParametersAsString(parameters) });
+		logException(t, "{}: Exception in '{}' for parameters: {}", new Object[] { getDisplayName(false), caller, getParametersAsString(parameters) });
 	}
 
 	/**
@@ -223,6 +223,37 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	}
 
 	/**
+	 * Test if the given object array has no null values.
+	 *
+	 * @param array
+	 * @throws ArgumentNullException in case of a null parameter
+	 */
+	protected void assertArrayHasNoNullValues(final Object[] array) throws ArgumentCountException {
+
+		for (final Object element : array) {
+
+			if (element == null) {
+				throw new ArgumentNullException();
+			}
+		}
+	}
+
+	/**
+	 * Test if the given object array has a length in a minimum and maximum range.
+	 *
+	 * @param array
+	 * @param minLength
+	 * @param maxLength
+	 * @throws ArgumentCountException in case of wrong number of parameters
+	 */
+	protected void assertArrayHasMinLengthAndMaxLength(final Object[] array, final Integer minLength, final Integer maxLength) throws ArgumentCountException {
+
+		if (array.length < minLength || array.length > maxLength) {
+			throw ArgumentCountException.notBetween(array.length, minLength, maxLength);
+		}
+	}
+
+	/**
 	 * Test if the given object array has a minimum length and all its elements are not null.
 	 *
 	 * @param array
@@ -235,12 +266,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 			throw ArgumentCountException.tooFew(array.length, minLength);
 		}
 
-		for (final Object element : array) {
-
-			if (element == null) {
-				throw new ArgumentNullException();
-			}
-		}
+		assertArrayHasNoNullValues(array);
 	}
 
 	/**
@@ -254,16 +280,9 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	 */
 	protected void assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(final Object[] array, final Integer minLength, final Integer maxLength) throws ArgumentCountException, ArgumentNullException {
 
-		if (array.length < minLength || array.length > maxLength) {
-			throw ArgumentCountException.notBetween(array.length, minLength, maxLength);
-		}
+		assertArrayHasMinLengthAndMaxLength(array, minLength, maxLength);
 
-		for (final Object element : array) {
-
-			if (element == null) {
-				throw new ArgumentNullException();
-			}
-		}
+		assertArrayHasNoNullValues(array);
 	}
 
 	/**
@@ -397,11 +416,11 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 
 		} catch (NumberFormatException nfe) {
 
-			logger.error("{}: Exception parsing '{}'", new Object[] { getDisplayName(), obj });
+			logger.error("{}: Exception parsing '{}'", new Object[] { getDisplayName(false), obj });
 
 		} catch (Throwable t) {
 
-			logException(t, "{}: Exception parsing '{}'", new Object[] { getDisplayName(), obj });
+			logException(t, "{}: Exception parsing '{}'", new Object[] { getDisplayName(false), obj });
 		}
 
 		return null;
@@ -503,7 +522,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 
 			} catch (Throwable t) {
 
-				logException(t, "{}: Exception parsing '{}'", new Object[] { getDisplayName(), obj });
+				logException(t, "{}: Exception parsing '{}'", new Object[] { getDisplayName(false), obj });
 			}
 		}
 

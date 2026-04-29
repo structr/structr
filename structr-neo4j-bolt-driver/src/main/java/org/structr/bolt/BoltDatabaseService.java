@@ -701,7 +701,8 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 	@Override
 	public List<Map<String, Object>> globalSearch(final Set<String> types, final String searchString) {
 
-		final Map<String, Object> parameters = Map.of("searchString", searchString.toLowerCase());
+		final boolean supportsTypePredicateExpressions = supportsFeature(DatabaseFeature.TypePredicateExpressions);
+		final Map<String, Object> parameters           = Map.of("searchString", supportsTypePredicateExpressions ? searchString.toLowerCase() : searchString);
 
 		if (!types.isEmpty()) {
 
@@ -709,7 +710,6 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 			final String tenantId     = getTenantIdentifier();
 			final String labelsClause = (tenantId == null) ? searchLabels : String.format("n:`%s` AND (%s)", tenantId, searchLabels);
 
-			final boolean supportsTypePredicateExpressions = supportsFeature(DatabaseFeature.TypePredicateExpressions);
 			final String cypherQuery = (supportsTypePredicateExpressions) ? """
 				MATCH (n)
 					WHERE (%s)
