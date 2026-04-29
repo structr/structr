@@ -304,6 +304,16 @@ public class TraitsImplementation implements Traits {
 		return dynamicMethodCache;
 	}
 
+	/**
+	 * Drop the cached dynamic-method map so the next call to
+	 * {@link #getDynamicMethods()} rebuilds it from the underlying traits.
+	 * Required when the source of a SchemaMethod changes -- without this,
+	 * edits don't propagate and stale code keeps running.
+	 */
+	public void clearDynamicMethodCache() {
+		this.dynamicMethodCache = null;
+	}
+
 	@Override
 	public <T> T as(final Class<T> type, final GraphObject obj) {
 
