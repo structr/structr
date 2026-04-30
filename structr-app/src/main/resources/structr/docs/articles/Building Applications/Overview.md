@@ -169,7 +169,7 @@ Built-in functions offer ready-to-use functionality for common tasks like sendin
 #### User-defined Functions
 You can also create user-defined functions for custom application-wide logic. These functions can be called from anywhere in your application and can be scheduled for automatic execution using the cron service, useful for maintenance tasks, periodic imports, or automated reports. For scheduling, Structr uses an extended cron syntax that supports second-precision scheduling, allowing for more granular control than standard cron expressions.
 
-[Read more about Cron jobs.](/structr/docs/ontology/APIs%20&%20Integrations/Cron%20jobs)
+[Read more about Cron jobs.](/structr/docs/ontology/Building%20Applications/Scheduled%20Tasks)
 
 ### Lifecycle Methods
 
@@ -187,7 +187,7 @@ Structr provides integration options for external systems, including built-in au
 
 Structr supports OAuth 2.0 for user authentication, enabling integration with external identity providers such as Microsoft Entra ID, Google, Auth0, and other OAuth-compliant services. This allows users to authenticate using their existing organizational or social media credentials instead of maintaining separate login credentials for Structr.
 
-[Read more about oAuth.](/structr/docs/ontology/APIs%20&%20Integrations/oAuth)
+[Read more about oAuth.](/structr/docs/ontology/Security/OAuth)
 
 ### Emails & SMTP
 

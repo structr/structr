@@ -1,19 +1,19 @@
 # Scheduled Tasks
 
-Some tasks need to run automatically at regular intervals: cleaning up temporary data, sending scheduled reports, synchronizing with external systems, or performing routine maintenance. Structr's CronService executes global schema methods on a schedule you define, without requiring external tools like system cron or task schedulers.
+Some tasks need to run automatically at regular intervals: cleaning up temporary data, sending scheduled reports, synchronizing with external systems, or performing routine maintenance. Structr's CronService executes schema methods on a schedule you define, without requiring external tools like system cron or task schedulers.
 
 ## How It Works
 
-The CronService runs in the background and monitors configured schedules. When a scheduled time is reached, it executes the corresponding global schema method. To use scheduled tasks, you need two things: a global schema method that performs the work, and a cron expression that defines when it runs.
+The CronService runs in the background and monitors configured schedules. When a scheduled time is reached, it executes the corresponding schema method. To use scheduled tasks, you need two things: a schema method that performs the work, and a cron expression that defines when it runs. The schema method can be any user-defined function, static method or service class method.
 
 Scheduled tasks start running only after Structr has fully started. If a scheduled time passes during startup or while Structr is shut down, that execution is skipped - Structr does not retroactively run missed tasks.
 
 ## Configuring Tasks
 
-Register your tasks in `structr.conf` using the `CronService.tasks` setting. This accepts a whitespace-separated list of global schema method names:
+Register your tasks in `structr.conf` using the `CronService.tasks` setting. This accepts a whitespace-separated list of schema method names:
 
 ```properties
-CronService.tasks = cleanupExpiredSessions dailyReport weeklyMaintenance
+CronService.tasks = cleanupExpiredSessions dailyReport weeklyMaintenance MyServiceClass.myFunction SomeType.someFunction
 ```
 
 For each task, define a cron expression that determines when it runs:
@@ -22,6 +22,8 @@ For each task, define a cron expression that determines when it runs:
 cleanupExpiredSessions.cronExpression = 0 0 * * * *
 dailyReport.cronExpression = 0 0 8 * * *
 weeklyMaintenance.cronExpression = 0 0 3 * * 0
+MyServiceClass.myFunction.cronExpression = 0 * * * * *
+SomeType.someFunction.cronExpression = 0 * * * * *
 ```
 
 Note that `structr.conf` only contains settings that differ from Structr's defaults. The CronService is active by default, so you only need to add your task configuration - no additional setup is required.
@@ -55,12 +57,13 @@ Since tasks run with full privileges, they bypass all permission checks. This is
 
 ## Creating a Scheduled Task
 
-A scheduled task is simply a global schema method. Create it like any other method:
+A scheduled task is simply a static schema method. Create it like any other method:
 
 1. Open the Schema area
-2. Select "Global Schema Methods"
+2. Select "User-defined functions" or any Type/Service class
 3. Create a new method with a descriptive name (this name goes into `CronService.tasks`)
-4. Write the method logic
+4. For Type/Service class methods, make sure to configure it as "static"
+5. Write the method logic
 
 The method runs without parameters and any return value is ignored. Use logging to track what the task does.
 
@@ -104,7 +107,7 @@ This example logs a daily summary of new registrations:
 
 ## Testing
 
-You can test a scheduled task before configuring it in the CronService. Since scheduled tasks are regular global schema methods, you can execute them manually using the Run button in the Schema area. This lets you verify that the method works correctly before scheduling it for automatic execution.
+You can test a scheduled task before configuring it in the CronService. Since scheduled tasks are regular schema methods, you can execute them manually using the Run button in the Schema area. This lets you verify that the method works correctly before scheduling it for automatic execution.
 
 When testing, keep in mind that the manual execution also runs in a privileged context, so the behavior should be identical to scheduled execution.
 
@@ -210,8 +213,8 @@ Each field supports several notations:
 This example configures three scheduled tasks: a cleanup that runs every hour, a daily report at 8 AM, and weekly maintenance on Sundays at 3 AM:
 
 ```properties
-# Register tasks (global schema method names)
-CronService.tasks = cleanupExpiredSessions dailyReport weeklyMaintenance
+# Register tasks
+CronService.tasks = cleanupExpiredSessions dailyReport weeklyMaintenance MyServiceClass.myFunction SomeType.someFunction
 
 # Every hour
 cleanupExpiredSessions.cronExpression = 0 0 * * * *
@@ -221,10 +224,17 @@ dailyReport.cronExpression = 0 0 8 * * *
 
 # Every Sunday at 3 AM
 weeklyMaintenance.cronExpression = 0 0 3 * * 0
+
+# Every minute
+MyServiceClass.myFunction.cronExpression = 0 * * * * *
+
+# Every minute
+SomeType.someFunction.cronExpression = 0 * * * * *
+
 ```
 
 ## Related Topics
 
-- Business Logic - Creating global schema methods that scheduled tasks can execute
+- Business Logic - Creating schema methods that scheduled tasks can execute
 - Configuration - Managing Structr settings in structr.conf
 - Logging - Viewing and configuring server logs
