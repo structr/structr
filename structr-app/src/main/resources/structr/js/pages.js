@@ -1026,12 +1026,10 @@ let _Pages = {
 
 			case '#pages:security':
 
-				_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.security());
-				let securityContainer = document.querySelector('#center-pane .security-container');
+				let securityContainer = _Helpers.createSingleDOMElementFromHTML(_Pages.templates.security());
+				_Pages.centerPane.insertAdjacentElement('beforeend', securityContainer);
 
-				_Schema.caches.getTypeInfo(obj.type, (typeInfo) => {
-					_Entities.accessControlDialog(obj, $(securityContainer), typeInfo);
-				});
+				_Entities.accessControlDialog(obj, $(securityContainer));
 				break;
 
 			case '#pages:link':
@@ -4903,7 +4901,7 @@ let _Pages = {
 			</div>
 		`,
 		security: config => `
-			<div class="content-container security-container">
+			<div class="content-container px-4">
 				<div class="inline-info">
 					<div class="inline-info-icon">
 						${_Icons.getSvgIcon(_Icons.iconInfo, 24, 24)}
