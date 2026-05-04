@@ -2773,6 +2773,10 @@ let _Pages = {
 		},
 		previewIframeLoaded: (iframe, highlightElementId) => {
 
+			if (!_Pages.previews.isEnableEditFeatures()) {
+				return;
+			}
+
 			let doc = $(iframe.contentDocument || iframe.contentWindow.document);
 
 			try {
@@ -3002,6 +3006,7 @@ let _Pages = {
 
 			return false;
 		},
+		isEnableEditFeatures: () => UISettings.getValueForSetting(UISettings.settingGroups.pages.settings.enablePreviewEditKey),
 		getBaseUrlForPage: (entity) => {
 			let pagePath = entity.path ? entity.path.replace(/^\//, '') : entity.name;
 			let detailsObject     = (LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) ? '/' + LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) : '');
@@ -3017,10 +3022,10 @@ let _Pages = {
 			let requestParameters = (LSWrapper.getItem(_Pages.requestParametersKey + entity.id) ? '&' + LSWrapper.getItem(_Pages.requestParametersKey + entity.id) : '');
 			return _Pages.previews.getBaseUrlForPage(entity) + '?' + Structr.getRequestParameterName('edit') + '=2' + requestParameters;
 		},
-		showPreviewInIframe: (pageId, highlightElementId, parentElement = _Pages.centerPane, modelChanged = true) => {
+		showPreviewInIframe: (pageId, highlightElementId, parentElement = _Pages.centerPane, forceReload = true) => {
 
 			let currentPreviewPage = parentElement.querySelector('.previewBox[data-id]')?.dataset.id ?? '';
-			let reloadRequired     = (modelChanged === true) || (pageId !== currentPreviewPage);
+			let reloadRequired     = (forceReload === true) || (pageId !== currentPreviewPage);
 
 			if (pageId && pageId !== _Pages.shadowPage.id && reloadRequired) {
 
@@ -3084,9 +3089,7 @@ let _Pages = {
 		},
 		reloadPreviewInIframe: () => {
 
-			if (_Pages.previews.isPreviewActive()) {
-				_Pages.previews.showPreviewInIframe(_Pages.previews.activePreviewPageId, _Pages.previews.activePreviewHighlightElementId);
-			}
+			_Pages.previews.showPreviewInIframeIfVisible(_Pages.previews.activePreviewPageId, _Pages.previews.activePreviewHighlightElementId);
 		},
 		isPreviewForActiveForPage: (pageId) => {
 
@@ -3107,6 +3110,7 @@ let _Pages = {
 				let elementId = _Pages.centerPane.dataset['elementId'] ?? LSWrapper.getItem(_Entities.selectedObjectIdKey);
 
 				if (elementId) {
+
 					Command.get(elementId, 'id,type,name,isPage,pageId', (entity) => {
 
 						let pageId = (entity.isPage ? entity.id : entity.pageId);

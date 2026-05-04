@@ -3452,6 +3452,16 @@ let UISettings = {
 		pages: {
 			title: 'Pages',
 			settings: {
+				enablePreviewEditKey: {
+					text: 'Enable edit features in page preview',
+					storageKey: 'enablePagePreviewEdit_' + location.port,
+					defaultValue: false,
+					type: 'checkbox',
+					onUpdate: () => {
+						_Pages.previews.updatePreviewSlideout();
+						_Pages.previews.reloadPreviewInIframe();
+					}
+				},
 				inheritVisibilityFlagsKey: {
 					text: 'Inherit Visibility Flags from parent node (when creating new elements from the context menu)',
 					storageKey: 'inheritVisibilityFlags_' + location.port,
@@ -3459,7 +3469,7 @@ let UISettings = {
 					type: 'checkbox'
 				},
 				inheritGranteesKey: {
-					text: 'Inherit permissions from parent node (when creating new elements from the context menu)',
+					text: 'Inherit access rights from parent node (when creating new elements from the context menu)',
 					storageKey: 'inheritGrantees_' + location.port,
 					defaultValue: true,
 					type: 'checkbox'
