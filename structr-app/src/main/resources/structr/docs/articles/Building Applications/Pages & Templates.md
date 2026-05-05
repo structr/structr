@@ -241,6 +241,15 @@ The Repeater tab allows you to configure an element to render dynamically based 
 #### Result Collection
 At the top, you select the repeater source: Flow, Cypher Query, or Function Query (a scripting expression).
 
+By default, these should yield a collection of graph objects (e.g. nodes, map-like objects).
+
+For Function queries, single graph objects are allowed as a convenience and collections containing non-map objects (e.g. simple strings) are automatically wrapped (similar to the `toGraphObject()` function) to be usable in a repeater context.
+
+**Example**
+
+Result of function query = `["string1", 2, "string3", true]`
+Value used in repeater = `[{value="string1"}, {value=2}, {value="string3"}, {value=true}]`
+
 #### Repeater Keyword
 The repeater keyword or data key field defines the variable name for accessing each object in the result.
 

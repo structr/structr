@@ -65,22 +65,22 @@ public class FunctionDataSource implements GraphDataSource<Iterable<GraphObject>
 		try {
 
 			final Object result = Scripting.evaluate(renderContext, referenceNode, "${" + functionQuery.trim() + "}", propertyName, referenceNode.getUuid());
-			if (result instanceof Iterable) {
+			if (result instanceof Iterable iterable) {
 
-				return FunctionDataSource.map((Iterable)result);
+				return (List<GraphObject>) UiFunction.toGraphObject(iterable, 1);
 
-			} else if (result instanceof Object[]) {
-
-				return (List<GraphObject>) UiFunction.toGraphObject(result, 1);
-
-			} else if (result instanceof GraphObject) {
+			} else if (result instanceof GraphObject graphObject) {
 
 				// allow single-element results to be evaluated
 				final List<GraphObject> wrapped = new LinkedList<>();
 
-				wrapped.add((GraphObject)result);
+				wrapped.add(graphObject);
 
 				return wrapped;
+
+			} else if (result != null) {
+
+				LoggerFactory.getLogger(FunctionDataSource.class.getName()).warn("Unsupported return value in function query repeater. Supported: Iterable or GraphObject. Encountered: {}", result.getClass().getSimpleName());
 			}
 
 		} catch (UnlicensedScriptException ex) {

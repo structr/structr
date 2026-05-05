@@ -348,6 +348,149 @@ public class RepeaterTest extends StructrUiTest {
 			.get("/html/page2");
 	}
 
+	@Test
+	public void testRepeaterWithArrayProperty() {
+
+		final String type       = "Test";
+		final String strArrProp = "strArrProp";
+
+		// setup 1: create schema and user
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema      = StructrSchema.createFromDatabase(app);
+			final JsonObjectType project = schema.addType(type);
+
+			project.addStringArrayProperty(strArrProp);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			createAdminUser();
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception");
+			logger.warn("", fex);
+		}
+
+		// setup 2: create page and data object
+		try (final Tx tx = app.tx()) {
+
+			final Page page1     = Page.createSimplePage(securityContext, "page1");
+			final DOMNode div    = page1.getElementsByTagName("div").get(0);
+			final DOMNode select = createElement(page1, div,    "select");
+			final DOMNode option = createElement(page1, select, "option", "${test.value}");
+
+			option.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), "get(first(find('Test')), 'strArrProp')");
+			option.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY),       "test");
+
+			final PropertyKey key = Traits.of(type).key(strArrProp);
+
+			app.create(type, new NodeAttribute<>(key, new String[] { "one", "two", "three" }));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		RestAssured.basePath = "/";
+
+		RestAssured
+				.given()
+				.header(X_USER_HEADER,     ADMIN_USERNAME)
+				.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
+				.expect()
+				.statusCode(200)
+				.body("html.head.title",                          Matchers.equalTo("Page1"))
+				.body("html.body.h1",                             Matchers.equalTo("Page1"))
+				.body("html.body.div.select.option[0]",           Matchers.equalTo("one"))
+				.body("html.body.div.select.option[1]",           Matchers.equalTo("two"))
+				.body("html.body.div.select.option[2]",           Matchers.equalTo("three"))
+				.when()
+				.get("/html/page1");
+	}
+
+	@Test
+	public void testRepeaterWithScriptingStringArray() {
+
+		try (final Tx tx = app.tx()) {
+
+			createAdminUser();
+
+			final Page page1     = Page.createSimplePage(securityContext, "page1");
+			final DOMNode div    = page1.getElementsByTagName("div").get(0);
+			final DOMNode select = createElement(page1, div,    "select");
+			final DOMNode option = createElement(page1, select, "option", "${test.value}");
+
+			option.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), "{ ['one', 'two', 'three']; }");
+			option.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY),       "test");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		RestAssured.basePath = "/";
+
+		RestAssured
+				.given()
+				.header(X_USER_HEADER,     ADMIN_USERNAME)
+				.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
+				.expect()
+				.statusCode(200)
+				.body("html.head.title",                          Matchers.equalTo("Page1"))
+				.body("html.body.h1",                             Matchers.equalTo("Page1"))
+				.body("html.body.div.select.option[0]",           Matchers.equalTo("one"))
+				.body("html.body.div.select.option[1]",           Matchers.equalTo("two"))
+				.body("html.body.div.select.option[2]",           Matchers.equalTo("three"))
+				.when()
+				.get("/html/page1");
+	}
+
+	@Test
+	public void testRepeaterWithSingleGraphObject() {
+
+		try (final Tx tx = app.tx()) {
+
+			final Page page1     = Page.createSimplePage(securityContext, "page1");
+			final DOMNode div    = page1.getElementsByTagName("div").get(0);
+			final Content content = div.getFirstChild().as(Content.class);
+			content.setContent("${test.name}");
+
+			div.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), "me");
+			div.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY),       "test");
+
+			createAdminUser();
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		RestAssured.basePath = "/";
+
+		RestAssured
+				.given()
+				.header(X_USER_HEADER,     ADMIN_USERNAME)
+				.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
+				.expect()
+				.statusCode(200)
+				.body("html.head.title",                          Matchers.equalTo("Page1"))
+				.body("html.body.h1",                             Matchers.equalTo("Page1"))
+				.body("html.body.div",                            Matchers.equalTo("admin"))
+				.when()
+				.get("/html/page1");
+	}
+
 	protected DOMElement createElement(final Page page, final DOMNode parent, final String tag, final String... content) throws FrameworkException {
 
 		final DOMElement child = page.createElement(tag);
