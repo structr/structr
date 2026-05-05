@@ -39,7 +39,7 @@ public class ToGraphObjectFunction extends UiCommunityFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("obj");
+		return Signature.forAllScriptingLanguages("obj [, view = \"public\" [, depth = 3 ]]");
 	}
 
 	@Override
@@ -98,12 +98,12 @@ public class ToGraphObjectFunction extends UiCommunityFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-		Tries to convert given object or collection containing graph objects into a graph object. 
-		If an element in the source can not be converted to a graph object, it is ignored. 
-		Graph objects can be used in repeaters for example and thus it can be useful to create custom graph 
-		objects for iteration in such contexts. The optional `view` parameter can be used to select the view 
-		representation of the entity. If no view is given, the `public` view is used. The optional `depth` 
-		parameter defines at which depth the conversion stops. If no depth is given, the default value of 3 is used.""";
+			Tries to convert then given object or collection into a graph object. If an element in the source can not be converted to a graph object, it is ignored.
+			
+			Collections of graph objects can be used in repeaters for example and thus it can be useful to create custom graph objects for iteration in such contexts. The optional `view` parameter can be used to select the view representation of the entity. If no view is given, the `public` view is used.
+			
+			The optional `depth` parameter defines at which depth the conversion stops. If no depth is given, the default value of 3 is used.
+			""";
 	}
 
 	@Override
@@ -112,17 +112,27 @@ public class ToGraphObjectFunction extends UiCommunityFunction {
 				Example.javaScript("""
 						${{
 							let coll = $.toGraphObject([
-								{id:"o1",name:"objectA"},
-								{id:"o2",name:"objectB"}
+								{ id: "o1", name: "objectA" },
+								{ id: "o2", name: "objectB" }
 							]);
-							$.print(coll.join(', '));
+							$.print(coll);
 						}}
-						> {id=o1, name=objectA}, {id=o2, name=objectB}
-						"""),
+						> [{name=objectA, id=o1}, {name=objectB, id=o2}]
+						"""
+				),
+				Example.javaScript("""
+						${{
+							let coll = $.toGraphObject([ 'string1', 'string2', 12, true ]);
+							$.print(coll);
+						}}
+						> [{value=string1}, {value=string2}, {value=12}, {value=true}]
+						"""
+				),
 				Example.structrScript("""
-				${toGraphObject(inheritingTypes('Principal'))}
-				> [{value=Principal},{value=Group},{value=LDAPGroup},{value=LDAPUser},{value=User}]
-				""")
+						${toGraphObject(inheritingTypes('Principal'))}
+						> [{value=Group}, {value=User}]
+						"""
+				)
 		);
 	}
 
@@ -132,13 +142,13 @@ public class ToGraphObjectFunction extends UiCommunityFunction {
 				Parameter.mandatory("source", "object or collection"),
 				Parameter.optional("view", "view (default: `public`)"),
 				Parameter.optional("depth", "conversion depth (default: 3)")
-				);
+		);
 	}
 
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-				"Since strings can not be converted to graph objects but it can be desirable to use collections of strings in repeaters (e.g. the return value of the `inheriting_types()` function), collections of strings are treated specially and converted to graph objects with `value` => `<string>` as its result. (see example 2)"
+				"Some objects (e.g. strings, numbers, etc) can not be directly converted to graph objects but it can be desirable to use such collections in repeaters (e.g. the return value of the `inheriting_types()` function). For collections with such objects, each object is wrapped in a graph object with a `value` key as its result. (see example 2)"
 		);
 	}
 
