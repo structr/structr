@@ -45,8 +45,6 @@ public interface SchemaRelationshipNode extends AbstractSchemaNode {
 	String getTargetMultiplicity();
 	String getSourceJsonName();
 	String getTargetJsonName();
-	String getPreviousTargetJsonName();
-	String getPreviousSourceJsonName();
 	String getSchemaNodeSourceType();
 	String getSourceType();
 	String getTargetType();
@@ -57,8 +55,6 @@ public interface SchemaRelationshipNode extends AbstractSchemaNode {
 
 	void resolveCascadingEnums(final JsonSchema.Cascade delete, final JsonSchema.Cascade autoCreate) throws FrameworkException;
 
-	void setPreviousSourceJsonName(String propertyName) throws FrameworkException;
-	void setPreviousTargetJsonName(String propertyName) throws FrameworkException;
 	void setAutocreationFlag(Long aLong) throws FrameworkException;
 	void setCascadingDeleteFlag(final Long flag) throws FrameworkException;
 	void setRelationshipType(final String relType) throws FrameworkException;
@@ -116,26 +112,6 @@ public interface SchemaRelationshipNode extends AbstractSchemaNode {
 		final String _sourceMultiplicity  = node.getSourceMultiplicity();
 
 		final String propertyName = SchemaRelationshipNode.getPropertyName(existingPropertyNames, outgoing, relationshipTypeName, _sourceType, _targetType, _targetJsonName, _targetMultiplicity, _sourceJsonName, _sourceMultiplicity);
-
-		try {
-			if (outgoing) {
-
-				if (_targetJsonName == null) {
-
-					node.setPreviousTargetJsonName(propertyName);
-				}
-
-			} else {
-
-				if (_sourceJsonName == null) {
-
-					node.setPreviousSourceJsonName(propertyName);
-				}
-			}
-
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-		}
 
 		return propertyName;
 	}

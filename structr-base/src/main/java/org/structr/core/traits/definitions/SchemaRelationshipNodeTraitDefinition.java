@@ -69,8 +69,6 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 	public static final String TARGET_NOTION_PROPERTY              = "targetNotion";
 	public static final String SOURCE_JSON_NAME_PROPERTY           = "sourceJsonName";
 	public static final String TARGET_JSON_NAME_PROPERTY           = "targetJsonName";
-	public static final String PREVIOUS_SOURCE_JSON_NAME_PROPERTY  = "oldSourceJsonName";
-	public static final String PREVIOUS_TARGET_JSON_NAME_PROPERTY  = "oldTargetJsonName";
 	public static final String CASCADING_DELETE_FLAG_PROPERTY      = "cascadingDeleteFlag";
 	public static final String AUTOCREATION_FLAG_PROPERTY          = "autocreationFlag";
 	public static final String IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY = "isPartOfBuiltInSchema";
@@ -105,10 +103,10 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 					final PropertyKey<String> relationshipType  = traits.key(RELATIONSHIP_TYPE_PROPERTY);
 					boolean valid                               = true;
 
-					valid &= (obj.getProperty(sourceJsonName) == null || ValidationHelper.isValidStringMatchingRegex(obj, sourceJsonName, SchemaRemoteAttributeNamePattern,
+					valid &= (ValidationHelper.isValidStringMatchingRegex(obj, sourceJsonName, SchemaRemoteAttributeNamePattern,
 						"Source attribute name must match the following pattern: '" + SchemaRemoteAttributeNamePattern + "', which means it must start with a lowercase letter and may only contain letters, numbers and underscores.",
 						errorBuffer));
-					valid &= (obj.getProperty(targetJsonName) == null || ValidationHelper.isValidStringMatchingRegex(obj, targetJsonName, SchemaRemoteAttributeNamePattern,
+					valid &= (ValidationHelper.isValidStringMatchingRegex(obj, targetJsonName, SchemaRemoteAttributeNamePattern,
 						"Target attribute name must match the following pattern: '" + SchemaRemoteAttributeNamePattern + "', which means it must start with a lowercase letter and may only contain letters, numbers and underscores.",
 						errorBuffer));
 					valid &= ValidationHelper.isValidStringNotBlank(obj, relationshipType, errorBuffer);
@@ -146,25 +144,10 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 				@Override
 				public void onModification(final GraphObject obj, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-					final SchemaRelationshipNode node                = obj.as(SchemaRelationshipNode.class);
-					final Traits traits                              = obj.getTraits();
-					final PropertyKey<String> previousSourceJsonName = traits.key(PREVIOUS_SOURCE_JSON_NAME_PROPERTY);
-					final PropertyKey<String> previousTargetJsonName = traits.key(PREVIOUS_TARGET_JSON_NAME_PROPERTY);
-					final PropertyKey<String> sourceJsonName         = traits.key(SOURCE_JSON_NAME_PROPERTY);
-					final PropertyKey<String> targetJsonName         = traits.key(TARGET_JSON_NAME_PROPERTY);
-					final PropertyMap map                            = new PropertyMap();
+					final SchemaRelationshipNode node = obj.as(SchemaRelationshipNode.class);
 
 					checkClassName(node);
-					checkAndRenameSourceAndTargetJsonNames(node);
-
-					final GraphObjectMap modifications = modificationQueue.getModifications(obj);
-					final GraphObjectMap before        = modifications.get(new GenericProperty<>("before"));
-
-					// store old property names
-					map.put(previousSourceJsonName, before.getProperty(sourceJsonName));
-					map.put(previousTargetJsonName, before.getProperty(targetJsonName));
-
-					obj.setProperties(securityContext, map);
+					checkAndRenameSourceAndTargetJsonNames(node, modificationQueue.getModifications(obj));
 
 					// register transaction postprocessing that recreates the schema information
 					TransactionCommand.postProcess("reloadSchema", new ReloadSchema(false));
@@ -218,7 +201,7 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 			newSet(
 					RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY, RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY,
 					SOURCE_TYPE_PROPERTY, TARGET_TYPE_PROPERTY, SOURCE_MULTIPLICITY_PROPERTY, TARGET_MULTIPLICITY_PROPERTY, SOURCE_NOTION_PROPERTY, TARGET_NOTION_PROPERTY, RELATIONSHIP_TYPE_PROPERTY,
-					SOURCE_JSON_NAME_PROPERTY, TARGET_JSON_NAME_PROPERTY, CASCADING_DELETE_FLAG_PROPERTY, AUTOCREATION_FLAG_PROPERTY, PREVIOUS_SOURCE_JSON_NAME_PROPERTY, PREVIOUS_TARGET_JSON_NAME_PROPERTY,
+					SOURCE_JSON_NAME_PROPERTY, TARGET_JSON_NAME_PROPERTY, CASCADING_DELETE_FLAG_PROPERTY, AUTOCREATION_FLAG_PROPERTY,
 					PERMISSION_PROPAGATION_PROPERTY, READ_PROPAGATION_PROPERTY, WRITE_PROPAGATION_PROPERTY, DELETE_PROPAGATION_PROPERTY, ACCESS_CONTROL_PROPAGATION_PROPERTY, PROPERTY_MASK_PROPERTY, IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY
 			),
 
@@ -226,7 +209,7 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 			newSet(
 					RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY, RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY,
 					SOURCE_TYPE_PROPERTY, TARGET_TYPE_PROPERTY, SOURCE_MULTIPLICITY_PROPERTY, TARGET_MULTIPLICITY_PROPERTY, SOURCE_NOTION_PROPERTY, TARGET_NOTION_PROPERTY, RELATIONSHIP_TYPE_PROPERTY,
-					SOURCE_JSON_NAME_PROPERTY, TARGET_JSON_NAME_PROPERTY, CASCADING_DELETE_FLAG_PROPERTY, AUTOCREATION_FLAG_PROPERTY, PREVIOUS_SOURCE_JSON_NAME_PROPERTY, PREVIOUS_TARGET_JSON_NAME_PROPERTY,
+					SOURCE_JSON_NAME_PROPERTY, TARGET_JSON_NAME_PROPERTY, CASCADING_DELETE_FLAG_PROPERTY, AUTOCREATION_FLAG_PROPERTY,
 					PERMISSION_PROPAGATION_PROPERTY, READ_PROPAGATION_PROPERTY, WRITE_PROPAGATION_PROPERTY, DELETE_PROPAGATION_PROPERTY, ACCESS_CONTROL_PROPAGATION_PROPERTY, PROPERTY_MASK_PROPERTY, IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY
 			),
 
@@ -235,7 +218,7 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY, RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY,
 					AbstractSchemaNodeTraitDefinition.SCHEMA_PROPERTIES_PROPERTY, AbstractSchemaNodeTraitDefinition.SCHEMA_VIEWS_PROPERTY, AbstractSchemaNodeTraitDefinition.SCHEMA_METHODS_PROPERTY,
 					SOURCE_TYPE_PROPERTY, TARGET_TYPE_PROPERTY, SOURCE_MULTIPLICITY_PROPERTY, TARGET_MULTIPLICITY_PROPERTY, SOURCE_NOTION_PROPERTY, TARGET_NOTION_PROPERTY, RELATIONSHIP_TYPE_PROPERTY,
-					SOURCE_JSON_NAME_PROPERTY, TARGET_JSON_NAME_PROPERTY, CASCADING_DELETE_FLAG_PROPERTY, AUTOCREATION_FLAG_PROPERTY, PREVIOUS_SOURCE_JSON_NAME_PROPERTY, PREVIOUS_TARGET_JSON_NAME_PROPERTY,
+					SOURCE_JSON_NAME_PROPERTY, TARGET_JSON_NAME_PROPERTY, CASCADING_DELETE_FLAG_PROPERTY, AUTOCREATION_FLAG_PROPERTY,
 					PERMISSION_PROPAGATION_PROPERTY, READ_PROPAGATION_PROPERTY, WRITE_PROPAGATION_PROPERTY, DELETE_PROPAGATION_PROPERTY, ACCESS_CONTROL_PROPAGATION_PROPERTY, PROPERTY_MASK_PROPERTY, IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY
 			)
 		);
@@ -257,8 +240,6 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 		final Property<String>     targetNotion           = new StringProperty(TARGET_NOTION_PROPERTY);
 		final Property<String>     sourceJsonName         = new StringProperty(SOURCE_JSON_NAME_PROPERTY).indexed();
 		final Property<String>     targetJsonName         = new StringProperty(TARGET_JSON_NAME_PROPERTY).indexed();
-		final Property<String>     previousSourceJsonName = new StringProperty(PREVIOUS_SOURCE_JSON_NAME_PROPERTY).indexed();
-		final Property<String>     previousTargetJsonName = new StringProperty(PREVIOUS_TARGET_JSON_NAME_PROPERTY).indexed();
 		final Property<Long>       cascadingDeleteFlag    = new LongProperty(CASCADING_DELETE_FLAG_PROPERTY);
 		final Property<Long>       autocreationFlag       = new LongProperty(AUTOCREATION_FLAG_PROPERTY);
 		final Property<Boolean>    isPartOfBuiltInSchema  = new BooleanProperty(IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY);
@@ -285,8 +266,6 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 			targetNotion,
 			sourceJsonName,
 			targetJsonName,
-			previousSourceJsonName,
-			previousTargetJsonName,
 			cascadingDeleteFlag,
 			autocreationFlag,
 			isPartOfBuiltInSchema,
@@ -374,33 +353,46 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 		return _sourceType + _relType + _targetType;
 	}
 
-	private void checkAndRenameSourceAndTargetJsonNames(final SchemaRelationshipNode node) throws FrameworkException {
+	private void checkAndRenameSourceAndTargetJsonNames(final SchemaRelationshipNode node, final GraphObjectMap modifications) throws FrameworkException {
 
-		final Map<String, NodeInterface> schemaNodes = new LinkedHashMap<>();
-		final String _previousSourceJsonName         = node.getPreviousSourceJsonName();
-		final String _previousTargetJsonName         = node.getPreviousTargetJsonName();
-		final String _currentSourceJsonName          = ((node.getSourceJsonName() != null) ? node.getSourceJsonName() : SchemaRelationshipNode.getPropertyName(node, new LinkedHashSet<>(), false));
-		final String _currentTargetJsonName          = ((node.getTargetJsonName() != null) ? node.getTargetJsonName() : SchemaRelationshipNode.getPropertyName(node, new LinkedHashSet<>(), true));
-		final SchemaNode _sourceNode                 = node.getSourceNode();
-		final SchemaNode _targetNode                 = node.getTargetNode();
+		final GraphObjectMap before              = modifications.get(new GenericProperty<>("before"));
+		final Traits traits                      = node.getTraits();
+		final PropertyKey<String> sourceJsonName = traits.key(SOURCE_JSON_NAME_PROPERTY);
+		final PropertyKey<String> targetJsonName = traits.key(TARGET_JSON_NAME_PROPERTY);
 
-		// build schema node map
-		StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_NODE).getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
+		final boolean sourceJsonNameChanged = before.containsKey(sourceJsonName);
+		final boolean targetJsonNameChanged = before.containsKey(targetJsonName);
 
-		if (_previousSourceJsonName != null && _currentSourceJsonName != null && !_currentSourceJsonName.equals(_previousSourceJsonName)) {
+		if (sourceJsonNameChanged || targetJsonNameChanged) {
 
-			renameNameInNonGraphProperties(_targetNode, _previousSourceJsonName, _currentSourceJsonName);
+			final Map<String, NodeInterface> schemaNodes = new LinkedHashMap<>();
+			final String _currentSourceJsonName          = ((node.getSourceJsonName() != null) ? node.getSourceJsonName() : SchemaRelationshipNode.getPropertyName(node, new LinkedHashSet<>(), false));
+			final String _currentTargetJsonName          = ((node.getTargetJsonName() != null) ? node.getTargetJsonName() : SchemaRelationshipNode.getPropertyName(node, new LinkedHashSet<>(), true));
+			final SchemaNode _sourceNode                 = node.getSourceNode();
+			final SchemaNode _targetNode                 = node.getTargetNode();
 
-			renameNotionPropertyReferences(schemaNodes, _sourceNode, _previousSourceJsonName, _currentSourceJsonName);
-			renameNotionPropertyReferences(schemaNodes, _targetNode, _previousSourceJsonName, _currentSourceJsonName);
-		}
+			// build schema node map
+			StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_NODE).getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
 
-		if (_previousTargetJsonName != null && _currentTargetJsonName != null && !_currentTargetJsonName.equals(_previousTargetJsonName)) {
+			if (sourceJsonNameChanged) {
 
-			renameNameInNonGraphProperties(_sourceNode, _previousTargetJsonName, _currentTargetJsonName);
+				final String _previousSourceJsonName = before.get(sourceJsonName);
 
-			renameNotionPropertyReferences(schemaNodes, _sourceNode, _previousTargetJsonName, _currentTargetJsonName);
-			renameNotionPropertyReferences(schemaNodes, _targetNode, _previousTargetJsonName, _currentTargetJsonName);
+				renameNameInNonGraphProperties(_targetNode, _previousSourceJsonName, _currentSourceJsonName);
+
+				renameNotionPropertyReferences(schemaNodes, _sourceNode, _previousSourceJsonName, _currentSourceJsonName);
+				renameNotionPropertyReferences(schemaNodes, _targetNode, _previousSourceJsonName, _currentSourceJsonName);
+			}
+
+			if (targetJsonNameChanged) {
+
+				final String _previousTargetJsonName = before.get(targetJsonName);
+
+				renameNameInNonGraphProperties(_sourceNode, _previousTargetJsonName, _currentTargetJsonName);
+
+				renameNotionPropertyReferences(schemaNodes, _sourceNode, _previousTargetJsonName, _currentTargetJsonName);
+				renameNotionPropertyReferences(schemaNodes, _targetNode, _previousTargetJsonName, _currentTargetJsonName);
+			}
 		}
 	}
 
@@ -415,16 +407,13 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 
 			removeNameFromNonGraphProperties(_sourceNode, _currentSourceJsonName);
 			removeNameFromNonGraphProperties(_sourceNode, _currentTargetJsonName);
-
 		}
 
 		if (_targetNode != null) {
 
 			removeNameFromNonGraphProperties(_targetNode, _currentSourceJsonName);
 			removeNameFromNonGraphProperties(_targetNode, _currentTargetJsonName);
-
 		}
-
 	}
 
 	private void renameNotionPropertyReferences(final Map<String, NodeInterface> schemaNodes, final SchemaNode schemaNode, final String previousValue, final String currentValue) throws FrameworkException {

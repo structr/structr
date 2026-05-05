@@ -314,38 +314,7 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 
 		final String propertyName = SchemaProperty.getPropertyName(existingPropertyNames, outgoing, relationshipTypeName, _sourceType, _targetType, _targetJsonName, _targetMultiplicity, _sourceJsonName, _sourceMultiplicity);
 
-		try {
-			if (outgoing) {
-
-				if (_targetJsonName == null) {
-
-					setPreviousTargetJsonName(propertyName);
-				}
-
-			} else {
-
-				if (_sourceJsonName == null) {
-
-					setPreviousSourceJsonName(propertyName);
-				}
-			}
-
-		} catch (FrameworkException fex) {
-
-			logger.warn("", fex);
-		}
-
 		return propertyName;
-	}
-
-	@Override
-	public void setPreviousSourceJsonName(final String propertyName) throws FrameworkException {
-		wrappedObject.setProperty(traits.key(SchemaRelationshipNodeTraitDefinition.PREVIOUS_SOURCE_JSON_NAME_PROPERTY), propertyName);
-	}
-
-	@Override
-	public void setPreviousTargetJsonName(final String propertyName) throws FrameworkException {
-		wrappedObject.setProperty(traits.key(SchemaRelationshipNodeTraitDefinition.PREVIOUS_TARGET_JSON_NAME_PROPERTY), propertyName);
 	}
 
 	@Override
@@ -659,16 +628,6 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 	@Override
 	public Long getCascadingDeleteFlag() {
 		return wrappedObject.getProperty(traits.key(SchemaRelationshipNodeTraitDefinition.CASCADING_DELETE_FLAG_PROPERTY));
-	}
-
-	@Override
-	public String getPreviousSourceJsonName() {
-		return wrappedObject.getProperty(traits.key(SchemaRelationshipNodeTraitDefinition.PREVIOUS_SOURCE_JSON_NAME_PROPERTY));
-	}
-
-	@Override
-	public String getPreviousTargetJsonName() {
-		return wrappedObject.getProperty(traits.key(SchemaRelationshipNodeTraitDefinition.PREVIOUS_TARGET_JSON_NAME_PROPERTY));
 	}
 
 	@Override
