@@ -442,45 +442,45 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 		return new ObjectNotion();
 	}
 
-	private String getBaseType() {
-
-		final String _sourceMultiplicity = getSourceMultiplicity();
-		final String _targetMultiplicity = getTargetMultiplicity();
-		final String _sourceType         = getSchemaNodeSourceType();
-		final String _targetType         = getSchemaNodeTargetType();
-		final StringBuilder buf          = new StringBuilder();
-
-		if ("1".equals(_sourceMultiplicity)) {
-
-			if ("1".equals(_targetMultiplicity)) {
-
-				buf.append("OneToOne");
-
-			} else {
-
-				buf.append("OneToMany");
-			}
-
-		} else {
-
-			if ("1".equals(_targetMultiplicity)) {
-
-				buf.append("ManyToOne");
-
-			} else {
-
-				buf.append("ManyToMany");
-			}
-		}
-
-		buf.append("<");
-		buf.append(_sourceType);
-		buf.append(", ");
-		buf.append(_targetType);
-		buf.append(">");
-
-		return buf.toString();
-	}
+//	private String getBaseType() {
+//
+//		final String _sourceMultiplicity = getSourceMultiplicity();
+//		final String _targetMultiplicity = getTargetMultiplicity();
+//		final String _sourceType         = getSchemaNodeSourceType();
+//		final String _targetType         = getSchemaNodeTargetType();
+//		final StringBuilder buf          = new StringBuilder();
+//
+//		if ("1".equals(_sourceMultiplicity)) {
+//
+//			if ("1".equals(_targetMultiplicity)) {
+//
+//				buf.append("OneToOne");
+//
+//			} else {
+//
+//				buf.append("OneToMany");
+//			}
+//
+//		} else {
+//
+//			if ("1".equals(_targetMultiplicity)) {
+//
+//				buf.append("ManyToOne");
+//
+//			} else {
+//
+//				buf.append("ManyToMany");
+//			}
+//		}
+//
+//		buf.append("<");
+//		buf.append(_sourceType);
+//		buf.append(", ");
+//		buf.append(_targetType);
+//		buf.append(">");
+//
+//		return buf.toString();
+//	}
 
 	@Override
 	public void resolveCascadingEnums(final JsonSchema.Cascade delete, final JsonSchema.Cascade autoCreate) throws FrameworkException {
@@ -815,18 +815,18 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 	*/
 
 	// ----- nested classes -----
-	private static class KeyMatcher implements Predicate<String> {
-
-		@Override
-		public boolean accept(final String t) {
-
-			if (ValidKeyPattern.matcher(t).matches()) {
-				return true;
-			}
-
-			logger.warn("Invalid key name {} for notion.", t);
-
-			return false;
-		}
-	}
+//	private static class KeyMatcher implements Predicate<String> {
+//
+//		@Override
+//		public boolean accept(final String t) {
+//
+//			if (ValidKeyPattern.matcher(t).matches()) {
+//				return true;
+//			}
+//
+//			logger.warn("Invalid key name {} for notion.", t);
+//
+//			return false;
+//		}
+//	}
 }

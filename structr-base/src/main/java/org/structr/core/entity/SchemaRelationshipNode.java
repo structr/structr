@@ -27,6 +27,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.TraitDefinition;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.operations.graphobject.IsValid;
+import org.structr.schema.SchemaHelper;
 
 import java.util.List;
 import java.util.Map;
@@ -122,7 +123,6 @@ public interface SchemaRelationshipNode extends AbstractSchemaNode {
 
 		if (outgoing) {
 
-
 			if (_targetJsonName != null) {
 
 				// FIXME: no automatic creation?
@@ -130,7 +130,7 @@ public interface SchemaRelationshipNode extends AbstractSchemaNode {
 
 			} else {
 
-				if ("1".equals(_targetMultiplicity)) {
+				if (SchemaHelper.Multiplicity.ONE.getDbValue().equals(_targetMultiplicity)) {
 
 					propertyName = CaseHelper.toLowerCamelCase(relationshipTypeName) + CaseHelper.toUpperCamelCase(_targetType);
 
@@ -142,12 +142,13 @@ public interface SchemaRelationshipNode extends AbstractSchemaNode {
 
 		} else {
 
-
 			if (_sourceJsonName != null) {
+
 				propertyName = _sourceJsonName;
+
 			} else {
 
-				if ("1".equals(_sourceMultiplicity)) {
+				if (SchemaHelper.Multiplicity.ONE.getDbValue().equals(_sourceMultiplicity)) {
 
 					propertyName = CaseHelper.toLowerCamelCase(_sourceType) + CaseHelper.toUpperCamelCase(relationshipTypeName);
 

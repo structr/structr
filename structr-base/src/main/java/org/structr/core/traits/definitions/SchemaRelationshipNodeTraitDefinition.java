@@ -115,6 +115,10 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 					valid &= (ValidationHelper.isValidPropertyNotNull(obj, sourceNode, errorBuffer) || ValidationHelper.isValidStringNotBlank(obj, sourceType, errorBuffer));
 					valid &= (ValidationHelper.isValidPropertyNotNull(obj, targetNode, errorBuffer) || ValidationHelper.isValidStringNotBlank(obj, targetType, errorBuffer));
 
+					// source and target multiplicity must not be null
+					valid &= ValidationHelper.isValidPropertyNotNull(obj, traits.key(SOURCE_MULTIPLICITY_PROPERTY), errorBuffer);
+					valid &= ValidationHelper.isValidPropertyNotNull(obj, traits.key(TARGET_MULTIPLICITY_PROPERTY), errorBuffer);
+
 					if (valid) {
 
 						// clear error buffer so the schema build doesn't fail because of the above check
@@ -234,8 +238,8 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 		final Property<String>     sourceType             = new StringProperty(SOURCE_TYPE_PROPERTY);
 		final Property<String>     targetType             = new StringProperty(TARGET_TYPE_PROPERTY);
 		final Property<String>     relationshipType       = new StringProperty(RELATIONSHIP_TYPE_PROPERTY).indexed();
-		final Property<String>     sourceMultiplicity     = new StringProperty(SOURCE_MULTIPLICITY_PROPERTY);
-		final Property<String>     targetMultiplicity     = new StringProperty(TARGET_MULTIPLICITY_PROPERTY);
+		final Property<String>     sourceMultiplicity     = new EnumProperty(SOURCE_MULTIPLICITY_PROPERTY, SchemaHelper.Multiplicity.getDbValuesSet()).notNull();
+		final Property<String>     targetMultiplicity     = new EnumProperty(TARGET_MULTIPLICITY_PROPERTY, SchemaHelper.Multiplicity.getDbValuesSet()).notNull();
 		final Property<String>     sourceNotion           = new StringProperty(SOURCE_NOTION_PROPERTY);
 		final Property<String>     targetNotion           = new StringProperty(TARGET_NOTION_PROPERTY);
 		final Property<String>     sourceJsonName         = new StringProperty(SOURCE_JSON_NAME_PROPERTY).indexed();
