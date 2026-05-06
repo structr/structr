@@ -89,7 +89,7 @@ public class AppendWidgetCommand extends AbstractCommand {
 					// create temporary parent for Widget to expand in
 					final DOMNode tmpParent = page.createElement("div");
 
-					Widget.expandWidget(getWebSocket().getSecurityContext(), page, tmpParent, baseUrl, webSocketData.getNodeData(), processDeploymentInfo);
+					Widget.expandWidget(page, tmpParent, baseUrl, webSocketData.getNodeData(), processDeploymentInfo);
 
 					// move children
 					for (final DOMNode newNode : tmpParent.getChildren()) {

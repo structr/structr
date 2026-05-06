@@ -64,7 +64,7 @@ public interface Channel<T> {
 		return getChannelName().toLowerCase() + ".filter";
 	}
 
-	static <T> Channel<T> forName(final SecurityContext securityContext, final ComponentConfiguration config, final String dataSourceName) throws FrameworkException {
+	static <T> Channel<T> forName(final ComponentConfiguration config, final String dataSourceName) throws FrameworkException {
 
 		if (dataSourceName != null) {
 
@@ -77,21 +77,21 @@ public interface Channel<T> {
 				switch (type) {
 
 					case "node":
-						final NodeInterface node = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.DATA_SOURCE).name(name).getFirst();
+						final NodeInterface node = StructrApp.getInstance().nodeQuery(StructrTraits.DATA_SOURCE).name(name).getFirst();
 						if (node != null) {
 
 							return node.as(DataSource.class);
 
 						} else {
 
-							final NodeInterface byUuid = StructrApp.getInstance(securityContext).getNodeById(name);
+							final NodeInterface byUuid = StructrApp.getInstance().getNodeById(name);
 							if (byUuid != null) {
 
 								return byUuid.as(DataSource.class);
 							}
 
-							// check if name is an existing trait & override if we are super user
-							if (Traits.exists(name) && securityContext.isSuperUser()) {
+							// check if name is an existing trait & override
+							if (Traits.exists(name)) {
 
 								final NodeInterface newNode = StructrApp.getInstance().create(StructrTraits.SCHEMA_NODE, name);
 

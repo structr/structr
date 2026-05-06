@@ -256,7 +256,7 @@ public class DataField extends LinkedHashMap<String, Object> {
 		final Map<String, GraphObject> columns = new LinkedHashMap<>();
 		final String dataSourceName            = getColumnDataSource();
 		final String label                     = getLabel();
-		final Channel<GraphObject> channel     = Channel.forName(renderContext.getSecurityContext(), config, dataSourceName);
+		final Channel<GraphObject> channel     = Channel.forName(config, dataSourceName);
 
 		if (channel != null) {
 
