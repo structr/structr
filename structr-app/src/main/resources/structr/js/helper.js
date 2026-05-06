@@ -1235,6 +1235,7 @@ let _Console = new (function() {
 			name: 'structr-console',
 			height: 470,
 			prompt: prompt + '> ',
+			enabled: false,
 			keydown: (e) => {
 
 				let event = e.originalEvent;
@@ -1307,6 +1308,16 @@ let _Console = new (function() {
 		_terminal.echo(message);
 
 		_initialized = true;
+
+		// hijack enable function to only enable when we deem it ok
+		// before, terminal was auto-enabling after session timeout
+		// and messed with the login form (tab/enter and all characters applied to term)
+		let originalEnable = _terminal.enable;
+		_terminal.enable = () => {
+			if (_initialized) {
+				originalEnable();
+			}
+		}
 	};
 
 	this.toggleConsole = () => (_consoleVisible === true) ? _hideConsole() : _showConsole();

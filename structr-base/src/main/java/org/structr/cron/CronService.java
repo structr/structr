@@ -124,7 +124,16 @@ public class CronService extends Thread implements RunnableService {
 											if (!taskClassName.contains(".")) {
 
 												// check for user-defined function with the given name
-												Actions.callWithSecurityContext(taskClassName, superUserSecurityContext, Collections.EMPTY_MAP, "cron");
+												final AbstractMethod method = Methods.resolveMethod(null, taskClassName);
+
+												if (method != null) {
+
+													method.execute(new ActionContext(superUserSecurityContext), null, new NamedArguments());
+
+												} else {
+
+													logger.warn("Unable to run cron task '{}'. No user-defined method '{}' found!", taskClassName, taskClassName);
+												}
 
 											} else {
 
@@ -141,7 +150,7 @@ public class CronService extends Thread implements RunnableService {
 
 														if (method != null) {
 
-															method.execute(new ActionContext(superUserSecurityContext), null,  new NamedArguments());
+															method.execute(new ActionContext(superUserSecurityContext), null, new NamedArguments());
 
 														} else {
 

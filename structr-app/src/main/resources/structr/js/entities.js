@@ -494,7 +494,7 @@ let _Entities = {
 
 					if (!entity.hasOwnProperty('relType')) {
 						let tabContent = _Entities.appendPropTab(entity, mainTabs, contentEl, 'permissions', 'Security', false);
-						_Entities.accessControlDialog(entity, $(tabContent), typeInfo);
+						_Entities.accessControlDialog(entity, $(tabContent));
 					}
 
 					activeView = activeViewOverride || LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${entity.id}`) || activeView;
@@ -1652,7 +1652,7 @@ let _Entities = {
 			_Entities.showAccessControlDialog(entity);
 		});
 	},
-	accessControlDialog: (entity, container, typeInfo) => {
+	accessControlDialog: (entity, container) => {
 
 		let id = entity.id;
 		let requiredAttributesForPrincipals = 'id,name,eMail,type,isGroup,isAdmin,blocked';
@@ -1660,48 +1660,56 @@ let _Entities = {
 		let handleGraphObject = (entity) => {
 
 			let allowRecursive = (entity.type === 'Template' || entity.isFolder || (Structr.isModuleActive(_Pages) && !(entity.isContent)));
-			let owner_select_id = 'owner_select_' + id;
 			container.append(`
-				<h3>Owner</h3>
-				<div>
-					<select id="${owner_select_id}"></select>
+				<div class="pt-4 pb-6">
+					<div class="font-bold pb-3 text-xl">Owner</div>
+					<div>
+						<select  data-is-owner-select></select>
+					</div>
 				</div>
-				<h3>Visibility</h3>
-				<div class="security-container">
-					${allowRecursive ? '<div><input id="recursive" type="checkbox" name="recursive"><label for="recursive">Apply visibility switches recursively</label></div><br>' : ''}
+				<div class="pb-6">
+					<div class="font-bold pb-3 text-xl">Visibility</div>
+					<div class="px-2" data-is-security-container>
+						${allowRecursive ? '<label class="mb-4 flex items-center"><input id="recursive-visibility" type="checkbox">Apply visibility switches recursively</label>' : ''}
+					</div>
 				</div>
-				<h3>Access Rights</h3>
-				<table class="props" id="principals">
-					<thead>
-						<tr>
-							<th>Name</th>
-							<th>Read</th>
-							<th>Write</th>
-							<th>Delete</th>
-							<th>Access Control</th>
-							${allowRecursive ? '<th></th>' : ''}
-						</tr>
-					</thead>
-					<tbody>
-						<tr id="new">
-							<td class="relative">
-								<select style="z-index: 999" id="newPrincipal">
-									<option></option>
-								</select>
-							</td>
-							<td></td>
-							<td></td>
-							<td></td>
-							<td></td>
-							${allowRecursive ? '<td></td>' : ''}
-						</tr>
-					</tbody>
-				</table>
+				<div class="pb-6">
+					<div class="font-bold pb-3 text-xl">Access Rights</div>
+					<div class="px-2">
+						${allowRecursive ? '<label class="mb-4 flex items-center"><input data-structr-apply-access-rights-recursively type="checkbox">Apply access rights changes recursively</label>' : ''}
+						<table class="props" id="principals">
+							<thead>
+								<tr>
+									<th>Name</th>
+									<th>Read</th>
+									<th>Write</th>
+									<th>Delete</th>
+									<th>Access Control</th>
+									${allowRecursive ? '<th></th>' : ''}
+								</tr>
+							</thead>
+							<tbody>
+								<tr id="new">
+									<td class="relative">
+										<select style="z-index: 999" data-is-grantee-select>
+											<option></option>
+										</select>
+									</td>
+									<td></td>
+									<td></td>
+									<td></td>
+									<td></td>
+									${allowRecursive ? '<td></td>' : ''}
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
 			`);
 
-			let securityContainer = container.find('.security-container');
-			_Entities.appendBooleanSwitch(securityContainer, entity, 'visibleToPublicUsers', ['Visible to public users', 'Not visible to public users'], 'Click to toggle visibility for users not logged-in', '#recursive');
-			_Entities.appendBooleanSwitch(securityContainer, entity, 'visibleToAuthenticatedUsers', ['Visible to auth. users', 'Not visible to auth. users'], 'Click to toggle visibility to logged-in users', '#recursive');
+			let securityContainer = container.find('[data-is-security-container]');
+			_Entities.appendBooleanSwitch(securityContainer, entity, 'visibleToPublicUsers', ['Visible to public users', 'Not visible to public users'], 'Click to toggle visibility for users not logged-in', '#recursive-visibility');
+			_Entities.appendBooleanSwitch(securityContainer, entity, 'visibleToAuthenticatedUsers', ['Visible to auth. users', 'Not visible to auth. users'], 'Click to toggle visibility to logged-in users', '#recursive-visibility');
 
 			fetch(`${Structr.rootUrl}${entity.type}/${entity.id}/in`).then(async response => {
 
@@ -1730,8 +1738,8 @@ let _Entities = {
 				}
 			})
 
-			let ownerSelect      = $('#' + owner_select_id, container);
-			let granteeSelect    = $('#newPrincipal', container);
+			let ownerSelect      = $('[data-is-owner-select]', container);
+			let granteeSelect    = $('[data-is-grantee-select]', container);
 			let spinnerIcon      = _Helpers.createSingleDOMElementFromHTML(_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, ['absolute', 'right-0', 'fill-green']));
 			granteeSelect.parent()[0].appendChild(spinnerIcon);
 
@@ -1800,7 +1808,7 @@ let _Entities = {
 				}).on('select2:select', function(e) {
 
 					let principalId = e.params.data.id;
-					let recursive   = container[0].querySelector('#recursive')?.checked ?? false;
+					let recursive   = container[0].querySelector('[data-structr-apply-access-rights-recursively]')?.checked ?? false;
 
 					Command.setPermission(entity.id, principalId, 'grant', 'read', recursive);
 
@@ -1863,7 +1871,7 @@ let _Entities = {
 	},
 	addPrincipal: (entity, principal, permissions, allowRecursive, container) => {
 
-		$(`#newPrincipal option[value="${principal.id}"]`, container).remove();
+		$(`[data-is-grantee-select] option[value="${principal.id}"]`, container).remove();
 
 		if ($(`#principals ._${principal.id}`, container).length > 0) {
 			return;
@@ -1894,12 +1902,12 @@ let _Entities = {
 
 				if (!$('input:checked', row).length) {
 
-					$('#newPrincipal', container).append(_Entities.templateForPrincipalOption(principal));
+					$('[data-is-grantee-select]', container).append(_Entities.templateForPrincipalOption(principal));
 
 					row.remove();
 				}
 
-				let recursive = $('#recursive', container).is(':checked');
+				let recursive = container[0].querySelector('[data-structr-apply-access-rights-recursively]')?.checked ?? false;
 
 				Command.setPermission(entity.id, principal.id, permissions[perm] ? 'revoke' : 'grant', perm, recursive, () => {
 
