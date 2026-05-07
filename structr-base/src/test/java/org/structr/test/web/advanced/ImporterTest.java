@@ -572,7 +572,7 @@ public class ImporterTest extends StructrUiTest {
 			final Page page      = Page.createNewPage(securityContext, "compareFragmentParsing");
 			final DOMNode parent = page.createElement("div");
 
-			Widget.expandWidget(securityContext, page, parent, "http://localhost", Map.of("source", source), false);
+			Widget.expandWidget(page, parent, "http://localhost", Map.of("source", source), false);
 
 			return parent.getFirstChild().getContent(RenderContext.EditMode.NONE);
 

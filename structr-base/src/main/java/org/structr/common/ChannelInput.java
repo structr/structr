@@ -30,7 +30,7 @@ import java.util.Objects;
 
 public class ChannelInput implements Predicate<GraphObject> {
 
-	private final List<SortInfo> sortInfos = new LinkedList<>();
+	private final List<SortInfo> sortInfos         = new LinkedList<>();
 	private final List<DataField> searchableFields = new LinkedList<>();
 	private final String filter;
 	private final String transform;

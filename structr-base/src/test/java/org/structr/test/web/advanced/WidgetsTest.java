@@ -863,7 +863,7 @@ public class WidgetsTest extends DeploymentTestBase {
 		// create temporary parent for Widget to expand in
 		final DOMNode tmpParent = page.createElement("div");
 
-		Widget.expandWidget(securityContext, page, tmpParent, null, data, false);
+		Widget.expandWidget(page, tmpParent, null, data, false);
 
 		// move children
 		for (final DOMNode newNode : tmpParent.getChildren()) {

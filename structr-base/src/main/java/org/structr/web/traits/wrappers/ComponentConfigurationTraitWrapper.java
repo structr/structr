@@ -73,7 +73,7 @@ public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper
 
 		if (dataSource == null) {
 
-			dataSource = Channel.forName(getSecurityContext(), this, getDataSourceName());
+			dataSource = Channel.forName(this, getDataSourceName());
 			if (dataSource != null) {
 
 				// step 2: cache data source

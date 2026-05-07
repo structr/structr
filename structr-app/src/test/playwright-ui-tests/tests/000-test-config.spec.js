@@ -75,7 +75,7 @@ test('config', async ({page}) => {
     await page.screenshot({path: 'screenshots/config_database-connection-established.png'});
 
     // Logout
-    await page.getByRole('link', {name: 'Logout'}).click();
+    await page.locator('#logout-form button[type="submit"]').click();
 
 
 });

@@ -327,7 +327,7 @@ public class Deployment3Test extends DeploymentTestBase {
 			paramMap.put("source",                widgetToImport.getProperty(Traits.of(StructrTraits.WIDGET).key(WidgetTraitDefinition.SOURCE_PROPERTY)));
 			paramMap.put("processDeploymentInfo", true);
 
-			Widget.expandWidget(securityContext, testPage, div, baseUri, paramMap, true);
+			Widget.expandWidget(testPage, div, baseUri, paramMap, true);
 
 			makePublic(testPage, html,head, body, div, div2);
 
@@ -400,8 +400,8 @@ public class Deployment3Test extends DeploymentTestBase {
 			paramMap.put("source",                widgetToImport.getProperty(Traits.of(StructrTraits.WIDGET).key(WidgetTraitDefinition.SOURCE_PROPERTY)));
 			paramMap.put("processDeploymentInfo", false);
 
-			Widget.expandWidget(securityContext, testPage, div, baseUri, paramMap, false);
-			Widget.expandWidget(securityContext, testPage, div, baseUri, paramMap, false);
+			Widget.expandWidget(testPage, div, baseUri, paramMap, false);
+			Widget.expandWidget(testPage, div, baseUri, paramMap, false);
 
 			makePublic(testPage, html,head, body, div, div2);
 

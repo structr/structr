@@ -48,7 +48,7 @@ test('configuration-interface', async ({page}) => {
     await page.screenshot({path: 'screenshots/configuration-interface.png'});
 
     // Logout
-    await page.getByRole('link', {name: 'Logout'}).click();
+    await page.locator('#logout-form button[type="submit"]').click();
     await page.waitForTimeout(1000);
 
 });

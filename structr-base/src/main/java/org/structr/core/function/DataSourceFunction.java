@@ -41,7 +41,7 @@ public class DataSourceFunction extends AdvancedScriptingFunction {
 		// data source name?
 		if (firstArgument instanceof String dataSourceName) {
 
-			channel = Channel.forName(ctx.getSecurityContext(), null, dataSourceName);
+			channel = Channel.forName(null, dataSourceName);
 		}
 
 		// alternative: allow passing a data source directly
