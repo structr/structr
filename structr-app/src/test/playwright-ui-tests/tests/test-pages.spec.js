@@ -38,6 +38,10 @@ test('pages', async ({page}) => {
     await page.waitForTimeout(1000);
     await page.screenshot({path: 'screenshots/pages.png'});
 
+    // enable page preview edit features
+    await page.locator('#ui-settings-popup button').click();
+    await page.getByText('Enable edit features in page').click();
+
     // Open import dialog and create a screenshot
     await page.locator('#create_page').click();
     await page.waitForTimeout(1000);
@@ -106,8 +110,6 @@ test('pages', async ({page}) => {
 
     // create simple table widget
     await page.locator('svg.add_widgets_icon').click();
-    await page.locator('#uncategorized_local_folder div').click({ button: 'right'});
-    await page.getByText('Edit', { exact: true }).click();
     await page.locator('.view-lines').first().click();
     await page.keyboard.type("<div data-structr-meta-name=\"Simple Table Widget\" class=\"overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg\">\n" +
         "<table class=\"min-w-full divide-y divide-gray-300\">\n" +

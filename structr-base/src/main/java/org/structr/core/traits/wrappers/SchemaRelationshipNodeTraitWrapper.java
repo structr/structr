@@ -314,38 +314,7 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 
 		final String propertyName = SchemaProperty.getPropertyName(existingPropertyNames, outgoing, relationshipTypeName, _sourceType, _targetType, _targetJsonName, _targetMultiplicity, _sourceJsonName, _sourceMultiplicity);
 
-		try {
-			if (outgoing) {
-
-				if (_targetJsonName == null) {
-
-					setPreviousTargetJsonName(propertyName);
-				}
-
-			} else {
-
-				if (_sourceJsonName == null) {
-
-					setPreviousSourceJsonName(propertyName);
-				}
-			}
-
-		} catch (FrameworkException fex) {
-
-			logger.warn("", fex);
-		}
-
 		return propertyName;
-	}
-
-	@Override
-	public void setPreviousSourceJsonName(final String propertyName) throws FrameworkException {
-		wrappedObject.setProperty(traits.key(SchemaRelationshipNodeTraitDefinition.PREVIOUS_SOURCE_JSON_NAME_PROPERTY), propertyName);
-	}
-
-	@Override
-	public void setPreviousTargetJsonName(final String propertyName) throws FrameworkException {
-		wrappedObject.setProperty(traits.key(SchemaRelationshipNodeTraitDefinition.PREVIOUS_TARGET_JSON_NAME_PROPERTY), propertyName);
 	}
 
 	@Override
@@ -473,45 +442,45 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 		return new ObjectNotion();
 	}
 
-	private String getBaseType() {
-
-		final String _sourceMultiplicity = getSourceMultiplicity();
-		final String _targetMultiplicity = getTargetMultiplicity();
-		final String _sourceType         = getSchemaNodeSourceType();
-		final String _targetType         = getSchemaNodeTargetType();
-		final StringBuilder buf          = new StringBuilder();
-
-		if ("1".equals(_sourceMultiplicity)) {
-
-			if ("1".equals(_targetMultiplicity)) {
-
-				buf.append("OneToOne");
-
-			} else {
-
-				buf.append("OneToMany");
-			}
-
-		} else {
-
-			if ("1".equals(_targetMultiplicity)) {
-
-				buf.append("ManyToOne");
-
-			} else {
-
-				buf.append("ManyToMany");
-			}
-		}
-
-		buf.append("<");
-		buf.append(_sourceType);
-		buf.append(", ");
-		buf.append(_targetType);
-		buf.append(">");
-
-		return buf.toString();
-	}
+//	private String getBaseType() {
+//
+//		final String _sourceMultiplicity = getSourceMultiplicity();
+//		final String _targetMultiplicity = getTargetMultiplicity();
+//		final String _sourceType         = getSchemaNodeSourceType();
+//		final String _targetType         = getSchemaNodeTargetType();
+//		final StringBuilder buf          = new StringBuilder();
+//
+//		if ("1".equals(_sourceMultiplicity)) {
+//
+//			if ("1".equals(_targetMultiplicity)) {
+//
+//				buf.append("OneToOne");
+//
+//			} else {
+//
+//				buf.append("OneToMany");
+//			}
+//
+//		} else {
+//
+//			if ("1".equals(_targetMultiplicity)) {
+//
+//				buf.append("ManyToOne");
+//
+//			} else {
+//
+//				buf.append("ManyToMany");
+//			}
+//		}
+//
+//		buf.append("<");
+//		buf.append(_sourceType);
+//		buf.append(", ");
+//		buf.append(_targetType);
+//		buf.append(">");
+//
+//		return buf.toString();
+//	}
 
 	@Override
 	public void resolveCascadingEnums(final JsonSchema.Cascade delete, final JsonSchema.Cascade autoCreate) throws FrameworkException {
@@ -659,16 +628,6 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 	@Override
 	public Long getCascadingDeleteFlag() {
 		return wrappedObject.getProperty(traits.key(SchemaRelationshipNodeTraitDefinition.CASCADING_DELETE_FLAG_PROPERTY));
-	}
-
-	@Override
-	public String getPreviousSourceJsonName() {
-		return wrappedObject.getProperty(traits.key(SchemaRelationshipNodeTraitDefinition.PREVIOUS_SOURCE_JSON_NAME_PROPERTY));
-	}
-
-	@Override
-	public String getPreviousTargetJsonName() {
-		return wrappedObject.getProperty(traits.key(SchemaRelationshipNodeTraitDefinition.PREVIOUS_TARGET_JSON_NAME_PROPERTY));
 	}
 
 	@Override
@@ -856,18 +815,18 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 	*/
 
 	// ----- nested classes -----
-	private static class KeyMatcher implements Predicate<String> {
-
-		@Override
-		public boolean accept(final String t) {
-
-			if (ValidKeyPattern.matcher(t).matches()) {
-				return true;
-			}
-
-			logger.warn("Invalid key name {} for notion.", t);
-
-			return false;
-		}
-	}
+//	private static class KeyMatcher implements Predicate<String> {
+//
+//		@Override
+//		public boolean accept(final String t) {
+//
+//			if (ValidKeyPattern.matcher(t).matches()) {
+//				return true;
+//			}
+//
+//			logger.warn("Invalid key name {} for notion.", t);
+//
+//			return false;
+//		}
+//	}
 }
