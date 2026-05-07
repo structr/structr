@@ -22,6 +22,7 @@ import io.restassured.RestAssured;
 import org.hamcrest.Matchers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
@@ -489,6 +490,57 @@ public class RepeaterTest extends StructrUiTest {
 				.body("html.body.div",                            Matchers.equalTo("admin"))
 				.when()
 				.get("/html/page1");
+	}
+
+	@Test
+	public void testFunctionRepeaterIsNotExecutedIfShowConditionIsFalse() {
+
+		final String expectedOutput = "This text should be rendered! The previous repeater (with an assert) should NOT be run because it has showCondition=false!";
+
+		final boolean indent = Settings.HtmlIndentation.getValue();
+		Settings.HtmlIndentation.setValue(false);
+
+		try (final Tx tx = app.tx()) {
+
+			final Page page1     = Page.createSimplePage(securityContext, "page1");
+			final DOMNode div    = page1.getElementsByTagName("div").get(0);
+			final Content content = div.getFirstChild().as(Content.class);
+			div.removeChild(content);
+
+			final DOMNode innerDiv = page1.createElement("div");
+			div.appendChild(innerDiv);
+
+			innerDiv.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.SHOW_CONDITIONS_PROPERTY), "false");
+			innerDiv.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), "assert(false, 422, 'This code should never run!')");
+			innerDiv.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY),       "test");
+
+			div.appendChild(page1.createTextNode(expectedOutput));
+
+			createAdminUser();
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		RestAssured.basePath = "/";
+
+		RestAssured
+				.given()
+				.header(X_USER_HEADER,     ADMIN_USERNAME)
+				.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
+				.expect()
+				.statusCode(200)
+				.body("html.head.title",                          Matchers.equalTo("Page1"))
+				.body("html.body.h1",                             Matchers.equalTo("Page1"))
+				.body("html.body.div",                            Matchers.equalTo(expectedOutput))
+				.when()
+				.get("/html/page1");
+
+		Settings.HtmlIndentation.setValue(indent);
 	}
 
 	protected DOMElement createElement(final Page page, final DOMNode parent, final String tag, final String... content) throws FrameworkException {
