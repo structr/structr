@@ -48,7 +48,7 @@ public class GetAvailableLogFilesCommand extends AbstractCommand {
 		try {
 
 			final GraphObjectMap result = new GraphObjectMap();
-			result.setProperty(new ArrayProperty("result", String.class), GetAvailableServerLogsFunction.getListOfServerlogFileNames().toArray());
+			result.setProperty(new ArrayProperty<>("result", String.class), GetAvailableServerLogsFunction.getListOfServerlogFileNames().toArray());
 
 			webSocketData.setResult(List.of(result));
 
@@ -56,7 +56,7 @@ public class GetAvailableLogFilesCommand extends AbstractCommand {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("Exception occured", fex);
+			logger.warn("Exception occurred", fex);
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 		}
 	}

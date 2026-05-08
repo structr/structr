@@ -1383,17 +1383,13 @@ let Command = {
 	/**
      * Requests log snapshot from the server.
      */
-    getServerLogSnapshot: (numberOfLines, truncateLinesAfter, logFileName) => {
+    getServerLogSnapshot: (config) => {
 
 		return new Promise((resolve, reject) => {
 
 			let obj  = {
 				command: 'SERVER_LOG',
-				data: {
-					numberOfLines:      numberOfLines,
-					truncateLinesAfter: truncateLinesAfter,
-					logFileName:        logFileName
-				}
+				data: config
 			};
 
 			StructrWS.sendObj(obj, resolve);
