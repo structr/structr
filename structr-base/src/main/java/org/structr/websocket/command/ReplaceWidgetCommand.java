@@ -114,7 +114,7 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 		final DOMNode parentNode = nodeToReplace.getParent();
 
 		// expand Widget
-		Widget.expandWidget(securityContext, page, tmpParent, baseUrl, data, processDeploymentInfo);
+		Widget.expandWidget(page, tmpParent, baseUrl, data, processDeploymentInfo);
 
 		// get Widget node (can only be a single node!)
 		final DOMNode newNode = tmpParent.getFirstChild();

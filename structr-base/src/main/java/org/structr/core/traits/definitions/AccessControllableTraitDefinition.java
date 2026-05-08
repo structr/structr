@@ -555,8 +555,26 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 								if (mask.allowsPermission(permission)) {
 
 									final NodeInterface otherNode = source.getOtherNode(node);
+									boolean isAllowed             = false;
 
-									if (isGranted(otherNode, permission, principal, mask, level + 1, alreadyTraversed, false, doLog, isCreation)) {
+									// check visibility flags ONLY FOR READ
+									if (Permission.read.equals(permission)) {
+
+										if (principal != null && otherNode.isVisibleToAuthenticatedUsers()) {
+											isAllowed = true;
+										}
+
+										if (principal == null && otherNode.isVisibleToPublicUsers()) {
+											isAllowed = true;
+										}
+									}
+
+									// if visibility flag check was unsuccessful, do full check
+									if (!isAllowed) {
+										isAllowed = isGranted(otherNode, permission, principal, mask, level + 1, alreadyTraversed, false, doLog, isCreation);
+									}
+
+									if (isAllowed) {
 
 										storePermissionResolutionResult(otherNode, principal.getUuid(), permission, true);
 

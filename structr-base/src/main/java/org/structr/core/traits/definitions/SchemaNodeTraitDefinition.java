@@ -197,7 +197,7 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					if (input != null) {
 
 						final List<SortInfo> sortKeys = input.sortKeys();
-						if (sortKeys != null) {
+						if (sortKeys != null && !sortKeys.isEmpty()) {
 
 							for (final SortInfo sortInfo : sortKeys) {
 

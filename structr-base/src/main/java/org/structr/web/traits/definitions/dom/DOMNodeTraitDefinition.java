@@ -209,6 +209,10 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 						return;
 					}
 
+					if (!node.shouldBeRendered(renderContext)) {
+						return;
+					}
+
 					/*
 					// special handling for tree items that explicitly opt-in to be controlled automatically, configured with the toggle-tree-item event.
 					final String treeItemDataKey = thisNode.getProperty(StructrApp.key(DOMElement.class, "data-structr-tree-children"));

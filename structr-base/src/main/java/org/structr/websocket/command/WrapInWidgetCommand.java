@@ -113,7 +113,7 @@ public class WrapInWidgetCommand extends AbstractCommand {
 		final String destinationSlot = (String) data.get("destinationSlot");
 
 		// expand Widget
-		Widget.expandWidget(securityContext, page, tmpParent, baseUrl, data, processDeploymentInfo);
+		Widget.expandWidget(page, tmpParent, baseUrl, data, processDeploymentInfo);
 
 		// get Widget node (can only be a single node!)
 		final DOMNode newNode = tmpParent.getFirstChild();

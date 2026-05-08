@@ -57,7 +57,16 @@ public class TestHelper {
 
 		requiredAttributes.put(StructrTraits.LOCALIZATION, List.of(LocalizationTraitDefinition.LOCALE_PROPERTY));
 		requiredAttributes.put(StructrTraits.RESOURCE_ACCESS, Arrays.asList(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY, "i:" + ResourceAccessTraitDefinition.FLAGS_PROPERTY));
-		requiredAttributes.put(StructrTraits.SCHEMA_RELATIONSHIP_NODE, Arrays.asList(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY, SchemaRelationshipNodeTraitDefinition.SOURCE_TYPE_PROPERTY, SchemaRelationshipNodeTraitDefinition.TARGET_TYPE_PROPERTY));
+
+		requiredAttributes.put(StructrTraits.SCHEMA_RELATIONSHIP_NODE, Arrays.asList(
+				SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY,
+				SchemaRelationshipNodeTraitDefinition.SOURCE_TYPE_PROPERTY,
+				SchemaRelationshipNodeTraitDefinition.TARGET_TYPE_PROPERTY,
+				SchemaRelationshipNodeTraitDefinition.SOURCE_JSON_NAME_PROPERTY,
+				SchemaRelationshipNodeTraitDefinition.TARGET_JSON_NAME_PROPERTY,
+				"mult:" + SchemaRelationshipNodeTraitDefinition.SOURCE_MULTIPLICITY_PROPERTY,
+				"mult:" + SchemaRelationshipNodeTraitDefinition.TARGET_MULTIPLICITY_PROPERTY
+		));
 
 		// insert required attributes specified by test class
 		if (additionalRequiredAttributes != null) {
@@ -250,6 +259,12 @@ public class TestHelper {
 
 					body.append(key.substring(5));
 					body.append(": \"de\"");
+
+				// enum with multiplicity
+				} else if (key.startsWith("mult:")) {
+
+					body.append(key.substring(5));
+					body.append(": \"*\"");
 
 				} else {
 
