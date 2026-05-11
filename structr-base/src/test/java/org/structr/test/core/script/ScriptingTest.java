@@ -1898,6 +1898,15 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid sort result", "[A-nice-little-name-for-my-test-object, testThree_name, testTwo_name]", Scripting.replaceVariables(ctx, testOne, "${extract(sort(merge(this.testTwo, this, this.testThree), 'name'), 'name')}"));
 			assertEquals("Invalid sort result", "[A-nice-little-name-for-my-test-object, testThree_name, testTwo_name]", Scripting.replaceVariables(ctx, testOne, "${extract(sort(merge(this.testTwo, this.testThree, this), 'name'), 'name')}"));
 
+			// sort without sortKey, ensure default "name" is used (ascending)
+			assertEquals("Invalid sort result", "[A-nice-little-name-for-my-test-object, testThree_name, testTwo_name]", Scripting.replaceVariables(ctx, testOne, "${extract(sort(merge(this, this.testTwo, this.testThree)), 'name')}"));
+			assertEquals("Invalid sort result", "[A-nice-little-name-for-my-test-object, testThree_name, testTwo_name]", Scripting.replaceVariables(ctx, testOne, "${extract(sort(merge(this.testTwo, this, this.testThree)), 'name')}"));
+			assertEquals("Invalid sort result", "[A-nice-little-name-for-my-test-object, testThree_name, testTwo_name]", Scripting.replaceVariables(ctx, testOne, "${extract(sort(merge(this.testTwo, this.testThree, this)), 'name')}"));
+			// sort without sortKey, ensure default "name" is used (descending)
+			assertEquals("Invalid sort result", "[testTwo_name, testThree_name, A-nice-little-name-for-my-test-object]", Scripting.replaceVariables(ctx, testOne, "${extract(sort(merge(this, this.testTwo, this.testThree), null, true), 'name')}"));
+			assertEquals("Invalid sort result", "[testTwo_name, testThree_name, A-nice-little-name-for-my-test-object]", Scripting.replaceVariables(ctx, testOne, "${extract(sort(merge(this.testTwo, this, this.testThree), null, true), 'name')}"));
+			assertEquals("Invalid sort result", "[testTwo_name, testThree_name, A-nice-little-name-for-my-test-object]", Scripting.replaceVariables(ctx, testOne, "${extract(sort(merge(this.testTwo, this.testThree, this), null, true), 'name')}"));
+
 			// sort with a Set as input
 			assertEquals("Invalid ascending sort result for Set input", "[IS_AT, MANY_TO_MANY, OWNS]", Scripting.replaceVariables(ctx, testOne, "${sort(getRelationshipTypes(this))}"));
 			assertEquals("Invalid descending sort result for Set input", "[OWNS, MANY_TO_MANY, IS_AT]", Scripting.replaceVariables(ctx, testOne, "${sort(getRelationshipTypes(this), '', true)}"));
