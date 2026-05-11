@@ -244,7 +244,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 			// Call afterAcmeChallenge lifecycle method to allow cleanup (e.g. DNS record removal) and notifications
 			try {
 
-				Actions.callWithSecurityContext(Actions.NOTIFICATION_AFTER_ACME_CHALLENGE, SecurityContext.getSuperUserInstance(), Map.of("success", success, "errors", errorMessages), "letsencrypt");
+				Actions.callWithSecurityContext(Actions.NOTIFICATION_AFTER_ACME_CHALLENGE, SecurityContext.getSuperUserInstance(), Map.of("success", success, "errors", errorMessages));
 
 			} catch (FrameworkException fex) {
 
@@ -759,7 +759,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 		final String record = ACME_DNS_CHALLENGE_PREFIX + domain + ACME_DNS_CHALLENGE_SUFFIX;
 		final String digest = challenge.get().getDigest();
 
-		final Object result = Actions.callWithSecurityContext(Actions.NOTIFICATION_ON_ACME_CHALLENGE, SecurityContext.getSuperUserInstance(), Map.of("type", "dns", "domain", domain, "record", record, "digest", digest), "letsencrypt");
+		final Object result = Actions.callWithSecurityContext(Actions.NOTIFICATION_ON_ACME_CHALLENGE, SecurityContext.getSuperUserInstance(), Map.of("type", "dns", "domain", domain, "record", record, "digest", digest));
 		if (result == null) {
 
 			publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Lifecycle method 'onAcmeChallenge' not found! Within the next " + waitForSeconds + " seconds, create a DNS record for " + domain + " with the following data: Name: '" + record + "', Type: 'TXT', Value: '" + digest + "'");

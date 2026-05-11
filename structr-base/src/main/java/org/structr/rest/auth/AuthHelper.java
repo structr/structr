@@ -364,7 +364,7 @@ public class AuthHelper {
 		final Map<String, Object> params = new HashMap<>();
 		params.put("user", user);
 
-		Actions.callAsSuperUser(Actions.NOTIFICATION_ON_LOGIN, params, request, "auth");
+		Actions.callAsSuperUser(Actions.NOTIFICATION_ON_LOGIN, params, request);
 	}
 
 	public static void sendLogoutNotification (final Principal user, final HttpServletRequest request) throws FrameworkException {
@@ -372,7 +372,7 @@ public class AuthHelper {
 		final Map<String, Object> params = new HashMap<>();
 		params.put("user", user);
 
-		Actions.callAsSuperUser(Actions.NOTIFICATION_ON_LOGOUT, params, request, "auth");
+		Actions.callAsSuperUser(Actions.NOTIFICATION_ON_LOGOUT, params, request);
 	}
 
 	/**
