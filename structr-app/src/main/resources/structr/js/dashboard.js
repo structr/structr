@@ -26,7 +26,7 @@ let _Dashboard = {
 
 	init: () => {},
 	unload: () => {
-		_Dashboard.tabs['server-log'].stop();
+		_Dashboard.tabs.logs.stop();
 	},
 	onload: async (retryCount = 0) => {
 
@@ -282,14 +282,13 @@ let _Dashboard = {
 					_Dashboard.tabs[activeSubModule]?.onHide?.();
 				}
 
-				let targetId = '#dashboard-' + subModule;
 				window.location.hash = urlHash;
 
 				removeActiveClass(document.querySelectorAll('#dashboard .tabs-contents .tab-content'));
 				removeActiveClass(Structr.functionBar.querySelectorAll('.tabs-menu li'));
 
 				e.target.closest('li').classList.add('active');
-				document.querySelector(targetId).classList.add('active');
+				document.querySelector(`[data-module-name="${subModule}"]`).classList.add('active');
 				LSWrapper.setItem(_Dashboard.activeTabPrefixKey, subModule);
 
 				_Dashboard.tabs[subModule].onShow();
@@ -328,17 +327,17 @@ let _Dashboard = {
 	},
 
 	tabs: {
-		'about-me': {
+		me: {
 			onShow: async () => {},
 			onHide: async () => {},
 			init: () => {}
 		},
-		'about-structr': {
+		about: {
 			onShow: async () => {},
 			onHide: async () => {},
 			init: (dashboardUiConfig) => {
-				_Dashboard.tabs['about-structr'].gatherVersionUpdateInfo(dashboardUiConfig.envInfo);
-				_Dashboard.tabs['about-structr'].checkLicenseEnd(dashboardUiConfig.envInfo, $('#dashboard-about-structr .end-date'), { noSpan: true });
+				_Dashboard.tabs.about.gatherVersionUpdateInfo(dashboardUiConfig.envInfo);
+				_Dashboard.tabs.about.checkLicenseEnd(dashboardUiConfig.envInfo, $('#dashboard-about-structr .end-date'), { noSpan: true });
 			},
 			gatherVersionUpdateInfo: async (envInfo) => {
 
@@ -1139,7 +1138,7 @@ let _Dashboard = {
 			},
 			templates: {
 				tabContent: config => `
-					<div class="tab-content" id="dashboard-deployment">
+					<div class="tab-content" id="dashboard-deployment" data-module-name="deployment">
 
 						${_Dashboard.tabs.deployment.wizard.templates.ui()}
 
@@ -1375,23 +1374,39 @@ let _Dashboard = {
 			onShow: async () => {},
 			onHide: async () => {}
 		},
-		'server-log': {
+		logs: {
 			isInitialized: false,
-			refreshTimeIntervalKey: 'dashboardLogRefreshTimeInterval' + location.port,
-			numberOfLinesKey: 'dashboardNumberOfLines' + location.port,
-			truncateLinesAfterKey: 'dashboardTruncateLinesAfter' + location.port,
-			selectedLogFileKey: 'dashboardSelectedLogFile' + location.port,
-			defaultRefreshTimeIntervalMs: 1000,
+			configValues: {
+				refreshTimeInterval: {
+					lsKey: 'dashboardLogRefreshTimeInterval' + location.port,
+					default: 1000
+				},
+				numberOfLines: {
+					lsKey: 'dashboardNumberOfLines' + location.port,
+					default: 1000
+				},
+				truncateLinesAfter: {
+					lsKey: 'dashboardTruncateLinesAfter' + location.port,
+					default: -1
+				},
+				logFileName: {
+					lsKey: 'dashboardSelectedLogFile' + location.port
+				},
+				filter: {
+					lsKey: 'dashboardCurrentLogFilter' + location.port,
+					default: ''
+				}
+			},
 			defaultNumberOfLines: 1000,
 			defaultTruncateLinesAfter: -1,
 			intervalID: undefined,
 			textAreaHasFocus: false,
 			scrollEnabled: true,
 			onShow: async () => {
-				_Dashboard.tabs['server-log'].start();
+				_Dashboard.tabs.logs.start();
 			},
 			onHide: async () => {
-				_Dashboard.tabs['server-log'].stop();
+				_Dashboard.tabs.logs.stop();
 			},
 			getTimeIntervalSelect: () => document.querySelector('#dashboard-server-log-refresh-interval'),
 			getTruncateLinesAfterInput: () => document.querySelector('#dashboard-server-log-truncate-lines'),
@@ -1399,10 +1414,10 @@ let _Dashboard = {
 			getNumberOfLinesInput: () => document.querySelector('#dashboard-server-log-lines'),
 			getServerLogTextarea: () => document.querySelector('#dashboard-server-log textarea'),
 			getManualRefreshButton: () => document.querySelector('#dashboard-server-log-manual-refresh'),
-			getRefreshInterval: () => LSWrapper.getItem(_Dashboard.tabs['server-log'].refreshTimeIntervalKey, _Dashboard.tabs['server-log'].defaultRefreshTimeIntervalMs),
-			getNumberOfLines: () => LSWrapper.getItem(_Dashboard.tabs['server-log'].numberOfLinesKey, _Dashboard.tabs['server-log'].defaultNumberOfLines),
-			getTruncateLinesAfter: () => LSWrapper.getItem(_Dashboard.tabs['server-log'].truncateLinesAfterKey, _Dashboard.tabs['server-log'].defaultTruncateLinesAfter),
-			getSelectedLogFile: () => LSWrapper.getItem(_Dashboard.tabs['server-log'].selectedLogFileKey),
+			getRefreshInterval: () => LSWrapper.getItem(_Dashboard.tabs.logs.configValues.refreshTimeInterval.lsKey, _Dashboard.tabs.logs.configValues.refreshTimeInterval.default),
+			getNumberOfLines: () => LSWrapper.getItem(_Dashboard.tabs.logs.configValues.numberOfLines.lsKey, _Dashboard.tabs.logs.configValues.numberOfLines.default),
+			getTruncateLinesAfter: () => LSWrapper.getItem(_Dashboard.tabs.logs.configValues.truncateLinesAfter.lsKey, _Dashboard.tabs.logs.configValues.truncateLinesAfter.default),
+			getSelectedLogFile: () => LSWrapper.getItem(_Dashboard.tabs.logs.configValues.logFileName.lsKey),
 			setFeedback: (message) => {
 				let el = document.querySelector('#dashboard-server-log-feedback');
 				if (el) {
@@ -1411,29 +1426,56 @@ let _Dashboard = {
 			},
 			init: () => {
 
-				let textarea = _Dashboard.tabs['server-log'].getServerLogTextarea();
+				Command.getAvailableServerLogs().then(data => {
 
-				let initServerLogInput = (element, lsKey, defaultValue) => {
+					let logfiles = data.result;
 
-					element.value = LSWrapper.getItem(lsKey, defaultValue);
+					// sort the rolled logs in descending order
+					logfiles.push(...logfiles.splice(1, logfiles.length).reverse());
 
-					if (element.tagName === 'SELECT' && element.selectedIndex < 0) {
-						element.selectedIndex = 0;
+					let logFileSelect = _Dashboard.tabs.logs.getLogFileSelect();
+					for (let log of logfiles) {
+						logFileSelect.insertAdjacentHTML('beforeend', `<option>${log}</option>`);
 					}
 
-					element.addEventListener('change', (e) => {
+				}).then(() => {
 
-						LSWrapper.setItem(lsKey, e.target.value);
+					let updateFromEvent = (e, keyName) => {
 
-						_Dashboard.tabs['server-log'].updateSettings();
+						LSWrapper.setItem(_Dashboard.tabs.logs.configValues[keyName].lsKey, e.target.value);
+
+						_Dashboard.tabs.logs.updateSettings();
 
 						_Helpers.blinkGreen(e.target);
-					});
-				};
+					};
 
-				initServerLogInput(_Dashboard.tabs['server-log'].getTimeIntervalSelect(),      _Dashboard.tabs['server-log'].refreshTimeIntervalKey, _Dashboard.tabs['server-log'].defaultRefreshTimeIntervalMs);
-				initServerLogInput(_Dashboard.tabs['server-log'].getNumberOfLinesInput(),      _Dashboard.tabs['server-log'].numberOfLinesKey,       _Dashboard.tabs['server-log'].defaultNumberOfLines);
-				initServerLogInput(_Dashboard.tabs['server-log'].getTruncateLinesAfterInput(), _Dashboard.tabs['server-log'].truncateLinesAfterKey,  _Dashboard.tabs['server-log'].defaultTruncateLinesAfter);
+					// initialize all config fields
+					for (let element of document.querySelectorAll('#dashboard-server-log [data-property]')) {
+
+						let keyName = element.dataset.property;
+
+						element.value = LSWrapper.getItem(_Dashboard.tabs.logs.configValues[keyName].lsKey, _Dashboard.tabs.logs.configValues[keyName].default);
+
+						if (element.tagName === 'SELECT' && element.selectedIndex < 0) {
+							element.selectedIndex = 0;
+						}
+
+						if (element.type === 'search') {
+
+							element.addEventListener('search', (e) => {
+								updateFromEvent(e, keyName);
+							});
+						}
+
+						element.addEventListener('change', (e) => {
+							updateFromEvent(e, keyName);
+						});
+					}
+
+					_Dashboard.tabs.logs.isInitialized = true;
+				});
+
+				let textarea = _Dashboard.tabs.logs.getServerLogTextarea();
 
 				document.querySelector('#dashboard-server-log-copy').addEventListener('click', async () => {
 					await navigator.clipboard.writeText(textarea.textContent);
@@ -1443,16 +1485,16 @@ let _Dashboard = {
 					_Helpers.downloadFile([textarea.textContent], 'structr.log.txt', 'text/plain');
 				});
 
-				_Dashboard.tabs['server-log'].getManualRefreshButton().addEventListener('click', _Dashboard.tabs['server-log'].updateLog);
+				_Dashboard.tabs.logs.getManualRefreshButton().addEventListener('click', _Dashboard.tabs.logs.updateLog);
 
 				textarea.addEventListener('focus', () => {
-					_Dashboard.tabs['server-log'].textAreaHasFocus = true;
-					_Dashboard.tabs['server-log'].setFeedback('Text area has focus, refresh disabled until focus lost.');
+					_Dashboard.tabs.logs.textAreaHasFocus = true;
+					_Dashboard.tabs.logs.setFeedback('Text area has focus, refresh disabled until focus lost.');
 				});
 
 				textarea.addEventListener('blur', () => {
-					_Dashboard.tabs['server-log'].textAreaHasFocus = false;
-					_Dashboard.tabs['server-log'].setFeedback('');
+					_Dashboard.tabs.logs.textAreaHasFocus = false;
+					_Dashboard.tabs.logs.setFeedback('');
 				});
 
 				textarea.addEventListener('scroll', (event) => {
@@ -1460,73 +1502,53 @@ let _Dashboard = {
 					let maxScroll     = event.target.scrollHeight - 4;
 					let currentScroll = (event.target.scrollTop + event.target.offsetHeight);
 
-					_Dashboard.tabs['server-log'].scrollEnabled = (currentScroll >= maxScroll);
+					_Dashboard.tabs.logs.scrollEnabled = (currentScroll >= maxScroll);
 
-					let isScrolled = (false === _Dashboard.tabs['server-log'].scrollEnabled);
+					let isScrolled = (false === _Dashboard.tabs.logs.scrollEnabled);
 
-					_Dashboard.tabs['server-log'].getServerLogTextarea()?.parentNode?.classList.toggle('textarea-is-scrolled', isScrolled);
-				});
-
-				Command.getAvailableServerLogs().then(data => {
-
-					let logfiles = data.result;
-
-					// sort the rolled logs in descending order
-					logfiles.push(...logfiles.splice(1, logfiles.length).reverse());
-
-					let logFileSelect = _Dashboard.tabs['server-log'].getLogFileSelect();
-					for (let log of logfiles) {
-						logFileSelect.insertAdjacentHTML('beforeend', `<option>${log}</option>`);
-					}
-
-					initServerLogInput(_Dashboard.tabs['server-log'].getLogFileSelect(), _Dashboard.tabs['server-log'].selectedLogFileKey);
-
-					_Dashboard.tabs['server-log'].isInitialized = true;
+					_Dashboard.tabs.logs.getServerLogTextarea()?.parentNode?.classList.toggle('textarea-is-scrolled', isScrolled);
 				});
 			},
 			updateLog: () => {
 
-				if (false === _Dashboard.tabs['server-log'].textAreaHasFocus) {
+				if (false === _Dashboard.tabs.logs.textAreaHasFocus) {
 
-					let noOfLines     = _Dashboard.tabs['server-log'].getNumberOfLines();
-					let truncateAfter = _Dashboard.tabs['server-log'].getTruncateLinesAfter();
-					let logFile       = _Dashboard.tabs['server-log'].getSelectedLogFile();
+					let config             = _Helpers.collectPropertyDataFromContainerAndApplyToEntity(document.querySelector('#dashboard-server-log'));
+					let logFileForFeedback = config.logFileName ? `(${config.logFileName})` : '';
 
-					let logFileForFeedback = logFile ? `(${logFile})` : '';
+					_Dashboard.tabs.logs.setFeedback(`<span class="flex items-center">${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 18, 18, ['mr-2', 'fill-green'])}<span> Refreshing log file ${logFileForFeedback}...</span></span>`);
 
-					_Dashboard.tabs['server-log'].setFeedback(`<span class="flex items-center">${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 18, 18, ['mr-2', 'fill-green'])}<span> Refreshing log file ${logFileForFeedback}...</span></span>`);
+					Command.getServerLogSnapshot(config).then(log => {
 
-					Command.getServerLogSnapshot(noOfLines, truncateAfter, logFile).then(log => {
-
-						let textarea = _Dashboard.tabs['server-log'].getServerLogTextarea();
+						let textarea = _Dashboard.tabs.logs.getServerLogTextarea();
 						textarea.textContent = log[0].result;
 
-						if (_Dashboard.tabs['server-log'].scrollEnabled) {
+						if (_Dashboard.tabs.logs.scrollEnabled) {
 							textarea.scrollTop = textarea.scrollHeight;
 						}
 
 						window.setTimeout(() => {
-							_Dashboard.tabs['server-log'].setFeedback('');
+							_Dashboard.tabs.logs.setFeedback('');
 						}, 250);
 					});
 				}
 			},
 			updateSettings: () => {
 
-				_Dashboard.tabs['server-log'].stop();
+				_Dashboard.tabs.logs.stop();
 
-				let intervalMs    = _Dashboard.tabs['server-log'].getRefreshInterval();
+				let intervalMs    = _Dashboard.tabs.logs.getRefreshInterval();
 				let hasInterval   = (intervalMs > 0);
 
-				let manualRefreshButton = _Dashboard.tabs['server-log'].getManualRefreshButton();
+				let manualRefreshButton = _Dashboard.tabs.logs.getManualRefreshButton();
 				manualRefreshButton.classList.toggle('hidden', hasInterval);
 
 				// update once with the new settings
-				_Dashboard.tabs['server-log'].updateLog();
+				_Dashboard.tabs.logs.updateLog();
 
 				// initialize the interval
 				if (hasInterval) {
-					_Dashboard.tabs['server-log'].intervalID = window.setInterval(_Dashboard.tabs['server-log'].updateLog, intervalMs);
+					_Dashboard.tabs.logs.intervalID = window.setInterval(_Dashboard.tabs.logs.updateLog, intervalMs);
 				}
 			},
 			waitUntilInitialized: () => {
@@ -1534,7 +1556,7 @@ let _Dashboard = {
 				return new Promise(resolve => {
 
 					let fn = () => {
-						if (_Dashboard.tabs['server-log'].isInitialized) {
+						if (_Dashboard.tabs.logs.isInitialized) {
 							resolve();
 						} else {
 							window.setTimeout(fn, 100);
@@ -1546,25 +1568,87 @@ let _Dashboard = {
 			},
 			start: () => {
 
-				_Dashboard.tabs['server-log'].waitUntilInitialized().then(() => {
+				_Dashboard.tabs.logs.waitUntilInitialized().then(() => {
 
-					_Dashboard.tabs['server-log'].updateSettings();
+					_Dashboard.tabs.logs.updateSettings();
 				});
 			},
 			stop: () => {
-				window.clearInterval(_Dashboard.tabs['server-log'].intervalID);
+				window.clearInterval(_Dashboard.tabs.logs.intervalID);
+			},
+			templates: {
+				tabContent: config => `
+					<div class="tab-content" id="dashboard-server-log" data-module-name="logs">
+		
+						<div class="flex flex-col h-full">
+		
+							<div id="dashboard-server-log-controls" class="flex items-center pb-4">
+		
+								<div class="editor-settings-popup dropdown-menu darker-shadow-dropdown dropdown-menu-large">
+									<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-preferred-position-y="bottom" data-wants-fixed="true">
+										${_Icons.getSvgIcon(_Icons.iconSettingsCog, 16, 16, ['mr-2'])}
+									</button>
+		
+									<div class="dropdown-menu-container" style="display: none;">
+										<div class="font-bold pt-4 pb-2">Server Log Settings</div>
+										<div class="editor-setting flex items-center p-1">
+		
+											<label class="flex-grow">Refresh Interval</label>
+		
+											<select id="dashboard-server-log-refresh-interval" class="w-28" data-property="refreshTimeInterval">
+												<option value="10000">10s</option>
+												<option value="5000">5s</option>
+												<option value="2000">2s</option>
+												<option value="1000">1s</option>
+												<option value="-1">manual</option>
+											</select>
+										</div>
+
+										<div class="editor-setting flex items-center p-1">
+											<label class="flex-grow">Number of lines</label>
+											<input id="dashboard-server-log-lines" type="number" class="w-16" data-property="numberOfLines">
+										</div>
+		
+										<div class="editor-setting flex items-center p-1">
+											<label class="flex-grow">Truncate lines at</label>
+											<input id="dashboard-server-log-truncate-lines" type="number" class="w-16" data-property="truncateLinesAfter">
+										</div>
+		
+										<div class="editor-setting flex items-center p-1">
+											<label class="flex-grow">Log File</label>
+											<select id="dashboard-server-log-file" data-property="logFileName">
+											</select>
+										</div>
+									</div>
+								</div>
+								
+								<input class="mr-2" type="search" name="filter" placeholder="Filter..." data-property="filter">
+		
+								<button id="dashboard-server-log-manual-refresh" class="action">Refresh</button>
+								<button id="dashboard-server-log-copy" class="action mr-1">Copy</button>
+								<button id="dashboard-server-log-download" class="action">Download</button>
+		
+								<span id="dashboard-server-log-feedback"></span>
+							</div>
+		
+							<div class="flex-grow">
+								<textarea readonly="readonly" class="h-full w-full"></textarea>
+							</div>
+						</div>
+					</div>
+				`,
 			}
 		},
-		'event-log': {
+		events: {
 			onShow: async () => {
-				await _Dashboard.tabs['event-log'].loadRuntimeEventLog();
+				await _Dashboard.tabs.events.loadRuntimeEventLog();
 			},
 			onHide: async () => {},
 			init: () => {
 
 				let container = document.querySelector('#dashboard-event-log');
 
-				let debouncedSearchFunction = _Helpers.debounce(_Dashboard.tabs['event-log'].loadRuntimeEventLog, 200);
+				let debouncedSearchFunction = _Helpers.debounce(_Dashboard.tabs.events.loadRuntimeEventLog, 200);
 
 				container.querySelector('form').addEventListener('submit', async e => {
 					e.preventDefault();
@@ -1651,16 +1735,16 @@ let _Dashboard = {
 				}
 			},
 		},
-		'running-threads': {
+		threads: {
 			onShow: async () => {
-				await _Dashboard.tabs['running-threads'].loadRunningThreads();
+				await _Dashboard.tabs.threads.loadRunningThreads();
 			},
 			onHide: async () => {},
 			init: () => {
 
 				let container = document.querySelector('#dashboard-running-threads');
 
-				container.querySelector('#refresh-running-threads').addEventListener('click', _Dashboard.tabs['running-threads'].loadRunningThreads);
+				container.querySelector('#refresh-running-threads').addEventListener('click', _Dashboard.tabs.threads.loadRunningThreads);
 			},
 			loadRunningThreads: async () => {
 
@@ -1700,8 +1784,8 @@ let _Dashboard = {
 						actionsCell.appendChild(interruptButton);
 						actionsCell.appendChild(killButton);
 
-						interruptButton.addEventListener('click', () => { _Dashboard.tabs['running-threads'].sendThreadCommand(thread.id, 'interrupt'); });
-						killButton.addEventListener('click', () => { _Dashboard.tabs['running-threads'].sendThreadCommand(thread.id, 'kill'); });
+						interruptButton.addEventListener('click', () => { _Dashboard.tabs.threads.sendThreadCommand(thread.id, 'interrupt'); });
+						killButton.addEventListener('click', () => { _Dashboard.tabs.threads.sendThreadCommand(thread.id, 'kill'); });
 					}
 				}
 			},
@@ -1713,13 +1797,13 @@ let _Dashboard = {
 				});
 			}
 		},
-		'ui-config': {
+		ui: {
 			onShow: async () => {},
 			onHide: async () => {},
 			init: (templateConfig) => {
-				_Dashboard.tabs['ui-config'].showMainMenuConfiguration();
-				_Dashboard.tabs['ui-config'].showConfigurableSettings();
-				_Dashboard.tabs['ui-config'].handleResetConfiguration(templateConfig.meObj.id);
+				_Dashboard.tabs.ui.showMainMenuConfiguration();
+				_Dashboard.tabs.ui.showConfigurableSettings();
+				_Dashboard.tabs.ui.handleResetConfiguration(templateConfig.meObj.id);
 			},
 
 			showMainMenuConfiguration: () => {
@@ -1750,10 +1834,10 @@ let _Dashboard = {
 
 				$('#main-menu-entries-config, #sub-menu-entries-config').sortable({
 					connectWith: ".connectedSortable",
-					stop: _Dashboard.tabs['ui-config'].updateMenu
+					stop: _Dashboard.tabs.ui.updateMenu
 				}).disableSelection();
 
-				_Dashboard.tabs['ui-config'].updateMenu();
+				_Dashboard.tabs.ui.updateMenu();
 			},
 
 			updateMenu: () => {
@@ -1813,7 +1897,7 @@ let _Dashboard = {
 					${_Dashboard.templates.tabContentAboutStructr(config)}
 					${_Dashboard.tabs.deployment.templates.tabContent(config)}
 					${_Dashboard.templates.tabContentUserDefinedMethods(config)}
-					${_Dashboard.templates.tabContentServerLog(config)}
+					${_Dashboard.tabs.logs.templates.tabContent(config)}
 					${_Dashboard.templates.tabContentEventLog(config)}
 					${_Dashboard.templates.tabContentThreads(config)}
 					${_Dashboard.templates.tabContentUIConfig(config)}
@@ -1825,10 +1909,10 @@ let _Dashboard = {
 		functions: config => `
 			<ul class="tabs-menu flex-grow">
 				<li>
-					<a href="#dashboard:about-me">About Me</a>
+					<a href="#dashboard:me">About Me</a>
 				</li>
 				<li>
-					<a href="#dashboard:about-structr">About Structr</a>
+					<a href="#dashboard:about">About Structr</a>
 				</li>
 				<li>
 					<a href="#dashboard:deployment">Deployment</a>
@@ -1837,21 +1921,21 @@ let _Dashboard = {
 					<a href="#dashboard:methods">User-defined functions</a>
 				</li>
 				<li>
-					<a href="#dashboard:server-log">Server Log</a>
+					<a href="#dashboard:logs">Server Log</a>
 				</li>
 				<li>
-					<a href="#dashboard:event-log">Event Log</a>
+					<a href="#dashboard:events">Event Log</a>
 				</li>
 				<li>
-					<a href="#dashboard:running-threads">Threads</a>
+					<a href="#dashboard:threads">Threads</a>
 				</li>
 				<li>
-					<a href="#dashboard:ui-config">UI Settings</a>
+					<a href="#dashboard:ui">UI Settings</a>
 				</li>
 			</ul>
 		`,
 		tabContentAboutMe: config => `
-			<div class="tab-content active" id="dashboard-about-me">
+			<div class="tab-content active" id="dashboard-about-me" data-module-name="me">
 
 				<table class="props">
 					<tr>
@@ -1877,7 +1961,7 @@ let _Dashboard = {
 			</div>
 		`,
 		tabContentAboutStructr: config => `
-			<div class="tab-content" id="dashboard-about-structr">
+			<div class="tab-content" id="dashboard-about-structr" data-module-name="about">
 
 				<table class="props">
 					<tr>
@@ -1943,70 +2027,12 @@ let _Dashboard = {
 			</div>
 		`,
 		tabContentUserDefinedMethods: config => `
-			<div class="tab-content" id="dashboard-methods">
+			<div class="tab-content" id="dashboard-methods" data-module-name="methods">
 
-			</div>
-		`,
-		tabContentServerLog: config => `
-			<div class="tab-content" id="dashboard-server-log">
-
-				<div class="flex flex-col h-full">
-
-					<div id="dashboard-server-log-controls" class="flex items-center pb-4">
-
-						<div class="editor-settings-popup dropdown-menu darker-shadow-dropdown dropdown-menu-large">
-							<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-preferred-position-y="bottom" data-wants-fixed="true">
-								${_Icons.getSvgIcon(_Icons.iconSettingsCog, 16, 16, ['mr-2'])}
-							</button>
-
-							<div class="dropdown-menu-container" style="display: none;">
-								<div class="font-bold pt-4 pb-2">Server Log Settings</div>
-								<div class="editor-setting flex items-center p-1">
-
-									<label class="flex-grow">Refresh Interval</label>
-
-									<select id="dashboard-server-log-refresh-interval" class="w-28">
-										<option value="10000">10s</option>
-										<option value="5000">5s</option>
-										<option value="2000">2s</option>
-										<option value="1000">1s</option>
-										<option value="-1">manual</option>
-									</select>
-								</div>
-
-								<div class="editor-setting flex items-center p-1">
-									<label class="flex-grow">Number of lines</label>
-									<input id="dashboard-server-log-lines" type="number" class="w-16">
-								</div>
-
-								<div class="editor-setting flex items-center p-1">
-									<label class="flex-grow">Truncate lines at</label>
-									<input id="dashboard-server-log-truncate-lines" type="number" class="w-16">
-								</div>
-
-								<div class="editor-setting flex items-center p-1">
-									<label class="flex-grow">Log File</label>
-									<select id="dashboard-server-log-file">
-									</select>
-								</div>
-							</div>
-						</div>
-
-						<button id="dashboard-server-log-manual-refresh" class="action">Refresh</button>
-						<button id="dashboard-server-log-copy" class="action mr-1">Copy</button>
-						<button id="dashboard-server-log-download" class="action">Download</button>
-
-						<span id="dashboard-server-log-feedback"></span>
-					</div>
-
-					<div class="flex-grow">
-						<textarea readonly="readonly" class="h-full w-full"></textarea>
-					</div>
-				</div>
 			</div>
 		`,
 		tabContentUIConfig: config => `
-			<div class="tab-content relative" id="dashboard-ui-config">
+			<div class="tab-content relative" id="dashboard-ui-config" data-module-name="ui">
 
 				<div class="absolute top-2 right-0">
 					<button class="ml-2 action" id="clear-local-storage-on-server">Reset <strong>all</strong> stored UI settings</button>
@@ -2040,7 +2066,7 @@ let _Dashboard = {
 			</div>
 		`,
 		tabContentEventLog: config => `
-			<div class="tab-content" id="dashboard-event-log">
+			<div class="tab-content" id="dashboard-event-log" data-module-name="events">
 
 				<form class="flex items-center mb-4 gap-8">
 
@@ -2093,7 +2119,7 @@ let _Dashboard = {
 			</div>
 		`,
 		tabContentThreads: config => `
-			<div class="tab-content" id="dashboard-running-threads">
+			<div class="tab-content" id="dashboard-running-threads" data-module-name="threads">
 
 				<div id="running-threads-options" class="flex items-center mb-4">
 

@@ -56,13 +56,9 @@ public class SortFunction extends CoreFunction {
 			return null;
 		}
 
-		// Default sort key
-		String sortKey = "name";
-
-		if (sources.length > 1 && sources[1] instanceof String) {
-
-			sortKey = (String) sources[1];
-		}
+		// default sort key and order
+		final String sortKey     = (sources.length > 1 && sources[1] instanceof String) ? (String) sources[1] : "name";
+		final boolean descending = (sources.length > 2 && sources[2] != null && "true".equals(sources[2].toString()));
 
 		if (sources.length >= 1) {
 
@@ -75,11 +71,9 @@ public class SortFunction extends CoreFunction {
 					if (firstElement instanceof GraphObject graphObject) {
 
 						final List<GraphObject> sortCollection = (List<GraphObject>)list;
-						final int length                       = sources.length;
 
-						if (sources.length <= 3 && sortKey.contains(".")) {
+						if (sortKey.contains(".")) {
 
-							final boolean descending = length > 2 && sources[2] != null && "true".equals(sources[2].toString());
 							final PathResolvingComparator comparator = new PathResolvingComparator(ctx, sortKey, descending);
 
 							// experimental: use path-resolving comparator
@@ -87,30 +81,42 @@ public class SortFunction extends CoreFunction {
 
 						} else {
 
-							final DefaultSortOrder order           = new DefaultSortOrder();
-							final Traits type                      = graphObject.getTraits();
+							if (sources.length <= 3) {
+								// as-documented code path with 1 set of sortKey/descending (supports sortKey = null so we can use the default key descending)
 
-							for (int i=1; i<length; i+=2) {
-
-								final String name        = (String)sources[i];
-								final PropertyKey key    = type.key(name);
-								final boolean descending = length > i+1 && sources[i+1] != null && "true".equals(sources[i+1].toString());
-
-								order.addElement(key, descending);
-							}
-
-							if (!order.isEmpty()) {
+								final Traits type            = graphObject.getTraits();
+								final PropertyKey key        = type.key(sortKey);
+								final DefaultSortOrder order = new DefaultSortOrder(key, descending);
 
 								Collections.sort(sortCollection, order);
-							}
 
+							} else {
+
+								// hidden functionality: code path with multiple set of sortKey/descending (all sortKeys must exist, otherwise we get errors)
+
+								final DefaultSortOrder order           = new DefaultSortOrder();
+								final Traits type                      = graphObject.getTraits();
+
+								for (int i = 1; i < sources.length; i += 2) {
+
+									final String name        = (String)sources[i];
+									final PropertyKey key    = type.key(name);
+									final boolean keyDescending = sources.length > i+1 && sources[i+1] != null && "true".equals(sources[i+1].toString());
+
+									order.addElement(key, keyDescending);
+								}
+
+								if (!order.isEmpty()) {
+
+									Collections.sort(sortCollection, order);
+								}
+							}
 						}
 
 						return sortCollection;
 
 					} else if (firstElement instanceof String) {
 
-						final boolean descending       = (sources.length >= 3 && "true".equals(sources[2].toString()));
 						final Comparator<String> order = descending ? Comparator.reverseOrder() : Comparator.naturalOrder();
 
 						list.sort(order);

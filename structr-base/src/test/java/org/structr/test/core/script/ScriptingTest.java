@@ -1898,6 +1898,15 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid sort result", "[A-nice-little-name-for-my-test-object, testThree_name, testTwo_name]", Scripting.replaceVariables(ctx, testOne, "${extract(sort(merge(this.testTwo, this, this.testThree), 'name'), 'name')}"));
 			assertEquals("Invalid sort result", "[A-nice-little-name-for-my-test-object, testThree_name, testTwo_name]", Scripting.replaceVariables(ctx, testOne, "${extract(sort(merge(this.testTwo, this.testThree, this), 'name'), 'name')}"));
 
+			// sort without sortKey, ensure default "name" is used (ascending)
+			assertEquals("Invalid sort result", "[A-nice-little-name-for-my-test-object, testThree_name, testTwo_name]", Scripting.replaceVariables(ctx, testOne, "${extract(sort(merge(this, this.testTwo, this.testThree)), 'name')}"));
+			assertEquals("Invalid sort result", "[A-nice-little-name-for-my-test-object, testThree_name, testTwo_name]", Scripting.replaceVariables(ctx, testOne, "${extract(sort(merge(this.testTwo, this, this.testThree)), 'name')}"));
+			assertEquals("Invalid sort result", "[A-nice-little-name-for-my-test-object, testThree_name, testTwo_name]", Scripting.replaceVariables(ctx, testOne, "${extract(sort(merge(this.testTwo, this.testThree, this)), 'name')}"));
+			// sort without sortKey, ensure default "name" is used (descending)
+			assertEquals("Invalid sort result", "[testTwo_name, testThree_name, A-nice-little-name-for-my-test-object]", Scripting.replaceVariables(ctx, testOne, "${extract(sort(merge(this, this.testTwo, this.testThree), null, true), 'name')}"));
+			assertEquals("Invalid sort result", "[testTwo_name, testThree_name, A-nice-little-name-for-my-test-object]", Scripting.replaceVariables(ctx, testOne, "${extract(sort(merge(this.testTwo, this, this.testThree), null, true), 'name')}"));
+			assertEquals("Invalid sort result", "[testTwo_name, testThree_name, A-nice-little-name-for-my-test-object]", Scripting.replaceVariables(ctx, testOne, "${extract(sort(merge(this.testTwo, this.testThree, this), null, true), 'name')}"));
+
 			// sort with a Set as input
 			assertEquals("Invalid ascending sort result for Set input", "[IS_AT, MANY_TO_MANY, OWNS]", Scripting.replaceVariables(ctx, testOne, "${sort(getRelationshipTypes(this))}"));
 			assertEquals("Invalid descending sort result for Set input", "[OWNS, MANY_TO_MANY, IS_AT]", Scripting.replaceVariables(ctx, testOne, "${sort(getRelationshipTypes(this), '', true)}"));
@@ -6791,6 +6800,11 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
+			app.create(StructrTraits.SCHEMA_METHOD,
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),   "userDefinedTest1"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ $.log($.functionInfo()); return $.functionInfo(); }")
+			);
+
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.addType("Test");
 
@@ -6799,6 +6813,8 @@ public class ScriptingTest extends StructrTest {
 			type.addMethod("doTest3", "{ $.log($.functionInfo()); return $.functionInfo(); }").setIsPrivate(true);
 			type.addMethod("doTest4", "{ $.log($.functionInfo()); return $.this.doTest1(); }");
 			type.addMethod("doTest5", "{ $.log($.functionInfo()); return $.this.doTest4(); }");
+			type.addMethod("doTest6", "{ $.log($.functionInfo()); return $.call('userDefinedTest1'); }");
+			type.addMethod("doTest7", "{ $.log($.functionInfo()); return $.userDefinedTest1(); }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -6822,11 +6838,19 @@ public class ScriptingTest extends StructrTest {
 			final Map<String, Object> result5 = (Map) Scripting.evaluate(new ActionContext(securityContext), test, "${{ $.this.doTest5(); }}", "test");
 			final Map<String, Object> result6 = (Map) Scripting.evaluate(new ActionContext(securityContext), test, "${{ $.functionInfo('Test', 'doTest1'); }}", "test");
 
+			final Map<String, Object> result7 = (Map) Scripting.evaluate(new ActionContext(securityContext), test, "${{ $.this.doTest6(); }}", "test");
+			final Map<String, Object> result8 = (Map) Scripting.evaluate(new ActionContext(securityContext), test, "${{ $.this.doTest7(); }}", "test");
+			final Map<String, Object> result9 = (Map) Scripting.evaluate(new ActionContext(securityContext), test, "${{ $.call('userDefinedTest1'); }}", "test");
+
 			assertEquals("Invalid functionInfo() result", "doTest1", result1.get(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 			assertEquals("Invalid functionInfo() result", "doTest2", result2.get(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 			assertEquals("Invalid functionInfo() result", "doTest3", result3.get(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 			assertEquals("Invalid functionInfo() result", "doTest1", result4.get(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 			assertEquals("Invalid functionInfo() result", "doTest1", result5.get(NodeInterfaceTraitDefinition.NAME_PROPERTY));
+
+			assertEquals("Invalid functionInfo() result", "userDefinedTest1", result7.get(NodeInterfaceTraitDefinition.NAME_PROPERTY));
+			assertEquals("Invalid functionInfo() result", "userDefinedTest1", result8.get(NodeInterfaceTraitDefinition.NAME_PROPERTY));
+			assertEquals("Invalid functionInfo() result", "userDefinedTest1", result9.get(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 
 			assertEquals("Invalid functionInfo() result", false, result1.get(SchemaMethodTraitDefinition.IS_STATIC_PROPERTY));
 			assertEquals("Invalid functionInfo() result", false, result1.get(SchemaMethodTraitDefinition.IS_PRIVATE_PROPERTY));

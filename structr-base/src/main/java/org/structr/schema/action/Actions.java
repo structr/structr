@@ -19,7 +19,6 @@
 package org.structr.schema.action;
 
 import jakarta.servlet.http.HttpServletRequest;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -30,37 +29,25 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
+import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
+import org.structr.core.api.NamedArguments;
 import org.structr.core.traits.TraitsManager;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractSchemaNode;
-import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.ModificationQueue;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.FunctionProperty;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.core.script.polyglot.config.ScriptConfig;
-import org.structr.core.traits.StructrTraits;
-import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.docs.Signature;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
-/**
- *
- *
- */
 public class Actions {
 
-	private static final Logger logger                         = LoggerFactory.getLogger(Actions.class.getName());
-	private static final Map<String, CachedMethod> methodCache = new ConcurrentHashMap<>();
+	private static final Logger logger = LoggerFactory.getLogger(Actions.class.getName());
 
 	// if you add notifications / callbacks here, please add them at the bottom of class LifecycleBase as well!
 	public static final String NOTIFICATION_ON_DOWNLOAD          = "onDownload";
@@ -163,79 +150,29 @@ public class Actions {
 		}
 	}
 
-	public static Object callAsSuperUser(final String key, final Map<String, Object> parameters, final HttpServletRequest request, final String caller) throws FrameworkException, UnlicensedScriptException {
+	public static Object callAsSuperUser(final String key, final Map<String, Object> parameters, final HttpServletRequest request) throws FrameworkException, UnlicensedScriptException {
 
 		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance(request);
 
-		return callWithSecurityContext(key, superUserContext, parameters, caller);
+		return callWithSecurityContext(key, superUserContext, parameters);
 	}
 
-	public static Object callWithSecurityContext(final String key, final SecurityContext securityContext, final Map<String, Object> parameters, final String caller) throws FrameworkException, UnlicensedScriptException {
+	public static Object callWithSecurityContext(final String key, final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException, UnlicensedScriptException {
 
-		CachedMethod cachedSource = methodCache.get(key);
-		if (cachedSource == null) {
+		final AbstractMethod method = Methods.resolveMethod(null, key);
 
-			// CHM 2025-12-17: Changed this to a node query with empty SchemaNode because we only care for user-defined functions here!
-			final PropertyKey<NodeInterface> schemaNodeKey = Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY);
-			final List<NodeInterface> methods              = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).name(key).key(schemaNodeKey, null).getAsList();
+		if (method != null) {
 
-			if (methods.isEmpty()) {
+			return method.execute(new ActionContext(securityContext), null, NamedArguments.fromMap(parameters));
 
-				if (!NOTIFICATION_ON_LOGIN.equals(key) && !NOTIFICATION_ON_LOGOUT.equals(key) && !NOTIFICATION_ON_ACME_CHALLENGE.equals(key) && !NOTIFICATION_AFTER_ACME_CHALLENGE.equals(key)) {
+		} else {
 
-					logger.warn("Tried to call method {} but no SchemaMethod entity was found.", key);
+			if (!NOTIFICATION_ON_LOGIN.equals(key) && !NOTIFICATION_ON_LOGOUT.equals(key) && !NOTIFICATION_ON_ACME_CHALLENGE.equals(key) && !NOTIFICATION_AFTER_ACME_CHALLENGE.equals(key)) {
 
-					throw new FrameworkException(422, "Cannot execute user-defined function " + key + ": function not found.");
-				}
+				logger.warn("Tried to call method {} but no SchemaMethod entity was found.", key);
 
-			} else {
-
-				for (final NodeInterface node : methods) {
-
-					final SchemaMethod method = node.as(SchemaMethod.class);
-
-					// only call methods that are NOT part of a schema node
-					final AbstractSchemaNode entity = method.getSchemaNode();
-					if (entity == null) {
-
-						final String source = method.getSource();
-						if (source != null) {
-
-							cachedSource = new CachedMethod(source, method.getName(), method.getUuid(), method.returnRawResult(), method.wrapJsInMain());
-
-							// store in cache
-							methodCache.put(key, cachedSource);
-
-						} else {
-
-							logger.warn("Schema method {} has no source code, will NOT be executed.", key);
-						}
-
-					} else {
-
-						if ("call".equals(caller)) {
-							throw new FrameworkException(422, "Cannot execute non-static method " + key + " via $.call().");
-						}
-
-						logger.warn("Schema method {} is not static and cannot be called in a static way.", key);
-					}
-				}
+				throw new FrameworkException(422, "Cannot execute user-defined function " + key + ": function not found.");
 			}
-
-		}
-
-		if (cachedSource != null) {
-
-			final ScriptConfig scriptConfig = ScriptConfig.builder()
-					.wrapJsInMain(cachedSource.wrapJsInMain)
-					.build();
-
-			if (cachedSource.shouldReturnRawResult) {
-
-				securityContext.enableReturnRawResult();
-			}
-
-			return Actions.execute(securityContext, null, "${" + StringUtils.strip(cachedSource.sourceCode) + "}", parameters, cachedSource.name, cachedSource.uuidOfSource, scriptConfig);
 		}
 
 		return null;
@@ -244,28 +181,8 @@ public class Actions {
 	public static void clearCache() {
 		FunctionProperty.clearCache();
 		Methods.clearMethodCache();
-		methodCache.clear();
 		// Per-type dynamic method caches in TraitsImplementation: invalidate too,
 		// otherwise type-bound SchemaMethod edits keep running stale source.
 		TraitsManager.getCurrentInstance().clearAllDynamicMethodCaches();
-	}
-
-	// ----- nested classes -----
-	private static class CachedMethod {
-
-		public final String sourceCode;
-		public final String uuidOfSource;
-		public final String name;
-		public final boolean wrapJsInMain;
-		public final boolean shouldReturnRawResult;
-
-		public CachedMethod(final String sourceCode, final String name, final String uuidOfSource, final boolean shouldReturnRawResult, final boolean  wrapJsInMain) {
-
-			this.sourceCode            = sourceCode;
-			this.uuidOfSource          = uuidOfSource;
-			this.name                  = name;
-			this.shouldReturnRawResult = shouldReturnRawResult;
-			this.wrapJsInMain          = wrapJsInMain;
-		}
 	}
 }

@@ -996,7 +996,70 @@ let _Helpers = {
 				observer.observe(document.body, { childList: true, subtree: true });
 			}
 		});
-	}
+	},
+	collectPropertyDataFromContainerAndApplyToEntity: (container, entity) => {
+
+		let data = {};
+
+		for (let input of container.querySelectorAll('input[data-property]')) {
+
+			const propertyName = input.dataset.property;
+
+			switch (input.type) {
+				case "checkbox":
+					data[propertyName] = input.checked;
+					break;
+				case "number":
+					if (input.value) {
+						data[propertyName] = parseInt(input.value);
+					} else {
+						data[propertyName] = null;
+					}
+					break;
+				case "text":
+				default:
+					if (entity && entity[propertyName] === null && input.value === '') {
+						data[propertyName] = null;
+					} else if (input.value) {
+						data[propertyName] = input.value;
+					} else {
+						data[propertyName] = null;
+					}
+					break;
+			}
+		}
+
+		for (let select of container.querySelectorAll('select[data-property]')) {
+
+			const propertyName = select.dataset.property;
+
+			if (select.multiple === true) {
+				data[propertyName] = Array.prototype.map.call(select.selectedOptions, (o) => o.value);
+			} else {
+
+				data[propertyName] = select.value;
+
+				// add exception for typeHint
+				if (propertyName === 'typeHint' && select.value === 'null') {
+					data.typeHint = null;
+				}
+			}
+		}
+
+		for (let editorWrapper of container.querySelectorAll('.editor[data-property]')) {
+
+			const propertyName = editorWrapper.dataset.property;
+
+			let entityId = entity?.id ?? editorWrapper.dataset.id;
+			if (!entityId) {
+				console.log('Editor should be saved but ID is missing from dataset - getting data will probably fail!');
+			}
+
+			data[propertyName] = _Editors.getTextForExistingEditor(entityId, propertyName);
+		}
+
+		return data;
+	},
 };
 
 /**

@@ -139,7 +139,7 @@ public class GetAvailableServerLogsFunction extends AdvancedScriptingFunction {
 			logger.warn("Unable to determine base.path from structr.conf, no data input/output possible.");
 		}
 
-		return null;
+		return List.of();
 	}
 
 	private static List<String> getLogFilesInDirectory(String logDirectory, String logFileName) {

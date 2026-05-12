@@ -32,17 +32,17 @@ test('dashboard', async ({page}) => {
     // Dashboard
     await page.locator('#dashboard_').waitFor({state: 'visible'});
     await page.locator('#dashboard_').click();
-    await page.locator('[href="#dashboard:about-me"]').waitFor({state: 'visible'});
+    await page.locator('[href="#dashboard:me"]').waitFor({state: 'visible'});
 
     // Dashboard -> About Me
-    await page.locator('[href="#dashboard:about-me"]').click();
-    await page.locator('#dashboard-about-me').waitFor({state: 'visible'});
+    await page.locator('[href="#dashboard:me"]').click();
+    await page.locator('[data-module-name="me"]').waitFor({state: 'visible'});
     await page.waitForTimeout(1000);
     await page.screenshot({path: 'screenshots/dashboard_about-me.png'});
 
     // Dashboard -> About Structr
-    await page.locator('[href="#dashboard:about-structr"]').click();
-    await page.locator('#dashboard-about-structr').waitFor({state: 'visible'});
+    await page.locator('[href="#dashboard:about"]').click();
+    await page.locator('[data-module-name="about"]').waitFor({state: 'visible'});
 
     // Wait for HTTP Access Statistics to load
     await page.waitForTimeout(2000);
@@ -50,37 +50,37 @@ test('dashboard', async ({page}) => {
 
     // Dashboard -> Deployment
     await page.locator('[href="#dashboard:deployment"]').click();
-    await page.locator('#dashboard-deployment').waitFor({state: 'visible'});
+    await page.locator('[data-module-name="deployment"]').waitFor({state: 'visible'});
     await page.waitForTimeout(1000);
     await page.screenshot({path: 'screenshots/dashboard_deployment.png'});
 
     // Dashboard -> Methods
     await page.locator('[href="#dashboard:methods"]').click();
-    await page.locator('#dashboard-methods').waitFor({state: 'visible'});
+    await page.locator('[data-module-name="methods"]').waitFor({state: 'visible'});
     await page.waitForTimeout(1000);
     await page.screenshot({path: 'screenshots/dashboard_methods.png'});
 
     // Dashboard -> Server Log
-    await page.locator('[href="#dashboard:server-log"]').click();
-    await page.locator('#dashboard-server-log').waitFor({state: 'visible'});
+    await page.locator('[href="#dashboard:logs"]').click();
+    await page.locator('[data-module-name="logs"]').waitFor({state: 'visible'});
     await page.waitForTimeout(1000);
     await page.screenshot({path: 'screenshots/dashboard_server-log.png'});
 
     // Dashboard -> Event Log
-    await page.locator('[href="#dashboard:event-log"]').click();
-    await page.locator('#dashboard-event-log').waitFor({state: 'visible'});
+    await page.locator('[href="#dashboard:events"]').click();
+    await page.locator('[data-module-name="events"]').waitFor({state: 'visible'});
     await page.waitForTimeout(1000);
     await page.screenshot({path: 'screenshots/dashboard_event-log.png'});
 
     // Dashboard -> Threads
-    await page.locator('[href="#dashboard:running-threads"]').click();
-    await page.locator('#dashboard-running-threads').waitFor({state: 'visible'});
+    await page.locator('[href="#dashboard:threads"]').click();
+    await page.locator('[data-module-name="threads"]').waitFor({state: 'visible'});
     await page.waitForTimeout(1000);
     await page.screenshot({path: 'screenshots/dashboard_running-threads.png'});
 
     // Dashboard -> UI Settings
-    await page.locator('[href="#dashboard:ui-config"]').click();
-    await page.locator('#dashboard-ui-config').waitFor({state: 'visible'});
+    await page.locator('[href="#dashboard:ui"]').click();
+    await page.locator('[data-module-name="ui"]').waitFor({state: 'visible'});
     await page.waitForTimeout(1000);
     await page.screenshot({path: 'screenshots/dashboard_ui-config.png'});
 
