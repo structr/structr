@@ -824,29 +824,41 @@ let _ProcessDiagram = {
 
 		api.mount(host, { editable: true });
 
+		// Side-panel tab state. The Process tab is always reachable via
+		// the tab strip; the Element tab shows the most-recently-selected
+		// element (or a placeholder when nothing is selected). Selecting
+		// an element on the canvas switches to the Element tab; deselecting
+		// leaves the active tab alone so the user can stay in Process view
+		// while clicking around to find an element.
+		let activeTab = 'element';
+		const tabs = (active) => _ProcessDiagram._renderSidePanelTabs(active);
+
 		const renderSidePanelFor = (elementId) => {
+			// Update status line regardless of which tab is active.
 			if (!elementId) {
-				status.textContent  = 'No selection';
-				// Surface process-level settings when nothing is selected.
-				// One section per BpmnProcess belonging to the active
-				// BpmnDefinitions (collaborations have several). Each row
-				// hosts editable flags that aren't part of the BPMN spec
-				// but that the engine reads at runtime: today only the
-				// auto-assign-to-initiator switch; future flags slot in
-				// alongside without a layout change.
-				sidePanel.innerHTML = _ProcessDiagram._renderProcessSettingsPanel(api);
+				status.textContent = 'No selection';
+			}
+
+			if (activeTab === 'process') {
+				sidePanel.innerHTML = tabs('process') + _ProcessDiagram._renderProcessSettingsPanel(api);
 				_ProcessDiagram._wireProcessSettingsPanel(sidePanel, api);
+				return;
+			}
+
+			// activeTab === 'element'
+			if (!elementId) {
+				sidePanel.innerHTML = tabs('element') + `<div class="text-gray-500">Select an element on the canvas to edit its properties, or switch to the <b>Process</b> tab for process-wide settings.</div>`;
 				return;
 			}
 			const elem = api.getElement && api.getElement(elementId);
 			if (!elem) {
 				status.textContent  = `Selected: ${elementId}`;
-				sidePanel.innerHTML = `<div class="text-gray-500">Element not found.</div>`;
+				sidePanel.innerHTML = tabs('element') + `<div class="text-gray-500">Element not found.</div>`;
 				return;
 			}
 			const niceName = elem.bpmnName || elem.bpmnId || elem.id;
 			status.textContent  = `Selected: ${niceName}`;
-			sidePanel.innerHTML = _ProcessDiagram._renderSidePanel(elem);
+			sidePanel.innerHTML = tabs('element') + _ProcessDiagram._renderSidePanel(elem);
 
 			// Inline name edit: commits on blur or Enter. Escape reverts.
 			const nameInput = sidePanel.querySelector('.input-element-name');
@@ -1132,26 +1144,49 @@ let _ProcessDiagram = {
 			});
 		};
 
-		api.onSelect(renderSidePanelFor);
+		// Tab strip clicks are handled via delegation so the listener
+		// survives every side-panel re-render. Switching to the Element
+		// tab shows whatever is currently selected on the canvas (or the
+		// placeholder if nothing is selected); switching to Process never
+		// changes canvas selection.
+		sidePanel.addEventListener('click', (e) => {
+			const btn = e.target.closest('.sidepanel-tab');
+			if (!btn) return;
+			const newTab = btn.dataset.tab;
+			if (newTab === activeTab) return;
+			activeTab = newTab;
+			renderSidePanelFor(api.getSelected && api.getSelected());
+		});
+
+		api.onSelect((id) => {
+			// Canvas selection forces the Element tab so the user sees the
+			// element they just clicked. Deselecting (id == null) leaves
+			// the active tab alone -- if they were on Process, stay there.
+			if (id) activeTab = 'element';
+			renderSidePanelFor(id);
+		});
 		// Re-render the side panel when the underlying data changes (e.g.
 		// after rename, after undo/redo restores values, after a process
-		// flag toggles). Two cases:
-		//   * An element is selected: re-render iff the changed entity is
-		//     that element. Other entities' updates would otherwise rebuild
-		//     a panel that already reflects their state via direct mutation.
-		//   * Nothing is selected: the side panel shows process-level
-		//     settings, so re-render whenever any BpmnProcess changes
-		//     (typically undo/redo of a flag toggle).
+		// flag toggles). Two cases tracked by activeTab:
+		//   * Element tab: re-render iff the changed entity is the selected
+		//     one. Other entities' updates would otherwise rebuild a panel
+		//     that already reflects their state via direct mutation.
+		//   * Process tab: re-render whenever any BpmnProcess changes
+		//     (typically undo/redo of a flag toggle), independent of
+		//     canvas selection.
 		api.onUpdate((id, type) => {
 			const selected = api.getSelected && api.getSelected();
-			if (selected) {
-				if (id === selected) renderSidePanelFor(id);
+			if (activeTab === 'process') {
+				if (type === 'BpmnProcess') renderSidePanelFor(selected);
 				return;
 			}
-			if (type === 'BpmnProcess') {
-				renderSidePanelFor(null);
-			}
+			if (selected && id === selected) renderSidePanelFor(selected);
 		});
+
+		// Render once on mount so the tab strip is visible immediately and
+		// users see the Process tab without first having to interact with
+		// the canvas. Replaces the static placeholder set in the dialog HTML.
+		renderSidePanelFor(api.getSelected && api.getSelected());
 
 		const updateDirty = () => {
 			const has = api.hasPendingChanges && api.hasPendingChanges();
@@ -1377,8 +1412,33 @@ let _ProcessDiagram = {
 			});
 	},
 
+	// Tab strip rendered at the top of the side panel so process-level
+	// settings are reachable in one click regardless of canvas selection
+	// state. Without this strip the Process settings view was only shown
+	// when nothing was selected, which made discovering it depend on
+	// knowing to click on empty canvas.
+	_renderSidePanelTabs: (activeTab) => {
+		const tab = (id, label) => {
+			const isActive = (id === activeTab);
+			return `<button type="button" class="sidepanel-tab" data-tab="${id}" style="
+				flex:1 1 auto;
+				padding:7px 10px;
+				border:none;
+				background:${isActive ? '#fff' : '#f5f5f5'};
+				cursor:pointer;
+				font-size:12px;
+				font-weight:${isActive ? '600' : '400'};
+				color:${isActive ? '#333' : '#666'};
+				border-bottom:2px solid ${isActive ? '#3498db' : 'transparent'};
+			">${label}</button>`;
+		};
+		return `<div class="process-diagram-sidepanel-tabs" style="display:flex; margin:-10px -10px 10px -10px; border-bottom:1px solid #ddd;">
+			${tab('element', 'Element')}${tab('process', 'Process')}
+		</div>`;
+	},
+
 	// Render the side-panel "Process settings" view that's shown when
-	// no element is selected. Lists every BpmnProcess in the active
+	// the Process tab is active. Lists every BpmnProcess in the active
 	// BpmnDefinitions and exposes Structr-only configuration that the
 	// BPMN importer can't represent (the spec doesn't carry these), and
 	// that would otherwise have to be set via the property editor.
