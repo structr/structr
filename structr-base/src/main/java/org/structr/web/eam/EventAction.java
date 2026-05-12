@@ -44,6 +44,7 @@ public enum EventAction implements Documentable {
 	ResetPassword("reset-password", "Reset password", null),
 	Flow("flow", "Execute flow", null),
 	Method("method", "Execute method", null),
+	ControlProcess("control-process", "Control process", null),
 
 	// The "unknown" action will be used for all actions that are not defined in this enum. This is because a
 	// previous version of the Event Action Mapping used the action property to store the name of a method to

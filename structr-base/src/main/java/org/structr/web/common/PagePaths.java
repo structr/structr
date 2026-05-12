@@ -44,11 +44,10 @@ public class PagePaths {
 
 		// we need to split the path ourselves because we need to be able to detect "empty" parts (//)
 		// we also need to decode the parts ourselves because we want to be able to distinguish between "/" and "%2f" and not have it treated as a "/" which is why the fullPath is not already url decoded
-		final String[] requestParts = Arrays.stream(StringUtils.splitPreserveAllTokens(StringUtils.substringAfter(fullPath, "/"), "/")).map(PagePaths::decodePathSegment).toArray(String[]::new);
-		final App app               = StructrApp.getInstance();
-		final int requestLength     = requestParts.length;
-
+		final String[] requestParts           = Arrays.stream(StringUtils.splitPreserveAllTokens(StringUtils.substringAfter(fullPath, "/"), "/")).map(PagePaths::decodePathSegment).toArray(String[]::new);
 		final SecurityContext securityContext = renderContext.getSecurityContext();
+		final App app                         = StructrApp.getInstance(securityContext);
+		final int requestLength               = requestParts.length;
 
 		final Map<String, Boolean> processPageVariablesMap = new HashMap<>();
 

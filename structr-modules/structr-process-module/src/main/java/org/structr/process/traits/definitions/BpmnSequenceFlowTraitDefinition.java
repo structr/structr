@@ -34,7 +34,6 @@ import java.util.Set;
  */
 public class BpmnSequenceFlowTraitDefinition extends AbstractNodeTraitDefinition {
 
-	public static final String BPMN_ID_PROPERTY                     = "bpmnId";
 	public static final String BPMN_NAME_PROPERTY                   = "bpmnName";
 	public static final String SOURCE_REF_ID_PROPERTY               = "sourceRefId";
 	public static final String TARGET_REF_ID_PROPERTY               = "targetRefId";
@@ -42,7 +41,7 @@ public class BpmnSequenceFlowTraitDefinition extends AbstractNodeTraitDefinition
 	public static final String CONDITION_EXPRESSION_TYPE_PROPERTY   = "conditionExpressionType";
 	public static final String IS_DEFAULT_PROPERTY                  = "isDefault";
 	public static final String BPMN_ATTRIBUTES_PROPERTY             = "bpmnAttributes";
-	public static final String DEFINITION_PROPERTY                  = "definition";
+	public static final String PROCESS_PROPERTY                     = "process";
 	public static final String PARENT_ELEMENT_PROPERTY              = "parentElement";
 	public static final String SOURCE_ELEMENT_PROPERTY              = "sourceElement";
 	public static final String TARGET_ELEMENT_PROPERTY              = "targetElement";
@@ -55,7 +54,6 @@ public class BpmnSequenceFlowTraitDefinition extends AbstractNodeTraitDefinition
 	@Override
 	public Set<PropertyKey> createPropertyKeys(final TraitsInstance traitsInstance) {
 
-		final Property<String> bpmnId                  = new StringProperty(BPMN_ID_PROPERTY).indexed().unique();
 		final Property<String> bpmnName                = new StringProperty(BPMN_NAME_PROPERTY);
 		final Property<String> sourceRefId             = new StringProperty(SOURCE_REF_ID_PROPERTY);
 		final Property<String> targetRefId             = new StringProperty(TARGET_REF_ID_PROPERTY);
@@ -63,21 +61,21 @@ public class BpmnSequenceFlowTraitDefinition extends AbstractNodeTraitDefinition
 		final Property<String> conditionExpressionType = new StringProperty(CONDITION_EXPRESSION_TYPE_PROPERTY);
 		final Property<Boolean> isDefault              = new BooleanProperty(IS_DEFAULT_PROPERTY);
 		final Property<String> bpmnAttributes          = new StringProperty(BPMN_ATTRIBUTES_PROPERTY);
-		final Property<NodeInterface> def              = new StartNode(traitsInstance, DEFINITION_PROPERTY, ProcessTraits.BPMN_DEFINITIONS_HAS_SEQUENCE_FLOW);
+		final Property<NodeInterface> process          = new StartNode(traitsInstance, PROCESS_PROPERTY, ProcessTraits.BPMN_PROCESS_HAS_SEQUENCE_FLOW);
 		final Property<NodeInterface> parentElement    = new StartNode(traitsInstance, PARENT_ELEMENT_PROPERTY, ProcessTraits.BPMN_ELEMENT_HAS_CHILD_FLOW);
 		final Property<NodeInterface> sourceElement    = new EndNode(traitsInstance, SOURCE_ELEMENT_PROPERTY, ProcessTraits.BPMN_SEQUENCE_FLOW_FROM);
 		final Property<NodeInterface> targetElement    = new EndNode(traitsInstance, TARGET_ELEMENT_PROPERTY, ProcessTraits.BPMN_SEQUENCE_FLOW_TO);
 		final Property<NodeInterface> diEdge           = new StartNode(traitsInstance, DI_EDGE_PROPERTY, ProcessTraits.BPMN_DI_EDGE_REFERENCES_FLOW);
 
-		return newSet(bpmnId, bpmnName, sourceRefId, targetRefId, conditionExpression, conditionExpressionType, isDefault, bpmnAttributes, def, parentElement, sourceElement, targetElement, diEdge);
+		return newSet(bpmnName, sourceRefId, targetRefId, conditionExpression, conditionExpressionType, isDefault, bpmnAttributes, process, parentElement, sourceElement, targetElement, diEdge);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
 		return Map.of(
-			PropertyView.Public, newSet(BPMN_ID_PROPERTY, BPMN_NAME_PROPERTY, SOURCE_REF_ID_PROPERTY, TARGET_REF_ID_PROPERTY, SOURCE_ELEMENT_PROPERTY, TARGET_ELEMENT_PROPERTY),
-			PropertyView.Ui, newSet(BPMN_ID_PROPERTY, BPMN_NAME_PROPERTY, SOURCE_REF_ID_PROPERTY, TARGET_REF_ID_PROPERTY, CONDITION_EXPRESSION_PROPERTY, CONDITION_EXPRESSION_TYPE_PROPERTY, IS_DEFAULT_PROPERTY, BPMN_ATTRIBUTES_PROPERTY, DEFINITION_PROPERTY, PARENT_ELEMENT_PROPERTY, SOURCE_ELEMENT_PROPERTY, TARGET_ELEMENT_PROPERTY, DI_EDGE_PROPERTY)
+			PropertyView.Public, newSet(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY, BpmnBaseNodeTraitDefinition.VERSION_PROPERTY, BPMN_NAME_PROPERTY, SOURCE_REF_ID_PROPERTY, TARGET_REF_ID_PROPERTY, SOURCE_ELEMENT_PROPERTY, TARGET_ELEMENT_PROPERTY),
+			PropertyView.Ui, newSet(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY, BpmnBaseNodeTraitDefinition.VERSION_PROPERTY, BPMN_NAME_PROPERTY, SOURCE_REF_ID_PROPERTY, TARGET_REF_ID_PROPERTY, CONDITION_EXPRESSION_PROPERTY, CONDITION_EXPRESSION_TYPE_PROPERTY, IS_DEFAULT_PROPERTY, BPMN_ATTRIBUTES_PROPERTY, PROCESS_PROPERTY, PARENT_ELEMENT_PROPERTY, SOURCE_ELEMENT_PROPERTY, TARGET_ELEMENT_PROPERTY, DI_EDGE_PROPERTY)
 		);
 	}
 

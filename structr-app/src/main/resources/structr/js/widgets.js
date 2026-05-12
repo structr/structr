@@ -1070,7 +1070,7 @@ let _Widgets = {
 					<div></div>
 					<div>
 						<button id="save-widget-server" class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-							${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, ['icon-green', 'mr-2'])} Save
+							${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, ['icon-green', 'mr-2'])} Save
 						</button>
 					</div>
 				</div>

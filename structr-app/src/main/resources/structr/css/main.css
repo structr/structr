@@ -275,6 +275,9 @@ button:hover:not(.disabled), button:focus:not(.disabled) {
 .icon-orange {
 	color: orange;
 }
+.icon-lightblue {
+	color: var(--light-blue);
+}
 .icon-blue {
 	color: var(--medium-blue);
 }
@@ -305,6 +308,9 @@ button:hover:not(.disabled), button:focus:not(.disabled) {
 }
 .fill-orange {
 	fill: orange;
+}
+.fill-lightblue {
+	fill: var(--light-blue);
 }
 .fill-blue {
 	fill: var(--medium-blue);

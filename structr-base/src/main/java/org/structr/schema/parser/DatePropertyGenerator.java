@@ -31,6 +31,7 @@ import java.text.SimpleDateFormat;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.TimeZone;
 
 /**
  *
@@ -43,8 +44,35 @@ public class DatePropertyGenerator extends PropertyGenerator<Date> {
 		new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"),
 		new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX"),
 		new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ"),
-		new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+		new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ"),
+		// HTML5 form inputs: more-specific BEFORE less-specific because
+		// SimpleDateFormat.parse(String) accepts partial parses (it stops
+		// at the first valid suffix and returns, ignoring trailing text).
+		// Datetime-local first ("2026-04-14T09:30"), then date-only
+		// ("2026-04-14"). Reversing this order would silently truncate
+		// datetime-local input to midnight via the date-only pattern.
+		// Both interpreted as UTC so a user picking a calendar date gets
+		// a deterministic, timezone-stable instant -- matches the legacy
+		// workaround of appending "T00:00:00+0000" client-side and avoids
+		// the surprise of midnight-in-default-JVM-zone shifting the date
+		// by a day on systems running outside UTC.
+		datetimeLocalUtc(),
+		dateOnlyUtc()
 	};
+
+	private static SimpleDateFormat dateOnlyUtc() {
+		final SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd");
+		f.setTimeZone(TimeZone.getTimeZone("UTC"));
+		f.setLenient(false);
+		return f;
+	}
+
+	private static SimpleDateFormat datetimeLocalUtc() {
+		final SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
+		f.setTimeZone(TimeZone.getTimeZone("UTC"));
+		f.setLenient(false);
+		return f;
+	}
 
 	private String pattern = null;
 

@@ -37,7 +37,6 @@ import java.util.Set;
  */
 public class BpmnGlobalDefinitionTraitDefinition extends AbstractNodeTraitDefinition {
 
-	public static final String BPMN_ID_PROPERTY          = "bpmnId";
 	public static final String DEFINITION_TYPE_PROPERTY  = "definitionType";
 	public static final String BPMN_NAME_PROPERTY        = "bpmnName";
 	public static final String ERROR_CODE_PROPERTY       = "errorCode";
@@ -51,22 +50,21 @@ public class BpmnGlobalDefinitionTraitDefinition extends AbstractNodeTraitDefini
 	@Override
 	public Set<PropertyKey> createPropertyKeys(final TraitsInstance traitsInstance) {
 
-		final Property<String> bpmnId         = new StringProperty(BPMN_ID_PROPERTY).indexed().unique();
 		final Property<String> definitionType = new StringProperty(DEFINITION_TYPE_PROPERTY).indexed();
 		final Property<String> bpmnName       = new StringProperty(BPMN_NAME_PROPERTY).indexed();
 		final Property<String> errorCode      = new StringProperty(ERROR_CODE_PROPERTY);
 		final Property<String> structureRef   = new StringProperty(STRUCTURE_REF_PROPERTY);
 		final Property<NodeInterface> def     = new StartNode(traitsInstance, DEFINITION_PROPERTY, ProcessTraits.BPMN_DEFINITIONS_HAS_GLOBAL_DEFINITION);
 
-		return newSet(bpmnId, definitionType, bpmnName, errorCode, structureRef, def);
+		return newSet(definitionType, bpmnName, errorCode, structureRef, def);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
 		return Map.of(
-			PropertyView.Public, newSet(BPMN_ID_PROPERTY, DEFINITION_TYPE_PROPERTY, BPMN_NAME_PROPERTY),
-			PropertyView.Ui, newSet(BPMN_ID_PROPERTY, DEFINITION_TYPE_PROPERTY, BPMN_NAME_PROPERTY, ERROR_CODE_PROPERTY, STRUCTURE_REF_PROPERTY, DEFINITION_PROPERTY)
+			PropertyView.Public, newSet(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY, BpmnBaseNodeTraitDefinition.VERSION_PROPERTY, DEFINITION_TYPE_PROPERTY, BPMN_NAME_PROPERTY),
+			PropertyView.Ui, newSet(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY, BpmnBaseNodeTraitDefinition.VERSION_PROPERTY, DEFINITION_TYPE_PROPERTY, BPMN_NAME_PROPERTY, ERROR_CODE_PROPERTY, STRUCTURE_REF_PROPERTY, DEFINITION_PROPERTY)
 		);
 	}
 

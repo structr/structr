@@ -933,7 +933,12 @@ StructrElement.prototype.isActiveNode = function() {
 		|| this["eventMapping"]
 		//Collection attributes
 		|| (this["triggeredActions"] ?? []).length
+		|| this.isProcessVisibilityControlled()
 		;
+};
+
+StructrElement.prototype.isProcessVisibilityControlled = function() {
+	return (typeof _Pages !== 'undefined') && _Pages.visibilityMappingDomNodeIds && _Pages.visibilityMappingDomNodeIds.has(this.id);
 };
 
 StructrElement.prototype.getActiveNodeInfo = function() {
@@ -966,6 +971,9 @@ StructrElement.prototype.getActiveNodeInfo = function() {
 	}
 	if ((this["triggeredActions"] ?? []).length > 0) {
 		list.push('Has triggered actions');
+	}
+	if (this.isProcessVisibilityControlled()) {
+		list.push('Has process visibility rules');
 	}
 	return list;
 };
@@ -1049,7 +1057,11 @@ StructrContent.prototype.exists = function() {
 };
 
 StructrContent.prototype.isActiveNode = function() {
-	return this.hideConditions || this.showConditions || this.dataKey;
+	return this.hideConditions || this.showConditions || this.dataKey || this.isProcessVisibilityControlled();
+};
+
+StructrContent.prototype.isProcessVisibilityControlled = function() {
+	return (typeof _Pages !== 'undefined') && _Pages.visibilityMappingDomNodeIds && _Pages.visibilityMappingDomNodeIds.has(this.id);
 };
 
 StructrContent.prototype.getActiveNodeInfo = function() {
@@ -1079,6 +1091,9 @@ StructrContent.prototype.getActiveNodeInfo = function() {
 	}
 	if ((this["triggeredActions"] ?? []).length > 0) {
 		list.push('Has triggered actions');
+	}
+	if (this.isProcessVisibilityControlled()) {
+		list.push('Has process visibility rules');
 	}
 	return list;
 };

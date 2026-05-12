@@ -2000,9 +2000,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					putData(entry, ActionMappingTraitDefinition.EVENT_PROPERTY,                         actionMapping.getEvent());
 					putData(entry, ActionMappingTraitDefinition.ACTION_PROPERTY,                        actionMapping.getAction());
-					putData(entry, ActionMappingTraitDefinition.METHOD_PROPERTY,                        actionMapping.getMethod());
-					putData(entry, ActionMappingTraitDefinition.DATA_TYPE_PROPERTY,                     actionMapping.getDataType());
+					// Use the resolved names so the export reflects the relationship-derived truth
+					// (refactor-safe across renames). Falls back to the raw string when the relationship
+					// is null. On import, the OnCreation lifecycle re-resolves the strings into
+					// relationships, keeping deploy archives forward-compatible.
+					putData(entry, ActionMappingTraitDefinition.METHOD_PROPERTY,                        actionMapping.getResolvedMethodName());
+					putData(entry, ActionMappingTraitDefinition.FLOW_PROPERTY,                          actionMapping.getResolvedFlowName());
+					putData(entry, ActionMappingTraitDefinition.DATA_TYPE_PROPERTY,                     actionMapping.getResolvedDataTypeName());
 					putData(entry, ActionMappingTraitDefinition.ID_EXPRESSION_PROPERTY,                 actionMapping.getIdExpression());
+					putData(entry, ActionMappingTraitDefinition.OPTIONS_PROPERTY,                       actionMapping.getOptions());
 
 					putData(entry, ActionMappingTraitDefinition.DIALOG_TYPE_PROPERTY,                   actionMapping.getDialogType());
 					putData(entry, ActionMappingTraitDefinition.DIALOG_TITLE_PROPERTY,                  actionMapping.getDialogTitle());

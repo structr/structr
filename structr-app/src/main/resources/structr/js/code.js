@@ -202,6 +202,19 @@ let _Code = {
 						},
 					},
 					{
+						id:       path + '/processes',
+						text:     'Processes',
+						children: true,
+						icon:     _Icons.nonExistentEmptyIcon,
+						li_attr:  { 'data-id': 'processes' },
+						data: {
+							svgIcon: _Icons.getSvgIcon(_Icons.iconProcesses, 18, 24),
+							key:     'processes',
+							content: 'processes',
+							path:    path + '/processes'
+						},
+					},
+					{
 						id:      '/root',
 						text:    'Types',
 						icon:    _Icons.nonExistentEmptyIcon,
@@ -301,6 +314,103 @@ let _Code = {
 							_Code.tree.displayFunction(sources, data);
 						}, true, 'ui');
 							break;
+
+					case 'processes':
+						// Top level: BpmnDefinitions as folders.
+						Command.query('BpmnDefinitions', 2000, 1, 'name', 'asc', {}, defs => {
+							let list = (defs || []).map(def => {
+								let baseName = def.processName || def.name || '[unnamed]';
+								let label    = (def.version != null) ? `${baseName} (v${def.version})` : baseName;
+								return {
+									id:       data.path + '/' + def.id,
+									text:     label,
+									children: true,
+									icon:     _Icons.nonExistentEmptyIcon,
+									li_attr:  { 'data-id': def.id },
+									data: {
+										svgIcon: _Icons.getSvgIcon(_Icons.iconProcess, 16, 24),
+										key:     'bpmnDefinitionMethods',
+										content: 'bpmnDefinitionMethods',
+										id:      def.id,
+										path:    data.path + '/' + def.id
+									},
+								};
+							});
+							_Helpers.sort(list, 'text');
+							data.callback(list);
+						}, true, 'ui');
+						break;
+
+					case 'bpmnDefinitionMethods':
+						// Per-definition: BpmnElements that have attached methods.
+						// Filtered client-side because Command.query has no "non-empty
+						// related collection" predicate.
+						//
+						// Multi-process refactor: BpmnElement has no `definition`
+						// field; it relates to its BpmnProcess via `process`, and
+						// BpmnProcess relates to BpmnDefinitions via `definition`.
+						// Fetch processes for this definition, then aggregate
+						// their elements. A single definition may host several
+						// processes (collaboration), so concatenate across all.
+						Command.query('BpmnProcess', 1000, 1, 'name', 'asc', { definition: data.id }, procs => {
+							const procIds = (procs || []).map(p => p.id);
+							if (procIds.length === 0) { data.callback([]); return; }
+							let pending = procIds.length;
+							let allElements = [];
+							const finish = () => {
+								let withMethods = allElements.filter(e => Array.isArray(e.methods) && e.methods.length > 0);
+								let list = withMethods.map(e => {
+									let label = e.bpmnName || e.bpmnId || e.name || '[unnamed]';
+									return {
+										id:       data.path + '/' + e.id,
+										text:     label,
+										children: true,
+										icon:     _Icons.nonExistentEmptyIcon,
+										li_attr:  { 'data-id': e.id },
+										data: {
+											svgIcon: _Icons.getSvgIcon(_Icons.iconTask, 16, 24),
+											key:     'bpmnElementMethods',
+											content: 'bpmnElementMethods',
+											id:      e.id,
+											path:    data.path + '/' + e.id
+										},
+									};
+								});
+								_Helpers.sort(list, 'text');
+								data.callback(list);
+							};
+							for (const pid of procIds) {
+								Command.query('BpmnElement', 2000, 1, 'bpmnName', 'asc', { process: pid }, elements => {
+									allElements = allElements.concat(elements || []);
+									if (--pending === 0) finish();
+								}, true, 'ui');
+							}
+						}, true, 'ui');
+						break;
+
+					case 'bpmnElementMethods':
+						// Leaves: SchemaMethods attached to a single BpmnElement via
+						// HAS_METHOD. Clicking a leaf routes through handleNodeObjectClick
+						// to displaySchemaMethodContent (key: 'SchemaMethod').
+						Command.get(data.id, null, entity => {
+							let methods = (entity?.methods || []);
+							let list = methods.map(m => ({
+								id:       data.path + '/' + m.id,
+								text:     (m.name || '[unnamed]') + '()',
+								children: false,
+								icon:     _Icons.nonExistentEmptyIcon,
+								li_attr:  { 'data-id': m.id },
+								data: {
+									svgIcon: _Icons.getSvgIcon(_Icons.iconSchemaMethods, 16, 24),
+									key:     'SchemaMethod',
+									id:      m.id,
+									path:    data.path + '/' + m.id
+								},
+							}));
+							_Helpers.sort(list, 'text');
+							data.callback(list);
+						}, 'ui');
+						break;
 
 					case 'remoteproperties':
 						_Code.tree.loadRemoteProperties(data);
@@ -961,7 +1071,7 @@ let _Code = {
 				}
 			};
 
-			_Code.mainArea.helpers.displaySvgActionButton('#create-type-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'create', 'Create', _Code.persistence.runCurrentEntitySaveAction);
+			_Code.mainArea.helpers.displaySvgActionButton('#create-type-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, 'icon-green'), 'create', 'Create', _Code.persistence.runCurrentEntitySaveAction);
 		},
 		displayBuiltInTypesContent: () => {
 			_Code.codeContents.append(_Code.templates.builtin());
@@ -1008,7 +1118,7 @@ let _Code = {
 					});
 				};
 
-				let saveButton = _Code.mainArea.helpers.displaySvgActionButton('#type-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'save', 'Save', _Code.persistence.runCurrentEntitySaveAction);
+				let saveButton = _Code.mainArea.helpers.displaySvgActionButton('#type-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, 'icon-green'), 'save', 'Save', _Code.persistence.runCurrentEntitySaveAction);
 
 				let cancelButton = _Code.mainArea.helpers.displaySvgActionButton('#type-actions', _Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
 					_Schema.bulkDialogsGeneral.resetInputsViaTabControls(tabControls);
@@ -1292,7 +1402,7 @@ let _Code = {
 
 			propertyUIContainer.prepend(_Code.templates.propertyOptions({ property: property, dbNameClass: dbNameClass }));
 
-			_Code.mainArea.helpers.displaySvgActionButton('#property-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'save', 'Save property', _Code.persistence.runCurrentEntitySaveAction);
+			_Code.mainArea.helpers.displaySvgActionButton('#property-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, 'icon-green'), 'save', 'Save property', _Code.persistence.runCurrentEntitySaveAction);
 
 			_Code.mainArea.helpers.displaySvgActionButton('#property-actions', _Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
 				_Code.persistence.revertFormData(property);
@@ -1400,7 +1510,7 @@ let _Code = {
 
 			if (_Schema.views.isViewEditable(view)) {
 
-				_Code.mainArea.helpers.displaySvgActionButton('#view-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'save', 'Save view', _Code.persistence.runCurrentEntitySaveAction);
+				_Code.mainArea.helpers.displaySvgActionButton('#view-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, 'icon-green'), 'save', 'Save view', _Code.persistence.runCurrentEntitySaveAction);
 
 				_Code.mainArea.helpers.displaySvgActionButton('#view-actions', _Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
 					_Code.persistence.revertFormData(view);
@@ -1844,7 +1954,7 @@ let _Code = {
 					_Code.persistence.saveEntityAction(result, afterSaveCallback, [storeParametersInFormDataFunction]);
 				};
 
-				_Code.mainArea.helpers.displaySvgActionButton('#method-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'save', 'Save method', _Code.persistence.runCurrentEntitySaveAction);
+				_Code.mainArea.helpers.displaySvgActionButton('#method-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, 'icon-green'), 'save', 'Save method', _Code.persistence.runCurrentEntitySaveAction);
 
 				_Code.mainArea.helpers.displaySvgActionButton('#method-actions', _Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
 					_Code.additionalDirtyChecks = [];
@@ -1998,7 +2108,7 @@ let _Code = {
 							});
 						};
 
-						let saveButton = _Code.mainArea.helpers.displaySvgActionButton('#type-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'save', 'Save', _Code.persistence.runCurrentEntitySaveAction);
+						let saveButton = _Code.mainArea.helpers.displaySvgActionButton('#type-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, 'icon-green'), 'save', 'Save', _Code.persistence.runCurrentEntitySaveAction);
 
 						let cancelButton = _Code.mainArea.helpers.displaySvgActionButton('#type-actions', _Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
 							_Schema.bulkDialogsGeneral.resetInputsViaTabControls(tabControls);
@@ -2076,7 +2186,7 @@ let _Code = {
 				}
 			};
 
-			_Code.mainArea.helpers.displaySvgActionButton('#create-type-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'create', 'Create', _Code.persistence.runCurrentEntitySaveAction);
+			_Code.mainArea.helpers.displaySvgActionButton('#create-type-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, 'icon-green'), 'create', 'Create', _Code.persistence.runCurrentEntitySaveAction);
 		},
 		helpers: {
 			shouldHideOpenAPITabForMethod: (entity) => {

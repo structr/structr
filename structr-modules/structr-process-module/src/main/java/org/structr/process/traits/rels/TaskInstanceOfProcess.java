@@ -25,7 +25,20 @@ import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 import org.structr.process.ProcessTraits;
 
-/** TaskInstance -[TASK_OF]-> ProcessInstance */
+/**
+ * TaskInstance -[TASK_OF]-> ProcessInstance.
+ *
+ * Cascade direction is TARGET_TO_SOURCE: deleting a ProcessInstance also
+ * deletes its TaskInstances. A task has no meaningful identity outside its
+ * parent instance, so this keeps the engine's runtime graph self-consistent.
+ * Tokens and parameter values cascade for the same reason via their own rels.
+ *
+ * <p>Read propagation: {@code In} means read flows from target (instance) back
+ * to source (task). The engine grants read on the ProcessInstance to every
+ * participant (initiator, candidates, assignees); propagation extends that
+ * grant to all the instance's tasks. Single grant point, generic across all
+ * roles regardless of process domain.</p>
+ */
 public class TaskInstanceOfProcess extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public TaskInstanceOfProcess() { super(ProcessTraits.TASK_INSTANCE_OF_PROCESS); }
@@ -35,11 +48,11 @@ public class TaskInstanceOfProcess extends AbstractRelationshipTraitDefinition i
 	@Override public String getRelationshipType() { return "TASK_OF"; }
 	@Override public Relation.Multiplicity getSourceMultiplicity() { return Relation.Multiplicity.Many; }
 	@Override public Relation.Multiplicity getTargetMultiplicity() { return Relation.Multiplicity.One; }
-	@Override public int getCascadingDeleteFlag() { return Relation.NONE; }
+	@Override public int getCascadingDeleteFlag() { return Relation.TARGET_TO_SOURCE; }
 	@Override public int getAutocreationFlag() { return Relation.NONE; }
 	@Override public boolean isInternal() { return false; }
-	@Override public PropagationDirection getPropagationDirection() { return PropagationDirection.None; }
-	@Override public PropagationMode getReadPropagation() { return PropagationMode.Keep; }
+	@Override public PropagationDirection getPropagationDirection() { return PropagationDirection.In; }
+	@Override public PropagationMode getReadPropagation() { return PropagationMode.Add; }
 	@Override public PropagationMode getWritePropagation() { return PropagationMode.Keep; }
 	@Override public PropagationMode getDeletePropagation() { return PropagationMode.Keep; }
 	@Override public PropagationMode getAccessControlPropagation() { return PropagationMode.Keep; }

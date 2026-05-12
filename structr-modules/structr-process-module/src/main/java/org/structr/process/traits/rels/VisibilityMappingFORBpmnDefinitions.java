@@ -18,30 +18,30 @@
  */
 package org.structr.process.traits.rels;
 
-import org.structr.api.graph.PropagationDirection;
-import org.structr.api.graph.PropagationMode;
 import org.structr.core.entity.Relation;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 import org.structr.process.ProcessTraits;
 
-/** ProcessInstance -[INSTANCE_OF]-> BpmnDefinitions */
-public class ProcessInstanceOfDefinition extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
+/**
+ * VisibilityMapping -[FOR]-> BpmnDefinitions.
+ *
+ * <p>The process definition this VisibilityMapping observes. Required for every
+ * mapping; the state predicate evaluates against this process's instances visible
+ * to the current user.</p>
+ */
+public class VisibilityMappingFORBpmnDefinitions extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	public ProcessInstanceOfDefinition() { super(ProcessTraits.PROCESS_INSTANCE_OF_DEFINITION); }
+	public VisibilityMappingFORBpmnDefinitions() {
+		super(ProcessTraits.VISIBILITY_MAPPING_FOR_BPMN_DEFINITIONS);
+	}
 
-	@Override public String getSourceType() { return ProcessTraits.PROCESS_INSTANCE; }
+	@Override public String getSourceType() { return ProcessTraits.VISIBILITY_MAPPING; }
 	@Override public String getTargetType() { return ProcessTraits.BPMN_DEFINITIONS; }
-	@Override public String getRelationshipType() { return "INSTANCE_OF"; }
+	@Override public String getRelationshipType() { return "FOR"; }
 	@Override public Relation.Multiplicity getSourceMultiplicity() { return Relation.Multiplicity.Many; }
 	@Override public Relation.Multiplicity getTargetMultiplicity() { return Relation.Multiplicity.One; }
 	@Override public int getCascadingDeleteFlag() { return Relation.NONE; }
 	@Override public int getAutocreationFlag() { return Relation.NONE; }
 	@Override public boolean isInternal() { return false; }
-	@Override public PropagationDirection getPropagationDirection() { return PropagationDirection.None; }
-	@Override public PropagationMode getReadPropagation() { return PropagationMode.Keep; }
-	@Override public PropagationMode getWritePropagation() { return PropagationMode.Keep; }
-	@Override public PropagationMode getDeletePropagation() { return PropagationMode.Keep; }
-	@Override public PropagationMode getAccessControlPropagation() { return PropagationMode.Keep; }
-	@Override public String getDeltaProperties() { return null; }
 }

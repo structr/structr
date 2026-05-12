@@ -18,18 +18,32 @@
  */
 package org.structr.web.traits.definitions;
 
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.operations.graphobject.OnCreation;
+import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.traits.wrappers.ActionMappingTraitWrapper;
 
@@ -37,6 +51,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
+
+	private static final Logger logger = LoggerFactory.getLogger(ActionMappingTraitDefinition.class);
 
 	public static final String TRIGGER_ELEMENTS_PROPERTY              = "triggerElements";
 	public static final String SUCCESS_TARGETS_PROPERTY               = "successTargets";
@@ -48,6 +64,38 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String ACTION_PROPERTY                        = "action";
 	public static final String METHOD_PROPERTY                        = "method";
 	public static final String FLOW_PROPERTY                          = "flow";
+	// Graph-relationship counterparts of the three string targets (method/flow/dataType).
+	// Resolved by the OnCreation / OnModification lifecycle hooks; the strings stay as
+	// the authoring surface and as a fallback for runtime-only / dynamic resolution.
+	public static final String METHOD_NODE_PROPERTY                   = "methodNode";
+	public static final String FLOW_NODE_PROPERTY                     = "flowNode";
+	public static final String DATA_TYPE_NODE_PROPERTY                = "dataTypeNode";
+
+	// Control-process action properties (set when action="control-process"). The two
+	// relationships are the source of truth for the static binding; processOperation
+	// is a closed-vocabulary string enum.
+	public static final String CONTROLS_PROCESS_PROPERTY              = "controlsProcess";    // -> BpmnDefinitions
+	public static final String TARGETS_ELEMENT_PROPERTY               = "targetsElement";     // -> BpmnElement
+	public static final String PROCESS_OPERATION_PROPERTY             = "processOperation";   // String enum
+	// Dynamic alternative to the static `controlsProcess` relationship.
+	// A Structr scripting expression that resolves to a BpmnDefinitions
+	// UUID at page-render time, e.g. ${current.id} on a process catalog
+	// page. Evaluated at render time (same flow as `idExpression`) and
+	// embedded in the rendered HTML as data-structr-controls-process-id-
+	// expression. At click time the resolved UUID is passed as a request
+	// parameter and resolved to a BpmnDefinitions node. When set and
+	// resolvable, it overrides `controlsProcess`. Only meaningful for the
+	// `start` operation.
+	public static final String CONTROLS_PROCESS_ID_EXPRESSION_PROPERTY = "controlsProcessIdExpression";
+
+	// Denormalized name backups for the process-control rels. Cache of
+	// controlsProcess.processId / targetsElement.bpmnId; refreshed at editor
+	// save time and at re-import rewire. Used by the importer to remap rels
+	// to the new BpmnDefinitions / BpmnElement after a re-import, and as a
+	// diagnostic when relationships go stale. Property declarations live in
+	// ActionMappingProcessControlTraitDefinition (process-module).
+	public static final String CONTROLS_PROCESS_ID_PROPERTY           = "controlsProcessId";
+	public static final String TARGETS_ELEMENT_BPMN_ID_PROPERTY       = "targetsElementBpmnId";
 	public static final String DATA_TYPE_PROPERTY                     = "dataType";
 	public static final String ID_EXPRESSION_PROPERTY                 = "idExpression";
 	public static final String OPTIONS_PROPERTY                       = "options";
@@ -77,7 +125,119 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
-		return Map.of();
+
+		return Map.of(
+
+			OnCreation.class,
+			new OnCreation() {
+				@Override
+				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+					resolveTargetRelationships(graphObject);
+				}
+			},
+
+			OnModification.class,
+			new OnModification() {
+				@Override
+				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+					// Re-resolve only when one of the three strings (or dataType for method scoping) actually changed.
+					// Avoids redundant work and prevents recursion when the lifecycle itself writes the relationship properties.
+					final Traits traits = graphObject.getTraits();
+					final boolean methodStringChanged   = modificationQueue.isPropertyModified(graphObject, traits.key(METHOD_PROPERTY));
+					final boolean flowStringChanged     = modificationQueue.isPropertyModified(graphObject, traits.key(FLOW_PROPERTY));
+					final boolean dataTypeStringChanged = modificationQueue.isPropertyModified(graphObject, traits.key(DATA_TYPE_PROPERTY));
+
+					if (methodStringChanged || flowStringChanged || dataTypeStringChanged) {
+						resolveTargetRelationships(graphObject);
+					}
+				}
+			}
+		);
+	}
+
+	/**
+	 * Resolve the {@code method} / {@code flow} / {@code dataType} string properties to
+	 * graph relationships pointing to {@code SchemaMethod} / {@code FlowContainer} /
+	 * {@code SchemaNode} target nodes. The strings stay as the authoring surface and as a
+	 * fallback when a target cannot be resolved (e.g. a method whose owning type is only
+	 * known at runtime via {@code idExpression}, or a target node that has not yet been
+	 * deployed).
+	 *
+	 * <p>Resolution rules:
+	 * <ul>
+	 *   <li>{@code dataType} resolves against {@code SchemaNode} by name.</li>
+	 *   <li>{@code flow} resolves against {@code FlowContainer} by name. If multiple flows
+	 *       share a name, the first match is used and a warning is logged.</li>
+	 *   <li>{@code method} + non-null {@code dataType}: looks up a {@code SchemaMethod}
+	 *       whose name matches and whose parent is the resolved SchemaNode.</li>
+	 *   <li>{@code method} + null {@code dataType}: looks up a top-level (no-parent)
+	 *       {@code SchemaMethod} by name.</li>
+	 * </ul>
+	 *
+	 * <p>Failures (target not found, ambiguous match resolved deterministically) are
+	 * logged as warnings; the lifecycle does not fail. Cleared strings clear the
+	 * relationship.</p>
+	 */
+	private static void resolveTargetRelationships(final GraphObject graphObject) throws FrameworkException {
+
+		final Traits traits = graphObject.getTraits();
+		final App app       = StructrApp.getInstance(SecurityContext.getSuperUserInstance());
+
+		final String methodName   = graphObject.getProperty(traits.key(METHOD_PROPERTY));
+		final String flowName     = graphObject.getProperty(traits.key(FLOW_PROPERTY));
+		final String dataTypeName = graphObject.getProperty(traits.key(DATA_TYPE_PROPERTY));
+
+		// dataType -> SchemaNode
+		NodeInterface resolvedSchemaNode = null;
+		if (StringUtils.isNotBlank(dataTypeName)) {
+			resolvedSchemaNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).name(dataTypeName).getFirst();
+			if (resolvedSchemaNode == null) {
+				logger.debug("ActionMapping references dataType '{}' but no SchemaNode with that name exists; relationship left null.", dataTypeName);
+			}
+		}
+		graphObject.setProperty(traits.key(DATA_TYPE_NODE_PROPERTY), resolvedSchemaNode);
+
+		// flow -> FlowContainer
+		NodeInterface resolvedFlow = null;
+		if (StringUtils.isNotBlank(flowName)) {
+			resolvedFlow = app.nodeQuery(StructrTraits.FLOW_CONTAINER).name(flowName).getFirst();
+			if (resolvedFlow == null) {
+				logger.debug("ActionMapping references flow '{}' but no FlowContainer with that name exists; relationship left null.", flowName);
+			}
+		}
+		graphObject.setProperty(traits.key(FLOW_NODE_PROPERTY), resolvedFlow);
+
+		// method -> SchemaMethod (scoped by dataType when present)
+		NodeInterface resolvedMethod = null;
+		if (StringUtils.isNotBlank(methodName)) {
+			if (resolvedSchemaNode != null) {
+				// method on a specific type: look up among that type's methods
+				for (final NodeInterface candidate : app.nodeQuery(StructrTraits.SCHEMA_METHOD).name(methodName).getResultStream()) {
+					final NodeInterface parent = candidate.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY));
+					if (parent != null && parent.getUuid().equals(resolvedSchemaNode.getUuid())) {
+						resolvedMethod = candidate;
+						break;
+					}
+				}
+				if (resolvedMethod == null) {
+					logger.debug("ActionMapping references method '{}' on type '{}' but no SchemaMethod found there; relationship left null.", methodName, dataTypeName);
+				}
+			} else {
+				// top-level (user-defined) method: parent is null
+				for (final NodeInterface candidate : app.nodeQuery(StructrTraits.SCHEMA_METHOD).name(methodName).getResultStream()) {
+					final NodeInterface parent = candidate.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY));
+					if (parent == null) {
+						resolvedMethod = candidate;
+						break;
+					}
+				}
+				if (resolvedMethod == null) {
+					logger.debug("ActionMapping references top-level method '{}' but no matching SchemaMethod with no parent type found; relationship left null.", methodName);
+				}
+			}
+		}
+		graphObject.setProperty(traits.key(METHOD_NODE_PROPERTY), resolvedMethod);
 	}
 
 	@Override
@@ -115,11 +275,26 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final Property<String> eventProperty                                 = new StringProperty(EVENT_PROPERTY).description("DOM event which triggers the action");
 		final Property<String> actionProperty                                = new StringProperty(ACTION_PROPERTY).description("Action which will be triggered");
-		final Property<String> methodProperty                                = new StringProperty(METHOD_PROPERTY).description("Name of method to execute when triggered action is 'method'");
-		final Property<String> flowProperty                                  = new StringProperty(FLOW_PROPERTY).description("Name of flow to execute when triggered action is 'flow'");
-		final Property<String> dataTypeProperty                              = new StringProperty(DATA_TYPE_PROPERTY).description("Data type for create action");
+		final Property<String> methodProperty                                = new StringProperty(METHOD_PROPERTY).description("Name of method to execute when triggered action is 'method'. Authoring surface; the resolved SchemaMethod node is held by 'methodNode'.");
+		final Property<String> flowProperty                                  = new StringProperty(FLOW_PROPERTY).description("Name of flow to execute when triggered action is 'flow'. Authoring surface; the resolved FlowContainer node is held by 'flowNode'.");
+		final Property<String> dataTypeProperty                              = new StringProperty(DATA_TYPE_PROPERTY).description("Data type for create action. Authoring surface; the resolved SchemaNode is held by 'dataTypeNode'.");
 		final Property<String> idExpressionProperty                          = new StringProperty(ID_EXPRESSION_PROPERTY).description("Script expression that evaluates to the id of the object the method should be executed on");
 		final Property<String> optionsProperty                               = new StringProperty(OPTIONS_PROPERTY).description("JSON string with that contains configuration options for this action mapping");
+
+		// Graph-relationship counterparts of method / flow / dataType. Auto-resolved by the
+		// OnCreation / OnModification lifecycle hooks. Read at runtime in preference to the
+		// strings; fall back to strings when the relationship is null (target unresolved or
+		// dynamic resolution required).
+		final Property<NodeInterface> methodNodeProperty                     = new EndNode(traitsInstance, METHOD_NODE_PROPERTY,    StructrTraits.ACTION_MAPPING_CALLS_SCHEMA_METHOD);
+		final Property<NodeInterface> flowNodeProperty                       = new EndNode(traitsInstance, FLOW_NODE_PROPERTY,      StructrTraits.ACTION_MAPPING_EXECUTES_FLOW_CONTAINER);
+		final Property<NodeInterface> dataTypeNodeProperty                   = new EndNode(traitsInstance, DATA_TYPE_NODE_PROPERTY, StructrTraits.ACTION_MAPPING_CREATES_SCHEMA_NODE);
+
+		// Control-process action properties (controlsProcess, targetsElement, processOperation)
+		// live in a sibling trait (ActionMappingProcessControlTraitDefinition) registered by
+		// the process module. They are not declared here because the EndNode constructors
+		// would resolve relationship types (ACTION_MAPPING_CONTROLS_BPMN_DEFINITIONS,
+		// ACTION_MAPPING_TARGETS_BPMN_ELEMENT) that are only registered after this base trait
+		// loads, breaking the trait registry.
 
 		final Property<String> dialogTypeProperty                            = new StringProperty(DIALOG_TYPE_PROPERTY).description("Type of dialog to confirm a destructive / update action");
 		final Property<String> dialogTitleProperty                           = new StringProperty(DIALOG_TITLE_PROPERTY).description("Dialog Title");
@@ -161,6 +336,10 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 			idExpressionProperty,
 			optionsProperty,
 
+			methodNodeProperty,
+			flowNodeProperty,
+			dataTypeNodeProperty,
+
 			dialogTypeProperty,
 			dialogTitleProperty,
 			dialogTextProperty,
@@ -195,6 +374,7 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 			PropertyView.Ui,
 			newSet(
 					EVENT_PROPERTY, ACTION_PROPERTY, METHOD_PROPERTY, FLOW_PROPERTY, ID_EXPRESSION_PROPERTY, OPTIONS_PROPERTY,
+					METHOD_NODE_PROPERTY, FLOW_NODE_PROPERTY, DATA_TYPE_NODE_PROPERTY,
 					DIALOG_TYPE_PROPERTY, DIALOG_TITLE_PROPERTY, DIALOG_TEXT_PROPERTY, SUCCESS_NOTIFICATIONS_PROPERTY, SUCCESS_NOTIFICATIONS_PARTIAL_PROPERTY,
 					SUCCESS_NOTIFICATIONS_EVENT_PROPERTY, FAILURE_NOTIFICATIONS_PROPERTY, FAILURE_NOTIFICATIONS_PARTIAL_PROPERTY,
 					FAILURE_NOTIFICATIONS_EVENT_PROPERTY, SUCCESS_BEHAVIOUR_PROPERTY, SUCCESS_PARTIAL_PROPERTY, SUCCESS_URL_PROPERTY,

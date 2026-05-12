@@ -6143,7 +6143,7 @@ let _Schema = {
 		`,
 		saveActionButton: config => `
 			<button id="save-entity-button" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-				${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, ['icon-green', 'mr-2'])} ${(config?.text ?? 'Save')}
+				${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, ['icon-green', 'mr-2'])} ${(config?.text ?? 'Save')}
 			</button>
 		`,
 		discardActionButton: config => `

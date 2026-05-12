@@ -2534,8 +2534,16 @@ class LifecycleMethods {
 	static onlyAvailableWithoutSchemaNodeContext(schemaNode) { return (schemaNode ?? null) === null; }
 
 	// TODO: these functions must be able to detect schemaNodes that inherit from User/File (or any other possible way these lifecycle methods should be available there)
-	static onlyAvailableWithUserNodeContext(schemaNode)      { return LifecycleMethods.onlyAvailableInSchemaNodeContext(schemaNode) && (schemaNode.name === 'User'); }
-	static onlyAvailableWithFileNodeContext(schemaNode)      { return LifecycleMethods.onlyAvailableInSchemaNodeContext(schemaNode) && (schemaNode.name === 'File'); }
+	static onlyAvailableWithUserNodeContext(schemaNode)         { return LifecycleMethods.onlyAvailableInSchemaNodeContext(schemaNode) && (schemaNode.name === 'User'); }
+	static onlyAvailableWithFileNodeContext(schemaNode)         { return LifecycleMethods.onlyAvailableInSchemaNodeContext(schemaNode) && (schemaNode.name === 'File'); }
+	static onlyAvailableWithTaskInstanceContext(schemaNode)     { return LifecycleMethods.onlyAvailableInSchemaNodeContext(schemaNode) && (schemaNode.name === 'TaskInstance'); }
+	// Process lifecycle methods can be defined on ProcessInstance (universal fallback) or on
+	// any schema type that may serve as a process subject (the engine looks them up on the
+	// subject type first, falling back to ProcessInstance). The picker stays open here so a
+	// developer can define onProcessCompleted on, say, LeaveRequest.
+	static onlyAvailableWithProcessInstanceOrSubjectContext(schemaNode) {
+		return LifecycleMethods.onlyAvailableInSchemaNodeContext(schemaNode);
+	}
 
 	static methods = [
 		/** Global */
@@ -2662,6 +2670,92 @@ class LifecycleMethods {
 					<div><code>provider</code></div><div>OAuth provider name</div>
 					<div><code>userinfo</code></div><div>information pulled from the userinfo endpoint of the OAuth provider</div>
 				</div>`,
+			isPrefix: false
+		},
+		/** TASK INSTANCE — Process Engine lifecycle events */
+		{
+			name: 'onTaskCreated',
+			available: LifecycleMethods.onlyAvailableWithTaskInstanceContext,
+			comment: `Fires after the engine creates a new TaskInstance, regardless of how the assignee is established (humanPerformer-driven direct assignment, candidateAssignees-only available, or unassigned). The TaskInstance is bound as <code>$.this</code>; assignee/candidateAssignees/declinedBy/status reflect the post-creation state.<br><br>Useful for: process-wide audit logging, derived data initialisation, system-wide creation notifications.<br><br>Async by default — exceptions are caught and logged; the engine state transition stands.`,
+			isPrefix: false
+		},
+		{
+			name: 'onTaskAssigned',
+			available: LifecycleMethods.onlyAvailableWithTaskInstanceContext,
+			comment: `Fires whenever the task's assignee is established or changes. Covers: humanPerformer-driven creation, participant claim, peer delegate, and admin assignTask. The new assignee is reachable via <code>$.this.assignee</code>; how the assignment was made is captured in <code>$.this.assigneeSetBy</code> ('self', 'admin', 'delegation', or 'bpmn').<br><br>Common use: notify the new assignee that they have a task to act on. This single handler covers <em>all</em> assignment paths: writing it once means notifications fire regardless of how the task got assigned.<br><br>Async by default.`,
+			isPrefix: false
+		},
+		{
+			name: 'onTaskClaimed',
+			available: LifecycleMethods.onlyAvailableWithTaskInstanceContext,
+			comment: `Fires when a participant claims a task (caller becomes the assignee). Fires <em>in addition</em> to <code>onTaskAssigned</code>, so handlers that need to distinguish self-claim from admin-assignment can do so here.<br><br>Useful for: claim-specific audit entries, "X took this task" notifications to the rest of the candidate group.<br><br>Async by default.`,
+			isPrefix: false
+		},
+		{
+			name: 'onTaskAvailable',
+			available: LifecycleMethods.onlyAvailableWithTaskInstanceContext,
+			comment: `Fires when the task transitions to status=available. Covers: initial creation with candidateAssignees only, participant release, and admin makeAvailable. <code>$.this.candidateAssignees</code> lists the eligible candidates.<br><br>Common use: notify the candidate group that a task is up for claim (initial), or re-notify after release/makeAvailable.<br><br>Async by default.`,
+			isPrefix: false
+		},
+		{
+			name: 'onTaskDeclined',
+			available: LifecycleMethods.onlyAvailableWithTaskInstanceContext,
+			comment: `Fires when a candidate adds themselves to <code>$.this.declinedBy</code> via the decline operation. The task itself stays in status=available: decline is a vote, not a state transition. Other candidates can still claim.<br><br>Useful for: stalled-task detection (when <code>declinedBy</code> covers all effective candidates), audit logs, escalation triggers.<br><br>Async by default.`,
+			isPrefix: false
+		},
+		{
+			name: 'onTaskCompleted',
+			available: LifecycleMethods.onlyAvailableWithTaskInstanceContext,
+			comment: `Fires when the task is completed and the engine is about to advance the process. Runs <em>before</em> token movement: the task is in completed state but the next token transition hasn't happened yet.<br><br>Useful for: archiving the decision, notifying the initiator, recording completion-time metrics.<br><br>Async by default.`,
+			isPrefix: false
+		},
+		{
+			name: 'onTaskCancelled',
+			available: LifecycleMethods.onlyAvailableWithTaskInstanceContext,
+			comment: `Fires when an admin cancels the task via the cancel operation. The task is in status=cancelled, the waiting token has been consumed, but the process instance is still running: admin must explicitly handle the instance afterwards.<br><br>Useful for: notifying anyone who was waiting on the task, recording cancellation reason, alerting administrators of a manual override.<br><br>Async by default.`,
+			isPrefix: false
+		},
+		/** PROCESS INSTANCE — Process Engine lifecycle events */
+		{
+			name: 'onProcessCreated',
+			available: LifecycleMethods.onlyAvailableWithProcessInstanceOrSubjectContext,
+			comment: `Fires after the engine creates a new ProcessInstance, before the initial token is placed at the start event. The instance has its definition, initiator, and (if provided to <code>startProcess</code>) subject set; <code>$.this.tokens</code> is empty.<br><br>The engine looks up <code>onProcessCreated</code> first on the <em>subject's schema type</em> (e.g. <code>LeaveRequest</code>), then on <code>ProcessInstance</code> itself. Define on whichever type makes sense for your use case.<br><br>Useful for: deriving the instance name from subject data, attaching audit metadata, validating preconditions before the first task is created.<br><br>Async by default.`,
+			isPrefix: false
+		},
+		{
+			name: 'onProcessStarted',
+			available: LifecycleMethods.onlyAvailableWithProcessInstanceOrSubjectContext,
+			comment: `Fires after <code>startProcess</code> places and advances the initial token. By this point the engine has reached the first wait state (a userTask or intermediate catch event), or completed the process synchronously through a script-only path.<br><br>Useful for: notifying the initiator that the process is underway, kicking off SLA timers, "process started" audit entries.<br><br>Async by default.`,
+			isPrefix: false
+		},
+		{
+			name: 'onProcessSubjectAttached',
+			available: LifecycleMethods.onlyAvailableWithProcessInstanceOrSubjectContext,
+			comment: `Fires when the <code>subject</code> relationship on the ProcessInstance is set to a non-null target. Covers both "subject provided to <code>startProcess</code>" and "subject attached post-hoc by application logic" (e.g. the LeaveRequest pattern: instance starts, the first task collects form data, then the script creates the LeaveRequest and attaches it).<br><br>Useful for: subject-side initialization that needs the instance reference, granting the subject's owner read access to the instance, audit "what is this process about" entries.<br><br>Async by default.`,
+			isPrefix: false
+		},
+		{
+			name: 'onProcessCompleted',
+			available: LifecycleMethods.onlyAvailableWithProcessInstanceOrSubjectContext,
+			comment: `Fires when the last token reaches an end event and the engine sets <code>status='completed'</code>. <code>$.this.endTime</code> is set; all tasks are in terminal status.<br><br>Replaces the auto-approve / completion notification logic that would otherwise live in the submit script: this handler runs regardless of which path completed the process (auto-approve, manual approve, parallel approve, ...).<br><br>Useful for: notifying the submitter / subject owner, archiving outcome data, releasing locks on subject data, recording cycle-time metrics.<br><br>Async by default.`,
+			isPrefix: false
+		},
+		{
+			name: 'onProcessTerminated',
+			available: LifecycleMethods.onlyAvailableWithProcessInstanceOrSubjectContext,
+			comment: `Fires when an admin terminates the process via <code>instance.terminate()</code> or by setting <code>status='terminated'</code>. All waiting tokens have been marked completed without advancement; the instance is in a terminal non-success state.<br><br>Useful for: "request was cancelled" notifications, undoing partial side effects, recording who terminated and when.<br><br>Async by default.`,
+			isPrefix: false
+		},
+		{
+			name: 'onProcessSuspended',
+			available: LifecycleMethods.onlyAvailableWithProcessInstanceOrSubjectContext,
+			comment: `Fires when an admin suspends the process via <code>instance.suspend()</code> or by setting <code>status='suspended'</code>. Existing tokens stay in place; no advancement occurs until <code>resume()</code> is called.<br><br>Useful for: pausing dependent SLA timers, notifying participants that the process is on hold, recording the suspension reason.<br><br>Async by default.`,
+			isPrefix: false
+		},
+		{
+			name: 'onProcessResumed',
+			available: LifecycleMethods.onlyAvailableWithProcessInstanceOrSubjectContext,
+			comment: `Fires when an admin resumes a suspended process via <code>instance.resume()</code>. The status transitions back to <code>'running'</code>.<br><br>Distinct from <code>onProcessStarted</code>: <code>started</code> fires once at initial start, <code>resumed</code> fires every time the process comes back from suspension.<br><br>Useful for: re-enabling timers paused by <code>onProcessSuspended</code>, notifying participants that the process is active again.<br><br>Async by default.`,
 			isPrefix: false
 		},
 	];

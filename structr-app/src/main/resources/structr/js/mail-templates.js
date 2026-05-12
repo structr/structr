@@ -551,7 +551,7 @@ let _MailTemplates = {
 						<div class="flex gap-4 px-0 justify-between">
 							<div class="inline-flex">
 								<button type="button" id="save-mail-template-content-button" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green disabled">
-									${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 12, 12, 'icon-green mr-2')} Save Content
+									${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, 'icon-green mr-2')} Save Content
 								</button>
 								<div id="mail-template-editor-options">
 								</div>

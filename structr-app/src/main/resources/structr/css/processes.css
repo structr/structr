@@ -34,6 +34,23 @@
 .processes-controls {
 	padding: 0;
 	margin: 0;
+	display: flex;
+}
+
+.processes-controls .bpmn-dropzone {
+	display: inline-flex;
+	align-items: center;
+	padding: 6px 12px;
+	border: 2px dashed #ccc;
+	border-radius: 4px;
+	color: #666;
+	font-size: 13px;
+	user-select: none;cursor:pointer;
+}
+
+.processes-controls .bpmn-dropzone:hover {
+	border: 2px dashed #aaa;
+	background-color: #f3f3f3;
 }
 
 .processes-controls > div {
@@ -136,7 +153,7 @@
 
 .status-badge.status-suspended,
 .status-badge.status-waiting,
-.status-badge.status-assigned {
+.status-badge.status-reserved {
 	background: #fff1c8;
 	color: #7a5800;
 }
@@ -152,3 +169,16 @@
 	background: #e6e6f7;
 	color: #3a3a7a;
 }
+
+/* BPMN diagram (Process Diagram dialog) */
+.bpmn-diagram-host { background: #fafafa; }
+.bpmn-shape { cursor: pointer; }
+.bpmn-shape:hover .bpmn-shape-body { stroke: #2563eb; }
+.bpmn-shape.bpmn-selected .bpmn-shape-body { stroke: #2563eb; stroke-width: 3; }
+.bpmn-shape.bpmn-highlight-active .bpmn-shape-body { fill: #fff7d6; }
+.bpmn-shape.bpmn-highlight-completed .bpmn-shape-body { fill: #e6f4ea; }
+.bpmn-shape.bpmn-highlight-error .bpmn-shape-body { fill: #fcd9d4; }
+.process-diagram-dialog .dialogText { padding: 0; }
+.process-diagram-palette .btn-palette.active { outline: 2px solid #3498db; }
+.show-diagram-link { color: inherit; text-decoration: none; }
+.show-diagram-link:hover { text-decoration: underline; }

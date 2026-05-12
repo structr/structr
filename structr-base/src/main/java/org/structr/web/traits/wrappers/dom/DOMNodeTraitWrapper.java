@@ -958,11 +958,70 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 			return true;
 		}
 
-		if (wrappedObject.isHidden() || !displayForLocale(renderContext) || !displayForConditions(renderContext)) {
+		if (wrappedObject.isHidden() || !displayForLocale(renderContext) || !displayForConditions(renderContext) || !displayForVisibilityMappings(renderContext)) {
 			return false;
 		}
 
 		return true;
+	}
+
+	/**
+	 * Render-time gate that consults the DOMNode's outgoing
+	 * {@code DOMNode HAS VisibilityMapping} relationships, evaluates each via the
+	 * mapping's {@code evaluate} method, and returns true if at least one matches
+	 * (OR semantics across mappings) or no mappings are configured.
+	 *
+	 * <p>The check is structurally optional: if the relationship type isn't
+	 * registered (process module not loaded) or no mappings exist on this node,
+	 * the gate returns true and the node is rendered. Mappings are opt-in.</p>
+	 *
+	 * <p><b>Permission split.</b> VMs are configuration data attached to the
+	 * DOMNode; the user shouldn't need read access on the VM nodes themselves.
+	 * So the iteration runs as superuser. The PREDICATE inside each VM is then
+	 * evaluated with the request user's context (passed in explicitly), so
+	 * predicates like "task is reserved by me" naturally compare against the
+	 * actual page-render user. Read-propagation across the {@code HAS} rel
+	 * exists for general use, but we don't rely on it here.</p>
+	 */
+	private boolean displayForVisibilityMappings(final RenderContext renderContext) {
+
+		final SecurityContext securityContext = renderContext.getSecurityContext();
+
+		// Pull the context object the predicate should evaluate against.
+		// Prefer the row-level current data object (e.g. inside a repeater)
+		// over the page-level details object. Concrete predicates (process
+		// engine etc.) decide whether they can use it: structr-base stays
+		// agnostic of feature-module types.
+		GraphObject ctx = renderContext.getDataObject();
+		if (ctx == null) {
+			ctx = renderContext.getDetailsDataObject();
+		}
+		final NodeInterface contextObject = (ctx instanceof NodeInterface) ? (NodeInterface) ctx : null;
+
+		// Iterate VMs as superuser: configuration data, not access-controlled per user.
+		final App suApp = StructrApp.getInstance(SecurityContext.getSuperUserInstance());
+		final Traits vmTraits = Traits.of(StructrTraits.VISIBILITY_MAPPING);
+		final PropertyKey<NodeInterface> domNodeKey = vmTraits.key(VisibilityMapping.DOM_NODE_PROPERTY);
+
+		boolean hadAny = false;
+		try {
+			for (final NodeInterface raw : suApp.nodeQuery(StructrTraits.VISIBILITY_MAPPING).key(domNodeKey, wrappedObject).getResultStream()) {
+				hadAny = true;
+				final VisibilityMapping mapping = raw.as(VisibilityMapping.class);
+				if (mapping.evaluate(securityContext, contextObject)) {
+					return true;
+				}
+			}
+		} catch (FrameworkException ex) {
+			// Querying VMs failed for some reason. Fail open (render) rather than
+			// black-hole every partial on the page.
+			LoggerFactory.getLogger(DOMNodeTraitWrapper.class)
+				.warn("VM query failed for DOMNode '{}': {}", getUuid(), ex.getMessage());
+			return true;
+		}
+
+		// Mappings exist but none matched: hide. No mappings: render (opt-in default).
+		return !hadAny;
 	}
 
 	@Override
@@ -1284,6 +1343,23 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		final PropertyKey<Iterable<NodeInterface>> key = traits.key(DOMNodeTraitDefinition.FAILURE_NOTIFICATION_ACTIONS_PROPERTY);
 
 		return Iterables.map(n -> n.as(ActionMapping.class), wrappedObject.getProperty(key));
+	}
+
+	@Override
+	public final Iterable<VisibilityMapping> getVisibilityMappings() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(DOMNodeTraitDefinition.VISIBILITY_MAPPINGS_PROPERTY);
+		final Iterable<NodeInterface> raw              = wrappedObject.getProperty(key);
+
+		// Defensive: if the property returns null (rather than an empty iterable),
+		// hand back an empty list so callers can iterate without an NPE on
+		// iterator(). Either form means "no mappings on this node" -- the gate
+		// treats it as default-render (opt-in feature).
+		if (raw == null) {
+			return java.util.Collections.emptyList();
+		}
+
+		return Iterables.map(n -> n.as(VisibilityMapping.class), raw);
 	}
 
 	@Override

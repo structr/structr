@@ -606,13 +606,36 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 										ActionMappingTraitDefinition.METHOD_PROPERTY,
 										ActionMappingTraitDefinition.FLOW_PROPERTY,
 										ActionMappingTraitDefinition.DATA_TYPE_PROPERTY,
-										ActionMappingTraitDefinition.ID_EXPRESSION_PROPERTY
+										ActionMappingTraitDefinition.ID_EXPRESSION_PROPERTY,
+										// Dynamic process-definition UUID for the control-process / start
+										// operation. Evaluated server-side here (variable replacement
+										// against the render context) and emitted as data-structr-controls-
+										// process-id-expression so the click handler forwards it.
+										ActionMappingTraitDefinition.CONTROLS_PROCESS_ID_EXPRESSION_PROPERTY
 									);
 
-									// append all stored action mapping keys as data-structr-<key> attributes
+									// append all stored action mapping keys as data-structr-<key> attributes.
+									// For method / flow / dataType, prefer the resolved name from the graph
+									// relationship (refactor-safe across renames); fall back to the variable-
+									// replaced string when the relationship is not set or unresolvable.
 									for (final String key : dynamicProperties) {
 
-										final String value = actionNode.getPropertyWithVariableReplacement(renderContext, eamTraits.key(key));
+										final String value;
+										switch (key) {
+											case ActionMappingTraitDefinition.METHOD_PROPERTY:
+												value = triggeredAction.getResolvedMethodName();
+												break;
+											case ActionMappingTraitDefinition.FLOW_PROPERTY:
+												value = triggeredAction.getResolvedFlowName();
+												break;
+											case ActionMappingTraitDefinition.DATA_TYPE_PROPERTY:
+												value = triggeredAction.getResolvedDataTypeName();
+												break;
+											default:
+												value = actionNode.getPropertyWithVariableReplacement(renderContext, eamTraits.key(key));
+												break;
+										}
+
 										if (StringUtils.isNotBlank(value)) {
 
 											final String keyHyphenated = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, key);
@@ -941,7 +964,9 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 							return handleResetPasswordAction(renderContext, domElementNode, parameters, eventContext);
 
 						case EventAction.Flow:
-							final String flow = getActionMapping(entity.as(DOMElement.class)).getFlow();
+							// Prefer the FlowContainer relationship target's name (refactor-safe);
+							// fall back to the string when the relationship is not set.
+							final String flow = getActionMapping(entity.as(DOMElement.class)).getResolvedFlowName();
 							return handleFlowAction(renderContext, domElementNode, parameters, eventContext, flow);
 
 						case EventAction.Method:
@@ -949,6 +974,14 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 							// execute custom method (and return the result directly)
 							final String method = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRMETHOD);
 							return handleCustomAction(renderContext, domElementNode, parameters, eventContext, method);
+
+						case EventAction.ControlProcess:
+							// Dispatch to the engine method that corresponds to the action's
+							// processOperation. The target is resolved from the controlsProcess
+							// relationship (for 'start') or from idExpression (for instance- /
+							// task-scoped operations). Generic dispatch via Methods.resolveMethod
+							// keeps the structr-base layer agnostic of process-module specifics.
+							return handleControlProcessAction(renderContext, domElementNode, parameters, eventContext);
 					}
 
 					return eventContext;
@@ -1686,10 +1719,348 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		return null;
 	}
 
+	/**
+	 * Dispatch a "control-process" EAM action. Reads the action's
+	 * {@code processOperation}, {@code controlsProcess} (BpmnDefinitions),
+	 * and {@code targetsElement} (BpmnElement) from the ActionMapping, resolves
+	 * the runtime target, and invokes the corresponding engine method via
+	 * {@link Methods#resolveMethod}. Generic by design: the dispatch is by method
+	 * name, so structr-base stays agnostic of process-module specifics.
+	 *
+	 * <p>Operation-to-method mapping:
+	 * <ul>
+	 *   <li>{@code start}: target = controlsProcess (BpmnDefinitions); method = {@code startProcess}</li>
+	 *   <li>{@code claim}, {@code release}, {@code decline}, {@code delegate},
+	 *       {@code complete}, {@code cancel}, {@code makeAvailable},
+	 *       {@code assignTask}: target = idExpression-resolved TaskInstance;
+	 *       method = same name as the operation</li>
+	 *   <li>{@code signal}: target = idExpression-resolved ProcessInstance;
+	 *       method = {@code signalEvent}; the {@code eventBpmnId} parameter is
+	 *       overridden from the action's targetsElement.bpmnId.</li>
+	 *   <li>{@code terminate}, {@code suspend}, {@code resume}: target =
+	 *       idExpression-resolved ProcessInstance; method = same name as the
+	 *       operation</li>
+	 * </ul>
+	 */
+	private Object handleControlProcessAction(final RenderContext renderContext, final NodeInterface entity,
+											   final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
+
+		final ActionMapping triggeredAction = getActionMapping(entity.as(DOMElement.class));
+		final String operation = triggeredAction.getProcessOperation();
+
+		if (StringUtils.isBlank(operation)) {
+			throw new FrameworkException(422, "control-process action has no processOperation set");
+		}
+
+		final NodeInterface target;
+		final String methodName;
+
+		if ("start".equals(operation)) {
+
+			// Start a new instance. Two authoring paths feed a single resolved
+			// target (a BpmnProcess that owns the startProcess method):
+			//   1. `controlsProcessIdExpression` -- a Structr expression
+			//      evaluated at page render time (e.g. ${current.id} on a
+			//      process catalog page). Resolved UUID rides on the click
+			//      via data-structr-controls-process-id-expression. The UUID
+			//      may identify either a BpmnDefinitions (file root) or a
+			//      BpmnProcess directly.
+			//   2. `controlsProcess` -- the static rel set by the editor's
+			//      Process picker, which always points at a BpmnDefinitions.
+			// Path 1 wins when set and resolvable; otherwise fall back to 2.
+			//
+			// Either resolution yields a candidate, which we then unwrap to
+			// a BpmnProcess via `resolveStartProcessTarget`: BpmnDefinitions
+			// -> its executable BpmnProcess child; BpmnProcess -> identity.
+			// startProcess only exists on BpmnProcess, so this unwrap is
+			// required after the multi-process refactor (a BpmnDefinitions
+			// is now a container of N BpmnProcess children, not the process
+			// itself).
+			final String dynamicProcessId = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRCONTROLSPROCESSIDEXPRESSION);
+			NodeInterface candidate = null;
+			if (StringUtils.isNotBlank(dynamicProcessId)) {
+				if (!Settings.isValidUuid(dynamicProcessId)) {
+					throw new FrameworkException(422, "control-process operation 'start': dynamic process expression resolved to '" + dynamicProcessId + "' which is not a valid UUID");
+				}
+				candidate = StructrApp.getInstance(renderContext.getSecurityContext()).getNodeById(dynamicProcessId);
+				if (candidate == null) {
+					throw new FrameworkException(422, "control-process operation 'start': dynamic process UUID '" + dynamicProcessId + "' did not resolve to any node");
+				}
+			}
+			if (candidate == null) {
+				candidate = triggeredAction.getControlsProcess();
+			}
+			if (candidate == null) {
+				throw new FrameworkException(422, "control-process operation 'start' requires either the controlsProcess relationship or a controlsProcessIdExpression that resolves to a BpmnDefinitions or BpmnProcess UUID");
+			}
+			target = resolveStartProcessTarget(candidate);
+			methodName = "startProcess";
+
+		} else if ("signal".equals(operation)) {
+
+			// Signal an intermediate catch event: target is the ProcessInstance (via idExpression).
+			// The catch event's bpmnId comes from the targetsElement relationship. Convenience:
+			// if idExpression resolved to a TaskInstance instead (e.g. on a task-bound page),
+			// walk to its parent ProcessInstance.
+			final String dataTarget = getDataTargetFromParameters(parameters, "control-process", false);
+			if (!Settings.isValidUuid(dataTarget)) {
+				throw new FrameworkException(422, "control-process operation 'signal' requires idExpression to resolve to a UUID");
+			}
+			final NodeInterface resolved = StructrApp.getInstance(renderContext.getSecurityContext()).getNodeById(dataTarget);
+			if (resolved == null) {
+				throw new FrameworkException(422, "control-process operation 'signal': target not found for id '" + dataTarget + "'");
+			}
+			if (resolved.getTraits().contains("ProcessInstance")) {
+				target = resolved;
+			} else if (resolved.getTraits().contains("TaskInstance")) {
+				final NodeInterface processInstance = resolved.getProperty(resolved.getTraits().key("processInstance"));
+				if (processInstance == null) {
+					throw new FrameworkException(422, "control-process operation 'signal': TaskInstance has no associated ProcessInstance");
+				}
+				target = processInstance;
+			} else {
+				throw new FrameworkException(422, "control-process operation 'signal': idExpression must resolve to a ProcessInstance or TaskInstance, got '" + resolved.getType() + "'");
+			}
+			methodName = "signalEvent";
+
+			final NodeInterface targetEl = triggeredAction.getTargetsElement();
+			if (targetEl != null) {
+				final String bpmnId = targetEl.getProperty(targetEl.getTraits().key("bpmnId"));
+				if (StringUtils.isNotBlank(bpmnId)) {
+					parameters.put("eventBpmnId", bpmnId);
+				}
+			}
+
+		} else if (isInstanceLevelOperation(operation) || isTaskLevelOperation(operation)) {
+
+			// Task / instance operations: target is resolved by idExpression. The common
+			// case for buttons on a process-bound page is ${current.id} which evaluates
+			// to a ProcessInstance UUID. For task-level ops (claim, complete, ...) we
+			// then need to locate the actual TaskInstance via process+step+caller; for
+			// instance-level ops (terminate, suspend, resume) we use the ProcessInstance
+			// directly.
+			final String dataTarget = getDataTargetFromParameters(parameters, "control-process", false);
+			if (!Settings.isValidUuid(dataTarget)) {
+				throw new FrameworkException(422, "control-process operation '" + operation + "' requires idExpression to resolve to a UUID");
+			}
+			final NodeInterface resolved = StructrApp.getInstance(renderContext.getSecurityContext()).getNodeById(dataTarget);
+			if (resolved == null) {
+				throw new FrameworkException(422, "control-process operation '" + operation + "': target not found for id '" + dataTarget + "'");
+			}
+
+			if (isTaskLevelOperation(operation) && !resolved.getTraits().contains("TaskInstance")) {
+
+				// Convenience resolution: the idExpression points at a ProcessInstance
+				// (the typical ${current.id} on a process page). Walk to the active
+				// TaskInstance for the current user at the configured step.
+				if (!resolved.getTraits().contains("ProcessInstance")) {
+					throw new FrameworkException(422, "control-process operation '" + operation + "': idExpression must resolve to a TaskInstance or ProcessInstance, got '" + resolved.getType() + "'");
+				}
+				final NodeInterface targetEl = triggeredAction.getTargetsElement();
+				if (targetEl == null) {
+					throw new FrameworkException(422, "control-process operation '" + operation + "': idExpression resolved to a ProcessInstance, but no Step is set on the action. Either set the Step on the action or use an idExpression that resolves directly to the TaskInstance.");
+				}
+				target = findActiveTaskForCurrentUser(renderContext, resolved, targetEl);
+				if (target == null) {
+					// Most likely causes (in order of frequency):
+					//  1. Wrong step configured on the action mapping (e.g. partial is
+					//     rendered for both Task_Review and Task_SeniorReview, but the
+					//     button is wired to only one of them -- split into per-step
+					//     partials with their own buttons).
+					//  2. The current user is not a candidate / assignee for any active
+					//     task at this step (visibility allows them to see the page,
+					//     but the engine's claim eligibility is independent).
+					//  3. Cross-version reference: action mapping's targetsElement
+					//     points at an old BPMN version's element; the rewire-on-import
+					//     should have updated it -- check denormalized targetsElementId.
+					throw new FrameworkException(422, "control-process operation '" + operation + "': no active task found for the current user on this process at step '" + safeName(targetEl) + "'. "
+						+ "Hints: check the action's step (Task_Review vs Task_SeniorReview vs ...), check the user's candidate group, and verify the action's targetsElement points to the latest BPMN version.");
+				}
+
+			} else if (isInstanceLevelOperation(operation) && !resolved.getTraits().contains("ProcessInstance")) {
+
+				// Instance-level operation but idExpression resolved to a TaskInstance:
+				// walk to the parent ProcessInstance.
+				if (!resolved.getTraits().contains("TaskInstance")) {
+					throw new FrameworkException(422, "control-process operation '" + operation + "': idExpression must resolve to a ProcessInstance or TaskInstance, got '" + resolved.getType() + "'");
+				}
+				final NodeInterface processInstance = resolved.getProperty(resolved.getTraits().key("processInstance"));
+				if (processInstance == null) {
+					throw new FrameworkException(422, "control-process operation '" + operation + "': TaskInstance has no associated ProcessInstance");
+				}
+				target = processInstance;
+
+			} else {
+
+				// Already the right type (TaskInstance for task ops, ProcessInstance for instance ops).
+				target = resolved;
+			}
+
+			methodName = operation;
+
+			// completeWithSubject: the engine method needs to know which
+			// SchemaNode type to instantiate as the subject. The EAM
+			// already exposes a Data type field (used by `create` actions);
+			// we reuse it here as the authoritative source.
+			if ("completeWithSubject".equals(operation)) {
+				final String subjectType = triggeredAction.getResolvedDataTypeName();
+				if (StringUtils.isBlank(subjectType)) {
+					throw new FrameworkException(422, "control-process operation 'completeWithSubject' requires a Data type to be configured on the action mapping (it determines the subject's type).");
+				}
+				parameters.put("subjectType", subjectType);
+			}
+
+		} else {
+
+			throw new FrameworkException(422, "Unknown control-process operation: '" + operation + "'");
+		}
+
+		final AbstractMethod m = Methods.resolveMethod(target.getTraits(), methodName);
+		if (m == null) {
+			throw new FrameworkException(422, "control-process: method '" + methodName + "' not found on target type '" + target.getType() + "'");
+		}
+
+		removeInternalDataBindingKeys(parameters);
+		// Type-coerce constant-value parameters before handing them to the
+		// engine. The EAM author writes `constantValue = "true"` and means
+		// the boolean literal; the HTML attribute -> form-submission round
+		// trip flattens it to a string, which then doesn't match
+		// `${approved == true}` style BPMN gateway conditions imported
+		// verbatim from Camunda. Coerce here so the BPMN keeps its
+		// natural typed semantics without authoring-side glue.
+		coerceConstantValueParameters(triggeredAction, renderContext, parameters);
+		final Object result = m.execute(renderContext, target, NamedArguments.fromMap(parameters));
+
+		// `start` augments the response with a pre-built page URL so the
+		// EAM `Navigate to URL` follow-up can use {result.url} to drop the
+		// browser onto the new instance's page. This replaces the legacy
+		// custom method that returned `{ url: '/<slug>/<uuid>' }` and
+		// matches the same convention: a page name path segment, then the
+		// instance UUID that the page renderer resolves to `current`.
+		//
+		// Page-name source priority (most specific to most generic):
+		//   1. The Page bound via `instancePage` (typed graph rel) -- the
+		//      name is read directly from the Page node, so renames
+		//      survive without breaking the URL.
+		//   2. BpmnProcess.processName slugified via Functions.cleanString
+		//      (the engine of $.clean). Same shape as the legacy custom
+		//      method's `$.clean(def.name)`, here for back-compat with
+		//      processes that don't yet have a page bound.
+		//   3. BpmnProcess.name slugified, as a last-ditch fallback.
+		// Other operations return their engine method's result unmodified.
+		if ("start".equals(operation) && result instanceof NodeInterface) {
+			final NodeInterface instance = (NodeInterface) result;
+			final org.structr.core.traits.Traits procTraits = target.getTraits();
+
+			final String processName = target.getProperty(procTraits.key("processName"));
+			final NodeInterface boundPage = target.getProperty(procTraits.key("instancePage"));
+			String pageName;
+			if (boundPage != null) {
+				pageName = boundPage.getProperty(boundPage.getTraits().key("name"));
+			} else if (StringUtils.isNotBlank(processName)) {
+				pageName = org.structr.core.function.Functions.cleanString(processName);
+			} else {
+				pageName = org.structr.core.function.Functions.cleanString(target.getProperty(procTraits.key("name")));
+			}
+			final String url = "/" + pageName + "/" + instance.getUuid();
+
+			final java.util.Map<String, Object> response = new java.util.LinkedHashMap<>();
+			response.put("id",          instance.getUuid());
+			response.put("type",        instance.getType());
+			response.put("processName", processName);
+			response.put("pageName",    pageName);
+			// `slug` retained as an alias for `pageName` so any successURL
+			// templates already written against {result.slug} keep working.
+			response.put("slug",        pageName);
+			response.put("url",         url);
+			return response;
+		}
+		return result;
+	}
+
+	private static boolean isTaskLevelOperation(final String op) {
+		switch (op) {
+			case "claim": case "release": case "decline": case "delegate":
+			case "complete": case "completeWithSubject":
+			case "cancel": case "makeAvailable": case "assignTask":
+				return true;
+			default:
+				return false;
+		}
+	}
+
+	private static boolean isInstanceLevelOperation(final String op) {
+		switch (op) {
+			case "terminate": case "suspend": case "resume":
+				return true;
+			default:
+				return false;
+		}
+	}
+
+	/**
+	 * Find the active TaskInstance for the current user on a given ProcessInstance at
+	 * a given BPMN element. Used by control-process dispatch when {@code idExpression}
+	 * resolves to a ProcessInstance (the typical {@code ${current.id}} default on a
+	 * process-bound page) but the operation needs the TaskInstance.
+	 *
+	 * <p>The query runs in the caller's security context, so only tasks the user can
+	 * read are considered. With the engine's instance-level read grant (initiator,
+	 * candidates, assignees of the instance get read on the ProcessInstance, which
+	 * propagates to all its tasks), participants see every task on the instance --
+	 * the {@code definedBy=bpmnElement} filter is what disambiguates which task to
+	 * act on. Skipping completed/cancelled returns the *active* task at this step.</p>
+	 *
+	 * <p>If this returns null, the action mapping is wired to a step that has no
+	 * active task in this instance -- a common authoring mistake when one partial
+	 * with multiple VMs (e.g. Task_Review OR Task_SeniorReview) hosts a single
+	 * action: the button can only act on one step. Split such partials so each
+	 * carries one VM and one action.</p>
+	 */
+	private NodeInterface findActiveTaskForCurrentUser(final RenderContext renderContext, final NodeInterface processInstance, final NodeInterface bpmnElement) throws FrameworkException {
+
+		final App app                     = StructrApp.getInstance(renderContext.getSecurityContext());
+		final Traits taskTraits           = Traits.of("TaskInstance");
+		final PropertyKey<NodeInterface> processInstanceKey = taskTraits.key("processInstance");
+		final PropertyKey<NodeInterface> definedByKey       = taskTraits.key("definedBy");
+		final PropertyKey<String> statusKey                 = taskTraits.key("status");
+
+		int seenButTerminal = 0;
+		for (final NodeInterface task : app.nodeQuery("TaskInstance")
+				.key(processInstanceKey, processInstance)
+				.key(definedByKey, bpmnElement)
+				.getResultStream()) {
+
+			final String status = task.getProperty(statusKey);
+			if (!"completed".equals(status) && !"cancelled".equals(status)) {
+				return task;
+			}
+			seenButTerminal++;
+		}
+		// Authoring-trace: log once when the lookup found tasks at this step but
+		// they were all terminal. Helps distinguish "step is wrong" from "step is
+		// right, the active task already moved on (claim race / completion race)".
+		if (seenButTerminal > 0) {
+			LoggerFactory.getLogger(DOMElementTraitDefinition.class)
+				.info("findActiveTaskForCurrentUser: {} terminal task(s) at step '{}' on instance '{}', no active match. Authoring hint: confirm the partial only renders while the step is active (visibility predicate) and the page isn't stale.",
+					seenButTerminal, safeName(bpmnElement), processInstance.getUuid());
+		}
+		return null;
+	}
+
+	private String safeName(final NodeInterface node) {
+		try {
+			return node != null ? (node.getName() != null ? node.getName() : node.getUuid()) : "<null>";
+		} catch (Exception ex) {
+			return "<unnamed>";
+		}
+	}
+
 	private void removeInternalDataBindingKeys(final Map<String, Object> parameters) {
 
 		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRID);
 		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRIDEXPRESSION);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRCONTROLSPROCESSIDEXPRESSION);
 		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET);
 		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRDATATYPE);
 		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRMETHOD);
@@ -1722,6 +2093,152 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		}
 
 		return dataType;
+	}
+
+	/**
+	 * Resolve the user's "start process" target to the BpmnProcess that
+	 * actually owns the {@code startProcess} method. After the multi-
+	 * process refactor a BpmnDefinitions is a file-level container of
+	 * 0..N BpmnProcess children (a single executable plus optional
+	 * collaboration peers), so we have to unwrap.
+	 *
+	 * <p>Resolution rules:
+	 * <ul>
+	 *   <li>BpmnProcess -> identity (the dynamic UUID expression may
+	 *       point straight at one).</li>
+	 *   <li>BpmnDefinitions with one process -> that process.</li>
+	 *   <li>BpmnDefinitions with several processes -> the executable one
+	 *       (processIsExecutable=true). Multiple executables in the same
+	 *       file is invalid BPMN; we throw rather than guess.</li>
+	 *   <li>Anything else -> throw with a clear message naming the type.</li>
+	 * </ul>
+	 *
+	 * <p>Kept generic by reading types and keys via the trait registry
+	 * rather than importing process-module classes from structr-base.</p>
+	 */
+	private NodeInterface resolveStartProcessTarget(final NodeInterface candidate) throws FrameworkException {
+		if (candidate == null) return null;
+
+		final org.structr.core.traits.Traits traits = candidate.getTraits();
+		if (traits.contains("BpmnProcess")) {
+			return candidate;
+		}
+		if (!traits.contains("BpmnDefinitions")) {
+			throw new FrameworkException(422,
+				"control-process operation 'start': target must be a BpmnDefinitions or BpmnProcess, got '" + candidate.getType() + "'");
+		}
+
+		// BpmnDefinitions -> walk to its BpmnProcess children. Property name
+		// "processes" is declared by BpmnDefinitionsTraitDefinition; resolved
+		// here via the trait registry to keep structr-base independent of
+		// the process-module class graph.
+		final Iterable<NodeInterface> processes = candidate.getProperty(traits.key("processes"));
+		if (processes == null) {
+			throw new FrameworkException(422,
+				"control-process operation 'start': BpmnDefinitions '" + candidate.getUuid() + "' has no processes");
+		}
+		final List<NodeInterface> all  = new ArrayList<>();
+		final List<NodeInterface> exec = new ArrayList<>();
+		for (final NodeInterface p : processes) {
+			all.add(p);
+			final Boolean isExec = p.getProperty(p.getTraits().key("processIsExecutable"));
+			if (Boolean.TRUE.equals(isExec)) exec.add(p);
+		}
+		if (all.isEmpty()) {
+			throw new FrameworkException(422,
+				"control-process operation 'start': BpmnDefinitions '" + candidate.getUuid() + "' has no BpmnProcess children");
+		}
+		if (all.size() == 1) {
+			return all.get(0);
+		}
+		if (exec.size() == 1) {
+			return exec.get(0);
+		}
+		if (exec.isEmpty()) {
+			throw new FrameworkException(422,
+				"control-process operation 'start': BpmnDefinitions '" + candidate.getUuid() + "' contains "
+					+ all.size() + " processes but none is marked executable. Set processIsExecutable=true on the entry-point BpmnProcess, or point controlsProcessIdExpression at a specific BpmnProcess UUID.");
+		}
+		throw new FrameworkException(422,
+			"control-process operation 'start': BpmnDefinitions '" + candidate.getUuid() + "' contains "
+				+ exec.size() + " executable processes; cannot pick one. Point controlsProcessIdExpression at a specific BpmnProcess UUID instead.");
+	}
+
+	/**
+	 * Convert constant-value EAM parameter mappings whose stored string
+	 * looks like a JSON literal into the matching Java type before they
+	 * reach the engine method. BPMN gateway conditions imported from
+	 * other tools commonly use boolean comparisons like
+	 * {@code ${approved == true}}; a parameter mapping configured with
+	 * {@code constantValue = "true"} would otherwise arrive as the
+	 * String "true" via the HTML attribute / form-submission round trip
+	 * and silently fail the boolean comparison. This helper lets authors
+	 * keep BPMN spec-faithful and the EAM authoring trivial (two
+	 * constant-value buttons, one with "true", one with "false") without
+	 * any glue method in between.
+	 *
+	 * <p>Scope is intentionally narrow: only parameter mappings with
+	 * {@code parameterType = "constant-value"} are touched. User-input
+	 * values stay as the user typed them (a free-text field whose
+	 * user-typed value happens to read "true" isn't meant as a boolean
+	 * and would silently change behaviour if coerced).</p>
+	 *
+	 * <p>Coercion matrix:</p>
+	 * <ul>
+	 *   <li>"true" / "false" (case-insensitive) -> {@code Boolean}</li>
+	 *   <li>integer-shaped strings -> {@code Long}</li>
+	 *   <li>decimal-shaped strings -> {@code Double}</li>
+	 *   <li>"null" -> Java {@code null}</li>
+	 *   <li>anything else -> unchanged (still String)</li>
+	 * </ul>
+	 */
+	private void coerceConstantValueParameters(final ActionMapping triggeredAction, final RenderContext renderContext, final Map<String, Object> parameters) throws FrameworkException {
+
+		final Iterable<ParameterMapping> mappings = triggeredAction.getParameterMappings();
+		if (mappings == null) return;
+
+		final Traits paramTraits = Traits.of(StructrTraits.PARAMETER_MAPPING);
+		final PropertyKey<String> typeKey = paramTraits.key(ParameterMappingTraitDefinition.PARAMETER_TYPE_PROPERTY);
+		final PropertyKey<String> nameKey = paramTraits.key(ParameterMappingTraitDefinition.PARAMETER_NAME_PROPERTY);
+
+		for (final ParameterMapping pm : mappings) {
+			final NodeInterface pmNode = pm;
+			final String type = pmNode.getProperty(typeKey);
+			if (!"constant-value".equals(type)) continue;
+			final String name = pmNode.getPropertyWithVariableReplacement(renderContext, nameKey);
+			if (StringUtils.isBlank(name) || !parameters.containsKey(name)) continue;
+
+			final Object current = parameters.get(name);
+			if (!(current instanceof String)) continue;   // already coerced (e.g. by a prior step)
+			final Object coerced = coerceJsonLiteral((String) current);
+			if (coerced != current) {                     // sentinel: same ref means "no change"
+				parameters.put(name, coerced);
+			}
+		}
+	}
+
+	/**
+	 * Best-effort interpretation of {@code raw} as a JSON-style literal.
+	 * Returns the input unchanged when no coercion applies (sentinel for
+	 * the caller). Used by {@link #coerceConstantValueParameters}.
+	 */
+	private static Object coerceJsonLiteral(final String raw) {
+		if (raw == null) return null;
+		final String trimmed = raw.trim();
+		if (trimmed.isEmpty()) return raw;
+		if ("true".equalsIgnoreCase(trimmed))  return Boolean.TRUE;
+		if ("false".equalsIgnoreCase(trimmed)) return Boolean.FALSE;
+		if ("null".equalsIgnoreCase(trimmed))  return null;
+		// Integer first (Long; covers most ids and counts), then decimal.
+		// Strict patterns so we don't swallow strings like "1abc" or
+		// "1.2.3" that happen to start with digits.
+		if (trimmed.matches("-?\\d+")) {
+			try { return Long.parseLong(trimmed); } catch (NumberFormatException ignored) { /* overflow -- fall through */ }
+		}
+		if (trimmed.matches("-?\\d+\\.\\d+([eE][+-]?\\d+)?")) {
+			try { return Double.parseDouble(trimmed); } catch (NumberFormatException ignored) { }
+		}
+		return raw;
 	}
 
 	private String getDataTargetFromParameters(final Map<String, Object> parameters, final String action, final boolean throwExceptionIfEmpty) throws FrameworkException {
@@ -1911,7 +2428,11 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 				successTargetString = null;
 		}
 
-		final String idExpression = triggeredAction.getIdExpression();
+		// idExpression is a script expression that resolves to a UUID at render time
+		// (e.g. ${retrieve('taskInstance').id}). Evaluate it server-side so the rendered
+		// data-structr-target attribute carries the resolved UUID, not the literal
+		// expression -- the action handler treats this attribute as a UUID / type name.
+		final String idExpression = triggeredAction.getPropertyWithVariableReplacement(renderContext, traits.key(ActionMappingTraitDefinition.ID_EXPRESSION_PROPERTY));
 		if (StringUtils.isNotBlank(idExpression)) {
 			out.append(" data-structr-target=\"").append(idExpression).append("\"");
 		}
@@ -1919,7 +2440,9 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		final String action = triggeredAction.getAction();
 		if ("create".equals(action)) {
 
-			final String dataType = triggeredAction.getDataType();
+			// Prefer the SchemaNode relationship target's name (refactor-safe);
+			// fall back to the string when the relationship is not set.
+			final String dataType = triggeredAction.getResolvedDataTypeName();
 			if (StringUtils.isNotBlank(dataType)) {
 				out.append(" data-structr-target=\"").append(dataType).append("\"");
 			}

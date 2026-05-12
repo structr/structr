@@ -25,7 +25,14 @@ import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 import org.structr.process.ProcessTraits;
 
-/** ProcessInstance -[HAS_PARAMETER_VALUE]-> ProcessParameterValue */
+/**
+ * ProcessInstance -[HAS_PARAMETER_VALUE]-> ProcessParameterValue.
+ *
+ * <p>Read propagation: {@code Out} means read flows from source (instance)
+ * forward to target (parameter value). Participants holding read on the
+ * ProcessInstance gain read on the instance's decision history without
+ * needing per-value grants. Matches the pattern used for TaskInstance.</p>
+ */
 public class ProcessInstanceHasParameterValue extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public ProcessInstanceHasParameterValue() { super(ProcessTraits.PROCESS_INSTANCE_HAS_PARAMETER_VALUE); }
@@ -38,8 +45,8 @@ public class ProcessInstanceHasParameterValue extends AbstractRelationshipTraitD
 	@Override public int getCascadingDeleteFlag() { return Relation.SOURCE_TO_TARGET; }
 	@Override public int getAutocreationFlag() { return Relation.ALWAYS; }
 	@Override public boolean isInternal() { return false; }
-	@Override public PropagationDirection getPropagationDirection() { return PropagationDirection.None; }
-	@Override public PropagationMode getReadPropagation() { return PropagationMode.Keep; }
+	@Override public PropagationDirection getPropagationDirection() { return PropagationDirection.Out; }
+	@Override public PropagationMode getReadPropagation() { return PropagationMode.Add; }
 	@Override public PropagationMode getWritePropagation() { return PropagationMode.Keep; }
 	@Override public PropagationMode getDeletePropagation() { return PropagationMode.Keep; }
 	@Override public PropagationMode getAccessControlPropagation() { return PropagationMode.Keep; }

@@ -25,14 +25,18 @@ import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 import org.structr.process.ProcessTraits;
 
-/** BpmnElement -[HAS_PARAMETER]-> ProcessParameter */
-public class BpmnElementHasParameter extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
+/**
+ * BpmnProcess -[HAS_PROCESS_LISTENER]-> BpmnProcessListener. Lifecycle hooks
+ * (started, completed, etc.) attached at the process level. Listeners are
+ * deleted with their parent process.
+ */
+public class BpmnProcessHasProcessListener extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	public BpmnElementHasParameter() { super(ProcessTraits.BPMN_ELEMENT_HAS_PARAMETER); }
+	public BpmnProcessHasProcessListener() { super(ProcessTraits.BPMN_PROCESS_HAS_PROCESS_LISTENER); }
 
-	@Override public String getSourceType() { return ProcessTraits.BPMN_ELEMENT; }
-	@Override public String getTargetType() { return ProcessTraits.PROCESS_PARAMETER; }
-	@Override public String getRelationshipType() { return "HAS_PARAMETER"; }
+	@Override public String getSourceType() { return ProcessTraits.BPMN_PROCESS; }
+	@Override public String getTargetType() { return ProcessTraits.BPMN_PROCESS_LISTENER; }
+	@Override public String getRelationshipType() { return "HAS_PROCESS_LISTENER"; }
 	@Override public Relation.Multiplicity getSourceMultiplicity() { return Relation.Multiplicity.One; }
 	@Override public Relation.Multiplicity getTargetMultiplicity() { return Relation.Multiplicity.Many; }
 	@Override public int getCascadingDeleteFlag() { return Relation.SOURCE_TO_TARGET; }

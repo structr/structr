@@ -25,14 +25,22 @@ import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 import org.structr.process.ProcessTraits;
 
-/** ProcessParameterValue -[OF_PARAMETER]-> ProcessParameter */
-public class ProcessParameterValueOfParameter extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
+/**
+ * ProcessTimer -[FOR_TOKEN]-> ProcessToken.
+ *
+ * For intermediate timer events: the token waiting at the catch event.
+ * For boundary timer events: the token of the parent activity (so cancelling
+ * the timer or the activity can find each other).
+ *
+ * Optional -- timerStart timers have no associated token at creation time.
+ */
+public class ProcessTimerForToken extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	public ProcessParameterValueOfParameter() { super(ProcessTraits.PROCESS_PARAMETER_VALUE_OF_PARAMETER); }
+	public ProcessTimerForToken() { super(ProcessTraits.PROCESS_TIMER_FOR_TOKEN); }
 
-	@Override public String getSourceType() { return ProcessTraits.PROCESS_PARAMETER_VALUE; }
-	@Override public String getTargetType() { return ProcessTraits.PROCESS_PARAMETER; }
-	@Override public String getRelationshipType() { return "OF_PARAMETER"; }
+	@Override public String getSourceType() { return ProcessTraits.PROCESS_TIMER; }
+	@Override public String getTargetType() { return ProcessTraits.PROCESS_TOKEN; }
+	@Override public String getRelationshipType() { return "FOR_TOKEN"; }
 	@Override public Relation.Multiplicity getSourceMultiplicity() { return Relation.Multiplicity.Many; }
 	@Override public Relation.Multiplicity getTargetMultiplicity() { return Relation.Multiplicity.One; }
 	@Override public int getCascadingDeleteFlag() { return Relation.NONE; }

@@ -36,7 +36,7 @@ let _Entities = {
 	changeBooleanAttribute: (attrElement, value, activeLabel, inactiveLabel) => {
 
 		if (value === true) {
-			attrElement.removeClass('inactive').addClass('active').prop('checked', true).html(_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, ['icon-green', 'mr-2']) + ' ' + (activeLabel ?? ''));
+			attrElement.removeClass('inactive').addClass('active').prop('checked', true).html(_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, ['icon-green', 'mr-2']) + ' ' + (activeLabel ?? ''));
 		} else {
 			attrElement.removeClass('active').addClass('inactive').prop('checked', false).text((inactiveLabel ?? '-'));
 		}

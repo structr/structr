@@ -42,6 +42,7 @@ public interface DOMElement extends DOMNode  {
 	String EVENT_ACTION_MAPPING_PARAMETER_HTMLEVENT                        = "htmlEvent";
 	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRID                        = "structrId";
 	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRIDEXPRESSION              = "structrIdExpression";
+	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRCONTROLSPROCESSIDEXPRESSION = "structrControlsProcessIdExpression";
 	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRACTION                    = "structrAction";
 	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTREVENT                     = "structrEvent";
 	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTREVENTS                    = "structrEvents";

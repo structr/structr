@@ -21,24 +21,37 @@ package org.structr.process.traits.rels;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 import org.structr.process.ProcessTraits;
 
-public class BpmnDefinitionsHasSequenceFlow extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
+/**
+ * TaskInstance -[DECLINED_BY]-> Principal.
+ *
+ * Records that a Principal (user or group) has actively declined this task.
+ * Decline is a vote, not a permission change: the declining principal keeps
+ * their R+W grant on the task (so they can undo their decision) but their
+ * intent is recorded for audit and for "all-declined" stalled-task detection.
+ *
+ * Multiple principals can decline the same task; a principal can decline
+ * multiple tasks. Engine clears the entry on (re-)claim, since claiming
+ * supersedes a previous decline.
+ */
+public class TaskInstanceDeclinedBy extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	public BpmnDefinitionsHasSequenceFlow() { super(ProcessTraits.BPMN_DEFINITIONS_HAS_SEQUENCE_FLOW); }
+	public TaskInstanceDeclinedBy() { super(ProcessTraits.TASK_INSTANCE_DECLINED_BY); }
 
-	@Override public String getSourceType() { return ProcessTraits.BPMN_DEFINITIONS; }
-	@Override public String getTargetType() { return ProcessTraits.BPMN_SEQUENCE_FLOW; }
-	@Override public String getRelationshipType() { return "HAS_SEQUENCE_FLOW"; }
-	@Override public Relation.Multiplicity getSourceMultiplicity() { return Relation.Multiplicity.One; }
+	@Override public String getSourceType() { return ProcessTraits.TASK_INSTANCE; }
+	@Override public String getTargetType() { return StructrTraits.PRINCIPAL; }
+	@Override public String getRelationshipType() { return "DECLINED_BY"; }
+	@Override public Relation.Multiplicity getSourceMultiplicity() { return Relation.Multiplicity.Many; }
 	@Override public Relation.Multiplicity getTargetMultiplicity() { return Relation.Multiplicity.Many; }
-	@Override public int getCascadingDeleteFlag() { return Relation.SOURCE_TO_TARGET; }
-	@Override public int getAutocreationFlag() { return Relation.ALWAYS; }
+	@Override public int getCascadingDeleteFlag() { return Relation.NONE; }
+	@Override public int getAutocreationFlag() { return Relation.NONE; }
 	@Override public boolean isInternal() { return false; }
-	@Override public PropagationDirection getPropagationDirection() { return PropagationDirection.Both; }
-	@Override public PropagationMode getReadPropagation() { return PropagationMode.Add; }
+	@Override public PropagationDirection getPropagationDirection() { return PropagationDirection.None; }
+	@Override public PropagationMode getReadPropagation() { return PropagationMode.Keep; }
 	@Override public PropagationMode getWritePropagation() { return PropagationMode.Keep; }
 	@Override public PropagationMode getDeletePropagation() { return PropagationMode.Keep; }
 	@Override public PropagationMode getAccessControlPropagation() { return PropagationMode.Keep; }

@@ -66,6 +66,24 @@ let _Pages = {
 		_Pager.initPager('files',   'File', 1, 25, 'name', 'asc');
 		_Pager.initPager('folders', 'Folder', 1, 25, 'name', 'asc');
 		_Pager.initPager('images',  'Image', 1, 25, 'name', 'asc');
+
+		_Pages.refreshVisibilityMappingIndex();
+	},
+	visibilityMappingDomNodeIds: new Set(),
+	refreshVisibilityMappingIndex: (cb) => {
+		try {
+			Command.query('VisibilityMapping', 10000, 1, 'createdDate', 'asc', null, (mappings) => {
+				_Pages.visibilityMappingDomNodeIds = new Set();
+				(mappings ?? []).forEach(vm => {
+					let dn = vm.domNode;
+					let id = (typeof dn === 'string') ? dn : (dn?.id ?? (Array.isArray(dn) ? (dn[0]?.id ?? dn[0]) : null));
+					if (id) _Pages.visibilityMappingDomNodeIds.add(id);
+				});
+				if (typeof cb === 'function') cb();
+			}, false, null, 'id,domNode');
+		} catch (e) {
+			// type may not be registered (process module not loaded) — leave the set empty
+		}
 	},
 	handleNodeRefresh: (node) => {
 
@@ -931,6 +949,11 @@ let _Pages = {
 					if (dialogConfig) {
 						dialogConfig.appendDialogForEntityToContainer($(generalContainer), obj, typeInfo).then(() => {
 							_Helpers.activateCommentsInElement(generalContainer);
+
+							// Process Visibility editor: appended after the standard General fields.
+							// Per-DOMNode and orthogonal to events; lives here so any DOMNode can be
+							// configured even when it has no event handlers.
+							_Pages.processVisibilityDialog(obj, generalContainer);
 						});
 					}
 				});
@@ -1269,6 +1292,214 @@ let _Pages = {
 		];
 
 	},
+
+	/**
+	 * Process visibility editor for a DOMNode. Renders an OR-combined list of
+	 * VisibilityMappings tied to the node, each binding a (process, step, state)
+	 * tuple. Independent of EAM: any DOMNode can have visibility rules whether or
+	 * not it has event handlers. The renderer (DOMNodeTraitWrapper.shouldBeRendered)
+	 * gates emission on these rules.
+	 */
+	processVisibilityDialog: (entity, container) => {
+
+		// Inject the section template into the container.
+		container.insertAdjacentHTML('beforeend', _Pages.templates.processVisibility());
+
+		let visibilityMappingsList = container.querySelector('#visibility-mappings-list');
+		let addVisibilityMappingButton = container.querySelector('.add-visibility-mapping-button');
+
+		// State -> required element type for the Step picker. null means process-level
+		// (Step picker is hidden).
+		const VISIBILITY_STATE_ELEMENT_TYPE = {
+			'task-available':         'userTask',
+			'task-reserved-by-me':    'userTask',
+			'task-reserved-by-other': 'userTask',
+			'task-completed':         'userTask',
+			'task-cancelled':         'userTask',
+			'process-completed':       null,
+			'process-terminated':      null,
+			'process-failed':          null,
+			'process-awaiting-action': null,
+			'no-instance':             null
+		};
+
+		// Cached process list (populated once, reused by every row).
+		let cachedVisibilityProcessDefinitions = null;
+		let withVisibilityProcessDefinitions = (cb) => {
+			if (cachedVisibilityProcessDefinitions !== null) { cb(cachedVisibilityProcessDefinitions); return; }
+			Command.query('BpmnDefinitions', 2000, 1, 'name', 'asc', null, (defs) => {
+				cachedVisibilityProcessDefinitions = defs ?? [];
+				cb(cachedVisibilityProcessDefinitions);
+			}, false, null, 'id,name,processId,version');
+		};
+
+		let loadVisibilityStepsForRow = (definitionId, elementTypeFilter, cb) => {
+			if (!definitionId) { cb([]); return; }
+			// VisibilityMapping.boundProcess points at a BpmnDefinitions (file
+			// root) that may now contain multiple BpmnProcess children
+			// (collaboration). BpmnElement has no `definition` field; it is
+			// related to its BpmnProcess via `process`. So the lookup is two
+			// hops: BpmnProcess.definition == defId, then BpmnElement.process
+			// in (those proc ids). Element results are concatenated across
+			// processes so the Step picker shows every step in the
+			// definition's collaboration.
+			Command.query('BpmnProcess', 1000, 1, 'name', 'asc', { definition: definitionId }, (procs) => {
+				const procIds = (procs ?? []).map(p => p.id);
+				if (procIds.length === 0) { cb([]); return; }
+				let pending = procIds.length;
+				let allElements = [];
+				const finish = () => {
+					let filtered = allElements;
+					if (elementTypeFilter) {
+						filtered = filtered.filter(el => el.bpmnElementType === elementTypeFilter);
+					} else {
+						filtered = filtered.filter(el =>
+							el.bpmnElementType === 'userTask' ||
+							el.bpmnElementType === 'intermediateCatchEvent'
+						);
+					}
+					filtered.sort((a, b) => (a.bpmnName ?? a.bpmnId ?? '').localeCompare(b.bpmnName ?? b.bpmnId ?? ''));
+					cb(filtered);
+				};
+				for (const pid of procIds) {
+					Command.query('BpmnElement', 2000, 1, 'bpmnName', 'asc', { process: pid }, (elements) => {
+						allElements = allElements.concat(elements ?? []);
+						if (--pending === 0) finish();
+					}, false, null, 'id,bpmnId,bpmnName,bpmnElementType,process');
+				}
+			}, false, null, 'id');
+		};
+
+		// Step picker stays visible at all times to match the natural authoring order
+		// (Process -> Step -> State). Process-level states (process-completed, no-instance,
+		// ...) simply ignore the step value at runtime; the renderer does not require it.
+		let updateVisibilityRowStepVisibility = (row) => {
+			let stepWrapper  = row.querySelector('.visibility-step-wrapper');
+			stepWrapper.style.display = '';
+		};
+
+		let saveVisibilityRow = (row) => {
+			let vmId             = row.dataset.vmId;
+			let visibleWhen      = row.querySelector('.visibility-state-select').value || null;
+			let processSelect    = row.querySelector('.visibility-process-select');
+			let stepSelect       = row.querySelector('.visibility-step-select');
+			let boundProcess     = processSelect.value || null;
+			let boundStep        = stepSelect.value || null;
+			let boundProcessId   = processSelect.selectedOptions[0]?.dataset.processId || null;
+			let boundStepBpmnId  = stepSelect.selectedOptions[0]?.dataset.bpmnId || null;
+			Command.setProperties(vmId, { visibleWhen, boundProcess, boundStep, boundProcessId, boundStepBpmnId }, () => {
+				_Helpers.blinkGreen(row);
+			});
+		};
+
+		let repopulateVisibilityStepSelect = (row, stateValue, processValue, onComplete) => {
+			let stepSelect = row.querySelector('.visibility-step-select');
+			let previousStepId = stepSelect.value;
+			stepSelect.innerHTML = '<option value="">— Select step —</option>';
+			let filter = VISIBILITY_STATE_ELEMENT_TYPE[stateValue] ?? null;
+			if (!processValue) {
+				if (typeof onComplete === 'function') onComplete();
+				return;
+			}
+			loadVisibilityStepsForRow(processValue, filter, (steps) => {
+				stepSelect.insertAdjacentHTML('beforeend',
+					steps.map(s => {
+						let label = s.bpmnName ?? s.bpmnId;
+						return `<option value="${s.id}" data-element-type="${s.bpmnElementType}" data-bpmn-id="${_Helpers.escapeTags(s.bpmnId ?? '')}">${_Helpers.escapeTags(label)}</option>`;
+					}).join('')
+				);
+				// Preserve the previously selected step if it's still in the filtered list
+				// (e.g. switching between task-* states keeps the same userTask valid).
+				if (previousStepId && steps.some(s => s.id === previousStepId)) {
+					stepSelect.value = previousStepId;
+				}
+				if (typeof onComplete === 'function') onComplete();
+			});
+		};
+
+		let wireVisibilityRow = (row, vm) => {
+
+			let stateSelect   = row.querySelector('.visibility-state-select');
+			let processSelect = row.querySelector('.visibility-process-select');
+			let stepSelect    = row.querySelector('.visibility-step-select');
+			let removeButton  = row.querySelector('.remove-visibility-mapping');
+
+			let extractRelId = (val) => {
+				if (!val) return '';
+				if (typeof val === 'string') return val;
+				if (Array.isArray(val)) return val[0]?.id ?? (typeof val[0] === 'string' ? val[0] : '');
+				return val.id ?? '';
+			};
+			let preselectProcessId = extractRelId(vm?.boundProcess);
+			let preselectStepId    = extractRelId(vm?.boundStep);
+
+			withVisibilityProcessDefinitions((defs) => {
+				processSelect.insertAdjacentHTML('beforeend',
+					defs.map(d => {
+						let label = (d.name ?? d.id) + (d.version ? ` (v${d.version})` : '');
+						return `<option value="${d.id}" data-process-id="${_Helpers.escapeTags(d.processId ?? '')}">${_Helpers.escapeTags(label)}</option>`;
+					}).join(''));
+				processSelect.value = preselectProcessId;
+
+				let elementTypeFilter = VISIBILITY_STATE_ELEMENT_TYPE[vm?.visibleWhen ?? ''] ?? null;
+				if (preselectProcessId) {
+					loadVisibilityStepsForRow(preselectProcessId, elementTypeFilter, (steps) => {
+						stepSelect.insertAdjacentHTML('beforeend',
+							steps.map(s => {
+								let label = s.bpmnName ?? s.bpmnId;
+								return `<option value="${s.id}" data-element-type="${s.bpmnElementType}" data-bpmn-id="${_Helpers.escapeTags(s.bpmnId ?? '')}">${_Helpers.escapeTags(label)}</option>`;
+							}).join('')
+						);
+						if (preselectStepId) stepSelect.value = preselectStepId;
+					});
+				}
+			});
+
+			stateSelect.value = vm?.visibleWhen ?? '';
+			updateVisibilityRowStepVisibility(row);
+
+			stateSelect.addEventListener('change', () => {
+				updateVisibilityRowStepVisibility(row);
+				repopulateVisibilityStepSelect(row, stateSelect.value, processSelect.value, () => saveVisibilityRow(row));
+			});
+			processSelect.addEventListener('change', () => {
+				repopulateVisibilityStepSelect(row, stateSelect.value, processSelect.value, () => saveVisibilityRow(row));
+			});
+			stepSelect.addEventListener('change', () => saveVisibilityRow(row));
+			removeButton.addEventListener('click', () => {
+				Command.deleteNode(row.dataset.vmId, undefined, () => {
+					row.remove();
+					// If no rows remain, drop this DOMNode from the index and refresh its tree icon.
+					if (!visibilityMappingsList.querySelector('.visibility-mapping')) {
+						_Pages.visibilityMappingDomNodeIds.delete(entity.id);
+						StructrModel.refresh(entity.id);
+					}
+				});
+			});
+		};
+
+		let appendVisibilityRow = (vm) => {
+			let html = _Pages.templates.visibilityMappingRow({ id: vm.id });
+			let row = _Helpers.createSingleDOMElementFromHTML(html);
+			visibilityMappingsList.appendChild(row);
+			wireVisibilityRow(row, vm);
+		};
+
+		Command.query('VisibilityMapping', 200, 1, 'createdDate', 'asc', { domNode: entity.id }, (mappings) => {
+			(mappings ?? []).forEach(appendVisibilityRow);
+		}, false, null, 'id,visibleWhen,boundProcess,boundStep,domNode');
+
+		addVisibilityMappingButton.addEventListener('click', (e) => {
+			e.preventDefault();
+			Command.create({ type: 'VisibilityMapping', domNode: entity.id }, (vm) => {
+				appendVisibilityRow(vm);
+				let wasEmpty = !_Pages.visibilityMappingDomNodeIds.has(entity.id);
+				_Pages.visibilityMappingDomNodeIds.add(entity.id);
+				if (wasEmpty) StructrModel.refresh(entity.id);
+			});
+		});
+	},
+
 	eventActionMappingDialog: (entity, container, typeInfo) => {
 
 		_Helpers.activateCommentsInElement(container);
@@ -1287,6 +1518,63 @@ let _Pages = {
 		let flowInput                        = container.querySelector('#flow-input');
 
 		let methodNameInput                  = container.querySelector('#method-name-input');
+
+		// Process control cascade (action="control-process"). Operation-first: the user
+		// picks what they want this button to do; the form adapts to ask only the
+		// questions that operation needs. PROCESS_OPERATIONS is the single source of
+		// truth: each entry maps an internal engine-method name to a human-readable
+		// label, a group, the BPMN element type the step picker should filter to (null
+		// = no step), and whether a runtime target id-expression is required.
+		let processDefinitionSelect          = container.querySelector('#process-definition-select');
+		let processElementSelect             = container.querySelector('#process-element-select');
+		let processOperationSelect           = container.querySelector('#process-operation-select');
+		// Dynamic alternative to the static Process selection. Visible only
+		// for the 'start' operation -- the other operations target a runtime
+		// task / instance via idExpression, not a definition.
+		let processIdExpressionInput        = container.querySelector('#process-id-expression-input');
+
+		const PROCESS_OPERATIONS = [
+			// Start
+			{ value: 'start',         label: 'Start a new process instance',           group: 'Start',            elementType: null,                     needsTarget: false },
+			// Tasks (participant)
+			{ value: 'claim',         label: 'Claim a task',                            group: 'Tasks',            elementType: 'userTask',               needsTarget: true  },
+			{ value: 'complete',      label: 'Complete a task',                         group: 'Tasks',            elementType: 'userTask',               needsTarget: true  },
+			{ value: 'completeWithSubject', label: 'Complete a task and create the subject', group: 'Tasks', elementType: 'userTask', needsTarget: true,  needsSubjectType: true },
+			{ value: 'release',       label: 'Release a task back to the pool',         group: 'Tasks',            elementType: 'userTask',               needsTarget: true  },
+			{ value: 'decline',       label: 'Decline a task (vote, reversible)',       group: 'Tasks',            elementType: 'userTask',               needsTarget: true  },
+			{ value: 'delegate',      label: 'Delegate a task to someone else',         group: 'Tasks',            elementType: 'userTask',               needsTarget: true  },
+			// Tasks (admin)
+			{ value: 'cancel',        label: 'Cancel a task (admin)',                   group: 'Tasks (admin)',    elementType: 'userTask',               needsTarget: true  },
+			{ value: 'makeAvailable', label: 'Make a task available again (admin)',     group: 'Tasks (admin)',    elementType: 'userTask',               needsTarget: true  },
+			{ value: 'assignTask',    label: 'Reassign a task to a chosen user (admin)',group: 'Tasks (admin)',    elementType: 'userTask',               needsTarget: true  },
+			// Signals
+			{ value: 'signal',        label: 'Send a signal to a running process',      group: 'Signals',          elementType: 'intermediateCatchEvent', needsTarget: true  },
+			// Lifecycle (admin)
+			{ value: 'suspend',       label: 'Suspend a running process (admin)',       group: 'Lifecycle (admin)',elementType: null,                     needsTarget: true  },
+			{ value: 'resume',        label: 'Resume a suspended process (admin)',      group: 'Lifecycle (admin)',elementType: null,                     needsTarget: true  },
+			{ value: 'terminate',     label: 'Terminate a process (admin)',             group: 'Lifecycle (admin)',elementType: null,                     needsTarget: true  }
+		];
+
+		// Populate the operation dropdown once with grouped human-readable options.
+		(() => {
+			let groups = new Map();
+			for (let op of PROCESS_OPERATIONS) {
+				if (!groups.has(op.group)) groups.set(op.group, []);
+				groups.get(op.group).push(op);
+			}
+			let html = '';
+			for (let [groupName, ops] of groups) {
+				html += `<optgroup label="${_Helpers.escapeTags(groupName)}">`;
+				for (let op of ops) {
+					html += `<option value="${op.value}">${_Helpers.escapeTags(op.label)}</option>`;
+				}
+				html += '</optgroup>';
+			}
+			processOperationSelect.insertAdjacentHTML('beforeend', html);
+		})();
+
+		// Look up an operation's config by its internal value.
+		let lookupProcessOperation = (value) => PROCESS_OPERATIONS.find(o => o.value === value) ?? null;
 
 		let idExpressionInput                = container.querySelector('#id-expression-input');
 
@@ -1346,11 +1634,125 @@ let _Pages = {
 			flowSelectUl.insertAdjacentHTML('beforeend', flows.map(flow => `<li data-value="${flow.name}">${flow.name}</li>`).join(''));
 		}, false, null, 'id,name');
 
+		// Populate the Process picker from BpmnDefinitions. Eager: same pattern as the
+		// flow picker. The Element + Operation pickers cascade from the Process selection.
+		Command.query('BpmnDefinitions', 2000, 1, 'name', 'asc', null, (defs) => {
+			processDefinitionSelect.insertAdjacentHTML('beforeend',
+				defs.map(d => {
+					let label = (d.name ?? d.id) + (d.version ? ` (v${d.version})` : '');
+					return `<option value="${d.id}" data-process-id="${_Helpers.escapeTags(d.processId ?? '')}">${_Helpers.escapeTags(label)}</option>`;
+				}).join(''));
+		}, false, null, 'id,name,processId,version');
+
+		// Update visibility of the Step and Target wrappers based on the selected
+		// operation's config. Step is shown when the operation acts on a specific BPMN
+		// element type (userTask / intermediateCatchEvent); Target is shown when the
+		// operation needs an idExpression to resolve a runtime task / instance.
+		//
+		// Inline display style is only used while the control-process action is active.
+		// For any other action we clear it so the existing CSS-class show/hide loop
+		// (managed by updateEventMappingInterface) takes over without inline-style
+		// interference. This avoids stale display:none surviving an action change.
+		let updateProcessControlVisibility = () => {
+			let cfg              = lookupProcessOperation(processOperationSelect.value);
+			let needsStep        = !!cfg?.elementType;
+			let needsTarget      = cfg?.needsTarget ?? false;
+			// Dynamic process UUID is only meaningful for `start` (the other
+			// operations target a runtime task / instance via idExpression,
+			// not a definition). Hide for everything else so the form
+			// doesn't surface fields that have no effect.
+			let needsDynamicProcess = (cfg?.value === 'start');
+			// `completeWithSubject` re-uses the existing Data type field as
+			// the SchemaNode picker for the subject node it creates; show
+			// the wrapper for that case only.
+			let needsSubjectType = cfg?.needsSubjectType ?? false;
+			let isControlProcess = (actionSelectElement.value === 'control-process');
+
+			for (let w of container.querySelectorAll('.em-process-step-wrapper')) {
+				w.style.display = isControlProcess ? (needsStep ? '' : 'none') : '';
+			}
+			for (let w of container.querySelectorAll('.em-process-target-wrapper')) {
+				w.style.display = isControlProcess ? (needsTarget ? '' : 'none') : '';
+			}
+			for (let w of container.querySelectorAll('.em-process-dynamic-wrapper')) {
+				w.style.display = isControlProcess ? (needsDynamicProcess ? '' : 'none') : '';
+			}
+			for (let w of container.querySelectorAll('.em-process-subject-wrapper')) {
+				w.style.display = isControlProcess ? (needsSubjectType ? '' : 'none') : '';
+			}
+		};
+
+		// Load the steps (BPMN elements) for the selected process, filtered by the
+		// element type that the current operation needs. Uses Command.query for a direct
+		// fetch of BpmnElement nodes (the relationship traversal from BpmnDefinitions
+		// returns shallow refs that lack bpmnElementType). When called during restore,
+		// preselectStepId selects an existing step after the load completes.
+		let loadProcessSteps = (definitionId, preselectStepId) => {
+			processElementSelect.innerHTML = '<option value="">— Select step —</option>';
+			if (!definitionId) {
+				return;
+			}
+			let cfg = lookupProcessOperation(processOperationSelect.value);
+			let elementTypeFilter = cfg?.elementType;
+			// Multi-process refactor: BpmnElement has no `definition` field;
+			// we hop BpmnDefinitions -> BpmnProcess[] -> BpmnElement[]. Same
+			// pattern as the visibility-mapping step picker above.
+			Command.query('BpmnProcess', 1000, 1, 'name', 'asc', { definition: definitionId }, (procs) => {
+				const procIds = (procs ?? []).map(p => p.id);
+				if (procIds.length === 0) return;
+				let pending = procIds.length;
+				let allElements = [];
+				const finish = () => {
+					let filtered = allElements;
+					if (elementTypeFilter) {
+						filtered = filtered.filter(el => el.bpmnElementType === elementTypeFilter);
+					} else {
+						// No filter: include both kinds we care about, in case the operation
+						// changes after load (rare, but harmless to keep both available).
+						filtered = filtered.filter(el =>
+							el.bpmnElementType === 'userTask' ||
+							el.bpmnElementType === 'intermediateCatchEvent'
+						);
+					}
+					filtered.sort((a, b) => (a.bpmnName ?? a.bpmnId ?? '').localeCompare(b.bpmnName ?? b.bpmnId ?? ''));
+					processElementSelect.insertAdjacentHTML('beforeend',
+						filtered.map(el => {
+							let label = el.bpmnName ?? el.bpmnId;
+							return `<option value="${el.id}" data-element-type="${el.bpmnElementType}" data-bpmn-id="${_Helpers.escapeTags(el.bpmnId ?? '')}" title="${_Helpers.escapeTags(el.bpmnId)}">${_Helpers.escapeTags(label)}</option>`;
+						}).join('')
+					);
+					if (preselectStepId) {
+						processElementSelect.value = preselectStepId;
+					}
+				};
+				for (const pid of procIds) {
+					Command.query('BpmnElement', 2000, 1, 'bpmnName', 'asc', { process: pid }, (elements) => {
+						allElements = allElements.concat(elements ?? []);
+						if (--pending === 0) finish();
+					}, false, null, 'id,bpmnId,bpmnName,bpmnElementType,process');
+				}
+			}, false, null, 'id');
+		};
+
+		processOperationSelect.addEventListener('change', () => {
+			updateProcessControlVisibility();
+			// Reload steps with the new operation's element-type filter (if a process is set).
+			if (processDefinitionSelect.value) {
+				loadProcessSteps(processDefinitionSelect.value, null);
+			}
+			saveEventMappingData(entity);
+		});
+		processDefinitionSelect.addEventListener('change', () => {
+			loadProcessSteps(processDefinitionSelect.value, null);
+			saveEventMappingData(entity);
+		});
+		processElementSelect.addEventListener('change', () => saveEventMappingData(entity));
+
 		if (entity.triggeredActions && entity.triggeredActions.length) {
 
 			actionMapping = entity.triggeredActions[0];
 
-			Command.get(actionMapping.id, 'event,action,method,flow,idExpression,dataType,parameterMappings,successNotifications,successNotificationsPartial,successNotificationsEvent,successNotificationsDelay,failureNotifications,failureNotificationsPartial,failureNotificationsEvent,failureNotificationsDelay,successBehaviour,successPartial,successURL,successEvent,failureBehaviour,failurePartial,failureURL,failureEvent,dialogType,dialogTitle,dialogText', (result) => {
+			Command.get(actionMapping.id, 'event,action,method,flow,idExpression,dataType,controlsProcess,controlsProcessIdExpression,targetsElement,processOperation,parameterMappings,successNotifications,successNotificationsPartial,successNotificationsEvent,successNotificationsDelay,failureNotifications,failureNotificationsPartial,failureNotificationsEvent,failureNotificationsDelay,successBehaviour,successPartial,successURL,successEvent,failureBehaviour,failurePartial,failureURL,failureEvent,dialogType,dialogTitle,dialogText', (result) => {
 				//console.log('Using first object for event action mapping:', result);
 				updateEventMappingInterface(entity, result);
 			});
@@ -1359,7 +1761,13 @@ let _Pages = {
 		container.querySelectorAll('input').forEach(el => el.addEventListener('focusout', e => saveEventMappingData(entity, el)));
 
 		eventSelect.addEventListener('change', e => saveEventMappingData(entity));
-		actionSelectElement.addEventListener('change', e => saveEventMappingData(entity));
+		actionSelectElement.addEventListener('change', e => {
+			// Re-run the process-control visibility manager when the action toggles.
+			// Other actions don't need this, but it's a cheap no-op when control-process
+			// is not selected (the visibility manager exits early via the action check).
+			updateProcessControlVisibility();
+			saveEventMappingData(entity);
+		});
 
 		// combined event select and input
 		{
@@ -1641,6 +2049,29 @@ let _Pages = {
 
 			flowSelect.value                       = actionMapping.flow;
 			flowInput.value                        = actionMapping.flow ?? '';
+
+			// Process control cascade restore. Order matters: set the operation first so
+			// the visibility manager runs with the right config, then the process, then
+			// load the steps (which triggers preselection of the saved step). The backend
+			// may serialize a relationship as a bare UUID, a shallow node object, an array
+			// with one node, or null; normalise all four shapes here.
+			let extractId = (val) => {
+				if (!val) return '';
+				if (typeof val === 'string') return val;
+				if (Array.isArray(val)) return val[0]?.id ?? (typeof val[0] === 'string' ? val[0] : '');
+				return val.id ?? '';
+			};
+			let cpId = extractId(actionMapping.controlsProcess);
+			let teId = extractId(actionMapping.targetsElement);
+			processOperationSelect.value  = actionMapping.processOperation ?? '';
+			processDefinitionSelect.value = cpId;
+			if (processIdExpressionInput) {
+				processIdExpressionInput.value = actionMapping.controlsProcessIdExpression ?? '';
+			}
+			updateProcessControlVisibility();
+			if (cpId) {
+				loadProcessSteps(cpId, teId);
+			}
 
 			idExpressionInput.value                = actionMapping.idExpression;
 
@@ -2068,6 +2499,22 @@ let _Pages = {
 				method:                      methodNameInput?.value,
 				flow:                        flowInput?.value ?? flowSelect?.value,
 				dataType:                    dataTypeInput?.value ?? dataTypeSelect?.value,
+				// Process control cascade. The websocket setProperties path expects a bare
+				// UUID string for a relationship target (the JSON {id: uuid} envelope is not
+				// unwrapped here, unlike the REST layer). Empty values are sent as null so the
+				// backend clears the relationship / property when the user resets the picker.
+				controlsProcess:             processDefinitionSelect?.value || null,
+				targetsElement:              processElementSelect?.value    || null,
+				processOperation:            processOperationSelect?.value  || null,
+				// Denormalized backups, written alongside the rels. Refreshed
+				// by the BPMN importer's re-import rewire step using the same
+				// strings to find the new BpmnDefinitions / BpmnElement.
+				controlsProcessId:           processDefinitionSelect?.selectedOptions?.[0]?.dataset.processId || null,
+				targetsElementBpmnId:        processElementSelect?.selectedOptions?.[0]?.dataset.bpmnId       || null,
+				// Dynamic alternative to the static Process selection (only
+				// honoured for `start`). Resolved server-side at render time
+				// against the page's data context.
+				controlsProcessIdExpression: processIdExpressionInput?.value || null,
 				idExpression:                idExpressionInput.value,
 				dialogType:                  dialogTypeSelect.value,
 				dialogTitle:                 dialogTitleInput.value,
@@ -3280,10 +3727,10 @@ let _Pages = {
 			`;
 
 			let options = [{
-					buttonText: `${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, ['icon-green', 'mr-2'])} ${UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.ALL.text}`,
+					buttonText: `${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, ['icon-green', 'mr-2'])} ${UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.ALL.text}`,
 					result: UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.ALL.value
 				}, {
-					buttonText: `${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, ['icon-green', 'mr-2'])}  ${UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.BY_VALUE.text}`,
+					buttonText: `${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, ['icon-green', 'mr-2'])}  ${UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.BY_VALUE.text}`,
 					result: UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.BY_VALUE.value
 				}, {
 					buttonText: `${_Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, ['icon-red', 'mr-2'])}  ${UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.NONE.text}`,
@@ -4392,6 +4839,38 @@ let _Pages = {
 		general: config => `
 			<div class="content-container general-container"></div>
 		`,
+		processVisibility: config => `
+			<div class="visibility-container mt-8">
+
+				<h3>Process Visibility</h3>
+
+				<div class="inline-info">
+					<div class="inline-info-icon">
+						${_Icons.getSvgIcon(_Icons.iconInfo, 24, 24)}
+					</div>
+					<div class="inline-info-text">
+						Show this element only when one of the configured process states is active for the current user.
+						Multiple rules are OR-combined; show / hide conditions still apply on top.
+						<br><br>
+						State evaluation expects a <code>ProcessInstance</code> or <code>TaskInstance</code> as the page's
+						<code>current</code> object (typically bound via the page's data query). The
+						<em>"No process instance exists for me yet"</em> rule is the exception: it queries the database
+						for an active instance of the bound process owned by the current user, so it lights up correctly
+						even when no <code>current</code> object is bound.
+					</div>
+				</div>
+
+				<div id="visibility-mappings-list"></div>
+
+				<div class="mt-4">
+					<button class="action button btn flex items-center active:border-green add-visibility-mapping-button">
+						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'], 'Add visibility rule')}
+						Add visibility rule
+					</button>
+				</div>
+
+			</div>
+		`,
 		contentEditor: config => `
 			<div class="content-container content-editor-container flex flex-col">
 				<div class="editor flex-grow overflow-hidden"></div>
@@ -4448,6 +4927,9 @@ let _Pages = {
 									<option value="method">Execute method</option>
 									<option value="flow">Execute flow</option>
 								</optgroup>
+								<optgroup label="Process">
+									<option value="control-process">Control process</option>
+								</optgroup>
 								<optgroup label="Pager">
 									<option value="next-page">Next page</option>
 									<option value="prev-page">Previous page</option>
@@ -4468,7 +4950,7 @@ let _Pages = {
 
 						<div><!-- exists so it is always displayed -->
 
-							<div class="hidden em-action-element em-action-update em-action-delete em-action-method em-action-custom">
+							<div class="hidden em-action-element em-action-update em-action-delete em-action-method em-action-custom em-action-control-process em-process-target-wrapper">
 
 								<div class="hidden em-action-element em-action-update">
 									<label class="block mb-2" for="id-expression-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object that shall be updated.">UUID of data object to update</label>
@@ -4486,7 +4968,11 @@ let _Pages = {
 									<label class="block mb-2" for="id-expression-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the target data object.">UUID of action target object</label>
 								</div>
 
-								<input type="text" id="id-expression-input">
+								<div class="hidden em-action-element em-action-control-process">
+									<label class="block mb-2" for="id-expression-input" data-comment="A script expression that resolves at runtime to the UUID of the task or process instance this button acts on. The default \${current.id} works when this button lives on a page bound to that task or instance.">UUID of task or process instance</label>
+								</div>
+
+								<input type="text" id="id-expression-input" placeholder="\${current.id}">
 							</div>
 
 						</div>
@@ -4498,9 +4984,9 @@ let _Pages = {
 							</div>
 						</div-->
 
-						<div class="hidden em-action-element em-action-create em-action-update">
+						<div class="hidden em-action-element em-action-create em-action-update em-action-method em-action-control-process em-process-subject-wrapper">
 							<div class="relative">
-								<label class="block mb-2" for="data-type-select" data-comment="Define the type of data object to create or update">Enter or select type of data object</label>
+								<label class="block mb-2" for="data-type-select" data-comment="For 'create'/'update': the type of data object. For 'method': the type the method belongs to (sets the App Graph binding so the method is refactor-safe across renames). For 'Control process / Complete a task and create the subject': the SchemaNode type instantiated as the new ProcessInstance subject. Leave empty for top-level user-defined functions.">Enter or select type of data object</label>
 								<input type="text" class="combined-input-select-field" id="data-type-input" placeholder="Custom type or script expression">
 								<select class="required combined-input-select-field" id="data-type-select">
 									<option value="">Select type from schema</option>
@@ -4537,7 +5023,34 @@ let _Pages = {
 								<ul class="combined-input-select-field hidden"></ul>
 							</div>
 						</div>
-						
+
+						<!-- Control process: operation-first cascade. The user picks the operation
+						     in plain language, then the form adapts: process is always required,
+						     step is shown only for task-level / signal operations, target id
+						     expression is shown for any non-start operation. -->
+						<div class="hidden em-action-element em-action-control-process">
+							<label class="block mb-2" for="process-operation-select" data-comment="What this button does. Pick the operation in plain language; the form below adapts to show the fields that operation needs.">Operation</label>
+							<select class="required" id="process-operation-select">
+								<option value="">— Select operation —</option>
+							</select>
+						</div>
+						<div class="hidden em-action-element em-action-control-process">
+							<label class="block mb-2" for="process-definition-select" data-comment="The process this action operates on. Required for every operation. For the 'Start a new process instance' operation, you can leave this empty and use 'Dynamic process UUID' below instead.">Process</label>
+							<select class="required" id="process-definition-select">
+								<option value="">— Select process —</option>
+							</select>
+						</div>
+						<div class="hidden em-action-element em-action-control-process em-process-dynamic-wrapper">
+							<label class="block mb-2" for="process-id-expression-input" data-comment="Structr scripting expression that resolves to a BpmnDefinitions UUID at page render time -- e.g. \${current.id} on a process catalog page where each row binds to a different BpmnDefinitions. Only honoured for the 'Start a new process instance' operation. When set and resolvable, overrides the static Process selection above.">Dynamic process UUID</label>
+							<input class="w-full" type="text" id="process-id-expression-input" placeholder="\${current.id}">
+						</div>
+						<div class="hidden em-action-element em-action-control-process em-process-step-wrapper">
+							<label class="block mb-2" for="process-element-select" data-comment="The step this action acts on. Shown only when the operation is task-level (claim, complete, ...) or a signal. Hidden for whole-process operations (start, terminate, suspend, resume).">Process step</label>
+							<select class="required" id="process-element-select">
+								<option value="">— Select step —</option>
+							</select>
+						</div>
+
 						<div class="col-span-2 hidden em-event-element em-event-drop">
 							<h3>Drag & Drop</h3>
 							<div>
@@ -4707,7 +5220,7 @@ let _Pages = {
 								</div>
 
 								<div class="hidden option-success option-success-navigate-to-url">
-									<label class="block mb-2" for="success-navigate-to-url-input" data-comment="Define the relative or absolute URL of the page to load on success.<br><br>If the response contains data, this data can be accessed and used here.<br><br><span class=&quot;font-bold&quot;>Example</span>: If a project was created, the redirect could point to its details page using <code>/project/{result.id}</code>">Success URL</label>
+									<label class="block mb-2" for="success-navigate-to-url-input" data-comment="Define the relative or absolute URL of the page to load on success.<br><br>If the response contains data, this data can be accessed and used here.<br><br><span class=&quot;font-bold&quot;>Example</span>: If a project was created, the redirect could point to its details page using <code>/project/{result.id}</code><br><br><span class=&quot;font-bold&quot;>Control process / Start:</span> the response includes a pre-built URL using the slugified process name as the page slug, plus the new instance UUID. Use <code>{result.url}</code> to navigate straight to the process page.">Success URL</label>
 									<input type="text" id="success-navigate-to-url-input" placeholder="Enter a relative or absolute URL">
 								</div>
 
@@ -4764,6 +5277,47 @@ let _Pages = {
 					</div>
 
 				</div>
+			</div>
+		`,
+		visibilityMappingRow: config => `
+			<div class="visibility-mapping grid gap-4 mt-4 items-end" style="grid-template-columns: 1fr 1fr 1fr auto;" data-vm-id="${config.id}">
+
+				<div>
+					<label class="block mb-2">Process</label>
+					<select class="visibility-process-select required">
+						<option value="">— Select process —</option>
+					</select>
+				</div>
+
+				<div class="visibility-step-wrapper">
+					<label class="block mb-2">Step (task)</label>
+					<select class="visibility-step-select">
+						<option value="">— Select step —</option>
+					</select>
+				</div>
+
+				<div>
+					<label class="block mb-2">Visible when in state</label>
+					<select class="visibility-state-select required">
+						<option value="">— Select state —</option>
+						<optgroup label="Tasks">
+							<option value="task-available">A task is available to claim</option>
+							<option value="task-reserved-by-me">A task is reserved by me</option>
+							<option value="task-reserved-by-other">A task is reserved by someone else</option>
+							<option value="task-completed">A task has been completed</option>
+							<option value="task-cancelled">A task has been cancelled</option>
+						</optgroup>
+						<optgroup label="Process">
+							<option value="process-completed">Process has completed</option>
+							<option value="process-terminated">Process has been terminated</option>
+							<option value="process-failed">Process has failed</option>
+							<option value="process-awaiting-action">Process is awaiting someone else's action</option>
+							<option value="no-instance">No process instance exists for me yet</option>
+						</optgroup>
+					</select>
+				</div>
+
+				<i class="remove-visibility-mapping cursor-pointer flex items-center pb-2" title="Remove this visibility rule">${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red']), 'Remove this visibility rule')}</i>
 			</div>
 		`,
 		parameterMappingRow: config => `

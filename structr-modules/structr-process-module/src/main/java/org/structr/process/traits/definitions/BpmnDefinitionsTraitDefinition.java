@@ -25,40 +25,58 @@ import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.JavaMethod;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.process.ProcessTraits;
-import org.structr.process.engine.ProcessEngine;
+import org.structr.process.bpmn.BpmnExporter;
+import org.structr.process.bpmn.BpmnImporter;
 import org.structr.schema.action.ActionContext;
+import org.structr.web.common.FileHelper;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Set;
 
 /**
- * Trait definition for BpmnDefinitions -- the top-level container for a BPMN process definition.
- * Maps to the &lt;bpmn:definitions&gt; element in BPMN 2.0.2 XML.
+ * Trait definition for BpmnDefinitions -- the {@code <bpmn:definitions>}
+ * file root. Holds file-level metadata (target namespace, exporter info,
+ * namespace declarations) and references its child {@code BpmnProcess}
+ * entries plus an optional {@code BpmnCollaboration}.
  *
- * Exposes a startProcess method callable via REST:
- *   POST /structr/rest/BpmnDefinitions/{id}/startProcess
+ * <p>Per-process state (processId, processName, isExecutable, attached
+ * elements / sequence flows / methods / process listeners) lives on
+ * {@link BpmnProcessTraitDefinition}. A definitions file with a single
+ * process holds one BpmnProcess; a collaboration file holds many.</p>
+ *
+ * <p>Static methods exposed via REST:
+ * <ul>
+ *   <li>{@code POST /BpmnDefinitions/importBpmn} (static) -- import a
+ *       BPMN 2.0.2 XML string.</li>
+ *   <li>{@code POST /BpmnDefinitions/{id}/exportBpmn} -- export this file
+ *       back to XML.</li>
+ * </ul>
+ * To start a process instance, call {@code startProcess} on a BpmnProcess.</p>
  */
 public class BpmnDefinitionsTraitDefinition extends AbstractNodeTraitDefinition {
 
-	public static final String BPMN_ID_PROPERTY             = "bpmnId";
 	public static final String TARGET_NAMESPACE_PROPERTY     = "targetNamespace";
 	public static final String EXPORTER_PROPERTY             = "exporter";
 	public static final String EXPORTER_VERSION_PROPERTY     = "exporterVersion";
-	public static final String PROCESS_ID_PROPERTY           = "processId";
-	public static final String PROCESS_NAME_PROPERTY         = "processName";
-	public static final String PROCESS_IS_EXECUTABLE         = "processIsExecutable";
 	public static final String NAMESPACE_DECLARATIONS        = "namespaceDeclarations";
 	public static final String GLOBAL_DEFINITIONS_PROPERTY   = "globalDefinitions";
-	public static final String PROCESS_INSTANCES_PROPERTY    = "processInstances";
-	public static final String ELEMENTS_PROPERTY             = "elements";
-	public static final String SEQUENCE_FLOWS_PROPERTY       = "sequenceFlows";
+	public static final String PROCESSES_PROPERTY            = "processes";
+	public static final String COLLABORATION_PROPERTY        = "collaboration";
 	public static final String DIAGRAMS_PROPERTY             = "diagrams";
+	public static final String VISIBILITY_MAPPINGS_PROPERTY  = "visibilityMappings";
+	public static final String CONTROL_ACTIONS_PROPERTY      = "controlActions";
 	public static final String SECURITY_LEVEL_PROPERTY       = "securityLevel";
 
 	// Security level constants
@@ -72,30 +90,39 @@ public class BpmnDefinitionsTraitDefinition extends AbstractNodeTraitDefinition 
 	@Override
 	public Set<PropertyKey> createPropertyKeys(final TraitsInstance traitsInstance) {
 
-		final Property<String> bpmnId                             = new StringProperty(BPMN_ID_PROPERTY).indexed();
 		final Property<String> targetNamespace                    = new StringProperty(TARGET_NAMESPACE_PROPERTY);
 		final Property<String> exporter                           = new StringProperty(EXPORTER_PROPERTY);
 		final Property<String> exporterVersion                    = new StringProperty(EXPORTER_VERSION_PROPERTY);
-		final Property<String> processId                          = new StringProperty(PROCESS_ID_PROPERTY).indexed();
-		final Property<String> processName                        = new StringProperty(PROCESS_NAME_PROPERTY).indexed();
-		final Property<Boolean> processIsExecutable               = new BooleanProperty(PROCESS_IS_EXECUTABLE);
 		final Property<String> namespaceDeclarations              = new StringProperty(NAMESPACE_DECLARATIONS);
 		final Property<Iterable<NodeInterface>> globalDefinitions = new EndNodes(traitsInstance, GLOBAL_DEFINITIONS_PROPERTY, ProcessTraits.BPMN_DEFINITIONS_HAS_GLOBAL_DEFINITION);
-		final Property<Iterable<NodeInterface>> processInstances  = new StartNodes(traitsInstance, PROCESS_INSTANCES_PROPERTY, ProcessTraits.PROCESS_INSTANCE_OF_DEFINITION);
-		final Property<Iterable<NodeInterface>> elements          = new EndNodes(traitsInstance, ELEMENTS_PROPERTY, ProcessTraits.BPMN_DEFINITIONS_HAS_ELEMENT);
-		final Property<Iterable<NodeInterface>> sequenceFlows     = new EndNodes(traitsInstance, SEQUENCE_FLOWS_PROPERTY, ProcessTraits.BPMN_DEFINITIONS_HAS_SEQUENCE_FLOW);
-		final Property<Iterable<NodeInterface>> diagrams          = new EndNodes(traitsInstance, DIAGRAMS_PROPERTY, ProcessTraits.BPMN_DEFINITIONS_HAS_DIAGRAM);
+		final Property<Iterable<NodeInterface>> processes         = new EndNodes(traitsInstance, PROCESSES_PROPERTY,         ProcessTraits.BPMN_DEFINITIONS_HAS_PROCESS);
+		final Property<NodeInterface>           collaboration     = new EndNode(traitsInstance,  COLLABORATION_PROPERTY,     ProcessTraits.BPMN_DEFINITIONS_HAS_COLLABORATION);
+		final Property<Iterable<NodeInterface>> diagrams          = new EndNodes(traitsInstance, DIAGRAMS_PROPERTY,           ProcessTraits.BPMN_DEFINITIONS_HAS_DIAGRAM);
+		// Inverse properties for relationships pointing INTO this BpmnDefinitions.
+		// Required so OneToMany.ensureCardinality can resolve the source side when
+		// a VisibilityMapping or ActionMapping is reassigned (e.g. by the importer's
+		// re-import rewire); without these, vm.setProperty(boundProcess, newDef)
+		// throws "missing StartNode(s) property".
+		final Property<Iterable<NodeInterface>> visibilityMappings = new StartNodes(traitsInstance, VISIBILITY_MAPPINGS_PROPERTY, ProcessTraits.VISIBILITY_MAPPING_FOR_BPMN_DEFINITIONS);
+		final Property<Iterable<NodeInterface>> controlActions     = new StartNodes(traitsInstance, CONTROL_ACTIONS_PROPERTY,     StructrTraits.ACTION_MAPPING_CONTROLS_BPMN_DEFINITIONS);
 		final Property<String> securityLevel                      = new EnumProperty(SECURITY_LEVEL_PROPERTY, Set.of(SECURITY_LEVEL_LOW, SECURITY_LEVEL_HIGH)).defaultValue(SECURITY_LEVEL_HIGH).indexed();
 
-		return newSet(bpmnId, targetNamespace, exporter, exporterVersion, processId, processName, processIsExecutable, namespaceDeclarations, globalDefinitions, processInstances, elements, sequenceFlows, diagrams, securityLevel);
+		return newSet(targetNamespace, exporter, exporterVersion, namespaceDeclarations,
+			globalDefinitions, processes, collaboration, diagrams,
+			visibilityMappings, controlActions, securityLevel);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
 		return Map.of(
-			PropertyView.Public, newSet(BPMN_ID_PROPERTY, PROCESS_ID_PROPERTY, PROCESS_NAME_PROPERTY, SECURITY_LEVEL_PROPERTY, GLOBAL_DEFINITIONS_PROPERTY, ELEMENTS_PROPERTY, SEQUENCE_FLOWS_PROPERTY, DIAGRAMS_PROPERTY),
-			PropertyView.Ui, newSet(BPMN_ID_PROPERTY, TARGET_NAMESPACE_PROPERTY, EXPORTER_PROPERTY, EXPORTER_VERSION_PROPERTY, PROCESS_ID_PROPERTY, PROCESS_NAME_PROPERTY, PROCESS_IS_EXECUTABLE, NAMESPACE_DECLARATIONS, SECURITY_LEVEL_PROPERTY, GLOBAL_DEFINITIONS_PROPERTY, ELEMENTS_PROPERTY, SEQUENCE_FLOWS_PROPERTY, DIAGRAMS_PROPERTY)
+			PropertyView.Public, newSet(
+				BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY, BpmnBaseNodeTraitDefinition.VERSION_PROPERTY,
+				SECURITY_LEVEL_PROPERTY, GLOBAL_DEFINITIONS_PROPERTY, PROCESSES_PROPERTY, COLLABORATION_PROPERTY, DIAGRAMS_PROPERTY),
+			PropertyView.Ui, newSet(
+				BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY, BpmnBaseNodeTraitDefinition.VERSION_PROPERTY,
+				TARGET_NAMESPACE_PROPERTY, EXPORTER_PROPERTY, EXPORTER_VERSION_PROPERTY, NAMESPACE_DECLARATIONS,
+				SECURITY_LEVEL_PROPERTY, GLOBAL_DEFINITIONS_PROPERTY, PROCESSES_PROPERTY, COLLABORATION_PROPERTY, DIAGRAMS_PROPERTY)
 		);
 	}
 
@@ -104,18 +131,56 @@ public class BpmnDefinitionsTraitDefinition extends AbstractNodeTraitDefinition 
 
 		return Set.of(
 
-			new JavaMethod("startProcess", false, false) {
+			new JavaMethod("exportBpmn", false, false) {
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
-					final SecurityContext securityContext = actionContext.getSecurityContext();
-					final ProcessEngine engine = new ProcessEngine(securityContext);
-					return engine.startProcess((NodeInterface) entity);
+					return new BpmnExporter().exportBpmn((NodeInterface) entity);
 				}
 
 				@Override
 				public String getDescription() {
-					return "Starts a new process instance from this process definition. Returns the created ProcessInstance node.";
+					return "Exports this BpmnDefinitions (file root, possibly multi-process) to BPMN 2.0.2 XML and returns the XML string.";
+				}
+			},
+
+			new JavaMethod("importBpmn", false, true) {
+
+				@Override
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
+					final Map<String, Object> args = arguments.toMap();
+					final Object xmlArg = args.get("xml");
+					if (!(xmlArg instanceof String) || ((String) xmlArg).isEmpty()) {
+						throw new FrameworkException(422, "Missing required parameter 'xml' (BPMN 2.0.2 XML string).");
+					}
+					final String xml = (String) xmlArg;
+					final Object filenameArg = args.get("filename");
+					final String filename = (filenameArg instanceof String && !((String) filenameArg).isEmpty())
+						? (String) filenameArg
+						: "imported.bpmn";
+
+					final SecurityContext securityContext = actionContext.getSecurityContext();
+
+					// Persist the source XML in Structr's virtual file system so
+					// imports leave a record callers can re-trigger from scripts
+					// or audit later. File creation failure is logged but does
+					// not block the import -- the actual definition is what the
+					// caller cares about.
+					try {
+						FileHelper.createFile(securityContext, xml.getBytes(StandardCharsets.UTF_8),
+							"application/xml", StructrTraits.FILE, filename, true);
+					} catch (IOException ioe) {
+						// Non-fatal: the importer can still run on the raw XML.
+					}
+
+					final BpmnImporter importer = new BpmnImporter(securityContext);
+					return importer.importBpmn(xml);
+				}
+
+				@Override
+				public String getDescription() {
+					return "Imports a BPMN 2.0.2 XML string and creates a new BpmnDefinitions (file root) with one or more BpmnProcess children. Pass 'xml' (required) and optional 'filename' for the persisted File node.";
 				}
 			}
 		);
@@ -124,5 +189,54 @@ public class BpmnDefinitionsTraitDefinition extends AbstractNodeTraitDefinition 
 	@Override
 	public Relation getRelation() {
 		return null;
+	}
+
+	/**
+	 * Resolve the "subject" argument from a startProcess call into a single
+	 * NodeInterface. Used by the BpmnProcess startProcess method.
+	 * Accepts: null (returned as null), a NodeInterface, a UUID string, or a
+	 * Map with an "id" field. A list is rejected with a clear error: each
+	 * process instance has at most one subject; for batch operations,
+	 * callers should loop and invoke startProcess per item.
+	 */
+	public static NodeInterface resolveSubject(final ActionContext actionContext, final Object arg) throws FrameworkException {
+
+		if (arg == null) {
+			return null;
+		}
+
+		if (arg instanceof Iterable<?> || arg.getClass().isArray()) {
+			throw new FrameworkException(422,
+				"startProcess accepts at most one 'subject' per call. " +
+				"For batch operations, loop and invoke startProcess once per subject."
+			);
+		}
+
+		if (arg instanceof NodeInterface) {
+			return (NodeInterface) arg;
+		}
+
+		final App app = StructrApp.getInstance(actionContext.getSecurityContext());
+
+		String uuid = null;
+		if (arg instanceof String) {
+			uuid = (String) arg;
+		} else if (arg instanceof Map) {
+			final Object idObj = ((Map<?, ?>) arg).get("id");
+			if (idObj instanceof String) {
+				uuid = (String) idObj;
+			}
+		}
+		if (uuid == null || uuid.isEmpty()) {
+			throw new FrameworkException(422,
+				"Cannot resolve subject from value of type " + arg.getClass().getName() +
+				" (expected NodeInterface, UUID string, or {id: \"<uuid>\"})"
+			);
+		}
+		final NodeInterface node = app.getNodeById(uuid);
+		if (node == null) {
+			throw new FrameworkException(422, "Subject with id '" + uuid + "' not found");
+		}
+		return node;
 	}
 }

@@ -109,6 +109,10 @@ let _Icons = {
 
 	iconFlowSymbol:              'circle-empty',
 
+	iconProcesses:           'processes-icon',
+	iconProcess:             'process-icon',
+	iconTask:                'task-icon',
+
 	iconStructrLogo:         'structr-logo',
 	iconHamburgerMenu:       'hamburger-icon',
 	iconCrossIcon:           'close-dialog-x',
@@ -492,6 +496,8 @@ let _Icons = {
 		let isTemplate   = (content.type === 'Template');
 		let isComponent  = content.sharedComponentId || (content.syncedNodesIds && content.syncedNodesIds.length);
 		let isActiveNode = (typeof content.isActiveNode === "function") ? content.isActiveNode() : false;
+		let isVmCtrl     = (typeof content.isProcessVisibilityControlled === "function") ? content.isProcessVisibilityControlled() : false;
+		let activeFill   = isVmCtrl ? 'fill-lightblue' : 'fill-yellow';
 
 		if (isComment) {
 
@@ -500,9 +506,9 @@ let _Icons = {
 		} else if (isTemplate) {
 
 			if (isComponent) {
-				return _Icons.getSvgIcon(_Icons.iconDOMTemplateElement, 16, 16, ['icon-grey', 'fill-yellow', ...initialClasses], title);
+				return _Icons.getSvgIcon(_Icons.iconDOMTemplateElement, 16, 16, ['icon-grey', activeFill, ...initialClasses], title);
 			} else if (isActiveNode) {
-				return _Icons.getSvgIcon(_Icons.iconDOMTemplateElement, 16, 16, ['icon-grey', 'fill-yellow', ...initialClasses], content.getActiveNodeInfoAsString());
+				return _Icons.getSvgIcon(_Icons.iconDOMTemplateElement, 16, 16, ['icon-grey', activeFill, ...initialClasses], content.getActiveNodeInfoAsString());
 			} else {
 				return _Icons.getSvgIcon(_Icons.iconDOMTemplateElement, 16, 16, ['icon-grey', 'fill-transparent', ...initialClasses], title);
 			}
@@ -510,9 +516,9 @@ let _Icons = {
 		} else {
 
 			if (isComponent) {
-				return _Icons.getSvgIcon(_Icons.iconDOMContentElement, 16, 16, ['icon-grey', 'fill-yellow', ...initialClasses], title);
+				return _Icons.getSvgIcon(_Icons.iconDOMContentElement, 16, 16, ['icon-grey', activeFill, ...initialClasses], title);
 			} else if (isActiveNode) {
-				return _Icons.getSvgIcon(_Icons.iconDOMContentElement, 16, 16, ['icon-grey', 'fill-yellow', ...initialClasses], title);
+				return _Icons.getSvgIcon(_Icons.iconDOMContentElement, 16, 16, ['icon-grey', activeFill, ...initialClasses], title);
 			} else {
 				return _Icons.getSvgIcon(_Icons.iconDOMContentElement, 16, 16, ['icon-grey', 'fill-transparent', ...initialClasses], title);
 			}
@@ -521,8 +527,15 @@ let _Icons = {
 	getSvgIconForElementNode: (element, initialClasses = [], title) => {
 		let isComponent  = element.sharedComponentId || (element.syncedNodesIds && element.syncedNodesIds.length);
 		let isActiveNode = (typeof element.isActiveNode === "function") ? element.isActiveNode() : false;
+		let isVmCtrl     = (typeof element.isProcessVisibilityControlled === "function") ? element.isProcessVisibilityControlled() : false;
 
-		if (isActiveNode) {
+		if (isVmCtrl) {
+
+			// Process-visibility-controlled: blue-tinted regular tree icon (distinguishes from
+			// EAM/condition active nodes which use the dom-active-element symbol).
+			return _Icons.getSvgIcon(_Icons.iconDOMTreeElement, 16, 16, ['typeIcon', 'icon-grey', 'fill-lightblue', ...initialClasses], element.getActiveNodeInfoAsString());
+
+		} else if (isActiveNode) {
 
 			return _Icons.getSvgIcon(_Icons.iconDOMTreeActiveElement, 16, 16, ['typeIcon', ...initialClasses], element.getActiveNodeInfoAsString());
 

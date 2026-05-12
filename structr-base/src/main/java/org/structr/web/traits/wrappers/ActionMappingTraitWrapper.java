@@ -81,6 +81,54 @@ public class ActionMappingTraitWrapper extends AbstractNodeTraitWrapper implemen
 	}
 
 	@Override
+	public NodeInterface getMethodNode() {
+		return wrappedObject.getProperty(traits.key(ActionMappingTraitDefinition.METHOD_NODE_PROPERTY));
+	}
+
+	@Override
+	public NodeInterface getFlowNode() {
+		return wrappedObject.getProperty(traits.key(ActionMappingTraitDefinition.FLOW_NODE_PROPERTY));
+	}
+
+	@Override
+	public NodeInterface getDataTypeNode() {
+		return wrappedObject.getProperty(traits.key(ActionMappingTraitDefinition.DATA_TYPE_NODE_PROPERTY));
+	}
+
+	@Override
+	public String getResolvedMethodName() {
+		final NodeInterface node = getMethodNode();
+		return node != null ? node.getName() : getMethod();
+	}
+
+	@Override
+	public String getResolvedFlowName() {
+		final NodeInterface node = getFlowNode();
+		return node != null ? node.getName() : getFlow();
+	}
+
+	@Override
+	public String getResolvedDataTypeName() {
+		final NodeInterface node = getDataTypeNode();
+		return node != null ? node.getName() : getDataType();
+	}
+
+	@Override
+	public NodeInterface getControlsProcess() {
+		return wrappedObject.getProperty(traits.key(ActionMappingTraitDefinition.CONTROLS_PROCESS_PROPERTY));
+	}
+
+	@Override
+	public NodeInterface getTargetsElement() {
+		return wrappedObject.getProperty(traits.key(ActionMappingTraitDefinition.TARGETS_ELEMENT_PROPERTY));
+	}
+
+	@Override
+	public String getProcessOperation() {
+		return wrappedObject.getProperty(traits.key(ActionMappingTraitDefinition.PROCESS_OPERATION_PROPERTY));
+	}
+
+	@Override
 	public void setSuccessBehaviour(String successBehaviour) throws FrameworkException {
 		wrappedObject.setProperty(traits.key(ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY), successBehaviour);
 	}

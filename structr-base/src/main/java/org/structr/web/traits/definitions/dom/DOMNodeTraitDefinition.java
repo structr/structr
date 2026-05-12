@@ -85,6 +85,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String FAILURE_ACTIONS_PROPERTY                = "failureActions";
 	public static final String SUCCESS_NOTIFICATION_ACTIONS_PROPERTY   = "successNotificationActions";
 	public static final String FAILURE_NOTIFICATION_ACTIONS_PROPERTY   = "failureNotificationActions";
+	public static final String VISIBILITY_MAPPINGS_PROPERTY            = "visibilityMappings";
 	public static final String SORTED_CHILDREN_PROPERTY                = "sortedChildren";
 	public static final String CHILDREN_IDS_PROPERTY                   = "childrenIds";
 	public static final String PAGE_ID_PROPERTY                        = "pageId";
@@ -1033,6 +1034,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Iterable<NodeInterface>> failureActionsProperty             = new EndNodes(traitsInstance, FAILURE_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_FAILURE_TARGET_ACTION_MAPPING);
 		final Property<Iterable<NodeInterface>> successNotificationActionsProperty = new EndNodes(traitsInstance, SUCCESS_NOTIFICATION_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_SUCCESS_NOTIFICATION_ELEMENT_ACTION_MAPPING);
 		final Property<Iterable<NodeInterface>> failureNotificationActionsProperty = new EndNodes(traitsInstance, FAILURE_NOTIFICATION_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_FAILURE_NOTIFICATION_ELEMENT_ACTION_MAPPING);
+		final Property<Iterable<NodeInterface>> visibilityMappingsProperty         = new EndNodes(traitsInstance, VISIBILITY_MAPPINGS_PROPERTY, StructrTraits.DOM_NODE_HAS_VISIBILITY_MAPPING).category(GraphObject.VISIBILITY_CATEGORY);
 		final Property<NodeInterface> componentConfigurationProperty               = new EndNode(traitsInstance, COMPONENT_CONFIGURATION_PROPERTY, StructrTraits.DOM_NODE_HAS_COMPONENT_CONFIGURATION).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<Iterable<DOMNode>> sortedChildrenProperty                   = new DOMNodeSortedChildrenProperty(SORTED_CHILDREN_PROPERTY).typeHint("DOMNode[]");
 		final Property<String> childrenIdsProperty                                 = new CollectionIdProperty(CHILDREN_IDS_PROPERTY, StructrTraits.DOM_NODE, DOMNodeTraitDefinition.CHILDREN_PROPERTY, StructrTraits.DOM_NODE).category("Page Structure");
@@ -1071,6 +1073,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 			failureActionsProperty,
 			successNotificationActionsProperty,
 			failureNotificationActionsProperty,
+			visibilityMappingsProperty,
 			sortedChildrenProperty,
 			childrenIdsProperty,
 			pageIdProperty,

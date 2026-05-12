@@ -203,6 +203,7 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	Iterable<ActionMapping> getFailureActions();
 	Iterable<ActionMapping> getSuccessNotificationActions();
 	Iterable<ActionMapping> getFailureNotificationActions();
+	Iterable<VisibilityMapping> getVisibilityMappings();
 
 	DOMNode cloneNode(final boolean deep) throws FrameworkException;
 	DOMNode appendChild(final DOMNode domNode) throws FrameworkException;

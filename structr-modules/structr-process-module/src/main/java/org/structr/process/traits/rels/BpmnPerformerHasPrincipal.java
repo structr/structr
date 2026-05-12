@@ -26,21 +26,37 @@ import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 import org.structr.process.ProcessTraits;
 
-/** ProcessToken -[ACCESS_TOKEN_USER]-> Principal (the user this access token authenticates) */
-public class ProcessTokenAccessTokenUser extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
+/**
+ * BpmnPerformer -[HAS_PRINCIPAL]-> Principal.
+ *
+ * <p>Typed alternative to the BpmnPerformer's free-form {@code expression}
+ * string (e.g. {@code user(alice), group(managers)}). When the
+ * relationship set is non-empty, the engine resolves task assignment
+ * straight from the linked {@code Principal} nodes (User / Group) and
+ * skips expression evaluation. Both representations can coexist; the
+ * relationship takes priority.</p>
+ *
+ * <p>Many-to-Many: a single performer can pin a list of principals (a
+ * {@code potentialOwner}'s candidate set), and a principal may appear on
+ * many performers across the diagram. Cascading delete is OFF: dropping
+ * a User must not silently remove it from every performer it's listed on
+ * (the editor / re-import flow re-resolves; we don't want graph drift to
+ * happen behind the author's back).</p>
+ */
+public class BpmnPerformerHasPrincipal extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	public ProcessTokenAccessTokenUser() { super(ProcessTraits.PROCESS_TOKEN_ACCESS_TOKEN_USER); }
+	public BpmnPerformerHasPrincipal() { super(ProcessTraits.BPMN_PERFORMER_HAS_PRINCIPAL); }
 
-	@Override public String getSourceType() { return ProcessTraits.PROCESS_TOKEN; }
+	@Override public String getSourceType() { return ProcessTraits.BPMN_PERFORMER; }
 	@Override public String getTargetType() { return StructrTraits.PRINCIPAL; }
-	@Override public String getRelationshipType() { return "ACCESS_TOKEN_USER"; }
+	@Override public String getRelationshipType() { return "HAS_PRINCIPAL"; }
 	@Override public Relation.Multiplicity getSourceMultiplicity() { return Relation.Multiplicity.Many; }
-	@Override public Relation.Multiplicity getTargetMultiplicity() { return Relation.Multiplicity.One; }
+	@Override public Relation.Multiplicity getTargetMultiplicity() { return Relation.Multiplicity.Many; }
 	@Override public int getCascadingDeleteFlag() { return Relation.NONE; }
-	@Override public int getAutocreationFlag() { return Relation.NONE; }
+	@Override public int getAutocreationFlag() { return Relation.ALWAYS; }
 	@Override public boolean isInternal() { return false; }
-	@Override public PropagationDirection getPropagationDirection() { return PropagationDirection.None; }
-	@Override public PropagationMode getReadPropagation() { return PropagationMode.Keep; }
+	@Override public PropagationDirection getPropagationDirection() { return PropagationDirection.Both; }
+	@Override public PropagationMode getReadPropagation() { return PropagationMode.Add; }
 	@Override public PropagationMode getWritePropagation() { return PropagationMode.Keep; }
 	@Override public PropagationMode getDeletePropagation() { return PropagationMode.Keep; }
 	@Override public PropagationMode getAccessControlPropagation() { return PropagationMode.Keep; }
