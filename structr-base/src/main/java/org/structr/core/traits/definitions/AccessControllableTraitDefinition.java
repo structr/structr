@@ -665,11 +665,32 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 		return false;
 	}
 
+	/**
+	 * Apply one hop of permission propagation to the resolution mask.
+	 *
+	 * <p>Mode semantics (as specified by the propagation model author):</p>
+	 * <ul>
+	 *   <li>{@code Add} — extend the mask: ensure this permission is set
+	 *       on the target regardless of what the source held.</li>
+	 *   <li>{@code Keep} — clone what flowed in: leave the mask
+	 *       unchanged. If a prior hop set the bit it stays set, if not
+	 *       it stays unset.</li>
+	 *   <li>{@code Remove} — filter: explicitly clear the bit so the
+	 *       target loses this permission via this hop.</li>
+	 * </ul>
+	 *
+	 * <p>For a long time {@code Keep} fell through into {@code Add} in
+	 * this switch, making them functional synonyms. That broke any
+	 * propagation rule that meant "don't promote this permission beyond
+	 * what the principal already had". The principal's owner-level
+	 * permissions on the source were silently extended to every target
+	 * along the propagation chain. Each branch is now independent so the
+	 * three modes do what their names say.</p>
+	 */
 	private static void applyCurrentStep(final PermissionPropagation rel, PermissionResolutionMask mask) {
 
 		switch (rel.getReadPropagation()) {
 			case Add:
-			case Keep:
 				mask.addRead();
 				break;
 
@@ -677,12 +698,14 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 				mask.removeRead();
 				break;
 
-			default: break;
+			case Keep:
+			default:
+				// pass through: leave the mask as it arrived
+				break;
 		}
 
 		switch (rel.getWritePropagation()) {
 			case Add:
-			case Keep:
 				mask.addWrite();
 				break;
 
@@ -690,12 +713,13 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 				mask.removeWrite();
 				break;
 
-			default: break;
+			case Keep:
+			default:
+				break;
 		}
 
 		switch (rel.getDeletePropagation()) {
 			case Add:
-			case Keep:
 				mask.addDelete();
 				break;
 
@@ -703,12 +727,13 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 				mask.removeDelete();
 				break;
 
-			default: break;
+			case Keep:
+			default:
+				break;
 		}
 
 		switch (rel.getAccessControlPropagation()) {
 			case Add:
-			case Keep:
 				mask.addAccessControl();
 				break;
 
@@ -716,7 +741,9 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 				mask.removeAccessControl();
 				break;
 
-			default: break;
+			case Keep:
+			default:
+				break;
 		}
 
 		// handle delta properties
