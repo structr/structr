@@ -20,8 +20,15 @@ package org.structr.process;
 
 import org.structr.api.service.LicenseManager;
 import org.structr.core.function.Functions;
+import org.structr.core.property.EndNode;
+import org.structr.core.property.StartNode;
+import org.structr.core.property.StringProperty;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Trait;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsManager;
 import org.structr.module.StructrModule;
+import org.structr.web.traits.definitions.ActionMappingTraitDefinition;
 import org.structr.process.function.ExportBPMNFunction;
 import org.structr.process.function.ImportBPMNFunction;
 import org.structr.process.function.NotifyFunction;
@@ -164,9 +171,7 @@ public class ProcessModule implements StructrModule {
 		StructrTraits.registerTrait(new BpmnParticipantTraitDefinition());
 		StructrTraits.registerTrait(new BpmnMessageFlowTraitDefinition());
 		StructrTraits.registerTrait(new BpmnLaneTraitDefinition());
-		StructrTraits.registerTrait(new ActionMappingProcessControlTraitDefinition());
 		StructrTraits.registerTrait(new VisibilityMappingTraitDefinition());
-		StructrTraits.registerTrait(new BpmnSchemaMethodTraitDefinition());
 		StructrTraits.registerTrait(new ProcessTimerTraitDefinition());
 
 		// Register node types. BPMN_BASE_NODE is composed into every BPMN-sourced
@@ -192,22 +197,41 @@ public class ProcessModule implements StructrModule {
 		StructrTraits.registerNodeType(ProcessTraits.BPMN_LANE,               ProcessTraits.BPMN_BASE_NODE, ProcessTraits.BPMN_LANE);
 		StructrTraits.registerNodeType(ProcessTraits.VISIBILITY_MAPPING,      ProcessTraits.VISIBILITY_MAPPING);
 
-		// Re-register ACTION_MAPPING with the additional process-control trait composed in.
-		// This overrides UiModule's earlier registration of the same node type with just the
-		// base trait, replacing it with one that includes our process-side property declarations.
-		// Required because the base-side registration cannot reference the process-module
-		// relationship types (load-order constraint).
-		StructrTraits.registerNodeType(StructrTraits.ACTION_MAPPING,
-			StructrTraits.ACTION_MAPPING,
-			ActionMappingProcessControlTraitDefinition.TRAIT_NAME);
+		// Attach process-control properties directly to the existing ACTION_MAPPING
+		// trait. They live here rather than on ActionMappingTraitDefinition in
+		// structr-base because the EndNode constructor eagerly resolves the rel
+		// type, and ACTION_MAPPING_CONTROLS_BPMN_DEFINITIONS / ACTION_MAPPING_TARGETS_BPMN_ELEMENT
+		// are registered above by the process module. The StringProperty entries
+		// could technically live in structr-base, but they belong with the EndNode
+		// declarations as one logical group.
+		{
+			final Trait actionMapping = Traits.getTrait(StructrTraits.ACTION_MAPPING);
+			actionMapping.registerPropertyKey(new EndNode(TraitsManager.getRootInstance(),
+				ActionMappingTraitDefinition.CONTROLS_PROCESS_PROPERTY,
+				StructrTraits.ACTION_MAPPING_CONTROLS_BPMN_DEFINITIONS));
+			actionMapping.registerPropertyKey(new EndNode(TraitsManager.getRootInstance(),
+				ActionMappingTraitDefinition.TARGETS_ELEMENT_PROPERTY,
+				StructrTraits.ACTION_MAPPING_TARGETS_BPMN_ELEMENT));
+			actionMapping.registerPropertyKey(new StringProperty(ActionMappingTraitDefinition.PROCESS_OPERATION_PROPERTY)
+				.description("Process operation: start | claim | release | decline | delegate | complete | cancel | makeAvailable | assignTask | signal | terminate | suspend | resume"));
+			actionMapping.registerPropertyKey(new StringProperty(ActionMappingTraitDefinition.CONTROLS_PROCESS_ID_PROPERTY).indexed());
+			actionMapping.registerPropertyKey(new StringProperty(ActionMappingTraitDefinition.TARGETS_ELEMENT_BPMN_ID_PROPERTY).indexed());
+			actionMapping.registerPropertyKey(new StringProperty(ActionMappingTraitDefinition.CONTROLS_PROCESS_ID_EXPRESSION_PROPERTY)
+				.description("Structr scripting expression that resolves to a BpmnDefinitions UUID at render time. Alternative to selecting a Process manually; useful on process-catalog pages where the target definition is data-driven (e.g. ${current.id}). Only honoured for the 'start' operation."));
+		}
 
-		// Re-register SCHEMA_METHOD with the BpmnSchemaMethod trait composed in.
-		// Adds inverse StartNode properties (bpmnDefinitions, bpmnElement) so the
-		// OneToMany cardinality check works when attaching methods to a BpmnDefinitions
-		// or BpmnElement. Same load-order rationale as ACTION_MAPPING above.
-		StructrTraits.registerNodeType(StructrTraits.SCHEMA_METHOD,
-			StructrTraits.SCHEMA_METHOD,
-			BpmnSchemaMethodTraitDefinition.TRAIT_NAME);
+		// Attach inverse StartNode properties for BpmnProcess HAS_METHOD SchemaMethod
+		// and BpmnElement HAS_METHOD SchemaMethod directly to the existing SCHEMA_METHOD
+		// trait. OneToMany.ensureCardinality() resolves a relationship's source via the
+		// target type's traits, so without these properties the cardinality check fails
+		// with "Invalid schema setup: missing StartNode(s) property" the first time
+		// element.methods or process.methods is assigned. The two rel types must already
+		// be registered above (BPMN_PROCESS_HAS_METHOD and BPMN_ELEMENT_HAS_METHOD), since
+		// the StartNode constructor eagerly resolves the rel type.
+		Traits.getTrait(StructrTraits.SCHEMA_METHOD).registerPropertyKey(
+			new StartNode(TraitsManager.getRootInstance(), "bpmnProcess", ProcessTraits.BPMN_PROCESS_HAS_METHOD));
+		Traits.getTrait(StructrTraits.SCHEMA_METHOD).registerPropertyKey(
+			new StartNode(TraitsManager.getRootInstance(), "bpmnElement", ProcessTraits.BPMN_ELEMENT_HAS_METHOD));
 
 		StructrTraits.registerNodeType(ProcessTraits.PROCESS_TIMER,           ProcessTraits.PROCESS_TIMER);
 

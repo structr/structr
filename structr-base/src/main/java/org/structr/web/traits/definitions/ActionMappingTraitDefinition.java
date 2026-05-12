@@ -92,8 +92,8 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 	// controlsProcess.processId / targetsElement.bpmnId; refreshed at editor
 	// save time and at re-import rewire. Used by the importer to remap rels
 	// to the new BpmnDefinitions / BpmnElement after a re-import, and as a
-	// diagnostic when relationships go stale. Property declarations live in
-	// ActionMappingProcessControlTraitDefinition (process-module).
+	// diagnostic when relationships go stale. Property declarations are
+	// attached at process-module load time (see ProcessModule.onLoad).
 	public static final String CONTROLS_PROCESS_ID_PROPERTY           = "controlsProcessId";
 	public static final String TARGETS_ELEMENT_BPMN_ID_PROPERTY       = "targetsElementBpmnId";
 	public static final String DATA_TYPE_PROPERTY                     = "dataType";
@@ -289,12 +289,13 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> flowNodeProperty                       = new EndNode(traitsInstance, FLOW_NODE_PROPERTY,      StructrTraits.ACTION_MAPPING_EXECUTES_FLOW_CONTAINER);
 		final Property<NodeInterface> dataTypeNodeProperty                   = new EndNode(traitsInstance, DATA_TYPE_NODE_PROPERTY, StructrTraits.ACTION_MAPPING_CREATES_SCHEMA_NODE);
 
-		// Control-process action properties (controlsProcess, targetsElement, processOperation)
-		// live in a sibling trait (ActionMappingProcessControlTraitDefinition) registered by
-		// the process module. They are not declared here because the EndNode constructors
-		// would resolve relationship types (ACTION_MAPPING_CONTROLS_BPMN_DEFINITIONS,
-		// ACTION_MAPPING_TARGETS_BPMN_ELEMENT) that are only registered after this base trait
-		// loads, breaking the trait registry.
+		// Control-process action properties (controlsProcess, targetsElement, processOperation
+		// plus the denormalized backups) are attached at process-module load time via
+		// Traits.getTrait(ACTION_MAPPING).registerPropertyKey(...) in ProcessModule.onLoad().
+		// They are not declared here because the EndNode constructors would resolve
+		// relationship types (ACTION_MAPPING_CONTROLS_BPMN_DEFINITIONS,
+		// ACTION_MAPPING_TARGETS_BPMN_ELEMENT) that are only registered after this base
+		// trait loads, breaking the trait registry.
 
 		final Property<String> dialogTypeProperty                            = new StringProperty(DIALOG_TYPE_PROPERTY).description("Type of dialog to confirm a destructive / update action");
 		final Property<String> dialogTitleProperty                           = new StringProperty(DIALOG_TITLE_PROPERTY).description("Dialog Title");
