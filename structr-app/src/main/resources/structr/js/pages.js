@@ -1634,15 +1634,18 @@ let _Pages = {
 			flowSelectUl.insertAdjacentHTML('beforeend', flows.map(flow => `<li data-value="${flow.name}">${flow.name}</li>`).join(''));
 		}, false, null, 'id,name');
 
-		// Populate the Process picker from BpmnDefinitions. Eager: same pattern as the
+		// Populate the Process picker from BpmnProcess. Eager: same pattern as the
 		// flow picker. The Element + Operation pickers cascade from the Process selection.
-		Command.query('BpmnDefinitions', 2000, 1, 'name', 'asc', null, (defs) => {
+		// Post multi-process refactor: ActionMapping.controlsProcess targets BpmnProcess
+		// directly (previously BpmnDefinitions), so each collaboration's processes are
+		// individually selectable rather than collapsed under their parent file.
+		Command.query('BpmnProcess', 2000, 1, 'name', 'asc', null, (procs) => {
 			processDefinitionSelect.insertAdjacentHTML('beforeend',
-				defs.map(d => {
-					let label = (d.name ?? d.id) + (d.version ? ` (v${d.version})` : '');
-					return `<option value="${d.id}" data-process-id="${_Helpers.escapeTags(d.processId ?? '')}">${_Helpers.escapeTags(label)}</option>`;
+				procs.map(p => {
+					let label = p.processName ?? p.name ?? p.id;
+					return `<option value="${p.id}" data-process-id="${_Helpers.escapeTags(p.processId ?? '')}">${_Helpers.escapeTags(label)}</option>`;
 				}).join(''));
-		}, false, null, 'id,name,processId,version');
+		}, false, null, 'id,name,processName,processId');
 
 		// Update visibility of the Step and Target wrappers based on the selected
 		// operation's config. Step is shown when the operation acts on a specific BPMN
@@ -1683,55 +1686,41 @@ let _Pages = {
 		};
 
 		// Load the steps (BPMN elements) for the selected process, filtered by the
-		// element type that the current operation needs. Uses Command.query for a direct
-		// fetch of BpmnElement nodes (the relationship traversal from BpmnDefinitions
-		// returns shallow refs that lack bpmnElementType). When called during restore,
-		// preselectStepId selects an existing step after the load completes.
-		let loadProcessSteps = (definitionId, preselectStepId) => {
+		// element type that the current operation needs. Direct fetch of BpmnElement
+		// nodes scoped to the chosen BpmnProcess (single round-trip; the prior
+		// definitions->process hop is gone because controlsProcess now targets a
+		// BpmnProcess directly). When called during restore, preselectStepId selects
+		// an existing step after the load completes.
+		let loadProcessSteps = (processId, preselectStepId) => {
 			processElementSelect.innerHTML = '<option value="">— Select step —</option>';
-			if (!definitionId) {
+			if (!processId) {
 				return;
 			}
 			let cfg = lookupProcessOperation(processOperationSelect.value);
 			let elementTypeFilter = cfg?.elementType;
-			// Multi-process refactor: BpmnElement has no `definition` field;
-			// we hop BpmnDefinitions -> BpmnProcess[] -> BpmnElement[]. Same
-			// pattern as the visibility-mapping step picker above.
-			Command.query('BpmnProcess', 1000, 1, 'name', 'asc', { definition: definitionId }, (procs) => {
-				const procIds = (procs ?? []).map(p => p.id);
-				if (procIds.length === 0) return;
-				let pending = procIds.length;
-				let allElements = [];
-				const finish = () => {
-					let filtered = allElements;
-					if (elementTypeFilter) {
-						filtered = filtered.filter(el => el.bpmnElementType === elementTypeFilter);
-					} else {
-						// No filter: include both kinds we care about, in case the operation
-						// changes after load (rare, but harmless to keep both available).
-						filtered = filtered.filter(el =>
-							el.bpmnElementType === 'userTask' ||
-							el.bpmnElementType === 'intermediateCatchEvent'
-						);
-					}
-					filtered.sort((a, b) => (a.bpmnName ?? a.bpmnId ?? '').localeCompare(b.bpmnName ?? b.bpmnId ?? ''));
-					processElementSelect.insertAdjacentHTML('beforeend',
-						filtered.map(el => {
-							let label = el.bpmnName ?? el.bpmnId;
-							return `<option value="${el.id}" data-element-type="${el.bpmnElementType}" data-bpmn-id="${_Helpers.escapeTags(el.bpmnId ?? '')}" title="${_Helpers.escapeTags(el.bpmnId)}">${_Helpers.escapeTags(label)}</option>`;
-						}).join('')
+			Command.query('BpmnElement', 2000, 1, 'bpmnName', 'asc', { process: processId }, (elements) => {
+				let filtered = elements ?? [];
+				if (elementTypeFilter) {
+					filtered = filtered.filter(el => el.bpmnElementType === elementTypeFilter);
+				} else {
+					// No filter: include both kinds we care about, in case the operation
+					// changes after load (rare, but harmless to keep both available).
+					filtered = filtered.filter(el =>
+						el.bpmnElementType === 'userTask' ||
+						el.bpmnElementType === 'intermediateCatchEvent'
 					);
-					if (preselectStepId) {
-						processElementSelect.value = preselectStepId;
-					}
-				};
-				for (const pid of procIds) {
-					Command.query('BpmnElement', 2000, 1, 'bpmnName', 'asc', { process: pid }, (elements) => {
-						allElements = allElements.concat(elements ?? []);
-						if (--pending === 0) finish();
-					}, false, null, 'id,bpmnId,bpmnName,bpmnElementType,process');
 				}
-			}, false, null, 'id');
+				filtered.sort((a, b) => (a.bpmnName ?? a.bpmnId ?? '').localeCompare(b.bpmnName ?? b.bpmnId ?? ''));
+				processElementSelect.insertAdjacentHTML('beforeend',
+					filtered.map(el => {
+						let label = el.bpmnName ?? el.bpmnId;
+						return `<option value="${el.id}" data-element-type="${el.bpmnElementType}" data-bpmn-id="${_Helpers.escapeTags(el.bpmnId ?? '')}" title="${_Helpers.escapeTags(el.bpmnId)}">${_Helpers.escapeTags(label)}</option>`;
+					}).join('')
+				);
+				if (preselectStepId) {
+					processElementSelect.value = preselectStepId;
+				}
+			}, false, null, 'id,bpmnId,bpmnName,bpmnElementType,process');
 		};
 
 		processOperationSelect.addEventListener('change', () => {
@@ -2508,7 +2497,7 @@ let _Pages = {
 				processOperation:            processOperationSelect?.value  || null,
 				// Denormalized backups, written alongside the rels. Refreshed
 				// by the BPMN importer's re-import rewire step using the same
-				// strings to find the new BpmnDefinitions / BpmnElement.
+				// strings to find the new BpmnProcess / BpmnElement.
 				controlsProcessId:           processDefinitionSelect?.selectedOptions?.[0]?.dataset.processId || null,
 				targetsElementBpmnId:        processElementSelect?.selectedOptions?.[0]?.dataset.bpmnId       || null,
 				// Dynamic alternative to the static Process selection (only
@@ -5041,7 +5030,7 @@ let _Pages = {
 							</select>
 						</div>
 						<div class="hidden em-action-element em-action-control-process em-process-dynamic-wrapper">
-							<label class="block mb-2" for="process-id-expression-input" data-comment="Structr scripting expression that resolves to a BpmnDefinitions UUID at page render time -- e.g. \${current.id} on a process catalog page where each row binds to a different BpmnDefinitions. Only honoured for the 'Start a new process instance' operation. When set and resolvable, overrides the static Process selection above.">Dynamic process UUID</label>
+							<label class="block mb-2" for="process-id-expression-input" data-comment="Structr scripting expression that resolves to a BpmnProcess UUID at page render time, e.g. \${current.id} on a process catalog page where each row binds to a different BpmnProcess. Only honoured for the 'Start a new process instance' operation. When set and resolvable, overrides the static Process selection above.">Dynamic process UUID</label>
 							<input class="w-full" type="text" id="process-id-expression-input" placeholder="\${current.id}">
 						</div>
 						<div class="hidden em-action-element em-action-control-process em-process-step-wrapper">
