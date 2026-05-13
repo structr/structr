@@ -3069,8 +3069,6 @@ let _Entities = {
                 fieldSetInput.value = collectKeys();
                 fieldSetInput.dispatchEvent(new Event('change'));
             });
-
-            fieldSetInput.dispatchEvent(new Event('change'));
         },
         showRenderTemplates: async (entity, displayMode, span) => {
             let div = document.createElement('div');
