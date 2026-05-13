@@ -31,7 +31,7 @@ import org.structr.process.ProcessTraits;
  * is scoped to a specific BPMN element (a userTask for claim/complete/etc., or an
  * intermediateCatchEvent for signal). For process-level operations
  * (start, terminate, suspend, resume) the relationship is left null because the
- * controlsProcess relationship to {@code BpmnDefinitions} is sufficient.</p>
+ * controlsProcess relationship to {@code BpmnProcess} is sufficient.</p>
  *
  * <p>The relationship is the source of truth for the static binding: refactor-safe
  * across BPMN element renames. The runtime dispatcher uses the resolved target's

@@ -74,24 +74,26 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 	// Control-process action properties (set when action="control-process"). The two
 	// relationships are the source of truth for the static binding; processOperation
 	// is a closed-vocabulary string enum.
-	public static final String CONTROLS_PROCESS_PROPERTY              = "controlsProcess";    // -> BpmnDefinitions
+	public static final String CONTROLS_PROCESS_PROPERTY              = "controlsProcess";    // -> BpmnProcess
 	public static final String TARGETS_ELEMENT_PROPERTY               = "targetsElement";     // -> BpmnElement
 	public static final String PROCESS_OPERATION_PROPERTY             = "processOperation";   // String enum
 	// Dynamic alternative to the static `controlsProcess` relationship.
-	// A Structr scripting expression that resolves to a BpmnDefinitions
+	// A Structr scripting expression that resolves to a BpmnProcess
 	// UUID at page-render time, e.g. ${current.id} on a process catalog
 	// page. Evaluated at render time (same flow as `idExpression`) and
 	// embedded in the rendered HTML as data-structr-controls-process-id-
 	// expression. At click time the resolved UUID is passed as a request
-	// parameter and resolved to a BpmnDefinitions node. When set and
-	// resolvable, it overrides `controlsProcess`. Only meaningful for the
-	// `start` operation.
+	// parameter and resolved to a BpmnProcess node (a BpmnDefinitions UUID
+	// is also accepted by the dispatcher as a defensive fallback and
+	// unwrapped to its single executable child). When set and resolvable,
+	// it overrides `controlsProcess`. Only meaningful for the `start`
+	// operation.
 	public static final String CONTROLS_PROCESS_ID_EXPRESSION_PROPERTY = "controlsProcessIdExpression";
 
 	// Denormalized name backups for the process-control rels. Cache of
 	// controlsProcess.processId / targetsElement.bpmnId; refreshed at editor
 	// save time and at re-import rewire. Used by the importer to remap rels
-	// to the new BpmnDefinitions / BpmnElement after a re-import, and as a
+	// to the new BpmnProcess / BpmnElement after a re-import, and as a
 	// diagnostic when relationships go stale. Property declarations are
 	// attached at process-module load time (see ProcessModule.onLoad).
 	public static final String CONTROLS_PROCESS_ID_PROPERTY           = "controlsProcessId";
@@ -293,7 +295,7 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 		// plus the denormalized backups) are attached at process-module load time via
 		// Traits.getTrait(ACTION_MAPPING).registerPropertyKey(...) in ProcessModule.onLoad().
 		// They are not declared here because the EndNode constructors would resolve
-		// relationship types (ACTION_MAPPING_CONTROLS_BPMN_DEFINITIONS,
+		// relationship types (ACTION_MAPPING_CONTROLS_BPMN_PROCESS,
 		// ACTION_MAPPING_TARGETS_BPMN_ELEMENT) that are only registered after this base
 		// trait loads, breaking the trait registry.
 

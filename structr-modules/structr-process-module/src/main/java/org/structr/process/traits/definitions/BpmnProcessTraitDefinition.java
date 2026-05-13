@@ -28,6 +28,7 @@ import org.structr.core.api.JavaMethod;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.process.ProcessTraits;
@@ -66,6 +67,7 @@ public class BpmnProcessTraitDefinition extends AbstractNodeTraitDefinition {
 	// the page's name; when unset, the convention falls back to the
 	// slugified processName.
 	public static final String INSTANCE_PAGE_PROPERTY                    = "instancePage";
+	public static final String CONTROL_ACTIONS_PROPERTY                  = "controlActions";
 
 	public BpmnProcessTraitDefinition() {
 		super(ProcessTraits.BPMN_PROCESS);
@@ -94,9 +96,15 @@ public class BpmnProcessTraitDefinition extends AbstractNodeTraitDefinition {
 		// process. Many-to-One -- multiple processes may share a single
 		// generic instance page, but each process binds at most one.
 		final Property<NodeInterface>           instancePage       = new EndNode(traitsInstance,   INSTANCE_PAGE_PROPERTY,     ProcessTraits.BPMN_PROCESS_HAS_INSTANCE_PAGE);
+		// Inverse for ActionMapping CONTROLS BpmnProcess rels. Required so
+		// OneToMany.ensureCardinality can resolve the source side when an
+		// ActionMapping's controlsProcess is reassigned (e.g. via the EAM
+		// editor): without this property, am.setProperty(controlsProcess,
+		// newProcess) throws "missing StartNode(s) property".
+		final Property<Iterable<NodeInterface>> controlActions     = new StartNodes(traitsInstance, CONTROL_ACTIONS_PROPERTY,   StructrTraits.ACTION_MAPPING_CONTROLS_BPMN_PROCESS);
 
 		return newSet(processId, processName, processIsExecutable, defaultAssigneeFromInitiator,
-			definition, elements, sequenceFlows, methods, processListeners, lanes, participant, instancePage);
+			definition, elements, sequenceFlows, methods, processListeners, lanes, participant, instancePage, controlActions);
 	}
 
 	@Override

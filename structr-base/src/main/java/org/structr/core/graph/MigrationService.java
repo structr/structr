@@ -191,6 +191,7 @@ public class MigrationService {
 			updateSharedComponentFlag();
 			if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
 				migrateRestQueryRepeaters();
+				migrateActionMappingControlsToProcess();
 			}
 			warnAboutWrongNotionProperties();
 		}
@@ -1358,6 +1359,112 @@ public class MigrationService {
 
 		} catch (FrameworkException fex) {
 			logger.warn("Unable to migrate REST query repeaters: {}", fex.getMessage());
+		}
+	}
+
+	/**
+	 * Repoint legacy {@code ActionMapping -[CONTROLS]-> BpmnDefinitions} edges to
+	 * the contained {@code BpmnProcess}. Before the multi-process refactor the
+	 * CONTROLS rel targeted the definitions file; now it targets one specific
+	 * BpmnProcess (definitions can hold multiple processes via collaborations).
+	 *
+	 * <p>The Neo4j label ("CONTROLS") is unchanged; only the trait's declared
+	 * target type was switched, so the framework no longer surfaces the legacy
+	 * edges via {@code ActionMapping.getControlsProcess()}. We find them through
+	 * direct Cypher, delete the stale edges, and re-set the property through
+	 * the typed API so the new rel gets the framework metadata it needs.</p>
+	 *
+	 * <p>Target-selection rules per source BpmnDefinitions:
+	 * <ul>
+	 *   <li>Single child BpmnProcess: pick it.</li>
+	 *   <li>Multiple children, exactly one marked {@code processIsExecutable}:
+	 *       pick that one.</li>
+	 *   <li>Otherwise: leave the source ActionMapping unset and log a warning
+	 *       so the author can fix it via the EAM editor.</li>
+	 * </ul></p>
+	 */
+	private static void migrateActionMappingControlsToProcess() {
+
+		final App app = StructrApp.getInstance();
+		int repointed = 0;
+		int skipped   = 0;
+
+		try (final Tx tx = app.tx()) {
+
+			tx.disableChangelog();
+
+			final List<GraphObject> staleDefs = Iterables.toList(app.query(
+				"MATCH (:ActionMapping)-[:CONTROLS]->(bd:BpmnDefinitions) RETURN DISTINCT bd",
+				Map.of()
+			));
+
+			if (staleDefs.isEmpty()) {
+				tx.success();
+				return;
+			}
+
+			logger.info("MigrationService: found {} BpmnDefinitions with legacy ActionMapping CONTROLS edges, repointing to BpmnProcess.", staleDefs.size());
+
+			final PropertyKey<NodeInterface> controlsProcessKey = Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.CONTROLS_PROCESS_PROPERTY);
+
+			for (final GraphObject bdObj : staleDefs) {
+
+				if (!(bdObj instanceof NodeInterface)) continue;
+				final NodeInterface bd = (NodeInterface) bdObj;
+				final String bdId      = bd.getUuid();
+
+				// Pick the target BpmnProcess: single child, or unique executable.
+				final Iterable<NodeInterface> processes = bd.getProperty(bd.getTraits().key("processes"));
+				final List<NodeInterface> all  = new ArrayList<>();
+				final List<NodeInterface> exec = new ArrayList<>();
+				if (processes != null) {
+					for (final NodeInterface p : processes) {
+						all.add(p);
+						final Boolean isExec = p.getProperty(p.getTraits().key("processIsExecutable"));
+						if (Boolean.TRUE.equals(isExec)) exec.add(p);
+					}
+				}
+
+				NodeInterface target = null;
+				if (all.size() == 1) {
+					target = all.get(0);
+				} else if (exec.size() == 1) {
+					target = exec.get(0);
+				}
+
+				// Find the ActionMappings that currently CONTROL this definitions.
+				final List<GraphObject> ams = Iterables.toList(app.query(
+					"MATCH (am:ActionMapping)-[:CONTROLS]->(:BpmnDefinitions {id:$bdId}) RETURN DISTINCT am",
+					Map.of("bdId", bdId)
+				));
+
+				// Drop the legacy edges first (trait change hides them from
+				// the typed API; we delete via Cypher).
+				app.query(
+					"MATCH (:ActionMapping)-[r:CONTROLS]->(:BpmnDefinitions {id:$bdId}) DELETE r",
+					Map.of("bdId", bdId)
+				);
+
+				if (target == null) {
+					logger.warn("MigrationService: BpmnDefinitions {} has {} BpmnProcess children ({} marked executable); cannot decide which to repoint to. {} ActionMapping(s) left without a controlsProcess -- fix via the EAM editor.", bdId, all.size(), exec.size(), ams.size());
+					skipped += ams.size();
+					continue;
+				}
+
+				for (final GraphObject amObj : ams) {
+					if (!(amObj instanceof NodeInterface)) continue;
+					final NodeInterface am = (NodeInterface) amObj;
+					am.setProperty(controlsProcessKey, target);
+					repointed++;
+				}
+			}
+
+			logger.info("MigrationService: ActionMapping CONTROLS rels: repointed={}, skipped={}.", repointed, skipped);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("Unable to migrate ActionMapping CONTROLS rels to BpmnProcess: {}", fex.getMessage());
 		}
 	}
 

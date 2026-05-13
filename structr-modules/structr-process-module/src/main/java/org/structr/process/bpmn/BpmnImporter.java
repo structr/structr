@@ -1508,34 +1508,47 @@ public class BpmnImporter {
 
 		if (processId == null || processId.isEmpty()) return;
 
-		// Collect every old BpmnDefinitions that hosted a process with this
-		// processId. We query the BpmnProcess set (where processId now lives)
-		// and walk back through the parent definition rel.
+		// Collect every BpmnProcess version of this processId. Split into:
+		//   * the NEW one (parent == newDefNode) -- becomes the rewire target
+		//     for ActionMappings (controlsProcess now points at a specific
+		//     BpmnProcess after the multi-process refactor).
+		//   * the OLD ones (different parent) -- anchors for the AM rel-based
+		//     rewire pass.
+		// Old parent definitions go into oldDefs and remain the anchors for
+		// the VisibilityMapping rewire (VM.boundProcess still targets
+		// BpmnDefinitions, not BpmnProcess).
 		final Traits procTraits = Traits.of(ProcessTraits.BPMN_PROCESS);
 		final PropertyKey<String> procProcessIdKey = procTraits.key(BpmnProcessTraitDefinition.PROCESS_ID_PROPERTY);
 		final PropertyKey<NodeInterface> procDefKey = procTraits.key(BpmnProcessTraitDefinition.DEFINITION_PROPERTY);
-		final List<NodeInterface> oldDefs = new ArrayList<>();
-		final Set<String> seenDefIds = new HashSet<>();
+		final List<NodeInterface> oldProcs = new ArrayList<>();
+		final List<NodeInterface> oldDefs  = new ArrayList<>();
+		final Set<String> seenDefIds       = new HashSet<>();
+		NodeInterface newProcessNode = null;
 		for (final NodeInterface proc : app.nodeQuery(ProcessTraits.BPMN_PROCESS).key(procProcessIdKey, processId).getResultStream()) {
 			final NodeInterface def = proc.getProperty(procDefKey);
-			if (def != null && seenDefIds.add(def.getUuid()) && !def.getUuid().equals(newDefNode.getUuid())) {
+			if (def != null && def.getUuid().equals(newDefNode.getUuid())) {
+				newProcessNode = proc;
+				continue;
+			}
+			oldProcs.add(proc);
+			if (def != null && seenDefIds.add(def.getUuid())) {
 				oldDefs.add(def);
 			}
 		}
 
 		// The rewire runs in two passes so it covers both:
-		//   (a) VMs/AMs whose rel still points at an old BpmnDefinitions (typical
-		//       re-import path -- old defs still exist).
-		//   (b) VMs/AMs whose rel has already been broken because the old def
-		//       was deleted; they kept their denormalized boundProcessId /
-		//       controlsProcessId backup, and we use that string to identify
-		//       them and reattach to the new def.
-		// Both VMs and AMs are processed on each pass; UUID dedup avoids redoing
-		// the same node twice if it appears in both passes.
+		//   (a) VMs/AMs whose rel still points at an old anchor (typical
+		//       re-import path -- old defs/processes still exist).
+		//   (b) VMs/AMs whose rel has already been broken because the old
+		//       anchor was deleted; they kept their denormalized
+		//       boundProcessId / controlsProcessId backup, and we use that
+		//       string to identify them and reattach to the new anchor.
+		// UUID dedup avoids redoing the same node twice if it appears in both
+		// passes.
 		final Set<String> processedVms = new HashSet<>();
 		final Set<String> processedAms = new HashSet<>();
-		rewireVisibilityMappings(app, oldDefs, processId, newDefNode, elementMap, processedVms);
-		rewireActionMappings   (app, oldDefs, processId, newDefNode, elementMap, processedAms);
+		rewireVisibilityMappings(app, oldDefs,  processId, newDefNode,     elementMap, processedVms);
+		rewireActionMappings   (app, oldProcs, processId, newProcessNode, elementMap, processedAms);
 	}
 
 	private void rewireVisibilityMappings(final App app, final List<NodeInterface> oldDefs, final String processId, final NodeInterface newDefNode, final Map<String, NodeInterface> elementMap, final Set<String> processedVms) throws FrameworkException {
@@ -1596,7 +1609,16 @@ public class BpmnImporter {
 		}
 	}
 
-	private void rewireActionMappings(final App app, final List<NodeInterface> oldDefs, final String processId, final NodeInterface newDefNode, final Map<String, NodeInterface> elementMap, final Set<String> processedAms) throws FrameworkException {
+	private void rewireActionMappings(final App app, final List<NodeInterface> oldProcs, final String processId, final NodeInterface newProcessNode, final Map<String, NodeInterface> elementMap, final Set<String> processedAms) throws FrameworkException {
+
+		// ActionMapping.controlsProcess now targets BpmnProcess (post the
+		// multi-process refactor). If the re-imported file does not contain
+		// a process with this id, there is nothing to repoint to; warn and
+		// leave existing rels alone for manual fixup.
+		if (newProcessNode == null) {
+			logger.warn("rewireActionMappings: no new BpmnProcess found for processId='{}' in the re-imported file; skipping ActionMapping rewire for this id.", processId);
+			return;
+		}
 
 		final Traits amTraits = Traits.of(StructrTraits.ACTION_MAPPING);
 		final PropertyKey<NodeInterface> controlsProcessKey      = amTraits.key(ActionMappingTraitDefinition.CONTROLS_PROCESS_PROPERTY);
@@ -1604,29 +1626,30 @@ public class BpmnImporter {
 		final PropertyKey<String>        controlsProcessIdKey    = amTraits.key(ActionMappingTraitDefinition.CONTROLS_PROCESS_ID_PROPERTY);
 		final PropertyKey<String>        targetsElementBpmnIdKey = amTraits.key(ActionMappingTraitDefinition.TARGETS_ELEMENT_BPMN_ID_PROPERTY);
 
-		// Pass (a): rel-based.
-		for (final NodeInterface oldDef : oldDefs) {
-			for (final NodeInterface am : app.nodeQuery(StructrTraits.ACTION_MAPPING).key(controlsProcessKey, oldDef).getResultStream()) {
+		// Pass (a): rel-based -- AMs whose controlsProcess still points at any old BpmnProcess.
+		for (final NodeInterface oldProc : oldProcs) {
+			for (final NodeInterface am : app.nodeQuery(StructrTraits.ACTION_MAPPING).key(controlsProcessKey, oldProc).getResultStream()) {
 				if (processedAms.add(am.getUuid())) {
-					rewireAm(am, newDefNode, elementMap, controlsProcessKey, targetsElementKey, controlsProcessIdKey, targetsElementBpmnIdKey, processId);
+					rewireAm(am, newProcessNode, elementMap, controlsProcessKey, targetsElementKey, controlsProcessIdKey, targetsElementBpmnIdKey, processId);
 				}
 			}
 		}
 
-		// Pass (b): backup-string.
+		// Pass (b): backup-string -- AMs whose controlsProcessId matches our processId
+		// regardless of rel state.
 		for (final NodeInterface am : app.nodeQuery(StructrTraits.ACTION_MAPPING).key(controlsProcessIdKey, processId).getResultStream()) {
 			if (processedAms.add(am.getUuid())) {
-				rewireAm(am, newDefNode, elementMap, controlsProcessKey, targetsElementKey, controlsProcessIdKey, targetsElementBpmnIdKey, processId);
+				rewireAm(am, newProcessNode, elementMap, controlsProcessKey, targetsElementKey, controlsProcessIdKey, targetsElementBpmnIdKey, processId);
 			}
 		}
 	}
 
-	private void rewireAm(final NodeInterface am, final NodeInterface newDefNode, final Map<String, NodeInterface> elementMap,
+	private void rewireAm(final NodeInterface am, final NodeInterface newProcessNode, final Map<String, NodeInterface> elementMap,
 						  final PropertyKey<NodeInterface> controlsProcessKey, final PropertyKey<NodeInterface> targetsElementKey,
 						  final PropertyKey<String> controlsProcessIdKey, final PropertyKey<String> targetsElementBpmnIdKey,
 						  final String processId) throws FrameworkException {
 
-		am.setProperty(controlsProcessKey, newDefNode);
+		am.setProperty(controlsProcessKey, newProcessNode);
 		am.setProperty(controlsProcessIdKey, processId);
 
 		String elemBpmnId = null;

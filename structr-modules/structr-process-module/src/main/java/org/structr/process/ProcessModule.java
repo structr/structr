@@ -91,7 +91,7 @@ public class ProcessModule implements StructrModule {
 		StructrTraits.registerTrait(new BpmnElementAttachedTo());
 		StructrTraits.registerTrait(new BpmnProcessHasInstancePage());
 		StructrTraits.registerTrait(new BpmnPerformerHasPrincipal());
-		StructrTraits.registerTrait(new ActionMappingCONTROLSBpmnDefinitions());
+		StructrTraits.registerTrait(new ActionMappingCONTROLSBpmnProcess());
 		StructrTraits.registerTrait(new ActionMappingTARGETSBpmnElement());
 		StructrTraits.registerTrait(new VisibilityMappingFORBpmnDefinitions());
 		StructrTraits.registerTrait(new VisibilityMappingATBpmnElement());
@@ -142,7 +142,7 @@ public class ProcessModule implements StructrModule {
 		StructrTraits.registerRelationshipType(ProcessTraits.BPMN_ELEMENT_ATTACHED_TO,             ProcessTraits.BPMN_ELEMENT_ATTACHED_TO);
 		StructrTraits.registerRelationshipType(ProcessTraits.BPMN_PROCESS_HAS_INSTANCE_PAGE,       ProcessTraits.BPMN_PROCESS_HAS_INSTANCE_PAGE);
 		StructrTraits.registerRelationshipType(ProcessTraits.BPMN_PERFORMER_HAS_PRINCIPAL,         ProcessTraits.BPMN_PERFORMER_HAS_PRINCIPAL);
-		StructrTraits.registerRelationshipType(StructrTraits.ACTION_MAPPING_CONTROLS_BPMN_DEFINITIONS, StructrTraits.ACTION_MAPPING_CONTROLS_BPMN_DEFINITIONS);
+		StructrTraits.registerRelationshipType(StructrTraits.ACTION_MAPPING_CONTROLS_BPMN_PROCESS, StructrTraits.ACTION_MAPPING_CONTROLS_BPMN_PROCESS);
 		StructrTraits.registerRelationshipType(StructrTraits.ACTION_MAPPING_TARGETS_BPMN_ELEMENT,      StructrTraits.ACTION_MAPPING_TARGETS_BPMN_ELEMENT);
 		StructrTraits.registerRelationshipType(ProcessTraits.VISIBILITY_MAPPING_FOR_BPMN_DEFINITIONS,  ProcessTraits.VISIBILITY_MAPPING_FOR_BPMN_DEFINITIONS);
 		StructrTraits.registerRelationshipType(ProcessTraits.VISIBILITY_MAPPING_AT_BPMN_ELEMENT,       ProcessTraits.VISIBILITY_MAPPING_AT_BPMN_ELEMENT);
@@ -200,7 +200,7 @@ public class ProcessModule implements StructrModule {
 		// Attach process-control properties directly to the existing ACTION_MAPPING
 		// trait. They live here rather than on ActionMappingTraitDefinition in
 		// structr-base because the EndNode constructor eagerly resolves the rel
-		// type, and ACTION_MAPPING_CONTROLS_BPMN_DEFINITIONS / ACTION_MAPPING_TARGETS_BPMN_ELEMENT
+		// type, and ACTION_MAPPING_CONTROLS_BPMN_PROCESS / ACTION_MAPPING_TARGETS_BPMN_ELEMENT
 		// are registered above by the process module. The StringProperty entries
 		// could technically live in structr-base, but they belong with the EndNode
 		// declarations as one logical group.
@@ -208,7 +208,7 @@ public class ProcessModule implements StructrModule {
 			final Trait actionMapping = Traits.getTrait(StructrTraits.ACTION_MAPPING);
 			actionMapping.registerPropertyKey(new EndNode(TraitsManager.getRootInstance(),
 				ActionMappingTraitDefinition.CONTROLS_PROCESS_PROPERTY,
-				StructrTraits.ACTION_MAPPING_CONTROLS_BPMN_DEFINITIONS));
+				StructrTraits.ACTION_MAPPING_CONTROLS_BPMN_PROCESS));
 			actionMapping.registerPropertyKey(new EndNode(TraitsManager.getRootInstance(),
 				ActionMappingTraitDefinition.TARGETS_ELEMENT_PROPERTY,
 				StructrTraits.ACTION_MAPPING_TARGETS_BPMN_ELEMENT));

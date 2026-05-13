@@ -25,19 +25,25 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 import org.structr.process.ProcessTraits;
 
 /**
- * ActionMapping -[CONTROLS]-> BpmnDefinitions.
+ * ActionMapping -[CONTROLS]-> BpmnProcess.
  *
  * <p>Set when an ActionMapping's {@code action} is "control-process". Identifies the
- * process definition the action operates on. Required for "start" operations
- * (the engine needs to know which definition to instantiate); for instance-level
- * operations (claim, complete, signal, etc.) the relationship is a static binding
- * for the App Graph and editor introspection but the runtime resolves the target
- * instance/task via {@code idExpression}.</p>
+ * BpmnProcess the action operates on. Required for "start" operations (the engine
+ * needs to know which process to instantiate); for task-level (claim, complete,
+ * completeWithSubject, ...) and instance-level (terminate, suspend, resume)
+ * operations the relationship is a static binding for editor introspection but
+ * the runtime resolves the target instance/task via {@code idExpression} and
+ * the {@code targetsElement} BpmnElement.</p>
+ *
+ * <p>Target type is BpmnProcess (not BpmnDefinitions) because, post the multi-process
+ * refactor, a BpmnDefinitions is a file-level container that can hold N processes
+ * (e.g. collaborations with one process per participant pool). The meaningful
+ * binding for any action is one specific process.</p>
  */
-public class ActionMappingCONTROLSBpmnDefinitions extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
+public class ActionMappingCONTROLSBpmnProcess extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	public ActionMappingCONTROLSBpmnDefinitions() {
-		super(StructrTraits.ACTION_MAPPING_CONTROLS_BPMN_DEFINITIONS);
+	public ActionMappingCONTROLSBpmnProcess() {
+		super(StructrTraits.ACTION_MAPPING_CONTROLS_BPMN_PROCESS);
 	}
 
 	@Override
@@ -47,7 +53,7 @@ public class ActionMappingCONTROLSBpmnDefinitions extends AbstractRelationshipTr
 
 	@Override
 	public String getTargetType() {
-		return ProcessTraits.BPMN_DEFINITIONS;
+		return ProcessTraits.BPMN_PROCESS;
 	}
 
 	@Override

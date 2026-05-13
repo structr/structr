@@ -76,7 +76,6 @@ public class BpmnDefinitionsTraitDefinition extends AbstractNodeTraitDefinition 
 	public static final String COLLABORATION_PROPERTY        = "collaboration";
 	public static final String DIAGRAMS_PROPERTY             = "diagrams";
 	public static final String VISIBILITY_MAPPINGS_PROPERTY  = "visibilityMappings";
-	public static final String CONTROL_ACTIONS_PROPERTY      = "controlActions";
 	public static final String SECURITY_LEVEL_PROPERTY       = "securityLevel";
 
 	// Security level constants
@@ -98,18 +97,18 @@ public class BpmnDefinitionsTraitDefinition extends AbstractNodeTraitDefinition 
 		final Property<Iterable<NodeInterface>> processes         = new EndNodes(traitsInstance, PROCESSES_PROPERTY,         ProcessTraits.BPMN_DEFINITIONS_HAS_PROCESS);
 		final Property<NodeInterface>           collaboration     = new EndNode(traitsInstance,  COLLABORATION_PROPERTY,     ProcessTraits.BPMN_DEFINITIONS_HAS_COLLABORATION);
 		final Property<Iterable<NodeInterface>> diagrams          = new EndNodes(traitsInstance, DIAGRAMS_PROPERTY,           ProcessTraits.BPMN_DEFINITIONS_HAS_DIAGRAM);
-		// Inverse properties for relationships pointing INTO this BpmnDefinitions.
-		// Required so OneToMany.ensureCardinality can resolve the source side when
-		// a VisibilityMapping or ActionMapping is reassigned (e.g. by the importer's
-		// re-import rewire); without these, vm.setProperty(boundProcess, newDef)
-		// throws "missing StartNode(s) property".
+		// Inverse property for VisibilityMapping rels pointing INTO this BpmnDefinitions.
+		// Required so OneToMany.ensureCardinality can resolve the source side when a
+		// VisibilityMapping is reassigned (e.g. by the importer's re-import rewire);
+		// without it, vm.setProperty(boundDefinitions, newDef) throws "missing
+		// StartNode(s) property". The ActionMapping CONTROLS rel now targets BpmnProcess
+		// (post multi-process refactor), so its inverse lives on BpmnProcess.
 		final Property<Iterable<NodeInterface>> visibilityMappings = new StartNodes(traitsInstance, VISIBILITY_MAPPINGS_PROPERTY, ProcessTraits.VISIBILITY_MAPPING_FOR_BPMN_DEFINITIONS);
-		final Property<Iterable<NodeInterface>> controlActions     = new StartNodes(traitsInstance, CONTROL_ACTIONS_PROPERTY,     StructrTraits.ACTION_MAPPING_CONTROLS_BPMN_DEFINITIONS);
 		final Property<String> securityLevel                      = new EnumProperty(SECURITY_LEVEL_PROPERTY, Set.of(SECURITY_LEVEL_LOW, SECURITY_LEVEL_HIGH)).defaultValue(SECURITY_LEVEL_HIGH).indexed();
 
 		return newSet(targetNamespace, exporter, exporterVersion, namespaceDeclarations,
 			globalDefinitions, processes, collaboration, diagrams,
-			visibilityMappings, controlActions, securityLevel);
+			visibilityMappings, securityLevel);
 	}
 
 	@Override
