@@ -27,6 +27,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.TraitDefinition;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.operations.graphobject.IsValid;
+import org.structr.schema.SchemaHelper;
 
 import java.util.List;
 import java.util.Map;
@@ -45,8 +46,6 @@ public interface SchemaRelationshipNode extends AbstractSchemaNode {
 	String getTargetMultiplicity();
 	String getSourceJsonName();
 	String getTargetJsonName();
-	String getPreviousTargetJsonName();
-	String getPreviousSourceJsonName();
 	String getSchemaNodeSourceType();
 	String getSourceType();
 	String getTargetType();
@@ -57,8 +56,6 @@ public interface SchemaRelationshipNode extends AbstractSchemaNode {
 
 	void resolveCascadingEnums(final JsonSchema.Cascade delete, final JsonSchema.Cascade autoCreate) throws FrameworkException;
 
-	void setPreviousSourceJsonName(String propertyName) throws FrameworkException;
-	void setPreviousTargetJsonName(String propertyName) throws FrameworkException;
 	void setAutocreationFlag(Long aLong) throws FrameworkException;
 	void setCascadingDeleteFlag(final Long flag) throws FrameworkException;
 	void setRelationshipType(final String relType) throws FrameworkException;
@@ -117,26 +114,6 @@ public interface SchemaRelationshipNode extends AbstractSchemaNode {
 
 		final String propertyName = SchemaRelationshipNode.getPropertyName(existingPropertyNames, outgoing, relationshipTypeName, _sourceType, _targetType, _targetJsonName, _targetMultiplicity, _sourceJsonName, _sourceMultiplicity);
 
-		try {
-			if (outgoing) {
-
-				if (_targetJsonName == null) {
-
-					node.setPreviousTargetJsonName(propertyName);
-				}
-
-			} else {
-
-				if (_sourceJsonName == null) {
-
-					node.setPreviousSourceJsonName(propertyName);
-				}
-			}
-
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-		}
-
 		return propertyName;
 	}
 
@@ -146,7 +123,6 @@ public interface SchemaRelationshipNode extends AbstractSchemaNode {
 
 		if (outgoing) {
 
-
 			if (_targetJsonName != null) {
 
 				// FIXME: no automatic creation?
@@ -154,7 +130,7 @@ public interface SchemaRelationshipNode extends AbstractSchemaNode {
 
 			} else {
 
-				if ("1".equals(_targetMultiplicity)) {
+				if (SchemaHelper.Multiplicity.ONE.getDbValue().equals(_targetMultiplicity)) {
 
 					propertyName = CaseHelper.toLowerCamelCase(relationshipTypeName) + CaseHelper.toUpperCamelCase(_targetType);
 
@@ -166,12 +142,13 @@ public interface SchemaRelationshipNode extends AbstractSchemaNode {
 
 		} else {
 
-
 			if (_sourceJsonName != null) {
+
 				propertyName = _sourceJsonName;
+
 			} else {
 
-				if ("1".equals(_sourceMultiplicity)) {
+				if (SchemaHelper.Multiplicity.ONE.getDbValue().equals(_sourceMultiplicity)) {
 
 					propertyName = CaseHelper.toLowerCamelCase(_sourceType) + CaseHelper.toUpperCamelCase(relationshipTypeName);
 

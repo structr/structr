@@ -766,7 +766,7 @@ let _Code = {
 
 				let mapFn = (rel, out) => {
 
-					let attrName = (out ? (rel.targetJsonName || rel.oldTargetJsonName) : (rel.sourceJsonName || rel.oldSourceJsonName));
+					let attrName = (out ? rel.targetJsonName : rel.sourceJsonName);
 
 					return {
 						id:           rel.id,

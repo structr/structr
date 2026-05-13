@@ -20,6 +20,8 @@ package org.structr.test.common;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.graph.Direction;
+import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.common.AccessControllable;
 import org.structr.common.AccessMode;
@@ -416,6 +418,95 @@ public class PermissionResolutionTest extends StructrTest {
 		testGranted(projectType, new boolean[] { false, false, false, true });
 		setPermissionResolution(uuid, Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.ACCESS_CONTROL_PROPAGATION_PROPERTY), "Remove");
 		testGranted(projectType, new boolean[] { false, false, false, false });
+	}
+
+	@Test
+	public void testPermissionResolutionWithVisibilityFlags() {
+
+		final App app = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			// create schema setup with permission propagation
+			final NodeInterface project = app.create(StructrTraits.SCHEMA_NODE, "Project");
+			final NodeInterface task    = app.create(StructrTraits.SCHEMA_NODE, "Task");
+
+			app.create(StructrTraits.SCHEMA_RELATIONSHIP_NODE,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY), project),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY), task),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY), "HAS_TASK"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.SOURCE_MULTIPLICITY_PROPERTY), "1"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.TARGET_MULTIPLICITY_PROPERTY), "*"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.SOURCE_JSON_NAME_PROPERTY), "project"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.TARGET_JSON_NAME_PROPERTY), "tasks"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.PERMISSION_PROPAGATION_PROPERTY), PropagationDirection.Out.name()),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.READ_PROPAGATION_PROPERTY), PropagationMode.Add.name())
+			).getUuid();
+
+			app.create(StructrTraits.USER, "tester");
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			// create a publicly visible project and with a task
+			final NodeInterface project1 = app.create("Project", "Project #1");
+			final NodeInterface project2 = app.create("Project", "Project #2");
+			final NodeInterface task1    = app.create("Task", "Task #1");
+			final NodeInterface task2    = app.create("Task", "Task #2");
+
+			// both projects are visible to authenticated users, but none of the tasks
+			project1.setVisibleToAuthenticatedUsers(true);
+			project2.setVisibleToAuthenticatedUsers(true);
+
+			final PropertyKey key = Traits.of("Task").key("project");
+
+			// associate task2 with project2
+			task2.setProperty(key, project2);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		SecurityContext userContext = null;
+
+		try (final Tx tx = app.tx()) {
+
+			final Principal tester = app.nodeQuery(StructrTraits.USER).getFirst().as(Principal.class);
+
+			userContext = SecurityContext.getInstance(tester, AccessMode.Backend);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		final App userApp = StructrApp.getInstance(userContext);
+
+		try (final Tx tx = userApp.tx()) {
+
+			final List<NodeInterface> tasks = userApp.nodeQuery("Task").getAsList();
+
+			assertEquals("Invalid permission resolution query result.", 1, tasks.size());
+			assertEquals("Invalid permission resolution query result.", "Task #2", tasks.get(0).getName());
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
 	}
 
 	@Test

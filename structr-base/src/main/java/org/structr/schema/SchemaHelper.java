@@ -39,9 +39,8 @@ import org.structr.rest.resource.SchemaResource;
 import org.structr.schema.parser.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
-/**
- */
 public class SchemaHelper {
 
 	private static final Map<String, String> normalizedEntityNameCache = new HashMap<>();
@@ -107,6 +106,25 @@ public class SchemaHelper {
 
 	public enum Type {
 		String, StringArray, DateArray, ByteArray, LongArray, DoubleArray, IntegerArray, BooleanArray, Integer, Long, Double, Boolean, Enum, EnumArray, Date, ZonedDateTime, Count, Function, Notion, IdNotion, Cypher, Join, Thumbnail, Password, Custom, Encrypted;
+	}
+
+	public enum Multiplicity {
+		ONE("1"),
+		MANY("*");
+
+		private String dbValue = null;
+
+		Multiplicity(final String dbValue) {
+			this.dbValue = dbValue;
+		}
+
+		public String getDbValue() {
+			return dbValue;
+		}
+
+		public static Set<String> getDbValuesSet() {
+			return Arrays.stream(Multiplicity.class.getEnumConstants()).map(Multiplicity::getDbValue).collect(Collectors.toSet());
+		}
 	}
 
 	/*

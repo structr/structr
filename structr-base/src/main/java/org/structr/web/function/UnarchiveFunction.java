@@ -70,7 +70,7 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 
 			if (sources.length == 2 && sources[1] != null) {
 
-				parentFolder = ((NodeInterface) sources[2]).as(Folder.class);
+				parentFolder = ((NodeInterface) sources[1]).as(Folder.class);
 
 			} else {
 

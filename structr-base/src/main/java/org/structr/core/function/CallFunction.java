@@ -54,15 +54,15 @@ public class CallFunction extends AdvancedScriptingFunction {
 
 				if (sources.length == 1) {
 
-					return Actions.callWithSecurityContext(methodName, getSecurityContext(ctx), Collections.EMPTY_MAP, getName());
+					return Actions.callWithSecurityContext(methodName, getSecurityContext(ctx), Collections.EMPTY_MAP);
 
 				} else if (sources.length == 2 && sources[1] instanceof Map) {
 
-					return Actions.callWithSecurityContext(methodName, getSecurityContext(ctx), ((Map)sources[1]), getName());
+					return Actions.callWithSecurityContext(methodName, getSecurityContext(ctx), ((Map)sources[1]));
 
 				} else if (sources.length == 2 && sources[1] instanceof GraphObjectMap) {
 
-					return Actions.callWithSecurityContext(methodName, getSecurityContext(ctx), ((GraphObjectMap)sources[1]).toMap(), getName());
+					return Actions.callWithSecurityContext(methodName, getSecurityContext(ctx), ((GraphObjectMap)sources[1]).toMap());
 
 				} else {
 
@@ -78,7 +78,7 @@ public class CallFunction extends AdvancedScriptingFunction {
 						newMap.put(sources[c].toString(), sources[c + 1]);
 					}
 
-					return Actions.callWithSecurityContext(methodName, getSecurityContext(ctx), newMap, getName());
+					return Actions.callWithSecurityContext(methodName, getSecurityContext(ctx), newMap);
 
 				}
 

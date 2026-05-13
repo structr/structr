@@ -722,7 +722,7 @@ public class ImporterWithXMLParser {
 							final DOMNode tmpParent = page.createElement("div");
 							final DOMNode domParent = parent.as(DOMNode.class);
 
-							Widget.expandWidget(securityContext, page, tmpParent, "http://localhost", Map.of("source", source), false);
+							Widget.expandWidget(page, tmpParent, "http://localhost", Map.of("source", source), false);
 
 							// move children
 							for (final DOMNode newChild : tmpParent.getChildren()) {

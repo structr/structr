@@ -19,6 +19,7 @@
 package org.structr.core.function;
 
 import org.apache.commons.io.input.ReversedLinesFileReader;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -32,6 +33,7 @@ import org.structr.schema.action.ActionContext;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public class ServerLogFunction extends AdvancedScriptingFunction {
@@ -45,7 +47,7 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("[ lines = 50 [, truncateLinesAfter = -1 [, logFile = '/var/log/structr.log' (default different based on configuration) ] ] ]");
+		return Signature.forAllScriptingLanguages("[ lines = 50 [, truncateLinesAfter = -1 [, logFile = '/var/log/structr.log' (default different based on configuration) [, filter ] ] ] ]");
 	}
 
 	@Override
@@ -54,6 +56,7 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 		int lines              = 50;
 		int truncateLinesAfter = -1;
 		String logFileName     = null;
+		String filter          = null;
 
 		if (sources != null && sources.length > 0 && sources[0] instanceof Number) {
 
@@ -70,25 +73,30 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 			logFileName = (String) sources[2];
 		}
 
-		return getServerLog(lines, truncateLinesAfter, logFileName);
+		if (sources != null && sources.length > 3 && sources[3] instanceof String) {
+
+			filter = (String) sources[3];
+		}
+
+		return getServerLog(lines, truncateLinesAfter, logFileName, filter);
 	}
 
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${serverlog([lines = 50 [, truncateLinesAfter = -1 [, logFile = '/var/log/structr.log' ]]])}. Example: ${serverlog(200, -1, '/var/log/structr.log')}"),
-			Usage.javaScript("Usage: ${{ $.serverlog([lines = 50 [, truncateLinesAfter = -1 [, logFile = '/var/log/structr.log' ]]]); }}. Example: ${{ $.serverlog(200, -1, '/var/log/structr.log'); }}")
+			Usage.structrScript("Usage: ${serverlog([lines = 50 [, truncateLinesAfter = -1 [, logFile = '/var/log/structr.log' [, filter ]]]])}. Example: ${serverlog(200, -1, '/var/log/structr.log')}"),
+			Usage.javaScript("Usage: ${{ $.serverlog([lines = 50 [, truncateLinesAfter = -1 [, logFile = '/var/log/structr.log' [, filter ]]]]); }}. Example: ${{ $.serverlog(200, -1, '/var/log/structr.log'); }}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the last n lines from the server log file.";
+		return "Returns the last n lines.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "The last n lines are taken from the selected log file and each line can be truncated to a certain length. Optionally, a filter can be applied to only return lines that contain a certain string (case-sensitive).";
 	}
 
 	@Override
@@ -96,7 +104,8 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 		return List.of(
 				Parameter.optional("lines", "number of lines to return"),
 				Parameter.optional("truncateLinesAfter", "number of characters after which each log line is truncated with \"[...]\""),
-				Parameter.optional("logFile", "log file to read from")
+				Parameter.optional("logFile", "log file to read from"),
+				Parameter.optional("filter", "filter to apply to lines (case-sensitive)")
 		);
 	}
 
@@ -122,20 +131,21 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 		return linkedConcepts;
 	}
 
-	public static String getServerLog(final int numberOfLines, final Integer truncateLinesAfter, final String requestedLogfileName) {
+	public static String getServerLog(final int numberOfLines, final Integer truncateLinesAfter, final String requestedLogfileName, final String filter) {
 
-		int lines = numberOfLines;
+		final boolean filterEmpty = StringUtils.isBlank(filter);
+		int linesToGet = numberOfLines;
 
-		List<String> logFileNames = GetAvailableServerLogsFunction.getListOfServerlogFileNames();
+		final List<String> logFileNames = GetAvailableServerLogsFunction.getListOfServerlogFileNames();
 
 		final File logFile;
 		if (requestedLogfileName != null && logFileNames.contains(requestedLogfileName)) {
 
 			logFile = new File(requestedLogfileName);
 
-		} else if (logFileNames.size() > 0) {
+		} else if (!logFileNames.isEmpty()) {
 
-			logFile = new File(logFileNames.get(0));
+			logFile = new File(logFileNames.getFirst());
 
 		} else {
 
@@ -144,17 +154,17 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 
 		if (logFile != null) {
 
-			try (final ReversedLinesFileReader reader = new ReversedLinesFileReader(logFile, Charset.forName("utf-8"))) {
+			try (final ReversedLinesFileReader reader = ReversedLinesFileReader.builder().setPath(logFile.toPath()).setBufferSize(4096).setCharset(StandardCharsets.UTF_8).get()) {
 
 				final StringBuilder sb = new StringBuilder();
 
-				while (lines > 0) {
+				while (linesToGet > 0) {
 
 					String line = reader.readLine();
 
 					if (line == null) {
 
-						lines = 0;
+						linesToGet = 0;
 
 					} else {
 
@@ -163,9 +173,12 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 							line = line.substring(0, truncateLinesAfter).concat("[...]");
 						}
 
-						sb.insert(0, line.concat("\n"));
+						if (filterEmpty || line.contains(filter)) {
 
-						lines--;
+							sb.insert(0, line.concat("\n"));
+
+							linesToGet--;
+						}
 					}
 				}
 

@@ -177,7 +177,6 @@ let Structr = {
 	wsRoot         : _Helpers.getPrefixedRootUrl('/structr/ws'),
 	deployRoot     : _Helpers.getPrefixedRootUrl('/structr/deploy'),
 	docsUrl        : _Helpers.getPrefixedRootUrl('/structr/docs/'),
-	dynamicClassPrefix: 'org.structr.dynamic.',
 	notificationIconId: 'notifications-icon',
 	ignoreKeyUp: undefined,
 	isInMemoryDatabase: undefined,
@@ -848,7 +847,7 @@ let Structr = {
 
 				if (envInfo.edition) {
 
-					_Dashboard.tabs['about-structr'].checkLicenseEnd(envInfo, $('.structr-version'), {
+					_Dashboard.tabs.about.checkLicenseEnd(envInfo, $('.structr-version'), {
 						offsetX: -300,
 						helpElementCss: {
 							color: "black",

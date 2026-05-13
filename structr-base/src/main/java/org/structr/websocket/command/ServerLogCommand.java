@@ -48,8 +48,9 @@ public class ServerLogCommand extends AbstractCommand {
 		int numberOfLines      = webSocketData.getNodeDataIntegerValue("numberOfLines") != null ? webSocketData.getNodeDataIntegerValue("numberOfLines") : 20;
 		int truncateLinesAfter = webSocketData.getNodeDataIntegerValue("truncateLinesAfter") != null ? webSocketData.getNodeDataIntegerValue("truncateLinesAfter") : -1;
 		final String fileName  = webSocketData.getNodeDataStringValue("logFileName");	// null is allowed (uses default/first available log file)
+		final String filter    = webSocketData.getNodeDataStringValue("filter");
 
-		final String log = ServerLogFunction.getServerLog(numberOfLines, truncateLinesAfter, fileName);
+		final String log = ServerLogFunction.getServerLog(numberOfLines, truncateLinesAfter, fileName, filter);
 
 		try {
 
@@ -62,7 +63,7 @@ public class ServerLogCommand extends AbstractCommand {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("Exception occured", fex);
+			logger.warn("Exception occurred", fex);
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 		}
 	}

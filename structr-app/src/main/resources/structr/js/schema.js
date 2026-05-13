@@ -500,20 +500,9 @@ let _Schema = {
 
 					} else {
 
-						let data = await response.json();
+						let responseData = await response.json();
 
-						let errors = new Set(data.errors.map(e => e.detail.replaceAll('\n', '<br>').replaceAll(Structr.dynamicClassPrefix, '')));
-
-						if (errors.size > 0) {
-
-							for (let error of errors) {
-								new ErrorMessage().title("Problem encountered compiling schema").text(error).requiresConfirmation().show();
-							}
-
-						} else {
-
-							Structr.errorFromResponse(data);
-						}
+						_Schema.relationships.reportRelationshipError(data, data, responseData);
 					}
 
 					return response.ok;
@@ -1358,8 +1347,8 @@ let _Schema = {
 			container.querySelector('#target-type-name span').textContent    = targetNode.name;
 			container.querySelector('#source-type-name').dataset['objectId'] = rel.sourceId;
 			container.querySelector('#target-type-name').dataset['objectId'] = rel.targetId;
-			container.querySelector('#source-json-name').value               = (rel.sourceJsonName || rel.oldSourceJsonName);
-			container.querySelector('#target-json-name').value               = (rel.targetJsonName || rel.oldTargetJsonName);
+			container.querySelector('#source-json-name').value               = rel.sourceJsonName;
+			container.querySelector('#target-json-name').value               = rel.targetJsonName;
 			container.querySelector('#source-multiplicity-selector').value   = (rel.sourceMultiplicity || '*');
 			container.querySelector('#target-multiplicity-selector').value   = (rel.targetMultiplicity || '*');
 			container.querySelector('#relationship-type-name').value         = (rel.relationshipType === _Schema.initialRelType ? '' : rel.relationshipType);
@@ -1399,7 +1388,7 @@ let _Schema = {
 			let sourceMultiplicitySelect = container.querySelector('#source-multiplicity-selector');
 			let sourceJsonNameInput      = container.querySelector('#source-json-name');
 
-			if (sourceMultiplicitySelect.value !== (entity.sourceMultiplicity || '*') && sourceJsonNameInput.value === (entity.sourceJsonName || entity.oldSourceJsonName)) {
+			if (sourceMultiplicitySelect.value !== (entity.sourceMultiplicity || '*') && sourceJsonNameInput.value === entity.sourceJsonName) {
 				for (let el of _Schema.relationships.appendCardinalityChangeInfo(sourceJsonNameInput)) {
 					sourceHelpElements.push(el);
 				}
@@ -1411,7 +1400,7 @@ let _Schema = {
 			let targetMultiplicitySelect = container.querySelector('#target-multiplicity-selector');
 			let targetJsonNameInput      = container.querySelector('#target-json-name');
 
-			if (targetMultiplicitySelect.value !== (entity.targetMultiplicity || '*') && targetJsonNameInput.value === (entity.targetJsonName || entity.oldTargetJsonName)) {
+			if (targetMultiplicitySelect.value !== (entity.targetMultiplicity || '*') && targetJsonNameInput.value === entity.targetJsonName) {
 				for (let el of _Schema.relationships.appendCardinalityChangeInfo(targetJsonNameInput)) {
 					targetHelpElements.push(el);
 				}
@@ -1647,21 +1636,27 @@ let _Schema = {
 		},
 		reportRelationshipError: (relData, newData, responseData) => {
 
-			for (let error of responseData.errors) {
+			let errors = responseData.errors.map(e => {
+				e.detail = e.detail.replaceAll('\n', '<br>');
+				return e;
+			});
+
+			for (let error of errors) {
 				_Helpers.blinkRed($(`#relationship-options [data-attr-name=${error.property}]`));
 			}
 
-			let additionalInformation  = {};
-			let hasDuplicateClassError = responseData.errors.some(e => (e.token === 'duplicate_relationship_definition'));
+			let additionalInformation = {
+				title: 'Problem encountered compiling schema',
+				requiresConfirmation: true
+			};
 
+			let hasDuplicateClassError = errors.some(e => (e.token === 'duplicate_relationship_definition'));
 			if (hasDuplicateClassError) {
 
 				let relType = newData?.relationshipType ?? relData.relationshipType;
 
-				additionalInformation.requiresConfirmation = true;
-				additionalInformation.title                = 'Error';
-				additionalInformation.errorExplanation     = `You are trying to create a second relationship named <strong>${relType}</strong> between these types.<br>Relationship names between types have to be unique.`;
-				additionalInformation.requiresConfirmation = true;
+				additionalInformation.title            = 'Error';
+				additionalInformation.errorExplanation = `Relationship names between the same types have to be unique. Unable to create duplicate relationship <strong>${relType}</strong>.<br>.`;
 			}
 
 			Structr.errorFromResponse(responseData, null, additionalInformation);
@@ -2701,7 +2696,7 @@ let _Schema = {
 
 			let relType       = (rel.relationshipType === _Schema.undefinedRelType) ? '' : rel.relationshipType;
 			let relatedNodeId = (out ? rel.targetId : rel.sourceId);
-			let attributeName = (out ? (rel.targetJsonName || rel.oldTargetJsonName) : (rel.sourceJsonName || rel.oldSourceJsonName));
+			let attributeName = (out ? rel.targetJsonName : rel.sourceJsonName);
 
 			// related node ID can be null for relationships between dynamic and static classes
 			if (!relatedNodeId) {
@@ -2718,7 +2713,9 @@ let _Schema = {
 				});
 
 				gridRow.querySelector('.reset-action').addEventListener('click', () => {
-					gridRow.querySelector('.property-name').value = '';
+					let typeName    = _Schema.caches.nodeData[(out ? rel.targetId : rel.sourceId)].name;
+					let cardinality = (out ? rel.targetMultiplicity : rel.sourceMultiplicity);
+					gridRow.querySelector('.property-name').value = _Schema.relationships.createRemotePropertyNameSuggestion(typeName, cardinality);
 					_Schema.remoteProperties.rowChanged(gridRow, attributeName);
 				});
 

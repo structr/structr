@@ -360,10 +360,20 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 		if (widgetNode != null) {
 
 			final Page shadowPage = CreateComponentCommand.getOrCreateHiddenDocument();
-			final Widget widget    = widgetNode.as(Widget.class);
+			final Widget widget   = widgetNode.as(Widget.class);
 
 			// try to expand widget
-			Widget.expandWidget(superAdminContext, shadowPage, null, "http://localhost", Map.of("source", widget.getSource()), false);
+			final DOMNode imported = Widget.expandWidget(shadowPage, null, "http://localhost", Map.of("source", widget.getSource()), false);
+
+			if (imported != null) {
+
+				imported.setVisibility(true, true);
+
+				// make all children public
+				for (final NodeInterface child : imported.getAllChildNodes()) {
+					child.setVisibility(true, true);
+				}
+			}
 
 			// try again
 			final DOMNode expanded = getNodeForInclude(app, templateName);

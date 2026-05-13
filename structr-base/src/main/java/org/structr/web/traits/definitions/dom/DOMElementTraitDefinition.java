@@ -325,10 +325,6 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 					final DOMElement elem = node.as(DOMElement.class);
 
-					if (!elem.shouldBeRendered(renderContext)) {
-						return;
-					}
-
 					// final variables
 					final SecurityContext securityContext = renderContext.getSecurityContext();
 					final AsyncBuffer out                 = renderContext.getBuffer();
@@ -1622,7 +1618,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 			removeInternalDataBindingKeys(parameters);
 
-			return Actions.callWithSecurityContext(methodName, renderContext.getSecurityContext(), parameters, "custom");
+			return Actions.callWithSecurityContext(methodName, renderContext.getSecurityContext(), parameters);
 		}
 
 		if (Settings.isValidUuid(dataTarget)) {

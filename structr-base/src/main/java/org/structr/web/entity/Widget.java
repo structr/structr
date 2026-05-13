@@ -74,7 +74,6 @@ public interface Widget extends NodeInterface {
 	 * the config object must be of type JsonSingleInput! Caution: this method uses the XML-based HTML parser to
 	 * import fragments, so there might be subtle errors in the imported structure..
 	 *
-	 * @param securityContext
 	 * @param page
 	 * @param parent
 	 * @param baseUrl
@@ -82,11 +81,12 @@ public interface Widget extends NodeInterface {
 	 * @param processDeploymentInfo
 	 * @throws FrameworkException
 	 */
-	static void expandWidget(final SecurityContext securityContext, final Page page, final DOMNode parent, final String baseUrl, final Map<String, Object> parameters, final boolean processDeploymentInfo) throws FrameworkException {
+	static DOMNode expandWidget(final Page page, final DOMNode parent, final String baseUrl, final Map<String, Object> parameters, final boolean processDeploymentInfo) throws FrameworkException {
 
-		final App app                 = StructrApp.getInstance(securityContext);
-		final List<String> attributes = new LinkedList<>();
-		final ErrorBuffer errorBuffer = new ErrorBuffer();
+		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+		final App app                         = StructrApp.getInstance(securityContext);
+		final List<String> attributes         = new LinkedList<>();
+		final ErrorBuffer errorBuffer         = new ErrorBuffer();
 
 		String _source = (String) parameters.get("source");
 		if (_source == null) {
@@ -145,8 +145,7 @@ public interface Widget extends NodeInterface {
 
 			if (importer.parse(true)) {
 
-				importer.createChildNodes(parent, page, true);
-
+				final DOMNode imported = importer.createChildNodes(parent, page, true);
 				final JsonInput config = configData != null ? configData.getFirst() : null;
 
 				if (parent != null) {
@@ -197,6 +196,8 @@ public interface Widget extends NodeInterface {
 						}
 					}
 				}
+
+				return imported;
 			}
 
 		} else {
@@ -204,6 +205,8 @@ public interface Widget extends NodeInterface {
 			// report error to ui
 			throw new FrameworkException(422, "Unable to import the given source code", errorBuffer);
 		}
+
+		return null;
 	}
 
 	static List<String> createSchemaDataSource(final App app, final Map<String, Object> parameters) throws FrameworkException {
