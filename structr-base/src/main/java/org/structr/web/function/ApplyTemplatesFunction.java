@@ -367,6 +367,8 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 
 			if (imported != null) {
 
+				imported.setVisibility(true, true);
+
 				// make all children public
 				for (final NodeInterface child : imported.getAllChildNodes()) {
 					child.setVisibility(true, true);
