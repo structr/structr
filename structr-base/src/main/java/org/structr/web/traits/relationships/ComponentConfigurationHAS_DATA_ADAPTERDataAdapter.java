@@ -78,7 +78,7 @@ public class ComponentConfigurationHAS_DATA_ADAPTERDataAdapter extends AbstractR
 
 	@Override
 	public PropagationMode getReadPropagation() {
-		return PropagationMode.Keep;
+		return PropagationMode.Add;
 	}
 
 	@Override
