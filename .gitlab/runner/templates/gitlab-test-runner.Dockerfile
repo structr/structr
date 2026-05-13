@@ -8,8 +8,8 @@ FROM alpine:3.22 AS setup
 WORKDIR /setup
 
 ARG TARGETARCH
-ARG MAVEN_VERSION="3.9.12"
-ARG GLAB_VERSION="1.82.0"
+ARG MAVEN_VERSION="3.9.15"
+ARG GLAB_VERSION="1.97.0"
 
 RUN echo "TARGETARCH is: $TARGETARCH" \
     && echo "Full URL: https://gitlab.com/gitlab-org/cli/-/releases/v${GLAB_VERSION}/downloads/glab_${GLAB_VERSION}_linux_${TARGETARCH}.rpm"
@@ -27,8 +27,8 @@ FROM ghcr.io/graalvm/jdk-community:25-ol9 AS main
 WORKDIR /structr-runner
 
 ARG TARGETARCH
-ARG MAVEN_VERSION="3.9.12"
-ARG GLAB_VERSION="1.82.0"
+ARG MAVEN_VERSION="3.9.15"
+ARG GLAB_VERSION="1.97.0"
 
 COPY --from=setup /setup/glab_${GLAB_VERSION}_linux_${TARGETARCH}.rpm /structr-runner/
 COPY --from=setup /opt/apache-maven-${MAVEN_VERSION} /opt/maven
