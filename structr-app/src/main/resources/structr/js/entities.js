@@ -3008,7 +3008,8 @@ let _Entities = {
             sortable.querySelectorAll('input[type="checkbox"]').forEach((input) => {
                 input.addEventListener('click', async (e) => {
                     fieldSetInput.value = collectKeys();
-                    await _Entities.generalTab.updateSortableDataFields(entity);
+					fieldSetInput.dispatchEvent(new Event('change'));
+                    //await _Entities.generalTab.updateSortableDataFields(entity);
                 });
             });
 
@@ -3016,7 +3017,8 @@ let _Entities = {
             available.querySelectorAll('input').forEach((input) => {
                 input.addEventListener('change', async (e) => {
                     fieldSetInput.value = collectKeys();
-                    await _Entities.generalTab.updateSortableDataFields(entity);
+					fieldSetInput.dispatchEvent(new Event('change'));
+                    //await _Entities.generalTab.updateSortableDataFields(entity);
                 });
             });
 
@@ -3069,6 +3071,8 @@ let _Entities = {
                 fieldSetInput.value = collectKeys();
                 fieldSetInput.dispatchEvent(new Event('change'));
             });
+
+            fieldSetInput.dispatchEvent(new Event('change'));
         },
         showRenderTemplates: async (entity, displayMode, span) => {
             let div = document.createElement('div');
