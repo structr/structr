@@ -2953,7 +2953,8 @@ let _Entities = {
 									body: JSON.stringify(data)
 								});
 								_Pages.previews.updatePreviewSlideout();
-								await _Entities.generalTab.updateSortableDataFields(entity, input.dataset.fieldName);
+								//await _Entities.generalTab.updateSortableDataFields(entity, input.dataset.fieldName);
+								_Helpers.blinkGreen(input);
 							})
 						})
 
@@ -2967,7 +2968,8 @@ let _Entities = {
                                     body: JSON.stringify(data)
                                 });
                                 _Pages.previews.updatePreviewSlideout();
-                                await _Entities.generalTab.updateSortableDataFields(entity, input.dataset.fieldName);
+                                //await _Entities.generalTab.updateSortableDataFields(entity, input.dataset.fieldName);
+								_Helpers.blinkGreen(input);
                             })
                         })
                     }
