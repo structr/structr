@@ -712,7 +712,64 @@ let _Widgets = {
                     }
                     break;
 
-                case 'schema-type':
+				case 'process':
+					form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select required data-info="select-process" id="${cleanedLabel}" class="form-field" data-key="${label}"><option value="">--- Select process ---</option></select></div>`);
+					let processSelect = document.querySelector('select[data-info="select-process"]');
+					if (processSelect) {
+						Command.getByType('BpmnProcess', 1000, 1, false, 'name', 'id,type,name', false, processes => {
+							// Build options manually so the dropdown shows the process name (the
+							// human-meaningful label) while the option value stays the UUID that
+							// downstream consumers (user-task picker, ActionMapping rels) need.
+							// Returned list is already sorted by name via Command.getByType, so no
+							// client-side re-sort here.
+							let s = document.querySelector(`select#${cleanedLabel}`);
+							for (const p of (processes || [])) {
+								const opt = document.createElement('option');
+								opt.value       = p.id;
+								opt.textContent = p.name || p.id;
+								s.appendChild(opt);
+							}
+							s.dispatchEvent(new CustomEvent('change', {}));
+						});
+					}
+					break;
+
+				case 'user-task':
+					// Scoped picker: lists UserTask BpmnElements that belong to the BpmnProcess
+					// chosen in the sibling `process` slot. Mirrors the schema-type / schema-property
+					// pairing. The picker stays empty until a process is picked, then repopulates
+					// on every process change. The selected value is the BpmnElement UUID, which is
+					// what ActionMapping's targetsElement EndNode rel expects.
+					form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select required id="${cleanedLabel}" class="form-field" data-key="${label}"><option value="">--- Select user task ---</option></select></div>`);
+					{
+						let processSelectForUserTask = document.querySelector('select[data-info="select-process"]');
+						if (processSelectForUserTask) {
+							const populateUserTasks = (processId) => {
+								let s = document.querySelector(`select#${cleanedLabel}`);
+								s.innerHTML = '<option value="">--- Select user task ---</option>';
+								if (!processId) return;
+								Command.query('BpmnElement', 2000, 1, 'bpmnName', 'asc', { process: processId }, elements => {
+									const userTasks = (elements || []).filter(el => el.bpmnElementType === 'userTask');
+									for (const t of userTasks) {
+										const opt = document.createElement('option');
+										opt.value       = t.id;
+										opt.textContent = t.bpmnName || t.name || t.id;
+										s.appendChild(opt);
+									}
+								});
+							};
+							processSelectForUserTask.addEventListener('change', () => populateUserTasks(processSelectForUserTask.value));
+							// initial fill when a process is already selected (e.g. on reopen)
+							if (processSelectForUserTask.value) {
+								populateUserTasks(processSelectForUserTask.value);
+							}
+						} else {
+							console.log('user-task picker requires a sibling "process" slot to scope its options.');
+						}
+					}
+					break;
+
+				case 'schema-type':
                     let types = await _Schema.caches.getFilteredSchemaTypes(t => !t.isBuiltin);
                     types = types.map(t => t.name);
                     form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select required data-info="select-type" id="${cleanedLabel}" class="form-field" data-key="${label}"><option value="">--- Select type ---</option>${getOptionsAsText(types, defaultValue)}</select></div>`);
