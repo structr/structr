@@ -2953,7 +2953,8 @@ let _Entities = {
 									body: JSON.stringify(data)
 								});
 								_Pages.previews.updatePreviewSlideout();
-								await _Entities.generalTab.updateSortableDataFields(entity, input.dataset.fieldName);
+								//await _Entities.generalTab.updateSortableDataFields(entity, input.dataset.fieldName);
+								_Helpers.blinkGreen(input);
 							})
 						})
 
@@ -2967,7 +2968,8 @@ let _Entities = {
                                     body: JSON.stringify(data)
                                 });
                                 _Pages.previews.updatePreviewSlideout();
-                                await _Entities.generalTab.updateSortableDataFields(entity, input.dataset.fieldName);
+                                //await _Entities.generalTab.updateSortableDataFields(entity, input.dataset.fieldName);
+								_Helpers.blinkGreen(input);
                             })
                         })
                     }
@@ -3006,7 +3008,8 @@ let _Entities = {
             sortable.querySelectorAll('input[type="checkbox"]').forEach((input) => {
                 input.addEventListener('click', async (e) => {
                     fieldSetInput.value = collectKeys();
-                    await _Entities.generalTab.updateSortableDataFields(entity);
+					fieldSetInput.dispatchEvent(new Event('change'));
+                    //await _Entities.generalTab.updateSortableDataFields(entity);
                 });
             });
 
@@ -3014,7 +3017,8 @@ let _Entities = {
             available.querySelectorAll('input').forEach((input) => {
                 input.addEventListener('change', async (e) => {
                     fieldSetInput.value = collectKeys();
-                    await _Entities.generalTab.updateSortableDataFields(entity);
+					fieldSetInput.dispatchEvent(new Event('change'));
+                    //await _Entities.generalTab.updateSortableDataFields(entity);
                 });
             });
 

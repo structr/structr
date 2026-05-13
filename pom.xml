@@ -64,7 +64,7 @@
 		<jaxb.version>2.3.3</jaxb.version>
 		<imageio.version>3.10.1</imageio.version>
 		<batik.version>[1.17,)</batik.version>
-		<graal.version>25.0.1</graal.version>
+		<graal.version>25.0.3</graal.version>
 		<apache.sshd.version>2.17.1</apache.sshd.version>
         <docker.maven.plugin.version>0.48.0</docker.maven.plugin.version>
 		<skipDockerTestDB>false</skipDockerTestDB>
