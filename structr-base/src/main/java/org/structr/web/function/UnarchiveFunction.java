@@ -18,13 +18,9 @@
  */
 package org.structr.web.function;
 
-import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
-import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.Example;
@@ -34,7 +30,6 @@ import org.structr.schema.action.ActionContext;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
-import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 import java.util.List;
 
@@ -47,12 +42,11 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("file, [, parentFolder ]");
+		return Signature.forAllScriptingLanguages("archiveFile, [, parentFolder ]");
 	}
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
-
 
 		if (sources == null || sources.length < 1 || sources.length > 2
 				|| (sources[0] != null && !(sources[0] instanceof NodeInterface n && n.is(StructrTraits.FILE))
@@ -71,15 +65,6 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 			if (sources.length == 2 && sources[1] != null) {
 
 				parentFolder = ((NodeInterface) sources[1]).as(Folder.class);
-
-			} else {
-
-				final PropertyMap props = new PropertyMap();
-				props.put(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), StringUtils.substringBeforeLast(archiveFile.getName(), "."));
-				props.put(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.PARENT_PROPERTY), archiveFile.getParent());
-
-				// Create folder with same name (without extension) and in same folder as file
-				//parentFolder = StructrApp.getInstance(ctx.getSecurityContext()).create(StructrTraits.FOLDER, props).as(Folder.class);
 			}
 
 			FileHelper.unarchive(ctx.getSecurityContext(), archiveFile, parentFolder == null ? null : parentFolder.getUuid());
@@ -95,8 +80,8 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.structrScript("Usage: ${unarchive(archiveFile [, parentFolder])}."),
-			Usage.javaScript("Usage: ${{$.unarchive(archiveFile [, parentFolder])}}.")
+			Usage.structrScript("Usage: ${unarchive(archiveFile [, parentFolder ])}."),
+			Usage.javaScript("Usage: ${{$.unarchive(archiveFile [, parentFolder ])}}.")
 		);
 	}
 
@@ -108,11 +93,8 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-		The `unarchive()` function takes two parameter. 
-		The first parameter is a file object that is linked to an archive file, the second (optional) 
-		parameter points to an existing parent folder. If no parent folder is given, a new subfolder with the 
-		same name as the archive (without extension) is created. 
-		""";
+			If the optional parent folder argument is not specified, the archive contents are extracted into the same directory as the archive file.
+			""";
 	}
 
 	@Override
@@ -129,8 +111,9 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 		return List.of(
 				Parameter.mandatory("archiveFile", "file node"),
 				Parameter.optional("parentFolder", "parent folder node")
-				);
+		);
 	}
+
 	@Override
 	public List<String> getNotes() {
 		return List.of(
