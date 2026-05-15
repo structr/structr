@@ -80,6 +80,7 @@ public class BpmnElementTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String METHODS_PROPERTY             = "methods";
 	public static final String VISIBILITY_MAPPINGS_PROPERTY = "visibilityMappings";
 	public static final String CONTROL_ACTIONS_PROPERTY     = "controlActions";
+	public static final String BOUND_CONFIGURATIONS_PROPERTY = "boundConfigurations";
 	public static final String DI_SHAPE_PROPERTY            = "diShape";
 	public static final String LANE_PROPERTY                = "lane";
 	// Boundary event -> host activity (BPMN attachedToRef). The boundary
@@ -87,6 +88,29 @@ public class BpmnElementTraitDefinition extends AbstractNodeTraitDefinition {
 	// is `attachedBoundaries` on this same trait.
 	public static final String ATTACHED_TO_PROPERTY         = "attachedTo";
 	public static final String ATTACHED_BOUNDARIES_PROPERTY = "attachedBoundaries";
+
+	// --- Process / UI contract (UserTask elements only) ---
+	// Structr-only declarations the process designer attaches to a UserTask
+	// to drive process-bound widget rendering on the UI side. None of these
+	// are part of the BPMN spec; they survive re-import via the importer's
+	// rewire step (matched by bpmnId). Empty / unset on non-UserTask
+	// elements; meaningless there. See the process / UI separation pillar
+	// (project_process_ui_contract_pillar.md) for the design rationale.
+	//   subjectType         - name of the SchemaNode the task operates on
+	//                         (e.g. "LeaveRequest"). Read at render time by
+	//                         process-bound widgets to derive their dataSource.
+	//   subjectFormView     - optional SchemaView on subjectType naming the
+	//                         fields the form should expose. When unset the
+	//                         widget defaults to the standard view.
+	//   subjectWritableView - optional SchemaView on subjectType naming the
+	//                         subset of fields the task may write. Convention:
+	//                         a subset of subjectFormView.
+	//   instructions        - free-text help shown to the human user above
+	//                         the form.
+	public static final String SUBJECT_TYPE_PROPERTY          = "subjectType";
+	public static final String SUBJECT_FORM_VIEW_PROPERTY     = "subjectFormView";
+	public static final String SUBJECT_WRITABLE_VIEW_PROPERTY = "subjectWritableView";
+	public static final String INSTRUCTIONS_PROPERTY          = "instructions";
 
 	public BpmnElementTraitDefinition() {
 		super(ProcessTraits.BPMN_ELEMENT);
@@ -129,6 +153,12 @@ public class BpmnElementTraitDefinition extends AbstractNodeTraitDefinition {
 		// throws "missing StartNode(s) property".
 		final Property<Iterable<NodeInterface>> visibilityMappings = new StartNodes(traitsInstance, VISIBILITY_MAPPINGS_PROPERTY, ProcessTraits.VISIBILITY_MAPPING_AT_BPMN_ELEMENT);
 		final Property<Iterable<NodeInterface>> controlActions     = new StartNodes(traitsInstance, CONTROL_ACTIONS_PROPERTY,     StructrTraits.ACTION_MAPPING_TARGETS_BPMN_ELEMENT);
+		// Inverse for ComponentConfiguration -[BOUND]-> BpmnElement so the
+		// OneToMany cardinality check can resolve the source side when a
+		// component's boundUserTask is reassigned. Lists every widget
+		// currently bound to this UserTask (typically 0-N partials that
+		// render the same step).
+		final Property<Iterable<NodeInterface>> boundConfigurations = new StartNodes(traitsInstance, BOUND_CONFIGURATIONS_PROPERTY, StructrTraits.COMPONENT_CONFIGURATION_BOUND_BPMN_ELEMENT);
 		final Property<NodeInterface> diShape                    = new StartNode(traitsInstance, DI_SHAPE_PROPERTY, ProcessTraits.BPMN_DI_SHAPE_REFERENCES_ELEMENT);
 		// Inverse for BpmnLane -[HAS_FLOW_NODE]-> BpmnElement: each element
 		// belongs to at most one lane (BPMN 2.0 rule). Required so
@@ -144,11 +174,18 @@ public class BpmnElementTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> attachedTo                 = new EndNode(traitsInstance, ATTACHED_TO_PROPERTY, ProcessTraits.BPMN_ELEMENT_ATTACHED_TO);
 		final Property<Iterable<NodeInterface>> attachedBoundaries = new StartNodes(traitsInstance, ATTACHED_BOUNDARIES_PROPERTY, ProcessTraits.BPMN_ELEMENT_ATTACHED_TO);
 
+		// Process / UI contract (UserTask elements only); see docstring above.
+		final Property<String> subjectType         = new StringProperty(SUBJECT_TYPE_PROPERTY).indexed();
+		final Property<String> subjectFormView     = new StringProperty(SUBJECT_FORM_VIEW_PROPERTY);
+		final Property<String> subjectWritableView = new StringProperty(SUBJECT_WRITABLE_VIEW_PROPERTY);
+		final Property<String> instructions        = new StringProperty(INSTRUCTIONS_PROPERTY);
+
 		return newSet(bpmnElementType, bpmnName, bpmnAttributes,
 			documentation, scriptContent,
 			eventDefType, eventDefId, eventDefRef, timerType, timerExpressionType, timerValue,
-			process, parentElement, childElements, childFlows, outgoingFlows, incomingFlows, performers, taskListeners, methods, visibilityMappings, controlActions, diShape, lane,
-			attachedTo, attachedBoundaries);
+			process, parentElement, childElements, childFlows, outgoingFlows, incomingFlows, performers, taskListeners, methods, visibilityMappings, controlActions, boundConfigurations, diShape, lane,
+			attachedTo, attachedBoundaries,
+			subjectType, subjectFormView, subjectWritableView, instructions);
 	}
 
 	@Override
@@ -156,14 +193,16 @@ public class BpmnElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 			PropertyView.Public, newSet(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY, BpmnBaseNodeTraitDefinition.VERSION_PROPERTY, BPMN_ELEMENT_TYPE_PROPERTY, BPMN_NAME_PROPERTY,
-				DOCUMENTATION_PROPERTY, SCRIPT_CONTENT_PROPERTY, EVENT_DEF_TYPE_PROPERTY),
+				DOCUMENTATION_PROPERTY, SCRIPT_CONTENT_PROPERTY, EVENT_DEF_TYPE_PROPERTY,
+				SUBJECT_TYPE_PROPERTY, SUBJECT_FORM_VIEW_PROPERTY, SUBJECT_WRITABLE_VIEW_PROPERTY, INSTRUCTIONS_PROPERTY),
 			PropertyView.Ui, newSet(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY, BpmnBaseNodeTraitDefinition.VERSION_PROPERTY, BPMN_ELEMENT_TYPE_PROPERTY, BPMN_NAME_PROPERTY, BPMN_ATTRIBUTES_PROPERTY,
 				DOCUMENTATION_PROPERTY, SCRIPT_CONTENT_PROPERTY,
 				EVENT_DEF_TYPE_PROPERTY, EVENT_DEF_ID_PROPERTY, EVENT_DEF_REF_PROPERTY,
 				TIMER_TYPE_PROPERTY, TIMER_EXPRESSION_TYPE_PROPERTY, TIMER_VALUE_PROPERTY,
 				PROCESS_PROPERTY, PARENT_ELEMENT_PROPERTY, CHILD_ELEMENTS_PROPERTY, CHILD_FLOWS_PROPERTY,
 				OUTGOING_FLOWS_PROPERTY, INCOMING_FLOWS_PROPERTY, PERFORMERS_PROPERTY, TASK_LISTENERS_PROPERTY, METHODS_PROPERTY, DI_SHAPE_PROPERTY, LANE_PROPERTY,
-				ATTACHED_TO_PROPERTY, ATTACHED_BOUNDARIES_PROPERTY)
+				ATTACHED_TO_PROPERTY, ATTACHED_BOUNDARIES_PROPERTY,
+				SUBJECT_TYPE_PROPERTY, SUBJECT_FORM_VIEW_PROPERTY, SUBJECT_WRITABLE_VIEW_PROPERTY, INSTRUCTIONS_PROPERTY)
 		);
 	}
 

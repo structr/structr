@@ -61,6 +61,24 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 	public static final String PAGE_SIZE_PROPERTY              = "pageSize";
 	public static final String PAGINATION_WINDOW_SIZE_PROPERTY = "paginationWindowSize";
 
+	// Binding mode: how this component relates to a process-side declaration
+	// of its data type. Default `standalone`: the dataSource and field config
+	// are owned by the UI designer. `processBound`: the dataSource is derived
+	// at render time from the BPMN UserTask the component's ActionMapping
+	// targets, and the process designer's choice of subject type leads.
+	// See project_process_ui_contract_pillar.md for the design rationale.
+	public static final String BINDING_MODE_PROPERTY           = "bindingMode";
+	public static final String BINDING_MODE_STANDALONE         = "standalone";
+	public static final String BINDING_MODE_PROCESS_BOUND      = "processBound";
+
+	// Optional EndNode -> BpmnElement (a UserTask). Set when bindingMode is
+	// `processBound`. The property itself is declared by ProcessModule.onLoad
+	// (it crosses module boundaries: source type lives in structr-base,
+	// target type lives in structr-process-module). The constant lives here
+	// so structr-base code can read the property by name without importing
+	// process-module types.
+	public static final String BOUND_USER_TASK_PROPERTY        = "boundUserTask";
+
 	public ComponentConfigurationTraitDefinition() {
 		super(StructrTraits.COMPONENT_CONFIGURATION);
 	}
@@ -134,6 +152,8 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 		final Property<String> transformProperty             = new StringProperty(TRANSFORM_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<Integer> pageSizeProperty             = new IntProperty(PAGE_SIZE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<Integer> paginationWindowSizeProperty = new IntProperty(PAGINATION_WINDOW_SIZE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<String>  bindingModeProperty          = new EnumProperty(BINDING_MODE_PROPERTY, Set.of(BINDING_MODE_STANDALONE, BINDING_MODE_PROCESS_BOUND))
+			.defaultValue(BINDING_MODE_STANDALONE).indexed().category(DOMNode.WIDGETS_CATEGORY);
 
 		return newSet(
 			domNodeProperty,
@@ -149,7 +169,8 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 			selectionChannelProperty,
 			transformProperty,
 			pageSizeProperty,
-			paginationWindowSizeProperty
+			paginationWindowSizeProperty,
+			bindingModeProperty
 		);
 	}
 
@@ -162,7 +183,13 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 				DOM_NODE_PROPERTY, DATA_ADAPTER_PROPERTY, DISPLAY_MODE_PROPERTY, SAVE_MODE_PROPERTY,
 				FIELD_SET_PROPERTY, SHOW_LABELS_PROPERTY, ROLE_PROPERTY, RELOAD_BEHAVIOUR_PROPERTY,
 				COLUMNS_PROPERTY, DATA_SOURCE_PROPERTY, SELECTION_CHANNEL_PROPERTY,
-				TRANSFORM_PROPERTY, PAGE_SIZE_PROPERTY, PAGINATION_WINDOW_SIZE_PROPERTY
+				TRANSFORM_PROPERTY, PAGE_SIZE_PROPERTY, PAGINATION_WINDOW_SIZE_PROPERTY,
+				BINDING_MODE_PROPERTY,
+				// `boundUserTask` is registered cross-module by ProcessModule.onLoad
+				// (target type lives in structr-process-module). Listed here so
+				// the General-tab dialog can read it when the trait is composed
+				// with the process module loaded; ignored otherwise.
+				BOUND_USER_TASK_PROPERTY
 			)
 		);
 	}

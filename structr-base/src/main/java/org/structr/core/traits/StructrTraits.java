@@ -297,6 +297,7 @@ public class StructrTraits {
 	public static final String ACTION_MAPPING_CREATES_SCHEMA_NODE                             = "ActionMappingCREATESSchemaNode";
 	public static final String ACTION_MAPPING_CONTROLS_BPMN_PROCESS                           = "ActionMappingCONTROLSBpmnProcess";
 	public static final String ACTION_MAPPING_TARGETS_BPMN_ELEMENT                            = "ActionMappingTARGETSBpmnElement";
+	public static final String COMPONENT_CONFIGURATION_BOUND_BPMN_ELEMENT                     = "ComponentConfigurationBOUNDBpmnElement";
 	public static final String DOM_NODE_HAS_VISIBILITY_MAPPING                                = "DOMNodeHASVisibilityMapping";
 	public static final String VISIBILITY_MAPPING                                             = "VisibilityMapping";
 	public static final String CSS_RULE_CONTAINS_CSS_RULE                                     = "CssRuleCONTAINSCssRule";

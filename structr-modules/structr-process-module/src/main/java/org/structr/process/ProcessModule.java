@@ -29,6 +29,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.TraitsManager;
 import org.structr.module.StructrModule;
 import org.structr.web.traits.definitions.ActionMappingTraitDefinition;
+import org.structr.web.traits.definitions.ComponentConfigurationTraitDefinition;
 import org.structr.process.function.ExportBPMNFunction;
 import org.structr.process.function.ImportBPMNFunction;
 import org.structr.process.function.NotifyFunction;
@@ -93,6 +94,7 @@ public class ProcessModule implements StructrModule {
 		StructrTraits.registerTrait(new BpmnPerformerHasPrincipal());
 		StructrTraits.registerTrait(new ActionMappingCONTROLSBpmnProcess());
 		StructrTraits.registerTrait(new ActionMappingTARGETSBpmnElement());
+		StructrTraits.registerTrait(new ComponentConfigurationBOUNDBpmnElement());
 		StructrTraits.registerTrait(new VisibilityMappingFORBpmnDefinitions());
 		StructrTraits.registerTrait(new VisibilityMappingATBpmnElement());
 		StructrTraits.registerTrait(new ProcessInstanceHasParameterValue());
@@ -144,6 +146,7 @@ public class ProcessModule implements StructrModule {
 		StructrTraits.registerRelationshipType(ProcessTraits.BPMN_PERFORMER_HAS_PRINCIPAL,         ProcessTraits.BPMN_PERFORMER_HAS_PRINCIPAL);
 		StructrTraits.registerRelationshipType(StructrTraits.ACTION_MAPPING_CONTROLS_BPMN_PROCESS, StructrTraits.ACTION_MAPPING_CONTROLS_BPMN_PROCESS);
 		StructrTraits.registerRelationshipType(StructrTraits.ACTION_MAPPING_TARGETS_BPMN_ELEMENT,      StructrTraits.ACTION_MAPPING_TARGETS_BPMN_ELEMENT);
+		StructrTraits.registerRelationshipType(StructrTraits.COMPONENT_CONFIGURATION_BOUND_BPMN_ELEMENT, StructrTraits.COMPONENT_CONFIGURATION_BOUND_BPMN_ELEMENT);
 		StructrTraits.registerRelationshipType(ProcessTraits.VISIBILITY_MAPPING_FOR_BPMN_DEFINITIONS,  ProcessTraits.VISIBILITY_MAPPING_FOR_BPMN_DEFINITIONS);
 		StructrTraits.registerRelationshipType(ProcessTraits.VISIBILITY_MAPPING_AT_BPMN_ELEMENT,       ProcessTraits.VISIBILITY_MAPPING_AT_BPMN_ELEMENT);
 		StructrTraits.registerRelationshipType(ProcessTraits.PROCESS_INSTANCE_HAS_PARAMETER_VALUE, ProcessTraits.PROCESS_INSTANCE_HAS_PARAMETER_VALUE);
@@ -232,6 +235,17 @@ public class ProcessModule implements StructrModule {
 			new StartNode(TraitsManager.getRootInstance(), "bpmnProcess", ProcessTraits.BPMN_PROCESS_HAS_METHOD));
 		Traits.getTrait(StructrTraits.SCHEMA_METHOD).registerPropertyKey(
 			new StartNode(TraitsManager.getRootInstance(), "bpmnElement", ProcessTraits.BPMN_ELEMENT_HAS_METHOD));
+
+		// Attach the `boundUserTask` EndNode property to the existing
+		// COMPONENT_CONFIGURATION trait so the render path (in structr-base)
+		// can walk to a UserTask in process-bound mode. Lives here for the
+		// same reason as the rels above: the target type (BPMN_ELEMENT) is
+		// only registered by the process module, so the property declaration
+		// has to follow.
+		Traits.getTrait(StructrTraits.COMPONENT_CONFIGURATION).registerPropertyKey(
+			new EndNode(TraitsManager.getRootInstance(),
+				ComponentConfigurationTraitDefinition.BOUND_USER_TASK_PROPERTY,
+				StructrTraits.COMPONENT_CONFIGURATION_BOUND_BPMN_ELEMENT));
 
 		StructrTraits.registerNodeType(ProcessTraits.PROCESS_TIMER,           ProcessTraits.PROCESS_TIMER);
 

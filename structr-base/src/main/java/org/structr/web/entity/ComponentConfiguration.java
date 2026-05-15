@@ -43,6 +43,18 @@ public interface ComponentConfiguration extends NodeInterface {
 	String getReloadBehaviour();
 	String getTransform();
 	Boolean showLabels();
+	String getBindingMode();
+
+	/**
+	 * @return {@code true} iff this component's data binding is owned by a
+	 * process-side declaration (the BPMN UserTask's subject type). When
+	 * {@code false} (the default), the UI designer owns the dataSource and
+	 * field configuration directly. See the process / UI separation-of-
+	 * concerns pillar for the design rationale.
+	 */
+	default boolean isProcessBound() {
+		return "processBound".equals(getBindingMode());
+	}
 
 	void setFieldSet(final String s) throws FrameworkException;
 
