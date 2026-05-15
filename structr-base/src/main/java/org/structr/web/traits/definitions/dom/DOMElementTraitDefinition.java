@@ -616,21 +616,31 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 									// append all stored action mapping keys as data-structr-<key> attributes.
 									// For method / flow / dataType, prefer the resolved name from the graph
-									// relationship (refactor-safe across renames); fall back to the variable-
-									// replaced string when the relationship is not set or unresolvable.
+									// relationship (refactor-safe across renames); when the rel is not set
+									// (e.g. the raw string is an expression like ${dataSource.dataType} that
+									// the lifecycle hook could not pre-resolve), variable-replace the raw
+									// string against the render context. Falling back to the raw string
+									// directly would emit the unresolved expression to the client and break
+									// the EAM dispatcher.
 									for (final String key : dynamicProperties) {
 
-										final String value;
+										String value;
 										switch (key) {
-											case ActionMappingTraitDefinition.METHOD_PROPERTY:
-												value = triggeredAction.getResolvedMethodName();
+											case ActionMappingTraitDefinition.METHOD_PROPERTY: {
+												final NodeInterface n = triggeredAction.getMethodNode();
+												value = (n != null) ? n.getName() : actionNode.getPropertyWithVariableReplacement(renderContext, eamTraits.key(key));
 												break;
-											case ActionMappingTraitDefinition.FLOW_PROPERTY:
-												value = triggeredAction.getResolvedFlowName();
+											}
+											case ActionMappingTraitDefinition.FLOW_PROPERTY: {
+												final NodeInterface n = triggeredAction.getFlowNode();
+												value = (n != null) ? n.getName() : actionNode.getPropertyWithVariableReplacement(renderContext, eamTraits.key(key));
 												break;
-											case ActionMappingTraitDefinition.DATA_TYPE_PROPERTY:
-												value = triggeredAction.getResolvedDataTypeName();
+											}
+											case ActionMappingTraitDefinition.DATA_TYPE_PROPERTY: {
+												final NodeInterface n = triggeredAction.getDataTypeNode();
+												value = (n != null) ? n.getName() : actionNode.getPropertyWithVariableReplacement(renderContext, eamTraits.key(key));
 												break;
+											}
 											default:
 												value = actionNode.getPropertyWithVariableReplacement(renderContext, eamTraits.key(key));
 												break;
@@ -1899,13 +1909,30 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 			methodName = operation;
 
 			// completeWithSubject: the engine method needs to know which
-			// SchemaNode type to instantiate as the subject. The EAM
-			// already exposes a Data type field (used by `create` actions);
-			// we reuse it here as the authoritative source.
+			// SchemaNode type to instantiate as the subject. Two sources,
+			// in order of preference:
+			//
+			//   1. The `structrDataType` request parameter, populated from
+			//      the rendered `data-structr-data-type` attribute. This
+			//      went through variable replacement at page-render time,
+			//      so process-bound widgets with `dataType: ${dataSource.dataType}`
+			//      arrive here as the resolved SchemaNode name.
+			//   2. The action's stored dataType (resolved via the dataTypeNode
+			//      rel when set, otherwise the raw string). Fallback for
+			//      actions where the dataType is a static type name baked
+			//      into the EAM, not derived at render time.
+			//
+			// Reading from (1) first is critical for process-bound widgets:
+			// their stored dataType is an unresolved expression, so (2)
+			// alone would surface that expression as a literal type name
+			// and the SchemaNode lookup would fail.
 			if ("completeWithSubject".equals(operation)) {
-				final String subjectType = triggeredAction.getResolvedDataTypeName();
+				String subjectType = getDataTypeFromParameters(parameters, "completeWithSubject", false);
 				if (StringUtils.isBlank(subjectType)) {
-					throw new FrameworkException(422, "control-process operation 'completeWithSubject' requires a Data type to be configured on the action mapping (it determines the subject's type).");
+					subjectType = triggeredAction.getResolvedDataTypeName();
+				}
+				if (StringUtils.isBlank(subjectType) || subjectType.startsWith("${")) {
+					throw new FrameworkException(422, "control-process operation 'completeWithSubject' requires a Data type to resolve to a SchemaNode name (got: '" + subjectType + "'). For process-bound widgets, ensure the form renders 'data-structr-data-type' to a concrete type name; for static actions, set Data type on the action mapping.");
 				}
 				parameters.put("subjectType", subjectType);
 			}
