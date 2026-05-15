@@ -1019,6 +1019,41 @@ let _ProcessDiagram = {
 				if (candidatesPicker) candidatesPicker.addEventListener('change', commitPerformers);
 			}
 
+			// Process / UI contract inputs (userTask only). Each input
+			// persists its own property via api.updateElement so changes
+			// ride the editor's buffer and undo stack like everything else
+			// on this panel. Empty value clears the property.
+			const contractInputs = [
+				['.input-subject-type',           'subjectType'],
+				['.input-subject-form-view',      'subjectFormView'],
+				['.input-subject-writable-view',  'subjectWritableView'],
+				['.input-instructions',           'instructions'],
+			];
+			for (const [selector, propName] of contractInputs) {
+				const el = sidePanel.querySelector(selector);
+				if (!el) continue;
+				const original = el.value;
+				el.dataset.original = original;
+				const commit = () => {
+					const v = el.value.trim();
+					if (v === el.dataset.original) return;
+					try {
+						api.updateElement(elementId, { [propName]: v.length === 0 ? null : v });
+						el.dataset.original = v;
+					} catch (e) {
+						console.error(`updateElement ${propName} failed`, e);
+						el.value = el.dataset.original;
+					}
+				};
+				el.addEventListener('blur', commit);
+				el.addEventListener('keydown', (e) => {
+					// Enter commits only on single-line inputs; textareas keep Enter
+					// for newline insertion.
+					if (e.key === 'Enter' && el.tagName !== 'TEXTAREA') { e.preventDefault(); el.blur(); }
+					else if (e.key === 'Escape') { el.value = el.dataset.original ?? ''; el.blur(); }
+				});
+			}
+
 			// BPMN attributes key/value editor. Round-trips to the BPMN
 			// element's XML attributes. Commits on blur of any row input
 			// and on remove-button click; the new value is computed by
@@ -1602,6 +1637,40 @@ let _ProcessDiagram = {
 			</div>
 		`;
 
+		// Process / UI contract (userTask only): properties the process
+		// designer attaches to declare the contract the UI side consumes
+		// when rendering a process-bound widget. Free-text inputs for v1;
+		// can be upgraded to typed pickers (SchemaNode for subjectType,
+		// SchemaView for the two views) later. Empty values clear the
+		// property. See project_process_ui_contract_pillar.md for the
+		// design rationale.
+		const contractBlock = !isUserTask ? '' : `
+			<div style="margin-top:12px; padding-top:8px; border-top:1px solid #eee;">
+				<div style="color:#666; font-size:11px; margin-bottom:6px;">Process / UI contract</div>
+				<label style="display:block; margin-bottom:6px;">
+					<div style="color:#666; font-size:11px;">Subject type</div>
+					<input type="text" class="input-subject-type" value="${esc(elem.subjectType ?? '')}" placeholder="SchemaNode name, e.g. LeaveRequest" style="width:100%; box-sizing:border-box; padding:3px 6px; font-size:12px; font-family:monospace;">
+				</label>
+				<label style="display:block; margin-bottom:6px;">
+					<div style="color:#666; font-size:11px;">Form view (optional)</div>
+					<input type="text" class="input-subject-form-view" value="${esc(elem.subjectFormView ?? '')}" placeholder="SchemaView name (defaults to standard view)" style="width:100%; box-sizing:border-box; padding:3px 6px; font-size:12px; font-family:monospace;">
+				</label>
+				<label style="display:block; margin-bottom:6px;">
+					<div style="color:#666; font-size:11px;">Writable view (optional, subset of form view)</div>
+					<input type="text" class="input-subject-writable-view" value="${esc(elem.subjectWritableView ?? '')}" placeholder="SchemaView name" style="width:100%; box-sizing:border-box; padding:3px 6px; font-size:12px; font-family:monospace;">
+				</label>
+				<label style="display:block;">
+					<div style="color:#666; font-size:11px;">Instructions for the human user</div>
+					<textarea class="input-instructions" rows="2" placeholder="Optional help text shown above the form" style="width:100%; box-sizing:border-box; padding:3px 6px; font-size:12px;">${esc(elem.instructions ?? '')}</textarea>
+				</label>
+				<div class="text-gray-500" style="font-size:10px; line-height:1.4; margin-top:4px;">
+					Process-bound widgets read these to derive their data source
+					and field set at render time. UI designers configure layout
+					and styling on their side; the subject type leads.
+				</div>
+			</div>
+		`;
+
 		// BPMN attributes editor: key/value pairs that round-trip to the
 		// XML attributes on the element (default, cancelActivity,
 		// scriptFormat, etc.). The importer collects every XML attribute
@@ -1677,6 +1746,7 @@ let _ProcessDiagram = {
 			${row('BPMN id',       elem.bpmnId)}
 			${row('Documentation', elem.documentation)}
 			${row('Event def',     elem.eventDefinitionType)}
+			${contractBlock}
 			${attributesBlock}
 			${performersBlock}
 			${methodsBlock}

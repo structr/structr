@@ -740,17 +740,51 @@ let _Widgets = {
 					// pairing. The picker stays empty until a process is picked, then repopulates
 					// on every process change. The selected value is the BpmnElement UUID, which is
 					// what ActionMapping's targetsElement EndNode rel expects.
-					form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select required id="${cleanedLabel}" class="form-field" data-key="${label}"><option value="">--- Select user task ---</option></select></div>`);
+					//
+					// A read-only contract summary div below the select reflects the picked task's
+					// subjectType so the UI dev sees, before confirming the dialog, what schema type
+					// the widget will render. Empty subjectType surfaces as a warning -- the form
+					// will render no fields until the process designer sets the contract.
+					form.append(`
+						<div>
+							<h4 id="label-${cleanedLabel}">${titleLabel}</h4>
+							<select required id="${cleanedLabel}" class="form-field" data-key="${label}">
+								<option value="">--- Select user task ---</option>
+							</select>
+							<div id="${cleanedLabel}-contract" class="user-task-contract-summary text-gray-555" style="font-size:11px; margin-top:6px; min-height:1em;"></div>
+						</div>
+					`);
 					{
 						let processSelectForUserTask = document.querySelector('select[data-info="select-process"]');
+						let userTasksById = {};  // id -> task node, closed over so the change handler can read subjectType
+
+						const updateContractSummary = (taskId) => {
+							const el = document.querySelector(`#${cleanedLabel}-contract`);
+							if (!el) return;
+							if (!taskId) { el.innerHTML = ''; return; }
+							const task = userTasksById[taskId];
+							if (!task) { el.innerHTML = ''; return; }
+							const subjectType = task.subjectType;
+							if (subjectType) {
+								el.innerHTML = `Subject: <b>${_Helpers.escapeTags(subjectType)}</b> (from the bound UserTask)`;
+								el.style.color = '';
+							} else {
+								el.innerHTML = '⚠ No subject type set on this UserTask. The form will render no fields until the process designer sets it in the BPMN editor.';
+								el.style.color = '#c0392b';
+							}
+						};
+
 						if (processSelectForUserTask) {
 							const populateUserTasks = (processId) => {
 								let s = document.querySelector(`select#${cleanedLabel}`);
 								s.innerHTML = '<option value="">--- Select user task ---</option>';
+								userTasksById = {};
+								updateContractSummary(null);
 								if (!processId) return;
 								Command.query('BpmnElement', 2000, 1, 'bpmnName', 'asc', { process: processId }, elements => {
 									const userTasks = (elements || []).filter(el => el.bpmnElementType === 'userTask');
 									for (const t of userTasks) {
+										userTasksById[t.id] = t;
 										const opt = document.createElement('option');
 										opt.value       = t.id;
 										opt.textContent = t.bpmnName || t.name || t.id;
@@ -763,6 +797,7 @@ let _Widgets = {
 							if (processSelectForUserTask.value) {
 								populateUserTasks(processSelectForUserTask.value);
 							}
+							document.querySelector(`select#${cleanedLabel}`).addEventListener('change', (e) => updateContractSummary(e.target.value));
 						} else {
 							console.log('user-task picker requires a sibling "process" slot to scope its options.');
 						}

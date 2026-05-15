@@ -4637,6 +4637,9 @@ ul.combined-input-select-field li:not(.nohover):hover {
 	font-size: 0.75rem;
 	line-height: 1rem;
 }
+.text-xs code {
+	font-size: 0.75rem !important;
+}
 .text-sm {
 	font-size: 0.875rem;
 	line-height: 1.25rem;
