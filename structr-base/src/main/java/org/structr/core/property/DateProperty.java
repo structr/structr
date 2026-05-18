@@ -18,9 +18,7 @@
  */
 package org.structr.core.property;
 
-import com.ibm.icu.impl.Grego;
 import org.apache.commons.lang3.StringUtils;
-import org.bouncycastle.asn1.cmp.GenRepContent;
 import org.structr.api.config.Settings;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
@@ -33,7 +31,6 @@ import org.structr.core.converter.TemporalDateConverter;
 import org.structr.docs.ontology.ConceptType;
 import org.structr.schema.parser.DatePropertyGenerator;
 
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.*;
 
@@ -194,15 +191,15 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 						if (declaringTrait != null) {
 
 							throw new PropertyInputParsingException(
-								jsonName(),
-								new DateFormatToken(declaringTrait.getLabel(), jsonName()).withDetail(source)
+								DateProperty.this.jsonName(),
+								new DateFormatToken(declaringTrait.getLabel(), DateProperty.this.jsonName()).withDetail(source)
 							);
 
 						} else {
 
 							throw new PropertyInputParsingException(
-								jsonName(),
-								new DateFormatToken("Unknown type", jsonName()).withDetail(source)
+								DateProperty.this.jsonName(),
+								new DateFormatToken("Unknown type", DateProperty.this.jsonName()).withDetail(source)
 							);
 						}
 
@@ -210,7 +207,7 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 
 				} else {
 
-					throw new FrameworkException(422, "Unknown input type for date property ‛" + jsonName() + "‛: " + (source.getClass().getName()), new DateFormatToken(declaringTrait.getLabel(), jsonName()).withDetail(source));
+					throw new FrameworkException(422, "Unknown input type for date property ‛" + DateProperty.this.jsonName() + "‛: " + (source.getClass().getName()), new DateFormatToken(declaringTrait.getLabel(), DateProperty.this.jsonName()).withDetail(source));
 
 				}
 			}

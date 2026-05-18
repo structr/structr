@@ -21,26 +21,29 @@ package org.structr.core.datasources;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.ChannelInput;
-import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
 import org.structr.core.function.Functions;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
-import org.structr.web.datasource.FieldDefinition;
 import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 
-public class ChannelDataSource<T extends GraphObject> extends AbstractValueDataSource<T> {
+public class ParentDataSource<T extends GraphObject> extends AbstractValueDataSource<T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(ChannelDataSource.class);
 
-	public ChannelDataSource(final ComponentConfiguration configuration, final String name) {
-		super(configuration, name);
+	private final ComponentConfiguration parentConfiguration;
+
+	public ParentDataSource(final ComponentConfiguration thisConfiguration, final ComponentConfiguration parentConfiguration, final String name) {
+
+		super(thisConfiguration, name);
+
+		this.parentConfiguration = parentConfiguration;
 	}
+
 
 	@Override
 	public String getChannelName() {
@@ -48,15 +51,10 @@ public class ChannelDataSource<T extends GraphObject> extends AbstractValueDataS
 	}
 
 	@Override
-	public T getDataSourceValue(final ActionContext actionContext, final ChannelInput input) throws FrameworkException {
+	protected T getDataSourceValue(ActionContext actionContext, ChannelInput channelInput) throws FrameworkException {
 
 		if (actionContext instanceof RenderContext renderContext) {
-
-			final String uuid = renderContext.getChannelValue(name);
-			if (uuid != null) {
-
-				return (T) StructrApp.getInstance(actionContext.getSecurityContext()).getNodeById(uuid);
-			}
+			return (T) renderContext.getDataNode(name);
 		}
 
 		return null;
@@ -65,37 +63,14 @@ public class ChannelDataSource<T extends GraphObject> extends AbstractValueDataS
 	@Override
 	public String getDataType(final ActionContext actionContext) throws FrameworkException {
 
-		// find channel source and return data type from there
-		if (configuration != null) {
+		if (configuration != null && parentConfiguration != null) {
 
-			final DOMNode component = configuration.getComponent();
-			if (component != null) {
+			final Channel dataSource = parentConfiguration.getDataSource();
+			if (dataSource != null) {
 
-				final Page page = component.getOwnerDocument();
-
-				for (final NodeInterface childNode : page.getAllChildNodes()) {
-
-					final DOMNode candidate                  = childNode.as(DOMNode.class);
-					final ComponentConfiguration otherConfig = candidate.getComponentConfiguration();
-
-					// evaluate component configuration
-					if (otherConfig != null && !otherConfig.equals(this)) {
-
-						final String selectionChannel = otherConfig.getSelectionChannel();
-						if (name.equals(selectionChannel)) {
-
-							final Channel dataSource = otherConfig.getDataSource();
-							if (dataSource != null) {
-
-								return getTransformedDataType(dataSource.getDataType(actionContext), otherConfig.getTransform());
-							}
-						}
-					}
-				}
-
-			} else {
-
-				logger.warn("Cannot evaluate getDataType(): configuration is not attached to a component.");
+				// this is tricky to understand: the parent data source uses the current configuration's transform value!
+				// (e.g. Release->Feature: "parent.features" => type Feature
+				return getTransformedDataType(dataSource.getDataType(actionContext), configuration.getTransform());
 			}
 
 		} else {

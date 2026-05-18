@@ -18,6 +18,7 @@
  */
 package org.structr.web.traits.wrappers;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.ChannelInput;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.datasources.Channel;
@@ -25,6 +26,7 @@ import org.structr.core.entity.DataAdapter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
+import org.structr.schema.action.Function;
 import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.DataField;
 import org.structr.web.entity.ComponentConfiguration;
@@ -32,6 +34,7 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.traits.definitions.ComponentConfigurationTraitDefinition;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper implements ComponentConfiguration {
@@ -201,5 +204,33 @@ public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper
 	@Override
 	public void setFieldSet(final String fieldSet) throws FrameworkException {
 		wrappedObject.setProperty(traits.key(ComponentConfigurationTraitDefinition.FIELD_SET_PROPERTY), fieldSet);
+	}
+
+	@Override
+	public void updateFieldSetForChildren() throws FrameworkException {
+
+		final DOMNode domNode =  getComponent();
+		if (domNode != null) {
+
+			final String       fieldSet          = getFieldSet();
+			final List<String> fields            = Function.splitAndTrim(fieldSet, ",");
+			boolean            hasTreeChildField = false;
+
+			for (final String field : fields) {
+
+				hasTreeChildField |= field.startsWith("$");
+			}
+
+			if (!domNode.hasChildNodes()) {
+
+				// remove tree child fields from field set
+				setFieldSet(StringUtils.join(fields.stream().filter(field -> !field.startsWith("$")).toList(), ","));
+
+			} else if (!hasTreeChildField) {
+
+				// add tree child field to field set
+				setFieldSet(fieldSet + ",$*");
+			}
+		}
 	}
 }

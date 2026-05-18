@@ -33,7 +33,6 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.ArraySearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchAttributeGroup;
-import org.structr.docs.DocumentableType;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
@@ -406,8 +405,8 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 				if (value == null) {
 
 					throw new PropertyInputParsingException(
-						jsonName(),
-						new NumberFormatToken(declaringTrait.getLabel(), jsonName(), source)
+						this.jsonName(),
+						new NumberFormatToken(declaringTrait.getLabel(), this.jsonName(), source)
 					);
 				}
 

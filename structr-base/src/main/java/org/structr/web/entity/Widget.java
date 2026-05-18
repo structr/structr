@@ -114,6 +114,13 @@ public interface Widget extends NodeInterface {
 				parameters.put("dataSource", "node:" + dataSource.getUuid());
 			}
 
+			if ("create:query".equals(parameters.get("dataSource"))) {
+
+				final String name              = (String) parameters.get("dataSourceName");
+				final NodeInterface dataSource = app.create(StructrTraits.QUERY_DATA_SOURCE, name);
+				parameters.put("dataSource", "node:" + dataSource.getUuid());
+			}
+
 			if ("create-new-data-adapter".equals(parameters.get("dataAdapter"))) {
 				throw new IllegalStateException("Data adapter creation is done elsewhere now, please do not use this special key.");
 			}

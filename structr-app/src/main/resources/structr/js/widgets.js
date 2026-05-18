@@ -1144,7 +1144,10 @@ let _Widgets = {
 						icon: '#circle_plus',
 						children: [
 							{ name: 'Create New Custom Type', value: 'create:schema', icon: '#database-add' },
-							{ name: 'Create New Data Source', value: 'create:datasource', icon: '#database-add' }
+							{ name: 'Other Data Sources', icon: '#circle_plus', children: [
+									{ name: 'Create Script-based Data Source', value: 'create:datasource', icon: '#curly-braces-wrap-js' },
+									{ name: 'Create Query-based Data Source', value: 'create:query', icon: '#list-cog' },
+							] }
 						]
 					});
 			}
@@ -1197,7 +1200,7 @@ let _Widgets = {
 						return `
 						<li tabindex="0">
 							<div ${onclick} class="w-full px-2 ${item?.children?.length ? '' : 'py-1'} flex items-center justify-between">
-								<div class="flex items-center justify-between">${item.icon ? `<svg class="mr-2" width="12" height="12"><use href="${item.icon}"></use></svg>` : ''}<span>${item.name}</span></div>
+								<div class="flex items-center justify-between">${item.icon ? `<svg class="mr-2" width="16" height="16"><use href="${item.icon}"></use></svg>` : ''}<span>${item.name}</span></div>
 								${item?.children?.length ? '<span class="caret">&#x23f5;</span>' : ''}
 							</div>
 							${item?.children?.length ? _Widgets.templates.createMenu(item.children, '', inputId, selectedValue, tmp) : ''}
@@ -1260,12 +1263,13 @@ let _Widgets = {
 		},
 		getChannelsForMenu: async () => {
 			let channels = await Command.queryPromise('ComponentConfiguration', 1000, 1, 'name', 'asc', {});
-			let values = [ { name: 'current', value: 'channel:current'} ];
+			let values = [ { name: 'current', value: 'channel:current'}, { name: 'parent', value: 'parent' } ];
 			for (let channel of channels) {
 				if (channel.role === 'controller' && channel.selectionChannel && channel.selectionChannel !== 'current') {
 					values.push({ name: `${channel.selectionChannel}`, value: `channel:${channel.selectionChannel}` });
 				}
 			}
+			values = values.sort((a, b) => a.name.localeCompare(b.name));
 			return values;
 		},
 		getAvailableDataSources: async config => {

@@ -18,7 +18,7 @@
  */
 package org.structr.web.traits.definitions;
 
-import org.apache.tika.utils.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -26,6 +26,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
@@ -37,10 +38,13 @@ import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.DataAdapterTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
+import org.structr.core.traits.operations.graphobject.OnModification;
+import org.structr.schema.action.Function;
 import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.traits.wrappers.ComponentConfigurationTraitWrapper;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -77,6 +81,7 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
 		return Map.of(
+
 			OnCreation.class,
 			new OnCreation() {
 				@Override
@@ -107,6 +112,19 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 
 						componentConfiguration.setProperty(componentTraits.key(DISPLAY_MODE_PROPERTY), "output");
 					}
+				}
+			},
+
+			OnModification.class,
+			new OnModification() {
+
+				@Override
+				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+					final ComponentConfiguration componentConfiguration = graphObject.as(ComponentConfiguration.class);
+
+					componentConfiguration.updateFieldSetForChildren();
+
 				}
 			}
 		);

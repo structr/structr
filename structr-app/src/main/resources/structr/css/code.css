@@ -49,10 +49,13 @@
 
 #code-contents .action-button {
 	position: relative;
-	color: var(--gray-444);
+	color: var(--gray-222);
+	border: 1px solid var(--gray-bbb);
 	margin: 0 12px 12px 0;
 	height: inherit;
 	box-sizing: content-box;
+	white-space: nowrap;
+	stroke-width: 1px;
 }
 
 #code-contents .action-button .action-button-icon {
@@ -203,4 +206,17 @@ h2.has-changes::after {
 
 li.highlight-name > a {
 	font-weight: bold;
+}
+
+/**
+ * BEGIN: query builder
+ */
+fieldset {
+	border-radius: .5rem;
+	border: 1px solid #ddd;
+	color: #666;
+
+	& legend {
+		padding: 0 .5rem;
+	}
 }

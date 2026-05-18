@@ -119,4 +119,8 @@ public class ChannelInput implements Predicate<GraphObject> {
 
 		return true;
 	}
+
+	public static ChannelInput firstElement() {
+		return new ChannelInput(null, null, null, 1, 1);
+	}
 }

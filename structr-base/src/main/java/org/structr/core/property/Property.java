@@ -294,7 +294,7 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 
 	@Override
 	public String toString() {
-		return jsonName();
+		return this.jsonName();
 	}
 
 	@Override
@@ -471,16 +471,16 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 	public int hashCode() {
 
 		// make hashCode function work for subtypes that override jsonName() etc. as well
-		if (dbName() != null && jsonName() != null) {
-			return (dbName().hashCode() * 31) + jsonName().hashCode();
+		if (dbName() != null && this.jsonName() != null) {
+			return (dbName().hashCode() * 31) + this.jsonName().hashCode();
 		}
 
 		if (dbName() != null) {
 			return dbName().hashCode();
 		}
 
-		if (jsonName() != null) {
-			return jsonName().hashCode();
+		if (this.jsonName() != null) {
+			return this.jsonName().hashCode();
 		}
 
 		// TODO: check if it's ok if null key is not unique
@@ -647,7 +647,7 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 	@Override
 	public void extractSearchableAttribute(final SecurityContext securityContext, final HttpServletRequest request, final boolean exactMatch, final QueryGroup query) throws FrameworkException {
 
-		final String[] searchValues = request.getParameterValues(jsonName());
+		final String[] searchValues = request.getParameterValues(this.jsonName());
 		if (searchValues != null) {
 
 			for (String searchValue : searchValues) {
@@ -747,6 +747,11 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 		return null;
 	}
 
+	@Override
+	public String fieldName() {
+		return jsonName();
+	}
+
 	// ----- protected methods -----
 	protected boolean multiValueSplitAllowed() {
 		return true;
@@ -815,7 +820,7 @@ public abstract class Property<T> implements PropertyKey<T>, FieldDefinition {
 
 					} else {
 
-						throw new FrameworkException(400, "PropertyKey " + jsonName() + " must be indexedWhenEmpty() to be used in not-blank search query.");
+						throw new FrameworkException(400, "PropertyKey " + this.jsonName() + " must be indexedWhenEmpty() to be used in not-blank search query.");
 					}
 
 				} else {

@@ -26,7 +26,9 @@ test.beforeAll(async ({playwright}) => {
     await initialize(playwright);
 });
 
-test('mail-templates', async ({page}) => {
+test('mail-templates', async ({page}, testInfo) => {
+
+    console.log(testInfo.title);
 
     //await page.setViewportSize({ width: 3840, height: 2160 });
     await page.goto(process.env.BASE_URL + '/structr/');

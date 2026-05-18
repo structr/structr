@@ -28,7 +28,9 @@ test.beforeAll(async ({playwright}) => {
     await initialize(playwright);
 });
 
-test('graph', async ({page}) => {
+test('graph', async ({page}, testInfo) => {
+
+    console.log(testInfo.title);
 
     await login(page);
 

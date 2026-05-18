@@ -30,11 +30,13 @@ import org.structr.core.datasources.Channel;
 import org.structr.core.datasources.SortInfo;
 import org.structr.core.entity.DataAdapter;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Function;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.DataField;
@@ -53,7 +55,7 @@ import java.util.*;
  */
 public abstract class ApplyTemplatesFunction extends IncludeFunction {
 
-	public void applyTemplates(final ActionContext ctx, final DataAdapter dataAdapter, final DOMNode domNode, final String tag, final String slot, final boolean inLoop) throws FrameworkException {
+	public void applyTemplates(final ActionContext ctx, final DataAdapter dataAdapter, final DOMNode domNode, final String tag, final boolean inLoop) throws FrameworkException {
 
 		final SecurityContext securityContext = ctx.getSecurityContext();
 		final App app                         = StructrApp.getInstance(securityContext);
@@ -113,123 +115,150 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 
 		// fetch augmented fields from data adapter
 		final Map<String, DataField> augmentedFields = dataAdapter.augmentFields(innerCtx, sourceChannel, true);
-		final List<String> fieldSetFromComponent     = splitAndTrim(requestedFieldSet, ",");
+		final List<String> fieldSetFromComponent     = Function.splitAndTrim(requestedFieldSet, ",");
 
 		for (final String field : fieldSetFromComponent) {
 
-			final DataField augmentedField = augmentedFields.get(field);
-			if (augmentedField != null) {
+			// special syntax for nested children
+			if (field.startsWith("$") && field.length() > 1) {
 
-				final Set<String> slots = augmentedField.getSlots();
+				final List<RelationshipInterface> rels = domNode.getChildRelationships();
+				if (rels.isEmpty()) {
 
-				if (slot != null && slots.isEmpty()) {
-					renderTemplate(app, innerCtx, "span-missing-slot", "<span class=\"error col-span-6\">Field '" + field + "' in data adapter '" + dataAdapter.getName() + "' is missing 'slot' entry.</span>");
+					final DOMNode _syncedNode = domNode.getSharedComponent();
+					// No child relationships, maybe this node is in sync with another node
+					if (_syncedNode != null) {
+						rels.addAll(_syncedNode.getChildRelationships());
+					}
+				}
 
-				} else {
+				final String part = field.substring(1);
+				switch (part) {
 
-					// no slot => iterate over all fields or just one slot, or name
-					if (slot == null || slots.contains(slot) || slot.equals(augmentedField.getName())) {
+					case "*":
+						// render all children
+						for (final RelationshipInterface rel : rels) {
+							final DOMNode subNode = rel.getTargetNode().as(DOMNode.class);
+							subNode.render(innerCtx, 1);
+						}
+						break;
 
-						for (final Map.Entry<String, GraphObject> column : augmentedField.expandColumns(innerCtx, config).entrySet()) {
+					default:
+						// render specific child at index $n
+						final Integer index = Function.parseInt(part);
+						if (index != null) {
+							final int zeroBasedIndex = index - 1;
+							if (zeroBasedIndex >= 0 && zeroBasedIndex < rels.size()) {
+								final RelationshipInterface rel = rels.get(zeroBasedIndex);
+								final DOMNode subNode = rel.getTargetNode().as(DOMNode.class);
+								subNode.render(innerCtx, 1);
+							}
+						}
+						break;
+				}
 
-							final String label              = column.getKey();
-							final Set<String> cssClasses    = new LinkedHashSet<>();
-							final String editTemplate       = augmentedField.getEditTemplate();
-							final String template           = augmentedField.getTemplate();
-							final String valueSource        = augmentedField.getValue();
-							final Boolean showLabelOverride = augmentedField.showLabel();
-							final GraphObject columnValue   = column.getValue();
-							Object value = null;
+			} else {
 
-							// apply field-dependent CSS classes to the wrapper element
-							augmentedField.applyCssClasses(cssClasses);
+				final DataField augmentedField = augmentedFields.get(field);
+				if (augmentedField != null) {
 
-							// make field information available in context
-							innerCtx.setConstant("field", augmentedField);
+					for (final Map.Entry<String, GraphObject> column : augmentedField.expandColumns(innerCtx, config).entrySet()) {
 
-							// make column value available in context, if applicable
-							if (columnValue != null) {
-								innerCtx.setConstant(augmentedField.getColumnKey(), columnValue);
+						final String      label             = column.getKey();
+						final Set<String> cssClasses        = new LinkedHashSet<>();
+						final String      editTemplate      = augmentedField.getEditTemplate();
+						final String      template          = augmentedField.getTemplate();
+						final String      valueSource       = augmentedField.getValue();
+						final Boolean     showLabelOverride = augmentedField.showLabel();
+						final GraphObject columnValue       = column.getValue();
+						Object            value             = null;
+
+						// apply field-dependent CSS classes to the wrapper element
+						augmentedField.applyCssClasses(cssClasses);
+
+						// make field information available in context
+						innerCtx.setConstant("field", augmentedField);
+
+						// make column value available in context, if applicable
+						if (columnValue != null) {
+							innerCtx.setConstant(augmentedField.getColumnKey(), columnValue);
+						}
+
+						// value present?
+						if (valueSource != null) {
+
+							value = Scripting.evaluate(innerCtx, null, "${" + valueSource + "}", "Value expression of data field '" + field + "' in component '" + component.getName() + "' of page '" + component.getOwnerDocument().getName() + "'");
+							//value = innerCtx.getReferencedProperty(null, valueSource, null, 0, 0, 0);
+
+							// make iterables permanent
+							if (value instanceof Iterable) {
+								value = Iterables.toList((Iterable) value);
 							}
 
-							// value present?
-							if (valueSource != null) {
+							innerCtx.setConstant("value", value);
 
-								value = Scripting.evaluate(innerCtx, null, "${" + valueSource + "}", "Value expression of data field '" + field + "' in component '" + component.getName() + "' of page '" + component.getOwnerDocument().getName() + "'");
-								//value = innerCtx.getReferencedProperty(null, valueSource, null, 0, 0, 0);
+						} else {
 
-								// make iterables permanent
-								if (value instanceof Iterable) {
-									value = Iterables.toList((Iterable) value);
+							logger.warn("{}: field '{}' from data source '{}' has no value expression and will therefore produce no output.", getName(), field, dataAdapter.getName());
+						}
+
+						if (wrapper != null) {
+							wrapper.formatStartTag(buffer, Map.of(), cssClasses);
+						}
+
+						// render labels?
+						if (label != null) {
+
+							boolean doShow = showLabels != null && showLabels;
+
+							if (showLabelOverride != null) {
+								doShow = showLabelOverride;
+							}
+
+							if (doShow) {
+								buffer.append("<label>" + label + "</label>");
+							}
+						}
+
+						if (useEditTemplate && StringUtils.isEmpty(editTemplate)) {
+
+							logger.warn("{}: field '{}' from data source '{}' cannot be used with displayMode 'input' because it doesn't specify a value for `editTemplate`.", getName(), field, dataAdapter.getName());
+							buffer.append("<span class=\"error\">No edit template.</span>");
+
+						} else {
+
+							final DOMNode templateNode = getTemplate(app, useEditTemplate ? editTemplate : template);
+							if (templateNode != null) {
+
+								final DataAdapter previousDataAdapter     = innerCtx.getCurrentAdapter();
+								final Channel     previousDataSource      = innerCtx.getCurrentDataSource();
+								final String      previousReloadBehaviour = innerCtx.getCurrentReloadBehaviour();
+
+								// we need to make the current data source available to the inner template
+								innerCtx.setCurrentAdapter(dataAdapter);
+								innerCtx.setCurrentDataSource(sourceChannel);
+								innerCtx.setCurrentReloadBehaviour(reloadBehaviour);
+
+								try {
+									templateNode.render(innerCtx, 0);
+
+								} finally {
+
+									innerCtx.setCurrentAdapter(previousDataAdapter);
+									innerCtx.setCurrentDataSource(previousDataSource);
+									innerCtx.setCurrentReloadBehaviour(previousReloadBehaviour);
 								}
-
-								innerCtx.setConstant("value", value);
 
 							} else {
 
-								logger.warn("{}: field '{}' from data source '{}' has no value expression and will therefore produce no output.", getName(), field, dataAdapter.getName());
-							}
-
-							if (wrapper != null) {
-								wrapper.formatStartTag(buffer, Map.of(), cssClasses);
-							}
-
-							// render labels?
-							if (label != null) {
-
-								boolean doShow = showLabels != null && showLabels;
-
-								if (showLabelOverride != null) {
-									doShow = showLabelOverride;
-								}
-
-								if (doShow) {
-									buffer.append("<label>" + label + "</label>");
+								if (value != null) {
+									buffer.append(value.toString());
 								}
 							}
+						}
 
-							if (useEditTemplate && StringUtils.isEmpty(editTemplate)) {
-
-								logger.warn("{}: field '{}' from data source '{}' cannot be used with displayMode 'input' because it doesn't specify a value for `editTemplate`.", getName(), field, dataAdapter.getName());
-								buffer.append("<span class=\"error\">No edit template.</span>");
-
-							} else {
-
-								final DOMNode templateNode = getTemplate(app, slot, useEditTemplate ? editTemplate : template);
-								if (templateNode != null) {
-
-
-
-									final DataAdapter previousDataAdapter = innerCtx.getCurrentAdapter();
-									final Channel previousDataSource      = innerCtx.getCurrentDataSource();
-									final String previousReloadBehaviour  = innerCtx.getCurrentReloadBehaviour();
-
-									// we need to make the current data source available to the inner template
-									innerCtx.setCurrentAdapter(dataAdapter);
-									innerCtx.setCurrentDataSource(sourceChannel);
-									innerCtx.setCurrentReloadBehaviour(reloadBehaviour);
-
-									try {
-										templateNode.render(innerCtx, 0);
-
-									} finally {
-
-										innerCtx.setCurrentAdapter(previousDataAdapter);
-										innerCtx.setCurrentDataSource(previousDataSource);
-										innerCtx.setCurrentReloadBehaviour(previousReloadBehaviour);
-									}
-
-								} else {
-
-									if (value != null) {
-										buffer.append(value.toString());
-									}
-								}
-							}
-
-							if (wrapper != null) {
-								wrapper.formatEndTag(buffer);
-							}
+						if (wrapper != null) {
+							wrapper.formatEndTag(buffer);
 						}
 					}
 				}
@@ -329,13 +358,13 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 		}
 	}
 
-	protected DOMNode getTemplate(final App app, final String slot, final String templateName) throws FrameworkException {
+	protected DOMNode getTemplate(final App app, final String templateName) throws FrameworkException {
 
 		if (StringUtils.isBlank(templateName)) {
 			return null;
 		}
 
-		final DOMNode template = getNodeForInclude(app, joinNonNullStrings(slot, templateName));
+		final DOMNode template = getNodeForInclude(app, templateName);
 		if (template != null) {
 
 			return template;
@@ -388,7 +417,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 
 	protected void renderTemplate(final App app, final RenderContext ctx, final String name, final String fallbackHtml) throws FrameworkException {
 
-		DOMNode template = getTemplate(app, null, name);
+		DOMNode template = getTemplate(app, name);
 		if (template != null) {
 
 			template.render(ctx, 0);

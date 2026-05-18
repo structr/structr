@@ -24,7 +24,9 @@ test.beforeAll(async ({playwright}) => {
     await initialize(playwright);
 });
 
-test('virtual-types', async ({page}) => {
+test('virtual-types', async ({page}, testInfo) => {
+
+    console.log(testInfo.title);
 
     await page.goto(process.env.BASE_URL + '/structr/');
 

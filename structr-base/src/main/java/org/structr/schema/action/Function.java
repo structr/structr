@@ -953,6 +953,16 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		return hints;
 	}
 
+	protected Map<String, Object> getMapOrNull(final Object[] sources, final int index) {
+
+		if (index < sources.length && sources[index] != null && sources[index] instanceof Map map) {
+
+			return map;
+		}
+
+		return null;
+	}
+
 	protected String getStringOrNull(final Object[] sources, final int index) {
 
 		if (index < sources.length && sources[index] != null) {
@@ -985,7 +995,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		return null;
 	}
 
-	protected List<String> splitAndTrim(final String source, final String separator) {
+	public static List<String> splitAndTrim(final String source, final String separator) {
 
 		final List<String> list = new LinkedList<>();
 

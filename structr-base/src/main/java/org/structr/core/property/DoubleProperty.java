@@ -28,7 +28,6 @@ import org.structr.common.error.PropertyInputParsingException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.traits.definitions.LocationTraitDefinition;
-import org.structr.docs.DocumentableType;
 
 import java.util.Map;
 
@@ -153,8 +152,8 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 				} catch (Throwable t) {
 
 					throw new PropertyInputParsingException(
-						jsonName(),
-						new NumberFormatToken(declaringTrait.getLabel(), jsonName(), source)
+						DoubleProperty.this.jsonName(),
+						new NumberFormatToken(declaringTrait.getLabel(), DoubleProperty.this.jsonName(), source)
 					);
 				}
 			}

@@ -379,7 +379,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 			return false;
 		}
 
-		if (doLog) { logger.info("{}{} ({}): {} check on level {} for {}", StringUtils.repeat("    ", level), node.getUuid(), node.getType(), permission.name(), level, accessingUser != null ? accessingUser.getName() : null); }
+		if (doLog) { logger.info("{}{} ({}): {} check on level {} for {}: {}", StringUtils.repeat("    ", level), node.getUuid(), node.getType(), permission.name(), level, accessingUser != null ? accessingUser.getName() : null, mask); }
 
 		if (accessingUser != null) {
 
@@ -524,7 +524,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 			return false;
 		}
 
-		if (doLog) { logger.info("{}{} ({}): checking {} access on level {} for {}", StringUtils.repeat("    ", level), node.getUuid(), node.getType(), permission.name(), level, principal != null ? principal.getName() : null); }
+		if (doLog) { logger.info("{}{} ({}): checking {} access on level {} for {}: {}", StringUtils.repeat("    ", level), node.getUuid(), node.getType(), permission.name(), level, principal != null ? principal.getName() : null, mask); }
 
 		final Node dbNode              = node.getNode();
 		final Map<String, Long> degree = dbNode.getDegree();

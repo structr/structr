@@ -65,7 +65,9 @@ async function createFileWithContentAndContentType(page, name, content, contentT
     await page.waitForTimeout(1000);
 }
 
-test('files', async ({page}) => {
+test('files', async ({page}, testInfo) => {
+
+    console.log(testInfo.title);
 
     await login(page);
 

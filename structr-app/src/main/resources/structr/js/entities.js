@@ -2807,6 +2807,17 @@ let _Entities = {
                     _Entities.generalTab.updateSortableDataFields(entity);
                 }
 
+				let editButton = document.querySelector('#edit-data-source-button');
+				if (config?.dataSource && config.dataSource.contains(':')) {
+
+					let parts = config.dataSource.split(':');
+					let id    = parts[1];
+
+					editButton.addEventListener('click', () => {
+						_Code.search.goToResult({ id: id, type: 'ScriptDataSource'});
+					})
+				}
+
                 let addButton = document.querySelector('#add-adapter-field-button');
                 if (addButton) {
                     addButton.addEventListener('click', (e) => {
@@ -2900,79 +2911,142 @@ let _Entities = {
             // construct list of selected fields
             if (currentFieldSet.length > 0) {
                 for (let fieldName of currentFieldSet) {
-                    let field = fields[fieldName];
-                    let renderTemplate = field?.[whichTemplate];
-                    let color = renderTemplate?.length ? 'text-gray-555' : 'text-gray-aaa';
-                    sortable.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.configuredFieldPartial({ fieldName, field, renderTemplate, color, open: openField === fieldName }));
-                    let editor = document.querySelector(`.field-details-editor[data-field-name="${fieldName}"]`);
-                    if (editor && field) {
+					let field = fields[fieldName];
+					if (fieldName.startsWith('$')) {
+						let name = 'Tree Children';
+						sortable.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.specialFieldPartial({
+							fieldName,
+							field,
+							name: name
+						}));
+					} else {
+						let renderTemplate = field?.[whichTemplate];
+						let color = renderTemplate?.length ? 'text-gray-555' : 'text-gray-aaa';
+						sortable.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.configuredFieldPartial({
+							fieldName,
+							field,
+							renderTemplate,
+							color,
+							open: openField === fieldName
+						}));
+						let editor = document.querySelector(`.field-details-editor[data-field-name="${fieldName}"]`);
+						if (editor && field) {
 
-						// standard settings (always visible)
-                        editor.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({ css: 'col-span-2', label: 'Label', name: 'label', fieldName, value: field.label, destination: 'field' }));
-						editor.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({ css: 'col-span-2', label: 'Width (columns)', name: 'columns', fieldName, value: field.columns, destination: 'field' }));
-						editor.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailCheckbox({ css: 'col-span-2', label: 'Include in filter', name: 'isSearchable', fieldName, value: field.isSearchable, destination: 'field' }));
+							// standard settings (always visible)
+							editor.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({
+								css: 'col-span-2',
+								label: 'Label',
+								name: 'label',
+								fieldName,
+								value: field.label,
+								destination: 'field'
+							}));
+							editor.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({
+								css: 'col-span-2',
+								label: 'Width (columns)',
+								name: 'columns',
+								fieldName,
+								value: field.columns,
+								destination: 'field'
+							}));
+							editor.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailCheckbox({
+								css: 'col-span-2',
+								label: 'Include in filter',
+								name: 'isSearchable',
+								fieldName,
+								value: field.isSearchable,
+								destination: 'field'
+							}));
 
-						// render template settings
-						let renderTemplateSettings = _Entities.generalTab.createAppendAndReturnDetailsSummary(editor, 'Render Template Settings');
-						renderTemplateSettings.insertAdjacentHTML('beforeend', await _Entities.generalTab.templates.fieldConfigurationInput(field, renderTemplate));
-						// remove element if no render template settings exist
-						if (renderTemplateSettings.children.length === 0) {
-							renderTemplateSettings.parentNode.remove();
-						}
+							// render template settings
+							let renderTemplateSettings = _Entities.generalTab.createAppendAndReturnDetailsSummary(editor, 'Render Template Settings');
+							renderTemplateSettings.insertAdjacentHTML('beforeend', await _Entities.generalTab.templates.fieldConfigurationInput(field, renderTemplate));
+							// remove element if no render template settings exist
+							if (renderTemplateSettings.children.length === 0) {
+								renderTemplateSettings.parentNode.remove();
+							}
 
-						// expert settings
-						let expertSettings = _Entities.generalTab.createAppendAndReturnDetailsSummary(editor, 'Expert Settings');
-						expertSettings.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({ css: 'col-span-3', label: 'Value Expression', name: 'value', fieldName, value: field.value, destination: 'field' }));
-						expertSettings.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailDropdown({ css: 'col-span-3', label: 'Data Type', name: 'dataType', fieldName, value: field.dataType, destination: 'field', options: [
-							{ name: 'String', value: 'string' },
-							{ name: 'Boolean', value: 'boolean' },
-							{ name: 'Date', value: 'date' },
-							{ name: 'Node', value: 'node' },
-							{ name: 'Custom', value: 'custom' },
-						]}));
+							// expert settings
+							let expertSettings = _Entities.generalTab.createAppendAndReturnDetailsSummary(editor, 'Expert Settings');
+							expertSettings.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({
+								css: 'col-span-3',
+								label: 'Value Expression',
+								name: 'value',
+								fieldName,
+								value: field.value,
+								destination: 'field'
+							}));
+							expertSettings.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailDropdown({
+								css: 'col-span-3',
+								label: 'Data Type',
+								name: 'dataType',
+								fieldName,
+								value: field.dataType,
+								destination: 'field',
+								options: [
+									{name: 'String', value: 'string'},
+									{name: 'Boolean', value: 'boolean'},
+									{name: 'Date', value: 'date'},
+									{name: 'Node', value: 'node'},
+									{name: 'Custom', value: 'custom'},
+								]
+							}));
 
-						// functions returns map but we need a list of { name, value }
-						let dataSources = await _Widgets.templates.getAvailableDataSources();
-						let options = Object.keys(dataSources).map(k => ({ name: dataSources[k], value: k }));
+							// functions returns map but we need a list of { name, value }
+							let dataSources = await _Widgets.templates.getAvailableDataSources();
+							let options = Object.keys(dataSources).map(k => ({name: dataSources[k], value: k}));
 
-						expertSettings.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailDropdown({ css: 'col-span-3', label: 'Column Data Source', name: 'columnDataSource', fieldName, value: field.columnDataSource, destination: 'field', options }));
-						expertSettings.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({ css: 'col-span-3', label: 'Column Data Key', name: 'columnKey', fieldName, value: field.columnKey, destination: 'field' }));
+							expertSettings.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailDropdown({
+								css: 'col-span-3',
+								label: 'Column Data Source',
+								name: 'columnDataSource',
+								fieldName,
+								value: field.columnDataSource,
+								destination: 'field',
+								options
+							}));
+							expertSettings.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({
+								css: 'col-span-3',
+								label: 'Column Data Key',
+								name: 'columnKey',
+								fieldName,
+								value: field.columnKey,
+								destination: 'field'
+							}));
 
-						// sortKey override is disabled for now
-						//expertSettings.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({ css: 'col-span-2', label: 'Sort Key', name: 'sortKey', fieldName, value: field.sortKey, destination: 'field' }));
+							// sortKey override is disabled for now
+							//expertSettings.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({ css: 'col-span-2', label: 'Sort Key', name: 'sortKey', fieldName, value: field.sortKey, destination: 'field' }));
 
 
-
-						editor.querySelectorAll('input').forEach(input => {
-							input.addEventListener('change', async e => {
-								let data = { _fieldName: input.dataset.fieldName, _update: true };
-								data[input.name] = input.value;
-								data._destination = input.dataset.destination || 'config';
-								await fetch(`${Structr.rootUrl}DOMNode/${entity.id}/updateDataSourceField`, {
-									method: 'POST',
-									body: JSON.stringify(data)
-								});
-								_Pages.previews.updatePreviewSlideout();
-								//await _Entities.generalTab.updateSortableDataFields(entity, input.dataset.fieldName);
-								_Helpers.blinkGreen(input);
+							editor.querySelectorAll('input').forEach(input => {
+								input.addEventListener('change', async e => {
+									let data = {_fieldName: input.dataset.fieldName, _update: true};
+									data[input.name] = input.value;
+									data._destination = input.dataset.destination || 'config';
+									await fetch(`${Structr.rootUrl}DOMNode/${entity.id}/updateDataSourceField`, {
+										method: 'POST',
+										body: JSON.stringify(data)
+									});
+									_Pages.previews.updatePreviewSlideout();
+									//await _Entities.generalTab.updateSortableDataFields(entity, input.dataset.fieldName);
+									_Helpers.blinkGreen(input);})
 							})
-						})
 
-                        editor.querySelectorAll('select').forEach(input => {
-                            input.addEventListener('change', async e => {
-                                let data = { _fieldName: input.dataset.fieldName, _update: true };
-                                data[input.name] = input.value;
-                                data._destination = input.dataset.destination || 'config';
-                                await fetch(`${Structr.rootUrl}DOMNode/${entity.id}/updateDataSourceField`, {
-                                    method: 'POST',
-                                    body: JSON.stringify(data)
-                                });
-                                _Pages.previews.updatePreviewSlideout();
-                                //await _Entities.generalTab.updateSortableDataFields(entity, input.dataset.fieldName);
-								_Helpers.blinkGreen(input);
-                            })
-                        })
-                    }
+							editor.querySelectorAll('select').forEach(input => {
+								input.addEventListener('change', async e => {
+									let data = {_fieldName: input.dataset.fieldName, _update: true};
+									data[input.name] = input.value;
+									data._destination = input.dataset.destination || 'config';
+									await fetch(`${Structr.rootUrl}DOMNode/${entity.id}/updateDataSourceField`, {
+										method: 'POST',
+										body: JSON.stringify(data)
+									});
+									_Pages.previews.updatePreviewSlideout();
+									//await _Entities.generalTab.updateSortableDataFields(entity, input.dataset.fieldName);
+									_Helpers.blinkGreen(input);})
+							})
+						}
+					}
                 }
             }
 
@@ -4139,6 +4213,7 @@ let _Entities = {
                         	${await _Widgets.templates.dataSourcesSelector('data-source-channel-select', 'dataSource', config.config.dataSource, 'rounded-none rounded-l', 'general')}
                             <span class="inline-flex items-center bg-gray px-2 w-4 justify-center select-none border-0 border-t border-b border-solid border-gray-input">.</span>
                             <input class="rounded-none rounded-r" type="text" id="transform-input" autocomplete="off" name="transform" data-which="config">
+                            <button id="edit-data-source-button" class="bg-gray flex items-center justify-center ml-4 px-2 py-1" title="Edit data source"><svg width="16" height="16"><use href="#pencil_edit"></use></svg></button>
                         </div>
                     </div>
 
@@ -4210,7 +4285,7 @@ let _Entities = {
 
                 </div>
 			`,
-            configuredFieldPartial: (config) => `
+			configuredFieldPartial: (config) => `
                 <details class="shadow border rounded border-gray-ddd mb-1" ${config.open ? 'open' : ''} draggable title="Click to edit details.">
                     <summary class="px-2 py-2 flex items-center">
                         <div class="flex flex-grow items-center">
@@ -4220,6 +4295,17 @@ let _Entities = {
                         <span class="${config.color} italic font-normal cursor-pointer relative select-render-template" data-field-name="${config.fieldName}" data-field-type="${config.field?.dataType}" title="Click to change template.">${config.renderTemplate || 'Set template..'}</span>
                     </summary>
                     <div class="field-details-editor grid grid-cols-6 gap-4 bg-gray-f8 p-4 border border-0 border-t border-gray-ddd rounded-b font-normal" data-field-name="${config.fieldName}"></div>
+                </details>
+            `,
+            specialFieldPartial: (config) => `
+                <details class="shadow border rounded border-gray-ddd mb-1" draggable>
+                    <summary class="px-2 py-2 flex items-center">
+                        <div class="flex flex-grow items-center">
+                            <input type="checkbox" checked data-key="${config.fieldName}">
+                            <span>${config.name}</span>
+                        </div>
+                    </summary>
+                    <div class="text-gray-666 bg-gray-f8 px-8 py-4 border border-0 border-t border-gray-ddd rounded-b font-normal">This field is a placeholder that renders the corresponding child from the component's page tree. Use $* to render all children at this position, or $1, $2 etc. to render individual children by position.</div>
                 </details>
             `,
             availableFieldPartial: (config) => `

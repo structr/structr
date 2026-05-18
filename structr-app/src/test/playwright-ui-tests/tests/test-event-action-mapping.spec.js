@@ -101,9 +101,11 @@ test.beforeAll(async ({ playwright }) => {
  });
 
 
-test('pages', async ({page}) => {
+test('pages', async ({page}, testInfo) => {
 
 	let wait = 100;
+
+	console.log(testInfo.title);
 
 	await login(page);
 

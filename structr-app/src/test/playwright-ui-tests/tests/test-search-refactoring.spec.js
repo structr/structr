@@ -42,10 +42,12 @@ test.beforeAll(async ({ playwright }) => {
     });
 });
 
-test('search-and-refactor-code', async ({ page }) => {
+test('search-and-refactor-code', async ({ page }, testInfo) => {
 
 	let oldName = 'milestones';
 	let newName = 'goals';
+
+	console.log(testInfo.title);
 
 	await login(page);
 

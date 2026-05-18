@@ -21,7 +21,9 @@ import {test, expect} from '@playwright/test';
 import {setGlobalTimeout} from "./helpers/init";
 
 // no initialize here because we dont need to do anything
-test('config', async ({page}) => {
+test('config', async ({page}, testInfo) => {
+
+    console.log(testInfo.title);
 
     await page.goto(process.env.BASE_URL + '/structr/config');
     //await page.evaluate('document.body.style.zoom="2.0"');

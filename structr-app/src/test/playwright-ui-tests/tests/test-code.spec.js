@@ -29,7 +29,9 @@ test.beforeAll(async ({playwright}) => {
     });
 });
 
-test('user-defined-functions', async ({page}) => {
+test('user-defined-functions', async ({page}, testInfo) => {
+
+    console.log(testInfo.title);
 
     await login(page);
 

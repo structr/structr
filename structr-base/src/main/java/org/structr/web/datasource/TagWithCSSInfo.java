@@ -20,14 +20,13 @@ package org.structr.web.datasource;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.web.common.AsyncBuffer;
+import org.structr.web.common.RenderContext;
 
 import java.util.*;
 
 public class TagWithCSSInfo {
 
 	private final List<String> classes = new LinkedList<>();
-	private String channelName = null;
-	private String newValue = null;
 	private final String source;
 	private String id = null;
 	private String tag = null;

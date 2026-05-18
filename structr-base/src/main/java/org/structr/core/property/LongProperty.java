@@ -28,7 +28,6 @@ import org.structr.common.error.NumberFormatToken;
 import org.structr.common.error.PropertyInputParsingException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.docs.DocumentableType;
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -120,8 +119,8 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 				} catch (Throwable t) {
 
 					throw new PropertyInputParsingException(
-						jsonName(),
-						new NumberFormatToken(declaringTrait.getLabel(), jsonName(), source)
+						LongProperty.this.jsonName(),
+						new NumberFormatToken(declaringTrait.getLabel(), LongProperty.this.jsonName(), source)
 					);
 				}
 			}

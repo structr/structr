@@ -16,28 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.property;
+package org.structr.core.entity;
 
-import org.structr.core.property.GenericProperty;
-import org.structr.core.property.PropertyKey;
+import org.structr.core.GraphObject;
 
-public class CustomHtmlAttributeProperty<T> extends GenericProperty<T> {
+public interface QueryDataSource<T extends GraphObject> extends DataSource<T> {
 
-	public static final String CUSTOM_HTML_ATTRIBUTE_PREFIX = "_custom_html_";
-
-	public CustomHtmlAttributeProperty(String name) {
-		this(name, name);
-	}
-
-	public CustomHtmlAttributeProperty(String jsonName, String dbName) {
-		super(jsonName, jsonName);
-	}
-
-	public CustomHtmlAttributeProperty(PropertyKey src) {
-		this(src.jsonName(), src.dbName());
-	}
-
-	public String cleanName () {
-		return this.jsonName().substring(CUSTOM_HTML_ATTRIBUTE_PREFIX.length());
-	}
+	String getDataType();
+	String getQuery();
 }

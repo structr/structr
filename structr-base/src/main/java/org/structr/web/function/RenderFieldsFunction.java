@@ -60,8 +60,7 @@ public class RenderFieldsFunction extends ApplyTemplatesFunction {
 				return null;
 			}
 
-			final String tag  = getStringOrNull(sources, 0);
-			final String slot = getStringOrNull(sources, 1);
+			final String tag = getStringOrNull(sources, 0);
 
 			// Are we are in a DOMNode?
 			if (caller instanceof NodeInterface n && n.is(StructrTraits.DOM_NODE)) {
@@ -71,7 +70,7 @@ public class RenderFieldsFunction extends ApplyTemplatesFunction {
 				final ComponentConfiguration config = component.getComponentConfiguration();
 				final DataAdapter dataAdapter       = config.getDataAdapter();
 
-				applyTemplates(ctx, dataAdapter, domNode, tag, slot, false);
+				applyTemplates(ctx, dataAdapter, domNode, tag, false);
 
 			} else {
 

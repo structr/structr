@@ -60,7 +60,9 @@ test.beforeAll(async ({playwright}) => {
     });
 });
 
-test('pages', async ({page}) => {
+test('pages', async ({page}, testInfo) => {
+
+    console.log(testInfo.title);
 
     await login(page);
 

@@ -40,7 +40,6 @@ import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.docs.*;
 import org.structr.docs.ontology.ConceptType;
 import org.structr.schema.Transformer;
-import org.structr.web.datasource.FieldDefinition;
 
 import java.util.*;
 
@@ -153,7 +152,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> implement
 
 			} catch (ClassCastException cce) {
 
-				throw new FrameworkException(422, "Invalid JSON input for key " + jsonName() + ", expected a JSON " + typeName() + ".");
+				throw new FrameworkException(422, "Invalid JSON input for key " + this.jsonName() + ", expected a JSON " + typeName() + ".");
 			}
 		}
 
@@ -244,7 +243,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> implement
 			} catch (Throwable t) {
 
 				// throw FrameworkException with the given cause
-				final FrameworkException fex = new FrameworkException(500, "Unable to set property " + jsonName() + " on entity with ID " + obj.getUuid() + ": " + t);
+				final FrameworkException fex = new FrameworkException(500, "Unable to set property " + this.jsonName() + " on entity with ID " + obj.getUuid() + ": " + t);
 
 				throw fex;
 			}

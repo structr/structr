@@ -1875,10 +1875,10 @@ button.enabled, button.active {
 }
 
 button.disabled, i.disabled {
-	filter: alpha(opacity=60);
-	-khtml-opacity: .6;
-	-moz-opacity: .6;
-	opacity: .6;
+	filter: alpha(opacity=40);
+	-khtml-opacity: .4
+	-moz-opacity: .4;
+	opacity: .4;
 	cursor: not-allowed;
 }
 
@@ -4759,6 +4759,9 @@ ul.combined-input-select-field li:not(.nohover):hover {
 .pr-6 {
 	padding-right: 1.5rem;
 }
+.pr-8 {
+	padding-right: 2rem;
+}
 .pr-12 {
 	padding-right: 3rem;
 }
@@ -4811,6 +4814,14 @@ ul.combined-input-select-field li:not(.nohover):hover {
 .px-4 {
 	padding-left: 1rem;
 	padding-right: 1rem;
+}
+.px-6 {
+	padding-left: 1.5rem;
+	padding-right: 1.5rem;
+}
+.px-8 {
+	padding-left: 2rem;
+	padding-right: 2rem;
 }
 .py-0\.5 {
 	padding-top: .125rem;
@@ -5331,6 +5342,17 @@ ul.combined-input-select-field li:not(.nohover):hover {
 	xl	        1280px	    1280px (80rem)
 	2xl	        1536px	    1536px (96rem)
  */
+.\@md\:col-span-1 {
+	@container (width >= 40rem) {
+		grid-column: 1 / 1;
+	}
+}
+
+.\@lg\:col-span-1 {
+	@container (width >= 64rem) {
+		grid-column: 1 / 1;
+	}
+}
 
 .\@md\:grid-cols-2 {
 	@container (width >= 40rem) {

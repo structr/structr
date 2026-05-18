@@ -26,9 +26,7 @@ import org.structr.common.error.NumberFormatToken;
 import org.structr.common.error.PropertyInputParsingException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.docs.DocumentableType;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -110,8 +108,8 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 				} catch (Throwable t) {
 
 					throw new PropertyInputParsingException(
-						jsonName(),
-						new NumberFormatToken(declaringTrait.getLabel(), jsonName(), source)
+						IntProperty.this.jsonName(),
+						new NumberFormatToken(declaringTrait.getLabel(), IntProperty.this.jsonName(), source)
 					);
 				}
 			}
@@ -155,8 +153,8 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 				} catch (Throwable t) {
 
 					throw new PropertyInputParsingException(
-						jsonName(),
-						new NumberFormatToken(declaringTrait.getLabel(), jsonName(), source)
+						IntProperty.this.jsonName(),
+						new NumberFormatToken(declaringTrait.getLabel(), IntProperty.this.jsonName(), source)
 					);
 				}
 			}
