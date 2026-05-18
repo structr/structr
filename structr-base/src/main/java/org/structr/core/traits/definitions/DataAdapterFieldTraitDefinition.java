@@ -40,19 +40,20 @@ import java.util.Set;
 
 public class DataAdapterFieldTraitDefinition extends AbstractNodeTraitDefinition {
 
-	public static final String DATA_ADAPTER_PROPERTY       = "dataAdapter";
-	public static final String RENDER_TEMPLATE_PROPERTY    = "renderTemplate";
-	public static final String EDIT_TEMPLATE_PROPERTY      = "editTemplate";
-	public static final String LABEL_PROPERTY              = "label";
-	public static final String CONFIG_PROPERTY             = "config";
-	public static final String VALUE_PROPERTY              = "value";
-	public static final String DATA_TYPE_PROPERTY          = "dataType";
-	public static final String SORT_KEY_PROPERTY           = "sortKey";
-	public static final String IS_SEARCHABLE_PROPERTY      = "isSearchable";
-	public static final String ROWS_PROPERTY               = "rows";
-	public static final String COLUMNS_PROPERTY            = "columns";
-	public static final String COLUMN_DATA_SOURCE_PROPERTY = "columnDataSource";
-	public static final String COLUMN_KEY_PROPERTY         = "columnKey";
+	public static final String DATA_ADAPTER_PROPERTY        = "dataAdapter";
+	public static final String RENDER_TEMPLATE_PROPERTY     = "renderTemplate";
+	public static final String EDIT_TEMPLATE_PROPERTY       = "editTemplate";
+	public static final String LABEL_PROPERTY               = "label";
+	public static final String CONFIG_PROPERTY              = "config";
+	public static final String VALUE_PROPERTY               = "value";
+	public static final String DATA_TYPE_PROPERTY           = "dataType";
+	public static final String SORT_KEY_PROPERTY            = "sortKey";
+	public static final String EDIT_MODE_CONDITION_PROPERTY = "editModeCondition";
+	public static final String IS_SEARCHABLE_PROPERTY       = "isSearchable";
+	public static final String ROWS_PROPERTY                = "rows";
+	public static final String COLUMNS_PROPERTY             = "columns";
+	public static final String COLUMN_DATA_SOURCE_PROPERTY  = "columnDataSource";
+	public static final String COLUMN_KEY_PROPERTY          = "columnKey";
 
 	public DataAdapterFieldTraitDefinition() {
 		super(StructrTraits.DATA_ADAPTER_FIELD);
@@ -92,6 +93,7 @@ public class DataAdapterFieldTraitDefinition extends AbstractNodeTraitDefinition
 		final Property<String> valueProperty              = new StringProperty(VALUE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<String> dataTypeProperty           = new StringProperty(DATA_TYPE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<String> sortKeyProperty            = new StringProperty(SORT_KEY_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<String> editModeConditionProperty  = new StringProperty(EDIT_MODE_CONDITION_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<Boolean> isSearchableProperty      = new BooleanProperty(IS_SEARCHABLE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<Integer> rowsProperty              = new IntProperty(ROWS_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<Integer> columnsProperty           = new IntProperty(COLUMNS_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
@@ -107,6 +109,7 @@ public class DataAdapterFieldTraitDefinition extends AbstractNodeTraitDefinition
 			dataTypeProperty,
 			configProperty,
 			sortKeyProperty,
+			editModeConditionProperty,
 			isSearchableProperty,
 			rowsProperty,
 			columnsProperty,
@@ -130,6 +133,7 @@ public class DataAdapterFieldTraitDefinition extends AbstractNodeTraitDefinition
 				DATA_TYPE_PROPERTY,
 				CONFIG_PROPERTY,
 				SORT_KEY_PROPERTY,
+				EDIT_MODE_CONDITION_PROPERTY,
 				IS_SEARCHABLE_PROPERTY,
 				ROWS_PROPERTY,
 				COLUMNS_PROPERTY,

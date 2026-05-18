@@ -18,7 +18,6 @@
  */
 package org.structr.web.function;
 
-import com.google.gson.GsonBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
@@ -66,11 +65,11 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 		final String requestedFieldSet        = domNode.getFieldSetForComponent();
 		final String displayMode              = domNode.getDisplayModeForComponent(securityContext);
 		final String reloadBehaviour          = domNode.getReloadBehaviourForComponent();
-		final boolean useEditTemplate         = "input".equals(displayMode);
 		final Object previousFieldValue       = innerCtx.getConstant("field");
 		final DOMNode component               = domNode.getClosestComponent();
 		final ComponentConfiguration config   = component.getComponentConfiguration();
 		final Channel sourceChannel           = config.getDataSource();
+		final boolean globalUseEditTemplate   = "input".equals(displayMode);
 		String selectedValue                  = null;
 
 		// we can only be a subscriber if we are not called from renderEach(), and maybe the component can use a dimensions property to filter data sources?
@@ -169,6 +168,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 						final String      editTemplate      = augmentedField.getEditTemplate();
 						final String      template          = augmentedField.getTemplate();
 						final String      valueSource       = augmentedField.getValue();
+						final String      displayModeScript = augmentedField.getEditModeCondition();
 						final Boolean     showLabelOverride = augmentedField.showLabel();
 						final GraphObject columnValue       = column.getValue();
 						Object            value             = null;
@@ -182,6 +182,20 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 						// make column value available in context, if applicable
 						if (columnValue != null) {
 							innerCtx.setConstant(augmentedField.getColumnKey(), columnValue);
+						}
+
+						// reset useEditTemplate flag before evaluating script
+						boolean useEditTemplate = globalUseEditTemplate;
+
+						// display mode script?
+						if (StringUtils.isNotBlank(displayModeScript)) {
+
+							final Object booleanResult = Scripting.evaluate(innerCtx, null, "${" + displayModeScript + "}", "displayModeScript expression of data field '" + field + "' in component '" + component.getName() + "' of page '" + component.getOwnerDocument().getName() + "'");
+							if (booleanResult != null) {
+
+								// be lenient
+								useEditTemplate = "true".equalsIgnoreCase(booleanResult.toString());
+							}
 						}
 
 						// value present?

@@ -3013,6 +3013,17 @@ let _Entities = {
 								value: field.columnKey,
 								destination: 'field'
 							}));
+							expertSettings.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({
+								css: 'col-span-3',
+								label: 'Edit Mode Condition',
+								name: 'editModeCondition',
+								fieldName,
+								value: field.editModeCondition,
+								destination: 'field',
+								comment: 'Script expression that evaluates to a boolean. If true, this field is rendered in edit mode, typically as an input field.'
+							}));
+
+							_Helpers.activateCommentsInElement(expertSettings);
 
 							// sortKey override is disabled for now
 							//expertSettings.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({ css: 'col-span-2', label: 'Sort Key', name: 'sortKey', fieldName, value: field.sortKey, destination: 'field' }));
@@ -4322,7 +4333,7 @@ let _Entities = {
             `,
 			fieldDetailInput: (config) => `
                 <div class="${config.css || ''}">
-                    <label class="font-bold block mb-1 px-1">${config.label}</label>
+                    <label class="font-bold block mb-1 px-1" ${config.comment ? `data-comment="${config.comment}"` : ''}">${config.label}</label>
                     <input type="text" data-field-name="${config.fieldName}" data-destination="${config.destination}" autocomplete="off" name="${config.name}" value="${config.value || ''}">
                 </div>
             `,

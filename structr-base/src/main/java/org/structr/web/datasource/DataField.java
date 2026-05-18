@@ -179,6 +179,10 @@ public class DataField extends LinkedHashMap<String, Object> {
 		return (String) get("columnKey");
 	}
 
+	public String getEditModeCondition() {
+		return (String) get("editModeCondition");
+	}
+
 	public void applyCssClasses(final Set<String> cssClasses) {
 
 		cssClasses.add("col-span-" + getColumns());
@@ -186,17 +190,18 @@ public class DataField extends LinkedHashMap<String, Object> {
 
 	public void augment(final DataAdapterField augmentation) throws FrameworkException {
 
-		putIfNotEmpty(this, "template",         augmentation.getRenderTemplate());
-		putIfNotEmpty(this, "editTemplate",     augmentation.getEditTemplate());
-		putIfNotEmpty(this, "label",            augmentation.getLabel());
-		putIfNotEmpty(this, "value",            augmentation.getValue());
-		putIfNotEmpty(this, "dataType",         augmentation.getDataType());
-		putIfNotEmpty(this, "sortKey",          augmentation.getSortKey());
-		putIfNotEmpty(this, "isSearchable",     augmentation.isSearchable());
-		putIfNotEmpty(this, "rows",             augmentation.getRows());
-		putIfNotEmpty(this, "columns",          augmentation.getColumns());
-		putIfNotEmpty(this, "columnDataSource", augmentation.getColumnDataSource());
-		putIfNotEmpty(this, "columnKey",        augmentation.getColumnKey());
+		putIfNotEmpty(this, "template",          augmentation.getRenderTemplate());
+		putIfNotEmpty(this, "editTemplate",      augmentation.getEditTemplate());
+		putIfNotEmpty(this, "label",             augmentation.getLabel());
+		putIfNotEmpty(this, "value",             augmentation.getValue());
+		putIfNotEmpty(this, "dataType",          augmentation.getDataType());
+		putIfNotEmpty(this, "sortKey",           augmentation.getSortKey());
+		putIfNotEmpty(this, "isSearchable",      augmentation.isSearchable());
+		putIfNotEmpty(this, "rows",              augmentation.getRows());
+		putIfNotEmpty(this, "columns",           augmentation.getColumns());
+		putIfNotEmpty(this, "columnDataSource",  augmentation.getColumnDataSource());
+		putIfNotEmpty(this, "columnKey",         augmentation.getColumnKey());
+		putIfNotEmpty(this, "editModeCondition", augmentation.getEditModeCondition());
 
 		// only adapter fields can be deleted in UI
 		putIfAbsent("source", "adapter");
