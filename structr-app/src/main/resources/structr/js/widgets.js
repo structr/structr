@@ -439,8 +439,9 @@ let _Widgets = {
 			});
 		}
 	},
-    insertWidgetIntoPage: (widget, target, pageId, callback) => {
+    insertWidgetIntoPage: (entity, target, pageId, callback) => {
 
+		let widget = StructrModel.obj(entity.id);
         let url = _Widgets.getWidgetServerUrl();
         let processDeploymentInfo = false;
         let config = {
@@ -461,8 +462,9 @@ let _Widgets = {
             Command.appendWidget(widget.source, target.id, pageId, url, {}, config, processDeploymentInfo, callback);
         }
     },
-	wrapElementInWidget: (widget, target, pageId, callback) => {
+	wrapElementInWidget: (entity, target, pageId, callback) => {
 
+		let widget = StructrModel.obj(entity.id);
 		let url = _Widgets.getWidgetServerUrl();
 		let processDeploymentInfo = false;
 		let config = {
@@ -483,8 +485,9 @@ let _Widgets = {
 			Command.wrapInWidget(widget.source, target.id, pageId, url, {}, config, processDeploymentInfo, callback);
 		}
 	},
-	replaceElementWithWidget: (widget, target, pageId, callback) => {
+	replaceElementWithWidget: (entity, target, pageId, callback) => {
 
+		let widget = StructrModel.obj(entity.id);
 		let url = _Widgets.getWidgetServerUrl();
         let processDeploymentInfo = false;
         let config = {
