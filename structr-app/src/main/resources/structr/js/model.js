@@ -822,7 +822,7 @@ StructrWidget.prototype.setProperty = function(key, value, recursive, callback) 
 
 StructrWidget.prototype.append = function() {
 	if (Structr.isModuleActive(_Pages)) {
-		StructrModel.expand(_Widgets.appendWidgetElement(this, false), this);
+		StructrModel.expand(_Widgets.appendWidgetElement(this), this);
 	}
 };
 
