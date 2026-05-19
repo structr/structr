@@ -780,7 +780,14 @@ let _Elements = {
 
 			if (!entity.isPage && (!entity.isContent || entity.type === 'Template')) {
 
-				Command.getSuggestions(entity.id, mode, callback);
+				Command.getSuggestions(entity.id, mode, (suggestions) => {
+
+					for (let suggestion of suggestions) {
+						StructrModel.createFromData(suggestion, null, false);
+					}
+
+					callback(suggestions);
+				});
 			}
 		},
 		prevAnimFrameReqId_updateMenuGroupVisibility: undefined,

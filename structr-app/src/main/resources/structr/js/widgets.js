@@ -17,18 +17,7 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 let _Widgets = {
-	defaultWidgetServerUrl: 'https://apps.structr.com/structr/rest/Widget',
-	widgetServerKey: 'structrWidgetServerKey_' + location.port,
-	applicationConfigurationDataNodeKey: 'remote_widget_server',
-
-	remoteWidgetData: [],
-	remoteWidgetFilterEl: undefined,
-	remoteWidgetsEl: undefined,
 	localWidgetsEl: undefined,
-	widgetServerSelector: undefined,
-
-	localWidgetsCollapsedKey: 'structrWidgetLocalCollapsedKey_' + location.port,
-	remoteWidgetsCollapsedKey: 'structrWidgetRemoteCollapsedKey_' + location.port,
 
 	getContextMenuElements: (div, entity) => {
 
@@ -40,7 +29,7 @@ let _Widgets = {
 			clickHandler: () => {
 
 				Command.get(entity.id, 'id,type,name,source,configuration,description', (entity) => {
-					_Widgets.editWidget(entity, true);
+					_Widgets.editWidget(entity);
 				});
 			}
 		});
@@ -69,59 +58,43 @@ let _Widgets = {
 
 		return elements;
 	},
-	toggleWidgetGroupVisibility: (e) => {
-
-		let tabGroup = e.target.closest('.tab-group');
-		tabGroup.classList.toggle('collapsed');
-		LSWrapper.setItem(tabGroup.dataset.key, tabGroup.classList.contains('collapsed'));
-	},
 	reloadWidgets: () => {
 
 		_Helpers.fastRemoveAllChildren(_Pages.widgetsSlideout[0]);
 
-		let templateConfig = {
-			localCollapsed: LSWrapper.getItem(_Widgets.localWidgetsCollapsedKey, false),
-			remoteCollapsed: LSWrapper.getItem(_Widgets.remoteWidgetsCollapsedKey, false)
-		};
-
-		_Pages.widgetsSlideout.append(_Widgets.templates.slideout(templateConfig));
-
-		for (let toggleLink of _Pages.widgetsSlideout[0].querySelectorAll('a.tab-group-toggle')) {
-			toggleLink.onclick = _Widgets.toggleWidgetGroupVisibility;
-		}
+		_Pages.widgetsSlideout.append(_Widgets.templates.slideout());
 
 		_Widgets.localWidgetsEl = $('#widgets', _Pages.widgetsSlideout);
 
 		_Pages.widgetsSlideout[0].querySelector('.add_widgets_icon').addEventListener('click', (e) => {
 			e.preventDefault();
 			Command.create({ type: 'Widget' }, (widget) => {
-				_Widgets.editWidget(widget, true);
+				_Widgets.editWidget(widget);
 			});
 		});
 
-		_Widgets.localWidgetsEl.droppable({
-			drop: function(e, ui) {
-				e.preventDefault();
-				e.stopPropagation();
-				_Elements.dropBlocked = true;
-				var sourceId = Structr.getId($(ui.draggable));
-				var sourceWidget = StructrModel.obj(sourceId);
-
-				// Drop widget from local DOM element
-
-				fetch(`${Structr.viewRootUrl}${sourceId}?${Structr.getRequestParameterName('edit')}=1`).then(async response => {
-
-					if (response.ok) {
-
-						let text = await response.text();
-
-						Command.createLocalWidget(sourceId, `New Widget (${sourceId})`, text, (entity) => {
-							_Elements.dropBlocked = false;
-						});
-					}
-				});
-			}
-		});
+		// _Widgets.localWidgetsEl.droppable({
+		// 	drop: function(e, ui) {
+		// 		e.preventDefault();
+		// 		e.stopPropagation();
+		// 		_Elements.dropBlocked = true;
+		// 		let sourceId = Structr.getId($(ui.draggable));
+		//
+		// 		// Drop widget from local DOM element
+		//
+		// 		fetch(`${Structr.viewRootUrl}${sourceId}?${Structr.getRequestParameterName('edit')}=1`).then(async response => {
+		//
+		// 			if (response.ok) {
+		//
+		// 				let text = await response.text();
+		//
+		// 				Command.createLocalWidget(sourceId, `New Widget (${sourceId})`, text, (entity) => {
+		// 					_Elements.dropBlocked = false;
+		// 				});
+		// 			}
+		// 		});
+		// 	}
+		// });
 
 		_Pager.initPager('local-widgets', 'Widget', 1, 1000, 'treePath,name', 'asc');
 		let _wPager = _Pager.addPager('local-widgets', _Widgets.localWidgetsEl[0], true, 'Widget', 'public', (entities) => {
@@ -135,7 +108,7 @@ let _Widgets = {
 			} else {
 				for (let entity of entities) {
 					StructrModel.create(entity, null, false);
-					_Widgets.appendWidgetElement(entity, false, _Widgets.localWidgetsEl);
+					_Widgets.appendWidgetElement(entity);
 				}
 			}
 		}, undefined, undefined, true);
@@ -173,24 +146,6 @@ let _Widgets = {
 			})
 		});
 	},
-	getWidgetServerUrl: () => {
-
-		if (_Widgets.widgetServerSelector) {
-
-			let url = _Widgets.widgetServerSelector.value;
-			if (url && url.toLowerCase().indexOf('/structr/rest/widget') === -1) {
-				if (url.indexOf('/') === url.length) {
-					// append REST path without /
-					return url + 'structr/rest/Widget';
-				} else {
-					// append REST path with /
-					return url + '/structr/rest/Widget';
-				}
-			}
-			// else return unmodified URL
-			return url;
-		}
-	},
 	getTreeParent: (element, treePath, suffix) => {
 
 		let parent     = element;
@@ -226,16 +181,16 @@ let _Widgets = {
 
 		_Widgets.appendVisualExpandIcon(div.children('.node-container'), id, name, true, false);
 	},
-	appendWidgetElement: (widget, remote, el) => {
+	appendWidgetElement: (widget) => {
 
-		let parent = _Widgets.getTreeParent(el ? el : (remote ? _Widgets.remoteWidgetsEl : _Widgets.localWidgetsEl), widget.treePath, remote ? '_remote' : '_local');
+		let parent = _Widgets.getTreeParent(_Widgets.localWidgetsEl, widget.treePath, '_local');
 		let div    = Structr.node(widget.id);
 
 		if (!div) {
 
 			let widgetElement = $(`
 				<div id="id_${widget.id}" class="widget p-2 hover:icon-active" draggable="true">
-					<img style="width: 24px;${!widget.svgIconPath ? 'opacity: 0.5;' : ''}" src="${widget.svgIconPath || '/structr/icon/streamlinehq-website-build-programing-apps-websites.svg'}" draggable="false">
+					<img style="width: 24px;${!widget.svgIconPath ? 'opacity: 0.5;' : ''}" src="${widget.svgIconPath ?? '/structr/icon/streamlinehq-website-build-programing-apps-websites.svg'}" draggable="false">
 					<span class="name_ flex-grow mt-4"></span>
 				</div>
 			`);
@@ -251,23 +206,20 @@ let _Widgets = {
 
 		_Dragndrop.enableDraggable(widget, div[0], _Dragndrop.dropActions.widget, false);
 
-		if (!remote) {
-
-			div.children('.name_').off('click').on('click', (e) => {
-				e.stopPropagation();
-				_Entities.makeAttributeEditable(div, widget.id, '.name_', 'name', (el) => {
-					_Helpers.blinkGreen(el);
-				});
+		div.children('.name_').off('click').on('click', (e) => {
+			e.stopPropagation();
+			_Entities.makeAttributeEditable(div, widget.id, '.name_', 'name', (el) => {
+				_Helpers.blinkGreen(el);
 			});
-		}
+		});
 
 		_Elements.contextMenu.enableContextMenuOnElement(div[0], widget);
 
 		return div;
 	},
-	editWidget: (entity, isLocalWidget) => {
+	editWidget: (entity) => {
 
-		let { dialogText } = _Dialogs.custom.openDialog(`${isLocalWidget ? 'Edit widget "' : 'Viewing remote widget "'}${entity.name}"`, null, ['popup-dialog-with-editor']);
+		let { dialogText } = _Dialogs.custom.openDialog(`Edit widget "${entity.name}"`, null, ['popup-dialog-with-editor']);
 
 		dialogText.insertAdjacentHTML('beforeend', `
 			<div class="widgets-tabs flex flex-col h-full overflow-hidden">
@@ -275,13 +227,13 @@ let _Widgets = {
 					<li data-name="source">Source</li>
 					<li data-name="config">Configuration</li>
 					<li data-name="description">Description</li>
-					${isLocalWidget ? '<li data-name="selectors">Options</li>' : '' }
+					<li data-name="selectors">Options</li>
 					<li data-name="help">Help</li>
 				</ul>
 				<div class="widget-tab-content flex-grow" id="tabView-source"><div class="editor h-full overflow-hidden"></div></div>
 				<div class="widget-tab-content flex-grow" id="tabView-config"><div class="editor h-full overflow-hidden"></div></div>
 				<div class="widget-tab-content flex-grow" id="tabView-description"><div class="editor h-full overflow-hidden"></div></div>
-				${isLocalWidget ? '<div class="widget-tab-content" id="tabView-selectors"></div>' : '' }
+				<div class="widget-tab-content" id="tabView-selectors"></div>
 				<div class="widget-tab-content overflow-y-auto" id="tabView-help">${_Widgets.templates.help()}</div>
 			</div>
 		`);
@@ -318,13 +270,11 @@ let _Widgets = {
 
 			changes[propertyName] = ((entity[propertyName] || '') !== editor.getValue());
 
-			if (isLocalWidget) {
-				_Helpers.disableElements(!widgetChanged(), dialogSaveButton, saveAndClose);
-			}
+			_Helpers.disableElements(!widgetChanged(), dialogSaveButton, saveAndClose);
 		};
 
 		let baseEditorConfig = {
-			readOnly: (isLocalWidget === false),
+			readOnly: false,
 			changeFn: editorChangeHandler
 		};
 
@@ -332,65 +282,62 @@ let _Widgets = {
 		let configEditor      = _Editors.getMonacoEditor(entity, 'configuration', dialogText.querySelector('#tabView-config .editor'),      Object.assign({}, baseEditorConfig, { language: 'application/json' }));
 		let descriptionEditor = _Editors.getMonacoEditor(entity, 'description',   dialogText.querySelector('#tabView-description .editor'), Object.assign({}, baseEditorConfig, { language: 'text/html' }));
 
-		if (isLocalWidget) {
+		// allow editing of selectors property
+		_Schema.caches.getTypeInfo(entity.type, (typeInfo) => {
+			_Entities.listProperties(entity, 'editWidget', $('#tabView-selectors'), typeInfo);
+		});
 
-			// allow editing of selectors property
-			_Schema.caches.getTypeInfo(entity.type, (typeInfo) => {
-				_Entities.listProperties(entity, 'editWidget', $('#tabView-selectors'), typeInfo);
-			});
+		let saveWidgetFunction = (closeAfterSave) => {
 
-			let saveWidgetFunction = (closeAfterSave) => {
-
-				let widgetData = {
-					source:        sourceEditor.getValue(),
-					configuration: configEditor.getValue(),
-					description:   descriptionEditor.getValue()
-				};
-
-				try {
-
-					if (widgetData.configuration) {
-						JSON.parse(widgetData.configuration);
-					}
-
-					Command.setProperties(entity.id, widgetData, () => {
-
-						_Dialogs.custom.showAndHideInfoBoxMessage('Widget saved.', 'success', 2000, 200);
-
-						if (closeAfterSave) {
-
-							_Dialogs.custom.clickDialogCancelButton();
-
-						} else {
-
-							let modelObj = StructrModel.obj(entity.id);
-							modelObj.source        = widgetData.source;
-							modelObj.configuration = widgetData.configuration;
-							modelObj.description   = widgetData.description;
-							entity.source          = widgetData.source;
-							entity.configuration   = widgetData.configuration;
-							entity.description     = widgetData.description;
-
-							changes = {};
-
-							_Helpers.disableElements(!widgetChanged(), dialogSaveButton, saveAndClose);
-						}
-					});
-
-				} catch (e) {
-					activateTab('config');
-					alert('Configuration is not valid JSON - please review, otherwise the widget configuration dialog will not function correctly');
-				}
+			let widgetData = {
+				source:        sourceEditor.getValue(),
+				configuration: configEditor.getValue(),
+				description:   descriptionEditor.getValue()
 			};
 
-			saveAndClose.addEventListener('click', () => {
-				saveWidgetFunction(true);
-			});
+			try {
 
-			dialogSaveButton.addEventListener('click', () => {
-				saveWidgetFunction(false);
-			});
-		}
+				if (widgetData.configuration) {
+					JSON.parse(widgetData.configuration);
+				}
+
+				Command.setProperties(entity.id, widgetData, () => {
+
+					_Dialogs.custom.showAndHideInfoBoxMessage('Widget saved.', 'success', 2000, 200);
+
+					if (closeAfterSave) {
+
+						_Dialogs.custom.clickDialogCancelButton();
+
+					} else {
+
+						let modelObj = StructrModel.obj(entity.id);
+						modelObj.source        = widgetData.source;
+						modelObj.configuration = widgetData.configuration;
+						modelObj.description   = widgetData.description;
+						entity.source          = widgetData.source;
+						entity.configuration   = widgetData.configuration;
+						entity.description     = widgetData.description;
+
+						changes = {};
+
+						_Helpers.disableElements(!widgetChanged(), dialogSaveButton, saveAndClose);
+					}
+				});
+
+			} catch (e) {
+				activateTab('config');
+				alert('Configuration is not valid JSON - please review, otherwise the widget configuration dialog will not function correctly');
+			}
+		};
+
+		saveAndClose.addEventListener('click', () => {
+			saveWidgetFunction(true);
+		});
+
+		dialogSaveButton.addEventListener('click', () => {
+			saveWidgetFunction(false);
+		});
 
 		activateTab('source');
 	},
@@ -439,31 +386,9 @@ let _Widgets = {
 			});
 		}
 	},
-    insertWidgetIntoPage: (widget, target, pageId, callback) => {
+	insertWidgetIntoPage: (entity, target, pageId, callback) => {
 
-        let url = _Widgets.getWidgetServerUrl();
-        let processDeploymentInfo = false;
-        let config = {
-            componentType: widget.componentType,
-            dimensions: widget.dimensions,
-        };
-
-        if (widget.configuration) {
-
-            processDeploymentInfo = widget.configuration.processDeploymentInfo;
-
-            _Widgets.showWidgetConfigurationDialog(widget, (attrs) => {
-                Command.appendWidget(widget.source, target.id, pageId, url, attrs, config, processDeploymentInfo, callback);
-            });
-
-        } else {
-
-            Command.appendWidget(widget.source, target.id, pageId, url, {}, config, processDeploymentInfo, callback);
-        }
-    },
-	wrapElementInWidget: (widget, target, pageId, callback) => {
-
-		let url = _Widgets.getWidgetServerUrl();
+		let widget = StructrModel.obj(entity.id);
 		let processDeploymentInfo = false;
 		let config = {
 			componentType: widget.componentType,
@@ -475,85 +400,95 @@ let _Widgets = {
 			processDeploymentInfo = widget.configuration.processDeploymentInfo;
 
 			_Widgets.showWidgetConfigurationDialog(widget, (attrs) => {
-				Command.wrapInWidget(widget.source, target.id, pageId, url, attrs, config, processDeploymentInfo, callback);
+				Command.appendWidget(widget.source, target.id, pageId, null, attrs, config, processDeploymentInfo, callback);
 			});
 
 		} else {
 
-			Command.wrapInWidget(widget.source, target.id, pageId, url, {}, config, processDeploymentInfo, callback);
+			Command.appendWidget(widget.source, target.id, pageId, null, {}, config, processDeploymentInfo, callback);
 		}
 	},
-	replaceElementWithWidget: (widget, target, pageId, callback) => {
+	wrapElementInWidget: (entity, target, pageId, callback) => {
 
-		let url = _Widgets.getWidgetServerUrl();
-        let processDeploymentInfo = false;
-        let config = {
-            componentType: widget.componentType,
-            dimensions: widget.dimensions,
-        };
+		let widget = StructrModel.obj(entity.id);
+		let processDeploymentInfo = false;
+		let config = {
+			componentType: widget.componentType,
+			dimensions: widget.dimensions,
+		};
 
 		if (widget.configuration) {
 
-            processDeploymentInfo = widget.configuration.processDeploymentInfo;
+			processDeploymentInfo = widget.configuration.processDeploymentInfo;
 
-            _Widgets.showWidgetConfigurationDialog(widget, (attrs) => {
-                Command.replaceWidget(widget.source, target.id, pageId, url, attrs, config, processDeploymentInfo, callback);
-            });
+			_Widgets.showWidgetConfigurationDialog(widget, (attrs) => {
+				Command.wrapInWidget(widget.source, target.id, pageId, null, attrs, config, processDeploymentInfo, callback);
+			});
 
 		} else {
 
-			Command.replaceWidget(widget.source, target.id, pageId, url, {}, config, processDeploymentInfo, callback);
+			Command.wrapInWidget(widget.source, target.id, pageId, null, {}, config, processDeploymentInfo, callback);
 		}
 	},
-    showWidgetConfigurationDialog: async (widget, callback) => {
+	replaceElementWithWidget: (entity, target, pageId, callback) => {
 
-        let widgetDescription = widget.description;
-        let widgetConfig      = widget.configuration;
+		let widget = StructrModel.obj(entity.id);
+		let processDeploymentInfo = false;
+		let config = {
+			componentType: widget.componentType,
+			dimensions: widget.dimensions,
+		};
 
-        if (widgetConfig) {
-            try {
-                widgetConfig = JSON.parse(widgetConfig);
-            } catch (e) {
-                new ErrorMessage().text("Cannot parse Widget configuration").show();
-                return;
-            }
-        }
+		if (widget.configuration) {
 
-        let { dialogText } = _Dialogs.custom.openDialog('Insert Widget', undefined, ['insert-widget-dialog']);
-        let appendWidgetButton = _Dialogs.custom.appendCustomDialogButton('<button id="appendWidget" class="action">Append Widget</button>');
+			processDeploymentInfo = widget.configuration.processDeploymentInfo;
 
-        if ((widgetDescription === null || widgetDescription.trim() === "")) {
-            widgetDescription = ''
-        }
+			_Widgets.showWidgetConfigurationDialog(widget, (attrs) => {
+				Command.replaceWidget(widget.source, target.id, pageId, null, attrs, config, processDeploymentInfo, callback);
+			});
 
-        if (widgetDescription.length) {
+		} else {
 
-            dialogText.insertAdjacentHTML('beforeend', `
-                        <h3>Description</h3>
-                        <p>${widgetDescription}</p>
-                    `);
-        }
+			Command.replaceWidget(widget.source, target.id, pageId, null, {}, config, processDeploymentInfo, callback);
+		}
+	},
+	showWidgetConfigurationDialog: async (widget, callback) => {
 
-        dialogText.insertAdjacentHTML('beforeend', `
-                        <h3>Settings</h3>
-                        <p>Please select values for the following settings before inserting the widget.</p>
-                        <form id="widget-form"><div class="widget-props grid grid-cols-3 gap-8"></div></formi>
-                    `);
+		let widgetDescription = widget.description;
+		let widgetConfig      = widget.configuration;
 
-        let form = $('div', $(dialogText));
+		if (widgetConfig) {
+			try {
+				widgetConfig = JSON.parse(widgetConfig);
+			} catch (e) {
+				new ErrorMessage().text("Cannot parse Widget configuration").show();
+				return;
+			}
+		}
+
+		let { dialogText } = _Dialogs.custom.openDialog('Insert Widget', undefined, ['insert-widget-dialog']);
+		let appendWidgetButton = _Dialogs.custom.appendCustomDialogButton('<button id="appendWidget" class="action">Append Widget</button>');
+
+		if ((widgetDescription === null || widgetDescription.trim() === "")) {
+			widgetDescription = ''
+		}
+
+		if (widgetDescription.length) {
+
+			dialogText.insertAdjacentHTML('beforeend', `
+						<h3>Description</h3>
+						<p>${widgetDescription}</p>
+					`);
+		}
+
+		dialogText.insertAdjacentHTML('beforeend', `
+						<h3>Settings</h3>
+						<p>Please select values for the following settings before inserting the widget.</p>
+						<form id="widget-form"><div class="widget-props grid grid-cols-3 gap-8"></div></formi>
+					`);
+
+		let form = $('div', $(dialogText));
 		let formElement = document.querySelector('#widget-form');
-
-        let getOptionsAsText = (options, defaultValue) => {
-
-            if (Object.prototype.toString.call(options) === '[object Array]') {
-
-                return options.map(option => `<option ${((option === defaultValue) ? 'selected' : '')}>${option}</option>`).join('');
-
-            } else if (Object.prototype.toString.call(options) === '[object Object]') {
-
-                return Object.keys(options).map(option => `<option ${((option === defaultValue) ? 'selected' : '')} value="${option}">${options[option]}</option>`).join('');
-            }
-        };
 
 		let updateButtonState = () => {
 			if (formElement.checkValidity()) {
@@ -565,26 +500,26 @@ let _Widgets = {
 			}
 		};
 
-        let sortedWidgetConfig = _Widgets.sortWidgetConfigurationByPosition(widgetConfig);
+		let sortedWidgetConfig = _Widgets.sortWidgetConfigurationByPosition(widgetConfig);
 
-        for (let configElement of sortedWidgetConfig) {
+		for (let configElement of sortedWidgetConfig) {
 
-            let label = configElement[0];
-            if (label === 'processDeploymentInfo') {
-                return;
-            }
+			let label = configElement[0];
+			if (label === 'processDeploymentInfo') {
+				return;
+			}
 
-            let cleanedLabel = label.replace(/[^\w]/g, '_');
-            let fieldConfig  = configElement[1];
-            let fieldType    = fieldConfig.type;
-            let defaultValue = fieldConfig.default || '';
-            let titleLabel   = fieldConfig.title || label;
-            let placeholder  = fieldConfig.placeholder || titleLabel;
+			let cleanedLabel = label.replace(/[^\w]/g, '_');
+			let fieldConfig  = configElement[1];
+			let fieldType    = fieldConfig.type;
+			let defaultValue = fieldConfig.default || '';
+			let titleLabel   = fieldConfig.title || label;
+			let placeholder  = fieldConfig.placeholder || titleLabel;
 
-            switch (fieldType) {
+			switch (fieldType) {
 
-                case 'datasource':
-                    form.append(await _Widgets.templates.dataSourcesInput({ cleanedLabel, titleLabel, label, defaultValue, titleComment: 'Select the data source for this component.' }));
+				case 'datasource':
+					form.append(await _Widgets.templates.dataSourcesInput({ cleanedLabel, titleLabel, label, defaultValue, titleComment: 'Select the data source for this component.' }));
 					form.append(
 						`<div id="new-schema-node-name-input" class="hidden">
 							<h4>New Type</h4>
@@ -610,7 +545,7 @@ let _Widgets = {
 							</div>
 						</div>`
 					);
-                    let input           = document.querySelector(`#${cleanedLabel}`);
+					let input           = document.querySelector(`#${cleanedLabel}`);
 					let sourceNameDiv   = document.querySelector('#new-data-source-name-input');
 					let schemaNameDiv   = document.querySelector('#new-schema-node-name-input');
 					let attributesDiv   = document.querySelector('#new-schema-node-attributes');
@@ -690,155 +625,155 @@ let _Widgets = {
 						attributeDiv.querySelector('input').addEventListener('keyup', _Helpers.debounce(updateButtonState, 300));
 						attributeDiv.querySelector('select').addEventListener('change', updateButtonState);
 					});
-                    break;
+					break;
 
-                case 'fields':
-                    form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select required id="${cleanedLabel}" class="form-field" data-key="${label}"></select></div>`);
-                    {
-                        let typeSelect = document.querySelector('select[data-info="select-type"]');
-                        if (typeSelect) {
-                            typeSelect.addEventListener('change', async (e) => {
-                                let id = typeSelect.value;
-                                Command.get(id, 'id,type,name,mapping', (info) => {
-                                    let s = document.querySelector(`select#${cleanedLabel}`);
-                                    let fields = JSON.parse(info.mapping); // right now it's JSON...
-                                    s.insertAdjacentHTML('beforeend', getOptionsAsText(Object.keys(fields).sort(), 'default'));
-                                    s.dispatchEvent(new CustomEvent('change', {}));
-                                });
-                            });
-                        } else {
-                            console.log('No typeselect');
-                        }
-                    }
-                    break;
+				case 'fields':
+					form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select required id="${cleanedLabel}" class="form-field" data-key="${label}"></select></div>`);
+					{
+						let typeSelect = document.querySelector('select[data-info="select-type"]');
+						if (typeSelect) {
+							typeSelect.addEventListener('change', async (e) => {
+								let id = typeSelect.value;
+								Command.get(id, 'id,type,name,mapping', (info) => {
+									let s = document.querySelector(`select#${cleanedLabel}`);
+									let fields = JSON.parse(info.mapping); // right now it's JSON...
+									s.insertAdjacentHTML('beforeend', _Widgets.templates.getOptionsAsText(Object.keys(fields).sort(), 'default'));
+									s.dispatchEvent(new CustomEvent('change', {}));
+								});
+							});
+						} else {
+							console.log('No typeselect');
+						}
+					}
+					break;
 
-                case 'schema-type':
-                    let types = await _Schema.caches.getFilteredSchemaTypes(t => !t.isBuiltin);
-                    types = types.map(t => t.name);
-                    form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select required data-info="select-type" id="${cleanedLabel}" class="form-field" data-key="${label}"><option value="">--- Select type ---</option>${getOptionsAsText(types, defaultValue)}</select></div>`);
-                    break;
+				case 'schema-type':
+					let types = await _Schema.caches.getFilteredSchemaTypes(t => !t.isBuiltin);
+					types = types.map(t => t.name);
+					form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select required data-info="select-type" id="${cleanedLabel}" class="form-field" data-key="${label}"><option value="">--- Select type ---</option>${_Widgets.templates.getOptionsAsText(types, defaultValue)}</select></div>`);
+					break;
 
-                case 'schema-property':
-                    form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select required id="${cleanedLabel}" class="form-field" data-key="${label}"></select></div>`);
-                    {
-                        let typeSelect = document.querySelector('select[data-info="select-type"]');
-                        if (typeSelect) {
-                            typeSelect.addEventListener('change', async (e) => {
-                                let id = typeSelect.value;
-                                Command.get(id, 'id,type,name,keys', (info) => {
-                                    let s = document.querySelector(`select#${cleanedLabel}`);
-                                    s.insertAdjacentHTML('beforeend', getOptionsAsText(Object.keys(info.keys).sort(), 'name'));
-                                    s.dispatchEvent(new CustomEvent('change', {}));
-                                });
-                            });
-                        } else {
-                            console.log('No typeselect');
-                        }
-                    }
-                    break;
+				case 'schema-property':
+					form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select required id="${cleanedLabel}" class="form-field" data-key="${label}"></select></div>`);
+					{
+						let typeSelect = document.querySelector('select[data-info="select-type"]');
+						if (typeSelect) {
+							typeSelect.addEventListener('change', async (e) => {
+								let id = typeSelect.value;
+								Command.get(id, 'id,type,name,keys', (info) => {
+									let s = document.querySelector(`select#${cleanedLabel}`);
+									s.insertAdjacentHTML('beforeend', _Widgets.templates.getOptionsAsText(Object.keys(info.keys).sort(), 'name'));
+									s.dispatchEvent(new CustomEvent('change', {}));
+								});
+							});
+						} else {
+							console.log('No typeselect');
+						}
+					}
+					break;
 
-                case 'schema-method':
-                    form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select required id="${cleanedLabel}" class="form-field" data-key="${label}"></select></div>`);
-                    {
-                        let typeSelect = document.querySelector('select[data-info="select-type"]');
-                        if (typeSelect) {
-                            typeSelect.addEventListener('change', async (e) => {
-                                Command.getTypeInfo(typeSelect.value, (types) => {
-                                    for (let info of types) {
-                                        let s = document.querySelector(`select#${cleanedLabel}`);
-                                        s.insertAdjacentHTML('beforeend', getOptionsAsText(info.schemaMethods.map(v => v.name).sort(), 'public'));
-                                        s.dispatchEvent(new CustomEvent('change', {}));
-                                    }
-                                });
-                            });
-                        }
-                    }
-                    break;
+				case 'schema-method':
+					form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select required id="${cleanedLabel}" class="form-field" data-key="${label}"></select></div>`);
+					{
+						let typeSelect = document.querySelector('select[data-info="select-type"]');
+						if (typeSelect) {
+							typeSelect.addEventListener('change', async (e) => {
+								Command.getTypeInfo(typeSelect.value, (types) => {
+									for (let info of types) {
+										let s = document.querySelector(`select#${cleanedLabel}`);
+										s.insertAdjacentHTML('beforeend', _Widgets.templates.getOptionsAsText(info.schemaMethods.map(v => v.name).sort(), 'public'));
+										s.dispatchEvent(new CustomEvent('change', {}));
+									}
+								});
+							});
+						}
+					}
+					break;
 
-                case 'select':
-                    let options = fieldConfig.options || ["-"];
+				case 'select':
+					let options = fieldConfig.options || ["-"];
 
-                    let buffer = `<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select required id="${cleanedLabel}" class="form-field" data-key="${label}">`;
-                    let delayedAppendFunction;
+					let buffer = `<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select required id="${cleanedLabel}" class="form-field" data-key="${label}">`;
+					let delayedAppendFunction;
 
-                    if (fieldConfig.dynamicOptionsFunction) {
+					if (fieldConfig.dynamicOptionsFunction) {
 
-                        let dynamicOptionsFunction = new Function("callback", fieldConfig.dynamicOptionsFunction);
+						let dynamicOptionsFunction = new Function("callback", fieldConfig.dynamicOptionsFunction);
 
-                        let delayedAppendOptions = function (options) {
-                            delayedAppendFunction = new function() {
-                                $(`select#${cleanedLabel}`).append(getOptionsAsText(options, defaultValue));
-                            };
-                        };
+						let delayedAppendOptions = function (options) {
+							delayedAppendFunction = new function() {
+								$(`select#${cleanedLabel}`).append(_Widgets.templates.getOptionsAsText(options, defaultValue));
+							};
+						};
 
-                        dynamicOptionsFunction(delayedAppendOptions);
+						dynamicOptionsFunction(delayedAppendOptions);
 
-                    } else {
+					} else {
 
-                        buffer += getOptionsAsText(options, defaultValue);
-                    }
+						buffer += _Widgets.templates.getOptionsAsText(options, defaultValue);
+					}
 
-                    buffer += '</select></div>';
+					buffer += '</select></div>';
 
-                    form.append(buffer);
-                    if (delayedAppendFunction) {
-                        delayedAppendFunction();
-                    }
-                    break;
+					form.append(buffer);
+					if (delayedAppendFunction) {
+						delayedAppendFunction();
+					}
+					break;
 
-                case 'textarea':
-                    let rows = (fieldConfig.rows ? parseInt(fieldConfig.rows) || 5 : 5);
-                    form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><textarea required rows=${rows} class="form-field" id="${label}" placeholder="${placeholder}" data-key="${label}">${defaultValue}</textarea></div>`);
-                    break;
+				case 'textarea':
+					let rows = (fieldConfig.rows ? parseInt(fieldConfig.rows) || 5 : 5);
+					form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><textarea required rows=${rows} class="form-field" id="${label}" placeholder="${placeholder}" data-key="${label}">${defaultValue}</textarea></div>`);
+					break;
 
-                case 'input':
-                default:
-                    form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><input required class="form-field" type="text" id="${label}" placeholder="${placeholder}" data-key="${label}" value="${defaultValue}"></div>`);
-            }
+				case 'input':
+				default:
+					form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><input required class="form-field" type="text" id="${label}" placeholder="${placeholder}" data-key="${label}" value="${defaultValue}"></div>`);
+			}
 
-            if (fieldConfig.help) {
-                _Helpers.appendInfoTextToElement({
-                    text: fieldConfig.help,
-                    element: $(`#label-${cleanedLabel}`)
-                });
-            }
-        }
+			if (fieldConfig.help) {
+				_Helpers.appendInfoTextToElement({
+					text: fieldConfig.help,
+					element: $(`#label-${cleanedLabel}`)
+				});
+			}
+		}
 
-        // disable button until selections are made
-        appendWidgetButton.disabled = true;
-        appendWidgetButton.classList.add('disabled');
+		// disable button until selections are made
+		appendWidgetButton.disabled = true;
+		appendWidgetButton.classList.add('disabled');
 
-        for (let e of formElement.elements) {
+		for (let e of formElement.elements) {
 			e.addEventListener('change', updateButtonState);
-            e.addEventListener('input', _Helpers.debounce(updateButtonState, 500));
-        }
+			e.addEventListener('input', _Helpers.debounce(updateButtonState, 500));
+		}
 
-        appendWidgetButton.addEventListener('click', (e) => {
+		appendWidgetButton.addEventListener('click', (e) => {
 
-            e.stopPropagation();
+			e.stopPropagation();
 
-            let attrs = {};
+			let attrs = {};
 
-            for (let field of form[0].querySelectorAll('.form-field')) {
-                let key = field.dataset['key'];
-                if (widgetConfig[key]) {
-                    attrs[key] = field.value;
-                }
-            }
+			for (let field of form[0].querySelectorAll('.form-field')) {
+				let key = field.dataset['key'];
+				if (widgetConfig[key]) {
+					attrs[key] = field.value;
+				}
+			}
 
-            // async callback
-            if (callback && typeof callback === 'function') {
-                callback(attrs);
-            }
+			// async callback
+			if (callback && typeof callback === 'function') {
+				callback(attrs);
+			}
 
-            _Dialogs.custom.clickDialogCancelButton();
-        });
+			_Dialogs.custom.clickDialogCancelButton();
+		});
 
-        _Helpers.activateCommentsInElement(dialogText, { helpElementCss: { 'font-size': '13px'} });
+		_Helpers.activateCommentsInElement(dialogText, { helpElementCss: { 'font-size': '13px'} });
 
-        // update button state initially, just in case the form is already valid..
-        updateButtonState();
-    },
+		// update button state initially, just in case the form is already valid..
+		updateButtonState();
+	},
 	sortWidgetConfigurationByPosition: (config) => {
 
 		let entries = Object.entries(config);
@@ -866,69 +801,69 @@ let _Widgets = {
 		return await _Widgets.fetchLocalPageTemplateWidgets();
 	},
 
-    sortables: {
-        enableDragSortForDetailsSummary: (container, callback) => {
-            let dragged = null;
-            const indicator = document.createElement('div');
-            indicator.style.cssText = 'height:4px; background:var(--structr-light-green);pointer-events:none;';
+	sortables: {
+		enableDragSortForDetailsSummary: (container, callback) => {
+			let dragged = null;
+			const indicator = document.createElement('div');
+			indicator.style.cssText = 'height:4px; background:var(--structr-light-green);pointer-events:none;';
 
-            for (const child of container.children) {
-                const handle = document.createElement('span');
-                handle.textContent = '⠿';
-                handle.style.cssText = 'cursor: grab; flex-grow: 0; margin-top: 2px; margin-left: 1rem;';
-                let summary = child.querySelector('summary');
+			for (const child of container.children) {
+				const handle = document.createElement('span');
+				handle.textContent = '⠿';
+				handle.style.cssText = 'cursor: grab; flex-grow: 0; margin-top: 2px; margin-left: 1rem;';
+				let summary = child.querySelector('summary');
 				summary.appendChild(handle);
-                handle.setAttribute('draggable', 'true');
-                handle.addEventListener('dragstart', (e) => {
-                    dragged = child;
-                    const rect = summary.getBoundingClientRect();
+				handle.setAttribute('draggable', 'true');
+				handle.addEventListener('dragstart', (e) => {
+					dragged = child;
+					const rect = summary.getBoundingClientRect();
 					summary.style.backgroundColor = 'var(--very-light-structr-green-2)';
 					summary.style.borderRadius = '.25rem';
 					summary.style.border = '1px solid #ddd';
 					summary.style.opacity = '0.4';
-                    e.dataTransfer.setDragImage(summary, rect.width - 10, rect.height / 2);
-                });
-                handle.addEventListener('dragend', () => {
+					e.dataTransfer.setDragImage(summary, rect.width - 10, rect.height / 2);
+				});
+				handle.addEventListener('dragend', () => {
 					summary.style.backgroundColor = 'transparent';
 					summary.style.border = 'none';
-                    summary.style.opacity = '';
-                    dragged = null;
-                    indicator.remove();
-                });
-            }
+					summary.style.opacity = '';
+					dragged = null;
+					indicator.remove();
+				});
+			}
 
-            function getDropTarget(y) {
-                for (const child of [...container.children]) {
-                    if (child === indicator || child === dragged) continue;
-                    const rect = child.getBoundingClientRect();
-                    if (y < rect.top + rect.height / 2) return child;
-                }
-                return null;
-            }
+			function getDropTarget(y) {
+				for (const child of [...container.children]) {
+					if (child === indicator || child === dragged) continue;
+					const rect = child.getBoundingClientRect();
+					if (y < rect.top + rect.height / 2) return child;
+				}
+				return null;
+			}
 
-            container.addEventListener('dragover', e => {
-                e.preventDefault();
-                if (!dragged) return;
-                const before = getDropTarget(e.clientY);
-                before ? container.insertBefore(indicator, before) : container.appendChild(indicator);
-            });
+			container.addEventListener('dragover', e => {
+				e.preventDefault();
+				if (!dragged) return;
+				const before = getDropTarget(e.clientY);
+				before ? container.insertBefore(indicator, before) : container.appendChild(indicator);
+			});
 
-            container.addEventListener('dragleave', e => {
-                if (!container.contains(e.relatedTarget)) indicator.remove();
-            });
+			container.addEventListener('dragleave', e => {
+				if (!container.contains(e.relatedTarget)) indicator.remove();
+			});
 
-            container.addEventListener('drop', e => {
-                e.preventDefault();
-                if (!dragged) return;
-                indicator.remove();
-                const before = getDropTarget(e.clientY);
-                before ? container.insertBefore(dragged, before) : container.appendChild(dragged);
-                if (callback && typeof callback === 'function') {
-                    callback();
-                }
-            });
-        }
-    },
+			container.addEventListener('drop', e => {
+				e.preventDefault();
+				if (!dragged) return;
+				indicator.remove();
+				const before = getDropTarget(e.clientY);
+				before ? container.insertBefore(dragged, before) : container.appendChild(dragged);
+				if (callback && typeof callback === 'function') {
+					callback();
+				}
+			});
+		}
+	},
 
 	templates: {
 		slideout: config => `
@@ -937,10 +872,6 @@ let _Widgets = {
 				<div id="widgets" class="mt-9"></div>
 				</div>
 			</div>
-		`,
-		editSelectors: config => `
-			<h5>CSS selectors</h5>
-			<div id="selectors-container"></div>
 		`,
 		help: config => `
 			<h2>Source</h2>
@@ -1046,58 +977,6 @@ let _Widgets = {
 				<dt class="font-bold">Is Page Template</dt>
 				<dd>Check this box if the widget is a page template. The widget can the be selected when creating a page.</dd>
 			</ul>
-		`,
-		serversDialog: config => `
-			<div id="widget-server-config-dialog" class="dialog-padding">
-
-				<h3>Configured Servers</h3>
-				<div id="widget-servers-container"></div>
-
-				<h3 data-comment="Only use trusted sources for remote widgets!<br><br><strong>Using <em>untrusted sources</em> poses a security threat</strong>!" data-comment-config='{ "customToggleIcon": "warning-sign-icon-filled", "customToggleIconClasses": [], "helpElementCss": { "font-size": "14px"} }'>Add Server</h3>
-
-				<div id="add-widget-server" class="grid items-center gap-x-2 gap-y-2" style="grid-template-columns: 1fr 10fr">
-
-					<div class="font-bold">Name</div>
-					<div><input id="new-widget-server-name"></div>
-
-					<div class="font-bold">
-						<label data-comment="The server should respond with JSON-formatted widgets as every structr instance would.<br><br>Because the widgets are fetched via a HTTP GET request, the usual rights management applies. Widgets need to be visible to public users to show up in the resulting list.">URL</label>
-					</div>
-					<div>
-						<input id="new-widget-server-url">
-					</div>
-
-					<div></div>
-					<div>
-						<button id="save-widget-server" class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-							${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, ['icon-green', 'mr-2'])} Save
-						</button>
-					</div>
-				</div>
-			</div>
-		`,
-		serversSelector: config => `
-			<select id="widget-server-selector" class="w-40">
-				${config.servers.map(s => {
-					return `<option value="${s.content}" ${(s.content === config.selectedServerURL) ? 'selected' : ''}>${s.name}</option>`
-				}).join('')}
-			</select>
-		`,
-		serversTable: config => `
-			<div class="grid items-center gap-x-2 gap-y-2" style="grid-template-columns: 20fr 70fr 10fr;">
-
-				<div class="font-bold">Name</div>
-				<div class="font-bold">URL</div>
-				<div class="font-bold text-center">Actions</div>
-
-				${config.servers.map((s) => {
-					return `
-						<div data-acdn-id="${s.id}">${s.editable !== false ? `<input data-key="name" value="${s.name}">` : `${s.name}`}</div>
-						<div data-acdn-id="${s.id}">${s.editable !== false ? `<input data-key="content" value="${s.content}">` : `${s.content}`}</div>
-						<div data-acdn-id="${s.id}" class="text-center">${s.editable !== false ? `${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['mr-1', 'icon-red', 'delete']), 'Delete')}` : ''}</div>
-					`;
-				}).join('')}
-			</div>
 		`,
 		dataSourcesInput: async config => {
 			let cleanedLabel = config.cleanedLabel;
@@ -1314,7 +1193,7 @@ let _Widgets = {
 		},
 		getOptionsAsText: (options, defaultValue) => {
 
-			if (Object.prototype.toString.call(options) === '[object Array]') {
+			if (Array.isArray(options)) {
 
 				return options.map(option => `<option ${((option === defaultValue) ? 'selected' : '')}>${option}</option>`).join('');
 
