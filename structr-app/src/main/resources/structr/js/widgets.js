@@ -508,6 +508,11 @@ let _Widgets = {
 			if (label === 'processDeploymentInfo') {
 				return;
 			}
+			// Keys starting with '_' are reserved meta entries (e.g.
+			// _autoVisibilityMapping); they are not rendered as form fields.
+			if (label.startsWith('_')) {
+				continue;
+			}
 
 			let cleanedLabel = label.replace(/[^\w]/g, '_');
 			let fieldConfig  = configElement[1];
@@ -852,6 +857,26 @@ let _Widgets = {
 				if (widgetConfig[key]) {
 					attrs[key] = field.value;
 				}
+			}
+
+			// Declarative auto-VM: widget configuration may carry an
+			// _autoVisibilityMapping object with values like "[process]" /
+			// "[userTask]" pointing at sibling slot ids. Resolve those refs
+			// against the just-collected attrs and forward the resolved spec
+			// to the backend as a single JSON payload. The backend (see
+			// WidgetAutoVisibilityMappingHelper) consumes and removes it.
+			let autoVm = widgetConfig?._autoVisibilityMapping;
+			if (autoVm && typeof autoVm === 'object') {
+				let resolved = {};
+				for (let [k, v] of Object.entries(autoVm)) {
+					if (typeof v === 'string') {
+						let m = v.match(/^\[(\w+)\]$/);
+						resolved[k] = m ? (attrs[m[1]] ?? '') : v;
+					} else {
+						resolved[k] = v;
+					}
+				}
+				attrs.__visibilityMappingSpec = JSON.stringify(resolved);
 			}
 
 			// async callback
