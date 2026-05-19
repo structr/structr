@@ -1487,7 +1487,7 @@ public class BpmnImporter {
 
 	/**
 	 * After a re-import, repoint external references that were bound to any old
-	 * version of this {@code processId} so they target the new BpmnDefinitions
+	 * version of this {@code processId} so they target the new BpmnProcess
 	 * and the new BpmnElements (matched by bpmnId via {@code elementMap}).
 	 *
 	 * <p>Two consumer types are rewired:
@@ -1499,30 +1499,22 @@ public class BpmnImporter {
 	 * </ul>
 	 *
 	 * <p>Uses the source-side EndNode property as the query key (Structr's
-	 * query layer follows relationship-target keys to filter source nodes).
-	 * The reverse direction (typed {@code getIncomingRelationships}) requires
-	 * the target type to declare a StartNodes property for the relationship,
-	 * which BpmnDefinitions does not -- so we go via the source side.</p>
+	 * query layer follows relationship-target keys to filter source nodes).</p>
 	 */
 	private void rewireExternalReferences(final App app, final String processId, final NodeInterface newDefNode, final Map<String, NodeInterface> elementMap) throws FrameworkException {
 
 		if (processId == null || processId.isEmpty()) return;
 
 		// Collect every BpmnProcess version of this processId. Split into:
-		//   * the NEW one (parent == newDefNode) -- becomes the rewire target
-		//     for ActionMappings (controlsProcess now points at a specific
-		//     BpmnProcess after the multi-process refactor).
-		//   * the OLD ones (different parent) -- anchors for the AM rel-based
+		//   * the NEW one (parent == newDefNode): becomes the rewire target
+		//     for both ActionMappings and VisibilityMappings (both rels now
+		//     point at a specific BpmnProcess after the multi-process refactor).
+		//   * the OLD ones (different parent): anchors for the rel-based
 		//     rewire pass.
-		// Old parent definitions go into oldDefs and remain the anchors for
-		// the VisibilityMapping rewire (VM.boundProcess still targets
-		// BpmnDefinitions, not BpmnProcess).
 		final Traits procTraits = Traits.of(ProcessTraits.BPMN_PROCESS);
 		final PropertyKey<String> procProcessIdKey = procTraits.key(BpmnProcessTraitDefinition.PROCESS_ID_PROPERTY);
 		final PropertyKey<NodeInterface> procDefKey = procTraits.key(BpmnProcessTraitDefinition.DEFINITION_PROPERTY);
 		final List<NodeInterface> oldProcs = new ArrayList<>();
-		final List<NodeInterface> oldDefs  = new ArrayList<>();
-		final Set<String> seenDefIds       = new HashSet<>();
 		NodeInterface newProcessNode = null;
 		for (final NodeInterface proc : app.nodeQuery(ProcessTraits.BPMN_PROCESS).key(procProcessIdKey, processId).getResultStream()) {
 			final NodeInterface def = proc.getProperty(procDefKey);
@@ -1531,9 +1523,6 @@ public class BpmnImporter {
 				continue;
 			}
 			oldProcs.add(proc);
-			if (def != null && seenDefIds.add(def.getUuid())) {
-				oldDefs.add(def);
-			}
 		}
 
 		// The rewire runs in two passes so it covers both:
@@ -1547,11 +1536,20 @@ public class BpmnImporter {
 		// passes.
 		final Set<String> processedVms = new HashSet<>();
 		final Set<String> processedAms = new HashSet<>();
-		rewireVisibilityMappings(app, oldDefs,  processId, newDefNode,     elementMap, processedVms);
+		rewireVisibilityMappings(app, oldProcs, processId, newProcessNode, elementMap, processedVms);
 		rewireActionMappings   (app, oldProcs, processId, newProcessNode, elementMap, processedAms);
 	}
 
-	private void rewireVisibilityMappings(final App app, final List<NodeInterface> oldDefs, final String processId, final NodeInterface newDefNode, final Map<String, NodeInterface> elementMap, final Set<String> processedVms) throws FrameworkException {
+	private void rewireVisibilityMappings(final App app, final List<NodeInterface> oldProcs, final String processId, final NodeInterface newProcessNode, final Map<String, NodeInterface> elementMap, final Set<String> processedVms) throws FrameworkException {
+
+		// VisibilityMapping.boundProcess now targets BpmnProcess (post the
+		// multi-process refactor). If the re-imported file does not contain
+		// a process with this id, there is nothing to repoint to; warn and
+		// leave existing rels alone for manual fixup.
+		if (newProcessNode == null) {
+			logger.warn("rewireVisibilityMappings: no new BpmnProcess found for processId='{}' in the re-imported file; skipping VisibilityMapping rewire for this id.", processId);
+			return;
+		}
 
 		final Traits vmTraits = Traits.of(ProcessTraits.VISIBILITY_MAPPING);
 		final PropertyKey<NodeInterface> boundProcessKey   = vmTraits.key(VisibilityMappingTraitDefinition.BOUND_PROCESS_PROPERTY);
@@ -1559,30 +1557,30 @@ public class BpmnImporter {
 		final PropertyKey<String>        boundProcessIdKey  = vmTraits.key(VisibilityMappingTraitDefinition.BOUND_PROCESS_ID_PROPERTY);
 		final PropertyKey<String>        boundStepBpmnIdKey = vmTraits.key(VisibilityMappingTraitDefinition.BOUND_STEP_BPMN_ID_PROPERTY);
 
-		// Pass (a): rel-based -- VMs whose boundProcess still points at any old def.
-		for (final NodeInterface oldDef : oldDefs) {
-			for (final NodeInterface vm : app.nodeQuery(ProcessTraits.VISIBILITY_MAPPING).key(boundProcessKey, oldDef).getResultStream()) {
+		// Pass (a): rel-based -- VMs whose boundProcess still points at any old BpmnProcess.
+		for (final NodeInterface oldProc : oldProcs) {
+			for (final NodeInterface vm : app.nodeQuery(ProcessTraits.VISIBILITY_MAPPING).key(boundProcessKey, oldProc).getResultStream()) {
 				if (processedVms.add(vm.getUuid())) {
-					rewireVm(vm, newDefNode, elementMap, boundProcessKey, boundStepKey, boundProcessIdKey, boundStepBpmnIdKey, processId);
+					rewireVm(vm, newProcessNode, elementMap, boundProcessKey, boundStepKey, boundProcessIdKey, boundStepBpmnIdKey, processId);
 				}
 			}
 		}
 
 		// Pass (b): backup-string -- VMs whose backup matches our processId
-		// regardless of rel state. Catches the "old defs deleted" case.
+		// regardless of rel state. Catches the "old processes deleted" case.
 		for (final NodeInterface vm : app.nodeQuery(ProcessTraits.VISIBILITY_MAPPING).key(boundProcessIdKey, processId).getResultStream()) {
 			if (processedVms.add(vm.getUuid())) {
-				rewireVm(vm, newDefNode, elementMap, boundProcessKey, boundStepKey, boundProcessIdKey, boundStepBpmnIdKey, processId);
+				rewireVm(vm, newProcessNode, elementMap, boundProcessKey, boundStepKey, boundProcessIdKey, boundStepBpmnIdKey, processId);
 			}
 		}
 	}
 
-	private void rewireVm(final NodeInterface vm, final NodeInterface newDefNode, final Map<String, NodeInterface> elementMap,
+	private void rewireVm(final NodeInterface vm, final NodeInterface newProcessNode, final Map<String, NodeInterface> elementMap,
 						  final PropertyKey<NodeInterface> boundProcessKey, final PropertyKey<NodeInterface> boundStepKey,
 						  final PropertyKey<String> boundProcessIdKey, final PropertyKey<String> boundStepBpmnIdKey,
 						  final String processId) throws FrameworkException {
 
-		vm.setProperty(boundProcessKey, newDefNode);
+		vm.setProperty(boundProcessKey, newProcessNode);
 		vm.setProperty(boundProcessIdKey, processId);
 
 		// Determine the step bpmnId from whichever source is available: the

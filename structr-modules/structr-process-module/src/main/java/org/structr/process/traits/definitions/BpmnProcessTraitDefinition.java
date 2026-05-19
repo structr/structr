@@ -68,6 +68,7 @@ public class BpmnProcessTraitDefinition extends AbstractNodeTraitDefinition {
 	// slugified processName.
 	public static final String INSTANCE_PAGE_PROPERTY                    = "instancePage";
 	public static final String CONTROL_ACTIONS_PROPERTY                  = "controlActions";
+	public static final String VISIBILITY_MAPPINGS_PROPERTY              = "visibilityMappings";
 
 	public BpmnProcessTraitDefinition() {
 		super(ProcessTraits.BPMN_PROCESS);
@@ -102,9 +103,13 @@ public class BpmnProcessTraitDefinition extends AbstractNodeTraitDefinition {
 		// editor): without this property, am.setProperty(controlsProcess,
 		// newProcess) throws "missing StartNode(s) property".
 		final Property<Iterable<NodeInterface>> controlActions     = new StartNodes(traitsInstance, CONTROL_ACTIONS_PROPERTY,   StructrTraits.ACTION_MAPPING_CONTROLS_BPMN_PROCESS);
+		// Inverse for VisibilityMapping FOR BpmnProcess rels. Same rationale as
+		// controlActions above: needed so OneToMany.ensureCardinality can
+		// resolve the source side when a VM's boundProcess is reassigned.
+		final Property<Iterable<NodeInterface>> visibilityMappings = new StartNodes(traitsInstance, VISIBILITY_MAPPINGS_PROPERTY, ProcessTraits.VISIBILITY_MAPPING_FOR_BPMN_PROCESS);
 
 		return newSet(processId, processName, processIsExecutable, defaultAssigneeFromInitiator,
-			definition, elements, sequenceFlows, methods, processListeners, lanes, participant, instancePage, controlActions);
+			definition, elements, sequenceFlows, methods, processListeners, lanes, participant, instancePage, controlActions, visibilityMappings);
 	}
 
 	@Override

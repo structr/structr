@@ -192,6 +192,7 @@ public class MigrationService {
 			if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
 				migrateRestQueryRepeaters();
 				migrateActionMappingControlsToProcess();
+				migrateVisibilityMappingForToProcess();
 			}
 			warnAboutWrongNotionProperties();
 		}
@@ -1465,6 +1466,91 @@ public class MigrationService {
 
 		} catch (FrameworkException fex) {
 			logger.warn("Unable to migrate ActionMapping CONTROLS rels to BpmnProcess: {}", fex.getMessage());
+		}
+	}
+
+	/**
+	 * Repoint legacy VisibilityMapping FOR rels from BpmnDefinitions to the
+	 * matching BpmnProcess child. Mirrors {@link #migrateActionMappingControlsToProcess()}.
+	 */
+	private static void migrateVisibilityMappingForToProcess() {
+
+		final App app = StructrApp.getInstance();
+		int repointed = 0;
+		int skipped   = 0;
+
+		try (final Tx tx = app.tx()) {
+
+			tx.disableChangelog();
+
+			final List<GraphObject> staleDefs = Iterables.toList(app.query(
+				"MATCH (:VisibilityMapping)-[:FOR]->(bd:BpmnDefinitions) RETURN DISTINCT bd",
+				Map.of()
+			));
+
+			if (staleDefs.isEmpty()) {
+				tx.success();
+				return;
+			}
+
+			logger.info("MigrationService: found {} BpmnDefinitions with legacy VisibilityMapping FOR edges, repointing to BpmnProcess.", staleDefs.size());
+
+			final PropertyKey<NodeInterface> boundProcessKey = Traits.of("VisibilityMapping").key("boundProcess");
+
+			for (final GraphObject bdObj : staleDefs) {
+
+				if (!(bdObj instanceof NodeInterface)) continue;
+				final NodeInterface bd = (NodeInterface) bdObj;
+				final String bdId      = bd.getUuid();
+
+				final Iterable<NodeInterface> processes = bd.getProperty(bd.getTraits().key("processes"));
+				final List<NodeInterface> all  = new ArrayList<>();
+				final List<NodeInterface> exec = new ArrayList<>();
+				if (processes != null) {
+					for (final NodeInterface p : processes) {
+						all.add(p);
+						final Boolean isExec = p.getProperty(p.getTraits().key("processIsExecutable"));
+						if (Boolean.TRUE.equals(isExec)) exec.add(p);
+					}
+				}
+
+				NodeInterface target = null;
+				if (all.size() == 1) {
+					target = all.get(0);
+				} else if (exec.size() == 1) {
+					target = exec.get(0);
+				}
+
+				final List<GraphObject> vms = Iterables.toList(app.query(
+					"MATCH (vm:VisibilityMapping)-[:FOR]->(:BpmnDefinitions {id:$bdId}) RETURN DISTINCT vm",
+					Map.of("bdId", bdId)
+				));
+
+				app.query(
+					"MATCH (:VisibilityMapping)-[r:FOR]->(:BpmnDefinitions {id:$bdId}) DELETE r",
+					Map.of("bdId", bdId)
+				);
+
+				if (target == null) {
+					logger.warn("MigrationService: BpmnDefinitions {} has {} BpmnProcess children ({} marked executable); cannot decide which to repoint to. {} VisibilityMapping(s) left without a boundProcess; fix via the VM editor.", bdId, all.size(), exec.size(), vms.size());
+					skipped += vms.size();
+					continue;
+				}
+
+				for (final GraphObject vmObj : vms) {
+					if (!(vmObj instanceof NodeInterface)) continue;
+					final NodeInterface vm = (NodeInterface) vmObj;
+					vm.setProperty(boundProcessKey, target);
+					repointed++;
+				}
+			}
+
+			logger.info("MigrationService: VisibilityMapping FOR rels: repointed={}, skipped={}.", repointed, skipped);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("Unable to migrate VisibilityMapping FOR rels to BpmnProcess: {}", fex.getMessage());
 		}
 	}
 

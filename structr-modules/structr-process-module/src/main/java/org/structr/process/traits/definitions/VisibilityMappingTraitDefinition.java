@@ -143,7 +143,7 @@ public class VisibilityMappingTraitDefinition extends AbstractNodeTraitDefinitio
 	public Set<PropertyKey> createPropertyKeys(final TraitsInstance traitsInstance) {
 
 		final Property<NodeInterface> domNode       = new StartNode(traitsInstance, DOM_NODE_PROPERTY,      StructrTraits.DOM_NODE_HAS_VISIBILITY_MAPPING);
-		final Property<NodeInterface> boundProcess  = new EndNode(traitsInstance,   BOUND_PROCESS_PROPERTY, ProcessTraits.VISIBILITY_MAPPING_FOR_BPMN_DEFINITIONS);
+		final Property<NodeInterface> boundProcess  = new EndNode(traitsInstance,   BOUND_PROCESS_PROPERTY, ProcessTraits.VISIBILITY_MAPPING_FOR_BPMN_PROCESS);
 		final Property<NodeInterface> boundStep     = new EndNode(traitsInstance,   BOUND_STEP_PROPERTY,    ProcessTraits.VISIBILITY_MAPPING_AT_BPMN_ELEMENT);
 		final Property<String> visibleWhen          = new EnumProperty(VISIBLE_WHEN_PROPERTY, ALL_STATES).indexed();
 		final Property<String> boundProcessId       = new StringProperty(BOUND_PROCESS_ID_PROPERTY).indexed();

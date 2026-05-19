@@ -75,7 +75,6 @@ public class BpmnDefinitionsTraitDefinition extends AbstractNodeTraitDefinition 
 	public static final String PROCESSES_PROPERTY            = "processes";
 	public static final String COLLABORATION_PROPERTY        = "collaboration";
 	public static final String DIAGRAMS_PROPERTY             = "diagrams";
-	public static final String VISIBILITY_MAPPINGS_PROPERTY  = "visibilityMappings";
 	public static final String SECURITY_LEVEL_PROPERTY       = "securityLevel";
 
 	// Security level constants
@@ -97,18 +96,15 @@ public class BpmnDefinitionsTraitDefinition extends AbstractNodeTraitDefinition 
 		final Property<Iterable<NodeInterface>> processes         = new EndNodes(traitsInstance, PROCESSES_PROPERTY,         ProcessTraits.BPMN_DEFINITIONS_HAS_PROCESS);
 		final Property<NodeInterface>           collaboration     = new EndNode(traitsInstance,  COLLABORATION_PROPERTY,     ProcessTraits.BPMN_DEFINITIONS_HAS_COLLABORATION);
 		final Property<Iterable<NodeInterface>> diagrams          = new EndNodes(traitsInstance, DIAGRAMS_PROPERTY,           ProcessTraits.BPMN_DEFINITIONS_HAS_DIAGRAM);
-		// Inverse property for VisibilityMapping rels pointing INTO this BpmnDefinitions.
-		// Required so OneToMany.ensureCardinality can resolve the source side when a
-		// VisibilityMapping is reassigned (e.g. by the importer's re-import rewire);
-		// without it, vm.setProperty(boundDefinitions, newDef) throws "missing
-		// StartNode(s) property". The ActionMapping CONTROLS rel now targets BpmnProcess
-		// (post multi-process refactor), so its inverse lives on BpmnProcess.
-		final Property<Iterable<NodeInterface>> visibilityMappings = new StartNodes(traitsInstance, VISIBILITY_MAPPINGS_PROPERTY, ProcessTraits.VISIBILITY_MAPPING_FOR_BPMN_DEFINITIONS);
+		// Post the multi-process refactor, both ActionMapping CONTROLS and
+		// VisibilityMapping FOR target BpmnProcess (not BpmnDefinitions), so
+		// their inverse properties live on BpmnProcess. BpmnDefinitions has no
+		// incoming rels from AM / VM directly.
 		final Property<String> securityLevel                      = new EnumProperty(SECURITY_LEVEL_PROPERTY, Set.of(SECURITY_LEVEL_LOW, SECURITY_LEVEL_HIGH)).defaultValue(SECURITY_LEVEL_HIGH).indexed();
 
 		return newSet(targetNamespace, exporter, exporterVersion, namespaceDeclarations,
 			globalDefinitions, processes, collaboration, diagrams,
-			visibilityMappings, securityLevel);
+			securityLevel);
 	}
 
 	@Override

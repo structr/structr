@@ -95,7 +95,7 @@ public class ProcessModule implements StructrModule {
 		StructrTraits.registerTrait(new ActionMappingCONTROLSBpmnProcess());
 		StructrTraits.registerTrait(new ActionMappingTARGETSBpmnElement());
 		StructrTraits.registerTrait(new ComponentConfigurationBOUNDBpmnElement());
-		StructrTraits.registerTrait(new VisibilityMappingFORBpmnDefinitions());
+		StructrTraits.registerTrait(new VisibilityMappingFORBpmnProcess());
 		StructrTraits.registerTrait(new VisibilityMappingATBpmnElement());
 		StructrTraits.registerTrait(new ProcessInstanceHasParameterValue());
 		StructrTraits.registerTrait(new ProcessParameterValueSetByElement());
@@ -147,7 +147,7 @@ public class ProcessModule implements StructrModule {
 		StructrTraits.registerRelationshipType(StructrTraits.ACTION_MAPPING_CONTROLS_BPMN_PROCESS, StructrTraits.ACTION_MAPPING_CONTROLS_BPMN_PROCESS);
 		StructrTraits.registerRelationshipType(StructrTraits.ACTION_MAPPING_TARGETS_BPMN_ELEMENT,      StructrTraits.ACTION_MAPPING_TARGETS_BPMN_ELEMENT);
 		StructrTraits.registerRelationshipType(StructrTraits.COMPONENT_CONFIGURATION_BOUND_BPMN_ELEMENT, StructrTraits.COMPONENT_CONFIGURATION_BOUND_BPMN_ELEMENT);
-		StructrTraits.registerRelationshipType(ProcessTraits.VISIBILITY_MAPPING_FOR_BPMN_DEFINITIONS,  ProcessTraits.VISIBILITY_MAPPING_FOR_BPMN_DEFINITIONS);
+		StructrTraits.registerRelationshipType(ProcessTraits.VISIBILITY_MAPPING_FOR_BPMN_PROCESS,  ProcessTraits.VISIBILITY_MAPPING_FOR_BPMN_PROCESS);
 		StructrTraits.registerRelationshipType(ProcessTraits.VISIBILITY_MAPPING_AT_BPMN_ELEMENT,       ProcessTraits.VISIBILITY_MAPPING_AT_BPMN_ELEMENT);
 		StructrTraits.registerRelationshipType(ProcessTraits.PROCESS_INSTANCE_HAS_PARAMETER_VALUE, ProcessTraits.PROCESS_INSTANCE_HAS_PARAMETER_VALUE);
 		StructrTraits.registerRelationshipType(ProcessTraits.PROCESS_PARAMETER_VALUE_SET_BY_ELEMENT, ProcessTraits.PROCESS_PARAMETER_VALUE_SET_BY_ELEMENT);

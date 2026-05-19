@@ -24,20 +24,26 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 import org.structr.process.ProcessTraits;
 
 /**
- * VisibilityMapping -[FOR]-> BpmnDefinitions.
+ * VisibilityMapping -[FOR]-> BpmnProcess.
  *
- * <p>The process definition this VisibilityMapping observes. Required for every
- * mapping; the state predicate evaluates against this process's instances visible
- * to the current user.</p>
+ * <p>The BpmnProcess this VisibilityMapping observes. Required for every mapping;
+ * the state predicate evaluates against this process's instances visible to the
+ * current user.</p>
+ *
+ * <p>Target is BpmnProcess (not BpmnDefinitions) because, post the multi-process
+ * refactor, a BpmnDefinitions is a file-level container that can hold N processes
+ * (collaborations). The meaningful binding for any visibility predicate is one
+ * specific process. Matches the design choice already in place for
+ * {@code ActionMapping.controlsProcess}.</p>
  */
-public class VisibilityMappingFORBpmnDefinitions extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
+public class VisibilityMappingFORBpmnProcess extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	public VisibilityMappingFORBpmnDefinitions() {
-		super(ProcessTraits.VISIBILITY_MAPPING_FOR_BPMN_DEFINITIONS);
+	public VisibilityMappingFORBpmnProcess() {
+		super(ProcessTraits.VISIBILITY_MAPPING_FOR_BPMN_PROCESS);
 	}
 
 	@Override public String getSourceType() { return ProcessTraits.VISIBILITY_MAPPING; }
-	@Override public String getTargetType() { return ProcessTraits.BPMN_DEFINITIONS; }
+	@Override public String getTargetType() { return ProcessTraits.BPMN_PROCESS; }
 	@Override public String getRelationshipType() { return "FOR"; }
 	@Override public Relation.Multiplicity getSourceMultiplicity() { return Relation.Multiplicity.Many; }
 	@Override public Relation.Multiplicity getTargetMultiplicity() { return Relation.Multiplicity.One; }
