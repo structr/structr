@@ -77,13 +77,19 @@ public abstract class AbstractValueDataSource<T extends GraphObject> implements 
 							// this is where we need to implement pagination and filtering!
 							final Object value = node.getProperty(key);
 
-							if (value != null && value instanceof Iterable iterable) {
+							if (value != null) {
 
-								final String            name             = transform + " of " + node.getUuid();
-								final Iterable<T>       filteredIterable = Iterables.filter(input, iterable);
-								final PagingIterable<T> pagingIterable   = new PagingIterable<>(name, filteredIterable, input.pageSize(), input.page());
+								if (value instanceof Iterable iterable) {
 
-								return ChannelResult.fromIterable(pagingIterable);
+									final String            name             = transform + " of " + node.getUuid();
+									final Iterable<T>       filteredIterable = Iterables.filter(input, iterable);
+									final PagingIterable<T> pagingIterable   = new PagingIterable<>(name, filteredIterable, input.pageSize(), input.page());
+
+									return ChannelResult.fromIterable(pagingIterable);
+								}
+
+								// return single result as well
+								return ChannelResult.fromObject((T) value);
 							}
 						}
 					}
