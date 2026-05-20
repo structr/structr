@@ -1059,7 +1059,7 @@ public class SecurityContext {
 
 		@Override
 		public String getCachedUserName() {
-			return "superadmin";
+			return Settings.SuperUserName.getValue();
 		}
 
 		@Override
