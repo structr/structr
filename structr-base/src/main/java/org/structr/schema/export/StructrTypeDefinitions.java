@@ -164,12 +164,16 @@ public class StructrTypeDefinitions implements StructrDefinition {
 	}
 
 	public Map<String, Object> serialize() {
+		return serialize(false);
+	}
+
+	public Map<String, Object> serialize(final boolean removeManagedViews) {
 
 		final Map<String, Object> map = new TreeMap<>();
 
 		for (final StructrTypeDefinition type : typeDefinitions) {
 
-			map.put(type.getName(), type.serialize());
+			map.put(type.getName(), type.serialize(removeManagedViews));
 		}
 
 		return map;

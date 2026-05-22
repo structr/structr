@@ -1401,7 +1401,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			final Path schemaJson = targetFolder.resolve("schema.json");
 
-			writeStringToFile(schemaJson, schema.toString());
+			writeStringToFile(schemaJson, schema.toString(true));
 
 		} catch (Throwable t) {
 			logger.error("", t);

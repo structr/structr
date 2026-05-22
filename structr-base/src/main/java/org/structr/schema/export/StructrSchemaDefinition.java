@@ -120,9 +120,13 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 
 	@Override
 	public String toString() {
+		return toString(false);
+	}
+
+	public String toString(final boolean removeManagedViews) {
 
 		final Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		final Map<String, Object> serializedForm = serialize();
+		final Map<String, Object> serializedForm = serialize(removeManagedViews);
 
 		return gson.toJson(serializedForm);
 	}
@@ -197,9 +201,14 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 
 	public Map<String, Object> serialize() {
 
+		return serialize(false);
+	}
+
+	public Map<String, Object> serialize(final boolean removeManagedViews) {
+
 		final Map<String, Object> map = new TreeMap<>();
 
-		map.put(JsonSchema.KEY_DEFINITIONS, typeDefinitions.serialize());
+		map.put(JsonSchema.KEY_DEFINITIONS, typeDefinitions.serialize(removeManagedViews));
 		map.put(JsonSchema.KEY_METHODS,     userDefinedFunctions.serialize());
 
 		return map;
