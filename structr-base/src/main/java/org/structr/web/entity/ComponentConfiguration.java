@@ -57,6 +57,7 @@ public interface ComponentConfiguration extends NodeInterface {
 	}
 
 	void setFieldSet(final String s) throws FrameworkException;
+	void updateFieldSetForChildren() throws FrameworkException;
 
 	int getPageSize();
 	int getPaginationWindowSize();

@@ -490,13 +490,29 @@ let _Code = {
 							break;
 						}
 
+						case 'QueryDataSource':
+							list.push({
+								id:       path + '/' + entity.id,
+								text:     entity.name,
+								children: false,
+								icon:     _Icons.iconFilterFunnel,
+								li_attr:  { 'data-id': entity.id },
+								data: {
+									svgIcon: _Icons.getSvgIcon(_Icons.iconFilterFunnel, 16, 24),
+									key:     entity.type,
+									id:      entity.id,
+									path:    path + '/' + entity.id
+								},
+							});
+							break;
+
 						case 'ScriptDataSource':
 						case 'DataSource':
 							list.push({
 								id:       path + '/' + entity.id,
 								text:     entity.name,
 								children: false,
-								icon:     _Icons.iconSchemaPropertyCypher,
+								icon:     _Icons.iconScriptWrapped,
 								li_attr:  { 'data-id': entity.id },
 								data: {
 									svgIcon: _Icons.getSvgIcon(_Icons.iconScriptWrapped, 16, 24),
@@ -828,6 +844,10 @@ let _Code = {
 						_Code.mainArea.showSwaggerUI(data);
 						break;
 
+					case 'datasources':
+						_Code.mainArea.displayDataSourcesContent(data);
+						break;
+
 					case 'custom':
 						_Code.mainArea.displayCustomTypesContent(data);
 						break;
@@ -939,6 +959,11 @@ let _Code = {
 					case 'OpenAPITag':
 						_Code.mainArea.showSwaggerUI(data);
 						break;
+
+					case 'QueryDataSource':
+					case 'ScriptDataSource':
+						_Code.mainArea.displayDataSourceContent(data);
+						break;
 				}
 			}
 		},
@@ -1037,6 +1062,26 @@ let _Code = {
 				};
 			});
 		},
+		displayDataSourcesContent: (data) => {
+
+			let title = 'Create New Data Source';
+
+			_Code.codeContents[0].insertAdjacentHTML('beforeend', _Code.templates.dataSourceCreation(title));
+
+			_Code.mainArea.helpers.displaySvgActionButton('#data-source-buttons', _Icons.getSvgIcon(_Icons.iconScriptWrapped, 14, 14, ''), 'create', 'Script Data Source', () => {
+				Command.create({ type: 'ScriptDataSource' }, (result) => {
+					_Code.tree.refreshNode(data.path);
+					_Code.search.goToResult(result);
+				});
+			});
+
+			_Code.mainArea.helpers.displaySvgActionButton('#data-source-buttons', _Icons.getSvgIcon(_Icons.iconFilterFunnel, 14, 14, ''), 'create', 'Query Data Source', () => {
+				Command.create({ type: 'QueryDataSource'}, (result) => {
+					_Code.tree.refreshNode(data.path);
+					_Code.search.goToResult(result);
+				});
+			});
+		},
 		displayCustomTypesContent: (data) => {
 
 			_Code.codeContents[0].insertAdjacentHTML('beforeend', _Code.templates.createNewType());
@@ -1075,6 +1120,319 @@ let _Code = {
 		},
 		displayBuiltInTypesContent: () => {
 			_Code.codeContents.append(_Code.templates.builtin());
+		},
+		displayDataSourceContent: (data) => {
+
+			fetch(`${Structr.rootUrl}${data.id}`).then(response => {
+
+				if (response.ok) {
+					return response.json();
+				} else {
+					throw Error("Unable to fetch schema node content");
+				}
+
+			}).then(json => {
+
+				let entity = json.result;
+
+				_Code.recentElements.updateRecentlyUsed(entity, data.path, data.updateLocationStack);
+
+				_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
+
+				if (entity.type === 'QueryDataSource') {
+
+					_Code.codeContents.append(_Code.templates.dataSourceEditor('Edit Data Source "' + entity.name + '"'));
+
+					let container = _Code.codeContents[0].querySelector('#datasource-container');
+
+					container.insertAdjacentHTML('beforeend', _Code.templates.queryDataSourceEditor(entity));
+
+					let queryContainer   = container.querySelector('#query-builder-container');
+					let queryInput       = container.querySelector('#data-source-query-input');
+					let dataTypeDropdown = container.querySelector('#data-source-query-type-input');
+
+					queryInput.value = entity.query || '';
+
+					let customTypes      = undefined;
+					let systemTypes      = undefined;
+
+					_Schema.caches.getFilteredSchemaTypes(t => true).then(async types => {
+						let whitelist = ['File','Folder','Group','Image','Page','User'];
+						types.sort((a, b) => a.name.localeCompare(b.name));
+						for (let type of types) {
+							let option = document.createElement('option');
+							option.value = type.name;
+							option.text  = type.name;
+							if (type.isBuiltin) {
+								if (whitelist.includes(type.name)) {
+									if (!systemTypes) {
+										systemTypes = document.createElement('optgroup');
+										systemTypes.label = 'System Types';
+										dataTypeDropdown.appendChild(systemTypes);
+									}
+									systemTypes.appendChild(option);
+								}
+							} else {
+								if (!customTypes) {
+									customTypes = document.createElement('optgroup');
+									customTypes.label = 'Custom Types';
+									dataTypeDropdown.appendChild(customTypes);
+								}
+								customTypes.appendChild(option);
+							}
+							if (entity.dataType === type.name) {
+								option.selected = true;
+							}
+						}
+
+						await loadFromQuery(entity.query);
+					});
+
+					const loadTypeProperties = (typeName) => new Promise(resolve => {
+						if (!typeName || typeName.startsWith('---')) { resolve([]); return; }
+						_Schema.caches.getTypeInfo(typeName, props => {
+							resolve(Object.values(props).sort((a, b) => a.jsonName.localeCompare(b.jsonName)));
+						});
+					});
+
+					const populateKeySelect = async (keySelect) => {
+						const saved = keySelect.value;
+						while (keySelect.options.length > 1) keySelect.remove(1);
+						const props = await loadTypeProperties(dataTypeDropdown.value);
+						for (const prop of props) {
+							const opt = document.createElement('option');
+							opt.value = prop.jsonName;
+							opt.text  = prop.jsonName;
+							if (prop.jsonName === saved) opt.selected = true;
+							keySelect.appendChild(opt);
+						}
+					};
+
+					const triggerUpdate = () => {
+						_Code.queryBuilder.updateQuery(queryContainer, dataTypeDropdown, queryInput);
+						_Code.persistence.updateDirtyFlag(entity);
+					};
+
+					const updateValueVisibility = (row) => {
+						const op = row.querySelector('[data-role="op"]')?.value;
+						const valueInput = row.querySelector('[data-role="value"]');
+						if (valueInput) valueInput.style.display = (op === 'null' || op === 'notNull') ? 'none' : '';
+					};
+
+					const wireAttributeRow = async (row) => {
+						await populateKeySelect(row.querySelector('[data-role="key"]'));
+						updateValueVisibility(row);
+						row.querySelector('[data-role="op"]').addEventListener('change', () => { updateValueVisibility(row); triggerUpdate(); });
+						row.querySelector('[data-role="key"]').addEventListener('change', triggerUpdate);
+						row.querySelector('[data-role="value"]').addEventListener('input', triggerUpdate);
+						row.querySelector('[data-role="remove"]').addEventListener('click', () => { row.remove(); triggerUpdate(); });
+					};
+
+					const wireSortRow = async (row) => {
+						await populateKeySelect(row.querySelector('[data-role="key"]'));
+						row.querySelector('[data-role="key"]').addEventListener('change', triggerUpdate);
+						row.querySelector('[data-role="order"]').addEventListener('change', triggerUpdate);
+						row.querySelector('[data-role="remove"]').addEventListener('click', () => { row.remove(); triggerUpdate(); });
+					};
+
+					const wireNestedGroup = (groupEl) => {
+						const opButtons = groupEl.querySelectorAll(':scope > div > div > [data-role^="op-"]');
+						for (const btn of opButtons) {
+							btn.addEventListener('click', () => {
+								for (const b of opButtons) b.classList.remove('active');
+								btn.classList.add('active');
+								groupEl.dataset.op = btn.dataset.role.replace('op-', '');
+								triggerUpdate();
+							});
+						}
+						groupEl.querySelector('[data-role="remove"]').addEventListener('click', () => { groupEl.remove(); triggerUpdate(); });
+						groupEl.querySelector('[data-type="add-attribute"]').addEventListener('click', async () => {
+							const attrsDiv = groupEl.querySelector('[data-type="group-attributes"]');
+							attrsDiv.insertAdjacentHTML('beforeend', _Code.queryBuilder.templates.attribute());
+							await wireAttributeRow(attrsDiv.lastElementChild);
+							triggerUpdate();
+						});
+						groupEl.querySelector('[data-type="add-group"]').addEventListener('click', () => {
+							const attrsDiv = groupEl.querySelector('[data-type="group-attributes"]');
+							attrsDiv.insertAdjacentHTML('beforeend', _Code.queryBuilder.templates.nestedGroup());
+							wireNestedGroup(attrsDiv.lastElementChild);
+							triggerUpdate();
+						});
+					};
+
+					const restoreOperations = async (attrsDiv, operations) => {
+						for (const op of operations) {
+							if (op.type === 'operation') {
+								attrsDiv.insertAdjacentHTML('beforeend', _Code.queryBuilder.templates.attribute());
+								const row = attrsDiv.lastElementChild;
+								await wireAttributeRow(row);
+								if (op.key) row.querySelector('[data-role="key"]').value = op.key;
+								if (op.op)  row.querySelector('[data-role="op"]').value  = op.op;
+								updateValueVisibility(row);
+								if (op.value !== undefined && op.value !== null) {
+									const valueInput = row.querySelector('[data-role="value"]');
+									if (valueInput) valueInput.value = op.value;
+								}
+							} else if (op.type === 'group') {
+								attrsDiv.insertAdjacentHTML('beforeend', _Code.queryBuilder.templates.nestedGroup());
+								const groupEl = attrsDiv.lastElementChild;
+								wireNestedGroup(groupEl);
+								if (op.op) {
+									for (const b of groupEl.querySelectorAll(':scope > div > div > [data-role^="op-"]')) b.classList.remove('active');
+									const activeBtn = groupEl.querySelector(`:scope > div > div > [data-role="op-${op.op}"]`);
+									if (activeBtn) { activeBtn.classList.add('active'); groupEl.dataset.op = op.op; }
+								}
+								if (op.operations?.length) {
+									await restoreOperations(groupEl.querySelector('[data-type="group-attributes"]'), op.operations);
+								}
+							}
+						}
+					};
+
+					const loadFromQuery = async (queryJson) => {
+						if (!queryJson) return;
+						let query;
+						try { query = JSON.parse(queryJson); } catch (e) { return; }
+
+						if (query.queryType && dataTypeDropdown.value !== query.queryType) {
+							dataTypeDropdown.value = query.queryType;
+						}
+
+						const rootGroup = queryContainer.querySelector(':scope > div[data-type="group-container"]');
+						if (query.op) {
+							for (const b of rootGroup.querySelectorAll('legend [data-role^="op-"]')) b.classList.remove('active');
+							const activeBtn = rootGroup.querySelector(`legend [data-role="op-${query.op}"]`);
+							if (activeBtn) { activeBtn.classList.add('active'); rootGroup.dataset.op = query.op; }
+						}
+
+						if (query.operations?.length) {
+							await restoreOperations(rootGroup.querySelector('[data-type="group-attributes"]'), query.operations);
+						}
+
+						if (query.sort?.length) {
+							const sortAttrsDiv = queryContainer.querySelector('[data-type="sort-attributes"]');
+							for (const sortOp of query.sort) {
+								sortAttrsDiv.insertAdjacentHTML('beforeend', _Code.queryBuilder.templates.sort());
+								const row = sortAttrsDiv.lastElementChild;
+								await wireSortRow(row);
+								if (sortOp.key)   row.querySelector('[data-role="key"]').value   = sortOp.key;
+								if (sortOp.order) row.querySelector('[data-role="order"]').value = sortOp.order;
+							}
+						}
+					};
+
+					// sorting
+					{
+						const sortContainer = queryContainer.querySelector('div[data-type="sort-container"]');
+						sortContainer.querySelector('button[data-type="add-sort"]').addEventListener('click', async () => {
+							const attrsDiv = sortContainer.querySelector('div[data-type="sort-attributes"]');
+							attrsDiv.insertAdjacentHTML('beforeend', _Code.queryBuilder.templates.sort());
+							await wireSortRow(attrsDiv.lastElementChild);
+							triggerUpdate();
+						});
+					}
+
+					// root group
+					{
+						const rootGroup = queryContainer.querySelector(':scope > div[data-type="group-container"]');
+						const opButtons = rootGroup.querySelectorAll('legend [data-role^="op-"]');
+						for (const btn of opButtons) {
+							btn.addEventListener('click', () => {
+								for (const b of opButtons) b.classList.remove('active');
+								btn.classList.add('active');
+								rootGroup.dataset.op = btn.dataset.role.replace('op-', '');
+								triggerUpdate();
+							});
+						}
+						rootGroup.querySelector('[data-type="add-attribute"]').addEventListener('click', async () => {
+							const attrsDiv = rootGroup.querySelector('[data-type="group-attributes"]');
+							attrsDiv.insertAdjacentHTML('beforeend', _Code.queryBuilder.templates.attribute());
+							await wireAttributeRow(attrsDiv.lastElementChild);
+							triggerUpdate();
+						});
+						rootGroup.querySelector('[data-type="add-group"]').addEventListener('click', () => {
+							const attrsDiv = rootGroup.querySelector('[data-type="group-attributes"]');
+							attrsDiv.insertAdjacentHTML('beforeend', _Code.queryBuilder.templates.nestedGroup());
+							wireNestedGroup(attrsDiv.lastElementChild);
+							triggerUpdate();
+						});
+					}
+
+					_Helpers.activateCommentsInElement(container);
+
+					dataTypeDropdown.addEventListener('change', async () => {
+						for (const keySelect of queryContainer.querySelectorAll('[data-role="key"]')) {
+							await populateKeySelect(keySelect);
+						}
+						triggerUpdate();
+					});
+
+
+				} else if (entity.type === 'ScriptDataSource') {
+
+					_Code.codeContents.append(_Code.templates.dataSourceEditor('Edit Data Source "' + entity.name + '"'));
+
+					let container = _Code.codeContents[0].querySelector('#datasource-container');
+
+					container.insertAdjacentHTML('beforeend', _Code.templates.scriptDataSourceEditor(entity));
+
+					_Helpers.activateCommentsInElement(container);
+
+					let config = {
+						language: 'auto',
+						lint: true,
+						autocomplete: true,
+						changeFn: (editor, entity) => {
+							_Code.persistence.updateDirtyFlag(entity);
+						},
+						isAutoscriptEnv: true
+					};
+
+					_Editors.getMonacoEditor(entity, 'valuesScript', _Code.codeContents[0].querySelector('#values-script-editor'), config);
+					_Editors.getMonacoEditor(entity, 'fieldsScript', _Code.codeContents[0].querySelector('#fields-script-editor'), config);
+				}
+
+				let changeHandler = () => {
+					_Code.persistence.updateDirtyFlag(entity);
+				};
+
+				document.querySelector('#data-source-name-input').addEventListener('keyup', changeHandler);
+
+				_Code.persistence.runCurrentEntitySaveAction = () => {
+
+					_Code.persistence.saveEntityAction(entity, (success) => {
+
+					});
+				};
+
+				let saveButton = _Code.mainArea.helpers.displaySvgActionButton('#datasource-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'save', 'Save', _Code.persistence.runCurrentEntitySaveAction);
+
+				let cancelButton = _Code.mainArea.helpers.displaySvgActionButton('#datasource-actions', _Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
+					document.querySelector('#data-source-form').reset();
+					_Code.additionalDirtyChecks = [];
+					_Editors.disposeEditorModel(entity.id, 'valuesScript');
+					_Editors.disposeEditorModel(entity.id, 'fieldsScript');
+					_Code.mainArea.displayDataSourceContent(data);
+				});
+
+				// delete button
+				_Code.mainArea.helpers.displaySvgActionButton('#datasource-actions', _Icons.getSvgIcon(_Icons.iconTrashcan, 14, 14, 'icon-red'), 'delete', 'Delete', () => {
+					_Code.persistence.deleteSchemaEntity(entity, `Delete data source ${entity.name}?`, 'Delete data source?', data);
+				});
+
+				_Helpers.disableElements(true, saveButton, cancelButton);
+
+				document.querySelector('#code-contents .tabs-content-container')?.addEventListener('bulk-data-change', (e) => {
+
+					e.stopPropagation();
+
+					let changeCount = _Schema.bulkDialogsGeneral.getChangeCountFromBulkInfo(_Schema.bulkDialogsGeneral.getBulkInfoFromTabControls(tabControls, false));
+					let isDirty     = (changeCount > 0);
+					_Helpers.disableElements(!isDirty, saveButton, cancelButton);
+
+					_Code.persistence.tellFirstElementToShowDirtyState(isDirty);
+				});
+			});
 		},
 		displaySchemaNodeContent: (data) => {
 
@@ -2251,6 +2609,10 @@ let _Code = {
 
 				return `/root/${obj.isServiceClass === true ? 'services' : 'custom'}/${obj.id}`;
 
+			} else if (obj.type === 'ScriptDataSource' || obj.type === 'QueryDataSource') {
+
+				return `/datasources/${obj.id}`;
+
 			} else {
 
 				let firstSubFolder = (obj.schemaNode?.isServiceClass === true) ? 'services' : 'custom';
@@ -2669,6 +3031,29 @@ let _Code = {
 				new WarningMessage().text('No save action is defined - but the editor has unsaved changes!').requiresConfirmation().show();
 			}
 		},
+		createEntity: (type, data) => {
+
+			return new Promise(((resolve, reject) => {
+
+				fetch(`${Structr.rootUrl}${type}`, {
+					method: 'POST',
+					body: JSON.stringify(data)
+				}).then(response => {
+
+					response.json().then(responseData => {
+
+						if (response.ok) {
+
+							resolve(responseData);
+
+						} else {
+
+							reject(responseData);
+						}
+					});
+				})
+			}));
+		},
 	},
 	search: {
 		searchThreshold: 3,
@@ -2975,6 +3360,141 @@ let _Code = {
 			backButton.classList.toggle('cursor-not-allowed', backDisabled);
 		},
 	},
+	queryBuilder: {
+		updateQuery: (container, queryTypeSelector, destination) => {
+
+			const queryType        = queryTypeSelector.value;
+			const rootGroupEl      = container.querySelector(':scope > div[data-type="group-container"]');
+			const query = {
+				type: 'group',
+				op: rootGroupEl?.dataset.op ?? 'and',
+				queryType: queryType,
+				operations: [],
+				sort: []
+			};
+
+			const groupAttrs = rootGroupEl?.querySelector('div[data-type="group-attributes"]');
+			if (groupAttrs) {
+				_Code.queryBuilder._collectFromGroupAttrs(groupAttrs, query.operations);
+			}
+
+			const sortAttrs = container.querySelector('div[data-type="sort-attributes"]');
+			if (sortAttrs) {
+				for (const row of sortAttrs.querySelectorAll(':scope > div[data-type="sort-operation"]')) {
+					const key   = row.querySelector('[data-role="key"]')?.value;
+					const order = row.querySelector('[data-role="order"]')?.value;
+					if (key) {
+						query.sort.push({ type: 'sort', key, order: order || 'asc', queryType });
+					}
+				}
+			}
+
+			destination.value = JSON.stringify(query, null, 2);
+			destination.dispatchEvent(new CustomEvent('change'));
+		},
+		_collectFromGroupAttrs: (groupAttrsEl, operations) => {
+
+			for (const item of groupAttrsEl.querySelectorAll(':scope > div[data-type]')) {
+
+				const type = item.dataset.type;
+
+				if (type === 'operation') {
+					const key   = item.querySelector('[data-role="key"]')?.value ?? '';
+					const op    = item.querySelector('[data-role="op"]')?.value ?? 'eq';
+					const value = item.querySelector('[data-role="value"]')?.value ?? '';
+					operations.push({ type: 'operation', key, op, value });
+
+				} else if (type === 'group-container') {
+					const nestedGroup = { type: 'group', op: item.dataset.op ?? 'and', operations: [] };
+					operations.push(nestedGroup);
+					const nestedAttrs = item.querySelector('div[data-type="group-attributes"]');
+					if (nestedAttrs) {
+						_Code.queryBuilder._collectFromGroupAttrs(nestedAttrs, nestedGroup.operations);
+					}
+				}
+			}
+		},
+		templates: {
+			attribute: () => `
+			<div class="w-full flex items-center justify-between gap-2 mb-2" data-type="operation">
+				<div class="flex w-full gap-2 items-center">
+					<select class="w-full" data-role="key"><option value="">--- Select attribute ---</option></select>
+					<select data-role="op">
+						<optgroup label="Exact">
+							<option value="eq">Equal</option>
+							<option value="neq">Not Equal</option>
+							<option value="gt">Greater</option>
+							<option value="gteq">Greater/Equal</option>
+							<option value="ls">Less</option>
+							<option value="lseq">Less/Equal</option>
+							<option value="null">Null</option>
+							<option value="notNull">Not Null</option>
+							<option value="startsWith">Starts with</option>
+							<option value="endsWith">Ends with</option>
+							<option value="contains">Contains</option>
+						</optgroup>
+						<optgroup label="Case Insensitive">
+							<option value="caseInsensitiveStartsWith">Starts with (ci)</option>
+							<option value="caseInsensitiveEndsWith">Ends with (ci)</option>
+							<option value="caseInsensitiveContains">Contains (ci)</option>
+						</optgroup>
+					</select>
+					<input class="w-full" type="text" data-role="value" placeholder="Value...">
+				</div>
+				<svg width="16" height="16" class="text-red cursor-pointer flex-shrink-0" data-role="remove"><title>Remove</title><use href="#trashcan"></use></svg>
+			</div>
+			`,
+			sort: () => `
+			<div class="w-full flex items-center justify-between gap-2 mb-2" data-type="sort-operation">
+				<div class="flex w-full gap-2 items-center">
+					<select class="w-full" data-role="key"><option value="">--- Select attribute ---</option></select>
+					<select data-role="order">
+						<option value="asc">ASC</option>
+						<option value="desc">DESC</option>
+					</select>
+				</div>
+				<svg width="16" height="16" class="text-red cursor-pointer flex-shrink-0" data-role="remove"><title>Remove</title><use href="#trashcan"></use></svg>
+			</div>
+			`,
+			nestedGroup: () => `
+			<div data-type="group-container" data-op="and" class="border border-gray-ddd rounded p-2 mb-2">
+				<div class="flex items-center justify-between mb-2">
+					<div class="flex gap-1">
+						<button data-role="op-and" type="button" class="px-2 py-0.5 text-xs border rounded active">AND</button>
+						<button data-role="op-or" type="button" class="px-2 py-0.5 text-xs border rounded">OR</button>
+						<button data-role="op-not" type="button" class="px-2 py-0.5 text-xs border rounded">NOT</button>
+					</div>
+					<svg width="16" height="16" class="text-red cursor-pointer" data-role="remove"><title>Remove Group</title><use href="#trashcan"></use></svg>
+				</div>
+				<div class="w-full mb-2" data-type="group-attributes"></div>
+				<div class="w-full flex gap-2">
+					<button data-type="add-attribute" type="button" class="flex items-center justify-center"><svg class="mr-2 text-green" width="14" height="14"><use href="#circle_plus"></use></svg>Attribute</button>
+					<button data-type="add-group" type="button" class="flex items-center justify-center"><svg class="mr-2 text-green" width="14" height="14"><use href="#circle_plus"></use></svg>Group</button>
+				</div>
+			</div>
+			`,
+			groupContainer: () => `
+			<div data-type="group-container" data-op="and">
+				<div class="w-full mt-4">
+					<fieldset>
+						<legend class="flex items-center gap-2">Predicates
+							<div class="flex gap-1 ml-2">
+								<button data-role="op-and" type="button" class="px-2 py-0.5 text-xs border rounded active">AND</button>
+								<button data-role="op-or" type="button" class="px-2 py-0.5 text-xs border rounded">OR</button>
+								<button data-role="op-not" type="button" class="px-2 py-0.5 text-xs border rounded">NOT</button>
+							</div>
+						</legend>
+						<div class="w-full mb-4" data-type="group-attributes"></div>
+						<div class="w-full flex gap-2">
+							<button data-type="add-attribute" type="button" class="flex items-center justify-center"><svg class="mr-2 text-green" width="14" height="14"><use href="#circle_plus"></use></svg>Attribute</button>
+							<button data-type="add-group" type="button" class="flex items-center justify-center"><svg class="mr-2 text-green" width="14" height="14"><use href="#circle_plus"></use></svg>Group</button>
+						</div>
+					</fieldset>
+				</div>
+			</div>
+			`
+		}
+	},
 	templates: {
 		main: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/schema.css">
@@ -3024,11 +3544,10 @@ let _Code = {
 			</div>
 		`,
 		actionButton: config => `
-			<button id="action-button-${config.suffix}" class="action-button hover:bg-gray-100 focus:border-gray-666 active:border-green">
-				<div class="action-button-icon">
+			<button id="action-button-${config.suffix}" class="action-button flex items-center justify-center hover:bg-gray-100 focus:border-gray-666 active:border-green gap-2">
+				<div class="action-button-icon flex items-center">
 					${config.iconSvg ?? ''}
 				</div>
-
 				<div>${config.name}</div>
 			</button>
 		`,
@@ -3040,18 +3559,36 @@ let _Code = {
 			<h2>System Types</h2>
 		`,
 		createNewType: config => `
-			<div class="flex flex-wrap justify-between gap-2 mb-2">
+			<div class="mb-2">
 				<h2>Create New ${config?.text ?? 'Type'}</h2>
 				<div id="method-buttons">
-					<div class="flex flex-wrap gap-x-4">
-						<div class="mb-2">
-							<div id="create-type-actions"></div>
-						</div>
+					<div id="create-type-actions" class="flex gap-4"></div>
 					</div>
 				</div>
 			</div>
 				
 			<div id="create-type-container"></div>
+		`,
+		dataSourceCreation: (title) => `
+			<div class="">
+				<h2>${title}</h2>
+				<div id="data-source-buttons" class="flex gap-4">
+				</div>
+			</div>
+		`,
+		dataSourceEditor: (title) => `
+			<div class="">
+				<h2>${title}</h2>
+				<div id="method-buttons">
+					<div class="flex flex-wrap gap-x-4">
+						<div class="">
+							<div id="datasource-actions" class="flex items-start"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+				
+			<div id="datasource-container"></div>
 		`,
 		cypherProperty: config => `
 			<h2>CypherProperty ${config.property.schemaNode.name}.${config.property.name}</h2>
@@ -3122,9 +3659,9 @@ let _Code = {
 				</span>
 				<input class="hidden font-bold text-lg " type="text" id="method-name-input" data-property="name" size="60" value="${config.method.name}" autocomplete="off">
 			</h2>
-			<div id="method-buttons">
+			<div id="method-buttons" class="mb-2">
 				<div id="method-options" class="flex flex-wrap gap-x-4">
-					<div id="method-actions"></div>
+					<div id="method-actions" class="flex items-start mr-4"></div>
 					${_Schema.methods.templates.methodFlags(Object.assign({ cssClasses: 'flex gap-x-2' }, config))}
 				</div>
 			</div>
@@ -3294,7 +3831,7 @@ let _Code = {
 			<div id="property-options">
 
 				<div id="default-buttons" class="mb-4">
-					<div id="property-actions"></div>
+					<div id="property-actions" class="flex items-start"></div>
 				</div>
 				<div class="mb-4 grid grid-cols-4 gap-4">
 					<div class="col-span-3" data-is-property-attribute-container>
@@ -3385,9 +3922,9 @@ let _Code = {
 			<div id="property-buttons"></div>
 		`,
 		type: config => `
-			<div class="flex flex-wrap justify-between gap-2 mb-2">
+			<div class="mb-2">
 				<h2>Type ${config.type.name}</h2>
-				<div id="type-actions"></div>
+				<div id="type-actions" class="flex"></div>
 			</div>
 			
 			<div class="tabs-container code-tabs">
@@ -3429,6 +3966,52 @@ let _Code = {
 		swaggerui: config => `
 			<div id="swagger-ui-container" class="flex-grow">
 				<iframe class="border-0" src="${config.iframeSrc}" width="100%" height="100%"></iframe>
+			</div>
+		`,
+		scriptDataSourceEditor: config => `
+			<div class="@container">
+				<div class="grid grid-cols-2 gap-8">
+					<div class="@lg:col-span-1 col-span-2">
+						<label class="block mt-8 mb-2 font-bold" data-comment="The name of the data source">Name</label>
+						<input id="data-source-name-input" data-property="name" class="w-full box-border" placeholder="Data Source Name..." value="${config.name || ''}">
+						<label class="block mt-8 mb-2 font-bold" data-comment="This script is evaluated to obtain the values in this data source.">Values Script</label>
+						<div class="editor w-full h-80" id="values-script-editor" data-property="valuesScript"></div>
+						<label class="block mt-8 mb-2 font-bold" data-comment="This script is evaluated to obtain information about the fields in this data source.">Fields Script</label>
+						<div class="editor w-full h-80" id="fields-script-editor" data-property="fieldsScript"></div>
+					</div>
+				</div>
+			</div>
+		`,
+		queryDataSourceEditor: config => `
+			<div class="@container">
+				<div class="grid grid-cols-2 gap-8">
+					<div class="@lg:col-span-1 col-span-2">
+						<label class="block mt-8 mb-2 font-bold" data-comment="The name of the data source">Name</label>
+						<input id="data-source-name-input" data-property="name" class="w-full box-border" placeholder="Data Source Name..." value="${config.name || ''}">
+						<label class="block mt-8 mb-2 font-bold" data-comment="Use the buttons below to add predicates to your query">Query</label>
+						<div id="query-builder-container" class="bg-gray-f8 border border-gray-ddd rounded p-4">
+							<div>
+								<fieldset>
+									<legend>Type</legend>
+									<select id="data-source-query-type-input" data-property="dataType" class="w-full">
+										<option>--- Select type ---</option>
+									</select>
+								</fieldset>
+							</div>
+							${_Code.queryBuilder.templates.groupContainer()}
+							<div data-type="sort-container">
+								<div class="w-full mt-4">
+									<fieldset>
+										<legend>Sorting</legend>
+										<div class="w-full mb-4" data-type="sort-attributes"></div>
+										<button data-type="add-sort" type="button" class="flex items-center justify-center"><svg class="mr-2 text-green" width="14" height="14"><use href="#circle_plus"></use></svg>Attribute</button>
+									</fieldset>
+								</div>
+							</div>
+						</div>
+						<input type="hidden" id="data-source-query-input" data-property="query">
+					</div>
+				</div>
 			</div>
 		`
 	}

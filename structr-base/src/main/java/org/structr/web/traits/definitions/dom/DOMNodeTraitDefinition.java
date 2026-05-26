@@ -18,7 +18,6 @@
  */
 package org.structr.web.traits.definitions.dom;
 
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
@@ -159,6 +158,12 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 					// acknowledge all events for this node when it is modified
 					RuntimeEventLog.acknowledgeAllEventsForId(domNode.getUuid());
+
+					final ComponentConfiguration componentConfiguration = domNode.getComponentConfiguration();
+					if (componentConfiguration != null) {
+
+						componentConfiguration.updateFieldSetForChildren();
+					}
 				}
 			}
 		);

@@ -820,4 +820,13 @@
 		<path d="M5.67 22.63H0.81V8.7h4.86Zm10.09 -9.39a2.14 2.14 0 0 0 -2.14 2.14v7.25H8.51V8.7h5.11v1.59a6.76 6.76 0 0 1 4.28 -1.6c3.17 0 5.37 2.35 5.37 6.81v7.13H17.9v-7.25a2.14 2.14 0 0 0 -2.14 -2.15Zm-10 -9.36a2.5 2.5 0 1 1 -2.5 -2.5 2.5 2.5 0 0 1 2.48 2.5Z"/>
 	</symbol>
 
+	<symbol id="close-dialog-x-thin" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+		<path d="m4.5 19.5 15 -15" fill="none" stroke="currentColor" stroke-linecap="butt" stroke-width="3"></path>
+		<path d="m4.5 4.5 15 15" fill="none" stroke="currentColor" stroke-linecap="butt" stroke-width="3"></path>
+	</symbol>
+
+	<symbol id="checkmark-thin" viewBox="-1 -1 26 26">
+		<path d="m23.15 5.4 -2.8 -2.8a0.5 0.5 0 0 0 -0.7 0L7.85 14.4a0.5 0.5 0 0 1 -0.7 0l-2.8 -2.8a0.5 0.5 0 0 0 -0.7 0l-2.8 2.8a0.5 0.5 0 0 0 0 0.7l6.3 6.3a0.5 0.5 0 0 0 0.7 0l15.3 -15.3a0.5 0.5 0 0 0 0 -0.7Z" fill="currentcolor" stroke-width="1"></path>
+	</symbol>
+
 </svg>
