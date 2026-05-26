@@ -485,7 +485,13 @@ export class Frontend {
 
 		this.fireEvent('error', { target: element, data: {}, status: status });
 
-        this.handleLogout();
+		// Only show the "logged out" alert when the failure is actually a 401.
+		// Treating every fetch-chain rejection (404, 422, 500, JSON parse errors,
+		// DOM-manipulation throws after a successful 200) as a session expiry
+		// misleads the user and hides the real error.
+		if (error && (error.status === 401 || error?.response?.status === 401)) {
+			this.handleLogout();
+		}
 	}
 
 	reloadPartial(selector, parameters, element, dontRebind, options) {
@@ -584,15 +590,23 @@ export class Frontend {
 			if (!response.ok) { throw { status: response.status, statusText: response.statusText } };
 			return response.text();
 		}).then(html => {
+			// `replaceContentInContainer` returns undefined when the response
+			// body has no top-level children (empty partial). That's a valid
+			// state -- e.g. after completing a task, the "current task" partial
+			// legitimately has nothing to render until the next step's partial
+			// loads. Guard so we don't throw on dispatchEvent / querySelector
+			// and end up in the catch (which used to misreport as a logout).
 			let newNode = this.replaceContentInContainer(container, html);
-			newNode.dispatchEvent(new Event('structr-reload'));
-			this.fireEvent('reload', {target: newNode});
+			if (newNode) {
+				newNode.dispatchEvent(new Event('structr-reload'));
+				this.fireEvent('reload', {target: newNode});
 
-			let restoreFocus = newNode.querySelector('*[name="' + this.focusName + '"][data-structr-target="' + this.focusTarget + '"]');
-			if (restoreFocus) {
+				let restoreFocus = newNode.querySelector('*[name="' + this.focusName + '"][data-structr-target="' + this.focusTarget + '"]');
+				if (restoreFocus) {
 
-				restoreFocus.focus({ focusVisible: true });
-				restoreFocus.select();
+					restoreFocus.focus({ focusVisible: true });
+					restoreFocus.select();
+				}
 			}
 
 			if (!dontRebind) {
