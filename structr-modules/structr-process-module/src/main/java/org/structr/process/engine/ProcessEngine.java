@@ -1505,15 +1505,12 @@ public class ProcessEngine {
 	// -----------------------------------------------------------------------
 
 	/**
-	 * Fire a task lifecycle event. Dispatches to:
-	 * <ol>
-	 *   <li><b>Per-userTask BPMN listeners</b> (Path A): listeners declared on the
-	 *       task's defining BpmnElement via {@code <structr:taskListener>}, filtered
-	 *       to those whose {@code event} matches.</li>
-	 *   <li><b>Schema-method fallback</b> (Path B): a method named
-	 *       {@code on<EventName>} on the {@code TaskInstance} type (e.g.
-	 *       {@code onTaskAssigned}). Invoked if defined.</li>
-	 * </ol>
+	 * Fire a task lifecycle event. Dispatches to per-userTask BPMN listeners
+	 * declared on the task's defining BpmnElement via
+	 * {@code <structr:taskListener>}, filtered to those whose {@code event}
+	 * matches. Each matched listener's {@code method} is then resolved through
+	 * {@link #invokeListenerMethod} (per-element method -> per-process method
+	 * -> TaskInstance schema method).
 	 *
 	 * Default dispatch is async: listener exceptions are caught and logged; the
 	 * engine state transition stands. A listener with {@code sync=true} can
@@ -1559,20 +1556,6 @@ public class ProcessEngine {
 			logger.warn("Task listener enumeration for event '{}' on task '{}' failed: {}",
 				eventName, safeName(taskNode), ex.getMessage());
 		}
-
-		// 2. Schema-method fallback (Path B). Always attempted as async; failures
-		//    don't propagate. The method may simply not exist -- that's expected
-		//    and silent.
-		invokeListenerMethod(taskNode, fallbackMethodName(eventName), eventName, false, submittedParams);
-	}
-
-	/**
-	 * Convert event name to convention-based fallback method name on TaskInstance.
-	 * "assigned" -> "onTaskAssigned", etc.
-	 */
-	private String fallbackMethodName(final String eventName) {
-		if (eventName == null || eventName.isEmpty()) return null;
-		return "onTask" + Character.toUpperCase(eventName.charAt(0)) + eventName.substring(1);
 	}
 
 	/**
@@ -1583,8 +1566,9 @@ public class ProcessEngine {
 	 *       primary home for code bound to a specific (process, step, event) triple.</li>
 	 *   <li>Per-process method attached to the task's BpmnDefinitions via
 	 *       {@code BpmnDefinitionsHasMethod}. Escape hatch for cross-step utilities.</li>
-	 *   <li>Schema method on TaskInstance traits (also catches convention fallbacks
-	 *       like {@code onTaskCompleted}).</li>
+	 *   <li>Schema method on TaskInstance traits. Last-resort lookup for
+	 *       listener method names that aren't found on the element or the
+	 *       process.</li>
 	 * </ol>
 	 *
 	 * <p>Every tier is invoked with the same named argument set:
@@ -1635,16 +1619,15 @@ public class ProcessEngine {
 				return;
 			}
 
-			// Tier 3: schema method on TaskInstance traits (covers explicit methods
-			// and convention fallbacks like onTaskCompleted). Resolved via
+			// Tier 3: schema method on TaskInstance traits. Resolved via
 			// Methods.resolveMethod so the named args are passed through.
 			final AbstractMethod m = Methods.resolveMethod(taskNode.getTraits(), methodName);
 			if (m != null) {
 				m.execute(ctx, taskNode, args);
 			}
-			// No match at any tier: silent. A convention fallback that doesn't exist
-			// is fine; an explicit listener with a typo'd method name will appear in
-			// the warnings via the catch block below if it actually gets dispatched.
+			// No match at any tier: silent. An explicit listener with a typo'd
+			// method name will appear in the warnings via the catch block below
+			// if it actually gets dispatched.
 
 		} catch (Exception ex) {
 			final String msg = "Task listener '" + methodName + "' for event '" + eventName +
@@ -1804,21 +1787,12 @@ public class ProcessEngine {
 
 	/**
 	 * Fire a process-level lifecycle event for the given instance. Mirrors
-	 * {@link #fireTaskEvent}, but operates on the process root: listeners are looked
-	 * up on the {@code <bpmn:process>} BpmnElement (the root of the definition's
-	 * element tree), and the convention-based fallback method name targets either
-	 * the subject's schema type or the {@code ProcessInstance} itself.
-	 *
-	 * <p>Two dispatch paths run independently:
-	 * <ol>
-	 *   <li><b>Per-process BPMN listeners</b> (Path A): listeners declared on the
-	 *       process root via {@code <structr:processListener>}, filtered to those
-	 *       whose {@code event} matches.</li>
-	 *   <li><b>Schema-method fallback</b> (Path B): a method named
-	 *       {@code on<EventName>} (e.g. {@code onProcessCompleted}). Looked up
-	 *       first on the subject's schema type if a subject is attached, then on
-	 *       {@code ProcessInstance} itself. Invoked if defined on either.</li>
-	 * </ol>
+	 * {@link #fireTaskEvent}, but operates on the process root: listeners are
+	 * looked up on the BpmnProcess via {@code <structr:processListener>},
+	 * filtered to those whose {@code event} matches. Each matched listener's
+	 * {@code method} is then resolved through {@link #invokeProcessListenerMethod}
+	 * (per-process method first, then a schema method on the subject's type or
+	 * on {@code ProcessInstance}).
 	 *
 	 * <p>This method is public so it can be called from the
 	 * {@link org.structr.process.traits.definitions.ProcessInstanceTraitDefinition}
@@ -1853,19 +1827,6 @@ public class ProcessEngine {
 			logger.warn("Process listener enumeration for event '{}' on instance '{}' failed: {}",
 				eventName, safeName(instance), ex.getMessage());
 		}
-
-		// 2. Schema-method fallback (Path B): convention-based method on the subject type
-		// or on ProcessInstance. Always async (failures don't propagate).
-		invokeProcessListenerMethod(instance, processFallbackMethodName(eventName), eventName, false);
-	}
-
-	/**
-	 * Convert a process event name to the convention-based fallback method name.
-	 * "completed" -> "onProcessCompleted", "subjectAttached" -> "onProcessSubjectAttached", etc.
-	 */
-	private String processFallbackMethodName(final String eventName) {
-		if (eventName == null || eventName.isEmpty()) return null;
-		return "onProcess" + Character.toUpperCase(eventName.charAt(0)) + eventName.substring(1);
 	}
 
 	/**
@@ -1894,14 +1855,11 @@ public class ProcessEngine {
 	}
 
 	/**
-	 * Invoke a named method for a process lifecycle event. The method is looked up first
-	 * on the subject's schema type (if a subject is attached) and then on
-	 * {@code ProcessInstance} itself. The first match wins; if neither has the method,
-	 * silently no-op (the convention is "define the method if you want the event").
-	 *
-	 * <p>For BPMN-declared listeners (Path A), the {@code methodName} is taken verbatim
-	 * from {@code <structr:processListener method="...">} and looked up on the same
-	 * resolution path.</p>
+	 * Invoke a named method for a process lifecycle event. {@code methodName} is
+	 * taken verbatim from a matched {@code <structr:processListener method="...">}.
+	 * Resolution order: per-process method attached to the BpmnProcess, then the
+	 * subject's schema type (if a subject is attached), then {@code ProcessInstance}
+	 * itself. The first match wins; if no tier has the method, silently no-op.
 	 *
 	 * <p>The instance is bound as {@code this}; for subject-type methods, the
 	 * subject is also reachable via {@code $.this.subject}.</p>
@@ -1946,7 +1904,8 @@ public class ProcessEngine {
 					invoked = true;
 				}
 			}
-			// No match: convention-based hooks are optional. Silent.
+			// No match: silent. An explicit listener with a typo'd method name
+			// will appear in the warnings via the catch block below.
 
 		} catch (Exception ex) {
 			final String msg = "Process listener '" + methodName + "' for event '" + eventName +
