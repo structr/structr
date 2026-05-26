@@ -67,7 +67,7 @@ public class EnumArrayProperty extends ArrayProperty<String> {
 
 				if (!enumConstants.contains(value)) {
 
-					throw new FrameworkException(422, "Cannot parse input for property ‛" + jsonName() + "‛", new ValueToken(declaringTrait.getLabel(), jsonName(), enumConstants));
+					throw new FrameworkException(422, "Cannot parse input for property ‛" + this.jsonName() + "‛", new ValueToken(declaringTrait.getLabel(), this.jsonName(), enumConstants));
 				}
 			}
 		}

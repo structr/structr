@@ -371,7 +371,7 @@ You can call parent methods from child implementations using the syntax `$.Super
 ### Lifecycle Method Inheritance
 Lifecycle methods follow different inheritance rules than regular methods. All lifecycle methods in the type hierarchy are called automatically, regardless of whether child types override them. This ensures that initialization, validation, and cleanup logic defined in parent traits always executes.
 
-{{"Built-in traits", h3, shortDescription, table}}
+{{"System Types", h3, shortDescription, table}}
 
 ## Transactions & Indexing
 All database operations in Structr follow ACID principles, ensuring your data remains consistent even in complex scenarios.

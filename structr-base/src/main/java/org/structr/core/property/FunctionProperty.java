@@ -164,12 +164,12 @@ public class FunctionProperty<T> extends Property<T> implements Documentable {
 
 			} else {
 
-				logger.warn("Unable to evaluate function property '{}', object was null.", jsonName());
+				logger.warn("Unable to evaluate function property '{}', object was null.", this.jsonName());
 			}
 
 		} catch (Throwable t) {
 
-			final String message = "Exception while evaluating read function in Function property '" + jsonName() + "' for node " + target.getUuid();
+			final String message = "Exception while evaluating read function in Function property '" + this.jsonName() + "' for node " + target.getUuid();
 
 			if (Settings.LogFunctionsStackTrace.getValue()) {
 
@@ -293,12 +293,12 @@ public class FunctionProperty<T> extends Property<T> implements Documentable {
 
 			} catch (Throwable t) {
 
-				logger.warn("Exception while evaluating write function in Function property \"{}\": {}", jsonName(), t.getMessage());
+				logger.warn("Exception while evaluating write function in Function property \"{}\": {}", this.jsonName(), t.getMessage());
 			}
 
 		} else {
 
-			logger.warn("FunctionProperty {} has empty write function, value will not be changed.", jsonName());
+			logger.warn("FunctionProperty {} has empty write function, value will not be changed.", this.jsonName());
 		}
 
 		if (ctx.hasError()) {

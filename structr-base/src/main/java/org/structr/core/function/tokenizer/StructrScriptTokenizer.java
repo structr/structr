@@ -53,6 +53,7 @@ public class StructrScriptTokenizer {
 		candidates.add(new QuotedString('\'', includeQuotesInTokens));
 		candidates.add(new QuotedString('\"', includeQuotesInTokens));
 		candidates.add(new Number());
+		candidates.add(new MapTokenizer());
 	}
 
 	public List<Token> tokenize(final String expression) {
@@ -62,8 +63,7 @@ public class StructrScriptTokenizer {
 		int count = 0;
 		int i = 0;
 
-		// FIXME: does this mean StructrScript expressions can only be 1000 characters long?!
-		while (i < length && count++ < 1000) {
+		while (i < length && count++ < 40000) {
 
 			while (i < length && currentToken != null && currentToken.accept(chars[i])) {
 

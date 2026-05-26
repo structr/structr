@@ -18,6 +18,9 @@
  */
 package org.structr.core.function;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import groovy.json.JsonBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -245,6 +248,14 @@ public class Functions {
 					} else {
 						tokens.add(quoteChar + token.getContent() + quoteChar);
 					}
+					break;
+
+				case "map":
+					try {
+						final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+						next = new ConstantExpression(gson.fromJson(token.getContent(), Map.class), token.getRow(), token.getColumn());
+						current.add(next);
+					} catch (Throwable ignore) {}
 					break;
 			}
 

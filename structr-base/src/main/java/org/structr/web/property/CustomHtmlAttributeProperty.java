@@ -38,6 +38,6 @@ public class CustomHtmlAttributeProperty<T> extends GenericProperty<T> {
 	}
 
 	public String cleanName () {
-		return jsonName().substring(CUSTOM_HTML_ATTRIBUTE_PREFIX.length());
+		return this.jsonName().substring(CUSTOM_HTML_ATTRIBUTE_PREFIX.length());
 	}
 }

@@ -31,6 +31,7 @@ public interface DataAdapterField extends NodeInterface {
 	String getDataType();
 	String getLabel();
 	String getSortKey();
+	String getEditModeCondition();
 	Boolean isSearchable();
 	Integer getRows();
 	Integer getColumns();

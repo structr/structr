@@ -57,7 +57,9 @@ test.beforeAll(async ({playwright}) => {
     });
 });
 
-test('data', async ({page}) => {
+test('data', async ({page}, testInfo) => {
+
+    console.log(testInfo.title);
 
     await login(page);
 

@@ -78,7 +78,9 @@ test.beforeAll(async ({playwright}) => {
 });
 
 
-test('job-queue', async ({page}) => {
+test('job-queue', async ({page}, testInfo) => {
+
+    console.log(testInfo.title);
 
     await login(page);
 

@@ -25,7 +25,9 @@ test.beforeAll(async ({playwright}) => {
     await initialize(playwright);
 });
 
-test('dashboard', async ({page}) => {
+test('dashboard', async ({page}, testInfo) => {
+
+    console.log(testInfo.title);
 
     await login(page, true);
 

@@ -99,7 +99,7 @@ public class DataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 								return dataSource.getDataType(renderContext);
 
 							case "selectedValue":
-								throw new RuntimeException("selectedValue requested, dont know how to handle it yet.");
+								throw new RuntimeException("selectedValue not available here, use a channel data source like current.");
 
 							case "currentValue":
 								return getCurrentValue(renderContext, contextObject);

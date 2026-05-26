@@ -75,6 +75,11 @@ public class DataAdapterFieldTraitWrapper extends AbstractNodeTraitWrapper imple
 	}
 
 	@Override
+	public String getEditModeCondition() {
+		return wrappedObject.getProperty(traits.key(DataAdapterFieldTraitDefinition.EDIT_MODE_CONDITION_PROPERTY));
+	}
+
+	@Override
 	public Boolean isSearchable() {
 		return wrappedObject.getProperty(traits.key(DataAdapterFieldTraitDefinition.IS_SEARCHABLE_PROPERTY));
 	}

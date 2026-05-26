@@ -30,6 +30,7 @@ import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.datasource.FieldDefinition;
 import org.structr.web.entity.ComponentConfiguration;
+import org.structr.web.entity.dom.DOMNode;
 
 import java.util.Map;
 
@@ -112,6 +113,17 @@ public interface Channel<T> {
 
 					case "root-folders":
 						return new RootFoldersDataSource(config, "root-folders");
+
+					case "parent":
+						final DOMNode parent = config.getComponent().getParent();
+						if (parent != null && parent.getComponentConfiguration() != null) {
+
+							final ComponentConfiguration parentConfig = parent.getComponentConfiguration();
+
+							// use parent data key
+							return new ParentDataSource(config, parentConfig, parentConfig.getDataAdapter().getDataKey());
+						}
+						break;
 
 					default:
 						throw new IllegalStateException("Unknown data source type: " + dataSourceName);

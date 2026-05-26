@@ -19,32 +19,41 @@
 package org.structr.core.traits.definitions;
 
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.util.Iterables;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
 import org.structr.common.ChannelInput;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
+import org.structr.core.datasources.ChannelResult;
 import org.structr.core.entity.DataSource;
 import org.structr.core.entity.Relation;
+import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.ScriptDataSource;
+import org.structr.core.function.Functions;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
+import org.structr.core.script.Scripting;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.datasource.DataSourceOperations;
 import org.structr.core.traits.wrappers.ScriptDataSourceTraitWrapper;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
+import org.structr.schema.action.Function;
 import org.structr.web.datasource.FieldDefinition;
+import org.structr.web.datasource.FunctionDataSource;
+import org.structr.web.function.UiFunction;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class ScriptDataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -84,10 +93,12 @@ public class ScriptDataSourceTraitDefinition extends AbstractNodeTraitDefinition
 
 					if (StringUtils.isNotBlank(valuesScript)) {
 
-						final Object result = Actions.execute(actionContext.getSecurityContext(), source, valuesScript, parameters, "getValues", source.getUuid());
+						final Object result = Scripting.evaluate(actionContext, null, "${" + valuesScript.trim() + "}", source.getName(), source.getUuid());
 						if (result instanceof Iterable iterable) {
 
-							return new PagingIterable<>("ScriptDataSource " + getName(), iterable, input.pageSize(), input.page());
+							final Iterable mapped = FunctionDataSource.map(iterable);
+
+							return new PagingIterable<>("ScriptDataSource " + getName(), mapped, input.pageSize(), input.page());
 						}
 
 						if (result != null) {
@@ -105,20 +116,47 @@ public class ScriptDataSourceTraitDefinition extends AbstractNodeTraitDefinition
 				@Override
 				public Map<String, FieldDefinition> getFields(final ActionContext actionContext, final DataSource provider) throws FrameworkException {
 
-					// if the data source has a data type set, return the fields of that data type
-					final String dataType = provider.as(ScriptDataSource.class).getDataType();
-					if (dataType != null) {
+					// fetch first object and look at the data
+					final Map<String, FieldDefinition> output = new LinkedHashMap<>();
+					final ChannelResult                result = provider.getResult(actionContext, ChannelInput.firstElement());
 
-						final NodeInterface node = StructrApp.getInstance(actionContext.getSecurityContext()).nodeQuery(StructrTraits.SCHEMA_NODE).name(dataType).getFirst();
-						if (node != null) {
+					if (result != null) {
 
-							final DataSource schemaNode = node.as(DataSource.class);
-							return schemaNode.getFields(actionContext);
+						final Object first = result.getFirst();
+						if (first != null) {
+
+							if (first instanceof GraphObjectMap map) {
+
+								// look at actual fields
+								for (final Object key : map.keySet()) {
+
+									if (key instanceof Property property) {
+
+										output.put(property.jsonName(), property);
+									}
+								}
+
+							} else if (first instanceof GraphObject o && Traits.exists(o.getType())) {
+
+								final Traits traits = Traits.of(o.getType());
+
+								// transform input
+								for (final PropertyKey key : traits.getPropertyKeysForView(PropertyView.All)) {
+
+									// hide some internal properties
+									if (!SchemaNodeTraitDefinition.PROPERTY_KEY_BLACKLIST_FOR_COMPONENTS.contains(key.jsonName())) {
+										output.put(key.jsonName(), key.getFieldDefinition());
+									}
+								}
+
+							} else {
+
+								throw new IllegalArgumentException("Don't know how to handle data of type " + first.getClass());
+							}
 						}
 					}
 
-					// no fields in script data source
-					return Map.of();
+					return output;
 				}
 
 				@Override

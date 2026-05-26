@@ -26,7 +26,9 @@ test.beforeAll(async ({playwright}) => {
     await initialize(playwright);
 });
 
-test('configuration-interface', async ({page}) => {
+test('configuration-interface', async ({page}, testInfo) => {
+
+    console.log(testInfo.title);
 
     await page.goto(process.env.BASE_URL + '/structr/config');
 

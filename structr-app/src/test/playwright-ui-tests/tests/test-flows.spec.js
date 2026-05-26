@@ -30,7 +30,9 @@ test.beforeAll(async ({playwright}) => {
     });
 });
 
-test('flows', async ({page}) => {
+test('flows', async ({page}, testInfo) => {
+
+    console.log(testInfo.title);
 
     await login(page);
 

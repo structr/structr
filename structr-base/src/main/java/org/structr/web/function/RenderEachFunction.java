@@ -26,6 +26,8 @@ import org.structr.core.datasources.Channel;
 import org.structr.core.datasources.ChannelResult;
 import org.structr.core.entity.DataAdapter;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
@@ -62,12 +64,12 @@ public class RenderEachFunction extends UiCommunityFunction {
 			return null;
 		}
 
-		final RenderFieldsFunction func       = new RenderFieldsFunction();
-		final RenderContext renderContext     = (RenderContext) ctx;
-		final List<String> wrapperElements    = splitAndTrim(getStringOrNull(sources, 0), " ");
-		final String slot                     = getStringOrNull(sources, 1);
-		final TagWithCSSInfo outerWrapper     = getWrapperElement(getOrNull(wrapperElements, 0));
-		final String innerWrapper             = getOrNull(wrapperElements, 1);
+		final RenderFieldsFunction func    = new RenderFieldsFunction();
+		final RenderContext renderContext  = (RenderContext) ctx;
+		final List<String> wrapperElements = splitAndTrim(getStringOrNull(sources, 0), " ");
+		final TagWithCSSInfo outerWrapper  = getWrapperElement(getOrNull(wrapperElements, 0));
+		final String innerWrapper          = getOrNull(wrapperElements, 1);
+		final Map<String, Object> params   = getMapOrNull(sources, 1);
 
 		if (caller instanceof NodeInterface n && n.is(StructrTraits.DOM_NODE)) {
 
@@ -146,10 +148,22 @@ public class RenderEachFunction extends UiCommunityFunction {
 								}
 							}
 
+							if (params != null) {
+
+								for (final String parameterName : params.keySet()) {
+
+									final String value = Scripting.replaceVariables(renderContext, null, "${" + params.get(parameterName) + "}");
+									if (StringUtils.isNotBlank(value) && !"false".equalsIgnoreCase(value)) {
+
+										data.put(parameterName, value);
+									}
+								}
+							}
+
 							outerWrapper.formatStartTag(buffer, data, additionalCss);
 						}
 
-						func.applyTemplates(renderContext, dataAdapter, domNode, innerWrapper, slot, true);
+						func.applyTemplates(renderContext, dataAdapter, domNode, innerWrapper, true);
 
 						if (outerWrapper != null) {
 							outerWrapper.formatEndTag(buffer);

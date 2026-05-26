@@ -20,8 +20,6 @@ package org.structr.core.datasources;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.util.Iterables;
-import org.structr.api.util.PagingIterable;
 import org.structr.common.ChannelInput;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
@@ -29,8 +27,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.function.Functions;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.FieldDefinition;
@@ -38,21 +34,12 @@ import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 
-import javax.swing.*;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-public class ChannelDataSource<T extends GraphObject> implements Channel<T> {
+public class ChannelDataSource<T extends GraphObject> extends AbstractValueDataSource<T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(ChannelDataSource.class);
 
-	private final ComponentConfiguration configuration;
-	private final String name;
-
-	public ChannelDataSource(final ComponentConfiguration configuration,  String name) {
-
-		this.configuration = configuration;
-		this.name          = name;
+	public ChannelDataSource(final ComponentConfiguration configuration, final String name) {
+		super(configuration, name);
 	}
 
 	@Override
@@ -61,194 +48,59 @@ public class ChannelDataSource<T extends GraphObject> implements Channel<T> {
 	}
 
 	@Override
-	public final ChannelResult<T> getResult(final ActionContext actionContext, final ChannelInput input) throws FrameworkException {
+	public T getDataSourceValue(final ActionContext actionContext, final ChannelInput input) throws FrameworkException {
 
-		if (name != null) {
+		if (actionContext instanceof RenderContext renderContext) {
 
-			if (actionContext instanceof RenderContext renderContext) {
+			final String uuid = renderContext.getChannelValue(name);
+			if (uuid != null) {
 
-				final String uuid = renderContext.getChannelValue(name);
-				if (uuid != null) {
-
-					final NodeInterface node = StructrApp.getInstance(actionContext.getSecurityContext()).getNodeById(uuid);
-					if (node != null) {
-
-						if (input != null) {
-
-							final String transform = input.transform();
-							if (transform != null) {
-
-								final Traits      traits = node.getTraits();
-								final PropertyKey key    = traits.key(transform);
-
-								if (key != null) {
-
-									// this is where we need to implement pagination and filtering!
-									final Object value = node.getProperty(key);
-
-									if (value != null && value instanceof Iterable iterable) {
-
-										final String            name             = transform + " of " + node.getUuid();
-										final Iterable<T>       filteredIterable = Iterables.filter(input, iterable);
-										final PagingIterable<T> pagingIterable   = new PagingIterable<>(name, filteredIterable, input.pageSize(), input.page());
-
-										return ChannelResult.fromIterable(pagingIterable);
-									}
-								}
-							}
-						}
-
-						return (ChannelResult<T>) ChannelResult.fromObject(node);
-					}
-				}
+				return (T) StructrApp.getInstance(actionContext.getSecurityContext()).getNodeById(uuid);
 			}
 		}
 
-		return new ChannelResult<>();
-	}
-
-	@Override
-	public final Map<String, FieldDefinition> getFields(final ActionContext actionContext) throws FrameworkException {
-
-		final Map<String, FieldDefinition> output = new LinkedHashMap<>();
-		final T value                             = getValue(actionContext, new ChannelInput(configuration.getTransform()));
-
-		if (value != null) {
-
-			final Traits traits = value.getTraits();
-
-			// transform input
-			for (final PropertyKey key : traits.getPropertyKeysForView(PropertyView.All)) {
-
-				output.put(key.jsonName(), key.getFieldDefinition());
-			}
-
-		} else {
-
-			// no current value => analyze component configuration mappings
-			if (configuration != null) {
-
-				final DOMNode component = configuration.getComponent();
-				if (component != null) {
-
-					final String transform = configuration.getTransform();
-					final Page page        = component.getOwnerDocument();
-
-					for (final NodeInterface childNode : page.getAllChildNodes()) {
-
-						final DOMNode candidate                  = childNode.as(DOMNode.class);
-						final ComponentConfiguration otherConfig = candidate.getComponentConfiguration();
-
-						// evaluate component configuration
-						if (otherConfig != null && !otherConfig.equals(this)) {
-
-							final String selectionChannel = otherConfig.getSelectionChannel();
-							if (name.equals(selectionChannel)) {
-
-								final Channel dataSource                  = otherConfig.getDataSource();
-								final Map<String, FieldDefinition> fields = dataSource.getFields(actionContext);
-
-								if (transform != null) {
-
-									final FieldDefinition fieldDefinition = fields.get(transform);
-									if (fieldDefinition != null) {
-
-										final String nodeType = fieldDefinition.nodeType();
-										if (nodeType != null) {
-
-											if (Traits.exists(nodeType)) {
-
-												final Traits traits = Traits.of(nodeType);
-
-												// transform input
-												for (final PropertyKey key : traits.getPropertyKeysForView(PropertyView.All)) {
-
-													output.put(key.jsonName(), key.getFieldDefinition());
-												}
-
-											} else {
-
-												logger.warn("Cannot evaluate getFields(): node type '{}' does not exist.", nodeType);
-											}
-
-										} else {
-
-											logger.warn("Cannot evaluate getFields(): field '{}' does not specify a node type.", transform);
-										}
-
-									} else {
-
-										logger.warn("Cannot evaluated getFields(): data source does not define a field named '{}'", transform);
-									}
-
-								} else {
-
-									return otherConfig.getDataSource().getFields(actionContext);
-								}
-							}
-						}
-					}
-
-				} else {
-
-					logger.warn("Cannot evaluate getFields(): configuration is not attached to a component.");
-				}
-			} else {
-
-				logger.warn("Cannot evaluate getFields(): configuration is null in {} '{}'.", getClass().getSimpleName(), getChannelName());
-			}
-		}
-
-		return output;
+		return null;
 	}
 
 	@Override
 	public String getDataType(final ActionContext actionContext) throws FrameworkException {
 
-		final T value = getValue(actionContext, new ChannelInput(configuration.getTransform()));
-		if (value != null) {
+		// find channel source and return data type from there
+		if (configuration != null) {
 
-			return value.getType();
-		}
+			final DOMNode component = configuration.getComponent();
+			if (component != null) {
 
-		return null;
-	}
+				final Page page = component.getOwnerDocument();
 
-	public Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, final GraphObject contextObject, final int row, final int column) throws FrameworkException {
+				for (final NodeInterface childNode : page.getAllChildNodes()) {
 
-		final ChannelInput input          = new ChannelInput(configuration.getTransform());
-		final RenderContext renderContext = (RenderContext) actionContext;
+					final DOMNode candidate                  = childNode.as(DOMNode.class);
+					final ComponentConfiguration otherConfig = candidate.getComponentConfiguration();
 
-		switch (key) {
+					// evaluate component configuration
+					if (otherConfig != null && !otherConfig.equals(this)) {
 
-			case "name":
-				return name;
+						final String selectionChannel = otherConfig.getSelectionChannel();
+						if (name.equals(selectionChannel)) {
 
-			case "values":
-				return getResult(renderContext, input);
+							final Channel dataSource = otherConfig.getDataSource();
+							if (dataSource != null) {
 
-			case "dataType":
-				return getDataType(actionContext);
+								return getTransformedDataType(dataSource.getDataType(actionContext), otherConfig.getTransform());
+							}
+						}
+					}
+				}
 
-			case "selectedValue":
-				// the selected object from the channel
-				return getValue(renderContext, input);
+			} else {
 
-			case "currentValue":
-				// the loop object
-				return renderContext.getDataNode(configuration.getDataAdapter().getDataKey());
-		}
+				logger.warn("Cannot evaluate getDataType(): configuration is not attached to a component.");
+			}
 
-		return null;
-	}
+		} else {
 
-	// ----- private methods -----
-	private T getValue(final ActionContext actionContext, final ChannelInput input) throws FrameworkException {
-
-		final ChannelResult<T> result = getResult(actionContext, input);
-		if (!result.isEmpty()) {
-
-			return result.getFirst();
+			logger.warn("Cannot evaluate getDataType(): configuration is null in {} '{}'.", getClass().getSimpleName(), getChannelName());
 		}
 
 		return null;

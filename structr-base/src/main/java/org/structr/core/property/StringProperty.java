@@ -29,7 +29,6 @@ import org.structr.core.converter.PropertyConverter;
 
 import javax.mail.internet.ContentType;
 import javax.mail.internet.ParseException;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -139,7 +138,7 @@ public class StringProperty extends AbstractPrimitiveProperty<String> {
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final int index) {
-		return StringUtils.capitalize(jsonName() + " #" + (index + 1));
+		return StringUtils.capitalize(this.jsonName() + " #" + (index + 1));
 	}
 
 	@Override

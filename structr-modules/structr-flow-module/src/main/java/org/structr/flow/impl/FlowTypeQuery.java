@@ -69,7 +69,7 @@ public class FlowTypeQuery extends FlowDataSource implements DeployableEntity {
 		return query;
 	}
 
-	public Query resolveSortOperation(final JSONObject object, final Query query) {
+	private Query resolveSortOperation(final JSONObject object, final Query query) {
 
 		final String queryType = object.getString("queryType");
 		final String key       = object.getString("key");

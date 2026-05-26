@@ -262,8 +262,7 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 				public Map<String, FieldDefinition> getFields(final ActionContext actionContext, final DataSource provider) throws FrameworkException {
 
 					final Map<String, FieldDefinition> output = new LinkedHashMap<>();
-					final SchemaNode schemaNode               = provider.as(SchemaNode.class);
-					final String name                         = schemaNode.getName();
+					final String name                         = provider.getDataType(actionContext);
 					final Traits traits                       = Traits.of(name);
 
 					// transform input
