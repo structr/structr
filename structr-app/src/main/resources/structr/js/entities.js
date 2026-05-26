@@ -4216,26 +4216,35 @@ let _Entities = {
 
             dataSourcePartial: async (config) => {
             // Process-bound widgets derive their data source from the bound
-            // UserTask's subjectType at render time. In that mode the picker
-            // is rendered read-only with the derived value displayed, and a
-            // note explains that the binding is owned by the process side.
-            // The readonly input has no `name` / `data-which="config"` so it
-            // is not posted back as a config update (which would clobber the
-            // derivation with a literal string).
+            // UserTask's subjectType at render time. The field rendered here
+            // depends on whether that derivation is healthy:
+            //
+            //   * healthy (subjectType resolved): render a read-only input
+            //     showing the derived value, so the UI dev sees the contract
+            //     without accidentally overwriting it. No `name` attribute,
+            //     so the value is never posted back as a literal.
+            //   * broken (boundUserTask null, or its subjectType empty): fall
+            //     back to the regular dataSourcesSelector so the UI dev can
+            //     pick a data source manually. The wrapper's getDataSourceName
+            //     already falls through to the raw dataSource property in
+            //     this case, so a manual pick takes effect immediately.
             const isProcessBound = (config.config.bindingMode === 'processBound');
             const boundTask      = config.config.boundUserTask;
             const subjectType    = (boundTask && typeof boundTask === 'object') ? boundTask.subjectType : null;
             // Display just the type name; the `node:` prefix is a Channel.forName
             // implementation detail that the user doesn't need to see in the UI.
-            const displayValue   = subjectType || '';
+            const displayValue        = subjectType || '';
+            const isProcessBoundHealthy = isProcessBound && !!subjectType;
 
-            const sourceField = isProcessBound
+            const sourceField = isProcessBoundHealthy
                 ? `<input type="text" id="data-source-channel-select" class="rounded-none rounded-l border-gray-input px-3 py-1 bg-gray-f4 text-gray-666 cursor-not-allowed flex-grow" value="${_Helpers.escapeTags(displayValue)}" readonly title="Process-bound: subject type owned by the bound UserTask" placeholder="(no subject type set on UserTask)">`
                 : await _Widgets.templates.dataSourcesSelector('data-source-channel-select', 'dataSource', config.config.dataSource, 'rounded-none rounded-l', 'general');
 
-            const processBoundNote = isProcessBound
-                ? `<div class="text-xs text-gray-555 mt-1">Process-bound — subject type comes from the linked UserTask's <code>subjectType</code>. Change it in the BPMN editor.</div>`
-                : '';
+            const processBoundNote = !isProcessBound
+                ? ''
+                : (isProcessBoundHealthy
+                    ? `<div class="text-xs text-gray-555 mt-1">Process-bound — subject type comes from the linked UserTask's <code>subjectType</code>. Change it in the BPMN editor.</div>`
+                    : `<div class="text-xs mt-1" style="color:#c0392b;">Process-bound but no subject type resolved from the linked UserTask. Pick a data source here as a fallback, or set <code>subjectType</code> on the UserTask in the BPMN editor — the derivation takes precedence as soon as it resolves.</div>`);
 
             return `
 
@@ -4309,6 +4318,8 @@ let _Entities = {
                 // scrolling. Mirrors the appearance of the Append-Widget dialog's
                 // contract line. Stale-field warnings are rendered per row by
                 // updateSortableDataFields based on the live data source schema.
+                // The UserTask binding itself is edited on the Process tab; this
+                // is a read-only display of the resulting contract.
                 const isProcessBound = (config.config.bindingMode === 'processBound');
                 const boundTask      = config.config.boundUserTask;
                 const subjectType    = (boundTask && typeof boundTask === 'object') ? boundTask.subjectType : null;
@@ -4316,7 +4327,7 @@ let _Entities = {
                 const contractSummary = !isProcessBound ? '' : (
                     subjectType
                         ? `<div class="process-bound-contract-summary text-gray-555 mb-2" style="font-size:12px;">Process-bound to UserTask <b>${_Helpers.escapeTags(taskLabel || '?')}</b>. Subject type: <b>${_Helpers.escapeTags(subjectType)}</b>.</div>`
-                        : `<div class="process-bound-contract-summary mb-2" style="font-size:12px; color:#c0392b;">⚠ Process-bound to UserTask <b>${_Helpers.escapeTags(taskLabel || '?')}</b> but no subject type set. The form will render no fields until the process designer sets it in the BPMN editor.</div>`
+                        : `<div class="process-bound-contract-summary mb-2" style="font-size:12px; color:#c0392b;">⚠ Process-bound to UserTask <b>${_Helpers.escapeTags(taskLabel || '?')}</b> but no subject type set. Re-link on the Process tab, or set <code>subjectType</code> on the UserTask in the BPMN editor.</div>`
                 );
                 return `
 
