@@ -116,6 +116,29 @@ public class ProcessEngine {
 	}
 
 	/**
+	 * Grant {@code read} on the participant-facing nodes attached to a process
+	 * instance: the instance itself and, when attached, the subject. Used at
+	 * every site where the engine establishes a new engagement between a
+	 * principal and a task (creation, claim, assignTask, delegate,
+	 * makeAvailable). Idempotent — re-granting an existing permission is a
+	 * no-op in Structr's ACL.
+	 *
+	 * <p>Rationale: a candidate or assignee can't usefully render the process
+	 * page without read on the instance (to bind {@code current}) and the
+	 * subject (to render the domain data). Doing this in the engine is
+	 * symmetric with the existing task R+W grant -- it's plumbing, not policy,
+	 * and should not require an application-side listener to wire up.</p>
+	 */
+	private void grantParticipantReadAccess(final NodeInterface instance, final Principal principal) throws FrameworkException {
+		if (instance == null || principal == null) return;
+		grant(instance, principal, Permission.read);
+		final NodeInterface subject = instance.getProperty(instance.getTraits().key(ProcessInstanceTraitDefinition.SUBJECT_PROPERTY));
+		if (subject != null) {
+			grant(subject, principal, Permission.read);
+		}
+	}
+
+	/**
 	 * Start a new process instance from a BpmnDefinitions node.
 	 * Creates the ProcessInstance, attaches the given subject (may be null
 	 * for pure-workflow processes), places a token at the start event, and
@@ -170,8 +193,10 @@ public class ProcessEngine {
 			instance.setProperty(instTraits.key(ProcessInstanceTraitDefinition.SUBJECT_PROPERTY), elevate(app, subject));
 		}
 
-		// Grant the initiator read access on the ProcessInstance so they can observe their own instance.
-		grant(instance, caller, Permission.read);
+		// Grant the initiator read access on the ProcessInstance and its
+		// subject so they can observe their own instance and the domain data
+		// it operates on.
+		grantParticipantReadAccess(instance, caller);
 
 		// Fire 'created' before token placement: listeners observe an instance with a definition,
 		// initiator, and possibly subject set, but no tokens yet.
@@ -958,24 +983,26 @@ public class ProcessEngine {
 			// i.e. the assignee was established at task-creation time, no separate claim event.
 			task.setProperty(taskTraits.key(TaskInstanceTraitDefinition.CLAIMED_TIME_PROPERTY),    new Date());
 			grant(task, assigneeNode.as(Principal.class), Permission.read, Permission.write);
-			// Generic participant grant: read on the parent ProcessInstance. Read
-			// propagation on TASK_OF / HAS_PARAMETER_VALUE then extends visibility
-			// to the instance's other tasks and parameter values without per-object
-			// grants. Single source of truth for participant access.
-			grant(instance, assigneeNode.as(Principal.class), Permission.read);
+			// Generic participant grant: read on the parent ProcessInstance and
+			// its subject (when attached). Read propagation on TASK_OF /
+			// HAS_PARAMETER_VALUE then extends visibility to the instance's
+			// other tasks and parameter values without per-object grants.
+			// Single source of truth for participant access.
+			grantParticipantReadAccess(instance, assigneeNode.as(Principal.class));
 
 		} else if (!candidateAssignees.isEmpty()) {
 
 			task.setProperty(taskTraits.key(TaskInstanceTraitDefinition.CANDIDATE_ASSIGNEES_PROPERTY), candidateAssignees);
 			task.setProperty(taskTraits.key(TaskInstanceTraitDefinition.STATUS_PROPERTY),           TaskInstanceTraitDefinition.STATUS_AVAILABLE);
 
-			// Grant read+write on the task to each candidate, plus read on the parent
-			// ProcessInstance so propagation extends visibility to the rest of the
-			// instance (sibling tasks, parameter history).
+			// Grant read+write on the task to each candidate, plus read on the
+			// parent ProcessInstance and its subject so propagation extends
+			// visibility to the rest of the instance (sibling tasks, parameter
+			// history) and the domain data the page renders.
 			for (final NodeInterface owner : candidateAssignees) {
 				final Principal ownerPrincipal = owner.as(Principal.class);
-				grant(task,     ownerPrincipal, Permission.read, Permission.write);
-				grant(instance, ownerPrincipal, Permission.read);
+				grant(task, ownerPrincipal, Permission.read, Permission.write);
+				grantParticipantReadAccess(instance, ownerPrincipal);
 			}
 
 		} else {
@@ -1000,8 +1027,8 @@ public class ProcessEngine {
 				task.setProperty(taskTraits.key(TaskInstanceTraitDefinition.STATUS_PROPERTY),          TaskInstanceTraitDefinition.STATUS_RESERVED);
 				task.setProperty(taskTraits.key(TaskInstanceTraitDefinition.ASSIGNEE_SET_BY_PROPERTY), TaskInstanceTraitDefinition.SET_BY_BPMN);
 				task.setProperty(taskTraits.key(TaskInstanceTraitDefinition.CLAIMED_TIME_PROPERTY),    new Date());
-				grant(task,     fallbackAssignee.as(Principal.class), Permission.read, Permission.write);
-				grant(instance, fallbackAssignee.as(Principal.class), Permission.read);
+				grant(task, fallbackAssignee.as(Principal.class), Permission.read, Permission.write);
+				grantParticipantReadAccess(instance, fallbackAssignee.as(Principal.class));
 			} else {
 				task.setProperty(taskTraits.key(TaskInstanceTraitDefinition.STATUS_PROPERTY), TaskInstanceTraitDefinition.STATUS_CREATED);
 			}
@@ -1090,14 +1117,13 @@ public class ProcessEngine {
 
 		// Ensure the claimer has read+write on the task (may already be granted via candidate assignee).
 		grant(taskNode, caller, Permission.read, Permission.write);
-		// Generic participant grant: also ensure read on the parent ProcessInstance.
-		// Idempotent if the candidate-assignee path already granted it; defensive for
-		// claim flows where the caller's eligibility came from group membership but
-		// no direct instance grant exists.
+		// Generic participant grant: also ensure read on the parent
+		// ProcessInstance and its subject. Idempotent if the candidate-
+		// assignee path already granted them; defensive for claim flows where
+		// the caller's eligibility came from group membership but no direct
+		// instance grant exists.
 		final NodeInterface claimedInstance = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.PROCESS_INSTANCE_PROPERTY));
-		if (claimedInstance != null) {
-			grant(claimedInstance, caller, Permission.read);
-		}
+		grantParticipantReadAccess(claimedInstance, caller);
 
 		logger.info("Task '{}' claimed by '{}'", taskNode.getName(), caller.getName());
 
@@ -1160,11 +1186,10 @@ public class ProcessEngine {
 		revokePreviousAssigneeGrantIfApplicable(taskNode, taskTraits, previousAssignee, assignee);
 
 		grant(taskNode, assignee.as(Principal.class), Permission.read, Permission.write);
-		// Generic participant grant on the parent ProcessInstance for the new assignee.
+		// Generic participant grant on the parent ProcessInstance and its
+		// subject for the new assignee.
 		final NodeInterface assignedInstance = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.PROCESS_INSTANCE_PROPERTY));
-		if (assignedInstance != null) {
-			grant(assignedInstance, assignee.as(Principal.class), Permission.read);
-		}
+		grantParticipantReadAccess(assignedInstance, assignee.as(Principal.class));
 
 		logger.info("Task '{}' assigned to '{}' by admin caller '{}'",
 			taskNode.getName(), assignee.getName(), (caller != null ? caller.getName() : "<system>"));
@@ -1365,11 +1390,10 @@ public class ProcessEngine {
 		revokePreviousAssigneeGrantIfApplicable(taskNode, taskTraits, previousAssignee, delegate);
 
 		grant(taskNode, delegate.as(Principal.class), Permission.read, Permission.write);
-		// Generic participant grant on the parent ProcessInstance for the delegate.
+		// Generic participant grant on the parent ProcessInstance and its
+		// subject for the delegate.
 		final NodeInterface delegatedInstance = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.PROCESS_INSTANCE_PROPERTY));
-		if (delegatedInstance != null) {
-			grant(delegatedInstance, delegate.as(Principal.class), Permission.read);
-		}
+		grantParticipantReadAccess(delegatedInstance, delegate.as(Principal.class));
 
 		logger.info("Task '{}' delegated to '{}' by '{}'",
 			taskNode.getName(), delegate.getName(), caller.getName());
@@ -1485,12 +1509,16 @@ public class ProcessEngine {
 		// Revoke previous assignee's R+W if they're not a current candidate assignee.
 		revokePreviousAssigneeGrantIfApplicable(taskNode, taskTraits, previousAssignee, null);
 
-		// Re-grant R+W to every current candidate assignee. Idempotent for those
-		// who already hold the grant; restores access where it was missing.
+		// Re-grant R+W to every current candidate assignee, plus read on the
+		// parent ProcessInstance and its subject. Idempotent for those who
+		// already hold the grants; restores access where it was missing.
 		final Iterable<NodeInterface> candidateAssignees = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.CANDIDATE_ASSIGNEES_PROPERTY));
 		if (candidateAssignees != null) {
+			final NodeInterface availInstance = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.PROCESS_INSTANCE_PROPERTY));
 			for (final NodeInterface candidate : candidateAssignees) {
-				grant(taskNode, candidate.as(Principal.class), Permission.read, Permission.write);
+				final Principal candidatePrincipal = candidate.as(Principal.class);
+				grant(taskNode, candidatePrincipal, Permission.read, Permission.write);
+				grantParticipantReadAccess(availInstance, candidatePrincipal);
 			}
 		}
 
