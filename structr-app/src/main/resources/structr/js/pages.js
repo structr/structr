@@ -949,11 +949,6 @@ let _Pages = {
 					if (dialogConfig) {
 						dialogConfig.appendDialogForEntityToContainer($(generalContainer), obj, typeInfo).then(() => {
 							_Helpers.activateCommentsInElement(generalContainer);
-
-							// Process Visibility editor: appended after the standard General fields.
-							// Per-DOMNode and orthogonal to events; lives here so any DOMNode can be
-							// configured even when it has no event handlers.
-							_Pages.processVisibilityDialog(obj, generalContainer);
 						});
 					}
 				});
@@ -1045,6 +1040,21 @@ let _Pages = {
 				_Schema.caches.getTypeInfo(obj.type, (typeInfo) => {
 					_Pages.eventActionMappingDialog(obj, eventsContainer, typeInfo);
 				});
+				break;
+
+			case '#pages:process':
+
+				_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.process());
+				let processContainer = document.querySelector('#center-pane .process-container');
+
+				_Schema.caches.getTypeInfo(obj.type, (typeInfo) => {
+
+					// Process Visibility editor: appended after the standard Process fields.
+					// Per-DOMNode and orthogonal to events; lives here so any DOMNode can be
+					// configured even when it has no event handlers.
+					_Pages.processDialog(obj, processContainer);
+				});
+
 				break;
 
 			case '#pages:security':
@@ -1293,17 +1303,138 @@ let _Pages = {
 
 	},
 
-	/**
-	 * Process visibility editor for a DOMNode. Renders an OR-combined list of
-	 * VisibilityMappings tied to the node, each binding a (process, step, state)
-	 * tuple. Independent of EAM: any DOMNode can have visibility rules whether or
-	 * not it has event handlers. The renderer (DOMNodeTraitWrapper.shouldBeRendered)
-	 * gates emission on these rules.
-	 */
-	processVisibilityDialog: (entity, container) => {
+	processDialog: (entity, container) => {
 
-		// Inject the section template into the container.
-		container.insertAdjacentHTML('beforeend', _Pages.templates.processVisibility());
+		// --- Component Binding (Bound UserTask) ---
+		// Only meaningful for DOMNodes that carry a ComponentConfiguration
+		// (widgets / smart components). For other DOMNodes the whole section
+		// is hidden so the tab still shows just the Visibility editor.
+		//
+		// Two cascading dropdowns:
+		//   1. Process: every BpmnProcess in the system. Pre-selected to the
+		//      currently bound UserTask's process (if any).
+		//   2. UserTask: scoped to the selected Process. Pre-selected to the
+		//      current binding. Disabled until a Process is picked.
+		// Persisting happens on UserTask change; selecting a Process alone
+		// does not touch the binding (so the user can browse).
+		let bindingSection    = container.querySelector('#component-binding-section');
+		let processSelect     = container.querySelector('#relink-process-select');
+		let relinkSelect      = container.querySelector('#relink-user-task-select');
+		let relinkHint        = container.querySelector('#relink-user-task-hint');
+		let componentConfigId = entity?.componentConfiguration?.id || null;
+		if (!componentConfigId) {
+			if (bindingSection) bindingSection.style.display = 'none';
+		} else {
+			const setHint = (msg, isError) => {
+				relinkHint.textContent = msg;
+				relinkHint.style.color = isError ? '#c0392b' : '';
+			};
+			const updateHint = (taskId, subj) => {
+				if (taskId && subj)       setHint(`Subject type from this UserTask: ${subj}`, false);
+				else if (taskId)          setHint('Bound UserTask has no subjectType. Set it in the BPMN editor to drive process-bound rendering.', true);
+				else                      setHint('Unbound. Process-bound widgets fall back to their manual data source until a task is selected.', false);
+			};
+
+			// Cached per-process userTask lists so flipping the Process dropdown
+			// is instantaneous after the first hit.
+			const tasksByProcess = new Map();
+			const loadTasksFor = (procId, cb) => {
+				if (!procId) { cb([]); return; }
+				if (tasksByProcess.has(procId)) { cb(tasksByProcess.get(procId)); return; }
+				Command.query('BpmnElement', 2000, 1, 'bpmnName', 'asc', { process: procId, bpmnElementType: 'userTask' }, (elements) => {
+					const tasks = elements || [];
+					tasksByProcess.set(procId, tasks);
+					cb(tasks);
+				}, false, null, 'id,name,bpmnName,bpmnId');
+			};
+
+			const renderTaskOptions = (tasks, selectedId) => {
+				let html = '<option value="">— pick a UserTask —</option>';
+				for (const t of tasks) {
+					const label = t.bpmnName || t.name || t.bpmnId || t.id;
+					const sel   = (t.id === selectedId) ? 'selected' : '';
+					html += `<option value="${t.id}" ${sel}>${_Helpers.escapeTags(label)}</option>`;
+				}
+				relinkSelect.innerHTML = html;
+				relinkSelect.disabled  = (tasks.length === 0);
+			};
+
+			(async () => {
+				let boundTask = null;
+				let currentTaskId    = '';
+				let currentProcessId = '';
+				let currentSubject   = null;
+				try {
+					const config = await Command.getPromise(componentConfigId, '', 'ui');
+					boundTask    = config?.boundUserTask || null;
+					if (boundTask && typeof boundTask === 'object') {
+						currentTaskId  = boundTask.id || '';
+						currentSubject = boundTask.subjectType || null;
+						const procRel  = Array.isArray(boundTask.process) ? boundTask.process[0] : boundTask.process;
+						currentProcessId = (procRel && procRel.id) || '';
+					}
+				} catch (e) {
+					console.error('processDialog: failed to fetch ComponentConfiguration', e);
+				}
+
+				// Populate the Process select.
+				Command.query('BpmnProcess', 2000, 1, 'processName', 'asc', null, (procs) => {
+					let html = '<option value="">— pick a Process —</option>';
+					for (const p of (procs || [])) {
+						const label = (p.processName ?? p.processId ?? p.id) + (p.version ? ` (v${p.version})` : '');
+						const sel   = (p.id === currentProcessId) ? 'selected' : '';
+						html += `<option value="${p.id}" ${sel}>${_Helpers.escapeTags(label)}</option>`;
+					}
+					processSelect.innerHTML = html;
+					processSelect.dataset.current = currentProcessId;
+
+					// If the current binding has a process, load its tasks
+					// and pre-select the currently bound task.
+					if (currentProcessId) {
+						loadTasksFor(currentProcessId, (tasks) => {
+							renderTaskOptions(tasks, currentTaskId);
+							relinkSelect.dataset.current = currentTaskId;
+							updateHint(currentTaskId, currentSubject);
+						});
+					} else {
+						updateHint('', null);
+					}
+				}, false, null, 'id,processName,processId,version');
+			})();
+
+			// Process change: load that process's UserTasks. Does NOT persist;
+			// the actual binding only changes when the user picks a task.
+			processSelect.addEventListener('change', () => {
+				const procId = processSelect.value || '';
+				processSelect.dataset.current = procId;
+				if (!procId) {
+					renderTaskOptions([], '');
+					return;
+				}
+				loadTasksFor(procId, (tasks) => {
+					renderTaskOptions(tasks, '');
+				});
+			});
+
+			// UserTask change: persist boundUserTask via the standard UPDATE
+			// command, then re-read the config so the hint reflects the new
+			// task's subjectType.
+			relinkSelect.addEventListener('change', () => {
+				const newId = relinkSelect.value || null;
+				Command.setProperty(componentConfigId, 'boundUserTask', newId, false, async () => {
+					try {
+						const updated = await Command.getPromise(componentConfigId, '', 'ui');
+						const bt   = updated?.boundUserTask || null;
+						const subj = (bt && typeof bt === 'object') ? bt.subjectType : null;
+						relinkSelect.dataset.current = newId || '';
+						updateHint(newId, subj);
+						_Helpers.blinkGreen(relinkSelect);
+					} catch (err) {
+						new ErrorMessage().text(`Re-link succeeded but refresh failed: ${err.message ?? err}`).show();
+					}
+				});
+			});
+		}
 
 		let visibilityMappingsList = container.querySelector('#visibility-mappings-list');
 		let addVisibilityMappingButton = container.querySelector('.add-visibility-mapping-button');
@@ -1323,51 +1454,30 @@ let _Pages = {
 			'no-instance':             null
 		};
 
-		// Cached process list (populated once, reused by every row).
-		let cachedVisibilityProcessDefinitions = null;
-		let withVisibilityProcessDefinitions = (cb) => {
-			if (cachedVisibilityProcessDefinitions !== null) { cb(cachedVisibilityProcessDefinitions); return; }
-			Command.query('BpmnDefinitions', 2000, 1, 'name', 'asc', null, (defs) => {
-				cachedVisibilityProcessDefinitions = defs ?? [];
-				cb(cachedVisibilityProcessDefinitions);
-			}, false, null, 'id,name,processId,version');
+		let cachedVisibilityProcesses = null;
+		let withVisibilityProcesses = (cb) => {
+			if (cachedVisibilityProcesses !== null) { cb(cachedVisibilityProcesses); return; }
+			Command.query('BpmnProcess', 2000, 1, 'processName', 'asc', null, (procs) => {
+				cachedVisibilityProcesses = procs ?? [];
+				cb(cachedVisibilityProcesses);
+			}, false, null, 'id,processName,processId,version');
 		};
 
-		let loadVisibilityStepsForRow = (definitionId, elementTypeFilter, cb) => {
-			if (!definitionId) { cb([]); return; }
-			// VisibilityMapping.boundProcess points at a BpmnDefinitions (file
-			// root) that may now contain multiple BpmnProcess children
-			// (collaboration). BpmnElement has no `definition` field; it is
-			// related to its BpmnProcess via `process`. So the lookup is two
-			// hops: BpmnProcess.definition == defId, then BpmnElement.process
-			// in (those proc ids). Element results are concatenated across
-			// processes so the Step picker shows every step in the
-			// definition's collaboration.
-			Command.query('BpmnProcess', 1000, 1, 'name', 'asc', { definition: definitionId }, (procs) => {
-				const procIds = (procs ?? []).map(p => p.id);
-				if (procIds.length === 0) { cb([]); return; }
-				let pending = procIds.length;
-				let allElements = [];
-				const finish = () => {
-					let filtered = allElements;
-					if (elementTypeFilter) {
-						filtered = filtered.filter(el => el.bpmnElementType === elementTypeFilter);
-					} else {
-						filtered = filtered.filter(el =>
-							el.bpmnElementType === 'userTask' ||
-							el.bpmnElementType === 'intermediateCatchEvent'
-						);
-					}
-					filtered.sort((a, b) => (a.bpmnName ?? a.bpmnId ?? '').localeCompare(b.bpmnName ?? b.bpmnId ?? ''));
-					cb(filtered);
-				};
-				for (const pid of procIds) {
-					Command.query('BpmnElement', 2000, 1, 'bpmnName', 'asc', { process: pid }, (elements) => {
-						allElements = allElements.concat(elements ?? []);
-						if (--pending === 0) finish();
-					}, false, null, 'id,bpmnId,bpmnName,bpmnElementType,process');
+		let loadVisibilityStepsForRow = (processNodeId, elementTypeFilter, cb) => {
+			if (!processNodeId) { cb([]); return; }
+			Command.query('BpmnElement', 2000, 1, 'bpmnName', 'asc', { process: processNodeId }, (elements) => {
+				let filtered = elements ?? [];
+				if (elementTypeFilter) {
+					filtered = filtered.filter(el => el.bpmnElementType === elementTypeFilter);
+				} else {
+					filtered = filtered.filter(el =>
+						el.bpmnElementType === 'userTask' ||
+						el.bpmnElementType === 'intermediateCatchEvent'
+					);
 				}
-			}, false, null, 'id');
+				filtered.sort((a, b) => (a.bpmnName ?? a.bpmnId ?? '').localeCompare(b.bpmnName ?? b.bpmnId ?? ''));
+				cb(filtered);
+			}, false, null, 'id,bpmnId,bpmnName,bpmnElementType');
 		};
 
 		// Step picker stays visible at all times to match the natural authoring order
@@ -1433,11 +1543,11 @@ let _Pages = {
 			let preselectProcessId = extractRelId(vm?.boundProcess);
 			let preselectStepId    = extractRelId(vm?.boundStep);
 
-			withVisibilityProcessDefinitions((defs) => {
+			withVisibilityProcesses((procs) => {
 				processSelect.insertAdjacentHTML('beforeend',
-					defs.map(d => {
-						let label = (d.name ?? d.id) + (d.version ? ` (v${d.version})` : '');
-						return `<option value="${d.id}" data-process-id="${_Helpers.escapeTags(d.processId ?? '')}">${_Helpers.escapeTags(label)}</option>`;
+					procs.map(p => {
+						let label = (p.processName ?? p.processId ?? p.id) + (p.version ? ` (v${p.version})` : '');
+						return `<option value="${p.id}" data-process-id="${_Helpers.escapeTags(p.processId ?? '')}">${_Helpers.escapeTags(label)}</option>`;
 					}).join(''));
 				processSelect.value = preselectProcessId;
 
@@ -4810,6 +4920,9 @@ let _Pages = {
 					<li id="tabs-menu-events">
 						<a href="#pages:events">Events</a>
 					</li>
+					<li id="tabs-menu-process">
+						<a href="#pages:process">Process</a>
+					</li>					
 					<li id="tabs-menu-link">
 						<a href="#pages:link">Link</a>
 					</li>
@@ -4828,10 +4941,44 @@ let _Pages = {
 		general: config => `
 			<div class="content-container general-container"></div>
 		`,
-		processVisibility: config => `
-			<div class="visibility-container mt-8">
+		process: config => `
+			<div class="content-container process-container">
 
-				<h3>Process Visibility</h3>
+				<div id="component-binding-section">
+
+					<h3>Component Binding</h3>
+
+					<div class="inline-info">
+						<div class="inline-info-icon">
+							${_Icons.getSvgIcon(_Icons.iconInfo, 24, 24)}
+						</div>
+						<div class="inline-info-text">
+							Attaches this component's <code>ComponentConfiguration</code> to a BPMN UserTask. The bound
+							UserTask is the source of truth for the subject type (rendered fields) and lets process-bound
+							widgets derive their data source from <code>subjectType</code>. Primary recovery path after a
+							process re-import that orphans the previous binding.
+						</div>
+					</div>
+
+					<div class="grid grid-cols-2 gap-8">
+						<div>
+							<label class="block mb-2" for="relink-process-select">Process</label>
+							<select id="relink-process-select" class="block w-full mb-2">
+								<option value="">— pick a Process —</option>
+							</select>
+						</div>
+						<div>
+							<label class="block mb-2" for="relink-user-task-select">Bound UserTask</label>
+							<select id="relink-user-task-select" class="block w-full" disabled>
+								<option value="">— pick a UserTask —</option>
+							</select>
+							<div id="relink-user-task-hint" class="text-xs text-gray-555 mt-1"></div>
+						</div>
+					</div>
+
+				</div>
+
+				<h3>Visibility</h3>
 
 				<div class="inline-info">
 					<div class="inline-info-icon">
