@@ -41,6 +41,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaNodeTraitDefinition;
 import org.structr.core.traits.definitions.SchemaRelationshipNodeTraitDefinition;
 import org.structr.docs.*;
 import org.structr.schema.ConfigurationProvider;
@@ -388,12 +389,12 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 
 					// check if there is an existing Structr entity with the same type and make the dynamic class extend the existing class if yes.
 					final Traits existingType = Traits.of(type);
-					if (existingType != null && !existingType.getName().equals("org.structr.dynamic." + type)) {
+					if (existingType != null && existingType.isBuiltinType()) {
 
 						final NodeInterface schemaNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).name(type).getFirst();
 						if (schemaNode != null) {
 
-							propertyMap.put(Traits.of(StructrTraits.SCHEMA_NODE).key("extendsClass"), schemaNode);
+							propertyMap.put(Traits.of(StructrTraits.SCHEMA_NODE).key(SchemaNodeTraitDefinition.INHERITED_TRAITS_PROPERTY), new String[] { type });
 						}
 
 					} else if (!typeInfo.getOtherTypes().isEmpty()) {
@@ -403,7 +404,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 
 						if (schemaNode != null) {
 
-							propertyMap.put(Traits.of(StructrTraits.SCHEMA_NODE).key("extendsClass"), schemaNode);
+							propertyMap.put(Traits.of(StructrTraits.SCHEMA_NODE).key(SchemaNodeTraitDefinition.INHERITED_TRAITS_PROPERTY), new String[] { type });
 						}
 
 						/*

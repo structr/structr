@@ -725,7 +725,7 @@ let _Graph = {
 				}
 
 				var isRelType     = node.isRel;
-				var isDynamicType = node.className.startsWith('org.structr.dynamic');
+				var isDynamicType = node.isBuiltin !== true;
 				var isCoreType    = node.className.startsWith('org.structr.core.entity');
 				var isHtmlType    = node.className.startsWith('org.structr.web.entity.html');
 				var isUiType      = node.className.startsWith('org.structr.web.entity') && !node.className.startsWith('org.structr.web.entity.html');

@@ -546,42 +546,6 @@ public class StructrApp implements App {
 
 	public static void initializeSchemaIds() {
 
-		/*
-		final Map<String, Class> interfaces                                = StructrApp.getConfiguration().getInterfaces();
-		final Map<String, Class<? extends NodeInterface>> nodeTypes        = StructrApp.getConfiguration().getNodeEntities();
-		final Map<String, Class<? extends RelationshipInterface>> relTypes = StructrApp.getConfiguration().getRelationshipEntities();
-
-		// refresh schema IDs
-		schemaIdMap.clear();
-		typeIdMap.clear();
-
-		for (final Class type : interfaces.values()) {
-
-			// only register node types
-			if (!type.getName().startsWith("org.structr.dynamic.")) {
-
-				registerType(type);
-			}
-		}
-
-		for (final Class type : nodeTypes.values()) {
-
-			// only register node types
-			if (!type.getName().startsWith("org.structr.dynamic.")) {
-
-				registerType(type);
-			}
-		}
-
-		for (final Class type : relTypes.values()) {
-
-			// only register node types
-			if (!type.getName().startsWith("org.structr.dynamic.")) {
-
-				registerType(type);
-			}
-		}
-		*/
 	}
 
 	// ----- private static methods -----

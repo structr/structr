@@ -68,7 +68,6 @@ public class StructrCsvTest extends StructrRestTestBase {
 
 		Settings.Servlets.setValue("JsonRestServlet CsvServlet");
 		Settings.RestAuthenticator.setValue(SuperUserAuthenticator.class.getName());
-		Settings.RestUserClass.setValue("");
 
 		Settings.CsvServletPath.setValue(csvUrl);
 		Settings.CsvAuthenticator.setValue(SuperUserAuthenticator.class.getName());

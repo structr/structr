@@ -228,10 +228,10 @@ public class ManageThreadsCommand extends NodeServiceCommand implements Maintena
 		Map.entry(Pattern.compile("org.structr.cron.CronService\\$1.run"),                        "Cron Service"),
 
 		// schema
-		Map.entry(Pattern.compile("org.structr.dynamic.([A-Za-z]+).onCreation"),                "$1.onCreate"),
-		Map.entry(Pattern.compile("org.structr.dynamic.([A-Za-z]+).afterCreation"),             "$1.afterCreate"),
-		Map.entry(Pattern.compile("org.structr.dynamic.([A-Za-z]+).onModification"),            "$1.onSave"),
-		Map.entry(Pattern.compile("org.structr.dynamic.([A-Za-z]+).afterModification"),         "$1.afterSave"),
+		Map.entry(Pattern.compile("org.structr.core.entity.([A-Za-z]+).onCreation"),                "$1.onCreate"),
+		Map.entry(Pattern.compile("org.structr.core.entity.([A-Za-z]+).afterCreation"),             "$1.afterCreate"),
+		Map.entry(Pattern.compile("org.structr.core.entity.([A-Za-z]+).onModification"),            "$1.onSave"),
+		Map.entry(Pattern.compile("org.structr.core.entity.([A-Za-z]+).afterModification"),         "$1.afterSave"),
 		Map.entry(Pattern.compile("org.structr.core.entity.AbstractEndpoint.getSingle"),        "Get Relationship"),
 		Map.entry(Pattern.compile("org.structr.core.entity.AbstractEndpoint.getMultiple"),      "Get Relationships"),
 		Map.entry(Pattern.compile("org.structr.core.graph.CreateNodeCommand.execute"),          "Create Node"),
@@ -249,11 +249,11 @@ public class ManageThreadsCommand extends NodeServiceCommand implements Maintena
 
 
 		// HTML
-		Map.entry(Pattern.compile("org.structr.web.servlet.HtmlServlet.doGet"),                 "HTTP GET"),
-		Map.entry(Pattern.compile("org.structr.dynamic.Page.render"),                           "Render Page"),
-		Map.entry(Pattern.compile("org.structr.dynamic.Template.renderContent"),                "Render Template"),
-		Map.entry(Pattern.compile("org.structr.dynamic.DOMElement.renderContent"),              "Render Element"),
-		Map.entry(Pattern.compile("org.structr.dynamic.DOMNode.render"),                        "Render DOM Node"),
+		Map.entry(Pattern.compile("org.structr.web.servlet.HtmlServlet.doGet"),                                           "HTTP GET"),
+		Map.entry(Pattern.compile("org.structr.web.traits.definitions.dom.PageTraitDefinition[^.]*.render"),              "Render Page"),
+		Map.entry(Pattern.compile("org.structr.web.traits.definitions.dom.TemplateTraitDefinition[^.]*.renderContent"),   "Render Template"),
+		Map.entry(Pattern.compile("org.structr.web.traits.definitions.dom.DOMElementTraitDefinition[^.]*.renderContent"), "Render Element"),
+		Map.entry(Pattern.compile("org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition[^.]*.render"),           "Render DOM Node"),
 
 		Map.entry(Pattern.compile("org.structr.core.script.Scripting.evaluateJavascript"),      "Run Javascript"),
 		Map.entry(Pattern.compile("org.structr.core.function.Functions.evaluate"),              "Run StructrScript"),
