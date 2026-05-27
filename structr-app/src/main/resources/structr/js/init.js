@@ -1049,10 +1049,15 @@ let Structr = {
 		if (helpLink) {
 			helpLink.setAttribute('href', newUrl);
 
+			helpLink.classList.remove('hidden');
+
 			if (helpLink.children.length === 0) {
 				helpLink.innerHTML = _Icons.getSvgIcon(_Icons.iconInfo, 16, 16);
 			}
 		}
+	},
+	hideMainHelpLink: () => {
+		document.querySelector('#main-help a')?.classList?.add('hidden');
 	},
 	addExpandedNode: (id) => {
 
