@@ -3062,7 +3062,8 @@ let _Entities = {
             }
 
             // construct list of available fields (all fields minus selected fields)
-			if (fields.length > 0) {
+			if (Object.keys(fields).length > 0) {
+				
 				for (let fieldName in fields) {
 					if (!currentFieldSet.includes(fieldName)) {
 						let field = fields[fieldName];
@@ -3080,6 +3081,7 @@ let _Entities = {
 						}));
 					}
 				}
+
 			} else {
 
 				available.insertAdjacentHTML('beforeend', `
