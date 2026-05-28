@@ -20,12 +20,14 @@ package org.structr.web.function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.util.Iterables;
+import org.structr.common.ChannelInput;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.datasources.Channel;
+import org.structr.core.datasources.ChannelResult;
 import org.structr.core.datasources.SortInfo;
 import org.structr.core.entity.DataAdapter;
 import org.structr.core.graph.NodeInterface;
@@ -70,44 +72,29 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 		final ComponentConfiguration config   = component.getComponentConfiguration();
 		final Channel sourceChannel           = config.getDataSource();
 		final boolean globalUseEditTemplate   = "input".equals(displayMode);
-		String selectedValue                  = null;
 
-		// we can only be a subscriber if we are not called from renderEach(), and maybe the component can use a dimensions property to filter data sources?
 		if (!inLoop && sourceChannel != null) {
 
 			final String role = domNode.getRoleForComponent();
 			if ("subscriber".equals(role)) {
 
-				final String channelName = sourceChannel.getChannelName();
+				final ChannelInput               channelInput = config.getChannelInput(innerCtx);
+				final ChannelResult<GraphObject> result       = sourceChannel.getResult(innerCtx, channelInput, config.getTransform());
+				final String                     dataKey      = dataAdapter.getDataKey();
 
-				selectedValue = innerCtx.getChannelValue(channelName);
-				if (selectedValue != null) {
+				if (dataKey != null) {
 
-					final String dataKey = dataAdapter.getDataKey();
-					if (dataKey != null) {
+					final GraphObject item = result.getFirst();
+					if (item != null) {
 
-						final NodeInterface node = app.getNodeById(selectedValue);
-						if (node != null) {
-
-							innerCtx.putDataObject(dataKey, node);
-
-						} else {
-
-							// show "no item" template or fallback and exit
-							renderTemplate(app, innerCtx, "span-no-item", "<span class=\"empty col-span-6\">No item to display.</span>");
-							return;
-						}
+						innerCtx.putDataObject(dataKey, item);
 
 					} else {
 
-						logger.warn("{}: cannot store value for channel '{}', data adapter {} does not specify a dataKey.", getName(), channelName, dataAdapter.getUuid());
+						// show "no item" template or fallback and exit
+						renderTemplate(app, innerCtx, "span-no-item", "<span class=\"empty col-span-6\">No item to display.</span>");
+						return;
 					}
-
-				} else {
-
-					// show "no item" template or fallback and exit
-					renderTemplate(app, innerCtx, "span-no-item", "<span class=\"empty col-span-6\">No item to display.</span>");
-					return;
 				}
 			}
 		}
@@ -161,7 +148,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 				final DataField augmentedField = augmentedFields.get(field);
 				if (augmentedField != null) {
 
-					for (final Map.Entry<String, GraphObject> column : augmentedField.expandColumns(innerCtx, config).entrySet()) {
+					for (final Map.Entry<String, GraphObject> column : augmentedField.expandColumns(innerCtx).entrySet()) {
 
 						final String      label             = column.getKey();
 						final Set<String> cssClasses        = new LinkedHashSet<>();
@@ -316,7 +303,7 @@ public abstract class ApplyTemplatesFunction extends IncludeFunction {
 				// no slot => iterate over all fields or just one slot
 				if (slot == null || slots.contains(slot)) {
 
-					for (final Map.Entry<String, GraphObject> column : dataField.expandColumns(innerCtx, config).entrySet()) {
+					for (final Map.Entry<String, GraphObject> column : dataField.expandColumns(innerCtx).entrySet()) {
 
 						final String label            = column.getKey();
 						final GraphObject columnValue = column.getValue();

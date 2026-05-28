@@ -712,6 +712,7 @@ public class RenderContext extends ActionContext {
 				default:
 					final HttpServletRequest request = getSecurityContext().getRequest();
 					if (request != null) {
+
 						return request.getParameter(name);
 					}
 			}

@@ -19,7 +19,6 @@
 package org.structr.core.traits.definitions;
 
 import org.apache.commons.lang3.StringUtils;
-import org.structr.api.util.Iterables;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
 import org.structr.common.ChannelInput;
@@ -27,13 +26,10 @@ import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.app.StructrApp;
 import org.structr.core.datasources.ChannelResult;
 import org.structr.core.entity.DataSource;
 import org.structr.core.entity.Relation;
-import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.ScriptDataSource;
-import org.structr.core.function.Functions;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
@@ -47,11 +43,8 @@ import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.datasource.DataSourceOperations;
 import org.structr.core.traits.wrappers.ScriptDataSourceTraitWrapper;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Actions;
-import org.structr.schema.action.Function;
 import org.structr.web.datasource.FieldDefinition;
 import org.structr.web.datasource.FunctionDataSource;
-import org.structr.web.function.UiFunction;
 
 import java.util.*;
 
@@ -118,7 +111,7 @@ public class ScriptDataSourceTraitDefinition extends AbstractNodeTraitDefinition
 
 					// fetch first object and look at the data
 					final Map<String, FieldDefinition> output = new LinkedHashMap<>();
-					final ChannelResult                result = provider.getResult(actionContext, ChannelInput.firstElement());
+					final ChannelResult                result = provider.getResult(actionContext, ChannelInput.firstElement(), null);
 
 					if (result != null) {
 
@@ -162,6 +155,12 @@ public class ScriptDataSourceTraitDefinition extends AbstractNodeTraitDefinition
 				@Override
 				public String getDataType(final ActionContext actionContext, final DataSource provider) throws FrameworkException {
 					return provider.as(ScriptDataSource.class).getDataType();
+				}
+
+				@Override
+				public int getDimension(final DataSource provider) {
+					// FIXME
+					return 0;
 				}
 			}
 		);

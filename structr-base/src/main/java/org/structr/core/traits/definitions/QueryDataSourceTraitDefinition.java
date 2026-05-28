@@ -122,6 +122,11 @@ public class QueryDataSourceTraitDefinition extends AbstractNodeTraitDefinition 
 				public String getDataType(final ActionContext actionContext, final DataSource provider) throws FrameworkException {
 					return provider.as(QueryDataSource.class).getDataType();
 				}
+
+				@Override
+				public int getDimension(final DataSource provider) {
+					return 1;
+				}
 			}
 		);
 	}

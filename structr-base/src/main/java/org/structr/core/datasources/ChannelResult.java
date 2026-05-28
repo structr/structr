@@ -21,6 +21,9 @@ package org.structr.core.datasources;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
+import org.structr.common.error.FrameworkException;
+import org.structr.web.entity.ComponentConfiguration;
+import org.structr.web.entity.dom.DOMNode;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -73,7 +76,6 @@ public class ChannelResult<T> {
 
 			result.totalResultCount = p.calculateTotalResultCount(null, softLimit);
 		}
-
 
 		return result;
 

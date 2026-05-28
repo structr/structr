@@ -4219,7 +4219,7 @@ let _Entities = {
 				<div class="${_Entities.generalTab.templates.gridClasses()}">
 
                     <div>
-                        <label class="block mb-2" for="data-source-channel-select" data-comment="Source determines which objects are displayed in this component, and selection transforms the result.">Source & Selection</label>
+                        <label class="block mb-2" for="data-source-channel-select" data-comment="Source determines which objects are displayed in this component, and selection transforms the result. Enter a property name in the selection field to display the property value in this component.">Source & Selection</label>
                         <div class="data-source-channel-options flex">
                         	${await _Widgets.templates.dataSourcesSelector('data-source-channel-select', 'dataSource', config.config.dataSource, 'rounded-none rounded-l', 'general')}
                             <span class="inline-flex items-center bg-gray px-2 w-4 justify-center select-none border-0 border-t border-b border-solid border-gray-input">.</span>
@@ -4229,8 +4229,16 @@ let _Entities = {
                     </div>
 
                     <div>
-                        <label class="block mb-2" for="data-selection-channel-input" data-comment="Which channel the UUID of the selected object is made available on for other components to consume.">Selection Channel</label>
-                        <input class="validated" type="text" id="data-selection-channel-input" ${config.config.role === 'controller' ? 'required' : ''} autocomplete="off" name="selectionChannel" data-which="config">
+						<div class="${_Entities.generalTab.templates.gridClasses()}">
+								<div>
+									<label class="block mb-2" for="expected-data-type-input" data-comment="The type this component expects from its data source. This controls the available fields in the list below.">Expected Type</label>
+									<input class="validated" type="text" id="expected-data-type-input" autocomplete="off" name="expectedDataType" data-which="config">
+								</div>
+								<div>
+									<label class="block mb-2" for="data-selection-channel-input" data-comment="Which channel the UUID of the selected object is made available on for other components to consume.">Selection Channel</label>
+									<input class="validated" type="text" id="data-selection-channel-input" ${config.config.role === 'controller' ? 'required' : ''} autocomplete="off" name="selectionChannel" data-which="config">
+								</div>
+                        </div>
                     </div>
 
                     <div>

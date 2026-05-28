@@ -256,18 +256,17 @@ public class DataField extends LinkedHashMap<String, Object> {
 		}
 	}
 
-	public Map<String, GraphObject> expandColumns(final RenderContext renderContext, final ComponentConfiguration config) throws FrameworkException {
+	public Map<String, GraphObject> expandColumns(final RenderContext renderContext) throws FrameworkException {
 
 		final Map<String, GraphObject> columns = new LinkedHashMap<>();
 		final String dataSourceName            = getColumnDataSource();
 		final String label                     = getLabel();
-		final Channel<GraphObject> channel     = Channel.forName(config, dataSourceName);
+		final Channel<GraphObject> channel     = Channel.forName(dataSourceName);
 
 		if (channel != null) {
 
-			// evaluate column query
-			final ChannelInput input              = config.getChannelInput(renderContext, null);
-			final ChannelResult<GraphObject> data = channel.getResult(renderContext, input);
+			// evaluate column query, no transform here (maybe we can add one in the future)
+			final ChannelResult<GraphObject> data = channel.getResult(renderContext, null);
 
 			for (final Object item : data.getData()) {
 

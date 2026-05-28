@@ -186,12 +186,6 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					final int page                        = input != null ? input.page() : 1;
 					final Query<NodeInterface> query      = StructrApp.getInstance(securityContext).nodeQuery(name);
 
-					// do not return hidden nodes by default
-					//if (provider.includeHidden()) {
-						//query.includeHidden(true);
-					//}
-
-					// broken?
 					query.includeHidden(provider.includeHidden());
 
 					if (input != null) {
@@ -280,6 +274,11 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public String getDataType(final ActionContext actionContext, final DataSource provider) throws FrameworkException {
 					return provider.as(SchemaNode.class).getTypeName();
+				}
+
+				@Override
+				public int getDimension(final DataSource provider) {
+					return 1;
 				}
 			}
 		);

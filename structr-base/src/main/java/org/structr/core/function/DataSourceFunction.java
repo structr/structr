@@ -41,7 +41,7 @@ public class DataSourceFunction extends AdvancedScriptingFunction {
 		// data source name?
 		if (firstArgument instanceof String dataSourceName) {
 
-			channel = Channel.forName(null, dataSourceName);
+			channel = Channel.forName(dataSourceName);
 		}
 
 		// alternative: allow passing a data source directly
@@ -53,8 +53,8 @@ public class DataSourceFunction extends AdvancedScriptingFunction {
 
 			final int pageSize         = getIntOrDefault(sources, 1, Integer.MAX_VALUE);
 			final int page             = getIntOrDefault(sources, 2, 1);
-			final ChannelInput input   = new ChannelInput(null, null, null, pageSize, page);
-			final ChannelResult result = channel.getResult(ctx, input);
+			final ChannelInput input   = new ChannelInput(null, null, pageSize, page);
+			final ChannelResult result = channel.getResult(ctx, input, null);
 
 			return result.getData();
 		}

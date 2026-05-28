@@ -26,7 +26,6 @@ import org.structr.core.datasources.Channel;
 import org.structr.core.datasources.ChannelResult;
 import org.structr.core.entity.DataAdapter;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Example;
@@ -88,12 +87,11 @@ public class RenderEachFunction extends UiCommunityFunction {
 
 					final String reloadBehaviour  = domNode.getReloadBehaviourForComponent();
 					final String selectionChannel = config.getSelectionChannel();
-					final ChannelInput input      = config.getChannelInput(renderContext, dataAdapter);
 					final AsyncBuffer buffer      = renderContext.getBuffer();
 					final String role             = domNode.getRoleForComponent();
 					final String resets           = getChannelDependencies(domNode, selectionChannel);
 
-					final ChannelResult<GraphObject> result = sourceChannel.getResult(renderContext, input);
+					final ChannelResult<GraphObject> result = sourceChannel.getResult(renderContext, config.getChannelInput(renderContext), config.getTransform());
 
 					for (final GraphObject item : result.getData()) {
 

@@ -315,13 +315,7 @@ public class GetSuggestionsCommand extends AbstractCommand {
 	}
 
 	private Integer getDimensions(final DOMNode node) {
-
-		if (node.getSharedComponent() != null) {
-
-			return node.getSharedComponent().getDimensions();
-		}
-
-		return node.getDimensions();
+		return node.getDimensions(true);
 	}
 
 	private List<Node> flatten(final List<Node> input) {

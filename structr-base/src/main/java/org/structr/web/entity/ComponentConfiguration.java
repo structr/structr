@@ -32,6 +32,7 @@ public interface ComponentConfiguration extends NodeInterface {
 	DOMNode getComponent();
 	DataAdapter getDataAdapter();
 	Channel<GraphObject> getDataSource() throws FrameworkException;
+	ChannelInput getChannelInput(final RenderContext renderContext) throws FrameworkException;
 
 	String getDataSourceName() throws FrameworkException;
 	String getSelectionChannel() throws FrameworkException;
@@ -42,6 +43,7 @@ public interface ComponentConfiguration extends NodeInterface {
 	String getRole();
 	String getReloadBehaviour();
 	String getTransform();
+	String getExpectedDataType();
 	Boolean showLabels();
 
 	void setFieldSet(final String s) throws FrameworkException;
@@ -50,5 +52,6 @@ public interface ComponentConfiguration extends NodeInterface {
 	int getPageSize();
 	int getPaginationWindowSize();
 
-	ChannelInput getChannelInput(final RenderContext renderContext, final DataAdapter dataAdapter) throws FrameworkException;
+	void checkCompatibility() throws FrameworkException;
+
 }

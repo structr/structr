@@ -18,8 +18,6 @@
  */
 package org.structr.core.datasources;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.PagingIterable;
 import org.structr.common.ChannelInput;
@@ -40,15 +38,25 @@ import java.util.Map;
 
 public abstract class AbstractValueDataSource<T extends GraphObject> implements Channel<T> {
 
-	protected final ComponentConfiguration configuration;
 	protected final String name;
+	protected ComponentConfiguration configuration;
 
-	protected abstract T getDataSourceValue(final ActionContext actionContext, final ChannelInput channelInput) throws FrameworkException;
+	protected abstract T getDataSourceValue(final ActionContext actionContext) throws FrameworkException;
 
-	public AbstractValueDataSource(final ComponentConfiguration configuration, String name) {
+	/**
+	 * Subclasses implement their primary type-resolution logic here.
+	 * Return null when the type cannot be determined from the data source itself
+	 * (e.g. ChannelDataSource when no controller is present on the page).
+	 * The base class will then try the expectedDataType fallback automatically.
+	 */
+	protected abstract String resolveDataType(final ActionContext actionContext) throws FrameworkException;
 
+	public AbstractValueDataSource(final String name) {
+		this.name = name;
+	}
+
+	public void setConfiguration(final ComponentConfiguration configuration) {
 		this.configuration = configuration;
-		this.name          = name;
 	}
 
 	@Override
@@ -56,43 +64,62 @@ public abstract class AbstractValueDataSource<T extends GraphObject> implements 
 		return Functions.cleanString(name);
 	}
 
+	/**
+	 * Template method: first asks the subclass to resolve the type. If that
+	 * returns null (e.g. no controller found on the page), falls back to the
+	 * expectedDataType configured on the ComponentConfiguration. This covers
+	 * standalone forms that have no controller in the page.
+	 */
 	@Override
-	public final ChannelResult<T> getResult(final ActionContext actionContext, final ChannelInput input) throws FrameworkException {
+	public final String getDataType(final ActionContext actionContext) throws FrameworkException {
+
+		final String resolved = resolveDataType(actionContext);
+		if (resolved != null) {
+			return resolved;
+		}
+
+		if (configuration != null) {
+
+			final String expectedDataType = configuration.getExpectedDataType();
+			if (expectedDataType != null) {
+				return getTransformedDataType(expectedDataType, configuration.getTransform());
+			}
+		}
+
+		return null;
+	}
+
+	@Override
+	public final ChannelResult<T> getResult(final ActionContext actionContext, final ChannelInput channelInput, final String transform) throws FrameworkException {
 
 		if (name != null) {
 
-			final GraphObject node = getDataSourceValue(actionContext, input);
+			final GraphObject node = getDataSourceValue(actionContext);
 			if (node != null) {
 
-				if (input != null) {
+				if (transform != null) {
 
-					final String transform = input.transform();
-					if (transform != null) {
+					final Traits traits = node.getTraits();
+					final PropertyKey key = traits.key(transform);
 
-						final Traits      traits = node.getTraits();
-						final PropertyKey key    = traits.key(transform);
+					if (key != null) {
 
-						if (key != null) {
+						final Object value = node.getProperty(key);
+						if (value instanceof Iterable iterable) {
 
-							// this is where we need to implement pagination and filtering!
-							final Object value = node.getProperty(key);
+							final ChannelInput input             = channelInput != null ? channelInput : new ChannelInput();
+							final Iterable<T> filteredIterable   = Iterables.filter(input, iterable);
+							final PagingIterable<T> pagingResult = new PagingIterable<>(transform + " of " + node.getUuid(), filteredIterable, input.pageSize(), input.page());
 
-							if (value != null) {
+							return ChannelResult.fromIterable(pagingResult);
+						}
 
-								if (value instanceof Iterable iterable) {
-
-									final String            name             = transform + " of " + node.getUuid();
-									final Iterable<T>       filteredIterable = Iterables.filter(input, iterable);
-									final PagingIterable<T> pagingIterable   = new PagingIterable<>(name, filteredIterable, input.pageSize(), input.page());
-
-									return ChannelResult.fromIterable(pagingIterable);
-								}
-
-								// return single result as well
-								return ChannelResult.fromObject((T) value);
-							}
+						if (value != null) {
+							return ChannelResult.fromObject((T) value);
 						}
 					}
+
+					return new ChannelResult<>();
 				}
 
 				return (ChannelResult<T>) ChannelResult.fromObject(node);
@@ -129,7 +156,6 @@ public abstract class AbstractValueDataSource<T extends GraphObject> implements 
 
 	public Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, final GraphObject contextObject, final int row, final int column) throws FrameworkException {
 
-		final ChannelInput input          = new ChannelInput(configuration.getTransform());
 		final RenderContext renderContext = (RenderContext) actionContext;
 
 		switch (key) {
@@ -138,18 +164,18 @@ public abstract class AbstractValueDataSource<T extends GraphObject> implements 
 				return name;
 
 			case "values":
-				return getResult(renderContext, input);
+				throw new UnsupportedOperationException("values is currently not supported.");
 
 			case "dataType":
 				return getDataType(actionContext);
 
 			case "selectedValue":
 				// the selected object from the channel
-				return getValue(renderContext, input);
+				return getValue(renderContext);
 
 			case "currentValue":
-				// the loop object
-				return renderContext.getDataNode(configuration.getDataAdapter().getDataKey());
+				throw new UnsupportedOperationException("currentValue is currently not supported.");
+				//return renderContext.getDataNode(configuration.getDataAdapter().getDataKey());
 		}
 
 		return null;
@@ -158,7 +184,7 @@ public abstract class AbstractValueDataSource<T extends GraphObject> implements 
 	// ----- protected methods -----
 	protected String getTransformedDataType(final String type, final String transform) {
 
-		if (Traits.exists(type)) {
+		if (transform != null && Traits.exists(type)) {
 
 			final Traits traits = Traits.of(type);
 
@@ -177,9 +203,9 @@ public abstract class AbstractValueDataSource<T extends GraphObject> implements 
 	}
 
 	// ----- private methods -----
-	private T getValue(final ActionContext actionContext, final ChannelInput input) throws FrameworkException {
+	private T getValue(final ActionContext actionContext) throws FrameworkException {
 
-		final ChannelResult<T> result = getResult(actionContext, input);
+		final ChannelResult<T> result = getResult(actionContext, null);
 		if (!result.isEmpty()) {
 
 			return result.getFirst();

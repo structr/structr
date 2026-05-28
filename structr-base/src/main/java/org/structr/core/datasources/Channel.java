@@ -19,7 +19,6 @@
 package org.structr.core.datasources;
 
 import org.structr.common.ChannelInput;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
@@ -29,8 +28,6 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.datasource.FieldDefinition;
-import org.structr.web.entity.ComponentConfiguration;
-import org.structr.web.entity.dom.DOMNode;
 
 import java.util.Map;
 
@@ -45,11 +42,27 @@ import java.util.Map;
  */
 public interface Channel<T> {
 
-	ChannelResult<T> getResult(final ActionContext actionContext, final ChannelInput input) throws FrameworkException;
+	default ChannelResult<T> getResult(final ActionContext actionContext) throws FrameworkException {
+		return getResult(actionContext, null, null);
+	}
+
+	default ChannelResult<T> getResult(final ActionContext actionContext, final String transform) throws FrameworkException {
+		return getResult(actionContext, null, transform);
+	}
+
+	ChannelResult<T> getResult(final ActionContext actionContext, final ChannelInput input, final String transform) throws FrameworkException;
 	Map<String, FieldDefinition> getFields(final ActionContext actionContext) throws FrameworkException;
 
 	String getDataType(final ActionContext actionContext) throws FrameworkException;
 	String getChannelName();
+
+	/**
+	 * Returns the dimension of the data in this data source.
+	 *
+	 * @return
+	 * @throws FrameworkException
+	 */
+	int getDimension();
 
 	Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, final GraphObject contextObject, final int row, final int column) throws FrameworkException;
 
@@ -65,7 +78,7 @@ public interface Channel<T> {
 		return getChannelName().toLowerCase() + ".filter";
 	}
 
-	static <T> Channel<T> forName(final ComponentConfiguration config, final String dataSourceName) throws FrameworkException {
+	static <T> Channel<T> forName(final String dataSourceName) throws FrameworkException {
 
 		if (dataSourceName != null) {
 
@@ -103,7 +116,7 @@ public interface Channel<T> {
 						break;
 
 					case "channel":
-						return new ChannelDataSource(config, name);
+						return new ChannelDataSource(name);
 
 				}
 
@@ -112,21 +125,13 @@ public interface Channel<T> {
 				switch (dataSourceName) {
 
 					case "root-folders":
-						return new RootFoldersDataSource(config, "root-folders");
+						return new RootFoldersDataSource("root-folders");
 
 					case "parent":
-						final DOMNode parent = config.getComponent().getParent();
-						if (parent != null && parent.getComponentConfiguration() != null) {
-
-							final ComponentConfiguration parentConfig = parent.getComponentConfiguration();
-
-							// use parent data key
-							return new ParentDataSource(config, parentConfig, parentConfig.getDataAdapter().getDataKey());
-						}
-						break;
+						return new ParentDataSource("parent");
 
 					default:
-						throw new IllegalStateException("Unknown data source type: " + dataSourceName);
+						//throw new IllegalStateException("Unknown data source type: " + dataSourceName);
 				}
 			}
 		}
@@ -134,3 +139,31 @@ public interface Channel<T> {
 		return null;
 	}
 }
+
+/*
+
+						final Traits      traits = node.getTraits();
+						final PropertyKey key    = traits.key(transform);
+
+						if (key != null) {
+
+							// this is where we need to implement pagination and filtering!
+							final Object value = node.getProperty(key);
+
+							if (value != null) {
+
+								if (value instanceof Iterable iterable) {
+
+									final String            name             = transform + " of " + node.getUuid();
+									final Iterable<T>       filteredIterable = Iterables.filter(input, iterable);
+									final PagingIterable<T> pagingIterable   = new PagingIterable<>(name, filteredIterable, input.pageSize(), input.page());
+
+									return ChannelResult.fromIterable(pagingIterable);
+								}
+
+								// return single result as well
+								return ChannelResult.fromObject((T) value);
+							}
+						}
+
+ */

@@ -1418,7 +1418,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		if (node.is(StructrTraits.DOM_NODE) && node.as(DOMNode.class).getSharedComponent() == null) {
 
 			putData(config, DOMNodeTraitDefinition.COMPONENT_TYPE_PROPERTY, node.as(DOMNode.class).getComponentType());
-			putData(config, DOMNodeTraitDefinition.DIMENSIONS_PROPERTY, node.as(DOMNode.class).getDimensions());
+
+			/*
+			final int dimensions = node.as(DOMNode.class).getDimensions(true);
+			if (dimensions >= 0) {
+
+				putData(config, DOMNodeTraitDefinition.DIMENSIONS_PROPERTY, dimensions);
+			}
+			*/
+
 			putData(config, DOMNodeTraitDefinition.ITEM_TYPE_PROPERTY, node.as(DOMNode.class).getItemType());
 			putData(config, DOMNodeTraitDefinition.REPEATER_TYPE_PROPERTY, node.as(DOMNode.class).getRepeaterType());
 			putData(config, DOMNodeTraitDefinition.IS_COMPONENT_ROOT_PROPERTY, node.as(DOMNode.class).isComponentRoot());
@@ -1764,7 +1772,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				putData(entry, WidgetTraitDefinition.IS_EXCLUSIVE_PROPERTY,                        widget.isExclusiveInParent());
 				putData(entry, WidgetTraitDefinition.SELECTORS_PROPERTY,                           widget.getSelectors());
 				putData(entry, WidgetTraitDefinition.COMPONENT_TYPE_PROPERTY,                      widget.getComponentType());
-				putData(entry, WidgetTraitDefinition.DIMENSIONS_PROPERTY,                          widget.getDimensions());
+				//putData(entry, WidgetTraitDefinition.DIMENSIONS_PROPERTY,                          widget.getDimensions());
 				putData(entry, WidgetTraitDefinition.SVG_ICON_PATH_PROPERTY,                       widget.getSvgPath());
 				putData(entry, WidgetTraitDefinition.THUMBNAIL_PATH_PROPERTY,                      widget.getThumbnailPath());
 				putData(entry, WidgetTraitDefinition.IS_PAGE_TEMPLATE_PROPERTY,                    widget.isPageTemplate());

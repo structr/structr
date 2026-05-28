@@ -826,8 +826,48 @@ public class WidgetsTest extends DeploymentTestBase {
 		}
 	}
 
-	// ----- private methods -----
-	void replaceElement(final Page page, String replaceName, final String name, final Map<String, Object> values) throws FrameworkException {
+	// ----- protected methods -----
+	protected void createDataType(final String name) {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createEmptySchema();
+
+			schema.addType(name);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			Assert.fail("Unexpected exception");
+		}
+	}
+
+
+	protected void createPageWithWidgets(final String pageName, final String... widgetNames) {
+
+		try (final Tx tx = app.tx()) {
+
+			final Page page = Page.createNewPage(securityContext, pageName);
+			expandWidget(page, page, "Default Page");
+
+			for (final String widgetName : widgetNames) {
+				expandWidget(page, "Main Content", widgetName);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			Assert.fail("Unexpected exception");
+		}
+
+	}
+	protected void replaceElement(final Page page, String replaceName, final String name, final Map<String, Object> values) throws FrameworkException {
 
 		final Widget widget            = StructrApp.getInstance().nodeQuery(StructrTraits.WIDGET).name(name).getFirst().as(Widget.class);
 		final DOMNode nodeToReplace    = getDOMNode(page, replaceName);
@@ -838,19 +878,19 @@ public class WidgetsTest extends DeploymentTestBase {
 		ReplaceWidgetCommand.replaceWidget(securityContext, page, nodeToReplace, null, data, false);
 	}
 
-	private void expandWidget(final Page page, final String targetElement, final String widgetName) throws FrameworkException {
+	protected void expandWidget(final Page page, final String targetElement, final String widgetName) throws FrameworkException {
 		expandWidget(page, targetElement, widgetName, Map.of());
 	}
 
-	private void expandWidget(final Page page, final String targetElement, final String widgetName, final Map<String, Object> additionalData) throws FrameworkException {
+	protected void expandWidget(final Page page, final String targetElement, final String widgetName, final Map<String, Object> additionalData) throws FrameworkException {
 		expandWidget(page, getDOMNode(page, targetElement), widgetName, additionalData);
 	}
 
-	private void expandWidget(final Page page, final DOMNode targetElement, final String widgetName) throws FrameworkException {
+	protected void expandWidget(final Page page, final DOMNode targetElement, final String widgetName) throws FrameworkException {
 		expandWidget(page, targetElement, widgetName, Map.of());
 	}
 
-	private void expandWidget(final Page page, final DOMNode targetElement, final String widgetName, final Map<String, Object> additionalData) throws FrameworkException {
+	protected void expandWidget(final Page page, final DOMNode targetElement, final String widgetName, final Map<String, Object> additionalData) throws FrameworkException {
 
 		final Widget widget            = StructrApp.getInstance().nodeQuery(StructrTraits.WIDGET).name(widgetName).getFirst().as(Widget.class);
 		final Map<String, Object> data = prepareData(widget);
@@ -874,7 +914,7 @@ public class WidgetsTest extends DeploymentTestBase {
 		StructrApp.getInstance(securityContext).delete(tmpParent);
 	}
 
-	private Map<String, Object> prepareData(final Widget widget) {
+	protected Map<String, Object> prepareData(final Widget widget) {
 
 		final Map<String, Object> parameters = new LinkedHashMap<>();
 		final JsonSingleInput singleInput    = new JsonSingleInput();
@@ -896,7 +936,7 @@ public class WidgetsTest extends DeploymentTestBase {
 		return parameters;
 	}
 
-	private DOMNode getDOMNode(final Page page, final String name) throws FrameworkException {
+	protected DOMNode getDOMNode(final Page page, final String name) throws FrameworkException {
 
 		for (final NodeInterface node : page.getAllChildNodes()) {
 
@@ -909,7 +949,7 @@ public class WidgetsTest extends DeploymentTestBase {
 		return null;
 	}
 
-	private DOMNode getContentNode(final Page page, final String content) throws FrameworkException {
+	protected DOMNode getContentNode(final Page page, final String content) throws FrameworkException {
 
 		for (final NodeInterface node : page.getAllChildNodes()) {
 
@@ -924,7 +964,7 @@ public class WidgetsTest extends DeploymentTestBase {
 		return null;
 	}
 
-	private String getCheckString(final DOMNode node) {
+	protected String getCheckString(final DOMNode node) {
 
 		final List<String> buf = new LinkedList<>();
 
@@ -933,7 +973,7 @@ public class WidgetsTest extends DeploymentTestBase {
 		return StringUtils.join(buf, "/");
 	}
 
-	private void getCheckString(final List<String> buf, final DOMNode node, final int level) {
+	protected void getCheckString(final List<String> buf, final DOMNode node, final int level) {
 
 		buf.add(StringUtils.repeat("+", level) + ReplaceWidgetCommand.nameOrTag(node));
 
@@ -942,7 +982,7 @@ public class WidgetsTest extends DeploymentTestBase {
 		}
 	}
 
-	private void setupUserAndWidgets() {
+	protected void setupUserAndWidgets() {
 
 		createAdminUser();
 
@@ -980,14 +1020,14 @@ public class WidgetsTest extends DeploymentTestBase {
 		}
 	}
 
-	WebSocketMessage mockWebSocketMessage() {
+	protected WebSocketMessage mockWebSocketMessage() {
 
 		final WebSocketMessage message = new WebSocketMessage();
 
 		return message;
 	}
 
-	private GetSuggestionsCommand mockGetSuggestionsCommand() {
+	protected GetSuggestionsCommand mockGetSuggestionsCommand() {
 
 		final GetSuggestionsCommand getSuggestionsCommand = new GetSuggestionsCommand();
 		final StructrWebSocket webSocket                  = new StructrWebSocket(null, null, null) {
@@ -1007,7 +1047,7 @@ public class WidgetsTest extends DeploymentTestBase {
 		return getSuggestionsCommand;
 	}
 
-	private void assertWidgetResult(final WebSocketMessage data, final boolean exact, final String... expectedNames) {
+	protected void assertWidgetResult(final WebSocketMessage data, final boolean exact, final String... expectedNames) {
 
 		final Iterable<NodeInterface> result   = (Iterable) data.getResult();
 		final Iterator<NodeInterface> iterator = result.iterator();
@@ -1031,7 +1071,7 @@ public class WidgetsTest extends DeploymentTestBase {
 		}
 	}
 
-	private WebSocketMessage fetchSuggestionsFor(final Page page, final String domNodeName, final String mode) throws FrameworkException {
+	protected WebSocketMessage fetchSuggestionsFor(final Page page, final String domNodeName, final String mode) throws FrameworkException {
 
 		final GetSuggestionsCommand getSuggestionsCommand = mockGetSuggestionsCommand();
 		final WebSocketMessage message                    = mockWebSocketMessage();
@@ -1045,7 +1085,7 @@ public class WidgetsTest extends DeploymentTestBase {
 		return message;
 	}
 
-	private void assertAttributes(final Element element, final Map<String, Object> expectedKeyValues) {
+	protected void assertAttributes(final Element element, final Map<String, Object> expectedKeyValues) {
 
 		for (final Map.Entry<String, Object> entry : expectedKeyValues.entrySet()) {
 
@@ -1055,7 +1095,7 @@ public class WidgetsTest extends DeploymentTestBase {
 		}
 	}
 
-	private void assertPaginationControlsForSinglePage(final Element paginationDiv) {
+	protected void assertPaginationControlsForSinglePage(final Element paginationDiv) {
 
 		final Element prevButton    = paginationDiv.children().get(0);
 		final Element windowButtons = paginationDiv.children().get(1);
@@ -1094,7 +1134,7 @@ public class WidgetsTest extends DeploymentTestBase {
 		assertAttributes(nextButton, Map.of("disabled", "true"));
 	}
 
-	private void assertPaginationControlsForMultiplePages(final Element paginationDiv) {
+	protected void assertPaginationControlsForMultiplePages(final Element paginationDiv) {
 
 		final Element prevButton    = paginationDiv.children().get(0);
 		final Element windowButtons = paginationDiv.children().get(1);
@@ -1157,7 +1197,7 @@ public class WidgetsTest extends DeploymentTestBase {
 		));
 	}
 
-	private List<Node> fetchAndParseHTML(final String pageName, final String componentName, final Map<String, String> parameters) throws FrameworkException {
+	protected List<Node> fetchAndParseHTML(final String pageName, final String componentName, final Map<String, String> parameters) throws FrameworkException {
 
 		final Page page               = app.nodeQuery(StructrTraits.PAGE).name(pageName).getFirst().as(Page.class);
 		final DOMNode listComponent   = getDOMNode(page, componentName);

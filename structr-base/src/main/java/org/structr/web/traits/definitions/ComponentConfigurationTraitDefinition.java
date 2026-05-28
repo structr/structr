@@ -25,6 +25,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
+import org.structr.core.datasources.Channel;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeAttribute;
@@ -39,12 +40,11 @@ import org.structr.core.traits.definitions.DataAdapterTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
-import org.structr.schema.action.Function;
+import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.traits.wrappers.ComponentConfigurationTraitWrapper;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -64,6 +64,7 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 	public static final String TRANSFORM_PROPERTY              = "transform";
 	public static final String PAGE_SIZE_PROPERTY              = "pageSize";
 	public static final String PAGINATION_WINDOW_SIZE_PROPERTY = "paginationWindowSize";
+	public static final String EXPECTED_DATA_TYPE_PROPERTY     = "expectedDataType";
 
 	public ComponentConfigurationTraitDefinition() {
 		super(StructrTraits.COMPONENT_CONFIGURATION);
@@ -112,6 +113,8 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 
 						componentConfiguration.setProperty(componentTraits.key(DISPLAY_MODE_PROPERTY), "output");
 					}
+
+					componentConfiguration.checkCompatibility();
 				}
 			},
 
@@ -124,7 +127,7 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 					final ComponentConfiguration componentConfiguration = graphObject.as(ComponentConfiguration.class);
 
 					componentConfiguration.updateFieldSetForChildren();
-
+					componentConfiguration.checkCompatibility();
 				}
 			}
 		);
@@ -152,6 +155,7 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 		final Property<String> transformProperty             = new StringProperty(TRANSFORM_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<Integer> pageSizeProperty             = new IntProperty(PAGE_SIZE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<Integer> paginationWindowSizeProperty = new IntProperty(PAGINATION_WINDOW_SIZE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
+		final Property<String> expectedDataTypeProperty      = new StringProperty(EXPECTED_DATA_TYPE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 
 		return newSet(
 			domNodeProperty,
@@ -167,7 +171,8 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 			selectionChannelProperty,
 			transformProperty,
 			pageSizeProperty,
-			paginationWindowSizeProperty
+			paginationWindowSizeProperty,
+			expectedDataTypeProperty
 		);
 	}
 
@@ -180,7 +185,8 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 				DOM_NODE_PROPERTY, DATA_ADAPTER_PROPERTY, DISPLAY_MODE_PROPERTY, SAVE_MODE_PROPERTY,
 				FIELD_SET_PROPERTY, SHOW_LABELS_PROPERTY, ROLE_PROPERTY, RELOAD_BEHAVIOUR_PROPERTY,
 				COLUMNS_PROPERTY, DATA_SOURCE_PROPERTY, SELECTION_CHANNEL_PROPERTY,
-				TRANSFORM_PROPERTY, PAGE_SIZE_PROPERTY, PAGINATION_WINDOW_SIZE_PROPERTY
+				TRANSFORM_PROPERTY, PAGE_SIZE_PROPERTY, PAGINATION_WINDOW_SIZE_PROPERTY,
+				EXPECTED_DATA_TYPE_PROPERTY
 			)
 		);
 	}

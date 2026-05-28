@@ -34,7 +34,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.DataAdapter;
-import org.structr.core.entity.DataSource;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
@@ -54,7 +53,6 @@ import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.StringRenderBuffer;
-import org.structr.web.entity.Component;
 import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
@@ -1082,8 +1080,27 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	}
 
 	@Override
-	public Integer getDimensions() {
-		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.DIMENSIONS_PROPERTY));
+	public int getDimensions(final boolean includeSharedComponent) {
+
+		if (includeSharedComponent) {
+
+			// if we are linked to a shared component, used their dimensions value
+			final DOMNode sharedComponent = getSharedComponent();
+			if (sharedComponent != null) {
+
+				return sharedComponent.getDimensions(false);
+			}
+		}
+
+		// fallback: use local property value
+		final Integer value = wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.DIMENSIONS_PROPERTY));
+		if (value != null) {
+
+			return value;
+		}
+
+		// that's an error
+		return -1;
 	}
 
 	@Override
@@ -1624,8 +1641,10 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 				out.append(" data-structr-meta-item-type=\"").append(getItemType()).append("\"");
 			}
 
-			if (getDimensions() != null) {
-				out.append(" data-structr-meta-dimensions=\"").append(getDimensions().toString()).append("\"");
+			final int dimensions = getDimensions(true);
+			if (dimensions >= 0) {
+
+				out.append(" data-structr-meta-dimensions=\"").append(Integer.toString(dimensions)).append("\"");
 			}
 
 			out.append(" data-structr-meta-root=\"").append(isComponentRoot() ? "true" : "false").append("\"");

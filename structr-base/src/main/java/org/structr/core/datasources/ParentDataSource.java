@@ -20,30 +20,21 @@ package org.structr.core.datasources;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.ChannelInput;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.function.Functions;
-import org.structr.core.graph.NodeInterface;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.Page;
 
 public class ParentDataSource<T extends GraphObject> extends AbstractValueDataSource<T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(ChannelDataSource.class);
 
-	private final ComponentConfiguration parentConfiguration;
-
-	public ParentDataSource(final ComponentConfiguration thisConfiguration, final ComponentConfiguration parentConfiguration, final String name) {
-
-		super(thisConfiguration, name);
-
-		this.parentConfiguration = parentConfiguration;
+	public ParentDataSource(final String name) {
+		super(name);
 	}
-
 
 	@Override
 	public String getChannelName() {
@@ -51,7 +42,13 @@ public class ParentDataSource<T extends GraphObject> extends AbstractValueDataSo
 	}
 
 	@Override
-	protected T getDataSourceValue(ActionContext actionContext, ChannelInput channelInput) throws FrameworkException {
+	public int getDimension() {
+		// parent is exactly one object
+		return 0;
+	}
+
+	@Override
+	protected T getDataSourceValue(final ActionContext actionContext) throws FrameworkException {
 
 		if (actionContext instanceof RenderContext renderContext) {
 			return (T) renderContext.getDataNode(name);
@@ -61,21 +58,41 @@ public class ParentDataSource<T extends GraphObject> extends AbstractValueDataSo
 	}
 
 	@Override
-	public String getDataType(final ActionContext actionContext) throws FrameworkException {
+	protected String resolveDataType(final ActionContext actionContext) throws FrameworkException {
 
-		if (configuration != null && parentConfiguration != null) {
+		if (configuration != null) {
 
-			final Channel dataSource = parentConfiguration.getDataSource();
-			if (dataSource != null) {
+			// find the closest ancestor component and get its data type
+			final DOMNode component = configuration.getComponent();
+			if (component != null) {
 
-				// this is tricky to understand: the parent data source uses the current configuration's transform value!
-				// (e.g. Release->Feature: "parent.features" => type Feature
-				return getTransformedDataType(dataSource.getDataType(actionContext), configuration.getTransform());
+				final DOMNode parent = component.getParent();
+				if (parent != null) {
+
+					final DOMNode parentComponent = parent.getClosestComponent();
+					if (parentComponent != null) {
+
+						final ComponentConfiguration parentConfig = parentComponent.getComponentConfiguration();
+						if (parentConfig != null) {
+
+							final Channel dataSource = parentConfig.getDataSource();
+							if (dataSource != null) {
+
+								// the parent data source type + this configuration's transform gives the result type
+								// e.g. if parent is "Project" and transform is "tasks", result type is "Task"
+								final String parentType    = dataSource.getDataType(actionContext);
+								final String thisTransform = configuration.getTransform();
+
+								return getTransformedDataType(parentType, thisTransform);
+							}
+						}
+					}
+				}
 			}
 
 		} else {
 
-			logger.warn("Cannot evaluate getDataType(): configuration is null in {} '{}'.", getClass().getSimpleName(), getChannelName());
+			logger.warn("Cannot evaluate resolveDataType(): configuration is null in {} '{}'.", getClass().getSimpleName(), getChannelName());
 		}
 
 		return null;

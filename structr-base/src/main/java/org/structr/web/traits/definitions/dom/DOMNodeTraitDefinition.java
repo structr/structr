@@ -640,8 +640,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 							if (actionContext instanceof RenderContext renderContext) {
 
-								final DataAdapter adapter                 = config.getDataAdapter();
-								final ChannelResult<GraphObject> iterable = channel.getResult(renderContext, config.getChannelInput(renderContext, adapter));
+								final ChannelResult<GraphObject> iterable = channel.getResult(renderContext, config.getChannelInput(renderContext), config.getTransform());
 								final String paginationKey                = channel.getPaginationKey();
 								final int resultCount                     = iterable.getResultCount();
 								final int pageCount                       = (int) Math.ceil((double)resultCount / (double)config.getPageSize());
@@ -905,10 +904,9 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 						return " hidden ";
 					}
 
-					final DataAdapter adapter             = config.getDataAdapter();
-					final ChannelInput input              = config.getChannelInput(renderContext, adapter);
+					final ChannelInput input              = config.getChannelInput(renderContext);
 					final String paginationKey            = channel.getPaginationKey();
-					final ChannelResult result            = channel.getResult(renderContext, input);
+					final ChannelResult result            = channel.getResult(renderContext, input, config.getTransform());
 					final int resultCount                 = result.getResultCount();
 					final int windowSize                  = config.getPaginationWindowSize();
 					final int pageSize                    = config.getPageSize();
@@ -968,10 +966,9 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 						return "";
 					}
 
-					final DataAdapter adapter             = config.getDataAdapter();
-					final ChannelInput input              = config.getChannelInput(renderContext, adapter);
+					final ChannelInput input              = config.getChannelInput(renderContext);
 					final String paginationKey            = channel.getPaginationKey();
-					final ChannelResult result            = channel.getResult(renderContext, input);
+					final ChannelResult result            = channel.getResult(renderContext, input, config.getTransform());
 					final int resultCount                 = result.getResultCount();
 					final int windowSize                  = config.getPaginationWindowSize();
 					final int pageSize                    = config.getPageSize();

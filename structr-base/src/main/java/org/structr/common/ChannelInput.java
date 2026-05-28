@@ -33,18 +33,16 @@ public class ChannelInput implements Predicate<GraphObject> {
 	private final List<SortInfo> sortInfos         = new LinkedList<>();
 	private final List<DataField> searchableFields = new LinkedList<>();
 	private final String filter;
-	private final String transform;
 	private final int pageSize;
 	private final int page;
 
-	public ChannelInput(final String transform) {
-		this(transform, null, null, Integer.MAX_VALUE, 1);
+	public ChannelInput() {
+		this(null, null, Integer.MAX_VALUE, 1);
 	}
 
-	public ChannelInput(final String transform, final String filter, final List<String> sortStrings, final int pageSize, final int page) {
+	public ChannelInput(final String filter, final List<String> sortStrings, final int pageSize, final int page) {
 
 		this.filter    = filter != null ? filter.toLowerCase() : null;
-		this.transform = transform;
 		this.pageSize  = pageSize;
 		this.page      = page;
 
@@ -62,7 +60,7 @@ public class ChannelInput implements Predicate<GraphObject> {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(sortInfos, searchableFields, filter, transform, pageSize, page);
+		return Objects.hash(sortInfos, searchableFields, filter, pageSize, page);
 	}
 
 	@Override
@@ -72,10 +70,6 @@ public class ChannelInput implements Predicate<GraphObject> {
 
 	public List<SortInfo> sortKeys() {
 		return sortInfos;
-	}
-
-	public String transform() {
-		return transform;
 	}
 
 	public String filter() {
@@ -121,6 +115,6 @@ public class ChannelInput implements Predicate<GraphObject> {
 	}
 
 	public static ChannelInput firstElement() {
-		return new ChannelInput(null, null, null, 1, 1);
+		return new ChannelInput(null, null, 1, 1);
 	}
 }
