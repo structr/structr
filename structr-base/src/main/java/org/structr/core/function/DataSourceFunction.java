@@ -101,14 +101,6 @@ public class DataSourceFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public List<Language> getLanguages() {
-		return List.of(
-			Language.StructrScript,
-			Language.JavaScript
-		);
-	}
-
-	@Override
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.javaScript("Usage: ${{$.dataSource('node:Page', 10, 1)}}"),

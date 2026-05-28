@@ -101,11 +101,6 @@ public class NotFunction extends CoreFunction {
 	}
 
 	@Override
-	public List<Language> getLanguages() {
-		return List.of(Language.StructrScript);
-	}
-
-	@Override
 	public FunctionCategory getCategory() {
 		return FunctionCategory.Logic;
 	}

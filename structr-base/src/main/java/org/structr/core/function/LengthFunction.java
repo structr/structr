@@ -81,11 +81,6 @@ public class LengthFunction extends CoreFunction {
 	}
 
 	@Override
-	public List<Language> getLanguages() {
-		return List.of(Language.StructrScript);
-	}
-
-	@Override
 	public List<Parameter> getParameters() {
 
 		return List.of(

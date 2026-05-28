@@ -19,6 +19,7 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
 import org.structr.docs.Language;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
@@ -59,7 +60,7 @@ public class OneFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${one(number, oneValue, otherValue)}. Example: ${one(this.children.size, 'child', 'children')}")
+			Usage.structrScript("Usage: ${one(number, oneValue, otherValue)}")
 		);
 	}
 
@@ -74,8 +75,10 @@ public class OneFunction extends CoreFunction {
 	}
 
 	@Override
-	public List<Language> getLanguages() {
-		return List.of(Language.StructrScript);
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${one(this.children.size, 'child', 'children')}")
+		);
 	}
 
 	@Override

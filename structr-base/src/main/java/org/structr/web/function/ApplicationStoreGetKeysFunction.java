@@ -71,11 +71,6 @@ public class ApplicationStoreGetKeysFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public List<Language> getLanguages() {
-		return List.of(Language.StructrScript);
-	}
-
-	@Override
 	public FunctionCategory getCategory() {
 		return FunctionCategory.Scripting;
 	}

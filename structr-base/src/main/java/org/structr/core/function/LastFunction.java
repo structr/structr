@@ -101,14 +101,9 @@ public class LastFunction extends CoreFunction {
 	}
 
 	@Override
-	public List<Language> getLanguages() {
-		return List.of(Language.StructrScript);
-	}
-
-	@Override
 	public List<Parameter> getParameters() {
 
-		return  List.of(
+		return List.of(
 			Parameter.mandatory("collection", "collection to return last element of")
 		);
 	}

@@ -89,11 +89,6 @@ public class FloorFunction extends CoreFunction {
 	}
 
 	@Override
-	public List<Language> getLanguages() {
-		return List.of(Language.StructrScript);
-	}
-
-	@Override
 	public FunctionCategory getCategory() {
 		return FunctionCategory.Mathematical;
 	}
