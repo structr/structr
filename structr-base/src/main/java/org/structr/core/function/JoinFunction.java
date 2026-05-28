@@ -37,7 +37,7 @@ public class JoinFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("list, separator");
+		return Signature.forAllScriptingLanguages("collection, separator");
 	}
 
 	@Override
@@ -73,7 +73,8 @@ public class JoinFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${join(collection, separator)}. Example: ${join(this.names, \",\")}")
+				Usage.structrScript("Usage: ${join(collection, separator)}"),
+				Usage.javaScript("Usage: ${{ $.join(collection, separator) }}")
 		);
 	}
 

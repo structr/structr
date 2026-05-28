@@ -34,7 +34,6 @@ import java.util.Random;
 
 public class RintFunction extends CoreFunction {
 
-
 	@Override
 	public String getName() {
 		return "rint";
@@ -81,7 +80,8 @@ public class RintFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${rint(bound)}.")
+				Usage.structrScript("Usage: ${rint(bound)}"),
+				Usage.javaScript("Usage: ${{ $.rint(bound) }}")
 		);
 	}
 
@@ -108,7 +108,7 @@ public class RintFunction extends CoreFunction {
 
 		return List.of(
 				Parameter.mandatory("bound", "end of random number range (exclusive)")
-				);
+		);
 	}
 
 	@Override

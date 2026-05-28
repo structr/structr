@@ -46,7 +46,8 @@ public class GteFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${gte(value1, value2)}. Example: ${if(gte(this.children, 2), 'Equal to or more than two', 'Less than two')}")
+				Usage.structrScript("Usage: ${gte(value1, value2)}"),
+				Usage.javaScript("Usage: ${{ $.gte(value1, value2) }}")
 		);
 	}
 
@@ -72,9 +73,10 @@ public class GteFunction extends CoreFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-			Example.structrScript(" ${gte(1, 2)} ", "This will return `false`"),
-			Example.structrScript(" ${gte(2, 1)} ", "This will return `true`"),
-			Example.structrScript(" ${gte(2, 2)} ", "This will return `true`")
+			Example.structrScript("${gte(1, 2)}", "This will return `false`"),
+			Example.structrScript("${gte(2, 1)}", "This will return `true`"),
+			Example.structrScript("${gte(2, 2)}", "This will return `true`"),
+			Example.structrScript("${if(gte(this.children, 2), 'Equal to or more than two', 'Less than two')}")
 		);
 	}
 

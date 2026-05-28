@@ -73,7 +73,8 @@ public class DoubleSumFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${doubleSum(list)}. Example: ${doubleSum(extract(this.children, 'amount'))}")
+				Usage.structrScript("Usage: ${doubleSum(list)}"),
+				Usage.javaScript("Usage: ${{ $.doubleSum(list) }}")
 		);
 	}
 

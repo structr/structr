@@ -79,7 +79,8 @@ public class SubtFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${subt(value1, value2)}.")
+				Usage.structrScript("Usage: ${subt(value1, value2)}"),
+				Usage.javaScript("Usage: ${{ $.subt(value1, value2) }}")
 		);
 	}
 
@@ -109,7 +110,7 @@ public class SubtFunction extends CoreFunction {
 		return List.of(
 				Parameter.mandatory("val1", "minuend"),
 				Parameter.mandatory("val2", "subtrahend")
-				);
+		);
 	}
 
 	@Override

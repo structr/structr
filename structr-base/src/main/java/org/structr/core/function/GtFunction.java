@@ -46,7 +46,8 @@ public class GtFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${gt(value1, value2)}. Example: ${if(gt(this.children, 2), 'More than two', 'Equal to or less than two')}")
+				Usage.structrScript("Usage: ${gt(value1, value2)}"),
+				Usage.javaScript("Usage: ${{ $.gt(value1, value2) }}")
 		);
 	}
 
@@ -57,9 +58,7 @@ public class GtFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return """
-		This function tries to convert its arguments into numerical values, i.e. you can compare strings numerically. It is often used in conjunction with `size()` to determine if a collection is empty or not.
-		""";
+		return "This function tries to convert its arguments into numerical values, i.e. you can compare strings numerically.";
 	}
 
 	@Override
@@ -74,8 +73,9 @@ public class GtFunction extends CoreFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript(" ${gt(1, 2)} ", "This will return `false`"),
-				Example.structrScript(" ${gt(2, 1)} ", "This will return `true`")
+				Example.structrScript("${gt(1, 2)}", "This will return `false`"),
+				Example.structrScript("${gt(2, 1)}", "This will return `true`"),
+				Example.structrScript("${if(gt(this.children, 2), 'More than two', 'Equal to or less than two')}")
 		);
 	}
 

@@ -21,10 +21,7 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.docs.Language;
-import org.structr.docs.Parameter;
-import org.structr.docs.Signature;
-import org.structr.docs.Usage;
+import org.structr.docs.*;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -66,7 +63,8 @@ public class IsCollectionFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${isCollection(value)}. Example: ${isCollection(this)}")
+				Usage.structrScript("Usage: ${isCollection(value)}"),
+				Usage.javaScript("Usage: ${{ $.isCollection(value) }}")
 		);
 	}
 
@@ -85,6 +83,13 @@ public class IsCollectionFunction extends CoreFunction {
 
 		return List.of(
 			Parameter.mandatory("value", "value to check")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${isCollection(this)}")
 		);
 	}
 
