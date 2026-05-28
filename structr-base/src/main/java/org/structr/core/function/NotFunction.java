@@ -65,7 +65,7 @@ public class NotFunction extends CoreFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 				Usage.structrScript("Usage: ${not(bool)}"),
-				Usage.structrScript("Usage: ${{ $.not(bool) }}")
+				Usage.javaScript("Usage: ${{ $.not(bool) }}")
 		);
 	}
 
