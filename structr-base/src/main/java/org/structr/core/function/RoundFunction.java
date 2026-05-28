@@ -119,11 +119,6 @@ public class RoundFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public List<Language> getLanguages() {
-		return List.of(Language.StructrScript);
-	}
-
-	@Override
 	public List<Example> getExamples() {
 		return List.of(
 				Example.structrScript(" ${round(2.345678, 2)} "),
