@@ -300,7 +300,7 @@
                                     <skip>${skipUITests}</skip>
                                     <images>
                                         <image>
-                                            <name>neo4j:2025</name>
+                                            <name>neo4j:latest</name>
                                             <alias>database</alias>
                                             <run>
                                                 <network>

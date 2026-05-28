@@ -3062,16 +3062,30 @@ let _Entities = {
             }
 
             // construct list of available fields (all fields minus selected fields)
-            for (let fieldName in fields) {
-                if (!currentFieldSet.includes(fieldName)) {
-                    let field = fields[fieldName];
-                    let renderTemplate = field?.[whichTemplate];
-                    let color = field[whichTemplate]?.length ? 'text-gray-555' : 'text-gray-aaa';
-                    let iconClasses = (field?.source === 'adapter' ? 'delete-field-button text-gray-666 cursor-pointer' : 'text-gray-ddd');
-                    let iconTitle = (field?.source === 'adapter' ? 'Remove field from adapter.' : 'Data source field cannot be removed here.');
-                    available.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.availableFieldPartial({ fieldName, field, renderTemplate, color, iconClasses, iconTitle }));
-                }
-            }
+			if (fields.length > 0) {
+				for (let fieldName in fields) {
+					if (!currentFieldSet.includes(fieldName)) {
+						let field = fields[fieldName];
+						let renderTemplate = field?.[whichTemplate];
+						let color = field[whichTemplate]?.length ? 'text-gray-555' : 'text-gray-aaa';
+						let iconClasses = (field?.source === 'adapter' ? 'delete-field-button text-gray-666 cursor-pointer' : 'text-gray-ddd');
+						let iconTitle = (field?.source === 'adapter' ? 'Remove field from adapter.' : 'Data source field cannot be removed here.');
+						available.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.availableFieldPartial({
+							fieldName,
+							field,
+							renderTemplate,
+							color,
+							iconClasses,
+							iconTitle
+						}));
+					}
+				}
+			} else {
+
+				available.insertAdjacentHTML('beforeend', `
+					<div class="m-4 text-gray-666">It seems that the current data source does not provide information about the expected type. Please enter a type name into the "Expected Data Type" input field at the top to get a list of available fields.</div>
+				`);
+			}
 
             let collectKeys = () => {
                 let fields = [];

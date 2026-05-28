@@ -229,12 +229,8 @@ public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper
 					}
 
 					error.append(" is not compatible with component '").append(component.getName()).append("'. ");
-					error.append("Component expects a single object but data source returns a collection.");
-					error.append(" (");
-					error.append(effectiveDimension);
-					error.append(" > ");
-					error.append(componentDimension);
-					error.append(")");
+					error.append("Component expects a single object but data source ");
+					error.append("returns a collection.");
 
 					throw new FrameworkException(422, error.toString());
 				}
