@@ -47,6 +47,7 @@ import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 /**
  * @param <T>
@@ -602,6 +603,10 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 	// ----- package methods -----
 	Map<String, Object> serialize() {
+		return serialize(false);
+	}
+
+	Map<String, Object> serialize(final boolean removeManagedViews) {
 
 		final Map<String, Object> serializedForm       = new TreeMap<>();
 		final Map<String, Object> serializedProperties = new TreeMap<>();
@@ -681,7 +686,6 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			serializedForm.put(JsonSchema.KEY_VISIBLE_TO_AUTHENTICATED, true);
 		}
 
-		// properties
 		if (!serializedProperties.isEmpty()) {
 			serializedForm.put(JsonSchema.KEY_PROPERTIES, serializedProperties);
 		}
@@ -692,24 +696,40 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			serializedForm.put(JsonSchema.KEY_REQUIRED, requiredProperties);
 		}
 
-		// views
 		if (!views.isEmpty()) {
 
-			serializedForm.put(JsonSchema.KEY_VIEWS, views);
+			if (removeManagedViews) {
+
+				final Map<String, Set<String>> viewsWithoutManagedViews =
+						views.entrySet()
+								.stream()
+								.filter(viewEntry -> !PropertyView.isManagedView(viewEntry.getKey()))
+								.collect(Collectors.toMap(
+										Map.Entry::getKey,
+										Map.Entry::getValue,
+										(a, b) -> a,
+										TreeMap::new
+								));
+
+				serializedForm.put(JsonSchema.KEY_VIEWS, viewsWithoutManagedViews);
+
+			} else {
+
+				serializedForm.put(JsonSchema.KEY_VIEWS, views);
+			}
+
 			serializedForm.put(JsonSchema.KEY_VIEW_ORDER, viewOrder);
 		}
 
-		// methods
 		if (!serializedMethods.isEmpty()) {
 			serializedForm.put(JsonSchema.KEY_METHODS, serializedMethods);
 		}
 
-		// grants
 		if (!serializedGrants.isEmpty()) {
 			serializedForm.put(JsonSchema.KEY_GRANTS, serializedGrants);
 		}
 
-		if (inheritedTraits != null) {
+		if (!inheritedTraits.isEmpty()) {
 			serializedForm.put(JsonSchema.KEY_TRAITS, inheritedTraits);
 		}
 
@@ -939,6 +959,19 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			if (schemaProperty != null) {
 
 				schemaProperties.put(schemaProperty.getName(), schemaProperty);
+			}
+		}
+
+		// before creating views, check if managed views were omitted but had a sort order. if so, add a dummy so that order is imported correctly
+		if (viewOrder.size() > views.size()) {
+
+			for (final String viewName : viewOrder.keySet()) {
+
+				if (PropertyView.isManagedView(viewName) && !views.containsKey(viewName)) {
+
+					// insert dummy
+					views.put(viewName, Set.of());
+				}
 			}
 		}
 

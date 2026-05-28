@@ -25,70 +25,83 @@ let _Documentation = {
 	_moduleName: 'docs',
 	//urlHashKey: 'structrUrlHashKey_' + location.port,
 	currentDoc: undefined,
+	ontologyRoot: Structr.docsUrl + 'ontology',
 
 	unload: () => {
 		_Documentation.search.dispose();
 		_Documentation.currentDoc = undefined;
-
-		window.removeEventListener('hashchange', _Documentation.hashChangeHandler);
 	},
 	onload: () => {
 
 		Structr.setMainContainerHTML(_Documentation.templates.main());
-		_Documentation.init();
-
-		const lastIndexOfHash = Structr.subModule?.lastIndexOf('#');
-		let inPageHash;
-		if (lastIndexOfHash > 0) {
-			inPageHash = Structr.subModule?.substring(lastIndexOfHash + 1);
-			Structr.subModule = Structr.subModule?.substring(0, lastIndexOfHash);
-		}
-
-        //_Documentation.loadDoc(Structr.subModule || 'Getting Started', inPageHash);
-		_Documentation.loadDoc('concept00002', inPageHash);
-
 		Structr.setFunctionBarHTML(_Documentation.templates.searchField());
 
-		Structr.mainMenu.unblock(100);
+		Structr.hideMainHelpLink();
 
-		_Documentation.search.init();
+		_Documentation.loadMainMenu().then(() => {
 
-		const checkIndexLinks = (clickedEl) => {
+			_Documentation.init();
+
+			Structr.mainMenu.unblock(100);
+
+			_Documentation.search.init();
+
+			const checkIndexLinks = (clickedEl) => {
+				document.querySelectorAll('.index a').forEach(el => {
+					el.classList.remove('active');
+				});
+				clickedEl.classList.add('active');
+				window.setTimeout(() => { window.scrollBy(0,-108); }, 10);
+			};
+
 			document.querySelectorAll('.index a').forEach(el => {
-				el.classList.remove('active');
-			});
-			clickedEl.classList.add('active');
-			window.setTimeout(() => { window.scrollBy(0,-108); }, 10);
-		};
-
-		document.querySelectorAll('.index a').forEach(el => {
-			el.addEventListener('click', e => {
-				checkIndexLinks(e.target);
+				el.addEventListener('click', e => {
+					checkIndexLinks(e.target);
+				});
 			});
 		});
 	},
-	hashChangeHandler: e => {
+	loadMainMenu: async () => {
 
-		let hash = new URL(e.newURL).hash;
+		return fetch(`${_Documentation.ontologyRoot}?root=Structr&details=all&levels=1&format=toc&startLevel=1`)
+			.then(response => response.json())
+			.then(json => {
+				const docsElement = document.getElementById('docs-main-navigation');
 
-		if (hash.startsWith('#docs:')) {
+				for (let entry of json.data) {
 
-			let rawPath = hash.substring(hash.indexOf(':') + 1);
-			let deepHash = undefined;
+					let menuItem = _Documentation.createElementFromHTML(_Documentation.templates.mainNavigationItem({
+						label: entry.name
+					}));
 
-			if (rawPath.indexOf('#') > -1) {
-				deepHash = rawPath.substring(rawPath.indexOf('#') + 1);
-				rawPath = rawPath.substring(0, rawPath.indexOf('#'));
-			}
+					docsElement.appendChild(menuItem);
 
-			_Documentation.loadDoc(rawPath, deepHash);
+					let sublist = document.createElement('ul');
+					menuItem.appendChild(sublist);
 
-		} else {
+					if (entry && entry.links && entry.links.length) {
 
-			// browser should have navigated by itself - update hash so it survives page reload
-			// _Documentation.updateHashWithoutAddingHistory('#docs:' + _Documentation.currentDoc + hash);
-			_Documentation.loadDoc(_Documentation.currentDoc, hash.substring(1));
-		}
+						for (let child of entry.links[0].targets) {
+
+							let subItem = _Documentation.createElementFromHTML(_Documentation.templates.mainNavigationSubItem({
+								parent: entry.id,
+								id: child.id,
+								label: child.name
+							}));
+
+							subItem.addEventListener('click', e => {
+								_Documentation.rememberCurrentArticleInHash(child.id);
+								_Documentation.loadContext(child.id);
+							});
+
+							sublist.appendChild(subItem);
+						}
+					}
+				}
+			});
+	},
+	rememberCurrentArticleInHash:(article) => {
+		history.pushState(null, '', '#docs:' + article);
 	},
 	updateHashWithoutAddingHistory: (newHash) => {
 		history.replaceState(history.state, "", newHash);
@@ -110,54 +123,22 @@ let _Documentation = {
 	},
 	init: () => {
 
-        // build the table of contents
-		const docsElement = document.getElementById('docs-main-navigation');
-        const iframe = document.querySelector('iframe');
+		let hash = location.hash;
 
-        if (iframe) {
+		if (hash === '#docs') {
 
-            iframe.addEventListener('load', e => {
-                //_Documentation.makeEditable();
-            });
+			_Documentation.loadPath('Introduction/Getting%20Started');
 
-        } else {
-            console.log('iframe not found');
-        }
+		} else if (hash.startsWith('#docs:')) {
 
-		fetch('/structr/docs/ontology?root=Structr&details=all&levels=1&format=toc&startLevel=1')
-			.then(response => response.json())
-			.then(json => {
+			let rawPath = hash.substring(hash.indexOf(':') + 1);
 
-                for (let entry of json.data) {
-
-                    let menuItem = _Documentation.createElementFromHTML(_Documentation.templates.mainNavigationItem({
-                        label: entry.name
-                    }));
-
-                    docsElement.appendChild(menuItem);
-
-                    let sublist = document.createElement('ul');
-                    menuItem.appendChild(sublist);
-
-                    if (entry && entry.links && entry.links.length) {
-                        for (let child of entry.links[0].targets) {
-
-                            let subItem = _Documentation.createElementFromHTML(_Documentation.templates.mainNavigationSubItem({
-                                parent: entry.id,
-                                id: child.id,
-                                label: child.name
-                            }));
-
-                            subItem.addEventListener('click', e => {
-                                _Documentation.loadContext(child.id);
-                            });
-
-                            sublist.appendChild(subItem);
-                        }
-                    }
-				}
-			});
-
+			if (rawPath.includes('/')) {
+				_Documentation.loadPath(rawPath);
+			} else {
+				_Documentation.loadDoc(rawPath);
+			}
+		}
 	},
 	loadDoc: (id, hash, parents, searchHit) => {
 
@@ -173,37 +154,62 @@ let _Documentation = {
                 hash = '#' + _Documentation.cleanStringForLink(searchHit.name);
             }
 
-            iframe.src = `/structr/docs/ontology?id=${id}&details=all&format=markdown${hash}`;
+            iframe.src = `${_Documentation.ontologyRoot}?id=${id}&details=all&format=markdown${hash}`;
             _Documentation.loadContext(id);
 
-            iframe.addEventListener('load', () => {
-                iframe.contentDocument.querySelector('body').addEventListener('click', e => {
-                    const el = e.target;
-                    if (el.tagName === 'A' && !el.href.startsWith('javascript')) {
-
-                        fetch(el.href + '?details=name&levels=1&format=toc&startLevel=0')
-                            .then(response => response.json())
-                            .then(json => {
-                                _Documentation.loadContext(json.data?.[0].id);
-                            });
-                    }
-                });
-            });
+			_Documentation.attachClickHandlerToIframe(iframe);
         }
+	},
+	loadPath: (path) => {
+
+		let iframe = document.querySelector('div#docs-area iframe');
+		if (iframe) {
+
+			iframe.src = `${_Documentation.ontologyRoot}/${path}`;
+
+			_Documentation.loadContextForPath(iframe.src);
+
+			_Documentation.attachClickHandlerToIframe(iframe);
+		}
+	},
+	attachClickHandlerToIframe: (iframe) => {
+
+		iframe.addEventListener('load', () => {
+
+			iframe.contentDocument.querySelector('body').addEventListener('click', e => {
+
+				// navigation happens automatically... we only need to update the context
+
+				const el = e.target;
+				if (el.tagName === 'A' && !el.href.startsWith('javascript')) {
+
+					let href = el.getAttribute('href');
+
+					_Documentation.rememberCurrentArticleInHash(href.replace(_Documentation.ontologyRoot + '/', ''));
+
+					_Documentation.loadContextForPath(href);
+				}
+			});
+		});
 	},
     loadContext: (id) => {
 
-        document.querySelectorAll('a[target="main-documentation"]').forEach(el => el.classList.remove('active'));
-        document.querySelector(`a[target="main-documentation"][href*="id=${id}"]`)?.classList.add('active');
+		let aside = document.querySelector('aside.index');
+		aside.dataset.for = id;
 
-        fetch(`/structr/docs/ontology?id=${id}&details=all&levels=1&format=toc&startLevel=1`)
+        fetch(`${_Documentation.ontologyRoot}?id=${id}&details=all&levels=1&format=toc&startLevel=1`)
             .then(response => response.json())
             .then(json => {
 
-                let index = 1;
-                let aside = document.querySelector('aside.index');
+				if (aside.dataset.for !== id) {
+					// ignore update for aside for race-conditions
+					return;
+				}
 
-                aside.innerHTML = '<h2 class="index-heading">On this page</h2>';
+				document.querySelectorAll('a[target="main-documentation"]').forEach(el => el.classList.remove('active'));
+				document.querySelector(`a[target="main-documentation"][data-doc-id="${id}"]`)?.classList.add('active');
+
+				aside.innerHTML = '<h2 class="index-heading">On this page</h2>';
 
                 for (let entry of json.data) {
 
@@ -222,6 +228,14 @@ let _Documentation = {
                 }
             });
     },
+	loadContextForPath: (path) => {
+
+		fetch(`${path}?details=name&levels=1&format=toc&startLevel=0`)
+		.then(response => response.json())
+		.then(json => {
+			_Documentation.loadContext(json.data?.[0].id);
+		});
+	},
     cleanStringForLink: (str) => str.replace('?', '').replaceAll(/[\W]+/g, '-').toLowerCase(),
 	search: {
 		searchOverlay: undefined,
@@ -297,7 +311,7 @@ let _Documentation = {
 
                 } else {
 
-                    fetch(`/structr/docs/ontology?search=${encodeURIComponent(searchText)}&details=all&levels=1&startLevel=0`)
+                    fetch(`${_Documentation.ontologyRoot}?search=${encodeURIComponent(searchText)}&details=all&levels=1&startLevel=0`)
                         .then(response => response.json())
                         .then(json => {
 
@@ -434,8 +448,8 @@ let _Documentation = {
 			</div>
 		`,
 		mainNavigationItem: config => `<li class="docs-main-nav-item">${config.label}</li>`,
-        mainNavigationSubItem: config => `<li><a target="main-documentation" href="/structr/docs/ontology?id=${config.id}&parent=${config.parent}&details=all">${config.label}</a></li>`,
-		indexItem: config => `<h2><a target="main-documentation" href="/structr/docs/ontology?id=${config.id}&details=all#${config.name}">${config.label}</a></h2>`,
+        mainNavigationSubItem: config => `<li><a target="main-documentation" href="${_Documentation.ontologyRoot}?id=${config.id}&parent=${config.parent}&details=all" data-doc-id="${config.id}">${config.label}</a></li>`,
+		indexItem: config => `<h2><a target="main-documentation" href="${_Documentation.ontologyRoot}?id=${config.id}&details=all#${config.name}">${config.label}</a></h2>`,
 		searchOverlay: config => `
 			<div id="search-overlay" class="hidden">
 				<div id="search-overlay-dialog">

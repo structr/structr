@@ -8640,8 +8640,7 @@ public class ScriptingTest extends StructrTest {
 		{
 			try (final Tx tx = app.tx()) {
 
-				assertEquals("Invalid result for enumInfo()", "[{value=VALUE1}, {value=VALUE2}, {value=VALUE3}]", Scripting.replaceVariables(actionContext, null, "${enumInfo('Test', 'enumTest')}"));
-				assertEquals("Invalid result for enumInfo()", "[VALUE1, VALUE2, VALUE3]", Scripting.replaceVariables(actionContext, null, "${enumInfo('Test', 'enumTest', true)}"));
+				assertEquals("Invalid result for enumInfo()", "[VALUE1, VALUE2, VALUE3]", Scripting.replaceVariables(actionContext, null, "${enumInfo('Test', 'enumTest')}"));
 
 				// error cases where null is expected
 				assertNull(Scripting.evaluate(actionContext, null, "${enumInfo('DoesNotExist', 'doesnotmatter')}", "test1"));
@@ -8661,8 +8660,7 @@ public class ScriptingTest extends StructrTest {
 			// tests
 			try (final Tx tx = app.tx()) {
 
-				assertEquals("Invalid result for enumInfo()", "[{value=VALUE1}, {value=VALUE2}, {value=VALUE3}]", Scripting.replaceVariables(actionContext, null, "${{ $.enumInfo('Test', 'enumTest') }}"));
-				assertEquals("Invalid result for enumInfo()", "[VALUE1, VALUE2, VALUE3]",                         Scripting.replaceVariables(actionContext, null, "${{ $.enumInfo('Test', 'enumTest', true) }}"));
+				assertEquals("Invalid result for enumInfo()", "[VALUE1, VALUE2, VALUE3]", Scripting.replaceVariables(actionContext, null, "${{ $.enumInfo('Test', 'enumTest') }}"));
 
 				// error cases where an exception is expected
 				try {

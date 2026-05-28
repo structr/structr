@@ -64,6 +64,11 @@ public class SearchNodesCommand extends AbstractCommand {
 
 			getWebSocket().send(webSocketData, true);
 
+		} catch (UnsupportedOperationException uso) {
+
+			logger.warn("{}", uso.getMessage());
+			getWebSocket().send(MessageBuilder.status().code(400).message(uso.getMessage()).build(), true);
+
 		} catch (Throwable t) {
 
 			logger.warn("Exception occurred", t);

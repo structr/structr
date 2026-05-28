@@ -515,22 +515,20 @@ let _Helpers = {
 	getDocumentationURLForTopic: (topic) => {
 
 		switch (topic) {
-			case 'dashboard':      return '#docs:4-Admin%20User%20Interface/2-Dashboard.md';
-			case 'pages':          return '#docs:4-Admin%20User%20Interface/3-Pages.md';
-			case 'files':          return '#docs:4-Admin%20User%20Interface/4-Files.md';
-			case 'security':       return '#docs:4-Admin%20User%20Interface/5-Security.md';
-			case 'schema':         return '#docs:4-Admin%20User%20Interface/6-Schema.md';
-			case 'code':           return '#docs:4-Admin%20User%20Interface/7-Code.md';
-			case 'crud':           return '#docs:4-Admin%20User%20Interface/8-Data.md';
-			case 'graph':          return '#docs:4-Admin%20User%20Interface/9-Graph.md';
-			case 'flows':          return '#docs:4-Admin%20User%20Interface/10-Flows.md';
+			case 'dashboard':      return '#docs:Admin%20User%20Interface/Dashboard';
+			case 'pages':          return '#docs:Admin%20User%20Interface/Pages';
+			case 'files':          return '#docs:Admin%20User%20Interface/Files';
+			case 'security':       return '#docs:Admin%20User%20Interface/Security';
+			case 'schema':         return '#docs:Admin%20User%20Interface/Schema';
+			case 'code':           return '#docs:Admin%20User%20Interface/Code';
+			case 'crud':           return '#docs:Admin%20User%20Interface/Data';
+			case 'graph':          return '#docs:Admin%20User%20Interface/Graph';
+			case 'flows':          return '#docs:Admin%20User%20Interface/Flows';
 			case 'schema-enum':    return '#docs:troubleshooting-guide#enum-property';
 
-			case 'contents':
 			case 'mail-templates':
 			case 'virtual-types':
-			case 'localization':   return '#docs:5-Admin%20User%20Interface/13-Localization.md';
-			case 'graph':          return '#docs:5-Admin%20User%20Interface/9-Graph.md';
+			case 'localization':   return '#docs:Admin%20User%20Interface/Localization';
 			default:
 				return '#docs';
 		}

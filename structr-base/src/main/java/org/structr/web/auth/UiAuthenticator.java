@@ -773,7 +773,7 @@ public class UiAuthenticator implements Authenticator {
 
 							logger.debug("HttpServletResponse status: {}", response.getStatus());
 
-							boolean isBackendSSOLogin = (originalRequestParameters.get(BACKEND_SSO_LOGIN_INDICATOR) != null);
+							boolean isBackendSSOLogin = (originalRequestParameters != null && originalRequestParameters.get(BACKEND_SSO_LOGIN_INDICATOR) != null);
 							if (!isBackendSSOLogin) {
 
 								final String configuredReturnUri = oAuth2Client.getReturnURI();

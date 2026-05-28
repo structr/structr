@@ -241,7 +241,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 
 	@Override
 	public List<Map<String, Object>> globalSearch(final Set<String> types, final String searchString) {
-		throw new UnsupportedOperationException("Global search is not supported");
+		throw new UnsupportedOperationException("In-memory database does not support global search");
 	}
 
 	@Override
