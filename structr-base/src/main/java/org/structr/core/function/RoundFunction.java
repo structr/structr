@@ -28,7 +28,6 @@ import java.util.List;
 
 public class RoundFunction extends AdvancedScriptingFunction {
 
-
 	@Override
 	public String getName() {
 		return "round";
@@ -102,7 +101,8 @@ public class RoundFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${round(value1 [, decimalPlaces])}.")
+				Usage.structrScript("Usage: ${round(value1 [, decimalPlaces])}"),
+				Usage.javaScript("Usage: ${{ $.round(value1 [, decimalPlaces]) }}")
 		);
 	}
 
@@ -114,8 +114,9 @@ public class RoundFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-		This function tries to convert its parameter objects into numerical values, i.e. you can use strings as arguments. 
-		If the optional parameter `decimalPlaces` is given, this function rounds to the given number of decimal places.""";
+			This function tries to convert its parameter objects into numerical values, i.e. you can use strings as arguments.
+			If the optional parameter `decimalPlaces` is given, this function rounds to the given number of decimal places.
+			""";
 	}
 
 	@Override
@@ -132,7 +133,7 @@ public class RoundFunction extends AdvancedScriptingFunction {
 		return List.of(
 				Parameter.mandatory("value", "value to round"),
 				Parameter.optional("decimalPlaces", "target decimal places")
-				);
+		);
 	}
 
 	@Override

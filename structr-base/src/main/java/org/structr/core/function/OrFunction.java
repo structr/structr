@@ -75,7 +75,8 @@ public class OrFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${or(b1, b2, ...)}. Example: ${or('true', 'true')}")
+				Usage.structrScript("Usage: ${or(b1, b2, ...)}"),
+				Usage.javaScript("Usage: ${{ $.or(b1, b2, ...) }}")
 		);
 	}
 
@@ -100,13 +101,6 @@ public class OrFunction extends CoreFunction {
 	public List<Example> getExamples() {
 		return List.of(
 			Example.structrScript("${or(true, false)}", "true && false = true")
-		);
-	}
-
-	@Override
-	public List<String> getNotes() {
-		return List.of(
-			"This function is only available in StructrScript because there is a native language feature in JavaScript that does the same (the || operator)."
 		);
 	}
 

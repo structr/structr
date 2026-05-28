@@ -29,7 +29,6 @@ import java.util.List;
 
 public class QuotFunction extends CoreFunction {
 
-
 	@Override
 	public String getName() {
 		return "quot";

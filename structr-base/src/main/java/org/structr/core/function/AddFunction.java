@@ -19,10 +19,7 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.docs.Language;
-import org.structr.docs.Parameter;
-import org.structr.docs.Signature;
-import org.structr.docs.Usage;
+import org.structr.docs.*;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -79,7 +76,8 @@ public class AddFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${add(values...)}. Example: ${add(1, 2, 3, this.children.size)}")
+				Usage.structrScript("Usage: ${add(values...)}"),
+				Usage.javaScript("Usage: ${{ $.add(values...) }}")
 		);
 	}
 
@@ -91,6 +89,13 @@ public class AddFunction extends CoreFunction {
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${add(1, 2, 3, this.children.size)}")
+		);
 	}
 
 	@Override

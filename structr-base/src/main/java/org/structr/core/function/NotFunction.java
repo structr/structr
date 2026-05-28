@@ -29,7 +29,6 @@ import java.util.List;
 
 public class NotFunction extends CoreFunction {
 
-
 	@Override
 	public String getName() {
 		return "not";
@@ -65,7 +64,8 @@ public class NotFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${not(bool)}. Example: ${not(me.isAdmin)}")
+				Usage.structrScript("Usage: ${not(bool)}"),
+				Usage.javaScript("Usage: ${{ $.not(bool) }}")
 		);
 	}
 
@@ -89,14 +89,8 @@ public class NotFunction extends CoreFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-			Example.structrScript("${not(true)}", "Return false")
-		);
-	}
-
-	@Override
-	public List<String> getNotes() {
-		return List.of(
-			"This function is only available in StructrScript because there is a native language feature in JavaScript that does the same (the ! operator)."
+				Example.structrScript("${not(true)}", "Returns `false`"),
+				Example.structrScript("${not(me.isAdmin)}")
 		);
 	}
 

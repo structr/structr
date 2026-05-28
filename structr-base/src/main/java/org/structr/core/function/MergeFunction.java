@@ -30,7 +30,6 @@ import java.util.List;
 
 public class MergeFunction extends CoreFunction {
 
-
 	@Override
 	public String getName() {
 		return "merge";

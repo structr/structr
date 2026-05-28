@@ -22,10 +22,7 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.docs.Language;
-import org.structr.docs.Parameter;
-import org.structr.docs.Signature;
-import org.structr.docs.Usage;
+import org.structr.docs.*;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -86,7 +83,8 @@ public class LastFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${last(collection)}. Example: ${last(this.children)}")
+				Usage.structrScript("Usage: ${last(collection)}"),
+				Usage.javaScript("Usage: ${{ $.last(collection) }}")
 		);
 	}
 
@@ -105,6 +103,13 @@ public class LastFunction extends CoreFunction {
 
 		return List.of(
 			Parameter.mandatory("collection", "collection to return last element of")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${last(this.children)}")
 		);
 	}
 

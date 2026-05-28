@@ -60,7 +60,8 @@ public class OneFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${one(number, oneValue, otherValue)}")
+				Usage.structrScript("Usage: ${one(number, oneValue, otherValue)}"),
+				Usage.javaScript("Usage: ${{ $.one(number, oneValue, otherValue) }}")
 		);
 	}
 

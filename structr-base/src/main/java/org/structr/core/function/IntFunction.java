@@ -83,7 +83,8 @@ public class IntFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${int(parameter)}. Example: ${int(this.numericalStringValue)} or ${int(5.8)}")
+				Usage.structrScript("Usage: ${int(parameter)}"),
+				Usage.javaScript("Usage: ${{ $.int(parameter) }}")
 		);
 	}
 

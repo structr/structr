@@ -21,10 +21,7 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.docs.Language;
-import org.structr.docs.Parameter;
-import org.structr.docs.Signature;
-import org.structr.docs.Usage;
+import org.structr.docs.*;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -69,7 +66,8 @@ public class IndexOfFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${indexOf(string, word)}. Example: ${indexOf(this.name, \"the\")}")
+				Usage.structrScript("Usage: ${indexOf(string, word)}"),
+				Usage.javaScript("Usage: ${{ $.indexOf(string, word) }}")
 		);
 	}
 
@@ -89,6 +87,13 @@ public class IndexOfFunction extends CoreFunction {
 		return List.of(
 			Parameter.mandatory("string", "input string"),
 			Parameter.mandatory("word", "word to search")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${indexOf(this.name, 'the')}")
 		);
 	}
 

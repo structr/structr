@@ -37,7 +37,6 @@ import java.util.Map;
 
 public class FromCsvFunction extends CsvFunction {
 
-
 	@Override
 	public String getName() {
 		return "fromCsv";

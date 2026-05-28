@@ -72,8 +72,8 @@ public class StrReplaceFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.javaScript("Usage: ${{ $.strReplace(subject, search, replacement) }}."),
-			Usage.structrScript("Usage: ${strReplace(subject, search, replacement)}.")
+			Usage.javaScript("Usage: ${{ $.strReplace(subject, search, replacement) }}"),
+			Usage.structrScript("Usage: ${strReplace(subject, search, replacement)}")
 		);
 	}
 

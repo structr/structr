@@ -73,7 +73,8 @@ public class LongFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${long(input)}. Example: ${num(this.numericalStringValue)}")
+				Usage.structrScript("Usage: ${long(input)}"),
+				Usage.javaScript("Usage: ${{ $.long(input) }}")
 		);
 	}
 
