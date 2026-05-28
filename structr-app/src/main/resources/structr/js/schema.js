@@ -3381,6 +3381,7 @@ let _Schema = {
 					returnRawResult: methodData.returnRawResult,
 					httpVerb:        methodData.httpVerb,
 					source:          methodData.source,
+					wrapJsInMain:    methodData.wrapJsInMain
 				};
 
 				if (methodData.isNew === false) {
