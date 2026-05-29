@@ -52,11 +52,6 @@ public class ExtractFunction extends CoreFunction {
 
 		try {
 
-			if (sources == null) {
-				throw new IllegalArgumentException();
-			}
-
-
 			if (sources.length == 1) {
 
 				// no property key given, maybe we should extract a list of lists?

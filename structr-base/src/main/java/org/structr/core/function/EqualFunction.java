@@ -50,14 +50,7 @@ public class EqualFunction extends CoreFunction {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		if (sources == null) {
-
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
-			return usage(ctx.isJavaScriptContext());
-		}
-
 		if (sources.length < 2) {
-
 			return true;
 		}
 

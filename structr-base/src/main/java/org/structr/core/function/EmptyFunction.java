@@ -49,12 +49,6 @@ public class EmptyFunction extends CoreFunction {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		if (sources == null) {
-
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
-			return usage(ctx.isJavaScriptContext());
-		}
-
 		if (sources.length == 0 || sources[0] == null || StringUtils.isEmpty(sources[0].toString())) {
 
 			return true;

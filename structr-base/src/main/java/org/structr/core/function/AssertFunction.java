@@ -46,10 +46,6 @@ public class AssertFunction extends AdvancedScriptingFunction {
 
 		try {
 
-			if (sources == null) {
-				throw new IllegalArgumentException();
-			}
-
 			assertArrayHasLengthAndAllElementsNotNull(sources, 3);
 
 			final boolean condition = toBoolean(sources, 0);

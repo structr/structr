@@ -58,11 +58,6 @@ public class FindRelationshipFunction extends CoreFunction {
 
 		try {
 
-			if (sources == null) {
-
-				throw new IllegalArgumentException();
-			}
-
 			final SecurityContext securityContext = ctx.getSecurityContext();
 			final QueryGroup query  = StructrApp.getInstance(securityContext).relationshipQuery().sort(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.CREATED_DATE_PROPERTY)).and();
 

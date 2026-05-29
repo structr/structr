@@ -58,11 +58,6 @@ public class CreateOrUpdateFunction extends CoreFunction {
 
 		try {
 
-			if (sources == null) {
-
-				throw new IllegalArgumentException();
-			}
-
 			final SecurityContext securityContext = ctx.getSecurityContext();
 			final ConfigurationProvider config    = StructrApp.getConfiguration();
 			final App app                         = StructrApp.getInstance(securityContext);
