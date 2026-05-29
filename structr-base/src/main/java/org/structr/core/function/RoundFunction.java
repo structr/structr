@@ -35,80 +35,69 @@ public class RoundFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("value [, decimalPlaces ]");
+		return Signature.forAllScriptingLanguages("value [, decimalPlaces = 0 ]");
 	}
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		String decimalPlaces = "0";
+		try {
 
-		if (sources == null) {
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
-			return usage(ctx.isJavaScriptContext());
-		}
-
-		if (sources.length == 1) {
-
-			if (sources[0] == null) {
+			if (sources.length == 0) {
 				return null;
 			}
 
-			if (StringUtils.isBlank(sources[0].toString())) {
-				return "";
+			if (sources[0] == null || StringUtils.isBlank(sources[0].toString())) {
+				return null;
 			}
 
 			final double f1 = Double.parseDouble(sources[0].toString());
-			return Math.round(f1);
+			double decimalPlaces = 0;
 
-		}
+			if (sources.length >= 2) {
 
-		if (sources.length == 2) {
+				if (sources[1] == null || StringUtils.isBlank(sources[1].toString())) {
+					return f1;
+				}
 
-			if (sources[0] == null) {
-				return null;
+				decimalPlaces = Double.parseDouble(sources[1].toString());
 			}
 
-			if (sources[1] == null) {
-				logParameterError(caller, sources, ctx.isJavaScriptContext());
-				return usage(ctx.isJavaScriptContext());
-			}
+			if (decimalPlaces == 0) {
 
-			decimalPlaces = sources[1].toString();
+				return Math.round(f1);
 
-			try {
+			} else {
 
-				final double f1 = Double.parseDouble(sources[0].toString());
-				final double f2 = Math.pow(10, (Double.parseDouble(decimalPlaces)));
+				final double f2 = Math.pow(10, decimalPlaces);
+
 				long r = Math.round(f1 * f2);
 
 				return (double) r / f2;
-
-			} catch (Throwable t) {
-
-				logException(caller, t, sources);
-				return t.getMessage();
-
 			}
+
+		} catch (NumberFormatException nfe) {
+
+			return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, "%s(): NumberFormatException occurred: %s".formatted(getName(), nfe.getMessage()), nfe);
+
+		} catch (Throwable t) {
+
+			logException(caller, t, sources);
+			return null;
 		}
-
-		logParameterError(caller, sources, ctx.isJavaScriptContext());
-		return usage(ctx.isJavaScriptContext());
-
 	}
-
 
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-				Usage.structrScript("Usage: ${round(value1 [, decimalPlaces])}"),
-				Usage.javaScript("Usage: ${{ $.round(value1 [, decimalPlaces]) }}")
+				Usage.structrScript("Usage: ${round(value [, decimalPlaces = 0 ])}"),
+				Usage.javaScript("Usage: ${{ $.round(value [, decimalPlaces = 0 ]) }}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Rounds the given argument to the nearest integer.";
+		return "Rounds the given argument to the nearest integer or to the given number of decimal places.";
 	}
 
 	@Override
@@ -132,7 +121,7 @@ public class RoundFunction extends AdvancedScriptingFunction {
 
 		return List.of(
 				Parameter.mandatory("value", "value to round"),
-				Parameter.optional("decimalPlaces", "target decimal places")
+				Parameter.optional("decimalPlaces", "target decimal places. Default 0")
 		);
 	}
 

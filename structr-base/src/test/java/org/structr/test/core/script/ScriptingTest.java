@@ -1310,14 +1310,32 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid if(equal(round())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(2.4, round(2.4, 8)), \"true\", \"false\")}"));
 			assertEquals("Invalid if(equal(round())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(2.225234, round(2.225234, 8)), \"true\", \"false\")}"));
 
-			// disabled because scientific notation is not supported :(
-			//assertEquals("Invalid if(equal(round())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(0.00245, round(2.45e-3, 8)), \"true\", \"false\")}"));
-			//assertEquals("Invalid if(equal(round())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(245, round(2.45e2, 8)), \"true\", \"false\")}"));
+			// decimalPlaces = 0 should be same result as omitting it (rounding to the nearest integer)
+			assertEquals("Invalid round() result", "10",               Scripting.replaceVariables(ctx, testOne, "${round(\"10\")}"));
+			assertEquals("Invalid round() result", "10",               Scripting.replaceVariables(ctx, testOne, "${round(\"10\", 0)}"));
+
+			// decimalPlaces != 0 should yield ".0" if the rounded value is an integer (even though this seems mad at first but the user expects non-integer)
+			assertEquals("Invalid round() result", "10.0",               Scripting.replaceVariables(ctx, testOne, "${round(\"10\", 1)}"));
+			assertEquals("Invalid round() result", "10.0",               Scripting.replaceVariables(ctx, testOne, "${round(\"10\", 2)}"));
+
+			// negative decimalPlaces... quirky
+			assertEquals("Invalid round() result", "500.0",               Scripting.replaceVariables(ctx, testOne, "${round(499, -1)}"));
+			assertEquals("Invalid round() result", "500.0",               Scripting.replaceVariables(ctx, testOne, "${round(499, -2)}"));
+			assertEquals("Invalid round() result", "0.0",                 Scripting.replaceVariables(ctx, testOne, "${round(499, -3)}"));
+			assertEquals("Invalid round() result", "500.0",               Scripting.replaceVariables(ctx, testOne, "${round(500, -1)}"));
+			assertEquals("Invalid round() result", "500.0",               Scripting.replaceVariables(ctx, testOne, "${round(500, -2)}"));
+			assertEquals("Invalid round() result", "1000.0",              Scripting.replaceVariables(ctx, testOne, "${round(500, -3)}"));
+			assertEquals("Invalid round() result", "0.0",                 Scripting.replaceVariables(ctx, testOne, "${round(500, -4)}"));
 
 			// round with null
-			assertEquals("Invalid round() result", "10",               Scripting.replaceVariables(ctx, testOne, "${round(\"10\")}"));
 			assertEquals("Invalid round() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${round(this.alwaysNull)}"));
 			assertEquals("Invalid round() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${round(this.alwaysNull, this.alwaysNull)}"));
+
+			// round with NumberFormatException  (StructrScript -> null should be returned because exceptions are not supported)
+			assertEquals("Invalid round() result", "",               Scripting.replaceVariables(ctx, testOne, "${round(\"10.5a\")}"));
+			assertNull("Invalid round() result", new RoundFunction().apply(ctx, null, List.of("10.5a").toArray()));
+			assertEquals("Invalid round() result", "",               Scripting.replaceVariables(ctx, testOne, "${round(\"10.5\", \"0a\")}"));
+			assertNull("Invalid round() result", new RoundFunction().apply(ctx, null, List.of("10.5", "0a").toArray()));
 
 			// if + equal + max
 			assertEquals("Invalid if(equal(max())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(\"2\", max(\"1.9\", \"2\")), \"true\", \"false\")}"));
