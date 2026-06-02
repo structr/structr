@@ -926,7 +926,8 @@ img.disabled {
 }
 
 #files-tabs li.has-changes::after,
-#tabs li.has-changes::after {
+#tabs li.has-changes::after,
+.code-tabs li.has-changes::after {
 	content: "*";
 	position: absolute; /* so parent box size is not changed, otherwise tabs grow when change-indicator is present */
 }
