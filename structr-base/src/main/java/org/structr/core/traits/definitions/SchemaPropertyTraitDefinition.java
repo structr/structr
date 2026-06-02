@@ -100,10 +100,16 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
-					return ValidationHelper.isValidStringMatchingRegex(obj, Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),
-						schemaPropertyNamePattern,
+
+					final PropertyKey<String> nameProperty = Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+
+					boolean valid = ValidationHelper.isValidStringMatchingRegex(obj, nameProperty, schemaPropertyNamePattern,
 						"Property name must match the following pattern: '" + schemaPropertyNamePattern + "', which means it must begin with a lowercase letter and may only contain letters, numbers, underscores and hyphens.",
 						errorBuffer);
+
+					valid &= ValidationHelper.isNotReservedWordForPropertyNames(obj, nameProperty, "Property name", errorBuffer);
+
+					return valid;
 				}
 			},
 

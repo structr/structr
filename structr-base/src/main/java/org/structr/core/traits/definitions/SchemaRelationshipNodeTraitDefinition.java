@@ -119,6 +119,9 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 					valid &= ValidationHelper.isValidPropertyNotNull(obj, traits.key(SOURCE_MULTIPLICITY_PROPERTY), errorBuffer);
 					valid &= ValidationHelper.isValidPropertyNotNull(obj, traits.key(TARGET_MULTIPLICITY_PROPERTY), errorBuffer);
 
+					valid &= ValidationHelper.isNotReservedWordForPropertyNames(obj, sourceJsonName, "Relationship source name", errorBuffer);
+					valid &= ValidationHelper.isNotReservedWordForPropertyNames(obj, targetJsonName, "Relationship target name", errorBuffer);
+
 					if (valid) {
 
 						// clear error buffer so the schema build doesn't fail because of the above check
