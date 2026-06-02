@@ -2660,7 +2660,12 @@ let _Code = {
 
 						let data = await response.json();
 
-						Structr.errorFromResponse(data);
+						// attempt to highlight corresponding inputs
+						for (let error of data.errors) {
+							_Helpers.blinkRed(document.querySelectorAll(`[data-property="${error.property}"`));
+						}
+
+						Structr.errorFromResponse(data, undefined, { requiresConfirmation: true });
 					}
 				});
 			}
