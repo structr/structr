@@ -1374,7 +1374,7 @@ let _Code = {
 
 				// delete button
 				if (!entity.isPartOfBuiltInSchema) {
-					_Code.mainArea.helpers.displaySvgActionButton('#type-actions', _Icons.getSvgIcon(_Icons.iconTrashcan, 14, 14, 'icon-red'), 'delete', 'Delete type ' + entity.name, () => {
+					_Code.mainArea.helpers.displaySvgActionButton('#type-actions', _Icons.getSvgIcon(_Icons.iconTrashcan, 14, 14, 'icon-red'), 'delete', 'Delete type', () => {
 						_Code.persistence.deleteSchemaEntity(entity, `Delete type ${entity.name}?`, 'This will delete all schema relationships as well, but no data will be removed.', data);
 					});
 				}
@@ -3710,7 +3710,7 @@ let _Code = {
 		`,
 		propertyRemote: config => `
 			<h2>Relationship (:${config.sourceNode.name})-[:${config.entity.relationshipType}]-&gt;(:${config.targetNode.name})</h2>
-			<div id="type-actions"></div>
+			<div id="type-actions" class="flex"></div>
 
 			<div class="tabs-container code-tabs">
 				<ul></ul>
@@ -3826,7 +3826,7 @@ let _Code = {
 			<div id="view-options">
 
 				<div class="mb-4">
-					<div id="view-actions"></div>
+					<div id="view-actions" class="flex"></div>
 				</div>
 
 				<div class="mb-4">
