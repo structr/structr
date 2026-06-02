@@ -839,9 +839,6 @@ let _Schema = {
 				nameInput.classList.add('disabled');
 			}
 
-			let select = container.querySelector('[data-property="inheritedTraits"]');
-			select?.insertAdjacentHTML('beforeend', (entity.inheritedTraits ?? []).map(trait => `<option>${trait}</option>`).join(''));
-
 			let schemaNodeFlags = ['isServiceClass', 'changelogDisabled', 'defaultVisibleToPublic', 'defaultVisibleToAuth'];
 
 			for (let flag of schemaNodeFlags) {
