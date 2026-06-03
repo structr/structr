@@ -101,18 +101,21 @@ public class SetContentFunction extends UiAdvancedFunction {
 
 				} else {
 
-					throw new FrameworkException(422, getName() + "(): Content must be of type String, byte[] or InputStream. Found: " + sources[1].getClass().getSimpleName());
+					return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, getName() + "(): Content must be of type String, byte[] or InputStream. Found: " + sources[1].getClass().getSimpleName());
 				}
+
+			} else {
+
+				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, getName() + "(): First parameter must be a File. Found: " + sources[0]);
 			}
 
-		} catch (ArgumentNullException pe) {
+		} catch (ArgumentNullException ane) {
 
-			// silently ignore null arguments
+			return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, getName() + "(): " + ane.getMessage() + " - Parameters: " + getParametersAsString(sources));
 
-		} catch (ArgumentCountException pe) {
+		} catch (ArgumentCountException ace) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
-			return usage(ctx.isJavaScriptContext());
+			return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, getName() + "(): " + ace.getMessage() + " - Parameters: " + getParametersAsString(sources));
 		}
 
 		return null;
@@ -160,7 +163,8 @@ public class SetContentFunction extends UiAdvancedFunction {
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-			"The `encoding` parameter is used when writing the data to the file. The default (`UTF-8`) rarely needs to be changed but can be very useful when working with binary strings. For example when using the `toExcel()` function."
+				"If `content` is an InputStream (via $.GET), the stream is consumed and can not be used again afterwards",
+				"The `encoding` parameter is only used when writing string the data to the file. The default (`UTF-8`) rarely needs to be changed but can be very useful when working with binary strings. For example when using the `toExcel()` function."
 		);
 	}
 

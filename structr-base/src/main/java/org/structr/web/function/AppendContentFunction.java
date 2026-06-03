@@ -18,6 +18,7 @@
  */
 package org.structr.web.function;
 
+import org.apache.commons.io.IOUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -32,6 +33,7 @@ import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.File;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 
@@ -64,6 +66,18 @@ public class AppendContentFunction extends UiAdvancedFunction {
 						logger.warn("appendContent(): Unable to append binary data to file '{}'", file.getPath(), ioex);
 					}
 
+				} else if (sources[1] instanceof InputStream is) {
+
+					try (final OutputStream fos = file.getOutputStream(true, true)) {
+
+						IOUtils.copy(is, fos);
+
+					} catch (IOException ioex) {
+						logger.warn("appendContent(): Unable to stream content to file '{}'", file.getPath(), ioex);
+					} finally {
+						try { is.close(); } catch (IOException ignore) {}
+					}
+
 				} else if (sources[1] instanceof String) {
 
 					final String content = (String)sources[1];
@@ -82,18 +96,21 @@ public class AppendContentFunction extends UiAdvancedFunction {
 
 				} else {
 
-					throw new FrameworkException(422, getName() + "(): Content must be of type String or byte[]. Found: " + sources[1].getClass().getSimpleName());
+					return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, getName() + "(): Content must be of type String, byte[] or InputStream. Found: " + sources[1].getClass().getSimpleName());
 				}
+
+			} else {
+
+				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, getName() + "(): First parameter must be a File. Found: " + sources[0]);
 			}
 
-		} catch (ArgumentNullException pe) {
+		} catch (ArgumentNullException ane) {
 
-			// silently ignore null arguments
+			return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, getName() + "(): " + ane.getMessage() + " - Parameters: " + getParametersAsString(sources));
 
-		} catch (ArgumentCountException pe) {
+		} catch (ArgumentCountException ace) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
-			return usage(ctx.isJavaScriptContext());
+			return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, getName() + "(): " + ace.getMessage() + " - Parameters: " + getParametersAsString(sources));
 		}
 
 		return null;
@@ -101,12 +118,12 @@ public class AppendContentFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Appends content to a Structr File.";
+		return "Appends content to the given file. Content can be of type String, byte[] or InputStream.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "This function appends text or binary data to the content of the given Structr File entity.";
+		return "";
 	}
 
 	@Override
@@ -141,7 +158,8 @@ public class AppendContentFunction extends UiAdvancedFunction {
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-			"The `encoding` parameter is used when writing the data to the file. By default the input is not encoded, but when given an encoding such as `UTF-8` the content is transformed before being written to the file."
+				"If `content` is an InputStream (via $.GET), the stream is consumed and can not be used again afterwards",
+				"The `encoding` parameter is only used when writing string the data to the file. By default the input is not encoded, but when given an encoding such as `UTF-8` the content is transformed before being written to the file."
 		);
 	}
 
