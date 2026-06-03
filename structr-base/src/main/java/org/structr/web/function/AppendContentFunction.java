@@ -78,9 +78,7 @@ public class AppendContentFunction extends UiAdvancedFunction {
 						try { is.close(); } catch (IOException ignore) {}
 					}
 
-				} else if (sources[1] instanceof String) {
-
-					final String content = (String)sources[1];
+				} else if (sources[1] instanceof String content) {
 
 					try (final OutputStream fos = file.getOutputStream(true, true)) {
 
@@ -134,8 +132,8 @@ public class AppendContentFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${appendContent(file, content[, encoding ])}. Example: ${appendContent(first(find('File', 'name', 'test.txt')), 'additional content')}"),
-			Usage.javaScript("Usage: ${{ $.appendContent(file, content[, encoding ]) }}. Example: ${{ $.appendContent(fileNode, 'additional content') }}")
+			Usage.structrScript("Usage: ${appendContent(file, content[, encoding ])}"),
+			Usage.javaScript("Usage: ${{ $.appendContent(file, content[, encoding ]) }}")
 		);
 	}
 
@@ -151,7 +149,14 @@ public class AppendContentFunction extends UiAdvancedFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-			Example.structrScript("appendContent(first(find('File', 'name', 'test.txt')), '\\nAdditional Content')", "Append the string '\\nAdditional Content' to the file with the name 'test.txt'.")
+			Example.structrScript("""
+				${
+					appendContent(
+						first(find('File', 'name', 'test.txt')),
+						'\\nAdditional Content'
+					)
+				}
+				""", "Append the string '\\nAdditional Content' to the file with the name 'test.txt'.")
 		);
 	}
 
@@ -159,7 +164,7 @@ public class AppendContentFunction extends UiAdvancedFunction {
 	public List<String> getNotes() {
 		return List.of(
 				"If `content` is an InputStream (via $.GET), the stream is consumed and can not be used again afterwards",
-				"The `encoding` parameter is only used when writing string the data to the file. By default the input is not encoded, but when given an encoding such as `UTF-8` the content is transformed before being written to the file."
+				"The `encoding` parameter is only used when writing **string** data to the file and ignored otherwise. By default the input is not encoded, but when given an encoding such as `UTF-8` the content is transformed before being written to the file."
 		);
 	}
 
