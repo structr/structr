@@ -1099,6 +1099,7 @@ let _Widgets = {
 		},
 		getCustomTypesForMenu: async () => {
 			let sources = await _Widgets.templates.getFetchResult('_schema', t => !t.isBuiltin && !t.isRel);
+			sources.sort((a, b) => a.name.localeCompare(b.name));
 			let values = [];
 			for (let value of sources) {
 				values.push(await _Widgets.templates.getCustomTypeOptions(value.className, value.className, value.className + " nodes"));
