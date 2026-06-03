@@ -778,7 +778,7 @@ let _Elements = {
 		},
 		getSuggestedWidgets: (entity, mode, callback) => {
 
-			if (!entity.isPage && (!entity.isContent || entity.type === 'Template')) {
+			if (!entity.isPage && !entity.isWidget && (!entity.isContent || entity.type === 'Template')) {
 
 				Command.getSuggestions(entity.id, mode, (suggestions) => {
 
