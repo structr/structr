@@ -84,6 +84,8 @@ public class ProcessTraits {
 	public static final String BPMN_ELEMENT_HAS_PERFORMER              = "BpmnElementHAS_PERFORMERBpmnPerformer";
 	public static final String BPMN_ELEMENT_HAS_TASK_LISTENER          = "BpmnElementHAS_TASK_LISTENERBpmnTaskListener";
 	public static final String BPMN_ELEMENT_HAS_METHOD                 = "BpmnElementHAS_METHODSchemaMethod";
+	public static final String BPMN_TASK_LISTENER_CALLS_METHOD         = "BpmnTaskListenerCALLSSchemaMethod";
+	public static final String BPMN_PROCESS_LISTENER_CALLS_METHOD      = "BpmnProcessListenerCALLSSchemaMethod";
 	public static final String VISIBILITY_MAPPING_FOR_BPMN_PROCESS     = "VisibilityMappingFORBpmnProcess";
 	public static final String VISIBILITY_MAPPING_AT_BPMN_ELEMENT      = "VisibilityMappingATBpmnElement";
 

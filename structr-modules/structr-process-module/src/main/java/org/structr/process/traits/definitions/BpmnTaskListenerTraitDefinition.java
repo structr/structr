@@ -36,18 +36,23 @@ import java.util.Set;
  * <pre>{@code
  * <bpmn:userTask id="...">
  *   <bpmn:extensionElements>
- *     <structr:taskListener event="assigned" method="notifyAssignee" />
- *     <structr:taskListener event="completed" method="archiveDecision" sync="true" />
+ *     <structr:taskListener event="assigned" phase="after" method="reviewLeaveRequest_afterAssigned" />
+ *     <structr:taskListener event="completed" phase="on" method="reviewLeaveRequest_onCompleted" />
  *   </bpmn:extensionElements>
  * </bpmn:userTask>
  * }</pre>
  *
- * <p>Each listener fires when its event is emitted by the engine. The
- * {@code method} attribute names a schema method (typically on the
- * {@code TaskInstance} type) that the engine invokes with the task as
- * {@code this}. {@code sync="true"} makes listener exceptions abort the
- * engine transaction; default ({@code sync="false"}) catches and logs
- * errors so the state transition stands regardless.</p>
+ * <p>One listener per (element, event, phase). The {@code method} relationship
+ * points directly at the SchemaMethod the engine invokes with the task as
+ * {@code this}: no name resolution at dispatch time. The {@code phase}
+ * determines transaction timing, mirroring Structr's on/after lifecycle split:
+ * <ul>
+ *   <li>{@code on} -- runs pre-commit; a thrown exception rolls back the
+ *       transition (validation / veto).</li>
+ *   <li>{@code after} (default) -- runs post-commit via the transaction
+ *       post-process queue; side-effects (notifications) only fire if the
+ *       transition actually persisted.</li>
+ * </ul></p>
  *
  * <p>Lifecycle events:
  * {@code created}, {@code assigned}, {@code claimed}, {@code available},
@@ -56,8 +61,8 @@ import java.util.Set;
 public class BpmnTaskListenerTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String EVENT_PROPERTY    = "event";
+	public static final String PHASE_PROPERTY    = "phase";
 	public static final String METHOD_PROPERTY   = "method";
-	public static final String SYNC_PROPERTY     = "sync";
 	public static final String ELEMENT_PROPERTY  = "element";
 
 	// Event constants -- match the lifecycle event names exactly.
@@ -69,6 +74,10 @@ public class BpmnTaskListenerTraitDefinition extends AbstractNodeTraitDefinition
 	public static final String EVENT_COMPLETED = "completed";
 	public static final String EVENT_CANCELLED = "cancelled";
 
+	// Phase constants -- transaction timing, default 'after'.
+	public static final String PHASE_ON    = "on";
+	public static final String PHASE_AFTER = "after";
+
 	public BpmnTaskListenerTraitDefinition() {
 		super(ProcessTraits.BPMN_TASK_LISTENER);
 	}
@@ -79,19 +88,19 @@ public class BpmnTaskListenerTraitDefinition extends AbstractNodeTraitDefinition
 		final Property<String> event              = new EnumProperty(EVENT_PROPERTY,
 			Set.of(EVENT_CREATED, EVENT_ASSIGNED, EVENT_CLAIMED, EVENT_AVAILABLE,
 				   EVENT_DECLINED, EVENT_COMPLETED, EVENT_CANCELLED)).indexed();
-		final Property<String> method             = new StringProperty(METHOD_PROPERTY);
-		final Property<Boolean> sync              = new BooleanProperty(SYNC_PROPERTY).defaultValue(false);
+		final Property<String> phase              = new EnumProperty(PHASE_PROPERTY, Set.of(PHASE_ON, PHASE_AFTER)).defaultValue(PHASE_AFTER).indexed();
+		final Property<NodeInterface> method      = new EndNode(traitsInstance, METHOD_PROPERTY, ProcessTraits.BPMN_TASK_LISTENER_CALLS_METHOD);
 		final Property<NodeInterface> element     = new StartNode(traitsInstance, ELEMENT_PROPERTY, ProcessTraits.BPMN_ELEMENT_HAS_TASK_LISTENER);
 
-		return newSet(event, method, sync, element);
+		return newSet(event, phase, method, element);
 	}
 
 	@Override
 	public Map<String, Set<String>> getViews() {
 
 		return Map.of(
-			PropertyView.Public, newSet(EVENT_PROPERTY, METHOD_PROPERTY, SYNC_PROPERTY),
-			PropertyView.Ui,     newSet(EVENT_PROPERTY, METHOD_PROPERTY, SYNC_PROPERTY, BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY, BpmnBaseNodeTraitDefinition.VERSION_PROPERTY, ELEMENT_PROPERTY)
+			PropertyView.Public, newSet(EVENT_PROPERTY, PHASE_PROPERTY, METHOD_PROPERTY),
+			PropertyView.Ui,     newSet(EVENT_PROPERTY, PHASE_PROPERTY, METHOD_PROPERTY, BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY, BpmnBaseNodeTraitDefinition.VERSION_PROPERTY, ELEMENT_PROPERTY)
 		);
 	}
 

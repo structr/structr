@@ -27,6 +27,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.process.traits.definitions.*;
 import org.structr.process.ProcessTraits;
 
@@ -577,17 +578,21 @@ public class BpmnExporter {
 									   final Traits plTraits) throws XMLStreamException {
 
 		final String event   = listener.getProperty(plTraits.key(BpmnProcessListenerTraitDefinition.EVENT_PROPERTY));
-		final String method  = listener.getProperty(plTraits.key(BpmnProcessListenerTraitDefinition.METHOD_PROPERTY));
-		final Boolean sync   = listener.getProperty(plTraits.key(BpmnProcessListenerTraitDefinition.SYNC_PROPERTY));
+		final String phase   = listener.getProperty(plTraits.key(BpmnProcessListenerTraitDefinition.PHASE_PROPERTY));
 		final String bpmnId  = listener.getProperty(plTraits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY));
+
+		// Method is now a relationship to a SchemaMethod; emit its name.
+		String methodName = null;
+		final NodeInterface method = listener.getProperty(plTraits.key(BpmnProcessListenerTraitDefinition.METHOD_PROPERTY));
+		if (method != null) {
+			methodName = method.getProperty(method.getTraits().key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
+		}
 
 		w.writeEmptyElement("structr", "processListener", STRUCTR_NS);
 		writeAttrIfNotNull(w, "id",     bpmnId);
 		writeAttrIfNotNull(w, "event",  event);
-		writeAttrIfNotNull(w, "method", method);
-		if (Boolean.TRUE.equals(sync)) {
-			w.writeAttribute("sync", "true");
-		}
+		writeAttrIfNotNull(w, "phase",  phase);
+		writeAttrIfNotNull(w, "method", methodName);
 	}
 
 	/**
@@ -614,9 +619,15 @@ public class BpmnExporter {
 									final Traits listenerTraits) throws XMLStreamException {
 
 		final String event   = listener.getProperty(listenerTraits.key(BpmnTaskListenerTraitDefinition.EVENT_PROPERTY));
-		final String method  = listener.getProperty(listenerTraits.key(BpmnTaskListenerTraitDefinition.METHOD_PROPERTY));
-		final Boolean sync   = listener.getProperty(listenerTraits.key(BpmnTaskListenerTraitDefinition.SYNC_PROPERTY));
+		final String phase   = listener.getProperty(listenerTraits.key(BpmnTaskListenerTraitDefinition.PHASE_PROPERTY));
 		final String bpmnId  = listener.getProperty(listenerTraits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY));
+
+		// Method is now a relationship to a SchemaMethod; emit its name.
+		String methodName = null;
+		final NodeInterface method = listener.getProperty(listenerTraits.key(BpmnTaskListenerTraitDefinition.METHOD_PROPERTY));
+		if (method != null) {
+			methodName = method.getProperty(method.getTraits().key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
+		}
 
 		// Pass the prefix explicitly. The 2-arg writeEmptyElement(uri, localName)
 		// looks up the prefix in the writer's namespace context, which is unreliable
@@ -624,10 +635,8 @@ public class BpmnExporter {
 		w.writeEmptyElement("structr", "taskListener", STRUCTR_NS);
 		writeAttrIfNotNull(w, "id",     bpmnId);
 		writeAttrIfNotNull(w, "event",  event);
-		writeAttrIfNotNull(w, "method", method);
-		if (Boolean.TRUE.equals(sync)) {
-			w.writeAttribute("sync", "true");
-		}
+		writeAttrIfNotNull(w, "phase",  phase);
+		writeAttrIfNotNull(w, "method", methodName);
 	}
 
 	private void exportEventDefinition(final XMLStreamWriter w, final NodeInterface elemNode,

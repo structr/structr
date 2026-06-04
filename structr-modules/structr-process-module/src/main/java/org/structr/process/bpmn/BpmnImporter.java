@@ -1124,10 +1124,17 @@ public class BpmnImporter {
 				continue;
 			}
 
-			final boolean sync   = "true".equalsIgnoreCase(nullIfEmpty(listenerEl.getAttribute("sync")));
-			final String  bpmnId = nullIfEmpty(listenerEl.getAttribute("id"));
+			// Phase: 'on' (pre-commit, veto) or 'after' (post-commit, default).
+			// Legacy interop: a Camunda/old-structr sync="true" maps to 'on'.
+			String phase = nullIfEmpty(listenerEl.getAttribute("phase"));
+			if (phase == null) {
+				phase = "true".equalsIgnoreCase(nullIfEmpty(listenerEl.getAttribute("sync")))
+					? BpmnTaskListenerTraitDefinition.PHASE_ON
+					: BpmnTaskListenerTraitDefinition.PHASE_AFTER;
+			}
+			final String bpmnId = nullIfEmpty(listenerEl.getAttribute("id"));
 
-			createTaskListenerNode(app, elemNode, eventName, methodName, sync, bpmnId);
+			createTaskListenerNode(app, elemNode, eventName, methodName, phase, bpmnId);
 		}
 	}
 
@@ -1178,20 +1185,53 @@ public class BpmnImporter {
 	}
 
 	private void createTaskListenerNode(final App app, final NodeInterface elemNode,
-										final String event, final String method, final boolean sync,
+										final String event, final String methodName, final String phase,
 										final String bpmnId) throws FrameworkException {
+
+		// Ensure the handler method exists on the element, then point the
+		// listener directly at it (the engine dispatches via this rel, no
+		// name resolution).
+		final NodeInterface method = ensureElementMethod(app, elemNode, methodName);
 
 		final NodeInterface node = createBpmnNode(app, ProcessTraits.BPMN_TASK_LISTENER);
 		final Traits t = node.getTraits();
-		node.setProperty(t.key(BpmnTaskListenerTraitDefinition.EVENT_PROPERTY),  event);
+		node.setProperty(t.key(BpmnTaskListenerTraitDefinition.EVENT_PROPERTY), event);
+		node.setProperty(t.key(BpmnTaskListenerTraitDefinition.PHASE_PROPERTY), phase);
 		node.setProperty(t.key(BpmnTaskListenerTraitDefinition.METHOD_PROPERTY), method);
-		if (sync) {
-			node.setProperty(t.key(BpmnTaskListenerTraitDefinition.SYNC_PROPERTY), Boolean.TRUE);
-		}
 		if (bpmnId != null) {
 			node.setProperty(t.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY), bpmnId);
 		}
 		node.setProperty(t.key(BpmnTaskListenerTraitDefinition.ELEMENT_PROPERTY), elemNode);
+	}
+
+	/**
+	 * Return the SchemaMethod named {@code methodName} attached to {@code elemNode}
+	 * (via HAS_METHOD), creating and attaching it if absent. The method is the
+	 * handler body a task listener invokes; it lives on the element so it shows
+	 * up under that element in the Code module.
+	 */
+	private NodeInterface ensureElementMethod(final App app, final NodeInterface elemNode, final String methodName) throws FrameworkException {
+
+		final Traits elemTraits = elemNode.getTraits();
+		final PropertyKey<Iterable<NodeInterface>> methodsKey = elemTraits.key(BpmnElementTraitDefinition.METHODS_PROPERTY);
+		final PropertyKey<String> nameKey = Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+
+		final List<NodeInterface> existing = new ArrayList<>();
+		final Iterable<NodeInterface> current = elemNode.getProperty(methodsKey);
+		if (current != null) {
+			for (final NodeInterface m : current) {
+				if (methodName.equals(m.getProperty(nameKey))) {
+					return m;
+				}
+				existing.add(m);
+			}
+		}
+
+		final NodeInterface method = app.create(StructrTraits.SCHEMA_METHOD, (String) null);
+		method.setProperty(nameKey, methodName);
+		existing.add(method);
+		elemNode.setProperty(methodsKey, existing);
+		return method;
 	}
 
 	/**
@@ -1248,10 +1288,17 @@ public class BpmnImporter {
 				continue;
 			}
 
-			final boolean sync   = "true".equalsIgnoreCase(nullIfEmpty(listenerEl.getAttribute("sync")));
-			final String  bpmnId = nullIfEmpty(listenerEl.getAttribute("id"));
+			// Phase: 'on' (pre-commit, veto) or 'after' (post-commit, default).
+			// Legacy interop: a Camunda/old-structr sync="true" maps to 'on'.
+			String phase = nullIfEmpty(listenerEl.getAttribute("phase"));
+			if (phase == null) {
+				phase = "true".equalsIgnoreCase(nullIfEmpty(listenerEl.getAttribute("sync")))
+					? BpmnProcessListenerTraitDefinition.PHASE_ON
+					: BpmnProcessListenerTraitDefinition.PHASE_AFTER;
+			}
+			final String bpmnId = nullIfEmpty(listenerEl.getAttribute("id"));
 
-			createProcessListenerNode(app, procNode, eventName, methodName, sync, bpmnId);
+			createProcessListenerNode(app, procNode, eventName, methodName, phase, bpmnId);
 		}
 	}
 
@@ -1271,20 +1318,51 @@ public class BpmnImporter {
 	}
 
 	private void createProcessListenerNode(final App app, final NodeInterface procNode,
-										   final String event, final String method, final boolean sync,
+										   final String event, final String methodName, final String phase,
 										   final String bpmnId) throws FrameworkException {
+
+		// Ensure the handler method exists on the process, then point the
+		// listener directly at it (the engine dispatches via this rel).
+		final NodeInterface method = ensureProcessMethod(app, procNode, methodName);
 
 		final NodeInterface node = createBpmnNode(app, ProcessTraits.BPMN_PROCESS_LISTENER);
 		final Traits t = node.getTraits();
 		node.setProperty(t.key(BpmnProcessListenerTraitDefinition.EVENT_PROPERTY),  event);
+		node.setProperty(t.key(BpmnProcessListenerTraitDefinition.PHASE_PROPERTY),  phase);
 		node.setProperty(t.key(BpmnProcessListenerTraitDefinition.METHOD_PROPERTY), method);
-		if (sync) {
-			node.setProperty(t.key(BpmnProcessListenerTraitDefinition.SYNC_PROPERTY), Boolean.TRUE);
-		}
 		if (bpmnId != null) {
 			node.setProperty(t.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY), bpmnId);
 		}
 		node.setProperty(t.key(BpmnProcessListenerTraitDefinition.PROCESS_PROPERTY), procNode);
+	}
+
+	/**
+	 * Return the SchemaMethod named {@code methodName} attached to {@code procNode}
+	 * (via HAS_METHOD), creating and attaching it if absent. Mirrors
+	 * {@link #ensureElementMethod} for process-level handler methods.
+	 */
+	private NodeInterface ensureProcessMethod(final App app, final NodeInterface procNode, final String methodName) throws FrameworkException {
+
+		final Traits procTraits = procNode.getTraits();
+		final PropertyKey<Iterable<NodeInterface>> methodsKey = procTraits.key(BpmnProcessTraitDefinition.METHODS_PROPERTY);
+		final PropertyKey<String> nameKey = Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+
+		final List<NodeInterface> existing = new ArrayList<>();
+		final Iterable<NodeInterface> current = procNode.getProperty(methodsKey);
+		if (current != null) {
+			for (final NodeInterface m : current) {
+				if (methodName.equals(m.getProperty(nameKey))) {
+					return m;
+				}
+				existing.add(m);
+			}
+		}
+
+		final NodeInterface method = app.create(StructrTraits.SCHEMA_METHOD, (String) null);
+		method.setProperty(nameKey, methodName);
+		existing.add(method);
+		procNode.setProperty(methodsKey, existing);
+		return method;
 	}
 
 	// --- methodRef parsing ---

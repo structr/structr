@@ -24,8 +24,6 @@ import org.structr.common.AccessControllable;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Methods;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.NamedArguments;
 import org.structr.core.api.ScriptMethod;
@@ -39,6 +37,8 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.Tx;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.Traits;
 import org.structr.process.traits.definitions.*;
@@ -1533,21 +1533,22 @@ public class ProcessEngine {
 	// -----------------------------------------------------------------------
 
 	/**
-	 * Fire a task lifecycle event. Dispatches to per-userTask BPMN listeners
-	 * declared on the task's defining BpmnElement via
-	 * {@code <structr:taskListener>}, filtered to those whose {@code event}
-	 * matches. Each matched listener's {@code method} is then resolved through
-	 * {@link #invokeListenerMethod} (per-element method -> per-process method
-	 * -> TaskInstance schema method).
-	 *
-	 * Default dispatch is async: listener exceptions are caught and logged; the
-	 * engine state transition stands. A listener with {@code sync=true} can
-	 * propagate exceptions and abort the surrounding transaction.
+	 * Fire a task lifecycle event. Dispatches to per-userTask BPMN listeners on
+	 * the task's defining BpmnElement whose {@code event} matches. Each matched
+	 * listener points directly at its SchemaMethod (no name resolution) and
+	 * declares a phase:
+	 * <ul>
+	 *   <li>{@code on} -- runs inline (pre-commit). A thrown exception propagates
+	 *       out and rolls back the surrounding transaction (validation / veto).</li>
+	 *   <li>{@code after} (default) -- queued via the transaction post-process
+	 *       queue and run after commit, so side-effects only fire if the
+	 *       transition actually persisted.</li>
+	 * </ul>
 	 *
 	 * @param eventName one of {@code created|assigned|claimed|available|declined|completed|cancelled}
 	 * @param taskNode  the TaskInstance the event is about
 	 */
-	private void fireTaskEvent(final String eventName, final NodeInterface taskNode) {
+	private void fireTaskEvent(final String eventName, final NodeInterface taskNode) throws FrameworkException {
 		fireTaskEvent(eventName, taskNode, null);
 	}
 
@@ -1558,118 +1559,89 @@ public class ProcessEngine {
 	 * "submit"-style pattern where a listener creates and attaches the
 	 * instance's subject from the form data.
 	 */
-	private void fireTaskEvent(final String eventName, final NodeInterface taskNode, final Map<String, Object> submittedParams) {
+	private void fireTaskEvent(final String eventName, final NodeInterface taskNode, final Map<String, Object> submittedParams) throws FrameworkException {
 
-		// 1. Per-task BPMN listeners (Path A)
+		// Collect the listeners matching this event up front. Enumeration
+		// failures are non-fatal (the transition stands); per-listener dispatch
+		// is handled below so an 'on'-phase exception can propagate.
+		final List<NodeInterface> matching = new ArrayList<>();
+		final Traits listenerTraits = Traits.of(ProcessTraits.BPMN_TASK_LISTENER);
 		try {
-			final Traits taskTraits = taskNode.getTraits();
-			final NodeInterface element = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.DEFINED_BY_PROPERTY));
-			if (element != null) {
-				final Iterable<NodeInterface> listeners = element.getProperty(element.getTraits().key(BpmnElementTraitDefinition.TASK_LISTENERS_PROPERTY));
-				if (listeners != null) {
-					final Traits listenerTraits = Traits.of(ProcessTraits.BPMN_TASK_LISTENER);
-					for (final NodeInterface listener : listeners) {
-						final String listenerEvent = listener.getProperty(listenerTraits.key(BpmnTaskListenerTraitDefinition.EVENT_PROPERTY));
-						if (!eventName.equals(listenerEvent)) {
-							continue;
-						}
-						final String methodName = listener.getProperty(listenerTraits.key(BpmnTaskListenerTraitDefinition.METHOD_PROPERTY));
-						final Boolean sync      = listener.getProperty(listenerTraits.key(BpmnTaskListenerTraitDefinition.SYNC_PROPERTY));
-						invokeListenerMethod(taskNode, methodName, eventName, Boolean.TRUE.equals(sync), submittedParams);
-					}
+			final NodeInterface element = taskNode.getProperty(taskNode.getTraits().key(TaskInstanceTraitDefinition.DEFINED_BY_PROPERTY));
+			if (element == null) return;
+			final Iterable<NodeInterface> listeners = element.getProperty(element.getTraits().key(BpmnElementTraitDefinition.TASK_LISTENERS_PROPERTY));
+			if (listeners == null) return;
+			final PropertyKey<String> eventKey = listenerTraits.key(BpmnTaskListenerTraitDefinition.EVENT_PROPERTY);
+			for (final NodeInterface listener : listeners) {
+				if (eventName.equals(listener.getProperty(eventKey))) {
+					matching.add(listener);
 				}
 			}
 		} catch (Exception ex) {
-			// Don't let event-dispatch enumeration failures break the engine.
 			logger.warn("Task listener enumeration for event '{}' on task '{}' failed: {}",
 				eventName, safeName(taskNode), ex.getMessage());
+			return;
+		}
+
+		final PropertyKey<String>        phaseKey  = listenerTraits.key(BpmnTaskListenerTraitDefinition.PHASE_PROPERTY);
+		final PropertyKey<NodeInterface> methodKey = listenerTraits.key(BpmnTaskListenerTraitDefinition.METHOD_PROPERTY);
+
+		for (final NodeInterface listener : matching) {
+			final NodeInterface method = listener.getProperty(methodKey);
+			if (method == null) {
+				continue; // handler declared for the event but no method body yet
+			}
+			final String phase = listener.getProperty(phaseKey);
+			if (BpmnTaskListenerTraitDefinition.PHASE_ON.equals(phase)) {
+				// pre-commit: exceptions propagate and roll back the transition.
+				runTaskListenerMethod(taskNode, method, eventName, submittedParams);
+			} else {
+				// after (default): run post-commit, side-effects only.
+				queueAfterCommitTaskListener(taskNode, method, eventName, submittedParams);
+			}
 		}
 	}
 
 	/**
-	 * Invoke a named method on the given task. Resolution order:
-	 * <ol>
-	 *   <li>Per-element method attached to the task's defining BpmnElement via
-	 *       {@code BpmnElementHasMethod} (the (process, step) cell). This is the
-	 *       primary home for code bound to a specific (process, step, event) triple.</li>
-	 *   <li>Per-process method attached to the task's BpmnDefinitions via
-	 *       {@code BpmnDefinitionsHasMethod}. Escape hatch for cross-step utilities.</li>
-	 *   <li>Schema method on TaskInstance traits. Last-resort lookup for
-	 *       listener method names that aren't found on the element or the
-	 *       process.</li>
-	 * </ol>
-	 *
-	 * <p>Every tier is invoked with the same named argument set:
-	 * {@code task} (the TaskInstance), {@code processInstance}, {@code subject}
-	 * (when set on the instance), and {@code eventName}. So a method body can use
-	 * {@code $.methodParameters.task.complete(...)} or
-	 * {@code $.methodParameters.processInstance.subject = ...} without needing to
-	 * navigate from {@code $.this}. Tier 3 dispatches via
-	 * {@link Methods#resolveMethod} so it also receives the named args, instead of
-	 * the older {@code ${this.method()}} scripting form which couldn't carry args.</p>
-	 *
-	 * <p>Errors are caught and logged (async semantics). When {@code sync} is true,
-	 * errors are rethrown so the caller can decide whether to abort the surrounding
-	 * transaction.</p>
+	 * Execute a task listener's method inline ({@code on} phase), with the task
+	 * as {@code this} and the standard named arguments. Exceptions are NOT
+	 * caught: they propagate so the surrounding engine transaction rolls back,
+	 * giving the method true veto power over the transition.
 	 */
-	private void invokeListenerMethod(final NodeInterface taskNode, final String methodName,
-									  final String eventName, final boolean sync) {
-		invokeListenerMethod(taskNode, methodName, eventName, sync, null);
+	private void runTaskListenerMethod(final NodeInterface taskNode, final NodeInterface method,
+									   final String eventName, final Map<String, Object> submittedParams) throws FrameworkException {
+		final ActionContext ctx = new ActionContext(securityContext);
+		final Arguments args     = buildTaskListenerArgs(taskNode, eventName, submittedParams);
+		new ScriptMethod(method.as(SchemaMethod.class)).execute(ctx, taskNode, args);
 	}
 
-	private void invokeListenerMethod(final NodeInterface taskNode, final String methodName,
-									  final String eventName, final boolean sync,
-									  final Map<String, Object> submittedParams) {
-
-		if (methodName == null || methodName.isEmpty()) {
-			return;
-		}
-
-		try {
-			// Engine context (superuser) so the listener can do whatever the
-			// engine itself can do (read all engine state, mutate the task, etc.).
-			final ActionContext ctx = new ActionContext(securityContext);
-			final Arguments args = buildTaskListenerArgs(taskNode, eventName, submittedParams);
-
-			// Tier 1: per-element method on the task's defining BpmnElement.
-			final NodeInterface elementMethod = findElementMethod(taskNode, methodName);
-			if (elementMethod != null) {
-				new ScriptMethod(elementMethod.as(SchemaMethod.class))
-					.execute(ctx, taskNode, args);
-				return;
+	/**
+	 * Queue a task listener's method to run after the surrounding transaction
+	 * commits ({@code after} phase). The runnable re-fetches the task and method
+	 * by id and runs in its own transaction, so a post-commit side-effect never
+	 * sees a half-built state and can't roll the transition back. Failures are
+	 * logged, not propagated (the transition has already committed).
+	 */
+	private void queueAfterCommitTaskListener(final NodeInterface taskNode, final NodeInterface method,
+											  final String eventName, final Map<String, Object> submittedParams) {
+		final String taskId   = taskNode.getUuid();
+		final String methodId = method.getUuid();
+		TransactionCommand.queuePostProcessProcedure(() -> {
+			final App app = StructrApp.getInstance(securityContext);
+			try (final Tx tx = app.tx()) {
+				final NodeInterface freshTask   = app.getNodeById(taskId);
+				final NodeInterface freshMethod = app.getNodeById(methodId);
+				if (freshTask != null && freshMethod != null) {
+					final ActionContext ctx = new ActionContext(securityContext);
+					final Arguments args     = buildTaskListenerArgs(freshTask, eventName, submittedParams);
+					new ScriptMethod(freshMethod.as(SchemaMethod.class)).execute(ctx, freshTask, args);
+				}
+				tx.success();
+			} catch (Throwable t) {
+				logger.warn("After-commit task listener for event '{}' on task '{}' failed: {}",
+					eventName, taskId, t.getMessage());
 			}
-
-			// Tier 2: per-process method on the task's BpmnDefinitions.
-			final NodeInterface processMethod = findProcessMethod(taskNode, methodName);
-			if (processMethod != null) {
-				new ScriptMethod(processMethod.as(SchemaMethod.class))
-					.execute(ctx, taskNode, args);
-				return;
-			}
-
-			// Tier 3: schema method on TaskInstance traits. Resolved via
-			// Methods.resolveMethod so the named args are passed through.
-			final AbstractMethod m = Methods.resolveMethod(taskNode.getTraits(), methodName);
-			if (m != null) {
-				m.execute(ctx, taskNode, args);
-			}
-			// No match at any tier: silent. An explicit listener with a typo'd
-			// method name will appear in the warnings via the catch block below
-			// if it actually gets dispatched.
-
-		} catch (Exception ex) {
-			final String msg = "Task listener '" + methodName + "' for event '" + eventName +
-				"' on task '" + safeName(taskNode) + "' failed: " + ex.getMessage();
-			if (sync) {
-				logger.error(msg);
-				// Wrap so callers can react / propagate. We deliberately do
-				// not throw here for v1 -- sync semantics are documented but
-				// not enforced as transaction-rollback yet. Upgrade path: rethrow
-				// as RuntimeException to abort the surrounding transaction.
-			} else {
-				logger.warn(msg);
-			}
-		}
+		});
 	}
 
 	/**
@@ -1712,94 +1684,6 @@ public class ProcessEngine {
 		return NamedArguments.fromMap(args);
 	}
 
-	/**
-	 * Look up a SchemaMethod by name attached to the BpmnElement that defines this
-	 * task. Returns null on no match (caller falls through to the next tier).
-	 */
-	private NodeInterface findElementMethod(final NodeInterface taskNode, final String methodName) {
-		try {
-			final Traits taskTraits = taskNode.getTraits();
-			final NodeInterface element = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.DEFINED_BY_PROPERTY));
-			if (element == null) return null;
-
-			final Traits elemTraits = element.getTraits();
-			final PropertyKey<Iterable<NodeInterface>> methodsKey = elemTraits.key(BpmnElementTraitDefinition.METHODS_PROPERTY);
-			final PropertyKey<String> nameKey                     = Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
-
-			final Iterable<NodeInterface> methods = element.getProperty(methodsKey);
-			if (methods == null) return null;
-
-			for (final NodeInterface m : methods) {
-				if (methodName.equals(m.getProperty(nameKey))) {
-					return m;
-				}
-			}
-			return null;
-
-		} catch (Exception ex) {
-			logger.warn("findElementMethod failed for task '{}', method '{}': {}",
-				safeName(taskNode), methodName, ex.getMessage());
-			return null;
-		}
-	}
-
-	/**
-	 * Look up a SchemaMethod by name attached to the BpmnDefinitions of the given
-	 * ProcessInstance. Engine-context lookup; null on no match.
-	 */
-	private NodeInterface findProcessMethodForInstance(final NodeInterface instance, final String methodName) {
-		try {
-			final Traits instTraits = instance.getTraits();
-			final NodeInterface definition = instance.getProperty(instTraits.key(ProcessInstanceTraitDefinition.PROCESS_PROPERTY));
-			return findProcessMethodOnDefinition(definition, methodName);
-		} catch (Exception ex) {
-			logger.warn("findProcessMethodForInstance failed for instance '{}', method '{}': {}",
-				safeName(instance), methodName, ex.getMessage());
-			return null;
-		}
-	}
-
-	/**
-	 * Look up a SchemaMethod by name attached to the BpmnDefinitions of the task's
-	 * ProcessInstance. Returns null when there's no match (so the caller falls
-	 * through to the next resolution tier). Read in the engine's superuser
-	 * context so per-process methods are visible regardless of caller permissions.
-	 */
-	private NodeInterface findProcessMethod(final NodeInterface taskNode, final String methodName) {
-		try {
-			final Traits taskTraits = taskNode.getTraits();
-			final NodeInterface instance = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.PROCESS_INSTANCE_PROPERTY));
-			if (instance == null) return null;
-			final NodeInterface definition = instance.getProperty(instance.getTraits().key(ProcessInstanceTraitDefinition.PROCESS_PROPERTY));
-			return findProcessMethodOnDefinition(definition, methodName);
-
-		} catch (Exception ex) {
-			logger.warn("findProcessMethod failed for task '{}', method '{}': {}",
-				safeName(taskNode), methodName, ex.getMessage());
-			return null;
-		}
-	}
-
-	/**
-	 * Iterate a BpmnDefinitions' attached methods, returning the first one whose
-	 * name equals {@code methodName}. Null if the definition is null or no match.
-	 */
-	private NodeInterface findProcessMethodOnDefinition(final NodeInterface definition, final String methodName) {
-		if (definition == null) return null;
-		final Traits defTraits = definition.getTraits();
-		final PropertyKey<Iterable<NodeInterface>> methodsKey = defTraits.key(BpmnProcessTraitDefinition.METHODS_PROPERTY);
-		final PropertyKey<String> nameKey                     = Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
-
-		final Iterable<NodeInterface> methods = definition.getProperty(methodsKey);
-		if (methods == null) return null;
-
-		for (final NodeInterface m : methods) {
-			if (methodName.equals(m.getProperty(nameKey))) {
-				return m;
-			}
-		}
-		return null;
-	}
 
 	private String safeName(final NodeInterface node) {
 		try {
@@ -1817,12 +1701,18 @@ public class ProcessEngine {
 	 * Fire a process-level lifecycle event for the given instance. Mirrors
 	 * {@link #fireTaskEvent}, but operates on the process root: listeners are
 	 * looked up on the BpmnProcess via {@code <structr:processListener>},
-	 * filtered to those whose {@code event} matches. Each matched listener's
-	 * {@code method} is then resolved through {@link #invokeProcessListenerMethod}
-	 * (per-process method first, then a schema method on the subject's type or
-	 * on {@code ProcessInstance}).
+	 * filtered to those whose {@code event} matches. Each matched listener
+	 * points directly at its SchemaMethod (no name resolution) and declares a
+	 * phase:
+	 * <ul>
+	 *   <li>{@code on} -- runs inline (pre-commit); a thrown exception rolls
+	 *       back the surrounding transition.</li>
+	 *   <li>{@code after} (default) -- queued post-commit; side-effects only
+	 *       fire if the transition actually persisted.</li>
+	 * </ul>
 	 *
-	 * <p>This method is public so it can be called from the
+	 * <p>The method runs with the {@code ProcessInstance} bound as {@code this}.
+	 * This method is public so it can be called from the
 	 * {@link org.structr.process.traits.definitions.ProcessInstanceTraitDefinition}
 	 * OnModification hook (which forwards admin-UI / direct-setProperty status
 	 * transitions into the engine's lifecycle dispatch path).</p>
@@ -1830,31 +1720,81 @@ public class ProcessEngine {
 	 * @param eventName one of {@code created|started|subjectAttached|completed|terminated|suspended|resumed}
 	 * @param instance  the ProcessInstance the event is about
 	 */
-	public void fireProcessEvent(final String eventName, final NodeInterface instance) {
+	public void fireProcessEvent(final String eventName, final NodeInterface instance) throws FrameworkException {
 
-		// 1. Per-process BPMN listeners (Path A): declared on the BpmnDefinitions.
+		final List<NodeInterface> matching = new ArrayList<>();
+		final Traits listenerTraits = Traits.of(ProcessTraits.BPMN_PROCESS_LISTENER);
 		try {
-			final Traits instTraits = instance.getTraits();
-			final NodeInterface defNode = instance.getProperty(instTraits.key(ProcessInstanceTraitDefinition.PROCESS_PROPERTY));
-			if (defNode != null) {
-				final Iterable<NodeInterface> listeners = defNode.getProperty(defNode.getTraits().key(BpmnProcessTraitDefinition.PROCESS_LISTENERS_PROPERTY));
-				if (listeners != null) {
-					final Traits listenerTraits = Traits.of(ProcessTraits.BPMN_PROCESS_LISTENER);
-					for (final NodeInterface listener : listeners) {
-						final String listenerEvent = listener.getProperty(listenerTraits.key(BpmnProcessListenerTraitDefinition.EVENT_PROPERTY));
-						if (!eventName.equals(listenerEvent)) {
-							continue;
-						}
-						final String methodName = listener.getProperty(listenerTraits.key(BpmnProcessListenerTraitDefinition.METHOD_PROPERTY));
-						final Boolean sync      = listener.getProperty(listenerTraits.key(BpmnProcessListenerTraitDefinition.SYNC_PROPERTY));
-						invokeProcessListenerMethod(instance, methodName, eventName, Boolean.TRUE.equals(sync));
-					}
+			final NodeInterface defNode = instance.getProperty(instance.getTraits().key(ProcessInstanceTraitDefinition.PROCESS_PROPERTY));
+			if (defNode == null) return;
+			final Iterable<NodeInterface> listeners = defNode.getProperty(defNode.getTraits().key(BpmnProcessTraitDefinition.PROCESS_LISTENERS_PROPERTY));
+			if (listeners == null) return;
+			final PropertyKey<String> eventKey = listenerTraits.key(BpmnProcessListenerTraitDefinition.EVENT_PROPERTY);
+			for (final NodeInterface listener : listeners) {
+				if (eventName.equals(listener.getProperty(eventKey))) {
+					matching.add(listener);
 				}
 			}
 		} catch (Exception ex) {
 			logger.warn("Process listener enumeration for event '{}' on instance '{}' failed: {}",
 				eventName, safeName(instance), ex.getMessage());
+			return;
 		}
+
+		final PropertyKey<String>        phaseKey  = listenerTraits.key(BpmnProcessListenerTraitDefinition.PHASE_PROPERTY);
+		final PropertyKey<NodeInterface> methodKey = listenerTraits.key(BpmnProcessListenerTraitDefinition.METHOD_PROPERTY);
+
+		for (final NodeInterface listener : matching) {
+			final NodeInterface method = listener.getProperty(methodKey);
+			if (method == null) {
+				continue; // handler declared for the event but no method body yet
+			}
+			final String phase = listener.getProperty(phaseKey);
+			if (BpmnProcessListenerTraitDefinition.PHASE_ON.equals(phase)) {
+				runProcessListenerMethod(instance, method, eventName);
+			} else {
+				queueAfterCommitProcessListener(instance, method, eventName);
+			}
+		}
+	}
+
+	/**
+	 * Execute a process listener's method inline ({@code on} phase) with the
+	 * instance as {@code this}. Exceptions propagate so the surrounding
+	 * transition rolls back.
+	 */
+	private void runProcessListenerMethod(final NodeInterface instance, final NodeInterface method,
+										  final String eventName) throws FrameworkException {
+		final ActionContext ctx = new ActionContext(securityContext);
+		final Arguments args     = buildProcessListenerArgs(instance, eventName);
+		new ScriptMethod(method.as(SchemaMethod.class)).execute(ctx, instance, args);
+	}
+
+	/**
+	 * Queue a process listener's method to run after the surrounding
+	 * transaction commits ({@code after} phase). Re-fetches instance and method
+	 * by id and runs in its own transaction; failures are logged, not propagated.
+	 */
+	private void queueAfterCommitProcessListener(final NodeInterface instance, final NodeInterface method,
+												 final String eventName) {
+		final String instanceId = instance.getUuid();
+		final String methodId   = method.getUuid();
+		TransactionCommand.queuePostProcessProcedure(() -> {
+			final App app = StructrApp.getInstance(securityContext);
+			try (final Tx tx = app.tx()) {
+				final NodeInterface freshInstance = app.getNodeById(instanceId);
+				final NodeInterface freshMethod   = app.getNodeById(methodId);
+				if (freshInstance != null && freshMethod != null) {
+					final ActionContext ctx = new ActionContext(securityContext);
+					final Arguments args     = buildProcessListenerArgs(freshInstance, eventName);
+					new ScriptMethod(freshMethod.as(SchemaMethod.class)).execute(ctx, freshInstance, args);
+				}
+				tx.success();
+			} catch (Throwable t) {
+				logger.warn("After-commit process listener for event '{}' on instance '{}' failed: {}",
+					eventName, instanceId, t.getMessage());
+			}
+		});
 	}
 
 	/**
@@ -1880,71 +1820,6 @@ public class ProcessEngine {
 		args.put("processInstance", instance);
 		args.put("eventName", eventName);
 		return NamedArguments.fromMap(args);
-	}
-
-	/**
-	 * Invoke a named method for a process lifecycle event. {@code methodName} is
-	 * taken verbatim from a matched {@code <structr:processListener method="...">}.
-	 * Resolution order: per-process method attached to the BpmnProcess, then the
-	 * subject's schema type (if a subject is attached), then {@code ProcessInstance}
-	 * itself. The first match wins; if no tier has the method, silently no-op.
-	 *
-	 * <p>The instance is bound as {@code this}; for subject-type methods, the
-	 * subject is also reachable via {@code $.this.subject}.</p>
-	 */
-	private void invokeProcessListenerMethod(final NodeInterface instance, final String methodName,
-											  final String eventName, final boolean sync) {
-
-		if (methodName == null || methodName.isEmpty()) {
-			return;
-		}
-
-		try {
-			final ActionContext ctx  = new ActionContext(securityContext);
-			final Traits instTraits  = instance.getTraits();
-			final Arguments args = buildProcessListenerArgs(instance, eventName);
-
-			// Tier 1: per-process method on the instance's BpmnDefinitions. Bound as
-			// `this = ProcessInstance` so the body has direct access to the instance,
-			// its subject (`$.this.subject`), parameters, and tokens.
-			final NodeInterface processMethod = findProcessMethodForInstance(instance, methodName);
-			if (processMethod != null) {
-				new ScriptMethod(processMethod.as(SchemaMethod.class))
-					.execute(ctx, instance, args);
-				return;
-			}
-
-			// Tier 2: subject's type (most specific), then ProcessInstance.
-			final NodeInterface subject = instance.getProperty(instTraits.key(ProcessInstanceTraitDefinition.SUBJECT_PROPERTY));
-
-			boolean invoked = false;
-			if (subject != null) {
-				final AbstractMethod m = Methods.resolveMethod(subject.getTraits(), methodName);
-				if (m != null) {
-					m.execute(ctx, subject, args);
-					invoked = true;
-				}
-			}
-			if (!invoked) {
-				final AbstractMethod m = Methods.resolveMethod(instTraits, methodName);
-				if (m != null) {
-					m.execute(ctx, instance, args);
-					invoked = true;
-				}
-			}
-			// No match: silent. An explicit listener with a typo'd method name
-			// will appear in the warnings via the catch block below.
-
-		} catch (Exception ex) {
-			final String msg = "Process listener '" + methodName + "' for event '" + eventName +
-				"' on instance '" + safeName(instance) + "' failed: " + ex.getMessage();
-			if (sync) {
-				logger.error(msg);
-				// v1: sync semantics log loudly, future upgrade rethrows to abort.
-			} else {
-				logger.warn(msg);
-			}
-		}
 	}
 
 	/**

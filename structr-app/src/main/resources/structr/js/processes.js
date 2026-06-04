@@ -1101,200 +1101,207 @@ let _ProcessDiagram = {
 				});
 			}
 
-			// Task listeners: each row commits property edits immediately
-			// (PUT on the BpmnTaskListener node), and add / remove rows go
-			// straight through Command.create / Command.deleteNode. Refused
-			// for buffered (not-yet-persisted) elements: the StartNode rel
-			// from the new listener back to this element can't be created
-			// until the element exists server-side.
-			const taskListenersList = sidePanel.querySelector('.bpmn-task-listeners-list');
+			// Task event handlers (userTask only). One handler per (event, phase):
+			// a BpmnTaskListener pointing at a SchemaMethod that lives on the
+			// element. Edits commit via Command.setProperties (the websocket
+			// UPDATE path the rest of the editor uses), then refresh. Add creates
+			// the method (auto-named) and the listener that calls it; remove
+			// deletes both. Refused for buffered (not-yet-persisted) elements:
+			// the rels can't land server-side until the element exists there.
+			const TASK_EVENTS_W = ['created','assigned','claimed','available','declined','completed','cancelled'];
+
+			// Build a valid SchemaMethod name from the task label + phase + event,
+			// e.g. ("Review leave request","after","completed") -> reviewLeaveRequest_afterCompleted.
+			const cap = (s) => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+			const buildMethodName = (phase, event) => {
+				const label = (elem.bpmnName || elem.bpmnId || 'task');
+				const parts = label.split(/[^a-zA-Z0-9]+/).filter(Boolean);
+				let base = parts.length
+					? parts[0].toLowerCase() + parts.slice(1).map(cap).join('')
+					: 'task';
+				if (!/^[a-z_]/.test(base)) base = 'task' + cap(base);
+				return `${base}_${phase}${cap(event)}`;
+			};
+
+			const isBuffered = () => {
+				if (!api.getPendingChanges) return false;
+				const pending = api.getPendingChanges();
+				return pending.creates.some(c => c.id === elementId);
+			};
+
+			// Open a SchemaMethod in the Code module. Shared by the handler-row
+			// Edit buttons and the read-only methods list.
+			const openMethodInCode = (methodId) => {
+				if (!methodId) return;
+				_Dialogs.custom.clickDialogCancelButton();
+				setTimeout(async () => {
+					try {
+						const res = await fetch(`${Structr.rootUrl}SchemaMethod/${methodId}/ui`, { credentials: 'same-origin' });
+						if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+						const body = await res.json();
+						let m = body.result;
+						if (Array.isArray(m)) m = m[0];
+						if (m) _Code.helpers.navigateToSchemaObjectFromAnywhere(m);
+					} catch (e) {
+						console.error('open method failed', methodId, e);
+						new ErrorMessage().text(`Failed to open method: ${e.message}`).show();
+					}
+				}, 150);
+			};
+
+			const taskListenersList  = sidePanel.querySelector('.bpmn-task-listeners-list');
 			const addTaskListenerBtn = sidePanel.querySelector('.btn-add-task-listener');
 			if (taskListenersList && addTaskListenerBtn) {
-				// Same REST PUT pattern used by the methods block above:
-				// commit through the standard REST endpoint, then refresh the
-				// element so the in-memory model and side panel reflect the
-				// new value. Errors surface to the console with body text so
-				// schema-level rejections (validation, view filter, ...) are
-				// visible during development.
-				const updateListener = async (listenerId, props) => {
-					const url  = `${Structr.rootUrl}BpmnTaskListener/${listenerId}`;
-					const res = await fetch(url, {
-						method:      'PUT',
-						credentials: 'same-origin',
-						headers:     { 'Content-Type': 'application/json' },
-						body:        JSON.stringify(props),
-					});
-					if (!res.ok) {
-						let detail = '';
-						try { detail = await res.text(); } catch (_) {}
-						console.error('updateListener PUT failed', { url, props, status: res.status, body: detail });
-						throw new Error(`${res.status} ${res.statusText}${detail ? ' — ' + detail : ''}`);
-					}
-					await api.refreshElement(elementId);
+
+				const escTL    = _Helpers.escapeTags;
+				const TASK_PHASES_W = ['after','on'];
+				const countEl  = sidePanel.querySelector('.bpmn-task-listeners-count');
+
+				// Persist via the websocket UPDATE command (Command.setProperties),
+				// the path the VM editor uses successfully on process-module nodes.
+				const setProps = (id, props) => new Promise((resolve, reject) => {
+					try { Command.setProperties(id, props, () => resolve()); }
+					catch (e) { reject(e); }
+				});
+				const methodOf = (tl) => {
+					const m = Array.isArray(tl.method) ? tl.method[0] : tl.method;
+					return (m && typeof m === 'object') ? m : null;
 				};
+				const rowHtml = (tl) => {
+					const m = methodOf(tl);
+					return `
+					<li class="bpmn-task-listener-row" data-listener-id="${escTL(tl.id)}" data-method-id="${escTL(m?.id ?? '')}" style="display:flex; gap:4px; padding:3px 0; align-items:center;">
+						<select class="bpmn-task-listener-event">
+							${TASK_EVENTS_W.map(e => `<option value="${e}" ${e === tl.event ? 'selected' : ''}>${e}</option>`).join('')}
+						</select>
+						<select class="bpmn-task-listener-phase" title="on: pre-commit, can veto. after: post-commit, side-effects.">
+							${TASK_PHASES_W.map(p => `<option value="${p}" ${p === (tl.phase ?? 'after') ? 'selected' : ''}>${p}</option>`).join('')}
+						</select>
+						<span class="bpmn-task-listener-method-name" title="${escTL(m?.name ?? '')}" style="flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px; font-family:monospace; color:#555;">${escTL(m?.name ?? '—')}</span>
+						<button class="action btn-edit-listener-method" data-method-id="${escTL(m?.id ?? '')}" title="Edit the handler method" style="flex:0 0 auto;">Edit</button>
+						<button class="action btn-remove-task-listener" title="Remove this handler (deletes its method)" style="flex:0 0 auto;">−</button>
+					</li>`;
+				};
+
+				let loadedListeners = [];
+
 				const wireListenerRow = (row) => {
 					const listenerId = row.dataset.listenerId;
+					const methodId   = row.dataset.methodId;
 					if (!listenerId) return;
 					const eventSel = row.querySelector('.bpmn-task-listener-event');
-					const methodIn = row.querySelector('.bpmn-task-listener-method');
-					const syncIn   = row.querySelector('.bpmn-task-listener-sync');
+					const phaseSel = row.querySelector('.bpmn-task-listener-phase');
+					const editBt   = row.querySelector('.btn-edit-listener-method');
 					const removeBt = row.querySelector('.btn-remove-task-listener');
-					// Track each input's last-committed value so blur with an
-					// unchanged value doesn't trigger a pointless round-trip.
-					if (methodIn) methodIn.dataset.original = methodIn.value;
-					if (eventSel) eventSel.dataset.original = eventSel.value;
-					if (syncIn)   syncIn.dataset.original   = String(syncIn.checked);
 
-					const commit = async (props, inputForRestore) => {
+					const commit = async () => {
+						const event = eventSel.value;
+						const phase = phaseSel.value;
+						// Enforce one handler per (event, phase): reject a change that
+						// collides with another existing handler.
+						const collides = loadedListeners.some(tl =>
+							tl.id !== listenerId && tl.event === event && (tl.phase ?? 'after') === phase);
+						if (collides) {
+							new ErrorMessage().text(`A handler for "${event}" (${phase}) already exists on this task.`).show();
+							await loadRows(); // revert the select to the persisted value
+							return;
+						}
+						eventSel.disabled = phaseSel.disabled = true;
 						try {
-							await updateListener(listenerId, props);
-						} catch (err) {
-							new ErrorMessage().text(`Update task listener failed: ${err.message ?? err}`).show();
-							if (inputForRestore && inputForRestore.dataset.original != null) {
-								if (inputForRestore.type === 'checkbox') {
-									inputForRestore.checked = inputForRestore.dataset.original === 'true';
-								} else {
-									inputForRestore.value = inputForRestore.dataset.original;
-								}
+							await setProps(listenerId, { event, phase });
+							// Keep the auto-named method reflective of (event, phase). Best-effort.
+							if (methodId) {
+								try { await setProps(methodId, { name: buildMethodName(phase, event) }); }
+								catch (_) {}
 							}
+							await loadRows();
+						} catch (err) {
+							new ErrorMessage().text(`Update handler failed: ${err.message ?? err}`).show();
+							await loadRows();
 						}
 					};
-
-					eventSel?.addEventListener('change', () => {
-						eventSel.dataset.original = eventSel.value;
-						commit({ event: eventSel.value }, eventSel);
-					});
-					methodIn?.addEventListener('blur', () => {
-						const v = methodIn.value.trim();
-						if (v === methodIn.dataset.original) return;
-						methodIn.dataset.original = v;
-						commit({ method: v }, methodIn);
-					});
-					methodIn?.addEventListener('keydown', (e) => {
-						if (e.key === 'Enter')       { e.preventDefault(); methodIn.blur(); }
-						else if (e.key === 'Escape') { methodIn.value = methodIn.dataset.original ?? ''; methodIn.blur(); }
-					});
-					syncIn?.addEventListener('change', () => {
-						syncIn.dataset.original = String(syncIn.checked);
-						commit({ sync: syncIn.checked }, syncIn);
-					});
+					eventSel?.addEventListener('change', commit);
+					phaseSel?.addEventListener('change', commit);
+					editBt?.addEventListener('click', () => openMethodInCode(methodId));
 					removeBt?.addEventListener('click', async () => {
 						removeBt.disabled = true;
 						try {
-							await new Promise((resolve, reject) => {
-								Command.deleteNode(listenerId, undefined, () => resolve(), reject);
-							});
-							row.remove();
-							await api.refreshElement(elementId);
+							if (methodId) {
+								await new Promise((resolve) => Command.deleteNode(methodId, undefined, () => resolve()));
+							}
+							await new Promise((resolve) => Command.deleteNode(listenerId, undefined, () => resolve()));
+							await loadRows();
 						} catch (err) {
-							new ErrorMessage().text(`Remove task listener failed: ${err.message}`).show();
+							new ErrorMessage().text(`Remove handler failed: ${err.message ?? err}`).show();
 							removeBt.disabled = false;
 						}
 					});
 				};
-				taskListenersList.querySelectorAll('.bpmn-task-listener-row').forEach(wireListenerRow);
+
+				// Populate rows from a dedicated listener fetch (full event/phase/
+				// method), NOT from the element's reduced nested serialization.
+				const loadRows = async () => {
+					try {
+						const res  = await fetch(`${Structr.rootUrl}BpmnTaskListener/ui?element=${elementId}`, { credentials: 'same-origin' });
+						const body = res.ok ? await res.json() : { result: [] };
+						loadedListeners = Array.isArray(body.result) ? body.result : (body.result ? [body.result] : []);
+					} catch (_) {
+						loadedListeners = [];
+					}
+					taskListenersList.innerHTML = loadedListeners.map(rowHtml).join('');
+					if (countEl) countEl.textContent = `(${loadedListeners.length})`;
+					taskListenersList.querySelectorAll('.bpmn-task-listener-row').forEach(wireListenerRow);
+				};
+				loadRows();
 
 				addTaskListenerBtn.addEventListener('click', async () => {
-					if (api.getPendingChanges) {
-						const pending = api.getPendingChanges();
-						if (pending.creates.some(c => c.id === elementId)) {
-							new InfoMessage().title('Save first').text('Save this new element before attaching task listeners to it.').show();
-							return;
-						}
+					if (isBuffered()) {
+						new InfoMessage().title('Save first').text('Save this new element before adding handlers to it.').show();
+						return;
+					}
+					// Pick the first free (event, phase) pair: all 'after' slots
+					// first (the common case), then 'on'. Refuse when every
+					// combination already has a handler, so we never create a
+					// duplicate (event, phase).
+					const usedPairs = new Set(loadedListeners.map(tl => `${tl.event}|${tl.phase ?? 'after'}`));
+					let event = null, phase = null;
+					for (const ph of TASK_PHASES_W) {
+						const free = TASK_EVENTS_W.find(e => !usedPairs.has(`${e}|${ph}`));
+						if (free) { event = free; phase = ph; break; }
+					}
+					if (!event) {
+						new InfoMessage().title('All handlers exist').text('Every event/phase combination already has a handler on this task.').show();
+						return;
 					}
 					addTaskListenerBtn.disabled = true;
 					try {
+						const methodName = buildMethodName(phase, event);
+
+						// 1. Create the handler method already linked to the element
+						// via its `bpmnElement` inverse rel. We set the rel on the
+						// method (not the element's `methods` collection): rewriting
+						// the collection from the stale in-memory elem.methods would
+						// detach every method added earlier in the session.
+						const methodId = await new Promise((resolve, reject) => {
+							Command.create({ type: 'SchemaMethod', name: methodName, source: '', bpmnElement: elementId },
+								(m) => (m && m.id) ? resolve(m.id) : reject(new Error('SchemaMethod creation failed')));
+						});
+
+						// 2. Create the listener pointing at the method.
 						await new Promise((resolve, reject) => {
 							Command.create(
-								{ type: 'BpmnTaskListener', element: elementId, event: 'created', method: '', sync: false },
-								(n) => (n && n.id) ? resolve(n.id) : reject(new Error('BpmnTaskListener creation failed'))
-							);
+								{ type: 'BpmnTaskListener', element: elementId, event, phase, method: methodId },
+								(n) => (n && n.id) ? resolve(n.id) : reject(new Error('BpmnTaskListener creation failed')));
 						});
-						await api.refreshElement(elementId);
+
+						await loadRows();
 					} catch (err) {
-						new ErrorMessage().text(`Add task listener failed: ${err.message}`).show();
+						new ErrorMessage().text(`Add handler failed: ${err.message ?? err}`).show();
 					} finally {
 						addTaskListenerBtn.disabled = false;
 					}
 				});
 			}
-
-			// "+ New method" button: creates an orphan SchemaMethod, attaches
-			// it to the current element via HAS_METHOD, refreshes the panel.
-			// Refused for buffered (not-yet-persisted) elements: the rel can't
-			// land server-side until the element exists there.
-			const addMethodBtn = sidePanel.querySelector('.btn-add-method');
-			if (addMethodBtn) {
-				addMethodBtn.addEventListener('click', async () => {
-					if (api.getPendingChanges) {
-						const pending = api.getPendingChanges();
-						if (pending.creates.some(c => c.id === elementId)) {
-							new InfoMessage().title('Save first').text('Save this new element before attaching methods to it.').show();
-							return;
-						}
-					}
-					addMethodBtn.disabled = true;
-					try {
-						// 1. Create the orphan SchemaMethod (no schemaNode).
-						//    Name must match SchemaMethod's validation pattern:
-						//    [a-z_][a-zA-Z0-9_]* (lowercase start, no whitespace).
-						const methodName = `processMethod_${Math.floor(Math.random() * 1000000)}`;
-						const methodId   = await new Promise((resolve, reject) => {
-							Command.create({ type: 'SchemaMethod', name: methodName, source: '' }, (m) => {
-								if (m && m.id) resolve(m.id); else reject(new Error('SchemaMethod creation failed'));
-							});
-						});
-						// 2. Attach to the element. The methods relationship is a
-						//    OneToMany; PUT the full list so existing attachments
-						//    are preserved.
-						const existingIds = (elem.methods || []).map(m => m && m.id).filter(Boolean);
-						const updatedIds  = [...existingIds, methodId];
-						const res = await fetch(`${Structr.rootUrl}BpmnElement/${elementId}`, {
-							method:  'PUT',
-							credentials: 'same-origin',
-							headers: { 'Content-Type': 'application/json' },
-							body:    JSON.stringify({ methods: updatedIds }),
-						});
-						if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-
-						// 3. Refetch the element so the side panel shows the new
-						//    method. Bypasses the buffer (this isn't a user
-						//    edit -- the change is already persisted).
-						await api.refreshElement(elementId);
-						new SuccessMessage().text(`Added method "${methodName}".`).show();
-					} catch (err) {
-						new ErrorMessage().text(`Add method failed: ${err.message}`).show();
-					} finally {
-						addMethodBtn.disabled = false;
-					}
-				});
-			}
-
-			// Per-method "Edit" buttons: navigate to the SchemaMethod in the
-			// Code module. The method stub from the in-memory model carries
-			// id/type/name; we re-fetch the full record so navigation can
-			// route via its schemaNode (or fall back to /globals for orphan
-			// clones with no schemaNode link).
-			sidePanel.querySelectorAll('.btn-edit-method').forEach(btn => {
-				btn.addEventListener('click', () => {
-					const methodId = btn.dataset.methodId;
-					if (!methodId) return;
-					_Dialogs.custom.clickDialogCancelButton();
-					setTimeout(async () => {
-						try {
-							const res = await fetch(`${Structr.rootUrl}SchemaMethod/${methodId}/ui`, { credentials: 'same-origin' });
-							if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-							const body = await res.json();
-							let m = body.result;
-							if (Array.isArray(m)) m = m[0];
-							if (m) _Code.helpers.navigateToSchemaObjectFromAnywhere(m);
-						} catch (e) {
-							console.error('open method failed', methodId, e);
-							new ErrorMessage().text(`Failed to open method: ${e.message}`).show();
-						}
-					}, 150);
-				});
-			});
 		};
 
 		// Tab strip clicks are handled via delegation so the listener
@@ -1833,64 +1840,30 @@ let _ProcessDiagram = {
 			</div>
 		`;
 
-		// Task listeners (userTask only). Each listener is a separate node
-		// (BpmnTaskListener) linked to this element via BPMN_ELEMENT_HAS_TASK_LISTENER.
-		// The engine dispatches matching listeners when the task fires the
-		// corresponding lifecycle event; method-name resolution happens through
-		// the same per-element / per-process / TaskInstance tier chain used for
-		// any listener.
-		const TASK_EVENTS = ['created','assigned','claimed','available','declined','completed','cancelled'];
-		const taskListeners = Array.isArray(elem.taskListeners) ? elem.taskListeners : [];
-		const taskListenerRow = (tl) => `
-			<li class="bpmn-task-listener-row" data-listener-id="${esc(tl.id)}" style="display:flex; gap:4px; padding:3px 0; align-items:center;">
-				<select class="bpmn-task-listener-event" style="flex:0 0 36%; padding:2px 4px; font-size:11px; font-family:monospace;">
-					${TASK_EVENTS.map(e => `<option value="${e}" ${e === tl.event ? 'selected' : ''}>${e}</option>`).join('')}
-				</select>
-				<input type="text" class="bpmn-task-listener-method" value="${esc(tl.method ?? '')}" placeholder="method name" style="flex:1 1 auto; min-width:0; box-sizing:border-box; padding:2px 5px; font-size:11px; font-family:monospace;">
-				<label style="flex:0 0 auto; font-size:10px; color:#666; display:flex; align-items:center; gap:2px;" title="Run synchronously (errors abort the engine transition)">
-					<input type="checkbox" class="bpmn-task-listener-sync" ${tl.sync ? 'checked' : ''}>sync
-				</label>
-				<button class="action btn-remove-task-listener" title="Remove this listener" style="flex:0 0 auto;">−</button>
-			</li>
-		`;
+		// Task listeners (userTask only). One handler per (event, phase). Each
+		// BpmnTaskListener points directly at a SchemaMethod (the handler body);
+		// the engine runs it when the task fires the matching event. Phase 'on'
+		// runs pre-commit and can veto (roll back) the transition; 'after'
+		// (default) runs post-commit for side-effects like notifications.
+		// Rows are populated by an explicit BpmnTaskListener fetch in the wiring
+		// step, NOT from elem.taskListeners: the element's nested serialization
+		// reduces related nodes to id/type/name, dropping event/phase/method.
 		const taskListenersBlock = !isUserTask ? '' : `
 			<div style="margin-top:12px; padding-top:8px; border-top:1px solid #eee;">
 				<div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
-					<div style="color:#666; font-size:11px;">Task listeners (${taskListeners.length})</div>
+					<div style="color:#666; font-size:11px;">Task event handlers <span class="bpmn-task-listeners-count"></span></div>
 					<span style="flex:1 1 auto;"></span>
-					<button class="action btn-add-task-listener" title="Add a listener that fires on a task lifecycle event">+ Add</button>
+					<button class="action btn-add-task-listener" title="Add a handler that runs on a task lifecycle event">+ Add handler</button>
 				</div>
-				<ul class="bpmn-task-listeners-list" style="list-style:none; margin:0; padding:0;">
-					${taskListeners.map(taskListenerRow).join('')}
-				</ul>
+				<ul class="bpmn-task-listeners-list" style="list-style:none; margin:0; padding:0;"></ul>
 				<div class="text-gray-500" style="font-size:10px; line-height:1.4; margin-top:4px;">
-					Method name is resolved in tiers: the element's own methods first, then
-					the process's methods, then schema methods on <code>TaskInstance</code>.
-					The first match wins.
+					One handler per (event, phase). The method is created and named for you;
+					edit its body in the Code module. <b>on</b> runs pre-commit and can roll
+					back the transition; <b>after</b> runs post-commit for side-effects.
 				</div>
 			</div>
 		`;
 
-		const methods = Array.isArray(elem.methods) ? elem.methods : [];
-		const methodsBlock = `
-			<div style="margin-top:12px; padding-top:8px; border-top:1px solid #eee;">
-				<div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
-					<div style="color:#666; font-size:11px;">Methods (${methods.length})</div>
-					<span style="flex:1 1 auto;"></span>
-					<button class="action btn-add-method" title="Create a new method and attach it to this element">+ New method</button>
-				</div>
-				${methods.length === 0 ? '<div class="text-gray-500" style="font-size:11px;">No methods attached.</div>' : `
-				<ul class="bpmn-methods-list" style="list-style:none; margin:0; padding:0;">
-					${methods.map(m => `
-						<li style="display:flex; align-items:center; justify-content:space-between; gap:6px; padding:3px 0;">
-							<span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${esc(m.name)}">${esc(m.name) || '<span class="text-gray-500">—</span>'}</span>
-							<button class="action btn-edit-method" data-method-id="${esc(m.id)}">Edit</button>
-						</li>
-					`).join('')}
-				</ul>
-				`}
-			</div>
-		`;
 		const headerName = esc(elem.bpmnName || elem.bpmnId || elem.id);
 		return `
 			<h4 style="margin:0 0 8px 0; font-size:13px;">${headerName}</h4>
@@ -1906,7 +1879,6 @@ let _ProcessDiagram = {
 			${attributesBlock}
 			${performersBlock}
 			${taskListenersBlock}
-			${methodsBlock}
 			<div style="display:flex; gap:6px; margin-top:10px;">
 				<button class="action btn-open-properties">Open in editor…</button>
 				<button class="action btn-delete-element" style="margin-left:auto; color:#c0392b;">Delete</button>

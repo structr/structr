@@ -22,6 +22,7 @@ import org.structr.api.service.LicenseManager;
 import org.structr.core.function.Functions;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.StartNode;
+import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Trait;
@@ -76,6 +77,8 @@ public class ProcessModule implements StructrModule {
 		StructrTraits.registerTrait(new BpmnElementHasPerformer());
 		StructrTraits.registerTrait(new BpmnElementHasTaskListener());
 		StructrTraits.registerTrait(new BpmnElementHasMethod());
+		StructrTraits.registerTrait(new BpmnTaskListenerCallsMethod());
+		StructrTraits.registerTrait(new BpmnProcessListenerCallsMethod());
 		StructrTraits.registerTrait(new BpmnDefinitionsHasProcess());
 		StructrTraits.registerTrait(new BpmnDefinitionsHasCollaboration());
 		StructrTraits.registerTrait(new BpmnProcessHasElement());
@@ -128,6 +131,8 @@ public class ProcessModule implements StructrModule {
 		StructrTraits.registerRelationshipType(ProcessTraits.BPMN_ELEMENT_HAS_PERFORMER,         ProcessTraits.BPMN_ELEMENT_HAS_PERFORMER);
 		StructrTraits.registerRelationshipType(ProcessTraits.BPMN_ELEMENT_HAS_TASK_LISTENER,     ProcessTraits.BPMN_ELEMENT_HAS_TASK_LISTENER);
 		StructrTraits.registerRelationshipType(ProcessTraits.BPMN_ELEMENT_HAS_METHOD,             ProcessTraits.BPMN_ELEMENT_HAS_METHOD);
+		StructrTraits.registerRelationshipType(ProcessTraits.BPMN_TASK_LISTENER_CALLS_METHOD,     ProcessTraits.BPMN_TASK_LISTENER_CALLS_METHOD);
+		StructrTraits.registerRelationshipType(ProcessTraits.BPMN_PROCESS_LISTENER_CALLS_METHOD,  ProcessTraits.BPMN_PROCESS_LISTENER_CALLS_METHOD);
 		StructrTraits.registerRelationshipType(ProcessTraits.BPMN_DEFINITIONS_HAS_PROCESS,         ProcessTraits.BPMN_DEFINITIONS_HAS_PROCESS);
 		StructrTraits.registerRelationshipType(ProcessTraits.BPMN_DEFINITIONS_HAS_COLLABORATION,   ProcessTraits.BPMN_DEFINITIONS_HAS_COLLABORATION);
 		StructrTraits.registerRelationshipType(ProcessTraits.BPMN_PROCESS_HAS_ELEMENT,             ProcessTraits.BPMN_PROCESS_HAS_ELEMENT);
@@ -235,6 +240,12 @@ public class ProcessModule implements StructrModule {
 			new StartNode(TraitsManager.getRootInstance(), "bpmnProcess", ProcessTraits.BPMN_PROCESS_HAS_METHOD));
 		Traits.getTrait(StructrTraits.SCHEMA_METHOD).registerPropertyKey(
 			new StartNode(TraitsManager.getRootInstance(), "bpmnElement", ProcessTraits.BPMN_ELEMENT_HAS_METHOD));
+		// Inverse for BpmnTaskListener -[CALLS]-> SchemaMethod (Many-to-One), so
+		// ensureCardinality can resolve the source side when listener.method is set.
+		Traits.getTrait(StructrTraits.SCHEMA_METHOD).registerPropertyKey(
+			new StartNodes(TraitsManager.getRootInstance(), "callingTaskListeners", ProcessTraits.BPMN_TASK_LISTENER_CALLS_METHOD));
+		Traits.getTrait(StructrTraits.SCHEMA_METHOD).registerPropertyKey(
+			new StartNodes(TraitsManager.getRootInstance(), "callingProcessListeners", ProcessTraits.BPMN_PROCESS_LISTENER_CALLS_METHOD));
 
 		// Attach the `boundUserTask` EndNode property to the existing
 		// COMPONENT_CONFIGURATION trait so the render path (in structr-base)
