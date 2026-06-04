@@ -19,6 +19,7 @@
 package org.structr.core.entity;
 
 import org.structr.api.Predicate;
+import org.structr.api.config.Settings;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.PropertyContainer;
@@ -287,7 +288,7 @@ public class SuperUser implements Principal {
 
 	@Override
 	public String getName() {
-		return "superadmin";
+		return Settings.SuperUserName.getValue();
 	}
 
 	@Override

@@ -29,7 +29,6 @@ import java.util.List;
 
 public class QuotFunction extends CoreFunction {
 
-
 	@Override
 	public String getName() {
 		return "quot";
@@ -115,11 +114,6 @@ public class QuotFunction extends CoreFunction {
 				Parameter.mandatory("value1", "Numerical value. Can be also given as string"),
 				Parameter.mandatory("value2", "Numerical value. Can be also given as string")
 		);
-	}
-
-	@Override
-	public List<Language> getLanguages() {
-		return List.of(Language.StructrScript);
 	}
 
 	@Override

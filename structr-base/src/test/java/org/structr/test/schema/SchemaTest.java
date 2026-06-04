@@ -357,7 +357,9 @@ public class SchemaTest extends StructrTest {
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY), source),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY), target),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.SOURCE_MULTIPLICITY_PROPERTY), "1"),
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.TARGET_MULTIPLICITY_PROPERTY), "*")
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.TARGET_MULTIPLICITY_PROPERTY), "*"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.SOURCE_JSON_NAME_PROPERTY), "sourceLink"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(SchemaRelationshipNodeTraitDefinition.TARGET_JSON_NAME_PROPERTY), "linkTargets")
 				);
 
 				tx.success();
@@ -367,6 +369,7 @@ public class SchemaTest extends StructrTest {
 
 		} catch (FrameworkException t) {
 			logger.warn("", t);
+			fail("Unexpected exception.");
 		}
 	}
 
@@ -384,9 +387,9 @@ public class SchemaTest extends StructrTest {
 
 			checkSchemaString(schema.toString());
 
-
 		} catch (FrameworkException t) {
 			logger.warn("", t);
+			fail("Unexpected exception.");
 		}
 
 	}

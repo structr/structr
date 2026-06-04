@@ -55,7 +55,7 @@ public class SchemaResource extends ExactMatchEndpoint {
 	public static final StringProperty typeProperty                     = new StringProperty("type");
 	public static final StringProperty nameProperty                     = new StringProperty("name");
 	public static final StringProperty classNameProperty                = new StringProperty("className");
-	public static final StringProperty traitsProperty                   = new StringProperty("traits");
+	public static final Property<String[]> traitsProperty               = new ArrayProperty<>("traits", String.class);
 	public static final BooleanProperty isRelProperty                   = new BooleanProperty("isRel");
 	public static final BooleanProperty isAbstractProperty              = new BooleanProperty("isAbstract");
 	public static final BooleanProperty isInterfaceProperty             = new BooleanProperty("isInterface");
@@ -122,7 +122,7 @@ public class SchemaResource extends ExactMatchEndpoint {
 				schema.setProperty(nameProperty, type.getName());
 				schema.setProperty(classNameProperty, type.getName());
 
-				schema.setProperty(traitsProperty, type.getAllTraits());
+				schema.setProperty(traitsProperty, type.getAllTraits().toArray());
 				schema.setProperty(isBuiltinProperty, type.isBuiltinType());
 				schema.setProperty(isServiceClassProperty, type.isServiceClass());
 				schema.setProperty(isRelProperty, type.isRelationshipType());

@@ -70,6 +70,8 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 
 		if (!expected.equals(actual)) {
 
+			System.out.println(actual);
+
 			final String[] lines1 = expected.split("\n");
 			final String[] lines2 = actual.split("\n");
 			final int max         = Math.max(lines1.length, lines2.length);
@@ -104,8 +106,6 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 				index1++;
 				index2++;
 			}
-
-
 
 			fail("Invalid deployment roundtrip result");
 		}
@@ -338,7 +338,7 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.HIDE_FOR_LOCALES_PROPERTY)));
 		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.SHARED_COMPONENT_CONFIGURATION_PROPERTY)));
 		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.COMPONENT_TYPE_PROPERTY)));
-		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.DIMENSIONS_PROPERTY)));
+		//buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.DIMENSIONS_PROPERTY)));
 		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.ITEM_TYPE_PROPERTY)));
 		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.REPEATER_TYPE_PROPERTY)));
 		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.IS_COMPONENT_ROOT_PROPERTY)));

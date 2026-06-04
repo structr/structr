@@ -35,6 +35,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Trait;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 
 import java.util.List;
 import java.util.Map;
@@ -784,5 +785,37 @@ public class ValidationHelper {
 		// no error
 		return true;
 
+	}
+
+	/**
+	 * Checks whether the value of the given property key is equal to any of the reserved keywords.
+	 *
+	 * @param node
+	 * @param key
+	 * @param errorBuffer
+	 * @return true if string matches expression
+	 */
+	public static boolean isNotReservedWordForPropertyNames(final GraphObject node, final PropertyKey<String> key, final String prefix, final ErrorBuffer errorBuffer) {
+
+		final String value = node.getProperty(key);
+
+		if (value == null) {
+			return true;
+		}
+
+		final List<String> reserved = List.of(
+				GraphObjectTraitDefinition.ID_PROPERTY,
+				GraphObjectTraitDefinition.TYPE_PROPERTY,
+				NodeInterfaceTraitDefinition.OWNER_PROPERTY,
+				NodeInterfaceTraitDefinition.GRANTEES_PROPERTY
+		);
+
+		if (!reserved.contains(value)) {
+			return true;
+		}
+
+		errorBuffer.add(new MatchToken(node.getType(), key.jsonName(), prefix + " must not be one of the reserved keywords (" + String.join(", ", reserved) + ") because this would break basic functionality.", value));
+
+		return false;
 	}
 }

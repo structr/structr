@@ -27,7 +27,6 @@ import java.util.List;
 
 public class LtFunction extends CoreFunction {
 
-
 	@Override
 	public String getName() {
 		return "lt";
@@ -47,7 +46,8 @@ public class LtFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${lt(value1, value2)}. Example: ${if(lt(size(this.children), 2), 'Less than two', 'Equal to or more than two')}")
+				Usage.structrScript("Usage: ${lt(value1, value2)}"),
+				Usage.javaScript("Usage: ${{ $.lt(value1, value2) }}")
 		);
 	}
 
@@ -73,14 +73,10 @@ public class LtFunction extends CoreFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-			Example.structrScript(" ${lt(1, 2)} ", "This will return `true`"),
-			Example.structrScript(" ${lt(2, 1)} ", "This will return `false`")
+				Example.structrScript("${lt(1, 2)}", "This will return `true`"),
+				Example.structrScript("${lt(2, 1)}", "This will return `false`"),
+				Example.structrScript("${if(lt(size(this.children), 2), 'Less than two', 'Equal to or more than two')}")
 		);
-	}
-
-	@Override
-	public List<Language> getLanguages() {
-		return List.of(Language.StructrScript);
 	}
 
 	@Override

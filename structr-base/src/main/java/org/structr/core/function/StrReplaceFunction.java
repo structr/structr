@@ -40,7 +40,7 @@ public class StrReplaceFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("str, substring, replacement");
+		return Signature.forAllScriptingLanguages("subject, search, replacement");
 	}
 
 	@Override
@@ -61,6 +61,7 @@ public class StrReplaceFunction extends CoreFunction {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
+
 		} catch (PatternSyntaxException ex) {
 
 			logParameterError(caller, sources, "Error in RegEx: " + ex.getMessage(),ctx.isJavaScriptContext());
@@ -71,8 +72,8 @@ public class StrReplaceFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.javaScript("Usage: ${{ $.strReplace(subject, search, replacement) }}."),
-			Usage.structrScript("Usage: ${strReplace(subject, search, replacement)}.")
+			Usage.javaScript("Usage: ${{ $.strReplace(subject, search, replacement) }}"),
+			Usage.structrScript("Usage: ${strReplace(subject, search, replacement)}")
 		);
 	}
 
@@ -90,7 +91,12 @@ public class StrReplaceFunction extends CoreFunction {
 	public List<Example> getExamples() {
 		return List.of(
 				Example.structrScript("${strReplace('Hello Wrlod!', 'Wrlod', 'World')}"),
-				Example.javaScript("${{ $.strReplace('Hello Wrlod!', 'Wrlod', 'World') }}")
+				Example.javaScript("${{ $.strReplace('Hello Wrlod!', 'Wrlod', 'World') }}"),
+				Example.structrScript("""
+						${strReplace('This does not make sense!', 'does not (make) (sense)', '$1s $2')}
+						> This makes sense!
+						""", "Usage with regular expression"
+				)
 		);
 	}
 
@@ -99,9 +105,9 @@ public class StrReplaceFunction extends CoreFunction {
 
 		return List.of(
 				Parameter.mandatory("subject", "subject string"),
-				Parameter.mandatory("search", "search string"),
+				Parameter.mandatory("search", "search string (regular expression)"),
 				Parameter.mandatory("replacement", "replacement string")
-				);
+		);
 	}
 
 	@Override

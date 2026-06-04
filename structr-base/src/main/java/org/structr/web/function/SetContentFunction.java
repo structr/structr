@@ -83,9 +83,7 @@ public class SetContentFunction extends UiAdvancedFunction {
 						try { is.close(); } catch (IOException ignore) {}
 					}
 
-				} else if (sources[1] instanceof String) {
-
-					final String content = (String)sources[1];
+				} else if (sources[1] instanceof String content) {
 
 					try (final OutputStream fos = file.getOutputStream(true, false)) {
 
@@ -101,18 +99,21 @@ public class SetContentFunction extends UiAdvancedFunction {
 
 				} else {
 
-					throw new FrameworkException(422, getName() + "(): Content must be of type String, byte[] or InputStream. Found: " + sources[1].getClass().getSimpleName());
+					return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, getName() + "(): Content must be of type String, byte[] or InputStream. Found: " + sources[1].getClass().getSimpleName());
 				}
+
+			} else {
+
+				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, getName() + "(): First parameter must be a File. Found: " + sources[0]);
 			}
 
-		} catch (ArgumentNullException pe) {
+		} catch (ArgumentNullException ane) {
 
-			// silently ignore null arguments
+			return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, getName() + "(): " + ane.getMessage() + " - Parameters: " + getParametersAsString(sources));
 
-		} catch (ArgumentCountException pe) {
+		} catch (ArgumentCountException ace) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
-			return usage(ctx.isJavaScriptContext());
+			return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, getName() + "(): " + ace.getMessage() + " - Parameters: " + getParametersAsString(sources));
 		}
 
 		return null;
@@ -139,11 +140,48 @@ public class SetContentFunction extends UiAdvancedFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${setContent(first(find('File', 'name', 'test.txt')), 'New Content Of File test.txt')}", "Simply overwrite file with static content"),
-				Example.structrScript("${setContent(create('File', 'name', 'new_document.xlsx'), toExcel(find('User'), 'public'), 'ISO-8859-1')}", "Create new file with Excel content"),
-				Example.structrScript("${setContent(create('File', 'name', 'web-data.json'), GET('https://api.example.com/data.json'))}", "Create a new file and retrieve content from URL"),
-				Example.structrScript("${setContent(create('File', 'name', 'logo.png'), GET('https://example.com/img/logo.png', 'application/octet-stream'))}", "Download binary data (an image) and store it in a local file"),
-				Example.javaScript("${{ $.setContent($.create('File', 'name', 'new_document.xlsx'), $.toExcel($.find('User'), 'public'), 'ISO-8859-1') }}", "Create new file with Excel content (JS version)")
+				Example.structrScript("""
+					${
+						setContent(
+							first(find('File', 'name', 'test.txt')),
+							'New Content Of File test.txt'
+						)
+					}
+					""", "Simply overwrite file with static content"),
+				Example.structrScript("""
+					${
+						setContent(
+							create('File', 'name', 'new_document.xlsx'),
+							toExcel(find('User'), 'public'),
+							'ISO-8859-1'
+						)
+					}
+					""", "Create new file with Excel content"),
+				Example.structrScript("""
+					${
+						setContent(
+							create('File', 'name', 'web-data.json'),
+							GET('https://api.example.com/data.json').body
+						)
+					}
+					""", "Create a new file and retrieve content from URL"),
+				Example.structrScript("""
+					${
+						setContent(
+							create('Image', 'name', 'logo.png'),
+							GET('https://example.com/img/logo.png', 'application/octet-stream').body
+						)
+					}
+					""", "Download binary data (an image) and store it in a local file"),
+				Example.javaScript("""
+					${{
+						$.setContent(
+							$.create('File', 'name', 'new_document.xlsx'),
+							$.toExcel($.find('User'), 'public'),
+							'ISO-8859-1'
+						);
+					}}
+					""", "Create new file with Excel content (JS version)")
 		);
 	}
 
@@ -160,7 +198,8 @@ public class SetContentFunction extends UiAdvancedFunction {
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-			"The `encoding` parameter is used when writing the data to the file. The default (`UTF-8`) rarely needs to be changed but can be very useful when working with binary strings. For example when using the `toExcel()` function."
+				"If `content` is an InputStream (via $.GET), the stream is consumed and can not be used again afterwards",
+				"The `encoding` parameter is only used when writing **string** data to the file and ignored otherwise. The default (`UTF-8`) rarely needs to be changed but can be very useful when working with binary strings. For example when using the `toExcel()` function."
 		);
 	}
 

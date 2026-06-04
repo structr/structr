@@ -65,6 +65,11 @@ let _Config = {
 
 			_Config.databaseConnections.init();
 
+			let configureSuperuserCredentialsFormContainer = document.getElementById('superuser-credentials-form');
+			if (configureSuperuserCredentialsFormContainer) {
+				configureSuperuserCredentialsFormContainer.innerHTML = _Config.templates.configureSuperuserForm;
+			}
+
 			// react to invalid form elements
 			let configForm = document.querySelector('form.config-form');
 			configForm.noValidate = true;
@@ -688,7 +693,25 @@ let _Config = {
 							Invalid username or password.
 						</div>
 					</div>
-
+				</form>
+			</div>
+		`,
+		configureSuperuserForm: `
+			<div>
+				<div>
+					<div data-comment="Select the superuser name carefully.<br><br>This username shadows any regular user account with the same name. During authentication, the superuser credentials are checked first. If the username matches the configured superuser name but the password does not match the configured password, authentication fails immediately with an “access denied” error, even if a regular user with that username exists and has a different password.<br><br>When set to empty string, the superuser can not be used, not even in this configuration interface.">
+						<h3 class="inline-block">Superuser credentials</h3>
+					</div>
+					<div class="flex">
+						<div class="flex flex-col gap-2">
+							<input name="superuser.username" type="text" size="40" placeholder="Enter a superuser name" value="superadmin">
+							<input name="superuser.password" type="password" size="40" placeholder="Enter a superuser password">
+							<div class="flex justify-end">
+								<input type="submit" value="Save" class="">
+							</div>
+						</div>
+					</div>
+				</div>
 			</div>
 		`
 	}

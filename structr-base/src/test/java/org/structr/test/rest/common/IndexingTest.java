@@ -64,7 +64,6 @@ public abstract class IndexingTest extends StructrRestTestBase {
 		Settings.Servlets.setValue("JsonRestServlet");
 		Settings.RestAuthenticator.setValue(SuperUserAuthenticator.class.getName());
 		Settings.RestServletPath.setValue(restUrl);
-		Settings.RestUserClass.setValue("");
 
 		Services.enableIndexConfiguration();
 

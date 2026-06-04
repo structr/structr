@@ -57,11 +57,6 @@ public class SearchFulltextFunction extends CoreFunction implements QueryFunctio
 
 		try {
 
-			if (sources == null) {
-
-				throw new IllegalArgumentException();
-			}
-
 			assertArrayHasLengthAndTypes(sources, 2, String.class, String.class);
 
 			final String indexName                  = sources[0].toString();

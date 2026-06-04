@@ -64,18 +64,23 @@ public class DataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 			new DataSourceOperations<AbstractNode>() {
 
 				@Override
-				public ResultStream<AbstractNode> getValues(ActionContext actionContext, DataSource provider, ChannelInput input) throws FrameworkException {
+				public ResultStream<AbstractNode> getValues(final ActionContext actionContext, final DataSource provider, final ChannelInput input) throws FrameworkException {
 					throw new UnsupportedOperationException("No implementation for getValues().");
 				}
 
 				@Override
-				public Map<String, FieldDefinition> getFields(ActionContext actionContext, DataSource provider) throws FrameworkException {
+				public Map<String, FieldDefinition> getFields(final ActionContext actionContext, final DataSource provider) throws FrameworkException {
 					throw new UnsupportedOperationException("No implementation for getFields().");
 				}
 
 				@Override
-				public String getDataType(ActionContext actionContext, DataSource provider) throws FrameworkException {
+				public String getDataType(final ActionContext actionContext, final DataSource provider) throws FrameworkException {
 					throw new UnsupportedOperationException("No implementation for getDataType().");
+				}
+
+				@Override
+				public int getDimension(final DataSource provider) {
+					throw new UnsupportedOperationException("No implementation for getDimensions().");
 				}
 			},
 
@@ -93,7 +98,7 @@ public class DataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 
 							case "values":
 								// FIXME: we need to get the channel input object in here somehow..
-								return dataSource.getResult(renderContext, null);
+								return dataSource.getResult(renderContext);
 
 							case "dataType":
 								return dataSource.getDataType(renderContext);

@@ -226,12 +226,16 @@ Admin users have the `isAdmin` flag set to true. They can create, read, modify, 
 
 ### Superuser
 
-The superuser is a special account defined in `structr.conf` with the `superuser.password` setting. This account exists separately from regular admin users and serves specific purposes:
+The superuser is a special account defined in `structr.conf` with the `superuser.username` and `superuser.password` setting. This account exists separately from regular admin users and serves specific purposes:
 
 - Logging into the Configuration Interface
 - Performing system-level operations that require elevated privileges beyond normal admin access
 
 The superuser account is not stored in the database. It exists only through the configuration file setting.
+
+> **Note:** The default value for `superuser.username` is `superadmin` and can be changed at any time to suit hardening needs. When set to empty string, superuser access is prevented completely.
+
+> **Important:** The configured `superuser.username` shadows any regular user account with the same name. During authentication, the superuser credentials are checked first. If the username matches the configured superuser name but the password does not match the configured `superuser.password`, authentication fails immediately with an “access denied” error, even if a regular user with that username exists and has a different password.
 
 ## Authentication Methods
 

@@ -91,16 +91,6 @@ public class AddToGroupFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public List<String> getNotes() {
-		return null;
-	}
-
-	@Override
-	public List<Language> getLanguages() {
-		return Language.scriptingLanguages();
-	}
-
-	@Override
 	public List<Signature> getSignatures() {
 		return Signature.forAllScriptingLanguages("group, user");
 	}

@@ -230,6 +230,11 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 				public String getDataType(final ActionContext actionContext, final DataSource provider) throws FrameworkException {
 					return StructrTraits.FILE;
 				}
+
+				@Override
+				public int getDimension(final DataSource provider) {
+					return 1;
+				}
 			}
 		);
 	}

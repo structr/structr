@@ -21,10 +21,7 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.docs.Language;
-import org.structr.docs.Parameter;
-import org.structr.docs.Signature;
-import org.structr.docs.Usage;
+import org.structr.docs.*;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -66,7 +63,8 @@ public class LengthFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${length(string)}. Example: ${length(this.name)}")
+				Usage.structrScript("Usage: ${length(string)}"),
+				Usage.javaScript("Usage: ${{ $.length(string) }}")
 		);
 	}
 
@@ -78,11 +76,6 @@ public class LengthFunction extends CoreFunction {
 	@Override
 	public String getLongDescription() {
 		return "This function **only** works for strings, do not use it on collections. See `size()` for that.";
-	}
-
-	@Override
-	public List<Language> getLanguages() {
-		return List.of(Language.StructrScript);
 	}
 
 	@Override
@@ -98,6 +91,13 @@ public class LengthFunction extends CoreFunction {
 
 		return List.of(
 			"**Do not** use this function on collections, it will return a result, but not the result you expect, because the collection will be converted to a string and the length of that string will be returned."
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${length(this.name)}")
 		);
 	}
 

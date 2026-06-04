@@ -932,7 +932,8 @@ img.disabled {
 }
 
 #files-tabs li.has-changes::after,
-#tabs li.has-changes::after {
+#tabs li.has-changes::after,
+.code-tabs li.has-changes::after {
 	content: "*";
 	position: absolute; /* so parent box size is not changed, otherwise tabs grow when change-indicator is present */
 }
@@ -1364,40 +1365,21 @@ body[style*=zoom] .non-block-ui-blocker-content {
     box-shadow: 0 0 .5rem var(--structr-light-green)
 }
 
+#dialogBox.maximized {
+	width: calc(100vw - 6rem);
+	height: calc(100vh - 7rem);
+}
+
 #dialogBox.insert-widget-dialog {
     width: calc(60vw);
     height: calc(40vh);
 }
 
 #dialogBox.maximized.insert-widget-dialog {
-    width: calc(100vw - 4rem);
-    height: calc(100vh - 5rem);
-    max-height: calc(100vh - 7rem);
-    border-radius: 0;
-    margin: 0;
+    width: calc(100vw - 6rem);
+    height: calc(100vh - 7rem);
 }
 
-/* set default sizes for dialogs with tabs */
-#dialogBox:has(ul > li.tab),
-#dialogBox:has(div.widgets-tabs),
-#dialogBox:has(div#tabs) {
-    height: calc(45vh);
-}
-#dialogBox.maximized:has(#tabs),
-#dialogBox.maximized:has(#files-tabs),
-#dialogBox.maximized:has(.widgets-tabs) {
-    height: calc(100vh - 5rem);
-}
-
-#dialogBox.execute-method-dialog {
-	height: calc(45vh);
-}
-
-#dialogBox.file-edit-dialog.popup-dialog-with-editor,
-#dialogBox.schema-edit-dialog:has(div#tabs),
-#dialogBox.schema-edit-dialog:has(div.code-tabs){
-	height: calc(60vh);
-}
 #dialogBox.file-edit-dialog.popup-dialog-with-editor .dialogText {
 	padding: .25rem 1rem 0 1rem;
 }
@@ -1418,11 +1400,6 @@ body[style*=zoom] .non-block-ui-blocker-content {
 
 #dialogBox.crud-import-export-dialog .dialogText {
 	padding: 1rem;
-}
-
-#dialogBox.maximized {
-	width: calc(100vw - 6rem);
-	height: calc(100vh - 7rem);
 }
 
 .dialogTitle {

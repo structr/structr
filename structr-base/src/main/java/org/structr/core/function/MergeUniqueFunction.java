@@ -19,10 +19,7 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.docs.Language;
-import org.structr.docs.Parameter;
-import org.structr.docs.Signature;
-import org.structr.docs.Usage;
+import org.structr.docs.*;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -32,7 +29,6 @@ import java.util.List;
 import java.util.Set;
 
 public class MergeUniqueFunction extends CoreFunction {
-
 
 	@Override
 	public String getName() {
@@ -74,7 +70,8 @@ public class MergeUniqueFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mergeUnique(list1, list2, list3...)}. Example: ${mergeUnique(this.children, this.siblings)}")
+				Usage.structrScript("Usage: ${mergeUnique(list1, list2, list3...)}"),
+				Usage.javaScript("Usage: ${{ $.mergeUnique(list1, list2, list3...) }}")
 		);
 	}
 
@@ -86,10 +83,10 @@ public class MergeUniqueFunction extends CoreFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-		You can use this function to create collections of objects, add objects to a collection, or to merge multiple collections into a single one. All objects that are passed to this function will be added to the resulting collection. If an argument is a collection, all objects in that collection are added to the resulting collection as well.
-
-		This function is very similar to `merge()` except that the resulting collection will **not** contain duplicate entries.
-		""";
+			You can use this function to create collections of objects, add objects to a collection, or to merge multiple collections into a single one. All objects that are passed to this function will be added to the resulting collection. If an argument is a collection, all objects in that collection are added to the resulting collection as well.
+	
+			This function is very similar to `merge()` except that the resulting collection will **not** contain duplicate entries.
+			""";
 	}
 
 	@Override
@@ -109,8 +106,10 @@ public class MergeUniqueFunction extends CoreFunction {
 	}
 
 	@Override
-	public List<Language> getLanguages() {
-		return List.of(Language.StructrScript);
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${mergeUnique(this.children, this.siblings)}")
+		);
 	}
 
 	@Override

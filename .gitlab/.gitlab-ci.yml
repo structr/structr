@@ -56,7 +56,7 @@ setup-variables:
       when: never
     - when: always
   services:
-    - name: neo4j:2025
+    - name: neo4j:latest
       alias: neo4j
       variables:
         NEO4J_AUTH: "neo4j/admin123"

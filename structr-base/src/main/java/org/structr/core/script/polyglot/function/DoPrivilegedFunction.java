@@ -128,10 +128,7 @@ public class DoPrivilegedFunction extends BuiltinFunctionHint implements ProxyEx
 
 	@Override
 	public List<Language> getLanguages() {
-
-		return List.of(
-			Language.JavaScript
-		);
+		return List.of(Language.JavaScript);
 	}
 
 	@Override

@@ -71,7 +71,8 @@ public class NumFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${num(object)}. Example: ${num(this.numericalStringValue)}")
+				Usage.structrScript("Usage: ${num(object)}"),
+				Usage.javaScript("Usage: ${{ $.num(object) }}")
 		);
 	}
 
@@ -83,14 +84,14 @@ public class NumFunction extends CoreFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-		Date values are also supported and are converted to the number of milliseconds since January 1, 1970, 00:00:00 GMT.
-		
-		Other date strings are also supported in the following formats:
-		- "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"
-		- "yyyy-MM-dd'T'HH:mm:ssXXX"
-		- "yyyy-MM-dd'T'HH:mm:ssZ"
-		- "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
-		""";
+			Date values are also supported and are converted to the number of milliseconds since January 1, 1970, 00:00:00 GMT.
+			
+			Other date strings are also supported in the following formats:
+			- "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"
+			- "yyyy-MM-dd'T'HH:mm:ssXXX"
+			- "yyyy-MM-dd'T'HH:mm:ssZ"
+			- "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+			""";
 	}
 
 	@Override
@@ -116,11 +117,6 @@ public class NumFunction extends CoreFunction {
 		return List.of(
 			"See also `long()`."
 		);
-	}
-
-	@Override
-	public List<Language> getLanguages() {
-		return List.of(Language.StructrScript);
 	}
 
 	@Override

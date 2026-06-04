@@ -33,7 +33,6 @@ import java.util.List;
 
 public class RandomFunction extends CoreFunction {
 
-
 	@Override
 	public String getName() {
 		return "random";

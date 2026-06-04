@@ -79,7 +79,8 @@ public class AndFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${and(b1, b2, ...)}. Example: ${and('true', 'true')}")
+				Usage.structrScript("Usage: ${and(b1, b2, ...)}"),
+				Usage.javaScript("Usage: ${{ $.and(b1, b2, ...) }}")
 		);
 	}
 
@@ -105,18 +106,6 @@ public class AndFunction extends CoreFunction {
 		return List.of(
 			Example.structrScript("${and(true, false)}", "true && false = false")
 		);
-	}
-
-	@Override
-	public List<String> getNotes() {
-		return List.of(
-			"This function is only available in StructrScript because there is a native language feature in JavaScript that does the same (the && operator)."
-		);
-	}
-
-	@Override
-	public List<Language> getLanguages() {
-		return List.of(Language.StructrScript);
 	}
 
 	@Override

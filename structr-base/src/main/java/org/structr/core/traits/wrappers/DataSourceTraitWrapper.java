@@ -30,7 +30,6 @@ import org.structr.core.traits.operations.datasource.DataSourceOperations;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.datasource.FieldDefinition;
 
-import javax.swing.*;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -43,7 +42,7 @@ public class DataSourceTraitWrapper extends AbstractNodeTraitWrapper implements 
 	}
 
 	@Override
-	public final ChannelResult<GraphObject> getResult(final ActionContext actionContext, final ChannelInput input) throws FrameworkException {
+	public final ChannelResult<GraphObject> getResult(final ActionContext actionContext, final ChannelInput input, final String transform) throws FrameworkException {
 
 		ChannelResult<GraphObject> result = cachedResults.get(input);
 		if (result == null) {
@@ -64,6 +63,11 @@ public class DataSourceTraitWrapper extends AbstractNodeTraitWrapper implements 
 	@Override
 	public String getDataType(final ActionContext actionContext) throws FrameworkException {
 		return traits.getMethod(DataSourceOperations.class).getDataType(actionContext, this);
+	}
+
+	@Override
+	public int getDimension() {
+		return traits.getMethod(DataSourceOperations.class).getDimension(this);
 	}
 
 	@Override

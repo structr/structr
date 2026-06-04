@@ -53,9 +53,6 @@ public class ConcatFunction extends CoreFunction {
 		final List list = new ArrayList();
 
 		try {
-			if (sources == null) {
-				throw new IllegalArgumentException();
-			}
 
 			for (final Object source : sources) {
 

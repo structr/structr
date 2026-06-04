@@ -50,9 +50,6 @@ public class LogFunction extends CoreFunction {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
-			if (sources == null) {
-				throw new IllegalArgumentException();
-			}
 
 			final StringBuilder buf = new StringBuilder();
 			for (final Object obj : sources) {

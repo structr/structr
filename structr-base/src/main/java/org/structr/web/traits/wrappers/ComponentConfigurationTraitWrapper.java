@@ -20,12 +20,23 @@ package org.structr.web.traits.wrappers;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.ChannelInput;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.datasources.Channel;
+import org.structr.core.datasources.ChannelDataSource;
+import org.structr.core.datasources.ParentDataSource;
 import org.structr.core.entity.DataAdapter;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.AbstractReadOnlyCollectionProperty;
+import org.structr.core.property.ArrayProperty;
+import org.structr.core.property.EndNodes;
+import org.structr.core.property.HyperRelationProperty;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StartNodes;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
+import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.DataField;
@@ -66,25 +77,6 @@ public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper
 		}
 
 		return null;
-	}
-
-	@Override
-	public Channel getDataSource() throws FrameworkException {
-
-		final Map<String, Object> cache = getTemporaryStorage();
-		Channel dataSource = (Channel) cache.get("_cached_data_source");
-
-		if (dataSource == null) {
-
-			dataSource = Channel.forName(this, getDataSourceName());
-			if (dataSource != null) {
-
-				// step 2: cache data source
-				cache.put("_cached_data_source", dataSource);
-			}
-		}
-
-		return dataSource;
 	}
 
 	@Override
@@ -157,6 +149,11 @@ public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper
 	}
 
 	@Override
+	public String getExpectedDataType() {
+		return wrappedObject.getProperty(traits.key(ComponentConfigurationTraitDefinition.EXPECTED_DATA_TYPE_PROPERTY));
+	}
+
+	@Override
 	public Boolean showLabels() {
 		return wrappedObject.getProperty(traits.key(ComponentConfigurationTraitDefinition.SHOW_LABELS_PROPERTY));
 	}
@@ -196,43 +193,83 @@ public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper
 	}
 
 	@Override
-	public ChannelInput getChannelInput(final RenderContext renderContext, final DataAdapter dataAdapter) throws FrameworkException {
+	public void checkCompatibility() throws FrameworkException {
 
-		final Channel channel = getDataSource();
-		if (channel != null) {
+		// check if the configuration is valid (dimension of data source + transform <= dimension of component)
+		final Channel<GraphObject> dataSource = getDataSource();
+		if (dataSource != null) {
 
-			final String transform     = getTransform();
-			final String sortKey       = channel.getSortKey();
-			final String filterKey     = channel.getFilterKey();
-			final String paginationKey = channel.getPaginationKey();
-			final String[] sortStrings = renderContext.getRequestParameterValues(sortKey);
-			final String filterString  = renderContext.getRequestParameter(filterKey);
-			final String pageString    = renderContext.getRequestParameter(paginationKey);
+			final int dataDimension = dataSource.getDimension();
+			final String transform  = getTransform();
 
-			int page = 1;
+			// Group 1: Data source + transform compatibility
+			//   - list data source + any transform => error (cannot navigate a property on a collection)
+			//   - single object data source + single object transform => ok
+			//   - single object data source + list transform => ok
+			if (dataDimension == 1 && transform != null) {
 
-			if (pageString != null) {
-
-				page = Integer.valueOf(pageString);
+				throw new FrameworkException(422,
+					"Transform '" + transform + "' cannot be applied to collection data source '" + dataSource.getChannelName() + "'. " +
+					"Transform is only supported for single-object data sources."
+				);
 			}
 
-			final ChannelInput input = new ChannelInput(transform, filterString, sortStrings != null ? Arrays.asList(sortStrings) : null, getPageSize(), page);
+			// Group 2: Component + transformed data source compatibility
+			// Compute the effective dimension after the transform (if any).
+			// For dim=0 + transform: check whether the transform property returns a list or a single object.
+			final DOMNode component = getComponent();
+			if (component != null) {
 
-			if (dataAdapter != null) {
+				final int componentDimension = component.getDimensions(true);
+				int effectiveDimension       = dataDimension;
 
-				for (final DataField field : dataAdapter.augmentFields(renderContext, channel, false).values()) {
+				if (componentDimension == -1) {
+					throw new FrameworkException(422, "Component " + component.getName() + " has no dimension.");
+				}
 
-					if (field.isSearchable()) {
-						input.searchableFields().add(field);
+				if (transform != null && dataDimension == 0) {
+
+					// Try to resolve the data type so we can inspect the transform property.
+					// First check expectedDataType, then ask the data source itself.
+					String dataType = getExpectedDataType();
+					if (dataType == null) {
+
+						try {
+							dataType = dataSource.getDataType(new ActionContext(SecurityContext.getSuperUserInstance()));
+						} catch (Exception ignore) {}
+					}
+
+					if (dataType != null && Traits.exists(dataType)) {
+
+						final Traits traits = Traits.of(dataType);
+						if (traits.hasKey(transform)) {
+
+							final PropertyKey transformKey = traits.key(transform);
+							final boolean isCollection     = transformKey.isCollection();
+
+							effectiveDimension = isCollection ? 1 : 0;
+						}
 					}
 				}
+
+				if (effectiveDimension > componentDimension) {
+
+					final StringBuilder error = new StringBuilder("Data source '");
+
+					error.append(dataSource.getChannelName()).append("'");
+
+					if (transform != null) {
+						error.append(" with transform '").append(transform).append("'");
+					}
+
+					error.append(" is not compatible with component '").append(component.getName()).append("'. ");
+					error.append("Component expects a single object but data source ");
+					error.append("returns a collection.");
+
+					throw new FrameworkException(422, error.toString());
+				}
 			}
-
-			return input;
 		}
-
-		return null;
-
 	}
 
 	@Override
@@ -266,5 +303,73 @@ public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper
 				setFieldSet(fieldSet + ",$*");
 			}
 		}
+	}
+
+	@Override
+	public Channel getDataSource() throws FrameworkException {
+
+		final Map<String, Object> cache = getTemporaryStorage();
+		Channel dataSource = (Channel) cache.get("_cached_data_source");
+
+		if (dataSource == null) {
+
+			dataSource = Channel.forName(getDataSourceName());
+			if (dataSource != null) {
+
+				// inject configuration so dynamic datasources can resolve their data type
+				if (dataSource instanceof ChannelDataSource cds) {
+					cds.setConfiguration(this);
+				}
+
+				if (dataSource instanceof ParentDataSource pds) {
+					pds.setConfiguration(this);
+				}
+
+				cache.put("_cached_data_source", dataSource);
+			}
+		}
+
+		return dataSource;
+	}
+
+	@Override
+	public ChannelInput getChannelInput(final RenderContext renderContext) throws FrameworkException {
+
+		final Channel channel = getDataSource();
+		if (channel != null) {
+
+			final String sortKey       = channel.getSortKey();
+			final String filterKey     = channel.getFilterKey();
+			final String paginationKey = channel.getPaginationKey();
+			final String[] sortStrings = renderContext.getRequestParameterValues(sortKey);
+			final String filterString  = renderContext.getRequestParameter(filterKey);
+			final String pageString    = renderContext.getRequestParameter(paginationKey);
+
+			int page = 1;
+
+			if (pageString != null) {
+
+				page = Integer.valueOf(pageString);
+			}
+
+			final ChannelInput input = new ChannelInput(filterString, sortStrings != null ? Arrays.asList(sortStrings) : null, getPageSize(), page);
+
+			// augment fields for search
+			final DataAdapter dataAdapter = getDataAdapter();
+			if (dataAdapter != null) {
+
+				for (final DataField field : dataAdapter.augmentFields(renderContext, channel, false).values()) {
+
+					if (field.isSearchable()) {
+						input.searchableFields().add(field);
+					}
+				}
+			}
+
+			return input;
+		}
+
+		return null;
+
 	}
 }

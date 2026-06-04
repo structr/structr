@@ -83,7 +83,8 @@ public class IntFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${int(parameter)}. Example: ${int(this.numericalStringValue)} or ${int(5.8)}")
+				Usage.structrScript("Usage: ${int(parameter)}"),
+				Usage.javaScript("Usage: ${{ $.int(parameter) }}")
 		);
 	}
 
@@ -112,11 +113,6 @@ public class IntFunction extends CoreFunction {
 			Example.structrScript("${int(5.8)}", "Convert a floating-point value into an integer"),
 			Example.structrScript("${int('35.8')}", "Convert a string into an integer")
 		);
-	}
-
-	@Override
-	public List<Language> getLanguages() {
-		return List.of(Language.StructrScript);
 	}
 
 	@Override

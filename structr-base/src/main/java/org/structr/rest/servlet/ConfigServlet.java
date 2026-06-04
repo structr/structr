@@ -771,7 +771,7 @@ public class ConfigServlet extends AbstractServletBase {
 		body.block("p").text("To start the server and access the user interface, the following actions must be performed:");
 
 		final Tag list  = body.block("ol");
-		final Tag item1 = list.block("li").text("Set a <b>superuser</b> password");
+		final Tag item1 = list.block("li").text("Set up <b>superuser</b> credentials");
 		final Tag item2 = list.block("li").text("Configure a <b>database connection</b>");
 
 		if (passwordIsSet) {
@@ -784,16 +784,7 @@ public class ConfigServlet extends AbstractServletBase {
 
 		if (!passwordIsSet) {
 
-			body.block("h3").text("Superuser password");
-
-			final Tag pwd = body.block("p");
-			pwd.empty("input")
-					.attr(new Name("superuser.password"))
-					.attr(new Type("password"))
-					.attr(new Attr("size", 40))
-					.attr(new Attr("placeholder", "Enter a superuser password"))
-					.attr(new Attr("class", "combined"));
-			pwd.empty("input").attr(new Type("submit")).attr(new Attr("value", "Save")).attr(new Attr("class", "combined"));
+			body.block("div").id("superuser-credentials-form");
 
 		} else {
 

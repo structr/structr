@@ -36,7 +36,6 @@ import org.structr.web.datasource.FieldDefinition;
 import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
-import javax.swing.*;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -44,13 +43,11 @@ public class RootFoldersDataSource<T extends GraphObject> implements Channel<T> 
 
 	private static final Logger logger = LoggerFactory.getLogger(RootFoldersDataSource.class);
 
-	private final ComponentConfiguration configuration;
 	private final String name;
 
-	public RootFoldersDataSource(final ComponentConfiguration configuration, String name) {
+	public RootFoldersDataSource(final String name) {
 
-		this.configuration = configuration;
-		this.name          = name;
+		this.name= name;
 	}
 
 	@Override
@@ -59,7 +56,12 @@ public class RootFoldersDataSource<T extends GraphObject> implements Channel<T> 
 	}
 
 	@Override
-	public final ChannelResult<T> getResult(final ActionContext actionContext, final ChannelInput input) throws FrameworkException {
+	public int getDimension() {
+		return 1;
+	}
+
+	@Override
+	public final ChannelResult<T> getResult(final ActionContext actionContext, final ChannelInput channelInput, final String transform) throws FrameworkException {
 
 		final Traits traits                                  = Traits.of(StructrTraits.FOLDER);
 		final PropertyKey<Iterable<NodeInterface>> parentKey = traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY);
@@ -89,7 +91,6 @@ public class RootFoldersDataSource<T extends GraphObject> implements Channel<T> 
 
 	public Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, final GraphObject contextObject, final int row, final int column) throws FrameworkException {
 
-		final ChannelInput input          = new ChannelInput(configuration.getTransform());
 		final RenderContext renderContext = (RenderContext) actionContext;
 
 		switch (key) {
@@ -98,7 +99,7 @@ public class RootFoldersDataSource<T extends GraphObject> implements Channel<T> 
 				return name;
 
 			case "values":
-				return getResult(renderContext, input);
+				return getResult(renderContext);
 
 			case "dataType":
 				return getDataType(renderContext);
@@ -108,9 +109,11 @@ public class RootFoldersDataSource<T extends GraphObject> implements Channel<T> 
 
 			case "currentValue":
 				// the loop object
-				return renderContext.getDataNode(configuration.getDataAdapter().getDataKey());
+				//return renderContext.getDataNode(configuration.getDataAdapter().getDataKey());
+				throw new UnsupportedOperationException("currentValue is currently not supported.");
 		}
 
 		return null;
 	}
 }
+

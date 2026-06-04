@@ -502,6 +502,9 @@ let _Schema = {
 
 						let responseData = await response.json();
 
+						_Schema.properties.highlightErrorProperties(document, responseData);
+						_Schema.remoteProperties.highlightErrorProperties(document, responseData);
+
 						_Schema.relationships.reportRelationshipError(data, data, responseData);
 					}
 
@@ -838,9 +841,6 @@ let _Schema = {
 				nameInput.disabled = true;
 				nameInput.classList.add('disabled');
 			}
-
-			let select = container.querySelector('[data-property="inheritedTraits"]');
-			select?.insertAdjacentHTML('beforeend', (entity.inheritedTraits ?? []).map(trait => `<option>${trait}</option>`).join(''));
 
 			let schemaNodeFlags = ['isServiceClass', 'changelogDisabled', 'defaultVisibleToPublic', 'defaultVisibleToAuth'];
 
@@ -1869,10 +1869,25 @@ let _Schema = {
 					} else {
 
 						response.json().then((data) => {
+
+							_Schema.properties.highlightErrorProperties(container, data);
+
 							Structr.errorFromResponse(data, undefined, { requiresConfirmation: true });
 						});
 					}
 				});
+			}
+		},
+		highlightErrorProperties: (container, responseData) => {
+
+			let errors = responseData.errors.map(e => {
+				e.detail = e.detail.replaceAll('\n', '<br>');
+				return e;
+			});
+
+			for (let error of errors) {
+				let errorInputs = [...container.querySelectorAll(`.schema-grid.local.schema-props input.property-name`)].filter(input => input.value === error.value);
+				_Helpers.blinkRed(errorInputs);
 			}
 		},
 		bindRowEvents: (property, gridRow, overrides) => {
@@ -2686,10 +2701,25 @@ let _Schema = {
 					} else {
 
 						response.json().then((data) => {
+
+							_Schema.remoteProperties.highlightErrorProperties(el, data);
+
 							Structr.errorFromResponse(data, undefined, { requiresConfirmation: true });
 						});
 					}
 				});
+			}
+		},
+		highlightErrorProperties: (container, responseData) => {
+
+			let errors = responseData.errors.map(e => {
+				e.detail = e.detail.replaceAll('\n', '<br>');
+				return e;
+			});
+
+			for (let error of errors) {
+				let errorInputs = [...container.querySelectorAll(`[data-property-name="${error.property}"] input`)].filter(input => input.value === error.value);
+				_Helpers.blinkRed(errorInputs);
 			}
 		},
 		appendRemoteProperty: (el, rel, out, editSchemaObjectLinkHandler) => {
@@ -3381,6 +3411,7 @@ let _Schema = {
 					returnRawResult: methodData.returnRawResult,
 					httpVerb:        methodData.httpVerb,
 					source:          methodData.source,
+					wrapJsInMain:    methodData.wrapJsInMain
 				};
 
 				if (methodData.isNew === false) {

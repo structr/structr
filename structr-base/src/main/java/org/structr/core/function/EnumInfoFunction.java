@@ -46,7 +46,7 @@ public class EnumInfoFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("type, propertyName [, raw]");
+		return Signature.forAllScriptingLanguages("type, propertyName");
 	}
 
 	@Override
@@ -54,11 +54,10 @@ public class EnumInfoFunction extends AdvancedScriptingFunction {
 
 		try {
 
-			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 2, 3);
+			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 2, 2);
 
 			final String typeName         = sources[0].toString();
 			final String enumPropertyName = sources[1].toString();
-			final boolean rawList         = (sources.length == 3) ? Boolean.parseBoolean(sources[2].toString()) : false;
 			final Traits type             = Traits.of(typeName);
 
 			if (type == null) {
@@ -75,24 +74,7 @@ public class EnumInfoFunction extends AdvancedScriptingFunction {
 
 				final Set<String> enumConstants = enumProperty.getEnumConstants();
 
-				if (rawList) {
-
-					return enumConstants;
-
-				} else {
-
-					final ArrayList<GraphObjectMap> resultList = new ArrayList<>();
-
-					for (final String value : enumConstants) {
-
-						final GraphObjectMap valueMap = new GraphObjectMap();
-						resultList.add(valueMap);
-
-						valueMap.put(new StringProperty("value"), value);
-					}
-
-					return resultList;
-				}
+				return enumConstants;
 
 			} else {
 
@@ -109,30 +91,14 @@ public class EnumInfoFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${enumInfo(type, enumProperty[, raw = false ])}. Example ${enumInfo('Document', 'documentType')}"),
-			Usage.javaScript("Usage: ${{ $.enumInfo(type, enumProperty[, raw = false ])}}. Example ${{ $.enumInfo('Document', 'documentType')}}")
+			Usage.structrScript("Usage: ${enumInfo(type, enumProperty)}. Example ${enumInfo('Document', 'documentType')}"),
+			Usage.javaScript("Usage: ${{ $.enumInfo(type, enumProperty)}}. Example ${{ $.enumInfo('Document', 'documentType')}}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the possible values of an enum property.";
-	}
-
-	@Override
-	public String getLongDescription() {
-		return """
-			The default behaviour of this function is to return a list of objects with a single `value` entry that contains the enum value, so it can be used in a repeater to configure HTML select dropdowns etc:
-
-			```
-			[ { value: 'EnumValue1' }, { value: 'EnumValue2' }, { value: 'EnumValue3' } ]
-			```
-
-			If the `raw` parameter is set to `true`, a simple list will be returned:
-			```
-			[ 'EnumValue1', 'EnumValue2', 'EnumValue3' } ]
-			```
-			""";
+		return "Returns the collection of possible values of an enum property.";
 	}
 
 	@Override
@@ -140,8 +106,7 @@ public class EnumInfoFunction extends AdvancedScriptingFunction {
 
 		return List.of(
 			Parameter.mandatory("type", "type on which the property is defined"),
-			Parameter.mandatory("propertyName", "name of the property"),
-			Parameter.optional("raw", "whether to return a raw list (`true`) of enum values or a list of objects (`false`). Default: `false`")
+			Parameter.mandatory("propertyName", "name of the property")
 		);
 	}
 

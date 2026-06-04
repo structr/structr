@@ -73,7 +73,8 @@ public class LongFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${long(input)}. Example: ${num(this.numericalStringValue)}")
+				Usage.structrScript("Usage: ${long(input)}"),
+				Usage.javaScript("Usage: ${{ $.long(input) }}")
 		);
 	}
 
@@ -121,11 +122,6 @@ public class LongFunction extends CoreFunction {
 		return List.of(
 			"See also `num()`."
 		);
-	}
-
-	@Override
-	public List<Language> getLanguages() {
-		return List.of(Language.StructrScript);
 	}
 
 	@Override

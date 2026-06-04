@@ -3062,16 +3062,32 @@ let _Entities = {
             }
 
             // construct list of available fields (all fields minus selected fields)
-            for (let fieldName in fields) {
-                if (!currentFieldSet.includes(fieldName)) {
-                    let field = fields[fieldName];
-                    let renderTemplate = field?.[whichTemplate];
-                    let color = field[whichTemplate]?.length ? 'text-gray-555' : 'text-gray-aaa';
-                    let iconClasses = (field?.source === 'adapter' ? 'delete-field-button text-gray-666 cursor-pointer' : 'text-gray-ddd');
-                    let iconTitle = (field?.source === 'adapter' ? 'Remove field from adapter.' : 'Data source field cannot be removed here.');
-                    available.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.availableFieldPartial({ fieldName, field, renderTemplate, color, iconClasses, iconTitle }));
-                }
-            }
+			if (Object.keys(fields).length > 0) {
+				
+				for (let fieldName in fields) {
+					if (!currentFieldSet.includes(fieldName)) {
+						let field = fields[fieldName];
+						let renderTemplate = field?.[whichTemplate];
+						let color = field[whichTemplate]?.length ? 'text-gray-555' : 'text-gray-aaa';
+						let iconClasses = (field?.source === 'adapter' ? 'delete-field-button text-gray-666 cursor-pointer' : 'text-gray-ddd');
+						let iconTitle = (field?.source === 'adapter' ? 'Remove field from adapter.' : 'Data source field cannot be removed here.');
+						available.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.availableFieldPartial({
+							fieldName,
+							field,
+							renderTemplate,
+							color,
+							iconClasses,
+							iconTitle
+						}));
+					}
+				}
+
+			} else {
+
+				available.insertAdjacentHTML('beforeend', `
+					<div class="m-4 text-gray-666">It seems that the current data source does not provide information about the expected type. Please enter a type name into the "Expected Data Type" input field at the top to get a list of available fields.</div>
+				`);
+			}
 
             let collectKeys = () => {
                 let fields = [];
@@ -4251,7 +4267,7 @@ let _Entities = {
 				<div class="${_Entities.generalTab.templates.gridClasses()}">
 
                     <div>
-                        <label class="block mb-2" for="data-source-channel-select" data-comment="Source determines which objects are displayed in this component, and selection transforms the result.">Source & Selection</label>
+                        <label class="block mb-2" for="data-source-channel-select" data-comment="Source determines which objects are displayed in this component, and selection transforms the result. Enter a property name in the selection field to display the property value in this component.">Source & Selection</label>
                         <div class="data-source-channel-options flex">
                         	${sourceField}
                             <span class="inline-flex items-center bg-gray px-2 w-4 justify-center select-none border-0 border-t border-b border-solid border-gray-input">.</span>
@@ -4262,8 +4278,16 @@ let _Entities = {
                     </div>
 
                     <div>
-                        <label class="block mb-2" for="data-selection-channel-input" data-comment="Which channel the UUID of the selected object is made available on for other components to consume.">Selection Channel</label>
-                        <input class="validated" type="text" id="data-selection-channel-input" ${config.config.role === 'controller' ? 'required' : ''} autocomplete="off" name="selectionChannel" data-which="config">
+						<div class="${_Entities.generalTab.templates.gridClasses()}">
+								<div>
+									<label class="block mb-2" for="expected-data-type-input" data-comment="The type this component expects from its data source. This controls the available fields in the list below.">Expected Type</label>
+									<input class="validated" type="text" id="expected-data-type-input" autocomplete="off" name="expectedDataType" data-which="config">
+								</div>
+								<div>
+									<label class="block mb-2" for="data-selection-channel-input" data-comment="Which channel the UUID of the selected object is made available on for other components to consume.">Selection Channel</label>
+									<input class="validated" type="text" id="data-selection-channel-input" ${config.config.role === 'controller' ? 'required' : ''} autocomplete="off" name="selectionChannel" data-which="config">
+								</div>
+                        </div>
                     </div>
 
                     <div>

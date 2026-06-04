@@ -56,10 +56,6 @@ public class ErrorFunction extends AdvancedScriptingFunction {
 
 		try {
 
-			if (sources == null) {
-				throw new IllegalArgumentException();
-			}
-
 			switch (sources.length) {
 
 				case 2: {

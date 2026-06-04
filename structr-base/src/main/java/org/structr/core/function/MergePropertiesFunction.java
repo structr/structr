@@ -95,7 +95,8 @@ public class MergePropertiesFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mergeProperties(source, target , mergeKeys...)}. Example: ${mergeProperties(this, parent, \"eMail\")}")
+				Usage.structrScript("Usage: ${mergeProperties(source, target , mergeKeys...)}"),
+				Usage.javaScript("Usage: ${{ $.mergeProperties(source, target , mergeKeys...) }}")
 		);
 	}
 
@@ -122,14 +123,12 @@ public class MergePropertiesFunction extends CoreFunction {
 		);
 	}
 
-	@Override
-	public List<Example> getExamples() {
-		return super.getExamples();
-	}
 
 	@Override
-	public List<Language> getLanguages() {
-		return List.of(Language.StructrScript);
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${mergeProperties(this, parent, \"eMail\")}")
+		);
 	}
 
 	@Override

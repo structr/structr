@@ -132,7 +132,7 @@ let _Widgets = {
 		let importWidgetsButton = container.querySelector('#import-widget-set');
 		importWidgetsButton.addEventListener('click', () => {
 			let formData = new FormData();
-			formData.append('downloadUrl', 'https://gitlab.structr.com/structr/widgets/-/archive/0.0.3/widgets-0.0.3.zip');
+			formData.append('downloadUrl', 'https://gitlab.structr.com/structr/widgets/-/archive/0.0.4/widgets-0.0.4.zip');
 			formData.append('mode', 'app'); // mode "app" implies "quiet mode", i.e. no notifications
 			fetch(`${Structr.deployRoot}`, {
 				method: 'POST',
@@ -1217,6 +1217,7 @@ let _Widgets = {
 		},
 		getCustomTypesForMenu: async () => {
 			let sources = await _Widgets.templates.getFetchResult('_schema', t => !t.isBuiltin && !t.isRel);
+			sources.sort((a, b) => a.name.localeCompare(b.name));
 			let values = [];
 			for (let value of sources) {
 				values.push(await _Widgets.templates.getCustomTypeOptions(value.className, value.className, value.className + " nodes"));

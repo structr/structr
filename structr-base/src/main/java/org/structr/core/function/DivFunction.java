@@ -21,6 +21,7 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
 import org.structr.docs.Language;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
@@ -56,7 +57,6 @@ public class DivFunction extends CoreFunction {
 
 				logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getDisplayName(), caller, getParametersAsString(sources) });
 				return nfe.getMessage();
-
 			}
 
 		} catch (ArgumentNullException pe) {
@@ -86,7 +86,8 @@ public class DivFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${div(value1, value2)}. Example: ${div(5, 2)}")
+				Usage.structrScript("Usage: ${div(value1, value2)}"),
+				Usage.javaScript("Usage: ${{ $.div(value1, value2) }}")
 		);
 	}
 
@@ -108,8 +109,10 @@ public class DivFunction extends CoreFunction {
 	}
 
 	@Override
-	public List<Language> getLanguages() {
-		return List.of(Language.StructrScript);
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${div(5, 2)}")
+		);
 	}
 
 	@Override

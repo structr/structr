@@ -25,4 +25,5 @@ public interface ScriptDataSource<T extends GraphObject> extends DataSource<T> {
 	String getValuesScript();
 	String getFieldsScript();
 	String getDataType();
+	int getDimension();
 }

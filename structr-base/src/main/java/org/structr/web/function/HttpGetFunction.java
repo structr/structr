@@ -215,15 +215,15 @@ public class HttpGetFunction extends UiAdvancedFunction {
 		return """
 			This function can be used in a script to make an HTTP GET request **from within the Structr Server**, triggered by a frontend control like a button etc.
 
+			When the `contentType` parameter is set to `application/octet-stream`, the response body is returned as a streaming `InputStream` instead of a `byte[]` array. This removes the previous 2 GB file size limit for binary downloads. The stream can be passed directly to `setContent()` which will stream the data to the file storage without buffering the entire content in memory. This stream is consumed by `setContent()` and can not be read again.
+
 			The `GET()` function will return a response object with the following structure:
 
 			| Field | Description | Type |
 			| --- | --- | --- |
-			status | HTTP status of the request | Integer |
-			headers | Response headers | Map |
-			body | Response body | String, InputStream or Map |
-
-			When the `contentType` parameter is set to `application/octet-stream`, the response body is returned as a streaming `InputStream` instead of a `byte[]` array. This removes the previous 2 GB file size limit for binary downloads. The stream can be passed directly to `setContent()` which will stream the data to the file storage without buffering the entire content in memory.
+			| status | HTTP status of the request | Integer |
+			| headers | Response headers | Map |
+			| body | Response body | String, InputStream or Map |
 			""";
 	}
 
@@ -231,35 +231,50 @@ public class HttpGetFunction extends UiAdvancedFunction {
 	public List<Example> getExamples() {
 
 		return List.of(
-			Example.structrScript("${GET('http://localhost:8082/structr/rest/User')}", "Return an 'Access denied' error message with code 401 from the local Structr instance (depending on the configuration of that instance), because you cannot access the User collection from the outside without authentication."),
+			Example.structrScript("${GET('http://localhost:8082/structr/rest/User').body}", "Return an 'Access denied' error message with code 401 from the local Structr instance (depending on the configuration of that instance), because you cannot access the User collection from the outside without authentication."),
 			Example.structrScript("""
-			${
-				(
-				  addHeader('X-User', 'admin'),
-				  addHeader('X-Password', 'admin'),
-				  GET('http://localhost:8082/structr/rest/User')
-				)
-			}
-			""", "Return the list of users from the local Structr instance (depending on the configuration of that instance)."),
-			Example.structrScript("${GET('http://www.google.com', 'text/html')}", "Return the HTML source code of the front page of google.com."),
-			Example.structrScript("${GET('http://www.google.com', 'text/html; charset=UTF-8')}", "Return the HTML source code of the front page of google.com (since the server sends a charset in the response, the given charset parameter is overridden)."),
-			Example.structrScript("${GET('http://www.google.com', 'text/html; charset=ISO-8859-1')}", "Return the HTML source code of the front page of google.com (since the server sends a charset in the response, the given charset parameter is overridden)."),
-			Example.structrScript("${GET('http://www.google.com', 'text/html', '#footer')}", "Return the HTML content of the element with the ID 'footer' from google.com."),
-			Example.structrScript("${setContent(create('File', 'name', 'googleLogo.png'), GET('https://www.google.com/images/branding/googlelogo/1x/googlelogoLightColor_272x92dp.png', 'application/octet-stream'))}", "Create a new file with the google logo in the local Structr instance."),
-			Example.javaScript("${{\n\t$.addHeader('Authorization', 'Bearer ...');\n\t$.setContent(file, $.GET('https://example.com/large-file.zip', 'application/octet-stream').body, 'application/octet-stream');\n}}", "Stream a large binary file directly into a Structr File node without size limit.")
+				${
+					(
+					  addHeader('X-User', 'admin'),
+					  addHeader('X-Password', 'admin'),
+					  GET('http://localhost:8082/structr/rest/User').body
+					)
+				}
+				""", "Return the list of users from the local Structr instance (depending on the configuration of that instance)."),
+			Example.structrScript("${GET('https://www.example.com', 'text/html').body}", "Return the HTML source code of the front page of example.com."),
+			Example.structrScript("${GET('https://www.example.com', 'text/html; charset=UTF-8').body}", "Return the HTML source code of the front page of example.com (since the server sends a charset in the response, the given charset parameter is overridden)."),
+			Example.structrScript("${GET('https://www.example.com', 'text/html; charset=ISO-8859-1').body}", "Return the HTML source code of the front page of example.com (since the server sends a charset in the response, the given charset parameter is overridden)."),
+			Example.structrScript("${GET('https://www.example.com', 'text/html', '#footer').body}", "Return the HTML content of the element with the ID 'footer' from example.com."),
+			Example.structrScript("""
+				${
+					setContent(
+						create('Image', 'name', 'exampleLogo.png'),
+						GET('https://www.example.com/logo.png', 'application/octet-stream').body
+					)
+				}
+				""", "Create a new file with the example logo in the local Structr instance."),
+			Example.javaScript("""
+				${{
+					let file = ...;
+					$.addHeader('Authorization', 'Bearer ...');
+					$.setContent(
+						file,
+						$.GET('https://example.com/large-file.zip', 'application/octet-stream').body
+					);
+				}}
+				""", "Stream a large binary file directly into a Structr File node without size limit.")
 		);
 	}
 
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-			"From version 3.5 onwards, GET() supports binary content by setting the `contentType` parameter to `application/octet-stream`. (This is helpful when creating files - see example.)",
+			"From version 3.5 onwards, GET() supports binary content by setting the `contentType` parameter to `application/octet-stream`. (This is helpful when creating files - see examples.)",
 			"v4.0+: `contentType` can be used like the `Content-Type` header - to set the **expected** response mime type and to set the `charset` with which the response will be interpreted (**unless** the server sends provides a charset, then this charset will be used).",
-			"Prior to v4.0: `contentType` is the **expected** response content type (it does not influence the charset of the response - the charset from the **sending server** will be used).",
 			"The parameters `username` and `password` are intended for HTTP Basic Auth. For header authentication use `addHeader()`.",
 			"The `GET()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `addHeader()` (see the related articles for more information).",
 			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls.",
-			"v6.4+: When using `application/octet-stream`, the response body is returned as a streaming `InputStream` instead of a `byte[]` array. This removes the previous 2 GB file size limit and avoids buffering the entire response in memory. The stream is consumed when passed to `setContent()` and should not be read more than once."
+			"v6.4+: When using `application/octet-stream`, the response body is returned as a streaming `InputStream` instead of a `byte[]` array. This removes the previous 2 GB file size limit and avoids buffering the entire response in memory. The stream is consumed when passed to `setContent()` and can not be read more than once."
 		);
 	}
 

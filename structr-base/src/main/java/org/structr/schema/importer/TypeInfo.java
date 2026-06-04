@@ -28,8 +28,6 @@ import java.util.*;
  */
 public class TypeInfo {
 
-	private static final String userHome = System.getProperty("user.home");
-
 	private final Map<String, Class> propertySet = new LinkedHashMap<>();
 	private final Set<String> otherTypes         = new LinkedHashSet<>();
 	private final Set<Identity> nodeIds          = new LinkedHashSet<>();

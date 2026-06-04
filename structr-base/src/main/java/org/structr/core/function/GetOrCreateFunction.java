@@ -57,11 +57,6 @@ public class GetOrCreateFunction extends CoreFunction {
 
 		try {
 
-			if (sources == null) {
-
-				throw new IllegalArgumentException();
-			}
-
 			final SecurityContext securityContext = ctx.getSecurityContext();
 			final App app = StructrApp.getInstance(securityContext);
 			final PropertyMap properties = new PropertyMap();

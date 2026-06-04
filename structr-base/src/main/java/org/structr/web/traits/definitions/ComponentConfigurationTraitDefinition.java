@@ -39,12 +39,10 @@ import org.structr.core.traits.definitions.DataAdapterTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
-import org.structr.schema.action.Function;
 import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.traits.wrappers.ComponentConfigurationTraitWrapper;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -64,6 +62,7 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 	public static final String TRANSFORM_PROPERTY              = "transform";
 	public static final String PAGE_SIZE_PROPERTY              = "pageSize";
 	public static final String PAGINATION_WINDOW_SIZE_PROPERTY = "paginationWindowSize";
+	public static final String EXPECTED_DATA_TYPE_PROPERTY     = "expectedDataType";
 
 	// Binding mode: how this component relates to a process-side declaration
 	// of its data type. Default `standalone`: the dataSource and field config
@@ -130,6 +129,8 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 
 						componentConfiguration.setProperty(componentTraits.key(DISPLAY_MODE_PROPERTY), "output");
 					}
+
+					componentConfiguration.checkCompatibility();
 				}
 			},
 
@@ -142,7 +143,7 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 					final ComponentConfiguration componentConfiguration = graphObject.as(ComponentConfiguration.class);
 
 					componentConfiguration.updateFieldSetForChildren();
-
+					componentConfiguration.checkCompatibility();
 				}
 			}
 		);
@@ -172,6 +173,7 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 		final Property<Integer> paginationWindowSizeProperty = new IntProperty(PAGINATION_WINDOW_SIZE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 		final Property<String>  bindingModeProperty          = new EnumProperty(BINDING_MODE_PROPERTY, Set.of(BINDING_MODE_STANDALONE, BINDING_MODE_PROCESS_BOUND))
 			.defaultValue(BINDING_MODE_STANDALONE).indexed().category(DOMNode.WIDGETS_CATEGORY);
+		final Property<String> expectedDataTypeProperty      = new StringProperty(EXPECTED_DATA_TYPE_PROPERTY).category(DOMNode.WIDGETS_CATEGORY);
 
 		return newSet(
 			domNodeProperty,
@@ -188,7 +190,8 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 			transformProperty,
 			pageSizeProperty,
 			paginationWindowSizeProperty,
-			bindingModeProperty
+			bindingModeProperty,
+			expectedDataTypeProperty
 		);
 	}
 
@@ -207,7 +210,8 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 				// (target type lives in structr-process-module). Listed here so
 				// the General-tab dialog can read it when the trait is composed
 				// with the process module loaded; ignored otherwise.
-				BOUND_USER_TASK_PROPERTY
+				BOUND_USER_TASK_PROPERTY,
+				EXPECTED_DATA_TYPE_PROPERTY
 			)
 		);
 	}

@@ -73,7 +73,8 @@ public class DoubleSumFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${doubleSum(list)}. Example: ${doubleSum(extract(this.children, 'amount'))}")
+				Usage.structrScript("Usage: ${doubleSum(list)}"),
+				Usage.javaScript("Usage: ${{ $.doubleSum(list) }}")
 		);
 	}
 
@@ -85,11 +86,6 @@ public class DoubleSumFunction extends CoreFunction {
 	@Override
 	public String getLongDescription() {
 		return "This function will most likely be used in combination with the `extract()` or `merge()` functions.";
-	}
-
-	@Override
-	public List<Language> getLanguages() {
-		return List.of(Language.StructrScript);
 	}
 
 	@Override

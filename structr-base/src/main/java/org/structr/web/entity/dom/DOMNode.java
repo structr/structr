@@ -158,7 +158,7 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	String getComponentType();
 	String getItemType();
 	String getRepeaterType();
-	Integer getDimensions();
+	int getDimensions(final boolean includeSharedComponent);
 	String getDisplayMode();
 	String getFieldSet();
 	String getSaveMode();

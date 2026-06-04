@@ -337,7 +337,6 @@ public class SchemaHelper {
 
 		map.put("isCollection", property.isCollection());
 
-		//if (declaringClass != null && ("org.structr.dynamic".equals(declaringClass.getPackage().getName()))) {
 		if (declaringTrait != null && property instanceof RelationProperty) {
 
 			Relation relation = ((RelationProperty) property).getRelation();

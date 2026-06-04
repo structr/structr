@@ -243,8 +243,13 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 	// ----- package methods ------
 	@Override
 	Map<String, Object> serialize() {
+		return serialize(false);
+	}
 
-		final Map<String, Object> map = super.serialize();
+	@Override
+	Map<String, Object> serialize(final boolean removeManagedViews) {
+
+		final Map<String, Object> map = super.serialize(removeManagedViews);
 
 		map.put(JsonSchema.KEY_RELATIONSHIP, relationshipType);
 		map.put(JsonSchema.KEY_LINK_SOURCE, root.toJsonPointer(sourceType));

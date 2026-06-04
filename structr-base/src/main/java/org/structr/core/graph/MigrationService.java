@@ -1576,7 +1576,8 @@ public class MigrationService {
 				final Folder folder = node.as(Folder.class);
 
 				final NodeInterface config = app.create(StructrTraits.STORAGE_CONFIGURATION,
-					new NodeAttribute<>(storageConfigurationTraits.key(StorageConfigurationTraitDefinition.NAME_PROPERTY), folder.getFolderPath())
+						new NodeAttribute<>(storageConfigurationTraits.key(StorageConfigurationTraitDefinition.NAME_PROPERTY), folder.getFolderPath()),
+						new NodeAttribute<>(storageConfigurationTraits.key(StorageConfigurationTraitDefinition.PROVIDER_PROPERTY), "org.structr.storage.providers.local.LocalFSStorageProvider")
 				);
 
 				app.create(StructrTraits.STORAGE_CONFIGURATION_ENTRY,

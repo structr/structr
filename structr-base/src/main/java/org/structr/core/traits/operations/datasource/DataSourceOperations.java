@@ -33,4 +33,5 @@ public abstract class DataSourceOperations<T> extends FrameworkMethod<DataSource
 	public abstract ResultStream<T> getValues(final ActionContext actionContext, final DataSource provider, final ChannelInput input) throws FrameworkException;
 	public abstract Map<String, FieldDefinition> getFields(final ActionContext actionContext, final DataSource provider) throws FrameworkException;
 	public abstract String getDataType(final ActionContext actionContext, final DataSource provider) throws FrameworkException;
+	public abstract int getDimension(final DataSource provider);
 }

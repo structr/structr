@@ -21,10 +21,7 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.docs.Language;
-import org.structr.docs.Parameter;
-import org.structr.docs.Signature;
-import org.structr.docs.Usage;
+import org.structr.docs.*;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -71,7 +68,8 @@ public class ModFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mod(value1, value2)}. Example: ${mod(17, 5)}")
+				Usage.structrScript("Usage: ${mod(value1, value2)}"),
+				Usage.javaScript("Usage: ${{ $.mod(value1, value2) }}")
 		);
 	}
 
@@ -95,8 +93,10 @@ public class ModFunction extends CoreFunction {
 	}
 
 	@Override
-	public List<Language> getLanguages() {
-		return List.of(Language.StructrScript);
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${mod(17, 5)}")
+		);
 	}
 
 	@Override

@@ -164,10 +164,17 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 		return def;
 	}
 
+
 	@Override
 	Map<String, Object> serialize() {
 
-		final Map<String, Object> map = super.serialize();
+		return serialize(false);
+	}
+
+	@Override
+	Map<String, Object> serialize(final boolean removeManagedViews) {
+
+		final Map<String, Object> map = super.serialize(removeManagedViews);
 
 		Map<String, Object> serializedProperties = (Map)map.get(JsonSchema.KEY_PROPERTIES);
 		if (serializedProperties == null) {
