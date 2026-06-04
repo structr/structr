@@ -1451,7 +1451,8 @@ let _Pages = {
 			'process-terminated':      null,
 			'process-failed':          null,
 			'process-awaiting-action': null,
-			'no-instance':             null
+			'no-instance':             null,
+			'has-active-instance':     null
 		};
 
 		let cachedVisibilityProcesses = null;
@@ -5449,6 +5450,7 @@ let _Pages = {
 							<option value="process-failed">Process has failed</option>
 							<option value="process-awaiting-action">Process is awaiting someone else's action</option>
 							<option value="no-instance">No process instance exists for me yet</option>
+							<option value="has-active-instance">I already have a running instance</option>
 						</optgroup>
 					</select>
 				</div>

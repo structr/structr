@@ -127,12 +127,13 @@ public class VisibilityMappingTraitDefinition extends AbstractNodeTraitDefinitio
 	public static final String STATE_PROCESS_FAILED          = "process-failed";
 	public static final String STATE_PROCESS_AWAITING_ACTION = "process-awaiting-action";
 	public static final String STATE_NO_INSTANCE             = "no-instance";
+	public static final String STATE_HAS_ACTIVE_INSTANCE     = "has-active-instance";
 
 	private static final Set<String> ALL_STATES = Set.of(
 		STATE_TASK_AVAILABLE, STATE_TASK_RESERVED_BY_ME, STATE_TASK_RESERVED_BY_OTHER,
 		STATE_TASK_COMPLETED, STATE_TASK_CANCELLED,
 		STATE_PROCESS_COMPLETED, STATE_PROCESS_TERMINATED, STATE_PROCESS_FAILED,
-		STATE_PROCESS_AWAITING_ACTION, STATE_NO_INSTANCE
+		STATE_PROCESS_AWAITING_ACTION, STATE_NO_INSTANCE, STATE_HAS_ACTIVE_INSTANCE
 	);
 
 	public VisibilityMappingTraitDefinition() {
@@ -272,30 +273,21 @@ public class VisibilityMappingTraitDefinition extends AbstractNodeTraitDefinitio
 			if (currentUser == null) {
 				return false;
 			}
-			final NodeInterface userNode = app.getNodeById(currentUser.getUuid());
-			if (userNode == null) {
+			return !hasActiveInstanceForUser(app, currentUser, boundProcessId);
+		}
+
+		// Inverse of no-instance: the current user already has an active
+		// (running / suspended) instance of the bound process. Context-free
+		// like no-instance, so it works on a catalog / landing page that has
+		// no ProcessInstance in render context.
+		if (STATE_HAS_ACTIVE_INSTANCE.equals(state)) {
+			if (boundProcessId == null || boundProcessId.isEmpty()) {
+				return instance != null;
+			}
+			if (currentUser == null) {
 				return false;
 			}
-			final Traits piTraits = Traits.of(ProcessTraits.PROCESS_INSTANCE);
-			final PropertyKey<NodeInterface> piInitKey    = piTraits.key(ProcessInstanceTraitDefinition.INITIATOR_PROPERTY);
-			final PropertyKey<NodeInterface> piProcKey    = piTraits.key(ProcessInstanceTraitDefinition.PROCESS_PROPERTY);
-			final PropertyKey<String>        piStatusKey  = piTraits.key(ProcessInstanceTraitDefinition.STATUS_PROPERTY);
-			final Traits procTraits = Traits.of(ProcessTraits.BPMN_PROCESS);
-			final PropertyKey<String>        procIdKey    = procTraits.key(BpmnProcessTraitDefinition.PROCESS_ID_PROPERTY);
-
-			for (final NodeInterface pi : app.nodeQuery(ProcessTraits.PROCESS_INSTANCE).key(piInitKey, userNode).getResultStream()) {
-				final String status = pi.getProperty(piStatusKey);
-				if (!ProcessInstanceTraitDefinition.STATUS_RUNNING.equals(status)
-						&& !ProcessInstanceTraitDefinition.STATUS_SUSPENDED.equals(status)) {
-					continue;
-				}
-				final NodeInterface proc = pi.getProperty(piProcKey);
-				if (proc == null) continue;
-				if (boundProcessId.equals(proc.getProperty(procIdKey))) {
-					return false;
-				}
-			}
-			return true;
+			return hasActiveInstanceForUser(app, currentUser, boundProcessId);
 		}
 
 		if (instance == null) {
@@ -408,6 +400,39 @@ public class VisibilityMappingTraitDefinition extends AbstractNodeTraitDefinitio
 				logger.warn("VisibilityMapping: unknown state '{}'", state);
 				return false;
 		}
+	}
+
+	/**
+	 * True if {@code currentUser} initiated an active (running or suspended)
+	 * ProcessInstance whose process matches {@code boundProcessId}. Context-free
+	 * (DB query, runs as the engine's superuser app), shared by the
+	 * {@code no-instance} (negated) and {@code has-active-instance} states.
+	 */
+	private static boolean hasActiveInstanceForUser(final App app, final Principal currentUser, final String boundProcessId) throws FrameworkException {
+
+		final NodeInterface userNode = app.getNodeById(currentUser.getUuid());
+		if (userNode == null) {
+			return false;
+		}
+		final Traits piTraits = Traits.of(ProcessTraits.PROCESS_INSTANCE);
+		final PropertyKey<NodeInterface> piInitKey   = piTraits.key(ProcessInstanceTraitDefinition.INITIATOR_PROPERTY);
+		final PropertyKey<NodeInterface> piProcKey   = piTraits.key(ProcessInstanceTraitDefinition.PROCESS_PROPERTY);
+		final PropertyKey<String>        piStatusKey = piTraits.key(ProcessInstanceTraitDefinition.STATUS_PROPERTY);
+		final PropertyKey<String>        procIdKey   = Traits.of(ProcessTraits.BPMN_PROCESS).key(BpmnProcessTraitDefinition.PROCESS_ID_PROPERTY);
+
+		for (final NodeInterface pi : app.nodeQuery(ProcessTraits.PROCESS_INSTANCE).key(piInitKey, userNode).getResultStream()) {
+			final String status = pi.getProperty(piStatusKey);
+			if (!ProcessInstanceTraitDefinition.STATUS_RUNNING.equals(status)
+					&& !ProcessInstanceTraitDefinition.STATUS_SUSPENDED.equals(status)) {
+				continue;
+			}
+			final NodeInterface proc = pi.getProperty(piProcKey);
+			if (proc == null) continue;
+			if (boundProcessId.equals(proc.getProperty(procIdKey))) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private static boolean userIsCandidate(final NodeInterface task,
