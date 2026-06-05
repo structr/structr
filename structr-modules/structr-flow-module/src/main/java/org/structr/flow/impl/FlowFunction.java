@@ -42,9 +42,6 @@ import java.util.Map;
 
 public class FlowFunction extends Function<Object, Object> {
 
-	public static final String USAGE    = "Usage: ${flow(name)}";
-	public static final String USAGE_JS = "Usage: ${{ Structr.flow(name) }}";
-
 	public FlowFunction() {
 	}
 
@@ -137,6 +134,8 @@ public class FlowFunction extends Function<Object, Object> {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
+				Usage.structrScript("Usage: ${flow(name)}"),
+				Usage.javaScript("Usage: ${{ $.flow(name) }}")
 		);
 	}
 

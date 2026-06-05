@@ -104,7 +104,7 @@ public class DecryptFunction extends AdvancedScriptingFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${decrypt(value[, secret])}"),
-			Usage.javaScript("Usage: ${{Structr.decrypt(value[, secret])}}")
+			Usage.javaScript("Usage: ${{ $.decrypt(value[, secret]) }}")
 		);
 	}
 

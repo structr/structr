@@ -86,7 +86,7 @@ public class HasCssClassFunction extends UiAdvancedFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${hasCssClass(element, css)}. Example: ${hasCssClass(this, 'active')}"),
-			Usage.javaScript("Usage: ${{Structr.hasCssClass(element, css)}}. Example: ${{Structr.hasCssClass(this, 'active')}}")
+			Usage.javaScript("Usage: ${{ $.hasCssClass(element, css) }}. Example: ${{ $.hasCssClass(this, 'active')}}")
 		);
 	}
 

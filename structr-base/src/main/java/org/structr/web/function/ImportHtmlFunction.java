@@ -79,7 +79,7 @@ public class ImportHtmlFunction extends UiAdvancedFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${importHtml(parent, html)}. Example: ${importHtml(this, '<div></div>')}"),
-			Usage.javaScript("Usage: ${{Structr.importHtml(parent, html)}}. Example: ${{Structr.importHtml(this, '<div></div>')}}")
+			Usage.javaScript("Usage: ${{ $.importHtml(parent, html) }}. Example: ${{ $.importHtml(this, '<div></div>') }}")
 		);
 	}
 

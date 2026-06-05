@@ -104,7 +104,7 @@ public class EncryptFunction extends AdvancedScriptingFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${encrypt(value[, key])}"),
-			Usage.javaScript("Usage: ${{Structr.encrypt(value[, key])}}")
+			Usage.javaScript("Usage: ${{ $.encrypt(value[, key]) }}")
 		);
 	}
 

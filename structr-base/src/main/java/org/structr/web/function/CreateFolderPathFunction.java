@@ -21,6 +21,7 @@ package org.structr.web.function;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
+import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
@@ -77,8 +78,8 @@ public class CreateFolderPathFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${createFolderPath(path)}. Example: ${createFolderPath(\"/img/icons/large\")}"),
-			Usage.javaScript("Usage: ${{ Structr.createFolderPath({ path: value})}}. Example: ${{ Structr.createFolderPath({ path: \"/img/icons/large\"})}}")
+			Usage.structrScript("Usage: ${createFolderPath(path)}"),
+			Usage.javaScript("Usage: ${{ $.createFolderPath({ path: value }) }}")
 		);
 	}
 
@@ -90,6 +91,13 @@ public class CreateFolderPathFunction extends UiAdvancedFunction {
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${createFolderPath('/img/icons/large')}")
+		);
 	}
 
 	@Override

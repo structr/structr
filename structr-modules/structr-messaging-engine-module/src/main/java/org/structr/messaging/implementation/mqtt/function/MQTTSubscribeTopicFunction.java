@@ -67,8 +67,8 @@ public class MQTTSubscribeTopicFunction extends MessagingModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mqttSubscribe(client, topic)}. Example ${mqttSubscribe(client, 'myTopic')}"),
-			Usage.javaScript("Usage: ${{Structr.mqttSubscribe(client, topic)}}. Example ${{Structr.mqttSubscribe(client, topic)}}")
+			Usage.structrScript("Usage: ${mqttSubscribe(client, topic)}"),
+			Usage.javaScript("Usage: ${{ $.mqttSubscribe(client, topic) }}")
 		);
 	}
 

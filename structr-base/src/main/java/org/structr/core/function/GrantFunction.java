@@ -119,8 +119,8 @@ public class GrantFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${grant(principal, node, permissions)}. Example: ${grant(me, this, 'read, write, delete'))}"),
-			Usage.javaScript("Usage: ${{Structr.grant(principal, node, permissions)}}. Example: ${{Structr.grant(Structr.get('me'), Structr.this, 'read, write, delete'))}}")
+			Usage.structrScript("Usage: ${grant(principal, node, permissions)}"),
+			Usage.javaScript("Usage: ${{ $.grant(principal, node, permissions) }}")
 		);
 	}
 
@@ -132,38 +132,41 @@ public class GrantFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-		This function creates or modifies the security relationship between the first two parameters. 
-		Valid values for the permission list are `read`, `write`, `delete` and `accessControl`. 
-		The permissions are passed in as a comma-separated list (see the examples below). 
-		The return value is the empty string. See also `revoke()` and `isAllowed()`.""";
+		This function creates or modifies the security relationship between the first two parameters.
+		Valid values for the permission list are `read`, `write`, `delete` and `accessControl`.
+		The permissions are passed in as a comma-separated list (see the examples below).
+		
+		The user, in whose context the function runs, must have accessControl rights to the given node, otherwise the action will not be permitted.
+		
+		The return value is the empty string. See also `revoke()` and `isAllowed()`.
+		""";
 	}
 
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
 				Example.structrScript("""
-						${grant(me, node1, 'read')}
-						${grant(me, node2, 'read, write')}
-						${grant(me, node3, 'read, write, delete')}
-						${grant(me, node4, 'read, write, delete, accessControl')}
+						${grant(user, node1, 'read')}
+						${grant(user, node2, 'read, write')}
+						${grant(user, node3, 'read, write, delete')}
+						${grant(user, node4, 'read, write, delete, accessControl')}
 						"""),
 				Example.javaScript("""
-						${{ $.grant($.me, node1, 'read') }}
-						${{ $.grant($.me, node2, 'read, write') }}
-						${{ $.grant($.me, node3, 'read, write, delete') }}
-						${{ $.grant($.me, node4, 'read, write, delete, accessControl') }}
+						${{ $.grant(user, node1, 'read') }}
+						${{ $.grant(user, node2, 'read, write') }}
+						${{ $.grant(user, node3, 'read, write, delete') }}
+						${{ $.grant(user, node4, 'read, write, delete, accessControl') }}
 						""")
 		);
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-
 		return List.of(
 				Parameter.mandatory("principal", "User or Group node"),
 				Parameter.mandatory("node", "node to grant permissions"),
 				Parameter.mandatory("permissions", "comma seperated permission string of `read`, `write`, `delete`, `accessControl`")
-				);
+		);
 	}
 
 	@Override

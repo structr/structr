@@ -74,7 +74,7 @@ public class StopWordsFunction extends Function<Object, Object> {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${stopWords(language)}. Example: ${stopWords(\"de\")}"),
-			Usage.javaScript("Usage: ${{Structr.stopWords(language)}}. Example: ${{Structr.stopWords(\"de\")}}")
+			Usage.javaScript("Usage: ${{ $.stopWords(language) }}. Example: ${{ $.stopWords(\"de\") }}")
 		);
 	}
 

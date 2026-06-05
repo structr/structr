@@ -97,7 +97,7 @@ public class AbbrFunction extends CoreFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${abbr(string, maxLength[, abbr = '…'])}. Example: ${abbr(this.title, 20)}"),
-			Usage.javaScript("Usage: ${{Structr.abbr(string, maxLength[, abbr = '…'])}}. Example: ${{Structr.abbr(this.title, 20)}}")
+			Usage.javaScript("Usage: ${{ $.abbr(string, maxLength[, abbr = '…']) }}. Example: ${{ $.abbr(this.title, 20) }}")
 		);
 	}
 

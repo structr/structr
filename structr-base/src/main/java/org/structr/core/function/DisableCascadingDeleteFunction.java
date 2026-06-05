@@ -54,7 +54,7 @@ public class DisableCascadingDeleteFunction extends AdvancedScriptingFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${disableCascadingDelete()}"),
-			Usage.javaScript("Usage: ${Structr.disableCascadingDelete()}")
+			Usage.javaScript("Usage: ${{ $.disableCascadingDelete() }}")
 		);
 	}
 

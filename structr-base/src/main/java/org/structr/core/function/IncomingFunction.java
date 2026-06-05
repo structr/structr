@@ -95,7 +95,7 @@ public class IncomingFunction extends CoreFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${incoming(entity [, relType])}. Example: ${incoming(this, 'PARENT_OF')}"),
-			Usage.javaScript("Usage: ${{ $.incoming(entity [, relType]); }}. Example: ${{ $.incoming(Structr.this, 'PARENT_OF'); }}")
+			Usage.javaScript("Usage: ${{ $.incoming(entity [, relType]); }}. Example: ${{ $.incoming($.this, 'PARENT_OF'); }}")
 		);
 	}
 

@@ -125,8 +125,8 @@ public class IncludeChildFunction extends IncludeFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${includeChild(name)}. Example: ${includeChild('Child Node')}"),
-			Usage.javaScript("Usage: ${{Structr.includeChild(name)}}. Example: ${{Structr.includeChild('Child Node')}}")
+			Usage.structrScript("Usage: ${includeChild(name)}"),
+			Usage.javaScript("Usage: ${{ $.includeChild(name) }}")
 		);
 	}
 
@@ -138,10 +138,10 @@ public class IncludeChildFunction extends IncludeFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-		Nodes can be included via their `name` property. When used with an optional collection and data key argument, the included HTML element will be rendered as a Repeater Element.
-		
-		See also `include()` and `render()`.
-		""";
+			Nodes can be included via their `name` property. When used with an optional collection and data key argument, the included HTML element will be rendered as a Repeater Element.
+			
+			See also `include()` and `render()`.
+			""";
 	}
 
 	@Override

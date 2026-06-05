@@ -69,8 +69,8 @@ public class UnlockSystemPropertiesFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${unlockSystemPropertiesOnce(node)}. Example ${unlockSystemPropertiesOnce(this)}"),
-			Usage.javaScript("Usage: ${{Structr.unlockSystemPropertiesOnce(node)}}. Example ${{Structr.unlockSystemPropertiesOnce(Structr.get('this'))}}")
+			Usage.structrScript("Usage: ${unlockSystemPropertiesOnce(node)}"),
+			Usage.javaScript("Usage: ${{ $.unlockSystemPropertiesOnce(node)}}")
 		);
 	}
 
@@ -92,7 +92,7 @@ public class UnlockSystemPropertiesFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public boolean isHidden() {
-		// internal function, should not be used..
+		// internal function, should not be used...
 		return true;
 	}
 

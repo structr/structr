@@ -107,8 +107,8 @@ public class SearchFunction extends AbstractQueryFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${search(type, key, value)}."),
-			Usage.javaScript("Usage: ${{Structr.search(type, key, value)}}.")
+			Usage.structrScript("Usage: ${search(type, key, value)}"),
+			Usage.javaScript("Usage: ${{ $.search(type, key, value) }}")
 		);
 	}
 

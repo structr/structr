@@ -82,7 +82,7 @@ public class FromXmlFunction extends UiAdvancedFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${fromXml(source)}. Example: ${fromXml('<entry>0</entry>')}"),
-			Usage.javaScript("Usage: ${{Structr.fromXml(src)}}. Example: ${{Structr.fromXml('<entry>0</entry>')}}")
+			Usage.javaScript("Usage: ${{ $.fromXml(src) }}. Example: ${{ $.fromXml('<entry>0</entry>') }}")
 		);
 	}
 

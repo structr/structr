@@ -121,8 +121,8 @@ public class CreateFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${create(type, key, value)}. Example: ${create('Feedback', 'text', this.text)}"),
-			Usage.javaScript("Usage: ${{Structr.create(type, {key: value})}}. Example: ${{Structr.create('Feedback', {text: 'Structr is awesome.'})}}")
+			Usage.structrScript("Usage: ${create(type, key, value)}"),
+			Usage.javaScript("Usage: ${{ $.create(type, { key: value }) }}")
 		);
 	}
 
@@ -147,12 +147,12 @@ public class CreateFunction extends CoreFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-			Example.structrScript("${create('User', 'name', 'tester', 'passwword', 'changeMeNow!')}"),
+			Example.structrScript("${create('User', 'name', 'tester', 'password', 'changeMeNow!')}"),
 			Example.javaScript("""
-			${{
-				let user = $.create('User', { name: 'tester', password: 'changeMeNow!' });
-			}}
-			""", "Create a new User with the given name and password")
+				${{
+					let user = $.create('User', { name: 'tester', password: 'changeMeNow!' });
+				}}
+				""", "Create a new User with the given name and password")
 		);
 	}
 

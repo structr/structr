@@ -77,8 +77,8 @@ public class CreateAccessTokenFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${createAccessToken(user [, accessTokenTimeout])}. Example: ${createAccessToken(me [, 15])}"),
-			Usage.javaScript("Usage: ${{ $.createAccessToken(user [, accessTokenTimeout]); }}. Example: ${{ $.createAccessToken(Structr.me [, 15]); }}")
+			Usage.structrScript("Usage: ${createAccessToken(user [, accessTokenTimeout])}"),
+			Usage.javaScript("Usage: ${{ $.createAccessToken(user [, accessTokenTimeout]); }}")
 		);
 	}
 
@@ -105,21 +105,21 @@ public class CreateAccessTokenFunction extends UiAdvancedFunction {
 
 		return List.of(
 			Example.javaScript("""
-			{
-				// create an access token that is valid for 30 minutes
-				let accessToken = $.createAccessToken($.me, 30);
-				
-				// ... use the token
-			}
-			""", "Create a new access token with a validity of 30 minutes"),
-			Example.javaScript("""
-			fetch("http://localhost:8082/structr/rest/User", {
-				method: "GET",
-				headers: {
-					"authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ[...]VkIn0.fbwKEQ4dELHuXXmPiNtn8XNWh6ShesdlTZsXf-CojTmxQOWUxkbHcroj7gVz02twox82ChTuyxkyHeIoiidU4g"
+				{
+					// create an access token that is valid for 30 minutes
+					let accessToken = $.createAccessToken($.me, 30);
+	
+					// ... use the token
 				}
-			});
-			""", "Authenticate a request to the Structr backend with an existing access token")
+				""", "Create a new access token with a validity of 30 minutes"),
+			Example.javaScript("""
+				fetch("http://localhost:8082/structr/rest/User", {
+					method: "GET",
+					headers: {
+						"authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ[...]VkIn0.fbwKEQ4dELHuXXmPiNtn8XNWh6ShesdlTZsXf-CojTmxQOWUxkbHcroj7gVz02twox82ChTuyxkyHeIoiidU4g"
+					}
+				});
+				""", "Authenticate a request to the Structr backend with an existing access token")
 		);
 	}
 

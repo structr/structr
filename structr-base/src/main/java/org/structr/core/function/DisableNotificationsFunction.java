@@ -54,7 +54,7 @@ public class DisableNotificationsFunction extends AdvancedScriptingFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${disableNotifications()}"),
-			Usage.javaScript("Usage: ${Structr.disableNotifications()}")
+			Usage.javaScript("Usage: ${{ $.disableNotifications() }}")
 		);
 	}
 

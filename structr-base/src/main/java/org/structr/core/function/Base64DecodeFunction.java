@@ -130,7 +130,7 @@ public class Base64DecodeFunction extends CoreFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${base64decode(base64Text [, scheme [, charset ]])}. Example: ${base64decode(\"VmlzaXQgaHR0cHM6Ly9zdHJ1Y3RyLm9yZw==\")}"),
-			Usage.javaScript("Usage: ${{Structr.base64decode(base64Text [, scheme [, charset ]])}}. Example: ${{Structr.base64decode(\"VmlzaXQgaHR0cHM6Ly9zdHJ1Y3RyLm9yZw==\")}}")
+			Usage.javaScript("Usage: ${{ $.base64decode(base64Text [, scheme [, charset ]]) }}. Example: ${{ $.base64decode(\"VmlzaXQgaHR0cHM6Ly9zdHJ1Y3RyLm9yZw==\") }}")
 		);
 	}
 

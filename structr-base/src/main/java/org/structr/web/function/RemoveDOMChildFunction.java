@@ -68,7 +68,7 @@ public class RemoveDOMChildFunction extends UiAdvancedFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${removeDomChild(parent, child)}. Example: ${removeDomChild(this, child)}"),
-			Usage.javaScript("Usage: ${{Structr.removeDomChild(parent, child)}}. Example: ${{Structr.removeDomChild(this, child)}}")
+			Usage.javaScript("Usage: ${{ $.removeDomChild(parent, child) }}. Example: ${{ $.removeDomChild(this, child) }}")
 		);
 	}
 

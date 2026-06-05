@@ -74,7 +74,7 @@ public class RemoveResponseHeaderFunction extends UiAdvancedFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${removeResponseHeader(field)}. Example: ${removeResponseHeader('X-Frame-Options'}"),
-			Usage.javaScript("Usage: ${{Structr.removeResponseHeader(field)}}. Example: ${{Structr.removeResponseHeader('X-Frame-Options')}}")
+			Usage.javaScript("Usage: ${{ $.removeResponseHeader(field) }}. Example: ${{ $.removeResponseHeader('X-Frame-Options') }}")
 		);
 	}
 

@@ -71,7 +71,7 @@ public class IsLocaleFunction extends UiAdvancedFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${isLocale(locales...)}"),
-			Usage.javaScript("Usage: ${{Structr.isLocale(locales...}}. Example ${{Structr.isLocale('de_DE', 'de_AT', 'de_CH')}}")
+			Usage.javaScript("Usage: ${{ $.isLocale(locales...) }}")
 		);
 	}
 

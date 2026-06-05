@@ -103,8 +103,8 @@ public class GetCsvHeadersFunction extends CsvFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-				Usage.structrScript("Usage: ${getCsvHeaders(source[, delimiterChar [, quoteChar[, recordSeparator]]])}. Example: ${getCsvHeaders('COL1;COL2;COL3\none;two;three')}"),
-				Usage.javaScript("Usage: ${{Structr.getCsvHeaders(source[, delimiterChar[, quoteChar[, recordSeparator]]])}}. Example: ${{Structr.getCsvHeaders('COL1;COL2;COL3\none;two;three')}}")
+				Usage.structrScript("Usage: ${getCsvHeaders(source[, delimiterChar [, quoteChar[, recordSeparator]]])}"),
+				Usage.javaScript("Usage: ${{ $.getCsvHeaders(source[, delimiterChar[, quoteChar[, recordSeparator]]]) }}")
 		);
 	}
 
@@ -129,16 +129,11 @@ public class GetCsvHeadersFunction extends CsvFunction {
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-				"An API Key has to be configured in structr.conf.",
-				"See the documentation on the Translation module for more info."
-		);
+		return List.of();
 	}
-
 
 	@Override
 	public List<Parameter> getParameters() {
-
 		return List.of(
 				Parameter.mandatory("source", "CSV string"),
 				Parameter.optional("delimiter", "CSV field delimiter, default: ';'"),

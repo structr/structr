@@ -120,8 +120,8 @@ public class GetOutgoingRelationshipsFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${getOutgoingRelationships(from, to [, relType])}. Example: ${getOutgoingRelationships(me, user, 'FOLLOWS')}"),
-			Usage.javaScript("Usage: ${{$.getOutgoingRelationships(from, to [, relType])}}. Example: ${{$.getOutgoingRelationships(Structr.get('me'), user, 'FOLLOWS')}}")
+			Usage.structrScript("Usage: ${getOutgoingRelationships(from, to [, relType])}"),
+			Usage.javaScript("Usage: ${{$.getOutgoingRelationships(from, to [, relType])}}")
 		);
 	}
 
@@ -139,7 +139,9 @@ public class GetOutgoingRelationshipsFunction extends CoreFunction {
 	public List<Example> getExamples() {
 		return List.of(
 				Example.structrScript("${getOutgoingRelationships(page, me)}"),
-				Example.javaScript("${{ $.getOutgoingRelationships($.page, $.me) }}")
+				Example.structrScript("${getOutgoingRelationships(me, user, 'FOLLOWS')}"),
+				Example.javaScript("${{ $.getOutgoingRelationships($.page, $.me) }}"),
+				Example.javaScript("${{ $.getOutgoingRelationships($.me, user, 'FOLLOWS') }}")
 		);
 	}
 

@@ -107,8 +107,6 @@ public class ScheduleFunction extends UiAdvancedFunction {
 		""";
 	}
 
-
-
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
@@ -116,7 +114,6 @@ public class ScheduleFunction extends UiAdvancedFunction {
 				Example.javaScript("""
 						${{
 						    $.schedule(function() {
-						        // execute global method
 						        $.call('myCleanupScript');
 						    }, 'Cleans unconnected nodes from the graph');
 						}}
@@ -124,8 +121,7 @@ public class ScheduleFunction extends UiAdvancedFunction {
 				Example.javaScript("""
 						${{
 						    $.schedule(function() {
-						        // execute global method
-						        Structr.call('myCleanupScript');
+						        $.call('myCleanupScript');
 						    }, 'Cleans unconnected nodes from the graph', function() {
 						        $.log('scheduled function finished!');
 						        $.log('Job Info: ', $.get('jobInfo'));

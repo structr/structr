@@ -93,7 +93,7 @@ public class GetCookieFunction extends UiAdvancedFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${getCookie(name)}. Example: ${getCookie('cartId')}"),
-			Usage.javaScript("Usage: ${{Structr.getCookie(name)}}. Example: ${{Structr.getCookie('cartId')}}")
+			Usage.javaScript("Usage: ${{ $.getCookie(name) }}. Example: ${{ $.getCookie('cartId') }}")
 		);
 	}
 

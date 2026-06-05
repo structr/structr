@@ -54,7 +54,7 @@ public class DisablePreventDuplicateRelationshipsFunction extends AdvancedScript
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${disablePreventDuplicateRelationships()}"),
-			Usage.javaScript("Usage: ${Structr.disablePreventDuplicateRelationships()}")
+			Usage.javaScript("Usage: ${{ $.disablePreventDuplicateRelationships() }}")
 		);
 	}
 

@@ -115,7 +115,7 @@ public class CopyFileContentsFunction extends UiAdvancedFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${ copyFileContents(sourceFile, targetFile) }"),
-			Usage.javaScript("Usage: ${{ Structr.copyFileContents(sourceFile, targetFile); }}")
+			Usage.javaScript("Usage: ${{ $.copyFileContents(sourceFile, targetFile) }}")
 		);
 	}
 

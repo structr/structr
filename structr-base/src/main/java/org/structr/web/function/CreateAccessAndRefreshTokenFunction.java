@@ -84,8 +84,8 @@ public class CreateAccessAndRefreshTokenFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${createAccessAndRefreshToken(user [, accessTokenTimeout, refreshTokenTimeout])}. Example: ${createAccessAndRefreshToken(find('User', '<id>') [, 15, 60])}"),
-			Usage.javaScript("Usage: ${{Structr.createAccessAndRefreshToken(user [, accessTokenTimeout, refreshTokenTimeout])}}. Example: ${{Structr.createAccessAndRefreshToken(Structr.find('User', '<id>') [, 15, 60])}")
+			Usage.structrScript("Usage: ${createAccessAndRefreshToken(user [, accessTokenTimeout, refreshTokenTimeout])}"),
+			Usage.javaScript("Usage: ${{ $.createAccessAndRefreshToken(user [, accessTokenTimeout, refreshTokenTimeout]) }}")
 		);
 	}
 
@@ -97,16 +97,16 @@ public class CreateAccessAndRefreshTokenFunction extends UiAdvancedFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-		The return value of this function is a map with the following structure:
-
-		```
-		{
-		    "accessToken":"eyJhbGciOiJIUzUxMiJ9.eyJ[...]VkIn0.fbwKEQ4dELHuXXmPiNtn8XNWh6ShesdlTZsXf-CojTmxQOWUxkbHcroj7gVz02twox82ChTuyxkyHeIoiidU4g",
-		    "refreshToken":"eyJhbGciOiJIUzUxMiJ9.eyJ[...]lbiJ9.GANUkPH09pBimd5EkJmrEbsYQhDw6hXULZGSldHSZYqq1FNjM_g6wfxt1217TlGZcjKyXEL_lktcPzjOeEU3A",
-		    "expirationDate":"1616692902820"
-		}
-		```
-		""";
+			The return value of this function is a map with the following structure:
+	
+			```
+			{
+				"accessToken":"eyJhbGciOiJIUzUxMiJ9.eyJ[...]VkIn0.fbwKEQ4dELHuXXmPiNtn8XNWh6ShesdlTZsXf-CojTmxQOWUxkbHcroj7gVz02twox82ChTuyxkyHeIoiidU4g",
+				"refreshToken":"eyJhbGciOiJIUzUxMiJ9.eyJ[...]lbiJ9.GANUkPH09pBimd5EkJmrEbsYQhDw6hXULZGSldHSZYqq1FNjM_g6wfxt1217TlGZcjKyXEL_lktcPzjOeEU3A",
+				"expirationDate":"1616692902820"
+			}
+			```
+			""";
 	}
 
 	@Override
@@ -123,24 +123,24 @@ public class CreateAccessAndRefreshTokenFunction extends UiAdvancedFunction {
 
 		return List.of(
 			Example.javaScript("""
-		{
-			// create an access token that is valid for 30 minutes
-			// and a refresh token that is valid for 2 hours
-			let tokens       = $.createAccessAndRefreshToken($.me, 30, 120);
-			let accessToken  = tokens.accessToken;
-			let refreshToken = tokens.refreshToken;
-			
-			// ... use the tokens
-		}
-		""", "Create a new tokens with non-default validity periods"),
+				{
+					// create an access token that is valid for 30 minutes
+					// and a refresh token that is valid for 2 hours
+					let tokens       = $.createAccessAndRefreshToken($.me, 30, 120);
+					let accessToken  = tokens.accessToken;
+					let refreshToken = tokens.refreshToken;
+
+					// ... use the tokens
+				}
+				""", "Create a new tokens with non-default validity periods"),
 			Example.javaScript("""
-		fetch("http://localhost:8082/structr/rest/User", {
-			method: "GET",
-			headers: {
-				"authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ[...]VkIn0.fbwKEQ4dELHuXXmPiNtn8XNWh6ShesdlTZsXf-CojTmxQOWUxkbHcroj7gVz02twox82ChTuyxkyHeIoiidU4g"
-			}
-		});
-		""", "Authenticate a request to the Structr backend with an existing access token")
+				fetch("http://localhost:8082/structr/rest/User", {
+					method: "GET",
+					headers: {
+						"authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ[...]VkIn0.fbwKEQ4dELHuXXmPiNtn8XNWh6ShesdlTZsXf-CojTmxQOWUxkbHcroj7gVz02twox82ChTuyxkyHeIoiidU4g"
+					}
+				});
+				""", "Authenticate a request to the Structr backend with an existing access token")
 		);
 	}
 

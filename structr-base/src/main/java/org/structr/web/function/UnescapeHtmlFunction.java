@@ -68,7 +68,7 @@ public class UnescapeHtmlFunction extends UiCommunityFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${unescapeHtml(text)}."),
-			Usage.javaScript("Usage: ${{Structr.unescapeHtml(text)}}.")
+			Usage.javaScript("Usage: ${{ $.unescapeHtml(text) }}.")
 		);
 	}
 
@@ -86,7 +86,7 @@ public class UnescapeHtmlFunction extends UiCommunityFunction {
 	public List<Example> getExamples() {
 		return List.of(
 			Example.structrScript("${unescapeHtml('test &amp; test')}"),
-			Example.javaScript("${{Structr.unescapeHtml('test &amp; test')}}")
+			Example.javaScript("${{ $.unescapeHtml('test &amp; test') }}")
 		);
 	}
 

@@ -99,8 +99,8 @@ public class GetContentFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${getContent(file[, encoding ])}. Example: ${getContent(first(find('File', 'name', 'test.txt')))}"),
-			Usage.javaScript("Usage: ${{Structr.getContent(file[, encoding ])}}. Example: ${{Structr.getContent(fileNode)}}")
+			Usage.structrScript("Usage: ${getContent(file[, encoding ])}"),
+			Usage.javaScript("Usage: ${{ $.getContent(file[, encoding ]) }}")
 		);
 	}
 
@@ -132,7 +132,6 @@ public class GetContentFunction extends UiAdvancedFunction {
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-			"The parameter `encoding` is available from version 2.3.9+",
 			"If you want to access the raw binary content of the file, omit the `encoding` argument.",
 			"If you don't provide the `encoding` argument, this function returns a byte array."
 		);

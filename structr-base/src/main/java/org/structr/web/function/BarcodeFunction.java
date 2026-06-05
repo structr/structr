@@ -193,7 +193,7 @@ public class BarcodeFunction extends UiAdvancedFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${ barcode(type, data[, width, height[, hintKey, hintValue]]) }"),
-			Usage.javaScript("Usage: ${{ Structr.barcode(type, data[, width, height[, hintsMap]]); }}")
+			Usage.javaScript("Usage: ${{ $.barcode(type, data[, width, height[, hintsMap]]) }}")
 		);
 	}
 
@@ -208,9 +208,9 @@ public class BarcodeFunction extends UiAdvancedFunction {
 	public List<Example> getExamples() {
 		return List.of(
 			Example.structrScript("""
-			File content: ${barcode('QR_CODE', 'My testcode', 200, 200, \"MARGIN\", 0, \"ERROR_CORRECTION\", \"Q\")}
-			File contentType: image/png; charset=iso-8859-1
-			""", "Example usage in a dynamic file"),
+				File content: ${barcode('QR_CODE', 'My testcode', 200, 200, 'MARGIN', 0, 'ERROR_CORRECTION', 'Q')}
+				File contentType: image/png; charset=iso-8859-1
+				""", "Example usage in a dynamic file"),
 			Example.structrScript("<img src=\"data:image/png;base64, ${base64encode(barcode('QR_CODE', 'My testcode', 200, 200, 'MARGIN', 0, 'ERROR_CORRECTION', 'Q'), 'basic', 'ISO-8859-1')}\" />", "Usage in an HTML IMG element")
 		);
 	}
