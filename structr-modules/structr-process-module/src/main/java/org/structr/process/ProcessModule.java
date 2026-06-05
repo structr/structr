@@ -34,6 +34,7 @@ import org.structr.web.traits.definitions.ComponentConfigurationTraitDefinition;
 import org.structr.process.function.ExportBPMNFunction;
 import org.structr.process.function.ImportBPMNFunction;
 import org.structr.process.function.NotifyFunction;
+import org.structr.process.function.ProcessInstanceUrlFunction;
 import org.structr.process.function.ProcessTokenFunction;
 import org.structr.process.function.ValidateProcessTokenFunction;
 import org.structr.process.traits.definitions.*;
@@ -273,6 +274,7 @@ public class ProcessModule implements StructrModule {
 		Functions.put(licenseManager, new ImportBPMNFunction());
 		Functions.put(licenseManager, new ExportBPMNFunction());
 		Functions.put(licenseManager, new NotifyFunction());
+		Functions.put(licenseManager, new ProcessInstanceUrlFunction());
 		Functions.put(licenseManager, new ProcessTokenFunction());
 		Functions.put(licenseManager, new ValidateProcessTokenFunction());
 	}
