@@ -21,6 +21,7 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
@@ -61,8 +62,8 @@ public class WeekDaysFunction extends CoreFunction {
 			final LocalDate toDate   = ((Date) sources[1]).toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
 			try {
-				final DayOfWeek startWeek = toDate.getDayOfWeek();
-				final DayOfWeek endWeek = toDate.getDayOfWeek();
+				final DayOfWeek startWeek = fromDate.getDayOfWeek();
+				final DayOfWeek endWeek   = toDate.getDayOfWeek();
 
 				final long days = ChronoUnit.DAYS.between(fromDate, toDate);
 				final long daysWithoutWeekends = days - 2 * ((days + startWeek.getValue())/7);
@@ -72,8 +73,7 @@ public class WeekDaysFunction extends CoreFunction {
 
 			} catch (Exception ex) {
 
-				logger.warn("{}: Could not calculate week days. Parameters: {}", new Object[] { getDisplayName(), caller, getParametersAsString(sources) });
-
+				logger.warn("{}: Could not calculate week days. Parameters: {}", getDisplayName(), getParametersAsString(sources));
 			}
 
 		} catch (ArgumentNullException pe) {
@@ -93,8 +93,8 @@ public class WeekDaysFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${weekDays(from, to)}. Example: ${weekDays(parseDate(\"2014-01-01\", \"yyyy-MM-dd\"), parseDate(\"2014-01-15\", \"yyyy-MM-dd\"))}"),
-			Usage.javaScript("Usage: ${{Structr.weekDays(from, to)}}. Example: ${{Structr.weekDays(Structr.parseDate(\"2014-01-01\", \"yyyy-MM-dd\"), Structr.parseDate(\"2014-01-15\", \"yyyy-MM-dd\"))}}")
+			Usage.structrScript("Usage: ${weekDays(from, to)}"),
+			Usage.javaScript("Usage: ${{ $.weekDays(from, to) }}")
 		);
 	}
 
@@ -106,6 +106,14 @@ public class WeekDaysFunction extends CoreFunction {
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${weekDays(parseDate(\"2014-01-01\", \"yyyy-MM-dd\"), parseDate(\"2014-01-15\", \"yyyy-MM-dd\"))}"),
+				Example.javaScript("${{ $.weekDays($.parseDate(\"2014-01-01\", \"yyyy-MM-dd\"), $.parseDate(\"2014-01-15\", \"yyyy-MM-dd\"))}}")
+		);
 	}
 
 	@Override
