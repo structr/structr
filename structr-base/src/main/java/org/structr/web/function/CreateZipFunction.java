@@ -38,6 +38,7 @@ import org.structr.web.entity.Folder;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Collection;
 import java.util.List;
 
@@ -66,7 +67,6 @@ public class CreateZipFunction extends UiAdvancedFunction {
 		String name             = null;
 		String password         = null;
 
-		String encryptionMethodString     = null;
 		EncryptionMethod encryptionMethod = EncryptionMethod.ZIP_STANDARD;
 
 		if (sources[0] instanceof String) {
@@ -86,26 +86,33 @@ public class CreateZipFunction extends UiAdvancedFunction {
 			password = (String) sources[2];
 		}
 
-		if (sources.length > 3 && sources[3] != null && sources[3] instanceof String) {
+		if (sources.length > 3 && sources[3] != null && sources[3] instanceof String encryptionMethodString) {
 
-			encryptionMethodString = (String) sources[3];
-			encryptionMethod       = "aes".equalsIgnoreCase(encryptionMethodString) ? EncryptionMethod.AES : EncryptionMethod.ZIP_STANDARD;
+			if ("aes".equalsIgnoreCase(encryptionMethodString)) {
+
+				encryptionMethod = EncryptionMethod.AES;
+
+			} else {
+
+				logger.warn("{}(): Unsupported encryption method '{}' falling back to zip standard.", getName(), encryptionMethodString);
+			}
 		}
 
 		try {
 
-			ZipFile            zipFile = null;
-			final ZipParameters params = new ZipParameters();
+			ZipFile            zipFile    = null;
+			final ZipParameters params    = new ZipParameters();
+			final java.io.File tmpZipFile = Files.createTempFile(name, ".zip").toFile();
 
 			if (password != null) {
 
 				params.setEncryptFiles(true);
 				params.setEncryptionMethod(encryptionMethod);
-				zipFile = new ZipFile(name, password.toCharArray());
+				zipFile = new ZipFile(tmpZipFile, password.toCharArray());
 
 			} else {
 
-				zipFile = new ZipFile(name);
+				zipFile = new ZipFile(tmpZipFile);
 			}
 
 			zipFile.setCharset(StandardCharsets.UTF_8);
@@ -180,7 +187,7 @@ public class CreateZipFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Creates and returns a ZIP archive";
+		return "Creates and returns a ZIP archive.";
 	}
 
 	@Override
