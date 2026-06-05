@@ -107,7 +107,7 @@ public class CallFunction extends AdvancedScriptingFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${call(key [, key, value]}. Example ${call('myEvent', 'key1', 'value1', 'key2', 'value2')}"),
-			Usage.javaScript("Usage: ${{Structr.call(key [, parameterMap]}}. Example ${{Structr.call('myEvent', {key1: 'value1', key2: 'value2'})}}")
+			Usage.javaScript("Usage: ${{ $.call(key [, parameterMap]) }}. Example ${{ $.call('myEvent', { key1: 'value1', key2: 'value2' }) }}")
 		);
 	}
 

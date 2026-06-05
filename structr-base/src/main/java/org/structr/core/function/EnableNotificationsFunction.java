@@ -54,7 +54,7 @@ public class EnableNotificationsFunction extends AdvancedScriptingFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${enableNotifications()}"),
-			Usage.javaScript("Usage: ${Structr.enableNotifications()}")
+			Usage.javaScript("Usage: ${{ $.enableNotifications() }}")
 		);
 	}
 

@@ -172,8 +172,8 @@ public class TranslateFunction extends UiFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${translate(text, sourceLanguage, targetLanguage[, translationProvider])}. Supported translation providers: google, deepl. Example: ${translate('Hello world!', 'en', 'ru', 'deepl')}"),
-			Usage.javaScript("Usage: ${{Structr.translate(text, sourceLanguage, targetLanguage[, translationProvider])}}. Supported translation providers: google, deepl. Example: ${{Structr.translate('Hello world!', 'en', 'ru', 'deepl'))}")
+			Usage.structrScript("Usage: ${translate(text, sourceLanguage, targetLanguage[, translationProvider])}"),
+			Usage.javaScript("Usage: ${{ $.translate(text, sourceLanguage, targetLanguage[, translationProvider]) }}")
 		);
 	}
 
@@ -185,9 +185,9 @@ public class TranslateFunction extends UiFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-		Supported translation providers:
-		  - google (Google Cloud Translation API, default)
-		  - deepl (DeepL REST API)""";
+			Supported translation providers:
+			  - `google` (Google Cloud Translation API, default)
+			  - `deepl` (DeepL REST API)""";
 	}
 
 	@Override

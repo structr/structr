@@ -119,8 +119,8 @@ public class RevokeFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${revoke(principal, node, permissions)}."),
-			Usage.javaScript("Usage: ${{Structr.revoke(principal, node, permissions)}}.")
+			Usage.structrScript("Usage: ${revoke(principal, node, permissions)}"),
+			Usage.javaScript("Usage: ${{ $.revoke(principal, node, permissions) }}")
 		);
 	}
 
@@ -132,9 +132,12 @@ public class RevokeFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-		This function modifies the security relationship between the first two parameters. 
-		Valid values for the permission list are `read`, `write`, `delete` and `accessControl`. 
-		The permissions are passed in as a comma-separated list (see the examples below). 
+		This function modifies the security relationship between the first two parameters.
+		Valid values for the permission list are `read`, `write`, `delete` and `accessControl`.
+		The permissions are passed in as a comma-separated list (see the examples below).
+		
+		The user, in whose context the function runs, must have accessControl rights to the given node, otherwise the action will not be permitted.
+
 		The return value is the empty string. See also `grant()` and `isAllowed()`.""";
 	}
 
@@ -142,16 +145,16 @@ public class RevokeFunction extends AdvancedScriptingFunction {
 	public List<Example> getExamples() {
 		return List.of(
 				Example.structrScript("""
-						${revoke(me, node1, 'read')}
-						${revoke(me, node2, 'read, write')}
-						${revoke(me, node3, 'read, write, delete')}
-						${revoke(me, node4, 'read, write, delete, accessControl')}
+						${revoke(user, node1, 'read')}
+						${revoke(user, node2, 'read, write')}
+						${revoke(user, node3, 'read, write, delete')}
+						${revoke(user, node4, 'read, write, delete, accessControl')}
 						"""),
 				Example.javaScript("""
-						${{ $.revoke($.me, node1, 'read') }}
-						${{ $.revoke($.me, node2, 'read, write') }}
-						${{ $.revoke($.me, node3, 'read, write, delete') }}
-						${{ $.revoke($.me, node4, 'read, write, delete, accessControl') }}
+						${{ $.revoke(user, node1, 'read') }}
+						${{ $.revoke(user, node2, 'read, write') }}
+						${{ $.revoke(user, node3, 'read, write, delete') }}
+						${{ $.revoke(user, node4, 'read, write, delete, accessControl') }}
 						""")
 		);
 	}
@@ -162,7 +165,7 @@ public class RevokeFunction extends AdvancedScriptingFunction {
 				Parameter.mandatory("principal", "User or Group node"),
 				Parameter.mandatory("node", "node to revoke permissions"),
 				Parameter.mandatory("permissions", "comma seperated permission string of `read`, `write`, `delete`, `accessControl`")
-				);
+		);
 	}
 
 	@Override

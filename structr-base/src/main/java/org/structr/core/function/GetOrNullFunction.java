@@ -106,8 +106,8 @@ public class GetOrNullFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-				Usage.structrScript("Usage: ${getOrNull(entity, propertyKey)}. Example: ${getOrNull(this, \"children\")}"),
-				Usage.javaScript("Usage: ${{Structr.getOrNull(entity, propertyKey)}}. Example: ${{Structr.getOrNull(this, \"children\")}}")
+				Usage.structrScript("Usage: ${getOrNull(entity, propertyKey)}"),
+				Usage.javaScript("Usage: ${{ $.getOrNull(entity, propertyKey) }}")
 		);
 	}
 
@@ -119,8 +119,9 @@ public class GetOrNullFunction extends CoreFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-		Returns the value for the given property key from the given entity, but doesn't print an error message when the given entity is not accessible. 
-		See `get()` for the equivalent method that prints an error if the first argument is null.""";
+			Returns the value for the given property key from the given entity, but doesn't print an error message when the given entity is not accessible.
+			See `get()` for the equivalent method that prints an error if the first argument is null.
+			""";
 	}
 
 	@Override
@@ -131,10 +132,8 @@ public class GetOrNullFunction extends CoreFunction {
 		);
 	}
 
-
 	@Override
 	public List<Parameter> getParameters() {
-
 		return List.of(
 				Parameter.mandatory("entity", "node or object"),
 				Parameter.mandatory("propertyKey", "requested property name")

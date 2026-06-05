@@ -114,8 +114,8 @@ public class FromCsvFunction extends CsvFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${fromCsv(source[, delimiterChar [, quoteChar [, recordSeparator [, header [, escapeChar ]]]]])}. Example: ${fromCsv('COL1;COL2;COL3\none;two;three')}"),
-			Usage.javaScript("Usage: ${{Structr.fromCsv(source [, delimiterChar [, quoteChar [, recordSeparator [, header [, escapeChar ]]]]])}}. Example: ${{Structr.fromCsv('COL1;COL2;COL3\none;two;three')}}")
+			Usage.structrScript("Usage: ${fromCsv(source[, delimiterChar [, quoteChar [, recordSeparator [, header [, escapeChar ]]]]])}"),
+			Usage.javaScript("Usage: ${{ $.fromCsv(source [, delimiterChar [, quoteChar [, recordSeparator [, header [, escapeChar ]]]]]) }}")
 		);
 	}
 
@@ -148,22 +148,22 @@ public class FromCsvFunction extends CsvFunction {
 		return List.of(
 
 			Example.javaScript("""
-			${{
-				let result = $.fromCsv('COL1;COL2;COL3\\nline1:one;line1:two;line1:three\\nline2:one;line2:two;line2:three');
-
-				let firstRow    = result[0];
-				let firstColumn = firstRow.COL1;
-			}}
-			""", "Parse a CSV string and access the first column"),
+				${{
+					let result = $.fromCsv('COL1;COL2;COL3\\nline1:one;line1:two;line1:three\\nline2:one;line2:two;line2:three');
+	
+					let firstRow    = result[0];
+					let firstColumn = firstRow.COL1;
+				}}
+				""", "Parse a CSV string and access the first column"),
 
 			Example.javaScript("""
-			${{
-				let file = $.find('File', { name: 'test.csv' })[0];
-				let data = $.fromCsv($.getContent(file)));
-
-				$.log(data[0].name);
-			}}
-			""", "Parse a CSV file and work with the data")
+				${{
+					let file = $.find('File', { name: 'test.csv' })[0];
+					let data = $.fromCsv($.getContent(file)));
+	
+					$.log(data[0].name);
+				}}
+				""", "Parse a CSV file and work with the data")
 		);
 	}
 

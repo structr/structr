@@ -71,8 +71,8 @@ public class MQTTPublishFunction extends MessagingModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mqttPublish(client, topic, message)}. Example ${mqttPublish(client, 'myTopic', 'myMessage')}"),
-			Usage.javaScript("Usage: ${{Structr.mqttPublish(client, topic, message)}}. Example ${{Structr.mqttPublish(client, topic, message)}}")
+			Usage.structrScript("Usage: ${mqttPublish(client, topic, message)}"),
+			Usage.javaScript("Usage: ${{ $.mqttPublish(client, topic, message) }}")
 		);
 	}
 

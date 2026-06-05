@@ -38,6 +38,7 @@ import org.structr.web.entity.Folder;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Collection;
 import java.util.List;
 
@@ -50,7 +51,7 @@ public class CreateZipFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("archiveFileName, files [, password [, encryptionMethod ] ]");
+		return Signature.forAllScriptingLanguages("archiveFileName, filesOrFolders [, password [, encryptionMethod ] ]");
 	}
 
 	@Override
@@ -60,13 +61,12 @@ public class CreateZipFunction extends UiAdvancedFunction {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 
 		String name             = null;
 		String password         = null;
 
-		String encryptionMethodString     = null;
 		EncryptionMethod encryptionMethod = EncryptionMethod.ZIP_STANDARD;
 
 		if (sources[0] instanceof String) {
@@ -78,7 +78,7 @@ public class CreateZipFunction extends UiAdvancedFunction {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
-			return usage(ctx.isJavaScriptContext());
+			return null;
 		}
 
 		if (sources.length > 2 && sources[2] != null && sources[2] instanceof String) {
@@ -86,26 +86,33 @@ public class CreateZipFunction extends UiAdvancedFunction {
 			password = (String) sources[2];
 		}
 
-		if (sources.length > 3 && sources[3] != null && sources[3] instanceof String) {
+		if (sources.length > 3 && sources[3] != null && sources[3] instanceof String encryptionMethodString) {
 
-			encryptionMethodString = (String) sources[3];
-			encryptionMethod       = "aes".equalsIgnoreCase(encryptionMethodString) ? EncryptionMethod.AES : EncryptionMethod.ZIP_STANDARD;
+			if ("aes".equalsIgnoreCase(encryptionMethodString)) {
+
+				encryptionMethod = EncryptionMethod.AES;
+
+			} else {
+
+				logger.warn("{}(): Unsupported encryption method '{}' falling back to zip standard.", getName(), encryptionMethodString);
+			}
 		}
 
 		try {
 
-			ZipFile            zipFile = null;
-			final ZipParameters params = new ZipParameters();
+			ZipFile            zipFile    = null;
+			final ZipParameters params    = new ZipParameters();
+			final java.io.File tmpZipFile = Files.createTempFile(name, ".zip").toFile();
 
 			if (password != null) {
 
 				params.setEncryptFiles(true);
 				params.setEncryptionMethod(encryptionMethod);
-				zipFile = new ZipFile(name, password.toCharArray());
+				zipFile = new ZipFile(tmpZipFile, password.toCharArray());
 
 			} else {
 
-				zipFile = new ZipFile(name);
+				zipFile = new ZipFile(tmpZipFile);
 			}
 
 			zipFile.setCharset(StandardCharsets.UTF_8);
@@ -180,12 +187,20 @@ public class CreateZipFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Creates and returns a ZIP archive with the given files (and folders).";
+		return "Creates and returns a ZIP archive.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "This function creates a ZIP archive with the given files and folder and stores it as a File with the given name in Structr's filesystem. The second parameter can be either a single file, a single folder or a list of files and folders, but all of the objects must be Structr entities. If the third parameter is set, the resulting archive will be encrypted with the given password.";
+		return """
+			This function creates and returns a ZIP archive from the given files and folders and stores it as a File with the given name in Structr's filesystem.
+
+			The second parameter can be either a single file, a single folder, or a list of files and folders, but all objects must be Structr entities.
+
+			If the third parameter is set, the resulting archive will be encrypted with the given password.
+
+			If the optional fourth parameter is `aes` (ignoring case), the ZIP file will be encrypted with the AES256 method, otherwise with the zip standard method.
+			""";
 	}
 
 	@Override
@@ -195,7 +210,7 @@ public class CreateZipFunction extends UiAdvancedFunction {
 			Parameter.mandatory("archiveFileName", "name of the resulting archive (without the .zip suffix)"),
 			Parameter.mandatory("filesOrFolders", "file, folder or list thereof to add to the archive"),
 			Parameter.optional("password", "password to encrypt the resulting ZIP file"),
-			Parameter.optional("encryptionType", "encryptionType to encrypt the resulting ZIP file, e.g. 'aes'")
+			Parameter.optional("encryptionMethod", "encryption method to encrypt the resulting ZIP file, e.g. 'aes'")
 		);
 	}
 
@@ -204,43 +219,41 @@ public class CreateZipFunction extends UiAdvancedFunction {
 		return List.of(
 			Example.structrScript("${createZip('logs', find('Folder', 'name', 'logs'))}", "Create an archive named `logs.zip` with the contents of all Structr Folders named \"logs\""),
 			Example.javaScript("""
-			${{
-				// find a single folder with an absolute path
-				let folders = $.find('Folder', { path: '/data/logs' }));
-				if (folders.length > 0) {
+				${{
+					// find a single folder with an absolute path
+					let folders = $.find('Folder', { path: '/data/logs' }));
+					if (folders.length > 0) {
 
-					// use the first folder here
-					let archive = $.createZip('logs', folders[0]);
-				}
-			}}
-			""", "Create an archive named `logs.zip` with the contents of exactly one Structr Folder"),
+						// use the first folder here
+						let archive = $.createZip('logs', folders[0]);
+					}
+				}}
+				""", "Create an archive named `logs.zip` with the contents of exactly one Structr Folder"),
 			Example.javaScript("""
-			${{
-				// find all the folders with the name "logs"
-				let folders = $.find('Folder', { name: 'logs' }));
-				let archive = $.createZip('logs', folders);
-			}}
-			""", "Create an archive named `logs.zip` with the contents of all Structr Folders named \\\"logs\\\""),
+				${{
+					// find all the folders with the name "logs"
+					let folders = $.find('Folder', { name: 'logs' }));
+					let archive = $.createZip('logs', folders);
+				}}
+				""", "Create an archive named `logs.zip` with the contents of all Structr Folders named \\\"logs\\\""),
 			Example.javaScript("""
-			${{
-				let parentFolder = $.getOrCreate('Folder', { name: 'archives' });
-				let files        = $.methodParameters.files;
-				let name         = $.methodParameters.name;
+				${{
+					let parentFolder = $.getOrCreate('Folder', { name: 'archives' });
+					let files        = $.methodParameters.files;
+					let name         = $.methodParameters.name;
 
-				let archive = $.createZip(name, files);
+					let archive = $.createZip(name, files);
 
-				archive.parent = parentFolder;
-			}}
-			""", "Create an archive and put it in a specific parent folder")
+					archive.parent = parentFolder;
+				}}
+				""", "Create an archive and put it in a specific parent folder")
 		);
 	}
 
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-			"Creates and returns a ZIP archive with the given name (first parameter), containing the given files/folders (second parameter).",
-			"By setting a password as the optional third parameter, the ZIP file will be encrypted.",
-			"If the optional fourth parameter is `aes` or `AES`, the ZIP file will be encrypted with the AES256 method."
+				"If the `archiveFileName` parameter does not end with '.zip', the ending is automatically appended"
 		);
 	}
 
@@ -248,8 +261,8 @@ public class CreateZipFunction extends UiAdvancedFunction {
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.structrScript("Usage: ${create_zip(archiveFileName, files [, password [, encryptionMethod ] ])}. Example: ${create_zip(\"archive\", find(\"File\"))}"),
-			Usage.javaScript("Usage: ${{ $.createZip(archiveFileName, files [, password [, encryptionMethod ] ]); }}. Example: ${{ $.createZip(\"archive\", Structr.find(\"File\")); }}")
+			Usage.structrScript("Usage: ${createZip(archiveFileName, filesOrFolders [, password [, encryptionMethod ] ])}"),
+			Usage.javaScript("Usage: ${{ $.createZip(archiveFileName, filesOrFolders [, password [, encryptionMethod ] ]); }}")
 		);
 	}
 

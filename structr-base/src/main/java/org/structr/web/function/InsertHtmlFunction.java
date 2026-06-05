@@ -58,7 +58,7 @@ public class InsertHtmlFunction extends UiAdvancedFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${insertHtml(parent, html)}. Example: ${insertHtml(this, html)}"),
-			Usage.javaScript("Usage: ${{Structr.insertHtml(parent, html)}}. Example: ${{Structr.insertHtml(this, html)}}")
+			Usage.javaScript("Usage: ${{ $.insertHtml(parent, html) }}. Example: ${{ $.insertHtml(this, html) }}")
 		);
 	}
 

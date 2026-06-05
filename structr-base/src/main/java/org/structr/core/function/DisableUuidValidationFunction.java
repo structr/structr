@@ -54,7 +54,7 @@ public class DisableUuidValidationFunction extends AdvancedScriptingFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${disableUuidValidation()}"),
-			Usage.javaScript("Usage: ${Structr.disableUuidValidation()}")
+			Usage.javaScript("Usage: ${{ $.disableUuidValidation() }}")
 		);
 	}
 

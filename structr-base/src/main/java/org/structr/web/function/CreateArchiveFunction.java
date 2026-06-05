@@ -144,8 +144,8 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${createArchive(archiveFileName, files [, customFileType])}. Example: ${createArchive('archive', find('File'))}"),
-			Usage.javaScript("Usage: ${{Structr.createArchive(archiveFileName, files [, customFileType])}}. Example: ${{Structr.createArchive('archive', Structr.find('File'))}}")
+			Usage.structrScript("Usage: ${createArchive(archiveFileName, files [, customFileType])}"),
+			Usage.javaScript("Usage: ${{ $.createArchive(archiveFileName, files [, customFileType]) }}")
 		);
 	}
 
@@ -174,34 +174,34 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 		return List.of(
 			Example.structrScript("${createArchive('logs', find('Folder', 'name', 'logs'))}", "Create an archive named `logs.zip` with the contents of all Structr Folders named \"logs\""),
 			Example.javaScript("""
-			${{
-				// find a single folder with an absolute path
-				let folders = $.find('Folder', { path: '/data/logs' }));
-				if (folders.length > 0) {
-
-					// use the first folder here
-					let archive = $.createArchive('logs', folders[0]);
-				}
-			}}
-			""", "Create an archive named `logs.zip` with the contents of exactly one Structr Folder"),
+				${{
+					// find a single folder with an absolute path
+					let folders = $.find('Folder', { path: '/data/logs' }));
+					if (folders.length > 0) {
+	
+						// use the first folder here
+						let archive = $.createArchive('logs', folders[0]);
+					}
+				}}
+				""", "Create an archive named `logs.zip` with the contents of exactly one Structr Folder"),
 			Example.javaScript("""
-			${{
-				// find all the folders with the name "logs"
-				let folders = $.find('Folder', { name: 'logs' }));
-				let archive = $.createArchive('logs', folders);
-			}}
-			""", "Create an archive named `logs.zip` with the contents of all Structr Folders named \\\"logs\\\""),
+				${{
+					// find all the folders with the name "logs"
+					let folders = $.find('Folder', { name: 'logs' }));
+					let archive = $.createArchive('logs', folders);
+				}}
+				""", "Create an archive named `logs.zip` with the contents of all Structr Folders named \\\"logs\\\""),
 			Example.javaScript("""
-			${{
-				let parentFolder = $.getOrCreate('Folder', { name: 'archives' });
-				let files        = $.methodParameters.files;
-				let name         = $.methodParameters.name;
-
-				let archive = $.createArchive(name, files);
-
-				archive.parent = parentFolder;
-			}}
-			""", "Create an archive and put it in a specific parent folder")
+				${{
+					let parentFolder = $.getOrCreate('Folder', { name: 'archives' });
+					let files        = $.methodParameters.files;
+					let name         = $.methodParameters.name;
+	
+					let archive = $.createArchive(name, files);
+	
+					archive.parent = parentFolder;
+				}}
+				""", "Create an archive and put it in a specific parent folder")
 		);
 	}
 

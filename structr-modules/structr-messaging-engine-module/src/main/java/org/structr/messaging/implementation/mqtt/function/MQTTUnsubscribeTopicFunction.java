@@ -67,8 +67,8 @@ public class MQTTUnsubscribeTopicFunction extends MessagingModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mqttUnsubscribe(client, topic)}. Example ${mqttUnsubscribe(client, 'myTopic')}"),
-			Usage.javaScript("Usage: ${{Structr.mqttUnsubscribe(client, topic)}}. Example ${{Structr.mqttUnsubscribe(client, topic)}}")
+			Usage.structrScript("Usage: ${mqttUnsubscribe(client, topic)}"),
+			Usage.javaScript("Usage: ${{ $.mqttUnsubscribe(client, topic) }}")
 		);
 	}
 

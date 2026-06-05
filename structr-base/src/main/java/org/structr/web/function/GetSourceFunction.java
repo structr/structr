@@ -78,7 +78,7 @@ public class GetSourceFunction extends UiAdvancedFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${getSource(element, editMode)}. Example: ${getSource(this, 1)}"),
-			Usage.javaScript("Usage: ${{Structr.getSource(element, editMode)}}. Example: ${{Structr.getSource(this, 1)}}")
+			Usage.javaScript("Usage: ${{ $.getSource(element, editMode) }}. Example: ${{ $.getSource(this, 1)}}")
 		);
 	}
 

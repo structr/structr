@@ -61,7 +61,7 @@ public class ReplaceDOMChildFunction extends UiAdvancedFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${replaceDomChild(parent, child, html)}. Example: ${replaceDomChild(this, child, html)}"),
-			Usage.javaScript("Usage: ${{Structr.replaceDomChild(parent, child, html)}}. Example: ${{Structr.replaceDomChild(this, child, html)}}")
+			Usage.javaScript("Usage: ${{ $.replaceDomChild(parent, child, html) }}. Example: ${{ $.replaceDomChild(this, child, html) }}")
 		);
 	}
 

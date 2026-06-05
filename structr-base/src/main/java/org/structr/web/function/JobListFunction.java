@@ -56,7 +56,7 @@ public class JobListFunction extends UiAdvancedFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${jobList()}. Example: ${jobList()}"),
-			Usage.javaScript("Usage: ${{Structr.jobList()}}. Example: ${{Structr.jobList()}}")
+			Usage.javaScript("Usage: ${{ $.jobList() }}. Example: ${{ $.jobList() }}")
 		);
 	}
 

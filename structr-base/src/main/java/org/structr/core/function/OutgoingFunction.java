@@ -95,7 +95,7 @@ public class OutgoingFunction extends CoreFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${outgoing(entity [, relType])}. Example: ${outgoing(this, 'PARENT_OF')}"),
-			Usage.javaScript("Usage: ${{Structr.outgoing(entity [, relType])}}. Example: ${{outgoing(Structr.this, 'PARENT_OF')}}")
+			Usage.javaScript("Usage: ${{ $.outgoing(entity [, relType]) }}. Example: ${{outgoing($.this, 'PARENT_OF')}}")
 		);
 	}
 

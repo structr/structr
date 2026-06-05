@@ -114,8 +114,8 @@ public class LogEventFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${logEvent(action, message [, subject [, object ]] )}. Example: ${logEvent('read', 'Book has been read')}"),
-			Usage.javaScript("Usage: ${{Structr.logEvent(action, message [, subject [, object ]] )}}. Example: ${{Structr.logEvent('read', 'Book has been read')}}")
+			Usage.structrScript("Usage: ${logEvent(action, message [, subject [, object ]] )}"),
+			Usage.javaScript("Usage: ${{ $.logEvent(action, message [, subject [, object ]] ) }}")
 		);
 	}
 
@@ -127,10 +127,10 @@ public class LogEventFunction extends UiAdvancedFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-		This function creates an entity of type `LogEvent` with the current timestamp and the given values. All four parameters (`action`, `message`, `subject` and `object`) can be arbitrary strings.
-
-		In JavaScript, the function can be called with a single map as parameter.
-		""";
+			This function creates an entity of type `LogEvent` with the current timestamp and the given values. All four parameters (`action`, `message`, `subject` and `object`) can be arbitrary strings.
+	
+			In JavaScript, the function can be called with a single map as parameter.
+			""";
 	}
 
 	@Override
@@ -150,13 +150,13 @@ public class LogEventFunction extends UiAdvancedFunction {
 		return List.of(
 			Example.structrScript("${logEvent('VIEW', me.id)}", "Log a simple \"VIEW\" event"),
 			Example.javaScript("""
-			${{
-			    $.logEvent({
-				action: "VIEW",
-				message: Structr.me.id
-			    });
-			}}
-			""", "Log a simple \"VIEW\" event")
+				${{
+					$.logEvent({
+						action: "VIEW",
+						message: $.me.id
+					});
+				}}
+				""", "Log a simple \"VIEW\" event")
 		);
 	}
 

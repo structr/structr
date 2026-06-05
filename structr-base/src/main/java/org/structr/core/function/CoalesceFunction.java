@@ -59,32 +59,22 @@ public class CoalesceFunction extends CoreFunction {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		if (sources != null) {
+		for (Object source : sources) {
 
-			final int length = sources.length;
-
-			for (int i = 0; i < length; i++) {
-
-				if (sources[i] != null) {
-					return sources[i];
-				}
+			if (source != null) {
+				return source;
 			}
-
-			// no non-null value was supplied
-			return null;
-
-		} else {
-
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
-			return usage(ctx.isJavaScriptContext());
 		}
+
+		// no non-null value was supplied
+		return null;
 	}
 
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${coalesce(string1, string2...)}. Example: ${coalesce(node.name, node.title, node.id)}"),
-			Usage.javaScript("Usage: ${{Structr.coalesce(string1, string2...)}}. Example: ${{Structr.coalesce(node.name, node.title, node.id)}}")
+			Usage.javaScript("Usage: ${{ $.coalesce(string1, string2...) }}. Example: ${{ $.coalesce(node.name, node.title, node.id) }}")
 		);
 	}
 

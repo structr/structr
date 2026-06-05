@@ -107,7 +107,7 @@ public class ImportCssFunction extends UiAdvancedFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${importCss(file)}. Example: ${importCss(cssFile)}"),
-			Usage.javaScript("Usage: ${{Structr.importCss(file)}}. Example: ${{Structr.importCss(cssFile)}}")
+			Usage.javaScript("Usage: ${{ $.importCss(file) }}. Example: ${{ $.importCss(cssFile) }}")
 		);
 	}
 

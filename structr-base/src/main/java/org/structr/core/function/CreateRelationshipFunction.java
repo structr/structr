@@ -144,8 +144,8 @@ public class CreateRelationshipFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${createRelationship(fromNode, toNode, relationshipType)}. Example: ${createRelationship(me, user, 'FOLLOWS')}"),
-			Usage.javaScript("Usage: ${{ $.createRelationship(fromNode, toNode, relationshipType)}}. Example: ${{ $.createRelationship(Structr.get('me'), user, 'FOLLOWS')}}")
+			Usage.structrScript("Usage: ${createRelationship(fromNode, toNode, relationshipType)}"),
+			Usage.javaScript("Usage: ${{ $.createRelationship(fromNode, toNode, relationshipType) }}")
 		);
 	}
 
@@ -173,7 +173,7 @@ public class CreateRelationshipFunction extends CoreFunction {
 	public List<Example> getExamples() {
 
 		return List.of(
-
+				Example.structrScript("${createRelationship(me, user, 'FOLLOWS')}")
 		);
 	}
 

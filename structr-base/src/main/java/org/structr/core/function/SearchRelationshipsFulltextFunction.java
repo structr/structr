@@ -80,13 +80,13 @@ public class SearchRelationshipsFulltextFunction extends CoreFunction implements
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${searchRelationshipsFulltext(indexName, searchString)}. Example: ${searchRelationshipsFulltext(\"UserName\", \"abc\")}"),
-			Usage.javaScript("Usage: ${{Structr.searchRelationshipsFulltext(indexName, value)}}. Example: ${{Structr.searchRelationshipsFulltext(\"UserName\", \"abc\")}}")
+			Usage.javaScript("Usage: ${{ $.searchRelationshipsFulltext(indexName, value) }}. Example: ${{ $.searchRelationshipsFulltext(\"UserName\", \"abc\") }}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Returns a map of entities and search scores matching the given search string from the given fulltext index. Searches case-insensitve / inexact.";
+		return "Returns a map of entities and search scores matching the given search string from the given fulltext index. Searches case-insensitive / inexact.";
 	}
 
 	@Override

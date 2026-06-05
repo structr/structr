@@ -106,7 +106,7 @@ public class RemoteCypherFunction extends CoreFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${remoteCypher(url, username, password, query)}. Example ${remoteCypher('bolt://database.url', 'user', 'password', 'MATCH (n) RETURN n')}"),
-			Usage.javaScript("Usage: ${{Structr.remoteCypher(url, username, password query)}}. Example ${{Structr.remoteCypher('bolt://database.url', 'user', 'password', 'MATCH (n) RETURN n')}}")
+			Usage.javaScript("Usage: ${{ $.remoteCypher(url, username, password query) }}. Example ${{ $.remoteCypher('bolt://database.url', 'user', 'password', 'MATCH (n) RETURN n') }}")
 		);
 	}
 

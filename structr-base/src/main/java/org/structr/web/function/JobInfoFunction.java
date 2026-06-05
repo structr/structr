@@ -72,8 +72,8 @@ public class JobInfoFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${jobInfo(jobId)}. Example: ${jobInfo(1)}"),
-			Usage.javaScript("Usage: ${{Structr.jobInfo(jobId)}}. Example: ${{Structr.jobInfo(1)}}")
+			Usage.structrScript("Usage: ${jobInfo(jobId)}"),
+			Usage.javaScript("Usage: ${{ $.jobInfo(jobId) }}")
 		);
 	}
 
@@ -85,39 +85,38 @@ public class JobInfoFunction extends UiAdvancedFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-		If the job does not exist (anymore) the function returns `false`.
-
-		For **script jobs** the returned information is:
-
-		| Key | Value |
-		| --- | --- |
-		| `jobId` | The job ID |
-		| `jobtype` | The job type |
-		| `username` | The username of the user who started the job |
-		| `status` | The current status of the job |
-		| `jobName` | The name of the script job |
-		| `exception` | <p>**If an exception was caught** during the execution, an exception object containing:</p><p></p><p>`message` : The message of the exception</p><p>`cause` : The cause of the exception</p><p>`stacktrace` : The stacktrace of the exception |
-
-		For **file import** the returned information is:
-
-		| Key | Value |
-		| --- | --- |
-		| `jobId` | The job ID |
-		| `jobtype` | The job type |
-		| `username` | The username of the user who started the job |
-		| `status` | The current status of the job |
-		| `fileUuid` | The UUID of the imported file |
-		| `filepath` | The path of the imported file |
-		| `filesize` | The size of the imported file |
-		| `processedChunks` | The number of chunks already processed |
-		| `processedObjects` | The number of objects already processed |
-		| `exception` | <p>**If an exception was caught** during the execution, an exception object containing:</p><p></p><p>`message` : The message of the exception</p><p>`cause` : The cause of the exception</p><p>`stacktrace` : The stacktrace of the exception |
-		""";
+			If the job does not exist (anymore) the function returns `false`.
+	
+			For **script jobs** the returned information is:
+	
+			| Key | Value |
+			| --- | --- |
+			| `jobId` | The job ID |
+			| `jobtype` | The job type |
+			| `username` | The username of the user who started the job |
+			| `status` | The current status of the job |
+			| `jobName` | The name of the script job |
+			| `exception` | <p>**If an exception was caught** during the execution, an exception object containing:</p><p></p><p>`message` : The message of the exception</p><p>`cause` : The cause of the exception</p><p>`stacktrace` : The stacktrace of the exception |
+	
+			For **file import** the returned information is:
+	
+			| Key | Value |
+			| --- | --- |
+			| `jobId` | The job ID |
+			| `jobtype` | The job type |
+			| `username` | The username of the user who started the job |
+			| `status` | The current status of the job |
+			| `fileUuid` | The UUID of the imported file |
+			| `filepath` | The path of the imported file |
+			| `filesize` | The size of the imported file |
+			| `processedChunks` | The number of chunks already processed |
+			| `processedObjects` | The number of objects already processed |
+			| `exception` | <p>**If an exception was caught** during the execution, an exception object containing:</p><p></p><p>`message` : The message of the exception</p><p>`cause` : The cause of the exception</p><p>`stacktrace` : The stacktrace of the exception |
+			""";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-
 		return List.of(
 			Parameter.mandatory("jobId", "ID of the job to query")
 		);
@@ -125,7 +124,6 @@ public class JobInfoFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Example> getExamples() {
-
 		return List.of(
 			Example.structrScript("${jobInfo(1)}", "Return information about the job with ID 1")
 		);

@@ -116,7 +116,7 @@ public class HttpPatchFunction extends UiAdvancedFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${PATCH(URL, body [, contentType, charset])}. Example: ${PATCH('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', '{name:\"Test\"}', 'application/json', 'utf-8')}"),
-			Usage.javaScript("Usage: ${{Structr.PATCH(URL, body [, contentType, charset])}}. Example: ${{Structr.PATCH('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', '{name:\"Test\"}', 'application/json', 'utf-8')}}")
+			Usage.javaScript("Usage: ${{ $.PATCH(URL, body [, contentType, charset])}}. Example: ${{ $.PATCH('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', '{name:\"Test\"}', 'application/json', 'utf-8')}}")
 		);
 	}
 

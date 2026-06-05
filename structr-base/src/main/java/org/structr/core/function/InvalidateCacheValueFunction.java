@@ -22,6 +22,7 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.parser.CacheExpression;
+import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
@@ -55,7 +56,6 @@ public class InvalidateCacheValueFunction extends CoreFunction {
 		} catch (ArgumentNullException | ArgumentCountException pe) {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
-
 		}
 
 		return null;
@@ -64,8 +64,8 @@ public class InvalidateCacheValueFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${invalidateCacheValue(cacheKey)}. Example: ${invalidateCacheValue('mykey')}"),
-			Usage.javaScript("Usage: ${{ Structr.invalidateCacheValue(cacheKey); }}. Example: ${{ Structr.invalidateCacheValue('mykey'); }}")
+			Usage.structrScript("Usage: ${invalidateCacheValue(cacheKey)}"),
+			Usage.javaScript("Usage: ${{ $.invalidateCacheValue(cacheKey) }}")
 		);
 	}
 
@@ -77,6 +77,13 @@ public class InvalidateCacheValueFunction extends CoreFunction {
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${invalidateCacheValue('mykey')}")
+		);
 	}
 
 	@Override

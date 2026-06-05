@@ -43,7 +43,7 @@ public class RenderFunction extends UiCommunityFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("list");
+		return Signature.forAllScriptingLanguages("nodeOrNodes");
 	}
 
 	@Override
@@ -129,38 +129,38 @@ public class RenderFunction extends UiCommunityFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${render(node)} or ${render(nodes)}."),
-			Usage.javaScript("Usage: ${{Structr.render(node)}} or ${{Structr.render(nodes)}}.")
+			Usage.structrScript("Usage: ${render(nodeOrNodes)}"),
+			Usage.javaScript("Usage: ${{ $.render(nodeOrNodes) }}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Renders the children of the current node.";
+		return "Renders the given node or nodes.";
 	}
 
 	@Override
 	public String getLongDescription() {
 		return """
-		Renders the HTML representation of the given node(s) into the output buffer. This function is exactly equivalent to the rendering process that Structr uses internally to create the HTML output of pages etc. It can be used to render dynamic content in pages with placeholders etc. Together with `include()`, `render()` is one of the the most important method when dealing with HTML web templates, since it allows the user to fill static HTML pages with dynamic content from the underlying node structure.
-		
-		See the documentation article about Page Rendering for more information on this topic.
-		""";
+			Renders the HTML representation of the given node(s) into the output buffer. This function is exactly equivalent to the rendering process that Structr uses internally to create the HTML output of pages etc. It can be used to render dynamic content in pages with placeholders etc. Together with `include()`, `render()` is one of the the most important method when dealing with HTML web templates, since it allows the user to fill static HTML pages with dynamic content from the underlying node structure.
+			
+			See the documentation article about Page Rendering for more information on this topic.
+			""";
 	}
 
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-			Example.structrScript("${render(children)}"),
-			Example.javaScript("${{ $.render($.children) }}")
+				Example.structrScript("${render(children)}", "Renders all children of the current node"),
+				Example.structrScript("${render(first(children))}", "Renders only the first child of the current node"),
+				Example.javaScript("${{ $.render($.children) }}", "Renders all children of the current node")
 		);
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-
 		return List.of(
-			Parameter.mandatory("node", "node or list of nodes to be rendered")
+			Parameter.mandatory("nodeOrNodes", "node or list of nodes to be rendered")
 		);
 	}
 

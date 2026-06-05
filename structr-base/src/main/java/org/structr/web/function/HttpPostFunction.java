@@ -159,7 +159,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${POST(URL, body [, contentType, charset, username, password, configMap])}. Example: ${POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'UTF-8')}"),
-			Usage.javaScript("Usage: ${{Structr.POST(URL, body [, contentType, charset, username, password, configMap])}}. Example: ${{Structr.POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'UTF-8')}}")
+			Usage.javaScript("Usage: ${{ $.POST(URL, body [, contentType, charset, username, password, configMap])}}. Example: ${{ $.POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'UTF-8')}}")
 		);
 	}
 

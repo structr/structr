@@ -80,8 +80,8 @@ public class ToDateFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${toDate(value)}. Example: ${toDate(1473201885000)}"),
-			Usage.javaScript("Usage: ${{$.toDate(value)}}. Example: ${{Structr.toDate(1473201885000)}}")
+			Usage.structrScript("Usage: ${toDate(value)}"),
+			Usage.javaScript("Usage: ${{ $.toDate(value) }}")
 		);
 	}
 

@@ -73,7 +73,7 @@ public class SetLogLevelFunction extends CoreFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${setLogLevel(string)}. Example ${setLogLevel('WARN')}"),
-			Usage.javaScript("Usage: ${{Structr.setLogLevel(string)}}. Example ${{Structr.setLogLevel('WARN')}}")
+			Usage.javaScript("Usage: ${{ $.setLogLevel(string) }}. Example ${{ $.setLogLevel('WARN')}}")
 		);
 	}
 

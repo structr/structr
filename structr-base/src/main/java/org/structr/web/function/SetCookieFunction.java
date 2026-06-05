@@ -24,6 +24,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
@@ -110,8 +111,8 @@ public class SetCookieFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${setCookie(name, value[, secure[, httpOnly[, maxAge[, domain[, path]]]]])}. Example: ${getCookie('cartId', 'abcdef123', true, false, 1800, 'www.structr.com', '/')}"),
-			Usage.javaScript("Usage: ${{Structr.setCookie(name, value[, secure[, httpOnly[, maxAge[, domain[, path]]]]])}}. Example: ${{Structr.setCookie('cartId', 'abcdef123', true, false, 1800, 'www.structr.com', '/')}}")
+			Usage.structrScript("Usage: ${setCookie(name, value[, secure[, httpOnly[, maxAge[, domain[, path]]]]])}"),
+			Usage.javaScript("Usage: ${{ $.setCookie(name, value[, secure[, httpOnly[, maxAge[, domain[, path]]]]]) }}")
 		);
 	}
 
@@ -125,6 +126,12 @@ public class SetCookieFunction extends UiAdvancedFunction {
 		return "";
 	}
 
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${setCookie('cartId', 'abcdef123', true, false, 1800, 'www.structr.com', '/')}")
+		);
+	}
 	@Override
 	public FunctionCategory getCategory() {
 		return FunctionCategory.Http;

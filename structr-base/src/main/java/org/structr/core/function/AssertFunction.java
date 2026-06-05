@@ -72,7 +72,7 @@ public class AssertFunction extends AdvancedScriptingFunction {
 
 		return List.of(
 			Usage.structrScript("Usage: ${assert(condition, statusCode, message)}. Example: ${assert(empty(str), 422, 'str must be empty!')}"),
-			Usage.javaScript("Usage: ${{Structr.assert(condition, statusCode, message);}}. Example: ${{Structr.assert(empty(str), 422, 'str must be empty!');}}")
+			Usage.javaScript("Usage: ${{ $.assert(condition, statusCode, message) }}. Example: ${{ $.assert(empty(str), 422, 'str must be empty!') }}")
 		);
 	}
 
