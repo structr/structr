@@ -180,5 +180,320 @@
 .bpmn-shape.bpmn-highlight-error .bpmn-shape-body { fill: #fcd9d4; }
 .process-diagram-dialog .dialogText { padding: 0; }
 .process-diagram-palette .btn-palette.active { outline: 2px solid #3498db; }
+.process-diagram-sidepanel {
+	flex: 0 0 24rem;
+	border-left: 1px solid #ddd;
+	padding: 10px;
+	overflow: auto;
+	font-size: 12px;
+}
 .show-diagram-link { color: inherit; text-decoration: none; }
 .show-diagram-link:hover { text-decoration: underline; }
+
+/* BPMN editor: task / process event-handler (listener) blocks.
+   Shared by the Task event handlers block (element panel) and the
+   Process event handlers block (process settings panel). */
+.bpmn-listener-block {
+	margin-top: 12px;
+	padding-top: 8px;
+	border-top: 1px solid #eee;
+}
+
+.bpmn-listener-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 6px;
+}
+
+.bpmn-listener-title {
+	color: #666;
+	font-size: 11px;
+}
+
+.bpmn-listener-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.bpmn-listener-hint {
+	color: #666;
+	font-size: 10px;
+	line-height: 1.4;
+	margin-top: 4px;
+}
+
+.bpmn-listener-row {
+	display: flex;
+	gap: 4px;
+	padding: 3px 0;
+	align-items: center;
+}
+
+.bpmn-listener-event {
+	flex: 0 0 36%;
+}
+
+.bpmn-listener-phase {
+	flex: 0 0 22%;
+}
+
+.bpmn-listener-method {
+	flex: 1 1 auto;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: 11px;
+	font-family: monospace;
+	color: #555;
+}
+
+.bpmn-listener-row .action {
+	flex: 0 0 auto;
+}
+
+/* BPMN editor: Process Diagram dialog layout (toolbar, palette, canvas, XML pane) */
+.process-diagram-toolbar {
+	padding: 6px 8px;
+	border-bottom: 1px solid #ddd;
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	flex-shrink: 0;
+}
+
+.pd-toolbar-sep {
+	width: 1px;
+	height: 18px;
+	background: #ddd;
+}
+
+.pd-spacer { flex: 1 1 auto; }
+.pd-bold { font-weight: 600; }
+
+.diagram-dirty,
+.diagram-status { font-size: 12px; }
+
+.process-diagram-body {
+	flex: 1 1 auto;
+	display: flex;
+	min-height: 300px;
+}
+
+.process-diagram-palette {
+	flex: 0 0 140px;
+	border-right: 1px solid #ddd;
+	padding: 6px 6px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	overflow: auto;
+}
+
+.process-diagram-host {
+	position: relative;
+	flex: 1 1 auto;
+}
+
+.palette-group {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+}
+
+.palette-group-header {
+	font-size: 10px;
+	font-weight: 600;
+	text-transform: uppercase;
+	color: #888;
+	padding: 2px 0;
+	letter-spacing: 0.5px;
+}
+
+.palette-group-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 3px;
+}
+
+.btn-palette {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 2px;
+	padding: 5px 2px;
+}
+
+.palette-entry-label {
+	font-size: 9px;
+	line-height: 1.1;
+	text-align: center;
+}
+
+.process-diagram-xml {
+	display: flex;
+	flex-direction: column;
+	flex: 0 0 35%;
+	border-top: 1px solid #ddd;
+	min-height: 0;
+	overflow: hidden;
+}
+
+.process-diagram-xml.is-hidden { display: none; }
+
+.process-diagram-xml-header {
+	padding: 4px 8px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	background: #f5f5f5;
+	font-size: 12px;
+	border-bottom: 1px solid #eee;
+}
+
+.process-diagram-xml-pre {
+	margin: 0;
+	padding: 8px;
+	overflow: auto;
+	font-size: 11px;
+	line-height: 1.4;
+	flex: 1 1 auto;
+	background: #fff;
+}
+
+/* BPMN editor: side-panel tabs */
+.process-diagram-sidepanel-tabs {
+	display: flex;
+	margin: -10px -10px 10px -10px;
+	border-bottom: 1px solid #ddd;
+}
+
+.sidepanel-tab {
+	flex: 1 1 auto;
+	padding: 7px 10px;
+	border: none;
+	cursor: pointer;
+	font-size: 12px;
+	background: #f5f5f5;
+	font-weight: 400;
+	color: #666;
+	border-bottom: 2px solid transparent;
+}
+
+.sidepanel-tab.active {
+	background: #fff;
+	font-weight: 600;
+	color: #333;
+	border-bottom-color: #3498db;
+}
+
+/* BPMN editor: side-panel + process-settings form primitives */
+.pd-heading       { margin: 0 0 8px 0; font-size: 13px; }
+.pd-heading-lg    { margin: 0 0 10px 0; font-size: 13px; }
+.pd-field-label   { color: #666; font-size: 11px; }
+.pd-label-block   { display: block; color: #666; font-size: 11px; margin-bottom: 4px; }
+.pd-section-title { color: #666; font-size: 11px; margin-bottom: 6px; }
+.pd-text-12       { font-size: 12px; }
+.pd-bold          { font-weight: 600; }
+.pd-mb-6          { margin-bottom: 6px; }
+.pd-block         { display: block; }
+.pd-field         { display: block; margin-bottom: 6px; }
+.pd-field-mt6     { display: block; margin-top: 6px; }
+
+.pd-section {
+	margin-top: 12px;
+	padding-top: 8px;
+	border-top: 1px solid #eee;
+}
+
+.pd-block-header {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-bottom: 6px;
+}
+
+.pd-checkbox-label {
+	display: flex;
+	align-items: flex-start;
+	gap: 6px;
+	cursor: pointer;
+	margin-bottom: 10px;
+}
+
+.pd-button-row {
+	display: flex;
+	gap: 6px;
+	margin-top: 10px;
+}
+
+.pd-hint {
+	display: block;
+	color: #666;
+	font-size: 10px;
+	line-height: 1.4;
+	margin-top: 4px;
+}
+
+.pd-panel-intro { color: #666; font-size: 11px; margin-bottom: 10px; }
+.pd-panel-note  { color: #666; font-size: 11px; margin-top: 6px; }
+
+/* Inputs share width/padding; the mono group adds a monospace face. */
+.input-element-name,
+.input-instructions,
+.select-instance-page,
+.select-performer-candidate-principals,
+.input-performer-assignee,
+.input-performer-candidates,
+.input-subject-type,
+.input-subject-form-view,
+.input-subject-writable-view {
+	width: 100%;
+	box-sizing: border-box;
+	padding: 3px 6px;
+	font-size: 12px;
+}
+
+.input-performer-assignee,
+.input-performer-candidates,
+.input-subject-type,
+.input-subject-form-view,
+.input-subject-writable-view {
+	font-family: monospace;
+}
+
+.chk-default-assignee-from-initiator { margin-top: 3px; }
+.btn-delete-element { margin-left: auto; color: #c0392b; }
+
+.process-settings-section {
+	margin-bottom: 14px;
+	padding-bottom: 10px;
+	border-bottom: 1px solid #eee;
+}
+
+.bpmn-dropzone-input { display: none; }
+
+/* BPMN editor: element BPMN-attributes rows */
+.bpmn-attributes-list { list-style: none; margin: 0; padding: 0; }
+
+.bpmn-attribute-row {
+	display: flex;
+	gap: 4px;
+	padding: 3px 0;
+	align-items: center;
+}
+
+.bpmn-attribute-key,
+.bpmn-attribute-value {
+	min-width: 0;
+	box-sizing: border-box;
+	padding: 2px 5px;
+	font-size: 11px;
+	font-family: monospace;
+}
+
+.bpmn-attribute-key   { flex: 1 1 40%; }
+.bpmn-attribute-value { flex: 1 1 60%; }
+.btn-remove-attribute { flex: 0 0 auto; }

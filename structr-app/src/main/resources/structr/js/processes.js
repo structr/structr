@@ -259,7 +259,7 @@ let _Processes = {
 				</button>
 				<div class="bpmn-dropzone" title="Drop a BPMN file or click to choose">
 					${_Icons.getSvgIcon(_Icons.iconImportFromCSV, 16, 16, 'mr-2')} Drop .bpmn file here, or click to choose
-					<input type="file" class="bpmn-dropzone-input" accept=".bpmn,.xml,application/xml,text/xml" multiple style="display:none;">
+					<input type="file" class="bpmn-dropzone-input" accept=".bpmn,.xml,application/xml,text/xml" multiple>
 				</div>
 				<div id="processDefinitionsPager"></div>
 			</div>
@@ -753,54 +753,54 @@ let _ProcessDiagram = {
 		dialogText.style.flexDirection = 'column';
 		dialogText.style.height        = '100%';
 		const paletteHtml = _ProcessDiagram._paletteGroups.map(group => `
-			<div class="palette-group" style="display:flex; flex-direction:column; gap:3px;">
-				<div class="palette-group-header" style="font-size:10px; font-weight:600; text-transform:uppercase; color:#888; padding:2px 0; letter-spacing:0.5px;">${_Helpers.escapeTags(group.name)}</div>
-				<div class="palette-group-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:3px;">
+			<div class="palette-group">
+				<div class="palette-group-header">${_Helpers.escapeTags(group.name)}</div>
+				<div class="palette-group-grid">
 					${group.entries.map(p => `
-						<button class="btn-palette" data-type="${p.type}" title="${_Helpers.escapeTags(p.label)}" style="display:flex; flex-direction:column; align-items:center; gap:2px; padding:5px 2px;">
+						<button class="btn-palette" data-type="${p.type}" title="${_Helpers.escapeTags(p.label)}">
 							${_ProcessDiagram._paletteGlyph(p.glyph)}
-							<span style="font-size:9px; line-height:1.1; text-align:center;">${_Helpers.escapeTags(p.label)}</span>
+							<span class="palette-entry-label">${_Helpers.escapeTags(p.label)}</span>
 						</button>
 					`).join('')}
 				</div>
 			</div>
 		`).join('');
 		dialogText.innerHTML = `
-			<div class="process-diagram-toolbar" style="padding:6px 8px; border-bottom:1px solid #ddd; display:flex; gap:8px; align-items:center; flex-shrink:0;">
+			<div class="process-diagram-toolbar">
 				<button class="action btn-fit">Fit</button>
 				<button class="action btn-zoom-in">+</button>
 				<button class="action btn-zoom-out">−</button>
-				<span style="width:1px; height:18px; background:#ddd;"></span>
+				<span class="pd-toolbar-sep"></span>
 				<button class="action btn-undo"    disabled>Undo</button>
 				<button class="action btn-redo"    disabled>Redo</button>
-				<span style="width:1px; height:18px; background:#ddd;"></span>
+				<span class="pd-toolbar-sep"></span>
 				<button class="action btn-tidy" title="Snap shapes to grid and inset lanes inside their pools">Tidy</button>
-				<span style="width:1px; height:18px; background:#ddd;"></span>
+				<span class="pd-toolbar-sep"></span>
 				<button class="action btn-save"    disabled>Save</button>
 				<button class="action btn-discard" disabled>Discard</button>
-				<span style="width:1px; height:18px; background:#ddd;"></span>
+				<span class="pd-toolbar-sep"></span>
 				<button class="action btn-toggle-xml">Show XML</button>
-				<span class="diagram-dirty text-gray-500" style="font-size:12px;"></span>
-				<span style="flex:1 1 auto;"></span>
-				<span class="diagram-status text-gray-500" style="font-size:12px;"></span>
+				<span class="diagram-dirty text-gray-500"></span>
+				<span class="pd-spacer"></span>
+				<span class="diagram-status text-gray-500"></span>
 			</div>
-			<div style="flex:1 1 auto; display:flex; min-height:300px;">
-				<div class="process-diagram-palette" style="flex:0 0 140px; border-right:1px solid #ddd; padding:6px 6px; display:flex; flex-direction:column; gap:8px; overflow:auto;">
+			<div class="process-diagram-body">
+				<div class="process-diagram-palette">
 					${paletteHtml}
 				</div>
-				<div class="process-diagram-host" style="position:relative; flex:1 1 auto;"></div>
-				<div class="process-diagram-sidepanel" style="flex:0 0 280px; border-left:1px solid #ddd; padding:10px; overflow:auto; font-size:12px;">
+				<div class="process-diagram-host"></div>
+				<div class="process-diagram-sidepanel">
 					<div class="text-gray-500">Select an element to see its properties.</div>
 				</div>
 			</div>
-			<div class="process-diagram-xml" style="display:none; flex:0 0 35%; border-top:1px solid #ddd; min-height:0; overflow:hidden; flex-direction:column;">
-				<div style="padding:4px 8px; display:flex; align-items:center; gap:8px; background:#f5f5f5; font-size:12px; border-bottom:1px solid #eee;">
-					<span style="font-weight:600;">BPMN XML (live preview)</span>
+			<div class="process-diagram-xml is-hidden">
+				<div class="process-diagram-xml-header">
+					<span class="pd-bold">BPMN XML (live preview)</span>
 					<button class="action btn-copy-xml">Copy</button>
-					<span style="flex:1 1 auto;"></span>
+					<span class="pd-spacer"></span>
 					<span class="text-gray-500">read-only — reflects pending edits client-side</span>
 				</div>
-				<pre class="process-diagram-xml-pre" style="margin:0; padding:8px; overflow:auto; font-size:11px; line-height:1.4; flex:1 1 auto; background:#fff;"></pre>
+				<pre class="process-diagram-xml-pre"></pre>
 			</div>
 		`;
 		const host       = dialogText.querySelector('.process-diagram-host');
@@ -1091,9 +1091,9 @@ let _ProcessDiagram = {
 					li.className = 'bpmn-attribute-row';
 					li.style.cssText = 'display:flex; gap:4px; padding:3px 0; align-items:center;';
 					li.innerHTML = `
-						<input type="text" class="bpmn-attribute-key"   value="" placeholder="key"   style="flex:1 1 40%; min-width:0; box-sizing:border-box; padding:2px 5px; font-size:11px; font-family:monospace;">
-						<input type="text" class="bpmn-attribute-value" value="" placeholder="value" style="flex:1 1 60%; min-width:0; box-sizing:border-box; padding:2px 5px; font-size:11px; font-family:monospace;">
-						<button class="action btn-remove-attribute" title="Remove this attribute" style="flex:0 0 auto;">−</button>
+						<input type="text" class="bpmn-attribute-key"   value="" placeholder="key"  >
+						<input type="text" class="bpmn-attribute-value" value="" placeholder="value">
+						<button class="action btn-remove-attribute" title="Remove this attribute">−</button>
 					`;
 					attributesList.appendChild(li);
 					wireRow(li);
@@ -1170,16 +1170,16 @@ let _ProcessDiagram = {
 				const rowHtml = (tl) => {
 					const m = methodOf(tl);
 					return `
-					<li class="bpmn-task-listener-row" data-listener-id="${escTL(tl.id)}" data-method-id="${escTL(m?.id ?? '')}" style="display:flex; gap:4px; padding:3px 0; align-items:center;">
-						<select class="bpmn-task-listener-event">
+					<li class="bpmn-listener-row bpmn-task-listener-row" data-listener-id="${escTL(tl.id)}" data-method-id="${escTL(m?.id ?? '')}">
+						<select class="bpmn-listener-event bpmn-task-listener-event">
 							${TASK_EVENTS_W.map(e => `<option value="${e}" ${e === tl.event ? 'selected' : ''}>${e}</option>`).join('')}
 						</select>
-						<select class="bpmn-task-listener-phase" title="on: pre-commit, can veto. after: post-commit, side-effects.">
+						<select class="bpmn-listener-phase bpmn-task-listener-phase" title="on: pre-commit, can veto. after: post-commit, side-effects.">
 							${TASK_PHASES_W.map(p => `<option value="${p}" ${p === (tl.phase ?? 'after') ? 'selected' : ''}>${p}</option>`).join('')}
 						</select>
-						<span class="bpmn-task-listener-method-name" title="${escTL(m?.name ?? '')}" style="flex:1 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px; font-family:monospace; color:#555;">${escTL(m?.name ?? '—')}</span>
-						<button class="action btn-edit-listener-method" data-method-id="${escTL(m?.id ?? '')}" title="Edit the handler method" style="flex:0 0 auto;">Edit</button>
-						<button class="action btn-remove-task-listener" title="Remove this handler (deletes its method)" style="flex:0 0 auto;">−</button>
+						<span class="bpmn-listener-method bpmn-task-listener-method-name" title="${escTL(m?.name ?? '')}">${escTL(m?.name ?? '—')}</span>
+						<button class="action btn-edit-listener-method" data-method-id="${escTL(m?.id ?? '')}" title="Edit the handler method">Edit</button>
+						<button class="action btn-remove-task-listener" title="Remove this handler (deletes its method)">−</button>
 					</li>`;
 				};
 
@@ -1479,7 +1479,7 @@ let _ProcessDiagram = {
 			}
 		};
 		const refreshXml = async () => {
-			if (xmlPane.style.display === 'none') return;
+			if (xmlPane.classList.contains('is-hidden')) return;
 			try {
 				const resp = await _Processes.rest.callEntityMethod('BpmnDefinitions', def.id, 'exportBpmn');
 				const xml  = (typeof resp === 'string') ? resp : (resp?.result ?? '');
@@ -1493,12 +1493,12 @@ let _ProcessDiagram = {
 		// Re-fetch after every save; show stale banner while edits are buffered.
 		api.onPendingChanged(renderStaleBanner);
 		xmlBtn.addEventListener('click', () => {
-			const showing = xmlPane.style.display !== 'none';
+			const showing = !xmlPane.classList.contains('is-hidden');
 			if (showing) {
-				xmlPane.style.display = 'none';
+				xmlPane.classList.add('is-hidden');
 				xmlBtn.textContent    = 'Show XML';
 			} else {
-				xmlPane.style.display = 'flex';
+				xmlPane.classList.remove('is-hidden');
 				xmlBtn.textContent    = 'Hide XML';
 				refreshXml();
 			}
@@ -1580,19 +1580,9 @@ let _ProcessDiagram = {
 	_renderSidePanelTabs: (activeTab) => {
 		const tab = (id, label) => {
 			const isActive = (id === activeTab);
-			return `<button type="button" class="sidepanel-tab" data-tab="${id}" style="
-				flex:1 1 auto;
-				padding:7px 10px;
-				border:none;
-				background:${isActive ? '#fff' : '#f5f5f5'};
-				cursor:pointer;
-				font-size:12px;
-				font-weight:${isActive ? '600' : '400'};
-				color:${isActive ? '#333' : '#666'};
-				border-bottom:2px solid ${isActive ? '#3498db' : 'transparent'};
-			">${label}</button>`;
+			return `<button type="button" class="sidepanel-tab${isActive ? ' active' : ''}" data-tab="${id}">${label}</button>`;
 		};
-		return `<div class="process-diagram-sidepanel-tabs" style="display:flex; margin:-10px -10px 10px -10px; border-bottom:1px solid #ddd;">
+		return `<div class="process-diagram-sidepanel-tabs">
 			${tab('element', 'Element')}${tab('process', 'Process')}
 		</div>`;
 	},
@@ -1626,14 +1616,14 @@ let _ProcessDiagram = {
 			const checked = proc.defaultAssigneeFromInitiator ? 'checked' : '';
 			const boundPageId = extractPageId(proc.instancePage);
 			return `
-				<div class="process-settings-section" data-process-id="${esc(proc.id)}" style="margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid #eee;">
-					<h4 style="margin:0 0 8px 0; font-size:13px;">${esc(name)}</h4>
+				<div class="process-settings-section" data-process-id="${esc(proc.id)}" data-process-name="${esc(name)}">
+					<h4 class="pd-heading">${esc(name)}</h4>
 
-					<label style="display:flex; align-items:flex-start; gap:6px; cursor:pointer; margin-bottom:10px;">
-						<input type="checkbox" class="chk-default-assignee-from-initiator" ${checked} style="margin-top:3px;">
+					<label class="pd-checkbox-label">
+						<input type="checkbox" class="chk-default-assignee-from-initiator" ${checked}>
 						<span>
-							<span style="font-size:12px;">Auto-assign tasks to the initiator</span>
-							<span class="text-gray-500" style="display:block; font-size:10px; line-height:1.4; margin-top:2px;">
+							<span class="pd-text-12">Auto-assign tasks to the initiator</span>
+							<span class="pd-hint">
 								When a userTask has no <code>humanPerformer</code> declared, the engine
 								reserves the task for the user who started the instance. Useful for
 								editor-authored processes where assignment isn't wired up explicitly.
@@ -1642,29 +1632,40 @@ let _ProcessDiagram = {
 						</span>
 					</label>
 
-					<label style="display:block;">
-						<span style="display:block; color:#666; font-size:11px; margin-bottom:4px;">Instance page</span>
-						<select class="select-instance-page" data-bound-page-id="${esc(boundPageId)}" style="width:100%; box-sizing:border-box; padding:3px 6px; font-size:12px;">
+					<label class="pd-block">
+						<span class="pd-label-block">Instance page</span>
+						<select class="select-instance-page" data-bound-page-id="${esc(boundPageId)}">
 							<option value="">— No page bound —</option>
 						</select>
-						<span class="text-gray-500" style="display:block; font-size:10px; line-height:1.4; margin-top:4px;">
+						<span class="pd-hint">
 							The page that renders an instance of this process. The Start-process
 							EAM action navigates to <code>/&lt;page-name&gt;/&lt;instance-uuid&gt;</code>.
 							When unset, the URL falls back to the slugified process name.
 						</span>
 					</label>
+
+					<div class="bpmn-listener-block">
+						<div class="bpmn-listener-header">
+							<div class="bpmn-listener-title">Process event handlers <span class="bpmn-process-listeners-count"></span></div>
+							<button class="action btn-add-process-listener" title="Add a handler that runs on a process lifecycle event">+ Add handler</button>
+						</div>
+						<ul class="bpmn-listener-list bpmn-process-listeners-list"></ul>
+						<div class="bpmn-listener-hint">
+							Runs a method on a process lifecycle event. <code>on</code> runs pre-commit (can veto); <code>after</code> runs post-commit.
+						</div>
+					</div>
 				</div>
 			`;
 		};
 		return `
-			<h4 style="margin:0 0 10px 0; font-size:13px;">Process settings</h4>
-			<div class="text-gray-500" style="font-size:11px; margin-bottom:10px;">
+			<h4 class="pd-heading-lg">Process settings</h4>
+			<div class="pd-panel-intro">
 				These settings are Structr-specific and not part of the BPMN spec, so they
 				are not preserved across re-imports. They control engine and routing
 				behaviour at runtime.
 			</div>
 			${procs.map(section).join('')}
-			<div class="text-gray-500" style="font-size:11px; margin-top:6px;">
+			<div class="pd-panel-note">
 				Select an element on the canvas to edit its properties.
 			</div>
 		`;
@@ -1715,6 +1716,159 @@ let _ProcessDiagram = {
 					}
 				});
 			}
+
+			// --- Process event handlers (phased BpmnProcessListener on the
+			// process root). Mirrors the Task event handlers block: one handler
+			// per (event, phase), method auto-named and bound directly. ---
+			const plListEl = section.querySelector('.bpmn-process-listeners-list');
+			const plAddBtn = section.querySelector('.btn-add-process-listener');
+			if (procId && plListEl && plAddBtn) {
+
+				const PROC_EVENTS  = ['created','started','subjectAttached','completed','terminated','suspended','resumed'];
+				const PROC_PHASES  = ['after','on'];
+				const plCountEl    = section.querySelector('.bpmn-process-listeners-count');
+				const procName     = section.dataset.processName || 'process';
+				const escPL        = _Helpers.escapeTags;
+				const capPL        = (s) => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+
+				// <camelProcessName>_<phase><Event>, e.g. employeeLeaveRequest_afterCompleted
+				const plMethodName = (phase, event) => {
+					const parts = String(procName).split(/[^a-zA-Z0-9]+/).filter(Boolean);
+					let base = parts.length ? parts[0].toLowerCase() + parts.slice(1).map(capPL).join('') : 'process';
+					if (!/^[a-z_]/.test(base)) base = 'process' + capPL(base);
+					return `${base}_${phase}${capPL(event)}`;
+				};
+				const plSetProps = (id, props) => new Promise((resolve, reject) => {
+					try { Command.setProperties(id, props, () => resolve()); } catch (e) { reject(e); }
+				});
+				const plMethodOf = (pl) => {
+					const m = Array.isArray(pl.method) ? pl.method[0] : pl.method;
+					return (m && typeof m === 'object') ? m : null;
+				};
+				const plOpenMethod = (methodId) => {
+					if (!methodId) return;
+					_Dialogs.custom.clickDialogCancelButton();
+					setTimeout(async () => {
+						try {
+							const res = await fetch(`${Structr.rootUrl}SchemaMethod/${methodId}/ui`, { credentials: 'same-origin' });
+							if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+							const body = await res.json();
+							let m = body.result; if (Array.isArray(m)) m = m[0];
+							if (m) _Code.helpers.navigateToSchemaObjectFromAnywhere(m);
+						} catch (e) {
+							new ErrorMessage().text(`Failed to open method: ${e.message}`).show();
+						}
+					}, 150);
+				};
+
+				let plLoaded = [];
+
+				const plRowHtml = (pl) => {
+					const m = plMethodOf(pl);
+					return `
+					<li class="bpmn-listener-row bpmn-process-listener-row" data-listener-id="${escPL(pl.id)}" data-method-id="${escPL(m?.id ?? '')}">
+						<select class="bpmn-listener-event bpmn-process-listener-event">
+							${PROC_EVENTS.map(e => `<option value="${e}" ${e === pl.event ? 'selected' : ''}>${e}</option>`).join('')}
+						</select>
+						<select class="bpmn-listener-phase bpmn-process-listener-phase" title="on: pre-commit, can veto. after: post-commit, side-effects.">
+							${PROC_PHASES.map(p => `<option value="${p}" ${p === (pl.phase ?? 'after') ? 'selected' : ''}>${p}</option>`).join('')}
+						</select>
+						<span class="bpmn-listener-method bpmn-process-listener-method-name" title="${escPL(m?.name ?? '')}">${escPL(m?.name ?? '—')}</span>
+						<button class="action btn-edit-process-listener-method" title="Edit the handler method">Edit</button>
+						<button class="action btn-remove-process-listener" title="Remove this handler (deletes its method)">&minus;</button>
+					</li>`;
+				};
+
+				const plWireRow = (row) => {
+					const listenerId = row.dataset.listenerId;
+					const methodId   = row.dataset.methodId;
+					if (!listenerId) return;
+					const eventSel = row.querySelector('.bpmn-process-listener-event');
+					const phaseSel = row.querySelector('.bpmn-process-listener-phase');
+					const editBt   = row.querySelector('.btn-edit-process-listener-method');
+					const removeBt = row.querySelector('.btn-remove-process-listener');
+
+					const commit = async () => {
+						const event = eventSel.value;
+						const phase = phaseSel.value;
+						const collides = plLoaded.some(pl =>
+							pl.id !== listenerId && pl.event === event && (pl.phase ?? 'after') === phase);
+						if (collides) {
+							new ErrorMessage().text(`A handler for "${event}" (${phase}) already exists on this process.`).show();
+							await plLoadRows();
+							return;
+						}
+						eventSel.disabled = phaseSel.disabled = true;
+						try {
+							await plSetProps(listenerId, { event, phase });
+							if (methodId) { try { await plSetProps(methodId, { name: plMethodName(phase, event) }); } catch (_) {} }
+							await plLoadRows();
+						} catch (err) {
+							new ErrorMessage().text(`Update handler failed: ${err.message ?? err}`).show();
+							await plLoadRows();
+						}
+					};
+					eventSel?.addEventListener('change', commit);
+					phaseSel?.addEventListener('change', commit);
+					editBt?.addEventListener('click', () => plOpenMethod(methodId));
+					removeBt?.addEventListener('click', async () => {
+						removeBt.disabled = true;
+						try {
+							if (methodId) { await new Promise((resolve) => Command.deleteNode(methodId, undefined, () => resolve())); }
+							await new Promise((resolve) => Command.deleteNode(listenerId, undefined, () => resolve()));
+							await plLoadRows();
+						} catch (err) {
+							new ErrorMessage().text(`Remove handler failed: ${err.message ?? err}`).show();
+							removeBt.disabled = false;
+						}
+					});
+				};
+
+				const plLoadRows = async () => {
+					try {
+						const res  = await fetch(`${Structr.rootUrl}BpmnProcessListener/ui?process=${procId}`, { credentials: 'same-origin' });
+						const body = res.ok ? await res.json() : { result: [] };
+						plLoaded = Array.isArray(body.result) ? body.result : (body.result ? [body.result] : []);
+					} catch (_) {
+						plLoaded = [];
+					}
+					plListEl.innerHTML = plLoaded.map(plRowHtml).join('');
+					if (plCountEl) plCountEl.textContent = `(${plLoaded.length})`;
+					plListEl.querySelectorAll('.bpmn-process-listener-row').forEach(plWireRow);
+				};
+				plLoadRows();
+
+				plAddBtn.addEventListener('click', async () => {
+					// First free (event, phase) pair, all 'after' then 'on'.
+					const usedPairs = new Set(plLoaded.map(pl => `${pl.event}|${pl.phase ?? 'after'}`));
+					let event = null, phase = null;
+					for (const ph of PROC_PHASES) {
+						const free = PROC_EVENTS.find(e => !usedPairs.has(`${e}|${ph}`));
+						if (free) { event = free; phase = ph; break; }
+					}
+					if (!event) {
+						new InfoMessage().title('All handlers exist').text('Every event/phase combination already has a handler on this process.').show();
+						return;
+					}
+					plAddBtn.disabled = true;
+					try {
+						const methodName = plMethodName(phase, event);
+						const methodId = await new Promise((resolve, reject) => {
+							Command.create({ type: 'SchemaMethod', name: methodName, source: '', bpmnProcess: procId },
+								(m) => (m && m.id) ? resolve(m.id) : reject(new Error('SchemaMethod creation failed')));
+						});
+						await new Promise((resolve, reject) => {
+							Command.create({ type: 'BpmnProcessListener', process: procId, event, phase, method: methodId },
+								(n) => (n && n.id) ? resolve(n.id) : reject(new Error('BpmnProcessListener creation failed')));
+						});
+						await plLoadRows();
+					} catch (err) {
+						new ErrorMessage().text(`Add handler failed: ${err.message ?? err}`).show();
+					} finally {
+						plAddBtn.disabled = false;
+					}
+				});
+			}
 		}
 	},
 
@@ -1726,8 +1880,8 @@ let _ProcessDiagram = {
 	_renderSidePanel: (elem) => {
 		const esc = (v) => v == null ? '' : _Helpers.escapeTags(String(v));
 		const row = (label, value) => `
-			<div style="margin-bottom:6px;">
-				<div style="color:#666; font-size:11px;">${esc(label)}</div>
+			<div class="pd-mb-6">
+				<div class="pd-field-label">${esc(label)}</div>
 				<div>${esc(value) || '<span class="text-gray-500">—</span>'}</div>
 			</div>
 		`;
@@ -1736,22 +1890,22 @@ let _ProcessDiagram = {
 		// current assignee/candidate expressions for persisted performers.
 		const isUserTask = (elem.bpmnElementType === 'userTask');
 		const performersBlock = !isUserTask ? '' : `
-			<div style="margin-top:12px; padding-top:8px; border-top:1px solid #eee;">
-				<div style="color:#666; font-size:11px; margin-bottom:6px;">Performers</div>
-				<label style="display:block; margin-bottom:6px;">
-					<div style="color:#666; font-size:11px;">Assignee (humanPerformer)</div>
-					<input type="text" class="input-performer-assignee" placeholder="\${initiator} or user(alice)" style="width:100%; box-sizing:border-box; padding:3px 6px; font-size:12px; font-family:monospace;">
+			<div class="pd-section">
+				<div class="pd-section-title">Performers</div>
+				<label class="pd-field">
+					<div class="pd-field-label">Assignee (humanPerformer)</div>
+					<input type="text" class="input-performer-assignee" placeholder="\${initiator} or user(alice)">
 				</label>
-				<label style="display:block;">
-					<div style="color:#666; font-size:11px;">Candidates expression (potentialOwner)</div>
-					<input type="text" class="input-performer-candidates" placeholder="user(alice), group(managers)" style="width:100%; box-sizing:border-box; padding:3px 6px; font-size:12px; font-family:monospace;">
+				<label class="pd-block">
+					<div class="pd-field-label">Candidates expression (potentialOwner)</div>
+					<input type="text" class="input-performer-candidates" placeholder="user(alice), group(managers)">
 				</label>
-				<label style="display:block; margin-top:6px;">
-					<div style="color:#666; font-size:11px;">Candidate principals</div>
-					<select class="select-performer-candidate-principals" multiple size="5" style="width:100%; box-sizing:border-box; padding:3px 6px; font-size:12px;">
+				<label class="pd-field-mt6">
+					<div class="pd-field-label">Candidate principals</div>
+					<select class="select-performer-candidate-principals" multiple size="5">
 					</select>
 				</label>
-				<div class="text-gray-500" style="font-size:10px; margin-top:4px; line-height:1.4;">
+				<div class="pd-hint">
 					Expression syntax: <code>\${initiator}</code>, <code>user(<i>name</i>)</code>,
 					<code>group(<i>name</i>)</code>, comma-separated. The picker below binds Users
 					and Groups directly via a typed graph relationship -- preferred when
@@ -1770,25 +1924,25 @@ let _ProcessDiagram = {
 		// property. See project_process_ui_contract_pillar.md for the
 		// design rationale.
 		const contractBlock = !isUserTask ? '' : `
-			<div style="margin-top:12px; padding-top:8px; border-top:1px solid #eee;">
-				<div style="color:#666; font-size:11px; margin-bottom:6px;">Process / UI contract</div>
-				<label style="display:block; margin-bottom:6px;">
-					<div style="color:#666; font-size:11px;">Subject type</div>
-					<input type="text" class="input-subject-type" value="${esc(elem.subjectType ?? '')}" placeholder="SchemaNode name, e.g. LeaveRequest" style="width:100%; box-sizing:border-box; padding:3px 6px; font-size:12px; font-family:monospace;">
+			<div class="pd-section">
+				<div class="pd-section-title">Process / UI contract</div>
+				<label class="pd-field">
+					<div class="pd-field-label">Subject type</div>
+					<input type="text" class="input-subject-type" value="${esc(elem.subjectType ?? '')}" placeholder="SchemaNode name, e.g. LeaveRequest">
 				</label>
-				<label style="display:block; margin-bottom:6px;">
-					<div style="color:#666; font-size:11px;">Form view (optional)</div>
-					<input type="text" class="input-subject-form-view" value="${esc(elem.subjectFormView ?? '')}" placeholder="SchemaView name (defaults to standard view)" style="width:100%; box-sizing:border-box; padding:3px 6px; font-size:12px; font-family:monospace;">
+				<label class="pd-field">
+					<div class="pd-field-label">Form view (optional)</div>
+					<input type="text" class="input-subject-form-view" value="${esc(elem.subjectFormView ?? '')}" placeholder="SchemaView name (defaults to standard view)">
 				</label>
-				<label style="display:block; margin-bottom:6px;">
-					<div style="color:#666; font-size:11px;">Writable view (optional, subset of form view)</div>
-					<input type="text" class="input-subject-writable-view" value="${esc(elem.subjectWritableView ?? '')}" placeholder="SchemaView name" style="width:100%; box-sizing:border-box; padding:3px 6px; font-size:12px; font-family:monospace;">
+				<label class="pd-field">
+					<div class="pd-field-label">Writable view (optional, subset of form view)</div>
+					<input type="text" class="input-subject-writable-view" value="${esc(elem.subjectWritableView ?? '')}" placeholder="SchemaView name">
 				</label>
-				<label style="display:block;">
-					<div style="color:#666; font-size:11px;">Instructions for the human user</div>
-					<textarea class="input-instructions" rows="2" placeholder="Optional help text shown above the form" style="width:100%; box-sizing:border-box; padding:3px 6px; font-size:12px;">${esc(elem.instructions ?? '')}</textarea>
+				<label class="pd-block">
+					<div class="pd-field-label">Instructions for the human user</div>
+					<textarea class="input-instructions" rows="2" placeholder="Optional help text shown above the form">${esc(elem.instructions ?? '')}</textarea>
 				</label>
-				<div class="text-gray-500" style="font-size:10px; line-height:1.4; margin-top:4px;">
+				<div class="pd-hint">
 					Process-bound widgets read these to derive their data source
 					and field set at render time. UI designers configure layout
 					and styling on their side; the subject type leads.
@@ -1815,23 +1969,23 @@ let _ProcessDiagram = {
 			attrEntries = [['_raw', String(elem.bpmnAttributes ?? '')]];
 		}
 		const attrRow = (k, v) => `
-			<li class="bpmn-attribute-row" style="display:flex; gap:4px; padding:3px 0; align-items:center;">
-				<input type="text" class="bpmn-attribute-key"   value="${esc(k)}" placeholder="key"   style="flex:1 1 40%; min-width:0; box-sizing:border-box; padding:2px 5px; font-size:11px; font-family:monospace;">
-				<input type="text" class="bpmn-attribute-value" value="${esc(v)}" placeholder="value" style="flex:1 1 60%; min-width:0; box-sizing:border-box; padding:2px 5px; font-size:11px; font-family:monospace;">
-				<button class="action btn-remove-attribute" title="Remove this attribute" style="flex:0 0 auto;">−</button>
+			<li class="bpmn-attribute-row">
+				<input type="text" class="bpmn-attribute-key"   value="${esc(k)}" placeholder="key"  >
+				<input type="text" class="bpmn-attribute-value" value="${esc(v)}" placeholder="value">
+				<button class="action btn-remove-attribute" title="Remove this attribute">−</button>
 			</li>
 		`;
 		const attributesBlock = `
-			<div style="margin-top:12px; padding-top:8px; border-top:1px solid #eee;">
-				<div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
-					<div style="color:#666; font-size:11px;">BPMN attributes (${attrEntries.length})</div>
-					<span style="flex:1 1 auto;"></span>
+			<div class="pd-section">
+				<div class="pd-block-header">
+					<div class="pd-field-label">BPMN attributes (${attrEntries.length})</div>
+					<span class="pd-spacer"></span>
 					<button class="action btn-add-attribute" title="Add an XML-attribute key/value pair">+ Add</button>
 				</div>
-				<ul class="bpmn-attributes-list" style="list-style:none; margin:0; padding:0;">
+				<ul class="bpmn-attributes-list">
 					${attrEntries.map(([k, v]) => attrRow(k, v)).join('')}
 				</ul>
-				<div class="text-gray-500" style="font-size:10px; line-height:1.4; margin-top:4px;">
+				<div class="pd-hint">
 					Round-trips to BPMN as XML attributes on this element. Use for
 					things like <code>default</code> (gateway default flow id),
 					<code>cancelActivity</code>, <code>scriptFormat</code>. Empty key
@@ -1849,14 +2003,13 @@ let _ProcessDiagram = {
 		// step, NOT from elem.taskListeners: the element's nested serialization
 		// reduces related nodes to id/type/name, dropping event/phase/method.
 		const taskListenersBlock = !isUserTask ? '' : `
-			<div style="margin-top:12px; padding-top:8px; border-top:1px solid #eee;">
-				<div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
-					<div style="color:#666; font-size:11px;">Task event handlers <span class="bpmn-task-listeners-count"></span></div>
-					<span style="flex:1 1 auto;"></span>
+			<div class="bpmn-listener-block">
+				<div class="bpmn-listener-header">
+					<div class="bpmn-listener-title">Task event handlers <span class="bpmn-task-listeners-count"></span></div>
 					<button class="action btn-add-task-listener" title="Add a handler that runs on a task lifecycle event">+ Add handler</button>
 				</div>
-				<ul class="bpmn-task-listeners-list" style="list-style:none; margin:0; padding:0;"></ul>
-				<div class="text-gray-500" style="font-size:10px; line-height:1.4; margin-top:4px;">
+				<ul class="bpmn-listener-list bpmn-task-listeners-list"></ul>
+				<div class="bpmn-listener-hint">
 					One handler per (event, phase). The method is created and named for you;
 					edit its body in the Code module. <b>on</b> runs pre-commit and can roll
 					back the transition; <b>after</b> runs post-commit for side-effects.
@@ -1866,10 +2019,10 @@ let _ProcessDiagram = {
 
 		const headerName = esc(elem.bpmnName || elem.bpmnId || elem.id);
 		return `
-			<h4 style="margin:0 0 8px 0; font-size:13px;">${headerName}</h4>
-			<div style="margin-bottom:6px;">
-				<div style="color:#666; font-size:11px;">Name</div>
-				<input type="text" class="input-element-name" value="${esc(elem.bpmnName ?? '')}" placeholder="${esc(elem.bpmnId ?? '')}" style="width:100%; box-sizing:border-box; padding:3px 6px; font-size:12px;">
+			<h4 class="pd-heading">${headerName}</h4>
+			<div class="pd-mb-6">
+				<div class="pd-field-label">Name</div>
+				<input type="text" class="input-element-name" value="${esc(elem.bpmnName ?? '')}" placeholder="${esc(elem.bpmnId ?? '')}">
 			</div>
 			${row('Type',          elem.bpmnElementType)}
 			${row('BPMN id',       elem.bpmnId)}
@@ -1879,9 +2032,9 @@ let _ProcessDiagram = {
 			${attributesBlock}
 			${performersBlock}
 			${taskListenersBlock}
-			<div style="display:flex; gap:6px; margin-top:10px;">
+			<div class="pd-button-row">
 				<button class="action btn-open-properties">Open in editor…</button>
-				<button class="action btn-delete-element" style="margin-left:auto; color:#c0392b;">Delete</button>
+				<button class="action btn-delete-element">Delete</button>
 			</div>
 		`;
 	},
