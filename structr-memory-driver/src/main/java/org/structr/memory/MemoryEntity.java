@@ -34,7 +34,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  */
-public abstract class MemoryEntity implements PropertyContainer {
+public abstract class MemoryEntity implements PropertyContainer<Long> {
 
 	private final Map<String, Object> dataCache    = new HashMap<>();
 	private final Map<Long, ChangeAwareMap> txData = new HashMap<>();
@@ -59,7 +59,7 @@ public abstract class MemoryEntity implements PropertyContainer {
 	protected abstract void updateCache();
 
 	@Override
-	public Identity getId() {
+	public Identity<Long> getId() {
 		return id;
 	}
 

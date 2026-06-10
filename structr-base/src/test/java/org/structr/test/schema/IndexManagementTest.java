@@ -676,7 +676,7 @@ public class IndexManagementTest extends StructrTest {
 		return false;
 	}
 
-	private List<IndexInfo> queryIndexes(final DatabaseService db, final String labelOrType) {
+	private List<IndexInfo> queryIndexes(final DatabaseService<?> db, final String labelOrType) {
 
 		// Neo4j 5.x
 		if (db.supportsFeature(DatabaseFeature.ShowIndexesQuery)) {

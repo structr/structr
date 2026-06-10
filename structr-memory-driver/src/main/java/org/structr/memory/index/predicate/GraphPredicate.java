@@ -52,15 +52,15 @@ public class GraphPredicate<T extends PropertyContainer> implements Predicate<T>
 
 		if (entity instanceof MemoryNode) {
 
-			final MemoryNode node           = (MemoryNode)entity;
-			final Direction direction       = graphQuery.getDirection();
-			final String notionPropertyName = graphQuery.getNotionPropertyName();
-			final String relationship       = graphQuery.getRelationship();
-			final String otherLabel         = graphQuery.getOtherLabel();
-			final Set<Object> actual        = new LinkedHashSet<>();
-			final Set<Object> expected      = getPrimitiveValues(graphQuery.getValues());
-			final RelationshipType relType  = RelationshipType.forName(relationship);
-			final List<Relationship> rels   = Iterables.toList(node.getRelationships(direction, relType));
+			final MemoryNode node               = (MemoryNode)entity;
+			final Direction direction           = graphQuery.getDirection();
+			final String notionPropertyName     = graphQuery.getNotionPropertyName();
+			final String relationship           = graphQuery.getRelationship();
+			final String otherLabel             = graphQuery.getOtherLabel();
+			final Set<Object> actual            = new LinkedHashSet<>();
+			final Set<Object> expected          = getPrimitiveValues(graphQuery.getValues());
+			final RelationshipType relType      = RelationshipType.forName(relationship);
+			final List<Relationship<Long>> rels = Iterables.toList(node.getRelationships(direction, relType));
 
 			if (!rels.isEmpty()) {
 

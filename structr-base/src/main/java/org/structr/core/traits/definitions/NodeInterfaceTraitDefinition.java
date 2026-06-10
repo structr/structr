@@ -20,6 +20,7 @@ package org.structr.core.traits.definitions;
 
 import org.structr.api.Predicate;
 import org.structr.api.graph.Direction;
+import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.common.PropertyView;
@@ -65,7 +66,7 @@ public final class NodeInterfaceTraitDefinition extends AbstractNodeTraitDefinit
 				public boolean hasRelationshipTo(final NodeInterface node, final RelationshipType type, final NodeInterface targetNode) {
 
 					if (node.getNode() != null && type != null && targetNode != null) {
-						return node.getNode().hasRelationshipTo(type, targetNode.getNode());
+						return node.getNode().hasRelationshipTo(type, (Node)targetNode.getNode());
 					}
 
 					return false;
@@ -77,7 +78,7 @@ public final class NodeInterfaceTraitDefinition extends AbstractNodeTraitDefinit
 					if (node.getNode() != null && type != null && targetNode != null) {
 
 						final RelationshipFactory factory = new RelationshipFactory(node.getSecurityContext());
-						final Relationship rel = node.getNode().getRelationshipTo(type, targetNode.getNode());
+						final Relationship rel = node.getNode().getRelationshipTo(type, (Node)targetNode.getNode());
 
 						if (rel != null) {
 
@@ -90,22 +91,22 @@ public final class NodeInterfaceTraitDefinition extends AbstractNodeTraitDefinit
 
 				@Override
 				public Iterable<RelationshipInterface> getRelationships(final NodeInterface node) {
-					return new IterableAdapter<>(node.getNode().getRelationships(), new RelationshipFactory(node.getSecurityContext()));
+					return new IterableAdapter<>((Iterable)node.getNode().getRelationships(), new RelationshipFactory(node.getSecurityContext()));
 				}
 
 				@Override
 				public Iterable<RelationshipInterface> getRelationshipsAsSuperUser(final NodeInterface node) {
-					return new IterableAdapter<>(node.getNode().getRelationships(), new RelationshipFactory(SecurityContext.getSuperUserInstance()));
+					return new IterableAdapter<>((Iterable)node.getNode().getRelationships(), new RelationshipFactory(SecurityContext.getSuperUserInstance()));
 				}
 
 				@Override
 				public Iterable<RelationshipInterface> getIncomingRelationships(final NodeInterface node) {
-					return new IterableAdapter<>(node.getNode().getRelationships(Direction.INCOMING), new RelationshipFactory(node.getSecurityContext()));
+					return new IterableAdapter<>((Iterable)node.getNode().getRelationships(Direction.INCOMING), new RelationshipFactory(node.getSecurityContext()));
 				}
 
 				@Override
 				public Iterable<RelationshipInterface> getOutgoingRelationships(final NodeInterface node) {
-					return new IterableAdapter<>(node.getNode().getRelationships(Direction.OUTGOING), new RelationshipFactory(node.getSecurityContext()));
+					return new IterableAdapter<>((Iterable)node.getNode().getRelationships(Direction.OUTGOING), new RelationshipFactory(node.getSecurityContext()));
 				}
 
 				@Override
@@ -131,7 +132,7 @@ public final class NodeInterfaceTraitDefinition extends AbstractNodeTraitDefinit
 					final Direction direction = template.getDirectionForType(type);
 					final RelationshipType relType = template;
 
-					return new IterableAdapter<>(node.getNode().getRelationships(direction, relType), factory);
+					return new IterableAdapter<>((Iterable)node.getNode().getRelationships(direction, relType), factory);
 				}
 
 				@Override

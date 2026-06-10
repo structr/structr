@@ -85,7 +85,7 @@ public class ChannelResult<T> {
 
 		final ChannelResult<T> result = new ChannelResult<>();
 
-		result.values.addAll(Iterables.toList(query));
+		result.values.addAll(Iterables.toList(query, false));
 		result.totalResultCount = query.calculateTotalResultCount(null, softLimit);
 
 		return result;

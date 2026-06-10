@@ -1375,7 +1375,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 	}
 
 	// ----- interface BroadcastReceiver -----
-	public void broadcastDataChange(final List<Long> ids) {
+	public void broadcastDataChange(final List<Object> ids) {
 		Services.getInstance().broadcastMessageToCluster("data-changed", ids);
 	}
 

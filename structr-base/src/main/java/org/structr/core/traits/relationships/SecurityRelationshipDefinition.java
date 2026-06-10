@@ -75,7 +75,7 @@ public class SecurityRelationshipDefinition extends AbstractRelationshipTraitDef
 					keys.add(traits.key(PRINCIPAL_ID_PROPERTY));
 					keys.add(traits.key(ACCESS_CONTROLLABLE_ID_PROPERTY));
 
-					final Relationship dbRelationship = ((RelationshipInterface) graphObject).getRelationship();
+					final Relationship<?> dbRelationship = ((RelationshipInterface) graphObject).getRelationship();
 					if (dbRelationship != null) {
 
 						for (String key : dbRelationship.getPropertyKeys()) {

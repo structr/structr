@@ -21,12 +21,12 @@ package org.structr.api.graph;
 /**
  *
  */
-public interface Relationship extends PropertyContainer, Comparable<Relationship> {
+public interface Relationship<IDType> extends PropertyContainer<IDType>, Comparable<Relationship> {
 
-	Node getStartNode();
-	Node getEndNode();
-	Node getOtherNode(final Node node);
-	Direction getDirectionForNode(final Node otherNode);
+	Node<IDType> getStartNode();
+	Node<IDType> getEndNode();
+	Node<IDType> getOtherNode(final Node<IDType> node);
+	Direction getDirectionForNode(final Node<IDType> otherNode);
 
 	RelationshipType getType();
 

@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.api.graph.Identity;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -67,8 +68,8 @@ public class LoginCommand extends AbstractCommand {
 		}
 
 		boolean sendSuccess = false;
-		Principal user      = null;
-		long userId         = -1L;
+		Principal   user   = null;
+		Identity<?> userId = null;
 
 		try (final Tx tx = app.tx(true, true, true)) {
 
@@ -151,8 +152,7 @@ public class LoginCommand extends AbstractCommand {
 						}
 					}
 
-					// fixme: really?
-					userId = user.getNode().getId().getId();
+					userId = user.getNode().getId();
 
 				} else {
 
@@ -208,7 +208,7 @@ public class LoginCommand extends AbstractCommand {
 		if (sendSuccess) {
 
 			// send broadcast to cluster members to refresh user from db
-			Services.getInstance().broadcastLogin(userId);
+			Services.getInstance().broadcastLogin(userId.hash());
 
 			getWebSocket().send(webSocketData, false);
 		}

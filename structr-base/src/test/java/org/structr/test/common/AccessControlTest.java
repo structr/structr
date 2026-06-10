@@ -21,6 +21,7 @@ package org.structr.test.common;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Direction;
+import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.api.schema.JsonSchema;
@@ -1314,7 +1315,7 @@ public class AccessControlTest extends StructrTest {
 			final RelationshipType relType = Traits.of(StructrTraits.PRINCIPAL_OWNS_NODE).getRelation();
 
 			// Do additional low-level check here to ensure cardinality!
-			List<Relationship> incomingRels = Iterables.toList(t1.getNode().getRelationships(Direction.INCOMING, relType));
+			List<Relationship> incomingRels = Iterables.toList((Iterable)t1.getNode().getRelationships(Direction.INCOMING, relType));
 			assertEquals(1, incomingRels.size());
 
 			tx.success();

@@ -20,7 +20,8 @@ package org.structr.api.graph;
 
 /**
  */
-public interface Identity extends Comparable {
+public interface Identity<T> extends Comparable {
 
-	long getId();
+	T getId();
+	long hash();
 }

@@ -1,0 +1,172 @@
+/*
+ * Copyright (C) 2010-2026 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package org.structr.embedded.factory;
+
+import org.apache.commons.lang3.StringUtils;
+import org.structr.api.index.AbstractIndex;
+import org.structr.api.index.AbstractQueryFactory;
+import org.structr.api.search.GraphQuery;
+import org.structr.api.search.Operation;
+import org.structr.api.search.QueryPredicate;
+import org.structr.embedded.AdvancedCypherQuery;
+import org.structr.embedded.EmbeddedIdentity;
+import org.structr.embedded.GraphQueryPart;
+
+import java.util.ArrayList;
+import java.util.Set;
+
+public class GraphQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery> {
+
+	public GraphQueryFactory(final AbstractIndex index) {
+		super(index);
+	}
+
+	@Override
+	public boolean createQuery(final QueryPredicate predicate, final AdvancedCypherQuery query, final boolean isFirst) {
+
+		final GraphQuery graphQuery = (GraphQuery)predicate;
+
+		if (graphQuery.isAny()) {
+
+			return createAnyQuery(predicate, query, isFirst);
+		}
+
+		final GraphQueryPart part   = new GraphQueryPart(graphQuery);
+		final Set<Object> values    = graphQuery.getValues();
+		final boolean isString      = predicate.getType().equals(String.class);
+
+		if (values.isEmpty() || onlyEmptyValues(values)) {
+
+			query.addNullObjectParameter(graphQuery.getDirection(), graphQuery.getRelationship());
+
+		} else {
+
+			query.addGraphQueryPart(part);
+
+			final String name = graphQuery.getNotionPropertyName();
+			boolean first     = true;
+
+			for (final Object value : graphQuery.getValues()) {
+
+				checkOperation(query, Operation.OR, first);
+
+				if (predicate.isExactMatch() || !isString) {
+
+					final EmbeddedIdentity boltIdentity = (EmbeddedIdentity)graphQuery.getIdentity();
+					if (boltIdentity != null) {
+
+						final String id = boltIdentity.getId();
+
+						query.addSimpleParameter("elementId(" + part.getIdentifier() + ")", "=", id, false, false);
+
+					} else {
+
+						query.addSimpleParameter(part.getIdentifier(), name, "=", value, true, false);
+					}
+
+				} else {
+
+					query.addSimpleParameter(part.getIdentifier(), name, "CONTAINS", value, true, isString);
+				}
+
+				first = false;
+			}
+		}
+
+		return true;
+	}
+
+	private boolean createAnyQuery(final QueryPredicate predicate, final AdvancedCypherQuery query, final boolean isFirst) {
+
+		final GraphQuery graphQuery = (GraphQuery)predicate;
+		final GraphQueryPart part   = new GraphQueryPart(graphQuery);
+		final Set<Object> values    = graphQuery.getValues();
+
+		// TODO: for the ANY query on a collection property, getvalues() is wrong because it flattens the list. we need to keep the lists intact and OR all lists
+
+		final boolean isString      = predicate.getType().equals(String.class);
+
+		query.addGraphQueryPart(part);
+
+		final boolean exactMatch = (predicate.isExactMatch() || !isString);
+
+		if (exactMatch) {
+
+			final ArrayList<String> boltIds = new ArrayList<>();
+			final ArrayList<String> nodeIds = new ArrayList<>();
+
+			for (final Object value : values) {
+
+				// TODO: do we actually ever get bolt ids?
+				final EmbeddedIdentity boltIdentity = (EmbeddedIdentity)graphQuery.getIdentity();
+				if (boltIdentity != null) {
+
+					final String id = boltIdentity.getId();
+
+					boltIds.add(id);
+
+				} else {
+
+					nodeIds.add(value.toString());
+				}
+			}
+
+			query.addAnyGraphParameter(part.getIdentifier(), boltIds, nodeIds, exactMatch);
+
+		} else {
+
+			// CONTAINS
+			// TODO: identical... filtering is handled in includeInResult... this should probably be unified
+			final ArrayList<String> boltIds = new ArrayList<>();
+			final ArrayList<String> nodeIds = new ArrayList<>();
+
+			for (final Object value : values) {
+
+				// TODO: do we actually ever get bolt ids?
+				final EmbeddedIdentity boltIdentity = (EmbeddedIdentity)graphQuery.getIdentity();
+				if (boltIdentity != null) {
+
+					final String id = boltIdentity.getId();
+
+					boltIds.add(id);
+
+				} else {
+
+					nodeIds.add(value.toString());
+				}
+			}
+
+			query.addAnyGraphParameter(part.getIdentifier(), boltIds, nodeIds, exactMatch);
+		}
+
+		return true;
+	}
+
+	private boolean onlyEmptyValues(final Set<Object> values) {
+
+		boolean onlyEmpty = true;
+
+		for (final Object o : values) {
+
+			onlyEmpty &= (o == null || StringUtils.isBlank(o.toString()));
+		}
+
+		return onlyEmpty;
+	}
+}

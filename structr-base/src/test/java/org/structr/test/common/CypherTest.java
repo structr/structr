@@ -88,7 +88,7 @@ public class CypherTest extends StructrTest {
 
 				assertNotNull(rel);
 
-				DatabaseService graphDb = app.command(GraphDatabaseCommand.class).execute();
+				DatabaseService<?> graphDb = app.command(GraphDatabaseCommand.class).execute();
 
 				try (final Tx tx = app.tx()) {
 
@@ -107,7 +107,7 @@ public class CypherTest extends StructrTest {
 				try (final Tx tx = app.tx()) {
 
 					rel.getUuid();
-					fail("Accessing a deleted relationship should thow an exception.");
+					fail("Accessing a deleted relationship should throw an exception.");
 
 					tx.success();
 
@@ -329,10 +329,15 @@ public class CypherTest extends StructrTest {
 
 					final Iterable<GraphObject> tuple = (Iterable)rit.next();
 					final Iterator<GraphObject> it    = tuple.iterator();
+					final Set<String> set             = new LinkedHashSet<>();
 
-					assertEquals("Invalid wrapped cypher query result", "TestOne", it.next().getType());		// n
-					assertEquals("Invalid wrapped cypher query result", "SixOneManyToMany", it.next().getType());	// r
-					assertEquals("Invalid wrapped cypher query result", "TestSix", it.next().getType());		// m
+					while (it.hasNext()) {
+						set.add(it.next().getType());
+					}
+
+					assertTrue("Invalid wrapped cypher query result", set.contains("TestOne"));
+					assertTrue("Invalid wrapped cypher query result", set.contains("SixOneManyToMany"));
+					assertTrue("Invalid wrapped cypher query result", set.contains("TestSix"));
 				}
 
 				tx.success();
@@ -743,8 +748,11 @@ public class CypherTest extends StructrTest {
 			tests.put("MATCH path = (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN path",                             "[[\"Project\",\"has\",\"Task\"],[\"Project\",\"has\",\"Task\"]]");
 			tests.put("MATCH path = (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN nodes(path)",                      "[[\"Project\",\"Task\"],[\"Project\",\"Task\"]]");
 			tests.put("MATCH path = (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN nodes(path), relationships(path)", "[[[\"Project\",\"Task\"],[\"has\"]],[[\"Project\",\"Task\"],[\"has\"]]]");
-			tests.put("MATCH path = (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN n, r, m",                          "[[\"Project\",\"has\",\"Task\"],[\"Project\",\"has\",\"Task\"]]");
-			tests.put("MATCH path = (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN n, m",                             "[[\"Project\",\"Task\"],[\"Project\",\"Task\"]]");
+
+			// tests are disabled because we're implicitly testing the order of the results which the driver cannot guarantee
+			//tests.put("MATCH path = (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN n, r, m",                          "[[\"Project\",\"has\",\"Task\"],[\"Project\",\"has\",\"Task\"]]");
+			//tests.put("MATCH path = (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN n, m",                             "[[\"Project\",\"Task\"],[\"Project\",\"Task\"]]");
+
 			tests.put("MATCH path = (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN { n: n, r: r }",                   "[{\"n\":\"Project\",\"r\":\"has\"},{\"n\":\"Project\",\"r\":\"has\"}]");
 			tests.put("MATCH (true) RETURN { a: 1, b: 2, c: 3 } LIMIT 1",                                                                             "[{\"a\":1,\"b\":2,\"c\":3}]");
 
@@ -753,8 +761,11 @@ public class CypherTest extends StructrTest {
 			tests.put("MATCH path = (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN path",                             "[[\"Project\",\"has\",\"Task\"],[\"Project\",\"has\",\"Task\"]]");
 			tests.put("MATCH path = (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN nodes(path)",                      "[[\"Project\",\"Task\"],[\"Project\",\"Task\"]]");
 			tests.put("MATCH path = (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN nodes(path), relationships(path)", "[[[\"Project\",\"Task\"],[\"has\"]],[[\"Project\",\"Task\"],[\"has\"]]]");
-			tests.put("MATCH path = (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN n, r, m",                          "[[\"Project\",\"has\",\"Task\"],[\"Project\",\"has\",\"Task\"]]");
-			tests.put("MATCH path = (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN n, m",                             "[[\"Project\",\"Task\"],[\"Project\",\"Task\"]]");
+
+			// tests are disabled because we're implicitly testing the order of the results which the driver cannot guarantee
+			//tests.put("MATCH path = (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN n, r, m",                          "[[\"Project\",\"has\",\"Task\"],[\"Project\",\"has\",\"Task\"]]");
+			//tests.put("MATCH path = (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN n, m",                             "[[\"Project\",\"Task\"],[\"Project\",\"Task\"]]");
+
 			tests.put("MATCH path = (n:Project:" + randomTenantId + ")-[r]->(m:Task:" + randomTenantId + ") RETURN { n: n, r: r }",                   "[{\"n\":\"Project\",\"r\":\"has\"},{\"n\":\"Project\",\"r\":\"has\"}]");
 			tests.put("MATCH (true) RETURN { a: 1, b: 2, c: 3 } LIMIT 1",                                                                             "[{\"a\":1,\"b\":2,\"c\":3}]");
 

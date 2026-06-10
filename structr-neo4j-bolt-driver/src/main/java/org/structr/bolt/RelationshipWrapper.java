@@ -27,7 +27,7 @@ import org.structr.api.graph.RelationshipType;
 /**
  *
  */
-class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.types.Relationship> implements Relationship {
+class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.types.Relationship> implements Relationship<Long> {
 
 	private long sourceNodeId = -1L;
 	private long targetNodeId = -1L;
@@ -60,7 +60,7 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.types.Relations
 	}
 
 	@Override
-	public Node getStartNode() {
+	public Node<Long> getStartNode() {
 
 		try {
 
@@ -74,7 +74,7 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.types.Relations
 	}
 
 	@Override
-	public Node getEndNode() {
+	public Node<Long> getEndNode() {
 
 		try {
 
@@ -88,7 +88,7 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.types.Relations
 	}
 
 	@Override
-	public Node getOtherNode(final Node node) {
+	public Node<Long> getOtherNode(final Node<Long> node) {
 
 		if (db.unwrap(node.getId()) == sourceNodeId) {
 			return getEndNode();
@@ -125,7 +125,7 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.types.Relations
 	}
 
 	@Override
-	public Direction getDirectionForNode(final Node node) {
+	public Direction getDirectionForNode(final Node<Long> node) {
 
 		if (db.unwrap(node.getId()) == sourceNodeId) {
 			return Direction.OUTGOING;

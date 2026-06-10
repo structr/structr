@@ -44,6 +44,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.TraitsManager;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.embedded.EmbeddedDatabaseService;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
 import org.structr.test.core.traits.definitions.*;
@@ -407,10 +408,7 @@ public class StructrTest {
 
 	protected void setupDatabaseConnection(String testDatabaseConnection) {
 
-		// use database driver from system property, default to MemoryDatabaseService
 		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_REMOTE_DATABASE_DRIVER));
-		//Settings.DatabaseDriver.setValue(Settings.DEFAULT_DATABASE_DRIVER);
-
 		Settings.ConnectionUser.setValue("neo4j");
 		Settings.ConnectionPassword.setValue("admin123");
 		if (StringUtils.isBlank(testDatabaseConnection)) {
@@ -419,6 +417,8 @@ public class StructrTest {
 			Settings.ConnectionUrl.setValue(testDatabaseConnection);
 		}
 		Settings.ConnectionDatabaseName.setValue("neo4j");
+
+		Settings.DatabasePath.setValue("db-" + randomTenantId);
 		Settings.TenantIdentifier.setValue(randomTenantId);
 	}
 

@@ -156,7 +156,7 @@ public class NodeService implements SingletonService {
 		return NodeService.class.getSimpleName();
 	}
 
-	public DatabaseService getDatabaseService() {
+	public <T> DatabaseService<T> getDatabaseService() {
 		return databaseService;
 	}
 

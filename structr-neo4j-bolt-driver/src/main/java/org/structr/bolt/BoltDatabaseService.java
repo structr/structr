@@ -50,7 +50,7 @@ import java.util.stream.StreamSupport;
 /**
  *
  */
-public class BoltDatabaseService extends AbstractDatabaseService {
+public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 
 	private static final Logger logger                            = LoggerFactory.getLogger(BoltDatabaseService.class.getName());
 	private static final ThreadLocal<SessionTransaction> sessions = new ThreadLocal<>();
@@ -175,7 +175,7 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
-	public Transaction beginTx(boolean forceNew) {
+	public Transaction<Long> beginTx(boolean forceNew) {
 
 		if (!forceNew) {
 
@@ -207,7 +207,7 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
-	public Transaction beginTx() {
+	public Transaction<Long> beginTx() {
 
 		SessionTransaction session = sessions.get();
 		if (session == null || session.isClosed() || session.isRolledBack()) {
@@ -238,7 +238,7 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
-	public Transaction beginTx(final int timeoutInSeconds) {
+	public Transaction<Long> beginTx(final int timeoutInSeconds) {
 
 		SessionTransaction session = sessions.get();
 		if (session == null || session.isClosed()) {
@@ -267,7 +267,7 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
-	public Node createNode(final String type, final Set<String> labels, final Map<String, Object> input) {
+	public Node<Long> createNode(final String type, final Set<String> labels, final Map<String, Object> input) {
 
 		getCurrentTransaction().queryResultCache.clear();
 
@@ -303,7 +303,7 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
-	public NodeWithOwnerResult createNodeWithOwner(final Identity userId, final String type, final Set<String> labels, final Map<String, Object> input, final Map<String, Object> ownsProperties, final Map<String, Object> securityProperties) {
+	public NodeWithOwnerResult createNodeWithOwner(final Identity<Long> userId, final String type, final Set<String> labels, final Map<String, Object> input, final Map<String, Object> ownsProperties, final Map<String, Object> securityProperties) {
 
 		getCurrentTransaction().queryResultCache.clear();
 
@@ -368,27 +368,27 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
-	public Node getNodeById(final Identity id) {
+	public Node<Long> getNodeById(final Identity<Long> id) {
 		return getNodeById(unwrap(id));
 	}
 
 	@Override
-	public Relationship getRelationshipById(final Identity id) {
+	public Relationship<Long> getRelationshipById(final Identity<Long> id) {
 		return getRelationshipById(unwrap(id));
 	}
 
 	@Override
-	public Iterable<Node> getAllNodes() {
+	public Iterable<Node<Long>> getAllNodes() {
 
 		final QueryContext context     = new QueryContext(true);
 		final QueryPredicate predicate = new TypePredicate();
-		final Index<Node> index        = nodeIndex();
+		final Index<Node<Long>> index        = nodeIndex();
 
 		return index.query(context, predicate, Integer.MAX_VALUE, 1);
 	}
 
 	@Override
-	public Iterable<Node> getNodesByLabel(final String type) {
+	public Iterable<Node<Long>> getNodesByLabel(final String type) {
 
 		if (type == null) {
 			return getAllNodes();
@@ -396,13 +396,13 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 
 		final QueryContext context     = new QueryContext(true);
 		final QueryPredicate predicate = new TypePredicate(type);
-		final Index<Node> index        = nodeIndex();
+		final Index<Node<Long>> index  = nodeIndex();
 
 		return index.query(context, predicate, Integer.MAX_VALUE, 1);
 	}
 
 	@Override
-	public Iterable<Node> getNodesByTypeProperty(final String type) {
+	public Iterable<Node<Long>> getNodesByTypeProperty(final String type) {
 
 		if (type == null) {
 			return getAllNodes();
@@ -410,15 +410,15 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 
 		final QueryContext context     = new QueryContext(true);
 		final QueryPredicate predicate = new TypePropertyPredicate(type);
-		final Index<Node> index        = nodeIndex();
+		final Index<Node<Long>> index  = nodeIndex();
 
 		return index.query(context, predicate, Integer.MAX_VALUE, 1);
 	}
 
 	@Override
-	public Iterable<Relationship> getAllRelationships() {
+	public Iterable<Relationship<Long>> getAllRelationships() {
 
-		final Index<Relationship> index = relationshipIndex();
+		final Index<Relationship<Long>> index = relationshipIndex();
 		final QueryPredicate predicate  = new TypePredicate();
 		final QueryContext context      = new QueryContext(true);
 
@@ -426,21 +426,21 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
-	public Iterable<Relationship> getRelationshipsByType(final String type) {
+	public Iterable<Relationship<Long>> getRelationshipsByType(final String type) {
 
 		if (type == null) {
 			return getAllRelationships();
 		}
 
-		final Index<Relationship> index = relationshipIndex();
-		final QueryPredicate predicate  = new TypePredicate(type);
-		final QueryContext context      = new QueryContext(true);
+		final Index<Relationship<Long>> index = relationshipIndex();
+		final QueryPredicate predicate        = new TypePredicate(type);
+		final QueryContext context            = new QueryContext(true);
 
 		return index.query(context, predicate, Integer.MAX_VALUE, 1);
 	}
 
 	@Override
-	public Index<Node> nodeIndex() {
+	public Index<Node<Long>> nodeIndex() {
 
 		if (nodeIndex == null) {
 			nodeIndex = new CypherNodeIndex(this);
@@ -450,7 +450,7 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
-	public Index<Relationship> relationshipIndex() {
+	public Index<Relationship<Long>> relationshipIndex() {
 
 		if (relationshipIndex == null) {
 			relationshipIndex = new CypherRelationshipIndex(this);
@@ -545,7 +545,7 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
-	public <T> T execute(final NativeQuery<T> nativeQuery, final Transaction tx) {
+	public <T> T execute(final NativeQuery<T> nativeQuery, final Transaction<Long> tx) {
 
 		if (!(tx instanceof SessionTransaction)) {
 
@@ -607,21 +607,21 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 		return Settings.CypherDebugLoggingPing.getValue();
 	}
 
-	long unwrap(final Identity identity) {
+	long unwrap(final Identity<Long> identity) {
 
-		if (identity instanceof BoltIdentity) {
+		if (identity instanceof BoltIdentity b) {
 
-			return ((BoltIdentity)identity).getId();
+			return b.getId();
 		}
 
 		throw new IllegalArgumentException("This implementation cannot handle Identity objects of type " + identity.getClass().getName() + ".");
 	}
 
-	Node getNodeById(final long id) {
+	Node<Long> getNodeById(final long id) {
 		return getCurrentTransaction().getNodeWrapper(id);
 	}
 
-	Relationship getRelationshipById(final long id) {
+	Relationship<Long> getRelationshipById(final long id) {
 		return getCurrentTransaction().getRelationshipWrapper(id);
 	}
 

@@ -28,7 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  *
  */
-public abstract class AbstractDatabaseService implements DatabaseService {
+public abstract class AbstractDatabaseService<IDType> implements DatabaseService<IDType> {
 
 	private static final Map<String, RelationshipType> relTypeCache   = new ConcurrentHashMap<>();
 	private static final long nanoEpoch                               = System.nanoTime();

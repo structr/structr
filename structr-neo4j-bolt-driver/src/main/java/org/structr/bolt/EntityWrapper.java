@@ -28,7 +28,7 @@ import java.util.*;
 import java.util.Map.Entry;
 
 
-abstract class EntityWrapper<T extends Entity> implements PropertyContainer {
+abstract class EntityWrapper<T extends Entity> implements PropertyContainer<Long> {
 
 	private Map<String, Object> dataCache = new HashMap<>();
 	protected final BoltDatabaseService db;
@@ -59,7 +59,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer {
 	}
 
 	@Override
-	public Identity getId() {
+	public Identity<Long> getId() {
 		return identity;
 	}
 
@@ -102,7 +102,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer {
 	}
 
 	@Override
-	public Object getProperty(String name, Object defaultValue) {
+	public Object getProperty(final String name, final Object defaultValue) {
 
 		final Object value = getProperty(name);
 		if (value == null) {
@@ -161,7 +161,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer {
 	}
 
 	@Override
-	public void removeProperty(String key) {
+	public void removeProperty(final String key) {
 
 		final SessionTransaction tx   = db.getCurrentTransaction();
 		final String query            = getQueryPrefix() + " WHERE ID(n) = $id SET n += $properties RETURN n";

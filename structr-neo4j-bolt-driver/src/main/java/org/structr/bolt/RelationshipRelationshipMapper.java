@@ -25,7 +25,7 @@ import java.util.function.Function;
 /**
  *
  */
-class RelationshipRelationshipMapper implements Function<org.neo4j.driver.types.Relationship, Relationship> {
+class RelationshipRelationshipMapper implements Function<org.neo4j.driver.types.Relationship, Relationship<Long>> {
 
 	private BoltDatabaseService db = null;
 
@@ -34,7 +34,7 @@ class RelationshipRelationshipMapper implements Function<org.neo4j.driver.types.
 	}
 
 	@Override
-	public Relationship apply(final org.neo4j.driver.types.Relationship t) {
+	public Relationship<Long> apply(final org.neo4j.driver.types.Relationship t) {
 		return db.getCurrentTransaction().getRelationshipWrapper(t);
 	}
 }

@@ -80,7 +80,7 @@ public class NodeInfo {
 	}
 
 	// ----- private methods -----
-	private void extractProperties(final Node node) {
+	private void extractProperties(final Node<?> node) {
 
 		for (final String key : node.getPropertyKeys()) {
 

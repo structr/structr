@@ -22,7 +22,7 @@ import org.structr.api.graph.Identity;
 
 /**
  */
-public class BoltIdentity implements Identity {
+public class BoltIdentity implements Identity<Long> {
 
 	private final long id;
 
@@ -32,7 +32,7 @@ public class BoltIdentity implements Identity {
 	}
 
 	@Override
-	public long getId() {
+	public Long getId() {
 		return id;
 	}
 
@@ -49,6 +49,11 @@ public class BoltIdentity implements Identity {
 	@Override
 	public int hashCode() {
 		return Long.valueOf(id).hashCode();
+	}
+
+	@Override
+	public long hash() {
+		return id;
 	}
 
 	// ----- interface Identity -----

@@ -18,6 +18,7 @@
  */
 package org.structr.api.util;
 
+import org.apache.commons.collections4.MapIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -41,6 +42,19 @@ public class Iterables {
 	 * @param <C> Type of the elements in the existing collection
 	 */
 	public static <T, C extends Collection<T>> C addAll(final C collection, final Iterable<? extends T> iterable) {
+		return Iterables.addAll(collection, iterable, true);
+	}
+
+	/**
+	 * Adds all elements of an iterable to an existing collection.
+	 *
+	 * @param collection The existing collection the elements of the iterable are added to
+	 * @param iterable The iterable whose elements are added to the collection
+	 * @return The modified collection
+	 * @param <T> Type of the elements in the iterable
+	 * @param <C> Type of the elements in the existing collection
+	 */
+	public static <T, C extends Collection<T>> C addAll(final C collection, final Iterable<? extends T> iterable, final boolean closeStream) {
 
 		final Iterator<? extends T> iterator = iterable.iterator();
 
@@ -57,7 +71,7 @@ public class Iterables {
 
 		} finally {
 
-			if (iterator instanceof AutoCloseable) {
+			if (closeStream && iterator instanceof AutoCloseable) {
 
 				try {
 
@@ -155,17 +169,25 @@ public class Iterables {
 		return new FilterIterable<>(new MapIterable<>(from, function), e -> e != null);
 	}
 
+	public static <S, T> Iterator<T> map(final Function<? super S, ? extends T> function, final Iterator<S> from) {
+		return new FilterIterable.FilterIterator<>(new MapIterable.MapIterator<>(from, function), e -> e != null);
+	}
+
 	public static <T> Iterable<T> flatten(final Iterable<Iterable<T>> source) {
 		return new FlatteningIterable<>(source);
 	}
 
 	public static <T> List<T> toList(final Iterable<T> iterable) {
+		return Iterables.toList(iterable, true);
+	}
+
+	public static <T> List<T> toList(final Iterable<T> iterable, final boolean closeStream) {
 
 		if (iterable instanceof List) {
 			return (List<T>)iterable;
 		}
 
-		return addAll(new LinkedList<>(), iterable);
+		return addAll(new LinkedList<>(), iterable, closeStream);
 	}
 
 	public static <T> List<T> toList(Iterator<T> iterator) {
@@ -184,7 +206,7 @@ public class Iterables {
 	}
 
 	public static <T> Set<T> toSet(final Iterable<T> iterable) {
-		return addAll(new LinkedHashSet<>(), iterable);
+		return addAll(new LinkedHashSet<>(), iterable, true);
 	}
 
 	public static <T> Iterable<T> wrap(final Iterable<T> iterable, final UnaryOperator<T> callback) {

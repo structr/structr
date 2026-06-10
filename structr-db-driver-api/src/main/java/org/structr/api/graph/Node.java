@@ -24,23 +24,23 @@ import java.util.Set;
 /**
  *
  */
-public interface Node extends PropertyContainer {
+public interface Node<T> extends PropertyContainer<T> {
 
-	Relationship createRelationshipTo(final Node endNode, final RelationshipType relationshipType);
-	Relationship createRelationshipTo(final Node endNode, final RelationshipType relationshipType, final Map<String, Object> properties);
+	Relationship<T> createRelationshipTo(final Node<T> endNode, final RelationshipType relationshipType);
+	Relationship<T> createRelationshipTo(final Node<T> endNode, final RelationshipType relationshipType, final Map<String, Object> properties);
 
 	void addLabels(final Set<String> label);
 	void removeLabel(final String label);
 
 	Iterable<String> getLabels();
 
-	boolean hasRelationshipTo(final RelationshipType relationshipType, final Node targetNode);
-	Relationship getRelationshipTo(final RelationshipType relationshipType, final Node targetNode);
+	boolean hasRelationshipTo(final RelationshipType relationshipType, final Node<T> targetNode);
+	Relationship<T> getRelationshipTo(final RelationshipType relationshipType, final Node<T> targetNode);
 
-	Iterable<Relationship> getRelationships();
-	Iterable<Relationship> getRelationships(final Direction direction);
-	Iterable<Relationship> getRelationships(final Direction direction, final RelationshipType relationshipType);
+	Iterable<Relationship<T>> getRelationships();
+	Iterable<Relationship<T>> getRelationships(final Direction direction);
+	Iterable<Relationship<T>> getRelationships(final Direction direction, final RelationshipType relationshipType);
 
 	Map<String, Long> getDegree();
-	Map<String, Object> getCache();
+	//Map<String, Object> getCache();
 }

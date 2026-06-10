@@ -33,7 +33,7 @@ import java.util.Map;
 
 /**
  */
-public class MemoryNode extends MemoryEntity implements Node {
+public class MemoryNode extends MemoryEntity implements Node<Long> {
 
 	private MemoryNode(final MemoryDatabaseService db) {
 		super(db);
@@ -44,7 +44,7 @@ public class MemoryNode extends MemoryEntity implements Node {
 	}
 
 	@Override
-	public Relationship createRelationshipTo(final Node endNode, final RelationshipType relationshipType) {
+	public Relationship<Long> createRelationshipTo(final Node<Long> endNode, final RelationshipType relationshipType) {
 
 		if (getId().compareTo(endNode.getId()) == -1) {
 
@@ -61,9 +61,9 @@ public class MemoryNode extends MemoryEntity implements Node {
 	}
 
 	@Override
-	public Relationship createRelationshipTo(final Node endNode, final RelationshipType relationshipType, final Map<String, Object> properties) {
+	public Relationship<Long> createRelationshipTo(final Node<Long> endNode, final RelationshipType relationshipType, final Map<String, Object> properties) {
 
-		final Relationship rel = createRelationshipTo(endNode, relationshipType);
+		final Relationship<Long> rel = createRelationshipTo(endNode, relationshipType);
 
 		rel.setProperties(properties);
 
@@ -71,12 +71,12 @@ public class MemoryNode extends MemoryEntity implements Node {
 	}
 
 	@Override
-	public boolean hasRelationshipTo(final RelationshipType relationshipType, final Node targetNode) {
+	public boolean hasRelationshipTo(final RelationshipType relationshipType, final Node<Long> targetNode) {
 		return getRelationshipTo(relationshipType, targetNode) != null;
 	}
 
 	@Override
-	public Relationship getRelationshipTo(final RelationshipType relationshipType, final Node targetNode) {
+	public Relationship<Long> getRelationshipTo(final RelationshipType relationshipType, final Node<Long> targetNode) {
 
 		final MemoryTransaction tx    = db.getCurrentTransaction(true);
 		final MemoryIdentity sourceId = getIdentity();
@@ -94,17 +94,17 @@ public class MemoryNode extends MemoryEntity implements Node {
 	}
 
 	@Override
-	public Iterable<Relationship> getRelationships() {
+	public Iterable<Relationship<Long>> getRelationships() {
 		return db.getRelationships(this);
 	}
 
 	@Override
-	public Iterable<Relationship> getRelationships(final Direction direction) {
+	public Iterable<Relationship<Long>> getRelationships(final Direction direction) {
 		return db.getRelationships(this, direction);
 	}
 
 	@Override
-	public Iterable<Relationship> getRelationships(final Direction direction, final RelationshipType relationshipType) {
+	public Iterable<Relationship<Long>> getRelationships(final Direction direction, final RelationshipType relationshipType) {
 		return db.getRelationships(this, direction, relationshipType);
 	}
 

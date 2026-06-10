@@ -34,7 +34,7 @@ import java.util.Set;
 /**
  *
  */
-public interface DatabaseService {
+public interface DatabaseService<IDType> {
 
 	// ----- lifecycle -----
 	/**
@@ -53,17 +53,17 @@ public interface DatabaseService {
 
 	RelationshipType getRelationshipType(final String name);
 
-	Transaction beginTx();
-	Transaction beginTx(boolean forceNew);
-	Transaction beginTx(final int timeoutInSeconds);
+	Transaction<IDType> beginTx();
+	Transaction<IDType> beginTx(boolean forceNew);
+	Transaction<IDType> beginTx(final int timeoutInSeconds);
 
-	Node createNode(final String type, final Set<String> labels, final Map<String, Object> properties);
-	NodeWithOwnerResult createNodeWithOwner(final Identity ownerId, final String type, final Set<String> labels, final Map<String, Object> nodeProperties, final Map<String, Object> ownsProperties, final Map<String, Object> securityProperties);
+	Node<IDType> createNode(final String type, final Set<String> labels, final Map<String, Object> properties);
+	NodeWithOwnerResult createNodeWithOwner(final Identity<IDType> ownerId, final String type, final Set<String> labels, final Map<String, Object> nodeProperties, final Map<String, Object> ownsProperties, final Map<String, Object> securityProperties);
 
-	Node getNodeById(final Identity id);
-	Relationship getRelationshipById(final Identity id);
+	Node<IDType> getNodeById(final Identity<IDType> id);
+	Relationship<IDType> getRelationshipById(final Identity<IDType> id);
 
-	Iterable<Node> getAllNodes();
+	Iterable<Node<IDType>> getAllNodes();
 
 	/**
 	 * Returns an Iterable that iterates over all nodes in the database,
@@ -73,11 +73,11 @@ public interface DatabaseService {
 	 *
 	 * @return an Iterable of Nodes
 	 */
-	Iterable<Node> getNodesByLabel(final String label);
-	Iterable<Node> getNodesByTypeProperty(final String type);
+	Iterable<Node<IDType>> getNodesByLabel(final String label);
+	Iterable<Node<IDType>> getNodesByTypeProperty(final String type);
 
-	Iterable<Relationship> getAllRelationships();
-	Iterable<Relationship> getRelationshipsByType(final String type);
+	Iterable<Relationship<IDType>> getAllRelationships();
+	Iterable<Relationship<IDType>> getRelationshipsByType(final String type);
 
 	String getTenantIdentifier();
 	String getInternalTimestamp(final long millisOffset, final long nanoOffset);
@@ -86,8 +86,8 @@ public interface DatabaseService {
 	public Map<String, Map<String, Integer>> getCachesInfo();
 
 	// ----- index -----
-	Index<Node> nodeIndex();
-	Index<Relationship> relationshipIndex();
+	Index<Node<IDType>> nodeIndex();
+	Index<Relationship<IDType>> relationshipIndex();
 	void updateIndexConfiguration(final List<NewIndexConfig> indexConfigList);
 	boolean isIndexUpdateFinished();
 
@@ -97,7 +97,7 @@ public interface DatabaseService {
 
 	// native
 	<T> T execute(final NativeQuery<T> nativeQuery);
-	<T> T execute(final NativeQuery<T> nativeQuery, final Transaction tx);
+	<T> T execute(final NativeQuery<T> nativeQuery, final Transaction<IDType> tx);
 	<T> NativeQuery<T> query(final Object query, final Class<T> resultType);
 	boolean supportsFeature(final DatabaseFeature feature, final Object...  parameters);
 

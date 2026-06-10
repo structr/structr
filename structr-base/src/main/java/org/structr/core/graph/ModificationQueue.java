@@ -55,7 +55,7 @@ public class ModificationQueue {
 	private final Collection<ModificationEvent> modificationEvents                              = new ArrayDeque<>(1000);
 	private final Map<String, TransactionPostProcess> postProcesses                             = new LinkedHashMap<>();
 	private final Set<String> alreadyPropagated                                                 = new LinkedHashSet<>();
-	private final Set<Long> ids                                                                 = new LinkedHashSet<>();
+	private final Set<Object> ids                                                               = new LinkedHashSet<>();
 	private final Set<String> synchronizationKeys                                               = new TreeSet<>();
 	private boolean doUpateChangelogIfEnabled                                                   = true;
 	private boolean transactionWasSuccessful                                                    = false;
@@ -380,7 +380,7 @@ public class ModificationQueue {
 
 	public boolean isDeleted(final Node node) {
 
-		final GraphObjectModificationState state = nodeModifications.get(hash(node));
+		final GraphObjectModificationState state = nodeModifications.get(node.getId().hash());
 		if (state != null) {
 
 			return state.isDeleted() || state.isPassivelyDeleted();
@@ -391,7 +391,7 @@ public class ModificationQueue {
 
 	public boolean isDeleted(final Relationship rel) {
 
-		final GraphObjectModificationState state = relModifications.get(hash(rel));
+		final GraphObjectModificationState state = relModifications.get(rel.getId().hash());
 		if (state != null) {
 
 			return state.isDeleted() || state.isPassivelyDeleted();
@@ -529,7 +529,7 @@ public class ModificationQueue {
 		return this.hasChanges;
 	}
 
-	public Set<Long> getIds() {
+	public Set<Object> getIds() {
 		return this.ids;
 	}
 
@@ -595,7 +595,7 @@ public class ModificationQueue {
 
 	private GraphObjectModificationState getState(final NodeInterface node, final boolean checkPropagation) {
 
-		long hash = hash(node.getNode());
+		long hash = node.getNode().getId().hash();
 		GraphObjectModificationState state = nodeModifications.get(hash);
 
 		if (state == null && !(checkPropagation && alreadyPropagated.contains(hash))) {
@@ -614,7 +614,7 @@ public class ModificationQueue {
 
 	private GraphObjectModificationState getState(final RelationshipInterface rel, final boolean create) {
 
-		long hash = hash(rel.getRelationship());
+		long hash = rel.getRelationship().getId().hash();
 		GraphObjectModificationState state = relModifications.get(hash);
 
 		if (state == null && create) {
@@ -625,14 +625,6 @@ public class ModificationQueue {
 		}
 
 		return state;
-	}
-
-	private long hash(final Node node) {
-		return node.getId().getId();
-	}
-
-	private long hash(final Relationship rel) {
-		return rel.getId().getId();
 	}
 
 	private List<GraphObjectModificationState> getSortedModifications() {

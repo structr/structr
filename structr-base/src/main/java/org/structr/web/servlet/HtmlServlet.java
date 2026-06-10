@@ -30,6 +30,7 @@ import org.eclipse.jetty.io.QuietException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.api.graph.Identity;
 import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
 import org.structr.common.RequestHeaders;
@@ -1249,7 +1250,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			if (!results.isEmpty()) {
 
 				final NodeInterface user = results.get(0);
-				long userId;
+				Identity<?> userId;
 
 				try (final Tx tx = app.tx()) {
 
@@ -1272,13 +1273,13 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						logger.warn("Confirmation key for user {} is not valid anymore - refusing login.", user.getName());
 					}
 
-					userId = user.getNode().getId().getId();
+					userId = user.getNode().getId();
 
 					tx.success();
 				}
 
 				// broadcast login to cluster for the user
-				Services.getInstance().broadcastLogin(userId);
+				Services.getInstance().broadcastLogin(userId.hash());
 
 				// Redirect to target path
 				final String targetPath = filterMaliciousRedirects(request.getParameter(TARGET_PATH_KEY));
@@ -1343,7 +1344,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			if (!results.isEmpty()) {
 
 				final NodeInterface user = results.get(0);
-				long userId;
+				Identity<?> userId;
 
 				try (final Tx tx = app.tx()) {
 
@@ -1371,12 +1372,12 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						logger.warn("Confirmation key for user {} is not valid anymore - refusing login.", user.getName());
 					}
 
-					userId = user.getNode().getId().getId();
+					userId = user.getNode().getId();
 
 					tx.success();
 				}
 
-				Services.getInstance().broadcastLogin(userId);
+				Services.getInstance().broadcastLogin(userId.hash());
 			}
 
 			// Redirect to target path

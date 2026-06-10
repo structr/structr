@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  */
-public class MemoryIdentity implements Identity {
+public class MemoryIdentity implements Identity<Long> {
 
 	private static final AtomicLong idCounter = new AtomicLong();
 	private boolean isNode                    = false;
@@ -55,6 +55,11 @@ public class MemoryIdentity implements Identity {
 	}
 
 	@Override
+	public long hash() {
+		return id;
+	}
+
+	@Override
 	public boolean equals(final Object other) {
 		return id == ((MemoryIdentity)other).getId();
 	}
@@ -75,7 +80,7 @@ public class MemoryIdentity implements Identity {
 		return 0;
 	}
 
-	public long getId() {
+	public Long getId() {
 		return id;
 	}
 

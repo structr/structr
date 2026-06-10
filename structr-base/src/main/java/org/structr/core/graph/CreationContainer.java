@@ -38,7 +38,7 @@ import java.util.*;
 /**
  *
  */
-public class CreationContainer<T extends Comparable> implements GraphObject, PropertyContainer {
+public class CreationContainer<T extends Comparable, IDType> implements GraphObject, PropertyContainer<IDType> {
 
 	private final Map<String, Object> data = new LinkedHashMap<>();
 	private GraphObject         wrappedObj = null;
@@ -66,7 +66,7 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 
 	// ----- interface GraphObject -----
 	@Override
-	public Identity getId() {
+	public Identity<IDType> getId() {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
