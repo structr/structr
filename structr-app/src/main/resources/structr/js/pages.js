@@ -1711,11 +1711,23 @@ let _Pages = {
 		let successPartialRefreshInput       = container.querySelector('#success-partial-refresh-input');
 		let successNavigateToURLInput        = container.querySelector('#success-navigate-to-url-input');
 		let successFireEventInput            = container.querySelector('#success-fire-event-input');
+		let successShowInput                 = container.querySelector('#success-show-input');
+		let successHideInput                 = container.querySelector('#success-hide-input');
+		let successShowUrlInput              = container.querySelector('#success-show-url-input');
+		let successShowLinkedUrlInput        = container.querySelector('#success-show-linked-url-input');
+		let successScopeRepeaterInput        = container.querySelector('#success-scope-repeater-input');
+		let successScopeRepeaterLinkedInput  = container.querySelector('#success-scope-repeater-linked-input');
 
 		let failureBehaviourSelect           = container.querySelector('#failure-behaviour-select');
 		let failurePartialRefreshInput       = container.querySelector('#failure-partial-refresh-input');
 		let failureNavigateToURLInput        = container.querySelector('#failure-navigate-to-url-input');
 		let failureFireEventInput            = container.querySelector('#failure-fire-event-input');
+		let failureShowInput                 = container.querySelector('#failure-show-input');
+		let failureHideInput                 = container.querySelector('#failure-hide-input');
+		let failureShowUrlInput              = container.querySelector('#failure-show-url-input');
+		let failureShowLinkedUrlInput        = container.querySelector('#failure-show-linked-url-input');
+		let failureScopeRepeaterInput        = container.querySelector('#failure-scope-repeater-input');
+		let failureScopeRepeaterLinkedInput  = container.querySelector('#failure-scope-repeater-linked-input');
 
 		let actionMapping;
 
@@ -1864,13 +1876,18 @@ let _Pages = {
 
 			actionMapping = entity.triggeredActions[0];
 
-			Command.get(actionMapping.id, 'event,action,method,flow,idExpression,dataType,controlsProcess,controlsProcessIdExpression,targetsElement,processOperation,parameterMappings,successNotifications,successNotificationsPartial,successNotificationsEvent,successNotificationsDelay,failureNotifications,failureNotificationsPartial,failureNotificationsEvent,failureNotificationsDelay,successBehaviour,successPartial,successURL,successEvent,failureBehaviour,failurePartial,failureURL,failureEvent,dialogType,dialogTitle,dialogText', (result) => {
+			Command.get(actionMapping.id, 'event,action,method,flow,idExpression,dataType,controlsProcess,controlsProcessIdExpression,targetsElement,processOperation,parameterMappings,successNotifications,successNotificationsPartial,successNotificationsEvent,successNotificationsDelay,failureNotifications,failureNotificationsPartial,failureNotificationsEvent,failureNotificationsDelay,successBehaviour,successPartial,successURL,successEvent,successShow,successHide,successScope,failureBehaviour,failurePartial,failureURL,failureEvent,failureShow,failureHide,failureScope,dialogType,dialogTitle,dialogText', (result) => {
 				//console.log('Using first object for event action mapping:', result);
 				updateEventMappingInterface(entity, result);
 			});
 		}
 
-		container.querySelectorAll('input').forEach(el => el.addEventListener('focusout', e => saveEventMappingData(entity, el)));
+		// Text inputs save (and blink green) on focusout; checkboxes don't fire focusout on
+		// toggle (focus stays on them), so they save on change for immediate feedback. A native
+		// checkbox can't show the green blink (it ignores background-color), so blink its
+		// wrapping label instead, which carries the visible text.
+		container.querySelectorAll('input:not([type="checkbox"])').forEach(el => el.addEventListener('focusout', e => saveEventMappingData(entity, el)));
+		container.querySelectorAll('input[type="checkbox"]').forEach(el => el.addEventListener('change', e => saveEventMappingData(entity, el.closest('label') ?? el, true)));
 
 		eventSelect.addEventListener('change', e => saveEventMappingData(entity));
 		actionSelectElement.addEventListener('change', e => {
@@ -2205,11 +2222,23 @@ let _Pages = {
 			successPartialRefreshInput.value       = actionMapping.successPartial;
 			successNavigateToURLInput.value        = actionMapping.successURL;
 			successFireEventInput.value            = actionMapping.successEvent;
+			successShowInput.value                 = actionMapping.successShow ?? '';
+			successHideInput.value                 = actionMapping.successHide ?? '';
+			successShowUrlInput.value              = actionMapping.successURL ?? '';
+			successShowLinkedUrlInput.value        = actionMapping.successURL ?? '';
+			successScopeRepeaterInput.checked      = (actionMapping.successScope === 'repeater');
+			successScopeRepeaterLinkedInput.checked = (actionMapping.successScope === 'repeater');
 
 			failureBehaviourSelect.value           = actionMapping.failureBehaviour;
 			failurePartialRefreshInput.value       = actionMapping.failurePartial;
 			failureNavigateToURLInput.value        = actionMapping.failureURL;
 			failureFireEventInput.value            = actionMapping.failureEvent;
+			failureShowInput.value                 = actionMapping.failureShow ?? '';
+			failureHideInput.value                 = actionMapping.failureHide ?? '';
+			failureShowUrlInput.value              = actionMapping.failureURL ?? '';
+			failureShowLinkedUrlInput.value        = actionMapping.failureURL ?? '';
+			failureScopeRepeaterInput.checked      = (actionMapping.failureScope === 'repeater');
+			failureScopeRepeaterLinkedInput.checked = (actionMapping.failureScope === 'repeater');
 
 			// UI-only block
 			{
@@ -2379,6 +2408,68 @@ let _Pages = {
 					for (const failureTarget of actionMapping.failureTargets) {
 						Command.get(failureTarget.id, 'id,name', obj => {
 							addLinkedElementToDropzone(parentElement, dropzoneElement, obj, 'failureTargets');
+						});
+					}
+				});
+			}
+
+			// Activate show/hide-linked dropzones if success behaviour is show-hide-section-linked.
+			// Show reuses the successTargets relationship (like partial-refresh-linked); hide uses
+			// the dedicated successHideTargets relationship.
+			if (actionMapping.successBehaviour === 'show-hide-section-linked') {
+
+				const parentElement = document.querySelector('.option-success-show-hide-section-linked');
+
+				const showDropzone  = parentElement.querySelector('.success-show-linked-dropzone');
+				const showInput     = parentElement.querySelector('#success-show-linked-input');
+				showDropzone.querySelectorAll('.node').forEach(n => n.remove());
+				activateElementDropzone(parentElement, showDropzone, showInput, 'reloadingActions', 'successTargets');
+				Command.get(actionMapping.id, 'id,successTargets', actionMapping => {
+					for (const successTarget of actionMapping.successTargets) {
+						Command.get(successTarget.id, 'id,name', obj => {
+							addLinkedElementToDropzone(parentElement, showDropzone, obj, 'successTargets');
+						});
+					}
+				});
+
+				const hideDropzone  = parentElement.querySelector('.success-hide-linked-dropzone');
+				const hideInput     = parentElement.querySelector('#success-hide-linked-input');
+				hideDropzone.querySelectorAll('.node').forEach(n => n.remove());
+				activateElementDropzone(parentElement, hideDropzone, hideInput, 'successHideActions', 'successHideTargets');
+				Command.get(actionMapping.id, 'id,successHideTargets', actionMapping => {
+					for (const hideTarget of actionMapping.successHideTargets) {
+						Command.get(hideTarget.id, 'id,name', obj => {
+							addLinkedElementToDropzone(parentElement, hideDropzone, obj, 'successHideTargets');
+						});
+					}
+				});
+			}
+
+			// Activate show/hide-linked dropzones if failure behaviour is show-hide-section-linked
+			if (actionMapping.failureBehaviour === 'show-hide-section-linked') {
+
+				const parentElement = document.querySelector('.option-failure-show-hide-section-linked');
+
+				const showDropzone  = parentElement.querySelector('.failure-show-linked-dropzone');
+				const showInput     = parentElement.querySelector('#failure-show-linked-input');
+				showDropzone.querySelectorAll('.node').forEach(n => n.remove());
+				activateElementDropzone(parentElement, showDropzone, showInput, 'failureActions', 'failureTargets');
+				Command.get(actionMapping.id, 'id,failureTargets', actionMapping => {
+					for (const failureTarget of actionMapping.failureTargets) {
+						Command.get(failureTarget.id, 'id,name', obj => {
+							addLinkedElementToDropzone(parentElement, showDropzone, obj, 'failureTargets');
+						});
+					}
+				});
+
+				const hideDropzone  = parentElement.querySelector('.failure-hide-linked-dropzone');
+				const hideInput     = parentElement.querySelector('#failure-hide-linked-input');
+				hideDropzone.querySelectorAll('.node').forEach(n => n.remove());
+				activateElementDropzone(parentElement, hideDropzone, hideInput, 'failureHideActions', 'failureHideTargets');
+				Command.get(actionMapping.id, 'id,failureHideTargets', actionMapping => {
+					for (const hideTarget of actionMapping.failureHideTargets) {
+						Command.get(hideTarget.id, 'id,name', obj => {
+							addLinkedElementToDropzone(parentElement, hideDropzone, obj, 'failureHideTargets');
 						});
 					}
 				});
@@ -2602,7 +2693,7 @@ let _Pages = {
 			}
 		};
 
-		const saveEventMappingData = (entity, el) => {
+		const saveEventMappingData = (entity, el, dontRefreshInterface = false) => {
 
 			let actionMappingObject = {
 				type:                        'ActionMapping',
@@ -2641,12 +2732,22 @@ let _Pages = {
 				failureNotificationsDelay:   failureNotificationsDelayInput.value === '' ? '5000' : failureNotificationsDelayInput.value,
 				successBehaviour:            successBehaviourSelect?.value,
 				successPartial:              successPartialRefreshInput?.value,
-				successURL:                  successNavigateToURLInput?.value,
+				successURL:                  successBehaviourSelect?.value === 'show-hide-section'        ? successShowUrlInput?.value
+				                           : successBehaviourSelect?.value === 'show-hide-section-linked' ? successShowLinkedUrlInput?.value
+				                           : successNavigateToURLInput?.value,
 				successEvent:                successFireEventInput?.value,
+				successShow:                 successShowInput?.value,
+				successHide:                 successHideInput?.value,
+				successScope:                (successBehaviourSelect?.value === 'show-hide-section-linked' ? successScopeRepeaterLinkedInput?.checked : successScopeRepeaterInput?.checked) ? 'repeater' : '',
 				failureBehaviour:            failureBehaviourSelect?.value,
 				failurePartial:              failurePartialRefreshInput?.value,
-				failureURL:                  failureNavigateToURLInput?.value,
-				failureEvent:                failureFireEventInput?.value
+				failureURL:                  failureBehaviourSelect?.value === 'show-hide-section'        ? failureShowUrlInput?.value
+				                           : failureBehaviourSelect?.value === 'show-hide-section-linked' ? failureShowLinkedUrlInput?.value
+				                           : failureNavigateToURLInput?.value,
+				failureEvent:                failureFireEventInput?.value,
+				failureShow:                 failureShowInput?.value,
+				failureHide:                 failureHideInput?.value,
+				failureScope:                (failureBehaviourSelect?.value === 'show-hide-section-linked' ? failureScopeRepeaterLinkedInput?.checked : failureScopeRepeaterInput?.checked) ? 'repeater' : ''
 			};
 
 			//console.log(actionMappingObject);
@@ -2670,7 +2771,12 @@ let _Pages = {
 					Command.setProperties(actionMappingObject.id, actionMappingObject, () => {
 						_Helpers.blinkGreen(Structr.nodeContainer(entity.id));
 						_Helpers.blinkGreen(el);
-						updateEventMappingInterface(entity, actionMappingObject);
+						// Skip the full editor re-render for changes that don't alter which
+						// fields are shown (e.g. a scope checkbox toggle) -- re-rendering would
+						// needlessly refresh the linked-element dropzones.
+						if (!dontRefreshInterface) {
+							updateEventMappingInterface(entity, actionMappingObject);
+						}
 					});
 				}
 
@@ -5040,389 +5146,464 @@ let _Pages = {
 					</div>
 				</div>
 
-				<div class="events-container">
+				<div class="flex flex-col gap-8 h-full events-container">
 
-					<h3>Event Action Mapping</h3>
+					<div class="event-action-mapping-section">
 
-					<div class="grid grid-cols-2 gap-8">
+						<h3>Event Action Mapping</h3>
+	
+						<div class="grid grid-cols-2 gap-4">
 
+							<div>
+								<div class="relative">
+									<label class="block mb-2" for="data-event-select" data-comment="Use this setting to bind a browser event to a backend action.">Event</label>
+									<input type="text" class="combined-input-select-field" id="data-event-input" placeholder="Browser event (click, keydown, focusout etc.)">
+									<select class="required" id="data-event-select">
+										<option value="">Select event from list</option>
+										${_Pages.getEventActionMappingAvailableEvents().map(event => `<option value="${event}">${event}</option>`).join('')}
+									</select>
+									<ul class="combined-input-select-field hidden">
+										${_Pages.getEventActionMappingAvailableEvents().map(event => `<li data-value="${event}">${event}</li>`).join('')}
+									</ul>
+								</div>
+							</div>
+	
+	
+							<div class="hidden em-event-element em-event-any">
+								<label class="block mb-2" data-comment="Select the action that is triggered by the event.">Action</label>
+	
+								<!-- the actions can be fetched from the backend in the future-->
+								<select class="select2" id="action-select">
+									<option value="none">No action</option>
+									<optgroup label="Data">
+										<option value="create">Create new object</option>
+										<option value="update">Update object</option>
+										<option value="delete">Delete object</option>
+									</optgroup>
+									<optgroup label="Behaviour/Logic">
+										<option value="method">Execute method</option>
+										<option value="flow">Execute flow</option>
+									</optgroup>
+									<optgroup label="Process">
+										<option value="control-process">Control process</option>
+									</optgroup>
+									<optgroup label="Pager">
+										<option value="next-page">Next page</option>
+										<option value="prev-page">Previous page</option>
+									</optgroup>
+									<optgroup label="Authentication">
+										<option value="sign-in">Sign in</option>
+										<option value="sign-out">Sign out</option>
+										<option value="sign-up">Sign up</option>
+										<option value="reset-password">Reset password</option>
+									</optgroup>
+								</select>
+							</div>
+	
+							<div class="hidden em-event-element em-action-custom">
+								<label class="block mb-2" for="custom-action-input" data-comment="Define the backend action that is triggered by the event.">Backend action</label>
+								<input type="text" id="custom-action-input">
+							</div>
+	
+							<div><!-- exists so it is always displayed -->
+	
+								<div class="hidden em-action-element em-action-update em-action-delete em-action-method em-action-custom em-action-control-process em-process-target-wrapper">
+	
+									<div class="hidden em-action-element em-action-update">
+										<label class="block mb-2" for="id-expression-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object that shall be updated.">UUID of data object to update</label>
+									</div>
+	
+									<div class="hidden em-action-element em-action-delete">
+										<label class="block mb-2" for="id-expression-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object that shall be deleted on click.">UUID of data object to delete</label>
+									</div>
+	
+									<div class="hidden em-action-element em-action-method">
+										<label class="block mb-2" for="id-expression-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object the method shall be called on, or a type name for static methods, or leave empty for user-defined functions.">UUID or type of data object to call method on</label>
+									</div>
+	
+									<div class="hidden em-action-element em-action-custom">
+										<label class="block mb-2" for="id-expression-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the target data object.">UUID of action target object</label>
+									</div>
+	
+									<div class="hidden em-action-element em-action-control-process">
+										<label class="block mb-2" for="id-expression-input" data-comment="A script expression that resolves at runtime to the UUID of the task or process instance this button acts on. The default \${current.id} works when this button lives on a page bound to that task or instance.">UUID of task or process instance</label>
+									</div>
+	
+									<input type="text" id="id-expression-input" placeholder="\${current.id}">
+								</div>
+	
+							</div>
+	
+							<!--div class="hidden options-prev-page options-next-page em-action-element em-action-next-page em-action-prev-page">
+								<div>
+									<label class="block mb-2" for="pagination-name-input" data-comment="Define the name of the pagination request parameter (usually &quot;page&quot;).">Pagination request parameter</label>
+									<input type="text" id="pagination-name-input">
+								</div>
+							</div-->
+	
+							<div class="hidden options-method em-action-element em-action-method">
+								<div>
+									<label class="block mb-2" for="method-name-input" data-comment="Enter name of a user-defined function or object method.<br><br>The return value of the method is available as <b>{result}</b> for a single value and with the pattern <b>{result.key}</b> for a map/object.<br><br>Example: Use {result.id} to retrieve the 'id' value from the return value object.">Name of method to execute</label>
+									<input type="text" id="method-name-input">
+								</div>
+							</div>
+	
+							<div class="hidden options-method em-action-element em-action-flow">
+								<div class="relative">
+									<label class="block mb-2" for="flow-input" data-comment="Select a flow">Enter or select name of the flow to execute</label>
+									<input type="text" class="combined-input-select-field" id="flow-input" placeholder="Flow">
+									<select class="required" id="flow-select">
+										<option value="">Select flow</option>
+									</select>
+									<ul class="combined-input-select-field hidden"></ul>
+								</div>
+							</div>
+	
+							<!-- Control process: operation-first cascade. The user picks the operation
+								 in plain language, then the form adapts: process is always required,
+								 step is shown only for task-level / signal operations, target id
+								 expression is shown for any non-start operation. -->
+							<div class="hidden em-action-element em-action-control-process">
+								<label class="block mb-2" for="process-operation-select" data-comment="What this button does. Pick the operation in plain language; the form below adapts to show the fields that operation needs.">Operation</label>
+								<select class="required" id="process-operation-select">
+									<option value="">— Select operation —</option>
+								</select>
+							</div>
+							<div class="hidden em-action-element em-action-control-process">
+								<label class="block mb-2" for="process-definition-select" data-comment="The process this action operates on. Required for every operation. For the 'Start a new process instance' operation, you can leave this empty and use 'Dynamic process UUID' below instead.">Process</label>
+								<select class="required" id="process-definition-select">
+									<option value="">— Select process —</option>
+								</select>
+							</div>
+							<div class="hidden em-action-element em-action-control-process em-process-dynamic-wrapper">
+								<label class="block mb-2" for="process-id-expression-input" data-comment="Structr scripting expression that resolves to a BpmnProcess UUID at page render time, e.g. \${current.id} on a process catalog page where each row binds to a different BpmnProcess. Only honoured for the 'Start a new process instance' operation. When set and resolvable, overrides the static Process selection above.">Dynamic process UUID</label>
+								<input class="w-full" type="text" id="process-id-expression-input" placeholder="\${current.id}">
+							</div>
+							<div class="hidden em-action-element em-action-control-process em-process-step-wrapper">
+								<label class="block mb-2" for="process-element-select" data-comment="The step this action acts on. Shown only when the operation is task-level (claim, complete, ...) or a signal. Hidden for whole-process operations (start, terminate, suspend, resume).">Process step</label>
+								<select class="required" id="process-element-select">
+									<option value="">— Select step —</option>
+								</select>
+							</div>
+	
+							<div class="hidden em-action-element em-action-create em-action-update em-action-method em-action-control-process em-process-subject-wrapper">
+								<div class="relative">
+									<label class="block mb-2" for="data-type-select" data-comment="For 'create'/'update': the type of data object. For 'method': the type the method belongs to (sets the App Graph binding so the method is refactor-safe across renames). For 'Control process / Complete a task and create the subject': the SchemaNode type instantiated as the new ProcessInstance subject. Leave empty for top-level user-defined functions.">Enter or select type of data object</label>
+									<input type="text" class="combined-input-select-field" id="data-type-input" placeholder="Custom type or script expression">
+									<select class="required" id="data-type-select">
+										<option value="">Select type from schema</option>
+										<optgroup label="Custom Types" data-custom-types></optgroup>
+										<optgroup label="Builtin Types" data-builtin-types></optgroup>
+									</select>
+									<ul class="combined-input-select-field hidden">
+										<li class="nohover">
+											<div class="font-bold pb-2">Custom Types</div>
+											<ul class="pl-4" data-custom-types></ul>
+										</li>
+										<li class="nohover">
+											<div class="font-bold pb-2">Builtin Types</div>
+											<ul class="pl-4" data-builtin-types></ul>
+										</li>
+									</ul>
+								</div>
+							</div>
+						</div>
+					</div><!-- event-action-mapping-section -->
+
+					<div class="hidden em-event-element em-event-drop">
+						<h3>Drag & Drop</h3>
 						<div>
-							<div class="relative">
-								<label class="block mb-2" for="data-event-select" data-comment="Use this setting to bind a browser event to a backend action.">Event</label>
-								<input type="text" class="combined-input-select-field" id="data-event-input" placeholder="Browser event (click, keydown, focusout etc.)">
-								<select class="required combined-input-select-field" id="data-event-select">
-									<option value="">Select event from list</option>
-									${_Pages.getEventActionMappingAvailableEvents().map(event => `<option value="${event}">${event}</option>`).join('')}
-								</select>
-								<ul class="combined-input-select-field hidden">
-									${_Pages.getEventActionMappingAvailableEvents().map(event => `<li data-value="${event}">${event}</li>`).join('')}
-								</ul>
-							</div>
+							<label class="block mb-2">The following additional configuration is required to enable drag & drop.</label>
+							<ul class="mb-2">
+								<li>Make other elements draggable: set the <code>draggable</code> attribute to <code>true</code>.</li>
+								<li>Add a custom data attribute with the value <code>data()</code> to the drop target, e.g. <code>data-payload</code> etc.</li>
+								<li>The custom data attribute will be sent to the method when a drop event occurs.</li>
+							<ul>
 						</div>
+					</div>
 
+					<div class="hidden em-action-element em-action-any">
+						<h3>Parameter Mapping
+							<i class="m-2 em-add-parameter-mapping-button cursor-pointer align-middle icon-grey icon-inactive hover:icon-active">${_Icons.getSvgIcon(_Icons.iconAdd,16,16,[], 'Add parameter')}</i>
+							<i class="m-2 em-add-parameter-mapping-for-type-button cursor-pointer align-middle icon-grey icon-inactive hover:icon-active">${_Icons.getSvgIcon(_Icons.iconListAdd,16,16,[], 'Add parameters for all properties')}</i>
+						</h3>
+						<div class="grid gap-4 em-parameter-mappings-container"></div>
 
-						<div class="hidden em-event-element em-event-any">
-							<label class="block mb-2" data-comment="Select the action that is triggered by the event.">Action</label>
-
-                            <!-- the actions can be fetched from the backend in the future-->
-							<select class="select2" id="action-select">
-								<option value="none">No action</option>
-								<optgroup label="Data">
-									<option value="create">Create new object</option>
-									<option value="update">Update object</option>
-									<option value="delete">Delete object</option>
-								</optgroup>
-								<optgroup label="Behaviour/Logic">
-									<option value="method">Execute method</option>
-									<option value="flow">Execute flow</option>
-								</optgroup>
-								<optgroup label="Process">
-									<option value="control-process">Control process</option>
-								</optgroup>
-								<optgroup label="Pager">
-									<option value="next-page">Next page</option>
-									<option value="prev-page">Previous page</option>
-								</optgroup>
-								<optgroup label="Authentication">
-									<option value="sign-in">Sign in</option>
-									<option value="sign-out">Sign out</option>
-									<option value="sign-up">Sign up</option>
-									<option value="reset-password">Reset password</option>
-								</optgroup>
-							</select>
-						</div>
-
-						<div class="hidden em-event-element em-action-custom">
-							<label class="block mb-2" for="custom-action-input" data-comment="Define the backend action that is triggered by the event.">Backend action</label>
-							<input type="text" id="custom-action-input">
-						</div>
-
-						<div><!-- exists so it is always displayed -->
-
-							<div class="hidden em-action-element em-action-update em-action-delete em-action-method em-action-custom em-action-control-process em-process-target-wrapper">
-
-								<div class="hidden em-action-element em-action-update">
-									<label class="block mb-2" for="id-expression-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object that shall be updated.">UUID of data object to update</label>
-								</div>
-
-								<div class="hidden em-action-element em-action-delete">
-									<label class="block mb-2" for="id-expression-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object that shall be deleted on click.">UUID of data object to delete</label>
-								</div>
-
-								<div class="hidden em-action-element em-action-method">
-									<label class="block mb-2" for="id-expression-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object the method shall be called on, or a type name for static methods, or leave empty for user-defined functions.">UUID or type of data object to call method on</label>
-								</div>
-
-								<div class="hidden em-action-element em-action-custom">
-									<label class="block mb-2" for="id-expression-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the target data object.">UUID of action target object</label>
-								</div>
-
-								<div class="hidden em-action-element em-action-control-process">
-									<label class="block mb-2" for="id-expression-input" data-comment="A script expression that resolves at runtime to the UUID of the task or process instance this button acts on. The default \${current.id} works when this button lives on a page bound to that task or instance.">UUID of task or process instance</label>
-								</div>
-
-								<input type="text" id="id-expression-input" placeholder="\${current.id}">
-							</div>
-
-						</div>
-
-						<!--div class="hidden options-prev-page options-next-page em-action-element em-action-next-page em-action-prev-page">
-							<div>
-								<label class="block mb-2" for="pagination-name-input" data-comment="Define the name of the pagination request parameter (usually &quot;page&quot;).">Pagination request parameter</label>
-								<input type="text" id="pagination-name-input">
-							</div>
-						</div-->
-
-						<div class="hidden em-action-element em-action-create em-action-update em-action-method em-action-control-process em-process-subject-wrapper">
-							<div class="relative">
-								<label class="block mb-2" for="data-type-select" data-comment="For 'create'/'update': the type of data object. For 'method': the type the method belongs to (sets the App Graph binding so the method is refactor-safe across renames). For 'Control process / Complete a task and create the subject': the SchemaNode type instantiated as the new ProcessInstance subject. Leave empty for top-level user-defined functions.">Enter or select type of data object</label>
-								<input type="text" class="combined-input-select-field" id="data-type-input" placeholder="Custom type or script expression">
-								<select class="required combined-input-select-field" id="data-type-select">
-									<option value="">Select type from schema</option>
-									<optgroup label="Custom Types" data-custom-types></optgroup>
-									<optgroup label="Builtin Types" data-builtin-types></optgroup>
-								</select>
-								<ul class="combined-input-select-field hidden">
-									<li class="nohover">
-										<div class="font-bold pb-2">Custom Types</div>
-										<ul class="pl-4" data-custom-types></ul>
-									</li>
-									<li class="nohover">
-										<div class="font-bold pb-2">Builtin Types</div>
-										<ul class="pl-4" data-builtin-types></ul>
-									</li>
-								</ul>
-							</div>
-						</div>
-
-						<div class="hidden options-method em-action-element em-action-method">
-							<div>
-								<label class="block mb-2" for="method-name-input" data-comment="Enter name of a user-defined function or object method.<br><br>The return value of the method is available as <b>{result}</b> for a single value and with the pattern <b>{result.key}</b> for a map/object.<br><br>Example: Use {result.id} to retrieve the 'id' value from the return value object.">Name of method to execute</label>
-								<input type="text" id="method-name-input">
-							</div>
-						</div>
-
-						<div class="hidden options-method em-action-element em-action-flow">
-							<div class="relative">
-								<label class="block mb-2" for="flow-input" data-comment="Select a flow">Enter or select name of the flow to execute</label>
-								<input type="text" class="combined-input-select-field" id="flow-input" placeholder="Flow">
-								<select class="required combined-input-select-field" id="flow-select">
-									<option value="">Select flow</option>
-								</select>
-								<ul class="combined-input-select-field hidden"></ul>
-							</div>
-						</div>
-
-						<!-- Control process: operation-first cascade. The user picks the operation
-						     in plain language, then the form adapts: process is always required,
-						     step is shown only for task-level / signal operations, target id
-						     expression is shown for any non-start operation. -->
-						<div class="hidden em-action-element em-action-control-process">
-							<label class="block mb-2" for="process-operation-select" data-comment="What this button does. Pick the operation in plain language; the form below adapts to show the fields that operation needs.">Operation</label>
-							<select class="required" id="process-operation-select">
-								<option value="">— Select operation —</option>
-							</select>
-						</div>
-						<div class="hidden em-action-element em-action-control-process">
-							<label class="block mb-2" for="process-definition-select" data-comment="The process this action operates on. Required for every operation. For the 'Start a new process instance' operation, you can leave this empty and use 'Dynamic process UUID' below instead.">Process</label>
-							<select class="required" id="process-definition-select">
-								<option value="">— Select process —</option>
-							</select>
-						</div>
-						<div class="hidden em-action-element em-action-control-process em-process-dynamic-wrapper">
-							<label class="block mb-2" for="process-id-expression-input" data-comment="Structr scripting expression that resolves to a BpmnProcess UUID at page render time, e.g. \${current.id} on a process catalog page where each row binds to a different BpmnProcess. Only honoured for the 'Start a new process instance' operation. When set and resolvable, overrides the static Process selection above.">Dynamic process UUID</label>
-							<input class="w-full" type="text" id="process-id-expression-input" placeholder="\${current.id}">
-						</div>
-						<div class="hidden em-action-element em-action-control-process em-process-step-wrapper">
-							<label class="block mb-2" for="process-element-select" data-comment="The step this action acts on. Shown only when the operation is task-level (claim, complete, ...) or a signal. Hidden for whole-process operations (start, terminate, suspend, resume).">Process step</label>
-							<select class="required" id="process-element-select">
-								<option value="">— Select step —</option>
-							</select>
-						</div>
-
-						<div class="col-span-2 hidden em-event-element em-event-drop">
-							<h3>Drag & Drop</h3>
-							<div>
-								<label class="block mb-2">The following additional configuration is required to enable drag & drop.</label>
-								<ul class="mb-2">
-									<li>Make other elements draggable: set the <code>draggable</code> attribute to <code>true</code>.</li>
-									<li>Add a custom data attribute with the value <code>data()</code> to the drop target, e.g. <code>data-payload</code> etc.</li>
-									<li>The custom data attribute will be sent to the method when a drop event occurs.</li>
-								<ul>
-							</div>
-						</div>
-
-						<div class="col-span-2 hidden em-action-element em-action-any">
-							<h3>Parameter Mapping
-								<i class="m-2 em-add-parameter-mapping-button cursor-pointer align-middle icon-grey icon-inactive hover:icon-active">${_Icons.getSvgIcon(_Icons.iconAdd,16,16,[], 'Add parameter')}</i>
-								<i class="m-2 em-add-parameter-mapping-for-type-button cursor-pointer align-middle icon-grey icon-inactive hover:icon-active">${_Icons.getSvgIcon(_Icons.iconListAdd,16,16,[], 'Add parameters for all properties')}</i>
-							</h3>
-							<div class="em-parameter-mappings-container"></div>
-
-						</div>
+					</div>
+					
+					<div class="hidden em-action-element em-action-create em-action-update em-action-delete em-action-method em-action-flow">
+					
+						<h3>Confirmation Dialog</h3>
+					
+						<div class="grid grid-cols-2 gap-4">
 						
-						<div class="col-span-2 hidden em-action-element em-action-create em-action-update em-action-delete em-action-method em-action-flow">
-							<h3>Confirmation Dialog</h3>
-							<div class="grid grid-cols-2 gap-8">
+							<div>
+								<label class="block mb-2" data-comment="Select type of dialog for confirming action">Dialog Type</label>
+	
+								<select class="select2" id="dialog-select">
+									<option value="none">No confirmation</option>
+									<option value="okcancel">Use window.confirm</option>
+								</select>
+							</div>
+
+							<div class="dialog-input-field-group hidden">
+								<label class="block mb-2" for="dialog-title" data-comment="Enter title for dialog as static text or as a script expression like &quot;&#36;{obj.id}&quot;">Dialog Title</label>
+								<input type="text" id="dialog-title">
+					
+								<label class="block mb-2 mt-4" for="dialog-text" data-comment="Enter text for dialog as static text or as a script expression like &quot;&#36;{obj.id}&quot;"">Dialog Text</label>
+								<input type="text" id="dialog-text">
+							</div>
+
 							
-								<div>
-									<label class="block mb-2" data-comment="Select type of dialog for confirming action">Dialog Type</label>
-		
-									<select class="select2" id="dialog-select">
-										<option value="none">No confirmation</option>
-										<option value="okcancel">Use window.confirm</option>
-									</select>
-								</div>
+						</div>
+					</div>
 
-								<div class="dialog-input-field-group hidden">
-									<label class="block mb-2" for="dialog-title" data-comment="Enter title for dialog as static text or as a script expression like &quot;&#36;{obj.id}&quot;">Dialog Title</label>
-									<input type="text" id="dialog-title">
+					<div class="hidden em-action-element em-action-any">
+					
+						<h3>Notifications</h3>
+					
+						<div class="grid grid-cols-2 gap-4">
+
+							<div>
+								<label class="block mb-2" for="success-notifications-select" data-comment="Define what kind of notifications should be displayed on success">Success notifications</label>
+								<select class="select2" id="success-notifications-select">
+									<option value="none">None</option>
+									<option value="system-alert">System alert</option>
+									<option value="inline-text-message">Inline text message</option>
+									<option value="custom-dialog">Custom dialog element(s) defined by CSS ID(s)</option>
+									<option value="custom-dialog-linked">Custom dialog element(s) defined by linked element(s)</option>
+									<option value="fire-event">Raise a custom event</option>
+								</select>
+							</div>
+							
+							<div class="hidden option-success-notifications option-success-notifications-inline-text-message">
+								<label class="block mb-2" for="success-inline-message-delay-input" data-comment="After this time periout the inline text message disappers. For no autohide input -1">Display duration (ms)</label>
+								<input type="number" id="success-inline-message-delay-input" min="-1" max="60000" placeholder="5000">
+							</div>
+
+							<div class="hidden option-success-notifications option-success-notifications-custom-dialog">
+								<label class="block mb-2" for="success-notifications-custom-dialog-input" data-comment="Define the area(s) of the current page that should be displayed as notification dialog(s) with their CSS ID selector (comma-separated list of CSS IDs with leading #).">Partial(s) to refresh on success</label>
+								<input type="text" id="success-notifications-custom-dialog-input" placeholder="Enter CSS ID(s)">
+							</div>
+
+							<div class="hidden option-success-notifications option-success-notifications-custom-dialog-linked">
+								<label class="block mb-2" for="success-notifications-custom-dialog-linked-input" data-comment="Drag an element and drop it here">Element(s) to be displayed as success notification dialogs</label>
+								<input type="hidden" id="success-notifications-custom-dialog-linked-input" value="">
+								<div class="element-dropzone success-notifications-custom-dialog-linked-dropzone">
+									<div class="info-icon h-16 flex items-center justify-center">
+										${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
+										${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
+										Drag and drop existing element here
+									</div>
+								</div>
+							</div>
+
+							<div class="hidden option-success-notifications option-success-notifications-fire-event">
+								<label class="block mb-2" for="success-notifications-fire-event-input" data-comment="Define event that should be raised.">Event to raise to display success notifications</label>
+								<input type="text" id="success-notifications-fire-event-input" placeholder="Enter an event name">
+							</div>
+
+							<div>
+								<label class="block mb-2" for="failure-notifications-select" data-comment="Define what kind of notifications should be displayed on failure">Failure notifications</label>
+								<select class="select2" id="failure-notifications-select">
+									<option value="none">None</option>
+									<option value="system-alert">System alert</option>
+									<option value="inline-text-message">Inline text message</option>
+									<option value="custom-dialog">Custom dialog element(s) defined by CSS ID(s)</option>
+									<option value="custom-dialog-linked">Custom dialog element(s) defined by linked element(s)</option>
+									<option value="fire-event">Raise a custom event</option>
+								</select>
+							</div>
+							
+							<div class="hidden option-failure-notifications option-failure-notifications-inline-text-message">
+								<label class="block mb-2" for="failure-inline-message-delay-input" data-comment="After this time periout the inline text message disappers. For no autohide input -1">Display duration (ms)</label>
+								<input type="number" id="failure-inline-message-delay-input" min="-1" max="60000" placeholder="5000">
+							</div>
+
+							<div class="hidden option-failure-notifications option-failure-notifications-custom-dialog">
+								<label class="block mb-2" for="failure-notifications-custom-dialog-input" data-comment="Define the area(s) of the current page that should be displayed as notification dialog(s) with their CSS ID selector (comma-separated list of CSS IDs with leading #).">Partial(s) to refresh on failure</label>
+								<input type="text" id="failure-notifications-custom-dialog-input" placeholder="Enter CSS ID(s)">
+							</div>
+
+							<div class="hidden option-failure-notifications option-failure-notifications-custom-dialog-linked">
+								<label class="block mb-2" for="failure-notifications-custom-dialog-linked-input" data-comment="Drag an element and drop it here">Element(s) to be displayed as failure notification dialogs</label>
+								<input type="hidden" id="failure-notifications-custom-dialog-linked-input" value="">
+								<div class="element-dropzone failure-notifications-custom-dialog-linked-dropzone">
+									<div class="info-icon h-16 flex items-center justify-center">
+										${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
+										${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
+										Drag and drop existing element here
+									</div>
+								</div>
+							</div>
+
+							<div class="hidden option-failure-notifications option-failure-notifications-fire-event">
+								<label class="block mb-2" for="failure-notifications-fire-event-input" data-comment="Define event that should be raised.">Event to raise to display failure notifications</label>
+								<input type="text" id="failure-notifications-fire-event-input" placeholder="Enter an event name">
+							</div>
+						</div>
+					</div>
+
+					<div class="hidden em-action-element em-action-any">
+					
+						<h3>Follow-up Actions</h3>
 						
-									<label class="block mb-2 mt-4" for="dialog-text" data-comment="Enter text for dialog as static text or as a script expression like &quot;&#36;{obj.id}&quot;"">Dialog Text</label>
-									<input type="text" id="dialog-text">
-								</div>
+						<div class="grid grid-cols-2 gap-4">
 
-								
+							<div>
+								<label class="block mb-2" for="success-behaviour-select" data-comment="Define what should happen after the triggered action succeeded.">Behaviour on success</label>
+								<select class="select2" id="success-behaviour-select">
+									<option value="none">None</option>
+									<option value="full-page-reload">Reload the current page</option>
+									<option value="partial-refresh">Refresh page section(s) defined by CSS ID(s)</option>
+									<option value="show-hide-section">Show/hide page section(s) defined by CSS id(s)</option>
+									<option value="show-hide-section-linked">Show/hide page section(s) defined by linked element(s)</option>
+									<option value="partial-refresh-linked">Refresh page section defined by linked element(s)</option>
+									<option value="navigate-to-url">Navigate to a new page</option>
+									<option value="fire-event">Raise a custom event</option>
+									<option value="sign-out">Sign out</option>
+									<option value="component-based">Let enclosing component decide</option>
+								</select>
+							</div>
+
+							<div class="hidden option-success option-success-partial-refresh">
+								<label class="block mb-2" for="success-partial-refresh-input" data-comment="Define the area(s) of the current page that should be refreshed by its CSS ID selector (comma-separated list of CSS IDs with leading #).">Partial(s) to refresh on success</label>
+								<input type="text" id="success-partial-refresh-input" placeholder="Enter CSS ID(s)">
+							</div>
+
+							<div class="hidden option-success option-success-partial-refresh-linked">
+								<label class="block mb-2" for="success-partial-refresh-linked-input" data-comment="Drag an element and drop it here">Element(s) to be refreshed on success</label>
+								<input type="hidden" id="success-partial-refresh-linked-input" value="">
+								<div class="element-dropzone success-partial-refresh-linked-dropzone">
+									<div class="info-icon h-16 flex items-center justify-center">
+										${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
+										${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
+										Drag and drop existing element here
+									</div>
+								</div>
+							</div>
+
+							<div class="hidden option-success option-success-navigate-to-url">
+								<label class="block mb-2" for="success-navigate-to-url-input" data-comment="Define the relative or absolute URL of the page to load on success.<br><br>If the response contains data, this data can be accessed and used here.<br><br><span class=&quot;font-bold&quot;>Example</span>: If a project was created, the redirect could point to its details page using <code>/project/{result.id}</code><br><br><span class=&quot;font-bold&quot;>Control process / Start:</span> the response includes a pre-built URL using the slugified process name as the page slug, plus the new instance UUID. Use <code>{result.url}</code> to navigate straight to the process page.">Success URL</label>
+								<input type="text" id="success-navigate-to-url-input" placeholder="Enter a relative or absolute URL">
+							</div>
+
+							<div class="hidden option-success option-success-fire-event">
+								<label class="block mb-2" for="success-fire-event-input" data-comment="Define event that should be raised.">Event to raise on success</label>
+								<input type="text" id="success-fire-event-input" placeholder="Enter an event name">
+							</div>
+
+							<div class="hidden option-success option-success-show-hide-section">
+								<label class="block mb-2" for="success-show-input" data-comment="Section(s) to show on success: comma-separated CSS selectors, by id (e.g. #detail) or class (e.g. .detail). Removes the 'hidden' class from matching elements (no page reload).">Section(s) to show on success</label>
+								<input type="text" id="success-show-input" placeholder="Enter CSS selector(s)">
+								<label class="block mb-2" for="success-hide-input" data-comment="Section(s) to hide on success: comma-separated CSS selectors, by id (e.g. #form) or class (e.g. .form). Adds the 'hidden' class to matching elements.">Section(s) to hide on success</label>
+								<input type="text" id="success-hide-input" placeholder="Enter CSS selector(s)">
+								<label class="block mb-2" for="success-show-url-input" data-comment="Optional. If set, the shown section(s) are loaded as URL-bound partial(s) from this assembled URL instead of only being un-hidden. Uses the same syntax as 'Navigate to a new page': <code>\${current.id}</code> is resolved server-side, <code>{result.id}</code> client-side from the response.<br><br><span class=&quot;font-bold&quot;>Example</span>: <code>/project/\${current.id}?processInstance={result.id}</code>">URL to load shown section(s) from (optional)</label>
+								<input type="text" id="success-show-url-input" placeholder="Leave empty to only un-hide; or enter a URL to load">
+								<label class="flex items-center gap-2" data-comment="Restrict the show/hide selectors above to the repeater element containing the triggering element. Target repeater sections with a shared CSS class (ids can't repeat) and this pins them to the current iteration. No effect outside a repeater."><input type="checkbox" id="success-scope-repeater-input"> Restrict to current repeater element</label>
+							</div>
+
+							<div class="hidden option-success option-success-show-hide-section-linked">
+								<label class="block mb-2" data-comment="Element(s) to show on success: drag and drop here. Linked by element (refactor-safe: survives renaming/restructuring).">Element(s) to show on success (linked)</label>
+								<input type="hidden" id="success-show-linked-input" value="">
+								<div class="element-dropzone success-show-linked-dropzone">
+									<div class="info-icon h-16 flex items-center justify-center">
+										${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
+										${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
+										Drag and drop existing element here
+									</div>
+								</div>
+								<label class="block mb-2" data-comment="Element(s) to hide on success: drag and drop here. Linked by element (refactor-safe).">Element(s) to hide on success (linked)</label>
+								<input type="hidden" id="success-hide-linked-input" value="">
+								<div class="element-dropzone success-hide-linked-dropzone">
+									<div class="info-icon h-16 flex items-center justify-center">
+										${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
+										${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
+										Drag and drop existing element here
+									</div>
+								</div>
+								<label class="block mb-2" for="success-show-linked-url-input" data-comment="Optional. If set, the shown element(s) are loaded as URL-bound partial(s) from this assembled URL instead of only being un-hidden. <code>\${current.id}</code> is resolved server-side, <code>{result.id}</code> client-side from the response.<br><br><span class=&quot;font-bold&quot;>Example</span>: <code>/project/\${current.id}?processInstance={result.id}</code>">URL to load shown element(s) from (optional)</label>
+								<input type="text" id="success-show-linked-url-input" placeholder="Leave empty to only un-hide; or enter a URL to load">
+								<label class="flex items-center gap-2" data-comment="Restrict the linked element(s) above to the repeater element containing the triggering element. A linked element's id is shared across repeater iterations, so this pins it to the current one. No effect outside a repeater."><input type="checkbox" id="success-scope-repeater-linked-input"> Restrict to current repeater element</label>
+							</div>
+
+							<div>
+								<label class="block mb-2" for="failure-behaviour-select" data-comment="Define what should happen after the triggered action failed.">Behaviour on failure</label>
+								<select class="select2" id="failure-behaviour-select">
+									<option value="none">None</option>
+									<option value="full-page-reload">Reload the current page</option>
+									<option value="partial-refresh">Refresh section(s) by ID</option>
+									<option value="show-hide-section">Show/hide page section(s) defined by CSS id(s)</option>
+									<option value="show-hide-section-linked">Show/hide page section(s) defined by linked element(s)</option>
+									<option value="partial-refresh-linked">Refresh page section defined by linked element(s)</option>
+									<option value="navigate-to-url">Navigate to a new page</option>
+									<option value="fire-event">Raise a custom event</option>
+									<option value="sign-out">Sign out</option>
+									<option value="component-based">Let enclosing component decide</option>
+								</select>
+							</div>
+
+							<div class="hidden option-failure option-failure-partial-refresh">
+								<label class="block mb-2" for="failure-partial-refresh-input" data-comment="Define the area of the current page that should be refreshed by its CSS ID.">Partial to refresh on failure</label>
+								<input type="text" id="failure-partial-refresh-input" placeholder="Enter CSS ID(s)">
+							</div>
+
+							<div class="hidden option-failure option-failure-partial-refresh-linked">
+								<label class="block mb-2" for="failure-partial-refresh-linked-input" data-comment="Drag an element and drop it here">Element(s) to be refreshed on failure</label>
+								<input type="hidden" id="failure-partial-refresh-linked-input" value="">
+								<div class="element-dropzone failure-partial-refresh-linked-dropzone">
+									<div class="info-icon h-16 flex items-center justify-center">
+										${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
+										${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
+										Drag and drop existing element here
+									</div>
+								</div>
+							</div>
+
+							<div class="hidden option-failure option-failure-navigate-to-url">
+								<label class="block mb-2" for="failure-navigate-to-url-input" data-comment="Define the relative or absolute URL of the page to load on failure">Failure URL</label>
+								<input type="text" id="failure-navigate-to-url-input" placeholder="Enter a relative or absolute URL">
+							</div>
+
+							<div class="hidden option-failure option-failure-fire-event">
+								<label class="block mb-2" for="failure-fire-event-input" data-comment="Define event that should be raised.">Event to raise on failure</label>
+								<input type="text" id="failure-fire-event-input" placeholder="Enter an event name">
+							</div>
+
+							<div class="hidden option-failure option-failure-show-hide-section">
+								<label class="block mb-2" for="failure-show-input" data-comment="Section(s) to show on failure: comma-separated CSS selectors, by id (e.g. #detail) or class (e.g. .detail). Removes the 'hidden' class from matching elements.">Section(s) to show on failure</label>
+								<input type="text" id="failure-show-input" placeholder="Enter CSS selector(s)">
+								<label class="block mb-2" for="failure-hide-input" data-comment="Section(s) to hide on failure: comma-separated CSS selectors, by id (e.g. #form) or class (e.g. .form). Adds the 'hidden' class to matching elements.">Section(s) to hide on failure</label>
+								<input type="text" id="failure-hide-input" placeholder="Enter CSS selector(s)">
+								<label class="block mb-2" for="failure-show-url-input" data-comment="Optional. If set, the shown section(s) are loaded as URL-bound partial(s) from this assembled URL instead of only being un-hidden. <code>\${current.id}</code> is resolved server-side, <code>{result.id}</code> client-side from the response.">URL to load shown section(s) from (optional)</label>
+								<input type="text" id="failure-show-url-input" placeholder="Leave empty to only un-hide; or enter a URL to load">
+								<label class="flex items-center gap-2" data-comment="Restrict the show/hide selectors above to the repeater element containing the triggering element. Target repeater sections with a shared CSS class (ids can't repeat) and this pins them to the current iteration. No effect outside a repeater."><input type="checkbox" id="failure-scope-repeater-input"> Restrict to current repeater element</label>
+							</div>
+
+							<div class="hidden option-failure option-failure-show-hide-section-linked">
+								<label class="block mb-2" data-comment="Element(s) to show on failure: drag and drop here. Linked by element (refactor-safe: survives renaming/restructuring).">Element(s) to show on failure (linked)</label>
+								<input type="hidden" id="failure-show-linked-input" value="">
+								<div class="element-dropzone failure-show-linked-dropzone">
+									<div class="info-icon h-16 flex items-center justify-center">
+										${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
+										${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
+										Drag and drop existing element here
+									</div>
+								</div>
+								<label class="block mb-2" data-comment="Element(s) to hide on failure: drag and drop here. Linked by element (refactor-safe).">Element(s) to hide on failure (linked)</label>
+								<input type="hidden" id="failure-hide-linked-input" value="">
+								<div class="element-dropzone failure-hide-linked-dropzone">
+									<div class="info-icon h-16 flex items-center justify-center">
+										${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
+										${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
+										Drag and drop existing element here
+									</div>
+								</div>
+								<label class="block mb-2" for="failure-show-linked-url-input" data-comment="Optional. If set, the shown element(s) are loaded as URL-bound partial(s) from this assembled URL instead of only being un-hidden. <code>\${current.id}</code> is resolved server-side, <code>{result.id}</code> client-side from the response.">URL to load shown element(s) from (optional)</label>
+								<input type="text" id="failure-show-linked-url-input" placeholder="Leave empty to only un-hide; or enter a URL to load">
+								<label class="flex items-center gap-2" data-comment="Restrict the linked element(s) above to the repeater element containing the triggering element. A linked element's id is shared across repeater iterations, so this pins it to the current one. No effect outside a repeater."><input type="checkbox" id="failure-scope-repeater-linked-input"> Restrict to current repeater element</label>
 							</div>
 						</div>
-
-						<div class="col-span-2 hidden em-action-element em-action-any">
-							<h3>Notifications</h3>
-							<div class="grid grid-cols-2 gap-8">
-
-								<div>
-									<label class="block mb-2" for="success-notifications-select" data-comment="Define what kind of notifications should be displayed on success">Success notifications</label>
-									<select class="select2" id="success-notifications-select">
-										<option value="none">None</option>
-										<option value="system-alert">System alert</option>
-										<option value="inline-text-message">Inline text message</option>
-										<option value="custom-dialog">Custom dialog element(s) defined by CSS ID(s)</option>
-										<option value="custom-dialog-linked">Custom dialog element(s) defined by linked element(s)</option>
-										<option value="fire-event">Raise a custom event</option>
-									</select>
-								</div>
-								
-								<div class="hidden option-success-notifications option-success-notifications-inline-text-message">
-									<label class="block mb-2" for="success-inline-message-delay-input" data-comment="After this time periout the inline text message disappers. For no autohide input -1">Display duration (ms)</label>
-									<input type="number" id="success-inline-message-delay-input" min="-1" max="60000" placeholder="5000">
-								</div>
-
-								<div class="hidden option-success-notifications option-success-notifications-custom-dialog">
-									<label class="block mb-2" for="success-notifications-custom-dialog-input" data-comment="Define the area(s) of the current page that should be displayed as notification dialog(s) with their CSS ID selector (comma-separated list of CSS IDs with leading #).">Partial(s) to refresh on success</label>
-									<input type="text" id="success-notifications-custom-dialog-input" placeholder="Enter CSS ID(s)">
-								</div>
-
-								<div class="hidden option-success-notifications option-success-notifications-custom-dialog-linked">
-									<label class="block mb-2" for="success-notifications-custom-dialog-linked-input" data-comment="Drag an element and drop it here">Element(s) to be displayed as success notification dialogs</label>
-									<input type="hidden" id="success-notifications-custom-dialog-linked-input" value="">
-									<div class="element-dropzone success-notifications-custom-dialog-linked-dropzone">
-										<div class="info-icon h-16 flex items-center justify-center">
-											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
-											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
-											Drag and drop existing element here
-										</div>
-									</div>
-								</div>
-
-								<div class="hidden option-success-notifications option-success-notifications-fire-event">
-									<label class="block mb-2" for="success-notifications-fire-event-input" data-comment="Define event that should be raised.">Event to raise to display success notifications</label>
-									<input type="text" id="success-notifications-fire-event-input" placeholder="Enter an event name">
-								</div>
-							</div>
-
-							<div class="grid grid-cols-2 gap-8 mt-4">
-
-								<div>
-									<label class="block mb-2" for="failure-notifications-select" data-comment="Define what kind of notifications should be displayed on failure">Failure notifications</label>
-									<select class="select2" id="failure-notifications-select">
-										<option value="none">None</option>
-										<option value="system-alert">System alert</option>
-										<option value="inline-text-message">Inline text message</option>
-										<option value="custom-dialog">Custom dialog element(s) defined by CSS ID(s)</option>
-										<option value="custom-dialog-linked">Custom dialog element(s) defined by linked element(s)</option>
-										<option value="fire-event">Raise a custom event</option>
-									</select>
-								</div>
-								
-								<div class="hidden option-failure-notifications option-failure-notifications-inline-text-message">
-									<label class="block mb-2" for="failure-inline-message-delay-input" data-comment="After this time periout the inline text message disappers. For no autohide input -1">Display duration (ms)</label>
-									<input type="number" id="failure-inline-message-delay-input" min="-1" max="60000" placeholder="5000">
-								</div>
-
-								<div class="hidden option-failure-notifications option-failure-notifications-custom-dialog">
-									<label class="block mb-2" for="failure-notifications-custom-dialog-input" data-comment="Define the area(s) of the current page that should be displayed as notification dialog(s) with their CSS ID selector (comma-separated list of CSS IDs with leading #).">Partial(s) to refresh on failure</label>
-									<input type="text" id="failure-notifications-custom-dialog-input" placeholder="Enter CSS ID(s)">
-								</div>
-
-								<div class="hidden option-failure-notifications option-failure-notifications-custom-dialog-linked">
-									<label class="block mb-2" for="failure-notifications-custom-dialog-linked-input" data-comment="Drag an element and drop it here">Element(s) to be displayed as failure notification dialogs</label>
-									<input type="hidden" id="failure-notifications-custom-dialog-linked-input" value="">
-									<div class="element-dropzone failure-notifications-custom-dialog-linked-dropzone">
-										<div class="info-icon h-16 flex items-center justify-center">
-											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
-											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
-											Drag and drop existing element here
-										</div>
-									</div>
-								</div>
-
-								<div class="hidden option-failure-notifications option-failure-notifications-fire-event">
-									<label class="block mb-2" for="failure-notifications-fire-event-input" data-comment="Define event that should be raised.">Event to raise to display failure notifications</label>
-									<input type="text" id="failure-notifications-fire-event-input" placeholder="Enter an event name">
-								</div>
-							</div>
-						</div>
-
-						<div class="col-span-2 hidden em-action-element em-action-any">
-							<h3>Follow-up Actions</h3>
-							<div class="grid grid-cols-2 gap-8">
-
-								<div>
-									<label class="block mb-2" for="success-behaviour-select" data-comment="Define what should happen after the triggered action succeeded.">Behaviour on success</label>
-									<select class="select2" id="success-behaviour-select">
-										<option value="none">None</option>
-										<option value="full-page-reload">Reload the current page</option>
-										<option value="partial-refresh">Refresh page section(s) defined by CSS ID(s)</option>
-										<option value="partial-refresh-linked">Refresh page section defined by linked element(s)</option>
-										<option value="navigate-to-url">Navigate to a new page</option>
-										<option value="fire-event">Raise a custom event</option>
-										<option value="sign-out">Sign out</option>
-										<option value="component-based">Let enclosing component decide</option>
-									</select>
-								</div>
-
-								<div class="hidden option-success option-success-partial-refresh">
-									<label class="block mb-2" for="success-partial-refresh-input" data-comment="Define the area(s) of the current page that should be refreshed by its CSS ID selector (comma-separated list of CSS IDs with leading #).">Partial(s) to refresh on success</label>
-									<input type="text" id="success-partial-refresh-input" placeholder="Enter CSS ID(s)">
-								</div>
-
-								<div class="hidden option-success option-success-partial-refresh-linked">
-									<label class="block mb-2" for="success-partial-refresh-linked-input" data-comment="Drag an element and drop it here">Element(s) to be refreshed on success</label>
-									<input type="hidden" id="success-partial-refresh-linked-input" value="">
-									<div class="element-dropzone success-partial-refresh-linked-dropzone">
-										<div class="info-icon h-16 flex items-center justify-center">
-											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
-											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
-											Drag and drop existing element here
-										</div>
-									</div>
-								</div>
-
-								<div class="hidden option-success option-success-navigate-to-url">
-									<label class="block mb-2" for="success-navigate-to-url-input" data-comment="Define the relative or absolute URL of the page to load on success.<br><br>If the response contains data, this data can be accessed and used here.<br><br><span class=&quot;font-bold&quot;>Example</span>: If a project was created, the redirect could point to its details page using <code>/project/{result.id}</code><br><br><span class=&quot;font-bold&quot;>Control process / Start:</span> the response includes a pre-built URL using the slugified process name as the page slug, plus the new instance UUID. Use <code>{result.url}</code> to navigate straight to the process page.">Success URL</label>
-									<input type="text" id="success-navigate-to-url-input" placeholder="Enter a relative or absolute URL">
-								</div>
-
-								<div class="hidden option-success option-success-fire-event">
-									<label class="block mb-2" for="success-fire-event-input" data-comment="Define event that should be raised.">Event to raise on success</label>
-									<input type="text" id="success-fire-event-input" placeholder="Enter an event name">
-								</div>
-							</div>
-
-							<div class="grid grid-cols-2 gap-8 mt-4">
-								<div>
-									<label class="block mb-2" for="failure-behaviour-select" data-comment="Define what should happen after the triggered action failed.">Behaviour on failure</label>
-									<select class="select2" id="failure-behaviour-select">
-										<option value="none">None</option>
-										<option value="full-page-reload">Reload the current page</option>
-										<option value="partial-refresh">Refresh section(s) by ID</option>
-										<option value="partial-refresh-linked">Refresh page section defined by linked element(s)</option>
-										<option value="navigate-to-url">Navigate to a new page</option>
-										<option value="fire-event">Raise a custom event</option>
-										<option value="sign-out">Sign out</option>
-										<option value="component-based">Let enclosing component decide</option>
-									</select>
-								</div>
-
-								<div class="hidden option-failure option-failure-partial-refresh">
-									<label class="block mb-2" for="failure-partial-refresh-input" data-comment="Define the area of the current page that should be refreshed by its CSS ID.">Partial to refresh on failure</label>
-									<input type="text" id="failure-partial-refresh-input" placeholder="Enter CSS ID(s)">
-								</div>
-
-								<div class="hidden option-failure option-failure-partial-refresh-linked">
-									<label class="block mb-2" for="failure-partial-refresh-linked-input" data-comment="Drag an element and drop it here">Element(s) to be refreshed on failure</label>
-									<input type="hidden" id="failure-partial-refresh-linked-input" value="">
-									<div class="element-dropzone failure-partial-refresh-linked-dropzone">
-										<div class="info-icon h-16 flex items-center justify-center">
-											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
-											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
-											Drag and drop existing element here
-										</div>
-									</div>
-								</div>
-
-								<div class="hidden option-failure option-failure-navigate-to-url">
-									<label class="block mb-2" for="failure-navigate-to-url-input" data-comment="Define the relative or absolute URL of the page to load on failure">Failure URL</label>
-									<input type="text" id="failure-navigate-to-url-input" placeholder="Enter a relative or absolute URL">
-								</div>
-
-								<div class="hidden option-failure option-failure-fire-event">
-									<label class="block mb-2" for="failure-fire-event-input" data-comment="Define event that should be raised.">Event to raise on failure</label>
-									<input type="text" id="failure-fire-event-input" placeholder="Enter an event name">
-								</div>
-							</div>
-						</div>
-
 					</div>
 
 				</div>
@@ -5473,7 +5654,7 @@ let _Pages = {
 		parameterMappingRow: config => `
 			<div class="em-parameter-mapping" data-structr-id="${config.id}">
 
-				<div class="grid grid-cols-4 gap-8 hidden options-reload-target mb-4">
+				<div class="grid grid-cols-4 gap-4 hidden options-reload-target">
 
 					<div>
 						<label class="block mb-2" data-comment="Choose a name/key for this parameter to define how the value is sent to the backend">Parameter name</label>

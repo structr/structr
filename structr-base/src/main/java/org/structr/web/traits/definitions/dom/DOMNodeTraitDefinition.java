@@ -82,6 +82,8 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String OWNER_DOCUMENT_PROPERTY                 = "ownerDocument";
 	public static final String RELOADING_ACTIONS_PROPERTY              = "reloadingActions";
 	public static final String FAILURE_ACTIONS_PROPERTY                = "failureActions";
+	public static final String SUCCESS_HIDE_ACTIONS_PROPERTY           = "successHideActions";
+	public static final String FAILURE_HIDE_ACTIONS_PROPERTY           = "failureHideActions";
 	public static final String SUCCESS_NOTIFICATION_ACTIONS_PROPERTY   = "successNotificationActions";
 	public static final String FAILURE_NOTIFICATION_ACTIONS_PROPERTY   = "failureNotificationActions";
 	public static final String VISIBILITY_MAPPINGS_PROPERTY            = "visibilityMappings";
@@ -1034,6 +1036,8 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> ownerDocumentProperty                        = new EndNode(traitsInstance, OWNER_DOCUMENT_PROPERTY, StructrTraits.DOM_NODE_PAGE_PAGE).category(DOMNode.PAGE_CATEGORY);
 		final Property<Iterable<NodeInterface>> reloadingActionsProperty           = new EndNodes(traitsInstance, RELOADING_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_SUCCESS_TARGET_ACTION_MAPPING);
 		final Property<Iterable<NodeInterface>> failureActionsProperty             = new EndNodes(traitsInstance, FAILURE_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_FAILURE_TARGET_ACTION_MAPPING);
+		final Property<Iterable<NodeInterface>> successHideActionsProperty         = new EndNodes(traitsInstance, SUCCESS_HIDE_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_SUCCESS_HIDE_TARGET_ACTION_MAPPING);
+		final Property<Iterable<NodeInterface>> failureHideActionsProperty         = new EndNodes(traitsInstance, FAILURE_HIDE_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_FAILURE_HIDE_TARGET_ACTION_MAPPING);
 		final Property<Iterable<NodeInterface>> successNotificationActionsProperty = new EndNodes(traitsInstance, SUCCESS_NOTIFICATION_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_SUCCESS_NOTIFICATION_ELEMENT_ACTION_MAPPING);
 		final Property<Iterable<NodeInterface>> failureNotificationActionsProperty = new EndNodes(traitsInstance, FAILURE_NOTIFICATION_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_FAILURE_NOTIFICATION_ELEMENT_ACTION_MAPPING);
 		final Property<Iterable<NodeInterface>> visibilityMappingsProperty         = new EndNodes(traitsInstance, VISIBILITY_MAPPINGS_PROPERTY, StructrTraits.DOM_NODE_HAS_VISIBILITY_MAPPING).category(GraphObject.VISIBILITY_CATEGORY);
@@ -1073,6 +1077,8 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 			ownerDocumentProperty,
 			reloadingActionsProperty,
 			failureActionsProperty,
+			successHideActionsProperty,
+			failureHideActionsProperty,
 			successNotificationActionsProperty,
 			failureNotificationActionsProperty,
 			visibilityMappingsProperty,
@@ -1111,7 +1117,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Ui,
 			newSet(
-				RELOADING_ACTIONS_PROPERTY, FAILURE_ACTIONS_PROPERTY, SUCCESS_NOTIFICATION_ACTIONS_PROPERTY,
+				RELOADING_ACTIONS_PROPERTY, FAILURE_ACTIONS_PROPERTY, SUCCESS_HIDE_ACTIONS_PROPERTY, FAILURE_HIDE_ACTIONS_PROPERTY, SUCCESS_NOTIFICATION_ACTIONS_PROPERTY,
 				FAILURE_NOTIFICATION_ACTIONS_PROPERTY, COMPONENT_CONFIGURATION_PROPERTY, IS_COMPONENT_ROOT_PROPERTY,
 				COMPONENT_TYPE_PROPERTY, DIMENSIONS_PROPERTY, ITEM_TYPE_PROPERTY, REPEATER_TYPE_PROPERTY
 			)

@@ -57,6 +57,8 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String TRIGGER_ELEMENTS_PROPERTY              = "triggerElements";
 	public static final String SUCCESS_TARGETS_PROPERTY               = "successTargets";
 	public static final String FAILURE_TARGETS_PROPERTY               = "failureTargets";
+	public static final String SUCCESS_HIDE_TARGETS_PROPERTY          = "successHideTargets";
+	public static final String FAILURE_HIDE_TARGETS_PROPERTY          = "failureHideTargets";
 	public static final String PARAMETER_MAPPINGS_PROPERTY            = "parameterMappings";
 	public static final String SUCCESS_NOTIFICATION_ELEMENTS_PROPERTY = "successNotificationElements";
 	public static final String FAILURE_NOTIFICATION_ELEMENTS_PROPERTY = "failureNotificationElements";
@@ -120,6 +122,12 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String FAILURE_PARTIAL_PROPERTY               = "failurePartial";
 	public static final String FAILURE_URL_PROPERTY                   = "failureURL";
 	public static final String FAILURE_EVENT_PROPERTY                 = "failureEvent";
+	public static final String SUCCESS_SHOW_PROPERTY                  = "successShow";
+	public static final String SUCCESS_HIDE_PROPERTY                  = "successHide";
+	public static final String FAILURE_SHOW_PROPERTY                  = "failureShow";
+	public static final String FAILURE_HIDE_PROPERTY                  = "failureHide";
+	public static final String SUCCESS_SCOPE_PROPERTY                 = "successScope";
+	public static final String FAILURE_SCOPE_PROPERTY                 = "failureScope";
 
 	public ActionMappingTraitDefinition() {
 		super(StructrTraits.ACTION_MAPPING);
@@ -271,6 +279,8 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Iterable<NodeInterface>> triggerElements              = new StartNodes(traitsInstance, TRIGGER_ELEMENTS_PROPERTY, StructrTraits.DOM_ELEMENT_TRIGGERED_BY_ACTION_MAPPING);
 		final Property<Iterable<NodeInterface>> successTargets               = new StartNodes(traitsInstance, SUCCESS_TARGETS_PROPERTY, StructrTraits.DOM_NODE_SUCCESS_TARGET_ACTION_MAPPING);
 		final Property<Iterable<NodeInterface>> failureTargets               = new StartNodes(traitsInstance, FAILURE_TARGETS_PROPERTY, StructrTraits.DOM_NODE_FAILURE_TARGET_ACTION_MAPPING);
+		final Property<Iterable<NodeInterface>> successHideTargets           = new StartNodes(traitsInstance, SUCCESS_HIDE_TARGETS_PROPERTY, StructrTraits.DOM_NODE_SUCCESS_HIDE_TARGET_ACTION_MAPPING);
+		final Property<Iterable<NodeInterface>> failureHideTargets           = new StartNodes(traitsInstance, FAILURE_HIDE_TARGETS_PROPERTY, StructrTraits.DOM_NODE_FAILURE_HIDE_TARGET_ACTION_MAPPING);
 		final Property<Iterable<NodeInterface>> parameterMappings            = new EndNodes(traitsInstance, PARAMETER_MAPPINGS_PROPERTY, StructrTraits.ACTION_MAPPING_PARAMETER_PARAMETER_MAPPING);
 		final Property<Iterable<NodeInterface>> successNotificationElements  = new StartNodes(traitsInstance, SUCCESS_NOTIFICATION_ELEMENTS_PROPERTY, StructrTraits.DOM_NODE_SUCCESS_NOTIFICATION_ELEMENT_ACTION_MAPPING);
 		final Property<Iterable<NodeInterface>> failureNotificationElements  = new StartNodes(traitsInstance, FAILURE_NOTIFICATION_ELEMENTS_PROPERTY, StructrTraits.DOM_NODE_FAILURE_NOTIFICATION_ELEMENT_ACTION_MAPPING);
@@ -317,16 +327,24 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> successPartialProperty                        = new StringProperty(SUCCESS_PARTIAL_PROPERTY).description("CSS selector for partial to refresh on success");
 		final Property<String> successURLProperty                            = new StringProperty(SUCCESS_URL_PROPERTY).description("URL to navigate to on success");
 		final Property<String> successEventProperty                          = new StringProperty(SUCCESS_EVENT_PROPERTY).description("Event to raise on success");
+		final Property<String> successShowProperty                           = new StringProperty(SUCCESS_SHOW_PROPERTY).description("CSS selector(s) for section(s) to show on success");
+		final Property<String> successHideProperty                           = new StringProperty(SUCCESS_HIDE_PROPERTY).description("CSS selector(s) for section(s) to hide on success");
+		final Property<String> successScopeProperty                          = new StringProperty(SUCCESS_SCOPE_PROPERTY).description("Optional scope for the success show/hide selectors. 'repeater' restricts them to the repeater element containing the triggering element.");
 
 		final Property<String> failureBehaviourProperty                      = new StringProperty(FAILURE_BEHAVIOUR_PROPERTY).description("Behaviour after failed execution of action");
 		final Property<String> failurePartialProperty                        = new StringProperty(FAILURE_PARTIAL_PROPERTY).description("CSS selector for partial to refresh on failure");
 		final Property<String> failureURLProperty                            = new StringProperty(FAILURE_URL_PROPERTY).description("URL to navigate to on failure");
 		final Property<String> failureEventProperty                          = new StringProperty(FAILURE_EVENT_PROPERTY).description("Event to raise on failure");
+		final Property<String> failureShowProperty                           = new StringProperty(FAILURE_SHOW_PROPERTY).description("CSS selector(s) for section(s) to show on failure");
+		final Property<String> failureHideProperty                           = new StringProperty(FAILURE_HIDE_PROPERTY).description("CSS selector(s) for section(s) to hide on failure");
+		final Property<String> failureScopeProperty                          = new StringProperty(FAILURE_SCOPE_PROPERTY).description("Optional scope for the failure show/hide selectors. 'repeater' restricts them to the repeater element containing the triggering element.");
 
 		return Set.of(
 			triggerElements,
 			successTargets,
 			failureTargets,
+			successHideTargets,
+			failureHideTargets,
 			parameterMappings,
 			successNotificationElements,
 			failureNotificationElements,
@@ -361,11 +379,17 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 			successPartialProperty,
 			successURLProperty,
 			successEventProperty,
+			successShowProperty,
+			successHideProperty,
+			successScopeProperty,
 
 			failureBehaviourProperty,
 			failurePartialProperty,
 			failureURLProperty,
-			failureEventProperty
+			failureEventProperty,
+			failureShowProperty,
+			failureHideProperty,
+			failureScopeProperty
 		);
 	}
 
@@ -382,9 +406,9 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 					SUCCESS_NOTIFICATIONS_EVENT_PROPERTY, FAILURE_NOTIFICATIONS_PROPERTY, FAILURE_NOTIFICATIONS_PARTIAL_PROPERTY,
 					FAILURE_NOTIFICATIONS_EVENT_PROPERTY, SUCCESS_BEHAVIOUR_PROPERTY, SUCCESS_PARTIAL_PROPERTY, SUCCESS_URL_PROPERTY,
 					SUCCESS_EVENT_PROPERTY, SUCCESS_NOTIFICATIONS_DELAY_PROPERTY, FAILURE_BEHAVIOUR_PROPERTY, FAILURE_PARTIAL_PROPERTY,
-					FAILURE_URL_PROPERTY, FAILURE_EVENT_PROPERTY, FAILURE_NOTIFICATIONS_DELAY_PROPERTY, TRIGGER_ELEMENTS_PROPERTY,
-					SUCCESS_TARGETS_PROPERTY, FAILURE_TARGETS_PROPERTY, SUCCESS_NOTIFICATION_ELEMENTS_PROPERTY,
-					FAILURE_NOTIFICATION_ELEMENTS_PROPERTY, PARAMETER_MAPPINGS_PROPERTY
+					FAILURE_URL_PROPERTY, FAILURE_EVENT_PROPERTY, SUCCESS_SHOW_PROPERTY, SUCCESS_HIDE_PROPERTY, FAILURE_SHOW_PROPERTY, FAILURE_HIDE_PROPERTY, SUCCESS_SCOPE_PROPERTY, FAILURE_SCOPE_PROPERTY, FAILURE_NOTIFICATIONS_DELAY_PROPERTY, TRIGGER_ELEMENTS_PROPERTY,
+					SUCCESS_TARGETS_PROPERTY, FAILURE_TARGETS_PROPERTY, SUCCESS_HIDE_TARGETS_PROPERTY, FAILURE_HIDE_TARGETS_PROPERTY,
+					SUCCESS_NOTIFICATION_ELEMENTS_PROPERTY, FAILURE_NOTIFICATION_ELEMENTS_PROPERTY, PARAMETER_MAPPINGS_PROPERTY
 			)
 		);
 	}

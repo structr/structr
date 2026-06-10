@@ -317,6 +317,8 @@ public class StructrTraits {
 	public static final String DOM_NODE_SUCCESS_NOTIFICATION_ELEMENT_ACTION_MAPPING           = "DOMNodeSUCCESS_NOTIFICATION_ELEMENTActionMapping";
 	public static final String DOM_NODE_FAILURE_NOTIFICATION_ELEMENT_ACTION_MAPPING           = "DOMNodeFAILURE_NOTIFICATION_ELEMENTActionMapping";
 	public static final String DOM_NODE_SUCCESS_TARGET_ACTION_MAPPING                         = "DOMNodeSUCCESS_TARGETActionMapping";
+	public static final String DOM_NODE_SUCCESS_HIDE_TARGET_ACTION_MAPPING                    = "DOMNodeSUCCESS_HIDE_TARGETActionMapping";
+	public static final String DOM_NODE_FAILURE_HIDE_TARGET_ACTION_MAPPING                    = "DOMNodeFAILURE_HIDE_TARGETActionMapping";
 	public static final String DOM_NODE_SYNC_DOM_NODE                                         = "DOMNodeSYNCDOMNode";
 	public static final String FOLDER_CONTAINS_ABSTRACT_FILE                                  = "FolderCONTAINSAbstractFile";
 	public static final String FOLDER_CONTAINS_FILE                                           = "FolderCONTAINSFile";

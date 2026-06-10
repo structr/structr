@@ -2001,6 +2001,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					putDataIfListNotEmpty(entry, ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY,              Iterables.toList(actionMapping.getTriggerElements()).stream().filter(domElement -> !domElement.inTrash()).map(GraphObject::getUuid).toList());
 					putDataIfListNotEmpty(entry, ActionMappingTraitDefinition.SUCCESS_TARGETS_PROPERTY,               Iterables.toList(actionMapping.getSuccessTargets()).stream().map(GraphObject::getUuid).toList());
+					putDataIfListNotEmpty(entry, ActionMappingTraitDefinition.SUCCESS_HIDE_TARGETS_PROPERTY,          Iterables.toList(actionMapping.getSuccessHideTargets()).stream().map(GraphObject::getUuid).toList());
+					putDataIfListNotEmpty(entry, ActionMappingTraitDefinition.FAILURE_HIDE_TARGETS_PROPERTY,          Iterables.toList(actionMapping.getFailureHideTargets()).stream().map(GraphObject::getUuid).toList());
 					putDataIfListNotEmpty(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATION_ELEMENTS_PROPERTY, Iterables.toList(actionMapping.getSuccessNotificationElements()).stream().map(GraphObject::getUuid).toList());
 					putDataIfListNotEmpty(entry, ActionMappingTraitDefinition.FAILURE_TARGETS_PROPERTY,               Iterables.toList(actionMapping.getFailureTargets()).stream().map(GraphObject::getUuid).toList());
 					putDataIfListNotEmpty(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATION_ELEMENTS_PROPERTY, Iterables.toList(actionMapping.getFailureNotificationElements()).stream().map(GraphObject::getUuid).toList());
@@ -2030,6 +2032,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_DELAY_PROPERTY,   actionMapping.getSuccessNotificationsDelay());
 					putData(entry, ActionMappingTraitDefinition.SUCCESS_PARTIAL_PROPERTY,               actionMapping.getSuccessPartial());
 					putData(entry, ActionMappingTraitDefinition.SUCCESS_URL_PROPERTY,                   actionMapping.getSuccessURL());
+					putData(entry, ActionMappingTraitDefinition.SUCCESS_SHOW_PROPERTY,                  actionMapping.getSuccessShow());
+					putData(entry, ActionMappingTraitDefinition.SUCCESS_HIDE_PROPERTY,                  actionMapping.getSuccessHide());
+					putData(entry, ActionMappingTraitDefinition.SUCCESS_SCOPE_PROPERTY,                 actionMapping.getSuccessScope());
 
 					putData(entry, ActionMappingTraitDefinition.FAILURE_BEHAVIOUR_PROPERTY,             actionMapping.getFailureBehaviour());
 					putData(entry, ActionMappingTraitDefinition.FAILURE_EVENT_PROPERTY,                 actionMapping.getFailureEvent());
@@ -2039,6 +2044,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_DELAY_PROPERTY,   actionMapping.getFailureNotificationsDelay());
 					putData(entry, ActionMappingTraitDefinition.FAILURE_PARTIAL_PROPERTY,               actionMapping.getFailurePartial());
 					putData(entry, ActionMappingTraitDefinition.FAILURE_URL_PROPERTY,                   actionMapping.getFailureURL());
+					putData(entry, ActionMappingTraitDefinition.FAILURE_SHOW_PROPERTY,                  actionMapping.getFailureShow());
+					putData(entry, ActionMappingTraitDefinition.FAILURE_HIDE_PROPERTY,                  actionMapping.getFailureHide());
+					putData(entry, ActionMappingTraitDefinition.FAILURE_SCOPE_PROPERTY,                 actionMapping.getFailureScope());
 				}
 			}
 

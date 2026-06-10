@@ -69,6 +69,8 @@ public interface ActionMapping extends NodeInterface {
 	Iterable<DOMElement> getTriggerElements();
 	Iterable<DOMNode> getSuccessTargets();
 	Iterable<DOMNode> getFailureTargets();
+	Iterable<DOMNode> getSuccessHideTargets();
+	Iterable<DOMNode> getFailureHideTargets();
 	Iterable<DOMNode> getSuccessNotificationElements();
 	Iterable<DOMNode> getFailureNotificationElements();
 
@@ -76,6 +78,9 @@ public interface ActionMapping extends NodeInterface {
 	String getSuccessBehaviour();
 	String getSuccessPartial();
 	String getSuccessURL();
+	String getSuccessShow();
+	String getSuccessHide();
+	String getSuccessScope();
 	String getSuccessEvent();
 	String getSuccessNotificationsPartial();
 	String getSuccessNotificationsEvent();
@@ -85,6 +90,9 @@ public interface ActionMapping extends NodeInterface {
 	String getFailureBehaviour();
 	String getFailurePartial();
 	String getFailureURL();
+	String getFailureShow();
+	String getFailureHide();
+	String getFailureScope();
 	String getFailureEvent();
 	String getFailureNotificationsPartial();
 	String getFailureNotificationsEvent();

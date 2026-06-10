@@ -73,6 +73,8 @@ public class UiModule implements StructrModule {
 		StructrTraits.registerTrait(new DOMNodeSUCCESS_NOTIFICATION_ELEMENTActionMapping());
 		StructrTraits.registerTrait(new DOMNodeFAILURE_NOTIFICATION_ELEMENTActionMapping());
 		StructrTraits.registerTrait(new DOMNodeSUCCESS_TARGETActionMapping());
+		StructrTraits.registerTrait(new DOMNodeSUCCESS_HIDE_TARGETActionMapping());
+		StructrTraits.registerTrait(new DOMNodeFAILURE_HIDE_TARGETActionMapping());
 		StructrTraits.registerTrait(new DOMNodeSYNCDOMNode());
 		StructrTraits.registerTrait(new DOMNodeHAS_COMPONENT_CONFIGURATIONComponentConfiguration());
 		StructrTraits.registerTrait(new DOMNodeHASVisibilityMapping());
@@ -111,6 +113,8 @@ public class UiModule implements StructrModule {
 		StructrTraits.registerRelationshipType(StructrTraits.DOM_NODE_SUCCESS_NOTIFICATION_ELEMENT_ACTION_MAPPING,           StructrTraits.DOM_NODE_SUCCESS_NOTIFICATION_ELEMENT_ACTION_MAPPING);
 		StructrTraits.registerRelationshipType(StructrTraits.DOM_NODE_FAILURE_NOTIFICATION_ELEMENT_ACTION_MAPPING,           StructrTraits.DOM_NODE_FAILURE_NOTIFICATION_ELEMENT_ACTION_MAPPING);
 		StructrTraits.registerRelationshipType(StructrTraits.DOM_NODE_SUCCESS_TARGET_ACTION_MAPPING,                         StructrTraits.DOM_NODE_SUCCESS_TARGET_ACTION_MAPPING);
+		StructrTraits.registerRelationshipType(StructrTraits.DOM_NODE_SUCCESS_HIDE_TARGET_ACTION_MAPPING,                    StructrTraits.DOM_NODE_SUCCESS_HIDE_TARGET_ACTION_MAPPING);
+		StructrTraits.registerRelationshipType(StructrTraits.DOM_NODE_FAILURE_HIDE_TARGET_ACTION_MAPPING,                    StructrTraits.DOM_NODE_FAILURE_HIDE_TARGET_ACTION_MAPPING);
 		StructrTraits.registerRelationshipType(StructrTraits.DOM_NODE_SYNC_DOM_NODE,                                         StructrTraits.DOM_NODE_SYNC_DOM_NODE);
 		StructrTraits.registerRelationshipType(StructrTraits.DOM_NODE_HAS_VISIBILITY_MAPPING,                              StructrTraits.DOM_NODE_HAS_VISIBILITY_MAPPING);
 		StructrTraits.registerRelationshipType(StructrTraits.FOLDER_CONTAINS_ABSTRACT_FILE,                                  StructrTraits.FOLDER_CONTAINS_ABSTRACT_FILE);

@@ -2449,6 +2449,20 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 			case EventBehaviour.SignOut:
 				successTargetString = "sign-out";
 				break;
+			case EventBehaviour.ShowHideSection:
+				successTargetString = buildShowHideTarget(
+					triggeredAction.getProperty(traits.key(ActionMappingTraitDefinition.SUCCESS_SHOW_PROPERTY)),
+					triggeredAction.getProperty(traits.key(ActionMappingTraitDefinition.SUCCESS_HIDE_PROPERTY)),
+					successURL,
+					triggeredAction.getProperty(traits.key(ActionMappingTraitDefinition.SUCCESS_SCOPE_PROPERTY)));
+				break;
+			case EventBehaviour.ShowHideSectionLinked:
+				successTargetString = buildShowHideTarget(
+					generateDataAttributesForIdList(renderContext, triggeredAction, ActionMappingTraitDefinition.SUCCESS_TARGETS_PROPERTY),
+					generateDataAttributesForIdList(renderContext, triggeredAction, ActionMappingTraitDefinition.SUCCESS_HIDE_TARGETS_PROPERTY),
+					successURL,
+					triggeredAction.getProperty(traits.key(ActionMappingTraitDefinition.SUCCESS_SCOPE_PROPERTY)));
+				break;
 			case EventBehaviour.None:
 			case EventBehaviour.Unknown:
 			default:
@@ -2515,6 +2529,20 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 			case EventBehaviour.SignOut:
 				failureTargetString = "sign-out";
 				break;
+			case EventBehaviour.ShowHideSection:
+				failureTargetString = buildShowHideTarget(
+					triggeredAction.getProperty(traits.key(ActionMappingTraitDefinition.FAILURE_SHOW_PROPERTY)),
+					triggeredAction.getProperty(traits.key(ActionMappingTraitDefinition.FAILURE_HIDE_PROPERTY)),
+					failureURL,
+					triggeredAction.getProperty(traits.key(ActionMappingTraitDefinition.FAILURE_SCOPE_PROPERTY)));
+				break;
+			case EventBehaviour.ShowHideSectionLinked:
+				failureTargetString = buildShowHideTarget(
+					generateDataAttributesForIdList(renderContext, triggeredAction, ActionMappingTraitDefinition.FAILURE_TARGETS_PROPERTY),
+					generateDataAttributesForIdList(renderContext, triggeredAction, ActionMappingTraitDefinition.FAILURE_HIDE_TARGETS_PROPERTY),
+					failureURL,
+					triggeredAction.getProperty(traits.key(ActionMappingTraitDefinition.FAILURE_SCOPE_PROPERTY)));
+				break;
 			case EventBehaviour.None:
 			case EventBehaviour.Unknown:
 			default:
@@ -2524,6 +2552,36 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		if (StringUtils.isNotBlank(failureTargetString)) {
 			out.append(" data-structr-failure-target=\"").append(failureTargetString).append("\"");
 		}
+	}
+
+	/**
+	 * Build the data-structr-(success|failure)-target value for the show-hide-section
+	 * behaviours: "show-hide-section:hide=<sel|sel>;show=<sel|sel>;url=<url>;scope=<scope>".
+	 * The optional scope ("repeater") tells the handler to restrict the selectors to the
+	 * repeater element containing the triggering element.
+	 * The show/hide selectors are either CSS ids (the "...defined by CSS id(s)" behaviour)
+	 * or refactor-safe linked-element selectors ([data-structr-id='<uuid>'], produced by
+	 * generateDataAttributesForIdList for the "...defined by linked element(s)" behaviour);
+	 * both render to the same target string and are handled by the same frontend module.
+	 * Commas in the selector lists become "|" so the value survives the frontend runtime's
+	 * comma-split of multiple targets. The optional url (already variable-replaced for
+	 * server-side ${...} expressions) tells the handler to load the shown section(s) as
+	 * URL-bound partial(s) rather than only un-hiding them. Returns null when nothing is set.
+	 */
+	private static String buildShowHideTarget(final String show, final String hide, final String url, final String scope) {
+
+		final java.util.List<String> parts = new java.util.ArrayList<>();
+
+		if (StringUtils.isNotBlank(hide))  { parts.add("hide=" + hide.trim().replace(",", "|")); }
+		if (StringUtils.isNotBlank(show))  { parts.add("show=" + show.trim().replace(",", "|")); }
+		if (StringUtils.isNotBlank(url))   { parts.add("url=" + url.trim()); }
+		if (StringUtils.isNotBlank(scope)) { parts.add("scope=" + scope.trim()); }
+
+		if (parts.isEmpty()) {
+			return null;
+		}
+
+		return "show-hide-section:" + String.join(";", parts);
 	}
 
 	public List<GraphObject> resolveDataTargets(final ActionContext actionContext, final NodeInterface entity, final String dataTarget) throws FrameworkException {

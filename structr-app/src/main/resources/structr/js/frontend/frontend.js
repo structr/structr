@@ -598,6 +598,13 @@ export class Frontend {
 			// and end up in the catch (which used to misreport as a logout).
 			let newNode = this.replaceContentInContainer(container, html);
 			if (newNode) {
+				// The show-hide-section "show" behaviour loads a (possibly statically
+				// hidden) partial via URL and wants it revealed once loaded. The freshly
+				// rendered node carries the template's `hidden` class, so removing it
+				// before insertion is futile -- do it here, after the node is in the DOM.
+				if (options && options.removeHiddenOnLoad) {
+					newNode.classList.remove('hidden');
+				}
 				newNode.dispatchEvent(new Event('structr-reload'));
 				this.fireEvent('reload', {target: newNode});
 
@@ -606,6 +613,11 @@ export class Frontend {
 
 					restoreFocus.focus({ focusVisible: true });
 					restoreFocus.select();
+
+				} else {
+
+					// no field to restore: honor the autofocus attribute on the loaded content
+					this.focusAutofocusElement(newNode);
 				}
 			}
 
@@ -617,6 +629,23 @@ export class Frontend {
 			this.handleNetworkError(element, e, {});
 		});
 
+	}
+
+	/**
+	 * Focus the first element carrying the `autofocus` attribute within (or equal to) the
+	 * given root. The browser only applies `autofocus` during the initial HTML parse, so
+	 * content that is dynamically un-hidden or loaded as a partial needs it triggered here.
+	 */
+	focusAutofocusElement(root) {
+
+		if (!root) {
+			return;
+		}
+
+		let el = (root.matches && root.matches('[autofocus]')) ? root : (root.querySelector ? root.querySelector('[autofocus]') : null);
+		if (el) {
+			el.focus({ focusVisible: true });
+		}
 	}
 
 	loadPartial(uri, container) {
