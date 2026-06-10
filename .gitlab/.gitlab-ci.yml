@@ -66,24 +66,29 @@ setup-variables:
   script:
     - mvn clean install -DskipTests -DskipDist -DskipDocker -DskipDeb -DskipDockerTestDB=true
     - cd ${MODULE}
-    - mvn install -DskipDockerTestDB=true -Denv.testDatabaseConnection="bolt://neo4j:7687" -Dtest.forkCount=2
+    - mvn install -DskipDockerTestDB=true ${DB_EXTRA_ARGS} -Dtest.forkCount=2
   artifacts:
     when: always
     reports:
       junit: "${CI_PROJECT_DIR}/${MODULE}/**/target/failsafe-reports/TEST-*.xml"
 
-# Execute tests for all Structr modules in parallel
 test:modules:
   extends: .test_template
   parallel:
     matrix:
       - MODULE:
-          [
-            structr-base,
-            structr-db-driver-api,
-            structr-modules,
-            structr-neo4j-bolt-driver,
-          ]
+          - structr-base
+          - structr-db-driver-api
+          - structr-modules
+          - structr-neo4j-bolt-driver
+        DB_DRIVER: bolt
+        DB_EXTRA_ARGS: "-Denv.testDatabaseConnection=bolt://neo4j:7687"
+      - MODULE:
+          - structr-base
+          - structr-db-driver-api
+          - structr-modules
+        DB_DRIVER: embedded
+        DB_EXTRA_ARGS: "-DtestDatabaseDriver=org.structr.embedded.EmbeddedDatabaseService"
 
 # Build and release SNAPSHOT versions from main branch
 snapshot-build:
