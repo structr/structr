@@ -142,13 +142,19 @@ public class BpmnProcessTraitDefinition extends AbstractNodeTraitDefinition {
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 					final SecurityContext securityContext = actionContext.getSecurityContext();
 					final ProcessEngine engine = new ProcessEngine(securityContext);
-					final NodeInterface subject = BpmnDefinitionsTraitDefinition.resolveSubject(actionContext, arguments.toMap().get("subject"));
-					return engine.startProcess((NodeInterface) entity, subject);
+					final java.util.Map<String, Object> args = arguments.toMap();
+					final NodeInterface subject = BpmnDefinitionsTraitDefinition.resolveSubject(actionContext, args.get("subject"));
+					// Forward the remaining EAM parameters as initial process
+					// parameters: subject-matching fields populate the subject,
+					// the rest become ProcessParameterValues. Mirrors complete().
+					final java.util.Map<String, Object> params = new java.util.LinkedHashMap<>(args);
+					params.remove("subject");
+					return engine.startProcess((NodeInterface) entity, subject, params.isEmpty() ? null : params);
 				}
 
 				@Override
 				public String getDescription() {
-					return "Starts a new process instance from this BpmnProcess. Pass an optional 'subject' parameter (node UUID or node object) to attach the domain object this instance operates on. Returns the created ProcessInstance node.";
+					return "Starts a new process instance from this BpmnProcess. Pass an optional 'subject' parameter (node UUID or node object) to attach the domain object this instance operates on. Any other parameters are stored as initial process parameters (subject-matching fields populate the subject; the rest become ProcessParameterValues). Returns the created ProcessInstance node.";
 				}
 			}
 		);

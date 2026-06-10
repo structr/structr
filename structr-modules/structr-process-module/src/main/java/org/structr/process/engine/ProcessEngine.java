@@ -155,6 +155,17 @@ public class ProcessEngine {
 	 * @return the created ProcessInstance node
 	 */
 	public NodeInterface startProcess(final NodeInterface callerProcNode, final NodeInterface subject) throws FrameworkException {
+		return startProcess(callerProcNode, subject, null);
+	}
+
+	/**
+	 * Start variant that also stores initial process parameters (e.g. the
+	 * parameters collected by an Event-Action-Mapping 'start' action). Fields
+	 * whose name matches the subject's schema populate the subject; the rest
+	 * become {@code ProcessParameterValue} nodes on the instance. Stored before
+	 * the {@code created}/{@code started} events so process listeners observe them.
+	 */
+	public NodeInterface startProcess(final NodeInterface callerProcNode, final NodeInterface subject, final Map<String, Object> parameters) throws FrameworkException {
 
 		final App app = StructrApp.getInstance(securityContext);
 		// Re-fetch under the engine's superuser context so internal traversals
@@ -191,6 +202,14 @@ public class ProcessEngine {
 			// to their own context; the rel write would otherwise hit a permission
 			// check on the subject from the user's perspective.
 			instance.setProperty(instTraits.key(ProcessInstanceTraitDefinition.SUBJECT_PROPERTY), elevate(app, subject));
+		}
+
+		// Store initial parameters (e.g. an EAM 'start' action's params).
+		// Subject-matching fields populate the subject; the rest become
+		// ProcessParameterValues. Attributed to the start event, and done
+		// before the lifecycle events so listeners observe them.
+		if (parameters != null && !parameters.isEmpty()) {
+			storeParameterValues(app, instance, startEvent, parameters);
 		}
 
 		// Grant the initiator read access on the ProcessInstance and its
