@@ -3916,6 +3916,7 @@ input.combined-input-select-field {
 select.combined-input-select-field {
 	width: 50%;
 	right: 0;
+	z-index: 0;
 }
 
 ul.combined-input-select-field {

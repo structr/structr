@@ -441,6 +441,7 @@
 .pd-panel-note  { color: #666; font-size: 11px; margin-top: 6px; }
 
 /* Inputs share width/padding; the mono group adds a monospace face. */
+.input-process-name,
 .input-element-name,
 .input-instructions,
 .select-instance-page,
@@ -489,9 +490,6 @@
 .bpmn-attribute-value {
 	min-width: 0;
 	box-sizing: border-box;
-	padding: 2px 5px;
-	font-size: 11px;
-	font-family: monospace;
 }
 
 .bpmn-attribute-key   { flex: 1 1 40%; }
