@@ -1825,13 +1825,13 @@ let _Pages = {
 				processElementSelect.insertAdjacentHTML('beforeend',
 					filtered.map(el => {
 						let label = el.bpmnName ?? el.bpmnId;
-						return `<option value="${el.id}" data-element-type="${el.bpmnElementType}" data-bpmn-id="${_Helpers.escapeTags(el.bpmnId ?? '')}" title="${_Helpers.escapeTags(el.bpmnId)}">${_Helpers.escapeTags(label)}</option>`;
+						return `<option value="${el.id}" data-element-type="${el.bpmnElementType}" data-subject-type="${_Helpers.escapeTags(el.subjectType ?? '')}" data-bpmn-id="${_Helpers.escapeTags(el.bpmnId ?? '')}" title="${_Helpers.escapeTags(el.bpmnId)}">${_Helpers.escapeTags(label)}</option>`;
 					}).join('')
 				);
 				if (preselectStepId) {
 					processElementSelect.value = preselectStepId;
 				}
-			}, false, null, 'id,bpmnId,bpmnName,bpmnElementType,process');
+			}, false, null, 'id,bpmnId,bpmnName,bpmnElementType,subjectType,process');
 		};
 
 		processOperationSelect.addEventListener('change', () => {
@@ -1846,7 +1846,19 @@ let _Pages = {
 			loadProcessSteps(processDefinitionSelect.value, null);
 			saveEventMappingData(entity);
 		});
-		processElementSelect.addEventListener('change', () => saveEventMappingData(entity));
+		processElementSelect.addEventListener('change', () => {
+			// Derive the Data type from the selected step's declared subjectType
+			// (the process/UI contract) for operations that create the subject,
+			// e.g. completeWithSubject. The process declares it, the action
+			// consumes it. Only fills when the step actually declares one, so a
+			// step without a subjectType leaves the field untouched.
+			let opCfg = lookupProcessOperation(processOperationSelect.value);
+			if (opCfg?.needsSubjectType) {
+				let st = processElementSelect.selectedOptions[0]?.dataset.subjectType || '';
+				if (st) { dataTypeInput.value = st; dataTypeSelect.value = st; }
+			}
+			saveEventMappingData(entity);
+		});
 
 		if (entity.triggeredActions && entity.triggeredActions.length) {
 
