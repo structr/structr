@@ -44,10 +44,10 @@ public class CypherQueryConverter extends PropertyConverter {
 
 	private static final Logger logger = LoggerFactory.getLogger(CypherQueryConverter.class.getName());
 
-	private DatabaseService graphDb    = null;
+	private DatabaseService<?> graphDb = null;
 	private CypherQueryHandler handler = null;
 
-	public CypherQueryConverter(SecurityContext securityContext, GraphObject entity, CypherQueryHandler handler) {
+	public CypherQueryConverter(final SecurityContext securityContext, final GraphObject entity, final CypherQueryHandler handler) {
 
 		super(securityContext, entity);
 
@@ -63,7 +63,7 @@ public class CypherQueryConverter extends PropertyConverter {
 	}
 
 	@Override
-	public Object convert(Object source) throws FrameworkException {
+	public Object convert(final Object source) throws FrameworkException {
 		return source;
 	}
 

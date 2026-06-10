@@ -25,24 +25,23 @@ import org.structr.api.graph.Relationship;
 /**
  *
  */
-public interface Transaction extends AutoCloseable, Prefetcher {
+public interface Transaction<IDType> extends AutoCloseable, Prefetcher {
 
 	void failure();
 	void success();
 	long getTransactionId();
 	boolean isSuccessful();
 	boolean isRolledBack();
-	void setNodeIsCreated(final long id);
-	boolean isNodeCreated(final long id);
-	boolean isNodeDeleted(final long id);
-	boolean isRelationshipDeleted(final long id);
+	void setNodeIsCreated(final IDType id);
+	boolean isNodeCreated(final IDType id);
+	boolean isNodeDeleted(final IDType id);
+	boolean isRelationshipDeleted(final IDType id);
 
 	@Override
 	void close();
 
-	Node getNode(final Identity id);
-	Relationship getRelationship(final Identity id);
+	Node getNode(final Identity<IDType> id);
+	Relationship getRelationship(final Identity<IDType> id);
 
 	void setIsPing(final boolean isPing);
-	int level();
 }

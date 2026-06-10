@@ -31,7 +31,7 @@ import java.util.Arrays;
 
 /**
  */
-public class MemoryRelationship extends MemoryEntity implements Relationship {
+public class MemoryRelationship extends MemoryEntity implements Relationship<Long> {
 
 	private RelationshipType relType  = null;
 	private MemoryIdentity sourceNode = null;
@@ -51,17 +51,17 @@ public class MemoryRelationship extends MemoryEntity implements Relationship {
 	}
 
 	@Override
-	public Node getStartNode() {
+	public Node<Long> getStartNode() {
 		return db.getNodeById(sourceNode);
 	}
 
 	@Override
-	public Node getEndNode() {
+	public Node<Long> getEndNode() {
 		return db.getNodeById(targetNode);
 	}
 
 	@Override
-	public Node getOtherNode(Node node) {
+	public Node<Long> getOtherNode(Node<Long> node) {
 
 		if (node.getId().equals(sourceNode)) {
 			return getEndNode();
@@ -76,7 +76,7 @@ public class MemoryRelationship extends MemoryEntity implements Relationship {
 	}
 
 	@Override
-	public Direction getDirectionForNode(final Node node) {
+	public Direction getDirectionForNode(final Node<Long> node) {
 
 		if (sourceNode.getId() == node.getId().getId()) {
 			return Direction.OUTGOING;

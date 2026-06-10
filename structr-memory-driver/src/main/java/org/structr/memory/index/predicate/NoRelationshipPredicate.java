@@ -53,16 +53,16 @@ public class NoRelationshipPredicate<T extends PropertyContainer, V> implements 
 
 		if (entity instanceof MemoryNode) {
 
-			final MemoryNode node           = (MemoryNode)entity;
-			final Direction direction       = graphQuery.getDirection();
-			final String relationship       = graphQuery.getRelationship();
-			final String otherLabel         = graphQuery.getOtherLabel();
-			final RelationshipType relType  = RelationshipType.forName(relationship);
-			final List<Relationship> rels   = Iterables.toList(node.getRelationships(direction, relType));
+			final MemoryNode node               = (MemoryNode)entity;
+			final Direction direction           = graphQuery.getDirection();
+			final String relationship           = graphQuery.getRelationship();
+			final String otherLabel             = graphQuery.getOtherLabel();
+			final RelationshipType relType      = RelationshipType.forName(relationship);
+			final List<Relationship<Long>> rels = Iterables.toList(node.getRelationships(direction, relType));
 
 			if (!rels.isEmpty()) {
 
-				for (final Relationship r : rels) {
+				for (final Relationship<Long> r : rels) {
 
 					final MemoryRelationship rel = (MemoryRelationship)r;
 					final MemoryNode otherNode   = (MemoryNode)rel.getOtherNode(node);

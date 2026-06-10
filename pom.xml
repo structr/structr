@@ -50,6 +50,7 @@
 		<maven.compiler.target>25</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<netbeans.hint.license>structr-gpl30</netbeans.hint.license>
+		<neo4j.version>2026.04.0</neo4j.version>
 		<test.neo4j.version>neo4j:latest</test.neo4j.version>
 		<structr.lib.directory>${structr.root.directory}/structr-app/target/lib</structr.lib.directory>
 		<maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
@@ -73,6 +74,7 @@
 	<modules>
 		<module>structr-db-driver-api</module>
 		<module>structr-neo4j-bolt-driver</module>
+		<module>structr-neo4j-embedded-driver</module>
 		<module>structr-memory-driver</module>
 		<module>structr-base</module>
 		<module>structr-modules</module>
@@ -596,7 +598,7 @@
 			<dependency>
 				<groupId>org.antlr</groupId>
 				<artifactId>antlr4-runtime</artifactId>
-				<version>4.9.3</version>
+				<version>4.13.2</version>
 			</dependency>
 			<!-- Storage Provider -->
 			<dependency>

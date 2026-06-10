@@ -43,7 +43,7 @@ public interface NodeInterface extends GraphObject, Comparable<NodeInterface> {
 	void onNodeInstantiation(final boolean isCreation);
 	void onNodeDeletion(SecurityContext securityContext) throws FrameworkException;
 
-	Node getNode();
+	Node<?> getNode();
 
 	boolean isDeleted();
 

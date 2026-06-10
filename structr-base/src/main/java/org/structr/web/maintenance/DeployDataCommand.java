@@ -811,7 +811,7 @@ public class DeployDataCommand extends DeployCommand {
 	private Map<String, Object> getMapRepresentationForNode(final SecurityContext context, final NodeInterface node) {
 
 		final Map<String, Object> entry = new TreeMap<>();
-		final PropertyContainer pc      = node.getPropertyContainer();
+		final PropertyContainer<?> pc   = node.getPropertyContainer();
 
 		for (final String key : pc.getPropertyKeys()) {
 
@@ -907,7 +907,7 @@ public class DeployDataCommand extends DeployCommand {
 						missingTypeNamesForExport.add(targetNodeClass);
 					}
 
-					final PropertyContainer pc = rel.getPropertyContainer();
+					final PropertyContainer<?> pc = rel.getPropertyContainer();
 
 					for (final String key : pc.getPropertyKeys()) {
 

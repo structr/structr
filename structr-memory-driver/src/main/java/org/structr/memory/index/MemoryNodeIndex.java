@@ -32,7 +32,7 @@ import java.util.Set;
 /**
  *
  */
-public class MemoryNodeIndex extends AbstractMemoryIndex<Node> {
+public class MemoryNodeIndex extends AbstractMemoryIndex<Node<Long>> {
 
 	private static final Logger logger = LoggerFactory.getLogger(MemoryNodeIndex.class);
 
@@ -42,11 +42,11 @@ public class MemoryNodeIndex extends AbstractMemoryIndex<Node> {
 	}
 
 	@Override
-	public Iterable<Node> getResult(final MemoryQuery query) {
+	public Iterable<Node<Long>> getResult(final MemoryQuery query) {
 
 		final QueryContext queryContext = query.getQueryContext();
 		final Set<String> labels        = query.getTypeLabels();
-		Iterable<Node> result           = null;
+		Iterable<Node<Long>> result     = null;
 
 		if (db.logQueries()) {
 

@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.api.graph.Identity;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
@@ -70,7 +71,7 @@ public class LoginResourceHandler extends RESTCallHandler {
 	public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
 		RestMethodResult returnedMethodResult = null;
-		long userId = -1;
+		Identity<?>      userId               = null;
 
 		try {
 
@@ -101,7 +102,7 @@ public class LoginResourceHandler extends RESTCallHandler {
 					user = getUserForCredentials(securityContext, emailOrUsername, password, twoFactorToken, twoFactorCode, propertySet);
 					returnedMethodResult = doLogin(securityContext, user);
 
-					userId = user.getNode().getId().getId();
+					userId = user.getNode().getId();
 
 				} catch (PasswordChangeRequiredException | TooManyFailedLoginAttemptsException | TwoFactorAuthenticationFailedException | TwoFactorAuthenticationTokenInvalidException ex) {
 
@@ -149,9 +150,9 @@ public class LoginResourceHandler extends RESTCallHandler {
 			throw new AuthenticationException(getErrorMessage());
 		}
 
-		if (userId != -1) {
+		if (userId != null) {
 			// broadcast login to cluster for the user
-			Services.getInstance().broadcastLogin(userId);
+			Services.getInstance().broadcastLogin(userId.hash());
 		}
 
 		return returnedMethodResult;

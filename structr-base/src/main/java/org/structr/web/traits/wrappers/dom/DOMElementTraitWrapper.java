@@ -157,7 +157,7 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 
 		final String key = "cachedIsTargetElement";
 
-		Boolean cachedIsTargetElement = (Boolean) wrappedObject.getNode().getCache().get(key);
+		Boolean cachedIsTargetElement = (Boolean) wrappedObject.getTemporaryStorage().get(key);
 		if (cachedIsTargetElement == null) {
 
 			final boolean isManualReloadTarget = isManualReloadTarget();
@@ -169,7 +169,7 @@ public class DOMElementTraitWrapper extends DOMNodeTraitWrapper implements DOMEl
 
 			cachedIsTargetElement = (isManualReloadTarget || !reloadSources.isEmpty() || !reloadingActions.isEmpty() || !failureActions.isEmpty() || !successNotificationActions.isEmpty() || !failureNotificationActions.isEmpty());
 
-			wrappedObject.getNode().getCache().put(key, cachedIsTargetElement);
+			wrappedObject.getTemporaryStorage().put(key, cachedIsTargetElement);
 		}
 
 		return cachedIsTargetElement;

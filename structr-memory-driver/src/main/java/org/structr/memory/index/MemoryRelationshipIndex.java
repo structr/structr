@@ -28,14 +28,14 @@ import java.util.Set;
 /**
  *
  */
-public class MemoryRelationshipIndex extends AbstractMemoryIndex<Relationship> {
+public class MemoryRelationshipIndex extends AbstractMemoryIndex<Relationship<Long>> {
 
 	public MemoryRelationshipIndex(final MemoryDatabaseService db) {
 		super(db);
 	}
 
 	@Override
-	public Iterable<Relationship> getResult(final MemoryQuery query) {
+	public Iterable<Relationship<Long>> getResult(final MemoryQuery query) {
 
 		final Set<String> labels = query.getTypeLabels();
 

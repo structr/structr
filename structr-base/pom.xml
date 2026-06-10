@@ -29,6 +29,11 @@
         </dependency>
         <dependency>
             <groupId>org.structr</groupId>
+            <artifactId>structr-neo4j-embedded-driver</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.structr</groupId>
             <artifactId>structr-memory-driver</artifactId>
             <version>${project.version}</version>
         </dependency>

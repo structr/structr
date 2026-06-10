@@ -29,7 +29,7 @@ import java.util.Set;
  *
  *
  */
-public class TransactionReference implements Transaction {
+public class TransactionReference<T> implements Transaction<T> {
 
 	private Transaction tx     = null;
 	private int referenceCount = 0;
@@ -47,22 +47,22 @@ public class TransactionReference implements Transaction {
 	}
 
 	@Override
-	public void setNodeIsCreated(final long id) {
+	public void setNodeIsCreated(final T id) {
 		tx.setNodeIsCreated(id);
 	}
 
 	@Override
-	public boolean isNodeCreated(final long id) {
+	public boolean isNodeCreated(final T id) {
 		return tx.isNodeCreated(id);
 	}
 
 	@Override
-	public boolean isNodeDeleted(final long id) {
+	public boolean isNodeDeleted(final T id) {
 		return tx.isNodeDeleted(id);
 	}
 
 	@Override
-	public boolean isRelationshipDeleted(final long id) {
+	public boolean isRelationshipDeleted(final T id) {
 		return tx.isRelationshipDeleted(id);
 	}
 

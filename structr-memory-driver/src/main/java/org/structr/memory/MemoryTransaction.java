@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  */
-public class MemoryTransaction implements Transaction {
+public class MemoryTransaction implements Transaction<Long> {
 
 	private static final AtomicLong idCounter = new AtomicLong();
 
@@ -109,32 +109,32 @@ public class MemoryTransaction implements Transaction {
 	}
 
 	@Override
-	public Node getNode(final Identity id) {
+	public Node<Long> getNode(final Identity<Long> id) {
 		return getNodeById((MemoryIdentity) id);
 	}
 
 	@Override
-	public Relationship getRelationship(final Identity id) {
+	public Relationship<Long> getRelationship(final Identity<Long> id) {
 		return getRelationshipById((MemoryIdentity)id);
 	}
 
 	@Override
-	public boolean isRelationshipDeleted(final long id) {
+	public boolean isRelationshipDeleted(final Long id) {
 		return deletedRelationships.containsKey(id);
 	}
 
 	@Override
-	public void setNodeIsCreated(final long id) {
+	public void setNodeIsCreated(final Long id) {
 		nodesCreated.add(id);
 	}
 
 	@Override
-	public boolean isNodeCreated(final long id) {
+	public boolean isNodeCreated(final Long id) {
 		return nodesCreated.contains(id);
 	}
 
 	@Override
-	public boolean isNodeDeleted(final long id) {
+	public boolean isNodeDeleted(final Long id) {
 		return deletedNodes.contains(id);
 	}
 
@@ -231,11 +231,6 @@ public class MemoryTransaction implements Transaction {
 		}
 
 		return createdRelationships.contains(id) || db.exists(id);
-	}
-
-	@Override
-	public int level() {
-		return 0;
 	}
 
 	@Override

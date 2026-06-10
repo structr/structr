@@ -34,7 +34,7 @@ import java.util.Map;
 /**
  *
  */
-class CypherNodeIndex extends AbstractCypherIndex<Node> {
+class CypherNodeIndex extends AbstractCypherIndex<Node<Long>> {
 
 	public CypherNodeIndex(final BoltDatabaseService db) {
 		super(db);
@@ -108,7 +108,7 @@ class CypherNodeIndex extends AbstractCypherIndex<Node> {
 	}
 
 	@Override
-	public Map<Node, Double> fulltextQuery(final String indexName, final String searchString) {
+	public Map<Node<Long>, Double> fulltextQuery(final String indexName, final String searchString) {
 
 		final String tenantIdentifier        = db.getTenantIdentifier();
 		final Map<String, Object> parameters = new LinkedHashMap<>();
@@ -137,7 +137,7 @@ class CypherNodeIndex extends AbstractCypherIndex<Node> {
 
 		final SimpleCypherQuery query              = new SimpleCypherQuery(statement, parameters);
 		final Iterable<Map<String, Object>> result = tx.run(query);
-		final Map<Node, Double> nodes              = new LinkedHashMap<>();
+		final Map<Node<Long>, Double> nodes        = new LinkedHashMap<>();
 
 		for (final Map<String, Object> entry : result) {
 
@@ -151,7 +151,7 @@ class CypherNodeIndex extends AbstractCypherIndex<Node> {
 	}
 
 	@Override
-	public Iterable<Node> getResult(final CypherQuery query) {
+	public Iterable<Node<Long>> getResult(final CypherQuery query) {
 
 		try {
 

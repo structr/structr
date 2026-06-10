@@ -108,9 +108,9 @@ public class Tx implements AutoCloseable, Prefetcher {
 
 		if (guard.compareAndSet(false, true) && (modificationQueue == null || modificationQueue.transactionWasSuccessful())) {
 
-			final List<Long> ids = new ArrayList<>();
-			boolean hasChanges   = false;
-			boolean retry        = true;
+			final List<Object> ids = new ArrayList<>();
+			boolean hasChanges     = false;
+			boolean retry          = true;
 
 			while (retry) {
 

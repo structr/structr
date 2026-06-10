@@ -26,7 +26,7 @@ import java.util.function.Function;
 /**
  *
  */
-class PrefetchNodeMapper implements Function<org.neo4j.driver.Record, Node> {
+class PrefetchNodeMapper implements Function<org.neo4j.driver.Record, Node<Long>> {
 
 	private BoltDatabaseService db = null;
 
@@ -35,7 +35,7 @@ class PrefetchNodeMapper implements Function<org.neo4j.driver.Record, Node> {
 	}
 
 	@Override
-	public Node apply(final org.neo4j.driver.Record record) {
+	public Node<Long> apply(final org.neo4j.driver.Record record) {
 
 		final SessionTransaction tx            = db.getCurrentTransaction();
 		final org.neo4j.driver.types.Node node = record.get("n").asNode();

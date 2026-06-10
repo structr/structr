@@ -175,7 +175,7 @@ public class PasswordProperty extends StringProperty {
 		if (errorBuffer.hasError()) {
 
 			if (((CreationContainer) obj).getWrappedObject() == null) {
-				throw new PasswordPolicyViolationException(422, "Password policy violation prevented creation of entity with ID " + ((CreationContainer<?>) obj).getData().get("id") + "!", errorBuffer);
+				throw new PasswordPolicyViolationException(422, "Password policy violation prevented creation of entity with ID " + ((CreationContainer) obj).getData().get("id") + "!", errorBuffer);
 			} else {
 				throw new PasswordPolicyViolationException(422, "Password policy violation prevented password change on entity with ID " + ((CreationContainer) obj).getWrappedObject().getUuid() + "!", errorBuffer);
 			}

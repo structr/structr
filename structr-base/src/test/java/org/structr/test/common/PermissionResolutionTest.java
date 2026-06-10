@@ -20,6 +20,7 @@ package org.structr.test.common;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
@@ -175,6 +176,8 @@ public class PermissionResolutionTest extends StructrTest {
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
+
+		Settings.CypherDebugLogging.setValue(true);
 
 		// check access for user1 on instance1
 		try (final Tx tx = userApp.tx()) {

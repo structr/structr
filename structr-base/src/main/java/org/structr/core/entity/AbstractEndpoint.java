@@ -68,6 +68,7 @@ public abstract class AbstractEndpoint {
 	}
 
 	public Iterable<Relationship> getMultiple(final SecurityContext securityContext, final Node dbNode, final RelationshipType relationshipType, final Direction direction, final String otherNodeType, final Predicate<GraphObject> predicate) {
+
 		return Iterables.filter(new OtherNodeTypeFilter(securityContext, dbNode, otherNodeType, predicate), dbNode.getRelationships(direction, relationshipType));
 	}
 

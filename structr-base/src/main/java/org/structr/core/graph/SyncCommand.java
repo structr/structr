@@ -508,7 +508,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 				continue;
 			}
 
-			final Node node = nodeObject.getNode();
+			final Node<?> node = nodeObject.getNode();
 
 			// ignore non-structr nodes
 			if (node.hasProperty(uuidPropertyName)) {
@@ -532,7 +532,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 		for (RelationshipInterface relObject : relationships) {
 
-			final Relationship rel = relObject.getRelationship();
+			final Relationship<?> rel = relObject.getRelationship();
 
 			// ignore non-structr nodes
 			if (rel.hasProperty(uuidPropertyName)) {

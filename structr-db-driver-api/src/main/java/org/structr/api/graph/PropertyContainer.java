@@ -25,9 +25,9 @@ import java.util.Map;
 /**
  *
  */
-public interface PropertyContainer {
+public interface PropertyContainer<IDType> {
 
-	Identity getId();
+	Identity<IDType> getId();
 
 	default void invalidate() {}
 

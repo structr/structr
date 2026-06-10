@@ -46,7 +46,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  *
  */
-abstract class SessionTransaction implements org.structr.api.Transaction {
+abstract class SessionTransaction implements org.structr.api.Transaction<Long> {
 
 	private static final Logger logger                         = LoggerFactory.getLogger(SessionTransaction.class);
 	protected static final AtomicLong ID_SOURCE                = new AtomicLong();
@@ -117,10 +117,6 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 	public void setIsPing(final boolean isPing) {
 		this.isPing = isPing;
-	}
-
-	public int level() {
-		return 0;
 	}
 
 	@Override
@@ -243,32 +239,32 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 	}
 
 	@Override
-	public org.structr.api.graph.Node getNode(final Identity id) {
+	public org.structr.api.graph.Node getNode(final Identity<Long> id) {
 		return getNodeWrapper(id.getId());
 	}
 
 	@Override
-	public org.structr.api.graph.Relationship getRelationship(Identity id) {
+	public org.structr.api.graph.Relationship getRelationship(Identity<Long> id) {
 		return getRelationshipWrapper(id.getId());
 	}
 
 	@Override
-	public void setNodeIsCreated(final long id) {
+	public void setNodeIsCreated(final Long id) {
 		createdNodes.add(id);
 	}
 
 	@Override
-	public boolean isNodeCreated(final long id) {
+	public boolean isNodeCreated(final Long id) {
 		return createdNodes.contains(id);
 	}
 
 	@Override
-	public boolean isNodeDeleted(final long id) {
+	public boolean isNodeDeleted(final Long id) {
 		return deletedNodes.contains(id);
 	}
 
 	@Override
-	public boolean isRelationshipDeleted(final long id) {
+	public boolean isRelationshipDeleted(final Long id) {
 		return deletedRels.contains(id);
 	}
 
@@ -1035,7 +1031,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 		return baseTypes;
 	}
 
-	public Iterable<org.structr.api.graph.Node> getCachedResult(final CypherQuery query) {
+	public Iterable<org.structr.api.graph.Node<Long>> getCachedResult(final CypherQuery query) {
 
 		final int hashCode = query.hashCode();
 		Set<Long> cached   = queryResultCache.get(hashCode);
@@ -1046,12 +1042,12 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 			return Iterables.map(id -> nodes.get(id), cached);
 		}
 
-		final List<org.structr.api.graph.Node> nodes = Iterables.toList(Iterables.map(new PrefetchNodeMapper(db), new LazyRecordIterable(db, query)));
-		final Set<Long> ids                          = new LinkedHashSet<>();
+		final List<org.structr.api.graph.Node<Long>> nodes = Iterables.toList(Iterables.map(new PrefetchNodeMapper(db), new LazyRecordIterable(db, query)));
+		final Set<Long> ids                                = new LinkedHashSet<>();
 
 		queryResultCache.put(hashCode, ids);
 
-		for (final org.structr.api.graph.Node node : nodes) {
+		for (final org.structr.api.graph.Node<Long> node : nodes) {
 			ids.add(node.getId().getId());
 		}
 

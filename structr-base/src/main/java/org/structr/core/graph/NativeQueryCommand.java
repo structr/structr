@@ -67,7 +67,7 @@ public class NativeQueryCommand extends NodeServiceCommand {
 
 	public Iterable execute(String query, Map<String, Object> parameters, boolean includeHiddenAndDeleted, boolean publicOnly) throws FrameworkException {
 
-		final DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
+		final DatabaseService<?> graphDb = (DatabaseService) arguments.get("graphDb");
 		if (graphDb != null) {
 
 			final Iterable extracted, result;

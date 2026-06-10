@@ -35,7 +35,7 @@ import java.util.*;
 
 /**
  */
-public class MemoryDatabaseService extends AbstractDatabaseService {
+public class MemoryDatabaseService extends AbstractDatabaseService<Long> {
 
 	private static final ThreadLocal<MemoryTransaction> transactions    = new ThreadLocal<>();
 	private final MemoryRelationshipRepository relationships            = new MemoryRelationshipRepository();
@@ -61,7 +61,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
-	public Transaction beginTx(boolean forceNew) {
+	public Transaction<Long> beginTx(boolean forceNew) {
 		if (!forceNew) {
 			return beginTx();
 		} else {
@@ -70,12 +70,12 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
-	public Transaction beginTx() {
+	public Transaction<Long> beginTx() {
 		return beginTx(-1);
 	}
 
 	@Override
-	public Transaction beginTx(final int timeoutInSeconds) {
+	public Transaction<Long> beginTx(final int timeoutInSeconds) {
 
 		MemoryTransaction tx = transactions.get();
 		if (tx == null) {
@@ -88,7 +88,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
-	public Node createNode(final String type, final Set<String> labels, final Map<String, Object> properties) {
+	public Node<Long> createNode(final String type, final Set<String> labels, final Map<String, Object> properties) {
 
 		final MemoryTransaction tx  = getCurrentTransaction();
 		final MemoryIdentity id     = new MemoryIdentity(true, type);
@@ -125,7 +125,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
-	public NodeWithOwnerResult createNodeWithOwner(final Identity ownerId, final String type, final Set<String> labels, final Map<String, Object> nodeProperties, final Map<String, Object> ownsProperties, final Map<String, Object> securityProperties) {
+	public NodeWithOwnerResult createNodeWithOwner(final Identity<Long> ownerId, final String type, final Set<String> labels, final Map<String, Object> nodeProperties, final Map<String, Object> ownsProperties, final Map<String, Object> securityProperties) {
 
 		final Node newNode         = createNode(type, labels, nodeProperties);
 		final Node owner           = getNodeById(ownerId);
@@ -140,7 +140,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
-	public Node getNodeById(final Identity id) {
+	public Node<Long> getNodeById(final Identity<Long> id) {
 
 		final MemoryTransaction tx = getCurrentTransaction();
 
@@ -148,7 +148,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
-	public Relationship getRelationshipById(final Identity id) {
+	public Relationship<Long> getRelationshipById(final Identity<Long> id) {
 
 		final MemoryTransaction tx = getCurrentTransaction();
 
@@ -156,12 +156,12 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
-	public Iterable<Node> getAllNodes() {
+	public Iterable<Node<Long>> getAllNodes() {
 		return Iterables.map(n -> n, getFilteredNodes(null));
 	}
 
 	@Override
-	public Iterable<Node> getNodesByLabel(final String label) {
+	public Iterable<Node<Long>> getNodesByLabel(final String label) {
 
 		if (label == null) {
 			return getAllNodes();
@@ -171,7 +171,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
-	public Iterable<Node> getNodesByTypeProperty(final String type) {
+	public Iterable<Node<Long>> getNodesByTypeProperty(final String type) {
 
 		if (type == null) {
 			return getAllNodes();
@@ -181,12 +181,12 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
-	public Iterable<Relationship> getAllRelationships() {
+	public Iterable<Relationship<Long>> getAllRelationships() {
 		return Iterables.map(r -> r, getFilteredRelationships(null));
 	}
 
 	@Override
-	public Iterable<Relationship> getRelationshipsByType(final String type) {
+	public Iterable<Relationship<Long>> getRelationshipsByType(final String type) {
 
 		if (type == null) {
 			return getAllRelationships();
@@ -196,7 +196,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
-	public Index<Node> nodeIndex() {
+	public Index<Node<Long>> nodeIndex() {
 
 		if (nodeIndex == null) {
 
@@ -207,7 +207,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
-	public Index<Relationship> relationshipIndex() {
+	public Index<Relationship<Long>> relationshipIndex() {
 
 		if (relIndex == null) {
 
@@ -250,7 +250,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
-	public <T> T execute(final NativeQuery<T> nativeQuery, final Transaction tx) {
+	public <T> T execute(final NativeQuery<T> nativeQuery, final Transaction<Long> tx) {
 		throw new UnsupportedOperationException("Not supported.");
 	}
 
@@ -314,7 +314,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 	}
 
 	// ----- graph repository methods -----
-	public Relationship createRelationship(final MemoryNode sourceNode, final MemoryNode targetNode, final RelationshipType relType) {
+	public Relationship<Long> createRelationship(final MemoryNode sourceNode, final MemoryNode targetNode, final RelationshipType relType) {
 
 		sourceNode.lock();
 		targetNode.lock();
@@ -331,7 +331,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 		return newRelationship;
 	}
 
-	public Iterable<Relationship> getRelationships(final MemoryNode node) {
+	public Iterable<Relationship<Long>> getRelationships(final MemoryNode node) {
 
 		final MemoryTransaction tx = getCurrentTransaction();
 		final MemoryIdentity id = node.getIdentity();
@@ -339,7 +339,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 		return Iterables.map(n -> n, Iterables.filter(r -> (id.equals(r.getSourceNodeIdentity()) || id.equals(r.getTargetNodeIdentity())), tx.getRelationships(null)));
 	}
 
-	public Iterable<Relationship> getRelationships(final MemoryNode node, final Direction direction) {
+	public Iterable<Relationship<Long>> getRelationships(final MemoryNode node, final Direction direction) {
 
 		final MemoryTransaction tx = getCurrentTransaction();
 		final MemoryIdentity id = node.getIdentity();
@@ -359,7 +359,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 		return null;
 	}
 
-	public Iterable<Relationship> getRelationships(final MemoryNode node, final Direction direction, final RelationshipType relationshipType) {
+	public Iterable<Relationship<Long>> getRelationships(final MemoryNode node, final Direction direction, final RelationshipType relationshipType) {
 
 		final MemoryTransaction tx              = getCurrentTransaction();
 		final MemoryIdentity id                 = node.getIdentity();

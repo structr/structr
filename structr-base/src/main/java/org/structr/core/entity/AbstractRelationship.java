@@ -18,6 +18,7 @@
  */
 package org.structr.core.entity;
 
+import org.structr.api.graph.Node;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
@@ -46,7 +47,7 @@ import java.util.Map;
 /**
  * Base class for all relationship entities in Structr.
  */
-public final class AbstractRelationship extends AbstractGraphObject<Relationship> implements Comparable<AbstractRelationship>, RelationshipInterface {
+public final class AbstractRelationship<IDType> extends AbstractGraphObject<Relationship<IDType>> implements Comparable<AbstractRelationship<IDType>>, RelationshipInterface {
 
 	private String cachedEndNodeId             = null;
 	private String cachedStartNodeId           = null;
@@ -125,7 +126,7 @@ public final class AbstractRelationship extends AbstractGraphObject<Relationship
 	 * @return database relationship
 	 */
 	@Override
-	public Relationship getRelationship() {
+	public Relationship<IDType> getRelationship() {
 		return TransactionCommand.getCurrentTransaction().getRelationship(id);
 	}
 
@@ -161,12 +162,12 @@ public final class AbstractRelationship extends AbstractGraphObject<Relationship
 	@Override
 	public NodeInterface getOtherNode(final NodeInterface node) {
 		NodeFactory nodeFactory = new NodeFactory(securityContext);
-		return nodeFactory.instantiate(getRelationship().getOtherNode(node.getNode()));
+		return nodeFactory.instantiate(getRelationship().getOtherNode((Node)node.getNode()));
 	}
 
 	public NodeInterface getOtherNodeAsSuperUser(final NodeInterface node) {
 		NodeFactory nodeFactory = new NodeFactory(SecurityContext.getSuperUserInstance());
-		return nodeFactory.instantiate(getRelationship().getOtherNode(node.getNode()));
+		return nodeFactory.instantiate(getRelationship().getOtherNode((Node)node.getNode()));
 	}
 
 	@Override

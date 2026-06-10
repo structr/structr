@@ -31,9 +31,9 @@ import java.util.function.Supplier;
 /**
  *
  */
-class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements Node {
+class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements Node<Long> {
 
-	private final TreeCache<Relationship> relationshipCache;
+	private final TreeCache<Relationship<Long>> relationshipCache;
 	private Set<String> prefetched = new LinkedHashSet<>();
 	private String cachedTenantId = null;
 
@@ -54,12 +54,12 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 	}
 
 	@Override
-	public Relationship createRelationshipTo(final Node endNode, final RelationshipType relationshipType) {
+	public Relationship<Long> createRelationshipTo(final Node<Long> endNode, final RelationshipType relationshipType) {
 		return createRelationshipTo(endNode, relationshipType, new LinkedHashMap<>());
 	}
 
 	@Override
-	public Relationship createRelationshipTo(final Node endNode, final RelationshipType relationshipType, final Map<String, Object> properties) {
+	public Relationship<Long> createRelationshipTo(final Node<Long> endNode, final RelationshipType relationshipType, final Map<String, Object> properties) {
 
 		db.getCurrentTransaction().queryResultCache.clear();
 
@@ -186,7 +186,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 	}
 
 	@Override
-	public Relationship getRelationshipTo(final RelationshipType type, final Node targetNode) {
+	public Relationship<Long> getRelationshipTo(final RelationshipType type, final Node<Long> targetNode) {
 
 		final SessionTransaction tx                 = db.getCurrentTransaction();
 		final Map<String, Object> params            = new LinkedHashMap<>();
@@ -207,12 +207,12 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 	}
 
 	@Override
-	public Iterable<Relationship> getRelationships() {
+	public Iterable<Relationship<Long>> getRelationships() {
 		return fetchAndCacheRelationships(db, id, concat("(n", getTenantIdentifier(db), ")-[r]-(o)"), "RETURN r, o ORDER BY r.internalTimestamp", "all", null, null);
 	}
 
 	@Override
-	public Iterable<Relationship> getRelationships(final Direction direction) {
+	public Iterable<Relationship<Long>> getRelationships(final Direction direction) {
 
 		final String tenantIdentifier = getTenantIdentifier(db);
 		final String key              = createKey(direction, null);
@@ -233,7 +233,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 	}
 
 	@Override
-	public Iterable<Relationship> getRelationships(final Direction direction, final RelationshipType relationshipType) {
+	public Iterable<Relationship<Long>> getRelationships(final Direction direction, final RelationshipType relationshipType) {
 
 		final String type             = Direction.OUTGOING.equals(direction) ? relationshipType.getSourceType() : relationshipType.getTargetType();
 		final String tenantIdentifier = getTenantIdentifier(db);
@@ -324,7 +324,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 	}
 
 	// ----- private methods -----
-	private Iterable<Relationship> fetchAndCacheRelationships(final BoltDatabaseService db, final long id, final String match, final String returnStatement, final String key, final RelationshipType relType, final Direction direction) {
+	private Iterable<Relationship<Long>> fetchAndCacheRelationships(final BoltDatabaseService db, final long id, final String match, final String returnStatement, final String key, final RelationshipType relType, final Direction direction) {
 
 		// fetch relationships
 		final String whereStatement         = " WHERE ID(n) = $id ";
@@ -343,10 +343,10 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 
 		query.getParameters().put("id", id);
 
-		final List<Relationship> list = new LinkedList<>();
+		final List<Relationship<Long>> list = new LinkedList<>();
 
 		// store rels in cache
-		for (final Relationship rel : index.getResult(query)) {
+		for (final Relationship<Long> rel : index.getResult(query)) {
 
 			final String relKey = createKey(rel);
 
@@ -382,9 +382,9 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 		return buf.toString();
 	}
 
-	private Iterable<Relationship> getRelationshipsFromCache(final String key, final String type, final boolean outgoing, final Supplier<Iterable<Relationship>> valueSupplier) {
+	private Iterable<Relationship<Long>> getRelationshipsFromCache(final String key, final String type, final boolean outgoing, final Supplier<Iterable<Relationship<Long>>> valueSupplier) {
 
-		final Iterable<Relationship> relationships = relationshipCache.get(key);
+		final Iterable<Relationship<Long>> relationships = relationshipCache.get(key);
 		if (relationships == null) {
 
 			if (prefetched.contains(key)) {

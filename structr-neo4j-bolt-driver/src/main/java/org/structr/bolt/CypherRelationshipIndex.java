@@ -30,7 +30,7 @@ import java.util.Map;
 /**
  *
  */
-class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
+class CypherRelationshipIndex extends AbstractCypherIndex<Relationship<Long>> {
 
 	public CypherRelationshipIndex(final BoltDatabaseService db) {
 		super(db);
@@ -111,7 +111,7 @@ class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 	}
 
 	@Override
-	public Map<Relationship, Double> fulltextQuery(final String indexName, final String searchString) {
+	public Map<Relationship<Long>, Double> fulltextQuery(final String indexName, final String searchString) {
 
 		final String tenantIdentifier        = db.getTenantIdentifier();
 		final Map<String, Object> parameters = new LinkedHashMap<>();
@@ -131,9 +131,9 @@ class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 			statement = "CALL db.index.fulltext.queryRelationships($indexName, $searchValue) YIELD relationship, score RETURN relationship, score";
 		}
 
-		final SimpleCypherQuery query              = new SimpleCypherQuery(statement, parameters);
-		final Iterable<Map<String, Object>> result = tx.run(query);
-		final Map<Relationship, Double> nodes      = new LinkedHashMap<>();
+		final SimpleCypherQuery query               = new SimpleCypherQuery(statement, parameters);
+		final Iterable<Map<String, Object>> result  = tx.run(query);
+		final Map<Relationship<Long>, Double> nodes = new LinkedHashMap<>();
 
 		for (final Map<String, Object> entry : result) {
 
@@ -147,7 +147,7 @@ class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 	}
 
 	@Override
-	public Iterable<Relationship> getResult(final CypherQuery query) {
+	public Iterable<Relationship<Long>> getResult(final CypherQuery query) {
 		return Iterables.map(new RelationshipRelationshipMapper(db), Iterables.map(new RecordRelationshipMapper(db), new LazyRecordIterable(db, query)));
 	}
 }

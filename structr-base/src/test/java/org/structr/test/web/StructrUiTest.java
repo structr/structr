@@ -41,6 +41,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.TraitsManager;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
+import org.structr.embedded.EmbeddedDatabaseService;
 import org.structr.rest.service.HttpService;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
@@ -657,6 +658,8 @@ public abstract class StructrUiTest {
 			Settings.ConnectionUrl.setValue(testDatabaseConnection);
 		}
 		Settings.ConnectionDatabaseName.setValue("neo4j");
+
+		Settings.DatabasePath.setValue("db-" + randomTenantId);
 		Settings.TenantIdentifier.setValue(randomTenantId);
 	}
 
