@@ -1171,15 +1171,18 @@ let _ProcessDiagram = {
 					const m = methodOf(tl);
 					return `
 					<li class="bpmn-listener-row bpmn-task-listener-row" data-listener-id="${escTL(tl.id)}" data-method-id="${escTL(m?.id ?? '')}">
-						<select class="bpmn-listener-event bpmn-task-listener-event">
-							${TASK_EVENTS_W.map(e => `<option value="${e}" ${e === tl.event ? 'selected' : ''}>${e}</option>`).join('')}
-						</select>
 						<select class="bpmn-listener-phase bpmn-task-listener-phase" title="on: pre-commit, can veto. after: post-commit, side-effects.">
 							${TASK_PHASES_W.map(p => `<option value="${p}" ${p === (tl.phase ?? 'after') ? 'selected' : ''}>${p}</option>`).join('')}
 						</select>
-						<span class="bpmn-listener-method bpmn-task-listener-method-name" title="${escTL(m?.name ?? '')}">${escTL(m?.name ?? '—')}</span>
-						<button class="action btn-edit-listener-method" data-method-id="${escTL(m?.id ?? '')}" title="Edit the handler method">Edit</button>
-						<button class="action btn-remove-task-listener" title="Remove this handler (deletes its method)">−</button>
+						<select class="bpmn-listener-event bpmn-task-listener-event">
+							${TASK_EVENTS_W.map(e => `<option value="${e}" ${e === tl.event ? 'selected' : ''}>${e}</option>`).join('')}
+						</select>
+						<button class="border-0 btn-edit-listener-method" data-method-id="${escTL(m?.id ?? '')}" title="Edit the handler method">
+							${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(), 'Edit')}
+						</button>
+						<button class="border-0 btn-remove-task-listener" title="Remove this handler (deletes its method)">
+						    ${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesNonColorIcon(), 'Delete')}
+						</button>
 					</li>`;
 				};
 
@@ -1215,6 +1218,7 @@ let _ProcessDiagram = {
 								catch (_) {}
 							}
 							await loadRows();
+							await api.refreshElement(elementId);
 						} catch (err) {
 							new ErrorMessage().text(`Update handler failed: ${err.message ?? err}`).show();
 							await loadRows();
@@ -1225,16 +1229,37 @@ let _ProcessDiagram = {
 					editBt?.addEventListener('click', () => openMethodInCode(methodId));
 					removeBt?.addEventListener('click', async () => {
 						removeBt.disabled = true;
-						try {
-							if (methodId) {
-								await new Promise((resolve) => Command.deleteNode(methodId, undefined, () => resolve()));
+						// Update the view immediately: the DELETE callback is unreliable
+						// and a GET re-fetch can be cache-served, so don't depend on
+						// either for the visual removal.
+						loadedListeners = loadedListeners.filter(tl => tl.id !== listenerId);
+						if (countEl) countEl.textContent = `(${loadedListeners.length})`;
+						row.remove();
+
+						// Awaitable delete with a fallback so an unreliable DELETE callback can't hang us.
+						const del = (id) => new Promise((resolve) => {
+							let settled = false;
+							const done = () => { if (!settled) { settled = true; resolve(); } };
+							Command.deleteNode(id, undefined, done);
+							window.setTimeout(done, 1500);
+						});
+
+						// 1:1 listener <-> method. Always delete the listener. Delete its method
+						// too, but ONLY when the body is empty: never destroy code the user wrote.
+						await del(listenerId);
+						if (methodId) {
+							const source = await new Promise((resolve) => {
+								let settled = false;
+								const finish = (v) => { if (!settled) { settled = true; resolve(v); } };
+								Command.get(methodId, 'id,source', (m) => finish(m ? (m.source || '') : null));
+								window.setTimeout(() => finish(null), 1500);   // unknown -> treat as non-empty (keep)
+							});
+							if (source !== null && source.trim() === '') {
+								await del(methodId);
 							}
-							await new Promise((resolve) => Command.deleteNode(listenerId, undefined, () => resolve()));
-							await loadRows();
-						} catch (err) {
-							new ErrorMessage().text(`Remove handler failed: ${err.message ?? err}`).show();
-							removeBt.disabled = false;
 						}
+						// Re-fetch the element so the method-count badge reflects the new state.
+						await api.refreshElement(elementId);
 					});
 				};
 
@@ -1242,7 +1267,7 @@ let _ProcessDiagram = {
 				// method), NOT from the element's reduced nested serialization.
 				const loadRows = async () => {
 					try {
-						const res  = await fetch(`${Structr.rootUrl}BpmnTaskListener/ui?element=${elementId}`, { credentials: 'same-origin' });
+						const res  = await fetch(`${Structr.rootUrl}BpmnTaskListener/ui?element=${elementId}`, { credentials: 'same-origin', cache: 'no-store' });
 						const body = res.ok ? await res.json() : { result: [] };
 						loadedListeners = Array.isArray(body.result) ? body.result : (body.result ? [body.result] : []);
 					} catch (_) {
@@ -1295,6 +1320,7 @@ let _ProcessDiagram = {
 						});
 
 						await loadRows();
+						await api.refreshElement(elementId);
 					} catch (err) {
 						new ErrorMessage().text(`Add handler failed: ${err.message ?? err}`).show();
 					} finally {
@@ -1617,7 +1643,10 @@ let _ProcessDiagram = {
 			const boundPageId = extractPageId(proc.instancePage);
 			return `
 				<div class="process-settings-section" data-process-id="${esc(proc.id)}" data-process-name="${esc(name)}">
-					<h4 class="pd-heading">${esc(name)}</h4>
+					<label class="pd-field">
+						<div class="pd-field-label">Process name</div>
+						<input type="text" class="input-process-name" value="${esc(proc.processName ?? '')}" placeholder="${esc(proc.processId ?? 'Process')}">
+					</label>
 
 					<label class="pd-checkbox-label">
 						<input type="checkbox" class="chk-default-assignee-from-initiator" ${checked}>
@@ -1695,6 +1724,20 @@ let _ProcessDiagram = {
 			const procId    = section.dataset.processId;
 			const initBox   = section.querySelector('.chk-default-assignee-from-initiator');
 			const pageSel   = section.querySelector('.select-instance-page');
+			const nameInput = section.querySelector('.input-process-name');
+			if (procId && nameInput) {
+				// Commit on blur (change), buffered like the other process
+				// settings. Sets BpmnProcess.processName, which is what the
+				// Pages Events-tab process picker labels each process with.
+				nameInput.addEventListener('change', () => {
+					try {
+						api.updateProcess(procId, { processName: nameInput.value });
+					} catch (e) {
+						console.error('updateProcess failed', e);
+						nameInput.value = nameInput.defaultValue;
+					}
+				});
+			}
 			if (procId && initBox) {
 				initBox.addEventListener('change', () => {
 					try {
@@ -1773,7 +1816,6 @@ let _ProcessDiagram = {
 						<select class="bpmn-listener-phase bpmn-process-listener-phase" title="on: pre-commit, can veto. after: post-commit, side-effects.">
 							${PROC_PHASES.map(p => `<option value="${p}" ${p === (pl.phase ?? 'after') ? 'selected' : ''}>${p}</option>`).join('')}
 						</select>
-						<span class="bpmn-listener-method bpmn-process-listener-method-name" title="${escPL(m?.name ?? '')}">${escPL(m?.name ?? '—')}</span>
 						<button class="action btn-edit-process-listener-method" title="Edit the handler method">Edit</button>
 						<button class="action btn-remove-process-listener" title="Remove this handler (deletes its method)">&minus;</button>
 					</li>`;
@@ -1813,20 +1855,41 @@ let _ProcessDiagram = {
 					editBt?.addEventListener('click', () => plOpenMethod(methodId));
 					removeBt?.addEventListener('click', async () => {
 						removeBt.disabled = true;
-						try {
-							if (methodId) { await new Promise((resolve) => Command.deleteNode(methodId, undefined, () => resolve())); }
-							await new Promise((resolve) => Command.deleteNode(listenerId, undefined, () => resolve()));
-							await plLoadRows();
-						} catch (err) {
-							new ErrorMessage().text(`Remove handler failed: ${err.message ?? err}`).show();
-							removeBt.disabled = false;
+						// Update the view immediately: the DELETE callback is unreliable
+						// and a GET re-fetch can be cache-served, so don't depend on
+						// either for the visual removal.
+						plLoaded = plLoaded.filter(pl => pl.id !== listenerId);
+						if (plCountEl) plCountEl.textContent = `(${plLoaded.length})`;
+						row.remove();
+
+						// 1:1 listener <-> method, same rule as the task-listener block: always
+						// delete the listener (first: the CALLS rel cascades method -> listener,
+						// not this direction); delete its method only when the body is empty, so
+						// user-written code is never destroyed collaterally.
+						const del = (id) => new Promise((resolve) => {
+							let settled = false;
+							const done = () => { if (!settled) { settled = true; resolve(); } };
+							Command.deleteNode(id, undefined, done);
+							window.setTimeout(done, 1500);
+						});
+						await del(listenerId);
+						if (methodId) {
+							const source = await new Promise((resolve) => {
+								let settled = false;
+								const finish = (v) => { if (!settled) { settled = true; resolve(v); } };
+								Command.get(methodId, 'id,source', (m) => finish(m ? (m.source || '') : null));
+								window.setTimeout(() => finish(null), 1500);   // unknown -> treat as non-empty (keep)
+							});
+							if (source !== null && source.trim() === '') {
+								await del(methodId);
+							}
 						}
 					});
 				};
 
 				const plLoadRows = async () => {
 					try {
-						const res  = await fetch(`${Structr.rootUrl}BpmnProcessListener/ui?process=${procId}`, { credentials: 'same-origin' });
+						const res  = await fetch(`${Structr.rootUrl}BpmnProcessListener/ui?process=${procId}`, { credentials: 'same-origin', cache: 'no-store' });
 						const body = res.ok ? await res.json() : { result: [] };
 						plLoaded = Array.isArray(body.result) ? body.result : (body.result ? [body.result] : []);
 					} catch (_) {

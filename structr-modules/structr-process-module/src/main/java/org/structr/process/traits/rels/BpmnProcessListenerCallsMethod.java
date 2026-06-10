@@ -33,7 +33,10 @@ import org.structr.process.ProcessTraits;
  * to the listener's BpmnProcess (via HAS_METHOD) so it shows up in the Code
  * module under that process; this rel is what the engine follows to dispatch.</p>
  *
- * <p>No cascading delete: a re-import rebuilds the binding from the BPMN XML.</p>
+ * <p>Cascading delete is TARGET_TO_SOURCE only, same rule as the task-listener
+ * sibling: deleting the method also deletes the listener (a listener without a
+ * method is dead weight), while removing a listener deletes its method only via
+ * the editor's conditional path (empty body). Re-imports never delete methods.</p>
  */
 public class BpmnProcessListenerCallsMethod extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
@@ -44,7 +47,7 @@ public class BpmnProcessListenerCallsMethod extends AbstractRelationshipTraitDef
 	@Override public String getRelationshipType() { return "CALLS"; }
 	@Override public Relation.Multiplicity getSourceMultiplicity() { return Relation.Multiplicity.Many; }
 	@Override public Relation.Multiplicity getTargetMultiplicity() { return Relation.Multiplicity.One; }
-	@Override public int getCascadingDeleteFlag() { return Relation.NONE; }
+	@Override public int getCascadingDeleteFlag() { return Relation.TARGET_TO_SOURCE; }
 	@Override public int getAutocreationFlag() { return Relation.NONE; }
 	@Override public boolean isInternal() { return false; }
 }

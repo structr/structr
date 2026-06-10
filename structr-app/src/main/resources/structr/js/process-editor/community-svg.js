@@ -993,13 +993,17 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 
 	async refreshElement(elementId) {
 		if (!elementId) return;
-		const res = await fetch(`${Structr.rootUrl}BpmnElement/${elementId}/ui`, { credentials: 'same-origin' });
+		const res = await fetch(`${Structr.rootUrl}BpmnElement/${elementId}/ui`, { credentials: 'same-origin', cache: 'no-store' });
 		if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
 		const body = await res.json();
 		let fresh = body.result;
 		if (Array.isArray(fresh)) fresh = fresh[0];
 		if (!fresh || !fresh.id) return;
 		this._elements.set(fresh.id, fresh);
+		// Repaint so visual state derived from the element (e.g. the method-count badge)
+		// updates. updateElement() does this; refreshElement() previously only mutated the
+		// model and fired handlers, so the SVG never redrew.
+		this.refresh();
 		for (const h of this._updateHandlers) {
 			try { h(fresh.id, 'BpmnElement', {}); } catch (e) { console.error(e); }
 		}

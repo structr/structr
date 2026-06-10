@@ -33,10 +33,12 @@ import org.structr.process.ProcessTraits;
  * in the Code module under that element; this rel is what the engine follows
  * to dispatch.</p>
  *
- * <p>No cascading delete: removing a handler is done explicitly in the editor
- * (delete the method, then the listener), and a re-import rebuilds the binding
- * from the BPMN XML, so we don't want element rebuilds to collaterally delete
- * the method.</p>
+ * <p>Cascading delete is TARGET_TO_SOURCE only: deleting the method (e.g. in the
+ * Code module) also deletes the listener, since a listener without a method is
+ * dead weight. The reverse direction stays manual and conditional: when a handler
+ * is removed in the editor, its method is deleted only if the body is empty, so
+ * user-written code is never destroyed collaterally. Re-imports never delete
+ * methods, so the cascade cannot fire on element rebuilds.</p>
  */
 public class BpmnTaskListenerCallsMethod extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
@@ -47,7 +49,7 @@ public class BpmnTaskListenerCallsMethod extends AbstractRelationshipTraitDefini
 	@Override public String getRelationshipType() { return "CALLS"; }
 	@Override public Relation.Multiplicity getSourceMultiplicity() { return Relation.Multiplicity.Many; }
 	@Override public Relation.Multiplicity getTargetMultiplicity() { return Relation.Multiplicity.One; }
-	@Override public int getCascadingDeleteFlag() { return Relation.NONE; }
+	@Override public int getCascadingDeleteFlag() { return Relation.TARGET_TO_SOURCE; }
 	@Override public int getAutocreationFlag() { return Relation.NONE; }
 	@Override public boolean isInternal() { return false; }
 }
