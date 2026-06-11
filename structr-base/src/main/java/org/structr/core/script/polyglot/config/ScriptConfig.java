@@ -26,7 +26,7 @@ public class ScriptConfig {
     private boolean keepContextOpen                               = false;
     private AbstractMethod currentMethod                          = null;
 
-    public ScriptConfig() {}
+    protected ScriptConfig() {}
 
     public static ScriptConfigBuilder builder() {
         return new ScriptConfigBuilder();
