@@ -983,6 +983,11 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	 */
 	private boolean displayForVisibilityMappings(final RenderContext renderContext) {
 
+		if (!Traits.exists(StructrTraits.VISIBILITY_MAPPING)) {
+			// Process module not loaded. This feature is not present, so this should not impact rendering/hide nodes
+			return true;
+		}
+
 		final SecurityContext securityContext = renderContext.getSecurityContext();
 
 		// Pull the context object the predicate should evaluate against.
