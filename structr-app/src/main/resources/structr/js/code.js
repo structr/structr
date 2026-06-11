@@ -162,6 +162,19 @@ let _Code = {
 
 				let defaultEntries = [
 					{
+						id:       path + '/scratchpad',
+						text:     'Scratchpad',
+						children: false,
+						icon:     _Icons.nonExistentEmptyIcon,
+						li_attr:  { 'data-id': 'scratchpad' },
+						data: {
+							svgIcon: _Icons.getSvgIcon(_Icons.iconScratchpad, 16, 24),
+							key:     'scratchpad',
+							content: 'scratchpad',
+							path:    path + '/scratchpad'
+						},
+					},
+					{
 						id:       path + '/globals',
 						text:     'User-defined functions',
 						children: true,
@@ -836,6 +849,10 @@ let _Code = {
 					case 'root':
 						break;
 
+					case 'scratchpad':
+						_Code.mainArea.scratchpad.show(data, true);
+						break;
+
 					case 'globals':
 						_Code.mainArea.displayGlobalMethodsContent(data, true);
 						break;
@@ -1040,12 +1057,16 @@ let _Code = {
 
 			_Code.persistence.runCurrentEntitySaveAction = null;
 		},
-		displayGlobalMethodsContent: (data, updateLocationStack) => {
+		updateLocationStack: (data, updateLocationStack) => {
 
 			if (updateLocationStack === true) {
 				_Code.pathLocations.updatePathLocationStack(data.path);
 				_Code.lastClickedPath = data.path;
 			}
+		},
+		displayGlobalMethodsContent: (data, updateLocationStack) => {
+
+			_Code.mainArea.updateLocationStack(data, updateLocationStack);
 
 			_Code.recentElements.addRecentlyUsedElement(data.content, "User-defined functions", data.svgIcon, data.path, false);
 
@@ -1505,10 +1526,7 @@ let _Code = {
 		},
 		displayPropertiesContent: (data, updateLocationStack) => {
 
-			if (updateLocationStack === true) {
-				_Code.pathLocations.updatePathLocationStack(data.path);
-				_Code.lastClickedPath = data.path;
-			}
+			_Code.mainArea.updateLocationStack(data, updateLocationStack);
 
 			_Code.codeContents.append(_Code.templates.propertiesLocal({ data: data }));
 
@@ -1533,10 +1551,7 @@ let _Code = {
 		},
 		displayRemotePropertiesContent: (data, updateLocationStack) => {
 
-			if (updateLocationStack === true) {
-				_Code.pathLocations.updatePathLocationStack(data.path);
-				_Code.lastClickedPath = data.path;
-			}
+			_Code.mainArea.updateLocationStack(data, updateLocationStack);
 
 			_Code.codeContents.append(_Code.templates.propertiesRemote({ data: data }));
 
@@ -1555,10 +1570,7 @@ let _Code = {
 		},
 		displayViewsContent: (data, updateLocationStack) => {
 
-			if (updateLocationStack === true) {
-				_Code.pathLocations.updatePathLocationStack(data.path);
-				_Code.lastClickedPath = data.path;
-			}
+			_Code.mainArea.updateLocationStack(data, updateLocationStack);
 
 			_Code.codeContents.append(_Code.templates.views({ data: data }));
 
@@ -1574,10 +1586,7 @@ let _Code = {
 		},
 		displayMethodsContent: (data, updateLocationStack) => {
 
-			if (updateLocationStack === true) {
-				_Code.pathLocations.updatePathLocationStack(data.path);
-				_Code.lastClickedPath = data.path;
-			}
+			_Code.mainArea.updateLocationStack(data, updateLocationStack);
 
 			_Code.codeContents.append(_Code.templates.methods({ data: data }));
 
@@ -1594,10 +1603,7 @@ let _Code = {
 		},
 		displayInheritedPropertiesContent: (data, updateLocationStack) => {
 
-			if (updateLocationStack === true) {
-				_Code.pathLocations.updatePathLocationStack(data.path);
-				_Code.lastClickedPath = data.path;
-			}
+			_Code.mainArea.updateLocationStack(data, updateLocationStack);
 
 			_Code.codeContents.append(_Code.templates.propertiesInherited({ data: data }));
 
@@ -2599,7 +2605,206 @@ let _Code = {
 
 				return button;
 			},
-		}
+		},
+		scratchpad: {
+			scratchpadsKey: 'scratchpads_' + location.port,
+			show: (data, updateLocationStack) => {
+
+				_Code.mainArea.updateLocationStack(data, updateLocationStack);
+
+				_Code.codeContents.append(_Code.mainArea.scratchpad.templates.main());
+
+				let contentContainer = _Code.codeContents[0].querySelector('.content-container');
+
+				let scratchpads = LSWrapper.getItem(_Code.mainArea.scratchpad.scratchpadsKey, [
+					{
+						script: '',
+						log: '',
+						result: null,
+						logFilter: null
+					}
+				]);
+
+				for (let entity of scratchpads) {
+
+					let newScratchpad = _Helpers.createSingleDOMElementFromHTML(_Code.mainArea.scratchpad.templates.scratchpad());
+					contentContainer.appendChild(newScratchpad);
+
+					let editorDiv        = newScratchpad.querySelector('[data-is-editor]');
+					let editorContextDiv = newScratchpad.querySelector('[data-is-editor-context]');
+					let logTextarea      = newScratchpad.querySelector('[data-is-log]');
+					let outputDiv        = newScratchpad.querySelector('[data-is-output]');
+
+					logTextarea.value    = entity.log;
+
+					_Code.mainArea.scratchpad.populateOutputDiv(outputDiv, entity);
+
+					let scratchMonacoConfig = {
+						language: 'auto',
+						lint: true,
+						autocomplete: true,
+						isAutoscriptEnv: true,
+						scrollBeyondLastLine: false,
+						changeFn: (editor, entity) => {
+
+							entity.script = editor.getValue();
+							_Code.mainArea.scratchpad.saveToLocalstorage(scratchpads);
+
+							_Code.mainArea.scratchpad.resizeEditorContainer(editorDiv, editor);
+						}
+					};
+
+					// TODO: without entity.id, our monaco storage overwrites other editors without id (if we want to show multiple pads)
+					let scratchEditor = _Editors.getMonacoEditor(entity, 'script', editorDiv, scratchMonacoConfig);
+
+					_Code.mainArea.scratchpad.resizeEditorContainer(editorDiv, scratchEditor);
+
+					let runButton = _Helpers.createSingleDOMElementFromHTML(_Code.mainArea.scratchpad.templates.runButton());
+					editorContextDiv.appendChild(runButton);
+
+					runButton.addEventListener('click', async () => {
+
+						runButton.disabled = true;
+						runButton.classList.add('show-spinner');
+
+						_Helpers.fastRemoveAllChildren(outputDiv);
+						logTextarea.value = '';
+
+						let scratchIdResult          = await Command.scratchpad({ command: 'getNewScratchId' });
+						let scratchId = scratchIdResult[0].scratchId;
+
+						entity.logFilter =  scratchIdResult[0].logString;
+
+						let callFinished = false;
+
+						Command.scratchpad({
+							command: 'run',
+							scratchId: scratchId,
+							script: entity.script
+						}).then(runResult => {
+
+							callFinished = true;
+
+							entity.result = runResult[0].result;
+
+							_Code.mainArea.scratchpad.populateOutputDiv(outputDiv, entity);
+						});
+
+						while (!callFinished) {
+
+							let logForRun = await Command.getServerLogSnapshot({ filter: entity.logFilter, numberOfLines: 10000 });
+
+							entity.log        = logForRun[0].result;
+							logTextarea.value = logForRun[0].result;
+						}
+
+						_Code.mainArea.scratchpad.saveToLocalstorage(scratchpads);
+
+						runButton.disabled = false;
+						runButton.classList.remove('show-spinner');
+					});
+
+					let updateLogButton = _Helpers.createSingleDOMElementFromHTML(_Code.mainArea.scratchpad.templates.updateLogButton());
+					editorContextDiv.appendChild(updateLogButton);
+
+					updateLogButton.addEventListener('click', async () => {
+
+						if (entity.logFilter) {
+
+							let logForRun = await Command.getServerLogSnapshot({ filter: entity.logFilter, numberOfLines: 10000 });
+
+							entity.log        = logForRun[0].result;
+							logTextarea.value = logForRun[0].result;
+
+							_Code.mainArea.scratchpad.saveToLocalstorage(scratchpads);
+						}
+					});
+
+					_Editors.resizeVisibleEditors();
+				}
+			},
+			saveToLocalstorage: (data) => {
+				// TODO: when do we save? automatically or on demand? or do we create real entities?
+				LSWrapper.setItem(_Code.mainArea.scratchpad.scratchpadsKey, data);
+			},
+			resizeEditorContainer: (container, editor) => {
+
+				const lineCount = editor.getModel().getLineCount();
+				const lineHeight = editor.getOption(monaco.editor.EditorOption.lineHeight);
+
+				let minLines = 5;
+				let maxLines = 35;
+
+				let showLines = Math.min(maxLines, Math.max(minLines, lineCount));
+
+				const contentHeight = showLines * lineHeight;
+
+				container.style.height = contentHeight + 'px';
+
+				_Editors.resizeEditor(editor);
+			},
+			populateOutputDiv: (div, entity) => {
+
+				// create a child-div because of the font-mono situation... it automatically sets styles, leading to regular text being mono after changing return values
+				_Helpers.fastRemoveAllChildren(div);
+				let outputDiv = document.createElement('div');
+
+				let output   = entity.result;
+				let isString = (typeof output === 'string');
+
+				if (!isString) {
+					output = JSON.stringify(output, null, "\t");
+				}
+
+				outputDiv.classList.toggle('whitespace-pre', !isString);
+				outputDiv.classList.toggle('font-mono', !isString);
+
+				outputDiv.textContent = output;
+
+				div.appendChild(outputDiv);
+			},
+
+			templates: {
+				main: config => `
+					<h2>Scratchpad</h2>
+					<div id="code-scratchpad-container" class="content-container">
+						
+					</div>
+				`,
+				scratchpad: config => `
+					<div data-is-scratchpad class="flex flex-col gap-2">
+					
+						<div class="grid grid-cols-2 gap-4">
+							<div data-is-editor-container class="flex flex-col gap-4">
+								<div data-is-editor class="flex-grow"></div>
+								<div data-is-editor-context class="flex gap-2"></div>
+							</div>
+							<textarea data-is-log readonly="readonly"></textarea>
+						</div>
+						<div data-is-output></div>
+					</div>				
+				`,
+				runButton: config => `
+					<button class="group action-button hover:bg-gray-100 focus:border-gray-666 active:border-green">
+						<div class="group-[.show-spinner]:hidden flex items-center justify-center gap-2">
+							${_Icons.getSvgIcon(_Icons.iconRunButton)}
+							<div>Run</div>
+						</div>
+						<div class="hidden group-[.show-spinner]:block">
+							${_Icons.getSvgIcon(_Icons.iconWaitingSpinner)}
+						</div>
+					</button>
+				`,
+				updateLogButton: config => `
+					<button class="action-button hover:bg-gray-100 focus:border-gray-666 active:border-green">
+						<div class="flex items-center justify-center gap-2">
+							${_Icons.getSvgIcon(_Icons.iconRefreshArrows)}
+							<div>Update Log</div>
+						</div>
+					</button>
+				`,
+			}
+		},
 	},
 	helpers: {
 		getAttributesToFetchForErrorObject: () => 'id,type,name,content,isStatic,ownerDocument,schemaNode',
@@ -2656,7 +2861,7 @@ let _Code = {
 				// ctrl-s / cmd-s
 				if ((code === 'KeyS' || keyCode === 83) && ((!_Helpers.isMac() && event.ctrlKey) || (_Helpers.isMac() && event.metaKey))) {
 					event.preventDefault();
-					_Code.persistence.runCurrentEntitySaveAction();
+					_Code.persistence.runCurrentEntitySaveAction?.();
 				}
 
 				// ctrl-r / cmd-r

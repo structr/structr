@@ -1394,5 +1394,17 @@ let Command = {
 
 			StructrWS.sendObj(obj, resolve);
 		});
-    }
+    },
+	scratchpad: (config) => {
+
+		return new Promise((resolve, reject) => {
+
+			let obj  = {
+				command: 'SCRATCHPAD',
+				data: config
+			};
+
+			StructrWS.sendObj(obj, resolve);
+		});
+	}
 };

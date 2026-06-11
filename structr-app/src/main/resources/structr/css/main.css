@@ -5398,6 +5398,11 @@ ul.combined-input-select-field li:not(.nohover):hover {
         display: block;
     }
 }
+.group-\[\.show-spinner\]\:hidden {
+	&:is(:where(.group):is(.show-spinner) *) {
+		display: none;
+	}
+}
 /* END special tailwind-style classes */
 
 /* BEGIN shake animation for notification bell */
