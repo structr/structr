@@ -1315,6 +1315,10 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 	@Test
 	public void testGlobalSearch() {
 
+		if (!Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage)) {
+			return;
+		}
+
 		final List<String> expectedSearchHits = new ArrayList<>();
 
 		try (final Tx tx = app.tx()) {

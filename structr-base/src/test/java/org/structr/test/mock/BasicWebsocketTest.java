@@ -37,6 +37,7 @@ import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.web.entity.File;
+import org.structr.api.DatabaseFeature;
 import org.structr.websocket.StructrWebSocket;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
@@ -459,6 +460,10 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 
 	@Test
 	public void testRawResultCountWithCypher() {
+
+		if (!app.getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage)) {
+			return;
+		}
 
 		// setup: create 100 Localizations
 		try (final Tx tx = app.tx()) {

@@ -805,6 +805,9 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 			case LargeStringIndexing:
 				return false;
 
+			case FulltextIndexing:
+				return true;
+
 			case QueryLanguage:
 
 				final String param = getStringParameter(parameters);

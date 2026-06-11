@@ -26,6 +26,7 @@ public enum DatabaseFeature {
 
 	QueryLanguage,
 	LargeStringIndexing,
+	FulltextIndexing,
 	SpatialQueries,
 	NewDistanceFunction,
 	AuthenticationRequired,
