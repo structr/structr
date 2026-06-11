@@ -83,16 +83,16 @@ public class VideoFileHAS_POSTER_IMAGEImage extends AbstractRelationshipTraitDef
 
 	@Override
 	public PropagationMode getWritePropagation() {
-		return PropagationMode.Add;
+		return PropagationMode.Keep;
 	}
 
 	@Override
 	public PropagationMode getDeletePropagation() {
-		return PropagationMode.Add;
+		return PropagationMode.Keep;
 	}
 
 	@Override
 	public PropagationMode getAccessControlPropagation() {
-		return PropagationMode.Add;
+		return PropagationMode.Keep;
 	}
 }
