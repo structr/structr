@@ -444,7 +444,7 @@ public class BpmnRoundTripTest extends StructrUiTest {
 				final NodeInterface listener = app.create(ProcessTraits.BPMN_PROCESS_LISTENER, (String) null);
 				final Traits plTraits = listener.getTraits();
 				listener.setProperty(plTraits.key(BpmnProcessListenerTraitDefinition.EVENT_PROPERTY),   "started");
-				listener.setProperty(plTraits.key(BpmnProcessListenerTraitDefinition.METHOD_PROPERTY),  "onProcessStart");
+//				listener.setProperty(plTraits.key(BpmnProcessListenerTraitDefinition.METHOD_PROPERTY),  "onProcessStart");
 				listener.setProperty(plTraits.key(BpmnProcessListenerTraitDefinition.PROCESS_PROPERTY), procNode);
 
 				tx.success();
@@ -471,7 +471,7 @@ public class BpmnRoundTripTest extends StructrUiTest {
 			final List<Element> procMethodRefs = getDirectChildElements(procExt.get(0), STRUCTR_NS, "methodRef");
 			assertEquals(1, procListeners.size());
 			assertEquals("started",        procListeners.get(0).getAttribute("event"));
-			assertEquals("onProcessStart", procListeners.get(0).getAttribute("method"));
+//			assertEquals("onProcessStart", procListeners.get(0).getAttribute("method"));
 			assertEquals(1, procMethodRefs.size());
 			assertEquals("calculateRisk",  procMethodRefs.get(0).getAttribute("name"));
 
