@@ -84,7 +84,7 @@ public class MailSetManualConfigFunction extends AdvancedMailModuleFunction {
 
 			ctx.getAdvancedMailContainer().setManualConfiguration(smtpHost, smtpPort, smtpUser, smtpPassword, smtpUseTLS, smtpRequireTLS);
 
-			return "";
+			return null;
 
 		} catch (IllegalArgumentException e) {
 

@@ -67,7 +67,7 @@ public class RemoveResponseHeaderFunction extends UiAdvancedFunction {
 			return usage(ctx.isJavaScriptContext());
 		}
 
-		return "";
+		return null;
 	}
 
 	@Override

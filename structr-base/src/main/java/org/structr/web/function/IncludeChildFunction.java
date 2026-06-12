@@ -108,7 +108,7 @@ public class IncludeChildFunction extends IncludeFunction {
 				logger.warn(getName() + "(): Can only be used in a template context.");
 			}
 
-			return "";
+			return null;
 
 		} catch (ArgumentNullException pe) {
 

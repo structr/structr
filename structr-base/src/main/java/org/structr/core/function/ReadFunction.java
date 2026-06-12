@@ -76,7 +76,7 @@ public class ReadFunction extends AdvancedScriptingFunction {
 			return usage(ctx.isJavaScriptContext());
 		}
 
-		return "";
+		return null;
 	}
 
 	@Override

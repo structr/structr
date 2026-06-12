@@ -60,7 +60,7 @@ public class LogFunction extends CoreFunction {
 			}
 
 			logger.info(buf.toString());
-			return "";
+			return null;
 
 		} catch (final IllegalArgumentException e) {
 

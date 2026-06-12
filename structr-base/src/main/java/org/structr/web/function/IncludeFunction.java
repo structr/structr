@@ -117,7 +117,7 @@ public class IncludeFunction extends UiCommunityFunction {
 				return value;
 			}
 
-			return "";
+			return null;
 
 		} catch (ArgumentNullException pe) {
 

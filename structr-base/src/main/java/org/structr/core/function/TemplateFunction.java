@@ -87,7 +87,7 @@ public class TemplateFunction extends AdvancedScriptingFunction {
 					logger.warn("No MailTemplate found for parameters: {}", getParametersAsString(sources));
 				}
 
-				return "";
+				return null;
 			}
 
 		} catch (ArgumentNullException pe) {

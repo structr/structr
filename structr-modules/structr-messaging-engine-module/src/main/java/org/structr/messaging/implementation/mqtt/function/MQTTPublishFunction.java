@@ -55,7 +55,7 @@ public class MQTTPublishFunction extends MessagingModuleFunction {
 			if(client == null){
 
 				logParameterError(caller, sources, ctx.isJavaScriptContext());
-				return "";
+				return null;
 			}
 
 			client.sendMessage(ctx, sources[1].toString(), sources[2].toString());
@@ -65,7 +65,7 @@ public class MQTTPublishFunction extends MessagingModuleFunction {
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 		}
 
-		return "";
+		return null;
 	}
 
 	@Override

@@ -47,7 +47,7 @@ public class DisableNotificationsFunction extends AdvancedScriptingFunction {
 
 		ctx.getSecurityContext().setDoTransactionNotifications(false);
 
-		return "";
+		return null;
 	}
 
 	@Override

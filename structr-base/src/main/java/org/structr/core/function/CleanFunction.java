@@ -68,7 +68,7 @@ public class CleanFunction extends CoreFunction {
 			}
 
 			if (StringUtils.isBlank(sources[0].toString())) {
-				return "";
+				return null;
 			}
 
 			return cleanString(sources[0]);

@@ -53,7 +53,7 @@ public class FromJsonFunction extends UiCommunityFunction {
 		if (sources != null && sources.length > 0) {
 
 			if (sources[0] == null) {
-				return "";
+				return null;
 			}
 
 			final String source = sources[0].toString();
@@ -71,7 +71,7 @@ public class FromJsonFunction extends UiCommunityFunction {
 				logException(caller, t, sources);
 			}
 
-			return "";
+			return null;
 
 		} else {
 

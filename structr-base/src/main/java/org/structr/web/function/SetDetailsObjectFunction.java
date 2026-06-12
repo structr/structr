@@ -62,7 +62,7 @@ public class SetDetailsObjectFunction extends UiCommunityFunction {
 				logger.warn("{}(): This function can only be called in a page-rendering context! Parameters: {}", getName(), getParametersAsString(sources));
 			}
 
-			return "";
+			return null;
 
 		} else {
 

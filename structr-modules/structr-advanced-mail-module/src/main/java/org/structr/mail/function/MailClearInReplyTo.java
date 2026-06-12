@@ -48,7 +48,7 @@ public class MailClearInReplyTo extends AdvancedMailModuleFunction {
 		ctx.getAdvancedMailContainer().clearInReplyTo();
 		ctx.getAdvancedMailContainer().removeCustomHeader(MailSetInReplyTo.IN_REPLY_TO_HEADER);
 
-		return "";
+		return null;
 	}
 
 	@Override

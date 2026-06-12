@@ -63,7 +63,7 @@ public class SetPrivilegedFunction extends AdvancedScriptingFunction {
 			}
 		}
 
-		return "";
+		return null;
 	}
 
 

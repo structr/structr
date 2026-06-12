@@ -47,7 +47,7 @@ public class MailClearBccFunction extends AdvancedMailModuleFunction {
 
 		ctx.getAdvancedMailContainer().clearBcc();
 
-		return "";
+		return null;
 	}
 
 	@Override

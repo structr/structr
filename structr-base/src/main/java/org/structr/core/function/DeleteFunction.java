@@ -65,7 +65,7 @@ public class DeleteFunction extends CoreFunction implements BatchableFunction {
 			}
 		}
 
-		return "";
+		return null;
 	}
 
 	@Override

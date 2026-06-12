@@ -47,7 +47,7 @@ public class MailClearAttachmentsFunction extends AdvancedMailModuleFunction {
 
 		ctx.getAdvancedMailContainer().clearAttachments();
 
-		return "";
+		return null;
 	}
 
 	@Override

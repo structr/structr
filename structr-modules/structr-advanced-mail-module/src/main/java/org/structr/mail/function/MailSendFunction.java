@@ -72,7 +72,7 @@ public class MailSendFunction extends AdvancedMailModuleFunction {
 			amc.setError(t);
 		}
 
-		return "";
+		return null;
 	}
 
 	@Override

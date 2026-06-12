@@ -112,7 +112,7 @@ public class GeocodeFunction extends AdvancedScriptingFunction {
 			return usage(ctx.isJavaScriptContext());
 		}
 
-		return "";
+		return null;
 	}
 
 	@Override

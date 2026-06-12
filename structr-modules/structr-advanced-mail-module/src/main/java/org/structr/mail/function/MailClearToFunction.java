@@ -47,7 +47,7 @@ public class MailClearToFunction extends AdvancedMailModuleFunction {
 
 		ctx.getAdvancedMailContainer().clearTo();
 
-		return "";
+		return null;
 	}
 
 	@Override

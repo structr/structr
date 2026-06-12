@@ -76,7 +76,7 @@ public class ReplaceFunction extends CoreFunction {
 				return Scripting.replaceVariables(ctx, node, template, "replace()");
 			}
 
-			return "";
+			return null;
 
 		} catch (ArgumentNullException pe) {
 

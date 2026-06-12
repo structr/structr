@@ -55,7 +55,7 @@ public class PrintFunction extends CoreFunction {
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 		}
 
-		return "";
+		return null;
 	}
 
 	@Override

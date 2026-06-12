@@ -75,7 +75,7 @@ public class GetCookieFunction extends UiAdvancedFunction {
 				return null;
 			}
 
-			return "";
+			return null;
 
 		} catch (ArgumentNullException pe) {
 

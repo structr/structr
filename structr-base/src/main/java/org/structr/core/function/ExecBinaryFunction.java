@@ -175,7 +175,7 @@ public class ExecBinaryFunction extends ExecFunction {
 			return usage(ctx.isJavaScriptContext());
 		}
 
-		return "";
+		return null;
 	}
 
 	@Override

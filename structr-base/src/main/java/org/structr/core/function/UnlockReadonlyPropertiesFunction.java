@@ -46,7 +46,7 @@ public class UnlockReadonlyPropertiesFunction extends AdvancedScriptingFunction 
 			if (sources[0] instanceof NodeInterface n) {
 
 				n.unlockReadOnlyPropertiesOnce();
-				return "";
+				return null;
 
 			} else {
 

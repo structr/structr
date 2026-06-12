@@ -56,12 +56,12 @@ public class JoinFunction extends CoreFunction {
 				return StringUtils.join((Object[])sources[0], sources[1].toString());
 			}
 
-			return "";
+			return null;
 
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
-			return "";
+			return null;
 
 		} catch (ArgumentCountException pe) {
 

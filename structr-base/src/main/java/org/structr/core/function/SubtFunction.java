@@ -73,7 +73,7 @@ public class SubtFunction extends CoreFunction {
 			return usage(ctx.isJavaScriptContext());
 		}
 
-		return "";
+		return null;
 	}
 
 	@Override

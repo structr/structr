@@ -71,7 +71,7 @@ public class TrimFunction extends CoreFunction {
 			}
 
 			if (StringUtils.isBlank(sources[0].toString())) {
-				return "";
+				return null;
 			}
 
 			return sources[0].toString().trim();

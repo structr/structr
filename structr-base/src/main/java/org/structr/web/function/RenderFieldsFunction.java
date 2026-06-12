@@ -77,7 +77,7 @@ public class RenderFieldsFunction extends ApplyTemplatesFunction {
 				logger.warn(getName() + "(): Can only be used in a rendering context.");
 			}
 
-			return "";
+			return null;
 
 		} catch (ArgumentNullException pe) {
 

@@ -60,7 +60,7 @@ public class SetLogLevelFunction extends CoreFunction {
 				logger.error("{}: Unsupported log level: {}", getName(), requestedLevel);
 			}
 
-			return "";
+			return null;
 
 		} catch (final IllegalArgumentException e) {
 

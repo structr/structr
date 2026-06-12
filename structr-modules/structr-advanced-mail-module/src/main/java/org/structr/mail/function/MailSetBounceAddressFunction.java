@@ -54,7 +54,7 @@ public class MailSetBounceAddressFunction extends AdvancedMailModuleFunction {
 			final AdvancedMailContainer amc = ctx.getAdvancedMailContainer();
 			amc.setBounceAddress(sources[0].toString());
 
-			return "";
+			return null;
 
 		} catch (IllegalArgumentException e) {
 

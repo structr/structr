@@ -46,7 +46,7 @@ public class UnlockSystemPropertiesFunction extends AdvancedScriptingFunction {
 			if (sources[0] instanceof NodeInterface n) {
 
 				n.unlockSystemPropertiesOnce();
-				return "";
+				return null;
 
 			} else {
 

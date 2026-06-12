@@ -47,7 +47,7 @@ public class DisablePreventDuplicateRelationshipsFunction extends AdvancedScript
 
 		ctx.getSecurityContext().disablePreventDuplicateRelationships();
 
-		return "";
+		return null;
 	}
 
 	@Override

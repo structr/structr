@@ -87,7 +87,7 @@ public class GetOrNullFunction extends CoreFunction {
 					return dataObject.getProperty(key);
 				}
 
-				return "";
+				return null;
 			}
 
 		} catch (ArgumentNullException pe) {

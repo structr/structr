@@ -63,7 +63,7 @@ public class RemoveSessionAttributeFunction extends UiAdvancedFunction {
 				logger.warn("{}: No session available to remvoe session attribute! (this can happen in onStructrLogin/onStructrLogout)", getDisplayName());
 			}
 
-			return "";
+			return null;
 
 		} catch (ArgumentNullException pe) {
 

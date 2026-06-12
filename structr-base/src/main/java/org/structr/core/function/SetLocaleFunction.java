@@ -59,7 +59,7 @@ public class SetLocaleFunction extends CoreFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
-			return "";
+			return null;
 
 		} catch (ArgumentCountException pe) {
 
@@ -67,7 +67,7 @@ public class SetLocaleFunction extends CoreFunction {
 			return usage(ctx.isJavaScriptContext());
 		}
 
-		return "";
+		return null;
 	}
 
 	@Override

@@ -137,7 +137,7 @@ public class GetFunction extends CoreFunction {
 					logger.warn("get(): Unknown property {}.{}, value will not be returned. [{}]", traits.getName(), keyName, dataObject.getUuid());
 				}
 
-				return "";
+				return null;
 
 			} else {
 
@@ -147,7 +147,7 @@ public class GetFunction extends CoreFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
-			return "";
+			return null;
 
 		} catch (ArgumentCountException pe) {
 

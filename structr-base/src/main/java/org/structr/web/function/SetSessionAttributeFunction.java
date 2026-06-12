@@ -64,7 +64,7 @@ public class SetSessionAttributeFunction extends UiAdvancedFunction {
 				logger.warn("{}: No session available to set session attribute! (this can happen in onStructrLogin/onStructrLogout)", getDisplayName());
 			}
 
-			return "";
+			return null;
 
 		} catch (IllegalStateException ex) {
 

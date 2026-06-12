@@ -94,7 +94,7 @@ public class GrantFunction extends AdvancedScriptingFunction {
 						} else {
 
 							logParameterError(caller, sources, "Unknown permission \"" + trimmedPart + "\"!", ctx.isJavaScriptContext());
-							return "";
+							return null;
 						}
 					}
 				}
@@ -113,7 +113,7 @@ public class GrantFunction extends AdvancedScriptingFunction {
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 		}
 
-		return "";
+		return null;
 	}
 
 	@Override

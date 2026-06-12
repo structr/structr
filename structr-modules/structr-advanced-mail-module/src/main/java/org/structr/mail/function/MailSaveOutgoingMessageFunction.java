@@ -52,7 +52,7 @@ public class MailSaveOutgoingMessageFunction extends AdvancedMailModuleFunction 
 
 			ctx.getAdvancedMailContainer().setSaveOutgoingMessage((boolean)sources[0]);
 
-			return "";
+			return null;
 
 		} catch (IllegalArgumentException e) {
 

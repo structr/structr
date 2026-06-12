@@ -52,7 +52,7 @@ public class MailSetSubjectFunction extends AdvancedMailModuleFunction {
 
 			ctx.getAdvancedMailContainer().setSubject(sources[0].toString());
 
-			return "";
+			return null;
 
 		} catch (IllegalArgumentException e) {
 

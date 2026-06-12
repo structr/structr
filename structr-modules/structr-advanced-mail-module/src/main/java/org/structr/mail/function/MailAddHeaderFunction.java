@@ -56,7 +56,7 @@ public class MailAddHeaderFunction extends AdvancedMailModuleFunction {
 
 			ctx.getAdvancedMailContainer().addCustomHeader(name, value);
 
-			return "";
+			return null;
 
 		} catch (IllegalArgumentException e) {
 
