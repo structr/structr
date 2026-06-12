@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.graalvm.polyglot.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
@@ -49,6 +50,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.parser.DatePropertyGenerator;
+import org.structr.web.maintenance.ScratchpadCommand;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -623,7 +625,7 @@ public class Scripting {
 		} else if (value instanceof Throwable throwable) {
 
 			Stream<String> lines = Stream.concat(
-				Stream.of(String.valueOf(throwable.toString())),
+				Stream.of(throwable.toString()),
 				Arrays.stream(throwable.getStackTrace())
 						.takeWhile(ste -> !ste.getClassName().startsWith("org.graalvm"))
 						.map(ste -> "\tat " + ste.toString())
@@ -636,6 +638,12 @@ public class Scripting {
 						lines,
 						Stream.of("Caused by: " + formatForLogging(throwable.getCause()))
 				);
+			}
+
+			// prepend scratchpad log entry string, if present
+			final String scratchLogString = MDC.get(ScratchpadCommand.MDC_SCRATCHPAD_TAG);
+			if (scratchLogString != null) {
+				lines = lines.map(line -> scratchLogString + " " + line);
 			}
 
 			return lines.collect(Collectors.joining(System.lineSeparator()));

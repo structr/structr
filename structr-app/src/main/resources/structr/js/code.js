@@ -2612,6 +2612,7 @@ let _Code = {
 			getEmptyScratchPadEntry: () => ({
 				// the editor storage uses the entity uuid. if we dont provide it they can overwrite each other
 				id: uuid.v4().replaceAll('-', ''),
+				name: 'Untitled Scratchpad',
 				script: '',
 				log: '',
 				result: '',
@@ -2644,14 +2645,25 @@ let _Code = {
 				let newScratchpad = _Helpers.createSingleDOMElementFromHTML(_Code.mainArea.scratchpad.templates.scratchpad());
 				contentContainer.insertAdjacentElement('afterbegin', newScratchpad);
 
+				let titleDiv         = newScratchpad.querySelector('[data-is-title]');
+				let titleInput       = newScratchpad.querySelector('[data-is-title-input]');
 				let editorDiv        = newScratchpad.querySelector('[data-is-editor]');
 				let editorContextDiv = newScratchpad.querySelector('[data-is-editor-context]');
 				let logTextarea      = newScratchpad.querySelector('[data-is-log]');
+				let logContext       = newScratchpad.querySelector('[data-is-log-context]');
 				let outputDiv        = newScratchpad.querySelector('[data-is-output]');
 
 				logTextarea.value    = currentPad.log;
 
 				_Code.mainArea.scratchpad.populateOutputDiv(outputDiv, currentPad);
+
+				titleDiv.textContent = currentPad.name ?? 'Untitled Scratchpad';
+				titleInput.value = currentPad.name ?? 'Untitled Scratchpad';
+				titleInput.addEventListener('input', e => {
+					currentPad.name = e.target.value;
+					_Code.mainArea.scratchpad.save();
+					titleDiv.textContent = currentPad.name;
+				})
 
 				let scratchMonacoConfig = {
 					language: 'auto',
@@ -2662,7 +2674,7 @@ let _Code = {
 					changeFn: (editor, entity) => {
 
 						entity.script = editor.getValue();
-						_Code.mainArea.scratchpad.saveToLocalstorage();
+						_Code.mainArea.scratchpad.save();
 
 						_Code.mainArea.scratchpad.resizeEditorContainer(editorDiv, editor);
 					}
@@ -2676,51 +2688,7 @@ let _Code = {
 				let runButton = _Helpers.createSingleDOMElementFromHTML(_Code.mainArea.scratchpad.templates.runButton());
 				editorContextDiv.appendChild(runButton);
 
-				runButton.addEventListener('click', async () => {
-
-					runButton.disabled = true;
-					runButton.classList.add('show-spinner');
-
-					_Helpers.fastRemoveAllChildren(outputDiv);
-					logTextarea.value = '';
-
-					let scratchIdResult  = await Command.scratchpad({ command: 'getNewScratchId' });
-					let scratchId        = scratchIdResult[0].scratchId;
-					currentPad.logFilter = scratchIdResult[0].logString;
-
-					let callFinished = false;
-
-					Command.scratchpad({
-						command: 'run',
-						scratchId: scratchId,
-						script: currentPad.script
-					}).then(runResult => {
-
-						callFinished = true;
-
-						currentPad.result = runResult[0].result;
-
-						_Code.mainArea.scratchpad.populateOutputDiv(outputDiv, currentPad);
-					});
-
-					while (!callFinished) {
-
-						let logForRun = await Command.getServerLogSnapshot({ filter: currentPad.logFilter, numberOfLines: 10000 });
-
-						currentPad.log    = logForRun[0].result;
-						logTextarea.value = logForRun[0].result;
-					}
-
-					_Code.mainArea.scratchpad.saveToLocalstorage();
-
-					runButton.disabled = false;
-					runButton.classList.remove('show-spinner');
-				});
-
-				let updateLogButton = _Helpers.createSingleDOMElementFromHTML(_Code.mainArea.scratchpad.templates.updateLogButton());
-				editorContextDiv.appendChild(updateLogButton);
-
-				updateLogButton.addEventListener('click', async () => {
+				let updateLog = async () => {
 
 					if (currentPad.logFilter) {
 
@@ -2731,9 +2699,90 @@ let _Code = {
 							currentPad.log    = logForRun[0].result;
 							logTextarea.value = logForRun[0].result;
 
-							_Code.mainArea.scratchpad.saveToLocalstorage();
+							_Code.mainArea.scratchpad.save();
 						}
 					}
+				};
+
+				let callFinished = false;
+				let updateLogLoop = () => {
+
+					setTimeout(async () => {
+						if (!callFinished) {
+							await updateLog();
+							updateLogLoop();
+						} else {
+							callFinished = false;
+						}
+					}, 1000);
+				};
+
+				runButton.addEventListener('click', async () => {
+
+					_Code.mainArea.scratchpad.setButtonDisabledAndSpinnerStatus(runButton, true);
+					_Code.mainArea.scratchpad.setButtonDisabledAndSpinnerStatus(updateLogButton, true);
+
+					_Helpers.fastRemoveAllChildren(outputDiv);
+					logTextarea.value = '';
+
+					fetch(Structr.rootUrl + 'maintenance/scratchpad', {
+						method: 'POST',
+						body: JSON.stringify({
+							command: 'getNewScratchId'
+						})
+					}).then(response => {
+						return response.json();
+					}).then(scratchIdResult => {
+
+						let scratchId        = scratchIdResult.result[0].scratchId;
+						currentPad.logFilter = scratchIdResult.result[0].logString;
+
+						updateLogLoop();
+
+						return fetch(Structr.rootUrl + 'maintenance/scratchpad', {
+							method: 'POST',
+							body: JSON.stringify({
+								command: 'run',
+								scratchId: scratchId,
+								script: currentPad.script
+							})
+						})
+					}).then(response => {
+						return response.json();
+					}).then(runResult => {
+
+						callFinished = true;
+
+						updateLog();
+
+						currentPad.result = runResult.result[0].scriptResult;
+
+						_Code.mainArea.scratchpad.populateOutputDiv(outputDiv, currentPad);
+
+						_Code.mainArea.scratchpad.save();
+
+						_Code.mainArea.scratchpad.setButtonDisabledAndSpinnerStatus(runButton, false);
+						_Code.mainArea.scratchpad.setButtonDisabledAndSpinnerStatus(updateLogButton, false);
+
+					}).catch(e => {
+
+						console.log(e);
+
+						callFinished = true;
+
+						updateLog();
+
+						_Code.mainArea.scratchpad.setButtonDisabledAndSpinnerStatus(runButton, false);
+						_Code.mainArea.scratchpad.setButtonDisabledAndSpinnerStatus(updateLogButton, false);
+					});
+				});
+
+				let updateLogButton = _Helpers.createSingleDOMElementFromHTML(_Code.mainArea.scratchpad.templates.updateLogButton());
+				logContext.appendChild(updateLogButton);
+
+				updateLogButton.addEventListener('click', async () => {
+
+					await updateLog();
 				});
 
 				let removePadButton = _Helpers.createSingleDOMElementFromHTML(_Code.mainArea.scratchpad.templates.removePadButton());
@@ -2745,12 +2794,18 @@ let _Code = {
 
 					_Code.mainArea.scratchpad.currentScratchPads = _Code.mainArea.scratchpad.currentScratchPads.filter(s => s.id !== currentPad.id);
 
-					_Code.mainArea.scratchpad.saveToLocalstorage();
+					_Code.mainArea.scratchpad.save();
 				});
 
 				_Editors.resizeVisibleEditors();
 			},
-			saveToLocalstorage: () => {
+			setButtonDisabledAndSpinnerStatus: (button, status) => {
+
+				button.disabled = status;
+				button.classList.toggle('disabled', status);
+				button.classList.toggle('show-spinner', status);
+			},
+			save: () => {
 				LSWrapper.setItem(_Code.mainArea.scratchpad.scratchpadsKey, _Code.mainArea.scratchpad.currentScratchPads);
 			},
 			resizeEditorContainer: (container, editor) => {
@@ -2789,7 +2844,6 @@ let _Code = {
 
 				div.appendChild(outputDiv);
 			},
-
 			templates: {
 				main: config => `
 					<div class="flex flex-col items-start gap-2 items-center mb-4">
@@ -2800,42 +2854,62 @@ let _Code = {
 					</div>
 				`,
 				scratchpad: config => `
-					<div data-is-scratchpad class="flex flex-col gap-2 px-2 py-4">
-					
-						<div class="grid grid-cols-2 gap-4">
-							<div data-is-editor-container class="flex flex-col gap-2">
-								<div data-is-editor class="flex-grow"></div>
-								<div data-is-editor-context class="flex gap-2"></div>
-							</div>
-							<textarea data-is-log readonly="readonly"></textarea>
+
+					<details class="flex px-2 py-2" data-is-scratchpad open>
+						
+						<summary class="cursor-pointer flex gap-4 list-none pl-4 py-4">
+							<div data-is-title>Titel des Scratchpads</div>
+						</summary>
+						
+						<div class="flex flex-col flex-grow gap-2">
+						
+							<input data-is-title-input placeholder="Title" class="flex-grow">
+							
+							<div class="flex-grow flex gap-2">
+	
+								<div data-is-editor-context class="flex flex-col gap-2"></div>
+								
+								<div class="flex-grow grid grid-cols-2 gap-4">
+			
+									<div data-is-editor-container>
+										<div data-is-editor></div>
+									</div>
+	
+									<div class="flex gap-4">
+										<textarea data-is-log readonly="readonly" class="flex-grow whitespace-nowrap whitespace-pre"></textarea>
+										<div data-is-log-context></div>
+									</div>
+									
+									<div data-is-output class="col-span-2"></div>
+								</div>
+							</div>	
 						</div>
-						<div data-is-output></div>
-					</div>				
+					</details>
 				`,
 				runButton: config => `
-					<button class="group action-button hover:bg-gray-100 focus:border-gray-666 active:border-green">
+					<button class="group hover:bg-gray-100 focus:border-gray-666 active:border-green" title="Run">
 						<div class="group-[.show-spinner]:hidden flex items-center justify-center gap-2">
 							${_Icons.getSvgIcon(_Icons.iconRunButton)}
-							<div>Run</div>
 						</div>
-						<div class="hidden group-[.show-spinner]:block">
-							${_Icons.getSvgIcon(_Icons.iconWaitingSpinner)}
+						<div class="flex">
+							${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 16, 16, ['hidden', 'group-[.show-spinner]:block'])}
 						</div>
 					</button>
 				`,
 				updateLogButton: config => `
-					<button class="action-button hover:bg-gray-100 focus:border-gray-666 active:border-green">
-						<div class="flex items-center justify-center gap-2">
+					<button class="group over:bg-gray-100 focus:border-gray-666 active:border-green" title="Update Log">
+						<div class="group-[.show-spinner]:hidden flex items-center justify-center gap-2">
 							${_Icons.getSvgIcon(_Icons.iconRefreshArrows)}
-							<div>Update Log</div>
+						</div>
+						<div class="flex">
+							${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 16, 16, ['hidden', 'group-[.show-spinner]:block'])}
 						</div>
 					</button>
 				`,
 				removePadButton: config => `
-					<button class="action-button hover:bg-gray-100 focus:border-gray-666 active:border-green">
+					<button class="hover:bg-gray-100 focus:border-gray-666 active:border-green" title="Remove this scratchpad">
 						<div class="flex items-center justify-center gap-2">
 							${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, ['icon-red'])}
-							<div>Remove</div>
 						</div>
 					</button>
 				`,

@@ -21,7 +21,6 @@ package org.structr.logging;
 import ch.qos.logback.classic.pattern.ThrowableProxyConverter;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import org.slf4j.MDC;
-import org.structr.websocket.command.ScratchpadCommand;
 
 public class PrefixingThrowableConverter extends ThrowableProxyConverter {
 
