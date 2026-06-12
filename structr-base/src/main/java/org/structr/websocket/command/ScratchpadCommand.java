@@ -48,6 +48,8 @@ import java.util.List;
  */
 public class ScratchpadCommand extends AbstractCommand {
 
+	public static final String MDC_SCRATCHPAD_TAG = "structrScratchMDC";
+
 	private static final Logger logger = LoggerFactory.getLogger(ScratchpadCommand.class.getName());
 
 	private static int scratchCounter = 0;
@@ -97,7 +99,7 @@ public class ScratchpadCommand extends AbstractCommand {
 
 					final String scratchLogIdentifier = "[scratch_" + scratchId + "]";
 
-					MDC.put("structrScratchMDC" , scratchLogIdentifier);
+					MDC.put(MDC_SCRATCHPAD_TAG , scratchLogIdentifier);
 
 					final SecurityContext securityContext = getWebSocket().getSecurityContext();
 

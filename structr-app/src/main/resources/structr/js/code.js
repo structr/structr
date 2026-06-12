@@ -2608,128 +2608,154 @@ let _Code = {
 		},
 		scratchpad: {
 			scratchpadsKey: 'scratchpads_' + location.port,
+			currentScratchPads: [],
+			getEmptyScratchPadEntry: () => ({
+				// the editor storage uses the entity uuid. if we dont provide it they can overwrite each other
+				id: uuid.v4().replaceAll('-', ''),
+				script: '',
+				log: '',
+				result: '',
+				logFilter: null
+			}),
 			show: (data, updateLocationStack) => {
 
 				_Code.mainArea.updateLocationStack(data, updateLocationStack);
 
 				_Code.codeContents.append(_Code.mainArea.scratchpad.templates.main());
 
-				let contentContainer = _Code.codeContents[0].querySelector('.content-container');
+				_Code.mainArea.scratchpad.currentScratchPads = structuredClone(LSWrapper.getItem(_Code.mainArea.scratchpad.scratchpadsKey, [_Code.mainArea.scratchpad.getEmptyScratchPadEntry()]));
 
-				let scratchpads = LSWrapper.getItem(_Code.mainArea.scratchpad.scratchpadsKey, [
-					{
-						script: '',
-						log: '',
-						result: null,
-						logFilter: null
-					}
-				]);
+				let newScratchPadButton = _Code.codeContents[0].querySelector('#add-new-scratchpad');
+				newScratchPadButton?.addEventListener('click', () => {
+					let newScratchPad = _Code.mainArea.scratchpad.getEmptyScratchPadEntry();
+					_Code.mainArea.scratchpad.currentScratchPads.push(newScratchPad);
+					_Code.mainArea.scratchpad.drawScratchpad(newScratchPad);
+				});
 
-				for (let entity of scratchpads) {
+				for (let currentPad of _Code.mainArea.scratchpad.currentScratchPads) {
 
-					let newScratchpad = _Helpers.createSingleDOMElementFromHTML(_Code.mainArea.scratchpad.templates.scratchpad());
-					contentContainer.appendChild(newScratchpad);
-
-					let editorDiv        = newScratchpad.querySelector('[data-is-editor]');
-					let editorContextDiv = newScratchpad.querySelector('[data-is-editor-context]');
-					let logTextarea      = newScratchpad.querySelector('[data-is-log]');
-					let outputDiv        = newScratchpad.querySelector('[data-is-output]');
-
-					logTextarea.value    = entity.log;
-
-					_Code.mainArea.scratchpad.populateOutputDiv(outputDiv, entity);
-
-					let scratchMonacoConfig = {
-						language: 'auto',
-						lint: true,
-						autocomplete: true,
-						isAutoscriptEnv: true,
-						scrollBeyondLastLine: false,
-						changeFn: (editor, entity) => {
-
-							entity.script = editor.getValue();
-							_Code.mainArea.scratchpad.saveToLocalstorage(scratchpads);
-
-							_Code.mainArea.scratchpad.resizeEditorContainer(editorDiv, editor);
-						}
-					};
-
-					// TODO: without entity.id, our monaco storage overwrites other editors without id (if we want to show multiple pads)
-					let scratchEditor = _Editors.getMonacoEditor(entity, 'script', editorDiv, scratchMonacoConfig);
-
-					_Code.mainArea.scratchpad.resizeEditorContainer(editorDiv, scratchEditor);
-
-					let runButton = _Helpers.createSingleDOMElementFromHTML(_Code.mainArea.scratchpad.templates.runButton());
-					editorContextDiv.appendChild(runButton);
-
-					runButton.addEventListener('click', async () => {
-
-						runButton.disabled = true;
-						runButton.classList.add('show-spinner');
-
-						_Helpers.fastRemoveAllChildren(outputDiv);
-						logTextarea.value = '';
-
-						let scratchIdResult          = await Command.scratchpad({ command: 'getNewScratchId' });
-						let scratchId = scratchIdResult[0].scratchId;
-
-						entity.logFilter =  scratchIdResult[0].logString;
-
-						let callFinished = false;
-
-						Command.scratchpad({
-							command: 'run',
-							scratchId: scratchId,
-							script: entity.script
-						}).then(runResult => {
-
-							callFinished = true;
-
-							entity.result = runResult[0].result;
-
-							_Code.mainArea.scratchpad.populateOutputDiv(outputDiv, entity);
-						});
-
-						while (!callFinished) {
-
-							let logForRun = await Command.getServerLogSnapshot({ filter: entity.logFilter, numberOfLines: 10000 });
-
-							entity.log        = logForRun[0].result;
-							logTextarea.value = logForRun[0].result;
-						}
-
-						_Code.mainArea.scratchpad.saveToLocalstorage(scratchpads);
-
-						runButton.disabled = false;
-						runButton.classList.remove('show-spinner');
-					});
-
-					let updateLogButton = _Helpers.createSingleDOMElementFromHTML(_Code.mainArea.scratchpad.templates.updateLogButton());
-					editorContextDiv.appendChild(updateLogButton);
-
-					updateLogButton.addEventListener('click', async () => {
-
-						if (entity.logFilter) {
-
-							let logForRun = await Command.getServerLogSnapshot({ filter: entity.logFilter, numberOfLines: 10000 });
-
-							entity.log        = logForRun[0].result;
-							logTextarea.value = logForRun[0].result;
-
-							_Code.mainArea.scratchpad.saveToLocalstorage(scratchpads);
-						}
-					});
-
-					_Editors.resizeVisibleEditors();
+					_Code.mainArea.scratchpad.drawScratchpad(currentPad);
 				}
 			},
-			saveToLocalstorage: (data) => {
-				// TODO: when do we save? automatically or on demand? or do we create real entities?
-				LSWrapper.setItem(_Code.mainArea.scratchpad.scratchpadsKey, data);
+			drawScratchpad: (currentPad) => {
+
+				let contentContainer = _Code.codeContents[0].querySelector('.content-container');
+
+				let newScratchpad = _Helpers.createSingleDOMElementFromHTML(_Code.mainArea.scratchpad.templates.scratchpad());
+				contentContainer.insertAdjacentElement('afterbegin', newScratchpad);
+
+				let editorDiv        = newScratchpad.querySelector('[data-is-editor]');
+				let editorContextDiv = newScratchpad.querySelector('[data-is-editor-context]');
+				let logTextarea      = newScratchpad.querySelector('[data-is-log]');
+				let outputDiv        = newScratchpad.querySelector('[data-is-output]');
+
+				logTextarea.value    = currentPad.log;
+
+				_Code.mainArea.scratchpad.populateOutputDiv(outputDiv, currentPad);
+
+				let scratchMonacoConfig = {
+					language: 'auto',
+					lint: true,
+					autocomplete: true,
+					isAutoscriptEnv: true,
+					scrollBeyondLastLine: false,
+					changeFn: (editor, entity) => {
+
+						entity.script = editor.getValue();
+						_Code.mainArea.scratchpad.saveToLocalstorage();
+
+						_Code.mainArea.scratchpad.resizeEditorContainer(editorDiv, editor);
+					}
+				};
+
+				// TODO: without entity.id, our monaco storage overwrites other editors without id (if we want to show multiple pads)
+				let scratchEditor = _Editors.getMonacoEditor(currentPad, 'script', editorDiv, scratchMonacoConfig);
+
+				_Code.mainArea.scratchpad.resizeEditorContainer(editorDiv, scratchEditor);
+
+				let runButton = _Helpers.createSingleDOMElementFromHTML(_Code.mainArea.scratchpad.templates.runButton());
+				editorContextDiv.appendChild(runButton);
+
+				runButton.addEventListener('click', async () => {
+
+					runButton.disabled = true;
+					runButton.classList.add('show-spinner');
+
+					_Helpers.fastRemoveAllChildren(outputDiv);
+					logTextarea.value = '';
+
+					let scratchIdResult = await Command.scratchpad({ command: 'getNewScratchId' });
+					let scratchId       = scratchIdResult[0].scratchId;
+					currentPad.logFilter    = scratchIdResult[0].logString;
+
+					let callFinished = false;
+
+					Command.scratchpad({
+						command: 'run',
+						scratchId: scratchId,
+						script: currentPad.script
+					}).then(runResult => {
+
+						callFinished = true;
+
+						currentPad.result = runResult[0].result;
+
+						_Code.mainArea.scratchpad.populateOutputDiv(outputDiv, currentPad);
+					});
+
+					while (!callFinished) {
+
+						let logForRun = await Command.getServerLogSnapshot({ filter: currentPad.logFilter, numberOfLines: 10000 });
+
+						currentPad.log    = logForRun[0].result;
+						logTextarea.value = logForRun[0].result;
+					}
+
+					_Code.mainArea.scratchpad.saveToLocalstorage();
+
+					runButton.disabled = false;
+					runButton.classList.remove('show-spinner');
+				});
+
+				let updateLogButton = _Helpers.createSingleDOMElementFromHTML(_Code.mainArea.scratchpad.templates.updateLogButton());
+				editorContextDiv.appendChild(updateLogButton);
+
+				updateLogButton.addEventListener('click', async () => {
+
+					if (currentPad.logFilter) {
+
+						let logForRun = await Command.getServerLogSnapshot({ filter: currentPad.logFilter, numberOfLines: 10000 });
+
+						if (logForRun[0].result.length > 0) {
+
+							currentPad.log        = logForRun[0].result;
+							logTextarea.value = logForRun[0].result;
+
+							_Code.mainArea.scratchpad.saveToLocalstorage();
+						}
+					}
+				});
+
+				let removePadButton = _Helpers.createSingleDOMElementFromHTML(_Code.mainArea.scratchpad.templates.removePadButton());
+				editorContextDiv.appendChild(removePadButton);
+
+				removePadButton.addEventListener('click', (e) => {
+
+					e.target.closest('[data-is-scratchpad]').remove();
+
+					_Code.mainArea.scratchpad.currentScratchPads = _Code.mainArea.scratchpad.currentScratchPads.filter(s => s.id !== currentPad.id);
+
+					_Code.mainArea.scratchpad.saveToLocalstorage();
+				});
+
+				_Editors.resizeVisibleEditors();
+			},
+			saveToLocalstorage: () => {
+				LSWrapper.setItem(_Code.mainArea.scratchpad.scratchpadsKey, _Code.mainArea.scratchpad.currentScratchPads);
 			},
 			resizeEditorContainer: (container, editor) => {
 
-				const lineCount = editor.getModel().getLineCount();
+				const lineCount  = editor.getModel().getLineCount();
 				const lineHeight = editor.getOption(monaco.editor.EditorOption.lineHeight);
 
 				let minLines = 5;
@@ -2766,8 +2792,13 @@ let _Code = {
 
 			templates: {
 				main: config => `
-					<h2>Scratchpad</h2>
-					<div id="code-scratchpad-container" class="content-container">
+					<div class="flex gap-8 items-center">
+						<h2>Scratchpads</h2>
+						<button id="add-new-scratchpad" class="action inline-flex items-center">
+							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['icon-white', 'mr-2'])} Add Scratchpad
+						</button>
+					</div>
+					<div id="code-scratchpad-container" class="content-container divide-y">
 						
 					</div>
 				`,
@@ -2775,7 +2806,7 @@ let _Code = {
 					<div data-is-scratchpad class="flex flex-col gap-2">
 					
 						<div class="grid grid-cols-2 gap-4">
-							<div data-is-editor-container class="flex flex-col gap-4">
+							<div data-is-editor-container class="flex flex-col gap-2">
 								<div data-is-editor class="flex-grow"></div>
 								<div data-is-editor-context class="flex gap-2"></div>
 							</div>
@@ -2800,6 +2831,14 @@ let _Code = {
 						<div class="flex items-center justify-center gap-2">
 							${_Icons.getSvgIcon(_Icons.iconRefreshArrows)}
 							<div>Update Log</div>
+						</div>
+					</button>
+				`,
+				removePadButton: config => `
+					<button class="action-button hover:bg-gray-100 focus:border-gray-666 active:border-green">
+						<div class="flex items-center justify-center gap-2">
+							${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, ['icon-red'])}
+							<div>Remove</div>
 						</div>
 					</button>
 				`,
