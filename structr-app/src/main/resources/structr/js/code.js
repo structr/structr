@@ -2625,7 +2625,7 @@ let _Code = {
 
 				_Code.mainArea.scratchpad.currentScratchPads = structuredClone(LSWrapper.getItem(_Code.mainArea.scratchpad.scratchpadsKey, [_Code.mainArea.scratchpad.getEmptyScratchPadEntry()]));
 
-				let newScratchPadButton = _Code.codeContents[0].querySelector('#add-new-scratchpad');
+				let newScratchPadButton = _Code.codeContents[0].querySelector('svg');
 				newScratchPadButton?.addEventListener('click', () => {
 					let newScratchPad = _Code.mainArea.scratchpad.getEmptyScratchPadEntry();
 					_Code.mainArea.scratchpad.currentScratchPads.push(newScratchPad);
@@ -2684,9 +2684,9 @@ let _Code = {
 					_Helpers.fastRemoveAllChildren(outputDiv);
 					logTextarea.value = '';
 
-					let scratchIdResult = await Command.scratchpad({ command: 'getNewScratchId' });
-					let scratchId       = scratchIdResult[0].scratchId;
-					currentPad.logFilter    = scratchIdResult[0].logString;
+					let scratchIdResult  = await Command.scratchpad({ command: 'getNewScratchId' });
+					let scratchId        = scratchIdResult[0].scratchId;
+					currentPad.logFilter = scratchIdResult[0].logString;
 
 					let callFinished = false;
 
@@ -2728,7 +2728,7 @@ let _Code = {
 
 						if (logForRun[0].result.length > 0) {
 
-							currentPad.log        = logForRun[0].result;
+							currentPad.log    = logForRun[0].result;
 							logTextarea.value = logForRun[0].result;
 
 							_Code.mainArea.scratchpad.saveToLocalstorage();
@@ -2792,18 +2792,15 @@ let _Code = {
 
 			templates: {
 				main: config => `
-					<div class="flex gap-8 items-center">
-						<h2>Scratchpads</h2>
-						<button id="add-new-scratchpad" class="action inline-flex items-center">
-							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['icon-white', 'mr-2'])} Add Scratchpad
-						</button>
+					<div class="flex flex-col items-start gap-2 items-center mb-4">
+						<h2>Scratchpads ${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['icon-green', 'cursor-pointer', 'mr-2'])}</h2>
 					</div>
 					<div id="code-scratchpad-container" class="content-container divide-y">
 						
 					</div>
 				`,
 				scratchpad: config => `
-					<div data-is-scratchpad class="flex flex-col gap-2">
+					<div data-is-scratchpad class="flex flex-col gap-2 px-2 py-4">
 					
 						<div class="grid grid-cols-2 gap-4">
 							<div data-is-editor-container class="flex flex-col gap-2">

@@ -35,7 +35,8 @@ public class PrefixingThrowableConverter extends ThrowableProxyConverter {
 			return "";
 		}
 
-		final String scratchPadLogString = MDC.get(ScratchpadCommand.MDC_SCRATCHPAD_TAG);
+		final String mdcKey              = getFirstOption();
+		final String scratchPadLogString = MDC.get(mdcKey);
 
 		if (scratchPadLogString == null) {
 

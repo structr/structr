@@ -215,6 +215,16 @@ li.highlight-name > a {
 	padding: 0;
 }
 
+[data-is-scratchpad] {
+	border: 2px solid transparent;
+	border-left: .5rem solid transparent;
+}
+
+[data-is-scratchpad]:hover {
+	border: 2px solid var(--structr-light-green);
+	border-left: .5rem solid var(--structr-light-green);
+}
+
 /**
  * BEGIN: query builder
  */

@@ -76,9 +76,9 @@ public class RoundFunction extends AdvancedScriptingFunction {
 				return (double) r / f2;
 			}
 
-//		} catch (NumberFormatException nfe) {
-//
-//			return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, "%s(): NumberFormatException occurred: %s".formatted(getName(), nfe.getMessage()), nfe);
+		} catch (NumberFormatException nfe) {
+
+			return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, "%s(): NumberFormatException occurred: %s".formatted(getName(), nfe.getMessage()), nfe);
 
 		} catch (Throwable t) {
 
