@@ -5101,7 +5101,7 @@ public class ScriptingTest extends StructrTest {
 
 			assertEquals("Invalid print output", expected,         Scripting.evaluate(ctx, group1, "${print(find('Group'))}", "test1"));
 			assertEquals("Invalid print output", group1.getUuid(), Scripting.evaluate(ctx, group1, "${print(this)}", "test1"));
-			assertEquals("Invalid print output", "", Scripting.evaluate(ctx, group2, "${log(this)}", "test2"));
+			assertEquals("Invalid print output", null, Scripting.evaluate(ctx, group2, "${log(this)}", "test2"));
 
 			tx.success();
 
