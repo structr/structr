@@ -213,7 +213,7 @@
 	padding-left: 1rem;
 }
 
-.general-container {
+.general-container, .process-container {
 	padding: 0 1rem;
 }
 
@@ -448,4 +448,16 @@ URL Routing custom styles
  */
 div[data-structr-path-parameters-container] > div[data-structr-id]:nth-child(2n+1) {
 	background-color: var(--light-gray-bg-f7);
+}
+
+/*
+ * Event-Action-Mapping: the show/hide behaviour blocks stack several field rows
+ * (show, hide, URL) inside a single grid cell. Add gap-4 spacing between those rows
+ * by giving each row's leading label a top margin (the first row's label is excluded).
+ */
+.option-success-show-hide-section > label:not(:first-child),
+.option-failure-show-hide-section > label:not(:first-child),
+.option-success-show-hide-section-linked > label:not(:first-child),
+.option-failure-show-hide-section-linked > label:not(:first-child) {
+	margin-top: 1rem;
 }

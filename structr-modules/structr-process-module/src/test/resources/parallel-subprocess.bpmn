@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  id="Definitions_parallel"
+                  targetNamespace="http://bpmn.io/schema/bpmn"
+                  exporter="Structr"
+                  exporterVersion="7.0">
+
+  <bpmn:process id="Process_OrderFulfillment" name="Order Fulfillment" isExecutable="true">
+
+    <bpmn:startEvent id="Start_1" name="Order received">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:userTask id="Task_Validate" name="Validate order">
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:parallelGateway id="Fork_1" name="Prepare in parallel">
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3a</bpmn:outgoing>
+      <bpmn:outgoing>Flow_3b</bpmn:outgoing>
+      <bpmn:outgoing>Flow_3c</bpmn:outgoing>
+    </bpmn:parallelGateway>
+
+    <bpmn:serviceTask id="Task_Inventory" name="Check inventory">
+      <bpmn:incoming>Flow_3a</bpmn:incoming>
+      <bpmn:outgoing>Flow_4a</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_Payment" name="Charge payment">
+      <bpmn:incoming>Flow_3b</bpmn:incoming>
+      <bpmn:outgoing>Flow_4b</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:userTask id="Task_Shipping" name="Prepare shipping label">
+      <bpmn:incoming>Flow_3c</bpmn:incoming>
+      <bpmn:outgoing>Flow_4c</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:parallelGateway id="Join_1" name="All done">
+      <bpmn:incoming>Flow_4a</bpmn:incoming>
+      <bpmn:incoming>Flow_4b</bpmn:incoming>
+      <bpmn:incoming>Flow_4c</bpmn:incoming>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+    </bpmn:parallelGateway>
+
+    <bpmn:subProcess id="SubProcess_Pack" name="Packaging">
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+
+      <bpmn:startEvent id="SubStart_1">
+        <bpmn:outgoing>SubFlow_1</bpmn:outgoing>
+      </bpmn:startEvent>
+
+      <bpmn:manualTask id="Task_Pick" name="Pick items">
+        <bpmn:incoming>SubFlow_1</bpmn:incoming>
+        <bpmn:outgoing>SubFlow_2</bpmn:outgoing>
+      </bpmn:manualTask>
+
+      <bpmn:manualTask id="Task_Pack" name="Pack items">
+        <bpmn:incoming>SubFlow_2</bpmn:incoming>
+        <bpmn:outgoing>SubFlow_3</bpmn:outgoing>
+      </bpmn:manualTask>
+
+      <bpmn:endEvent id="SubEnd_1">
+        <bpmn:incoming>SubFlow_3</bpmn:incoming>
+      </bpmn:endEvent>
+
+      <bpmn:sequenceFlow id="SubFlow_1" sourceRef="SubStart_1" targetRef="Task_Pick" />
+      <bpmn:sequenceFlow id="SubFlow_2" sourceRef="Task_Pick" targetRef="Task_Pack" />
+      <bpmn:sequenceFlow id="SubFlow_3" sourceRef="Task_Pack" targetRef="SubEnd_1" />
+    </bpmn:subProcess>
+
+    <bpmn:endEvent id="End_1" name="Order shipped">
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_1" targetRef="Task_Validate" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_Validate" targetRef="Fork_1" />
+    <bpmn:sequenceFlow id="Flow_3a" sourceRef="Fork_1" targetRef="Task_Inventory" />
+    <bpmn:sequenceFlow id="Flow_3b" sourceRef="Fork_1" targetRef="Task_Payment" />
+    <bpmn:sequenceFlow id="Flow_3c" sourceRef="Fork_1" targetRef="Task_Shipping" />
+    <bpmn:sequenceFlow id="Flow_4a" sourceRef="Task_Inventory" targetRef="Join_1" />
+    <bpmn:sequenceFlow id="Flow_4b" sourceRef="Task_Payment" targetRef="Join_1" />
+    <bpmn:sequenceFlow id="Flow_4c" sourceRef="Task_Shipping" targetRef="Join_1" />
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="Join_1" targetRef="SubProcess_Pack" />
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="SubProcess_Pack" targetRef="End_1" />
+
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_OrderFulfillment">
+      <bpmndi:BPMNShape id="Start_1_di" bpmnElement="Start_1">
+        <dc:Bounds x="152" y="282" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Validate_di" bpmnElement="Task_Validate">
+        <dc:Bounds x="240" y="260" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Fork_1_di" bpmnElement="Fork_1">
+        <dc:Bounds x="395" y="275" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Inventory_di" bpmnElement="Task_Inventory">
+        <dc:Bounds x="500" y="140" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Payment_di" bpmnElement="Task_Payment">
+        <dc:Bounds x="500" y="260" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Shipping_di" bpmnElement="Task_Shipping">
+        <dc:Bounds x="500" y="380" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Join_1_di" bpmnElement="Join_1">
+        <dc:Bounds x="655" y="275" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SubProcess_Pack_di" bpmnElement="SubProcess_Pack" isExpanded="true">
+        <dc:Bounds x="760" y="220" width="400" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SubStart_1_di" bpmnElement="SubStart_1">
+        <dc:Bounds x="790" y="282" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Pick_di" bpmnElement="Task_Pick">
+        <dc:Bounds x="870" y="260" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Pack_di" bpmnElement="Task_Pack">
+        <dc:Bounds x="1010" y="260" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SubEnd_1_di" bpmnElement="SubEnd_1">
+        <dc:Bounds x="1132" y="282" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_1_di" bpmnElement="End_1">
+        <dc:Bounds x="1212" y="282" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1">
+        <di:waypoint x="188" y="300" />
+        <di:waypoint x="240" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2">
+        <di:waypoint x="340" y="300" />
+        <di:waypoint x="395" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_3a_di" bpmnElement="Flow_3a">
+        <di:waypoint x="420" y="275" />
+        <di:waypoint x="420" y="180" />
+        <di:waypoint x="500" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_3b_di" bpmnElement="Flow_3b">
+        <di:waypoint x="445" y="300" />
+        <di:waypoint x="500" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_3c_di" bpmnElement="Flow_3c">
+        <di:waypoint x="420" y="325" />
+        <di:waypoint x="420" y="420" />
+        <di:waypoint x="500" y="420" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_4a_di" bpmnElement="Flow_4a">
+        <di:waypoint x="600" y="180" />
+        <di:waypoint x="680" y="180" />
+        <di:waypoint x="680" y="275" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_4b_di" bpmnElement="Flow_4b">
+        <di:waypoint x="600" y="300" />
+        <di:waypoint x="655" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_4c_di" bpmnElement="Flow_4c">
+        <di:waypoint x="600" y="420" />
+        <di:waypoint x="680" y="420" />
+        <di:waypoint x="680" y="325" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_5_di" bpmnElement="Flow_5">
+        <di:waypoint x="705" y="300" />
+        <di:waypoint x="760" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_6_di" bpmnElement="Flow_6">
+        <di:waypoint x="1160" y="300" />
+        <di:waypoint x="1212" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SubFlow_1_di" bpmnElement="SubFlow_1">
+        <di:waypoint x="826" y="300" />
+        <di:waypoint x="870" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SubFlow_2_di" bpmnElement="SubFlow_2">
+        <di:waypoint x="970" y="300" />
+        <di:waypoint x="1010" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="SubFlow_3_di" bpmnElement="SubFlow_3">
+        <di:waypoint x="1110" y="300" />
+        <di:waypoint x="1132" y="300" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+
+</bpmn:definitions>

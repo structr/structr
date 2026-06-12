@@ -55,9 +55,9 @@ Controls the visual appearance of the schema editor.
 
 #### Type Visibility
 
-Opens a dialog where you show or hide types on the canvas. Types are grouped into categories: Custom Types, User/Group Types, File Types, HTML Types, Flow Types, Schema Types, and Other Types. Each type has a checkbox to toggle its visibility.
+Opens a dialog where you show or hide types on the canvas. Types are grouped into categories: Custom Types, User/Group Types, File Types, HTML Types, Flow Types, Process Types, Schema Types, and Other Types. Each type has a checkbox to toggle its visibility.
 
-This is essential for focusing on specific parts of the schema. In a typical application, you work primarily with your custom types and rarely need to see the built-in HTML or Flow types.
+This is essential for focusing on specific parts of the schema. In a typical application, you work primarily with your custom types and rarely need to see the built-in HTML, Flow, or Process types.
 
 #### Display Options
 

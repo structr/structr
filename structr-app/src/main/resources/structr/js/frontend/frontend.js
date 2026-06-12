@@ -485,7 +485,13 @@ export class Frontend {
 
 		this.fireEvent('error', { target: element, data: {}, status: status });
 
-        this.handleLogout();
+		// Only show the "logged out" alert when the failure is actually a 401.
+		// Treating every fetch-chain rejection (404, 422, 500, JSON parse errors,
+		// DOM-manipulation throws after a successful 200) as a session expiry
+		// misleads the user and hides the real error.
+		if (error && (error.status === 401 || error?.response?.status === 401)) {
+			this.handleLogout();
+		}
 	}
 
 	reloadPartial(selector, parameters, element, dontRebind, options) {
@@ -584,15 +590,35 @@ export class Frontend {
 			if (!response.ok) { throw { status: response.status, statusText: response.statusText } };
 			return response.text();
 		}).then(html => {
+			// `replaceContentInContainer` returns undefined when the response
+			// body has no top-level children (empty partial). That's a valid
+			// state -- e.g. after completing a task, the "current task" partial
+			// legitimately has nothing to render until the next step's partial
+			// loads. Guard so we don't throw on dispatchEvent / querySelector
+			// and end up in the catch (which used to misreport as a logout).
 			let newNode = this.replaceContentInContainer(container, html);
-			newNode.dispatchEvent(new Event('structr-reload'));
-			this.fireEvent('reload', {target: newNode});
+			if (newNode) {
+				// The show-hide-section "show" behaviour loads a (possibly statically
+				// hidden) partial via URL and wants it revealed once loaded. The freshly
+				// rendered node carries the template's `hidden` class, so removing it
+				// before insertion is futile -- do it here, after the node is in the DOM.
+				if (options && options.removeHiddenOnLoad) {
+					newNode.classList.remove('hidden');
+				}
+				newNode.dispatchEvent(new Event('structr-reload'));
+				this.fireEvent('reload', {target: newNode});
 
-			let restoreFocus = newNode.querySelector('*[name="' + this.focusName + '"][data-structr-target="' + this.focusTarget + '"]');
-			if (restoreFocus) {
+				let restoreFocus = newNode.querySelector('*[name="' + this.focusName + '"][data-structr-target="' + this.focusTarget + '"]');
+				if (restoreFocus) {
 
-				restoreFocus.focus({ focusVisible: true });
-				restoreFocus.select();
+					restoreFocus.focus({ focusVisible: true });
+					restoreFocus.select();
+
+				} else {
+
+					// no field to restore: honor the autofocus attribute on the loaded content
+					this.focusAutofocusElement(newNode);
+				}
 			}
 
 			if (!dontRebind) {
@@ -603,6 +629,23 @@ export class Frontend {
 			this.handleNetworkError(element, e, {});
 		});
 
+	}
+
+	/**
+	 * Focus the first element carrying the `autofocus` attribute within (or equal to) the
+	 * given root. The browser only applies `autofocus` during the initial HTML parse, so
+	 * content that is dynamically un-hidden or loaded as a partial needs it triggered here.
+	 */
+	focusAutofocusElement(root) {
+
+		if (!root) {
+			return;
+		}
+
+		let el = (root.matches && root.matches('[autofocus]')) ? root : (root.querySelector ? root.querySelector('[autofocus]') : null);
+		if (el) {
+			el.focus({ focusVisible: true });
+		}
 	}
 
 	loadPartial(uri, container) {

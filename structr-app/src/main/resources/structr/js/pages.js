@@ -66,6 +66,24 @@ let _Pages = {
 		_Pager.initPager('files',   'File', 1, 25, 'name', 'asc');
 		_Pager.initPager('folders', 'Folder', 1, 25, 'name', 'asc');
 		_Pager.initPager('images',  'Image', 1, 25, 'name', 'asc');
+
+		_Pages.refreshVisibilityMappingIndex();
+	},
+	visibilityMappingDomNodeIds: new Set(),
+	refreshVisibilityMappingIndex: (cb) => {
+		try {
+			Command.query('VisibilityMapping', 10000, 1, 'createdDate', 'asc', null, (mappings) => {
+				_Pages.visibilityMappingDomNodeIds = new Set();
+				(mappings ?? []).forEach(vm => {
+					let dn = vm.domNode;
+					let id = (typeof dn === 'string') ? dn : (dn?.id ?? (Array.isArray(dn) ? (dn[0]?.id ?? dn[0]) : null));
+					if (id) _Pages.visibilityMappingDomNodeIds.add(id);
+				});
+				if (typeof cb === 'function') cb();
+			}, false, null, 'id,domNode');
+		} catch (e) {
+			// type may not be registered (process module not loaded) — leave the set empty
+		}
 	},
 	handleNodeRefresh: (node) => {
 
@@ -1024,6 +1042,21 @@ let _Pages = {
 				});
 				break;
 
+			case '#pages:process':
+
+				_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.process());
+				let processContainer = document.querySelector('#center-pane .process-container');
+
+				_Schema.caches.getTypeInfo(obj.type, (typeInfo) => {
+
+					// Process Visibility editor: appended after the standard Process fields.
+					// Per-DOMNode and orthogonal to events; lives here so any DOMNode can be
+					// configured even when it has no event handlers.
+					_Pages.processDialog(obj, processContainer);
+				});
+
+				break;
+
 			case '#pages:security':
 
 				let securityContainer = _Helpers.createSingleDOMElementFromHTML(_Pages.templates.security());
@@ -1269,6 +1302,315 @@ let _Pages = {
 		];
 
 	},
+
+	processDialog: (entity, container) => {
+
+		// --- Component Binding (Bound UserTask) ---
+		// Only meaningful for DOMNodes that carry a ComponentConfiguration
+		// (widgets / smart components). For other DOMNodes the whole section
+		// is hidden so the tab still shows just the Visibility editor.
+		//
+		// Two cascading dropdowns:
+		//   1. Process: every BpmnProcess in the system. Pre-selected to the
+		//      currently bound UserTask's process (if any).
+		//   2. UserTask: scoped to the selected Process. Pre-selected to the
+		//      current binding. Disabled until a Process is picked.
+		// Persisting happens on UserTask change; selecting a Process alone
+		// does not touch the binding (so the user can browse).
+		let bindingSection    = container.querySelector('#component-binding-section');
+		let processSelect     = container.querySelector('#relink-process-select');
+		let relinkSelect      = container.querySelector('#relink-user-task-select');
+		let relinkHint        = container.querySelector('#relink-user-task-hint');
+		let componentConfigId = entity?.componentConfiguration?.id || null;
+		if (!componentConfigId) {
+			if (bindingSection) bindingSection.style.display = 'none';
+		} else {
+			const setHint = (msg, isError) => {
+				relinkHint.textContent = msg;
+				relinkHint.style.color = isError ? '#c0392b' : '';
+			};
+			const updateHint = (taskId, subj) => {
+				if (taskId && subj)       setHint(`Subject type from this UserTask: ${subj}`, false);
+				else if (taskId)          setHint('Bound UserTask has no subjectType. Set it in the BPMN editor to drive process-bound rendering.', true);
+				else                      setHint('Unbound. Process-bound widgets fall back to their manual data source until a task is selected.', false);
+			};
+
+			// Cached per-process userTask lists so flipping the Process dropdown
+			// is instantaneous after the first hit.
+			const tasksByProcess = new Map();
+			const loadTasksFor = (procId, cb) => {
+				if (!procId) { cb([]); return; }
+				if (tasksByProcess.has(procId)) { cb(tasksByProcess.get(procId)); return; }
+				Command.query('BpmnElement', 2000, 1, 'bpmnName', 'asc', { process: procId, bpmnElementType: 'userTask' }, (elements) => {
+					const tasks = elements || [];
+					tasksByProcess.set(procId, tasks);
+					cb(tasks);
+				}, false, null, 'id,name,bpmnName,bpmnId');
+			};
+
+			const renderTaskOptions = (tasks, selectedId) => {
+				let html = '<option value="">— pick a UserTask —</option>';
+				for (const t of tasks) {
+					const label = t.bpmnName || t.name || t.bpmnId || t.id;
+					const sel   = (t.id === selectedId) ? 'selected' : '';
+					html += `<option value="${t.id}" ${sel}>${_Helpers.escapeTags(label)}</option>`;
+				}
+				relinkSelect.innerHTML = html;
+				relinkSelect.disabled  = (tasks.length === 0);
+			};
+
+			(async () => {
+				let boundTask = null;
+				let currentTaskId    = '';
+				let currentProcessId = '';
+				let currentSubject   = null;
+				try {
+					const config = await Command.getPromise(componentConfigId, '', 'ui');
+					boundTask    = config?.boundUserTask || null;
+					if (boundTask && typeof boundTask === 'object') {
+						currentTaskId  = boundTask.id || '';
+						currentSubject = boundTask.subjectType || null;
+						const procRel  = Array.isArray(boundTask.process) ? boundTask.process[0] : boundTask.process;
+						currentProcessId = (procRel && procRel.id) || '';
+					}
+				} catch (e) {
+					console.error('processDialog: failed to fetch ComponentConfiguration', e);
+				}
+
+				// Populate the Process select.
+				Command.query('BpmnProcess', 2000, 1, 'processName', 'asc', null, (procs) => {
+					let html = '<option value="">— pick a Process —</option>';
+					for (const p of (procs || [])) {
+						const label = (p.processName ?? p.processId ?? p.id) + (p.version ? ` (v${p.version})` : '');
+						const sel   = (p.id === currentProcessId) ? 'selected' : '';
+						html += `<option value="${p.id}" ${sel}>${_Helpers.escapeTags(label)}</option>`;
+					}
+					processSelect.innerHTML = html;
+					processSelect.dataset.current = currentProcessId;
+
+					// If the current binding has a process, load its tasks
+					// and pre-select the currently bound task.
+					if (currentProcessId) {
+						loadTasksFor(currentProcessId, (tasks) => {
+							renderTaskOptions(tasks, currentTaskId);
+							relinkSelect.dataset.current = currentTaskId;
+							updateHint(currentTaskId, currentSubject);
+						});
+					} else {
+						updateHint('', null);
+					}
+				}, false, null, 'id,processName,processId,version');
+			})();
+
+			// Process change: load that process's UserTasks. Does NOT persist;
+			// the actual binding only changes when the user picks a task.
+			processSelect.addEventListener('change', () => {
+				const procId = processSelect.value || '';
+				processSelect.dataset.current = procId;
+				if (!procId) {
+					renderTaskOptions([], '');
+					return;
+				}
+				loadTasksFor(procId, (tasks) => {
+					renderTaskOptions(tasks, '');
+				});
+			});
+
+			// UserTask change: persist boundUserTask via the standard UPDATE
+			// command, then re-read the config so the hint reflects the new
+			// task's subjectType.
+			relinkSelect.addEventListener('change', () => {
+				const newId = relinkSelect.value || null;
+				Command.setProperty(componentConfigId, 'boundUserTask', newId, false, async () => {
+					try {
+						const updated = await Command.getPromise(componentConfigId, '', 'ui');
+						const bt   = updated?.boundUserTask || null;
+						const subj = (bt && typeof bt === 'object') ? bt.subjectType : null;
+						relinkSelect.dataset.current = newId || '';
+						updateHint(newId, subj);
+						_Helpers.blinkGreen(relinkSelect);
+					} catch (err) {
+						new ErrorMessage().text(`Re-link succeeded but refresh failed: ${err.message ?? err}`).show();
+					}
+				});
+			});
+		}
+
+		let visibilityMappingsList = container.querySelector('#visibility-mappings-list');
+		let addVisibilityMappingButton = container.querySelector('.add-visibility-mapping-button');
+
+		// State -> required element type for the Step picker. null means process-level
+		// (Step picker is hidden).
+		const VISIBILITY_STATE_ELEMENT_TYPE = {
+			'task-available':         'userTask',
+			'task-reserved-by-me':    'userTask',
+			'task-reserved-by-other': 'userTask',
+			'task-completed':         'userTask',
+			'task-cancelled':         'userTask',
+			'process-completed':       null,
+			'process-terminated':      null,
+			'process-failed':          null,
+			'process-awaiting-action': null,
+			'no-instance':             null,
+			'has-active-instance':     null
+		};
+
+		let cachedVisibilityProcesses = null;
+		let withVisibilityProcesses = (cb) => {
+			if (cachedVisibilityProcesses !== null) { cb(cachedVisibilityProcesses); return; }
+			Command.query('BpmnProcess', 2000, 1, 'processName', 'asc', null, (procs) => {
+				cachedVisibilityProcesses = procs ?? [];
+				cb(cachedVisibilityProcesses);
+			}, false, null, 'id,processName,processId,version');
+		};
+
+		let loadVisibilityStepsForRow = (processNodeId, elementTypeFilter, cb) => {
+			if (!processNodeId) { cb([]); return; }
+			Command.query('BpmnElement', 2000, 1, 'bpmnName', 'asc', { process: processNodeId }, (elements) => {
+				let filtered = elements ?? [];
+				if (elementTypeFilter) {
+					filtered = filtered.filter(el => el.bpmnElementType === elementTypeFilter);
+				} else {
+					filtered = filtered.filter(el =>
+						el.bpmnElementType === 'userTask' ||
+						el.bpmnElementType === 'intermediateCatchEvent'
+					);
+				}
+				filtered.sort((a, b) => (a.bpmnName ?? a.bpmnId ?? '').localeCompare(b.bpmnName ?? b.bpmnId ?? ''));
+				cb(filtered);
+			}, false, null, 'id,bpmnId,bpmnName,bpmnElementType');
+		};
+
+		// Step picker stays visible at all times to match the natural authoring order
+		// (Process -> Step -> State). Process-level states (process-completed, no-instance,
+		// ...) simply ignore the step value at runtime; the renderer does not require it.
+		let updateVisibilityRowStepVisibility = (row) => {
+			let stepWrapper  = row.querySelector('.visibility-step-wrapper');
+			stepWrapper.style.display = '';
+		};
+
+		let saveVisibilityRow = (row) => {
+			let vmId             = row.dataset.vmId;
+			let visibleWhen      = row.querySelector('.visibility-state-select').value || null;
+			let processSelect    = row.querySelector('.visibility-process-select');
+			let stepSelect       = row.querySelector('.visibility-step-select');
+			let boundProcess     = processSelect.value || null;
+			let boundStep        = stepSelect.value || null;
+			let boundProcessId   = processSelect.selectedOptions[0]?.dataset.processId || null;
+			let boundStepBpmnId  = stepSelect.selectedOptions[0]?.dataset.bpmnId || null;
+			Command.setProperties(vmId, { visibleWhen, boundProcess, boundStep, boundProcessId, boundStepBpmnId }, () => {
+				_Helpers.blinkGreen(row);
+			});
+		};
+
+		let repopulateVisibilityStepSelect = (row, stateValue, processValue, onComplete) => {
+			let stepSelect = row.querySelector('.visibility-step-select');
+			let previousStepId = stepSelect.value;
+			stepSelect.innerHTML = '<option value="">— Select step —</option>';
+			let filter = VISIBILITY_STATE_ELEMENT_TYPE[stateValue] ?? null;
+			if (!processValue) {
+				if (typeof onComplete === 'function') onComplete();
+				return;
+			}
+			loadVisibilityStepsForRow(processValue, filter, (steps) => {
+				stepSelect.insertAdjacentHTML('beforeend',
+					steps.map(s => {
+						let label = s.bpmnName ?? s.bpmnId;
+						return `<option value="${s.id}" data-element-type="${s.bpmnElementType}" data-bpmn-id="${_Helpers.escapeTags(s.bpmnId ?? '')}">${_Helpers.escapeTags(label)}</option>`;
+					}).join('')
+				);
+				// Preserve the previously selected step if it's still in the filtered list
+				// (e.g. switching between task-* states keeps the same userTask valid).
+				if (previousStepId && steps.some(s => s.id === previousStepId)) {
+					stepSelect.value = previousStepId;
+				}
+				if (typeof onComplete === 'function') onComplete();
+			});
+		};
+
+		let wireVisibilityRow = (row, vm) => {
+
+			let stateSelect   = row.querySelector('.visibility-state-select');
+			let processSelect = row.querySelector('.visibility-process-select');
+			let stepSelect    = row.querySelector('.visibility-step-select');
+			let removeButton  = row.querySelector('.remove-visibility-mapping');
+
+			let extractRelId = (val) => {
+				if (!val) return '';
+				if (typeof val === 'string') return val;
+				if (Array.isArray(val)) return val[0]?.id ?? (typeof val[0] === 'string' ? val[0] : '');
+				return val.id ?? '';
+			};
+			let preselectProcessId = extractRelId(vm?.boundProcess);
+			let preselectStepId    = extractRelId(vm?.boundStep);
+
+			withVisibilityProcesses((procs) => {
+				processSelect.insertAdjacentHTML('beforeend',
+					procs.map(p => {
+						let label = (p.processName ?? p.processId ?? p.id) + (p.version ? ` (v${p.version})` : '');
+						return `<option value="${p.id}" data-process-id="${_Helpers.escapeTags(p.processId ?? '')}">${_Helpers.escapeTags(label)}</option>`;
+					}).join(''));
+				processSelect.value = preselectProcessId;
+
+				let elementTypeFilter = VISIBILITY_STATE_ELEMENT_TYPE[vm?.visibleWhen ?? ''] ?? null;
+				if (preselectProcessId) {
+					loadVisibilityStepsForRow(preselectProcessId, elementTypeFilter, (steps) => {
+						stepSelect.insertAdjacentHTML('beforeend',
+							steps.map(s => {
+								let label = s.bpmnName ?? s.bpmnId;
+								return `<option value="${s.id}" data-element-type="${s.bpmnElementType}" data-bpmn-id="${_Helpers.escapeTags(s.bpmnId ?? '')}">${_Helpers.escapeTags(label)}</option>`;
+							}).join('')
+						);
+						if (preselectStepId) stepSelect.value = preselectStepId;
+					});
+				}
+			});
+
+			stateSelect.value = vm?.visibleWhen ?? '';
+			updateVisibilityRowStepVisibility(row);
+
+			stateSelect.addEventListener('change', () => {
+				updateVisibilityRowStepVisibility(row);
+				repopulateVisibilityStepSelect(row, stateSelect.value, processSelect.value, () => saveVisibilityRow(row));
+			});
+			processSelect.addEventListener('change', () => {
+				repopulateVisibilityStepSelect(row, stateSelect.value, processSelect.value, () => saveVisibilityRow(row));
+			});
+			stepSelect.addEventListener('change', () => saveVisibilityRow(row));
+			removeButton.addEventListener('click', () => {
+				Command.deleteNode(row.dataset.vmId, undefined, () => {
+					row.remove();
+					// If no rows remain, drop this DOMNode from the index and refresh its tree icon.
+					if (!visibilityMappingsList.querySelector('.visibility-mapping')) {
+						_Pages.visibilityMappingDomNodeIds.delete(entity.id);
+						StructrModel.refresh(entity.id);
+					}
+				});
+			});
+		};
+
+		let appendVisibilityRow = (vm) => {
+			let html = _Pages.templates.visibilityMappingRow({ id: vm.id });
+			let row = _Helpers.createSingleDOMElementFromHTML(html);
+			visibilityMappingsList.appendChild(row);
+			wireVisibilityRow(row, vm);
+		};
+
+		Command.query('VisibilityMapping', 200, 1, 'createdDate', 'asc', { domNode: entity.id }, (mappings) => {
+			(mappings ?? []).forEach(appendVisibilityRow);
+		}, false, null, 'id,visibleWhen,boundProcess,boundStep,domNode');
+
+		addVisibilityMappingButton.addEventListener('click', (e) => {
+			e.preventDefault();
+			Command.create({ type: 'VisibilityMapping', domNode: entity.id }, (vm) => {
+				appendVisibilityRow(vm);
+				let wasEmpty = !_Pages.visibilityMappingDomNodeIds.has(entity.id);
+				_Pages.visibilityMappingDomNodeIds.add(entity.id);
+				if (wasEmpty) StructrModel.refresh(entity.id);
+			});
+		});
+	},
+
 	eventActionMappingDialog: (entity, container, typeInfo) => {
 
 		_Helpers.activateCommentsInElement(container);
@@ -1287,6 +1629,63 @@ let _Pages = {
 		let flowInput                        = container.querySelector('#flow-input');
 
 		let methodNameInput                  = container.querySelector('#method-name-input');
+
+		// Process control cascade (action="control-process"). Operation-first: the user
+		// picks what they want this button to do; the form adapts to ask only the
+		// questions that operation needs. PROCESS_OPERATIONS is the single source of
+		// truth: each entry maps an internal engine-method name to a human-readable
+		// label, a group, the BPMN element type the step picker should filter to (null
+		// = no step), and whether a runtime target id-expression is required.
+		let processDefinitionSelect          = container.querySelector('#process-definition-select');
+		let processElementSelect             = container.querySelector('#process-element-select');
+		let processOperationSelect           = container.querySelector('#process-operation-select');
+		// Dynamic alternative to the static Process selection. Visible only
+		// for the 'start' operation -- the other operations target a runtime
+		// task / instance via idExpression, not a definition.
+		let processIdExpressionInput        = container.querySelector('#process-id-expression-input');
+
+		const PROCESS_OPERATIONS = [
+			// Start
+			{ value: 'start',         label: 'Start a new process instance',           group: 'Start',            elementType: null,                     needsTarget: false },
+			// Tasks (participant)
+			{ value: 'claim',         label: 'Claim a task',                            group: 'Tasks',            elementType: 'userTask',               needsTarget: true  },
+			{ value: 'complete',      label: 'Complete a task',                         group: 'Tasks',            elementType: 'userTask',               needsTarget: true  },
+			{ value: 'completeWithSubject', label: 'Complete a task and create the subject', group: 'Tasks', elementType: 'userTask', needsTarget: true,  needsSubjectType: true },
+			{ value: 'release',       label: 'Release a task back to the pool',         group: 'Tasks',            elementType: 'userTask',               needsTarget: true  },
+			{ value: 'decline',       label: 'Decline a task (vote, reversible)',       group: 'Tasks',            elementType: 'userTask',               needsTarget: true  },
+			{ value: 'delegate',      label: 'Delegate a task to someone else',         group: 'Tasks',            elementType: 'userTask',               needsTarget: true  },
+			// Tasks (admin)
+			{ value: 'cancel',        label: 'Cancel a task (admin)',                   group: 'Tasks (admin)',    elementType: 'userTask',               needsTarget: true  },
+			{ value: 'makeAvailable', label: 'Make a task available again (admin)',     group: 'Tasks (admin)',    elementType: 'userTask',               needsTarget: true  },
+			{ value: 'assignTask',    label: 'Reassign a task to a chosen user (admin)',group: 'Tasks (admin)',    elementType: 'userTask',               needsTarget: true  },
+			// Signals
+			{ value: 'signal',        label: 'Send a signal to a running process',      group: 'Signals',          elementType: 'intermediateCatchEvent', needsTarget: true  },
+			// Lifecycle (admin)
+			{ value: 'suspend',       label: 'Suspend a running process (admin)',       group: 'Lifecycle (admin)',elementType: null,                     needsTarget: true  },
+			{ value: 'resume',        label: 'Resume a suspended process (admin)',      group: 'Lifecycle (admin)',elementType: null,                     needsTarget: true  },
+			{ value: 'terminate',     label: 'Terminate a process (admin)',             group: 'Lifecycle (admin)',elementType: null,                     needsTarget: true  }
+		];
+
+		// Populate the operation dropdown once with grouped human-readable options.
+		(() => {
+			let groups = new Map();
+			for (let op of PROCESS_OPERATIONS) {
+				if (!groups.has(op.group)) groups.set(op.group, []);
+				groups.get(op.group).push(op);
+			}
+			let html = '';
+			for (let [groupName, ops] of groups) {
+				html += `<optgroup label="${_Helpers.escapeTags(groupName)}">`;
+				for (let op of ops) {
+					html += `<option value="${op.value}">${_Helpers.escapeTags(op.label)}</option>`;
+				}
+				html += '</optgroup>';
+			}
+			processOperationSelect.insertAdjacentHTML('beforeend', html);
+		})();
+
+		// Look up an operation's config by its internal value.
+		let lookupProcessOperation = (value) => PROCESS_OPERATIONS.find(o => o.value === value) ?? null;
 
 		let idExpressionInput                = container.querySelector('#id-expression-input');
 
@@ -1312,11 +1711,23 @@ let _Pages = {
 		let successPartialRefreshInput       = container.querySelector('#success-partial-refresh-input');
 		let successNavigateToURLInput        = container.querySelector('#success-navigate-to-url-input');
 		let successFireEventInput            = container.querySelector('#success-fire-event-input');
+		let successShowInput                 = container.querySelector('#success-show-input');
+		let successHideInput                 = container.querySelector('#success-hide-input');
+		let successShowUrlInput              = container.querySelector('#success-show-url-input');
+		let successShowLinkedUrlInput        = container.querySelector('#success-show-linked-url-input');
+		let successScopeRepeaterInput        = container.querySelector('#success-scope-repeater-input');
+		let successScopeRepeaterLinkedInput  = container.querySelector('#success-scope-repeater-linked-input');
 
 		let failureBehaviourSelect           = container.querySelector('#failure-behaviour-select');
 		let failurePartialRefreshInput       = container.querySelector('#failure-partial-refresh-input');
 		let failureNavigateToURLInput        = container.querySelector('#failure-navigate-to-url-input');
 		let failureFireEventInput            = container.querySelector('#failure-fire-event-input');
+		let failureShowInput                 = container.querySelector('#failure-show-input');
+		let failureHideInput                 = container.querySelector('#failure-hide-input');
+		let failureShowUrlInput              = container.querySelector('#failure-show-url-input');
+		let failureShowLinkedUrlInput        = container.querySelector('#failure-show-linked-url-input');
+		let failureScopeRepeaterInput        = container.querySelector('#failure-scope-repeater-input');
+		let failureScopeRepeaterLinkedInput  = container.querySelector('#failure-scope-repeater-linked-input');
 
 		let actionMapping;
 
@@ -1346,20 +1757,146 @@ let _Pages = {
 			flowSelectUl.insertAdjacentHTML('beforeend', flows.map(flow => `<li data-value="${flow.name}">${flow.name}</li>`).join(''));
 		}, false, null, 'id,name');
 
+		// Populate the Process picker from BpmnProcess. Eager: same pattern as the
+		// flow picker. The Element + Operation pickers cascade from the Process selection.
+		// Post multi-process refactor: ActionMapping.controlsProcess targets BpmnProcess
+		// directly (previously BpmnDefinitions), so each collaboration's processes are
+		// individually selectable rather than collapsed under their parent file.
+		Command.query('BpmnProcess', 2000, 1, 'name', 'asc', null, (procs) => {
+			processDefinitionSelect.insertAdjacentHTML('beforeend',
+				procs.map(p => {
+					let label = p.processName ?? p.name ?? p.id;
+					return `<option value="${p.id}" data-process-id="${_Helpers.escapeTags(p.processId ?? '')}">${_Helpers.escapeTags(label)}</option>`;
+				}).join(''));
+		}, false, null, 'id,name,processName,processId');
+
+		// Update visibility of the Step and Target wrappers based on the selected
+		// operation's config. Step is shown when the operation acts on a specific BPMN
+		// element type (userTask / intermediateCatchEvent); Target is shown when the
+		// operation needs an idExpression to resolve a runtime task / instance.
+		//
+		// Inline display style is only used while the control-process action is active.
+		// For any other action we clear it so the existing CSS-class show/hide loop
+		// (managed by updateEventMappingInterface) takes over without inline-style
+		// interference. This avoids stale display:none surviving an action change.
+		let updateProcessControlVisibility = () => {
+			let cfg              = lookupProcessOperation(processOperationSelect.value);
+			let needsStep        = !!cfg?.elementType;
+			let needsTarget      = cfg?.needsTarget ?? false;
+			// Dynamic process UUID is only meaningful for `start` (the other
+			// operations target a runtime task / instance via idExpression,
+			// not a definition). Hide for everything else so the form
+			// doesn't surface fields that have no effect.
+			let needsDynamicProcess = (cfg?.value === 'start');
+			// `completeWithSubject` re-uses the existing Data type field as
+			// the SchemaNode picker for the subject node it creates; show
+			// the wrapper for that case only.
+			let needsSubjectType = cfg?.needsSubjectType ?? false;
+			let isControlProcess = (actionSelectElement.value === 'control-process');
+
+			for (let w of container.querySelectorAll('.em-process-step-wrapper')) {
+				w.style.display = isControlProcess ? (needsStep ? '' : 'none') : '';
+			}
+			for (let w of container.querySelectorAll('.em-process-target-wrapper')) {
+				w.style.display = isControlProcess ? (needsTarget ? '' : 'none') : '';
+			}
+			for (let w of container.querySelectorAll('.em-process-dynamic-wrapper')) {
+				w.style.display = isControlProcess ? (needsDynamicProcess ? '' : 'none') : '';
+			}
+			for (let w of container.querySelectorAll('.em-process-subject-wrapper')) {
+				w.style.display = isControlProcess ? (needsSubjectType ? '' : 'none') : '';
+			}
+		};
+
+		// Load the steps (BPMN elements) for the selected process, filtered by the
+		// element type that the current operation needs. Direct fetch of BpmnElement
+		// nodes scoped to the chosen BpmnProcess (single round-trip; the prior
+		// definitions->process hop is gone because controlsProcess now targets a
+		// BpmnProcess directly). When called during restore, preselectStepId selects
+		// an existing step after the load completes.
+		let loadProcessSteps = (processId, preselectStepId) => {
+			processElementSelect.innerHTML = '<option value="">— Select step —</option>';
+			if (!processId) {
+				return;
+			}
+			let cfg = lookupProcessOperation(processOperationSelect.value);
+			let elementTypeFilter = cfg?.elementType;
+			Command.query('BpmnElement', 2000, 1, 'bpmnName', 'asc', { process: processId }, (elements) => {
+				let filtered = elements ?? [];
+				if (elementTypeFilter) {
+					filtered = filtered.filter(el => el.bpmnElementType === elementTypeFilter);
+				} else {
+					// No filter: include both kinds we care about, in case the operation
+					// changes after load (rare, but harmless to keep both available).
+					filtered = filtered.filter(el =>
+						el.bpmnElementType === 'userTask' ||
+						el.bpmnElementType === 'intermediateCatchEvent'
+					);
+				}
+				filtered.sort((a, b) => (a.bpmnName ?? a.bpmnId ?? '').localeCompare(b.bpmnName ?? b.bpmnId ?? ''));
+				processElementSelect.insertAdjacentHTML('beforeend',
+					filtered.map(el => {
+						let label = el.bpmnName ?? el.bpmnId;
+						return `<option value="${el.id}" data-element-type="${el.bpmnElementType}" data-subject-type="${_Helpers.escapeTags(el.subjectType ?? '')}" data-bpmn-id="${_Helpers.escapeTags(el.bpmnId ?? '')}" title="${_Helpers.escapeTags(el.bpmnId)}">${_Helpers.escapeTags(label)}</option>`;
+					}).join('')
+				);
+				if (preselectStepId) {
+					processElementSelect.value = preselectStepId;
+				}
+			}, false, null, 'id,bpmnId,bpmnName,bpmnElementType,subjectType,process');
+		};
+
+		processOperationSelect.addEventListener('change', () => {
+			updateProcessControlVisibility();
+			// Reload steps with the new operation's element-type filter (if a process is set).
+			if (processDefinitionSelect.value) {
+				loadProcessSteps(processDefinitionSelect.value, null);
+			}
+			saveEventMappingData(entity);
+		});
+		processDefinitionSelect.addEventListener('change', () => {
+			loadProcessSteps(processDefinitionSelect.value, null);
+			saveEventMappingData(entity);
+		});
+		processElementSelect.addEventListener('change', () => {
+			// Derive the Data type from the selected step's declared subjectType
+			// (the process/UI contract) for operations that create the subject,
+			// e.g. completeWithSubject. The process declares it, the action
+			// consumes it. Only fills when the step actually declares one, so a
+			// step without a subjectType leaves the field untouched.
+			let opCfg = lookupProcessOperation(processOperationSelect.value);
+			if (opCfg?.needsSubjectType) {
+				let st = processElementSelect.selectedOptions[0]?.dataset.subjectType || '';
+				if (st) { dataTypeInput.value = st; dataTypeSelect.value = st; }
+			}
+			saveEventMappingData(entity);
+		});
+
 		if (entity.triggeredActions && entity.triggeredActions.length) {
 
 			actionMapping = entity.triggeredActions[0];
 
-			Command.get(actionMapping.id, 'event,action,method,flow,idExpression,dataType,parameterMappings,successNotifications,successNotificationsPartial,successNotificationsEvent,successNotificationsDelay,failureNotifications,failureNotificationsPartial,failureNotificationsEvent,failureNotificationsDelay,successBehaviour,successPartial,successURL,successEvent,failureBehaviour,failurePartial,failureURL,failureEvent,dialogType,dialogTitle,dialogText', (result) => {
+			Command.get(actionMapping.id, 'event,action,method,flow,idExpression,dataType,controlsProcess,controlsProcessIdExpression,targetsElement,processOperation,parameterMappings,successNotifications,successNotificationsPartial,successNotificationsEvent,successNotificationsDelay,failureNotifications,failureNotificationsPartial,failureNotificationsEvent,failureNotificationsDelay,successBehaviour,successPartial,successURL,successEvent,successShow,successHide,successScope,failureBehaviour,failurePartial,failureURL,failureEvent,failureShow,failureHide,failureScope,dialogType,dialogTitle,dialogText', (result) => {
 				//console.log('Using first object for event action mapping:', result);
 				updateEventMappingInterface(entity, result);
 			});
 		}
 
-		container.querySelectorAll('input').forEach(el => el.addEventListener('focusout', e => saveEventMappingData(entity, el)));
+		// Text inputs save (and blink green) on focusout; checkboxes don't fire focusout on
+		// toggle (focus stays on them), so they save on change for immediate feedback. A native
+		// checkbox can't show the green blink (it ignores background-color), so blink its
+		// wrapping label instead, which carries the visible text.
+		container.querySelectorAll('input:not([type="checkbox"])').forEach(el => el.addEventListener('focusout', e => saveEventMappingData(entity, el)));
+		container.querySelectorAll('input[type="checkbox"]').forEach(el => el.addEventListener('change', e => saveEventMappingData(entity, el.closest('label') ?? el, true)));
 
 		eventSelect.addEventListener('change', e => saveEventMappingData(entity));
-		actionSelectElement.addEventListener('change', e => saveEventMappingData(entity));
+		actionSelectElement.addEventListener('change', e => {
+			// Re-run the process-control visibility manager when the action toggles.
+			// Other actions don't need this, but it's a cheap no-op when control-process
+			// is not selected (the visibility manager exits early via the action check).
+			updateProcessControlVisibility();
+			saveEventMappingData(entity);
+		});
 
 		// combined event select and input
 		{
@@ -1642,6 +2179,29 @@ let _Pages = {
 			flowSelect.value                       = actionMapping.flow;
 			flowInput.value                        = actionMapping.flow ?? '';
 
+			// Process control cascade restore. Order matters: set the operation first so
+			// the visibility manager runs with the right config, then the process, then
+			// load the steps (which triggers preselection of the saved step). The backend
+			// may serialize a relationship as a bare UUID, a shallow node object, an array
+			// with one node, or null; normalise all four shapes here.
+			let extractId = (val) => {
+				if (!val) return '';
+				if (typeof val === 'string') return val;
+				if (Array.isArray(val)) return val[0]?.id ?? (typeof val[0] === 'string' ? val[0] : '');
+				return val.id ?? '';
+			};
+			let cpId = extractId(actionMapping.controlsProcess);
+			let teId = extractId(actionMapping.targetsElement);
+			processOperationSelect.value  = actionMapping.processOperation ?? '';
+			processDefinitionSelect.value = cpId;
+			if (processIdExpressionInput) {
+				processIdExpressionInput.value = actionMapping.controlsProcessIdExpression ?? '';
+			}
+			updateProcessControlVisibility();
+			if (cpId) {
+				loadProcessSteps(cpId, teId);
+			}
+
 			idExpressionInput.value                = actionMapping.idExpression;
 
 			dialogTypeSelect.value                 = actionMapping.dialogType ?? 'none';
@@ -1662,11 +2222,23 @@ let _Pages = {
 			successPartialRefreshInput.value       = actionMapping.successPartial;
 			successNavigateToURLInput.value        = actionMapping.successURL;
 			successFireEventInput.value            = actionMapping.successEvent;
+			successShowInput.value                 = actionMapping.successShow ?? '';
+			successHideInput.value                 = actionMapping.successHide ?? '';
+			successShowUrlInput.value              = actionMapping.successURL ?? '';
+			successShowLinkedUrlInput.value        = actionMapping.successURL ?? '';
+			successScopeRepeaterInput.checked      = (actionMapping.successScope === 'repeater');
+			successScopeRepeaterLinkedInput.checked = (actionMapping.successScope === 'repeater');
 
 			failureBehaviourSelect.value           = actionMapping.failureBehaviour;
 			failurePartialRefreshInput.value       = actionMapping.failurePartial;
 			failureNavigateToURLInput.value        = actionMapping.failureURL;
 			failureFireEventInput.value            = actionMapping.failureEvent;
+			failureShowInput.value                 = actionMapping.failureShow ?? '';
+			failureHideInput.value                 = actionMapping.failureHide ?? '';
+			failureShowUrlInput.value              = actionMapping.failureURL ?? '';
+			failureShowLinkedUrlInput.value        = actionMapping.failureURL ?? '';
+			failureScopeRepeaterInput.checked      = (actionMapping.failureScope === 'repeater');
+			failureScopeRepeaterLinkedInput.checked = (actionMapping.failureScope === 'repeater');
 
 			// UI-only block
 			{
@@ -1836,6 +2408,68 @@ let _Pages = {
 					for (const failureTarget of actionMapping.failureTargets) {
 						Command.get(failureTarget.id, 'id,name', obj => {
 							addLinkedElementToDropzone(parentElement, dropzoneElement, obj, 'failureTargets');
+						});
+					}
+				});
+			}
+
+			// Activate show/hide-linked dropzones if success behaviour is show-hide-section-linked.
+			// Show reuses the successTargets relationship (like partial-refresh-linked); hide uses
+			// the dedicated successHideTargets relationship.
+			if (actionMapping.successBehaviour === 'show-hide-section-linked') {
+
+				const parentElement = document.querySelector('.option-success-show-hide-section-linked');
+
+				const showDropzone  = parentElement.querySelector('.success-show-linked-dropzone');
+				const showInput     = parentElement.querySelector('#success-show-linked-input');
+				showDropzone.querySelectorAll('.node').forEach(n => n.remove());
+				activateElementDropzone(parentElement, showDropzone, showInput, 'reloadingActions', 'successTargets');
+				Command.get(actionMapping.id, 'id,successTargets', actionMapping => {
+					for (const successTarget of actionMapping.successTargets) {
+						Command.get(successTarget.id, 'id,name', obj => {
+							addLinkedElementToDropzone(parentElement, showDropzone, obj, 'successTargets');
+						});
+					}
+				});
+
+				const hideDropzone  = parentElement.querySelector('.success-hide-linked-dropzone');
+				const hideInput     = parentElement.querySelector('#success-hide-linked-input');
+				hideDropzone.querySelectorAll('.node').forEach(n => n.remove());
+				activateElementDropzone(parentElement, hideDropzone, hideInput, 'successHideActions', 'successHideTargets');
+				Command.get(actionMapping.id, 'id,successHideTargets', actionMapping => {
+					for (const hideTarget of actionMapping.successHideTargets) {
+						Command.get(hideTarget.id, 'id,name', obj => {
+							addLinkedElementToDropzone(parentElement, hideDropzone, obj, 'successHideTargets');
+						});
+					}
+				});
+			}
+
+			// Activate show/hide-linked dropzones if failure behaviour is show-hide-section-linked
+			if (actionMapping.failureBehaviour === 'show-hide-section-linked') {
+
+				const parentElement = document.querySelector('.option-failure-show-hide-section-linked');
+
+				const showDropzone  = parentElement.querySelector('.failure-show-linked-dropzone');
+				const showInput     = parentElement.querySelector('#failure-show-linked-input');
+				showDropzone.querySelectorAll('.node').forEach(n => n.remove());
+				activateElementDropzone(parentElement, showDropzone, showInput, 'failureActions', 'failureTargets');
+				Command.get(actionMapping.id, 'id,failureTargets', actionMapping => {
+					for (const failureTarget of actionMapping.failureTargets) {
+						Command.get(failureTarget.id, 'id,name', obj => {
+							addLinkedElementToDropzone(parentElement, showDropzone, obj, 'failureTargets');
+						});
+					}
+				});
+
+				const hideDropzone  = parentElement.querySelector('.failure-hide-linked-dropzone');
+				const hideInput     = parentElement.querySelector('#failure-hide-linked-input');
+				hideDropzone.querySelectorAll('.node').forEach(n => n.remove());
+				activateElementDropzone(parentElement, hideDropzone, hideInput, 'failureHideActions', 'failureHideTargets');
+				Command.get(actionMapping.id, 'id,failureHideTargets', actionMapping => {
+					for (const hideTarget of actionMapping.failureHideTargets) {
+						Command.get(hideTarget.id, 'id,name', obj => {
+							addLinkedElementToDropzone(parentElement, hideDropzone, obj, 'failureHideTargets');
 						});
 					}
 				});
@@ -2059,7 +2693,7 @@ let _Pages = {
 			}
 		};
 
-		const saveEventMappingData = (entity, el) => {
+		const saveEventMappingData = (entity, el, dontRefreshInterface = false) => {
 
 			let actionMappingObject = {
 				type:                        'ActionMapping',
@@ -2068,6 +2702,22 @@ let _Pages = {
 				method:                      methodNameInput?.value,
 				flow:                        flowInput?.value ?? flowSelect?.value,
 				dataType:                    dataTypeInput?.value ?? dataTypeSelect?.value,
+				// Process control cascade. The websocket setProperties path expects a bare
+				// UUID string for a relationship target (the JSON {id: uuid} envelope is not
+				// unwrapped here, unlike the REST layer). Empty values are sent as null so the
+				// backend clears the relationship / property when the user resets the picker.
+				controlsProcess:             processDefinitionSelect?.value || null,
+				targetsElement:              processElementSelect?.value    || null,
+				processOperation:            processOperationSelect?.value  || null,
+				// Denormalized backups, written alongside the rels. Refreshed
+				// by the BPMN importer's re-import rewire step using the same
+				// strings to find the new BpmnProcess / BpmnElement.
+				controlsProcessId:           processDefinitionSelect?.selectedOptions?.[0]?.dataset.processId || null,
+				targetsElementBpmnId:        processElementSelect?.selectedOptions?.[0]?.dataset.bpmnId       || null,
+				// Dynamic alternative to the static Process selection (only
+				// honoured for `start`). Resolved server-side at render time
+				// against the page's data context.
+				controlsProcessIdExpression: processIdExpressionInput?.value || null,
 				idExpression:                idExpressionInput.value,
 				dialogType:                  dialogTypeSelect.value,
 				dialogTitle:                 dialogTitleInput.value,
@@ -2082,12 +2732,22 @@ let _Pages = {
 				failureNotificationsDelay:   failureNotificationsDelayInput.value === '' ? '5000' : failureNotificationsDelayInput.value,
 				successBehaviour:            successBehaviourSelect?.value,
 				successPartial:              successPartialRefreshInput?.value,
-				successURL:                  successNavigateToURLInput?.value,
+				successURL:                  successBehaviourSelect?.value === 'show-hide-section'        ? successShowUrlInput?.value
+				                           : successBehaviourSelect?.value === 'show-hide-section-linked' ? successShowLinkedUrlInput?.value
+				                           : successNavigateToURLInput?.value,
 				successEvent:                successFireEventInput?.value,
+				successShow:                 successShowInput?.value,
+				successHide:                 successHideInput?.value,
+				successScope:                (successBehaviourSelect?.value === 'show-hide-section-linked' ? successScopeRepeaterLinkedInput?.checked : successScopeRepeaterInput?.checked) ? 'repeater' : '',
 				failureBehaviour:            failureBehaviourSelect?.value,
 				failurePartial:              failurePartialRefreshInput?.value,
-				failureURL:                  failureNavigateToURLInput?.value,
-				failureEvent:                failureFireEventInput?.value
+				failureURL:                  failureBehaviourSelect?.value === 'show-hide-section'        ? failureShowUrlInput?.value
+				                           : failureBehaviourSelect?.value === 'show-hide-section-linked' ? failureShowLinkedUrlInput?.value
+				                           : failureNavigateToURLInput?.value,
+				failureEvent:                failureFireEventInput?.value,
+				failureShow:                 failureShowInput?.value,
+				failureHide:                 failureHideInput?.value,
+				failureScope:                (failureBehaviourSelect?.value === 'show-hide-section-linked' ? failureScopeRepeaterLinkedInput?.checked : failureScopeRepeaterInput?.checked) ? 'repeater' : ''
 			};
 
 			//console.log(actionMappingObject);
@@ -2111,7 +2771,12 @@ let _Pages = {
 					Command.setProperties(actionMappingObject.id, actionMappingObject, () => {
 						_Helpers.blinkGreen(Structr.nodeContainer(entity.id));
 						_Helpers.blinkGreen(el);
-						updateEventMappingInterface(entity, actionMappingObject);
+						// Skip the full editor re-render for changes that don't alter which
+						// fields are shown (e.g. a scope checkbox toggle) -- re-rendering would
+						// needlessly refresh the linked-element dropzones.
+						if (!dontRefreshInterface) {
+							updateEventMappingInterface(entity, actionMappingObject);
+						}
 					});
 				}
 
@@ -2224,6 +2889,7 @@ let _Pages = {
 			});
 
 			// Display 'Create Page' dialog
+			let smallTransparentGIF = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
 			let createPageButton = document.querySelector('#create_page');
 			createPageButton.addEventListener('click', (e) => {
 				e.stopPropagation();
@@ -2336,7 +3002,6 @@ let _Pages = {
 		for (let widget of pageTemplates) {
 
 			let id = 'create-from-' + widget.id;
-			let smallTransparentGIF = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
 			let tile = _Helpers.createSingleDOMElementFromHTML(`<div id="${id}" class="page-tile"><div class="page-thumbnail-frame"><img src="${widget.newThumbnailPath ?? widget.thumbnailPath ?? smallTransparentGIF}"/><h4>${widget.name}</h4><p>${(widget.description || '')}</p></div></div>`);
 			container.append(tile);
 
@@ -3280,10 +3945,10 @@ let _Pages = {
 			`;
 
 			let options = [{
-					buttonText: `${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, ['icon-green', 'mr-2'])} ${UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.ALL.text}`,
+					buttonText: `${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, ['icon-green', 'mr-2'])} ${UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.ALL.text}`,
 					result: UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.ALL.value
 				}, {
-					buttonText: `${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, ['icon-green', 'mr-2'])}  ${UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.BY_VALUE.text}`,
+					buttonText: `${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, ['icon-green', 'mr-2'])}  ${UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.BY_VALUE.text}`,
 					result: UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.BY_VALUE.value
 				}, {
 					buttonText: `${_Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, ['icon-red', 'mr-2'])}  ${UISettings.settingGroups.pages.settings.sharedComponentSyncModeKey.possibleValues.NONE.text}`,
@@ -4374,6 +5039,9 @@ let _Pages = {
 					<li id="tabs-menu-events">
 						<a href="#pages:events">Events</a>
 					</li>
+					<li id="tabs-menu-process">
+						<a href="#pages:process">Process</a>
+					</li>					
 					<li id="tabs-menu-link">
 						<a href="#pages:link">Link</a>
 					</li>
@@ -4391,6 +5059,72 @@ let _Pages = {
 		`,
 		general: config => `
 			<div class="content-container general-container"></div>
+		`,
+		process: config => `
+			<div class="content-container process-container">
+
+				<div id="component-binding-section">
+
+					<h3>Component Binding</h3>
+
+					<div class="inline-info">
+						<div class="inline-info-icon">
+							${_Icons.getSvgIcon(_Icons.iconInfo, 24, 24)}
+						</div>
+						<div class="inline-info-text">
+							Attaches this component's <code>ComponentConfiguration</code> to a BPMN UserTask. The bound
+							UserTask is the source of truth for the subject type (rendered fields) and lets process-bound
+							widgets derive their data source from <code>subjectType</code>. Primary recovery path after a
+							process re-import that orphans the previous binding.
+						</div>
+					</div>
+
+					<div class="grid grid-cols-2 gap-8">
+						<div>
+							<label class="block mb-2" for="relink-process-select">Process</label>
+							<select id="relink-process-select" class="block w-full mb-2">
+								<option value="">— pick a Process —</option>
+							</select>
+						</div>
+						<div>
+							<label class="block mb-2" for="relink-user-task-select">Bound UserTask</label>
+							<select id="relink-user-task-select" class="block w-full" disabled>
+								<option value="">— pick a UserTask —</option>
+							</select>
+							<div id="relink-user-task-hint" class="text-xs text-gray-555 mt-1"></div>
+						</div>
+					</div>
+
+				</div>
+
+				<h3>Visibility</h3>
+
+				<div class="inline-info">
+					<div class="inline-info-icon">
+						${_Icons.getSvgIcon(_Icons.iconInfo, 24, 24)}
+					</div>
+					<div class="inline-info-text">
+						Show this element only when one of the configured process states is active for the current user.
+						Multiple rules are OR-combined; show / hide conditions still apply on top.
+						<br><br>
+						State evaluation expects a <code>ProcessInstance</code> or <code>TaskInstance</code> as the page's
+						<code>current</code> object (typically bound via the page's data query). The
+						<em>"No process instance exists for me yet"</em> rule is the exception: it queries the database
+						for an active instance of the bound process owned by the current user, so it lights up correctly
+						even when no <code>current</code> object is bound.
+					</div>
+				</div>
+
+				<div id="visibility-mappings-list"></div>
+
+				<div class="mt-4">
+					<button class="action button btn flex items-center active:border-green add-visibility-mapping-button">
+						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'], 'Add visibility rule')}
+						Add visibility rule
+					</button>
+				</div>
+
+			</div>
 		`,
 		contentEditor: config => `
 			<div class="content-container content-editor-container flex flex-col">
@@ -4412,364 +5146,515 @@ let _Pages = {
 					</div>
 				</div>
 
-				<div class="events-container">
+				<div class="flex flex-col gap-8 h-full events-container">
 
-					<h3>Event Action Mapping</h3>
+					<div class="event-action-mapping-section">
 
-					<div class="grid grid-cols-2 gap-8">
+						<h3>Event Action Mapping</h3>
+	
+						<div class="grid grid-cols-2 gap-4">
 
+							<div>
+								<div class="relative">
+									<label class="block mb-2" for="data-event-select" data-comment="Use this setting to bind a browser event to a backend action.">Event</label>
+									<input type="text" class="combined-input-select-field" id="data-event-input" placeholder="Browser event (click, keydown, focusout etc.)">
+									<select class="required" id="data-event-select">
+										<option value="">Select event from list</option>
+										${_Pages.getEventActionMappingAvailableEvents().map(event => `<option value="${event}">${event}</option>`).join('')}
+									</select>
+									<ul class="combined-input-select-field hidden">
+										${_Pages.getEventActionMappingAvailableEvents().map(event => `<li data-value="${event}">${event}</li>`).join('')}
+									</ul>
+								</div>
+							</div>
+	
+	
+							<div class="hidden em-event-element em-event-any">
+								<label class="block mb-2" data-comment="Select the action that is triggered by the event.">Action</label>
+	
+								<!-- the actions can be fetched from the backend in the future-->
+								<select class="select2" id="action-select">
+									<option value="none">No action</option>
+									<optgroup label="Data">
+										<option value="create">Create new object</option>
+										<option value="update">Update object</option>
+										<option value="delete">Delete object</option>
+									</optgroup>
+									<optgroup label="Behaviour/Logic">
+										<option value="method">Execute method</option>
+										<option value="flow">Execute flow</option>
+									</optgroup>
+									<optgroup label="Process">
+										<option value="control-process">Control process</option>
+									</optgroup>
+									<optgroup label="Pager">
+										<option value="next-page">Next page</option>
+										<option value="prev-page">Previous page</option>
+									</optgroup>
+									<optgroup label="Authentication">
+										<option value="sign-in">Sign in</option>
+										<option value="sign-out">Sign out</option>
+										<option value="sign-up">Sign up</option>
+										<option value="reset-password">Reset password</option>
+									</optgroup>
+								</select>
+							</div>
+	
+							<div class="hidden em-event-element em-action-custom">
+								<label class="block mb-2" for="custom-action-input" data-comment="Define the backend action that is triggered by the event.">Backend action</label>
+								<input type="text" id="custom-action-input">
+							</div>
+	
+							<div><!-- exists so it is always displayed -->
+	
+								<div class="hidden em-action-element em-action-update em-action-delete em-action-method em-action-custom em-action-control-process em-process-target-wrapper">
+	
+									<div class="hidden em-action-element em-action-update">
+										<label class="block mb-2" for="id-expression-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object that shall be updated.">UUID of data object to update</label>
+									</div>
+	
+									<div class="hidden em-action-element em-action-delete">
+										<label class="block mb-2" for="id-expression-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object that shall be deleted on click.">UUID of data object to delete</label>
+									</div>
+	
+									<div class="hidden em-action-element em-action-method">
+										<label class="block mb-2" for="id-expression-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object the method shall be called on, or a type name for static methods, or leave empty for user-defined functions.">UUID or type of data object to call method on</label>
+									</div>
+	
+									<div class="hidden em-action-element em-action-custom">
+										<label class="block mb-2" for="id-expression-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the target data object.">UUID of action target object</label>
+									</div>
+	
+									<div class="hidden em-action-element em-action-control-process">
+										<label class="block mb-2" for="id-expression-input" data-comment="A script expression that resolves at runtime to the UUID of the task or process instance this button acts on. The default \${current.id} works when this button lives on a page bound to that task or instance.">UUID of task or process instance</label>
+									</div>
+	
+									<input type="text" id="id-expression-input" placeholder="\${current.id}">
+								</div>
+	
+							</div>
+	
+							<!--div class="hidden options-prev-page options-next-page em-action-element em-action-next-page em-action-prev-page">
+								<div>
+									<label class="block mb-2" for="pagination-name-input" data-comment="Define the name of the pagination request parameter (usually &quot;page&quot;).">Pagination request parameter</label>
+									<input type="text" id="pagination-name-input">
+								</div>
+							</div-->
+	
+							<div class="hidden options-method em-action-element em-action-method">
+								<div>
+									<label class="block mb-2" for="method-name-input" data-comment="Enter name of a user-defined function or object method.<br><br>The return value of the method is available as <b>{result}</b> for a single value and with the pattern <b>{result.key}</b> for a map/object.<br><br>Example: Use {result.id} to retrieve the 'id' value from the return value object.">Name of method to execute</label>
+									<input type="text" id="method-name-input">
+								</div>
+							</div>
+	
+							<div class="hidden options-method em-action-element em-action-flow">
+								<div class="relative">
+									<label class="block mb-2" for="flow-input" data-comment="Select a flow">Enter or select name of the flow to execute</label>
+									<input type="text" class="combined-input-select-field" id="flow-input" placeholder="Flow">
+									<select class="required" id="flow-select">
+										<option value="">Select flow</option>
+									</select>
+									<ul class="combined-input-select-field hidden"></ul>
+								</div>
+							</div>
+	
+							<!-- Control process: operation-first cascade. The user picks the operation
+								 in plain language, then the form adapts: process is always required,
+								 step is shown only for task-level / signal operations, target id
+								 expression is shown for any non-start operation. -->
+							<div class="hidden em-action-element em-action-control-process">
+								<label class="block mb-2" for="process-operation-select" data-comment="What this button does. Pick the operation in plain language; the form below adapts to show the fields that operation needs.">Operation</label>
+								<select class="required" id="process-operation-select">
+									<option value="">— Select operation —</option>
+								</select>
+							</div>
+							<div class="hidden em-action-element em-action-control-process">
+								<label class="block mb-2" for="process-definition-select" data-comment="The process this action operates on. Required for every operation. For the 'Start a new process instance' operation, you can leave this empty and use 'Dynamic process UUID' below instead.">Process</label>
+								<select class="required" id="process-definition-select">
+									<option value="">— Select process —</option>
+								</select>
+							</div>
+							<div class="hidden em-action-element em-action-control-process em-process-dynamic-wrapper">
+								<label class="block mb-2" for="process-id-expression-input" data-comment="Structr scripting expression that resolves to a BpmnProcess UUID at page render time, e.g. \${current.id} on a process catalog page where each row binds to a different BpmnProcess. Only honoured for the 'Start a new process instance' operation. When set and resolvable, overrides the static Process selection above.">Dynamic process UUID</label>
+								<input class="w-full" type="text" id="process-id-expression-input" placeholder="\${current.id}">
+							</div>
+							<div class="hidden em-action-element em-action-control-process em-process-step-wrapper">
+								<label class="block mb-2" for="process-element-select" data-comment="The step this action acts on. Shown only when the operation is task-level (claim, complete, ...) or a signal. Hidden for whole-process operations (start, terminate, suspend, resume).">Process step</label>
+								<select class="required" id="process-element-select">
+									<option value="">— Select step —</option>
+								</select>
+							</div>
+	
+							<div class="hidden em-action-element em-action-create em-action-update em-action-method em-action-control-process em-process-subject-wrapper">
+								<div class="relative">
+									<label class="block mb-2" for="data-type-select" data-comment="For 'create'/'update': the type of data object. For 'method': the type the method belongs to (sets the App Graph binding so the method is refactor-safe across renames). For 'Control process / Complete a task and create the subject': the SchemaNode type instantiated as the new ProcessInstance subject. Leave empty for top-level user-defined functions.">Enter or select type of data object</label>
+									<input type="text" class="combined-input-select-field" id="data-type-input" placeholder="Custom type or script expression">
+									<select class="required" id="data-type-select">
+										<option value="">Select type from schema</option>
+										<optgroup label="Custom Types" data-custom-types></optgroup>
+										<optgroup label="Builtin Types" data-builtin-types></optgroup>
+									</select>
+									<ul class="combined-input-select-field hidden">
+										<li class="nohover">
+											<div class="font-bold pb-2">Custom Types</div>
+											<ul class="pl-4" data-custom-types></ul>
+										</li>
+										<li class="nohover">
+											<div class="font-bold pb-2">Builtin Types</div>
+											<ul class="pl-4" data-builtin-types></ul>
+										</li>
+									</ul>
+								</div>
+							</div>
+						</div>
+					</div><!-- event-action-mapping-section -->
+
+					<div class="hidden em-event-element em-event-drop">
+						<h3>Drag & Drop</h3>
 						<div>
-							<div class="relative">
-								<label class="block mb-2" for="data-event-select" data-comment="Use this setting to bind a browser event to a backend action.">Event</label>
-								<input type="text" class="combined-input-select-field" id="data-event-input" placeholder="Browser event (click, keydown, focusout etc.)">
-								<select class="required combined-input-select-field" id="data-event-select">
-									<option value="">Select event from list</option>
-									${_Pages.getEventActionMappingAvailableEvents().map(event => `<option value="${event}">${event}</option>`).join('')}
-								</select>
-								<ul class="combined-input-select-field hidden">
-									${_Pages.getEventActionMappingAvailableEvents().map(event => `<li data-value="${event}">${event}</li>`).join('')}
-								</ul>
-							</div>
+							<label class="block mb-2">The following additional configuration is required to enable drag & drop.</label>
+							<ul class="mb-2">
+								<li>Make other elements draggable: set the <code>draggable</code> attribute to <code>true</code>.</li>
+								<li>Add a custom data attribute with the value <code>data()</code> to the drop target, e.g. <code>data-payload</code> etc.</li>
+								<li>The custom data attribute will be sent to the method when a drop event occurs.</li>
+							<ul>
 						</div>
+					</div>
 
+					<div class="hidden em-action-element em-action-any">
+						<h3>Parameter Mapping
+							<i class="m-2 em-add-parameter-mapping-button cursor-pointer align-middle icon-grey icon-inactive hover:icon-active">${_Icons.getSvgIcon(_Icons.iconAdd,16,16,[], 'Add parameter')}</i>
+							<i class="m-2 em-add-parameter-mapping-for-type-button cursor-pointer align-middle icon-grey icon-inactive hover:icon-active">${_Icons.getSvgIcon(_Icons.iconListAdd,16,16,[], 'Add parameters for all properties')}</i>
+						</h3>
+						<div class="grid gap-4 em-parameter-mappings-container"></div>
 
-						<div class="hidden em-event-element em-event-any">
-							<label class="block mb-2" data-comment="Select the action that is triggered by the event.">Action</label>
-
-                            <!-- the actions can be fetched from the backend in the future-->
-							<select class="select2" id="action-select">
-								<option value="none">No action</option>
-								<optgroup label="Data">
-									<option value="create">Create new object</option>
-									<option value="update">Update object</option>
-									<option value="delete">Delete object</option>
-								</optgroup>
-								<optgroup label="Behaviour/Logic">
-									<option value="method">Execute method</option>
-									<option value="flow">Execute flow</option>
-								</optgroup>
-								<optgroup label="Pager">
-									<option value="next-page">Next page</option>
-									<option value="prev-page">Previous page</option>
-								</optgroup>
-								<optgroup label="Authentication">
-									<option value="sign-in">Sign in</option>
-									<option value="sign-out">Sign out</option>
-									<option value="sign-up">Sign up</option>
-									<option value="reset-password">Reset password</option>
-								</optgroup>
-							</select>
-						</div>
-
-						<div class="hidden em-event-element em-action-custom">
-							<label class="block mb-2" for="custom-action-input" data-comment="Define the backend action that is triggered by the event.">Backend action</label>
-							<input type="text" id="custom-action-input">
-						</div>
-
-						<div><!-- exists so it is always displayed -->
-
-							<div class="hidden em-action-element em-action-update em-action-delete em-action-method em-action-custom">
-
-								<div class="hidden em-action-element em-action-update">
-									<label class="block mb-2" for="id-expression-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object that shall be updated.">UUID of data object to update</label>
-								</div>
-
-								<div class="hidden em-action-element em-action-delete">
-									<label class="block mb-2" for="id-expression-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object that shall be deleted on click.">UUID of data object to delete</label>
-								</div>
-
-								<div class="hidden em-action-element em-action-method">
-									<label class="block mb-2" for="id-expression-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object the method shall be called on, or a type name for static methods, or leave empty for user-defined functions.">UUID or type of data object to call method on</label>
-								</div>
-
-								<div class="hidden em-action-element em-action-custom">
-									<label class="block mb-2" for="id-expression-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the target data object.">UUID of action target object</label>
-								</div>
-
-								<input type="text" id="id-expression-input">
-							</div>
-
-						</div>
-
-						<!--div class="hidden options-prev-page options-next-page em-action-element em-action-next-page em-action-prev-page">
-							<div>
-								<label class="block mb-2" for="pagination-name-input" data-comment="Define the name of the pagination request parameter (usually &quot;page&quot;).">Pagination request parameter</label>
-								<input type="text" id="pagination-name-input">
-							</div>
-						</div-->
-
-						<div class="hidden em-action-element em-action-create em-action-update">
-							<div class="relative">
-								<label class="block mb-2" for="data-type-select" data-comment="Define the type of data object to create or update">Enter or select type of data object</label>
-								<input type="text" class="combined-input-select-field" id="data-type-input" placeholder="Custom type or script expression">
-								<select class="required combined-input-select-field" id="data-type-select">
-									<option value="">Select type from schema</option>
-									<optgroup label="Custom Types" data-custom-types></optgroup>
-									<optgroup label="Builtin Types" data-builtin-types></optgroup>
-								</select>
-								<ul class="combined-input-select-field hidden">
-									<li class="nohover">
-										<div class="font-bold pb-2">Custom Types</div>
-										<ul class="pl-4" data-custom-types></ul>
-									</li>
-									<li class="nohover">
-										<div class="font-bold pb-2">Builtin Types</div>
-										<ul class="pl-4" data-builtin-types></ul>
-									</li>
-								</ul>
-							</div>
-						</div>
-
-						<div class="hidden options-method em-action-element em-action-method">
-							<div>
-								<label class="block mb-2" for="method-name-input" data-comment="Enter name of a user-defined function or object method.<br><br>The return value of the method is available as <b>{result}</b> for a single value and with the pattern <b>{result.key}</b> for a map/object.<br><br>Example: Use {result.id} to retrieve the 'id' value from the return value object.">Name of method to execute</label>
-								<input type="text" id="method-name-input">
-							</div>
-						</div>
-
-						<div class="hidden options-method em-action-element em-action-flow">
-							<div class="relative">
-								<label class="block mb-2" for="flow-input" data-comment="Select a flow">Enter or select name of the flow to execute</label>
-								<input type="text" class="combined-input-select-field" id="flow-input" placeholder="Flow">
-								<select class="required combined-input-select-field" id="flow-select">
-									<option value="">Select flow</option>
-								</select>
-								<ul class="combined-input-select-field hidden"></ul>
-							</div>
-						</div>
+					</div>
+					
+					<div class="hidden em-action-element em-action-create em-action-update em-action-delete em-action-method em-action-flow">
+					
+						<h3>Confirmation Dialog</h3>
+					
+						<div class="grid grid-cols-2 gap-4">
 						
-						<div class="col-span-2 hidden em-event-element em-event-drop">
-							<h3>Drag & Drop</h3>
 							<div>
-								<label class="block mb-2">The following additional configuration is required to enable drag & drop.</label>
-								<ul class="mb-2">
-									<li>Make other elements draggable: set the <code>draggable</code> attribute to <code>true</code>.</li>
-									<li>Add a custom data attribute with the value <code>data()</code> to the drop target, e.g. <code>data-payload</code> etc.</li>
-									<li>The custom data attribute will be sent to the method when a drop event occurs.</li>
-								<ul>
+								<label class="block mb-2" data-comment="Select type of dialog for confirming action">Dialog Type</label>
+	
+								<select class="select2" id="dialog-select">
+									<option value="none">No confirmation</option>
+									<option value="okcancel">Use window.confirm</option>
+								</select>
 							</div>
-						</div>
 
-						<div class="col-span-2 hidden em-action-element em-action-any">
-							<h3>Parameter Mapping
-								<i class="m-2 em-add-parameter-mapping-button cursor-pointer align-middle icon-grey icon-inactive hover:icon-active">${_Icons.getSvgIcon(_Icons.iconAdd,16,16,[], 'Add parameter')}</i>
-								<i class="m-2 em-add-parameter-mapping-for-type-button cursor-pointer align-middle icon-grey icon-inactive hover:icon-active">${_Icons.getSvgIcon(_Icons.iconListAdd,16,16,[], 'Add parameters for all properties')}</i>
-							</h3>
-							<div class="em-parameter-mappings-container"></div>
+							<div class="dialog-input-field-group hidden">
+								<label class="block mb-2" for="dialog-title" data-comment="Enter title for dialog as static text or as a script expression like &quot;&#36;{obj.id}&quot;">Dialog Title</label>
+								<input type="text" id="dialog-title">
+					
+								<label class="block mb-2 mt-4" for="dialog-text" data-comment="Enter text for dialog as static text or as a script expression like &quot;&#36;{obj.id}&quot;"">Dialog Text</label>
+								<input type="text" id="dialog-text">
+							</div>
 
-						</div>
-						
-						<div class="col-span-2 hidden em-action-element em-action-create em-action-update em-action-delete em-action-method em-action-flow">
-							<h3>Confirmation Dialog</h3>
-							<div class="grid grid-cols-2 gap-8">
 							
-								<div>
-									<label class="block mb-2" data-comment="Select type of dialog for confirming action">Dialog Type</label>
-		
-									<select class="select2" id="dialog-select">
-										<option value="none">No confirmation</option>
-										<option value="okcancel">Use window.confirm</option>
-									</select>
-								</div>
+						</div>
+					</div>
 
-								<div class="dialog-input-field-group hidden">
-									<label class="block mb-2" for="dialog-title" data-comment="Enter title for dialog as static text or as a script expression like &quot;&#36;{obj.id}&quot;">Dialog Title</label>
-									<input type="text" id="dialog-title">
+					<div class="hidden em-action-element em-action-any">
+					
+						<h3>Notifications</h3>
+					
+						<div class="grid grid-cols-2 gap-4">
+
+							<div>
+								<label class="block mb-2" for="success-notifications-select" data-comment="Define what kind of notifications should be displayed on success">Success notifications</label>
+								<select class="select2" id="success-notifications-select">
+									<option value="none">None</option>
+									<option value="system-alert">System alert</option>
+									<option value="inline-text-message">Inline text message</option>
+									<option value="custom-dialog">Custom dialog element(s) defined by CSS ID(s)</option>
+									<option value="custom-dialog-linked">Custom dialog element(s) defined by linked element(s)</option>
+									<option value="fire-event">Raise a custom event</option>
+								</select>
+							</div>
+							
+							<div class="hidden option-success-notifications option-success-notifications-inline-text-message">
+								<label class="block mb-2" for="success-inline-message-delay-input" data-comment="After this time periout the inline text message disappers. For no autohide input -1">Display duration (ms)</label>
+								<input type="number" id="success-inline-message-delay-input" min="-1" max="60000" placeholder="5000">
+							</div>
+
+							<div class="hidden option-success-notifications option-success-notifications-custom-dialog">
+								<label class="block mb-2" for="success-notifications-custom-dialog-input" data-comment="Define the area(s) of the current page that should be displayed as notification dialog(s) with their CSS ID selector (comma-separated list of CSS IDs with leading #).">Partial(s) to refresh on success</label>
+								<input type="text" id="success-notifications-custom-dialog-input" placeholder="Enter CSS ID(s)">
+							</div>
+
+							<div class="hidden option-success-notifications option-success-notifications-custom-dialog-linked">
+								<label class="block mb-2" for="success-notifications-custom-dialog-linked-input" data-comment="Drag an element and drop it here">Element(s) to be displayed as success notification dialogs</label>
+								<input type="hidden" id="success-notifications-custom-dialog-linked-input" value="">
+								<div class="element-dropzone success-notifications-custom-dialog-linked-dropzone">
+									<div class="info-icon h-16 flex items-center justify-center">
+										${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
+										${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
+										Drag and drop existing element here
+									</div>
+								</div>
+							</div>
+
+							<div class="hidden option-success-notifications option-success-notifications-fire-event">
+								<label class="block mb-2" for="success-notifications-fire-event-input" data-comment="Define event that should be raised.">Event to raise to display success notifications</label>
+								<input type="text" id="success-notifications-fire-event-input" placeholder="Enter an event name">
+							</div>
+
+							<div>
+								<label class="block mb-2" for="failure-notifications-select" data-comment="Define what kind of notifications should be displayed on failure">Failure notifications</label>
+								<select class="select2" id="failure-notifications-select">
+									<option value="none">None</option>
+									<option value="system-alert">System alert</option>
+									<option value="inline-text-message">Inline text message</option>
+									<option value="custom-dialog">Custom dialog element(s) defined by CSS ID(s)</option>
+									<option value="custom-dialog-linked">Custom dialog element(s) defined by linked element(s)</option>
+									<option value="fire-event">Raise a custom event</option>
+								</select>
+							</div>
+							
+							<div class="hidden option-failure-notifications option-failure-notifications-inline-text-message">
+								<label class="block mb-2" for="failure-inline-message-delay-input" data-comment="After this time periout the inline text message disappers. For no autohide input -1">Display duration (ms)</label>
+								<input type="number" id="failure-inline-message-delay-input" min="-1" max="60000" placeholder="5000">
+							</div>
+
+							<div class="hidden option-failure-notifications option-failure-notifications-custom-dialog">
+								<label class="block mb-2" for="failure-notifications-custom-dialog-input" data-comment="Define the area(s) of the current page that should be displayed as notification dialog(s) with their CSS ID selector (comma-separated list of CSS IDs with leading #).">Partial(s) to refresh on failure</label>
+								<input type="text" id="failure-notifications-custom-dialog-input" placeholder="Enter CSS ID(s)">
+							</div>
+
+							<div class="hidden option-failure-notifications option-failure-notifications-custom-dialog-linked">
+								<label class="block mb-2" for="failure-notifications-custom-dialog-linked-input" data-comment="Drag an element and drop it here">Element(s) to be displayed as failure notification dialogs</label>
+								<input type="hidden" id="failure-notifications-custom-dialog-linked-input" value="">
+								<div class="element-dropzone failure-notifications-custom-dialog-linked-dropzone">
+									<div class="info-icon h-16 flex items-center justify-center">
+										${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
+										${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
+										Drag and drop existing element here
+									</div>
+								</div>
+							</div>
+
+							<div class="hidden option-failure-notifications option-failure-notifications-fire-event">
+								<label class="block mb-2" for="failure-notifications-fire-event-input" data-comment="Define event that should be raised.">Event to raise to display failure notifications</label>
+								<input type="text" id="failure-notifications-fire-event-input" placeholder="Enter an event name">
+							</div>
+						</div>
+					</div>
+
+					<div class="hidden em-action-element em-action-any">
+					
+						<h3>Follow-up Actions</h3>
 						
-									<label class="block mb-2 mt-4" for="dialog-text" data-comment="Enter text for dialog as static text or as a script expression like &quot;&#36;{obj.id}&quot;"">Dialog Text</label>
-									<input type="text" id="dialog-text">
-								</div>
+						<div class="grid grid-cols-2 gap-4">
 
-								
+							<div>
+								<label class="block mb-2" for="success-behaviour-select" data-comment="Define what should happen after the triggered action succeeded.">Behaviour on success</label>
+								<select class="select2" id="success-behaviour-select">
+									<option value="none">None</option>
+									<option value="full-page-reload">Reload the current page</option>
+									<option value="partial-refresh">Refresh page section(s) defined by CSS ID(s)</option>
+									<option value="show-hide-section">Show/hide page section(s) defined by CSS id(s)</option>
+									<option value="show-hide-section-linked">Show/hide page section(s) defined by linked element(s)</option>
+									<option value="partial-refresh-linked">Refresh page section defined by linked element(s)</option>
+									<option value="navigate-to-url">Navigate to a new page</option>
+									<option value="fire-event">Raise a custom event</option>
+									<option value="sign-out">Sign out</option>
+									<option value="component-based">Let enclosing component decide</option>
+								</select>
+							</div>
+
+							<div class="hidden option-success option-success-partial-refresh">
+								<label class="block mb-2" for="success-partial-refresh-input" data-comment="Define the area(s) of the current page that should be refreshed by its CSS ID selector (comma-separated list of CSS IDs with leading #).">Partial(s) to refresh on success</label>
+								<input type="text" id="success-partial-refresh-input" placeholder="Enter CSS ID(s)">
+							</div>
+
+							<div class="hidden option-success option-success-partial-refresh-linked">
+								<label class="block mb-2" for="success-partial-refresh-linked-input" data-comment="Drag an element and drop it here">Element(s) to be refreshed on success</label>
+								<input type="hidden" id="success-partial-refresh-linked-input" value="">
+								<div class="element-dropzone success-partial-refresh-linked-dropzone">
+									<div class="info-icon h-16 flex items-center justify-center">
+										${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
+										${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
+										Drag and drop existing element here
+									</div>
+								</div>
+							</div>
+
+							<div class="hidden option-success option-success-navigate-to-url">
+								<label class="block mb-2" for="success-navigate-to-url-input" data-comment="Define the relative or absolute URL of the page to load on success.<br><br>If the response contains data, this data can be accessed and used here.<br><br><span class=&quot;font-bold&quot;>Example</span>: If a project was created, the redirect could point to its details page using <code>/project/{result.id}</code><br><br><span class=&quot;font-bold&quot;>Control process / Start:</span> the response includes a pre-built URL using the slugified process name as the page slug, plus the new instance UUID. Use <code>{result.url}</code> to navigate straight to the process page.">Success URL</label>
+								<input type="text" id="success-navigate-to-url-input" placeholder="Enter a relative or absolute URL">
+							</div>
+
+							<div class="hidden option-success option-success-fire-event">
+								<label class="block mb-2" for="success-fire-event-input" data-comment="Define event that should be raised.">Event to raise on success</label>
+								<input type="text" id="success-fire-event-input" placeholder="Enter an event name">
+							</div>
+
+							<div class="hidden option-success option-success-show-hide-section">
+								<label class="block mb-2" for="success-show-input" data-comment="Section(s) to show on success: comma-separated CSS selectors, by id (e.g. #detail) or class (e.g. .detail). Removes the 'hidden' class from matching elements (no page reload).">Section(s) to show on success</label>
+								<input type="text" id="success-show-input" placeholder="Enter CSS selector(s)">
+								<label class="block mb-2" for="success-hide-input" data-comment="Section(s) to hide on success: comma-separated CSS selectors, by id (e.g. #form) or class (e.g. .form). Adds the 'hidden' class to matching elements.">Section(s) to hide on success</label>
+								<input type="text" id="success-hide-input" placeholder="Enter CSS selector(s)">
+								<label class="block mb-2" for="success-show-url-input" data-comment="Optional. If set, the shown section(s) are loaded as URL-bound partial(s) from this assembled URL instead of only being un-hidden. Uses the same syntax as 'Navigate to a new page': <code>\${current.id}</code> is resolved server-side, <code>{result.id}</code> client-side from the response.<br><br><span class=&quot;font-bold&quot;>Example</span>: <code>/project/\${current.id}?processInstance={result.id}</code>">URL to load shown section(s) from (optional)</label>
+								<input type="text" id="success-show-url-input" placeholder="Leave empty to only un-hide; or enter a URL to load">
+								<label class="flex items-center gap-2" data-comment="Restrict the show/hide selectors above to the repeater element containing the triggering element. Target repeater sections with a shared CSS class (ids can't repeat) and this pins them to the current iteration. No effect outside a repeater."><input type="checkbox" id="success-scope-repeater-input"> Restrict to current repeater element</label>
+							</div>
+
+							<div class="hidden option-success option-success-show-hide-section-linked">
+								<label class="block mb-2" data-comment="Element(s) to show on success: drag and drop here. Linked by element (refactor-safe: survives renaming/restructuring).">Element(s) to show on success (linked)</label>
+								<input type="hidden" id="success-show-linked-input" value="">
+								<div class="element-dropzone success-show-linked-dropzone">
+									<div class="info-icon h-16 flex items-center justify-center">
+										${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
+										${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
+										Drag and drop existing element here
+									</div>
+								</div>
+								<label class="block mb-2" data-comment="Element(s) to hide on success: drag and drop here. Linked by element (refactor-safe).">Element(s) to hide on success (linked)</label>
+								<input type="hidden" id="success-hide-linked-input" value="">
+								<div class="element-dropzone success-hide-linked-dropzone">
+									<div class="info-icon h-16 flex items-center justify-center">
+										${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
+										${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
+										Drag and drop existing element here
+									</div>
+								</div>
+								<label class="block mb-2" for="success-show-linked-url-input" data-comment="Optional. If set, the shown element(s) are loaded as URL-bound partial(s) from this assembled URL instead of only being un-hidden. <code>\${current.id}</code> is resolved server-side, <code>{result.id}</code> client-side from the response.<br><br><span class=&quot;font-bold&quot;>Example</span>: <code>/project/\${current.id}?processInstance={result.id}</code>">URL to load shown element(s) from (optional)</label>
+								<input type="text" id="success-show-linked-url-input" placeholder="Leave empty to only un-hide; or enter a URL to load">
+								<label class="flex items-center gap-2" data-comment="Restrict the linked element(s) above to the repeater element containing the triggering element. A linked element's id is shared across repeater iterations, so this pins it to the current one. No effect outside a repeater."><input type="checkbox" id="success-scope-repeater-linked-input"> Restrict to current repeater element</label>
+							</div>
+
+							<div>
+								<label class="block mb-2" for="failure-behaviour-select" data-comment="Define what should happen after the triggered action failed.">Behaviour on failure</label>
+								<select class="select2" id="failure-behaviour-select">
+									<option value="none">None</option>
+									<option value="full-page-reload">Reload the current page</option>
+									<option value="partial-refresh">Refresh section(s) by ID</option>
+									<option value="show-hide-section">Show/hide page section(s) defined by CSS id(s)</option>
+									<option value="show-hide-section-linked">Show/hide page section(s) defined by linked element(s)</option>
+									<option value="partial-refresh-linked">Refresh page section defined by linked element(s)</option>
+									<option value="navigate-to-url">Navigate to a new page</option>
+									<option value="fire-event">Raise a custom event</option>
+									<option value="sign-out">Sign out</option>
+									<option value="component-based">Let enclosing component decide</option>
+								</select>
+							</div>
+
+							<div class="hidden option-failure option-failure-partial-refresh">
+								<label class="block mb-2" for="failure-partial-refresh-input" data-comment="Define the area of the current page that should be refreshed by its CSS ID.">Partial to refresh on failure</label>
+								<input type="text" id="failure-partial-refresh-input" placeholder="Enter CSS ID(s)">
+							</div>
+
+							<div class="hidden option-failure option-failure-partial-refresh-linked">
+								<label class="block mb-2" for="failure-partial-refresh-linked-input" data-comment="Drag an element and drop it here">Element(s) to be refreshed on failure</label>
+								<input type="hidden" id="failure-partial-refresh-linked-input" value="">
+								<div class="element-dropzone failure-partial-refresh-linked-dropzone">
+									<div class="info-icon h-16 flex items-center justify-center">
+										${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
+										${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
+										Drag and drop existing element here
+									</div>
+								</div>
+							</div>
+
+							<div class="hidden option-failure option-failure-navigate-to-url">
+								<label class="block mb-2" for="failure-navigate-to-url-input" data-comment="Define the relative or absolute URL of the page to load on failure">Failure URL</label>
+								<input type="text" id="failure-navigate-to-url-input" placeholder="Enter a relative or absolute URL">
+							</div>
+
+							<div class="hidden option-failure option-failure-fire-event">
+								<label class="block mb-2" for="failure-fire-event-input" data-comment="Define event that should be raised.">Event to raise on failure</label>
+								<input type="text" id="failure-fire-event-input" placeholder="Enter an event name">
+							</div>
+
+							<div class="hidden option-failure option-failure-show-hide-section">
+								<label class="block mb-2" for="failure-show-input" data-comment="Section(s) to show on failure: comma-separated CSS selectors, by id (e.g. #detail) or class (e.g. .detail). Removes the 'hidden' class from matching elements.">Section(s) to show on failure</label>
+								<input type="text" id="failure-show-input" placeholder="Enter CSS selector(s)">
+								<label class="block mb-2" for="failure-hide-input" data-comment="Section(s) to hide on failure: comma-separated CSS selectors, by id (e.g. #form) or class (e.g. .form). Adds the 'hidden' class to matching elements.">Section(s) to hide on failure</label>
+								<input type="text" id="failure-hide-input" placeholder="Enter CSS selector(s)">
+								<label class="block mb-2" for="failure-show-url-input" data-comment="Optional. If set, the shown section(s) are loaded as URL-bound partial(s) from this assembled URL instead of only being un-hidden. <code>\${current.id}</code> is resolved server-side, <code>{result.id}</code> client-side from the response.">URL to load shown section(s) from (optional)</label>
+								<input type="text" id="failure-show-url-input" placeholder="Leave empty to only un-hide; or enter a URL to load">
+								<label class="flex items-center gap-2" data-comment="Restrict the show/hide selectors above to the repeater element containing the triggering element. Target repeater sections with a shared CSS class (ids can't repeat) and this pins them to the current iteration. No effect outside a repeater."><input type="checkbox" id="failure-scope-repeater-input"> Restrict to current repeater element</label>
+							</div>
+
+							<div class="hidden option-failure option-failure-show-hide-section-linked">
+								<label class="block mb-2" data-comment="Element(s) to show on failure: drag and drop here. Linked by element (refactor-safe: survives renaming/restructuring).">Element(s) to show on failure (linked)</label>
+								<input type="hidden" id="failure-show-linked-input" value="">
+								<div class="element-dropzone failure-show-linked-dropzone">
+									<div class="info-icon h-16 flex items-center justify-center">
+										${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
+										${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
+										Drag and drop existing element here
+									</div>
+								</div>
+								<label class="block mb-2" data-comment="Element(s) to hide on failure: drag and drop here. Linked by element (refactor-safe).">Element(s) to hide on failure (linked)</label>
+								<input type="hidden" id="failure-hide-linked-input" value="">
+								<div class="element-dropzone failure-hide-linked-dropzone">
+									<div class="info-icon h-16 flex items-center justify-center">
+										${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
+										${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
+										Drag and drop existing element here
+									</div>
+								</div>
+								<label class="block mb-2" for="failure-show-linked-url-input" data-comment="Optional. If set, the shown element(s) are loaded as URL-bound partial(s) from this assembled URL instead of only being un-hidden. <code>\${current.id}</code> is resolved server-side, <code>{result.id}</code> client-side from the response.">URL to load shown element(s) from (optional)</label>
+								<input type="text" id="failure-show-linked-url-input" placeholder="Leave empty to only un-hide; or enter a URL to load">
+								<label class="flex items-center gap-2" data-comment="Restrict the linked element(s) above to the repeater element containing the triggering element. A linked element's id is shared across repeater iterations, so this pins it to the current one. No effect outside a repeater."><input type="checkbox" id="failure-scope-repeater-linked-input"> Restrict to current repeater element</label>
 							</div>
 						</div>
-
-						<div class="col-span-2 hidden em-action-element em-action-any">
-							<h3>Notifications</h3>
-							<div class="grid grid-cols-2 gap-8">
-
-								<div>
-									<label class="block mb-2" for="success-notifications-select" data-comment="Define what kind of notifications should be displayed on success">Success notifications</label>
-									<select class="select2" id="success-notifications-select">
-										<option value="none">None</option>
-										<option value="system-alert">System alert</option>
-										<option value="inline-text-message">Inline text message</option>
-										<option value="custom-dialog">Custom dialog element(s) defined by CSS ID(s)</option>
-										<option value="custom-dialog-linked">Custom dialog element(s) defined by linked element(s)</option>
-										<option value="fire-event">Raise a custom event</option>
-									</select>
-								</div>
-								
-								<div class="hidden option-success-notifications option-success-notifications-inline-text-message">
-									<label class="block mb-2" for="success-inline-message-delay-input" data-comment="After this time periout the inline text message disappers. For no autohide input -1">Display duration (ms)</label>
-									<input type="number" id="success-inline-message-delay-input" min="-1" max="60000" placeholder="5000">
-								</div>
-
-								<div class="hidden option-success-notifications option-success-notifications-custom-dialog">
-									<label class="block mb-2" for="success-notifications-custom-dialog-input" data-comment="Define the area(s) of the current page that should be displayed as notification dialog(s) with their CSS ID selector (comma-separated list of CSS IDs with leading #).">Partial(s) to refresh on success</label>
-									<input type="text" id="success-notifications-custom-dialog-input" placeholder="Enter CSS ID(s)">
-								</div>
-
-								<div class="hidden option-success-notifications option-success-notifications-custom-dialog-linked">
-									<label class="block mb-2" for="success-notifications-custom-dialog-linked-input" data-comment="Drag an element and drop it here">Element(s) to be displayed as success notification dialogs</label>
-									<input type="hidden" id="success-notifications-custom-dialog-linked-input" value="">
-									<div class="element-dropzone success-notifications-custom-dialog-linked-dropzone">
-										<div class="info-icon h-16 flex items-center justify-center">
-											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
-											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
-											Drag and drop existing element here
-										</div>
-									</div>
-								</div>
-
-								<div class="hidden option-success-notifications option-success-notifications-fire-event">
-									<label class="block mb-2" for="success-notifications-fire-event-input" data-comment="Define event that should be raised.">Event to raise to display success notifications</label>
-									<input type="text" id="success-notifications-fire-event-input" placeholder="Enter an event name">
-								</div>
-							</div>
-
-							<div class="grid grid-cols-2 gap-8 mt-4">
-
-								<div>
-									<label class="block mb-2" for="failure-notifications-select" data-comment="Define what kind of notifications should be displayed on failure">Failure notifications</label>
-									<select class="select2" id="failure-notifications-select">
-										<option value="none">None</option>
-										<option value="system-alert">System alert</option>
-										<option value="inline-text-message">Inline text message</option>
-										<option value="custom-dialog">Custom dialog element(s) defined by CSS ID(s)</option>
-										<option value="custom-dialog-linked">Custom dialog element(s) defined by linked element(s)</option>
-										<option value="fire-event">Raise a custom event</option>
-									</select>
-								</div>
-								
-								<div class="hidden option-failure-notifications option-failure-notifications-inline-text-message">
-									<label class="block mb-2" for="failure-inline-message-delay-input" data-comment="After this time periout the inline text message disappers. For no autohide input -1">Display duration (ms)</label>
-									<input type="number" id="failure-inline-message-delay-input" min="-1" max="60000" placeholder="5000">
-								</div>
-
-								<div class="hidden option-failure-notifications option-failure-notifications-custom-dialog">
-									<label class="block mb-2" for="failure-notifications-custom-dialog-input" data-comment="Define the area(s) of the current page that should be displayed as notification dialog(s) with their CSS ID selector (comma-separated list of CSS IDs with leading #).">Partial(s) to refresh on failure</label>
-									<input type="text" id="failure-notifications-custom-dialog-input" placeholder="Enter CSS ID(s)">
-								</div>
-
-								<div class="hidden option-failure-notifications option-failure-notifications-custom-dialog-linked">
-									<label class="block mb-2" for="failure-notifications-custom-dialog-linked-input" data-comment="Drag an element and drop it here">Element(s) to be displayed as failure notification dialogs</label>
-									<input type="hidden" id="failure-notifications-custom-dialog-linked-input" value="">
-									<div class="element-dropzone failure-notifications-custom-dialog-linked-dropzone">
-										<div class="info-icon h-16 flex items-center justify-center">
-											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
-											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
-											Drag and drop existing element here
-										</div>
-									</div>
-								</div>
-
-								<div class="hidden option-failure-notifications option-failure-notifications-fire-event">
-									<label class="block mb-2" for="failure-notifications-fire-event-input" data-comment="Define event that should be raised.">Event to raise to display failure notifications</label>
-									<input type="text" id="failure-notifications-fire-event-input" placeholder="Enter an event name">
-								</div>
-							</div>
-						</div>
-
-						<div class="col-span-2 hidden em-action-element em-action-any">
-							<h3>Follow-up Actions</h3>
-							<div class="grid grid-cols-2 gap-8">
-
-								<div>
-									<label class="block mb-2" for="success-behaviour-select" data-comment="Define what should happen after the triggered action succeeded.">Behaviour on success</label>
-									<select class="select2" id="success-behaviour-select">
-										<option value="none">None</option>
-										<option value="full-page-reload">Reload the current page</option>
-										<option value="partial-refresh">Refresh page section(s) defined by CSS ID(s)</option>
-										<option value="partial-refresh-linked">Refresh page section defined by linked element(s)</option>
-										<option value="navigate-to-url">Navigate to a new page</option>
-										<option value="fire-event">Raise a custom event</option>
-										<option value="sign-out">Sign out</option>
-										<option value="component-based">Let enclosing component decide</option>
-									</select>
-								</div>
-
-								<div class="hidden option-success option-success-partial-refresh">
-									<label class="block mb-2" for="success-partial-refresh-input" data-comment="Define the area(s) of the current page that should be refreshed by its CSS ID selector (comma-separated list of CSS IDs with leading #).">Partial(s) to refresh on success</label>
-									<input type="text" id="success-partial-refresh-input" placeholder="Enter CSS ID(s)">
-								</div>
-
-								<div class="hidden option-success option-success-partial-refresh-linked">
-									<label class="block mb-2" for="success-partial-refresh-linked-input" data-comment="Drag an element and drop it here">Element(s) to be refreshed on success</label>
-									<input type="hidden" id="success-partial-refresh-linked-input" value="">
-									<div class="element-dropzone success-partial-refresh-linked-dropzone">
-										<div class="info-icon h-16 flex items-center justify-center">
-											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
-											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
-											Drag and drop existing element here
-										</div>
-									</div>
-								</div>
-
-								<div class="hidden option-success option-success-navigate-to-url">
-									<label class="block mb-2" for="success-navigate-to-url-input" data-comment="Define the relative or absolute URL of the page to load on success.<br><br>If the response contains data, this data can be accessed and used here.<br><br><span class=&quot;font-bold&quot;>Example</span>: If a project was created, the redirect could point to its details page using <code>/project/{result.id}</code>">Success URL</label>
-									<input type="text" id="success-navigate-to-url-input" placeholder="Enter a relative or absolute URL">
-								</div>
-
-								<div class="hidden option-success option-success-fire-event">
-									<label class="block mb-2" for="success-fire-event-input" data-comment="Define event that should be raised.">Event to raise on success</label>
-									<input type="text" id="success-fire-event-input" placeholder="Enter an event name">
-								</div>
-							</div>
-
-							<div class="grid grid-cols-2 gap-8 mt-4">
-								<div>
-									<label class="block mb-2" for="failure-behaviour-select" data-comment="Define what should happen after the triggered action failed.">Behaviour on failure</label>
-									<select class="select2" id="failure-behaviour-select">
-										<option value="none">None</option>
-										<option value="full-page-reload">Reload the current page</option>
-										<option value="partial-refresh">Refresh section(s) by ID</option>
-										<option value="partial-refresh-linked">Refresh page section defined by linked element(s)</option>
-										<option value="navigate-to-url">Navigate to a new page</option>
-										<option value="fire-event">Raise a custom event</option>
-										<option value="sign-out">Sign out</option>
-										<option value="component-based">Let enclosing component decide</option>
-									</select>
-								</div>
-
-								<div class="hidden option-failure option-failure-partial-refresh">
-									<label class="block mb-2" for="failure-partial-refresh-input" data-comment="Define the area of the current page that should be refreshed by its CSS ID.">Partial to refresh on failure</label>
-									<input type="text" id="failure-partial-refresh-input" placeholder="Enter CSS ID(s)">
-								</div>
-
-								<div class="hidden option-failure option-failure-partial-refresh-linked">
-									<label class="block mb-2" for="failure-partial-refresh-linked-input" data-comment="Drag an element and drop it here">Element(s) to be refreshed on failure</label>
-									<input type="hidden" id="failure-partial-refresh-linked-input" value="">
-									<div class="element-dropzone failure-partial-refresh-linked-dropzone">
-										<div class="info-icon h-16 flex items-center justify-center">
-											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
-											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
-											Drag and drop existing element here
-										</div>
-									</div>
-								</div>
-
-								<div class="hidden option-failure option-failure-navigate-to-url">
-									<label class="block mb-2" for="failure-navigate-to-url-input" data-comment="Define the relative or absolute URL of the page to load on failure">Failure URL</label>
-									<input type="text" id="failure-navigate-to-url-input" placeholder="Enter a relative or absolute URL">
-								</div>
-
-								<div class="hidden option-failure option-failure-fire-event">
-									<label class="block mb-2" for="failure-fire-event-input" data-comment="Define event that should be raised.">Event to raise on failure</label>
-									<input type="text" id="failure-fire-event-input" placeholder="Enter an event name">
-								</div>
-							</div>
-						</div>
-
 					</div>
 
 				</div>
 			</div>
 		`,
+		visibilityMappingRow: config => `
+			<div class="visibility-mapping grid gap-4 mt-4 items-end" style="grid-template-columns: 1fr 1fr 1fr auto;" data-vm-id="${config.id}">
+
+				<div>
+					<label class="block mb-2">Process</label>
+					<select class="visibility-process-select required">
+						<option value="">— Select process —</option>
+					</select>
+				</div>
+
+				<div class="visibility-step-wrapper">
+					<label class="block mb-2">Step (task)</label>
+					<select class="visibility-step-select">
+						<option value="">— Select step —</option>
+					</select>
+				</div>
+
+				<div>
+					<label class="block mb-2">Visible when in state</label>
+					<select class="visibility-state-select required">
+						<option value="">— Select state —</option>
+						<optgroup label="Tasks">
+							<option value="task-available">A task is available to claim</option>
+							<option value="task-reserved-by-me">A task is reserved by me</option>
+							<option value="task-reserved-by-other">A task is reserved by someone else</option>
+							<option value="task-completed">A task has been completed</option>
+							<option value="task-cancelled">A task has been cancelled</option>
+						</optgroup>
+						<optgroup label="Process">
+							<option value="process-completed">Process has completed</option>
+							<option value="process-terminated">Process has been terminated</option>
+							<option value="process-failed">Process has failed</option>
+							<option value="process-awaiting-action">Process is awaiting someone else's action</option>
+							<option value="no-instance">No process instance exists for me yet</option>
+							<option value="has-active-instance">I already have a running instance</option>
+						</optgroup>
+					</select>
+				</div>
+
+				<i class="remove-visibility-mapping cursor-pointer flex items-center pb-2" title="Remove this visibility rule">${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red']), 'Remove this visibility rule')}</i>
+			</div>
+		`,
 		parameterMappingRow: config => `
 			<div class="em-parameter-mapping" data-structr-id="${config.id}">
 
-				<div class="grid grid-cols-4 gap-8 hidden options-reload-target mb-4">
+				<div class="grid grid-cols-4 gap-4 hidden options-reload-target">
 
 					<div>
 						<label class="block mb-2" data-comment="Choose a name/key for this parameter to define how the value is sent to the backend">Parameter name</label>

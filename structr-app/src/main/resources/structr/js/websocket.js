@@ -619,6 +619,16 @@ let StructrWS = {
 
 			Structr.handleGenericMessage(data.data);
 
+		} else if (command === 'BPMN_DIAGRAM_CHANGED') {
+
+			// Cross-tab notification fired by BpmnDiagramBatchCommand after a
+			// successful save. Listeners are registered by active diagram-editor
+			// instances on mount and unregistered on unmount.
+			const args = { definitionId: data.data?.definitionId, version: data.data?.version };
+			for (const fn of (window._BpmnDiagramRemoteListeners ?? [])) {
+				try { fn(args); } catch (e) { console.error('BpmnDiagram remote listener failed', e); }
+			}
+
 		} else if (command === 'FILE_IMPORT') {
 
 			StructrModel.callCallback(data.callback, result);

@@ -81,6 +81,35 @@ public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper
 
 	@Override
 	public String getDataSourceName() {
+
+		// Process-bound mode: derive the data-source name from the bound
+		// UserTask's `subjectType` so that process-side changes to the
+		// subject propagate automatically into the rendered widget. The
+		// `boundUserTask` rel and the BpmnElement's `subjectType` property
+		// are both registered by the process module (cross-module), so
+		// they are absent when the process module is not loaded. Read by
+		// string key name to keep this wrapper module-agnostic.
+		//
+		// Channel.forName expects the `node:TypeName` syntax for
+		// SchemaNode-backed channels (a bare type name throws "Unknown
+		// data source type"); the standalone-widget datasource picker
+		// stores values in that form, so we mirror it here.
+		if (isProcessBound() && traits.hasKey(ComponentConfigurationTraitDefinition.BOUND_USER_TASK_PROPERTY)) {
+
+			final NodeInterface userTask = wrappedObject.getProperty(traits.key(ComponentConfigurationTraitDefinition.BOUND_USER_TASK_PROPERTY));
+			if (userTask != null && userTask.getTraits().hasKey("subjectType")) {
+
+				final String subjectType = userTask.getProperty(userTask.getTraits().key("subjectType"));
+				if (subjectType != null && !subjectType.isEmpty()) {
+					return "node:" + subjectType;
+				}
+			}
+		}
+
+		// Standalone mode, or process-bound mode with no resolvable
+		// subject yet (e.g. UserTask removed, process designer has not
+		// declared a subjectType): fall through to the raw dataSource
+		// string so existing widgets keep behaving as before.
 		return wrappedObject.getProperty(traits.key(ComponentConfigurationTraitDefinition.DATA_SOURCE_PROPERTY));
 	}
 
@@ -132,6 +161,11 @@ public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper
 	@Override
 	public String getTransform() {
 		return wrappedObject.getProperty(traits.key(ComponentConfigurationTraitDefinition.TRANSFORM_PROPERTY));
+	}
+
+	@Override
+	public String getBindingMode() {
+		return wrappedObject.getProperty(traits.key(ComponentConfigurationTraitDefinition.BINDING_MODE_PROPERTY));
 	}
 
 	@Override

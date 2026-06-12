@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  id="Definitions_events"
+                  targetNamespace="http://bpmn.io/schema/bpmn"
+                  exporter="bpmn-js"
+                  exporterVersion="12.0.0">
+
+  <bpmn:message id="Message_Payment" name="PaymentReceived" />
+  <bpmn:signal id="Signal_Cancel" name="OrderCancelled" />
+  <bpmn:error id="Error_Validation" name="ValidationError" errorCode="ERR_VALIDATION" />
+
+  <bpmn:process id="Process_Events" name="Event Handling Demo" isExecutable="true">
+
+    <bpmn:startEvent id="Start_1" name="Order placed">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:userTask id="Task_Review" name="Review order">
+      <bpmn:documentation>Review the order details and verify customer information.
+Check shipping address and payment method.</bpmn:documentation>
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:boundaryEvent id="Boundary_Timer" name="2 days" attachedToRef="Task_Review" cancelActivity="false">
+      <bpmn:outgoing>Flow_Reminder</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerDef_1">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">P2D</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:boundaryEvent>
+
+    <bpmn:boundaryEvent id="Boundary_Error" name="Validation failed" attachedToRef="Task_Review">
+      <bpmn:outgoing>Flow_Error</bpmn:outgoing>
+      <bpmn:errorEventDefinition id="ErrorDef_1" errorRef="Error_Validation" />
+    </bpmn:boundaryEvent>
+
+    <bpmn:serviceTask id="Task_Remind" name="Send reminder">
+      <bpmn:incoming>Flow_Reminder</bpmn:incoming>
+      <bpmn:outgoing>Flow_ReminderEnd</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:endEvent id="End_Reminder" name="Reminder sent">
+      <bpmn:incoming>Flow_ReminderEnd</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:serviceTask id="Task_HandleError" name="Handle validation error">
+      <bpmn:incoming>Flow_Error</bpmn:incoming>
+      <bpmn:outgoing>Flow_ErrorEnd</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:endEvent id="End_Error" name="Error handled">
+      <bpmn:incoming>Flow_ErrorEnd</bpmn:incoming>
+      <bpmn:terminateEventDefinition id="TermDef_1" />
+    </bpmn:endEvent>
+
+    <bpmn:intermediateCatchEvent id="Event_Payment" name="Wait for payment">
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MsgDef_1" messageRef="Message_Payment" />
+    </bpmn:intermediateCatchEvent>
+
+    <bpmn:intermediateThrowEvent id="Event_Notify" name="Notify warehouse">
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+      <bpmn:signalEventDefinition id="SigDef_1" signalRef="Signal_Cancel" />
+    </bpmn:intermediateThrowEvent>
+
+    <bpmn:scriptTask id="Task_Calculate" name="Calculate totals" scriptFormat="javascript">
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+      <bpmn:script>
+var total = order.items.reduce(function(sum, item) {
+    return sum + (item.price * item.quantity);
+}, 0);
+execution.setVariable("orderTotal", total);
+      </bpmn:script>
+    </bpmn:scriptTask>
+
+    <bpmn:inclusiveGateway id="GW_Inclusive" name="Delivery options" default="Flow_6b">
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_6a</bpmn:outgoing>
+      <bpmn:outgoing>Flow_6b</bpmn:outgoing>
+    </bpmn:inclusiveGateway>
+
+    <bpmn:serviceTask id="Task_Express" name="Express delivery">
+      <bpmn:incoming>Flow_6a</bpmn:incoming>
+      <bpmn:outgoing>Flow_7a</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_Standard" name="Standard delivery">
+      <bpmn:incoming>Flow_6b</bpmn:incoming>
+      <bpmn:outgoing>Flow_7b</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:inclusiveGateway id="GW_Merge">
+      <bpmn:incoming>Flow_7a</bpmn:incoming>
+      <bpmn:incoming>Flow_7b</bpmn:incoming>
+      <bpmn:outgoing>Flow_8</bpmn:outgoing>
+    </bpmn:inclusiveGateway>
+
+    <bpmn:endEvent id="End_1" name="Order complete">
+      <bpmn:incoming>Flow_8</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_1" targetRef="Task_Review" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_Review" targetRef="Event_Payment" />
+    <bpmn:sequenceFlow id="Flow_Reminder" sourceRef="Boundary_Timer" targetRef="Task_Remind" />
+    <bpmn:sequenceFlow id="Flow_ReminderEnd" sourceRef="Task_Remind" targetRef="End_Reminder" />
+    <bpmn:sequenceFlow id="Flow_Error" sourceRef="Boundary_Error" targetRef="Task_HandleError" />
+    <bpmn:sequenceFlow id="Flow_ErrorEnd" sourceRef="Task_HandleError" targetRef="End_Error" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Event_Payment" targetRef="Event_Notify" />
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="Event_Notify" targetRef="Task_Calculate" />
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="Task_Calculate" targetRef="GW_Inclusive" />
+    <bpmn:sequenceFlow id="Flow_6a" name="Express" sourceRef="GW_Inclusive" targetRef="Task_Express">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${delivery == 'express'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_6b" name="Standard" sourceRef="GW_Inclusive" targetRef="Task_Standard" />
+    <bpmn:sequenceFlow id="Flow_7a" sourceRef="Task_Express" targetRef="GW_Merge" />
+    <bpmn:sequenceFlow id="Flow_7b" sourceRef="Task_Standard" targetRef="GW_Merge" />
+    <bpmn:sequenceFlow id="Flow_8" sourceRef="GW_Merge" targetRef="End_1" />
+
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_Events">
+      <bpmndi:BPMNShape id="Start_1_di" bpmnElement="Start_1">
+        <dc:Bounds x="152" y="282" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Review_di" bpmnElement="Task_Review">
+        <dc:Bounds x="240" y="260" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Boundary_Timer_di" bpmnElement="Boundary_Timer">
+        <dc:Bounds x="272" y="322" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Boundary_Error_di" bpmnElement="Boundary_Error">
+        <dc:Bounds x="322" y="322" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Remind_di" bpmnElement="Task_Remind">
+        <dc:Bounds x="240" y="400" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Reminder_di" bpmnElement="End_Reminder">
+        <dc:Bounds x="392" y="422" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_HandleError_di" bpmnElement="Task_HandleError">
+        <dc:Bounds x="370" y="490" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_Error_di" bpmnElement="End_Error">
+        <dc:Bounds x="522" y="512" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_Payment_di" bpmnElement="Event_Payment">
+        <dc:Bounds x="402" y="282" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_Notify_di" bpmnElement="Event_Notify">
+        <dc:Bounds x="492" y="282" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Calculate_di" bpmnElement="Task_Calculate">
+        <dc:Bounds x="580" y="260" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_Inclusive_di" bpmnElement="GW_Inclusive">
+        <dc:Bounds x="735" y="275" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Express_di" bpmnElement="Task_Express">
+        <dc:Bounds x="840" y="190" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Standard_di" bpmnElement="Task_Standard">
+        <dc:Bounds x="840" y="340" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GW_Merge_di" bpmnElement="GW_Merge">
+        <dc:Bounds x="995" y="275" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_1_di" bpmnElement="End_1">
+        <dc:Bounds x="1102" y="282" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1">
+        <di:waypoint x="188" y="300" />
+        <di:waypoint x="240" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2">
+        <di:waypoint x="340" y="300" />
+        <di:waypoint x="402" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Reminder_di" bpmnElement="Flow_Reminder">
+        <di:waypoint x="290" y="358" />
+        <di:waypoint x="290" y="400" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ReminderEnd_di" bpmnElement="Flow_ReminderEnd">
+        <di:waypoint x="340" y="440" />
+        <di:waypoint x="392" y="440" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Error_di" bpmnElement="Flow_Error">
+        <di:waypoint x="340" y="358" />
+        <di:waypoint x="340" y="530" />
+        <di:waypoint x="370" y="530" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_ErrorEnd_di" bpmnElement="Flow_ErrorEnd">
+        <di:waypoint x="470" y="530" />
+        <di:waypoint x="522" y="530" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_3_di" bpmnElement="Flow_3">
+        <di:waypoint x="438" y="300" />
+        <di:waypoint x="492" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_4_di" bpmnElement="Flow_4">
+        <di:waypoint x="528" y="300" />
+        <di:waypoint x="580" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_5_di" bpmnElement="Flow_5">
+        <di:waypoint x="680" y="300" />
+        <di:waypoint x="735" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_6a_di" bpmnElement="Flow_6a">
+        <di:waypoint x="760" y="275" />
+        <di:waypoint x="760" y="230" />
+        <di:waypoint x="840" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_6b_di" bpmnElement="Flow_6b">
+        <di:waypoint x="760" y="325" />
+        <di:waypoint x="760" y="380" />
+        <di:waypoint x="840" y="380" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_7a_di" bpmnElement="Flow_7a">
+        <di:waypoint x="940" y="230" />
+        <di:waypoint x="1020" y="230" />
+        <di:waypoint x="1020" y="275" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_7b_di" bpmnElement="Flow_7b">
+        <di:waypoint x="940" y="380" />
+        <di:waypoint x="1020" y="380" />
+        <di:waypoint x="1020" y="325" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_8_di" bpmnElement="Flow_8">
+        <di:waypoint x="1045" y="300" />
+        <di:waypoint x="1102" y="300" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+
+</bpmn:definitions>

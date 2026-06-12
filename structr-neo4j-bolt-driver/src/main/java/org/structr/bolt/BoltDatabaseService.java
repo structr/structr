@@ -805,6 +805,9 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 			case LargeStringIndexing:
 				return false;
 
+			case FulltextIndexing:
+				return true;
+
 			case QueryLanguage:
 
 				final String param = getStringParameter(parameters);
@@ -835,7 +838,7 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 
 			case TypePredicateExpressions:
 				// see https://development.neo4j.dev/blog/developer/data-quality-type-constraints-functions/
-				return neo4jMajorVersion >= 5 && neo4jMinorVersion >= 9;
+				return neo4jMajorVersion >= 2025 || (neo4jMajorVersion >= 5 && neo4jMinorVersion >= 9);
 		}
 
 		return false;

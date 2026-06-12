@@ -1,0 +1,497 @@
+/**
+ * Copyright (C) 2010-2026 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+#processes {
+	height: 100%;
+	margin-bottom: 0;
+}
+
+#processes .tab-content {
+	display: none;
+	height: calc(100% - 4rem);
+	overflow: auto;
+}
+
+#processes .tab-content.active {
+	display: block;
+}
+
+.processes-controls {
+	padding: 0;
+	margin: 0;
+	display: flex;
+}
+
+.processes-controls .bpmn-dropzone {
+	display: inline-flex;
+	align-items: center;
+	padding: 6px 12px;
+	border: 2px dashed #ccc;
+	border-radius: 4px;
+	color: #666;
+	font-size: 13px;
+	user-select: none;cursor:pointer;
+}
+
+.processes-controls .bpmn-dropzone:hover {
+	border: 2px dashed #aaa;
+	background-color: #f3f3f3;
+}
+
+.processes-controls > div {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	flex-wrap: wrap;
+}
+
+.processes-pager-filters {
+	margin-left: 1rem;
+}
+
+.processes-pager-filters input.filter {
+	padding: 0.25rem 0.5rem;
+	min-width: 10rem;
+}
+
+.processes-table {
+	margin: 1.5rem 0 0 0;
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.processes-table th,
+.processes-table td {
+	padding: 0.5rem;
+	vertical-align: middle;
+	text-align: left;
+	white-space: nowrap;
+}
+
+.processes-table th {
+	background: var(--input-background);
+	color: var(--gray-333);
+	vertical-align: top;
+	font-weight: 600;
+}
+
+.processes-table th.actions-col {
+	text-align: right;
+}
+
+.processes-table tbody tr:hover {
+	background-color: var(--structr-light-green-transparent) !important;
+}
+
+.processes-table tr:nth-child(odd) {
+	background: var(--light-gray-bg-f7) !important;
+}
+
+.processes-table tr:nth-child(even) {
+	background: var(--solid-white) !important;
+}
+
+.processes-table td.mono {
+	font-family: monospace;
+	font-size: 0.875rem;
+}
+
+.processes-table td.actions {
+	text-align: right;
+	white-space: nowrap;
+}
+
+.processes-table td.actions i {
+	cursor: pointer;
+	display: inline-flex;
+	align-items: center;
+	margin-left: 0.25rem;
+}
+
+.processes-table td.actions svg.disabled {
+	opacity: 0.35;
+	cursor: not-allowed;
+}
+
+.status-badge {
+	display: inline-block;
+	padding: 0.125rem 0.5rem;
+	border-radius: 0.75rem;
+	font-size: 0.75rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	background: var(--gray-eee, #eee);
+	color: var(--gray-333, #333);
+}
+
+.status-badge.status-running,
+.status-badge.status-active {
+	background: #dbf0dd;
+	color: #1d6a2c;
+}
+
+.status-badge.status-completed {
+	background: #d9e8ff;
+	color: #1d4a9e;
+}
+
+.status-badge.status-suspended,
+.status-badge.status-waiting,
+.status-badge.status-reserved {
+	background: #fff1c8;
+	color: #7a5800;
+}
+
+.status-badge.status-terminated,
+.status-badge.status-cancelled,
+.status-badge.status-error {
+	background: #fcd9d4;
+	color: #8a1d1d;
+}
+
+.status-badge.status-created {
+	background: #e6e6f7;
+	color: #3a3a7a;
+}
+
+/* BPMN diagram (Process Diagram dialog) */
+.bpmn-diagram-host { background: #fafafa; }
+.bpmn-shape { cursor: pointer; }
+.bpmn-shape:hover .bpmn-shape-body { stroke: #2563eb; }
+.bpmn-shape.bpmn-selected .bpmn-shape-body { stroke: #2563eb; stroke-width: 3; }
+.bpmn-shape.bpmn-highlight-active .bpmn-shape-body { fill: #fff7d6; }
+.bpmn-shape.bpmn-highlight-completed .bpmn-shape-body { fill: #e6f4ea; }
+.bpmn-shape.bpmn-highlight-error .bpmn-shape-body { fill: #fcd9d4; }
+.process-diagram-dialog .dialogText { padding: 0; }
+.process-diagram-palette .btn-palette.active { outline: 2px solid #3498db; }
+.process-diagram-sidepanel {
+	flex: 0 0 24rem;
+	border-left: 1px solid #ddd;
+	padding: 10px;
+	overflow: auto;
+	font-size: 12px;
+}
+.show-diagram-link { color: inherit; text-decoration: none; }
+.show-diagram-link:hover { text-decoration: underline; }
+
+/* BPMN editor: task / process event-handler (listener) blocks.
+   Shared by the Task event handlers block (element panel) and the
+   Process event handlers block (process settings panel). */
+.bpmn-listener-block {
+	margin-top: 12px;
+	padding-top: 8px;
+	border-top: 1px solid #eee;
+}
+
+.bpmn-listener-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 6px;
+}
+
+.bpmn-listener-title {
+	color: #666;
+	font-size: 11px;
+}
+
+.bpmn-listener-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.bpmn-listener-hint {
+	color: #666;
+	font-size: 10px;
+	line-height: 1.4;
+	margin-top: 4px;
+}
+
+.bpmn-listener-row {
+	display: flex;
+	gap: 4px;
+	padding: 3px 0;
+	align-items: center;
+}
+
+.bpmn-listener-event {
+	flex: 0 0 36%;
+}
+
+.bpmn-listener-phase {
+	flex: 0 0 22%;
+}
+
+.bpmn-listener-method {
+	flex: 1 1 auto;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: 11px;
+	font-family: monospace;
+	color: #555;
+}
+
+.bpmn-listener-row .action {
+	flex: 0 0 auto;
+}
+
+/* BPMN editor: Process Diagram dialog layout (toolbar, palette, canvas, XML pane) */
+.process-diagram-toolbar {
+	padding: 6px 8px;
+	border-bottom: 1px solid #ddd;
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	flex-shrink: 0;
+}
+
+.pd-toolbar-sep {
+	width: 1px;
+	height: 18px;
+	background: #ddd;
+}
+
+.pd-spacer { flex: 1 1 auto; }
+.pd-bold { font-weight: 600; }
+
+.diagram-dirty,
+.diagram-status { font-size: 12px; }
+
+.process-diagram-body {
+	flex: 1 1 auto;
+	display: flex;
+	min-height: 300px;
+}
+
+.process-diagram-palette {
+	flex: 0 0 140px;
+	border-right: 1px solid #ddd;
+	padding: 6px 6px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	overflow: auto;
+}
+
+.process-diagram-host {
+	position: relative;
+	flex: 1 1 auto;
+}
+
+.palette-group {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+}
+
+.palette-group-header {
+	font-size: 10px;
+	font-weight: 600;
+	text-transform: uppercase;
+	color: #888;
+	padding: 2px 0;
+	letter-spacing: 0.5px;
+}
+
+.palette-group-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 3px;
+}
+
+.btn-palette {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 2px;
+	padding: 5px 2px;
+}
+
+.palette-entry-label {
+	font-size: 9px;
+	line-height: 1.1;
+	text-align: center;
+}
+
+.process-diagram-xml {
+	display: flex;
+	flex-direction: column;
+	flex: 0 0 35%;
+	border-top: 1px solid #ddd;
+	min-height: 0;
+	overflow: hidden;
+}
+
+.process-diagram-xml.is-hidden { display: none; }
+
+.process-diagram-xml-header {
+	padding: 4px 8px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	background: #f5f5f5;
+	font-size: 12px;
+	border-bottom: 1px solid #eee;
+}
+
+.process-diagram-xml-pre {
+	margin: 0;
+	padding: 8px;
+	overflow: auto;
+	font-size: 11px;
+	line-height: 1.4;
+	flex: 1 1 auto;
+	background: #fff;
+}
+
+/* BPMN editor: side-panel tabs */
+.process-diagram-sidepanel-tabs {
+	display: flex;
+	margin: -10px -10px 10px -10px;
+	border-bottom: 1px solid #ddd;
+}
+
+.sidepanel-tab {
+	flex: 1 1 auto;
+	padding: 7px 10px;
+	border: none;
+	cursor: pointer;
+	font-size: 12px;
+	background: #f5f5f5;
+	font-weight: 400;
+	color: #666;
+	border-bottom: 2px solid transparent;
+}
+
+.sidepanel-tab.active {
+	background: #fff;
+	font-weight: 600;
+	color: #333;
+	border-bottom-color: #3498db;
+}
+
+/* BPMN editor: side-panel + process-settings form primitives */
+.pd-heading       { margin: 0 0 8px 0; font-size: 13px; }
+.pd-heading-lg    { margin: 0 0 10px 0; font-size: 13px; }
+.pd-field-label   { color: #666; font-size: 11px; }
+.pd-label-block   { display: block; color: #666; font-size: 11px; margin-bottom: 4px; }
+.pd-section-title { color: #666; font-size: 11px; margin-bottom: 6px; }
+.pd-text-12       { font-size: 12px; }
+.pd-bold          { font-weight: 600; }
+.pd-mb-6          { margin-bottom: 6px; }
+.pd-block         { display: block; }
+.pd-field         { display: block; margin-bottom: 6px; }
+.pd-field-mt6     { display: block; margin-top: 6px; }
+
+.pd-section {
+	margin-top: 12px;
+	padding-top: 8px;
+	border-top: 1px solid #eee;
+}
+
+.pd-block-header {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-bottom: 6px;
+}
+
+.pd-checkbox-label {
+	display: flex;
+	align-items: flex-start;
+	gap: 6px;
+	cursor: pointer;
+	margin-bottom: 10px;
+}
+
+.pd-button-row {
+	display: flex;
+	gap: 6px;
+	margin-top: 10px;
+}
+
+.pd-hint {
+	display: block;
+	color: #666;
+	font-size: 10px;
+	line-height: 1.4;
+	margin-top: 4px;
+}
+
+.pd-panel-intro { color: #666; font-size: 11px; margin-bottom: 10px; }
+.pd-panel-note  { color: #666; font-size: 11px; margin-top: 6px; }
+
+/* Inputs share width/padding; the mono group adds a monospace face. */
+.input-process-name,
+.input-element-name,
+.input-instructions,
+.select-instance-page,
+.select-performer-candidate-principals,
+.input-performer-assignee,
+.input-performer-candidates,
+.input-subject-type,
+.input-subject-form-view,
+.input-subject-writable-view {
+	width: 100%;
+	box-sizing: border-box;
+	padding: 3px 6px;
+	font-size: 12px;
+}
+
+.input-performer-assignee,
+.input-performer-candidates,
+.input-subject-type,
+.input-subject-form-view,
+.input-subject-writable-view {
+	font-family: monospace;
+}
+
+.chk-default-assignee-from-initiator { margin-top: 3px; }
+.btn-delete-element { margin-left: auto; color: #c0392b; }
+
+.process-settings-section {
+	margin-bottom: 14px;
+	padding-bottom: 10px;
+	border-bottom: 1px solid #eee;
+}
+
+.bpmn-dropzone-input { display: none; }
+
+/* BPMN editor: element BPMN-attributes rows */
+.bpmn-attributes-list { list-style: none; margin: 0; padding: 0; }
+
+.bpmn-attribute-row {
+	display: flex;
+	gap: 4px;
+	padding: 3px 0;
+	align-items: center;
+}
+
+.bpmn-attribute-key,
+.bpmn-attribute-value {
+	min-width: 0;
+	box-sizing: border-box;
+}
+
+.bpmn-attribute-key   { flex: 1 1 40%; }
+.bpmn-attribute-value { flex: 1 1 60%; }
+.btn-remove-attribute { flex: 0 0 auto; }

@@ -56,6 +56,9 @@ public class UiModule implements StructrModule {
 		// relationships: traits
 		StructrTraits.registerTrait(new AbstractFileCONFIGURED_BYStorageConfiguration());
 		StructrTraits.registerTrait(new ActionMappingPARAMETERParameterMapping());
+		StructrTraits.registerTrait(new ActionMappingCALLSSchemaMethod());
+		StructrTraits.registerTrait(new ActionMappingEXECUTESFlowContainer());
+		StructrTraits.registerTrait(new ActionMappingCREATESSchemaNode());
 		StructrTraits.registerTrait(new CssRuleCONTAINSCssRule());
 		StructrTraits.registerTrait(new CssRuleHAS_DECLARATIONCssDeclaration());
 		StructrTraits.registerTrait(new CssRuleHAS_SELECTORCssSelector());
@@ -70,8 +73,11 @@ public class UiModule implements StructrModule {
 		StructrTraits.registerTrait(new DOMNodeSUCCESS_NOTIFICATION_ELEMENTActionMapping());
 		StructrTraits.registerTrait(new DOMNodeFAILURE_NOTIFICATION_ELEMENTActionMapping());
 		StructrTraits.registerTrait(new DOMNodeSUCCESS_TARGETActionMapping());
+		StructrTraits.registerTrait(new DOMNodeSUCCESS_HIDE_TARGETActionMapping());
+		StructrTraits.registerTrait(new DOMNodeFAILURE_HIDE_TARGETActionMapping());
 		StructrTraits.registerTrait(new DOMNodeSYNCDOMNode());
 		StructrTraits.registerTrait(new DOMNodeHAS_COMPONENT_CONFIGURATIONComponentConfiguration());
+		StructrTraits.registerTrait(new DOMNodeHASVisibilityMapping());
 		StructrTraits.registerTrait(new FolderCONTAINSAbstractFile());
 		StructrTraits.registerTrait(new FolderCONTAINSFile());
 		StructrTraits.registerTrait(new FolderCONTAINSFolder());
@@ -89,6 +95,9 @@ public class UiModule implements StructrModule {
 		// relationships: types
 		StructrTraits.registerRelationshipType(StructrTraits.ABSTRACT_FILE_CONFIGURED_BY_STORAGE_CONFIGURATION,              StructrTraits.ABSTRACT_FILE_CONFIGURED_BY_STORAGE_CONFIGURATION);
 		StructrTraits.registerRelationshipType(StructrTraits.ACTION_MAPPING_PARAMETER_PARAMETER_MAPPING,                     StructrTraits.ACTION_MAPPING_PARAMETER_PARAMETER_MAPPING);
+		StructrTraits.registerRelationshipType(StructrTraits.ACTION_MAPPING_CALLS_SCHEMA_METHOD,                            StructrTraits.ACTION_MAPPING_CALLS_SCHEMA_METHOD);
+		StructrTraits.registerRelationshipType(StructrTraits.ACTION_MAPPING_EXECUTES_FLOW_CONTAINER,                        StructrTraits.ACTION_MAPPING_EXECUTES_FLOW_CONTAINER);
+		StructrTraits.registerRelationshipType(StructrTraits.ACTION_MAPPING_CREATES_SCHEMA_NODE,                            StructrTraits.ACTION_MAPPING_CREATES_SCHEMA_NODE);
 		StructrTraits.registerRelationshipType(StructrTraits.CSS_RULE_CONTAINS_CSS_RULE,                                     StructrTraits.CSS_RULE_CONTAINS_CSS_RULE);
 		StructrTraits.registerRelationshipType(StructrTraits.CSS_RULE_HAS_DECLARATION_CSS_DECLARATION,                       StructrTraits.CSS_RULE_HAS_DECLARATION_CSS_DECLARATION);
 		StructrTraits.registerRelationshipType(StructrTraits.CSS_RULE_HAS_SELECTOR_CSS_SELECTOR,                             StructrTraits.CSS_RULE_HAS_SELECTOR_CSS_SELECTOR);
@@ -104,7 +113,10 @@ public class UiModule implements StructrModule {
 		StructrTraits.registerRelationshipType(StructrTraits.DOM_NODE_SUCCESS_NOTIFICATION_ELEMENT_ACTION_MAPPING,           StructrTraits.DOM_NODE_SUCCESS_NOTIFICATION_ELEMENT_ACTION_MAPPING);
 		StructrTraits.registerRelationshipType(StructrTraits.DOM_NODE_FAILURE_NOTIFICATION_ELEMENT_ACTION_MAPPING,           StructrTraits.DOM_NODE_FAILURE_NOTIFICATION_ELEMENT_ACTION_MAPPING);
 		StructrTraits.registerRelationshipType(StructrTraits.DOM_NODE_SUCCESS_TARGET_ACTION_MAPPING,                         StructrTraits.DOM_NODE_SUCCESS_TARGET_ACTION_MAPPING);
+		StructrTraits.registerRelationshipType(StructrTraits.DOM_NODE_SUCCESS_HIDE_TARGET_ACTION_MAPPING,                    StructrTraits.DOM_NODE_SUCCESS_HIDE_TARGET_ACTION_MAPPING);
+		StructrTraits.registerRelationshipType(StructrTraits.DOM_NODE_FAILURE_HIDE_TARGET_ACTION_MAPPING,                    StructrTraits.DOM_NODE_FAILURE_HIDE_TARGET_ACTION_MAPPING);
 		StructrTraits.registerRelationshipType(StructrTraits.DOM_NODE_SYNC_DOM_NODE,                                         StructrTraits.DOM_NODE_SYNC_DOM_NODE);
+		StructrTraits.registerRelationshipType(StructrTraits.DOM_NODE_HAS_VISIBILITY_MAPPING,                              StructrTraits.DOM_NODE_HAS_VISIBILITY_MAPPING);
 		StructrTraits.registerRelationshipType(StructrTraits.FOLDER_CONTAINS_ABSTRACT_FILE,                                  StructrTraits.FOLDER_CONTAINS_ABSTRACT_FILE);
 		StructrTraits.registerRelationshipType(StructrTraits.FOLDER_CONTAINS_FILE,                                           StructrTraits.FOLDER_CONTAINS_FILE);
 		StructrTraits.registerRelationshipType(StructrTraits.FOLDER_CONTAINS_FOLDER,                                         StructrTraits.FOLDER_CONTAINS_FOLDER);

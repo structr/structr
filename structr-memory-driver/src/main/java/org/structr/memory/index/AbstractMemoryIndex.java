@@ -29,6 +29,7 @@ import org.structr.memory.index.factory.*;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -51,7 +52,7 @@ public abstract class AbstractMemoryIndex<T extends PropertyContainer> extends A
 
 	@Override
 	public Map<T, Double> fulltextQuery(final String indexName, final String searchString) {
-		return null;
+		return new LinkedHashMap<>();
 	}
 
 	@Override
@@ -82,6 +83,7 @@ public abstract class AbstractMemoryIndex<T extends PropertyContainer> extends A
 	// ----- private methods -----
 	private void init() {
 
+		factories.put(AnyQuery.class,          new AnyQueryFactory(this));
 		factories.put(NotEmptyQuery.class,     new NotEmptyQueryFactory(this));
 		factories.put(SpatialQuery.class,      new SpatialQueryFactory(this));
 		factories.put(GraphQuery.class,        new GraphQueryFactory(this));

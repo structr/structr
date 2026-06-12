@@ -275,6 +275,9 @@ button:hover:not(.disabled), button:focus:not(.disabled) {
 .icon-orange {
 	color: orange;
 }
+.icon-lightblue {
+	color: var(--light-blue);
+}
 .icon-blue {
 	color: var(--medium-blue);
 }
@@ -305,6 +308,9 @@ button:hover:not(.disabled), button:focus:not(.disabled) {
 }
 .fill-orange {
 	fill: orange;
+}
+.fill-lightblue {
+	fill: var(--light-blue);
 }
 .fill-blue {
 	fill: var(--medium-blue);
@@ -3910,6 +3916,7 @@ input.combined-input-select-field {
 select.combined-input-select-field {
 	width: 50%;
 	right: 0;
+	z-index: 0;
 }
 
 ul.combined-input-select-field {
@@ -4607,6 +4614,9 @@ ul.combined-input-select-field li:not(.nohover):hover {
 .text-xs {
 	font-size: 0.75rem;
 	line-height: 1rem;
+}
+.text-xs code {
+	font-size: 0.75rem !important;
 }
 .text-sm {
 	font-size: 0.875rem;

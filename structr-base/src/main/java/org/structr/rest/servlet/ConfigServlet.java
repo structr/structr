@@ -854,7 +854,11 @@ public class ConfigServlet extends AbstractServletBase {
 
 		final Tag driver = div.block("p");
 		driver.block("label").text("Driver");
-		driver.add(new SelectField(driver, "driver-structr-new-connection").addOption("Neo4j", "org.structr.bolt.BoltDatabaseService").addOption("Memgraph DB (experimental)", "org.structr.memgraph.MemgraphDatabaseService"));
+		driver.add(new SelectField(driver, "driver-structr-new-connection")
+				.addOption("Neo4j Remote (Bolt)", "org.structr.bolt.BoltDatabaseService")
+				.addOption("Neo4j Embedded", "org.structr.embedded.EmbeddedDatabaseService")
+				.addOption("In-Memory (non-persistent, all data will be erased on shutdown!)", "org.structr.memory.MemoryDatabaseService")
+		);
 
 		final Tag url = div.block("p");
 		url.block("label").text("Connection URL").css("has-comment").attr(new Attr("data-comment", DatabaseConnection.INFO_TEXT_URL));

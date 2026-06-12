@@ -89,15 +89,33 @@ public class AppendWidgetCommand extends AbstractCommand {
 					// create temporary parent for Widget to expand in
 					final DOMNode tmpParent = page.createElement("div");
 
-					Widget.expandWidget(page, tmpParent, baseUrl, webSocketData.getNodeData(), processDeploymentInfo);
+					// Pull the auto-VM spec out of the node-data map BEFORE XML
+					// expansion so it does not pollute slot substitution; we
+					// apply it ourselves once the widget root is in place.
+					final java.util.Map<String, Object> nodeData = webSocketData.getNodeData();
+
+					Widget.expandWidget(page, tmpParent, baseUrl, nodeData, processDeploymentInfo);
 
 					// move children
+					DOMNode firstAppendedRoot = null;
 					for (final DOMNode newNode : tmpParent.getChildren()) {
+						if (firstAppendedRoot == null) {
+							firstAppendedRoot = newNode;
+						}
 						parentDOMNode.appendChild(newNode);
 					}
 
 					// remove temporary parent
 					StructrApp.getInstance(securityContext).delete(tmpParent);
+
+					// Inherit visibility flags from the append parent onto the
+					// widget root and its descendants. Runs for every widget
+					// append so the appended subtree picks up the page's
+					// audience the same way a manually-created DOMNode does.
+					WidgetVisibilityFlagInheritor.apply(firstAppendedRoot, parentDOMNode);
+
+					// Attach auto-VM (no-op if no spec was sent or trait is missing).
+					WidgetAutoVisibilityMappingHelper.applyAndConsume(securityContext, firstAppendedRoot, nodeData);
 
 					TransactionCommand.registerNodeCallback(parentDOMNode, callback);
 

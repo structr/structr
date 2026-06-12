@@ -33,6 +33,8 @@ public enum EventBehaviour implements Documentable {
 	FireEvent("fire-event", "Fire event", null),
 	FullPageReload("full-page-reload", "Full page reload", null),
 	SignOut("sign-out", "Sign out", null),
+	ShowHideSection("show-hide-section", "Show/hide page section (CSS id)", "Show or hide page sections (identified by CSS id) on success or failure, without a full page reload."),
+	ShowHideSectionLinked("show-hide-section-linked", "Show/hide page section (linked)", "Show or hide page sections (identified by linked element) on success or failure, without a full page reload."),
 	None("none", "None", null),
 	Unknown("unknown", null, null);
 

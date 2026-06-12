@@ -88,7 +88,16 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 
 				final Map<String, Object> data = webSocketData.getNodeData();
 
-				ReplaceWidgetCommand.replaceWidget(securityContext, page, nodeToReplace, baseUrl, data, processDeploymentInfo);
+				final DOMNode newRoot = ReplaceWidgetCommand.replaceWidget(securityContext, page, nodeToReplace, baseUrl, data, processDeploymentInfo);
+
+				// Inherit visibility flags from the replacement's parent onto
+				// the widget root and its descendants. Runs for every replace
+				// so the new subtree picks up the page's audience the same
+				// way a manually-created DOMNode does.
+				WidgetVisibilityFlagInheritor.apply(newRoot, parentNode);
+
+				// Attach auto-VM (no-op if no spec was sent or trait is missing).
+				WidgetAutoVisibilityMappingHelper.applyAndConsume(securityContext, newRoot, data);
 
 				TransactionCommand.registerNodeCallback(parentNode, callback);
 
@@ -107,7 +116,7 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 		return "REPLACE_WIDGET";
 	}
 
-	public static void replaceWidget(final SecurityContext securityContext, final Page page, final DOMNode nodeToReplace, final String baseUrl, final Map<String, Object> data, final boolean processDeploymentInfo) throws FrameworkException {
+	public static DOMNode replaceWidget(final SecurityContext securityContext, final Page page, final DOMNode nodeToReplace, final String baseUrl, final Map<String, Object> data, final boolean processDeploymentInfo) throws FrameworkException {
 
 		// create temporary parent for Widget to expand in
 		final DOMNode tmpParent  = page.createElement("div");
@@ -127,6 +136,8 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 
 		// remove temporary parent
 		StructrApp.getInstance(securityContext).delete(tmpParent);
+
+		return newNode;
 	}
 
 	// ----- private methods -----

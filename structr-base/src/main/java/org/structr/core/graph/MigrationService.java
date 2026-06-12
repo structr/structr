@@ -38,6 +38,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.DOMElement;
@@ -70,7 +71,8 @@ public class MigrationService {
 		"sign-up",
 		"reset-password",
 		"method",
-		"flow"
+		"flow",
+		"control-process"
 	);
 
 	private static final Set<String> FQCNBlacklist = Set.of(
@@ -183,10 +185,14 @@ public class MigrationService {
 			migratePrincipalToPrincipalInterface();
 			migrateFolderMountTarget();
 			migrateEventActionMapping();
+			migrateActionMappingTargetsToRelationships();
+			cleanStaleActionMappingTargets();
 			migrateMailTemplates();
 			updateSharedComponentFlag();
 			if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
 				migrateRestQueryRepeaters();
+				migrateActionMappingControlsToProcess();
+				migrateVisibilityMappingForToProcess();
 			}
 			warnAboutWrongNotionProperties();
 		}
@@ -519,6 +525,295 @@ public class MigrationService {
 		if ((directionCount + eventMappingCount + structrAppJsCount) > 0) {
 			logger.info("Migrated {} relationships, {} event mappings and {} structr-app.js settings.", directionCount, eventMappingCount, structrAppJsCount);
 		}
+	}
+
+	/**
+	 * Migrate ActionMapping nodes from string-only target references to graph
+	 * relationships. For each ActionMapping with non-empty {@code method} /
+	 * {@code flow} / {@code dataType} string properties, look up the corresponding
+	 * SchemaMethod / FlowContainer / SchemaNode by name and write the relationship
+	 * if not already set. The strings remain in place (kept as the authoring
+	 * surface and as a fallback for unresolvable targets).
+	 *
+	 * <p>This re-runs harmlessly: nodes with relationships already set are skipped
+	 * by the "if not already populated" check. Failed lookups (target node missing)
+	 * are logged at debug level and leave the relationship null, matching runtime
+	 * fallback behaviour.</p>
+	 */
+	private static void migrateActionMappingTargetsToRelationships() {
+
+		final App app   = StructrApp.getInstance();
+		int resolved    = 0;
+		int unresolved  = 0;
+
+		try (final Tx tx = app.tx()) {
+
+			tx.disableChangelog();
+
+			final Traits actionMappingTraits = Traits.of(StructrTraits.ACTION_MAPPING);
+			final PropertyKey<String> methodKey            = actionMappingTraits.key(ActionMappingTraitDefinition.METHOD_PROPERTY);
+			final PropertyKey<String> flowKey              = actionMappingTraits.key(ActionMappingTraitDefinition.FLOW_PROPERTY);
+			final PropertyKey<String> dataTypeKey          = actionMappingTraits.key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY);
+			final PropertyKey<NodeInterface> methodNodeKey   = actionMappingTraits.key(ActionMappingTraitDefinition.METHOD_NODE_PROPERTY);
+			final PropertyKey<NodeInterface> flowNodeKey     = actionMappingTraits.key(ActionMappingTraitDefinition.FLOW_NODE_PROPERTY);
+			final PropertyKey<NodeInterface> dataTypeNodeKey = actionMappingTraits.key(ActionMappingTraitDefinition.DATA_TYPE_NODE_PROPERTY);
+
+			final Traits schemaMethodTraits = Traits.of(StructrTraits.SCHEMA_METHOD);
+			final PropertyKey<NodeInterface> schemaMethodSchemaNodeKey = schemaMethodTraits.key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY);
+
+			for (final NodeInterface eam : app.nodeQuery(StructrTraits.ACTION_MAPPING).getResultStream()) {
+
+				final String methodName   = eam.getProperty(methodKey);
+				final String flowName     = eam.getProperty(flowKey);
+				final String dataTypeName = eam.getProperty(dataTypeKey);
+
+				// dataType -> SchemaNode
+				NodeInterface resolvedSchemaNode = eam.getProperty(dataTypeNodeKey);
+				if (resolvedSchemaNode == null && StringUtils.isNotBlank(dataTypeName)) {
+					resolvedSchemaNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).name(dataTypeName).getFirst();
+					if (resolvedSchemaNode != null) {
+						eam.setProperty(dataTypeNodeKey, resolvedSchemaNode);
+						resolved++;
+					} else {
+						logger.warn("MigrationService: ActionMapping {} references dataType '{}' but no SchemaNode with that name exists. Relationship not set; verify the type name and resave or use the UI selector once available.", eam.getUuid(), dataTypeName);
+						unresolved++;
+					}
+				}
+
+				// flow -> FlowContainer
+				if (eam.getProperty(flowNodeKey) == null && StringUtils.isNotBlank(flowName)) {
+					final NodeInterface resolvedFlow = app.nodeQuery(StructrTraits.FLOW_CONTAINER).name(flowName).getFirst();
+					if (resolvedFlow != null) {
+						eam.setProperty(flowNodeKey, resolvedFlow);
+						resolved++;
+					} else {
+						logger.warn("MigrationService: ActionMapping {} references flow '{}' but no FlowContainer with that name exists. Relationship not set; verify the flow name and resave or use the UI selector once available.", eam.getUuid(), flowName);
+						unresolved++;
+					}
+				}
+
+				// method -> SchemaMethod (scoped by dataType when present, else top-level only)
+				if (eam.getProperty(methodNodeKey) == null && StringUtils.isNotBlank(methodName)) {
+
+					NodeInterface resolvedMethod = null;
+					if (resolvedSchemaNode != null) {
+
+						// Tier 1: explicit dataType, search methods on that type only
+						for (final NodeInterface candidate : app.nodeQuery(StructrTraits.SCHEMA_METHOD).name(methodName).getResultStream()) {
+							final NodeInterface parent = candidate.getProperty(schemaMethodSchemaNodeKey);
+							if (parent != null && parent.getUuid().equals(resolvedSchemaNode.getUuid())) {
+								resolvedMethod = candidate;
+								break;
+							}
+						}
+
+					} else {
+
+						// Tier 2: no dataType, accept only a top-level (parent-less) SchemaMethod.
+						// Methods on specific types are NOT auto-resolved without a declared dataType:
+						// inferring by name uniqueness would weaken the App Graph as a validation surface.
+						for (final NodeInterface candidate : app.nodeQuery(StructrTraits.SCHEMA_METHOD).name(methodName).getResultStream()) {
+							final NodeInterface parent = candidate.getProperty(schemaMethodSchemaNodeKey);
+							if (parent == null) {
+								resolvedMethod = candidate;
+								break;
+							}
+						}
+					}
+
+					if (resolvedMethod != null) {
+						eam.setProperty(methodNodeKey, resolvedMethod);
+						resolved++;
+					} else {
+						// Diagnostic: collect candidate types to help the user fix the binding.
+						final List<String> candidateTypes = new ArrayList<>();
+						for (final NodeInterface candidate : app.nodeQuery(StructrTraits.SCHEMA_METHOD).name(methodName).getResultStream()) {
+							final NodeInterface parent = candidate.getProperty(schemaMethodSchemaNodeKey);
+							candidateTypes.add(parent != null ? parent.getName() : "(top-level)");
+						}
+
+						// Distinguish Java-method references (built-in engine methods like claim,
+						// complete, signalEvent, terminate, ...) from genuinely missing methods.
+						// Java methods are valid runtime targets but have no SchemaMethod node, so
+						// the relationship stays null by design: they are platform code, not data.
+						// The runtime dispatcher (Methods.resolveMethod) finds them via idExpression.
+						final List<String> javaMethodTypes = findTypesWithJavaMethod(methodName);
+
+						if (resolvedSchemaNode != null) {
+							logger.warn("MigrationService: ActionMapping {} references method '{}' on type '{}', but no SchemaMethod with that name exists on that type. Candidate types where the method exists: {}. Relationship not set; verify the binding manually.", eam.getUuid(), methodName, dataTypeName, candidateTypes);
+							unresolved++;
+						} else if (candidateTypes.isEmpty() && javaMethodTypes.isEmpty()) {
+							logger.warn("MigrationService: ActionMapping {} references method '{}' but no SchemaMethod with that name exists anywhere in the schema. Relationship not set; verify the method name and resave.", eam.getUuid(), methodName);
+							unresolved++;
+						} else if (candidateTypes.isEmpty() && !javaMethodTypes.isEmpty()) {
+							// Built-in Java method (claim / complete / signalEvent / ...). The binding
+							// is valid: runtime resolution via idExpression finds the Java method.
+							// Log INFO so the user knows we deliberately skipped the relationship.
+							logger.info("MigrationService: ActionMapping {} references built-in Java method '{}' on types {}. No SchemaMethod node; relationship intentionally left null. Runtime dispatch via idExpression resolves the call.", eam.getUuid(), methodName, javaMethodTypes);
+						} else {
+							// dataType not declared, no top-level match, but SchemaMethod nodes exist on
+							// specific types. Don't guess by name uniqueness: the user must pick the target
+							// explicitly via dataType (or, eventually, the UI selector).
+							logger.warn("MigrationService: ActionMapping {} references method '{}' without a dataType and no top-level SchemaMethod with that name exists. Candidate types where the method is defined: {}. Relationship not set; declare a dataType or use the UI selector once available to bind the target explicitly.", eam.getUuid(), methodName, candidateTypes);
+							unresolved++;
+						}
+					}
+				}
+			}
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			logger.warn("Unable to migrate ActionMapping target relationships: {}", fex.getMessage());
+			fex.printStackTrace();
+		}
+
+		if (resolved > 0) {
+			logger.info("Migrated {} ActionMapping target string(s) to graph relationships.", resolved);
+		}
+		if (unresolved > 0) {
+			logger.warn("MigrationService: {} ActionMapping target string(s) could not be resolved automatically. See WARN messages above for details and required fixes.", unresolved);
+		}
+	}
+
+	/**
+	 * One-time hygiene pass that clears string properties (and via the OnModification
+	 * lifecycle, the corresponding relationships) on ActionMapping nodes when those
+	 * strings are not relevant to the node's current {@code action}. Stale strings can
+	 * accumulate across edit cycles when the editor changes {@code action} from one
+	 * value to another without clearing previously-set fields. Once the EAM editor is
+	 * updated to clear irrelevant fields on action change, this cleanup becomes a
+	 * one-shot historical fix; until then it runs on every server start and is
+	 * idempotent (does nothing once data is clean).
+	 *
+	 * <p>Action-to-fields mapping (only the listed fields are kept; others are
+	 * cleared):
+	 * <ul>
+	 *   <li>{@code create}: keeps {@code dataType}.</li>
+	 *   <li>{@code method}: keeps {@code method} and {@code dataType} (used as a
+	 *       static-method type qualifier when set).</li>
+	 *   <li>{@code flow}: keeps {@code flow}.</li>
+	 *   <li>{@code control-process}: clears {@code method} and {@code flow};
+	 *       keeps {@code dataType} (the {@code completeWithSubject}
+	 *       operation uses it to pick the SchemaNode type that a userTask
+	 *       creates as the process subject); keeps the process-control
+	 *       properties ({@code controlsProcess}, {@code targetsElement},
+	 *       {@code processOperation}) which are not part of this cleanup
+	 *       pass (they have no legacy string counterparts).</li>
+	 *   <li>All other declared actions ({@code update}, {@code delete}, sign-in
+	 *       family, page-navigation family, child/html-manipulation family): clear
+	 *       all three of {@code method}, {@code flow}, {@code dataType}.</li>
+	 *   <li>Unknown / null / non-canonical {@code action}: leave alone (we cannot
+	 *       safely decide what is stale for incomplete or legacy nodes).</li>
+	 * </ul>
+	 */
+	private static void cleanStaleActionMappingTargets() {
+
+		// Whitelist per action: which of {method, flow, dataType} are relevant.
+		// Note: control-process has its own dedicated properties (controlsProcess,
+		// targetsElement, processOperation) which are not part of this cleanup;
+		// `method` and `flow` are unused by it. `dataType` IS used by the
+		// `completeWithSubject` operation as the SchemaNode type to instantiate
+		// as the new process subject -- keep it so the editor's selection
+		// survives a server restart.
+		final Set<String> METHOD_RELEVANT    = Set.of("method");
+		final Set<String> FLOW_RELEVANT      = Set.of("flow");
+		final Set<String> DATA_TYPE_RELEVANT = Set.of("create", "method", "control-process");
+
+		final App app   = StructrApp.getInstance();
+		int cleaned     = 0;
+
+		try (final Tx tx = app.tx()) {
+
+			tx.disableChangelog();
+
+			final Traits actionMappingTraits = Traits.of(StructrTraits.ACTION_MAPPING);
+			final PropertyKey<String> actionKey   = actionMappingTraits.key(ActionMappingTraitDefinition.ACTION_PROPERTY);
+			final PropertyKey<String> methodKey   = actionMappingTraits.key(ActionMappingTraitDefinition.METHOD_PROPERTY);
+			final PropertyKey<String> flowKey     = actionMappingTraits.key(ActionMappingTraitDefinition.FLOW_PROPERTY);
+			final PropertyKey<String> dataTypeKey = actionMappingTraits.key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY);
+
+			for (final NodeInterface eam : app.nodeQuery(StructrTraits.ACTION_MAPPING).getResultStream()) {
+
+				final String action = eam.getProperty(actionKey);
+
+				// Skip nodes whose action is unknown or unset: we cannot safely decide
+				// what is stale for incomplete or legacy data.
+				if (StringUtils.isBlank(action) || !EventActionMappingActions.contains(action)) {
+					continue;
+				}
+
+				boolean changed = false;
+
+				if (!METHOD_RELEVANT.contains(action) && StringUtils.isNotBlank(eam.getProperty(methodKey))) {
+					logger.info("Cleaning stale 'method' on ActionMapping {} (action='{}'): was '{}'", eam.getUuid(), action, eam.getProperty(methodKey));
+					eam.setProperty(methodKey, null);
+					changed = true;
+				}
+				if (!FLOW_RELEVANT.contains(action) && StringUtils.isNotBlank(eam.getProperty(flowKey))) {
+					logger.info("Cleaning stale 'flow' on ActionMapping {} (action='{}'): was '{}'", eam.getUuid(), action, eam.getProperty(flowKey));
+					eam.setProperty(flowKey, null);
+					changed = true;
+				}
+				if (!DATA_TYPE_RELEVANT.contains(action) && StringUtils.isNotBlank(eam.getProperty(dataTypeKey))) {
+					logger.info("Cleaning stale 'dataType' on ActionMapping {} (action='{}'): was '{}'", eam.getUuid(), action, eam.getProperty(dataTypeKey));
+					eam.setProperty(dataTypeKey, null);
+					changed = true;
+				}
+
+				if (changed) {
+					cleaned++;
+				}
+			}
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			logger.warn("Unable to clean stale ActionMapping target strings: {}", fex.getMessage());
+			fex.printStackTrace();
+		}
+
+		if (cleaned > 0) {
+			logger.info("Cleaned stale targets on {} ActionMapping node(s). Corresponding relationships were also cleared by the OnModification lifecycle.", cleaned);
+		}
+	}
+
+	/**
+	 * Find every registered type that has a method (Java or SchemaMethod-backed)
+	 * with the given name. Caller-side context: this is invoked only when no
+	 * SchemaMethod node with the name exists in the database, so any hits here
+	 * must be Java methods (built-in engine code) rather than SchemaMethod-backed.
+	 *
+	 * <p>The result distinguishes "this name resolves to built-in engine code at
+	 * runtime" (relationship intentionally null because Java methods are not graph
+	 * nodes) from "this name doesn't resolve anywhere" (real user error). Returns
+	 * the type names where the method exists; empty if nowhere.</p>
+	 */
+	private static List<String> findTypesWithJavaMethod(final String methodName) {
+
+		final List<String> hits = new ArrayList<>();
+		if (methodName == null || methodName.isEmpty()) {
+			return hits;
+		}
+
+		try {
+			for (final String typeName : Traits.getAllTypes()) {
+				try {
+					final Traits t = Traits.of(typeName);
+					if (t == null) continue;
+					final org.structr.core.api.AbstractMethod m = org.structr.core.api.Methods.resolveMethod(t, methodName);
+					if (m != null) {
+						hits.add(typeName);
+					}
+				} catch (Exception inner) {
+					// Type-level lookup failures should not break the migration.
+				}
+			}
+		} catch (Exception ex) {
+			logger.debug("findTypesWithJavaMethod failed for '{}': {}", methodName, ex.getMessage());
+		}
+
+		return hits;
 	}
 
 	private static void migrateMailTemplates() {
@@ -1065,6 +1360,197 @@ public class MigrationService {
 
 		} catch (FrameworkException fex) {
 			logger.warn("Unable to migrate REST query repeaters: {}", fex.getMessage());
+		}
+	}
+
+	/**
+	 * Repoint legacy {@code ActionMapping -[CONTROLS]-> BpmnDefinitions} edges to
+	 * the contained {@code BpmnProcess}. Before the multi-process refactor the
+	 * CONTROLS rel targeted the definitions file; now it targets one specific
+	 * BpmnProcess (definitions can hold multiple processes via collaborations).
+	 *
+	 * <p>The Neo4j label ("CONTROLS") is unchanged; only the trait's declared
+	 * target type was switched, so the framework no longer surfaces the legacy
+	 * edges via {@code ActionMapping.getControlsProcess()}. We find them through
+	 * direct Cypher, delete the stale edges, and re-set the property through
+	 * the typed API so the new rel gets the framework metadata it needs.</p>
+	 *
+	 * <p>Target-selection rules per source BpmnDefinitions:
+	 * <ul>
+	 *   <li>Single child BpmnProcess: pick it.</li>
+	 *   <li>Multiple children, exactly one marked {@code processIsExecutable}:
+	 *       pick that one.</li>
+	 *   <li>Otherwise: leave the source ActionMapping unset and log a warning
+	 *       so the author can fix it via the EAM editor.</li>
+	 * </ul></p>
+	 */
+	private static void migrateActionMappingControlsToProcess() {
+
+		final App app = StructrApp.getInstance();
+		int repointed = 0;
+		int skipped   = 0;
+
+		try (final Tx tx = app.tx()) {
+
+			tx.disableChangelog();
+
+			final List<GraphObject> staleDefs = Iterables.toList(app.query(
+				"MATCH (:ActionMapping)-[:CONTROLS]->(bd:BpmnDefinitions) RETURN DISTINCT bd",
+				Map.of()
+			));
+
+			if (staleDefs.isEmpty()) {
+				tx.success();
+				return;
+			}
+
+			logger.info("MigrationService: found {} BpmnDefinitions with legacy ActionMapping CONTROLS edges, repointing to BpmnProcess.", staleDefs.size());
+
+			final PropertyKey<NodeInterface> controlsProcessKey = Traits.of(StructrTraits.ACTION_MAPPING).key(ActionMappingTraitDefinition.CONTROLS_PROCESS_PROPERTY);
+
+			for (final GraphObject bdObj : staleDefs) {
+
+				if (!(bdObj instanceof NodeInterface)) continue;
+				final NodeInterface bd = (NodeInterface) bdObj;
+				final String bdId      = bd.getUuid();
+
+				// Pick the target BpmnProcess: single child, or unique executable.
+				final Iterable<NodeInterface> processes = bd.getProperty(bd.getTraits().key("processes"));
+				final List<NodeInterface> all  = new ArrayList<>();
+				final List<NodeInterface> exec = new ArrayList<>();
+				if (processes != null) {
+					for (final NodeInterface p : processes) {
+						all.add(p);
+						final Boolean isExec = p.getProperty(p.getTraits().key("processIsExecutable"));
+						if (Boolean.TRUE.equals(isExec)) exec.add(p);
+					}
+				}
+
+				NodeInterface target = null;
+				if (all.size() == 1) {
+					target = all.get(0);
+				} else if (exec.size() == 1) {
+					target = exec.get(0);
+				}
+
+				// Find the ActionMappings that currently CONTROL this definitions.
+				final List<GraphObject> ams = Iterables.toList(app.query(
+					"MATCH (am:ActionMapping)-[:CONTROLS]->(:BpmnDefinitions {id:$bdId}) RETURN DISTINCT am",
+					Map.of("bdId", bdId)
+				));
+
+				// Drop the legacy edges first (trait change hides them from
+				// the typed API; we delete via Cypher).
+				app.query(
+					"MATCH (:ActionMapping)-[r:CONTROLS]->(:BpmnDefinitions {id:$bdId}) DELETE r",
+					Map.of("bdId", bdId)
+				);
+
+				if (target == null) {
+					logger.warn("MigrationService: BpmnDefinitions {} has {} BpmnProcess children ({} marked executable); cannot decide which to repoint to. {} ActionMapping(s) left without a controlsProcess -- fix via the EAM editor.", bdId, all.size(), exec.size(), ams.size());
+					skipped += ams.size();
+					continue;
+				}
+
+				for (final GraphObject amObj : ams) {
+					if (!(amObj instanceof NodeInterface)) continue;
+					final NodeInterface am = (NodeInterface) amObj;
+					am.setProperty(controlsProcessKey, target);
+					repointed++;
+				}
+			}
+
+			logger.info("MigrationService: ActionMapping CONTROLS rels: repointed={}, skipped={}.", repointed, skipped);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("Unable to migrate ActionMapping CONTROLS rels to BpmnProcess: {}", fex.getMessage());
+		}
+	}
+
+	/**
+	 * Repoint legacy VisibilityMapping FOR rels from BpmnDefinitions to the
+	 * matching BpmnProcess child. Mirrors {@link #migrateActionMappingControlsToProcess()}.
+	 */
+	private static void migrateVisibilityMappingForToProcess() {
+
+		final App app = StructrApp.getInstance();
+		int repointed = 0;
+		int skipped   = 0;
+
+		try (final Tx tx = app.tx()) {
+
+			tx.disableChangelog();
+
+			final List<GraphObject> staleDefs = Iterables.toList(app.query(
+				"MATCH (:VisibilityMapping)-[:FOR]->(bd:BpmnDefinitions) RETURN DISTINCT bd",
+				Map.of()
+			));
+
+			if (staleDefs.isEmpty()) {
+				tx.success();
+				return;
+			}
+
+			logger.info("MigrationService: found {} BpmnDefinitions with legacy VisibilityMapping FOR edges, repointing to BpmnProcess.", staleDefs.size());
+
+			final PropertyKey<NodeInterface> boundProcessKey = Traits.of("VisibilityMapping").key("boundProcess");
+
+			for (final GraphObject bdObj : staleDefs) {
+
+				if (!(bdObj instanceof NodeInterface)) continue;
+				final NodeInterface bd = (NodeInterface) bdObj;
+				final String bdId      = bd.getUuid();
+
+				final Iterable<NodeInterface> processes = bd.getProperty(bd.getTraits().key("processes"));
+				final List<NodeInterface> all  = new ArrayList<>();
+				final List<NodeInterface> exec = new ArrayList<>();
+				if (processes != null) {
+					for (final NodeInterface p : processes) {
+						all.add(p);
+						final Boolean isExec = p.getProperty(p.getTraits().key("processIsExecutable"));
+						if (Boolean.TRUE.equals(isExec)) exec.add(p);
+					}
+				}
+
+				NodeInterface target = null;
+				if (all.size() == 1) {
+					target = all.get(0);
+				} else if (exec.size() == 1) {
+					target = exec.get(0);
+				}
+
+				final List<GraphObject> vms = Iterables.toList(app.query(
+					"MATCH (vm:VisibilityMapping)-[:FOR]->(:BpmnDefinitions {id:$bdId}) RETURN DISTINCT vm",
+					Map.of("bdId", bdId)
+				));
+
+				app.query(
+					"MATCH (:VisibilityMapping)-[r:FOR]->(:BpmnDefinitions {id:$bdId}) DELETE r",
+					Map.of("bdId", bdId)
+				);
+
+				if (target == null) {
+					logger.warn("MigrationService: BpmnDefinitions {} has {} BpmnProcess children ({} marked executable); cannot decide which to repoint to. {} VisibilityMapping(s) left without a boundProcess; fix via the VM editor.", bdId, all.size(), exec.size(), vms.size());
+					skipped += vms.size();
+					continue;
+				}
+
+				for (final GraphObject vmObj : vms) {
+					if (!(vmObj instanceof NodeInterface)) continue;
+					final NodeInterface vm = (NodeInterface) vmObj;
+					vm.setProperty(boundProcessKey, target);
+					repointed++;
+				}
+			}
+
+			logger.info("MigrationService: VisibilityMapping FOR rels: repointed={}, skipped={}.", repointed, skipped);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("Unable to migrate VisibilityMapping FOR rels to BpmnProcess: {}", fex.getMessage());
 		}
 	}
 

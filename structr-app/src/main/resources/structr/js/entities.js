@@ -4230,18 +4230,51 @@ let _Entities = {
                 </div>
 			`,
 
-            dataSourcePartial: async (config) => `
+            dataSourcePartial: async (config) => {
+            // Process-bound widgets derive their data source from the bound
+            // UserTask's subjectType at render time. The field rendered here
+            // depends on whether that derivation is healthy:
+            //
+            //   * healthy (subjectType resolved): render a read-only input
+            //     showing the derived value, so the UI dev sees the contract
+            //     without accidentally overwriting it. No `name` attribute,
+            //     so the value is never posted back as a literal.
+            //   * broken (boundUserTask null, or its subjectType empty): fall
+            //     back to the regular dataSourcesSelector so the UI dev can
+            //     pick a data source manually. The wrapper's getDataSourceName
+            //     already falls through to the raw dataSource property in
+            //     this case, so a manual pick takes effect immediately.
+            const isProcessBound = (config.config.bindingMode === 'processBound');
+            const boundTask      = config.config.boundUserTask;
+            const subjectType    = (boundTask && typeof boundTask === 'object') ? boundTask.subjectType : null;
+            // Display just the type name; the `node:` prefix is a Channel.forName
+            // implementation detail that the user doesn't need to see in the UI.
+            const displayValue        = subjectType || '';
+            const isProcessBoundHealthy = isProcessBound && !!subjectType;
+
+            const sourceField = isProcessBoundHealthy
+                ? `<input type="text" id="data-source-channel-select" class="rounded-none rounded-l border-gray-input px-3 py-1 bg-gray-f4 text-gray-666 cursor-not-allowed flex-grow" value="${_Helpers.escapeTags(displayValue)}" readonly title="Process-bound: subject type owned by the bound UserTask" placeholder="(no subject type set on UserTask)">`
+                : await _Widgets.templates.dataSourcesSelector('data-source-channel-select', 'dataSource', config.config.dataSource, 'rounded-none rounded-l', 'general');
+
+            const processBoundNote = !isProcessBound
+                ? ''
+                : (isProcessBoundHealthy
+                    ? `<div class="text-xs text-gray-555 mt-1">Process-bound — subject type comes from the linked UserTask's <code>subjectType</code>. Change it in the BPMN editor.</div>`
+                    : `<div class="text-xs mt-1" style="color:#c0392b;">Process-bound but no subject type resolved from the linked UserTask. Pick a data source here as a fallback, or set <code>subjectType</code> on the UserTask in the BPMN editor — the derivation takes precedence as soon as it resolves.</div>`);
+
+            return `
 
 				<div class="${_Entities.generalTab.templates.gridClasses()}">
 
                     <div>
                         <label class="block mb-2" for="data-source-channel-select" data-comment="Source determines which objects are displayed in this component, and selection transforms the result. Enter a property name in the selection field to display the property value in this component.">Source & Selection</label>
                         <div class="data-source-channel-options flex">
-                        	${await _Widgets.templates.dataSourcesSelector('data-source-channel-select', 'dataSource', config.config.dataSource, 'rounded-none rounded-l', 'general')}
+                        	${sourceField}
                             <span class="inline-flex items-center bg-gray px-2 w-4 justify-center select-none border-0 border-t border-b border-solid border-gray-input">.</span>
                             <input class="rounded-none rounded-r" type="text" id="transform-input" autocomplete="off" name="transform" data-which="config">
                             <button id="edit-data-source-button" class="bg-gray flex items-center justify-center ml-4 px-2 py-1" title="Edit data source"><svg width="16" height="16"><use href="#pencil_edit"></use></svg></button>
                         </div>
+                        ${processBoundNote}
                     </div>
 
                     <div>
@@ -4300,16 +4333,36 @@ let _Entities = {
                     </div>
 
                 </div>
-			`,
+			`;
+        },
 
-            fieldConfigPartial: (config) => `
-				
+            fieldConfigPartial: (config) => {
+                // Process-bound contract summary, shown above the Configured Fields
+                // section so the UI dev sees the source-of-truth binding without
+                // scrolling. Mirrors the appearance of the Append-Widget dialog's
+                // contract line. Stale-field warnings are rendered per row by
+                // updateSortableDataFields based on the live data source schema.
+                // The UserTask binding itself is edited on the Process tab; this
+                // is a read-only display of the resulting contract.
+                const isProcessBound = (config.config.bindingMode === 'processBound');
+                const boundTask      = config.config.boundUserTask;
+                const subjectType    = (boundTask && typeof boundTask === 'object') ? boundTask.subjectType : null;
+                const taskLabel      = (boundTask && typeof boundTask === 'object') ? (boundTask.bpmnName || boundTask.name || boundTask.id) : null;
+                const contractSummary = !isProcessBound ? '' : (
+                    subjectType
+                        ? `<div class="process-bound-contract-summary text-gray-555 mb-2" style="font-size:12px;">Process-bound to UserTask <b>${_Helpers.escapeTags(taskLabel || '?')}</b>. Subject type: <b>${_Helpers.escapeTags(subjectType)}</b>.</div>`
+                        : `<div class="process-bound-contract-summary mb-2" style="font-size:12px; color:#c0392b;">⚠ Process-bound to UserTask <b>${_Helpers.escapeTags(taskLabel || '?')}</b> but no subject type set. Re-link on the Process tab, or set <code>subjectType</code> on the UserTask in the BPMN editor.</div>`
+                );
+                return `
+
 				<div class="${_Entities.generalTab.templates.gridClasses()} mt-8">
     			    <h3>Configured Fields</h3>
    			    </div>
 
+                ${contractSummary}
+
 				<div class="${_Entities.generalTab.templates.gridClasses()}">
-                        
+
                     <div class="${_Entities.generalTab.templates.colspan2Classes()}">
                         <input type="text" required class="hidden form-field" id="field-set-input" name="fieldSet" data-which="config" />
                         <div class="flex flex-col" id="sortable-list"></div>
@@ -4319,13 +4372,15 @@ let _Entities = {
                     </div>
 
                 </div>
-			`,
-			configuredFieldPartial: (config) => `
-                <details class="shadow border rounded border-gray-ddd mb-1" ${config.open ? 'open' : ''} draggable title="Click to edit details.">
+			`;
+            },
+            configuredFieldPartial: (config) => `
+                <details class="shadow border rounded ${config.stale ? 'border-red-600' : 'border-gray-ddd'} mb-1" ${config.open ? 'open' : ''} draggable title="${config.stale ? 'This field no longer exists on the current subject type. Uncheck to remove.' : 'Click to edit details.'}">
                     <summary class="px-2 py-2 flex items-center">
                         <div class="flex flex-grow items-center">
                             <input type="checkbox" checked data-key="${config.fieldName}">
-                            <span>${config.fieldName}</span>
+                            <span class="${config.stale ? 'line-through text-gray-666' : ''}">${config.fieldName}</span>
+                            ${config.stale ? `<span class="ml-2" style="font-size:11px; color:#c0392b;" title="Field not present on the current subject type — likely a stale config from before a subject-type change. Uncheck the box to remove it.">⚠ stale</span>` : ''}
                         </div>
                         <span class="${config.color} italic font-normal cursor-pointer relative select-render-template" data-field-name="${config.fieldName}" data-field-type="${config.field?.dataType}" title="Click to change template.">${config.renderTemplate || 'Set template..'}</span>
                     </summary>

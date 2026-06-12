@@ -465,14 +465,14 @@ public class Settings {
 	public static final Setting<Integer> HistogramOutputDepth      = new IntegerSetting(servletsGroup, "hidden", "histogramservlet.outputdepth",         1);
 	public static final Setting<String> HistogramWhitelist         = new StringSetting(servletsGroup,  "HistogramServlet", "histogramservlet.whitelist", "127.0.0.1, localhost, ::1", "IP addresses in this list are allowed to access the query histogram endpoint at /structr/histogram.");
 
-	public static final Setting<String> OpenAPIServletPath       = new StringSetting(servletsGroup,  "hidden", "openapiservlet.path",                          "/structr/openapi/*");
+	public static final Setting<String> OpenAPIServletPath       = new StringSetting(servletsGroup,  "OpenAPIServlet", "openapiservlet.path",                          "/structr/openapi/*");
 	public static final Setting<String> OpenAPIServletClass      = new StringSetting(servletsGroup,  "hidden", "openapiservlet.class",                         "org.structr.rest.servlet.OpenAPIServlet");
 	public static final Setting<String> OpenAPIAuthenticator     = new StringSetting(servletsGroup,  "hidden", "openapiservlet.authenticator",                 "org.structr.web.auth.UiAuthenticator");
 	public static final Setting<String> OpenAPIResourceProvider  = new StringSetting(servletsGroup,  "hidden", "openapiservlet.resourceprovider",              "org.structr.web.common.UiResourceProvider");
 	public static final Setting<String> OpenAPIDefaultView       = new StringSetting(servletsGroup,  "hidden", "openapiservlet.defaultview",                   "public");
 	public static final Setting<Integer> OpenAPIOutputDepth      = new IntegerSetting(servletsGroup, "hidden", "openapiservlet.outputdepth",                   1);
-	public static final Setting<String> OpenAPIServerTitle       = new StringSetting(servletsGroup,  "OpenAPIServerTitle", "openapiservlet.server.title",      "Structr REST Server", "The main title of the OpenAPI server definition.");
-	public static final Setting<String> OpenAPIServerVersion     = new StringSetting(servletsGroup,  "OpenAPIServerVersion", "openapiservlet.server.version", "1.0.1", "The version number of the OpenAPI definition");
+	public static final Setting<String> OpenAPIServerTitle       = new StringSetting(servletsGroup,  "OpenAPIServlet", "openapiservlet.server.title",      "Structr REST Server", "The main title of the OpenAPI server definition.");
+	public static final Setting<String> OpenAPIServerVersion     = new StringSetting(servletsGroup,  "OpenAPIServlet", "openapiservlet.server.version", "1.0.1", "The version number of the OpenAPI definition");
 
 	// Prometheus MetricsServlet
 	public static final Setting<String> MetricsServletPath              = new StringSetting(servletsGroup,  "MetricsServlet", "metricsservlet.path",      "/structr/metrics");

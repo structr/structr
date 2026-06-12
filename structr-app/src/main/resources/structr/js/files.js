@@ -867,7 +867,7 @@ let _Files = {
 	},
 	insertLayoutSwitches: (id, parentId, nodePath, parents) => {
 
-		let checkmark = _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green mr-2');
+		let checkmark = _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, 'icon-green mr-2');
 
 		_Files.getFolderContentsElement().insertAdjacentHTML('afterbegin',`
 			<div id="switches" class="absolute flex top-6 right-2">

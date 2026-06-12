@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  id="Definitions_LeaveRequest"
+                  targetNamespace="http://structr.org/bpmn"
+                  exporter="Structr"
+                  exporterVersion="7.0">
+
+  <bpmn:process id="Process_LeaveRequest_2" name="Employee Leave Request 2" isExecutable="true">
+
+    <!-- Start -->
+    <bpmn:startEvent id="Start_1" name="Leave request submitted">
+    </bpmn:startEvent>
+
+    <!-- Employee fills in the leave request form -->
+    <bpmn:userTask id="Task_Submit" name="Submit leave request">
+      <bpmn:documentation>Employee submits a leave request with type, dates, and reason.</bpmn:documentation>
+    </bpmn:userTask>
+
+    <!-- Check if the request can be auto-approved (short leave) -->
+    <bpmn:exclusiveGateway id="GW_AutoApprove" name="Auto-approve?" default="Flow_ToReview">
+    </bpmn:exclusiveGateway>
+
+    <!-- Auto-approve: script task sets approved = true -->
+    <bpmn:scriptTask id="Task_AutoApprove" name="Auto-approve short leave" scriptFormat="javascript">
+      <bpmn:documentation>Automatically approve leave requests of 2 days or less.</bpmn:documentation>
+      <bpmn:script>
+        // Auto-approve: short leave requests are approved automatically.
+        $.log('process', 'Auto-approving leave request: ' + $.process.days + ' days of ' + $.process.leaveType);
+      </bpmn:script>
+    </bpmn:scriptTask>
+
+    <!-- Manual review by manager -->
+    <bpmn:userTask id="Task_Review" name="Review leave request">
+      <bpmn:documentation>Manager reviews and approves or rejects the leave request.</bpmn:documentation>
+    </bpmn:userTask>
+
+    <!-- Interrupting timer boundary event: escalates to senior reviewers if
+         the manager does not act within 2 days. -->
+    <bpmn:boundaryEvent id="Boundary_ReviewTimeout" name="2 days" attachedToRef="Task_Review" cancelActivity="true">
+      <bpmn:timerEventDefinition id="TimerDef_ReviewTimeout">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT48H</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:boundaryEvent>
+
+    <!-- Senior review (escalated) takes over when the manager review times out. -->
+    <bpmn:userTask id="Task_SeniorReview" name="Senior review (escalated)">
+      <bpmn:documentation>Senior reviewer takes over when the manager review times out. Sets the same `approved` flag and feeds back into the existing decision gateway.</bpmn:documentation>
+    </bpmn:userTask>
+
+    <!-- Check manager's decision -->
+    <bpmn:exclusiveGateway id="GW_Decision" name="Approved?">
+    </bpmn:exclusiveGateway>
+
+    <!-- Notification tasks (pass-through for now) -->
+    <bpmn:serviceTask id="Task_NotifyApproved" name="Send approval notification">
+      <bpmn:documentation>Notify employee that leave request was approved.</bpmn:documentation>
+    </bpmn:serviceTask>
+
+    <bpmn:serviceTask id="Task_NotifyRejected" name="Send rejection notification">
+      <bpmn:documentation>Notify employee that leave request was rejected.</bpmn:documentation>
+    </bpmn:serviceTask>
+
+    <!-- End events -->
+    <bpmn:endEvent id="End_Approved" name="Leave approved">
+    </bpmn:endEvent>
+
+    <bpmn:endEvent id="End_Rejected" name="Leave rejected">
+    </bpmn:endEvent>
+
+    <!-- Sequence flows -->
+    <bpmn:sequenceFlow id="Flow_Start" sourceRef="Start_1" targetRef="Task_Submit" />
+    <bpmn:sequenceFlow id="Flow_ToGW1" sourceRef="Task_Submit" targetRef="GW_AutoApprove" />
+
+    <bpmn:sequenceFlow id="Flow_AutoApprove" name="2 days or less" sourceRef="GW_AutoApprove" targetRef="Task_AutoApprove">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${days &lt;= 2}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+
+    <bpmn:sequenceFlow id="Flow_ToReview" name="More than 2 days" sourceRef="GW_AutoApprove" targetRef="Task_Review" />
+
+    <bpmn:sequenceFlow id="Flow_AutoToNotify" sourceRef="Task_AutoApprove" targetRef="Task_NotifyApproved" />
+
+    <bpmn:sequenceFlow id="Flow_ReviewToGW2" sourceRef="Task_Review" targetRef="GW_Decision" />
+
+    <!-- Escalation path: timer fires, manager review is cancelled, senior review takes over. -->
+    <bpmn:sequenceFlow id="Flow_Escalate" name="Timeout" sourceRef="Boundary_ReviewTimeout" targetRef="Task_SeniorReview" />
+    <bpmn:sequenceFlow id="Flow_SeniorToGW2" sourceRef="Task_SeniorReview" targetRef="GW_Decision" />
+
+    <bpmn:sequenceFlow id="Flow_Approved" name="Yes" sourceRef="GW_Decision" targetRef="Task_NotifyApproved">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${approved == true}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+
+    <bpmn:sequenceFlow id="Flow_Rejected" name="No" sourceRef="GW_Decision" targetRef="Task_NotifyRejected">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${approved == false}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+
+    <bpmn:sequenceFlow id="Flow_ApprovedEnd" sourceRef="Task_NotifyApproved" targetRef="End_Approved" />
+    <bpmn:sequenceFlow id="Flow_RejectedEnd" sourceRef="Task_NotifyRejected" targetRef="End_Rejected" />
+
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_LeaveRequest">
+
+      <bpmndi:BPMNShape id="Start_1_di" bpmnElement="Start_1">
+        <dc:Bounds x="152" y="232" width="36" height="36" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Task_Submit_di" bpmnElement="Task_Submit">
+        <dc:Bounds x="240" y="210" width="100" height="80" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="GW_AutoApprove_di" bpmnElement="GW_AutoApprove" isMarkerVisible="true">
+        <dc:Bounds x="395" y="225" width="50" height="50" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Task_AutoApprove_di" bpmnElement="Task_AutoApprove">
+        <dc:Bounds x="500" y="120" width="100" height="80" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Task_Review_di" bpmnElement="Task_Review">
+        <dc:Bounds x="500" y="310" width="100" height="80" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Boundary_ReviewTimeout_di" bpmnElement="Boundary_ReviewTimeout">
+        <dc:Bounds x="532" y="372" width="36" height="36" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Task_SeniorReview_di" bpmnElement="Task_SeniorReview">
+        <dc:Bounds x="500" y="470" width="100" height="80" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="GW_Decision_di" bpmnElement="GW_Decision" isMarkerVisible="true">
+        <dc:Bounds x="655" y="325" width="50" height="50" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Task_NotifyApproved_di" bpmnElement="Task_NotifyApproved">
+        <dc:Bounds x="770" y="170" width="100" height="80" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Task_NotifyRejected_di" bpmnElement="Task_NotifyRejected">
+        <dc:Bounds x="770" y="380" width="100" height="80" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="End_Approved_di" bpmnElement="End_Approved">
+        <dc:Bounds x="932" y="192" width="36" height="36" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="End_Rejected_di" bpmnElement="End_Rejected">
+        <dc:Bounds x="932" y="402" width="36" height="36" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNEdge id="Flow_Start_di" bpmnElement="Flow_Start">
+        <di:waypoint x="188" y="250" />
+        <di:waypoint x="240" y="250" />
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Flow_ToGW1_di" bpmnElement="Flow_ToGW1">
+        <di:waypoint x="340" y="250" />
+        <di:waypoint x="395" y="250" />
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Flow_AutoApprove_di" bpmnElement="Flow_AutoApprove">
+        <di:waypoint x="420" y="225" />
+        <di:waypoint x="420" y="160" />
+        <di:waypoint x="500" y="160" />
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Flow_ToReview_di" bpmnElement="Flow_ToReview">
+        <di:waypoint x="420" y="275" />
+        <di:waypoint x="420" y="350" />
+        <di:waypoint x="500" y="350" />
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Flow_AutoToNotify_di" bpmnElement="Flow_AutoToNotify">
+        <di:waypoint x="600" y="160" />
+        <di:waypoint x="685" y="160" />
+        <di:waypoint x="685" y="210" />
+        <di:waypoint x="770" y="210" />
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Flow_ReviewToGW2_di" bpmnElement="Flow_ReviewToGW2">
+        <di:waypoint x="600" y="350" />
+        <di:waypoint x="655" y="350" />
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Flow_Escalate_di" bpmnElement="Flow_Escalate">
+        <di:waypoint x="550" y="408" />
+        <di:waypoint x="550" y="470" />
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Flow_SeniorToGW2_di" bpmnElement="Flow_SeniorToGW2">
+        <di:waypoint x="600" y="510" />
+        <di:waypoint x="680" y="510" />
+        <di:waypoint x="680" y="375" />
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Flow_Approved_di" bpmnElement="Flow_Approved">
+        <di:waypoint x="680" y="325" />
+        <di:waypoint x="680" y="210" />
+        <di:waypoint x="770" y="210" />
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Flow_Rejected_di" bpmnElement="Flow_Rejected">
+        <di:waypoint x="680" y="375" />
+        <di:waypoint x="680" y="420" />
+        <di:waypoint x="770" y="420" />
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Flow_ApprovedEnd_di" bpmnElement="Flow_ApprovedEnd">
+        <di:waypoint x="870" y="210" />
+        <di:waypoint x="932" y="210" />
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Flow_RejectedEnd_di" bpmnElement="Flow_RejectedEnd">
+        <di:waypoint x="870" y="420" />
+        <di:waypoint x="932" y="420" />
+      </bpmndi:BPMNEdge>
+
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+
+</bpmn:definitions>

@@ -35,6 +35,27 @@ public interface ActionMapping extends NodeInterface {
 	String getIdExpression();
 	String getOptions();
 
+	// Graph-relationship counterparts of method / flow / dataType. Auto-resolved from the
+	// strings by the ActionMapping lifecycle hooks; nullable when the string did not
+	// resolve to an existing target node.
+	NodeInterface getMethodNode();
+	NodeInterface getFlowNode();
+	NodeInterface getDataTypeNode();
+
+	// Convenience accessors that prefer the relationship target's name and fall back to
+	// the string. Use these in render and dispatch paths that need a stable name and
+	// should benefit from refactor-safety where the relationship is set.
+	String getResolvedMethodName();
+	String getResolvedFlowName();
+	String getResolvedDataTypeName();
+
+	// Control-process action: the process definition the action operates on, the BPMN
+	// element it targets (when scoped), and the operation to perform. The relationships
+	// are the source of truth; processOperation is a closed-vocabulary string enum.
+	NodeInterface getControlsProcess();
+	NodeInterface getTargetsElement();
+	String getProcessOperation();
+
 	String getDialogType();
 	String getDialogTitle();
 	String getDialogText();
@@ -48,6 +69,8 @@ public interface ActionMapping extends NodeInterface {
 	Iterable<DOMElement> getTriggerElements();
 	Iterable<DOMNode> getSuccessTargets();
 	Iterable<DOMNode> getFailureTargets();
+	Iterable<DOMNode> getSuccessHideTargets();
+	Iterable<DOMNode> getFailureHideTargets();
 	Iterable<DOMNode> getSuccessNotificationElements();
 	Iterable<DOMNode> getFailureNotificationElements();
 
@@ -55,6 +78,9 @@ public interface ActionMapping extends NodeInterface {
 	String getSuccessBehaviour();
 	String getSuccessPartial();
 	String getSuccessURL();
+	String getSuccessShow();
+	String getSuccessHide();
+	String getSuccessScope();
 	String getSuccessEvent();
 	String getSuccessNotificationsPartial();
 	String getSuccessNotificationsEvent();
@@ -64,6 +90,9 @@ public interface ActionMapping extends NodeInterface {
 	String getFailureBehaviour();
 	String getFailurePartial();
 	String getFailureURL();
+	String getFailureShow();
+	String getFailureHide();
+	String getFailureScope();
 	String getFailureEvent();
 	String getFailureNotificationsPartial();
 	String getFailureNotificationsEvent();

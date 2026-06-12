@@ -77,6 +77,11 @@ public class GraphPredicate<T extends PropertyContainer> implements Predicate<T>
 						}
 					}
 
+					if (graphQuery.isAny()) {
+						// pre-filter: actual must be a subset of expected; includeInResult() does the final check
+						return !actual.isEmpty() && expected.containsAll(actual);
+					}
+
 					return actual.containsAll(expected) && actual.size() == expected.size();
 
 				} else {
@@ -90,6 +95,13 @@ public class GraphPredicate<T extends PropertyContainer> implements Predicate<T>
 
 							actual.add(getPrimitiveValue(otherNode.getProperty(notionPropertyName)));
 						}
+					}
+
+					if (graphQuery.isAny()) {
+						// pre-filter: at least one actual value must be in expected; includeInResult() does the final check
+						final Set<Object> intersection = new LinkedHashSet<>(actual);
+						intersection.retainAll(expected);
+						return !intersection.isEmpty();
 					}
 
 					for (final Object expectedValue : expected) {

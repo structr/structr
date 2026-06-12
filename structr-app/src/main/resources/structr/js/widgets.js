@@ -508,6 +508,11 @@ let _Widgets = {
 			if (label === 'processDeploymentInfo') {
 				return;
 			}
+			// Keys starting with '_' are reserved meta entries (e.g.
+			// _autoVisibilityMapping); they are not rendered as form fields.
+			if (label.startsWith('_')) {
+				continue;
+			}
 
 			let cleanedLabel = label.replace(/[^\w]/g, '_');
 			let fieldConfig  = configElement[1];
@@ -647,6 +652,99 @@ let _Widgets = {
 					}
 					break;
 
+                case 'process':
+                    form.append(`<div><h4 id="label-${cleanedLabel}">${titleLabel}</h4><select required data-info="select-process" id="${cleanedLabel}" class="form-field" data-key="${label}"><option value="">--- Select process ---</option></select></div>`);
+                    let processSelect = document.querySelector('select[data-info="select-process"]');
+                    if (processSelect) {
+                        Command.getByType('BpmnProcess', 1000, 1, false, 'name', 'id,type,name', false, processes => {
+                            // Build options manually so the dropdown shows the process name (the
+                            // human-meaningful label) while the option value stays the UUID that
+                            // downstream consumers (user-task picker, ActionMapping rels) need.
+                            // Returned list is already sorted by name via Command.getByType, so no
+                            // client-side re-sort here.
+                            let s = document.querySelector(`select#${cleanedLabel}`);
+                            for (const p of (processes || [])) {
+                                const opt = document.createElement('option');
+                                opt.value       = p.id;
+                                opt.textContent = p.name || p.id;
+                                s.appendChild(opt);
+                            }
+                            s.dispatchEvent(new CustomEvent('change', {}));
+                        });
+                    }
+                    break;
+
+                case 'user-task':
+                    // Scoped picker: lists UserTask BpmnElements that belong to the BpmnProcess
+                    // chosen in the sibling `process` slot. Mirrors the schema-type / schema-property
+                    // pairing. The picker stays empty until a process is picked, then repopulates
+                    // on every process change. The selected value is the BpmnElement UUID, which is
+                    // what ActionMapping's targetsElement EndNode rel expects.
+                    //
+                    // A read-only contract summary div below the select reflects the picked task's
+                    // subjectType so the UI dev sees, before confirming the dialog, what schema type
+                    // the widget will render. Empty subjectType surfaces as a warning -- the form
+                    // will render no fields until the process designer sets the contract.
+                    form.append(`
+						<div>
+							<h4 id="label-${cleanedLabel}">${titleLabel}</h4>
+							<select required id="${cleanedLabel}" class="form-field" data-key="${label}">
+								<option value="">--- Select user task ---</option>
+							</select>
+							<div id="${cleanedLabel}-contract" class="user-task-contract-summary text-gray-555" style="font-size:11px; margin-top:6px; min-height:1em;"></div>
+						</div>
+					`);
+                {
+                    let processSelectForUserTask = document.querySelector('select[data-info="select-process"]');
+                    let userTasksById = {};  // id -> task node, closed over so the change handler can read subjectType
+
+                    const updateContractSummary = (taskId) => {
+                        const el = document.querySelector(`#${cleanedLabel}-contract`);
+                        if (!el) return;
+                        if (!taskId) { el.innerHTML = ''; return; }
+                        const task = userTasksById[taskId];
+                        if (!task) { el.innerHTML = ''; return; }
+                        const subjectType = task.subjectType;
+                        if (subjectType) {
+                            el.innerHTML = `Subject: <b>${_Helpers.escapeTags(subjectType)}</b> (from the bound UserTask)`;
+                            el.style.color = '';
+                        } else {
+                            el.innerHTML = '⚠ No subject type set on this UserTask. The form will render no fields until the process designer sets it in the BPMN editor.';
+                            el.style.color = '#c0392b';
+                        }
+                    };
+
+                    if (processSelectForUserTask) {
+                        const populateUserTasks = (processId) => {
+                            let s = document.querySelector(`select#${cleanedLabel}`);
+                            s.innerHTML = '<option value="">--- Select user task ---</option>';
+                            userTasksById = {};
+                            updateContractSummary(null);
+                            if (!processId) return;
+                            Command.query('BpmnElement', 2000, 1, 'bpmnName', 'asc', { process: processId }, elements => {
+                                const userTasks = (elements || []).filter(el => el.bpmnElementType === 'userTask');
+                                for (const t of userTasks) {
+                                    userTasksById[t.id] = t;
+                                    const opt = document.createElement('option');
+                                    opt.value       = t.id;
+                                    opt.textContent = t.bpmnName || t.name || t.id;
+                                    s.appendChild(opt);
+                                }
+                            });
+                        };
+                        processSelectForUserTask.addEventListener('change', () => populateUserTasks(processSelectForUserTask.value));
+                        // initial fill when a process is already selected (e.g. on reopen)
+                        if (processSelectForUserTask.value) {
+                            populateUserTasks(processSelectForUserTask.value);
+                        }
+                        document.querySelector(`select#${cleanedLabel}`).addEventListener('change', (e) => updateContractSummary(e.target.value));
+                    } else {
+                        console.log('user-task picker requires a sibling "process" slot to scope its options.');
+                    }
+                }
+                    break;
+
+
 				case 'schema-type':
 					let types = await _Schema.caches.getFilteredSchemaTypes(t => !t.isBuiltin);
 					types = types.map(t => t.name);
@@ -759,6 +857,26 @@ let _Widgets = {
 				if (widgetConfig[key]) {
 					attrs[key] = field.value;
 				}
+			}
+
+			// Declarative auto-VM: widget configuration may carry an
+			// _autoVisibilityMapping object with values like "[process]" /
+			// "[userTask]" pointing at sibling slot ids. Resolve those refs
+			// against the just-collected attrs and forward the resolved spec
+			// to the backend as a single JSON payload. The backend (see
+			// WidgetAutoVisibilityMappingHelper) consumes and removes it.
+			let autoVm = widgetConfig?._autoVisibilityMapping;
+			if (autoVm && typeof autoVm === 'object') {
+				let resolved = {};
+				for (let [k, v] of Object.entries(autoVm)) {
+					if (typeof v === 'string') {
+						let m = v.match(/^\[(\w+)\]$/);
+						resolved[k] = m ? (attrs[m[1]] ?? '') : v;
+					} else {
+						resolved[k] = v;
+					}
+				}
+				attrs.__visibilityMappingSpec = JSON.stringify(resolved);
 			}
 
 			// async callback

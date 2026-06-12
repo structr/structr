@@ -81,6 +81,54 @@ public class ActionMappingTraitWrapper extends AbstractNodeTraitWrapper implemen
 	}
 
 	@Override
+	public NodeInterface getMethodNode() {
+		return wrappedObject.getProperty(traits.key(ActionMappingTraitDefinition.METHOD_NODE_PROPERTY));
+	}
+
+	@Override
+	public NodeInterface getFlowNode() {
+		return wrappedObject.getProperty(traits.key(ActionMappingTraitDefinition.FLOW_NODE_PROPERTY));
+	}
+
+	@Override
+	public NodeInterface getDataTypeNode() {
+		return wrappedObject.getProperty(traits.key(ActionMappingTraitDefinition.DATA_TYPE_NODE_PROPERTY));
+	}
+
+	@Override
+	public String getResolvedMethodName() {
+		final NodeInterface node = getMethodNode();
+		return node != null ? node.getName() : getMethod();
+	}
+
+	@Override
+	public String getResolvedFlowName() {
+		final NodeInterface node = getFlowNode();
+		return node != null ? node.getName() : getFlow();
+	}
+
+	@Override
+	public String getResolvedDataTypeName() {
+		final NodeInterface node = getDataTypeNode();
+		return node != null ? node.getName() : getDataType();
+	}
+
+	@Override
+	public NodeInterface getControlsProcess() {
+		return wrappedObject.getProperty(traits.key(ActionMappingTraitDefinition.CONTROLS_PROCESS_PROPERTY));
+	}
+
+	@Override
+	public NodeInterface getTargetsElement() {
+		return wrappedObject.getProperty(traits.key(ActionMappingTraitDefinition.TARGETS_ELEMENT_PROPERTY));
+	}
+
+	@Override
+	public String getProcessOperation() {
+		return wrappedObject.getProperty(traits.key(ActionMappingTraitDefinition.PROCESS_OPERATION_PROPERTY));
+	}
+
+	@Override
 	public void setSuccessBehaviour(String successBehaviour) throws FrameworkException {
 		wrappedObject.setProperty(traits.key(ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY), successBehaviour);
 	}
@@ -148,6 +196,22 @@ public class ActionMappingTraitWrapper extends AbstractNodeTraitWrapper implemen
 	}
 
 	@Override
+	public Iterable<DOMNode> getSuccessHideTargets() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(ActionMappingTraitDefinition.SUCCESS_HIDE_TARGETS_PROPERTY);
+
+		return Iterables.map(n -> n.as(DOMNode.class), wrappedObject.getProperty(key));
+	}
+
+	@Override
+	public Iterable<DOMNode> getFailureHideTargets() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(ActionMappingTraitDefinition.FAILURE_HIDE_TARGETS_PROPERTY);
+
+		return Iterables.map(n -> n.as(DOMNode.class), wrappedObject.getProperty(key));
+	}
+
+	@Override
 	public Iterable<DOMNode> getSuccessNotificationElements() {
 
 		final PropertyKey<Iterable<NodeInterface>> key = traits.key(ActionMappingTraitDefinition.SUCCESS_NOTIFICATION_ELEMENTS_PROPERTY);
@@ -181,6 +245,21 @@ public class ActionMappingTraitWrapper extends AbstractNodeTraitWrapper implemen
 	@Override
 	public String getSuccessURL() {
 		return wrappedObject.getProperty(traits.key(ActionMappingTraitDefinition.SUCCESS_URL_PROPERTY));
+	}
+
+	@Override
+	public String getSuccessShow() {
+		return wrappedObject.getProperty(traits.key(ActionMappingTraitDefinition.SUCCESS_SHOW_PROPERTY));
+	}
+
+	@Override
+	public String getSuccessHide() {
+		return wrappedObject.getProperty(traits.key(ActionMappingTraitDefinition.SUCCESS_HIDE_PROPERTY));
+	}
+
+	@Override
+	public String getSuccessScope() {
+		return wrappedObject.getProperty(traits.key(ActionMappingTraitDefinition.SUCCESS_SCOPE_PROPERTY));
 	}
 
 	@Override
@@ -221,6 +300,21 @@ public class ActionMappingTraitWrapper extends AbstractNodeTraitWrapper implemen
 	@Override
 	public String getFailureURL() {
 		return wrappedObject.getProperty(traits.key(ActionMappingTraitDefinition.FAILURE_URL_PROPERTY));
+	}
+
+	@Override
+	public String getFailureShow() {
+		return wrappedObject.getProperty(traits.key(ActionMappingTraitDefinition.FAILURE_SHOW_PROPERTY));
+	}
+
+	@Override
+	public String getFailureHide() {
+		return wrappedObject.getProperty(traits.key(ActionMappingTraitDefinition.FAILURE_HIDE_PROPERTY));
+	}
+
+	@Override
+	public String getFailureScope() {
+		return wrappedObject.getProperty(traits.key(ActionMappingTraitDefinition.FAILURE_SCOPE_PROPERTY));
 	}
 
 	@Override
@@ -271,10 +365,16 @@ public class ActionMappingTraitWrapper extends AbstractNodeTraitWrapper implemen
 		properties.put(traits.key(ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY),             getSuccessBehaviour());
 		properties.put(traits.key(ActionMappingTraitDefinition.SUCCESS_PARTIAL_PROPERTY),               getSuccessPartial());
 		properties.put(traits.key(ActionMappingTraitDefinition.SUCCESS_URL_PROPERTY),                   getSuccessURL());
+		properties.put(traits.key(ActionMappingTraitDefinition.SUCCESS_SHOW_PROPERTY),                  getSuccessShow());
+		properties.put(traits.key(ActionMappingTraitDefinition.SUCCESS_HIDE_PROPERTY),                  getSuccessHide());
+		properties.put(traits.key(ActionMappingTraitDefinition.SUCCESS_SCOPE_PROPERTY),                 getSuccessScope());
 		properties.put(traits.key(ActionMappingTraitDefinition.SUCCESS_EVENT_PROPERTY),                 getSuccessEvent());
 		properties.put(traits.key(ActionMappingTraitDefinition.FAILURE_BEHAVIOUR_PROPERTY),             getFailureBehaviour());
 		properties.put(traits.key(ActionMappingTraitDefinition.FAILURE_PARTIAL_PROPERTY),               getFailurePartial());
 		properties.put(traits.key(ActionMappingTraitDefinition.FAILURE_URL_PROPERTY),                   getFailureURL());
+		properties.put(traits.key(ActionMappingTraitDefinition.FAILURE_SHOW_PROPERTY),                  getFailureShow());
+		properties.put(traits.key(ActionMappingTraitDefinition.FAILURE_HIDE_PROPERTY),                  getFailureHide());
+		properties.put(traits.key(ActionMappingTraitDefinition.FAILURE_SCOPE_PROPERTY),                 getFailureScope());
 		properties.put(traits.key(ActionMappingTraitDefinition.FAILURE_EVENT_PROPERTY),                 getFailureEvent());
 
 		// clone parameters
@@ -294,6 +394,8 @@ public class ActionMappingTraitWrapper extends AbstractNodeTraitWrapper implemen
 		// clone relationships to DOM elements
 		properties.put(traits.key(ActionMappingTraitDefinition.SUCCESS_TARGETS_PROPERTY),               collectClonedNodes(getSuccessTargets(), mapOfClonedNodes));
 		properties.put(traits.key(ActionMappingTraitDefinition.FAILURE_TARGETS_PROPERTY),               collectClonedNodes(getFailureTargets(), mapOfClonedNodes));
+		properties.put(traits.key(ActionMappingTraitDefinition.SUCCESS_HIDE_TARGETS_PROPERTY),          collectClonedNodes(getSuccessHideTargets(), mapOfClonedNodes));
+		properties.put(traits.key(ActionMappingTraitDefinition.FAILURE_HIDE_TARGETS_PROPERTY),          collectClonedNodes(getFailureHideTargets(), mapOfClonedNodes));
 		properties.put(traits.key(ActionMappingTraitDefinition.SUCCESS_NOTIFICATION_ELEMENTS_PROPERTY), collectClonedNodes(getSuccessNotificationElements(), mapOfClonedNodes));
 		properties.put(traits.key(ActionMappingTraitDefinition.FAILURE_NOTIFICATION_ELEMENTS_PROPERTY), collectClonedNodes(getFailureNotificationElements(), mapOfClonedNodes));
 

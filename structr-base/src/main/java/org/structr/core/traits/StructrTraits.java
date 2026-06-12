@@ -293,6 +293,14 @@ public class StructrTraits {
 	public static final String XMPP_CLIENT_REQUEST                                            = "XMPPClientRequest";
 	public static final String ABSTRACT_FILE_CONFIGURED_BY_STORAGE_CONFIGURATION              = "AbstractFileCONFIGURED_BYStorageConfiguration";
 	public static final String ACTION_MAPPING_PARAMETER_PARAMETER_MAPPING                     = "ActionMappingPARAMETERParameterMapping";
+	public static final String ACTION_MAPPING_CALLS_SCHEMA_METHOD                             = "ActionMappingCALLSSchemaMethod";
+	public static final String ACTION_MAPPING_EXECUTES_FLOW_CONTAINER                         = "ActionMappingEXECUTESFlowContainer";
+	public static final String ACTION_MAPPING_CREATES_SCHEMA_NODE                             = "ActionMappingCREATESSchemaNode";
+	public static final String ACTION_MAPPING_CONTROLS_BPMN_PROCESS                           = "ActionMappingCONTROLSBpmnProcess";
+	public static final String ACTION_MAPPING_TARGETS_BPMN_ELEMENT                            = "ActionMappingTARGETSBpmnElement";
+	public static final String COMPONENT_CONFIGURATION_BOUND_BPMN_ELEMENT                     = "ComponentConfigurationBOUNDBpmnElement";
+	public static final String DOM_NODE_HAS_VISIBILITY_MAPPING                                = "DOMNodeHASVisibilityMapping";
+	public static final String VISIBILITY_MAPPING                                             = "VisibilityMapping";
 	public static final String CSS_RULE_CONTAINS_CSS_RULE                                     = "CssRuleCONTAINSCssRule";
 	public static final String CSS_RULE_HAS_DECLARATION_CSS_DECLARATION                       = "CssRuleHAS_DECLARATIONCssDeclaration";
 	public static final String CSS_RULE_HAS_SELECTOR_CSS_SELECTOR                             = "CssRuleHAS_SELECTORCssSelector";
@@ -309,6 +317,8 @@ public class StructrTraits {
 	public static final String DOM_NODE_SUCCESS_NOTIFICATION_ELEMENT_ACTION_MAPPING           = "DOMNodeSUCCESS_NOTIFICATION_ELEMENTActionMapping";
 	public static final String DOM_NODE_FAILURE_NOTIFICATION_ELEMENT_ACTION_MAPPING           = "DOMNodeFAILURE_NOTIFICATION_ELEMENTActionMapping";
 	public static final String DOM_NODE_SUCCESS_TARGET_ACTION_MAPPING                         = "DOMNodeSUCCESS_TARGETActionMapping";
+	public static final String DOM_NODE_SUCCESS_HIDE_TARGET_ACTION_MAPPING                    = "DOMNodeSUCCESS_HIDE_TARGETActionMapping";
+	public static final String DOM_NODE_FAILURE_HIDE_TARGET_ACTION_MAPPING                    = "DOMNodeFAILURE_HIDE_TARGETActionMapping";
 	public static final String DOM_NODE_SYNC_DOM_NODE                                         = "DOMNodeSYNCDOMNode";
 	public static final String FOLDER_CONTAINS_ABSTRACT_FILE                                  = "FolderCONTAINSAbstractFile";
 	public static final String FOLDER_CONTAINS_FILE                                           = "FolderCONTAINSFile";

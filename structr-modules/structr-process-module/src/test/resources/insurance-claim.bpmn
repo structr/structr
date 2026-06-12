@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  id="Definitions_3"
+                  targetNamespace="http://bpmn.io/schema/bpmn"
+                  exporter="Camunda Modeler"
+                  exporterVersion="5.20.0">
+
+  <bpmn:message id="Message_CustomerResponse" name="CustomerResponse" />
+  <bpmn:signal id="Signal_EscalationRequired" name="EscalationRequired" />
+
+  <bpmn:process id="Process_ClaimHandling" name="Insurance Claim Handling" isExecutable="true">
+
+    <bpmn:startEvent id="Start_1" name="Claim submitted">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:userTask id="Task_InitialReview" name="Initial review">
+      <bpmn:documentation>Review the claim for completeness and initial assessment. Check all required documents are attached.</bpmn:documentation>
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:exclusiveGateway id="GW_ClaimType" name="Claim amount?" default="Flow_3b">
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3a</bpmn:outgoing>
+      <bpmn:outgoing>Flow_3b</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:serviceTask id="Task_AutoApprove" name="Auto-approve claim">
+      <bpmn:incoming>Flow_3a</bpmn:incoming>
+      <bpmn:outgoing>Flow_4a</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:userTask id="Task_ManualAssessment" name="Manual assessment">
+      <bpmn:incoming>Flow_3b</bpmn:incoming>
+      <bpmn:outgoing>Flow_4b</bpmn:outgoing>
+    </bpmn:userTask>
+
+    <bpmn:boundaryEvent id="Event_AssessmentTimer" name="5 days" attachedToRef="Task_ManualAssessment" cancelActivity="false">
+      <bpmn:outgoing>Flow_Escalation</bpmn:outgoing>
+      <bpmn:timerEventDefinition id="TimerDef_Assessment">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">P5D</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:boundaryEvent>
+
+    <bpmn:intermediateThrowEvent id="Event_EscalateSignal" name="Escalate">
+      <bpmn:incoming>Flow_Escalation</bpmn:incoming>
+      <bpmn:outgoing>Flow_EscalationEnd</bpmn:outgoing>
+      <bpmn:signalEventDefinition id="SignalDef_Escalation" signalRef="Signal_EscalationRequired" />
+    </bpmn:intermediateThrowEvent>
+
+    <bpmn:endEvent id="End_Escalated" name="Escalation sent">
+      <bpmn:incoming>Flow_EscalationEnd</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:inclusiveGateway id="GW_Merge" name="Assessment complete">
+      <bpmn:incoming>Flow_4a</bpmn:incoming>
+      <bpmn:incoming>Flow_4b</bpmn:incoming>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+    </bpmn:inclusiveGateway>
+
+    <bpmn:serviceTask id="Task_SendNotification" name="Send decision notification">
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+      <bpmn:outgoing>Flow_6</bpmn:outgoing>
+    </bpmn:serviceTask>
+
+    <bpmn:intermediateCatchEvent id="Event_WaitForResponse" name="Wait for customer response">
+      <bpmn:incoming>Flow_6</bpmn:incoming>
+      <bpmn:outgoing>Flow_7</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageDef_Response" messageRef="Message_CustomerResponse" />
+    </bpmn:intermediateCatchEvent>
+
+    <bpmn:scriptTask id="Task_UpdateRecord" name="Update claim record" scriptFormat="javascript">
+      <bpmn:incoming>Flow_7</bpmn:incoming>
+      <bpmn:outgoing>Flow_8</bpmn:outgoing>
+      <bpmn:script>
+        var claim = execution.getVariable("claim");
+        claim.status = "closed";
+        execution.setVariable("claim", claim);
+      </bpmn:script>
+    </bpmn:scriptTask>
+
+    <bpmn:dataObjectReference id="DataObj_ClaimFile" name="Claim file" dataObjectRef="DataObj_1" />
+    <bpmn:dataObject id="DataObj_1" />
+
+    <bpmn:endEvent id="End_1" name="Claim closed">
+      <bpmn:incoming>Flow_8</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_1" targetRef="Task_InitialReview" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_InitialReview" targetRef="GW_ClaimType" />
+    <bpmn:sequenceFlow id="Flow_3a" name="Under 1000 EUR" sourceRef="GW_ClaimType" targetRef="Task_AutoApprove">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${claimAmount &lt; 1000}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_3b" name="Over 1000 EUR" sourceRef="GW_ClaimType" targetRef="Task_ManualAssessment" />
+    <bpmn:sequenceFlow id="Flow_4a" sourceRef="Task_AutoApprove" targetRef="GW_Merge" />
+    <bpmn:sequenceFlow id="Flow_4b" sourceRef="Task_ManualAssessment" targetRef="GW_Merge" />
+    <bpmn:sequenceFlow id="Flow_Escalation" sourceRef="Event_AssessmentTimer" targetRef="Event_EscalateSignal" />
+    <bpmn:sequenceFlow id="Flow_EscalationEnd" sourceRef="Event_EscalateSignal" targetRef="End_Escalated" />
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="GW_Merge" targetRef="Task_SendNotification" />
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="Task_SendNotification" targetRef="Event_WaitForResponse" />
+    <bpmn:sequenceFlow id="Flow_7" sourceRef="Event_WaitForResponse" targetRef="Task_UpdateRecord" />
+    <bpmn:sequenceFlow id="Flow_8" sourceRef="Task_UpdateRecord" targetRef="End_1" />
+
+    <bpmn:association id="Association_1" sourceRef="Task_InitialReview" targetRef="DataObj_ClaimFile" />
+
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="BPMNDiagram_3">
+    <bpmndi:BPMNPlane id="BPMNPlane_3" bpmnElement="Process_ClaimHandling">
+
+      <bpmndi:BPMNShape id="Start_1_di" bpmnElement="Start_1">
+        <dc:Bounds x="152" y="282" width="36" height="36" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Task_InitialReview_di" bpmnElement="Task_InitialReview">
+        <dc:Bounds x="240" y="260" width="100" height="80" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="GW_ClaimType_di" bpmnElement="GW_ClaimType" isMarkerVisible="true">
+        <dc:Bounds x="395" y="275" width="50" height="50" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Task_AutoApprove_di" bpmnElement="Task_AutoApprove">
+        <dc:Bounds x="500" y="170" width="100" height="80" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Task_ManualAssessment_di" bpmnElement="Task_ManualAssessment">
+        <dc:Bounds x="500" y="350" width="100" height="80" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Event_AssessmentTimer_di" bpmnElement="Event_AssessmentTimer">
+        <dc:Bounds x="562" y="412" width="36" height="36" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Event_EscalateSignal_di" bpmnElement="Event_EscalateSignal">
+        <dc:Bounds x="622" y="462" width="36" height="36" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="End_Escalated_di" bpmnElement="End_Escalated">
+        <dc:Bounds x="702" y="462" width="36" height="36" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="GW_Merge_di" bpmnElement="GW_Merge">
+        <dc:Bounds x="665" y="275" width="50" height="50" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Task_SendNotification_di" bpmnElement="Task_SendNotification">
+        <dc:Bounds x="770" y="260" width="100" height="80" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Event_WaitForResponse_di" bpmnElement="Event_WaitForResponse">
+        <dc:Bounds x="922" y="282" width="36" height="36" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="Task_UpdateRecord_di" bpmnElement="Task_UpdateRecord">
+        <dc:Bounds x="1010" y="260" width="100" height="80" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="DataObj_ClaimFile_di" bpmnElement="DataObj_ClaimFile">
+        <dc:Bounds x="302" y="155" width="36" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="295" y="131" width="50" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNShape id="End_1_di" bpmnElement="End_1">
+        <dc:Bounds x="1162" y="282" width="36" height="36" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1">
+        <di:waypoint x="188" y="300" />
+        <di:waypoint x="240" y="300" />
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2">
+        <di:waypoint x="340" y="300" />
+        <di:waypoint x="395" y="300" />
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Flow_3a_di" bpmnElement="Flow_3a">
+        <di:waypoint x="420" y="275" />
+        <di:waypoint x="420" y="210" />
+        <di:waypoint x="500" y="210" />
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Flow_3b_di" bpmnElement="Flow_3b">
+        <di:waypoint x="420" y="325" />
+        <di:waypoint x="420" y="390" />
+        <di:waypoint x="500" y="390" />
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Flow_4a_di" bpmnElement="Flow_4a">
+        <di:waypoint x="600" y="210" />
+        <di:waypoint x="690" y="210" />
+        <di:waypoint x="690" y="275" />
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Flow_4b_di" bpmnElement="Flow_4b">
+        <di:waypoint x="600" y="390" />
+        <di:waypoint x="690" y="390" />
+        <di:waypoint x="690" y="325" />
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Flow_Escalation_di" bpmnElement="Flow_Escalation">
+        <di:waypoint x="580" y="448" />
+        <di:waypoint x="580" y="480" />
+        <di:waypoint x="622" y="480" />
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Flow_EscalationEnd_di" bpmnElement="Flow_EscalationEnd">
+        <di:waypoint x="658" y="480" />
+        <di:waypoint x="702" y="480" />
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Flow_5_di" bpmnElement="Flow_5">
+        <di:waypoint x="715" y="300" />
+        <di:waypoint x="770" y="300" />
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Flow_6_di" bpmnElement="Flow_6">
+        <di:waypoint x="870" y="300" />
+        <di:waypoint x="922" y="300" />
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Flow_7_di" bpmnElement="Flow_7">
+        <di:waypoint x="958" y="300" />
+        <di:waypoint x="1010" y="300" />
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Flow_8_di" bpmnElement="Flow_8">
+        <di:waypoint x="1110" y="300" />
+        <di:waypoint x="1162" y="300" />
+      </bpmndi:BPMNEdge>
+
+      <bpmndi:BPMNEdge id="Association_1_di" bpmnElement="Association_1">
+        <di:waypoint x="300" y="260" />
+        <di:waypoint x="314" y="205" />
+      </bpmndi:BPMNEdge>
+
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+
+</bpmn:definitions>

@@ -296,10 +296,11 @@ let _Crud = {
 					let isDynamicType   = !isRelType && !type.isBuiltin;
 					let isHtmlType      = type.traits.includes('DOMNode');
 					let isFlowType      = type.traits.includes('FlowBaseNode');
-					let isOtherType     = !(isRelType || isDynamicType || isHtmlType || isFlowType);
+					let isProcessType   = !isRelType && (typeName.startsWith('Bpmn') || typeName.startsWith('Process') || typeName.startsWith('Task'));
+					let isOtherType     = !(isRelType || isDynamicType || isHtmlType || isFlowType || isProcessType);
 
 					let show = (typeVisibility.rels && isBuiltInRel) || (typeVisibility.customRels && isCustomRelType) || (typeVisibility.custom && isDynamicType) ||
-						(typeVisibility.html && isHtmlType) || (typeVisibility.flow && isFlowType) || (typeVisibility.other && isOtherType);
+						(typeVisibility.html && isHtmlType) || (typeVisibility.flow && isFlowType) || (typeVisibility.process && isProcessType) || (typeVisibility.other && isOtherType);
 
 					return show;
 				});
@@ -331,6 +332,7 @@ let _Crud = {
 					rels:       false,
 					flow:       false,
 					html:       false,
+					process:    false,
 					other:      false
 				});
 
@@ -349,6 +351,7 @@ let _Crud = {
 					rels:         document.querySelector('#crudTypeToggleRels').checked,
 					flow:         document.querySelector('#crudTypeToggleFlow').checked,
 					html:         document.querySelector('#crudTypeToggleHtml').checked,
+					process:      document.querySelector('#crudTypeToggleProcess').checked,
 					other:        document.querySelector('#crudTypeToggleOther').checked
 				};
 			},
@@ -380,6 +383,9 @@ let _Crud = {
 							</div>
 							<div class="row">
 								<label class="block"><input ${_Crud.typeList.filtering.getStoredTypeVisibilityConfig('flow')   ? 'checked' : ''} type="checkbox" id="crudTypeToggleFlow"> Flow Types</label>
+							</div>
+							<div class="row">
+								<label class="block"><input ${_Crud.typeList.filtering.getStoredTypeVisibilityConfig('process') ? 'checked' : ''} type="checkbox" id="crudTypeToggleProcess"> Process Types</label>
 							</div>
 							<div class="row mb-2">
 								<label class="block"><input ${_Crud.typeList.filtering.getStoredTypeVisibilityConfig('other')  ? 'checked' : ''} type="checkbox" id="crudTypeToggleOther"> Other Types</label>
