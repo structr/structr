@@ -122,6 +122,7 @@ public class StructrTest {
 		// example for new configuration setup
 		Settings.BasePath.setValue(basePath);
 		Settings.FilesPath.setValue(basePath + "/files");
+		Settings.DatabasePath.setValue(basePath + "/db");
 
 		Settings.SuperUserName.setValue("superadmin");
 		Settings.SuperUserPassword.setValue("sehrgeheim");
@@ -216,7 +217,7 @@ public class StructrTest {
 		Services.getInstance().shutdown();
 
 		try {
-			File testDir = new File(basePath);
+			final File testDir = new File(basePath);
 			if (testDir.isDirectory()) {
 
 				FileUtils.deleteDirectory(testDir);
@@ -417,8 +418,6 @@ public class StructrTest {
 			Settings.ConnectionUrl.setValue(testDatabaseConnection);
 		}
 		Settings.ConnectionDatabaseName.setValue("neo4j");
-
-		Settings.DatabasePath.setValue("db-" + randomTenantId);
 		Settings.TenantIdentifier.setValue(randomTenantId);
 	}
 

@@ -103,6 +103,7 @@ public class LicensingTest {
 		// example for new configuration setup
 		Settings.BasePath.setValue(basePath);
 		Settings.FilesPath.setValue(basePath + "/files");
+		Settings.DatabasePath.setValue(basePath + "/db");
 
 		Settings.SuperUserName.setValue("superadmin");
 		Settings.SuperUserPassword.setValue("sehrgeheim");

@@ -95,6 +95,7 @@ public abstract class StructrRestTestBase {
 		// example for new configuration setup
 		Settings.BasePath.setValue(basePath);
 		Settings.FilesPath.setValue(basePath + "/files");
+		Settings.DatabasePath.setValue(basePath + "/db");
 
 		Settings.SuperUserName.setValue("superadmin");
 		Settings.SuperUserPassword.setValue("sehrgeheim");
@@ -279,8 +280,6 @@ public abstract class StructrRestTestBase {
 			Settings.ConnectionUrl.setValue(testDatabaseConnection);
 		}
 		Settings.ConnectionDatabaseName.setValue("neo4j");
-
-		Settings.DatabasePath.setValue("db-" + randomTenantId);
 		Settings.TenantIdentifier.setValue(randomTenantId);
 	}
 
