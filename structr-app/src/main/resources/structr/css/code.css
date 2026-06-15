@@ -208,8 +208,8 @@ li.highlight-name > a {
 /* BEGIN Scratchpad */
 [data-is-scratchpad]:not([open]) summary { flex-grow: 1; }
 [data-is-scratchpad] summary             { border-left: .5rem solid transparent; }
-[data-is-scratchpad]:hover summary       { border-left: .5rem solid var(--structr-light-green);}
-[data-is-scratchpad]:hover summary:hover { border-left: .5rem solid var(--structr-green );}
+[data-is-scratchpad]:hover summary       { border-left: .5rem solid var(--structr-light-green); }
+[data-is-scratchpad]:hover summary:hover { border-left: .5rem solid var(--structr-green ); }
 [data-is-scratchpad][open] summary       {padding-bottom: 1rem; }
 [data-is-scratchpad]:not([open]) summary input { display: none; }
 [data-is-scratchpad][open] summary [data-is-title] { display: none; }

@@ -154,6 +154,7 @@ public class UiModule implements StructrModule {
 		StructrTraits.registerTrait(new PagePathTraitDefinition());
 		StructrTraits.registerTrait(new PagePathParameterTraitDefinition());
 		StructrTraits.registerTrait(new ParameterMappingTraitDefinition());
+		StructrTraits.registerTrait(new ScratchpadTraitDefinition());
 		StructrTraits.registerTrait(new ShadowDocumentTraitDefinition());
 		StructrTraits.registerTrait(new SiteTraitDefinition());
 		StructrTraits.registerTrait(new StorageConfigurationTraitDefinition());
@@ -185,6 +186,7 @@ public class UiModule implements StructrModule {
 		StructrTraits.registerNodeType(StructrTraits.PAGE_PATH,                           StructrTraits.PAGE_PATH);
 		StructrTraits.registerNodeType(StructrTraits.PAGE_PATH_PARAMETER,                 StructrTraits.PAGE_PATH_PARAMETER);
 		StructrTraits.registerNodeType(StructrTraits.PARAMETER_MAPPING,                   StructrTraits.PARAMETER_MAPPING);
+		StructrTraits.registerNodeType(StructrTraits.SCRATCHPAD,                          StructrTraits.SCRATCHPAD);
 		StructrTraits.registerNodeType(StructrTraits.SHADOW_DOCUMENT,                     StructrTraits.DOM_NODE, StructrTraits.LINKABLE, StructrTraits.PAGE, StructrTraits.SHADOW_DOCUMENT);
 		StructrTraits.registerNodeType(StructrTraits.SITE,                                StructrTraits.SITE);
 		StructrTraits.registerNodeType(StructrTraits.STORAGE_CONFIGURATION,               StructrTraits.STORAGE_CONFIGURATION);

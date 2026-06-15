@@ -920,6 +920,11 @@ let Command = {
 		}
 		return StructrWS.sendObj(obj, callback);
 	},
+	createPromise: (nodeData) => {
+		return new Promise(resolve => {
+			Command.create(nodeData, resolve);
+		})
+	},
 	/**
 	 * Send a CREATE_RELATIONSHIP command to the server.
 	 *

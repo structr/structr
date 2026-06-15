@@ -50,7 +50,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.parser.DatePropertyGenerator;
-import org.structr.web.maintenance.ScratchpadCommand;
+import org.structr.web.traits.definitions.ScratchpadTraitDefinition;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -624,11 +624,14 @@ public class Scripting {
 
 		} else if (value instanceof Throwable throwable) {
 
+			final String mdcString        = MDC.get(ScratchpadTraitDefinition.MDC_SCRATCHPAD_TAG);
+			final String scratchLogString = (mdcString == null) ? "" : mdcString + " ";
+
 			Stream<String> lines = Stream.concat(
 				Stream.of(throwable.toString()),
 				Arrays.stream(throwable.getStackTrace())
 						.takeWhile(ste -> !ste.getClassName().startsWith("org.graalvm"))
-						.map(ste -> "\tat " + ste.toString())
+						.map(ste -> scratchLogString + "\tat " + ste.toString())
 			);
 
 			// attach causes recursively
@@ -636,14 +639,8 @@ public class Scripting {
 
 				lines = Stream.concat(
 						lines,
-						Stream.of("Caused by: " + formatForLogging(throwable.getCause()))
+						Stream.of(scratchLogString + " Caused by: " + formatForLogging(throwable.getCause()))
 				);
-			}
-
-			// prepend scratchpad log entry string, if present
-			final String scratchLogString = MDC.get(ScratchpadCommand.MDC_SCRATCHPAD_TAG);
-			if (scratchLogString != null) {
-				lines = lines.map(line -> scratchLogString + " " + line);
 			}
 
 			return lines.collect(Collectors.joining(System.lineSeparator()));

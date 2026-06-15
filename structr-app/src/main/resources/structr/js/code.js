@@ -162,16 +162,16 @@ let _Code = {
 
 				let defaultEntries = [
 					{
-						id:       path + '/scratchpad',
-						text:     'Scratchpad',
+						id:       path + '/scratchpads',
+						text:     'Scratchpads',
 						children: false,
 						icon:     _Icons.nonExistentEmptyIcon,
-						li_attr:  { 'data-id': 'scratchpad' },
+						li_attr:  { 'data-id': 'scratchpads' },
 						data: {
 							svgIcon: _Icons.getSvgIcon(_Icons.iconScratchpad, 16, 24),
-							key:     'scratchpad',
-							content: 'scratchpad',
-							path:    path + '/scratchpad'
+							key:     'scratchpads',
+							content: 'scratchpads',
+							path:    path + '/scratchpads'
 						},
 					},
 					{
@@ -849,7 +849,7 @@ let _Code = {
 					case 'root':
 						break;
 
-					case 'scratchpad':
+					case 'scratchpads':
 						_Code.mainArea.scratchpad.show(data, true);
 						break;
 
@@ -2609,51 +2609,49 @@ let _Code = {
 		scratchpad: {
 			scratchpadsKey: 'scratchpads_' + location.port,
 			currentScratchPads: [],
-			getEmptyScratchPadEntry: () => ({
-				// the editor storage uses the entity uuid. if we dont provide it they can overwrite each other
-				id: uuid.v4().replaceAll('-', ''),
-				name: 'Untitled Scratchpad',
-				script: '',
-				log: '',
-				result: '',
-				logFilter: null
-			}),
-			show: (data, updateLocationStack) => {
+			show: async (data, updateLocationStack) => {
 
 				_Code.mainArea.updateLocationStack(data, updateLocationStack);
 
 				_Code.codeContents.append(_Code.mainArea.scratchpad.templates.main());
 
-				_Code.mainArea.scratchpad.currentScratchPads = structuredClone(LSWrapper.getItem(_Code.mainArea.scratchpad.scratchpadsKey, [_Code.mainArea.scratchpad.getEmptyScratchPadEntry()]));
-
 				let newScratchPadButton = _Code.codeContents[0].querySelector('svg');
-				newScratchPadButton?.addEventListener('click', () => {
-					let newScratchPad = _Code.mainArea.scratchpad.getEmptyScratchPadEntry();
-					_Code.mainArea.scratchpad.currentScratchPads.push(newScratchPad);
+				newScratchPadButton?.addEventListener('click', async () => {
+					let newScratchPad = await _Code.mainArea.scratchpad.createScratchpadEntity();
+					console.log(newScratchPad)
 					_Code.mainArea.scratchpad.drawScratchpad(newScratchPad);
 				});
 
-				for (let currentPad of _Code.mainArea.scratchpad.currentScratchPads) {
+				let currentScratchPads = await Command.queryPromise('Scratchpad', 1000, 1, 'createdDate', false, null, true, 'ui');
+				for (let currentPad of currentScratchPads) {
 
 					_Code.mainArea.scratchpad.drawScratchpad(currentPad);
 				}
 			},
 			drawScratchpad: (currentPad) => {
 
-				let contentContainer = _Code.codeContents[0].querySelector('.content-container');
+				let container = _Code.codeContents[0].querySelector('#code-scratchpad-container');
 
 				let newScratchpad = _Helpers.createSingleDOMElementFromHTML(_Code.mainArea.scratchpad.templates.scratchpad());
-				contentContainer.insertAdjacentElement('afterbegin', newScratchpad);
+				container.insertAdjacentElement('afterbegin', newScratchpad);
 
 				let titleDiv         = newScratchpad.querySelector('[data-is-title]');
 				let titleInput       = newScratchpad.querySelector('[data-is-title-input]');
+				let languageSelect   = newScratchpad.querySelector('[data-is-language-select]');
 				let editorDiv        = newScratchpad.querySelector('[data-is-editor]');
 				let editorContextDiv = newScratchpad.querySelector('[data-is-editor-context]');
 				let logTextarea      = newScratchpad.querySelector('[data-is-log]');
 				let logContext       = newScratchpad.querySelector('[data-is-log-context]');
 				let outputDiv        = newScratchpad.querySelector('[data-is-output]');
 
-				logTextarea.value    = currentPad.log;
+				let saveFn = async () => {
+
+					let { source, language, name, log, result } = currentPad;
+
+					Command.setProperties(currentPad.id, { source, language, name, log, result });
+				};
+
+				logTextarea.value = currentPad.log ?? '';
 
 				_Code.mainArea.scratchpad.populateOutputDiv(outputDiv, currentPad);
 
@@ -2661,9 +2659,17 @@ let _Code = {
 				titleInput.value = currentPad.name ?? 'Untitled Scratchpad';
 				titleInput.addEventListener('input', e => {
 					currentPad.name = e.target.value;
-					_Code.mainArea.scratchpad.save();
 					titleDiv.textContent = currentPad.name;
+
+					saveFn();
 				})
+
+				languageSelect.value = currentPad.language;
+				languageSelect.addEventListener('change', (e) => {
+					currentPad.language = e.target.value;
+
+					saveFn();
+				});
 
 				let scratchMonacoConfig = {
 					language: 'auto',
@@ -2673,34 +2679,36 @@ let _Code = {
 					scrollBeyondLastLine: false,
 					changeFn: (editor, entity) => {
 
-						entity.script = editor.getValue();
-						_Code.mainArea.scratchpad.save();
+						entity.source = editor.getValue();
+						saveFn();
 
 						_Code.mainArea.scratchpad.resizeEditorContainer(editorDiv, editor);
 					}
 				};
 
-				// TODO: without entity.id, our monaco storage overwrites other editors without id (if we want to show multiple pads)
-				let scratchEditor = _Editors.getMonacoEditor(currentPad, 'script', editorDiv, scratchMonacoConfig);
+				let scratchEditor = _Editors.getMonacoEditor(currentPad, 'source', editorDiv, scratchMonacoConfig);
 
 				_Code.mainArea.scratchpad.resizeEditorContainer(editorDiv, scratchEditor);
 
 				let runButton = _Helpers.createSingleDOMElementFromHTML(_Code.mainArea.scratchpad.templates.runButton());
 				editorContextDiv.appendChild(runButton);
+				let removePadButton = _Helpers.createSingleDOMElementFromHTML(_Code.mainArea.scratchpad.templates.removePadButton());
+				editorContextDiv.appendChild(removePadButton);
+
+				let updateLogButton = _Helpers.createSingleDOMElementFromHTML(_Code.mainArea.scratchpad.templates.updateLogButton());
+				logContext.appendChild(updateLogButton);
+
 
 				let updateLog = async () => {
 
-					if (currentPad.logFilter) {
+					if (currentPad.logString) {
 
-						let logForRun = await Command.getServerLogSnapshot({ filter: currentPad.logFilter, numberOfLines: 10000 });
+						let logForRun = await Command.getServerLogSnapshot({ filter: currentPad.logString, numberOfLines: 10000 });
 
-						if (logForRun[0].result.length > 0) {
+						currentPad.log    = logForRun[0].result;
+						logTextarea.value = logForRun[0].result;
 
-							currentPad.log    = logForRun[0].result;
-							logTextarea.value = logForRun[0].result;
-
-							_Code.mainArea.scratchpad.save();
-						}
+						saveFn();
 					}
 				};
 
@@ -2725,88 +2733,77 @@ let _Code = {
 					_Helpers.fastRemoveAllChildren(outputDiv);
 					logTextarea.value = '';
 
-					fetch(Structr.rootUrl + 'maintenance/scratchpad', {
-						method: 'POST',
-						body: JSON.stringify({
-							command: 'getNewScratchId'
+					fetch(`${Structr.rootUrl}Scratchpad/${currentPad.id}/prepareNextRun`, { method: 'POST' })
+						.then(response => response.json())
+						.then(scratchIdResult => {
+
+							currentPad.logString = scratchIdResult.result;
+
+							updateLogLoop();
+
+							return fetch(`${Structr.rootUrl}Scratchpad/${currentPad.id}/run`, { method: 'POST' })
 						})
-					}).then(response => {
-						return response.json();
-					}).then(scratchIdResult => {
+						.then(response => response.json())
+						.then(runResult => {
 
-						let scratchId        = scratchIdResult.result[0].scratchId;
-						currentPad.logFilter = scratchIdResult.result[0].logString;
+							callFinished = true;
 
-						updateLogLoop();
+							updateLog();
 
-						return fetch(Structr.rootUrl + 'maintenance/scratchpad', {
-							method: 'POST',
-							body: JSON.stringify({
-								command: 'run',
-								scratchId: scratchId,
-								script: currentPad.script
-							})
-						})
-					}).then(response => {
-						return response.json();
-					}).then(runResult => {
+							currentPad.result = (runResult.code === 422) ? runResult.message : JSON.stringify(runResult.result.scratchResult, null, '\t');
 
-						callFinished = true;
+							_Code.mainArea.scratchpad.populateOutputDiv(outputDiv, currentPad);
 
-						updateLog();
+							_Code.mainArea.scratchpad.setButtonDisabledAndSpinnerStatus(runButton, false);
+							_Code.mainArea.scratchpad.setButtonDisabledAndSpinnerStatus(updateLogButton, false);
 
-						currentPad.result = runResult.result[0].scriptResult;
+						}).catch(e => {
 
-						_Code.mainArea.scratchpad.populateOutputDiv(outputDiv, currentPad);
+							_Code.mainArea.scratchpad.populateOutputDiv(outputDiv, currentPad);
+							console.log(e);
 
-						_Code.mainArea.scratchpad.save();
+							callFinished = true;
 
-						_Code.mainArea.scratchpad.setButtonDisabledAndSpinnerStatus(runButton, false);
-						_Code.mainArea.scratchpad.setButtonDisabledAndSpinnerStatus(updateLogButton, false);
+							updateLog();
 
-					}).catch(e => {
-
-						console.log(e);
-
-						callFinished = true;
-
-						updateLog();
-
-						_Code.mainArea.scratchpad.setButtonDisabledAndSpinnerStatus(runButton, false);
-						_Code.mainArea.scratchpad.setButtonDisabledAndSpinnerStatus(updateLogButton, false);
-					});
+							_Code.mainArea.scratchpad.setButtonDisabledAndSpinnerStatus(runButton, false);
+							_Code.mainArea.scratchpad.setButtonDisabledAndSpinnerStatus(updateLogButton, false);
+						});
 				});
 
-				let updateLogButton = _Helpers.createSingleDOMElementFromHTML(_Code.mainArea.scratchpad.templates.updateLogButton());
-				logContext.appendChild(updateLogButton);
-
 				updateLogButton.addEventListener('click', async () => {
-
 					await updateLog();
 				});
 
-				let removePadButton = _Helpers.createSingleDOMElementFromHTML(_Code.mainArea.scratchpad.templates.removePadButton());
-				editorContextDiv.appendChild(removePadButton);
+				removePadButton.addEventListener('click', async (e) => {
 
-				removePadButton.addEventListener('click', (e) => {
+					let response = await fetch(`${Structr.rootUrl}Scratchpad/${currentPad.id}`, { method: 'DELETE' });
 
-					e.target.closest('[data-is-scratchpad]').remove();
+					if (!response.ok) {
 
-					_Code.mainArea.scratchpad.currentScratchPads = _Code.mainArea.scratchpad.currentScratchPads.filter(s => s.id !== currentPad.id);
+						let data = await response.json();
 
-					_Code.mainArea.scratchpad.save();
+						Structr.errorFromResponse(data);
+
+					} else {
+						e.target.closest('[data-is-scratchpad]').remove();
+					}
 				});
 
 				_Editors.resizeVisibleEditors();
 			},
+			createScratchpadEntity: async () => {
+
+				return Command.createPromise({
+					type: 'Scratchpad',
+					name: 'Untitled Scratchpad'
+				});
+			},
 			setButtonDisabledAndSpinnerStatus: (button, status) => {
 
-				button.disabled = status;
-				button.classList.toggle('disabled', status);
 				button.classList.toggle('show-spinner', status);
-			},
-			save: () => {
-				LSWrapper.setItem(_Code.mainArea.scratchpad.scratchpadsKey, _Code.mainArea.scratchpad.currentScratchPads);
+				button.classList.toggle('disabled', status);
+				button.disabled = status;
 			},
 			resizeEditorContainer: (container, editor) => {
 
@@ -2830,15 +2827,14 @@ let _Code = {
 				_Helpers.fastRemoveAllChildren(div);
 				let outputDiv = document.createElement('div');
 
-				let output   = entity.result;
+				let output   = entity.result ?? '';
 				let isString = (typeof output === 'string');
 
 				if (!isString) {
 					output = JSON.stringify(output, null, "\t");
 				}
 
-				outputDiv.classList.toggle('whitespace-pre', !isString);
-				outputDiv.classList.toggle('font-mono', !isString);
+				outputDiv.classList.add('whitespace-pre-wrap');
 
 				outputDiv.textContent = output;
 
@@ -2849,21 +2845,47 @@ let _Code = {
 					<div class="flex flex-col items-start gap-2 items-center mb-4">
 						<h2>Scratchpads ${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['icon-green', 'cursor-pointer', 'mr-2'])}</h2>
 					</div>
-					<div id="code-scratchpad-container" class="content-container divide-y">
-						
+					<div class="content-container">
+					
+						<div class="inline-info">
+							<div class="inline-info-icon">
+								${_Icons.getSvgIcon('info-icon')}
+							</div>
+							<div class="inline-info-text">
+								Scratchpads are simple blocks where custom code can be developed without needing to create a method.
+							</div>
+						</div>
+					
+						<div id="code-scratchpad-container" class="flex flex-col gap-6">
+						</div>
 					</div>
 				`,
 				scratchpad: config => `
-
-					<details class="flex px-2 py-2" data-is-scratchpad open>
+					<details class="flex px-2" data-is-scratchpad open>
 						
 						<summary class="cursor-pointer flex gap-4 list-none pl-4 py-4">
-							<div data-is-title>Titel des Scratchpads</div>
+							<div data-is-title class="font-semibold"></div>
 						</summary>
 						
-						<div class="flex flex-col flex-grow gap-2">
+						<div data-is-scratchpad-details class="flex flex-col flex-grow gap-2">
 						
-							<input data-is-title-input placeholder="Title" class="flex-grow">
+							<div class="flex gap-8">
+
+								<label class="flex-grow flex items-center gap-4">
+									<div class="font-semibold">Name:</div>
+									<input data-is-title-input placeholder="Title" name="name" class="flex-grow">
+								</label>
+								
+								
+								<label class="flex-grow flex items-center gap-4">
+									<div class="font-semibold">Language:</div>
+									<select data-is-language-select name="language" class="flex-grow">
+										<option value="auto">Auto-detect</option>
+										<option value="js">JavaScript</option>
+										<option value="python">Python</option>
+									</select>
+								</label>
+							</div>
 							
 							<div class="flex-grow flex gap-2">
 	
