@@ -2605,8 +2605,8 @@ public class ScriptingTest extends StructrTest {
 			final JsonType dummyType = schema.addType("DummyType");
 			final JsonType newType   = schema.addType("MyDynamicType");
 
-			newType.addMethod("onCreation",    "is(eq(this.name, 'forbiddenName'), error('myError', '" + expectedErrorToken + "', 'creating this object is not allowed'))");
-			newType.addMethod("afterCreation", "create('DummyType', 'name', 'this should not be possible!')");
+			newType.addMethod("onCreate",    "is(eq(this.name, 'forbiddenName'), error('myError', '" + expectedErrorToken + "', 'creating this object is not allowed'))");
+			newType.addMethod("afterCreate", "create('DummyType', 'name', 'this should not be possible!')");
 
 			StructrSchema.replaceDatabaseSchema(app, schema);
 
@@ -2852,9 +2852,9 @@ public class ScriptingTest extends StructrTest {
 
 			customer.relate(project, "project", Cardinality.OneToOne, "customer", "project");
 
-			customer.addMethod("onModification", "{ var mods = Structr.retrieve('modifications'); $.log(mods); Structr.this.log = JSON.stringify(mods); }");
-			project.addMethod("onModification", "{ var mods = Structr.retrieve('modifications'); $.log(mods); Structr.this.log = JSON.stringify(mods); }");
-			task.addMethod("onModification", "{ var mods = Structr.retrieve('modifications'); $.log(mods); Structr.this.log = JSON.stringify(mods); }");
+			customer.addMethod("onSave", "{ var mods = Structr.retrieve('modifications'); $.log(mods); Structr.this.log = JSON.stringify(mods); }");
+			project.addMethod("onSave", "{ var mods = Structr.retrieve('modifications'); $.log(mods); Structr.this.log = JSON.stringify(mods); }");
+			task.addMethod("onSave", "{ var mods = Structr.retrieve('modifications'); $.log(mods); Structr.this.log = JSON.stringify(mods); }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -7716,7 +7716,7 @@ public class ScriptingTest extends StructrTest {
 			JsonSchema schema         = StructrSchema.createFromDatabase(app);
 			final JsonObjectType type = schema.addType("TestDoAs");
 
-			type.addMethod("onCreation", "{ $.this.name += ', created by ' + $.me.name; $.log($.me); }");
+			type.addMethod("onCreate", "{ $.this.name += ', created by ' + $.me.name; $.log($.me); }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -8762,8 +8762,8 @@ public class ScriptingTest extends StructrTest {
 		test1.addStringProperty("c");
 		test1.addStringProperty("s");
 
-		test1.addMethod("onCreation",     createSource);
-		test1.addMethod("onModification", saveSource);
+		test1.addMethod("onCreate", createSource);
+		test1.addMethod("onSave",   saveSource);
 
 	}
 
