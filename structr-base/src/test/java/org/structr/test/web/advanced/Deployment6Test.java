@@ -18,8 +18,10 @@
  */
 package org.structr.test.web.advanced;
 
+import org.structr.api.DatabaseFeature;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
+import org.structr.core.Services;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.ResultStream;
 import org.structr.common.error.FrameworkException;
@@ -160,6 +162,10 @@ public class Deployment6Test extends DeploymentTestBase {
 
 	@Test
 	public void test62CypherPropertyRoundtrip() {
+
+		if (!Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage)) {
+			return;
+		}
 
 		try (final Tx tx = app.tx()) {
 

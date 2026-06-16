@@ -18,6 +18,7 @@
  */
 package org.structr.test;
 
+import org.structr.api.DatabaseFeature;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonReferenceType;
@@ -59,6 +60,10 @@ public class FulltextIndexingTest extends IndexingTest {
 
 	@Test
 	public void testBasicFulltextSearchOnNodes() {
+
+		if (!app.getDatabaseService().supportsFeature(DatabaseFeature.FulltextIndexing)) {
+			return;
+		}
 
 		final String indexName = "Test_test_fulltext";
 
@@ -138,6 +143,10 @@ public class FulltextIndexingTest extends IndexingTest {
 
 	@Test
 	public void testBasicFulltextSearchOnRelationships() {
+
+		if (!app.getDatabaseService().supportsFeature(DatabaseFeature.FulltextIndexing)) {
+			return;
+		}
 
 		final String indexName = "TEST_test_fulltext";
 
@@ -232,6 +241,10 @@ public class FulltextIndexingTest extends IndexingTest {
 	@Test
 	public void testODTSearch() {
 
+		if (!app.getDatabaseService().supportsFeature(DatabaseFeature.FulltextIndexing)) {
+			return;
+		}
+
 		try (final Tx tx = app.tx()) {
 
 			try( final InputStream is = FulltextIndexingTest.class.getResourceAsStream("/test/test.odt")) {
@@ -250,6 +263,10 @@ public class FulltextIndexingTest extends IndexingTest {
 
 	@Test
 	public void testODT() {
+
+		if (!app.getDatabaseService().supportsFeature(DatabaseFeature.FulltextIndexing)) {
+			return;
+		}
 
 		try (final Tx tx = app.tx()) {
 
@@ -270,6 +287,10 @@ public class FulltextIndexingTest extends IndexingTest {
 	@Test
 	public void testPDF() {
 
+		if (!app.getDatabaseService().supportsFeature(DatabaseFeature.FulltextIndexing)) {
+			return;
+		}
+
 		try (final Tx tx = app.tx()) {
 
 			try (final InputStream is = FulltextIndexingTest.class.getResourceAsStream("/test/test.pdf")) {
@@ -288,6 +309,10 @@ public class FulltextIndexingTest extends IndexingTest {
 
 	@Test
 	public void testPlaintext01() {
+
+		if (!app.getDatabaseService().supportsFeature(DatabaseFeature.FulltextIndexing)) {
+			return;
+		}
 
 		try (final Tx tx = app.tx()) {
 
@@ -308,6 +333,10 @@ public class FulltextIndexingTest extends IndexingTest {
 	@Test
 	public void testPlaintext02() {
 
+		if (!app.getDatabaseService().supportsFeature(DatabaseFeature.FulltextIndexing)) {
+			return;
+		}
+
 		try (final Tx tx = app.tx()) {
 
 			try(final InputStream is = FulltextIndexingTest.class.getResourceAsStream("/test/test2.txt")) {
@@ -326,6 +355,10 @@ public class FulltextIndexingTest extends IndexingTest {
 
 	@Test
 	public void testIndexManagement() {
+
+		if (!app.getDatabaseService().supportsFeature(DatabaseFeature.FulltextIndexing)) {
+			return;
+		}
 
 		//**********************************************************************************************************************************************************
 		// create fulltext indexed property
