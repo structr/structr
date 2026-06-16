@@ -24,20 +24,15 @@ import org.structr.schema.action.ActionContext;
 
 public interface Scratchpad extends NodeInterface {
 
-	Long getScratchpadId();
-	void setScratchpadId(final Long scratchpadId) throws FrameworkException;
-
-	String getLogString();
-	void setLogString(final String logString) throws FrameworkException;
-
 	String getSource();
-	void setSource(final String source) throws FrameworkException;
+	String getResult();
+	String getLog();
+	Long getLastRunTimestamp();
+	boolean getCollapsed();
+	void setLastRunTimestamp(final Long timestamp) throws FrameworkException;
 
-	String getLanguage();
-
-	Long getNextScratchId() throws FrameworkException;
+	String getScratchpadLogString();
 
 	Object run(final ActionContext actionContext) throws FrameworkException;
-
-	String getScratchLogString (final long scratchId);
+	String getServerLog();
 }

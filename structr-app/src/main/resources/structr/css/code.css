@@ -212,8 +212,13 @@ li.highlight-name > a {
 [data-is-scratchpad]:hover summary:hover { border-left: .5rem solid var(--structr-green ); }
 [data-is-scratchpad][open] summary       {padding-bottom: 1rem; }
 [data-is-scratchpad]:not([open]) summary input { display: none; }
-[data-is-scratchpad][open] summary [data-is-title] { display: none; }
 [data-is-scratchpad]::details-content { flex: 1; }
+
+[data-is-scratchpad][open] summary [data-is-title],
+[data-is-scratchpad][open] summary svg {
+	display: none;
+}
+
 
 [data-is-scratchpad] textarea[data-is-log] {
 	resize: none;

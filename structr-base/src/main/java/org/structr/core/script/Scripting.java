@@ -50,7 +50,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.parser.DatePropertyGenerator;
-import org.structr.web.traits.definitions.ScratchpadTraitDefinition;
+import org.structr.web.traits.wrappers.ScratchpadTraitWrapper;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -624,7 +624,7 @@ public class Scripting {
 
 		} else if (value instanceof Throwable throwable) {
 
-			final String mdcString        = MDC.get(ScratchpadTraitDefinition.MDC_SCRATCHPAD_TAG);
+			final String mdcString        = MDC.get(ScratchpadTraitWrapper.MDC_SCRATCHPAD_TAG);
 			final String scratchLogString = (mdcString == null) ? "" : mdcString + " ";
 
 			Stream<String> lines = Stream.concat(

@@ -2618,7 +2618,6 @@ let _Code = {
 				let newScratchPadButton = _Code.codeContents[0].querySelector('svg');
 				newScratchPadButton?.addEventListener('click', async () => {
 					let newScratchPad = await _Code.mainArea.scratchpad.createScratchpadEntity();
-					console.log(newScratchPad)
 					_Code.mainArea.scratchpad.drawScratchpad(newScratchPad);
 				});
 
@@ -2632,41 +2631,54 @@ let _Code = {
 
 				let container = _Code.codeContents[0].querySelector('#code-scratchpad-container');
 
-				let newScratchpad = _Helpers.createSingleDOMElementFromHTML(_Code.mainArea.scratchpad.templates.scratchpad());
+				let newScratchpad = _Helpers.createSingleDOMElementFromHTML(_Code.mainArea.scratchpad.templates.scratchpad(currentPad));
 				container.insertAdjacentElement('afterbegin', newScratchpad);
 
 				let titleDiv         = newScratchpad.querySelector('[data-is-title]');
 				let titleInput       = newScratchpad.querySelector('[data-is-title-input]');
-				let languageSelect   = newScratchpad.querySelector('[data-is-language-select]');
 				let editorDiv        = newScratchpad.querySelector('[data-is-editor]');
 				let editorContextDiv = newScratchpad.querySelector('[data-is-editor-context]');
 				let logTextarea      = newScratchpad.querySelector('[data-is-log]');
 				let logContext       = newScratchpad.querySelector('[data-is-log-context]');
 				let outputDiv        = newScratchpad.querySelector('[data-is-output]');
 
+				newScratchpad.querySelector('summary').addEventListener('click', (e) => {
+
+					let details = e.target.closest('details');
+
+					currentPad.collapsed = details.open;
+
+					if (!details.open) {
+						_Editors.resizeVisibleEditors();
+					}
+
+					saveFn();
+				});
+
 				let saveFn = async () => {
 
-					let { source, language, name, log, result } = currentPad;
+					let { name, source, result, log, collapsed } = currentPad;
 
-					Command.setProperties(currentPad.id, { source, language, name, log, result });
+					Command.setProperties(currentPad.id, { name, source, result, log, collapsed });
 				};
 
 				logTextarea.value = currentPad.log ?? '';
 
 				_Code.mainArea.scratchpad.populateOutputDiv(outputDiv, currentPad);
 
-				titleDiv.textContent = currentPad.name ?? 'Untitled Scratchpad';
+				let updateTitleDiv = (newName) => {
+
+					titleDiv.textContent = (newName && newName.trim().length > 0) ? newName : 'Untitled Scratchpad';
+				};
+
+				updateTitleDiv(currentPad.name);
+
 				titleInput.value = currentPad.name ?? 'Untitled Scratchpad';
 				titleInput.addEventListener('input', e => {
+
 					currentPad.name = e.target.value;
-					titleDiv.textContent = currentPad.name;
 
-					saveFn();
-				})
-
-				languageSelect.value = currentPad.language;
-				languageSelect.addEventListener('change', (e) => {
-					currentPad.language = e.target.value;
+					updateTitleDiv(currentPad.name);
 
 					saveFn();
 				});
@@ -2692,33 +2704,38 @@ let _Code = {
 
 				let runButton = _Helpers.createSingleDOMElementFromHTML(_Code.mainArea.scratchpad.templates.runButton());
 				editorContextDiv.appendChild(runButton);
+
 				let removePadButton = _Helpers.createSingleDOMElementFromHTML(_Code.mainArea.scratchpad.templates.removePadButton());
 				editorContextDiv.appendChild(removePadButton);
 
 				let updateLogButton = _Helpers.createSingleDOMElementFromHTML(_Code.mainArea.scratchpad.templates.updateLogButton());
 				logContext.appendChild(updateLogButton);
 
-
 				let updateLog = async () => {
 
-					if (currentPad.logString) {
+					let response = await fetch(`${Structr.rootUrl}Scratchpad/${currentPad.id}/getServerLog`, { method: 'POST' });
+					let data     = await response.json();
 
-						let logForRun = await Command.getServerLogSnapshot({ filter: currentPad.logString, numberOfLines: 10000 });
+					if (response.ok) {
 
-						currentPad.log    = logForRun[0].result;
-						logTextarea.value = logForRun[0].result;
+						currentPad.log    = data.result;
+						logTextarea.value = data.result;
 
 						saveFn();
+
+					} else {
+
+						Structr.errorFromResponse(data);
 					}
 				};
 
 				let callFinished = false;
-				let updateLogLoop = () => {
+				let updateLogUntilCallFinished = () => {
 
 					setTimeout(async () => {
-						if (!callFinished) {
+						if (callFinished === false) {
 							await updateLog();
-							updateLogLoop();
+							updateLogUntilCallFinished();
 						} else {
 							callFinished = false;
 						}
@@ -2739,28 +2756,22 @@ let _Code = {
 
 							currentPad.logString = scratchIdResult.result;
 
-							updateLogLoop();
+							updateLogUntilCallFinished();
 
 							return fetch(`${Structr.rootUrl}Scratchpad/${currentPad.id}/run`, { method: 'POST' })
 						})
 						.then(response => response.json())
 						.then(runResult => {
 
-							callFinished = true;
-
-							updateLog();
-
 							currentPad.result = (runResult.code === 422) ? runResult.message : JSON.stringify(runResult.result.scratchResult, null, '\t');
-
 							_Code.mainArea.scratchpad.populateOutputDiv(outputDiv, currentPad);
-
-							_Code.mainArea.scratchpad.setButtonDisabledAndSpinnerStatus(runButton, false);
-							_Code.mainArea.scratchpad.setButtonDisabledAndSpinnerStatus(updateLogButton, false);
 
 						}).catch(e => {
 
 							_Code.mainArea.scratchpad.populateOutputDiv(outputDiv, currentPad);
 							console.log(e);
+
+						}).finally(() => {
 
 							callFinished = true;
 
@@ -2777,17 +2788,23 @@ let _Code = {
 
 				removePadButton.addEventListener('click', async (e) => {
 
-					let response = await fetch(`${Structr.rootUrl}Scratchpad/${currentPad.id}`, { method: 'DELETE' });
+					_Dialogs.confirmation.showPromise(`Delete scratchpad <strong>${_Helpers.escapeTags(currentPad.name ?? '')}</strong>?`).then(async confirm => {
 
-					if (!response.ok) {
+						if (confirm === true) {
 
-						let data = await response.json();
+							let response = await fetch(`${Structr.rootUrl}Scratchpad/${currentPad.id}`, { method: 'DELETE' });
 
-						Structr.errorFromResponse(data);
+							if (!response.ok) {
 
-					} else {
-						e.target.closest('[data-is-scratchpad]').remove();
-					}
+								let data = await response.json();
+
+								Structr.errorFromResponse(data);
+
+							} else {
+								e.target.closest('[data-is-scratchpad]').remove();
+							}
+						}
+					});
 				});
 
 				_Editors.resizeVisibleEditors();
@@ -2861,31 +2878,16 @@ let _Code = {
 					</div>
 				`,
 				scratchpad: config => `
-					<details class="flex px-2" data-is-scratchpad open>
+					<details class="flex px-2" data-is-scratchpad ${config.collapsed ? '' : 'open'}>
 						
-						<summary class="cursor-pointer flex gap-4 list-none pl-4 py-4">
+						<summary class="cursor-pointer flex items-center gap-4 list-none pl-4 py-4">
+							${_Icons.getSvgIcon('chevron-right-filled', 12, 12)}
 							<div data-is-title class="font-semibold"></div>
 						</summary>
 						
 						<div data-is-scratchpad-details class="flex flex-col flex-grow gap-2">
 						
-							<div class="flex gap-8">
-
-								<label class="flex-grow flex items-center gap-4">
-									<div class="font-semibold">Name:</div>
-									<input data-is-title-input placeholder="Title" name="name" class="flex-grow">
-								</label>
-								
-								
-								<label class="flex-grow flex items-center gap-4">
-									<div class="font-semibold">Language:</div>
-									<select data-is-language-select name="language" class="flex-grow">
-										<option value="auto">Auto-detect</option>
-										<option value="js">JavaScript</option>
-										<option value="python">Python</option>
-									</select>
-								</label>
-							</div>
+							<input data-is-title-input placeholder="Title" name="name" class="flex-grow">
 							
 							<div class="flex-grow flex gap-2">
 	

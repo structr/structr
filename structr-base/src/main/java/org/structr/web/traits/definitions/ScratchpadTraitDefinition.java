@@ -18,47 +18,38 @@
  */
 package org.structr.web.traits.definitions;
 
-import org.slf4j.MDC;
 import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.MatchToken;
+import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
-import org.structr.core.GraphObjectMap;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.JavaMethod;
 import org.structr.core.entity.Relation;
 import org.structr.core.function.ServerLogFunction;
 import org.structr.core.property.*;
-import org.structr.core.script.Scripting;
 import org.structr.core.traits.*;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.Scratchpad;
-import org.structr.web.traits.wrappers.FileTraitWrapper;
 import org.structr.web.traits.wrappers.ScratchpadTraitWrapper;
 
+import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 
-/**
- *
- *
- */
 public class ScratchpadTraitDefinition extends AbstractNodeTraitDefinition {
 
-	public static final String SOURCE_PROPERTY   = "source";
-	public static final String LANGUAGE_PROPERTY = "language";
-	public static final String RESULT_PROPERTY   = "result";
-	public static final String LOG_PROPERTY      = "log";
-	public static final String LOG_STRING_PROPERTY = "logString";
-	public static final String SCRATCH_ID_PROPERTY = "scratchId";
-
-	public static final String MDC_SCRATCHPAD_TAG = "structrScratchMDC";
-
-	public enum Language {
-		auto, js, python
-	}
+	public static final String SOURCE_PROPERTY             = "source";
+	public static final String RESULT_PROPERTY             = "result";
+	public static final String LOG_PROPERTY                = "log";
+	public static final String LAST_RUN_TIMESTAMP_PROPERTY = "lastRunTimestamp";
+	public static final String COLLAPSED_PROPERTY          = "collapsed";
 
 	public ScratchpadTraitDefinition() {
 		super(StructrTraits.SCRATCHPAD);
@@ -74,20 +65,14 @@ public class ScratchpadTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
-					final Scratchpad thisEntity = entity.as(Scratchpad.class);
-					final Long scratchpadId     = thisEntity.getNextScratchId();
+					entity.as(Scratchpad.class).setLastRunTimestamp(new Date().getTime());
 
-					thisEntity.setScratchpadId(scratchpadId);
-
-					final String logString = thisEntity.getScratchLogString(scratchpadId);
-					thisEntity.setLogString(logString);
-
-					return logString;
+					return null;
 				}
 
 				@Override
 				public String getDescription() {
-					return "Prepares next run with updated log string and scratchpad id. Returns the log string used when run next.";
+					return "Prepares next run and returns log string that will be used during it.";
 				}
 			},
 
@@ -97,6 +82,20 @@ public class ScratchpadTraitDefinition extends AbstractNodeTraitDefinition {
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
 					return entity.as(Scratchpad.class).run(actionContext);
+				}
+
+				@Override
+				public String getDescription() {
+					return "Runs the scratchpad and returns the result.";
+				}
+			},
+
+			new JavaMethod("getServerLog", false, false) {
+
+				@Override
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) {
+
+					return entity.as(Scratchpad.class).getServerLog();
 				}
 
 				@Override
@@ -123,20 +122,18 @@ public class ScratchpadTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<String> sourceProperty   = new StringProperty(SOURCE_PROPERTY).defaultValue("");
-		final Property<String> languageProperty = new EnumProperty(LANGUAGE_PROPERTY, Language.class).defaultValue("auto");
-		final Property<String> resultProperty   = new StringProperty(RESULT_PROPERTY).defaultValue("");
-		final Property<String> logProperty      = new StringProperty(LOG_PROPERTY).defaultValue("");
-		final Property<String> logStringProperty = new StringProperty(LOG_STRING_PROPERTY);
-		final Property<Long> scratchIdProperty   = new LongProperty(SCRATCH_ID_PROPERTY);
+		final Property<String> sourceProperty         = new StringProperty(SOURCE_PROPERTY).defaultValue("");
+		final Property<String> resultProperty         = new StringProperty(RESULT_PROPERTY).defaultValue("");
+		final Property<String> logProperty            = new StringProperty(LOG_PROPERTY).defaultValue("");
+		final Property<Long> lastRunTimestampProperty = new LongProperty(LAST_RUN_TIMESTAMP_PROPERTY);
+		final Property<Boolean> collapsedProperty     = new BooleanProperty(COLLAPSED_PROPERTY).defaultValue(false);
 
 		return Set.of(
 				sourceProperty,
-				languageProperty,
 				resultProperty,
 				logProperty,
-				logStringProperty,
-				scratchIdProperty
+				lastRunTimestampProperty,
+				collapsedProperty
 		);
 	}
 
@@ -146,8 +143,7 @@ public class ScratchpadTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Ui,
 			newSet(
-					SOURCE_PROPERTY, LANGUAGE_PROPERTY, RESULT_PROPERTY, LOG_PROPERTY, LOG_STRING_PROPERTY, SCRATCH_ID_PROPERTY
-
+					SOURCE_PROPERTY, RESULT_PROPERTY, LOG_PROPERTY, LAST_RUN_TIMESTAMP_PROPERTY, COLLAPSED_PROPERTY
 			)
 		);
 	}

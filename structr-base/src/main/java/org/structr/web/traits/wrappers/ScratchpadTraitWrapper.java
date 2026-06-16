@@ -19,53 +19,29 @@
 package org.structr.web.traits.wrappers;
 
 import org.slf4j.MDC;
-import org.structr.common.*;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.entity.Principal;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.function.ServerLogFunction;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.GenericProperty;
-import org.structr.core.scheduler.JobQueueManager;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.*;
-import org.structr.web.importer.CSVFileImportJob;
-import org.structr.web.importer.MixedCSVFileImportJob;
 import org.structr.web.traits.definitions.ScratchpadTraitDefinition;
 
-import java.io.*;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.Date;
 
 public class ScratchpadTraitWrapper extends AbstractNodeTraitWrapper implements Scratchpad {
 
-	private static final AtomicLong counter = new AtomicLong();
+	public static final String MDC_SCRATCHPAD_TAG = "structrScratchMDC";
 
 	public ScratchpadTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
-	}
-
-	@Override
-	public Long getScratchpadId() {
-		return wrappedObject.getProperty(traits.key(ScratchpadTraitDefinition.SCRATCH_ID_PROPERTY));
-	}
-
-	@Override
-	public void setScratchpadId(final Long scratchpadId) throws FrameworkException {
-		wrappedObject.setProperty(traits.key(ScratchpadTraitDefinition.SCRATCH_ID_PROPERTY), scratchpadId);
-	}
-
-	@Override
-	public String getLogString() {
-		return wrappedObject.getProperty(traits.key(ScratchpadTraitDefinition.LOG_STRING_PROPERTY));
-	}
-
-	@Override
-	public void setLogString(final String logString) throws FrameworkException {
-		wrappedObject.setProperty(traits.key(ScratchpadTraitDefinition.LOG_STRING_PROPERTY), logString);
 	}
 
 	@Override
@@ -74,46 +50,59 @@ public class ScratchpadTraitWrapper extends AbstractNodeTraitWrapper implements 
 	}
 
 	@Override
-	public void setSource(final String source) throws FrameworkException {
-		wrappedObject.setProperty(traits.key(ScratchpadTraitDefinition.SOURCE_PROPERTY), source);
+	public String getResult() {
+		return wrappedObject.getProperty(traits.key(ScratchpadTraitDefinition.RESULT_PROPERTY));
 	}
 
 	@Override
-	public String getLanguage() {
-		return wrappedObject.getProperty(traits.key(ScratchpadTraitDefinition.LANGUAGE_PROPERTY));
+	public String getLog() {
+		return wrappedObject.getProperty(traits.key(ScratchpadTraitDefinition.LOG_PROPERTY));
 	}
 
 	@Override
-	public Long getNextScratchId() throws FrameworkException {
-		return counter.incrementAndGet();
+	public Long getLastRunTimestamp() {
+		return wrappedObject.getProperty(traits.key(ScratchpadTraitDefinition.LAST_RUN_TIMESTAMP_PROPERTY));
+	}
+
+	@Override
+	public boolean getCollapsed() {
+		return wrappedObject.getProperty(traits.key(ScratchpadTraitDefinition.COLLAPSED_PROPERTY));
+	}
+
+	@Override
+	public void setLastRunTimestamp(final Long timestamp) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(ScratchpadTraitDefinition.LAST_RUN_TIMESTAMP_PROPERTY), timestamp);
 	}
 
 	@Override
 	public Object run(final ActionContext actionContext) throws FrameworkException {
 
-		// always set logString when run - we do not want user-supplied strings in MDC
-		final String logString = getScratchLogString(getScratchpadId());
-		setLogString(logString);
+		MDC.put(MDC_SCRATCHPAD_TAG, getScratchpadLogString());
 
-		MDC.put(ScratchpadTraitDefinition.MDC_SCRATCHPAD_TAG, logString);
-
-		final String sourceParameter = getSource();
-		final String language        = getLanguage();
-
-		final String script = switch (ScratchpadTraitDefinition.Language.valueOf(language)) {
-			case js     -> "${{" + sourceParameter + "}}";
-			case python -> "${python{\n" + sourceParameter + "}}";
-			default     -> "${" + sourceParameter + "}";
-		};
-
+		// wrap in graphobject so we can yield null values (would otherwise return as [])
 		final GraphObjectMap result = new GraphObjectMap();
-		result.setProperty(new GenericProperty("scratchResult"), Scripting.evaluate(actionContext, null, script, "scratchpad"));
+		result.setProperty(new GenericProperty("scratchResult"), Scripting.evaluate(actionContext, null, "${" + getSource() + "}", "scratchpad"));
 
 		return result;
 	}
 
+	public String getServerLog() {
+
+		final Long lastRunTimestamp = getLastRunTimestamp();
+		if (lastRunTimestamp == null) {
+			return "";
+		}
+
+		final String logFilter = getScratchpadLogString();
+
+		return ServerLogFunction.getServerLog(100_000, -1, null, logFilter);
+	}
+
 	@Override
-	public String getScratchLogString (final long scratchId) {
-		return "[scratch_" + scratchId + "]";
+	public String getScratchpadLogString() {
+
+		final String lastRunDate_base36 = Long.toString(getLastRunTimestamp(), 36);
+
+		return "[scratch_" + lastRunDate_base36 + "]";
 	}
 }
