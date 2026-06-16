@@ -81,7 +81,7 @@ public class ScratchpadTraitWrapper extends AbstractNodeTraitWrapper implements 
 
 		// wrap in graphobject so we can yield null values (would otherwise return as [])
 		final GraphObjectMap result = new GraphObjectMap();
-		result.setProperty(new GenericProperty("scratchResult"), Scripting.evaluate(actionContext, null, "${" + getSource() + "}", "scratchpad"));
+		result.setProperty(new GenericProperty("scratchResult"), Scripting.evaluate(actionContext, null, "${" + getSource().trim() + "}", "scratchpad"));
 
 		return result;
 	}
