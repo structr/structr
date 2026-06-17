@@ -700,6 +700,88 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Set.of(
 
+			new InstanceMethod(StructrTraits.DOM_NODE, "insertBefore") {
+
+				@Override
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
+
+					final DOMNode node = entity.as(DOMNode.class);
+					final NodeInterface newChildNode = (NodeInterface) parameters.get("newChild");
+					final NodeInterface refChildNode = (NodeInterface) parameters.get("refChild");
+
+					if (newChildNode != null) {
+
+						final DOMNode newChild = newChildNode.as(DOMNode.class);
+
+						// refChild is optional: a null refChild means append to the end (W3C insertBefore semantics)
+						final DOMNode refChild = (refChildNode != null) ? refChildNode.as(DOMNode.class) : null;
+
+						node.insertBefore(newChild, refChild);
+
+						return newChild;
+
+					} else {
+
+						throw new FrameworkException(422, "DOMNode.insertBefore(): missing required argument `newChild` of type DOMNode.");
+					}
+				}
+			},
+
+			new InstanceMethod(StructrTraits.DOM_NODE, "getChildNodes") {
+
+				@Override
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
+
+					final DOMNode node = entity.as(DOMNode.class);
+
+					if (node != null) {
+
+						return node.getChildren();
+
+					} else {
+
+						throw new FrameworkException(422, "DOMNode.getChildNodes(): missing required argument `node` of type DOMNode.");
+					}
+
+				}
+			},
+
+			new InstanceMethod(StructrTraits.DOM_NODE, "getNextSibling") {
+
+				@Override
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
+
+					final DOMNode node = entity.as(DOMNode.class);
+
+					if (node != null) {
+
+						return node.getNextSibling();
+
+					} else {
+
+						throw new FrameworkException(422, "DOMNode.getNextSibling(): missing required argument `node` of type DOMNode.");
+					}
+				}
+			},
+
+			new InstanceMethod(StructrTraits.DOM_NODE, "getFirstChild") {
+
+				@Override
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
+
+					final DOMNode node = entity.as(DOMNode.class);
+
+					if (node != null) {
+
+						return node.getFirstChild();
+
+					} else {
+
+						throw new FrameworkException(422, "DOMNode.getFirstChild(): missing required argument `node` of type DOMNode.");
+					}
+				}
+			},
+
 			new InstanceMethod(StructrTraits.DOM_NODE, "cloneNode") {
 
 				@Override
@@ -733,6 +815,59 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 						throw new FrameworkException(422, "DOMNode.appendChild(): missing required argument `newChild` of type DOMNode.");
 					}
+				}
+			},
+
+			new InstanceMethod(StructrTraits.DOM_NODE, "removeChild") {
+
+				@Override
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
+
+					final NodeInterface childNode = (NodeInterface) parameters.get("childNode");
+					if (childNode != null) {
+
+						final DOMNode child = childNode.as(DOMNode.class);
+						final DOMNode node = entity.as(DOMNode.class);
+
+						node.removeChild(child);
+
+						return child;
+
+					} else {
+
+						throw new FrameworkException(422, "DOMNode.removeChild(): missing required argument `childNode` of type DOMNode.");
+					}
+				}
+			},
+
+			new InstanceMethod(StructrTraits.DOM_NODE, "replaceChild") {
+
+				@Override
+					public Object execute(final ActionContext actionContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
+
+					final NodeInterface newChildNode = (NodeInterface) parameters.get("newChild");
+
+						if (newChildNode != null) {
+
+							final DOMNode newChild = newChildNode.as(DOMNode.class);
+
+							final NodeInterface oldChildNode = (NodeInterface) parameters.get("oldChild");
+
+							if (oldChildNode != null) {
+
+								final DOMNode oldChild = oldChildNode.as(DOMNode.class);
+								final DOMNode node = entity.as(DOMNode.class);
+								node.replaceChild(newChild, oldChild);
+
+								return newChild;
+
+							} else {
+
+								throw new FrameworkException(422, "DOMNode.replaceChild(): missing required argument `oldChild` of type DOMNode.");
+							}
+						} else {
+							throw new FrameworkException(422, "DOMNode.replaceChild(): missing required argument `newChild` of type DOMNode.");
+						}
 				}
 			},
 
