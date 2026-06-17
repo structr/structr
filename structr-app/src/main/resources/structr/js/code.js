@@ -2685,8 +2685,8 @@ let _Code = {
 
 					if (response.ok) {
 
-						currentPad.log    = data.result;
-						logTextarea.value = data.result;
+						currentPad.log    = data;
+						logTextarea.value = data;
 
 						saveFn();
 
@@ -2718,19 +2718,16 @@ let _Code = {
 					logTextarea.value = '';
 
 					fetch(`${Structr.rootUrl}Scratchpad/${currentPad.id}/prepareNextRun`, { method: 'POST' })
-						.then(response => response.json())
-						.then(scratchIdResult => {
-
-							currentPad.logString = scratchIdResult.result;
+						.then(response => {
 
 							updateLogUntilCallFinished();
 
 							return fetch(`${Structr.rootUrl}Scratchpad/${currentPad.id}/run`, { method: 'POST' })
 						})
 						.then(response => response.json())
-						.then(runResult => {
+						.then(data => {
 
-							currentPad.result = (runResult.code === 422) ? runResult.message : JSON.stringify(runResult.result.scratchResult, null, '\t');
+							currentPad.result = (data.code === 422) ? data.message : JSON.stringify(data.result, null, '\t');
 							_Code.mainArea.scratchpad.populateOutputDiv(outputDiv, currentPad);
 
 						}).catch(e => {

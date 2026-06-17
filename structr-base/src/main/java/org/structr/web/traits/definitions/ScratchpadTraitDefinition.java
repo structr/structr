@@ -60,14 +60,14 @@ public class ScratchpadTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Set.of(
 
-			new JavaMethod("prepareNextRun", false, false) {
+			new JavaMethod("prepareNextRun", false, false, true) {
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
 					entity.as(Scratchpad.class).setLastRunTimestamp(new Date().getTime());
 
-					return null;
+					return "";
 				}
 
 				@Override
@@ -76,7 +76,7 @@ public class ScratchpadTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			new JavaMethod("run", false, false) {
+			new JavaMethod("run", false, false, true) {
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
@@ -90,7 +90,7 @@ public class ScratchpadTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			new JavaMethod("getServerLog", false, false) {
+			new JavaMethod("getServerLog", false, false, true) {
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) {
