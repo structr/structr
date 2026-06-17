@@ -108,8 +108,9 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 
 					if (propertyName != null) {
 
-						final PropertyKey key = node.getTraits().key(propertyName);
-						if (key != null) {
+						if (node.getTraits().hasKey(propertyName)) {
+
+							final PropertyKey key = node.getTraits().key(propertyName);
 
 							// needs type cast to Property to use fixDatabaseProperty method
 							if (key instanceof Property) {

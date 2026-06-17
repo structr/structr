@@ -24,13 +24,11 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Node;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.property.PropertyKey;
 import org.structr.docs.*;
 import org.structr.docs.ontology.ConceptType;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 /**
  * Change the property key from the old to the new value on all nodes matching the type.
@@ -38,7 +36,7 @@ import java.util.Map.Entry;
  * Example: "email":"foo@bar.com" => "eMail":"foo@bar.com"
  *
  * If no type property is found, change the property key on all nodes.
- * If a property with the new key is already present, the command will abort.
+ * If a property with the new key is already present on a node, that node is skipped.
  *
  *
  */
@@ -49,47 +47,32 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 	@Override
 	public void execute(final Map<String, Object> properties) throws FrameworkException {
 
-		final String oldKey	= (String) properties.get("oldKey");
-		final String newKey	= (String) properties.get("newKey");
-		String type             = null;
+		executeWithCount(properties);
+	}
+
+	public long executeWithCount(final Map<String, Object> properties) throws FrameworkException {
+
+		final String oldKey = (String) properties.get("oldKey");
+		final String newKey = (String) properties.get("newKey");
+		final String type   = (String) properties.get("type");
 
 		if (StringUtils.isNotBlank(oldKey) && StringUtils.isNotBlank(newKey)) {
-
-			if (properties.containsKey("type")) {
-
-				type = (String) properties.get("type");
-
-				properties.remove("type");
-			}
 
 			final long count = bulkGraphOperation(securityContext, getNodeQuery(type, true), 1000, "ChangeNodePropertyKey", new BulkGraphOperation<NodeInterface>() {
 
 				@Override
 				public boolean handleGraphObject(SecurityContext securityContext, NodeInterface node) {
 
-					for (Entry entry : properties.entrySet()) {
+					final Node dbNode = node.getNode();
 
-						String key = (String) entry.getKey();
+					if (dbNode.hasProperty(newKey)) {
 
-						PropertyKey propertyKey = node.getTraits().key(key);
-						if (propertyKey != null) {
+						logger.warn("Skipping node {}: a property with the new key {} already exists", node.getUuid(), newKey);
 
-							Node dbNode = node.getNode();
+					} else if (dbNode.hasProperty(oldKey)) {
 
-							if (dbNode.hasProperty(newKey)) {
-
-								logger.error("Node {} has already a property with key {}", node, newKey);
-								throw new IllegalStateException("Node has already a property of the new key");
-
-							}
-
-							if (dbNode.hasProperty(oldKey)) {
-
-								dbNode.setProperty(newKey, dbNode.getProperty(oldKey));
-								dbNode.removeProperty(oldKey);
-
-							}
-						}
+						dbNode.setProperty(newKey, dbNode.getProperty(oldKey));
+						dbNode.removeProperty(oldKey);
 					}
 
 					return true;
@@ -108,14 +91,18 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 
 
 			logger.info("Fixed {} nodes ...", count);
+			logger.info("Done");
+
+			return count;
 
 		} else {
 
 			logger.info("No values for oldKey and/or newKey found, aborting.");
-
 		}
 
 		logger.info("Done");
+
+		return 0;
 	}
 
 	@Override
@@ -155,7 +142,8 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 	public List<Parameter> getParameters() {
 		return List.of(
 			Parameter.mandatory("oldKey", "Source property key"),
-			Parameter.mandatory("newKey", "Target property key")
+			Parameter.mandatory("newKey", "Target property key"),
+			Parameter.optional("type", "Node type to migrate. If omitted, all nodes are migrated.")
 		);
 	}
 

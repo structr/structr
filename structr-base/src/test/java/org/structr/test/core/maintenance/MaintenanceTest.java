@@ -25,6 +25,7 @@ import org.structr.api.Transaction;
 import org.structr.api.graph.Node;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.*;
 import org.structr.core.traits.StructrTraits;
@@ -37,6 +38,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.testng.AssertJUnit.*;
 
@@ -486,6 +488,90 @@ public class MaintenanceTest extends StructrTest {
 	}
 
 	@Test
+	public void testBulkChangeNodePropertyKeyCommand() {
+
+		final String type = "ChangeKeyTest";
+
+		// setup: create a type with only the new property key in the schema,
+		// simulating a schema property rename where the data is still stored
+		// under the old key (which is no longer part of the schema)
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			schema.addType(type).addStringProperty("newName");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// create nodes with values stored under the legacy key
+		try (final Tx tx = app.tx()) {
+
+			for (int i = 0; i < 100; i++) {
+
+				final NodeInterface node = app.create(type);
+
+				node.getNode().setProperty("oldName", "value" + i);
+			}
+
+			// one node with an existing value under the new key must be skipped
+			final NodeInterface conflictNode = app.create(type);
+
+			conflictNode.getNode().setProperty("oldName", "discarded");
+			conflictNode.getNode().setProperty("newName", "existing");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try {
+
+			// test: move values from the legacy key to the new key
+			final long count = app.command(BulkChangeNodePropertyKeyCommand.class).executeWithCount(toMap("type", type, "oldKey", "oldName", "newKey", "newName"));
+
+			assertEquals(101L, count);
+
+			try (final Tx tx = app.tx()) {
+
+				assertEquals(101, app.nodeQuery(type).getAsList().size());
+
+				for (final NodeInterface node : app.nodeQuery(type).getResultStream()) {
+
+					final String value = node.getProperty(Traits.of(type).key("newName"));
+
+					if ("existing".equals(value)) {
+
+						// the conflicting node must not be touched at all
+						assertEquals("discarded", node.getNode().getProperty("oldName"));
+
+					} else {
+
+						assertNotNull("Property value was not migrated to the new key", value);
+						assertTrue("Unexpected property value " + value, value.startsWith("value"));
+						assertFalse("Old property key was not removed", node.getNode().hasProperty("oldName"));
+					}
+				}
+
+				tx.success();
+			}
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
 	public void testClearDatabaseCommand() {
 
 		// setup 1: create test types
@@ -553,5 +639,61 @@ public class MaintenanceTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
+	}
+
+	@Test
+	public void testBulkGraphOperationVisitsAllObjectsDespiteFailures() {
+
+		final Set<String> expected = new HashSet<>();
+		final Set<String> visited  = new HashSet<>();
+
+		try {
+
+			// create more than one page worth of nodes (commitCount below is 25)
+			createTestNodes("TestOne", 250);
+
+			try (final Tx tx = app.tx()) {
+
+				for (final NodeInterface node : app.nodeQuery("TestOne").getResultStream()) {
+					expected.add(node.getUuid());
+				}
+
+				tx.success();
+			}
+
+			final NodeServiceCommand command = new NodeServiceCommand() {};
+			final AtomicLong failureCount    = new AtomicLong();
+
+			final long successCount = command.bulkGraphOperation(securityContext, app.nodeQuery("TestOne"), 25, "Visiting test nodes", new BulkGraphOperation<NodeInterface>() {
+
+				@Override
+				public boolean handleGraphObject(final SecurityContext securityContext, final NodeInterface node) throws FrameworkException {
+
+					visited.add(node.getUuid());
+
+					// let every third object fail
+					if (visited.size() % 3 == 0) {
+
+						failureCount.incrementAndGet();
+						throw new FrameworkException(422, "Simulated failure");
+					}
+
+					return true;
+				}
+
+				@Override
+				public void handleThrowable(final SecurityContext securityContext, final Throwable t, final NodeInterface currentObject) {
+					// failures are expected in this test, don't log them
+				}
+			});
+
+			assertEquals("Bulk graph operation must visit every object in the result set even when some objects fail", expected, visited);
+			assertEquals("Bulk graph operation must return the number of successfully processed objects", expected.size() - failureCount.get(), successCount);
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
 	}
 }
