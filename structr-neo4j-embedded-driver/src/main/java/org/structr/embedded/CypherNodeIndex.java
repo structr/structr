@@ -149,7 +149,7 @@ class CypherNodeIndex extends AbstractCypherIndex<Node<String>> {
 
 	@Override
 	public Iterable<Node<String>> getResult(final CypherQuery query) {
-		return db.getCurrentTransaction().getCachedResult(query);
+		return Iterables.map(new PrefetchNodeMapper(db), new LazyRecordIterable(db, query));
 	}
 }
 
