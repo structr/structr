@@ -5315,6 +5315,9 @@ ul.combined-input-select-field li:not(.nohover):hover {
 .direction-ltr {
 	direction: ltr;
 }
+.list-none {
+	list-style-type: none;
+}
 
 .\@container {
 	container-type: inline-size;
@@ -5397,6 +5400,11 @@ ul.combined-input-select-field li:not(.nohover):hover {
     &:is(:where(.group):is(.show-spinner) *) {
         display: block;
     }
+}
+.group-\[\.show-spinner\]\:hidden {
+	&:is(:where(.group):is(.show-spinner) *) {
+		display: none;
+	}
 }
 /* END special tailwind-style classes */
 

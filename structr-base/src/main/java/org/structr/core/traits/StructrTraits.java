@@ -103,6 +103,7 @@ public class StructrTraits {
 	public static final String STORAGE_CONFIGURATION_ENTRY         = "StorageConfigurationEntry";
 	public static final String SCRIPT_DATA_SOURCE                  = "ScriptDataSource";
 	public static final String QUERY_DATA_SOURCE                   = "QueryDataSource";
+	public static final String SCRATCHPAD                          = "Scratchpad";
 
 	public static final String FLOW_ACTION                  = "FlowAction";
 	public static final String FLOW_AGGREGATE               = "FlowAggregate";

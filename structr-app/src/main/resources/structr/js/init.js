@@ -3564,22 +3564,6 @@ let UISettings = {
 				}
 			}
 		},
-		code: {
-			title: 'Code',
-			settings: {
-				showRecentsInCodeArea: {
-					text: 'Show recently visited elements',
-					storageKey: 'showRecentElementsInCode' + location.port,
-					defaultValue: true,
-					type: 'checkbox',
-					onUpdate: () => {
-						if (Structr.isModuleActive(_Code)) {
-							_Code.recentElements.updateVisibility();
-						}
-					}
-				}
-			}
-		},
 		crud: {
 			title: 'Data',
 			settings: {

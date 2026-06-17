@@ -54,7 +54,7 @@ public class ServerLogCommand extends AbstractCommand {
 
 		try {
 
-			GraphObjectMap result = new GraphObjectMap();
+			final GraphObjectMap result = new GraphObjectMap();
 			result.setProperty(new StringProperty("result"), log);
 
 			webSocketData.setResult(List.of(result));

@@ -920,6 +920,11 @@ let Command = {
 		}
 		return StructrWS.sendObj(obj, callback);
 	},
+	createPromise: (nodeData) => {
+		return new Promise(resolve => {
+			Command.create(nodeData, resolve);
+		})
+	},
 	/**
 	 * Send a CREATE_RELATIONSHIP command to the server.
 	 *
@@ -1394,5 +1399,17 @@ let Command = {
 
 			StructrWS.sendObj(obj, resolve);
 		});
-    }
+    },
+	scratchpad: (config) => {
+
+		return new Promise((resolve, reject) => {
+
+			let obj  = {
+				command: 'SCRATCHPAD',
+				data: config
+			};
+
+			StructrWS.sendObj(obj, resolve);
+		});
+	}
 };

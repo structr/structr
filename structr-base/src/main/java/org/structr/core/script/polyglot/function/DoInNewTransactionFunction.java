@@ -23,6 +23,7 @@ import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.structr.autocomplete.BuiltinFunctionHint;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -39,6 +40,7 @@ import org.structr.schema.action.Function;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class DoInNewTransactionFunction extends BuiltinFunctionHint implements ProxyExecutable {
 
@@ -84,7 +86,11 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 					shouldRestoreLock = true;
 				}
 
+				final Map<String, String> contextMap = MDC.getCopyOfContextMap();
+
 				final Thread workerThread = new Thread(() -> {
+
+					MDC.setContextMap(contextMap);
 
 					// Execute main batch function
 					Object result = null;
