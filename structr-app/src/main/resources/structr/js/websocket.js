@@ -653,6 +653,10 @@ let StructrWS = {
 
 			_Files.handleUnarchiveMessage(data.data);
 
+		} else if (command.startsWith('SCRATCHPAD')) {
+
+			StructrModel.callCallback(data.callback, result);
+
 		} else if (StructrWS.ignoreEmptyCallbacksForCommands.includes(command)) {
 
 			// silently ignore callback data for this command. do not output "unknown command" message

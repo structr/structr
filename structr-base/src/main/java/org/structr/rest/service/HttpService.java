@@ -61,6 +61,7 @@ import org.structr.rest.common.MetricsFilter;
 import org.structr.rest.common.Stats;
 import org.structr.rest.common.StatsCallback;
 import org.structr.rest.servlet.DocumentationServlet;
+import org.structr.rest.servlet.UIExtensionsServlet;
 import org.structr.rest.servlet.MetricsServlet;
 import org.structr.schema.SchemaService;
 import org.structr.websocket.servlet.WebSocketConfigurator;
@@ -487,6 +488,9 @@ public class HttpService implements RunnableService, StatsCallback {
 		// docs
 		servletContext.addServlet(DocumentationServlet.class, "/structr/docs/ontology/*");
 		servletContext.addServlet(DocumentationServlet.class, "/structr/docs/ontology");
+
+		// UI extension scripts contributed by modules
+		servletContext.addServlet(UIExtensionsServlet.class, "/structr/js/module-extensions.js");
 
 		// Always add servletContext last because it's terminal in the resource chain
 		contexts.addHandler(servletContext);

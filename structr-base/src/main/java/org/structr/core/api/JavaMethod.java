@@ -27,14 +27,21 @@ public abstract class JavaMethod extends AbstractMethod {
 	private final Parameters parameters;
 	private final boolean isPrivate;
 	private final boolean isStatic;
+	private final boolean returnRawResult;
 
 	public JavaMethod(final String name, final boolean isPrivate, final boolean isStatic) {
 
+		this(name, isPrivate, isStatic, false);
+	}
+
+	public JavaMethod(final String name, final boolean isPrivate, final boolean isStatic, final boolean shouldReturnRawResult) {
+
 		super(name, null, null);
 
-		this.parameters = new Parameters();
-		this.isPrivate  = isPrivate;
-		this.isStatic   = isStatic;
+		this.parameters      = new Parameters();
+		this.isPrivate       = isPrivate;
+		this.isStatic        = isStatic;
+		this.returnRawResult = shouldReturnRawResult;
 	}
 
 	@Override
@@ -75,5 +82,10 @@ public abstract class JavaMethod extends AbstractMethod {
 	@Override
 	public String getDeclaringTrait() {
 		return null;
+	}
+
+	@Override
+	public boolean shouldReturnRawResult() {
+		return returnRawResult;
 	}
 }

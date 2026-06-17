@@ -23,6 +23,7 @@ import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -77,6 +78,17 @@ public interface StructrModule {
 	 */
 	default <T> T getModuleSpecificFeature(final String name, final Class<T> type, final Object... arguments) throws FrameworkException {
 		return null;
+	}
+
+	/**
+	 * Returns a list of classpath-relative paths to JavaScript files that
+	 * should be loaded by the Structr UI when this module is active. The paths are
+	 * relative to the static resources root (e.g. "js/ai-module-ui.js" maps to
+	 * /structr/js/ai-module-ui.js). Files must be present on the classpath under
+	 * structr/&lt;path&gt; so the existing static ResourceHandler can serve them.
+	 */
+	default List<String> getUIExtensionScripts() {
+		return List.of();
 	}
 
 	// ---- Deployment-specific methods

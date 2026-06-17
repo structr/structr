@@ -600,19 +600,23 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 										eventsString = StringUtils.join(mapping.keySet(), ",");
 									}
 
-									final Set<String> dynamicProperties = Set.of(
+									final Set<String> dynamicProperties = new HashSet<>(Set.of(
 										ActionMappingTraitDefinition.EVENT_PROPERTY,
 										ActionMappingTraitDefinition.ACTION_PROPERTY,
 										ActionMappingTraitDefinition.METHOD_PROPERTY,
 										ActionMappingTraitDefinition.FLOW_PROPERTY,
 										ActionMappingTraitDefinition.DATA_TYPE_PROPERTY,
-										ActionMappingTraitDefinition.ID_EXPRESSION_PROPERTY,
+										ActionMappingTraitDefinition.ID_EXPRESSION_PROPERTY
+									));
+
+									// only exists if process engine is available
+									if (eamTraits.hasKey(ActionMappingTraitDefinition.CONTROLS_PROCESS_ID_EXPRESSION_PROPERTY)) {
 										// Dynamic process-definition UUID for the control-process / start
 										// operation. Evaluated server-side here (variable replacement
 										// against the render context) and emitted as data-structr-controls-
 										// process-id-expression so the click handler forwards it.
-										ActionMappingTraitDefinition.CONTROLS_PROCESS_ID_EXPRESSION_PROPERTY
-									);
+										dynamicProperties.add(ActionMappingTraitDefinition.CONTROLS_PROCESS_ID_EXPRESSION_PROPERTY);
+									}
 
 									// append all stored action mapping keys as data-structr-<key> attributes.
 									// For method / flow / dataType, prefer the resolved name from the graph

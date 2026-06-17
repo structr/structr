@@ -57,7 +57,7 @@ public class EMailMessageTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> attachedFilesProperty = new EndNodes(traitsInstance, ATTACHED_FILES_PROPERTY, StructrTraits.EMAIL_MESSAGE_HAS_ATTACHMENT_FILE).description("").description("Files that were attached to this message.");
+		final Property<Iterable<NodeInterface>> attachedFilesProperty = new EndNodes(traitsInstance, ATTACHED_FILES_PROPERTY, StructrTraits.EMAIL_MESSAGE_HAS_ATTACHMENT_FILE).description("Files that were attached to this message.");
 		final Property<NodeInterface> mailboxProperty                 = new StartNode(traitsInstance, MAILBOX_PROPERTY, StructrTraits.MAILBOX_CONTAINS_EMAIL_MESSAGES_EMAIL_MESSAGE).description("").description("Mailbox this message belongs to.");
 
 		final Property<String> subjectProperty                        = new StringProperty(SUBJECT_PROPERTY).indexed().description("Subject of this message.");

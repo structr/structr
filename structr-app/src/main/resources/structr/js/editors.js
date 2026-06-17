@@ -690,7 +690,8 @@ let _Editors = {
 			value: editorText,
 			language: language,
 			readOnly: customConfig.readOnly,
-			fixedOverflowWidgets: true
+			fixedOverflowWidgets: true,
+			scrollBeyondLastLine: customConfig.scrollBeyondLastLine
 		});
 
 		// dispose previously existing editors

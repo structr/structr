@@ -23,8 +23,8 @@ import java.util.Map;
 
 public class LazyRecordIterable implements Iterable<Map<String, Object>> {
 
-	private CypherQuery             query = null;
-	private EmbeddedDatabaseService db    = null;
+	private final CypherQuery             query;
+	private final EmbeddedDatabaseService db;
 
 	public LazyRecordIterable(final EmbeddedDatabaseService db, final CypherQuery query) {
 		this.query = query;

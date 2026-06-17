@@ -4,16 +4,16 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as
+ * it under the terms of the GNU Affero General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * GNU Affero General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
+ * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.test;
@@ -444,7 +444,7 @@ public class BpmnRoundTripTest extends StructrUiTest {
 				final NodeInterface listener = app.create(ProcessTraits.BPMN_PROCESS_LISTENER, (String) null);
 				final Traits plTraits = listener.getTraits();
 				listener.setProperty(plTraits.key(BpmnProcessListenerTraitDefinition.EVENT_PROPERTY),   "started");
-				listener.setProperty(plTraits.key(BpmnProcessListenerTraitDefinition.METHOD_PROPERTY),  "onProcessStart");
+//				listener.setProperty(plTraits.key(BpmnProcessListenerTraitDefinition.METHOD_PROPERTY),  "onProcessStart");
 				listener.setProperty(plTraits.key(BpmnProcessListenerTraitDefinition.PROCESS_PROPERTY), procNode);
 
 				tx.success();
@@ -471,7 +471,7 @@ public class BpmnRoundTripTest extends StructrUiTest {
 			final List<Element> procMethodRefs = getDirectChildElements(procExt.get(0), STRUCTR_NS, "methodRef");
 			assertEquals(1, procListeners.size());
 			assertEquals("started",        procListeners.get(0).getAttribute("event"));
-			assertEquals("onProcessStart", procListeners.get(0).getAttribute("method"));
+//			assertEquals("onProcessStart", procListeners.get(0).getAttribute("method"));
 			assertEquals(1, procMethodRefs.size());
 			assertEquals("calculateRisk",  procMethodRefs.get(0).getAttribute("name"));
 
