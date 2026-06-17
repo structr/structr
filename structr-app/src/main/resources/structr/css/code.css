@@ -17,8 +17,6 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 #code-contents-container {
-	/*margin-left: 2px;*/
-	/*margin-right: 9px;*/
 }
 
 #code-context-container {
@@ -31,7 +29,6 @@
 
 #code-contents h2 {
 	margin: 0 0 1rem 0;
-	/*border-bottom: 1px solid var(--gray-ccc);*/
 }
 
 #code-contents h4 {
@@ -206,6 +203,30 @@ h2.has-changes::after {
 
 li.highlight-name > a {
 	font-weight: bold;
+}
+
+/* BEGIN Scratchpad */
+[data-is-scratchpad]:not([open]) summary { flex-grow: 1; }
+[data-is-scratchpad] summary             { border-left: .5rem solid transparent; }
+[data-is-scratchpad]:hover summary       { border-left: .5rem solid var(--structr-light-green); }
+[data-is-scratchpad]:hover summary:hover { border-left: .5rem solid var(--structr-green ); }
+[data-is-scratchpad][open] summary       {padding-bottom: 1rem; }
+[data-is-scratchpad]:not([open]) summary input { display: none; }
+[data-is-scratchpad]::details-content { flex: 1; }
+
+[data-is-scratchpad][open] summary [data-is-title],
+[data-is-scratchpad][open] summary svg {
+	display: none;
+}
+
+
+[data-is-scratchpad] textarea[data-is-log] {
+	resize: none;
+	font-family: var(--font-monospace) ! important;
+	font-size: .9rem;
+	line-height: 1rem;
+	border: none;
+	padding: 0;
 }
 
 /**

@@ -70,15 +70,15 @@ public class Neo4IndexUpdater extends IndexUpdater {
 
 		if (newIndexConfig.isFulltextIndex()) {
 
-			return "CREATE FULLTEXT INDEX " + identifier + " FOR " + indexDescription + " ON EACH [n.`" + propertyKey + "`]";
+			return "CREATE FULLTEXT INDEX `" + identifier + "` FOR " + indexDescription + " ON EACH [n.`" + propertyKey + "`]";
 
 		} else if (newIndexConfig.isTextIndex()) {
 
-			return "CREATE TEXT INDEX " + identifier + " FOR " + indexDescription + " ON (n.`" + propertyKey + "`)";
+			return "CREATE TEXT INDEX `" + identifier + "` FOR " + indexDescription + " ON (n.`" + propertyKey + "`)";
 
 		} else {
 
-			return "CREATE INDEX " + identifier + " FOR " + indexDescription + " ON (n.`" + propertyKey + "`)";
+			return "CREATE INDEX `" + identifier + "` FOR " + indexDescription + " ON (n.`" + propertyKey + "`)";
 		}
 	}
 
@@ -87,6 +87,6 @@ public class Neo4IndexUpdater extends IndexUpdater {
 
 		final String identifier = getIndexIdentifier(existingIndexInfo);
 
-		return "DROP INDEX " + identifier + " IF EXISTS";
+		return "DROP INDEX `" + identifier + "` IF EXISTS";
 	}
 }

@@ -18,6 +18,7 @@
  */
 package org.structr.core.traits.wrappers;
 
+import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractSchemaNode;
@@ -35,8 +36,16 @@ import org.structr.core.traits.operations.nodeinterface.OnNodeCreation;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class SchemaMethodTraitWrapper extends AbstractNodeTraitWrapper implements SchemaMethod {
+
+	private static final Set<String> DeprecatedLifecycleMethods = Set.of(
+		"onCreation",
+		"afterCreation",
+		"onModification",
+		"afterModification"
+	);
 
 	public SchemaMethodTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
@@ -221,17 +230,19 @@ public class SchemaMethodTraitWrapper extends AbstractNodeTraitWrapper implement
 				return null;
 			}
 
-			final Map<String, Class<? extends LifecycleMethod>> typeBasedLifecycleMethods = new LinkedHashMap<>();
+			if (DeprecatedLifecycleMethods.contains(methodName)) {
+
+				LoggerFactory.getLogger(getClass()).warn("Deprecation warning: method {} will NOT be treated as a lifecycle method.", methodName);
+				return null;
+			}
+
+			final Map<String, Class<? extends LifecycleMethod>> typeBasedLifecycleMethods  = new LinkedHashMap<>();
 
 			typeBasedLifecycleMethods.put("onNodeCreation",    OnNodeCreation.class);
 			typeBasedLifecycleMethods.put("onCreate",          OnCreation.class);
-			typeBasedLifecycleMethods.put("onCreation",        OnCreation.class);  // FIXME: deprecate this
 			typeBasedLifecycleMethods.put("afterCreate",       AfterCreation.class);
-			typeBasedLifecycleMethods.put("afterCreation",     AfterCreation.class);  // FIXME: deprecate this
 			typeBasedLifecycleMethods.put("onSave",            OnModification.class);
-			typeBasedLifecycleMethods.put("onModification",    OnModification.class);  // FIXME: deprecate this
 			typeBasedLifecycleMethods.put("afterSave",         AfterModification.class);
-			typeBasedLifecycleMethods.put("afterModification", AfterModification.class);  // FIXME: deprecate this
 			typeBasedLifecycleMethods.put("onDelete",          OnDeletion.class);
 			typeBasedLifecycleMethods.put("afterDelete",       AfterDeletion.class);
 

@@ -324,12 +324,14 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 			} catch (Throwable t) {
 
 				if (t instanceof NullPointerException) {
-					t.printStackTrace();
+//					t.printStackTrace();
+					logger.warn("", t);
 				}
 
 				if (!(t instanceof SyntaxErrorException) && !(t instanceof AlreadyLoggedAssertException)) {
 
-					t.printStackTrace();
+//					t.printStackTrace();
+					logger.warn("", t);
 				}
 
 				// send 400 Bad Request
