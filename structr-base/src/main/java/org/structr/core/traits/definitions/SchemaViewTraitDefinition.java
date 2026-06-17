@@ -19,6 +19,11 @@
 package org.structr.core.traits.definitions;
 
 import org.structr.common.PropertyView;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.error.SemanticErrorToken;
+import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaView;
 import org.structr.core.graph.NodeInterface;
@@ -26,7 +31,10 @@ import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.core.traits.TraitsInstance;
+import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.core.traits.wrappers.SchemaViewTraitWrapper;
 
 import java.util.Map;
@@ -49,6 +57,54 @@ public class SchemaViewTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public SchemaViewTraitDefinition() {
 		super(StructrTraits.SCHEMA_VIEW);
+	}
+
+	@Override
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
+
+		return Map.of(
+
+			IsValid.class,
+			new IsValid() {
+
+				@Override
+				public Boolean isValid(final GraphObject obj, final ErrorBuffer errorBuffer) {
+
+					boolean valid = true;
+
+					// check name uniqueness among the views of the same schema node
+					final SchemaView schemaView                    = obj.as(SchemaView.class);
+					final Traits traits                            = obj.getTraits();
+					final PropertyKey<NodeInterface> schemaNodeKey = traits.key(SCHEMA_NODE_PROPERTY);
+					final NodeInterface parent                     = schemaView.getProperty(schemaNodeKey);
+					final String thisViewName                      = schemaView.getName();
+
+					if (parent != null && thisViewName != null) {
+
+						try {
+
+							for (final NodeInterface otherSchemaViewNode : StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_VIEW).key(schemaNodeKey, parent).getResultStream()) {
+
+								final boolean isDifferentView = !(schemaView.getUuid().equals(otherSchemaViewNode.getUuid()));
+
+								if (isDifferentView && thisViewName.equals(otherSchemaViewNode.getName())) {
+
+									errorBuffer.add(new SemanticErrorToken(schemaView.getType(), "name", "already_exists").withValue(thisViewName).withDetail("A view with name '" + thisViewName + "' already exists on this type"));
+									valid = false;
+								}
+							}
+
+						} catch (FrameworkException fex) {
+
+							errorBuffer.add(new SemanticErrorToken(schemaView.getType(), "none", "exception_occurred").withValue(thisViewName).withDetail("Exception occurred while checking uniqueness of view name, please retry. Cause: " + fex.getMessage()));
+							valid = false;
+						}
+					}
+
+					return valid;
+				}
+			}
+		);
 	}
 
 	@Override

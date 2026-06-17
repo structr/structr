@@ -22,8 +22,11 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.SemanticErrorToken;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.ModificationQueue;
@@ -108,6 +111,35 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 						errorBuffer);
 
 					valid &= ValidationHelper.isNotReservedWordForPropertyNames(obj, nameProperty, "Property name", errorBuffer);
+
+					// check name uniqueness among the properties of the same schema node
+					final SchemaProperty schemaProperty = obj.as(SchemaProperty.class);
+					final AbstractSchemaNode parent     = schemaProperty.getSchemaNode();
+					final String thisPropertyName       = schemaProperty.getName();
+
+					if (parent != null && thisPropertyName != null) {
+
+						final PropertyKey<NodeInterface> schemaNodeKey = obj.getTraits().key(SCHEMA_NODE_PROPERTY);
+
+						try {
+
+							for (final NodeInterface otherSchemaPropertyNode : StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_PROPERTY).key(schemaNodeKey, parent).getResultStream()) {
+
+								final boolean isDifferentProperty = !(schemaProperty.getUuid().equals(otherSchemaPropertyNode.getUuid()));
+
+								if (isDifferentProperty && thisPropertyName.equals(otherSchemaPropertyNode.getName())) {
+
+									errorBuffer.add(new SemanticErrorToken(schemaProperty.getType(), "name", "already_exists").withValue(thisPropertyName).withDetail("A property with name '" + thisPropertyName + "' already exists on this type"));
+									valid = false;
+								}
+							}
+
+						} catch (FrameworkException fex) {
+
+							errorBuffer.add(new SemanticErrorToken(schemaProperty.getType(), "none", "exception_occurred").withValue(thisPropertyName).withDetail("Exception occurred while checking uniqueness of property name, please retry. Cause: " + fex.getMessage()));
+							valid = false;
+						}
+					}
 
 					return valid;
 				}
