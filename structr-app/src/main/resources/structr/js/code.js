@@ -55,36 +55,19 @@ let _Code = {
 	moveLeftResizer: (left) => {
 
 		_Helpers.requestAnimationFrameWrapper(_Code.prevAnimFrameReqId_moveLeftResizer, () => {
-			_Code.updatedResizers(left, null);
+			_Code.updatedResizers(left);
 		});
 	},
-	prevAnimFrameReqId_moveRightResizer: undefined,
-	moveRightResizer: (right) => {
-
-		_Helpers.requestAnimationFrameWrapper(_Code.prevAnimFrameReqId_moveRightResizer, () => {
-			_Code.updatedResizers(null, right);
-		});
-	},
-	updatedResizers: (left, right) => {
+	updatedResizers: (left) => {
 
 		left  = left || LSWrapper.getItem(_Code.codeResizerLeftKey) || _Code.leftTabMinWidth;
-		right = right || LSWrapper.getItem(_Code.codeResizerRightKey) || _Code.rightTabMinWidth;
-
-		if (_Code.recentElements.isVisible() === false) {
-			right = '3rem';
-		} else {
-			right = right + 'px';
-		}
 
 		let availableWidth = _Code.codeMain.innerWidth();
-		let outerPadding   = (window.innerWidth - availableWidth) / 2;
 
 		_Code.codeMain[0].querySelector('.column-resizer-left').style.left     = `${left}px`;
-		_Code.codeMain[0].querySelector('.column-resizer-right').style.left    = `calc(${window.innerWidth - outerPadding}px - ${right})`;
 
 		document.getElementById('code-tree').style.width              = `calc(${left}px - 1rem)`;
-		document.getElementById('code-context-container').style.width = `calc(${right} - 3rem)`;
-		document.getElementById('code-contents').style.width          = `calc(${availableWidth}px - ${left}px - ${right} - 4rem)`;
+		document.getElementById('code-contents').style.width          = `calc(${availableWidth}px - ${left}px - 5rem)`;
 
 		_Editors.resizeVisibleEditors();
 	},
@@ -114,7 +97,6 @@ let _Code = {
 
 			document.addEventListener('keydown', _Code.helpers.handleKeyDownEvent, { capture: true });
 
-			_Code.recentElements.init();
 			_Code.pathLocations.init();
 			_Code.search.init();
 			_Code.init();
@@ -124,7 +106,6 @@ let _Code = {
 			_Code.codeContents = $('#code-contents');
 
 			Structr.initVerticalSlider($('.column-resizer-left', _Code.codeMain), _Code.codeResizerLeftKey, _Code.leftTabMinWidth, _Code.moveLeftResizer);
-			Structr.initVerticalSlider($('.column-resizer-right', _Code.codeMain), _Code.codeResizerRightKey, _Code.rightTabMinWidth, _Code.moveRightResizer, true);
 
 			$.jstree.defaults.core.themes.dots      = false;
 			$.jstree.defaults.dnd.inside_pos        = 'last';
@@ -136,9 +117,7 @@ let _Code = {
 				_Code.codeMain[0].classList.add(_Code.classIndicatorEverythingReady);
 			});
 
-			_Code.recentElements.loadRecentlyUsedElements(() => {
-				_TreeHelper.initTree(_Code.codeTree, _Code.tree.treeInitFunction, 'structr-ui-code');
-			});
+			_TreeHelper.initTree(_Code.codeTree, _Code.tree.treeInitFunction, 'structr-ui-code');
 
 			_Schema.relationships.checkAndWarnAboutNonUniqueRelationshipNames();
 
@@ -1068,8 +1047,6 @@ let _Code = {
 
 			_Code.mainArea.updateLocationStack(data, updateLocationStack);
 
-			_Code.recentElements.addRecentlyUsedElement(data.content, "User-defined functions", data.svgIcon, data.path, false);
-
 			_Code.codeContents.append(_Code.templates.globals());
 
 			_Schema.methods.fetchUserDefinedMethods((methods) => {
@@ -1155,8 +1132,6 @@ let _Code = {
 			}).then(json => {
 
 				let entity = json.result;
-
-				_Code.recentElements.updateRecentlyUsed(entity, data.path, data.updateLocationStack);
 
 				_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
 
@@ -1469,8 +1444,6 @@ let _Code = {
 
 				let entity = json.result;
 
-				_Code.recentElements.updateRecentlyUsed(entity, data.path, data.updateLocationStack);
-
 				_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
 				_Code.codeContents.append(_Code.templates.type({ data, type: entity }));
 
@@ -1614,8 +1587,6 @@ let _Code = {
 		displayPropertyDetails: (data) => {
 
 			Command.get(data.id, null, (result) => {
-
-				_Code.recentElements.updateRecentlyUsed(result, data.path, data.updateLocationStack);
 
 				if (result.propertyType) {
 
@@ -1835,8 +1806,6 @@ let _Code = {
 
 			Command.get(data.id, null, (result) => {
 
-				_Code.recentElements.updateRecentlyUsed(result, data.path, data.updateLocationStack);
-
 				_Code.codeContents.append(_Code.templates.defaultView({ view: result }));
 				_Code.mainArea.displayDefaultViewOptions(result, undefined, data);
 			});
@@ -1969,8 +1938,6 @@ let _Code = {
 				let isStaticMethod      = result.isStatic;
 
 				let lastOpenTab = LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${data.id}`, 'source');
-
-				_Code.recentElements.updateRecentlyUsed(result, data.path, data.updateLocationStack);
 
 				_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
 				_Code.codeContents.append(_Code.templates.method({ method: result }));
@@ -3484,146 +3451,6 @@ let _Code = {
 			}
 		}
 	},
-	recentElements: {
-		codeRecentElementsKey: 'structrCodeRecentElements_' + location.port,
-		init: () => {
-			_Code.recentElements.updateVisibility();
-		},
-		isVisible: () => UISettings.getValueForSetting(UISettings.settingGroups.code.settings.showRecentsInCodeArea),
-		loadRecentlyUsedElements: (doneCallback) => {
-
-			let recentElements = LSWrapper.getItem(_Code.recentElements.codeRecentElementsKey) || [];
-
-			for (let element of recentElements) {
-
-				let nameIsUndefined = !element.name;
-				let notSvgIcon      = !element.iconSvg;
-
-				if (!nameIsUndefined && !notSvgIcon) {
-					_Code.recentElements.addRecentlyUsedElement(element.id, element.name, element.iconSvg, element.path, true);
-				}
-			}
-
-			doneCallback();
-		},
-		addRecentlyUsedEntity: (entity, path, fromStorage) => {
-
-			let name      = _Code.recentElements.getDisplayNameInRecentsForType(entity);
-			let iconSvg   = _Icons.getIconForSchemaNodeType(entity);
-			let localPath = path;
-
-			// don't add search results to recently used elements (we cannot construct the path)
-			if (localPath.indexOf('root/searchresults/') !== 0) {
-				_Code.recentElements.addRecentlyUsedElement(entity.id, name, iconSvg, localPath, fromStorage);
-			}
-		},
-		addRecentlyUsedElement: (id, name, iconSvg, path, fromStorage) => {
-
-			if (!fromStorage) {
-
-				let recentElements = LSWrapper.getItem(_Code.recentElements.codeRecentElementsKey) || [];
-				let updatedList    = recentElements.filter((recentElement) => (recentElement.id !== id));
-				updatedList.push({ id: id, name: name, iconSvg: iconSvg, path: path });
-
-				// keep list at length 20
-				while (updatedList.length > 20) {
-
-					let toRemove = updatedList.pop();
-					_Helpers.fastRemoveElement(document.querySelector('#recently-used-' + toRemove.id));
-				}
-
-				// sort by name (keep order!)
-				updatedList.sort((a, b) => a.name > b.name ? 1 : a.name < b.name ? -1 : 0);
-
-				LSWrapper.setItem(_Code.recentElements.codeRecentElementsKey, updatedList);
-
-				// element with id from parameter was clicked => highlight
-				for (let e of document.querySelectorAll('.code-favorite')) {
-					e.classList.remove('active');
-				}
-				document.querySelector('#recently-used-' + id)?.classList.add('active');
-			}
-
-			let recentlyUsedButton = _Helpers.createSingleDOMElementFromHTML(_Code.templates.recentlyUsedButton({ id: id, name: name, iconSvg: iconSvg }));
-
-			let codeContext  = document.querySelector('#code-context');
-			if (fromStorage) {
-
-				codeContext.append(recentlyUsedButton);
-
-			} else if (!document.querySelector('#recently-used-' + id)) {
-
-				// new element => reload all so we have a sorted list
-				for (let e of document.querySelectorAll('.code-favorite')) {
-					_Helpers.fastRemoveElement(e);
-				}
-				_Code.recentElements.loadRecentlyUsedElements(()=>{});
-			}
-
-			recentlyUsedButton.addEventListener('click', () => {
-				_Code.tree.findAndOpenNode(path, true);
-			});
-
-			recentlyUsedButton.querySelector('.remove-recently-used').addEventListener('click', (e) => {
-				e.stopPropagation();
-				_Code.recentElements.deleteRecentlyUsedElement(id);
-			});
-		},
-		deleteRecentlyUsedElement: (recentlyUsedElementId) => {
-
-			let recentElements         = LSWrapper.getItem(_Code.recentElements.codeRecentElementsKey) || [];
-			let filteredRecentElements = recentElements.filter((recentElement) => (recentElement.id !== recentlyUsedElementId));
-
-			_Helpers.fastRemoveElement(document.querySelector('#recently-used-' + recentlyUsedElementId));
-
-			LSWrapper.setItem(_Code.recentElements.codeRecentElementsKey, filteredRecentElements);
-		},
-		updateRecentlyUsed: (entity, path, updateLocationStack) => {
-
-			_Code.recentElements.addRecentlyUsedEntity(entity, path);
-
-			if (updateLocationStack) {
-				_Code.pathLocations.updatePathLocationStack(path);
-				_Code.lastClickedPath = path;
-			}
-		},
-		getDisplayNameInRecentsForType: (entity) => {
-
-			let displayName = entity.name;
-
-			switch (entity.type) {
-				case 'SchemaNode':
-					displayName = `Type ${entity.name}`;
-					break;
-
-				case 'SchemaMethod':
-					if (entity.schemaNode && entity.schemaNode.name) {
-						displayName = `${entity.schemaNode.name}.${entity.name}()`;
-					} else {
-						displayName = `${entity.name}()`;
-					}
-					break;
-
-				case 'SchemaProperty':
-					if (entity.schemaNode && entity.schemaNode.name) {
-						displayName = `${entity.schemaNode.name}.${entity.name}`;
-					}
-					break;
-			}
-
-			return displayName;
-		},
-		updateVisibility: () => {
-
-			let codeContext  = document.querySelector('#code-context');
-			let isHidden     = !_Code.recentElements.isVisible();
-
-			codeContext.classList.toggle('hidden', isHidden);
-			document.querySelector('.column-resizer-right')?.classList.toggle('hidden', isHidden);
-
-			Structr.resize();
-		}
-	},
 	pathLocations: {
 		stack: [],
 		currentIndex: 0,
@@ -3850,7 +3677,6 @@ let _Code = {
 
 				<div class="column-resizer-blocker"></div>
 				<div class="column-resizer column-resizer-left"></div>
-				<div class="column-resizer column-resizer-right"></div>
 
 				<div class="tree-container" id="code-tree-container">
 					<div class="tree" id="code-tree">
@@ -3860,10 +3686,6 @@ let _Code = {
 
 				<div class="tree-contents-container" id="code-contents-container">
 					<div class="flex flex-col tree-contents" id="code-contents"></div>
-				</div>
-
-				<div class="tree-context-container" id="code-context-container">
-					<div class="tree-context" id="code-context"></div>
 				</div>
 			</div>
 		`,
@@ -4249,14 +4071,6 @@ let _Code = {
 
 					</div>
 				</div>
-			</div>
-		`,
-		recentlyUsedButton: config => `
-			<div class="code-favorite items-center px-2 py-1" id="recently-used-${config.id}">
-				${config.iconSvg ? config.iconSvg : ''}
-				${config.iconClass ? `<i class="${config.iconClass} flex-none"></i>` : ''}
-				<div class="truncate flex-grow">${config.name}</div>
-				${_Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, _Icons.getSvgIconClassesForColoredIcon(['flex-none', 'icon-grey', 'remove-recently-used']))}
 			</div>
 		`,
 		root: config => `
