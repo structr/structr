@@ -493,9 +493,9 @@ public class RepeaterTest extends StructrUiTest {
 	}
 
 	@Test
-	public void testFunctionRepeaterIsNotExecutedIfShowConditionIsFalse() {
+	public void testFunctionRepeaterIsExecutedBeforeShowHideConditionsAreEvaluated() {
 
-		final String expectedOutput = "This text should be rendered! The previous repeater (with an assert) should NOT be run because it has showCondition=false!";
+		final String expectedOutput = "function-query-status == \"was-run\"  --> all is good. A function query needs to run BEFORE evaluating show conditions because those can and often will depend on the result of that query!";
 
 		final boolean indent = Settings.HtmlIndentation.getValue();
 		Settings.HtmlIndentation.setValue(false);
@@ -511,10 +511,16 @@ public class RepeaterTest extends StructrUiTest {
 			div.appendChild(innerDiv);
 
 			innerDiv.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.SHOW_CONDITIONS_PROPERTY), "false");
-			innerDiv.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), "assert(false, 422, 'This code should never run!')");
+			innerDiv.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), "store('function-query-status', 'was-run')");
 			innerDiv.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY),       "test");
 
-			div.appendChild(page1.createTextNode(expectedOutput));
+			div.appendChild(page1.createTextNode("""
+				${if (
+					eq('was-run', retrieve('function-query-status')),
+					'%s'
+					assert(false, 422, 'This code should never run!')
+				)}""".formatted(expectedOutput)
+			));
 
 			createAdminUser();
 
