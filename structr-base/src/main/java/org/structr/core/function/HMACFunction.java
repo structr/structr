@@ -121,7 +121,7 @@ public class HMACFunction extends CoreFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${hmac(to_json(me)), 'aVeryGoodSecret')}"),
+				Example.structrScript("${hmac(toJson(me)), 'aVeryGoodSecret')}"),
 				Example.javaScript("${{ $.hmac(JSON.stringify({key1: 'test'}), 'aVeryGoodSecret') }}")
 		);
 	}
