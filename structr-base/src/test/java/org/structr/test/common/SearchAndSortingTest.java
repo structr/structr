@@ -2513,8 +2513,6 @@ public class SearchAndSortingTest extends StructrTest {
 	@Test
 	public void testFindQueryWithOrPredicate() {
 
-		Settings.CypherDebugLogging.setValue(true);
-
 		/*
 		 * This test verifies that the query builder creates efficient queries for
 		 * $.or() and $.and() predicates with graph properties.

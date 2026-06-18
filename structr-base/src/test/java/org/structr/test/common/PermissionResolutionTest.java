@@ -177,8 +177,6 @@ public class PermissionResolutionTest extends StructrTest {
 			fail("Unexpected exception");
 		}
 
-		Settings.CypherDebugLogging.setValue(true);
-
 		// check access for user1 on instance1
 		try (final Tx tx = userApp.tx()) {
 
