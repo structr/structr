@@ -80,7 +80,7 @@ public class FunctionDataSource implements GraphDataSource<Iterable<GraphObject>
 
 			} else if (result != null) {
 
-				LoggerFactory.getLogger(FunctionDataSource.class.getName()).warn("Unsupported return value in function query repeater. Supported: Iterable or GraphObject. Encountered: {}", result.getClass().getSimpleName());
+				LoggerFactory.getLogger(FunctionDataSource.class.getName()).warn("Unsupported return value in function query repeater in {} ({}). Supported: Iterable or GraphObject. Encountered: {}", referenceNode.getType(), referenceNode.getUuid(), result.getClass().getSimpleName());
 			}
 
 		} catch (UnlicensedScriptException ex) {
