@@ -58,7 +58,16 @@ public class Neo4IndexUpdater extends IndexUpdater {
 
 		final String indexIdentifier = (String) indexInfoRow.get("name");
 
-		return new ExistingIndexInfo(indexIdentifier, (String) indexInfoRow.get("state"));
+		return new ExistingIndexInfo(indexIdentifier, (String) indexInfoRow.get("state"), (String) indexInfoRow.get("type"));
+	}
+
+	@Override
+	protected String getExpectedIndexType(final NewIndexConfig config) {
+
+		if (config.isFulltextIndex()) return "FULLTEXT";
+		if (config.isTextIndex())     return "TEXT";
+
+		return "BTREE";
 	}
 
 	@Override

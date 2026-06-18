@@ -1238,6 +1238,8 @@ public class Services implements StructrServices, BroadcastReceiver {
 	}
 
 	public static void enableIndexConfiguration() {
+
+		Settings.CypherDebugLogging.setValue(true);
 		overrideIndexManagement = true;
 		skipIndexConfiguration = false;
 	}

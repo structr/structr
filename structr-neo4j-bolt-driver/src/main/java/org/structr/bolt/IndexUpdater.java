@@ -24,6 +24,7 @@ import org.structr.api.Transaction;
 import org.structr.api.index.ExistingIndexInfo;
 import org.structr.api.index.NewIndexConfig;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +44,7 @@ public abstract class IndexUpdater {
 	protected abstract ExistingIndexInfo convertIndexInfoRow(final Map<String, Object> indexInfoRow);
 	protected abstract String getCreateIndexStatement(final NewIndexConfig newIndexConfig);
 	protected abstract String getDropIndexStatement(final ExistingIndexInfo existingIndexInfo);
+	protected abstract String getExpectedIndexType(final NewIndexConfig config);
 
 	protected IndexUpdater(final BoltDatabaseService db, final boolean supportsRelationshipIndexes) {
 
@@ -61,11 +63,43 @@ public abstract class IndexUpdater {
 			final Map<String, ExistingIndexInfo> existingIndexes = getExistingIndexes();
 			final int existingIndexCount = existingIndexes.size();
 
-			// 2. create indexes that don't exist and reduce list so that indexes to drop remain
-			final int newIndexCount = createIndexes(indexesToBeCreated, existingIndexes);
+			// 2. classify: determine which indexes to create and which to drop
+			//    - existing index with matching type: keep (remove from drop candidates)
+			//    - existing index with wrong type: drop old + create new
+			//    - no existing index: create new
+			final List<NewIndexConfig> toCreate = new ArrayList<>();
 
-			// 3. drop indexes that exist but are not to be created
+			for (final NewIndexConfig newIndexConfig : indexesToBeCreated) {
+
+				final String identifier = getIndexIdentifier(newIndexConfig);
+
+				if (existingIndexes.containsKey(identifier)) {
+
+					final ExistingIndexInfo existing = existingIndexes.get(identifier);
+
+					if (getExpectedIndexType(newIndexConfig).equals(existing.getType())) {
+
+						// same type: nothing to do, remove from drop candidates
+						existingIndexes.remove(identifier);
+
+					} else {
+
+						// type mismatch: leave in drop candidates and schedule for re-creation
+						toCreate.add(newIndexConfig);
+					}
+
+				} else {
+
+					toCreate.add(newIndexConfig);
+				}
+			}
+
+			// 3. drop stale and type-mismatched indexes BEFORE creating new ones
+			//    (Neo4j does not allow replacing an index with a different type under the same name)
 			final int droppedIndexCount = dropIndexes(existingIndexes);
+
+			// 4. create new and re-created indexes
+			final int newIndexCount = createIndexes(toCreate);
 
 			if (newIndexCount > 0 || droppedIndexCount > 0) {
 
@@ -110,31 +144,16 @@ public abstract class IndexUpdater {
 		return existingIndexes;
 	}
 
-	private int createIndexes(final List<NewIndexConfig> newIndexes, final Map<String, ExistingIndexInfo> existingIndexes) {
+	private int createIndexes(final List<NewIndexConfig> newIndexes) {
 
 		int newIndexCount = 0;
 
 		try (final Transaction tx = db.beginTx()) {
 
-			// create indexes that dont exist yet
 			for (final NewIndexConfig newIndexConfig : newIndexes) {
 
-				final String identifier = getIndexIdentifier(newIndexConfig);
-
-				if (existingIndexes.containsKey(identifier)) {
-
-					// index exists AND is in the list of indexes to be created => remove from list
-					// (remaining indexes are dropped)
-					existingIndexes.remove(identifier);
-
-				} else {
-
-					final String statement = getCreateIndexStatement(newIndexConfig);
-
-					db.execute(statement);
-
-					newIndexCount++;
-				}
+				db.execute(getCreateIndexStatement(newIndexConfig));
+				newIndexCount++;
 			}
 
 			tx.success();
