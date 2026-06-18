@@ -33,5 +33,6 @@ public enum DatabaseFeature {
 	RelationshipIndexes,
 	NewDBIndexesFormat,
 	ShowIndexesQuery,
-	TypePredicateExpressions
+	TypePredicateExpressions,
+	RangeIndexes,
 }

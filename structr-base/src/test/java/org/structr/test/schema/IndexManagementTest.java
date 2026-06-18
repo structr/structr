@@ -60,6 +60,8 @@ public class IndexManagementTest extends StructrTest {
 		// only run this test if Cypher is supported
 		if (db.supportsFeature(DatabaseFeature.QueryLanguage, "text/cypher")) {
 
+			final String expectedRangeIndexType = Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.RangeIndexes) ? "RANGE" : "BTREE";
+
 			{
 				Services.enableIndexConfiguration();
 
@@ -86,7 +88,8 @@ public class IndexManagementTest extends StructrTest {
 
 				start = System.currentTimeMillis();
 
-				while (!indexCreatedSuccessfully(db, true, false, "RANGE", "Customer", Set.of("test"), 1)) {
+
+				while (!indexCreatedSuccessfully(db, true, false, expectedRangeIndexType, "Customer", Set.of("test"), 1)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
 						fail("Timeout waiting for index update!");
@@ -149,6 +152,8 @@ public class IndexManagementTest extends StructrTest {
 
 		// only run this test if Cypher is supported
 		if (db.supportsFeature(DatabaseFeature.QueryLanguage, "text/cypher")) {
+
+			final String expectedRangeIndexType = Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.RangeIndexes) ? "RANGE" : "BTREE";
 
 			{
 				Services.enableIndexConfiguration();
@@ -219,7 +224,7 @@ public class IndexManagementTest extends StructrTest {
 
 				start = System.currentTimeMillis();
 
-				while (!indexCreatedSuccessfully(db, true, false, "RANGE", "Customer", Set.of("test"), 1)) {
+				while (!indexCreatedSuccessfully(db, true, false, expectedRangeIndexType, "Customer", Set.of("test"), 1)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
 						fail("Timeout waiting for index update!");

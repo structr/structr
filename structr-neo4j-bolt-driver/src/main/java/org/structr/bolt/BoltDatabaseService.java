@@ -839,6 +839,9 @@ public class BoltDatabaseService extends AbstractDatabaseService<Long> {
 			case TypePredicateExpressions:
 				// see https://development.neo4j.dev/blog/developer/data-quality-type-constraints-functions/
 				return neo4jMajorVersion >= 2025 || (neo4jMajorVersion >= 5 && neo4jMinorVersion >= 9);
+
+			case RangeIndexes:
+				return neo4jMajorVersion >= 5;
 		}
 
 		return false;
