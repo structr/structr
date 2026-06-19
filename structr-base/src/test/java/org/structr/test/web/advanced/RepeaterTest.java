@@ -549,6 +549,66 @@ public class RepeaterTest extends StructrUiTest {
 		Settings.HtmlIndentation.setValue(indent);
 	}
 
+	@Test
+	public void testFunctionRepeaterDataIsAvailableInShowHideConditions() {
+
+		final boolean indent = Settings.HtmlIndentation.getValue();
+		Settings.HtmlIndentation.setValue(false);
+
+		try (final Tx tx = app.tx()) {
+
+			final Page page1     = Page.createSimplePage(securityContext, "page1");
+			final DOMNode div    = page1.getElementsByTagName("div").get(0);
+
+			final Content content = div.getFirstChild().as(Content.class);
+			div.removeChild(content);
+
+			final DOMNode innerSpan = page1.createElement("span");
+			div.appendChild(innerSpan);
+
+			innerSpan.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.HIDE_CONDITIONS_PROPERTY), "eq(test.isSecret, true)");
+			innerSpan.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), """
+					{
+						[
+							{ name: 'Public data 1', isSecret: false },
+							{ name: 'My secret key', isSecret: true },
+							{ name: 'Public data 2', isSecret: false }
+						]
+					}
+					""");
+			innerSpan.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY),       "test");
+
+			innerSpan.appendChild(page1.createTextNode("${test.name}"));
+
+			createAdminUser();
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		RestAssured.basePath = "/";
+
+		RestAssured
+				.given()
+				.header(X_USER_HEADER,     ADMIN_USERNAME)
+				.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
+				.expect()
+				.statusCode(200)
+				.body("html.head.title",               Matchers.equalTo("Page1"))
+				.body("html.body.h1",                  Matchers.equalTo("Page1"))
+				.body("html.body.div.span[0]",         Matchers.equalTo("Public data 1"))
+				.body("html.body.div.span[1]",         Matchers.equalTo("Public data 2"))
+				.body("html.body.div.span.size()",     Matchers.equalTo(2))
+				.when()
+				.get("/html/page1");
+
+		Settings.HtmlIndentation.setValue(indent);
+	}
+
 	protected DOMElement createElement(final Page page, final DOMNode parent, final String tag, final String... content) throws FrameworkException {
 
 		final DOMElement child = page.createElement(tag);
