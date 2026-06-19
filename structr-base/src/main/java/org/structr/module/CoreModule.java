@@ -176,7 +176,6 @@ public class CoreModule implements StructrModule {
 		Functions.put(licenseManager, new TrimFunction());
 		Functions.put(licenseManager, new CleanFunction());
 		Functions.put(licenseManager, new CoalesceFunction());
-		Functions.put(licenseManager, new CoalesceObjectsFunction());
 		Functions.put(licenseManager, new FormUrlEncodeFunction());
 		Functions.put(licenseManager, new UrlEncodeFunction());
 		Functions.put(licenseManager, new EscapeJavascriptFunction());
