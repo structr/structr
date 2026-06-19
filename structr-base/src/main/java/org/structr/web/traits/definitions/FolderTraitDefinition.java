@@ -69,7 +69,6 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String MOUNT_DO_FULLTEXT_INDEXING_PROPERTY  = "mountDoFulltextIndexing";
 	public static final String MOUNT_WATCH_CONTENTS_PROPERTY        = "mountWatchContents";
 	public static final String MOUNT_SCAN_INTERVAL_PROPERTY         = "mountScanInterval";
-	public static final String POSITION_PROPERTY                    = "position";
 	public static final String ENABLED_CHECKSUMS_PROPERTY           = "enabledChecksums";
 	public static final String MOUNT_TARGET_PROPERTY                = "mountTarget";
 	public static final String MOUNT_TARGET_FILE_TYPE_PROPERTY      = "mountTargetFileType";
@@ -267,7 +266,6 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Boolean> mountDoFulltextIndexingProperty           = new BooleanProperty(MOUNT_DO_FULLTEXT_INDEXING_PROPERTY);
 		final Property<Boolean> mountWatchContentsProperty                = new BooleanProperty(MOUNT_WATCH_CONTENTS_PROPERTY);
 		final Property<Integer> mountScanIntervalProperty                 = new IntProperty(MOUNT_SCAN_INTERVAL_PROPERTY);
-		final Property<Integer> positionProperty                          = new IntProperty(POSITION_PROPERTY).indexed();		// FIXME: Is Folder.position ever used? sort order is alphabetically I think
 		final Property<String> enabledChecksumsProperty                   = new StringProperty(ENABLED_CHECKSUMS_PROPERTY).description("Override for the global checksums setting, allows you to enable or disable individual checksums for all files in this folder (and sub-folders).");
 		final Property<String> mountTargetProperty                        = new StringProperty(MOUNT_TARGET_PROPERTY).indexed();
 		final Property<String> mountTargetFileTypeProperty                = new StringProperty(MOUNT_TARGET_FILE_TYPE_PROPERTY);
@@ -289,7 +287,6 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 			mountDoFulltextIndexingProperty,
 			mountWatchContentsProperty,
 			mountScanIntervalProperty,
-			positionProperty,
 			enabledChecksumsProperty,
 			mountTargetProperty,
 			mountTargetFileTypeProperty,
