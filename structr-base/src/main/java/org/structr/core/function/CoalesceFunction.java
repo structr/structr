@@ -73,8 +73,8 @@ public class CoalesceFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-				Usage.structrScript("Usage: ${coalesceObjects(value1, value2, ...)}"),
-				Usage.javaScript("Usage: ${{ $.coalesceObjects(value1, value2, ...) }}")
+				Usage.structrScript("Usage: ${coalesce(value1, value2, ...)}"),
+				Usage.javaScript("Usage: ${{ $.coalesce(value1, value2, ...) }}")
 		);
 	}
 
