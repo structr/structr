@@ -1106,18 +1106,6 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 
 		createAdminUser();
 
-		// Remove all DOM nodes and TestOne data left over from previous invocations.
-		// app.delete(pageNode) alone does not remove the child DOM tree; deleting the
-		// whole DOM_NODE subtype hierarchy is the correct cleanup pattern.
-		try (final Tx tx = app.tx()) {
-			app.deleteAllNodesOfType("TestOne");
-			app.deleteAllNodesOfType(StructrTraits.DOM_NODE);
-			tx.success();
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-			fail("Cleanup failed: " + fex.getMessage());
-		}
-
 		// sorted alphabetically by the query below: Alice, Bob, Carol
 		try (final Tx tx = app.tx()) {
 
@@ -1163,16 +1151,6 @@ public class DOMNodeVisibilityTest extends StructrUiTest {
 	public void testRepeaterHideConditionFiltersHtmlOutput() {
 
 		createAdminUser();
-
-		// Same full-teardown pattern as the show test above
-		try (final Tx tx = app.tx()) {
-			app.deleteAllNodesOfType("TestOne");
-			app.deleteAllNodesOfType(StructrTraits.DOM_NODE);
-			tx.success();
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-			fail("Cleanup failed: " + fex.getMessage());
-		}
 
 		try (final Tx tx = app.tx()) {
 
