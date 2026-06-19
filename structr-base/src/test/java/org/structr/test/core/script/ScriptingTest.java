@@ -839,6 +839,19 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid abbr() result", "oneStringt…", Scripting.replaceVariables(ctx, testOne, "${abbr(concat(\"one\", this.aString, \"three\"), 10)}"));
 			assertEquals("Invalid abbr() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${abbr(this.alwaysNull, 10)}"));
 
+			// test abbr documented contract that maxLength is used exactly when there is NO space and then the abbreviation character is appended
+			assertEquals("Invalid abbr() result", "12345…",        Scripting.replaceVariables(ctx, testOne, "${abbr('1234567890', 5)}"));
+			assertEquals("Invalid abbr() result", "123456789…",    Scripting.replaceVariables(ctx, testOne, "${abbr('1234567890', 9)}"));
+			assertEquals("Invalid abbr() result", "1234567890",    Scripting.replaceVariables(ctx, testOne, "${abbr('1234567890', 10)}"));
+			assertEquals("Invalid abbr() result", "12345… *snip*", Scripting.replaceVariables(ctx, testOne, "${abbr('1234567890', 5, '… *snip*')}"));
+
+			// test abbr documented contract that maxLength is used exactly when there IS a space and then the abbreviation character is appended
+			assertEquals("Invalid abbr() result", "12345…",        Scripting.replaceVariables(ctx, testOne, "${abbr('12345 67890', 5)}"));
+			assertEquals("Invalid abbr() result", "12345…",        Scripting.replaceVariables(ctx, testOne, "${abbr('12345 67890', 9)}"));
+			assertEquals("Invalid abbr() result", "12345…",        Scripting.replaceVariables(ctx, testOne, "${abbr('12345 67890', 10)}"));
+			assertEquals("Invalid abbr() result", "12345 67890",   Scripting.replaceVariables(ctx, testOne, "${abbr('12345 67890', 11)}"));
+			assertEquals("Invalid abbr() result", "12345… *snip*", Scripting.replaceVariables(ctx, testOne, "${abbr('12345 67890', 7, '… *snip*')}"));
+
 			// capitalize..
 			assertEquals("Invalid capitalize() result", "One_two_three", Scripting.replaceVariables(ctx, testOne, "${capitalize(concat(\"one_\", \"two_\", \"three\"))}"));
 			assertEquals("Invalid capitalize() result", "One_Stringthree", Scripting.replaceVariables(ctx, testOne, "${capitalize(concat(\"one_\", this.aString, \"three\"))}"));
