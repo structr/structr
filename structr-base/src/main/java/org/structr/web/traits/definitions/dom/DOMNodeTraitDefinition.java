@@ -139,6 +139,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 					final DOMNode domNode = graphObject.as(DOMNode.class);
 
+					domNode.checkDataKey(errorBuffer);
 					domNode.checkName(errorBuffer);
 					domNode.syncName(errorBuffer);
 					domNode.updateHasSharedComponentFlag();

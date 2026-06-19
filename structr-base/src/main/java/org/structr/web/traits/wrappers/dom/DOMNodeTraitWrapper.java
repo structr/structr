@@ -36,6 +36,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.DataAdapter;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Principal;
+import org.structr.core.function.Functions;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -797,6 +798,19 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 			page.increaseVersion();
 
+		}
+	}
+
+	@Override
+	public void checkDataKey(final ErrorBuffer errorBuffer) {
+
+		final String _dataKey = getDataKey();
+		if (_dataKey != null) {
+
+			// check if data key shadows built-in function
+			if (Functions.get(_dataKey) != null) {
+				errorBuffer.add(new SemanticErrorToken(getType(), "dataKey", "already_taken"));
+			}
 		}
 	}
 
