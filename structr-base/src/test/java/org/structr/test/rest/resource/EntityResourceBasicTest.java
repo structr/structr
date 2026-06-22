@@ -58,7 +58,7 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 

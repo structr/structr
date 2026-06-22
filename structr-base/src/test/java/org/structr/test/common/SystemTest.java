@@ -95,7 +95,7 @@ public class SystemTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 	}
 
@@ -209,7 +209,7 @@ public class SystemTest extends StructrTest {
 
 		} catch (Throwable t) {
 
-			logger.warn("", t);
+			t.printStackTrace();
 		}
 
 		assertNotNull("Entity should have been created", entity);
@@ -237,7 +237,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable t) {
-			logger.warn("", t);
+			t.printStackTrace();
 		}
 
 		try (final Tx tx = app.tx()) {
@@ -271,7 +271,7 @@ public class SystemTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -287,7 +287,7 @@ public class SystemTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -312,7 +312,7 @@ public class SystemTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -327,7 +327,7 @@ public class SystemTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -342,7 +342,7 @@ public class SystemTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
@@ -367,7 +367,7 @@ public class SystemTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
@@ -393,7 +393,7 @@ public class SystemTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
@@ -475,7 +475,7 @@ public class SystemTest extends StructrTest {
 
 			} catch (Throwable t) {
 
-				logger.warn("", t);
+				t.printStackTrace();
 				fail("Unexpected exception");
 			}
 		}
@@ -1500,7 +1500,7 @@ public class SystemTest extends StructrTest {
 
 		} catch(UnlicensedScriptException |FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -2650,7 +2650,7 @@ public class SystemTest extends StructrTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
-				logger.warn("", fex);
+				fex.printStackTrace();
 			}
 		}
 	}

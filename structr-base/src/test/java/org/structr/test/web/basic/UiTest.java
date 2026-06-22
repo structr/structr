@@ -835,7 +835,7 @@ public class UiTest extends StructrUiTest {
 
 					} catch (IOException ioex) {
 
-						logger.warn("", ioex);
+						ioex.printStackTrace();
 						fail("Unexpected exception");
 					}
 
@@ -902,7 +902,7 @@ public class UiTest extends StructrUiTest {
 
 					} catch (IOException ioex) {
 
-						logger.warn("", ioex);
+						ioex.printStackTrace();
 						fail("Unexpected exception");
 					}
 

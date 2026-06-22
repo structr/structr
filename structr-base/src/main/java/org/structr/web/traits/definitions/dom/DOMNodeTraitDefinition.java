@@ -139,7 +139,9 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 					final DOMNode domNode = graphObject.as(DOMNode.class);
 
-					domNode.checkDataKey(errorBuffer);
+					// reserved word check is disabled for now
+					//domNode.checkReservedWords(errorBuffer);
+
 					domNode.checkName(errorBuffer);
 					domNode.syncName(errorBuffer);
 					domNode.updateHasSharedComponentFlag();
@@ -153,6 +155,9 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
 					final DOMNode domNode = graphObject.as(DOMNode.class);
+
+					// reserved word check is disabled for now
+					//domNode.checkReservedWords(errorBuffer);
 
 					domNode.increasePageVersion();
 					domNode.checkName(errorBuffer);

@@ -19,8 +19,6 @@
 package org.structr.test.web.rest;
 
 import io.restassured.RestAssured;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.Test;
 
@@ -29,7 +27,6 @@ import static org.testng.AssertJUnit.fail;
 
 public class CORSSimpleTest extends StructrUiTest {
 
-    private static final Logger logger = LoggerFactory.getLogger(CORSSimpleTest.class.getName());
 
     @Test
     public void test01NonCORSRequestWithDefaults() {

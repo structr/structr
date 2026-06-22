@@ -20,8 +20,6 @@ package org.structr.test.web.advanced;
 
 import io.restassured.RestAssured;
 import org.hamcrest.Matchers;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
@@ -52,7 +50,6 @@ import static org.testng.AssertJUnit.fail;
 
 public class RepeaterTest extends StructrUiTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(RepeaterTest.class);
 
 	@Test
 	public void testManagedSelectedAttributeInOptionElementWithNodes() {
@@ -76,7 +73,7 @@ public class RepeaterTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		final List<String> taskIDs = new LinkedList<>();
@@ -115,7 +112,7 @@ public class RepeaterTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		RestAssured.basePath = "/";
@@ -161,7 +158,7 @@ public class RepeaterTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		// test 2: assert selected attributes are set now
@@ -215,7 +212,7 @@ public class RepeaterTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		try (final Tx tx = app.tx()) {
@@ -246,7 +243,7 @@ public class RepeaterTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		RestAssured.basePath = "/";
@@ -283,7 +280,7 @@ public class RepeaterTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		// test 2: assert selected attributes are set now
@@ -371,7 +368,7 @@ public class RepeaterTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		// setup 2: create page and data object

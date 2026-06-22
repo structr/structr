@@ -48,6 +48,7 @@ import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.schema.action.Function;
 import org.structr.web.common.AsyncBuffer;
@@ -802,14 +803,14 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	}
 
 	@Override
-	public void checkDataKey(final ErrorBuffer errorBuffer) {
+	public void checkReservedWords(final ErrorBuffer errorBuffer) {
 
 		final String _dataKey = getDataKey();
 		if (_dataKey != null) {
 
 			// check if data key shadows built-in function
-			if (Functions.get(_dataKey) != null) {
-				errorBuffer.add(new SemanticErrorToken(getType(), "dataKey", "already_taken"));
+			if (SchemaMethodTraitDefinition.isReservedWord(_dataKey)) {
+				errorBuffer.add(new SemanticErrorToken(getType(), "dataKey", "is_reserved_word"));
 			}
 		}
 	}

@@ -19,8 +19,6 @@
 package org.structr.test.web.basic;
 
 import io.restassured.RestAssured;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
@@ -33,7 +31,6 @@ import org.structr.test.web.StructrUiTest;
 
 public abstract class FrontendTest extends StructrUiTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(FrontendTest.class.getName());
 
 	public static final String ADMIN_USERNAME = "admin";
 	public static final String ADMIN_PASSWORD = "admin";
@@ -49,7 +46,7 @@ public abstract class FrontendTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Throwable t) {
-			logger.warn("", t);
+			t.printStackTrace();
 		}
 	}
 
@@ -69,7 +66,7 @@ public abstract class FrontendTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Throwable t) {
-			logger.warn("", t);
+			t.printStackTrace();
 		}
 
 		return user;

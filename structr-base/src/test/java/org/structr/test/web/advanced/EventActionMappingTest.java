@@ -23,8 +23,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Attribute;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.schema.JsonMethod;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
@@ -60,7 +58,6 @@ import static org.testng.AssertJUnit.fail;
  */
 public class EventActionMappingTest extends StructrUiTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(EventActionMappingTest.class);
 
 	@Test
 	public void testDialogAttributes() {
@@ -101,7 +98,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		RestAssured.basePath = "/";
@@ -184,7 +181,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		RestAssured.basePath = "/";
@@ -268,7 +265,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		RestAssured.basePath = "/";
@@ -359,7 +356,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		RestAssured.basePath = "/";
@@ -451,7 +448,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		RestAssured.basePath = "/";
@@ -539,7 +536,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		RestAssured.basePath = "/";
@@ -625,7 +622,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		RestAssured.basePath = "/";
@@ -709,7 +706,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		RestAssured.basePath = "/";
@@ -802,7 +799,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		RestAssured.basePath = "/";
@@ -890,7 +887,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		RestAssured.basePath = "/";
@@ -982,7 +979,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		RestAssured.basePath = "/";
@@ -1068,7 +1065,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		RestAssured.basePath = "/";
@@ -1160,7 +1157,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		RestAssured.basePath = "/";
@@ -1257,7 +1254,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		RestAssured.basePath = "/";
@@ -1348,7 +1345,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		RestAssured.basePath = "/";
@@ -1438,7 +1435,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		RestAssured.basePath = "/";
@@ -1528,7 +1525,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		RestAssured.basePath = "/";
@@ -1616,7 +1613,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		RestAssured.basePath = "/";
@@ -1700,7 +1697,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		RestAssured.basePath = "/";
@@ -1792,7 +1789,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		RestAssured.basePath = "/";
@@ -1889,7 +1886,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		RestAssured.basePath = "/";
@@ -1980,7 +1977,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		RestAssured.basePath = "/";
@@ -2070,7 +2067,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		RestAssured.basePath = "/";
@@ -2160,7 +2157,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		RestAssured.basePath = "/";
@@ -2248,7 +2245,7 @@ public class EventActionMappingTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		RestAssured.basePath = "/";

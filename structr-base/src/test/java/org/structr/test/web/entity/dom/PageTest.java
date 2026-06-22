@@ -21,8 +21,6 @@ package org.structr.test.web.entity.dom;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
@@ -52,7 +50,6 @@ import static org.testng.AssertJUnit.*;
 
 public class PageTest extends StructrUiTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(PageTest.class.getName());
 
 	@Test
 	public void testGetElementsByTagName() {
@@ -283,7 +280,7 @@ public class PageTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Exception ex) {
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception");
 		}
 
@@ -298,7 +295,7 @@ public class PageTest extends StructrUiTest {
 			tx.success();
 
 		} catch (Exception ex) {
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception");
 		}
 	}

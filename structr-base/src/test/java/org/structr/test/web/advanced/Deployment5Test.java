@@ -536,7 +536,7 @@ public class Deployment5Test extends DeploymentTestBase {
 
 		} catch (IOException | FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -555,7 +555,7 @@ public class Deployment5Test extends DeploymentTestBase {
 
 			} catch (FrameworkException fex) {
 
-				logger.warn("", fex);
+				fex.printStackTrace();
 				fail("Unexpected exception.");
 			}
 
@@ -571,7 +571,7 @@ public class Deployment5Test extends DeploymentTestBase {
 
 			} catch (FrameworkException fex) {
 
-				logger.warn("", fex);
+				fex.printStackTrace();
 				fail("Unexpected exception.");
 			}
 

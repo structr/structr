@@ -266,7 +266,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch(FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -282,7 +282,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch(FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -290,7 +290,7 @@ public class ScriptingTest extends StructrTest {
 
 		// first test without grant, expect no test object to be found using the user context
 		try (final Tx tx = userApp.tx()) { assertEquals("Invalid grant() scripting result", 0, userApp.nodeQuery(sourceType).getAsList().size()); tx.success(); } catch(FrameworkException fex) {
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -316,7 +316,7 @@ public class ScriptingTest extends StructrTest {
 		try (final Tx tx = userApp.tx()) {
 
 			assertEquals("Invalid grant() scripting result", 1, userApp.nodeQuery(sourceType).getAsList().size()); tx.success(); } catch(FrameworkException fex) {
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
@@ -385,7 +385,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch(FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -414,7 +414,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch(UnlicensedScriptException |FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
@@ -438,7 +438,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch(UnlicensedScriptException |FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
@@ -462,7 +462,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch(UnlicensedScriptException |FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
@@ -493,7 +493,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch(FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -539,7 +539,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch(UnlicensedScriptException |FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
@@ -558,7 +558,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch(FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -589,7 +589,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch(UnlicensedScriptException |FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
@@ -607,7 +607,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch(UnlicensedScriptException |FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
@@ -710,7 +710,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 
 			fail("Unexpected exception");
 		}
@@ -2104,7 +2104,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
@@ -2130,7 +2130,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
@@ -2156,7 +2156,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
@@ -2177,7 +2177,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
@@ -2203,7 +2203,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
@@ -2228,7 +2228,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
@@ -2245,7 +2245,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception");
 		}
 	}
@@ -2290,7 +2290,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 
 			fail(fex.getMessage());
 		}
@@ -2325,7 +2325,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail(fex.getMessage());
 		}
 	}
@@ -2372,7 +2372,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 
 			fail(fex.getMessage());
 		}
@@ -2737,7 +2737,7 @@ public class ScriptingTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -2753,7 +2753,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -2769,7 +2769,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -2785,7 +2785,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -2801,7 +2801,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
@@ -5780,7 +5780,7 @@ public class ScriptingTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.warn("", fex);
+			fex.printStackTrace();
 
 			fail("Unexpected exception");
 		}
@@ -6966,7 +6966,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch(FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -8454,7 +8454,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 
 			fail("Unexpected exception");
 		}

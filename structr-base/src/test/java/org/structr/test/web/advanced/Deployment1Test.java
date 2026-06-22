@@ -18,8 +18,6 @@
  */
 package org.structr.test.web.advanced;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -50,7 +48,6 @@ import static org.testng.AssertJUnit.*;
 
 public class Deployment1Test extends DeploymentTestBase {
 
-	private static final Logger logger = LoggerFactory.getLogger(Deployment1Test.class.getName());
 
 	@Test
 	public void test10SharedComponent() {
@@ -208,7 +205,7 @@ public class Deployment1Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (IOException | FrameworkException fex) {
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -266,7 +263,7 @@ public class Deployment1Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (IOException | FrameworkException fex) {
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -345,7 +342,7 @@ public class Deployment1Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (IOException | FrameworkException fex) {
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 

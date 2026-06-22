@@ -295,7 +295,7 @@ public class CypherTest extends StructrTest {
 
 			} catch (FrameworkException ex) {
 
-				logger.warn("", ex);
+				ex.printStackTrace();
 				fail("Unexpected exception");
 			}
 
@@ -484,7 +484,7 @@ public class CypherTest extends StructrTest {
 
 			} catch (FrameworkException ex) {
 
-				logger.warn("", ex);
+				ex.printStackTrace();
 				fail("Unexpected exception");
 			}
 

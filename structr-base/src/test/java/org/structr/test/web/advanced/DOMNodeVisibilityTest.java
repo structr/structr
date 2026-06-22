@@ -22,8 +22,6 @@ import io.restassured.RestAssured;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import org.hamcrest.Matchers;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -58,7 +56,6 @@ import static org.testng.AssertJUnit.*;
  */
 public class DOMNodeVisibilityTest extends StructrUiTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(DOMNodeVisibilityTest.class);
 
 	// =========================================================================
 	// Group 1: Default — no visibility flags set

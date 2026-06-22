@@ -18,8 +18,6 @@
  */
 package org.structr.test.core.maintenance;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.Transaction;
 import org.structr.api.graph.Node;
@@ -48,7 +46,6 @@ import static org.testng.AssertJUnit.*;
  */
 public class MaintenanceTest extends StructrTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(MaintenanceTest.class.getName());
 
 	private final static String EXPORT_FILENAME = "___structr-test-export___.zip";
 
@@ -86,7 +83,7 @@ public class MaintenanceTest extends StructrTest {
 			}
 
 		} catch (Exception ex) {
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
@@ -120,7 +117,7 @@ public class MaintenanceTest extends StructrTest {
 			Files.delete(exportFile);
 
 		} catch (Exception ex) {
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -154,7 +151,7 @@ public class MaintenanceTest extends StructrTest {
 			Files.delete(exportFile);
 
 		} catch (Exception ex) {
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
@@ -407,7 +404,7 @@ public class MaintenanceTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
@@ -482,7 +479,7 @@ public class MaintenanceTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
@@ -566,7 +563,7 @@ public class MaintenanceTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
@@ -692,7 +689,7 @@ public class MaintenanceTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}

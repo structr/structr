@@ -18,8 +18,6 @@
  */
 package org.structr.test.common;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.PropagationDirection;
@@ -53,7 +51,6 @@ import static org.testng.AssertJUnit.*;
  */
 public class PermissionResolutionTest extends StructrTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(PermissionResolutionTest.class.getName());
 
 	@Test
 	public void test01SimplePermissionResolution() {

@@ -81,7 +81,7 @@ public class Deployment4Test extends DeploymentTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 

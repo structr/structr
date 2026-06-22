@@ -135,7 +135,7 @@ public class LicensingTest {
 			}
 
 		} catch (Throwable t) {
-			logger.warn("", t);
+			t.printStackTrace();
 		}
 
 
@@ -151,7 +151,7 @@ public class LicensingTest {
 			}
 
 		} catch (Throwable t) {
-			logger.warn("", t);
+			t.printStackTrace();
 		}
 	}
 

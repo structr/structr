@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 let _Entities = {
 	selectedObject: {},
 	activeQueryTabPrefix: 'structrActiveQueryTab_' + location.port,
@@ -266,10 +267,10 @@ let _Entities = {
 				});
 			};
 
-			datakeyInput.addEventListener('keydown', (e) => {
+			datakeyInput.addEventListener('keydown', async (e) => {
 
 				let keyCode = e.keyCode;
-				let code    = e.code;
+				let code = e.code;
 
 				// ctrl-s / cmd-s
 				if ((code === 'KeyS' || keyCode === 83) && ((!_Helpers.isMac() && e.ctrlKey) || (_Helpers.isMac() && e.metaKey))) {
@@ -278,6 +279,27 @@ let _Entities = {
 					saveFn();
 				}
 			});
+
+			datakeyInput.addEventListener('keyup', _Helpers.debounce(async (e) => {
+				let value = e.target.value;
+				let response = await fetch(`${Structr.rootUrl}SchemaMethod/isReservedWord`, {
+					method: 'POST',
+					body: JSON.stringify({
+						name: value
+					}),
+				});
+				let result = await response.json();
+				if (result.result) {
+					e.target.required = true;
+					e.target.invalid = true;
+					e.target.setCustomValidity(`${value} is a reserved word. You can still use it, but it can overwrite existing keywords and functions, making the original value inaccessible.`);
+				} else {
+					e.target.setCustomValidity('');
+					e.target.required = false;
+					e.target.invalid = false;
+				}
+				e.target.reportValidity();
+			}, 200));
 
 			saveDatakeyButton.addEventListener('click', () => {
 				saveFn();
@@ -4074,7 +4096,7 @@ let _Entities = {
 
 				<div>
 					<label class="block mb-2" for="data-key-input">Data Key</label>
-					<input type="text" id="data-key-input" name="dataKey">
+					<input class="validated" type="text" id="data-key-input" name="dataKey">
 				</div>
 			`,
 			userOptions: config => `

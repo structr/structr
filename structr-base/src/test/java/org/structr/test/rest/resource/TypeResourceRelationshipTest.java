@@ -19,8 +19,6 @@
 package org.structr.test.rest.resource;
 
 import io.restassured.RestAssured;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -32,7 +30,6 @@ import static org.testng.AssertJUnit.fail;
 
 public class TypeResourceRelationshipTest extends StructrRestTestBase {
 
-	private static final Logger logger = LoggerFactory.getLogger(TypeResourceRelationshipTest.class.getName());
 
 	@Test
 	public void testCreateRelationship() {
@@ -53,7 +50,7 @@ public class TypeResourceRelationshipTest extends StructrRestTestBase {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -115,7 +112,7 @@ public class TypeResourceRelationshipTest extends StructrRestTestBase {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -177,7 +174,7 @@ public class TypeResourceRelationshipTest extends StructrRestTestBase {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -239,7 +236,7 @@ public class TypeResourceRelationshipTest extends StructrRestTestBase {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -304,7 +301,7 @@ public class TypeResourceRelationshipTest extends StructrRestTestBase {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -369,7 +366,7 @@ public class TypeResourceRelationshipTest extends StructrRestTestBase {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 

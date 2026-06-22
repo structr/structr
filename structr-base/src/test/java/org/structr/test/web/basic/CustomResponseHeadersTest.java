@@ -19,8 +19,6 @@
 package org.structr.test.web.basic;
 
 import io.restassured.RestAssured;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
 import org.structr.test.web.StructrUiTest;
@@ -32,7 +30,6 @@ import org.testng.annotations.Test;
 
 public class CustomResponseHeadersTest extends StructrUiTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(CustomResponseHeadersTest.class.getName());
 
 	@Test
 	public void testCustomHtmlAttribute() {
@@ -56,7 +53,7 @@ public class CustomResponseHeadersTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 

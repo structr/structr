@@ -138,7 +138,7 @@ public class ProxyServletTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		RestAssured.basePath = "/";

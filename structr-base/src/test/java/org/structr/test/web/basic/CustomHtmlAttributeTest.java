@@ -19,8 +19,6 @@
 package org.structr.test.web.basic;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.GenericProperty;
@@ -38,7 +36,6 @@ import static org.testng.AssertJUnit.assertEquals;
 
 public class CustomHtmlAttributeTest extends StructrUiTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(CustomHtmlAttributeTest.class.getName());
 
 	@Test
 	public void testCustomHtmlAttribute() {
@@ -103,7 +100,7 @@ public class CustomHtmlAttributeTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 	}
 

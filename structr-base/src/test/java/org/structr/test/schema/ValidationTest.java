@@ -18,8 +18,6 @@
  */
 package org.structr.test.schema;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.error.ErrorToken;
@@ -49,7 +47,6 @@ import static org.testng.AssertJUnit.*;
  */
 public class ValidationTest extends StructrTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(ValidationTest.class.getName());
 
 	@Test
 	public void testUUIDValidation() {
@@ -400,7 +397,7 @@ public class ValidationTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -452,7 +449,7 @@ public class ValidationTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -486,7 +483,7 @@ public class ValidationTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -551,7 +548,7 @@ public class ValidationTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -582,7 +579,7 @@ public class ValidationTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -641,7 +638,7 @@ public class ValidationTest extends StructrTest {
 
 			} catch (FrameworkException fex) {
 
-				logger.warn("", fex);
+				fex.printStackTrace();
 				fail("Unexpected exception.");
 			}
 
@@ -671,7 +668,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -712,7 +709,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -778,7 +775,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -834,7 +831,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -852,7 +849,7 @@ public class ValidationTest extends StructrTest {
 					tx.success();
 
 				} catch (FrameworkException fex) {
-					logger.warn("", fex);
+					fex.printStackTrace();
 					fail("Unexpected exception.");
 				}
 
@@ -962,7 +959,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -986,7 +983,7 @@ public class ValidationTest extends StructrTest {
 					tx.success();
 
 				} catch (FrameworkException fex) {
-					logger.warn("", fex);
+					fex.printStackTrace();
 					fail("Unexpected exception.");
 				}
 
@@ -1037,7 +1034,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
