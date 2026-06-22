@@ -18,17 +18,11 @@
  */
 package org.structr.web.function;
 
-import org.apache.commons.lang3.StringUtils;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
-import org.structr.core.traits.Traits;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
@@ -37,7 +31,6 @@ import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 
 import java.util.List;
 
@@ -46,11 +39,11 @@ import java.util.List;
  * an error message is returned that informs the user that this is not allowed and can
  * result in unexpected behavior (instead of returning the node).
  */
-public class ComponentFunction extends UiCommunityFunction {
+public class GetComponentFunction extends UiCommunityFunction {
 
 	@Override
 	public String getName() {
-		return "component";
+		return "getComponent";
 	}
 
 	@Override
@@ -82,8 +75,8 @@ public class ComponentFunction extends UiCommunityFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${component(name)}. Example: ${component('Main Template')}"),
-			Usage.javaScript("Usage: ${{ $.component(name); }}. Example: ${{ $.component('Main Template'); }}")
+			Usage.structrScript("Usage: ${getComponent(name)}. Example: ${getComponent('Main Template')}"),
+			Usage.javaScript("Usage: ${{ $.getComponent(name); }}. Example: ${{ $.getComponent('Main Template'); }}")
 		);
 	}
 
@@ -121,7 +114,7 @@ public class ComponentFunction extends UiCommunityFunction {
 	public List<Example> getExamples() {
 
 		return List.of(
-			Example.html("<input type=\"text\" ${component('Table 1').filterControls()} />", "Render an input field with the filter controls for the component \"Table 1\" into the output buffer")
+			Example.html("<input type=\"text\" ${getComponent('Table 1').filterControls()} />", "Render an input field with the filter controls for the component \"Table 1\" into the output buffer")
 		);
 	}
 

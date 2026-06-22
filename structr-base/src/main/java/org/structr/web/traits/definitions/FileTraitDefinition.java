@@ -77,7 +77,6 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String IS_FILE_PROPERTY                   = "isFile";
 	public static final String IS_TEMPLATE_PROPERTY               = "isTemplate";
 	public static final String CACHE_FOR_SECONDS_PROPERTY         = "cacheForSeconds";
-	public static final String POSITION_PROPERTY                  = "position";
 	public static final String VERSION_PROPERTY                   = "version";
 	public static final String MD5_PROPERTY                       = "md5";
 	public static final String SHA1_PROPERTY                      = "sha1";
@@ -357,7 +356,6 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Boolean> isFileProperty                  = new ConstantBooleanProperty(IS_FILE_PROPERTY, true).readOnly();
 		final Property<Boolean> isTemplateProperty              = new BooleanProperty(IS_TEMPLATE_PROPERTY).readOnly().description("When checked, the content of this file is evaluated as a script and the resulting content is returned.");
 		final Property<Integer> cacheForSecondsProperty         = new IntProperty(CACHE_FOR_SECONDS_PROPERTY);
-		final Property<Integer> positionProperty                = new IntProperty(POSITION_PROPERTY).indexed();
 		final Property<Integer> versionProperty                 = new IntProperty(VERSION_PROPERTY).indexed();
 		final Property<String> md5Property                      = new StringProperty(MD5_PROPERTY).description("MD5 checksum of the file's content (optional, see below).");
 		final Property<String> sha1Property                     = new StringProperty(SHA1_PROPERTY).description("SHA1 checksum of the file's content (optional, see below).");
@@ -378,7 +376,6 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 			isFileProperty,
 			isTemplateProperty,
 			cacheForSecondsProperty,
-			positionProperty,
 			versionProperty,
 			md5Property,
 			sha1Property,

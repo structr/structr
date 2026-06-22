@@ -1450,18 +1450,18 @@ public class AdvancedSchemaTest extends FrontendTest {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type = schema.addType("Multi");
 
-			type.addTrait("File");
-			type.addTrait("Folder");
+			type.addTrait("Page");
+			type.addTrait("Component");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
 			tx.success();
 
-			fail("Creating a type that inherits from File AND Folder should throw an error.");
+			fail("Creating a type that inherits from Component AND Page should throw an error.");
 
 		} catch (FrameworkException fex) {
 
-			final boolean startsWithExpectedMessage = fex.getMessage().startsWith("Incompatible property inheritance in type Multi: traits File and Folder define the same property position with different types");
+			final boolean startsWithExpectedMessage = fex.getMessage().startsWith("Incompatible property inheritance in type Multi: traits Component and Page define the same property position with different types");
 			assertTrue("Unexpected error message for clashes in multi-inheritance", startsWithExpectedMessage);
 		}
 	}
