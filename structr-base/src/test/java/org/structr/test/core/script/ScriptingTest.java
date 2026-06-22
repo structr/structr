@@ -7248,6 +7248,16 @@ public class ScriptingTest extends StructrTest {
 
 				// any on remote properties
 				{
+					final String anyEqualsQueryOnRemoteAttribute1_single_element_in_array = """
+							${{
+								let user1 = $.find('User', 'name', 'User 1')[0];
+
+								$.find('Task', $.predicate.equals('assignee', $.predicate.any([user1])), $.predicate.sort('name'))
+									.map(task => task.name).join(', ');
+							}}
+							""";
+					assertEquals("Task 1 - Do Laundry, Task 4 - Read Mail, Task 7 - Do Taxes", Scripting.evaluate(actionContext, null, anyEqualsQueryOnRemoteAttribute1_single_element_in_array, "test2"));
+
 					final String anyEqualsQueryOnRemoteAttribute1 = """
 							${{
 								let user1 = $.find('User', 'name', 'User 1')[0];
