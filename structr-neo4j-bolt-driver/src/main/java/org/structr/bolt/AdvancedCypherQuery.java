@@ -536,7 +536,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 
 				final String paramKey2_boltIds = "param" + count++;
 
-				buffer.append("elementId(");
+				buffer.append("ID(");
 				buffer.append(key);
 				buffer.append(") IN $");
 				buffer.append(paramKey2_boltIds);
@@ -575,7 +575,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 
 				final String paramKey2_boltIds = "param" + count++;
 
-				buffer.append("elementId(");
+				buffer.append("ID(");
 				buffer.append(key);
 				buffer.append(") IN $");
 				buffer.append(paramKey2_boltIds);
