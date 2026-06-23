@@ -325,6 +325,10 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 					final DOMElement elem = node.as(DOMElement.class);
 
+					if (!elem.shouldBeRendered(renderContext)) {
+						return;
+					}
+
 					// final variables
 					final SecurityContext securityContext = renderContext.getSecurityContext();
 					final AsyncBuffer out                 = renderContext.getBuffer();

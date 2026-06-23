@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.graalvm.polyglot.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
@@ -49,6 +50,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.parser.DatePropertyGenerator;
+import org.structr.web.traits.wrappers.ScratchpadTraitWrapper;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -438,11 +440,14 @@ public class Scripting {
 		final List<String> expressions = new LinkedList<>();
 		final StringBuilder buffer     = new StringBuilder();
 		final int length               = source.length();
-		boolean inComment              = false;
+		boolean inLineComment          = false;
+		boolean inBlockComment         = false;
 		boolean inSingleQuotes         = false;
 		boolean inDoubleQuotes         = false;
+		boolean inTemplateLiteral      = false;
 		boolean inTemplate             = false;
 		boolean hasSlash               = false;
+		boolean hasStar                = false;
 		boolean hasBackslash           = false;
 		boolean hasDollar              = false;
 		int level                      = 0;
@@ -459,48 +464,68 @@ public class Scripting {
 
 				case '\\':
 					hasBackslash = true;
+					hasSlash     = false;
+					hasStar      = false;
 					break;
 
 				case '\'':
-					if (inTemplate && !inDoubleQuotes && !hasBackslash && !inComment) {
+					if (inTemplate && !inDoubleQuotes && !inTemplateLiteral && !hasBackslash && !inLineComment && !inBlockComment) {
 						inSingleQuotes = !inSingleQuotes;
 					}
-					hasDollar = false;
+					hasDollar    = false;
 					hasBackslash = false;
+					hasSlash     = false;
+					hasStar      = false;
 					break;
 
 				case '\"':
-					if (inTemplate && !inSingleQuotes && !hasBackslash && !inComment) {
+					if (inTemplate && !inSingleQuotes && !inTemplateLiteral && !hasBackslash && !inLineComment && !inBlockComment) {
 						inDoubleQuotes = !inDoubleQuotes;
 					}
-					hasDollar = false;
+					hasDollar    = false;
 					hasBackslash = false;
+					hasSlash     = false;
+					hasStar      = false;
+					break;
+
+				case '`':
+					if (inTemplate && !inSingleQuotes && !inDoubleQuotes && !hasBackslash && !inLineComment && !inBlockComment) {
+						inTemplateLiteral = !inTemplateLiteral;
+					}
+					hasDollar    = false;
+					hasBackslash = false;
+					hasSlash     = false;
+					hasStar      = false;
 					break;
 
 				case '$':
-					if (!inComment) {
+					if (!inLineComment && !inBlockComment) {
 						hasDollar = true;
-						hasBackslash = false;
 					}
+					hasBackslash = false;
+					hasSlash     = false;
+					hasStar      = false;
 					break;
 
 				case '{':
-					if (!inTemplate && hasDollar && !inComment) {
+					if (!inTemplate && hasDollar && !inLineComment && !inBlockComment) {
 
 						inTemplate = true;
 						start = i-1;
 
-					} else if (inTemplate && !inSingleQuotes && !inDoubleQuotes && !inComment) {
+					} else if (inTemplate && !inSingleQuotes && !inDoubleQuotes && !inTemplateLiteral && !inLineComment && !inBlockComment) {
 						level++;
 					}
 
-					hasDollar = false;
+					hasDollar    = false;
 					hasBackslash = false;
+					hasSlash     = false;
+					hasStar      = false;
 					break;
 
 				case '}':
 
-					if (!inSingleQuotes && !inDoubleQuotes && inTemplate && !inComment && level-- == 0) {
+					if (!inSingleQuotes && !inDoubleQuotes && !inTemplateLiteral && inTemplate && !inLineComment && !inBlockComment && level-- == 0) {
 
 						inTemplate = false;
 						end = i+1;
@@ -511,37 +536,67 @@ public class Scripting {
 
 					} else {
 
-						//otherParts.add(buffer.toString());
 						buffer.setLength(0);
 					}
-					hasDollar = false;
+					hasDollar    = false;
+					hasBackslash = false;
+					hasSlash     = false;
+					hasStar      = false;
+					break;
+
+				case '*': {
+					if (inTemplate && !inSingleQuotes && !inDoubleQuotes && !inTemplateLiteral && !inLineComment) {
+						if (!inBlockComment && hasSlash) {
+							inBlockComment = true;
+							hasStar = false;
+						} else if (inBlockComment) {
+							hasStar = true;
+						} else {
+							hasStar = false;
+						}
+					} else {
+						hasStar = false;
+					}
+					hasSlash     = false;
+					hasDollar    = false;
 					hasBackslash = false;
 					break;
+				}
 
-				case '/':
-
-					if (inTemplate && !inComment && !inSingleQuotes && !inDoubleQuotes) {
-
-						if (hasSlash) {
-
-							inComment = true;
-							hasSlash  = false;
-
-						} else {
-
-							hasSlash = true;
+				case '/': {
+					boolean keepSlash = false;
+					if (inTemplate && !inSingleQuotes && !inDoubleQuotes && !inTemplateLiteral) {
+						if (inBlockComment && hasStar) {
+							inBlockComment = false;
+						} else if (!inLineComment && !inBlockComment) {
+							if (hasSlash) {
+								inLineComment = true;
+							} else {
+								keepSlash = true;
+							}
 						}
 					}
+					hasSlash     = keepSlash;
+					hasStar      = false;
+					hasDollar    = false;
+					hasBackslash = false;
 					break;
+				}
 
 				case '\r':
 				case '\n':
-					inComment = false;
+					inLineComment = false;
+					hasSlash      = false;
+					hasStar       = false;
+					hasDollar     = false;
+					hasBackslash  = false;
 					break;
 
 				default:
-					hasDollar = false;
+					hasDollar    = false;
 					hasBackslash = false;
+					hasSlash     = false;
+					hasStar      = false;
 					break;
 			}
 		}
@@ -622,11 +677,14 @@ public class Scripting {
 
 		} else if (value instanceof Throwable throwable) {
 
+			final String mdcString        = MDC.get(ScratchpadTraitWrapper.MDC_SCRATCHPAD_TAG);
+			final String scratchLogString = (mdcString == null) ? "" : mdcString + " ";
+
 			Stream<String> lines = Stream.concat(
-				Stream.of(String.valueOf(throwable.toString())),
+				Stream.of(throwable.toString()),
 				Arrays.stream(throwable.getStackTrace())
 						.takeWhile(ste -> !ste.getClassName().startsWith("org.graalvm"))
-						.map(ste -> "\tat " + ste.toString())
+						.map(ste -> scratchLogString + "\tat " + ste.toString())
 			);
 
 			// attach causes recursively
@@ -634,7 +692,7 @@ public class Scripting {
 
 				lines = Stream.concat(
 						lines,
-						Stream.of("Caused by: " + formatForLogging(throwable.getCause()))
+						Stream.of(scratchLogString + " Caused by: " + formatForLogging(throwable.getCause()))
 				);
 			}
 

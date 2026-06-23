@@ -51,7 +51,6 @@ import org.structr.schema.export.StructrSchema;
 import org.structr.schema.importer.SchemaAnalyzer;
 import org.structr.util.StructrLicenseManager;
 import org.structr.web.maintenance.*;
-
 import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
 import java.util.*;
@@ -229,7 +228,7 @@ public class MaintenanceResource extends ExactMatchEndpoint {
 								cmd.execute(propertySet);
 							}
 
-							final RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_OK);
+							final RestMethodResult result = new RestMethodResult(cmd.getCommandStatusCode());
 
 							result.setNonGraphObjectResult(cmd.getCommandResult());
 							cmd.getCustomHeaders().forEach(result::addHeader);

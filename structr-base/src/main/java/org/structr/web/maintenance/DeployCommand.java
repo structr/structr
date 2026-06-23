@@ -139,6 +139,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private final static String PAGE_PATHS_FILE_PATH                                  = "page-paths.json";
 	private final static String DATA_ADAPTERS_FILE_PATH                               = "data-adapters.json";
 	private final static String COMPONENT_CONFIGURATIONS_FILE_PATH                    = "component-configurations.json";
+	private final static String SCRATCHPADS_FILE_PATH                                 = "scratchpads.json";
 	private final static String SCHEMA_FOLDER_PATH                                    = "schema";
 	private final static String COMPONENTS_FOLDER_PATH                                = "components";
 	protected final static String FILES_FOLDER_PATH                                   = "files";
@@ -148,6 +149,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private final static String EVENTS_FOLDER_PATH                                    = "events";
 	private final static String MODULES_FOLDER_PATH                                   = "modules";
 	private final static String MAIL_TEMPLATES_FOLDER_PATH                            = "mail-templates";
+	private final static String SCRATCHPADS_FOLDER_PATH                               = "scratchpads";
+
+	private final static String GENERIC_FILENAME_KEY = "filename";
 
 	@Override
 	public void execute(final Map<String, Object> parameters) throws FrameworkException {
@@ -344,6 +348,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path sitesConfFile                            = source.resolve(SITES_FILE_PATH);
 			final Path pathsConfFile                            = source.resolve(PAGE_PATHS_FILE_PATH);
 			final Path schemaFolder                             = source.resolve(SCHEMA_FOLDER_PATH);
+			final Path scratchpadsFolder                        = source.resolve(SCRATCHPADS_FOLDER_PATH);
+			final Path scratchpadsMetadataFile                  = source.resolve(SCRATCHPADS_FILE_PATH);
 
 			if (
 				!Files.exists(deploymentConfFile) &&
@@ -399,6 +405,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			importApplicationConfigurationNodes(applicationConfigurationDataMetadataFile);
 			importSchema(schemaFolder, extendExistingApp);
 			importSchemaGrants(schemaGrantsMetadataFile);
+			importScratchpads(scratchpadsMetadataFile, source);
 
 			final FileImportVisitor.FileImportProblems fileImportProblems = importFiles(filesMetadataFile, source, ctx);
 
@@ -588,6 +595,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path events              = Files.createDirectories(target.resolve(EVENTS_FOLDER_PATH));
 			final Path modules             = Files.createDirectories(target.resolve(MODULES_FOLDER_PATH));
 			final Path mailTemplatesFolder = Files.createDirectories(target.resolve(MAIL_TEMPLATES_FOLDER_PATH));
+			final Path scratchpadsFolder   = Files.createDirectories(target.resolve(SCRATCHPADS_FOLDER_PATH));
 
 			final Path schemaGrantsConf                    = target.resolve(SCHEMA_GRANTS_FILE_PATH);
 			final Path grantsConf                          = target.resolve(GRANTS_FILE_PATH);
@@ -607,6 +615,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path applicationConfigurationData        = target.resolve(APPLICATION_CONFIGURATION_DATA_FILE_PATH);
 			final Path componentConfigurationsConf         = target.resolve(COMPONENT_CONFIGURATIONS_FILE_PATH);
 			final Path dataAdaptersConf                    = target.resolve(DATA_ADAPTERS_FILE_PATH);
+			final Path scratchpadsConf                     = target.resolve(SCRATCHPADS_FILE_PATH);
 
 			final Path preDeployConf            = target.resolve(PRE_DEPLOY_CONF_FILE_PATH);
 			final Path postDeployConf           = target.resolve(POST_DEPLOY_CONF_FILE_PATH);
@@ -676,6 +685,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Schema");
 			exportSchema(schemaFolder);
+
+			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Scratchpads");
+			exportScratchpads(scratchpadsConf, scratchpadsFolder);
 
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Mail Templates");
 			exportMailTemplates(mailTemplatesConf, mailTemplatesFolder);
@@ -1713,7 +1725,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					putData(entry, GraphObjectTraitDefinition.ID_PROPERTY,                            mailTemplate.getUuid());
 					putData(entry, NodeInterfaceTraitDefinition.NAME_PROPERTY,                        mailTemplate.getName());
-					putData(entry, "filename",                    filename);
+					putData(entry, GENERIC_FILENAME_KEY,                    filename);
 					putData(entry, MailTemplateTraitDefinition.LOCALE_PROPERTY,                      mailTemplate.getLocale());
 					putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, mailTemplate.isVisibleToAuthenticatedUsers());
 					putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        mailTemplate.isVisibleToPublicUsers());
@@ -1967,6 +1979,79 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 
 		writeJsonToFile(target, dataAdapters);
+	}
+
+	private void exportScratchpads(final Path targetConf, final Path targetFolder) throws FrameworkException {
+
+		logger.info("Exporting scratchpads");
+
+		final Traits traits                           = Traits.of(StructrTraits.SCRATCHPAD);
+		final List<Map<String, Object>> scratchpads   = new LinkedList<>();
+		final App app                                 = StructrApp.getInstance();
+
+		try {
+
+			deleteDirectoryContentsRecursively(targetFolder);
+
+			try (final Tx tx = app.tx()) {
+
+				for (final NodeInterface node : app.nodeQuery(StructrTraits.SCRATCHPAD).sort(traits.key(GraphObjectTraitDefinition.CREATED_DATE_PROPERTY)).getAsList()) {
+
+					final Scratchpad scratchpad = node.as(Scratchpad.class);
+
+					final String name = scratchpad.getName();
+					final String uuid = scratchpad.getUuid();
+
+					String filename = "";
+
+					if (name == null) {
+
+						filename = uuid;
+
+					} else {
+
+						// sanitize name for deployment
+						filename = name.replaceAll("[^a-zA-Z0-9\\-]", "_");
+
+						if (filename.length() > 100) {
+							filename = filename.substring(0, 100);
+						}
+
+						if (Files.exists(targetFolder.resolve(filename))) {
+							filename = filename + "_" + uuid;
+						} else {
+							filename = filename;
+						}
+					}
+
+					final Map<String, Object> entry = new TreeMap<>(new IdFirstComparator());
+					scratchpads.add(entry);
+
+					entry.put(GraphObjectTraitDefinition.ID_PROPERTY,                 scratchpad.getUuid());
+					entry.put(NodeInterfaceTraitDefinition.NAME_PROPERTY,             scratchpad.getName());
+					entry.put(GraphObjectTraitDefinition.CREATED_DATE_PROPERTY,       scratchpad.getCreatedDate());
+
+					entry.put(ScratchpadTraitDefinition.RESULT_PROPERTY,              scratchpad.getResult());
+					entry.put(ScratchpadTraitDefinition.LOG_PROPERTY,                 scratchpad.getLog());
+					entry.put(ScratchpadTraitDefinition.LAST_RUN_TIMESTAMP_PROPERTY,  scratchpad.getLastRunTimestamp());
+					entry.put(ScratchpadTraitDefinition.COLLAPSED_PROPERTY,           scratchpad.getCollapsed());
+
+					entry.put(GENERIC_FILENAME_KEY, filename);
+
+					exportOwnershipAndSecurity(node, entry);
+
+					final Path scratchpadFile = targetFolder.resolve(filename);
+					writeStringToFile(scratchpadFile, scratchpad.getSource());
+				}
+
+				tx.success();
+			}
+
+		} catch (Throwable t) {
+			logger.error("", t);
+		}
+
+		writeJsonToFile(targetConf, scratchpads);
 	}
 
 	private boolean shouldExportActionMapping(final ActionMapping actionMapping) {
@@ -2268,6 +2353,36 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
+	private void importScratchpads(final Path scratchpadsMetadataFile, final Path source) throws FrameworkException {
+
+		if (Files.exists(scratchpadsMetadataFile)) {
+
+			logger.info("Reading {}", scratchpadsMetadataFile);
+			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing scratchpads");
+
+			final List<Map<String, Object>> scratchpadsConf = readConfigList(scratchpadsMetadataFile);
+
+			final Path scratchpadsFolder = source.resolve(SCRATCHPADS_FOLDER_PATH);
+
+			if (Files.exists(scratchpadsFolder)) {
+
+				for (Map<String, Object> scratchpad : scratchpadsConf) {
+
+					final String filename     = (String)scratchpad.remove(GENERIC_FILENAME_KEY);
+					final Path scratchpadFile = scratchpadsFolder.resolve(filename);
+
+					try {
+						scratchpad.put(ScratchpadTraitDefinition.SOURCE_PROPERTY, (Files.exists(scratchpadFile)) ? new String(Files.readAllBytes(scratchpadFile)) : "");
+					} catch (IOException ioe) {
+						logger.warn("Failed reading scratchpad file '{}'", filename);
+					}
+				}
+			}
+
+			importListData(StructrTraits.SCRATCHPAD, scratchpadsConf);
+		}
+	}
+
 	private void importResourceAccessGrants(final Path grantsMetadataFile) throws FrameworkException {
 
 		if (Files.exists(grantsMetadataFile)) {
@@ -2407,7 +2522,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				for (Map<String, Object> mailTpl : mailTemplatesConf) {
 
-					final String filename = (String)mailTpl.remove("filename");
+					final String filename = (String)mailTpl.remove(GENERIC_FILENAME_KEY);
 					final Path tplFile    = mailTemplatesFolder.resolve(filename);
 
 					try {

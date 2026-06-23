@@ -111,7 +111,7 @@ public class DOMAndPageTest extends StructrUiTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 
 			logger.error(ex.toString());
 			fail("Unexpected exception");
@@ -147,7 +147,7 @@ public class DOMAndPageTest extends StructrUiTest {
 
 		} catch (Exception ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 
 			logger.error(ex.toString());
 			fail("Unexpected Exception");
@@ -183,7 +183,7 @@ public class DOMAndPageTest extends StructrUiTest {
 
 		} catch (Exception ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 
 			logger.error(ex.toString());
 			fail("Unexpected Exception");
@@ -311,7 +311,7 @@ public class DOMAndPageTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		RestAssured.basePath = "/";
@@ -383,7 +383,7 @@ public class DOMAndPageTest extends StructrUiTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 
 			logger.error(ex.toString());
 			fail("Unexpected exception");
@@ -448,7 +448,7 @@ public class DOMAndPageTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 
 			fail("Unexpected exception");
 		}
@@ -573,7 +573,7 @@ public class DOMAndPageTest extends StructrUiTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 
 			logger.error(ex.toString());
 			fail("Unexpected exception");
@@ -608,7 +608,7 @@ public class DOMAndPageTest extends StructrUiTest {
 
 		} catch (Exception ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 
 			logger.error(ex.toString());
 			fail("Unexpected Exception");
@@ -702,7 +702,7 @@ public class DOMAndPageTest extends StructrUiTest {
 
 		} catch (Exception ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 
 			logger.error(ex.toString());
 			fail("Unexpected Exception");
@@ -766,7 +766,7 @@ public class DOMAndPageTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 
 			fail("Unexpected exception");
 
@@ -1208,7 +1208,7 @@ public class DOMAndPageTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 	}

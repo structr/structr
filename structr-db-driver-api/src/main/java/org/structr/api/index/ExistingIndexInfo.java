@@ -22,11 +22,13 @@ public class ExistingIndexInfo {
 
 	private final String identifier;
 	private final String state;
+	private final String type;
 
-	public ExistingIndexInfo(final String identifier, final String state) {
+	public ExistingIndexInfo(final String identifier, final String state, final String type) {
 
 		this.identifier = identifier;
 		this.state      = state;
+		this.type       = type;
 	}
 
 	public String getIdentifier() {
@@ -35,5 +37,9 @@ public class ExistingIndexInfo {
 
 	public String getState() {
 		return state;
+	}
+
+	public String getType() {
+		return type;
 	}
 }

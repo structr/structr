@@ -430,10 +430,6 @@ public class EmbeddedTransaction implements Transaction<String> {
 		return gson.toJson(map);
 	}
 
-	public Iterable<org.structr.api.graph.Node<String>> getCachedResult(final CypherQuery query) {
-		return Iterables.map(new PrefetchNodeMapper(db), new LazyRecordIterable(db, query));
-	}
-
 	// ----- private methods -----
 	private Object getFirstObject(final Result result) {
 

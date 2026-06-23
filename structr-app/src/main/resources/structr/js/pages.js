@@ -5782,7 +5782,7 @@ let _Pages = {
 							e.g. <i>\${project.name}</i>.
 						</p>
 						<div>
-							<input class="repeater-datakey" type="text" value="">
+							<input class="validated repeater-datakey" type="text" value="">
 							<button class="save-repeater-datakey hover:bg-gray-100 focus:border-gray-666 active:border-green">Save</button>
 						</div>
 					</div>

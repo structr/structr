@@ -18,8 +18,6 @@
  */
 package org.structr.test.rest.auth;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.structr.test.rest.test.AdvancedPagingTest;
@@ -28,7 +26,6 @@ import org.testng.annotations.Test;
 
 public class AuthTest  extends StructrRestTestBase {
 
-    private static final Logger logger = LoggerFactory.getLogger(AdvancedPagingTest.class.getName());
 
     @Test
     public void test01TwoFactorWhitelistTest() {

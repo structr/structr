@@ -90,7 +90,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
@@ -129,7 +129,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
@@ -173,7 +173,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception");
 		}
 	}
@@ -217,7 +217,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
@@ -260,7 +260,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
@@ -317,7 +317,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
@@ -358,7 +358,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
@@ -410,7 +410,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
@@ -449,7 +449,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
@@ -567,7 +567,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
@@ -604,7 +604,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException t) {
 
-			logger.warn("", t);
+			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -627,7 +627,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException t) {
 
-			logger.warn("", t);
+			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -648,7 +648,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException t) {
 
-			logger.warn("", t);
+			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -667,7 +667,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -686,7 +686,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException t) {
 
-			logger.warn("", t);
+			t.printStackTrace();
 			fail("Unexpected exception.");
 
 		}
@@ -703,7 +703,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException t) {
 
-			logger.warn("", t);
+			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -720,7 +720,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -762,7 +762,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException t) {
 
-			logger.warn("", t);
+			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -780,7 +780,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -797,7 +797,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException t) {
 
-			logger.warn("", t);
+			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -813,7 +813,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException t) {
 
-			logger.warn("", t);
+			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -842,7 +842,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -870,7 +870,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException t) {
 
-			logger.warn("", t);
+			t.printStackTrace();
 			fail("Unexpected exception.");
 
 		}
@@ -908,7 +908,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException t) {
 
-			logger.warn("", t);
+			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -937,7 +937,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException t) {
 
-			logger.warn("", t);
+			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -958,7 +958,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException t) {
 
-			logger.warn("", t);
+			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -977,7 +977,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -996,7 +996,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException t) {
 
-			logger.warn("", t);
+			t.printStackTrace();
 			fail("Unexpected exception.");
 
 		}
@@ -1013,7 +1013,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException t) {
 
-			logger.warn("", t);
+			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -1030,7 +1030,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -1050,7 +1050,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException t) {
 
-			logger.warn("", t);
+			t.printStackTrace();
 			fail("Unexpected exception.");
 
 		}
@@ -1086,7 +1086,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException t) {
 
-			logger.warn("", t);
+			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -1114,7 +1114,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException t) {
 
-			logger.warn("", t);
+			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -1133,7 +1133,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException t) {
 
-			logger.warn("", t);
+			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -1440,7 +1440,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException t) {
 
-			logger.warn("", t);
+			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -1472,7 +1472,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException t) {
 
-			logger.warn("", t);
+			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -1511,7 +1511,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException t) {
 
-			logger.warn("", t);
+			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -1532,7 +1532,7 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException t) {
 
-			logger.warn("", t);
+			t.printStackTrace();
 			fail("Unexpected exception.");
 
 		}

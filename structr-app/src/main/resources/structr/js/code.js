@@ -55,36 +55,19 @@ let _Code = {
 	moveLeftResizer: (left) => {
 
 		_Helpers.requestAnimationFrameWrapper(_Code.prevAnimFrameReqId_moveLeftResizer, () => {
-			_Code.updatedResizers(left, null);
+			_Code.updatedResizers(left);
 		});
 	},
-	prevAnimFrameReqId_moveRightResizer: undefined,
-	moveRightResizer: (right) => {
-
-		_Helpers.requestAnimationFrameWrapper(_Code.prevAnimFrameReqId_moveRightResizer, () => {
-			_Code.updatedResizers(null, right);
-		});
-	},
-	updatedResizers: (left, right) => {
+	updatedResizers: (left) => {
 
 		left  = left || LSWrapper.getItem(_Code.codeResizerLeftKey) || _Code.leftTabMinWidth;
-		right = right || LSWrapper.getItem(_Code.codeResizerRightKey) || _Code.rightTabMinWidth;
-
-		if (_Code.recentElements.isVisible() === false) {
-			right = '3rem';
-		} else {
-			right = right + 'px';
-		}
 
 		let availableWidth = _Code.codeMain.innerWidth();
-		let outerPadding   = (window.innerWidth - availableWidth) / 2;
 
 		_Code.codeMain[0].querySelector('.column-resizer-left').style.left     = `${left}px`;
-		_Code.codeMain[0].querySelector('.column-resizer-right').style.left    = `calc(${window.innerWidth - outerPadding}px - ${right})`;
 
 		document.getElementById('code-tree').style.width              = `calc(${left}px - 1rem)`;
-		document.getElementById('code-context-container').style.width = `calc(${right} - 3rem)`;
-		document.getElementById('code-contents').style.width          = `calc(${availableWidth}px - ${left}px - ${right} - 4rem)`;
+		document.getElementById('code-contents').style.width          = `calc(${availableWidth}px - ${left}px - 5rem)`;
 
 		_Editors.resizeVisibleEditors();
 	},
@@ -114,7 +97,6 @@ let _Code = {
 
 			document.addEventListener('keydown', _Code.helpers.handleKeyDownEvent, { capture: true });
 
-			_Code.recentElements.init();
 			_Code.pathLocations.init();
 			_Code.search.init();
 			_Code.init();
@@ -124,7 +106,6 @@ let _Code = {
 			_Code.codeContents = $('#code-contents');
 
 			Structr.initVerticalSlider($('.column-resizer-left', _Code.codeMain), _Code.codeResizerLeftKey, _Code.leftTabMinWidth, _Code.moveLeftResizer);
-			Structr.initVerticalSlider($('.column-resizer-right', _Code.codeMain), _Code.codeResizerRightKey, _Code.rightTabMinWidth, _Code.moveRightResizer, true);
 
 			$.jstree.defaults.core.themes.dots      = false;
 			$.jstree.defaults.dnd.inside_pos        = 'last';
@@ -136,9 +117,7 @@ let _Code = {
 				_Code.codeMain[0].classList.add(_Code.classIndicatorEverythingReady);
 			});
 
-			_Code.recentElements.loadRecentlyUsedElements(() => {
-				_TreeHelper.initTree(_Code.codeTree, _Code.tree.treeInitFunction, 'structr-ui-code');
-			});
+			_TreeHelper.initTree(_Code.codeTree, _Code.tree.treeInitFunction, 'structr-ui-code');
 
 			_Schema.relationships.checkAndWarnAboutNonUniqueRelationshipNames();
 
@@ -161,6 +140,19 @@ let _Code = {
 			if (id === '#') {
 
 				let defaultEntries = [
+					{
+						id:       path + '/scratchpads',
+						text:     'Scratchpads',
+						children: false,
+						icon:     _Icons.nonExistentEmptyIcon,
+						li_attr:  { 'data-id': 'scratchpads' },
+						data: {
+							svgIcon: _Icons.getSvgIcon(_Icons.iconScratchpad, 16, 24),
+							key:     'scratchpads',
+							content: 'scratchpads',
+							path:    path + '/scratchpads'
+						},
+					},
 					{
 						id:       path + '/globals',
 						text:     'User-defined functions',
@@ -836,6 +828,10 @@ let _Code = {
 					case 'root':
 						break;
 
+					case 'scratchpads':
+						_Code.mainArea.scratchpad.show(data, true);
+						break;
+
 					case 'globals':
 						_Code.mainArea.displayGlobalMethodsContent(data, true);
 						break;
@@ -1040,14 +1036,16 @@ let _Code = {
 
 			_Code.persistence.runCurrentEntitySaveAction = null;
 		},
-		displayGlobalMethodsContent: (data, updateLocationStack) => {
+		updateLocationStack: (data, updateLocationStack) => {
 
 			if (updateLocationStack === true) {
 				_Code.pathLocations.updatePathLocationStack(data.path);
 				_Code.lastClickedPath = data.path;
 			}
+		},
+		displayGlobalMethodsContent: (data, updateLocationStack) => {
 
-			_Code.recentElements.addRecentlyUsedElement(data.content, "User-defined functions", data.svgIcon, data.path, false);
+			_Code.mainArea.updateLocationStack(data, updateLocationStack);
 
 			_Code.codeContents.append(_Code.templates.globals());
 
@@ -1134,8 +1132,6 @@ let _Code = {
 			}).then(json => {
 
 				let entity = json.result;
-
-				_Code.recentElements.updateRecentlyUsed(entity, data.path, data.updateLocationStack);
 
 				_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
 
@@ -1448,8 +1444,6 @@ let _Code = {
 
 				let entity = json.result;
 
-				_Code.recentElements.updateRecentlyUsed(entity, data.path, data.updateLocationStack);
-
 				_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
 				_Code.codeContents.append(_Code.templates.type({ data, type: entity }));
 
@@ -1505,10 +1499,7 @@ let _Code = {
 		},
 		displayPropertiesContent: (data, updateLocationStack) => {
 
-			if (updateLocationStack === true) {
-				_Code.pathLocations.updatePathLocationStack(data.path);
-				_Code.lastClickedPath = data.path;
-			}
+			_Code.mainArea.updateLocationStack(data, updateLocationStack);
 
 			_Code.codeContents.append(_Code.templates.propertiesLocal({ data: data }));
 
@@ -1533,10 +1524,7 @@ let _Code = {
 		},
 		displayRemotePropertiesContent: (data, updateLocationStack) => {
 
-			if (updateLocationStack === true) {
-				_Code.pathLocations.updatePathLocationStack(data.path);
-				_Code.lastClickedPath = data.path;
-			}
+			_Code.mainArea.updateLocationStack(data, updateLocationStack);
 
 			_Code.codeContents.append(_Code.templates.propertiesRemote({ data: data }));
 
@@ -1555,10 +1543,7 @@ let _Code = {
 		},
 		displayViewsContent: (data, updateLocationStack) => {
 
-			if (updateLocationStack === true) {
-				_Code.pathLocations.updatePathLocationStack(data.path);
-				_Code.lastClickedPath = data.path;
-			}
+			_Code.mainArea.updateLocationStack(data, updateLocationStack);
 
 			_Code.codeContents.append(_Code.templates.views({ data: data }));
 
@@ -1574,10 +1559,7 @@ let _Code = {
 		},
 		displayMethodsContent: (data, updateLocationStack) => {
 
-			if (updateLocationStack === true) {
-				_Code.pathLocations.updatePathLocationStack(data.path);
-				_Code.lastClickedPath = data.path;
-			}
+			_Code.mainArea.updateLocationStack(data, updateLocationStack);
 
 			_Code.codeContents.append(_Code.templates.methods({ data: data }));
 
@@ -1594,10 +1576,7 @@ let _Code = {
 		},
 		displayInheritedPropertiesContent: (data, updateLocationStack) => {
 
-			if (updateLocationStack === true) {
-				_Code.pathLocations.updatePathLocationStack(data.path);
-				_Code.lastClickedPath = data.path;
-			}
+			_Code.mainArea.updateLocationStack(data, updateLocationStack);
 
 			_Code.codeContents.append(_Code.templates.propertiesInherited({ data: data }));
 
@@ -1608,8 +1587,6 @@ let _Code = {
 		displayPropertyDetails: (data) => {
 
 			Command.get(data.id, null, (result) => {
-
-				_Code.recentElements.updateRecentlyUsed(result, data.path, data.updateLocationStack);
 
 				if (result.propertyType) {
 
@@ -1829,8 +1806,6 @@ let _Code = {
 
 			Command.get(data.id, null, (result) => {
 
-				_Code.recentElements.updateRecentlyUsed(result, data.path, data.updateLocationStack);
-
 				_Code.codeContents.append(_Code.templates.defaultView({ view: result }));
 				_Code.mainArea.displayDefaultViewOptions(result, undefined, data);
 			});
@@ -1963,8 +1938,6 @@ let _Code = {
 				let isStaticMethod      = result.isStatic;
 
 				let lastOpenTab = LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${data.id}`, 'source');
-
-				_Code.recentElements.updateRecentlyUsed(result, data.path, data.updateLocationStack);
 
 				_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
 				_Code.codeContents.append(_Code.templates.method({ method: result }));
@@ -2599,7 +2572,339 @@ let _Code = {
 
 				return button;
 			},
-		}
+		},
+		scratchpad: {
+			scratchpadsKey: 'scratchpads_' + location.port,
+			currentScratchPads: [],
+			show: async (data, updateLocationStack) => {
+
+				_Code.mainArea.updateLocationStack(data, updateLocationStack);
+
+				_Code.codeContents.append(_Code.mainArea.scratchpad.templates.main());
+
+				let newScratchPadButton = _Code.codeContents[0].querySelector('svg');
+				newScratchPadButton?.addEventListener('click', async () => {
+					let newScratchPad = await _Code.mainArea.scratchpad.createScratchpadEntity();
+					_Code.mainArea.scratchpad.drawScratchpad(newScratchPad);
+				});
+
+				let currentScratchPads = await Command.queryPromise('Scratchpad', 1000, 1, 'createdDate', false, null, true, 'ui');
+				for (let currentPad of currentScratchPads) {
+
+					_Code.mainArea.scratchpad.drawScratchpad(currentPad);
+				}
+			},
+			drawScratchpad: (currentPad) => {
+
+				let container = _Code.codeContents[0].querySelector('#code-scratchpad-container');
+
+				let newScratchpad = _Helpers.createSingleDOMElementFromHTML(_Code.mainArea.scratchpad.templates.scratchpad(currentPad));
+				container.insertAdjacentElement('afterbegin', newScratchpad);
+
+				let titleDiv         = newScratchpad.querySelector('[data-is-title]');
+				let titleInput       = newScratchpad.querySelector('[data-is-title-input]');
+				let editorDiv        = newScratchpad.querySelector('[data-is-editor]');
+				let editorContextDiv = newScratchpad.querySelector('[data-is-editor-context]');
+				let logTextarea      = newScratchpad.querySelector('[data-is-log]');
+				let logContext       = newScratchpad.querySelector('[data-is-log-context]');
+				let outputDiv        = newScratchpad.querySelector('[data-is-output]');
+
+				newScratchpad.querySelector('summary').addEventListener('click', (e) => {
+
+					let details = e.target.closest('details');
+
+					currentPad.collapsed = details.open;
+
+					if (!details.open) {
+						_Editors.resizeVisibleEditors();
+					}
+
+					saveFn();
+				});
+
+				let saveFn = async () => {
+
+					let { name, source, result, log, collapsed } = currentPad;
+
+					Command.setProperties(currentPad.id, { name, source, result, log, collapsed });
+				};
+
+				logTextarea.value = currentPad.log ?? '';
+
+				_Code.mainArea.scratchpad.populateOutputDiv(outputDiv, currentPad);
+
+				let updateTitleDiv = (newName) => {
+
+					titleDiv.textContent = (newName && newName.trim().length > 0) ? newName : 'Untitled Scratchpad';
+				};
+
+				updateTitleDiv(currentPad.name);
+
+				titleInput.value = currentPad.name ?? 'Untitled Scratchpad';
+				titleInput.addEventListener('input', e => {
+
+					currentPad.name = e.target.value;
+
+					updateTitleDiv(currentPad.name);
+
+					saveFn();
+				});
+
+				let scratchMonacoConfig = {
+					language: 'auto',
+					lint: true,
+					autocomplete: true,
+					isAutoscriptEnv: true,
+					scrollBeyondLastLine: false,
+					changeFn: (editor, entity) => {
+
+						entity.source = editor.getValue();
+						saveFn();
+
+						_Code.mainArea.scratchpad.resizeEditorContainer(editorDiv, editor);
+					}
+				};
+
+				let scratchEditor = _Editors.getMonacoEditor(currentPad, 'source', editorDiv, scratchMonacoConfig);
+
+				_Code.mainArea.scratchpad.resizeEditorContainer(editorDiv, scratchEditor);
+
+				let runButton = _Helpers.createSingleDOMElementFromHTML(_Code.mainArea.scratchpad.templates.runButton());
+				editorContextDiv.appendChild(runButton);
+
+				let removePadButton = _Helpers.createSingleDOMElementFromHTML(_Code.mainArea.scratchpad.templates.removePadButton());
+				editorContextDiv.appendChild(removePadButton);
+
+				let updateLogButton = _Helpers.createSingleDOMElementFromHTML(_Code.mainArea.scratchpad.templates.updateLogButton());
+				logContext.appendChild(updateLogButton);
+
+				let updateLog = async () => {
+
+					let response = await fetch(`${Structr.rootUrl}Scratchpad/${currentPad.id}/getServerLog`, { method: 'POST' });
+					let data     = await response.json();
+
+					if (response.ok) {
+
+						currentPad.log    = data;
+						logTextarea.value = data;
+
+						saveFn();
+
+					} else {
+
+						Structr.errorFromResponse(data);
+					}
+				};
+
+				let callFinished = false;
+				let updateLogUntilCallFinished = () => {
+
+					setTimeout(async () => {
+						if (callFinished === false) {
+							await updateLog();
+							updateLogUntilCallFinished();
+						} else {
+							callFinished = false;
+						}
+					}, 1000);
+				};
+
+				runButton.addEventListener('click', async () => {
+
+					_Code.mainArea.scratchpad.setButtonDisabledAndSpinnerStatus(runButton, true);
+					_Code.mainArea.scratchpad.setButtonDisabledAndSpinnerStatus(updateLogButton, true);
+
+					_Helpers.fastRemoveAllChildren(outputDiv);
+					logTextarea.value = '';
+
+					fetch(`${Structr.rootUrl}Scratchpad/${currentPad.id}/prepareNextRun`, { method: 'POST' })
+						.then(response => {
+
+							updateLogUntilCallFinished();
+
+							return fetch(`${Structr.rootUrl}Scratchpad/${currentPad.id}/run`, { method: 'POST' })
+						})
+						.then(response => response.json())
+						.then(data => {
+
+							currentPad.result = (data.code === 422) ? data.message : JSON.stringify(data.result, null, '\t');
+							_Code.mainArea.scratchpad.populateOutputDiv(outputDiv, currentPad);
+
+						}).catch(e => {
+
+							_Code.mainArea.scratchpad.populateOutputDiv(outputDiv, currentPad);
+							console.log(e);
+
+						}).finally(() => {
+
+							callFinished = true;
+
+							updateLog();
+
+							_Code.mainArea.scratchpad.setButtonDisabledAndSpinnerStatus(runButton, false);
+							_Code.mainArea.scratchpad.setButtonDisabledAndSpinnerStatus(updateLogButton, false);
+						});
+				});
+
+				updateLogButton.addEventListener('click', async () => {
+					await updateLog();
+				});
+
+				removePadButton.addEventListener('click', async (e) => {
+
+					_Dialogs.confirmation.showPromise(`Delete scratchpad <strong>${_Helpers.escapeTags(currentPad.name ?? '')}</strong>?`).then(async confirm => {
+
+						if (confirm === true) {
+
+							let response = await fetch(`${Structr.rootUrl}Scratchpad/${currentPad.id}`, { method: 'DELETE' });
+
+							if (!response.ok) {
+
+								let data = await response.json();
+
+								Structr.errorFromResponse(data);
+
+							} else {
+								e.target.closest('[data-is-scratchpad]').remove();
+							}
+						}
+					});
+				});
+
+				_Editors.resizeVisibleEditors();
+			},
+			createScratchpadEntity: async () => {
+
+				return Command.createPromise({
+					type: 'Scratchpad',
+					name: 'Untitled Scratchpad'
+				});
+			},
+			setButtonDisabledAndSpinnerStatus: (button, status) => {
+
+				button.classList.toggle('show-spinner', status);
+				button.classList.toggle('disabled', status);
+				button.disabled = status;
+			},
+			resizeEditorContainer: (container, editor) => {
+
+				const lineCount  = editor.getModel().getLineCount();
+				const lineHeight = editor.getOption(monaco.editor.EditorOption.lineHeight);
+
+				let minLines = 5;
+				let maxLines = 35;
+
+				let showLines = Math.min(maxLines, Math.max(minLines, lineCount));
+
+				const contentHeight = showLines * lineHeight;
+
+				container.style.height = contentHeight + 'px';
+
+				_Editors.resizeEditor(editor);
+			},
+			populateOutputDiv: (div, entity) => {
+
+				// create a child-div because of the font-mono situation... it automatically sets styles, leading to regular text being mono after changing return values
+				_Helpers.fastRemoveAllChildren(div);
+				let outputDiv = document.createElement('div');
+
+				let output   = entity.result ?? '';
+				let isString = (typeof output === 'string');
+
+				if (!isString) {
+					output = JSON.stringify(output, null, "\t");
+				}
+
+				outputDiv.classList.add('whitespace-pre-wrap');
+
+				outputDiv.textContent = output;
+
+				div.appendChild(outputDiv);
+			},
+			templates: {
+				main: config => `
+					<div class="flex flex-col items-start gap-2 items-center mb-4">
+						<h2>Scratchpads ${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['icon-green', 'cursor-pointer', 'mr-2'])}</h2>
+					</div>
+					<div class="content-container">
+					
+						<div class="inline-info">
+							<div class="inline-info-icon">
+								${_Icons.getSvgIcon('info-icon')}
+							</div>
+							<div class="inline-info-text">
+								<p>Scratchpads are simple blocks where custom code can be developed without needing to create a method.</p>
+								
+								<p>If log output is generated by the scratchpad code, it is tagged with <code>[scratch_xxxx]</code>. The log view is continuously updated while the script is running and only contains log entries that contain the corresponding tag.</p>
+							</div>
+						</div>
+					
+						<div id="code-scratchpad-container" class="flex flex-col gap-6">
+						</div>
+					</div>
+				`,
+				scratchpad: config => `
+					<details class="flex px-2" data-is-scratchpad ${config.collapsed ? '' : 'open'}>
+						
+						<summary class="cursor-pointer flex items-center gap-4 list-none pl-4 py-4">
+							${_Icons.getSvgIcon('chevron-right-filled', 12, 12)}
+							<div data-is-title class="font-semibold"></div>
+						</summary>
+						
+						<div data-is-scratchpad-details class="flex flex-col flex-grow gap-2">
+						
+							<input data-is-title-input placeholder="Title" name="name" class="flex-grow">
+							
+							<div class="flex-grow flex gap-2">
+	
+								<div data-is-editor-context class="flex flex-col gap-2"></div>
+								
+								<div class="flex-grow grid grid-cols-2 gap-4">
+			
+									<div data-is-editor-container>
+										<div data-is-editor></div>
+									</div>
+	
+									<div class="flex gap-4">
+										<textarea data-is-log readonly="readonly" class="flex-grow whitespace-nowrap whitespace-pre"></textarea>
+										<div data-is-log-context></div>
+									</div>
+									
+									<div data-is-output class="col-span-2"></div>
+								</div>
+							</div>	
+						</div>
+					</details>
+				`,
+				runButton: config => `
+					<button class="group hover:bg-gray-100 focus:border-gray-666 active:border-green" title="Run">
+						<div class="group-[.show-spinner]:hidden flex items-center justify-center gap-2">
+							${_Icons.getSvgIcon(_Icons.iconRunButton)}
+						</div>
+						<div class="flex">
+							${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 16, 16, ['hidden', 'group-[.show-spinner]:block'])}
+						</div>
+					</button>
+				`,
+				updateLogButton: config => `
+					<button class="group over:bg-gray-100 focus:border-gray-666 active:border-green" title="Update Log">
+						<div class="group-[.show-spinner]:hidden flex items-center justify-center gap-2">
+							${_Icons.getSvgIcon(_Icons.iconRefreshArrows)}
+						</div>
+						<div class="flex">
+							${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 16, 16, ['hidden', 'group-[.show-spinner]:block'])}
+						</div>
+					</button>
+				`,
+				removePadButton: config => `
+					<button class="hover:bg-gray-100 focus:border-gray-666 active:border-green" title="Remove this scratchpad">
+						<div class="flex items-center justify-center gap-2">
+							${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, ['icon-red'])}
+						</div>
+					</button>
+				`,
+			}
+		},
 	},
 	helpers: {
 		getAttributesToFetchForErrorObject: () => 'id,type,name,content,isStatic,ownerDocument,schemaNode',
@@ -2656,7 +2961,7 @@ let _Code = {
 				// ctrl-s / cmd-s
 				if ((code === 'KeyS' || keyCode === 83) && ((!_Helpers.isMac() && event.ctrlKey) || (_Helpers.isMac() && event.metaKey))) {
 					event.preventDefault();
-					_Code.persistence.runCurrentEntitySaveAction();
+					_Code.persistence.runCurrentEntitySaveAction?.();
 				}
 
 				// ctrl-r / cmd-r
@@ -3143,146 +3448,6 @@ let _Code = {
 			}
 		}
 	},
-	recentElements: {
-		codeRecentElementsKey: 'structrCodeRecentElements_' + location.port,
-		init: () => {
-			_Code.recentElements.updateVisibility();
-		},
-		isVisible: () => UISettings.getValueForSetting(UISettings.settingGroups.code.settings.showRecentsInCodeArea),
-		loadRecentlyUsedElements: (doneCallback) => {
-
-			let recentElements = LSWrapper.getItem(_Code.recentElements.codeRecentElementsKey) || [];
-
-			for (let element of recentElements) {
-
-				let nameIsUndefined = !element.name;
-				let notSvgIcon      = !element.iconSvg;
-
-				if (!nameIsUndefined && !notSvgIcon) {
-					_Code.recentElements.addRecentlyUsedElement(element.id, element.name, element.iconSvg, element.path, true);
-				}
-			}
-
-			doneCallback();
-		},
-		addRecentlyUsedEntity: (entity, path, fromStorage) => {
-
-			let name      = _Code.recentElements.getDisplayNameInRecentsForType(entity);
-			let iconSvg   = _Icons.getIconForSchemaNodeType(entity);
-			let localPath = path;
-
-			// don't add search results to recently used elements (we cannot construct the path)
-			if (localPath.indexOf('root/searchresults/') !== 0) {
-				_Code.recentElements.addRecentlyUsedElement(entity.id, name, iconSvg, localPath, fromStorage);
-			}
-		},
-		addRecentlyUsedElement: (id, name, iconSvg, path, fromStorage) => {
-
-			if (!fromStorage) {
-
-				let recentElements = LSWrapper.getItem(_Code.recentElements.codeRecentElementsKey) || [];
-				let updatedList    = recentElements.filter((recentElement) => (recentElement.id !== id));
-				updatedList.push({ id: id, name: name, iconSvg: iconSvg, path: path });
-
-				// keep list at length 20
-				while (updatedList.length > 20) {
-
-					let toRemove = updatedList.pop();
-					_Helpers.fastRemoveElement(document.querySelector('#recently-used-' + toRemove.id));
-				}
-
-				// sort by name (keep order!)
-				updatedList.sort((a, b) => a.name > b.name ? 1 : a.name < b.name ? -1 : 0);
-
-				LSWrapper.setItem(_Code.recentElements.codeRecentElementsKey, updatedList);
-
-				// element with id from parameter was clicked => highlight
-				for (let e of document.querySelectorAll('.code-favorite')) {
-					e.classList.remove('active');
-				}
-				document.querySelector('#recently-used-' + id)?.classList.add('active');
-			}
-
-			let recentlyUsedButton = _Helpers.createSingleDOMElementFromHTML(_Code.templates.recentlyUsedButton({ id: id, name: name, iconSvg: iconSvg }));
-
-			let codeContext  = document.querySelector('#code-context');
-			if (fromStorage) {
-
-				codeContext.append(recentlyUsedButton);
-
-			} else if (!document.querySelector('#recently-used-' + id)) {
-
-				// new element => reload all so we have a sorted list
-				for (let e of document.querySelectorAll('.code-favorite')) {
-					_Helpers.fastRemoveElement(e);
-				}
-				_Code.recentElements.loadRecentlyUsedElements(()=>{});
-			}
-
-			recentlyUsedButton.addEventListener('click', () => {
-				_Code.tree.findAndOpenNode(path, true);
-			});
-
-			recentlyUsedButton.querySelector('.remove-recently-used').addEventListener('click', (e) => {
-				e.stopPropagation();
-				_Code.recentElements.deleteRecentlyUsedElement(id);
-			});
-		},
-		deleteRecentlyUsedElement: (recentlyUsedElementId) => {
-
-			let recentElements         = LSWrapper.getItem(_Code.recentElements.codeRecentElementsKey) || [];
-			let filteredRecentElements = recentElements.filter((recentElement) => (recentElement.id !== recentlyUsedElementId));
-
-			_Helpers.fastRemoveElement(document.querySelector('#recently-used-' + recentlyUsedElementId));
-
-			LSWrapper.setItem(_Code.recentElements.codeRecentElementsKey, filteredRecentElements);
-		},
-		updateRecentlyUsed: (entity, path, updateLocationStack) => {
-
-			_Code.recentElements.addRecentlyUsedEntity(entity, path);
-
-			if (updateLocationStack) {
-				_Code.pathLocations.updatePathLocationStack(path);
-				_Code.lastClickedPath = path;
-			}
-		},
-		getDisplayNameInRecentsForType: (entity) => {
-
-			let displayName = entity.name;
-
-			switch (entity.type) {
-				case 'SchemaNode':
-					displayName = `Type ${entity.name}`;
-					break;
-
-				case 'SchemaMethod':
-					if (entity.schemaNode && entity.schemaNode.name) {
-						displayName = `${entity.schemaNode.name}.${entity.name}()`;
-					} else {
-						displayName = `${entity.name}()`;
-					}
-					break;
-
-				case 'SchemaProperty':
-					if (entity.schemaNode && entity.schemaNode.name) {
-						displayName = `${entity.schemaNode.name}.${entity.name}`;
-					}
-					break;
-			}
-
-			return displayName;
-		},
-		updateVisibility: () => {
-
-			let codeContext  = document.querySelector('#code-context');
-			let isHidden     = !_Code.recentElements.isVisible();
-
-			codeContext.classList.toggle('hidden', isHidden);
-			document.querySelector('.column-resizer-right')?.classList.toggle('hidden', isHidden);
-
-			Structr.resize();
-		}
-	},
 	pathLocations: {
 		stack: [],
 		currentIndex: 0,
@@ -3509,7 +3674,6 @@ let _Code = {
 
 				<div class="column-resizer-blocker"></div>
 				<div class="column-resizer column-resizer-left"></div>
-				<div class="column-resizer column-resizer-right"></div>
 
 				<div class="tree-container" id="code-tree-container">
 					<div class="tree" id="code-tree">
@@ -3519,10 +3683,6 @@ let _Code = {
 
 				<div class="tree-contents-container" id="code-contents-container">
 					<div class="flex flex-col tree-contents" id="code-contents"></div>
-				</div>
-
-				<div class="tree-context-container" id="code-context-container">
-					<div class="tree-context" id="code-context"></div>
 				</div>
 			</div>
 		`,
@@ -3908,14 +4068,6 @@ let _Code = {
 
 					</div>
 				</div>
-			</div>
-		`,
-		recentlyUsedButton: config => `
-			<div class="code-favorite items-center px-2 py-1" id="recently-used-${config.id}">
-				${config.iconSvg ? config.iconSvg : ''}
-				${config.iconClass ? `<i class="${config.iconClass} flex-none"></i>` : ''}
-				<div class="truncate flex-grow">${config.name}</div>
-				${_Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, _Icons.getSvgIconClassesForColoredIcon(['flex-none', 'icon-grey', 'remove-recently-used']))}
 			</div>
 		`,
 		root: config => `

@@ -68,6 +68,7 @@ import java.util.Set;
  */
 public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 
+	public static final String ATTACHMENT_OF_EMAIL_PROPERTY      = "attachmentOfEmail";
 	public static final String FILE_PARENT_PROPERTY               = "fileParent";
 	public static final String CONTENT_TYPE_PROPERTY              = "contentType";
 	public static final String DONT_CACHE_PROPERTY                = "dontCache";
@@ -76,7 +77,6 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String IS_FILE_PROPERTY                   = "isFile";
 	public static final String IS_TEMPLATE_PROPERTY               = "isTemplate";
 	public static final String CACHE_FOR_SECONDS_PROPERTY         = "cacheForSeconds";
-	public static final String POSITION_PROPERTY                  = "position";
 	public static final String VERSION_PROPERTY                   = "version";
 	public static final String MD5_PROPERTY                       = "md5";
 	public static final String SHA1_PROPERTY                      = "sha1";
@@ -348,25 +348,24 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> fileParentProperty  = new StartNode(traitsInstance, FILE_PARENT_PROPERTY, StructrTraits.FOLDER_CONTAINS_FILE);
-		final Property<String> contentTypeProperty        = new StringProperty(CONTENT_TYPE_PROPERTY).description("Content type of the file.");
-		final Property<Boolean> dontCacheProperty         = new BooleanProperty(DONT_CACHE_PROPERTY).defaultValue(false);
-		final Property<Boolean> indexedProperty           = new BooleanProperty(INDEXED_PROPERTY);
-		final Property<String> extractedContentProperty   = new StringProperty(EXTRACTED_CONTENT_PROPERTY).fulltextIndexed().disableSerialization(true);
-		final Property<Boolean> isFileProperty            = new ConstantBooleanProperty(IS_FILE_PROPERTY, true).readOnly();
-		final Property<Boolean> isTemplateProperty        = new BooleanProperty(IS_TEMPLATE_PROPERTY).readOnly().description("When checked, the content of this file is evaluated as a script and the resulting content is returned.");
-		final Property<Integer> cacheForSecondsProperty   = new IntProperty(CACHE_FOR_SECONDS_PROPERTY);
-		final Property<Integer> positionProperty          = new IntProperty(POSITION_PROPERTY).indexed();
-		final Property<Integer> versionProperty           = new IntProperty(VERSION_PROPERTY).indexed();
-		final Property<String> md5Property                = new StringProperty(MD5_PROPERTY).description("MD5 checksum of the file's content (optional, see below).");
-		final Property<String> sha1Property               = new StringProperty(SHA1_PROPERTY).description("SHA1 checksum of the file's content (optional, see below).");
-		final Property<String> sha512Property             = new StringProperty(SHA512_PROPERTY).description("SHA512 checksum of the file's content (optional, see below).");
-		final Property<String> urlProperty                = new StringProperty(URL_PROPERTY);
-		final Property<Long> checksumProperty             = new LongProperty(CHECKSUM_PROPERTY).indexed().description("xxHash checksum of the file's content (generated automatically).");
-		final Property<Long> crc32Property                = new LongProperty(CRC32_PROPERTY).indexed().description("CRC32 checksum of the file's content (optional, see below).");
-		final Property<Long> fileModificationDateProperty = new LongProperty(FILE_MODIFICATION_DATE_PROPERTY);
-		final Property<Long> sizeProperty                 = new LongProperty(SIZE_PROPERTY).indexed().description("Size of this file.");
-		final Property<String> base64DataProperty         = new FileDataProperty(BASE64_DATA_PROPERTY).typeHint("String").disableSerialization(true);
+		final Property<NodeInterface> fileParentProperty        = new StartNode(traitsInstance, FILE_PARENT_PROPERTY, StructrTraits.FOLDER_CONTAINS_FILE);
+		final Property<String> contentTypeProperty              = new StringProperty(CONTENT_TYPE_PROPERTY).description("Content type of the file.");
+		final Property<Boolean> dontCacheProperty               = new BooleanProperty(DONT_CACHE_PROPERTY).defaultValue(false);
+		final Property<Boolean> indexedProperty                 = new BooleanProperty(INDEXED_PROPERTY);
+		final Property<String> extractedContentProperty         = new StringProperty(EXTRACTED_CONTENT_PROPERTY).fulltextIndexed().disableSerialization(true);
+		final Property<Boolean> isFileProperty                  = new ConstantBooleanProperty(IS_FILE_PROPERTY, true).readOnly();
+		final Property<Boolean> isTemplateProperty              = new BooleanProperty(IS_TEMPLATE_PROPERTY).readOnly().description("When checked, the content of this file is evaluated as a script and the resulting content is returned.");
+		final Property<Integer> cacheForSecondsProperty         = new IntProperty(CACHE_FOR_SECONDS_PROPERTY);
+		final Property<Integer> versionProperty                 = new IntProperty(VERSION_PROPERTY).indexed();
+		final Property<String> md5Property                      = new StringProperty(MD5_PROPERTY).description("MD5 checksum of the file's content (optional, see below).");
+		final Property<String> sha1Property                     = new StringProperty(SHA1_PROPERTY).description("SHA1 checksum of the file's content (optional, see below).");
+		final Property<String> sha512Property                   = new StringProperty(SHA512_PROPERTY).description("SHA512 checksum of the file's content (optional, see below).");
+		final Property<String> urlProperty                      = new StringProperty(URL_PROPERTY);
+		final Property<Long> checksumProperty                   = new LongProperty(CHECKSUM_PROPERTY).indexed().description("xxHash checksum of the file's content (generated automatically).");
+		final Property<Long> crc32Property                      = new LongProperty(CRC32_PROPERTY).indexed().description("CRC32 checksum of the file's content (optional, see below).");
+		final Property<Long> fileModificationDateProperty       = new LongProperty(FILE_MODIFICATION_DATE_PROPERTY);
+		final Property<Long> sizeProperty                       = new LongProperty(SIZE_PROPERTY).indexed().description("Size of this file.");
+		final Property<String> base64DataProperty               = new FileDataProperty(BASE64_DATA_PROPERTY).typeHint("String").disableSerialization(true);
 
 		return Set.of(
 			fileParentProperty,
@@ -377,7 +376,6 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 			isFileProperty,
 			isTemplateProperty,
 			cacheForSecondsProperty,
-			positionProperty,
 			versionProperty,
 			md5Property,
 			sha1Property,
@@ -407,7 +405,6 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 					URL_PROPERTY, IS_FILE_PROPERTY, IS_TEMPLATE_PROPERTY, INDEXED_PROPERTY, EXTRACTED_CONTENT_PROPERTY, SIZE_PROPERTY,
 					DONT_CACHE_PROPERTY, CONTENT_TYPE_PROPERTY, CHECKSUM_PROPERTY,
 					CACHE_FOR_SECONDS_PROPERTY, VERSION_PROPERTY, MD5_PROPERTY
-
 			)
 		);
 	}

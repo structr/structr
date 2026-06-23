@@ -20,13 +20,18 @@ package org.structr.mail;
 
 import org.structr.api.service.LicenseManager;
 import org.structr.core.function.Functions;
+import org.structr.core.property.StartNode;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsInstance;
+import org.structr.core.traits.TraitsManager;
 import org.structr.mail.entity.traits.definitions.EMailMessageTraitDefinition;
 import org.structr.mail.entity.traits.definitions.MailboxTraitDefinition;
 import org.structr.mail.entity.traits.definitions.relationship.EMailMessageHAS_ATTACHMENTFile;
 import org.structr.mail.entity.traits.definitions.relationship.MailboxCONTAINS_EMAILMESSAGESEMailMessage;
 import org.structr.mail.function.*;
 import org.structr.module.StructrModule;
+import org.structr.web.traits.definitions.FileTraitDefinition;
 
 import java.util.Set;
 
@@ -41,6 +46,12 @@ public class AdvancedMailModule implements StructrModule {
 
 		StructrTraits.registerRelationshipType(StructrTraits.EMAIL_MESSAGE_HAS_ATTACHMENT_FILE,             StructrTraits.EMAIL_MESSAGE_HAS_ATTACHMENT_FILE);
 		StructrTraits.registerRelationshipType(StructrTraits.MAILBOX_CONTAINS_EMAIL_MESSAGES_EMAIL_MESSAGE, StructrTraits.MAILBOX_CONTAINS_EMAIL_MESSAGES_EMAIL_MESSAGE);
+
+		final TraitsInstance rootInstance = TraitsManager.getRootInstance();
+
+		Traits.getTrait(StructrTraits.FILE).registerPropertyKey(
+			new StartNode(rootInstance, FileTraitDefinition.ATTACHMENT_OF_EMAIL_PROPERTY, StructrTraits.EMAIL_MESSAGE_HAS_ATTACHMENT_FILE).description("EMailMessage this file is an attachment of..")
+		);
 
 		StructrTraits.registerTrait(new EMailMessageTraitDefinition());
 		StructrTraits.registerTrait(new MailboxTraitDefinition());

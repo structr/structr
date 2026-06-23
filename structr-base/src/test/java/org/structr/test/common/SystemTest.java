@@ -95,7 +95,7 @@ public class SystemTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 	}
 
@@ -209,7 +209,7 @@ public class SystemTest extends StructrTest {
 
 		} catch (Throwable t) {
 
-			logger.warn("", t);
+			t.printStackTrace();
 		}
 
 		assertNotNull("Entity should have been created", entity);
@@ -237,7 +237,7 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable t) {
-			logger.warn("", t);
+			t.printStackTrace();
 		}
 
 		try (final Tx tx = app.tx()) {
@@ -271,7 +271,7 @@ public class SystemTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -287,7 +287,7 @@ public class SystemTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -312,7 +312,7 @@ public class SystemTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -327,7 +327,7 @@ public class SystemTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -342,7 +342,7 @@ public class SystemTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
@@ -367,7 +367,7 @@ public class SystemTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
@@ -393,7 +393,7 @@ public class SystemTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
@@ -475,7 +475,7 @@ public class SystemTest extends StructrTest {
 
 			} catch (Throwable t) {
 
-				logger.warn("", t);
+				t.printStackTrace();
 				fail("Unexpected exception");
 			}
 		}
@@ -1159,7 +1159,7 @@ public class SystemTest extends StructrTest {
 			app.create(StructrTraits.GROUP, "group");
 
 			JsonSchema schema = StructrSchema.createFromDatabase(app);
-			schema.addType("GrantTest").addMethod("onCreation", "grant(first(find('Group')), this, 'read')");
+			schema.addType("GrantTest").addMethod("onCreate", "grant(first(find('Group')), this, 'read')");
 
 			StructrSchema.replaceDatabaseSchema(app, schema);
 
@@ -1281,7 +1281,7 @@ public class SystemTest extends StructrTest {
 
 			contact.addTrait(StructrTraits.PRINCIPAL);
 			//contact.setExtends(sourceSchema.getType(StructrTraits.PRINCIPAL));
-			contact.addMethod("onModification", "log(baseUrl)");
+			contact.addMethod("onSave", "log(baseUrl)");
 
 			StructrSchema.extendDatabaseSchema(app, sourceSchema);
 
@@ -1347,7 +1347,7 @@ public class SystemTest extends StructrTest {
 			final JsonType test1          = sourceSchema.addType("Test1");
 			final JsonType test2          = sourceSchema.addType("Test2");
 
-			test1.addMethod("onCreation", "call_privileged('globalTestMethod')");
+			test1.addMethod("onCreate", "call_privileged('globalTestMethod')");
 
 			StructrSchema.extendDatabaseSchema(app, sourceSchema);
 
@@ -1500,7 +1500,7 @@ public class SystemTest extends StructrTest {
 
 		} catch(UnlicensedScriptException |FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -2139,10 +2139,10 @@ public class SystemTest extends StructrTest {
 
 			project.relate(task, "HAS_TASK", Cardinality.ManyToMany, "projects", "tasks");
 
-			project.addMethod("onCreation", "{ $.this.name = 'Created by ' + $.me.name; }");
-			project.addMethod("onModification", "{ $.this.name = 'Modified by ' + $.me.name; }");
-			task.addMethod("onCreation", "{  $.this.name = 'Created by ' + $.me.name; }");
-			task.addMethod("onModification", "{  $.this.name = 'Modified by ' + $.me.name; }");
+			project.addMethod("onCreate", "{ $.this.name = 'Created by ' + $.me.name; }");
+			project.addMethod("onSave", "{ $.this.name = 'Modified by ' + $.me.name; }");
+			task.addMethod("onCreate", "{  $.this.name = 'Created by ' + $.me.name; }");
+			task.addMethod("onSave", "{  $.this.name = 'Modified by ' + $.me.name; }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -2244,10 +2244,10 @@ public class SystemTest extends StructrTest {
 
 			project.relate(task, "HAS_TASK", Cardinality.OneToMany, "project", "tasks");
 
-			project.addMethod("onCreation", "{ $.this.name = 'Created by ' + $.me.name; }");
-			project.addMethod("onModification", "{ $.this.name = 'Modified by ' + $.me.name; }");
-			task.addMethod("onCreation", "{  $.this.name = 'Created by ' + $.me.name; }");
-			task.addMethod("onModification", "{  $.this.name = 'Modified by ' + $.me.name; }");
+			project.addMethod("onCreate", "{ $.this.name = 'Created by ' + $.me.name; }");
+			project.addMethod("onSave", "{ $.this.name = 'Modified by ' + $.me.name; }");
+			task.addMethod("onCreate", "{  $.this.name = 'Created by ' + $.me.name; }");
+			task.addMethod("onSave", "{  $.this.name = 'Modified by ' + $.me.name; }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -2349,10 +2349,10 @@ public class SystemTest extends StructrTest {
 
 			project.relate(task, "HAS_TASK", Cardinality.OneToOne, "project", "task");
 
-			project.addMethod("onCreation", "{ $.this.name = 'Created by ' + $.me.name; }");
-			project.addMethod("onModification", "{ $.this.name = 'Modified by ' + $.me.name; }");
-			task.addMethod("onCreation", "{  $.this.name = 'Created by ' + $.me.name; }");
-			task.addMethod("onModification", "{  $.this.name = 'Modified by ' + $.me.name; }");
+			project.addMethod("onCreate", "{ $.this.name = 'Created by ' + $.me.name; }");
+			project.addMethod("onSave", "{ $.this.name = 'Modified by ' + $.me.name; }");
+			task.addMethod("onCreate", "{  $.this.name = 'Created by ' + $.me.name; }");
+			task.addMethod("onSave", "{  $.this.name = 'Modified by ' + $.me.name; }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -2451,10 +2451,10 @@ public class SystemTest extends StructrTest {
 
 			project.relate(task, "HAS_TASK", Cardinality.OneToOne, "project", "task");
 
-			project.addMethod("onCreation", "{ $.this.name = 'Created by ' + $.me.name; }");
-			project.addMethod("onModification", "{ $.this.name = 'Modified by ' + $.me.name; }");
-			task.addMethod("onCreation", "{  $.this.name = 'Created by ' + $.me.name; }");
-			task.addMethod("onModification", "{  $.this.name = 'Modified by ' + $.me.name; }");
+			project.addMethod("onCreate", "{ $.this.name = 'Created by ' + $.me.name; }");
+			project.addMethod("onSave", "{ $.this.name = 'Modified by ' + $.me.name; }");
+			task.addMethod("onCreate", "{  $.this.name = 'Created by ' + $.me.name; }");
+			task.addMethod("onSave", "{  $.this.name = 'Modified by ' + $.me.name; }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -2650,7 +2650,7 @@ public class SystemTest extends StructrTest {
 				tx.success();
 
 			} catch (FrameworkException fex) {
-				logger.warn("", fex);
+				fex.printStackTrace();
 			}
 		}
 	}

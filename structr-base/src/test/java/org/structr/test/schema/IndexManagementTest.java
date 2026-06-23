@@ -52,6 +52,196 @@ public class IndexManagementTest extends StructrTest {
 	private static final long INDEX_UPDATE_WAIT_TIME                 = TimeUnit.SECONDS.toMillis(10);
 
 	@Test
+	public void testIndexCreationAndRemovalForNonStringNodePropertyWithIndexedFlag() {
+
+		final DatabaseService db = app.getDatabaseService();
+		long start               = 0;
+
+		// only run this test if Cypher is supported
+		if (db.supportsFeature(DatabaseFeature.QueryLanguage, "text/cypher")) {
+
+			final String expectedRangeIndexType = Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.RangeIndexes) ? "RANGE" : "BTREE";
+
+			{
+				Services.enableIndexConfiguration();
+
+				// This test creates a custom type with an indexed property and verifies index creation and removal.
+
+				// setup 1: add type with indexed property
+				try (final Tx tx = app.tx()) {
+
+					final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
+					final JsonType customer       = sourceSchema.addType("Customer");
+
+					customer.addIntegerProperty("test").setIndexed(true).setRequired(true).setUnique(true);
+
+					// apply schema changes
+					StructrSchema.extendDatabaseSchema(app, sourceSchema);
+
+					tx.success();
+
+				} catch (FrameworkException fex) {
+
+					fex.printStackTrace();
+					fail("Unexpected exception");
+				}
+
+				start = System.currentTimeMillis();
+
+
+				while (!indexCreatedSuccessfully(db, true, false, expectedRangeIndexType, "Customer", Set.of("test"), 1)) {
+
+					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
+						fail("Timeout waiting for index update!");
+					}
+
+					// wait for index to be created
+					try { Thread.sleep(INDEX_UPDATE_WAIT_TIME); } catch (Throwable t) {}
+				}
+
+				// setup 2: remove indexed property
+				try (final Tx tx = app.tx()) {
+
+					final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
+					final JsonType customer       = sourceSchema.getType("Customer");
+
+					for (Iterator<JsonProperty> it = customer.getProperties().iterator(); it.hasNext();) {
+
+						final JsonProperty prop = it.next();
+						if ("test".equals(prop.getName())) {
+
+							prop.setIndexed(false);
+						}
+					}
+
+					// apply schema changes
+					StructrSchema.replaceDatabaseSchema(app, sourceSchema);
+
+					tx.success();
+
+				} catch (FrameworkException fex) {
+
+					fex.printStackTrace();
+					fail("Unexpected exception");
+				}
+
+				start = System.currentTimeMillis();
+
+				while (!hasNumberOfIndexes(db, "Customer", 0)) {
+
+					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
+						fail("Timeout waiting for index update!");
+					}
+
+					// wait for index to be created
+					try { Thread.sleep(INDEX_UPDATE_WAIT_TIME); } catch (Throwable t) {}
+				}
+			}
+
+		} else {
+
+			System.out.println("Skipping test because Cypher is not supported.");
+		}
+	}
+
+	@Test
+	public void testIndexUpdateAfterPropertyTypeChange() {
+
+		final DatabaseService db = app.getDatabaseService();
+		long start               = 0;
+
+		// only run this test if Cypher is supported
+		if (db.supportsFeature(DatabaseFeature.QueryLanguage, "text/cypher")) {
+
+			final String expectedRangeIndexType = Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.RangeIndexes) ? "RANGE" : "BTREE";
+
+			{
+				Services.enableIndexConfiguration();
+
+				// This test creates a custom type with an indexed property and verifies index creation and removal.
+
+				// setup 1: add type with indexed property
+				try (final Tx tx = app.tx()) {
+
+					final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
+					final JsonType customer       = sourceSchema.addType("Customer");
+
+					customer.addStringProperty("test").setIndexed(true).setRequired(true).setUnique(true);
+
+					// apply schema changes
+					StructrSchema.extendDatabaseSchema(app, sourceSchema);
+
+					tx.success();
+
+				} catch (FrameworkException fex) {
+
+					fex.printStackTrace();
+					fail("Unexpected exception");
+				}
+
+				start = System.currentTimeMillis();
+
+				while (!indexCreatedSuccessfully(db, true, false, "TEXT", "Customer", Set.of("test"), 1)) {
+
+					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
+						fail("Timeout waiting for index update!");
+					}
+
+					// wait for index to be created
+					try { Thread.sleep(INDEX_UPDATE_WAIT_TIME); } catch (Throwable t) {}
+				}
+
+				// setup 2: remove indexed property
+				try (final Tx tx = app.tx()) {
+
+					final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
+					final JsonType customer       = sourceSchema.getType("Customer");
+
+					JsonProperty toRemove = null;
+
+					for (final JsonProperty prop : customer.getProperties()) {
+						if ("test".equals(prop.getName())) {
+							toRemove = prop;
+						}
+					}
+
+					if (toRemove != null) {
+						customer.getProperties().remove(toRemove);
+					}
+
+					customer.addIntegerProperty("test").setIndexed(true).setUnique(true);
+
+					// apply schema changes
+					StructrSchema.replaceDatabaseSchema(app, sourceSchema);
+
+					tx.success();
+
+				} catch (FrameworkException fex) {
+
+					fex.printStackTrace();
+					fail("Unexpected exception");
+				}
+
+				start = System.currentTimeMillis();
+
+				while (!indexCreatedSuccessfully(db, true, false, expectedRangeIndexType, "Customer", Set.of("test"), 1)) {
+
+					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
+						fail("Timeout waiting for index update!");
+					}
+
+					// wait for index to be created
+					try { Thread.sleep(INDEX_UPDATE_WAIT_TIME); } catch (Throwable t) {}
+				}
+			}
+
+		} else {
+
+			System.out.println("Skipping test because Cypher is not supported.");
+		}
+	}
+
+	@Test
 	public void testIndexCreationAndRemovalForNodePropertyWithIndexedFlag() {
 
 		final DatabaseService db = app.getDatabaseService();
@@ -86,7 +276,7 @@ public class IndexManagementTest extends StructrTest {
 
 				start = System.currentTimeMillis();
 
-				while (!indexCreatedSuccessfully(db, true, false, "Customer", Set.of("test"), 1)) {
+				while (!indexCreatedSuccessfully(db, true, false, "TEXT", "Customer", Set.of("test"), 1)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
 						fail("Timeout waiting for index update!");
@@ -177,7 +367,7 @@ public class IndexManagementTest extends StructrTest {
 
 				start = System.currentTimeMillis();
 
-				while (!indexCreatedSuccessfully(db, true, false, "Customer", Set.of("test"), 1)) {
+				while (!indexCreatedSuccessfully(db, true, false, "TEXT", "Customer", Set.of("test"), 1)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
 						fail("Timeout waiting for index update!");
@@ -267,7 +457,7 @@ public class IndexManagementTest extends StructrTest {
 
 				start = System.currentTimeMillis();
 
-				while (!indexCreatedSuccessfully(db, true, false, "Customer", Set.of("test"), 1)) {
+				while (!indexCreatedSuccessfully(db, true, false, "TEXT", "Customer", Set.of("test"), 1)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
 						fail("Timeout waiting for index update!");
@@ -354,7 +544,7 @@ public class IndexManagementTest extends StructrTest {
 
 				start = System.currentTimeMillis();
 
-				while (!indexCreatedSuccessfully(db, false, true, "HAS_PROJECT", INDEXED_RELATIONSHIP_PROPERTIES, 1)) {
+				while (!indexCreatedSuccessfully(db, false, true, "TEXT", "HAS_PROJECT", INDEXED_RELATIONSHIP_PROPERTIES, 1)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
 						fail("Timeout waiting for index update!");
@@ -447,7 +637,7 @@ public class IndexManagementTest extends StructrTest {
 
 				start = System.currentTimeMillis();
 
-				while (!indexCreatedSuccessfully(db, false, true, "HAS_PROJECT", INDEXED_RELATIONSHIP_PROPERTIES, 1)) {
+				while (!indexCreatedSuccessfully(db, false, true, "TEXT", "HAS_PROJECT", INDEXED_RELATIONSHIP_PROPERTIES, 1)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
 						fail("Timeout waiting for index update!");
@@ -539,7 +729,7 @@ public class IndexManagementTest extends StructrTest {
 
 				start = System.currentTimeMillis();
 
-				while (!indexCreatedSuccessfully(db, false, true, "HAS_PROJECT", INDEXED_RELATIONSHIP_PROPERTIES, 1)) {
+				while (!indexCreatedSuccessfully(db, false, true, "TEXT", "HAS_PROJECT", INDEXED_RELATIONSHIP_PROPERTIES, 1)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
 						fail("Timeout waiting for index creation!");
@@ -587,7 +777,7 @@ public class IndexManagementTest extends StructrTest {
 	}
 
 	// ----- private methods -----
-	private boolean indexCreatedSuccessfully(final DatabaseService db, final boolean isNode, final boolean isRelationship, final String entityType, final Set<String> propertyNames, final int expectedEntryCount) {
+	private boolean indexCreatedSuccessfully(final DatabaseService db, final boolean isNode, final boolean isRelationship, final String indexType, final String entityType, final Set<String> propertyNames, final int expectedEntryCount) {
 
 		logger.info("Waiting for index update..");
 
@@ -613,6 +803,11 @@ public class IndexManagementTest extends StructrTest {
 
 				if (isRelationship && !first.isRelationship()) {
 					logger.info("Returning false because first entry is not a relationship index and a relationship index was expected.");
+					return false;
+				}
+
+				if (!indexType.equals(first.getIndexType())) {
+					logger.info("Returning false because returned index type was {} while expected index type was {}", first.getIndexType(), indexType);
 					return false;
 				}
 
@@ -681,7 +876,7 @@ public class IndexManagementTest extends StructrTest {
 		// Neo4j 5.x
 		if (db.supportsFeature(DatabaseFeature.ShowIndexesQuery)) {
 
-			final String query = "SHOW INDEXES YIELD properties, entityType, labelsOrTypes, name WHERE labelsOrTypes = [\"" + labelOrType + "\"] RETURN name, entityType, labelsOrTypes, properties";
+			final String query = "SHOW INDEXES YIELD type, properties, entityType, labelsOrTypes, name WHERE labelsOrTypes = [\"" + labelOrType + "\"] RETURN name, type, entityType, labelsOrTypes, properties";
 			final NativeQuery<Iterable> nativeQuery    = db.query(query, Iterable.class);
 			final Iterable<Map<String, Object>> result = db.execute(nativeQuery);
 
@@ -691,7 +886,7 @@ public class IndexManagementTest extends StructrTest {
 		// Neo4j 4.x
 		if (db.supportsFeature(DatabaseFeature.NewDBIndexesFormat)) {
 
-			final String query = "CALL db.indexes() YIELD properties, entityType, labelsOrTypes, name WHERE labelsOrTypes = [\"" + labelOrType + "\"] RETURN name, entityType, labelsOrTypes, properties";
+			final String query = "CALL db.indexes() YIELD type, properties, entityType, labelsOrTypes, name WHERE labelsOrTypes = [\"" + labelOrType + "\"] RETURN name, type, entityType, labelsOrTypes, properties";
 			final NativeQuery<Iterable> nativeQuery    = db.query(query, Iterable.class);
 			final Iterable<Map<String, Object>> result = db.execute(nativeQuery);
 
@@ -709,6 +904,7 @@ public class IndexManagementTest extends StructrTest {
 	private static abstract class IndexInfo {
 
 		protected String type        = null;
+		protected String indexType   = null;
 		protected List<String> types = null;
 		protected List<String> props = null;
 
@@ -734,6 +930,10 @@ public class IndexManagementTest extends StructrTest {
 			return types.get(0);
 		}
 
+		public String getIndexType() {
+			return indexType;
+		}
+
 		public String getPropertyName() {
 
 			if (props == null || props.isEmpty()) {
@@ -752,9 +952,10 @@ public class IndexManagementTest extends StructrTest {
 
 		public Neo4IndexInfo(final Map<String, Object> data) {
 
-			this.type  = (String)data.get("entityType");
-			this.types = (List<String>)data.get("labelsOrTypes");
-			this.props = (List<String>)data.get("properties");
+			this.indexType = (String)data.get("type");
+			this.type      = (String)data.get("entityType");
+			this.types     = (List<String>)data.get("labelsOrTypes");
+			this.props     = (List<String>)data.get("properties");
 		}
 	}
 

@@ -20,12 +20,11 @@ package org.structr.core.graph;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.graph.Relationship;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.Traits;
 import org.structr.docs.*;
 import org.structr.docs.ontology.ConceptType;
 
@@ -59,17 +58,11 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 				// Treat only "our" rels
 				if(rel.getUuid() != null) {
 
-					final Traits traits                 = rel.getTraits();
-					final PropertyKey destPropertyKey   = traits.key(destKey);
-					final PropertyKey sourcePropertyKey = traits.key(sourceKey);
+					final Relationship dbRel = rel.getRelationship();
 
-					try {
-						// copy properties
-						rel.setProperty(destPropertyKey, rel.getProperty(sourcePropertyKey));
+					if (dbRel.hasProperty(sourceKey)) {
 
-					} catch (FrameworkException fex) {
-
-						logger.warn("Unable to copy relationship property {} of relationship {} to {}: {}", sourcePropertyKey, rel.getUuid(), destPropertyKey, fex.getMessage());
+						dbRel.setProperty(destKey, dbRel.getProperty(sourceKey));
 					}
 				}
 

@@ -24,6 +24,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
+import org.structr.core.entity.Security;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.Example;
@@ -32,6 +33,7 @@ import org.structr.docs.ontology.FunctionCategory;
 import org.structr.rest.serialization.StreamingJsonWriter;
 import org.structr.schema.action.ActionContext;
 
+import java.io.IOException;
 import java.io.StringWriter;
 import java.util.List;
 import java.util.Map;
@@ -96,8 +98,7 @@ public class ToJsonFunction extends UiCommunityFunction {
 
 				} else if (obj instanceof Number) {
 
-					return obj;
-
+					return obj.toString();
 				}
 
 				if (Boolean.FALSE.equals(returnRawResultWasEnabled)) {
@@ -124,8 +125,8 @@ public class ToJsonFunction extends UiCommunityFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-				Usage.structrScript("Usage: ${toJson(obj [, view[, depth = 3[, serializeNulls = true ]]])}."),
-				Usage.javaScript("Usage: ${{$.toJson(obj [, view[, depth = 3[, serializeNulls = true ]]])}}.")
+				Usage.structrScript("Usage: ${toJson(obj [, view [, depth = 3 [, serializeNulls = true ]]])}."),
+				Usage.javaScript("Usage: ${{ $.toJson(obj [, view [, depth = 3 [, serializeNulls = true ]]]) }}.")
 		);
 	}
 
@@ -137,19 +138,19 @@ public class ToJsonFunction extends UiCommunityFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-		Returns a JSON string representation of the given object very similar to `JSON.stringify()` in JavaScript.
-		The output of this method will be very similar to the output of the REST server except for the response 
-		headers and the result container. The optional `view` parameter can be used to select the view representation 
-		of the entity. If no view is given, the `public` view is used. The optional `depth` parameter defines 
-		at which depth the JSON serialization stops. If no depth is given, the default value of 3 is used.
-		""";
+			Returns a JSON string representation of the given object very similar to `JSON.stringify()` in JavaScript.
+			The output of this method will be very similar to the output of the REST server except for the response 
+			headers and the result container. The optional `view` parameter can be used to select the view representation 
+			of the entity. If no view is given, the `public` view is used. The optional `depth` parameter defines 
+			at which depth the JSON serialization stops. If no depth is given, the default value of 3 is used.
+			""";
 	}
 
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
 				Example.structrScript("${ toJson(find('MyData'), 'public', 4) }"),
-				Example.javaScript("${{$.toJson($.this, 'public', 4)}}")
+				Example.javaScript("${{ $.toJson($.this, 'public', 4) }}")
 		);
 	}
 
@@ -159,7 +160,7 @@ public class ToJsonFunction extends UiCommunityFunction {
 				Parameter.mandatory("source", "object or collection"),
 				Parameter.optional("view", "view (default: `public`)"),
 				Parameter.optional("depth", "conversion depth (default: 3)"),
-				Parameter.optional("serializeNulls", "nulled keep properties (default: true)")
+				Parameter.optional("serializeNulls", "keep null properties (default: true)")
 		);
 	}
 

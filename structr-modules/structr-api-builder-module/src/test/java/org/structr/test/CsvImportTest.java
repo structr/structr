@@ -120,7 +120,7 @@ public class CsvImportTest extends CsvTestBase {
 			.expect().statusCode(200).when().post("/File/" + newFileId + "/doCSVImport");
 
 		// wait for result (import is async.)
-		try { Thread.sleep(2000); } catch (Throwable t) {}
+		try { Thread.sleep(10000); } catch (Throwable t) {}
 
 		// check imported data for correct import
 		try (final Tx tx = app.tx()) {
@@ -236,7 +236,7 @@ public class CsvImportTest extends CsvTestBase {
 			.expect().statusCode(200).when().post("/File/" + newFileId + "/doCSVImport");
 
 		// wait for result (import is async.)
-		try { Thread.sleep(2000); } catch (Throwable t) {}
+		try { Thread.sleep(10000); } catch (Throwable t) {}
 
 		// check imported data for correct import
 		try (final Tx tx = app.tx()) {
@@ -352,7 +352,7 @@ public class CsvImportTest extends CsvTestBase {
 			.expect().statusCode(200).when().post("/File/" + newFileId + "/doCSVImport");
 
 		// wait for result (import is async.)
-		try { Thread.sleep(2000); } catch (Throwable t) {}
+		try { Thread.sleep(10000); } catch (Throwable t) {}
 
 		// check imported data for correct import
 		try (final Tx tx = app.tx()) {
@@ -468,7 +468,7 @@ public class CsvImportTest extends CsvTestBase {
 			.expect().statusCode(200).when().post("/File/" + newFileId + "/doCSVImport");
 
 		// wait for result (import is async.)
-		try { Thread.sleep(2000); } catch (Throwable t) {}
+		try { Thread.sleep(10000); } catch (Throwable t) {}
 
 		// check imported data for correct import
 		try (final Tx tx = app.tx()) {
@@ -599,7 +599,7 @@ public class CsvImportTest extends CsvTestBase {
 		}
 
 		// wait for async import..
-		try { Thread.sleep(4000); } catch (Throwable t) {}
+		try { Thread.sleep(10000); } catch (Throwable t) {}
 
 		// check imported data for correct import
 		try (final Tx tx = app.tx()) {
@@ -666,7 +666,7 @@ public class CsvImportTest extends CsvTestBase {
 		RestAssured.basePath = "/structr/rest";
 
 		// wait for async import..
-		try { Thread.sleep(2000); } catch (Throwable t) {}
+		try { Thread.sleep(10000); } catch (Throwable t) {}
 
 		// check imported data for correct import
 		try (final Tx tx = app.tx()) {

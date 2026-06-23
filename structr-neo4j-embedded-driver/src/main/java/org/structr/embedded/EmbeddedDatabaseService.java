@@ -21,6 +21,7 @@ package org.structr.embedded;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.dbms.api.DatabaseManagementServiceBuilder;
 import org.neo4j.driver.TransactionConfig;
+import org.neo4j.exceptions.CypherExecutionException;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -486,47 +487,6 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 		return getCurrentTransaction().run(new SimpleCypherQuery(nativeQuery, parameters));
 	}
 
-	TransactionConfig getTransactionConfig(final long id) {
-
-		final Map<String, Object> metadata = new HashMap<>();
-		final Thread currentThread         = Thread.currentThread();
-
-		metadata.put("id",         id);
-		metadata.put("pid",        ProcessHandle.current().pid());
-		metadata.put("threadId",   currentThread.threadId());
-
-		if (currentThread.getName() != null) {
-
-			metadata.put("threadName", currentThread.getName());
-		}
-
-		return TransactionConfig
-			.builder()
-			.withMetadata(metadata)
-			.build();
-	}
-
-	TransactionConfig getTransactionConfigForTimeout(final int seconds, final long id) {
-
-		final Map<String, Object> metadata = new HashMap<>();
-		final Thread currentThread         = Thread.currentThread();
-
-		metadata.put("id",         id);
-		metadata.put("pid",        ProcessHandle.current().pid());
-		metadata.put("threadId",   currentThread.threadId());
-
-		if (currentThread.getName() != null) {
-
-			metadata.put("threadName", currentThread.getName());
-		}
-
-		return TransactionConfig
-			.builder()
-			.withTimeout(Duration.ofSeconds(seconds))
-			.withMetadata(metadata)
-			.build();
-	}
-
 	@Override
 	public CountResult getNodeAndRelationshipCount() {
 
@@ -684,6 +644,9 @@ public class EmbeddedDatabaseService extends AbstractDatabaseService<String> {
 			case TypePredicateExpressions:
 				// see https://development.neo4j.dev/blog/developer/data-quality-type-constraints-functions/
 				return neo4jMajorVersion >= 5 && neo4jMinorVersion >= 9;
+
+			case RangeIndexes:
+				return neo4jMajorVersion >= 5;
 		}
 
 		return false;

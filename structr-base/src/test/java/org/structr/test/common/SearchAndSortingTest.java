@@ -1082,7 +1082,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 
 			logger.error(ex.toString());
 			fail("Unexpected exception");
@@ -1117,7 +1117,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 
 			logger.error(ex.toString());
 			fail("Unexpected exception");
@@ -1205,7 +1205,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 
 			logger.error(ex.toString());
 			fail("Unexpected exception");
@@ -1250,7 +1250,7 @@ public class SearchAndSortingTest extends StructrTest {
 			fail("Expected a FrameworkException (name must_not_be_empty)");
 
 		} catch (FrameworkException nfe) {
-			logger.warn("", nfe);
+			nfe.printStackTrace();
 
 		}
 
@@ -1267,7 +1267,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 
 			logger.error(ex.toString());
 			fail("Unexpected exception");
@@ -1302,7 +1302,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 
 			logger.error(ex.toString());
 			fail("Unexpected exception");
@@ -1335,7 +1335,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 
 			logger.error(ex.toString());
 			fail("Unexpected exception");
@@ -1367,7 +1367,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 
 			logger.error(ex.toString());
 			fail("Unexpected exception");
@@ -1396,7 +1396,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 
 			logger.error(ex.toString());
 			fail("Unexpected exception");
@@ -1425,7 +1425,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 
 			logger.error(ex.toString());
 			fail("Unexpected exception");
@@ -1454,7 +1454,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 		} catch (Throwable ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 
 			logger.error(ex.toString());
 			fail("Unexpected exception");
@@ -1483,7 +1483,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 
 			logger.error(ex.toString());
 			fail("Unexpected exception");
@@ -1511,7 +1511,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 
 			logger.error(ex.toString());
 			fail("Unexpected exception");
@@ -1552,7 +1552,7 @@ public class SearchAndSortingTest extends StructrTest {
 
               } catch (FrameworkException ex) {
 
-		      logger.warn("", ex);
+		      ex.printStackTrace();
 
                       logger.error(ex.toString());
                       fail("Unexpected exception");
@@ -1712,7 +1712,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 
@@ -2512,8 +2512,6 @@ public class SearchAndSortingTest extends StructrTest {
 
 	@Test
 	public void testFindQueryWithOrPredicate() {
-
-		Settings.CypherDebugLogging.setValue(true);
 
 		/*
 		 * This test verifies that the query builder creates efficient queries for

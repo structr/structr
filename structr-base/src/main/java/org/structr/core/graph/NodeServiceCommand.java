@@ -100,6 +100,7 @@ public abstract class NodeServiceCommand extends Command {
 
 				final Iterable<T> iterable = query.getResultStream();
 				final Iterator<T> iterator = iterable.iterator();
+				int batchCount             = 0;
 
 				while (iterator.hasNext() && (condition == null || condition.accept(objectCount))) {
 
@@ -118,8 +119,10 @@ public abstract class NodeServiceCommand extends Command {
 						operation.handleThrowable(securityContext, t, node);
 					}
 
-					// commit transaction after commitCount
-					if ((objectCount % commitCount) == 0) {
+					// commit transaction after commitCount iterated objects: count
+					// iterations, not successes, so the batch stays aligned with the
+					// query page even when individual objects fail
+					if (++batchCount == commitCount) {
 						break;
 					}
 				}
@@ -159,6 +162,8 @@ public abstract class NodeServiceCommand extends Command {
 
 			try (final Tx tx = app.tx(doValidation, doCallbacks, doNotifications)) {
 
+				int batchCount = 0;
+
 				while (iterator.hasNext() && (condition == null || condition.accept(objectCount))) {
 
 					T node = iterator.next();
@@ -176,8 +181,10 @@ public abstract class NodeServiceCommand extends Command {
 						operation.handleThrowable(securityContext, t, node);
 					}
 
-					// commit transaction after commitCount
-					if ((objectCount % commitCount) == 0) {
+					// commit transaction after commitCount iterated objects: count
+					// iterations, not successes, so failing objects do not shrink
+					// the batch size
+					if (++batchCount == commitCount) {
 						break;
 					}
 				}

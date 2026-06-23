@@ -18,8 +18,6 @@
  */
 package org.structr.test.schema;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.error.ErrorToken;
@@ -49,7 +47,6 @@ import static org.testng.AssertJUnit.*;
  */
 public class ValidationTest extends StructrTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(ValidationTest.class.getName());
 
 	@Test
 	public void testUUIDValidation() {
@@ -400,7 +397,7 @@ public class ValidationTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -452,7 +449,7 @@ public class ValidationTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -486,7 +483,7 @@ public class ValidationTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -551,7 +548,7 @@ public class ValidationTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -582,7 +579,7 @@ public class ValidationTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -641,7 +638,7 @@ public class ValidationTest extends StructrTest {
 
 			} catch (FrameworkException fex) {
 
-				logger.warn("", fex);
+				fex.printStackTrace();
 				fail("Unexpected exception.");
 			}
 
@@ -671,7 +668,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -712,7 +709,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -778,7 +775,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -834,7 +831,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -852,7 +849,7 @@ public class ValidationTest extends StructrTest {
 					tx.success();
 
 				} catch (FrameworkException fex) {
-					logger.warn("", fex);
+					fex.printStackTrace();
 					fail("Unexpected exception.");
 				}
 
@@ -962,7 +959,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -986,7 +983,7 @@ public class ValidationTest extends StructrTest {
 					tx.success();
 
 				} catch (FrameworkException fex) {
-					logger.warn("", fex);
+					fex.printStackTrace();
 					fail("Unexpected exception.");
 				}
 
@@ -1037,7 +1034,7 @@ public class ValidationTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -2344,6 +2341,156 @@ public class ValidationTest extends StructrTest {
 			assertEquals("Invalid Group validation result", StructrTraits.GROUP,             token1.getType());
 			assertEquals("Invalid Group validation result", "name",              token1.getProperty());
 			assertEquals("Invalid Group validation result", "must_not_be_empty", token1.getToken());
+		}
+	}
+
+	@Test
+	public void testSchemaPropertyNameUniquenessOnSameType() {
+
+		final Traits schemaPropertyTraits = Traits.of(StructrTraits.SCHEMA_PROPERTY);
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface testType = app.create(StructrTraits.SCHEMA_NODE, "PropertyUniquenessTest");
+
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+				new NodeAttribute<>(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), testType),
+				new NodeAttribute<>(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "String"),
+				new NodeAttribute<>(schemaPropertyTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "severity")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// creating a second property with the same name on the same type must fail
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface testType = app.nodeQuery(StructrTraits.SCHEMA_NODE).name("PropertyUniquenessTest").getFirst();
+
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+				new NodeAttribute<>(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), testType),
+				new NodeAttribute<>(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "String"),
+				new NodeAttribute<>(schemaPropertyTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "severity")
+			);
+
+			tx.success();
+
+			fail("Creating a second property with the same name on the same type should fail.");
+
+		} catch (FrameworkException fex) {
+			checkException(fex, 1, 422, StructrTraits.SCHEMA_PROPERTY, "name", "already_exists");
+		}
+
+		// creating a property with the same name on a different type must succeed
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface otherType = app.create(StructrTraits.SCHEMA_NODE, "OtherPropertyUniquenessTest");
+
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+				new NodeAttribute<>(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), otherType),
+				new NodeAttribute<>(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "String"),
+				new NodeAttribute<>(schemaPropertyTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "severity")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Creating a property with the same name on a different type should succeed.");
+		}
+
+		// create a property with a different name on the first type
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface testType = app.nodeQuery(StructrTraits.SCHEMA_NODE).name("PropertyUniquenessTest").getFirst();
+
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+				new NodeAttribute<>(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), testType),
+				new NodeAttribute<>(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "String"),
+				new NodeAttribute<>(schemaPropertyTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "other")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// renaming a property to a name that already exists on the same type must fail
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface property = app.nodeQuery(StructrTraits.SCHEMA_PROPERTY).name("other").getFirst();
+
+			property.setProperty(schemaPropertyTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "severity");
+
+			tx.success();
+
+			fail("Renaming a property to a name that already exists on the same type should fail.");
+
+		} catch (FrameworkException fex) {
+			checkException(fex, 1, 422, StructrTraits.SCHEMA_PROPERTY, "name", "already_exists");
+		}
+	}
+
+	@Test
+	public void testSchemaViewNameUniquenessOnSameType() {
+
+		final Traits schemaViewTraits = Traits.of(StructrTraits.SCHEMA_VIEW);
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface testType = app.create(StructrTraits.SCHEMA_NODE, "ViewUniquenessTest");
+
+			app.create(StructrTraits.SCHEMA_VIEW,
+				new NodeAttribute<>(schemaViewTraits.key(SchemaViewTraitDefinition.SCHEMA_NODE_PROPERTY), testType),
+				new NodeAttribute<>(schemaViewTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "custom")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// creating a second view with the same name on the same type must fail
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface testType = app.nodeQuery(StructrTraits.SCHEMA_NODE).name("ViewUniquenessTest").getFirst();
+
+			app.create(StructrTraits.SCHEMA_VIEW,
+				new NodeAttribute<>(schemaViewTraits.key(SchemaViewTraitDefinition.SCHEMA_NODE_PROPERTY), testType),
+				new NodeAttribute<>(schemaViewTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "custom")
+			);
+
+			tx.success();
+
+			fail("Creating a second view with the same name on the same type should fail.");
+
+		} catch (FrameworkException fex) {
+			checkException(fex, 1, 422, StructrTraits.SCHEMA_VIEW, "name", "already_exists");
+		}
+
+		// creating a view with the same name on a different type must succeed
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface otherType = app.create(StructrTraits.SCHEMA_NODE, "OtherViewUniquenessTest");
+
+			app.create(StructrTraits.SCHEMA_VIEW,
+				new NodeAttribute<>(schemaViewTraits.key(SchemaViewTraitDefinition.SCHEMA_NODE_PROPERTY), otherType),
+				new NodeAttribute<>(schemaViewTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "custom")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Creating a view with the same name on a different type should succeed.");
 		}
 	}
 

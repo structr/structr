@@ -281,7 +281,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		Assert.assertNotNull(t3_connected);

@@ -77,8 +77,9 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 							String key = (String) entry.getKey();
 							Object val = entry.getValue();
 
-							PropertyKey propertyKey = rel.getTraits().key(key);
-							if (propertyKey != null) {
+							if (rel.getTraits().hasKey(key)) {
+
+								final PropertyKey propertyKey = rel.getTraits().key(key);
 
 								try {
 

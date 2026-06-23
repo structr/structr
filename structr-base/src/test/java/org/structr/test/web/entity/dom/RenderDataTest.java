@@ -20,8 +20,6 @@ package org.structr.test.web.entity.dom;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
@@ -47,7 +45,6 @@ import static org.testng.AssertJUnit.fail;
  */
 public class RenderDataTest extends DOMTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(RenderDataTest.class.getName());
 
 	@Test
 	public void testRenderListFromRestQuery() {

@@ -18,8 +18,6 @@
  */
 package org.structr.test.schema;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.schema.importer.LazyFileBasedLongCollection;
 import org.testng.annotations.Test;
 
@@ -35,7 +33,6 @@ import static org.testng.AssertJUnit.*;
  */
 public class LazyFileBasedLongCollectionTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(LazyFileBasedLongCollectionTest.class);
 
 	@Test
 	public void testCollection() {
@@ -57,7 +54,7 @@ public class LazyFileBasedLongCollectionTest {
 
 		} catch (Exception ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -81,7 +78,7 @@ public class LazyFileBasedLongCollectionTest {
 
 		} catch (Exception ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
@@ -103,7 +100,7 @@ public class LazyFileBasedLongCollectionTest {
 
 		} catch (Exception ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
@@ -121,7 +118,7 @@ public class LazyFileBasedLongCollectionTest {
 
 		} catch (Exception ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
@@ -136,7 +133,7 @@ public class LazyFileBasedLongCollectionTest {
 
 		} catch (Exception ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
@@ -165,7 +162,7 @@ public class LazyFileBasedLongCollectionTest {
 
 		} catch (Exception ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
@@ -194,7 +191,7 @@ public class LazyFileBasedLongCollectionTest {
 
 		} catch (Exception ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
@@ -219,7 +216,7 @@ public class LazyFileBasedLongCollectionTest {
 
 		} catch (Exception ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
@@ -247,7 +244,7 @@ public class LazyFileBasedLongCollectionTest {
 
 		} catch (Exception ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
@@ -267,7 +264,7 @@ public class LazyFileBasedLongCollectionTest {
 
 		} catch (Exception ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}

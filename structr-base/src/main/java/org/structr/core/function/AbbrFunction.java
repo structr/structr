@@ -20,6 +20,7 @@ package org.structr.core.function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
@@ -88,8 +89,8 @@ public class AbbrFunction extends CoreFunction {
 
 		return List.of(
 			Parameter.mandatory("string", "string to abbreviate"),
-			Parameter.optional("maxLength", "maximum length of the returned string (including the ellipsis at the end)"),
-			Parameter.optional("abbr", "last character(s) of the returned string after abbreviation")
+			Parameter.optional("maxLength", "length after which abbreviation is performed"),
+			Parameter.optional("abbr", "last character(s) of the returned string after abbreviation. Default: '…'")
 		);
 	}
 
@@ -102,13 +103,37 @@ public class AbbrFunction extends CoreFunction {
 	}
 
 	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("""
+					${abbr('1234567890', 5)}
+					> 12345…"""),
+				Example.structrScript("""
+					${abbr('1234567890', 9)}
+					> 123456789…"""),
+				Example.structrScript("""
+					${abbr('1234567890', 10)}
+					> 1234567890"""),
+				Example.structrScript("""
+					${abbr('1234567890', 5, '… *snip*')}
+					> 12345… *snip*""")
+		);
+	}
+
+	@Override
 	public String getShortDescription() {
-		return "Abbreviates the given string at the last space character before the maximum length is reached.";
+		return "Abbreviates the given string if it exceeds `maxLength`.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "The remaining characters are replaced with the ellipsis character (…) or the given `abbr` parameter.";
+		return """
+			If `string.length <= maxLength`, returns `string` unchanged.
+
+			Otherwise, truncates `string` before the last space character before `maxLength`. If there is no space before `maxLength`, truncates at `maxLength`. No other whitespace is trimmed. Then `abbr` is appended.
+
+			`maxLength` applies to the `string` only; the returned value may be longer after `abbr` is appended.
+			""";
 	}
 
 	@Override

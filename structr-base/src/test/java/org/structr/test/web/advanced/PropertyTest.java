@@ -18,8 +18,6 @@
  */
 package org.structr.test.web.advanced;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
@@ -39,7 +37,6 @@ import static org.testng.AssertJUnit.fail;
  */
 public class PropertyTest extends StructrUiTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(PropertyTest.class);
 
 	/**
 	 * This test creates a new type "Test" with a Notion property that references a type (User)
@@ -66,7 +63,7 @@ public class PropertyTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 	}

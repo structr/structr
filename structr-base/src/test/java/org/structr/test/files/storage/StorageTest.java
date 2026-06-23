@@ -18,8 +18,6 @@
  */
 package org.structr.test.files.storage;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -48,7 +46,6 @@ import static org.testng.AssertJUnit.*;
 
 public class StorageTest extends StructrUiTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(StorageTest.class);
 
 	@Test
 	public void testStorageBinaryMigrationForFolders() {

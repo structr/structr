@@ -20,8 +20,6 @@ package org.structr.test.web.advanced;
 
 import io.restassured.RestAssured;
 import org.hamcrest.Matchers;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
@@ -52,7 +50,6 @@ import static org.testng.AssertJUnit.fail;
 
 public class RepeaterTest extends StructrUiTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(RepeaterTest.class);
 
 	@Test
 	public void testManagedSelectedAttributeInOptionElementWithNodes() {
@@ -76,7 +73,7 @@ public class RepeaterTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		final List<String> taskIDs = new LinkedList<>();
@@ -115,7 +112,7 @@ public class RepeaterTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		RestAssured.basePath = "/";
@@ -161,7 +158,7 @@ public class RepeaterTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		// test 2: assert selected attributes are set now
@@ -215,7 +212,7 @@ public class RepeaterTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		try (final Tx tx = app.tx()) {
@@ -246,7 +243,7 @@ public class RepeaterTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		RestAssured.basePath = "/";
@@ -283,7 +280,7 @@ public class RepeaterTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		// test 2: assert selected attributes are set now
@@ -371,7 +368,7 @@ public class RepeaterTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 
 			fail("Unexpected exception");
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		// setup 2: create page and data object
@@ -493,9 +490,9 @@ public class RepeaterTest extends StructrUiTest {
 	}
 
 	@Test
-	public void testFunctionRepeaterIsNotExecutedIfShowConditionIsFalse() {
+	public void testFunctionRepeaterIsExecutedBeforeShowHideConditionsAreEvaluated() {
 
-		final String expectedOutput = "This text should be rendered! The previous repeater (with an assert) should NOT be run because it has showCondition=false!";
+		final String expectedOutput = "function-query-status == \"was-run\"  --> all is good. A function query needs to run BEFORE evaluating show conditions because those can and often will depend on the result of that query!";
 
 		final boolean indent = Settings.HtmlIndentation.getValue();
 		Settings.HtmlIndentation.setValue(false);
@@ -511,10 +508,16 @@ public class RepeaterTest extends StructrUiTest {
 			div.appendChild(innerDiv);
 
 			innerDiv.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.SHOW_CONDITIONS_PROPERTY), "false");
-			innerDiv.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), "assert(false, 422, 'This code should never run!')");
+			innerDiv.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), "store('function-query-status', 'was-run')");
 			innerDiv.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY),       "test");
 
-			div.appendChild(page1.createTextNode(expectedOutput));
+			div.appendChild(page1.createTextNode("""
+				${if (
+					eq('was-run', retrieve('function-query-status')),
+					'%s'
+					assert(false, 422, 'This code should never run!')
+				)}""".formatted(expectedOutput)
+			));
 
 			createAdminUser();
 
@@ -537,6 +540,66 @@ public class RepeaterTest extends StructrUiTest {
 				.body("html.head.title",                          Matchers.equalTo("Page1"))
 				.body("html.body.h1",                             Matchers.equalTo("Page1"))
 				.body("html.body.div",                            Matchers.equalTo(expectedOutput))
+				.when()
+				.get("/html/page1");
+
+		Settings.HtmlIndentation.setValue(indent);
+	}
+
+	@Test
+	public void testFunctionRepeaterDataIsAvailableInShowHideConditions() {
+
+		final boolean indent = Settings.HtmlIndentation.getValue();
+		Settings.HtmlIndentation.setValue(false);
+
+		try (final Tx tx = app.tx()) {
+
+			final Page page1     = Page.createSimplePage(securityContext, "page1");
+			final DOMNode div    = page1.getElementsByTagName("div").get(0);
+
+			final Content content = div.getFirstChild().as(Content.class);
+			div.removeChild(content);
+
+			final DOMNode innerSpan = page1.createElement("span");
+			div.appendChild(innerSpan);
+
+			innerSpan.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.HIDE_CONDITIONS_PROPERTY), "eq(test.isSecret, true)");
+			innerSpan.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), """
+					{
+						[
+							{ name: 'Public data 1', isSecret: false },
+							{ name: 'My secret key', isSecret: true },
+							{ name: 'Public data 2', isSecret: false }
+						]
+					}
+					""");
+			innerSpan.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY),       "test");
+
+			innerSpan.appendChild(page1.createTextNode("${test.name}"));
+
+			createAdminUser();
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		RestAssured.basePath = "/";
+
+		RestAssured
+				.given()
+				.header(X_USER_HEADER,     ADMIN_USERNAME)
+				.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
+				.expect()
+				.statusCode(200)
+				.body("html.head.title",               Matchers.equalTo("Page1"))
+				.body("html.body.h1",                  Matchers.equalTo("Page1"))
+				.body("html.body.div.span[0]",         Matchers.equalTo("Public data 1"))
+				.body("html.body.div.span[1]",         Matchers.equalTo("Public data 2"))
+				.body("html.body.div.span.size()",     Matchers.equalTo(2))
 				.when()
 				.get("/html/page1");
 

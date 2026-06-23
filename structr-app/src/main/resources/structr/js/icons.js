@@ -106,6 +106,7 @@ let _Icons = {
 	iconSchemaPropertyEncrypted: 'encrypted-property',
 	iconScriptWrapped:           'curly-braces-wrap-js',
 	iconRecentlyUsed:            'folder_clock',
+	iconScratchpad:              'scratchpad',
 
 	iconFlowSymbol:              'circle-empty',
 

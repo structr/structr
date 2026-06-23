@@ -39,7 +39,7 @@ public class CoalesceFunction extends CoreFunction {
 	@Override
 	public List<Parameter> getParameters() {
 		return List.of(
-			Parameter.mandatory("strings..", "list of strings to coalesce")
+			Parameter.mandatory("values...", "list of objects to coalesce")
 		);
 	}
 
@@ -53,7 +53,7 @@ public class CoalesceFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("value1, value2, value3, ...");
+		return Signature.forAllScriptingLanguages("value1, value2, ...");
 	}
 
 	@Override
@@ -73,8 +73,8 @@ public class CoalesceFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${coalesce(string1, string2...)}. Example: ${coalesce(node.name, node.title, node.id)}"),
-			Usage.javaScript("Usage: ${{ $.coalesce(string1, string2...) }}. Example: ${{ $.coalesce(node.name, node.title, node.id) }}")
+				Usage.structrScript("Usage: ${coalesce(value1, value2, ...)}"),
+				Usage.javaScript("Usage: ${{ $.coalesce(value1, value2, ...) }}")
 		);
 	}
 
@@ -90,6 +90,6 @@ public class CoalesceFunction extends CoreFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
-		return FunctionCategory.Conversion;
+		return FunctionCategory.Scripting;
 	}
 }

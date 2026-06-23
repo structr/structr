@@ -19,8 +19,6 @@
 package org.structr.test.rest.test;
 
 import io.restassured.RestAssured;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseFeature;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
@@ -57,7 +55,6 @@ import static org.testng.AssertJUnit.*;
 
 public class AdvancedSearchTest extends StructrRestTestBase {
 
-	private static final Logger logger = LoggerFactory.getLogger(AdvancedSearchTest.class.getName());
 
 	@Test
 	public void testGraphBasedIndexingSearchOnNotionProperties() {
@@ -624,7 +621,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
@@ -698,7 +695,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 			ex.printStackTrace();
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
@@ -884,7 +881,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 			ex.printStackTrace();
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
@@ -1350,7 +1347,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 			tx.success();
 
 		} catch (Exception ex) {
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception");
 		}
 
@@ -1375,7 +1372,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 			tx.success();
 
 		} catch (Exception ex) {
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception");
 		}
 
@@ -1394,7 +1391,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 			tx.success();
 
 		} catch (Exception ex) {
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception");
 		}
 	}

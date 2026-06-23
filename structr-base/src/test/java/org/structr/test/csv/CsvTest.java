@@ -21,8 +21,6 @@ package org.structr.test.csv;
 import io.restassured.RestAssured;
 import io.restassured.internal.RestAssuredResponseImpl;
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -39,7 +37,6 @@ import static org.testng.AssertJUnit.*;
 
 public class CsvTest extends StructrCsvTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(CsvTest.class.getName());
 
 	private final String testOneResource = "/TestOne";
 	private final String testOneCSVWithDefaultCharacters5EntriesNoError = "\"id\";\"type\";\"name\";\"anInt\";\"aLong\";\"aDate\"\r\n"
@@ -95,7 +92,7 @@ public class CsvTest extends StructrCsvTest {
 			assertTrue(servlet instanceof CsvServlet);
 
 		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException | SecurityException | IllegalArgumentException | InvocationTargetException ex) {
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexcepted exception");
 		}
 

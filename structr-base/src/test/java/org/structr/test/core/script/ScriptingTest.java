@@ -266,7 +266,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch(FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -282,7 +282,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch(FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -290,7 +290,7 @@ public class ScriptingTest extends StructrTest {
 
 		// first test without grant, expect no test object to be found using the user context
 		try (final Tx tx = userApp.tx()) { assertEquals("Invalid grant() scripting result", 0, userApp.nodeQuery(sourceType).getAsList().size()); tx.success(); } catch(FrameworkException fex) {
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -316,7 +316,7 @@ public class ScriptingTest extends StructrTest {
 		try (final Tx tx = userApp.tx()) {
 
 			assertEquals("Invalid grant() scripting result", 1, userApp.nodeQuery(sourceType).getAsList().size()); tx.success(); } catch(FrameworkException fex) {
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
@@ -385,7 +385,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch(FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -414,7 +414,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch(UnlicensedScriptException |FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
@@ -438,7 +438,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch(UnlicensedScriptException |FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
@@ -462,7 +462,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch(UnlicensedScriptException |FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
@@ -493,7 +493,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch(FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -539,7 +539,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch(UnlicensedScriptException |FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
@@ -558,7 +558,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch(FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -589,7 +589,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch(UnlicensedScriptException |FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
@@ -607,7 +607,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch(UnlicensedScriptException |FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
@@ -710,7 +710,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 
 			fail("Unexpected exception");
 		}
@@ -838,6 +838,19 @@ public class ScriptingTest extends StructrTest {
 			// abbr
 			assertEquals("Invalid abbr() result", "oneStringt…", Scripting.replaceVariables(ctx, testOne, "${abbr(concat(\"one\", this.aString, \"three\"), 10)}"));
 			assertEquals("Invalid abbr() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${abbr(this.alwaysNull, 10)}"));
+
+			// test abbr documented contract that maxLength is used exactly when there is NO space and then the abbreviation character is appended
+			assertEquals("Invalid abbr() result", "12345…",        Scripting.replaceVariables(ctx, testOne, "${abbr('1234567890', 5)}"));
+			assertEquals("Invalid abbr() result", "123456789…",    Scripting.replaceVariables(ctx, testOne, "${abbr('1234567890', 9)}"));
+			assertEquals("Invalid abbr() result", "1234567890",    Scripting.replaceVariables(ctx, testOne, "${abbr('1234567890', 10)}"));
+			assertEquals("Invalid abbr() result", "12345… *snip*", Scripting.replaceVariables(ctx, testOne, "${abbr('1234567890', 5, '… *snip*')}"));
+
+			// test abbr documented contract that maxLength is used exactly when there IS a space and then the abbreviation character is appended
+			assertEquals("Invalid abbr() result", "12345…",        Scripting.replaceVariables(ctx, testOne, "${abbr('12345 67890', 5)}"));
+			assertEquals("Invalid abbr() result", "12345…",        Scripting.replaceVariables(ctx, testOne, "${abbr('12345 67890', 9)}"));
+			assertEquals("Invalid abbr() result", "12345…",        Scripting.replaceVariables(ctx, testOne, "${abbr('12345 67890', 10)}"));
+			assertEquals("Invalid abbr() result", "12345 67890",   Scripting.replaceVariables(ctx, testOne, "${abbr('12345 67890', 11)}"));
+			assertEquals("Invalid abbr() result", "12345… *snip*", Scripting.replaceVariables(ctx, testOne, "${abbr('12345 67890', 7, '… *snip*')}"));
 
 			// capitalize..
 			assertEquals("Invalid capitalize() result", "One_two_three", Scripting.replaceVariables(ctx, testOne, "${capitalize(concat(\"one_\", \"two_\", \"three\"))}"));
@@ -2091,7 +2104,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
@@ -2117,7 +2130,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
@@ -2143,7 +2156,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
@@ -2164,7 +2177,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
@@ -2190,7 +2203,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
@@ -2215,7 +2228,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
@@ -2232,7 +2245,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception");
 		}
 	}
@@ -2277,7 +2290,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 
 			fail(fex.getMessage());
 		}
@@ -2312,7 +2325,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail(fex.getMessage());
 		}
 	}
@@ -2359,7 +2372,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 
 			fail(fex.getMessage());
 		}
@@ -2605,8 +2618,8 @@ public class ScriptingTest extends StructrTest {
 			final JsonType dummyType = schema.addType("DummyType");
 			final JsonType newType   = schema.addType("MyDynamicType");
 
-			newType.addMethod("onCreation",    "is(eq(this.name, 'forbiddenName'), error('myError', '" + expectedErrorToken + "', 'creating this object is not allowed'))");
-			newType.addMethod("afterCreation", "create('DummyType', 'name', 'this should not be possible!')");
+			newType.addMethod("onCreate",    "is(eq(this.name, 'forbiddenName'), error('myError', '" + expectedErrorToken + "', 'creating this object is not allowed'))");
+			newType.addMethod("afterCreate", "create('DummyType', 'name', 'this should not be possible!')");
 
 			StructrSchema.replaceDatabaseSchema(app, schema);
 
@@ -2724,7 +2737,7 @@ public class ScriptingTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -2740,7 +2753,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -2756,7 +2769,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -2772,7 +2785,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -2788,7 +2801,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
@@ -2852,9 +2865,9 @@ public class ScriptingTest extends StructrTest {
 
 			customer.relate(project, "project", Cardinality.OneToOne, "customer", "project");
 
-			customer.addMethod("onModification", "{ var mods = Structr.retrieve('modifications'); $.log(mods); Structr.this.log = JSON.stringify(mods); }");
-			project.addMethod("onModification", "{ var mods = Structr.retrieve('modifications'); $.log(mods); Structr.this.log = JSON.stringify(mods); }");
-			task.addMethod("onModification", "{ var mods = Structr.retrieve('modifications'); $.log(mods); Structr.this.log = JSON.stringify(mods); }");
+			customer.addMethod("onSave", "{ var mods = Structr.retrieve('modifications'); $.log(mods); Structr.this.log = JSON.stringify(mods); }");
+			project.addMethod("onSave", "{ var mods = Structr.retrieve('modifications'); $.log(mods); Structr.this.log = JSON.stringify(mods); }");
+			task.addMethod("onSave", "{ var mods = Structr.retrieve('modifications'); $.log(mods); Structr.this.log = JSON.stringify(mods); }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -5767,7 +5780,7 @@ public class ScriptingTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.warn("", fex);
+			fex.printStackTrace();
 
 			fail("Unexpected exception");
 		}
@@ -6953,7 +6966,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch(FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -7235,6 +7248,16 @@ public class ScriptingTest extends StructrTest {
 
 				// any on remote properties
 				{
+					final String anyEqualsQueryOnRemoteAttribute1_single_element_in_array = """
+							${{
+								let user1 = $.find('User', 'name', 'User 1')[0];
+
+								$.find('Task', $.predicate.equals('assignee', $.predicate.any([user1])), $.predicate.sort('name'))
+									.map(task => task.name).join(', ');
+							}}
+							""";
+					assertEquals("Task 1 - Do Laundry, Task 4 - Read Mail, Task 7 - Do Taxes", Scripting.evaluate(actionContext, null, anyEqualsQueryOnRemoteAttribute1_single_element_in_array, "test2"));
+
 					final String anyEqualsQueryOnRemoteAttribute1 = """
 							${{
 								let user1 = $.find('User', 'name', 'User 1')[0];
@@ -7716,7 +7739,7 @@ public class ScriptingTest extends StructrTest {
 			JsonSchema schema         = StructrSchema.createFromDatabase(app);
 			final JsonObjectType type = schema.addType("TestDoAs");
 
-			type.addMethod("onCreation", "{ $.this.name += ', created by ' + $.me.name; $.log($.me); }");
+			type.addMethod("onCreate", "{ $.this.name += ', created by ' + $.me.name; $.log($.me); }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -8441,7 +8464,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 
 			fail("Unexpected exception");
 		}
@@ -8762,8 +8785,8 @@ public class ScriptingTest extends StructrTest {
 		test1.addStringProperty("c");
 		test1.addStringProperty("s");
 
-		test1.addMethod("onCreation",     createSource);
-		test1.addMethod("onModification", saveSource);
+		test1.addMethod("onCreate", createSource);
+		test1.addMethod("onSave",   saveSource);
 
 	}
 

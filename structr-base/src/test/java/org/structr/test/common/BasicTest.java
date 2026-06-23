@@ -279,8 +279,6 @@ public class BasicTest extends StructrTest {
 	@Test
 	public void test03CascadeDeleteNone() {
 
-		Settings.CypherDebugLogging.setValue(true);
-
 		// setup
 		try (final Tx tx = app.tx()) {
 

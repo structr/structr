@@ -19,8 +19,6 @@
 package org.structr.test.web.rest;
 
 import io.restassured.RestAssured;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.BeforeClass;
@@ -33,7 +31,6 @@ import static org.testng.AssertJUnit.fail;
 
 public class CORSMixedTest extends StructrUiTest {
 
-    private static final Logger logger = LoggerFactory.getLogger(CORSMixedTest.class.getName());
 
     @Parameters("testDatabaseConnection")
     @BeforeClass(alwaysRun = true)

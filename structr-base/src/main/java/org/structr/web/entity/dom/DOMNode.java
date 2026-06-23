@@ -28,7 +28,6 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.entity.DataAdapter;
-import org.structr.core.entity.DataSource;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -109,8 +108,8 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 
 	void increasePageVersion() throws FrameworkException;
 	void checkName(final ErrorBuffer errorBuffer);
+	void checkReservedWords(final ErrorBuffer errorBuffer);
 	void syncName(final ErrorBuffer errorBuffer) throws FrameworkException;
-	//void normalize() throws FrameworkException;
 	void setHidden(final boolean hidden) throws FrameworkException;
 	void setIdAttribute(final String id) throws FrameworkException;
 	void setComponentType(final String componentType) throws FrameworkException;

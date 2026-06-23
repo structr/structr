@@ -89,7 +89,7 @@ public class HtmlServletObjectResolvingTest extends StructrUiTest {
 
 				} catch (DOMException dex) {
 
-					logger.warn("", dex);
+					dex.printStackTrace();
 
 					throw new FrameworkException(422, dex.getMessage());
 				}
@@ -98,7 +98,7 @@ public class HtmlServletObjectResolvingTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		RestAssured.basePath = "/";

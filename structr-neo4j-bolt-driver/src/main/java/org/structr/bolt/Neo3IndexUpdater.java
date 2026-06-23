@@ -59,4 +59,9 @@ public class Neo3IndexUpdater extends IndexUpdater {
 	protected String getDropIndexStatement(ExistingIndexInfo existingIndexInfo) {
 		return "";
 	}
+
+	@Override
+	protected String getExpectedIndexType(final NewIndexConfig config) {
+		return "";
+	}
 }

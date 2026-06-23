@@ -277,7 +277,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 			final PropertyMap changedProperties = new PropertyMap();
 			changedProperties.put(Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), "find('Div')");
-			changedProperties.put(Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY), "div");
+			changedProperties.put(Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY), "currentDiv");
 			p.setProperties(p.getSecurityContext(), changedProperties);
 
 			p.appendChild(text);
@@ -295,7 +295,7 @@ public class UiScriptingTest extends StructrUiTest {
 			ctx.setDetailsDataObject(detailsDataObject);
 			ctx.setPage(page);
 
-			test(p, text, "${{ Structr.get('div').id; }}",    "<p data-repeater-data-object-id=\"" + div.getUuid() + "\">" + div.getUuid() + "</p>", ctx);
+			test(p, text, "${{ Structr.get('currentDiv').id; }}",    "<p data-repeater-data-object-id=\"" + div.getUuid() + "\">" + div.getUuid() + "</p>", ctx);
 			test(p, text, "${{ Structr.get('page').id; }}",   "<p data-repeater-data-object-id=\"" + div.getUuid() + "\">" + page.getUuid() + "</p>", ctx);
 			test(p, text, "${{ Structr.get('parent').id; }}", "<p data-repeater-data-object-id=\"" + div.getUuid() + "\">" + p.getUuid() + "</p>", ctx);
 
@@ -303,7 +303,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
@@ -357,7 +357,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 
@@ -424,7 +424,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 
@@ -451,7 +451,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 
@@ -1778,7 +1778,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 		} catch (UnlicensedScriptException | FrameworkException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}

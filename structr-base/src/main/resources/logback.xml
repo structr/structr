@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+
+	<conversionRule conversionWord="prefixedEx" converterClass="org.structr.logging.PrefixingThrowableConverter" />
+
 	<appender name="SERVERLOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<file>${LOG_FILE:-logs/server.log}</file>
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -8,12 +11,12 @@
 			<totalSizeCap>1GB</totalSizeCap>
 		</rollingPolicy>
 		<encoder>
-			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread]%X{structrScratchMDC} %-5level %logger{36} - %msg%n%prefixedEx{structrScratchMDC}</pattern>
 		</encoder>
 	</appender>
 	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
 		<encoder>
-			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread]%X{structrScratchMDC} %-5level %logger{36} - %msg%n%prefixedEx{structrScratchMDC}</pattern>
 		</encoder>
 	</appender>
 	<appender name="REQUESTLOG" class="ch.qos.logback.core.rolling.RollingFileAppender">

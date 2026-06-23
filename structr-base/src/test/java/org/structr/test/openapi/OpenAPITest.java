@@ -286,7 +286,7 @@ public class OpenAPITest extends StructrUiTest {
 			tx.success();
 
 		} catch (Exception t) {
-			logger.warn("", t);
+			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
 

@@ -74,7 +74,7 @@ public class UnescapeHtmlFunction extends UiCommunityFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Reverses the effect of `escape_html()`.";
+		return "Reverses the effect of `escapeHtml()`.";
 	}
 
 	@Override

@@ -380,7 +380,10 @@ public class SchemaService implements Service {
 
 								if (key.isIndexed()) {
 
-									final NewIndexConfig config = new NewIndexConfig(typeName, key.dbName(), true, true, false);
+									final boolean isFulltextIndex = false;
+									final boolean isTextIndex     = String.class.equals(key.valueType());
+
+									final NewIndexConfig config = new NewIndexConfig(typeName, key.dbName(), true, isTextIndex, isFulltextIndex);
 									final String identifier     = typeName + "_" + key.dbName();
 
 									schemaIndexConfig.put(identifier, config);
@@ -388,7 +391,10 @@ public class SchemaService implements Service {
 
 								if (key.isFulltextIndexed()) {
 
-									final NewIndexConfig config = new NewIndexConfig(typeName, key.dbName(), true, false, true);
+									final boolean isFulltextIndex = true;
+									final boolean isTextIndex     = false;
+
+									final NewIndexConfig config = new NewIndexConfig(typeName, key.dbName(), true, isTextIndex, isFulltextIndex);
 									final String identifier     = typeName + "_" + key.dbName() + "_fulltext";
 
 									schemaIndexConfig.put(identifier, config);

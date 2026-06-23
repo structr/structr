@@ -211,7 +211,7 @@ public class SchemaTest extends StructrTest {
 			compareSchemaRoundtrip(sourceSchema);
 
 		} catch (Exception t) {
-			logger.warn("", t);
+			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -259,7 +259,7 @@ public class SchemaTest extends StructrTest {
 
 		} catch (FrameworkException | InvalidSchemaException |URISyntaxException ex) {
 
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -337,7 +337,7 @@ public class SchemaTest extends StructrTest {
 		} catch (Exception ex) {
 
 			ex.printStackTrace();
-			logger.warn("", ex);
+			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
@@ -368,7 +368,7 @@ public class SchemaTest extends StructrTest {
 			checkSchemaString(StructrSchema.createFromDatabase(app).toString());
 
 		} catch (FrameworkException t) {
-			logger.warn("", t);
+			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
@@ -388,7 +388,7 @@ public class SchemaTest extends StructrTest {
 			checkSchemaString(schema.toString());
 
 		} catch (FrameworkException t) {
-			logger.warn("", t);
+			t.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
@@ -409,7 +409,7 @@ public class SchemaTest extends StructrTest {
 			checkSchemaString(schema.toString());
 
 		} catch (FrameworkException t) {
-			logger.warn("", t);
+			t.printStackTrace();
 		}
 
 	}

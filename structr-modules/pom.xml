@@ -33,6 +33,11 @@
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <optional>true</optional>
+        </dependency>
     </dependencies>
 
 	<modules>
@@ -88,8 +93,6 @@
 							<reuseForks>false</reuseForks>
 							<forkCount>${test.forkCount}</forkCount>
 							<skipTests>${skipTests}</skipTests>
-<!--							<rerunFailingTestsCount>2</rerunFailingTestsCount>-->
-							<!--redirectTestOutputToFile>true</redirectTestOutputToFile-->
 							<systemPropertyVariables>
 								<testDatabaseDriver>org.structr.bolt.BoltDatabaseService</testDatabaseDriver>
 								<testDatabaseConnection>${env.testDatabaseConnection}</testDatabaseConnection>
@@ -180,7 +183,6 @@
 							<reuseForks>false</reuseForks>
 							<forkCount>${test.forkCount}</forkCount>
 							<skipTests>${skipTests}</skipTests>
-<!--							<rerunFailingTestsCount>2</rerunFailingTestsCount>-->
 							<systemPropertyVariables>
 								<testDatabaseDriver>org.structr.memory.MemoryDatabaseService</testDatabaseDriver>
 							</systemPropertyVariables>

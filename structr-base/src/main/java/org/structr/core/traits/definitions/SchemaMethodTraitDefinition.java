@@ -18,6 +18,7 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.structr.autocomplete.AbstractHintProvider;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -26,6 +27,9 @@ import org.structr.common.error.SemanticErrorToken;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
+import org.structr.core.api.JavaMethod;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.Relation;
@@ -45,10 +49,15 @@ import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnDeletion;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.wrappers.SchemaMethodTraitWrapper;
+import org.structr.docs.Documentable;
+import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -209,6 +218,46 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 			}
 		);
 	}
+
+	@Override
+	public Set<AbstractMethod> getDynamicMethods() {
+
+		return newSet(
+			new JavaMethod("isReservedWord", false, true) {
+
+				@Override
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
+					final String name = (String) arguments.get(0);
+					if (name != null) {
+
+						return SchemaMethodTraitDefinition.isReservedWord(name);
+					}
+
+					return false;
+				}
+
+			}
+		);
+	}
+
+	public static boolean isReservedWord(final String word) {
+
+		if (Functions.get(word) != null) {
+			return true;
+		}
+
+		final List<Documentable> keywords = new LinkedList<>();
+		AbstractHintProvider.addBuiltInKeywordHints(keywords);
+		final Set<String> keywordNames = keywords.stream().map(k -> k.getName()).collect(Collectors.toSet());
+
+		if  (keywordNames.contains(word)) {
+			return true;
+		}
+
+		return false;
+	}
+
 
 	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {

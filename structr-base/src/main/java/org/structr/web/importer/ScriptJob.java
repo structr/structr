@@ -22,6 +22,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.graalvm.polyglot.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.structr.common.AccessMode;
 import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
@@ -69,7 +70,11 @@ public class ScriptJob extends ScheduledJob {
 	@Override
 	public Runnable getRunnable() {
 
+		final Map<String, String> contextMap = MDC.getCopyOfContextMap();
+
 		return () -> {
+
+			MDC.setContextMap(contextMap);
 
 			final SecurityContext securityContext = user.getSecurityContext();
 

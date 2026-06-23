@@ -18,8 +18,6 @@
  */
 package org.structr.test.web.advanced;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
@@ -35,7 +33,6 @@ import java.util.List;
 
 public abstract class DOMTest extends StructrUiTest {
 	
-	private static final Logger logger = LoggerFactory.getLogger(DOMTest.class.getName());
 	
 	protected NodeInterface getDocument() {
 		
@@ -50,7 +47,7 @@ public abstract class DOMTest extends StructrUiTest {
 			
 		} catch (FrameworkException fex) {
 			
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		return null;
@@ -71,7 +68,7 @@ public abstract class DOMTest extends StructrUiTest {
 			
 		} catch (FrameworkException fex) {
 			
-			logger.warn("", fex);
+			fex.printStackTrace();
 		}
 
 		return null;
