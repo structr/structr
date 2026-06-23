@@ -119,12 +119,14 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 
 					if (parent != null && thisPropertyName != null) {
 
-						// check for existing schema properties
-						final SchemaProperty otherProperty = parent.getSchemaProperty(thisPropertyName);
-						if (otherProperty != null && !otherProperty.getUuid().equals(schemaProperty.getUuid())) {
+						// check all existing schema properties
+						for (final SchemaProperty otherProperty : parent.getSchemaProperties()) {
 
-							errorBuffer.add(new SemanticErrorToken(schemaProperty.getType(), "name", "already_exists").withValue(thisPropertyName).withDetail("A property with name '" + thisPropertyName + "' already exists on this type"));
-							valid = false;
+							if (thisPropertyName.equals(otherProperty.getName()) && !otherProperty.getUuid().equals(schemaProperty.getUuid())) {
+
+								errorBuffer.add(new SemanticErrorToken(schemaProperty.getType(), "name", "already_exists").withValue(thisPropertyName).withDetail("A property with name '" + thisPropertyName + "' already exists on this type"));
+								valid = false;
+							}
 						}
 					}
 
