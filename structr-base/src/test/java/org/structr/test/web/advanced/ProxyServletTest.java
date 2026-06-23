@@ -84,6 +84,8 @@ public class ProxyServletTest extends StructrUiTest {
 		RestAssured.basePath = restUrl;
 		RestAssured.baseURI  = "http://" + host + ":" + httpPort;
 		RestAssured.port     = httpPort;
+
+		createSchema();
 	}
 
 	@Test

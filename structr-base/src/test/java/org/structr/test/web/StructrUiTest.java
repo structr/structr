@@ -41,7 +41,6 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.TraitsManager;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
-import org.structr.embedded.EmbeddedDatabaseService;
 import org.structr.rest.service.HttpService;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
@@ -129,10 +128,15 @@ public abstract class StructrUiTest {
 		RestAssured.basePath = restUrl;
 		RestAssured.baseURI  = "http://" + host + ":" + httpPort;
 		RestAssured.port     = httpPort;
+
+		createSchema();
 	}
 
-	@BeforeClass(alwaysRun = true, dependsOnMethods = "setup")
-	public void createSchema() {
+	// Note: createSchema() is intentionally not a TestNG configuration method. It is
+	// invoked at the end of setup() to guarantee it runs after the service layer has been
+	// initialized. Using @BeforeClass(dependsOnMethods = "setup") breaks in subclasses that
+	// override setup(), because TestNG cannot resolve the dependency across the override.
+	protected void createSchema() {
 
 		// relationships: traits
 		StructrTraits.registerTrait(new FourThreeOneToOne());

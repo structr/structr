@@ -80,6 +80,8 @@ public abstract class IndexingTest extends StructrUiTest {
 		RestAssured.basePath = "/structr/rest";
 		RestAssured.baseURI  = "http://" + host + ":" + httpPort;
 		RestAssured.port     = httpPort;
+
+		createSchema();
 	}
 
 }
