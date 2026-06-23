@@ -8777,6 +8777,24 @@ public class ScriptingTest extends StructrTest {
 
 	}
 
+	@Test
+	public void testSessionStoreAcrossDifferentLanguages() {
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext actionContext = new ActionContext(securityContext);
+
+
+
+			tx.success();
+
+		} catch (FrameworkException e) {
+
+			e.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
 	// ----- private methods ----
 	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource) {
 
