@@ -35,6 +35,7 @@ import org.structr.schema.action.ActionContext;
 import org.structr.test.traits.definitions.CsvTestOneTraitDefinition;
 import org.structr.test.traits.definitions.CsvTestTwoTraitDefinition;
 import org.structr.test.web.StructrUiTest;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 

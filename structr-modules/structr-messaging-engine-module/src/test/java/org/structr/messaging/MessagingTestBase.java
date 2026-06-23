@@ -19,6 +19,7 @@
 package org.structr.messaging;
 
 import org.structr.test.web.StructrUiTest;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 
 public class MessagingTestBase extends StructrUiTest {

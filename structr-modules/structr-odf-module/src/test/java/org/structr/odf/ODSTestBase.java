@@ -30,6 +30,7 @@ import org.structr.odf.traits.definitions.ODFExporterTraitDefinition;
 import org.structr.odf.traits.definitions.ODSExporterTraitDefinition;
 import org.structr.odf.traits.definitions.ODTExporterTraitDefinition;
 import org.structr.test.web.StructrUiTest;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 
 public class ODSTestBase extends StructrUiTest {
