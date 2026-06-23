@@ -23,7 +23,7 @@ import org.testng.annotations.BeforeMethod;
 
 public class MessagingTestBase extends StructrUiTest {
 
-	@BeforeMethod(firstTimeOnly = true)
+	@BeforeClass(alwaysRun = true, dependsOnMethods = "setup")
 	public void createSchema() {
 
 		/*

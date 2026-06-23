@@ -122,7 +122,7 @@ public abstract class CsvTestBase {
 		RestAssured.port     = httpPort;
 	}
 
-	@BeforeMethod(firstTimeOnly = true)
+	@BeforeClass(alwaysRun = true, dependsOnMethods = "setup")
 	public void createSchema() {
 
 		StructrTraits.registerTrait(new FourThreeOneToOne());

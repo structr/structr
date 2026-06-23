@@ -34,7 +34,7 @@ import org.testng.annotations.BeforeMethod;
 
 public class ODSTestBase extends StructrUiTest {
 
-	@BeforeMethod(firstTimeOnly = true)
+	@BeforeClass(alwaysRun = true, dependsOnMethods = "setup")
 	public void createSchema() {
 
 		StructrTraits.registerTrait(new ODFExporterEXPORTS_TOFile());

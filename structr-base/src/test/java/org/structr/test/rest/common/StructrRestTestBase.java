@@ -130,7 +130,7 @@ public abstract class StructrRestTestBase {
 		RestAssured.port     = httpPort;
 	}
 
-	@BeforeMethod(firstTimeOnly = true)
+	@BeforeClass(alwaysRun = true, dependsOnMethods = "setup")
 	public void createSchema() {
 
 		// relationships: traits

@@ -49,7 +49,7 @@ public class CsvFunctionsTest extends StructrUiTest {
 	private static final Logger logger = LoggerFactory.getLogger(CsvFunctionsTest.class.getName());
 
 	@Override
-	@BeforeMethod(firstTimeOnly = true)
+	@BeforeClass(alwaysRun = true, dependsOnMethods = "setup")
 	public void createSchema() {
 
 		StructrTraits.registerTrait(new CsvTestOneTraitDefinition());
