@@ -119,25 +119,14 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 
 					if (parent != null && thisPropertyName != null) {
 
-						final PropertyKey<NodeInterface> schemaNodeKey = obj.getTraits().key(SCHEMA_NODE_PROPERTY);
+						// check all existing schema properties
+						for (final SchemaProperty otherProperty : parent.getSchemaProperties()) {
 
-						try {
+							if (thisPropertyName.equals(otherProperty.getName()) && !otherProperty.getUuid().equals(schemaProperty.getUuid())) {
 
-							for (final NodeInterface otherSchemaPropertyNode : StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_PROPERTY).key(schemaNodeKey, parent).getResultStream()) {
-
-								final boolean isDifferentProperty = !(schemaProperty.getUuid().equals(otherSchemaPropertyNode.getUuid()));
-
-								if (isDifferentProperty && thisPropertyName.equals(otherSchemaPropertyNode.getName())) {
-
-									errorBuffer.add(new SemanticErrorToken(schemaProperty.getType(), "name", "already_exists").withValue(thisPropertyName).withDetail("A property with name '" + thisPropertyName + "' already exists on this type"));
-									valid = false;
-								}
+								errorBuffer.add(new SemanticErrorToken(schemaProperty.getType(), "name", "already_exists").withValue(thisPropertyName).withDetail("A property with name '" + thisPropertyName + "' already exists on this type"));
+								valid = false;
 							}
-
-						} catch (FrameworkException fex) {
-
-							errorBuffer.add(new SemanticErrorToken(schemaProperty.getType(), "none", "exception_occurred").withValue(thisPropertyName).withDetail("Exception occurred while checking uniqueness of property name, please retry. Cause: " + fex.getMessage()));
-							valid = false;
 						}
 					}
 
