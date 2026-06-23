@@ -58,7 +58,7 @@ public class MailSetInReplyTo extends AdvancedMailModuleFunction {
 			ctx.getAdvancedMailContainer().setInReplyTo(inReplyTo);
 			ctx.getAdvancedMailContainer().addCustomHeader(IN_REPLY_TO_HEADER, inReplyTo);
 
-			return "";
+			return null;
 
 		} catch (IllegalArgumentException e) {
 

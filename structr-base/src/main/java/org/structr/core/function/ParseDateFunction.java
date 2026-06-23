@@ -60,7 +60,7 @@ public class ParseDateFunction extends CoreFunction {
 			final String dateString = sources[0].toString();
 
 			if (StringUtils.isBlank(dateString)) {
-				return "";
+				return null;
 			}
 
 			final String pattern = sources[1].toString();
@@ -86,7 +86,7 @@ public class ParseDateFunction extends CoreFunction {
 			return usage(ctx.isJavaScriptContext());
 		}
 
-		return "";
+		return null;
 	}
 
 	@Override

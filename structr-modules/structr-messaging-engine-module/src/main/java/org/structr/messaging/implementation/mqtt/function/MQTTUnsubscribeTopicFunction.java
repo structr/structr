@@ -51,7 +51,7 @@ public class MQTTUnsubscribeTopicFunction extends MessagingModuleFunction {
 			if(client == null){
 
 				logParameterError(caller, sources, ctx.isJavaScriptContext());
-				return "";
+				return null;
 			}
 
 			client.unsubscribeTopic(ctx, sources[1].toString());
@@ -61,7 +61,7 @@ public class MQTTUnsubscribeTopicFunction extends MessagingModuleFunction {
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 		}
 
-		return "";
+		return null;
 	}
 
 	@Override

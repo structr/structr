@@ -56,7 +56,7 @@ public class MailAddMimePartFunction extends AdvancedMailModuleFunction {
 
 			amc.addMimePart(sources[0].toString(), sources[1].toString());
 
-			return "";
+			return null;
 
 		} catch (IllegalArgumentException e) {
 

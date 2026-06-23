@@ -46,7 +46,7 @@ public class FromXmlFunction extends UiAdvancedFunction {
 		if (sources != null && sources.length > 0) {
 
 			if (sources[0] == null) {
-				return "";
+				return null;
 			}
 
 			try {
@@ -67,7 +67,7 @@ public class FromXmlFunction extends UiAdvancedFunction {
 				logException(caller, t, sources);
 			}
 
-			return "";
+			return null;
 
 		} else {
 

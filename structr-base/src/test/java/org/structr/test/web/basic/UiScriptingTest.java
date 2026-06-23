@@ -2052,6 +2052,105 @@ public class UiScriptingTest extends StructrUiTest {
 			fail("Unexpected exception");
 		}
 	}
+
+	@Test
+	public void testSessionStoreAcrossDifferentLanguages() {
+
+		try (final Tx tx = app.tx()) {
+
+			// Scripts
+			// Setup store
+			final String setupScript = """
+					{
+						$.setSessionAttribute('KEY', ['test']);
+					 	return $.getSessionAttribute('KEY');
+					}
+					""";
+			// Javascript retrieval
+			final String jsRetrieval = "{ return $.getSessionAttribute('KEY'); }";
+			// StructrScript retrieval
+			final String strsRetrieval = "getSessionAttribute('KEY')";
+
+
+			JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type = schema.addType("SessionTest");
+
+			type.addMethod("setupStore", setupScript).setIsStatic(true);
+			type.addMethod("retrieveJS", jsRetrieval).setIsStatic(true);
+			type.addMethod("retrieveStrS", strsRetrieval).setIsStatic(true);
+
+			StructrSchema.replaceDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		createAdminUser();
+
+		RestAssured.basePath = "/structr/rest";
+
+		grant("SessionTest",        UiAuthenticator.AUTH_USER_POST, true);
+		grant("SessionTest/setupStore", UiAuthenticator.AUTH_USER_POST, false);
+		grant("SessionTest/retrieveJS", UiAuthenticator.AUTH_USER_POST, false);
+		grant("SessionTest/retrieveStrS", UiAuthenticator.AUTH_USER_POST, false);
+
+		grant("_login", UiAuthenticator.NON_AUTH_USER_POST, true);
+		grant("_logout", UiAuthenticator.AUTH_USER_POST, false);
+
+		// login and obtain session cookie
+		final String sessionId = RestAssured
+				.given()
+				.contentType("application/json; charset=UTF-8")
+				.body("{ name: admin, password: admin }")
+				.expect()
+				.statusCode(200)
+				.when()
+				.post("/login")
+				.cookie("JSESSIONID");
+
+		// setup store
+		RestAssured
+				.given()
+				.contentType("application/json; charset=UTF-8")
+				.cookie("JSESSIONID", sessionId)
+				.expect()
+				.body("result", Matchers.contains("test"))
+				.body("result_count", equalTo(1))
+				.body("page_count", equalTo(1))
+				.statusCode(200)
+				.when()
+				.post("/SessionTest/setupStore");
+
+		// Retrieve in Javascript
+		RestAssured
+				.given()
+				.contentType("application/json; charset=UTF-8")
+				.cookie("JSESSIONID", sessionId)
+				.expect()
+				.body("result", Matchers.contains("test"))
+				.body("result_count", equalTo(1))
+				.body("page_count", equalTo(1))
+				.statusCode(200)
+				.when()
+				.post("/SessionTest/retrieveJS");
+
+		// Retrieve in StructrScript
+		RestAssured
+				.given()
+				.contentType("application/json; charset=UTF-8")
+				.cookie("JSESSIONID", sessionId)
+				.expect()
+				.body("result", Matchers.contains("test"))
+				.body("result_count", equalTo(1))
+				.body("page_count", equalTo(1))
+				.statusCode(200)
+				.when()
+				.post("/SessionTest/retrieveStrS");
+
+	}
 	// ----- private methods -----
 	private String getEncodingInUse() {
 		OutputStreamWriter writer = new OutputStreamWriter(new ByteArrayOutputStream());

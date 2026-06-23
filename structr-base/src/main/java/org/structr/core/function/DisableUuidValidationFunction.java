@@ -47,7 +47,7 @@ public class DisableUuidValidationFunction extends AdvancedScriptingFunction {
 
 		ctx.getSecurityContext().disableUuidValidation(true);
 
-		return "";
+		return null;
 	}
 
 	@Override

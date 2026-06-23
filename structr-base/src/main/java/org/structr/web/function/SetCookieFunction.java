@@ -94,7 +94,7 @@ public class SetCookieFunction extends UiAdvancedFunction {
 				}
 			}
 
-			return "";
+			return null;
 
 		} catch (ArgumentNullException pe) {
 

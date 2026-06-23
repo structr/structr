@@ -76,7 +76,7 @@ public class MailAddAttachmentFunction extends AdvancedMailModuleFunction {
 				}
 			}
 
-			return "";
+			return null;
 
 		} catch (IllegalArgumentException e) {
 

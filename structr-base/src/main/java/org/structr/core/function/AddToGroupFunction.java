@@ -78,7 +78,7 @@ public class AddToGroupFunction extends AdvancedScriptingFunction {
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 		}
 
-		return "";
+		return null;
 	}
 
 	@Override

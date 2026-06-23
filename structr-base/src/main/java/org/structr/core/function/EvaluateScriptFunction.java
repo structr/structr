@@ -56,7 +56,7 @@ public class EvaluateScriptFunction extends AdvancedScriptingFunction {
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 		}
 
-		return "";
+		return null;
 	}
 
 	@Override

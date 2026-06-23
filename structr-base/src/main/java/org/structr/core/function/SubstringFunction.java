@@ -70,7 +70,7 @@ public class SubstringFunction extends CoreFunction {
 			return usage(ctx.isJavaScriptContext());
 		}
 
-		return "";
+		return null;
 	}
 
 	@Override

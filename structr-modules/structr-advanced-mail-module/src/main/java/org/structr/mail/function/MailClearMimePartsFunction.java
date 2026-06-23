@@ -47,7 +47,7 @@ public class MailClearMimePartsFunction extends AdvancedMailModuleFunction {
 
 		ctx.getAdvancedMailContainer().clearMimeParts();
 
-		return "";
+		return null;
 	}
 
 	@Override

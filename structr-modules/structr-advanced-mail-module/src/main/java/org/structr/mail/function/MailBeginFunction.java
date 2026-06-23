@@ -86,7 +86,7 @@ public class MailBeginFunction extends AdvancedMailModuleFunction {
 				case 1: amc.setFromAddress(sources[0].toString());
 			}
 
-			return "";
+			return null;
 
 		} catch (IllegalArgumentException e) {
 

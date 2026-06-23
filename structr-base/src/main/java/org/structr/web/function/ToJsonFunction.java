@@ -112,7 +112,7 @@ public class ToJsonFunction extends UiCommunityFunction {
 				logException(caller, t, sources);
 			}
 
-			return "";
+			return null;
 
 		} else {
 

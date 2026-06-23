@@ -58,7 +58,7 @@ public class MailSelectConfigFunction extends AdvancedMailModuleFunction {
 				ctx.getAdvancedMailContainer().setConfigurationPrefix(sources[0].toString());
 			}
 
-			return "";
+			return null;
 
 		} catch (IllegalArgumentException e) {
 

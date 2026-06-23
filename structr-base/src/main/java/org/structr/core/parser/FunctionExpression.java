@@ -25,6 +25,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.function.BatchableFunction;
 import org.structr.core.graph.Tx;
+import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.docs.*;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
@@ -105,7 +106,7 @@ public class FunctionExpression extends Expression {
 		} else {
 
 			// default execution path: enclosing transaction exists, no batching
-			return function.apply(ctx, entity, results.toArray());
+			return PolyglotWrapper.unwrap(ctx, function.apply(ctx, entity, results.toArray()));
 		}
 
 	}

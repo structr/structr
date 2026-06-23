@@ -56,7 +56,7 @@ public class MailAddCcFunction extends AdvancedMailModuleFunction {
 
 			ctx.getAdvancedMailContainer().addCc(address, name);
 
-			return "";
+			return null;
 
 		} catch (IllegalArgumentException e) {
 

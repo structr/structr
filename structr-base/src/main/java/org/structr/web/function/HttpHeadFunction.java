@@ -62,7 +62,7 @@ public class HttpHeadFunction extends UiAdvancedFunction {
 
 			}
 
-			return "";
+			return null;
 
 		} else {
 

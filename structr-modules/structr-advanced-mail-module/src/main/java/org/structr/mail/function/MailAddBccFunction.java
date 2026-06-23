@@ -62,7 +62,7 @@ public class MailAddBccFunction extends AdvancedMailModuleFunction {
 			return usage(ctx.isJavaScriptContext());
 		}
 
-		return "";
+		return null;
 	}
 
 	@Override

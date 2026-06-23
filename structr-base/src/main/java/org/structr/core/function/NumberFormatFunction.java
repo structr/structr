@@ -67,7 +67,7 @@ public class NumberFormatFunction extends CoreFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
-			return "";
+			return null;
 
 		} catch (ArgumentCountException pe) {
 
@@ -78,7 +78,7 @@ public class NumberFormatFunction extends CoreFunction {
 
 			logException(caller, t, sources);
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
-			return "";
+			return null;
 		}
 	}
 

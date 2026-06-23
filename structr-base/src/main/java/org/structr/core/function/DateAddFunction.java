@@ -77,7 +77,7 @@ public class DateAddFunction extends CoreFunction {
 					} catch (ParseException ex) {
 
 						logger.warn("{}: Could not parse string \"{}\" with pattern {} in element \"{}\". Parameters: {}", new Object[]{getDisplayName(), sources[0].toString(), "yyyy-MM-dd'T'HH:mm:ssZ", caller, getParametersAsString(sources)});
-						return "";
+						return null;
 					}
 				}
 			}
@@ -97,7 +97,7 @@ public class DateAddFunction extends CoreFunction {
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments
-			return "";
+			return null;
 
 		} catch (ArgumentCountException pe) {
 

@@ -56,7 +56,7 @@ public class MailAddToFunction extends AdvancedMailModuleFunction {
 
 			ctx.getAdvancedMailContainer().addTo(address, name);
 
-			return "";
+			return null;
 
 		} catch (IllegalArgumentException e) {
 

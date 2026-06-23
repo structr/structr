@@ -88,7 +88,7 @@ public class IncomingFunction extends CoreFunction {
 			return usage(ctx.isJavaScriptContext());
 		}
 
-		return "";
+		return null;
 	}
 
 	@Override

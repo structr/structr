@@ -76,7 +76,7 @@ public class SetResponseCodeFunction extends UiAdvancedFunction {
 			return usage(ctx.isJavaScriptContext());
 		}
 
-		return "";
+		return null;
 	}
 
 	@Override

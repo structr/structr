@@ -52,7 +52,7 @@ public class MailSetHtmlContentFunction extends AdvancedMailModuleFunction {
 
 			ctx.getAdvancedMailContainer().setHtmlContent(sources[0].toString());
 
-			return "";
+			return null;
 
 		} catch (IllegalArgumentException e) {
 

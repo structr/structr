@@ -54,7 +54,7 @@ public class AddHeaderFunction extends UiAdvancedFunction {
 				}
 			}
 
-			return "";
+			return null;
 
 		} else {
 

@@ -47,7 +47,7 @@ public class EnableCascadingDeleteFunction extends AdvancedScriptingFunction {
 
 		ctx.getSecurityContext().setDoCascadingDelete(true);
 
-		return "";
+		return null;
 	}
 
 	@Override

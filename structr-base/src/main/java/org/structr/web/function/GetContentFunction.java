@@ -61,7 +61,7 @@ public class GetContentFunction extends UiAdvancedFunction {
 				final File file = n.as(File.class);
 
 				if (StorageProviderFactory.getStorageProvider(file).size() == 0) {
-					return "";
+					return null;
 				}
 
 				final String encoding = (sources.length == 2 && sources[1] != null) ? sources[1].toString() : null;

@@ -47,7 +47,7 @@ public class MailClearBounceAddressFunction extends AdvancedMailModuleFunction {
 
 		ctx.getAdvancedMailContainer().setBounceAddress(null);
 
-		return "";
+		return null;
 	}
 
 	@Override

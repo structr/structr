@@ -24,6 +24,7 @@ import org.graalvm.polyglot.Value;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.wrappers.HttpSessionWrapper;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
@@ -59,12 +60,12 @@ public class SetSessionAttributeFunction extends UiAdvancedFunction {
 			final HttpSessionWrapper sessionWrapper = new HttpSessionWrapper(ctx, session);
 
 			if (session != null) {
-				sessionWrapper.putMember(sources[0].toString(), Value.asValue(sources[1]));
+				sessionWrapper.putMember(sources[0].toString(), Value.asValue(PolyglotWrapper.wrap(ctx, sources[1])));
 			} else {
 				logger.warn("{}: No session available to set session attribute! (this can happen in onStructrLogin/onStructrLogout)", getDisplayName());
 			}
 
-			return "";
+			return null;
 
 		} catch (IllegalStateException ex) {
 

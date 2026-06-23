@@ -47,7 +47,7 @@ public class ValidateCertificatesFunction extends UiAdvancedFunction {
 
         ctx.setValidateCertificates(validate);
 
-        return "";
+        return null;
 	}
 
 	@Override

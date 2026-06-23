@@ -57,7 +57,7 @@ public class ParseNumberFunction extends CoreFunction {
 			final String numberString = sources[0].toString().replaceAll("[^\\d.,-]", "");
 
 			if (StringUtils.isBlank(numberString)) {
-				return "";
+				return null;
 			}
 
 			Locale locale = ctx.getLocale();
@@ -88,7 +88,7 @@ public class ParseNumberFunction extends CoreFunction {
 
 		}
 
-		return "";
+		return null;
 	}
 
 	@Override

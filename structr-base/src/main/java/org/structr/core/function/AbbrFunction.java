@@ -49,7 +49,7 @@ public class AbbrFunction extends CoreFunction {
 
 			if (sources[0] == null) {
 
-				return "";
+				return null;
 			}
 
 			final String abbreviationText = ((sources.length == 3 && sources[2] != null) ? sources[2].toString() : "…");

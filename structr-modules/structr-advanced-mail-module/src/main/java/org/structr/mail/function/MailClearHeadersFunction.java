@@ -47,7 +47,7 @@ public class MailClearHeadersFunction extends AdvancedMailModuleFunction {
 
 		ctx.getAdvancedMailContainer().clearCustomHeaders();
 
-		return "";
+		return null;
 	}
 
 	@Override

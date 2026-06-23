@@ -318,14 +318,22 @@ public abstract class PolyglotWrapper {
 
 			}
 
-			if (obj instanceof List) {
+			if (obj instanceof List list) {
 
-				return unwrapList(actionContext, (List) obj);
+				return unwrapList(actionContext, list);
 			}
 
-			if (obj instanceof Map) {
+			if (obj instanceof Map map) {
 
-				return unwrapMap(actionContext, (Map<String, Object>) obj);
+				return unwrapMap(actionContext, map);
+			}
+
+			if (obj instanceof PolyglotProxyArray pa) {
+				return unwrapProxyArray(actionContext, pa);
+			}
+
+			if (obj instanceof PolyglotProxyMap pm) {
+				return pm.getOriginalObject();
 			}
 
 			if (obj != null) {
@@ -392,6 +400,16 @@ public abstract class PolyglotWrapper {
 		}
 
 		return unwrappedMap;
+	}
+
+	protected static List<Object> unwrapProxyArray(final ActionContext actionContext, final PolyglotProxyArray proxyArray) {
+		final List<Object> unwrappedList = new ArrayList<>();
+
+		for (int i = 0; i < proxyArray.getSize(); i++) {
+			unwrappedList.add(PolyglotWrapper.unwrap(actionContext, proxyArray.get(i)));
+		}
+
+		return unwrappedList;
 	}
 
 	protected static List<Object> convertValueToList(final ActionContext actionContext, final Value value) {

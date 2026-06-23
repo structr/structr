@@ -60,7 +60,7 @@ public class RintFunction extends CoreFunction {
 				} catch (Throwable t) {
 
 					logException(caller, t, sources);
-					return "";
+					return null;
 				}
 			}
 

@@ -52,7 +52,7 @@ public class MailRemoveHeaderFunction extends AdvancedMailModuleFunction {
 
 			ctx.getAdvancedMailContainer().removeCustomHeader(sources[0].toString());
 
-			return "";
+			return null;
 
 		} catch (IllegalArgumentException e) {
 

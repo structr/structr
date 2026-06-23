@@ -65,7 +65,7 @@ public class ImportCssFunction extends UiAdvancedFunction {
 			final File file = n.as(File.class);
 
 			if (StorageProviderFactory.getStorageProvider(file).size() == 0) {
-				return "";
+				return null;
 			}
 
 			try (final InputStreamReader reader = new InputStreamReader(StorageProviderFactory.getStorageProvider(file).getInputStream())) {

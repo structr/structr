@@ -44,7 +44,7 @@ public class ClearHeadersFunction extends UiAdvancedFunction {
 		if (sources == null || sources.length == 0) {
 
 			ctx.clearHeaders();
-			return "";
+			return null;
 
 		} else {
 

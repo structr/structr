@@ -53,7 +53,7 @@ public class RenderFunction extends UiCommunityFunction {
 
 			if (sources[0] == null) {
 
-				return "";
+				return null;
 			}
 
 			boolean useBuffer      = false;

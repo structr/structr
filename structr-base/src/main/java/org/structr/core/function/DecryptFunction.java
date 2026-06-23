@@ -75,13 +75,13 @@ public class DecryptFunction extends AdvancedScriptingFunction {
 			if (sources[0] == null) {
 
 				// silently ignore case which can happen for decrypt(current.propertyThatCanBeNull[, key])
-				return "";
+				return null;
 
 			} else if (sources.length <= 2) {
 
 				logParameterError(caller, sources, ctx.isJavaScriptContext());
 
-				return "";
+				return null;
 
 			} else {
 

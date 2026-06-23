@@ -92,7 +92,7 @@ public class CallFunction extends AdvancedScriptingFunction {
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 		}
 
-		return "";
+		return null;
 	}
 
 	/*

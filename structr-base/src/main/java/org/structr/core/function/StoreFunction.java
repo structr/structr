@@ -59,7 +59,7 @@ public class StoreFunction extends CoreFunction {
 				}
 			}
 
-			return "";
+			return null;
 
 		} catch (ArgumentNullException pe) {
 

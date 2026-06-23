@@ -76,7 +76,7 @@ public class XmlFunction extends AdvancedScriptingFunction {
 					logException(caller, ex, sources);
 				}
 
-				return "";
+				return null;
 			}
 
 		} catch (ArgumentNullException pe) {

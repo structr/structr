@@ -72,7 +72,7 @@ public class RandomFunction extends CoreFunction {
 			logException(caller, t, sources);
 		}
 
-		return "";
+		return null;
 	}
 
 	@Override

@@ -110,7 +110,7 @@ public class PDFEncryptFunction extends AdvancedScriptingFunction {
 			return usage(ctx.isJavaScriptContext());
 		}
 
-		return "";
+		return null;
 	}
 
 	@Override

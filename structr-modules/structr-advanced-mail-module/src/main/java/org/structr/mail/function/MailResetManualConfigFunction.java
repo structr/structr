@@ -49,7 +49,7 @@ public class MailResetManualConfigFunction extends AdvancedMailModuleFunction {
 
 			ctx.getAdvancedMailContainer().resetManualConfiguration();
 
-			return "";
+			return null;
 
 		} catch (IllegalArgumentException e) {
 
