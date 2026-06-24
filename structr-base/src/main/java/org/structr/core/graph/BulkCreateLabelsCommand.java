@@ -45,15 +45,16 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 
 		final DatabaseService graphDb = (DatabaseService) arguments.get("graphDb");
 		final String entityType       = (String) attributes.get("type");
-		final boolean removeUnused    = !attributes.containsKey("removeUnused");
+		final boolean removeUnused    = !attributes.containsKey("removeUnused") || Boolean.parseBoolean(attributes.get("removeUnused").toString());
+		final String unusedInfo       = removeUnused ? "Unused labels will be removed" : "Unused labels will not be removed";
 
 		if (entityType == null) {
 
-			info("Node type not set or no entity class found. Starting creation of labels for all nodes.");
+			info("Node type not set or no entity class found. Starting creation of labels for all nodes. {}.", unusedInfo);
 
 		} else {
 
-			info("Starting creation of labels for all nodes of type {}", entityType);
+			info("Starting creation of labels for all nodes of type {}. {}.", entityType, unusedInfo);
 		}
 
 		final long count = bulkGraphOperation(securityContext, getNodeQuery(entityType, true), 10000, "CreateLabels", new BulkGraphOperation<NodeInterface>() {

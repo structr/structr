@@ -203,12 +203,12 @@ public class ConsoleTest extends StructrUiTest {
 			"Done with setting UUID on " + relCount + " relationships\r\n";
 
 		final String createLabelsOutput =
-			"Node type not set or no entity class found. Starting creation of labels for all nodes.\r\n" +
+			"Node type not set or no entity class found. Starting creation of labels for all nodes. Unused labels will be removed.\r\n" +
 			"CreateLabels: " + nodeCount + " objects processed\r\n" +
 			"Done with creating labels on " + nodeCount + " nodes\r\n";
 
 		final String createUserLabelsOutput =
-			"Starting creation of labels for all nodes of type User\r\n" +
+			"Starting creation of labels for all nodes of type User. Unused labels will be removed.\r\n" +
 			"CreateLabels: 0 objects processed\r\n" +
 			"Done with creating labels on 0 nodes\r\n";
 
