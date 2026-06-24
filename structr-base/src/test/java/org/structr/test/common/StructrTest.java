@@ -138,7 +138,7 @@ public class StructrTest {
 		app = StructrApp.getInstance(securityContext);
 	}
 
-	@BeforeMethod(firstTimeOnly = true)
+	@BeforeClass(alwaysRun = true, dependsOnMethods = "startSystem")
 	public void createSchema() {
 
 		// relationships: traits

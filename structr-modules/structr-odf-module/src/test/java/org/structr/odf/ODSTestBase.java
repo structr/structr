@@ -30,11 +30,12 @@ import org.structr.odf.traits.definitions.ODFExporterTraitDefinition;
 import org.structr.odf.traits.definitions.ODSExporterTraitDefinition;
 import org.structr.odf.traits.definitions.ODTExporterTraitDefinition;
 import org.structr.test.web.StructrUiTest;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 
 public class ODSTestBase extends StructrUiTest {
 
-	@BeforeMethod(firstTimeOnly = true)
+	@BeforeClass(alwaysRun = true, dependsOnMethods = "setup")
 	public void createSchema() {
 
 		StructrTraits.registerTrait(new ODFExporterEXPORTS_TOFile());

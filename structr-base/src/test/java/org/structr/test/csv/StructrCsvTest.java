@@ -95,5 +95,7 @@ public class StructrCsvTest extends StructrRestTestBase {
 		RestAssured.basePath = "/";
 		RestAssured.baseURI  = "http://" + host + ":" + httpPort;
 		RestAssured.port     = httpPort;
+
+		createSchema();
 	}
 }

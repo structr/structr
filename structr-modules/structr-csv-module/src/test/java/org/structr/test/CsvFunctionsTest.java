@@ -35,6 +35,7 @@ import org.structr.schema.action.ActionContext;
 import org.structr.test.traits.definitions.CsvTestOneTraitDefinition;
 import org.structr.test.traits.definitions.CsvTestTwoTraitDefinition;
 import org.structr.test.web.StructrUiTest;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -49,7 +50,7 @@ public class CsvFunctionsTest extends StructrUiTest {
 	private static final Logger logger = LoggerFactory.getLogger(CsvFunctionsTest.class.getName());
 
 	@Override
-	@BeforeMethod(firstTimeOnly = true)
+	@BeforeClass(alwaysRun = true, dependsOnMethods = "setup")
 	public void createSchema() {
 
 		StructrTraits.registerTrait(new CsvTestOneTraitDefinition());
