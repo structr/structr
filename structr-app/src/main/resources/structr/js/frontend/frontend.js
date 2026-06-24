@@ -270,17 +270,17 @@ export class Frontend {
 				window.location.href = headers.twofactorloginpage + '?' + params.toString();
 				break;
 
-            case 401:
-                this.handleLogout();
-                break;
-
 			case 400:
+			case 401:
 			case 403:
 			case 404:
 			case 405:
 			case 422:
 			case 500:
 			case 503:
+				// 401 is an error like any other: let the element's configured
+				// notification mode decide what (if anything) the user sees. Only a
+				// 'system-alert' mode pops a dialog; do not force one on every 401.
 				this.fireEvent('error', { target: element, data: json, status: status });
 				this.handleNotifications(element, json, status, options);
 				this.processFollowUpActions(element, json, status, options);
