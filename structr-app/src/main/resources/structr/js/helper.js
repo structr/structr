@@ -1427,17 +1427,15 @@ let _Console = new (function() {
 				}
 			}
 
-			// prevent the output from being formatted and re-interpreted by term. ('[[1,2,3]]' leads to re-interpretation)
 			let echoConfig = {
-				exec: false,
-				raw: true,
+				raw: false,
 				finalize: (div) => {
 					div.css('white-space', 'pre-wrap');	// prevent the output from being put on one line but also prevent overflow
-					div.text(result);
 				}
 			};
 
-			term.echo(result, echoConfig);
+			let escaped = $.terminal.escape_formatting(result);
+			term.echo(escaped, echoConfig);
 		}
 
 		return data;
