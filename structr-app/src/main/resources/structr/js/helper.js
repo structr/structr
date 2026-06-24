@@ -605,26 +605,6 @@ let _Helpers = {
 			}
 		}
 	},
-	updateButtonWithSpinnerAndText: (btn, html) => {
-
-		_Helpers.disableElement(btn);
-
-		let icon = _Helpers.createSingleDOMElementFromHTML(_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 20, 20, 'ml-2'));
-		btn.innerHTML = html;
-		btn.appendChild(icon);
-	},
-	updateButtonWithSuccessIcon: (btn, html) => {
-
-		let icon = _Helpers.createSingleDOMElementFromHTML(_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, ['tick', 'icon-green', 'ml-2']));
-		btn.innerHTML = html;
-		btn.appendChild(icon);
-
-		window.setTimeout(() => {
-			icon.remove();
-
-			_Helpers.enableElement(btn);
-		}, 1000);
-	},
 	/**
 	 * Auto-detect the content type of a string value.
 	 *

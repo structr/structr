@@ -5408,6 +5408,21 @@ ul.combined-input-select-field li:not(.nohover):hover {
 }
 /* END special tailwind-style classes */
 
+/* BEGIN special tailwind-style classes */
+/* conditionally show checkmark if group has class show-checkmark */
+.group-\[\.show-checkmark\]\:block {
+	&:is(:where(.group):is(.show-checkmark) *) {
+		display: block;
+	}
+}
+.group-\[\.show-checkmark\]\:hidden {
+	&:is(:where(.group):is(.show-checkmark) *) {
+		display: none;
+	}
+}
+/* END special tailwind-style classes */
+
+
 /* BEGIN shake animation for notification bell */
 .shake {
     animation: shake 1s ease-in-out 0s 2 alternate forwards;

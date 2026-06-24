@@ -77,7 +77,7 @@ let _Schema = {
 		UISettings.showSettingsForCurrentModule(UISettings.settingGroups.schema_code);
 
 		_Schema.ui.activateDisplayDropdownTools();
-		_Schema.activateAdminTools();
+		_Schema.adminTools.init();
 
 		document.getElementById('hide-selected-types').addEventListener('click', _Schema.ui.selection.hideSelectedSchemaTypes);
 		_Schema.ui.selection.updateHideSelectedTypesButton();
@@ -4340,117 +4340,253 @@ let _Schema = {
 			`,
 		}
 	},
-	activateAdminTools: () => {
+	adminTools: {
+		init: () => {
+			_Schema.adminTools.registerAdminToolClickHandler('#rebuild-index', 'rebuildIndex');
+			_Schema.adminTools.registerAdminToolClickHandler('#flush-caches', 'flushCaches');
 
-		let registerSchemaToolButtonAction = (btn, target, connectedSelectElement, getPayloadFunction) => {
+			document.querySelector('#clear-schema').addEventListener('click', async (e) => {
 
-			btn.on('click', async (e) => {
-				e.preventDefault();
-				let oldHtml = btn.html();
+				let confirm = await _Dialogs.confirmation.showPromise('<h3>Delete dynamic schema?</h3><p>This will remove all dynamic schema information, but leave the corresponding data intact.</p><p>&nbsp;</p>');
 
-				let transportAction = async (target, payload) => {
+				if (confirm === true) {
 
-					_Helpers.updateButtonWithSpinnerAndText(btn[0], oldHtml);
+					_Schema.showUpdatingSchemaMessage();
 
-					let response = await fetch(`${Structr.rootUrl}maintenance/${target}`, {
-						method: 'POST',
-						body: JSON.stringify(payload)
+					Command.clearSchema((data) => {
+
+						if (data.success !== true) {
+							new WarningMessage().text("Clearing schema failed - see log for details.").show();
+						}
+
+						let timeoutBecauseClearCommandReturnsTooEarly = 1000;
+
+						setTimeout(() => {
+							_Schema.hideUpdatingSchemaMessage();
+							_Schema.reload();
+						}, timeoutBecauseClearCommandReturnsTooEarly);
 					});
+				}
+			});
 
-					if (response.ok) {
-						_Helpers.updateButtonWithSuccessIcon(btn[0], oldHtml);
+			let nodeTypeSelector = document.querySelector('#node-type-selector');
+			Command.getSchemaInfo(null, types => {
+				_Helpers.sort(types);
+
+				let customTypes  = types.filter(t => !t.isServiceClass && !t.isRel && !t.isBuiltin);
+				let builtinTypes = types.filter(t => !t.isServiceClass && !t.isRel && t.isBuiltin);
+
+				let mapFn = type => `<option>${type.name}</option>`;
+
+				nodeTypeSelector.querySelector('[data-custom-types-heading]')?.insertAdjacentHTML('afterbegin', customTypes.map(mapFn).join(''));
+				nodeTypeSelector.querySelector('[data-builtin-types-heading]')?.insertAdjacentHTML('afterbegin', builtinTypes.map(mapFn).join(''));
+			});
+
+			_Schema.adminTools.registerAdminToolClickHandler('#reindex-nodes', 'rebuildIndex', nodeTypeSelector, (type) => (type === 'allNodes') ? { mode: 'nodesOnly' } : { mode: 'nodesOnly', type: type });
+			_Schema.adminTools.registerAdminToolClickHandler('#add-node-uuids', 'setUuid', nodeTypeSelector, (type) => (type === 'allNodes') ? { allNodes: true } : { type: type });
+
+			document.querySelector('#create-labels').addEventListener('click', async (e) => {
+
+				let type = nodeTypeSelector.value;
+				if (type) {
+
+					let payload = (type === 'allNodes') ? {} : { type: type };
+
+					let questionText = `
+						<h3>Apply Labels to all nodes ${type === 'allNodes' ? '' : `of type '${type}'`}</h3>
+						<p>This will set the correct labels (according to the current schema) on all nodes ${type === 'allNodes' ? '' : `of type ${type}`}.</p>
+						<p>
+							You have the choice to remove unused labels or keep them.<br>
+							Removing unused labels is helpful after updating the schema in a way that removes inherited traits from a type.<br>
+							If you have custom labels which are not part of the schema, you might want to choose to keep them.
+						</p>
+						<p>Do you want to remove unused labels?</p>
+					`;
+
+					const cancel_option = null;
+					let choices = [
+						{ result: true,           buttonText: `${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, ['icon-green', 'mr-2'])} Remove` },
+						{ result: false,          buttonText: `${_Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, ['icon-red', 'mr-2'])} Keep` },
+						{ result: cancel_option,  buttonText: 'Cancel' }
+					];
+
+					let removeUnused = await _Dialogs.multipleChoiceQuestion.askPromise(questionText, choices, true, cancel_option);
+
+					if (removeUnused !== cancel_option) {
+
+						payload.removeUnused = removeUnused;
+
+						await _Schema.adminTools.runAdminTool('createLabels', payload, e.target.closest('button'));
 					}
-				};
-
-				if (!connectedSelectElement) {
-
-					await transportAction(target, {});
 
 				} else {
 
-					let type = connectedSelectElement.val();
-					if (!type) {
-						_Helpers.blinkRed(connectedSelectElement);
-					} else {
-						await transportAction(target, ((typeof getPayloadFunction === "function") ? getPayloadFunction(type) : {}));
-					}
+					_Helpers.blinkRed(nodeTypeSelector);
 				}
 			});
-		};
 
-		registerSchemaToolButtonAction($('#rebuild-index'), 'rebuildIndex');
-		registerSchemaToolButtonAction($('#flush-caches'), 'flushCaches');
+			let relTypeSelector = document.querySelector('#rel-type-selector');
+			Command.getSchemaInfo(null, types => {
+				_Helpers.sort(types);
 
-		document.querySelector('#clear-schema').addEventListener('click', async (e) => {
+				let customTypes  = types.filter(t => !t.isServiceClass && t.isRel && !t.isBuiltin);
+				let builtinTypes = types.filter(t => !t.isServiceClass && t.isRel && t.isBuiltin);
 
-			let confirm = await _Dialogs.confirmation.showPromise('<h3>Delete dynamic schema?</h3><p>This will remove all dynamic schema information, but leave the corresponding data intact.</p><p>&nbsp;</p>');
+				let mapFn = type => `<option>${type.name}</option>`;
 
-			if (confirm === true) {
+				relTypeSelector.querySelector('[data-custom-types-heading]')?.insertAdjacentHTML('afterbegin', customTypes.map(mapFn).join(''));
+				relTypeSelector.querySelector('[data-builtin-types-heading]')?.insertAdjacentHTML('afterbegin', builtinTypes.map(mapFn).join(''));
+			});
 
-				_Schema.showUpdatingSchemaMessage();
+			_Schema.adminTools.registerAdminToolClickHandler('#reindex-rels', 'rebuildIndex', relTypeSelector, (type) => (type === 'allRels') ? { mode: 'relsOnly' } : { mode: 'relsOnly', type: type });
+			_Schema.adminTools.registerAdminToolClickHandler('#add-rel-uuids', 'setUuid', relTypeSelector, (type) => (type === 'allRels') ? { allRels: true } : { relType: type });
+		},
+		registerAdminToolClickHandler: (btnId, target, connectedSelectElement, getPayloadFunction) => {
 
-				Command.clearSchema((data) => {
+			document.querySelector(btnId)?.addEventListener('click', async (e) => {
 
-					if (data.success !== true) {
-						new WarningMessage().text("Clearing schema failed - see log for details.").show();
+				e.preventDefault();
+
+				let payload = {};
+
+				if (connectedSelectElement) {
+
+					let type = connectedSelectElement.value;
+
+					if (!type) {
+
+						_Helpers.blinkRed(connectedSelectElement);
+						return false;
+
+					} else {
+
+						payload = getPayloadFunction(type);
 					}
+				}
 
-					let timeoutBecauseClearCommandReturnsTooEarly = 1000;
+				await _Schema.adminTools.runAdminTool(target, payload, e.target.closest('button'));
+			});
+		},
+		runAdminTool: async (target, payload, btn) => {
 
-					setTimeout(() => {
-						_Schema.hideUpdatingSchemaMessage();
-						_Schema.reload();
-					}, timeoutBecauseClearCommandReturnsTooEarly);
-				});
+			_Helpers.disableElement(btn);
+
+			btn.classList.add('show-spinner');
+
+			let response = await fetch(`${Structr.rootUrl}maintenance/${target}`, {
+				method: 'POST',
+				body: JSON.stringify(payload)
+			});
+
+			if (response.ok) {
+
+				btn.classList.remove('show-spinner');
+				btn.classList.add('show-checkmark');
+
+				window.setTimeout(() => {
+					btn.classList.remove('show-checkmark');
+
+					_Helpers.enableElement(btn);
+				}, 1000);
 			}
-		});
+		},
+		templates: {
+			dropdown: config => `
+				<div class="dropdown-menu dropdown-menu-large">
+					<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
+						${_Icons.getSvgIcon(_Icons.iconSettingsCog, 16, 16, ['mr-2'])} Admin
+					</button>
 
-		let nodeTypeSelector = $('#node-type-selector');
-		Command.getSchemaInfo(null, types => {
-			_Helpers.sort(types);
+					<div class="dropdown-menu-container">
 
-			let customTypes  = types.filter(t => !t.isServiceClass && !t.isRel && !t.isBuiltin);
-			let builtinTypes = types.filter(t => !t.isServiceClass && !t.isRel && t.isBuiltin);
+						<div class="heading-row">
+							<h3>Indexing</h3>
+						</div>
 
-			let mapFn = type => `<option>${type.name}</option>`;
+						<div class="row">
+							<select id="node-type-selector" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+								<option selected value="">-- Select Node Type --</option>
+								${_Schema.adminTools.templates.disabledSpacerOption}
+								<option value="allNodes">All Node Types</option>
+								${_Schema.adminTools.templates.disabledSpacerOption}
+								<optgroup data-custom-types-heading label="Custom Types"></optgroup>
+								<optgroup data-builtin-types-heading label="Builtin Types"></optgroup>
+							</select>
+							<button id="reindex-nodes" class="group inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+								Rebuild node index
+								${_Schema.adminTools.templates.waitingSpinner()}
+								${_Schema.adminTools.templates.tickIcon()}
+							</button>
+							<button id="add-node-uuids" class="group inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+								Add UUIDs
+								${_Schema.adminTools.templates.waitingSpinner()}
+								${_Schema.adminTools.templates.tickIcon()}
+							</button>
+							<button id="create-labels" class="group inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+								Apply Labels
+								${_Schema.adminTools.templates.waitingSpinner()}
+								${_Schema.adminTools.templates.tickIcon()}
+							</button>
+						</div>
 
-			nodeTypeSelector[0].querySelector('[data-custom-types-heading]')?.insertAdjacentHTML('afterbegin', customTypes.map(mapFn).join(''));
-			nodeTypeSelector[0].querySelector('[data-builtin-types-heading]')?.insertAdjacentHTML('afterbegin', builtinTypes.map(mapFn).join(''));
-		});
+						<div class="row">
+							<select id="rel-type-selector" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+								<option selected value="">-- Select Relationship Type --</option>
+								${_Schema.adminTools.templates.disabledSpacerOption}
+								<option value="allRels">All Relationship Types</option>
+								${_Schema.adminTools.templates.disabledSpacerOption}
+								<optgroup data-custom-types-heading label="Custom Relationship Types"></optgroup>
+								<optgroup data-builtin-types-heading label="Builtin Relationship Types"></optgroup>
+							</select>
+							<button id="reindex-rels" class="group inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+								Rebuild relationship index
+								${_Schema.adminTools.templates.waitingSpinner()}
+								${_Schema.adminTools.templates.tickIcon()}
+							</button>
+							<button id="add-rel-uuids" class="group inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+								Add UUIDs
+								${_Schema.adminTools.templates.waitingSpinner()}
+								${_Schema.adminTools.templates.tickIcon()}
+							</button>
+						</div>
 
-		registerSchemaToolButtonAction($('#reindex-nodes'), 'rebuildIndex', nodeTypeSelector, (type) => {
-			return (type === 'allNodes') ? { mode: 'nodesOnly' } : { mode: 'nodesOnly', type: type };
-		});
+						<div class="row flex items-center">
+							<button id="rebuild-index" class="group inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+								${_Icons.getSvgIcon(_Icons.iconRefreshArrows, 16, 16, 'mr-2')} Rebuild all indexes
+								${_Schema.adminTools.templates.waitingSpinner()}
+								${_Schema.adminTools.templates.tickIcon()}
+							</button>
+							<label for="rebuild-index">Rebuild indexes for entire database (all node and relationship indexes)</label>
+						</div>
 
-		registerSchemaToolButtonAction($('#add-node-uuids'), 'setUuid', nodeTypeSelector, (type) => {
-			return (type === 'allNodes') ? { allNodes: true } : { type: type };
-		});
+						<div class="separator"></div>
 
-		registerSchemaToolButtonAction($('#create-labels'), 'createLabels', nodeTypeSelector, (type) => {
-			return (type === 'allNodes') ? {} : { type: type };
-		});
+						<div class="heading-row">
+							<h3>Maintenance</h3>
+						</div>
 
-		let relTypeSelector = $('#rel-type-selector');
-		Command.getSchemaInfo(null, types => {
-			_Helpers.sort(types);
+						<div class="row flex items-center">
+							<button id="flush-caches" class="group inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+								${_Icons.getSvgIcon(_Icons.iconRefreshArrows, 16, 16, 'mr-2')} Flush Caches
+								${_Schema.adminTools.templates.waitingSpinner()}
+								${_Schema.adminTools.templates.tickIcon()}
+							</button>
+							<label for="flush-caches">Flushes internal caches to refresh schema information</label>
+						</div>
 
-			let customTypes  = types.filter(t => !t.isServiceClass && t.isRel && !t.isBuiltin);
-			let builtinTypes = types.filter(t => !t.isServiceClass && t.isRel && t.isBuiltin);
-
-			let mapFn = type => `<option>${type.name}</option>`;
-
-			relTypeSelector[0].querySelector('[data-custom-types-heading]')?.insertAdjacentHTML('afterbegin', customTypes.map(mapFn).join(''));
-			relTypeSelector[0].querySelector('[data-builtin-types-heading]')?.insertAdjacentHTML('afterbegin', builtinTypes.map(mapFn).join(''));
-
-		});
-
-		registerSchemaToolButtonAction($('#reindex-rels'), 'rebuildIndex', relTypeSelector, (type) => {
-			return (type === 'allRels') ? { mode: 'relsOnly' } : { mode: 'relsOnly', type: type };
-		});
-
-		registerSchemaToolButtonAction($('#add-rel-uuids'), 'setUuid', relTypeSelector, (type) => {
-			return (type === 'allRels') ? { allRels: true } : { relType: type };
-		});
+						<div class="row flex items-center">
+							<button id="clear-schema" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+								${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, 'mr-2 icon-red')} Clear Schema
+							</button>
+							<label for="clear-schema">Delete all schema nodes and relationships in custom schema</label>
+						</div>
+					</div>
+				</div>
+			`,
+			disabledSpacerOption: `<option disabled>──────────</option>`,
+			waitingSpinner: () => _Icons.getSvgIcon(_Icons.iconWaitingSpinner, 20, 20, ['ml-2', 'group-[.show-spinner]:block', 'hidden']),
+			tickIcon: () => _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, ['ml-2', 'icon-green', 'group-[.show-checkmark]:block', 'hidden']),
+		}
 	},
 	caches: {
 		cacheForAutoLayout: {},
@@ -5800,6 +5936,7 @@ let _Schema = {
 			return overlaps;
 		}
 	},
+
 	markElementAsChanged: (element, hasClass) => {
 
 		element.classList.toggle('has-changes', hasClass);
@@ -5915,7 +6052,7 @@ let _Schema = {
 						</div>
 					</div>
 
-					${_Schema.templates.adminDropdown.basic(config)}
+					${_Schema.adminTools.templates.dropdown(config)}
 
 					<button id="hide-selected-types" class="btn hover:bg-gray-100 focus:border-gray-666 active:border-green">
 						Hide selected types
@@ -5969,70 +6106,6 @@ let _Schema = {
 				</div>
 			</div>
 		`,
-		adminDropdown: {
-			basic: config => `
-				<div class="dropdown-menu dropdown-menu-large">
-					<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
-						${_Icons.getSvgIcon(_Icons.iconSettingsCog, 16, 16, ['mr-2'])} Admin
-					</button>
-
-					<div class="dropdown-menu-container">
-						<div class="heading-row">
-							<h3>Indexing</h3>
-						</div>
-						<div class="row">
-							<select id="node-type-selector" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-								<option selected value="">-- Select Node Type --</option>
-								${_Schema.templates.adminDropdown.disabledSpacerOption}
-								<option value="allNodes">All Node Types</option>
-								${_Schema.templates.adminDropdown.disabledSpacerOption}
-								<optgroup data-custom-types-heading label="Custom Types"></optgroup>
-								<optgroup data-builtin-types-heading label="Builtin Types"></optgroup>
-							</select>
-							<button id="reindex-nodes" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Rebuild node index</button>
-							<button id="add-node-uuids" class="mt-1 inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Add UUIDs</button>
-							<button id="create-labels" class="mt-1 inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Create Labels</button>
-						</div>
-						<div class="row">
-							<select id="rel-type-selector" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-								<option selected value="">-- Select Relationship Type --</option>
-								${_Schema.templates.adminDropdown.disabledSpacerOption}
-								<option value="allRels">All Relationship Types</option>
-								${_Schema.templates.adminDropdown.disabledSpacerOption}
-								<optgroup data-custom-types-heading label="Custom Relationship Types"></optgroup>
-								<optgroup data-builtin-types-heading label="Builtin Relationship Types"></optgroup>
-							</select>
-							<button id="reindex-rels" class="mt-1 inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Rebuild relationship index</button>
-							<button id="add-rel-uuids" class="mt-1 inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Add UUIDs</button>
-						</div>
-						<div class="row flex items-center">
-							<button id="rebuild-index" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-								${_Icons.getSvgIcon(_Icons.iconRefreshArrows, 16, 16, 'mr-2')} Rebuild all indexes
-							</button>
-							<label for="rebuild-index">Rebuild indexes for entire database (all node and relationship indexes)</label>
-						</div>
-						<div class="separator"></div>
-						<div class="heading-row">
-							<h3>Maintenance</h3>
-						</div>
-						<div class="row flex items-center">
-							<button id="flush-caches" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-								${_Icons.getSvgIcon(_Icons.iconRefreshArrows, 16, 16, 'mr-2')} Flush Caches
-							</button>
-							<label for="flush-caches">Flushes internal caches to refresh schema information</label>
-						</div>
-
-						<div class="row flex items-center">
-							<button id="clear-schema" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-								${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, 'mr-2 icon-red')} Clear Schema
-							</button>
-							<label for="clear-schema">Delete all schema nodes and relationships in custom schema</label>
-						</div>
-					</div>
-				</div>
-			`,
-			disabledSpacerOption: `<option disabled>──────────</option>`
-		},
 		relationshipBasicTab: config => `
 			<div class="schema-details">
 				<div id="relationship-options">
