@@ -1743,7 +1743,10 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 				out.append(" data-structr-meta-dimensions=\"").append(Integer.toString(dimensions)).append("\"");
 			}
 
-			out.append(" data-structr-meta-root=\"").append(isComponentRoot() ? "true" : "false").append("\"");
+			if (isComponentRoot()) {
+
+				out.append(" data-structr-meta-root=\"true\"");
+			}
 		}
 	}
 
