@@ -39,8 +39,8 @@ let _Files = {
 	filesResizerLeftKey: 'structrFilesResizerLeftKey_' + location.port,
 	rootFolderName: 'root',
 	tooltips: {
-		includeInFrontendExport: 'If checked this file/folder is exported in the deployment process. This flag can only be set at root level and affects all descendants.',
-		excludeSubtreeFromExport: 'If checked, the descendants of this folder are not exported during the deployment process.'
+		includeInFrontendExport: 'If checked, this file/folder is exported in the deployment process. This flag can only be set at root level and affects all descendants.',
+		excludeSubtreeFromExport: 'If checked, only the folder itself is exported during the deployment process. Its descendants will not be exported.'
 	},
 
 	getViewMode: () => LSWrapper.getItem(_Files.filesViewModeKey, 'list'),
@@ -119,7 +119,7 @@ let _Files = {
 				});
 			});
 
-			Structr.functionBar.querySelector('.mount_folder').addEventListener('click', _Files.openMountDialog);
+			Structr.functionBar.querySelector('.mount_folder').addEventListener('click', _Files.mountDialog.show);
 
 			_Files.search.initSearch();
 		};
@@ -1673,16 +1673,19 @@ let _Files = {
 
 		return archiveTypes.includes(contentType) || archiveExtensions.includes(extension);
 	},
-	openMountDialog: () => {
-
-		_Schema.caches.getTypeInfo('Folder', (typeInfo) => {
+	mountDialog: {
+		supportedProviders: {
+			local: 'org.structr.storage.providers.local.LocalFSStorageProvider',
+			s3: 'org.structr.storage.providers.s3.GenericS3BucketStorageProvider'
+		},
+		show: () => {
 
 			let { dialogText } = _Dialogs.custom.openDialog('Mount Folder', null, ['show-dialog-title']);
 
-			dialogText.insertAdjacentHTML('beforeend', _Files.templates.mountDialog({typeInfo: typeInfo}));
+			dialogText.insertAdjacentHTML('beforeend', _Files.mountDialog.templates.dialog({}));
 			_Helpers.activateCommentsInElement(dialogText);
 
-			let mountButton = _Dialogs.custom.prependCustomDialogButton('<button id="mount-folder" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Mount</button>');
+			let providerSelect = document.querySelector('#storage-configuration-provider');
 
 			let getDataFromElements = (elements) => {
 
@@ -1707,63 +1710,162 @@ let _Files = {
 				return data;
 			};
 
-			mountButton.addEventListener('click', async () => {
+			providerSelect.addEventListener('change', e => {
+
+				let el = dialogText.querySelector('[data-mount-is-provider-specific-data]');
+				_Helpers.fastRemoveAllChildren(el);
+
+				el.innerHTML = _Files.mountDialog.templates.providerSpecificConfigEntries[e.target.value]?.();
+
+				_Helpers.activateCommentsInElement(el);
+			});
+
+			_Dialogs.custom.prependCustomDialogButton('<button form="mount-dialog-form" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Mount</button>');
+
+			let mountDialogForm = dialogText.querySelector('#mount-dialog-form');
+			mountDialogForm.addEventListener('submit', async (e) => {
+
+				e.preventDefault();
 
 				let mountConfig = Object.assign({
 					type: 'Folder',
 					parentId: (_Files.currentWorkingDir ? _Files.currentWorkingDir.id : null)
-				}, getDataFromElements(dialogText.querySelectorAll('.mount-folder-option[data-attribute-name]')));
+				}, getDataFromElements(dialogText.querySelectorAll('[data-mount-is-folder-option][data-attribute-name]')));
 
-				let storageConfigurationData      = getDataFromElements(dialogText.querySelectorAll('.mount-storageconfiguration-option[data-attribute-name]'));
-				let storageConfigurationEntryData = getDataFromElements(dialogText.querySelectorAll('.mount-storageconfigurationentry-option[data-attribute-name]'))
+				let storageConfigurationData      = getDataFromElements(dialogText.querySelectorAll('[data-mount-is-storageconfiguration-option][data-attribute-name]'));
+				let storageConfigurationEntryData = getDataFromElements(dialogText.querySelectorAll(`[data-mount-is-provider-specific-data] [data-mount-is-storageconfigurationentry-option][data-attribute-name]`))
 
-				if (!mountConfig.name) {
+				storageConfigurationData.provider = _Files.mountDialog.supportedProviders[storageConfigurationData.provider];
 
-					_Dialogs.custom.showAndHideInfoBoxMessage('Must supply name', 'warning', 2000);
+				mountConfig.storageConfiguration         = storageConfigurationData;
+				mountConfig.storageConfiguration.name    = 'Configuration for ' + mountConfig.name;
+				mountConfig.storageConfiguration.entries = Object.entries(storageConfigurationEntryData).map(entry => ({ name: entry[0], value: entry[1]}));
 
-				} else if (!storageConfigurationEntryData.mountTarget) {
+				let response = await fetch (`${Structr.rootUrl}Folder`, {
+					method: 'POST',
+					body: JSON.stringify(mountConfig)
+				});
 
-					_Dialogs.custom.showAndHideInfoBoxMessage('Must supply mount target', 'warning', 2000);
+				if (response.ok) {
+
+					_Dialogs.custom.clickDialogCancelButton();
+
+					_Files.refreshTree();
 
 				} else {
 
-					mountConfig.storageConfiguration         = storageConfigurationData;
-					mountConfig.storageConfiguration.name    = 'Configuration for ' + mountConfig.name;
-					mountConfig.storageConfiguration.entries = [ Object.fromEntries(Object.entries(storageConfigurationEntryData).map(entry => [ ['name', entry[0]], ['value', entry[1]] ]).flat()) ];
+					let json = await response.json();
 
-					let response = await fetch (`${Structr.rootUrl}Folder`, {
-						method: 'POST',
-						body: JSON.stringify(mountConfig)
-					});
+					if (json.code === 422 && json.message === 'Unable to encrypt data, no secret key set.') {
 
-					if (response.ok) {
-
-						_Dialogs.custom.clickDialogCancelButton();
-
-						_Files.refreshTree();
+						new WarningMessage().title("Encryption Secret Configuration Required").text(_Files.mountDialog.templates.encryptionKeyMissing()).requiresConfirmation().show();
 
 					} else {
 
-						let json = await response.json();
-
-						if (json.code === 422 && json.message === 'Unable to encrypt data, no secret key set.') {
-
-							let warningMessage = `
-								The mount configuration may contain sensitive information (credentials etc) and thus is an encrypted field.</br><br>
-								For this, the configuration key <code>application.encryption.secret</code> in structr.conf has to be set.<br><br>
-								Please update your configuration settings via the config editor (to have the key permanently set) or set it via the builtin function <code>set_encryption_key(key)</code>.<br><br>
-								Please keep in mind that a changed encryption key will have the effect that previously encrypted fields will not be readable anymore with the changed key.
-							`;
-
-							new WarningMessage().title("Encryption Secret Configuration Required").text(warningMessage).requiresConfirmation().show();
-
-						} else {
-							Structr.errorFromResponse(json);
-						}
+						Structr.errorFromResponse(json);
 					}
 				}
 			});
-		});
+		},
+		templates: {
+			dialog: config => `
+				<form id="mount-dialog-form">
+					<table class="props">
+						<thead></thead>
+						<tbody>
+							<tr>
+								<td data-comment="Different storage providers have different capabilities. Currently the only existing storage provider is for mounting directories from a filesystem local to the server. In future versions storage providers for cloud storage are planned.">Storage Provider</td>
+								<td>
+									<select required id="storage-configuration-provider" class="box-border w-full" data-mount-is-storageconfiguration-option data-attribute-name="provider">
+										<option selected disabled value="">Select provider</option>
+										<option value="local">Local Filesystem</option>
+										<option value="s3">S3</option>
+									</select>
+								</td>
+							</tr>
+						</tbody>
+						<thead>
+							<tr>
+								<th colspan="2">Provider-independent configuration</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td data-comment="The name of the folder that will be created in the current folder.">Name</td>
+								<td><input required type="text" class="box-border w-full" data-mount-is-folder-option data-attribute-name="name"></td>
+							</tr>
+							<tr>
+								<td>Do Fulltext Indexing</td>
+								<td><input type="checkbox" data-mount-is-folder-option data-attribute-name="mountDoFulltextIndexing"></td>
+							</tr>
+							<tr>
+								<td data-comment="The scan interval for repeated scans of this mount target">Scan Interval (s)</td>
+								<td><input type="number" class="box-border w-full" data-mount-is-folder-option data-attribute-name="mountScanInterval"></td>
+							</tr>
+							<tr>
+								<td data-comment="Folders encountered underneath this mounted folder are created with this type">Mount Target Folder Type</td>
+								<td><input type="text" class="box-border w-full" data-mount-is-folder-option data-attribute-name="mountTargetFolderType"></td>
+							</tr>
+							<tr>
+								<td data-comment="Files encountered underneath this mounted folder are created with this type">Mount Target File Type</td>
+								<td><input type="text" class="box-border w-full" data-mount-is-folder-option data-attribute-name="mountTargetFileType"></td>
+							</tr>
+							<tr>
+								<td data-comment="List of checksum types which are being automatically calculated on file creation.<br>Supported values are: crc32, md5, sha1, sha512">Enabled Checksums</td>
+								<td><input type="text" class="box-border w-full" data-mount-is-folder-option data-attribute-name="enabledChecksums"></td>
+							</tr>
+							<tr>
+								<td data-comment="Registers this path with a watch service (if supported by operating/file system)">Watch Folder Contents</td>
+								<td><input type="checkbox" data-mount-is-folder-option data-attribute-name="mountWatchContents"></td>
+							</tr>
+						</tbody>
+						<thead>
+							<tr>
+								<th colspan="2">Provider-specific configuration</th>
+							</tr>
+						</thead>
+						<tbody data-mount-is-provider-specific-data>
+						</tbody>
+					</table>
+				</form>
+			`,
+			providerSpecificConfigEntries: {
+				local: config => `
+					<tr>
+						<td data-comment="The absolute path of the local directory to mount">Mount Target</td>
+						<td><input required type="text" class="box-border w-full" data-mount-is-storageconfigurationentry-option data-attribute-name="mountTarget"></td>
+					</tr>
+				`,
+				s3: config => `
+					<tr>
+						<td data-comment="For non-AWS S3 architecture only. Will automatically be prefixed with 'https://' if neither 'http://' or 'https://' is present.">Endpoint</td>
+						<td><input type="text" class="box-border w-full" data-mount-is-storageconfigurationentry-option data-attribute-name="endpoint"></td>
+					</tr>
+					<tr>
+						<td data-comment="">Bucket Name</td>
+						<td><input required type="text" class="box-border w-full" data-mount-is-storageconfigurationentry-option data-attribute-name="bucketName"></td>
+					</tr>
+					<tr>
+						<td data-comment="">Region</td>
+						<td><input required type="text" class="box-border w-full" data-mount-is-storageconfigurationentry-option data-attribute-name="region"></td>
+					</tr>
+					<tr>
+						<td data-comment="">Access Key</td>
+						<td><input required type="text" class="box-border w-full" data-mount-is-storageconfigurationentry-option data-attribute-name="accessKey"></td>
+					</tr>
+					<tr>
+						<td data-comment="">Secret Key</td>
+						<td><input required type="text" class="box-border w-full" data-mount-is-storageconfigurationentry-option data-attribute-name="secretKey"></td>
+					</tr>
+				`
+			},
+			encryptionKeyMissing: config => `
+				The mount configuration may contain sensitive information (credentials etc) and thus is an encrypted field.</br><br>
+				For this, the configuration key <code>application.encryption.secret</code> in structr.conf has to be set.<br><br>
+				Please update your configuration settings via the config editor (to have the key permanently set) or set it via the builtin function <code>set_encryption_key(key)</code>.<br><br>
+				Please keep in mind that a changed encryption key will have the effect that previously encrypted fields will not be readable anymore with the changed key.
+			`
+		}
 	},
 	search: {
 		searchField: undefined,
@@ -2058,50 +2160,6 @@ let _Files = {
 					</div>
 				</div>
 			</div>
-		`,
-		mountDialog: config => `
-			<table id="mount-dialog" class="props">
-				<tr>
-					<td data-comment="Different storage providers have different capabilities. Currently the only existing storage provider is for mounting directories from a filesystem local to the server. In future versions storage providers for cloud storage are planned.">Storage Provider</td>
-					<td>
-						<select class="mount-storageconfiguration-option" data-attribute-name="provider" disabled>
-							<option value="org.structr.storage.providers.local.LocalFSStorageProvider">Local Filesystem</option>
-						</select>
-					</td>
-				</tr>
-				<tr>
-					<td data-comment="The name of the folder that will be created in the current folder.">Name</td>
-					<td><input type="text" class="mount-folder-option" data-attribute-name="name"></td>
-				</tr>
-				<tr>
-					<td data-comment="The absolute path of the local directory to mount">Mount Target</td>
-					<td><input type="text" class="mount-storageconfigurationentry-option" data-attribute-name="mountTarget"></td>
-				</tr>
-				<tr>
-					<td>Do Fulltext Indexing</td>
-					<td><input type="checkbox" class="mount-folder-option" data-attribute-name="mountDoFulltextIndexing"></td>
-				</tr>
-				<tr>
-					<td data-comment="The scan interval for repeated scans of this mount target">Scan Interval (s)</td>
-					<td><input type="number" class="mount-folder-option" data-attribute-name="mountScanInterval"></td>
-				</tr>
-				<tr>
-					<td data-comment="Folders encountered underneath this mounted folder are created with this type">Mount Target Folder Type</td>
-					<td><input type="text" class="mount-folder-option" data-attribute-name="mountTargetFolderType"></td>
-				</tr>
-				<tr>
-					<td data-comment="Files encountered underneath this mounted folder are created with this type">Mount Target File Type</td>
-					<td><input type="text" class="mount-folder-option" data-attribute-name="mountTargetFileType"></td>
-				</tr>
-				<tr>
-					<td data-comment="List of checksum types which are being automatically calculated on file creation.<br>Supported values are: crc32, md5, sha1, sha512">Enabled Checksums</td>
-					<td><input type="text" class="mount-folder-option" data-attribute-name="enabledChecksums"></td>
-				</tr>
-				<tr>
-					<td data-comment="Registers this path with a watch service (if supported by operating/file system)">Watch Folder Contents</td>
-					<td><input type="checkbox" class="mount-folder-option" data-attribute-name="mountWatchContents"></td>
-				</tr>
-			</table>
-		`,
+		`
 	}
 };

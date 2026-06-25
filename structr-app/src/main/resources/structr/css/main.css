@@ -3560,6 +3560,12 @@ input.validated:invalid {
     border-color: red !important;
 }
 
+/* automatically paint red border around required elements the are user-invalid (AFTER submission attempt) */
+input[required]:user-invalid,
+select[required]:user-invalid {
+	border-color: red !important;
+}
+
 .events-container .node:hover {
 	color: var(--gray-555);
 	border: 1px solid transparent;
@@ -3589,11 +3595,6 @@ div#custom-properties-container table td:nth-child(3) {
 	text-align: center;
 	width: 2rem;
 	padding: 0;
-}
-
-/* mount dialog */
-#mount-dialog input[type="text"] {
-	width: calc(100% - 10px);
 }
 
 /**
