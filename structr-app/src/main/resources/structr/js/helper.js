@@ -508,7 +508,11 @@ let _Helpers = {
 
 				// base config is overridden by the defaults parameter which is overridden by the element config
 				let infoConfig = Object.assign(config, defaults, elCommentConfig);
-				_Helpers.appendInfoTextToElement(infoConfig);
+
+				if ((infoConfig?.text ?? '').trim() !== '') {
+
+					_Helpers.appendInfoTextToElement(infoConfig);
+				}
 			}
 		}
 	},
