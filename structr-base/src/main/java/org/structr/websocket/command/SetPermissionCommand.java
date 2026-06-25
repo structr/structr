@@ -268,9 +268,9 @@ public class SetPermissionCommand extends AbstractCommand {
 
 			try {
 
-				UpdateCommand.SHARED_COMPONENT_SYNC_MODE mode = UpdateCommand.SHARED_COMPONENT_SYNC_MODE.valueOf(syncMode);
+				DOMNode.SHARED_COMPONENT_SYNC_MODE mode = DOMNode.SHARED_COMPONENT_SYNC_MODE.valueOf(syncMode);
 
-				if (UpdateCommand.SHARED_COMPONENT_SYNC_MODE.ALL.equals(mode) || UpdateCommand.SHARED_COMPONENT_SYNC_MODE.BY_VALUE.equals(mode)) {
+				if (DOMNode.SHARED_COMPONENT_SYNC_MODE.ALL.equals(mode) || DOMNode.SHARED_COMPONENT_SYNC_MODE.BY_VALUE.equals(mode)) {
 
 					final List<DOMNode> syncedNodes = Iterables.toList(obj.as(DOMNode.class).getSyncedNodes());
 
@@ -282,7 +282,7 @@ public class SetPermissionCommand extends AbstractCommand {
 
 			} catch (IllegalArgumentException iae) {
 
-				logger.warn("Unsupported sync mode for shared components supplied: {}. Possible values are: {}", syncMode, UpdateCommand.SHARED_COMPONENT_SYNC_MODE.values());
+				logger.warn("Unsupported sync mode for shared components supplied: {}. Possible values are: {}", syncMode, DOMNode.SHARED_COMPONENT_SYNC_MODE.values());
 			}
 		}
 	}

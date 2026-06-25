@@ -700,6 +700,10 @@ public class SecurityContext {
 		}
 	}
 
+	public void removeAttribute(final String key) {
+		attrs.remove(key);
+	}
+
 	public void setAccessMode(final AccessMode accessMode) {
 
 		this.accessMode = accessMode;

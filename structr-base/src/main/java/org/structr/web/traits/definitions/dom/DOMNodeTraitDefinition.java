@@ -164,6 +164,10 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					domNode.syncName(errorBuffer);
 					domNode.updateHasSharedComponentFlag();
 
+					// propagate the changed properties to this node's shared-component peers,
+					// per the sync mode carried on the SecurityContext (default ALL)
+					domNode.syncSharedComponentProperties(securityContext, modificationQueue);
+
 					// acknowledge all events for this node when it is modified
 					RuntimeEventLog.acknowledgeAllEventsForId(domNode.getUuid());
 

@@ -37,6 +37,7 @@ import org.structr.core.entity.DataAdapter;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.function.Functions;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -850,6 +851,84 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 				}
 			}
 		}
+	}
+
+	@Override
+	public void syncSharedComponentProperties(final SecurityContext securityContext, final ModificationQueue modificationQueue) throws FrameworkException {
+
+		// resolve the requested sync mode (default ALL when nothing was set on the context)
+		final DOMNode.SHARED_COMPONENT_SYNC_MODE mode = resolveSharedComponentSyncMode(securityContext);
+		if (mode == DOMNode.SHARED_COMPONENT_SYNC_MODE.NONE) {
+			return;
+		}
+
+		// the synced peers of this node: downstream instances + the shared component (upstream).
+		// the modification queue's fixpoint loop carries the change across the whole sync group.
+		final List<DOMNode> targets       = Iterables.toList(getSyncedNodes());
+		final DOMNode sharedComponent     = getSharedComponent();
+		if (sharedComponent != null) {
+			targets.add(sharedComponent);
+		}
+		if (targets.isEmpty()) {
+			return;
+		}
+
+		// every property that changed on this node (first change lands in modifiedProperties,
+		// subsequent ones in newProperties), with the previous values for BY_VALUE matching
+		final PropertyMap changed = new PropertyMap();
+		changed.putAll(modificationQueue.getModifiedProperties(wrappedObject));
+		changed.putAll(modificationQueue.getNewProperties(wrappedObject));
+		if (changed.isEmpty()) {
+			return;
+		}
+		final PropertyMap previous = modificationQueue.getRemovedProperties(wrappedObject);
+
+		// keep only syncable changed keys (skip identity / audit / access / structure / name)
+		final PropertyMap syncable = new PropertyMap();
+		for (final PropertyKey key : changed.keySet()) {
+			if (!DOMNode.sharedComponentSyncBlacklist.contains(key.jsonName())) {
+				syncable.put(key, changed.get(key));
+			}
+		}
+		if (syncable.isEmpty()) {
+			return;
+		}
+
+		final boolean byValue = (mode == DOMNode.SHARED_COMPONENT_SYNC_MODE.BY_VALUE);
+
+		for (final DOMNode target : targets) {
+
+			final PropertyMap toApply = new PropertyMap();
+
+			for (final PropertyKey key : syncable.keySet()) {
+
+				// BY_VALUE: only update peers that still hold this node's previous value
+				if (byValue && !java.util.Objects.equals(target.getProperty(key), previous.get(key))) {
+					continue;
+				}
+
+				toApply.put(key, syncable.get(key));
+			}
+
+			if (!toApply.isEmpty()) {
+				// reuse the same securityContext so the cascade keeps the same sync mode
+				target.setProperties(securityContext, toApply);
+			}
+		}
+	}
+
+	private DOMNode.SHARED_COMPONENT_SYNC_MODE resolveSharedComponentSyncMode(final SecurityContext securityContext) {
+
+		final Object attr = securityContext.getAttribute(DOMNode.SHARED_COMPONENT_SYNC_MODE_ATTRIBUTE);
+		if (attr instanceof DOMNode.SHARED_COMPONENT_SYNC_MODE mode) {
+
+			// ASK is a UI-only marker the client resolves before the write; an unresolved
+			// ASK reaching the core must NOT auto-propagate (treat it as NONE)
+			return (mode == DOMNode.SHARED_COMPONENT_SYNC_MODE.ASK) ? DOMNode.SHARED_COMPONENT_SYNC_MODE.NONE : mode;
+		}
+
+		// no mode set (plain REST write / legacy caller): preserve the historic all-sync default
+		return DOMNode.SHARED_COMPONENT_SYNC_MODE.ALL;
 	}
 
 	@Override

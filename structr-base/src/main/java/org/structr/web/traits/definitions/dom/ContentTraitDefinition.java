@@ -90,42 +90,10 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 						content.setContentType("text/plain");
 					}
 				}
-			},
-
-			OnModification.class,
-			new OnModification() {
-
-				@Override
-				public void onModification(final GraphObject obj, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-
-					final Content content = obj.as(Content.class);
-					final DOMNode domNode = content.as(DOMNode.class);
-
-					// acknowledge all events for this node when it is modified
-					RuntimeEventLog.acknowledgeAllEventsForId(content.getUuid());
-
-					final PropertyMap map = new PropertyMap();
-					final Traits traits   = obj.getTraits();
-
-					// sync content only
-					map.put(traits.key(ContentTraitDefinition.CONTENT_PROPERTY),      content.getContent());
-					map.put(traits.key(ContentTraitDefinition.CONTENT_TYPE_PROPERTY), content.getContentType());
-
-					// don't sync name to shared component (is used differently now)
-					//map.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),   obj.getProperty(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
-
-					for (final DOMNode syncedNode : domNode.getSyncedNodes()) {
-
-						syncedNode.setProperties(securityContext, map);
-					}
-
-					final DOMNode sharedComponent = domNode.getSharedComponent();
-					if (sharedComponent != null) {
-
-						sharedComponent.setProperties(sharedComponent.getSecurityContext(), map);
-					}
-				}
 			}
+			// content/contentType sync to shared-component peers now happens generically in
+			// DOMNode.syncSharedComponentProperties (called from the base onModification), so
+			// it is conditional on the sync mode and works on every write path, not just here
 		);
 	}
 

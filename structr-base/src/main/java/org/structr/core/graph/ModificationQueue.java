@@ -465,6 +465,59 @@ public class ModificationQueue {
 		return modifiedKeys;
 	}
 
+	/**
+	 * Returns the new values of the locally modified properties for a single graph object,
+	 * or an empty map if the object was not modified in this queue.
+	 */
+	public PropertyMap getModifiedProperties(final GraphObject forObject) {
+
+		for (final GraphObjectModificationState state : getSortedModifications()) {
+
+			if (forObject.getUuid().equals(state.getGraphObject().getUuid())) {
+
+				return state.getModifiedProperties();
+			}
+		}
+
+		return new PropertyMap();
+	}
+
+	/**
+	 * Returns the new values of the locally <i>added</i> properties (those set on a node after the
+	 * first modification in this queue) for a single graph object. Combine with
+	 * {@link #getModifiedProperties(GraphObject)} to get every changed key's new value.
+	 */
+	public PropertyMap getNewProperties(final GraphObject forObject) {
+
+		for (final GraphObjectModificationState state : getSortedModifications()) {
+
+			if (forObject.getUuid().equals(state.getGraphObject().getUuid())) {
+
+				return state.getNewProperties();
+			}
+		}
+
+		return new PropertyMap();
+	}
+
+	/**
+	 * Returns the previous values of the locally modified (and removed) properties for a single
+	 * graph object, or an empty map if the object was not modified in this queue. Note that
+	 * {@link GraphObjectModificationState} stores the previous value of every modified key here.
+	 */
+	public PropertyMap getRemovedProperties(final GraphObject forObject) {
+
+		for (final GraphObjectModificationState state : getSortedModifications()) {
+
+			if (forObject.getUuid().equals(state.getGraphObject().getUuid())) {
+
+				return state.getRemovedProperties();
+			}
+		}
+
+		return new PropertyMap();
+	}
+
 	public GraphObjectMap getModifications(final GraphObject forObject) {
 
 		final GraphObjectMap result = new GraphObjectMap();

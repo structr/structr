@@ -34,7 +34,9 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.ComponentConfiguration;
@@ -81,6 +83,36 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 		LinkableTraitDefinition.LINKING_ELEMENTS_PROPERTY, LinkableTraitDefinition.LINKING_ELEMENTS_IDS_PROPERTY
 	);
 
+	/** SecurityContext attribute carrying the shared-component sync mode for the current write (see {@link SHARED_COMPONENT_SYNC_MODE}). When absent, ALL is assumed. */
+	String SHARED_COMPONENT_SYNC_MODE_ATTRIBUTE = "sharedComponentSyncMode";
+
+	/**
+	 * How a property change on a shared-component node propagates to its synced nodes:
+	 * NONE (this node only), ALL (every synced node), BY_VALUE (only synced nodes whose
+	 * current value still matches the changed node's previous value). ASK is a UI-only
+	 * setting resolved to one of the others before the write; treated as ALL if it ever
+	 * reaches the core.
+	 */
+	enum SHARED_COMPONENT_SYNC_MODE { NONE, ALL, BY_VALUE, ASK }
+
+	/**
+	 * Properties NEVER propagated to synced nodes by {@link #syncSharedComponentProperties}:
+	 * identity, audit, access flags, structural relationships, and name (which is handled
+	 * separately by {@link #syncName}). Everything else that changed is synced per the mode.
+	 */
+	Set<String> sharedComponentSyncBlacklist = Set.of(
+		GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY,
+		GraphObjectTraitDefinition.CREATED_DATE_PROPERTY, GraphObjectTraitDefinition.CREATED_BY_PROPERTY,
+		GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY, GraphObjectTraitDefinition.LAST_MODIFIED_BY_PROPERTY,
+		GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY,
+		NodeInterfaceTraitDefinition.NAME_PROPERTY, NodeInterfaceTraitDefinition.OWNER_PROPERTY, NodeInterfaceTraitDefinition.OWNER_ID_PROPERTY,
+		DOMNodeTraitDefinition.PAGE_ID_PROPERTY, DOMNodeTraitDefinition.PARENT_PROPERTY, DOMNodeTraitDefinition.PARENT_ID_PROPERTY,
+		DOMNodeTraitDefinition.CHILDREN_PROPERTY, DOMNodeTraitDefinition.CHILDREN_IDS_PROPERTY,
+		DOMNodeTraitDefinition.SYNCED_NODES_PROPERTY, DOMNodeTraitDefinition.SYNCED_NODES_IDS_PROPERTY,
+		DOMNodeTraitDefinition.SHARED_COMPONENT_PROPERTY, DOMNodeTraitDefinition.SHARED_COMPONENT_ID_PROPERTY,
+		DOMNodeTraitDefinition.HAS_SHARED_COMPONENT_PROPERTY
+	);
+
 	static void collectNodesByPredicate(final SecurityContext securityContext, DOMNode startNode, List<DOMNode> results, Predicate<DOMNode> predicate, int depth, boolean stopOnFirstHit) throws FrameworkException {
 
 		if (predicate instanceof Filter filter) {
@@ -110,6 +142,7 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	void checkName(final ErrorBuffer errorBuffer);
 	void checkReservedWords(final ErrorBuffer errorBuffer);
 	void syncName(final ErrorBuffer errorBuffer) throws FrameworkException;
+	void syncSharedComponentProperties(final SecurityContext securityContext, final ModificationQueue modificationQueue) throws FrameworkException;
 	void setHidden(final boolean hidden) throws FrameworkException;
 	void setIdAttribute(final String id) throws FrameworkException;
 	void setComponentType(final String componentType) throws FrameworkException;

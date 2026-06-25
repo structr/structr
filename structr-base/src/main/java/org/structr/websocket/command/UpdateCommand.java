@@ -56,11 +56,6 @@ public class UpdateCommand extends AbstractCommand {
 	private static final String NODE_ID_KEY                         = "nodeId";
 	private static final String RECURSIVE_KEY                       = "recursive";
 	public static final String SHARED_COMPONENT_SYNC_MODE_KEY       = "syncMode";
-	private static final String SHARED_COMPONENT_SYNC_ATTRIBUTE_KEY = "key";
-
-	public enum SHARED_COMPONENT_SYNC_MODE {
-		NONE, ALL, BY_VALUE, ASK
-	}
 
 	static {
 		StructrWebSocket.addCommand(UpdateCommand.class);
@@ -81,7 +76,6 @@ public class UpdateCommand extends AbstractCommand {
 
 			final boolean recursive    = webSocketData.getCommandConfigBooleanValue(RECURSIVE_KEY);
 			final String syncMode      = webSocketData.getCommandConfigStringValue(SHARED_COMPONENT_SYNC_MODE_KEY);
-			final String attributeName = webSocketData.getCommandConfigStringValue(SHARED_COMPONENT_SYNC_ATTRIBUTE_KEY);
 
 			if (obj == null) {
 
@@ -118,7 +112,19 @@ public class UpdateCommand extends AbstractCommand {
 
 				properties = PropertyMap.inputTypeToJavaType(this.getWebSocket().getSecurityContext(), obj.getType(), webSocketData.getNodeData());
 
-				collectSyncedEntities(entities, obj, syncMode, attributeName);
+				// carry the shared-component sync mode into onModification, which now performs the
+				// actual propagation to synced nodes (see DOMNode.syncSharedComponentProperties).
+				// default NONE for a websocket update with no explicit mode, preserving the historic
+				// behavior where such an update did not propagate to synced nodes.
+				DOMNode.SHARED_COMPONENT_SYNC_MODE syncModeValue = DOMNode.SHARED_COMPONENT_SYNC_MODE.NONE;
+				if (syncMode != null) {
+					try {
+						syncModeValue = DOMNode.SHARED_COMPONENT_SYNC_MODE.valueOf(syncMode);
+					} catch (IllegalArgumentException iae) {
+						logger.warn("Unsupported sync mode for shared components supplied: {}. Possible values are: {}", syncMode, java.util.Arrays.toString(DOMNode.SHARED_COMPONENT_SYNC_MODE.values()));
+					}
+				}
+				getWebSocket().getSecurityContext().setAttribute(DOMNode.SHARED_COMPONENT_SYNC_MODE_ATTRIBUTE, syncModeValue);
 
 				tx.success();
 			}
@@ -165,6 +171,11 @@ public class UpdateCommand extends AbstractCommand {
 
 			logger.debug("Exception occurred", ex);
 			getWebSocket().send(MessageBuilder.status().code(ex.getStatus()).message(ex.getMessage()).jsonErrorObject(ex.toJSON()).build(), true);
+
+		} finally {
+
+			// don't let the sync mode leak to later writes on this (session-scoped) context
+			getWebSocket().getSecurityContext().removeAttribute(DOMNode.SHARED_COMPONENT_SYNC_MODE_ATTRIBUTE);
 		}
 	}
 
@@ -202,56 +213,4 @@ public class UpdateCommand extends AbstractCommand {
 		}
 	}
 
-	private void collectSyncedEntities(final Set<String> entities, final GraphObject obj, final String syncMode, final String attributeName) {
-
-		if (obj.is(StructrTraits.DOM_NODE)) {
-
-			if (syncMode != null) {
-
-				try {
-
-					SHARED_COMPONENT_SYNC_MODE mode = SHARED_COMPONENT_SYNC_MODE.valueOf(syncMode);
-
-					if (SHARED_COMPONENT_SYNC_MODE.ALL.equals(mode) || SHARED_COMPONENT_SYNC_MODE.BY_VALUE.equals(mode)) {
-
-						final List<DOMNode> syncedNodes = Iterables.toList(obj.as(DOMNode.class).getSyncedNodes());
-
-						if (syncedNodes.size() > 0) {
-
-							if (SHARED_COMPONENT_SYNC_MODE.BY_VALUE.equals(mode)) {
-
-								final PropertyKey propertyKey = obj.getTraits().key(attributeName);
-								final Object previousValue    = obj.getProperty(propertyKey);
-
-								final List<DOMNode> nodesWithSameValue = syncedNodes.stream().filter(syncedNode -> {
-
-									final Object syncedNodeValue = syncedNode.getProperty(propertyKey);
-
-									if (previousValue == null) {
-
-										return syncedNodeValue == null;
-
-									} else {
-
-										return previousValue.equals(syncedNodeValue);
-									}
-
-								}).collect(Collectors.toList());
-
-								entities.addAll(nodesWithSameValue.stream().map(d -> d.getUuid()).collect(Collectors.toList()));
-
-							} else if (SHARED_COMPONENT_SYNC_MODE.ALL.equals(mode)) {
-
-								entities.addAll(syncedNodes.stream().map(d -> d.getUuid()).collect(Collectors.toList()));
-							}
-						}
-					}
-
-				} catch (IllegalArgumentException iae) {
-
-					logger.warn("Unsupported sync mode for shared components supplied: {}. Possible values are: {}", syncMode, SHARED_COMPONENT_SYNC_MODE.values());
-				}
-			}
-		}
-	}
 }
