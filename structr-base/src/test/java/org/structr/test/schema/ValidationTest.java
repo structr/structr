@@ -891,6 +891,78 @@ public class ValidationTest extends StructrTest {
 	}
 
 	@Test
+	public void testOverrideOfNamePropertyWithFunctionPropertyWithoutTypeHintIsAllowed() {
+
+		// A FunctionProperty without a type hint resolves to "Object". Overriding an
+		// existing property with such a function property must NOT fail, because the
+		// type hint can still be set afterwards (it is a deferred, not a final, type).
+
+		// create the type first, so that it (and its built-in "name" property) already
+		// exists in the schema when the overriding function property is added
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			schema.addType("Item");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception while creating the type.");
+		}
+
+		// now override "name" with a function property that has no type hint
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType type = (JsonObjectType)schema.getType("Item");
+
+			// deliberately no type hint
+			type.addFunctionProperty("name").setReadFunction("'computed name'");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Overriding the name property with a FunctionProperty without a type hint must be allowed!");
+		}
+	}
+
+	@Test
+	public void testOverrideOfNamePropertyWithFunctionPropertyWithWrongTypeHintIsRejected() {
+
+		// Overriding "name" (a String property) with a function property whose type hint
+		// is incompatible must be rejected - even when the type and the clashing property
+		// are created within the same transaction (the type is not yet registered, so the
+		// check must fall back to the built-in base traits).
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType type = schema.addType("Item");
+
+			// an "int" type hint is a real type mismatch with the existing String "name"
+			type.addFunctionProperty("name").setReadFunction("42").setTypeHint("int");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+			fail("Overriding the name property with an incompatible type hint must not be allowed!");
+
+		} catch (FrameworkException fex) {
+
+			assertHasToken(fex, "name", "cannot_override");
+		}
+	}
+
+	@Test
 	public void testReplacingLocalPropertyWithDifferentTypeIsAllowed() {
 
 		// Removing a local property and adding a new one with the same name but a

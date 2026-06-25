@@ -129,8 +129,17 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					// the transaction commits, i.e. the type's own trait does not yet reflect the change.
 					final SchemaNode schemaNode    = obj.as(SchemaNode.class);
 					final String typeName          = schemaNode.getName();
-					final Set<String> sourceTraits = new LinkedHashSet<>(schemaNode.getInheritedTraits());
+					final Set<String> sourceTraits = new LinkedHashSet<>();
 
+					// every node type is composed of these base traits in addition to its explicitly
+					// inherited traits and its own trait. Including the base traits also catches clashes
+					// (e.g. overriding the built-in "name" property with an incompatible type) for a type
+					// that is being created in the current transaction and is therefore not registered yet.
+					sourceTraits.add(StructrTraits.PROPERTY_CONTAINER);
+					sourceTraits.add(StructrTraits.GRAPH_OBJECT);
+					sourceTraits.add(StructrTraits.NODE_INTERFACE);
+					sourceTraits.add(StructrTraits.ACCESS_CONTROLLABLE);
+					sourceTraits.addAll(schemaNode.getInheritedTraits());
 					sourceTraits.add(typeName);
 
 					for (final SchemaProperty property : schemaNode.getSchemaProperties()) {
@@ -159,8 +168,12 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 									break;
 
 								// a key declared by this type's own trait may be a local property that is being
-								// replaced within the current transaction, so its (stale) type must be ignored
-								} else if (!key.typeName().equals(existingKey.typeName()) && !existingKey.getDeclaringTrait().getLabel().equals(typeName)) {
+								// replaced within the current transaction, so its (stale) type must be ignored.
+								// a function property without a type hint resolves to "Object"; its concrete type
+								// can still be set afterwards, so it must not be rejected for a type mismatch yet.
+								} else if (!key.typeName().equals(existingKey.typeName())
+									&& !existingKey.getDeclaringTrait().getLabel().equals(typeName)
+									&& !(key instanceof FunctionProperty && key.typeHint() == null)) {
 
 									errorBuffer.add(new SemanticErrorToken(StructrTraits.SCHEMA_PROPERTY, "name", "cannot_override").withValue(thisPropertyName).withDetail("Type mismatch, " + key.typeName() + " cannot override " + existingKey.typeName() + " from " + traitName));
 									valid = false;
