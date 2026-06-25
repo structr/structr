@@ -28,6 +28,7 @@ import org.structr.core.app.QueryGroup;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.traits.Trait;
+import org.structr.schema.SchemaHelper;
 import org.structr.web.datasource.FieldDefinition;
 
 import java.util.Comparator;

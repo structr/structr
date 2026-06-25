@@ -66,7 +66,7 @@ public class PropertyInfoFunction extends AdvancedScriptingFunction {
 				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, UNKNOWN_PROPERTY_ERROR_MESSAGE.formatted(getName(), typeName, keyName));
 			}
 
-			return SchemaHelper.getPropertyInfo(ctx.getSecurityContext(), type.key(keyName));
+			return SchemaHelper.getPropertyInfo(type.key(keyName));
 
 		} catch (ArgumentNullException pe) {
 

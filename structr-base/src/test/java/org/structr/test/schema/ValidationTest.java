@@ -18,6 +18,7 @@
  */
 package org.structr.test.schema;
 
+import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.error.ErrorToken;
@@ -682,6 +683,390 @@ public class ValidationTest extends StructrTest {
 		} catch (FrameworkException fex) {
 
 			fail("Uniqueness constraint includes wrong type(s)!");
+		}
+	}
+
+	// ----- property override validation tests -----
+	@Test
+	public void testOverrideOfRelationPropertyIsRejected() {
+
+		// A relationship between two types creates relation properties on both
+		// ends. SchemaPropertyTraitDefinition must not allow a (local) schema
+		// property to override such an inherited relation property.
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema    = StructrSchema.createFromDatabase(app);
+			final JsonObjectType project = schema.addType("Project");
+			final JsonObjectType task    = schema.addType("Task");
+
+			// creates a relation property "tasks" on Project and "project" on Task
+			project.relate(task, "HAS", Cardinality.OneToMany, "project", "tasks");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception while creating relationship schema.");
+		}
+
+		// now try to add a regular string property "tasks" to Project, which
+		// must fail because "tasks" is already a (non-overridable) relation property
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema      = StructrSchema.createFromDatabase(app);
+			final JsonObjectType project = (JsonObjectType)schema.getType("Project");
+
+			project.addStringProperty("tasks");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+			fail("Overriding a relation property must not be allowed!");
+
+		} catch (FrameworkException fex) {
+
+			assertHasToken(fex, "name", "cannot_override");
+		}
+	}
+
+	@Test
+	public void testOverrideOfInheritedPropertyWithDifferentTypeIsRejected() {
+
+		// A derived type must not override an inherited property with a
+		// property of a different type (type mismatch).
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType base = schema.addType("Base");
+
+			base.addStringProperty("data");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception while creating base type.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema      = StructrSchema.createFromDatabase(app);
+			final JsonObjectType derived = schema.addType("Derived");
+
+			derived.addTrait("Base");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception while creating derived type.");
+		}
+
+		// the inherited "data" property is a String, overriding it with an
+		// Integer property must fail with a type mismatch
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema      = StructrSchema.createFromDatabase(app);
+			final JsonObjectType derived = (JsonObjectType)schema.getType("Derived");
+
+			derived.addIntegerProperty("data");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+			fail("Overriding an inherited property with a different type must not be allowed!");
+
+		} catch (FrameworkException fex) {
+
+			assertHasToken(fex, "name", "cannot_override");
+		}
+	}
+
+	@Test
+	public void testOverrideOfInheritedPropertyWithSameTypeIsAllowed() {
+
+		// Overriding an inherited property with a property of the same type
+		// is allowed (e.g. to change format, uniqueness etc.).
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType base = schema.addType("Base");
+
+			base.addStringProperty("data");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception while creating base type.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema      = StructrSchema.createFromDatabase(app);
+			final JsonObjectType derived = schema.addType("Derived");
+
+			derived.addTrait("Base");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception while creating derived type.");
+		}
+
+		// overriding the inherited String "data" with another String must succeed
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema      = StructrSchema.createFromDatabase(app);
+			final JsonObjectType derived = (JsonObjectType)schema.getType("Derived");
+
+			derived.addStringProperty("data");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Overriding an inherited property with the same type must be allowed!");
+		}
+	}
+
+	@Test
+	public void testOverrideOfNamePropertyWithFunctionPropertyIsAllowed() {
+
+		// The built-in "name" property is a (non-relation) String property, so
+		// overriding it with a FunctionProperty that resolves to the same type
+		// (typeHint "string") must be allowed.
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType type = schema.addType("Item");
+
+			type.addFunctionProperty("name").setReadFunction("'computed name'").setTypeHint("string");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Overriding the name property with a FunctionProperty must be allowed!");
+		}
+
+		// the overriding function property must actually be in effect
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface node = app.create("Item");
+			final PropertyKey name   = Traits.of("Item").key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+
+			assertEquals("FunctionProperty did not override the name property", "computed name", node.getProperty(name));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception while reading overridden name property.");
+		}
+	}
+
+	@Test
+	public void testReplacingLocalPropertyWithDifferentTypeIsAllowed() {
+
+		// Removing a local property and adding a new one with the same name but a
+		// different type within the same transaction must be allowed. The schema
+		// (and therefore the type's traits) is only reloaded after the transaction
+		// commits, so at validation time the type's traits still contain the old
+		// property definition - this stale definition must not block the change.
+
+		// create type "Item" with a String property "data"
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface typeNode = app.create(StructrTraits.SCHEMA_NODE,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Item"));
+
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "data"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "String"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), typeNode)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception while creating initial type.");
+		}
+
+		// the String property must now be part of the type's traits
+		assertEquals("Initial property type mismatch", "String", Traits.of("Item").key("data").typeName());
+
+		// within a single transaction: delete the String property and create a new
+		// Integer property with the same name
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface schemaNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).name("Item").getFirst();
+
+			for (final NodeInterface property : app.nodeQuery(StructrTraits.SCHEMA_PROPERTY).getAsList()) {
+
+				if ("data".equals(property.getName())) {
+					app.delete(property);
+				}
+			}
+
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "data"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Integer"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), schemaNode)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Replacing a local property with one of a different type must be allowed!");
+		}
+
+		// the new Integer property must now be in effect
+		assertEquals("Replaced property type mismatch", "Integer", Traits.of("Item").key("data").typeName());
+	}
+
+	@Test
+	public void testAddingTraitWithClashingPropertyIsRejected() {
+
+		// A type has a local String property "data". Adding a trait that already
+		// defines "data" with a different type must be rejected, even though the
+		// clash is introduced by modifying the type (its inherited traits) and not
+		// by touching the existing schema property.
+
+		// create the trait "Mixin" with an Integer property "data"
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema    = StructrSchema.createFromDatabase(app);
+			final JsonObjectType mixin = schema.addType("Mixin");
+
+			mixin.addIntegerProperty("data");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception while creating the trait type.");
+		}
+
+		// create the type "Item" with a (clashing) String property "data"
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType item = schema.addType("Item");
+
+			item.addStringProperty("data");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception while creating the base type.");
+		}
+
+		// now add the trait "Mixin" to "Item": this must fail because the inherited
+		// "data" (Integer) clashes with the local "data" (String)
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType item = (JsonObjectType)schema.getType("Item");
+
+			item.addTrait("Mixin");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+			fail("Adding a trait with a clashing property must not be allowed!");
+
+		} catch (FrameworkException fex) {
+
+			assertHasToken(fex, "name", "cannot_override");
+		}
+	}
+
+	@Test
+	public void testAddingTraitWithCompatiblePropertyIsAllowed() {
+
+		// Adding a trait whose property has the same type as the local property
+		// must be allowed (overriding with the same type is permitted).
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema    = StructrSchema.createFromDatabase(app);
+			final JsonObjectType mixin = schema.addType("Mixin");
+
+			mixin.addStringProperty("data");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception while creating the trait type.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType item = schema.addType("Item");
+
+			item.addStringProperty("data");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception while creating the base type.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType item = (JsonObjectType)schema.getType("Item");
+
+			item.addTrait("Mixin");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Adding a trait with a compatible property must be allowed!");
 		}
 	}
 
@@ -2495,6 +2880,20 @@ public class ValidationTest extends StructrTest {
 	}
 
 	// ----- private methods -----
+	private void assertHasToken(final FrameworkException fex, final String property, final String errorToken) {
+
+		assertEquals("Invalid validation status code", 422, fex.getStatus());
+
+		for (final ErrorToken token : fex.getErrorBuffer().getErrorTokens()) {
+
+			if (errorToken.equals(token.getToken()) && property.equals(token.getProperty())) {
+				return;
+			}
+		}
+
+		fail("Expected error token '" + errorToken + "' for property '" + property + "', but got: " + fex.getErrorBuffer().getErrorTokens());
+	}
+
 	private void checkRangeSuccess(final String type, final PropertyKey key, final Object value) {
 
 		try (final Tx tx = app.tx()) {

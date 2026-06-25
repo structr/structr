@@ -26,6 +26,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.SemanticErrorToken;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
@@ -40,6 +41,7 @@ import org.structr.core.datasources.SortInfo;
 import org.structr.core.entity.DataSource;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
@@ -117,6 +119,60 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					valid &= ValidationHelper.isValidStringMatchingRegex(obj, Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), SchemaNode.schemaNodeNamePattern,
 						"Type name must match the following pattern: '" + SchemaNode.schemaNodeNamePattern + "', which means it must begin with an uppercase letter and may only contain letters, numbers and underscores.",
 						errorBuffer);
+
+					// Make sure a (local) property does not illegally override a relation property or a
+					// property inherited from another trait. This is checked here on the schema node
+					// (rather than on the schema property), because the schema node is modified both when
+					// a property is added or removed and when a trait is added or removed - so a single
+					// validation location covers both cases. The keys are looked up on the already-existing
+					// traits (this type and its inherited traits), because the schema is only reloaded after
+					// the transaction commits, i.e. the type's own trait does not yet reflect the change.
+					final SchemaNode schemaNode    = obj.as(SchemaNode.class);
+					final String typeName          = schemaNode.getName();
+					final Set<String> sourceTraits = new LinkedHashSet<>(schemaNode.getInheritedTraits());
+
+					sourceTraits.add(typeName);
+
+					for (final SchemaProperty property : schemaNode.getSchemaProperties()) {
+
+						final String thisPropertyName = property.getName();
+						if (thisPropertyName == null) {
+							continue;
+						}
+
+						try {
+							final PropertyKey key = property.createKey(typeName);
+
+							for (final String traitName : sourceTraits) {
+
+								if (!Traits.exists(traitName) || !Traits.of(traitName).hasKey(thisPropertyName)) {
+									continue;
+								}
+
+								final PropertyKey existingKey = Traits.of(traitName).key(thisPropertyName);
+
+								// don't allow overriding relation properties
+								if (existingKey instanceof RelationProperty) {
+
+									errorBuffer.add(new SemanticErrorToken(StructrTraits.SCHEMA_PROPERTY, "name", "cannot_override").withValue(thisPropertyName).withDetail(existingKey.jsonName() + " on " + existingKey.getDeclaringTrait().getName() + " is not overridable"));
+									valid = false;
+									break;
+
+								// a key declared by this type's own trait may be a local property that is being
+								// replaced within the current transaction, so its (stale) type must be ignored
+								} else if (!key.typeName().equals(existingKey.typeName()) && !existingKey.getDeclaringTrait().getLabel().equals(typeName)) {
+
+									errorBuffer.add(new SemanticErrorToken(StructrTraits.SCHEMA_PROPERTY, "name", "cannot_override").withValue(thisPropertyName).withDetail("Type mismatch, " + key.typeName() + " cannot override " + existingKey.typeName() + " from " + traitName));
+									valid = false;
+									break;
+								}
+							}
+
+						} catch (FrameworkException fex) {
+
+							// could not build the key for validation, skip this property
+						}
+					}
 
 					return valid;
 				}

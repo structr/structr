@@ -230,7 +230,7 @@ public class SchemaHelper {
 
 			if (propertyView != null) {
 
-				for (final Map.Entry<String, Object> entry : getPropertiesForView(securityContext, traits, propertyView).entrySet()) {
+				for (final Map.Entry<String, Object> entry : getPropertiesForView(traits, propertyView).entrySet()) {
 
 					final GraphObjectMap property = new GraphObjectMap();
 
@@ -276,7 +276,7 @@ public class SchemaHelper {
 
 					for (final String view : propertyViews) {
 
-						views.put(view, getPropertiesForView(securityContext, traits, view));
+						views.put(view, getPropertiesForView(traits, view));
 					}
 				}
 
@@ -290,7 +290,7 @@ public class SchemaHelper {
 		return resultList;
 	}
 
-	public static Map<String, Object> getPropertyInfo(final SecurityContext securityContext, final PropertyKey property) {
+	public static Map<String, Object> getPropertyInfo(final PropertyKey property) {
 
 		final Map<String, Object> map = new LinkedHashMap();
 
@@ -349,14 +349,14 @@ public class SchemaHelper {
 		return map;
 	}
 
-	public static Map<String, Object> getPropertiesForView(final SecurityContext securityContext, final Traits type, final String propertyView) throws FrameworkException {
+	public static Map<String, Object> getPropertiesForView(final Traits type, final String propertyView) throws FrameworkException {
 
 		final Set<PropertyKey> properties              = new LinkedHashSet<>(type.getPropertyKeysForView(propertyView));
 		final Map<String, Object> propertyConverterMap = new LinkedHashMap<>();
 
 		for (PropertyKey property : properties) {
 
-			propertyConverterMap.put(property.jsonName(), getPropertyInfo(securityContext, property));
+			propertyConverterMap.put(property.jsonName(), getPropertyInfo(property));
 		}
 
 		return propertyConverterMap;

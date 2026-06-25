@@ -25,9 +25,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.SemanticErrorToken;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.Relation;
+import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
@@ -119,15 +119,22 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 
 					if (parent != null && thisPropertyName != null) {
 
-						// check all existing schema properties
+						// check all existing schema properties, this does not prevent overwriting
 						for (final SchemaProperty otherProperty : parent.getSchemaProperties()) {
 
 							if (thisPropertyName.equals(otherProperty.getName()) && !otherProperty.getUuid().equals(schemaProperty.getUuid())) {
 
 								errorBuffer.add(new SemanticErrorToken(schemaProperty.getType(), "name", "already_exists").withValue(thisPropertyName).withDetail("A property with name '" + thisPropertyName + "' already exists on this type"));
-								valid = false;
+
+								// name clash on the same type: return immediately
+								return false;
 							}
 						}
+
+						// NOTE: the override check (clash with relation properties or with properties
+						// inherited from other traits) is performed in SchemaNodeTraitDefinition. The
+						// schema node is modified both when a property is added/removed and when a trait
+						// is added/removed, so validating it there covers both cases in a single location.
 					}
 
 					return valid;
