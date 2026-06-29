@@ -34,4 +34,7 @@ module structr.db.driver.api {
     exports org.structr.api.util.html;
     exports org.structr.api.util.html.attr;
 
+    // concrete database drivers are discovered as services (see DatabaseService.loadByClassName)
+    uses org.structr.api.DatabaseService;
+
 }

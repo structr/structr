@@ -70,6 +70,11 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 		this.licenseManager = licenseManager;
 
+		// discover StructrModules via ServiceLoader. This works on the class path
+		// (META-INF/services) and on the module path ('provides ... with'), and
+		// replaces the previous reflective class-path scan for module discovery.
+		loadModulesFromServiceLoader();
+
 		final List<ClasspathResource> resources = scanResources();
 
 		for (final ClasspathResource resource : resources) {
@@ -116,6 +121,30 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		// matches "module-info.class"/"package-info.class" as well as their
 		// multi-release variants under META-INF/versions/<n>/
 		return name.endsWith("module-info.class") || name.endsWith("package-info.class");
+	}
+
+	private void loadModulesFromServiceLoader() {
+
+		final Iterator<StructrModule> iterator = ServiceLoader.load(StructrModule.class).iterator();
+
+		while (iterator.hasNext()) {
+
+			try {
+
+				final StructrModule structrModule = iterator.next();
+				final String moduleName           = structrModule.getName();
+
+				// a module is initialized exactly once; the first provider for a
+				// given name wins.
+				modules.putIfAbsent(moduleName, structrModule);
+
+			} catch (Throwable t) {
+
+				logger.warn("Unable to load StructrModule service provider", t);
+			}
+		}
+
+		logger.info("{} modules discovered via ServiceLoader", modules.size());
 	}
 
 	private List<ClasspathResource> scanResources() {
@@ -257,31 +286,9 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 					agentPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
 				}
 
-				// register modules
-				if (StructrModule.class.isAssignableFrom(clazz) && !(Modifier.isAbstract(modifiers))) {
-
-					try {
-
-						// we need to make sure that a module is initialized exactly once
-						final StructrModule structrModule = (StructrModule) clazz.getDeclaredConstructor().newInstance();
-						final String moduleName = structrModule.getName();
-
-						if (!modules.containsKey(moduleName)) {
-
-							modules.put(moduleName, structrModule);
-						}
-
-					} catch (Throwable t) {
-
-						/*
-						// log only errors from internal classes
-						if (className.startsWith("org.structr.") && !UiModule.class.getName().equals(className)) {
-
-							logger.warn("Unable to instantiate module " + clazz.getName(), t);
-						}
-						*/
-					}
-				}
+				// modules are no longer registered here: they are discovered up front
+				// via ServiceLoader (see loadModulesFromServiceLoader). The class-path
+				// scan below remains only for services, agents and @Documentation.
 
 			} catch (Throwable t) {
 				//t.printStackTrace();

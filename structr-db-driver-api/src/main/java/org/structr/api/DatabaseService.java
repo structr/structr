@@ -29,12 +29,49 @@ import org.structr.api.util.NodeWithOwnerResult;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.ServiceLoader;
 import java.util.Set;
 
 /**
  *
  */
 public interface DatabaseService<IDType> {
+
+	/**
+	 * Loads and instantiates the {@link DatabaseService} implementation with the
+	 * given fully-qualified class name.
+	 *
+	 * Discovery goes through {@link ServiceLoader}, which finds providers both in
+	 * named modules (declared via {@code provides ... with}) and on the class path
+	 * (declared via {@code META-INF/services}). This is what allows structr-base -
+	 * a named module on the module path - to load the embedded Neo4j driver, which
+	 * is quarantined on the class path because the embedded engine is not module
+	 * path compatible. A named module cannot reach a class-path type via reflective
+	 * {@code Class.forName(...).newInstance()}, but it can consume it as a service.
+	 *
+	 * A direct reflective instantiation is kept as a transition fallback for drivers
+	 * that do not (yet) declare a service provider entry.
+	 *
+	 * @param driverClassName the fully-qualified class name of the driver
+	 * @return a new, uninitialized DatabaseService instance
+	 * @throws ReflectiveOperationException if no matching driver could be instantiated
+	 */
+	static DatabaseService loadByClassName(final String driverClassName) throws ReflectiveOperationException {
+
+		final ServiceLoader<DatabaseService> loader                          = ServiceLoader.load(DatabaseService.class);
+		final Optional<ServiceLoader.Provider<DatabaseService>> matchingDriver = loader.stream()
+			.filter(provider -> provider.type().getName().equals(driverClassName))
+			.findFirst();
+
+		if (matchingDriver.isPresent()) {
+
+			return matchingDriver.get().get();
+		}
+
+		// transition fallback: driver without a service provider declaration
+		return (DatabaseService) Class.forName(driverClassName).getDeclaredConstructor().newInstance();
+	}
 
 	// ----- lifecycle -----
 	/**
