@@ -712,6 +712,44 @@
 						</path>
 					</annotationProcessorPaths>
 				</configuration>
+				<dependencies>
+					<!-- maven-compiler-plugin parses module-info via plexus-java/QDox to set up
+					     the module path; pin newer plexus-java + QDox so module-info parsing
+					     copes with modern Java syntax (text blocks etc.) in our modular sources. -->
+					<dependency>
+						<groupId>org.codehaus.plexus</groupId>
+						<artifactId>plexus-java</artifactId>
+						<version>1.5.2</version>
+					</dependency>
+					<dependency>
+						<groupId>com.thoughtworks.qdox</groupId>
+						<artifactId>qdox</artifactId>
+						<version>2.2.0</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+			<plugin>
+				<!-- modular modules keep module-info.java in src/main/module (its own source
+				     root) so the compiler plugin's plexus-java/QDox module descriptor parser
+				     only parses module-info.java, not the whole source tree (QDox cannot parse
+				     all modern Java syntax). Modules without that directory are unaffected. -->
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<version>3.6.1</version>
+				<executions>
+					<execution>
+						<id>add-module-info-source</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>add-source</goal>
+						</goals>
+						<configuration>
+							<sources>
+								<source>src/main/module</source>
+							</sources>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<groupId>com.mycila</groupId>
