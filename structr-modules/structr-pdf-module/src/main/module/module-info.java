@@ -22,6 +22,9 @@ module structr.pdf.module {
     requires java.wkhtmltopdf.wrapper;
     requires org.apache.pdfbox.io;
 
+    // instantiated reflectively by HttpService in structr.base (configured by class name)
+    exports org.structr.pdf.servlet;
+
     provides org.structr.module.StructrModule with
         org.structr.pdf.PDFModule;
 }

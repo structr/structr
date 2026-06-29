@@ -21,6 +21,9 @@ module structr.flow.module {
     requires structr.base;
     requires org.apache.commons.io;
 
+    // instantiated reflectively by HttpService in structr.base (configured by class name)
+    exports org.structr.flow.servlet;
+
     provides org.structr.module.StructrModule with
         org.structr.flow.FlowModule;
 }

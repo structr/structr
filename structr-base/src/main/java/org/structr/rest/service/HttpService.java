@@ -1172,7 +1172,15 @@ public class HttpService implements RunnableService, StatsCallback {
 
 							try {
 
-								final HttpServlet servlet = (HttpServlet)Class.forName(servletClassName).getDeclaredConstructor().newInstance();
+								final Class<?> servletClass = Class.forName(servletClassName);
+
+								// Servlets may live in feature modules (e.g. structr.flow.module,
+								// structr.pdf.module) that base does not 'requires'. Add a runtime read
+								// edge so base can reflectively instantiate the servlet; the feature
+								// module exports its servlet package.
+								HttpService.class.getModule().addReads(servletClass.getModule());
+
+								final HttpServlet servlet = (HttpServlet)servletClass.getDeclaredConstructor().newInstance();
 								if (servlet instanceof HttpServiceServlet httpServiceServlet) {
 
 									final StructrHttpServiceConfig cfg = httpServiceServlet.getConfig();

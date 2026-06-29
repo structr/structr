@@ -37,6 +37,15 @@
 			</includes>
 		</fileSet>
 		<fileSet>
+			<directory>${assemblies.base.path}/lib-cp</directory>
+			<outputDirectory>lib-cp</outputDirectory>
+			<directoryMode>0755</directoryMode>
+			<fileMode>0644</fileMode>
+			<includes>
+				<include>**</include>
+			</includes>
+		</fileSet>
+		<fileSet>
 			<directory>${assemblies.resources.path}/structr</directory>
 			<outputDirectory>structr</outputDirectory>
 			<directoryMode>0755</directoryMode>
