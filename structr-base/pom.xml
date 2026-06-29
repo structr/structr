@@ -22,20 +22,34 @@
             <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
+        <!--
+            Concrete DB drivers are NOT compile/runtime dependencies of structr-base.
+            structr-base talks to the database only through the structr-db-driver-api
+            SPI and discovers the active driver at runtime (ServiceLoader / config class
+            name). Keeping these at test scope (a) lets structr-base's own tests run
+            against the in-memory driver and (b) keeps the embedded Neo4j engine - which
+            is not JPMS module-path compatible (split packages across its cypher jars) -
+            out of structr-base's module closure. The application assembles the drivers
+            itself (see structr-app): bolt/memory on the module path, embedded quarantined
+            on the class path.
+        -->
         <dependency>
             <groupId>org.structr</groupId>
             <artifactId>structr-neo4j-bolt-driver</artifactId>
             <version>${project.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.structr</groupId>
             <artifactId>structr-neo4j-embedded-driver</artifactId>
             <version>${project.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.structr</groupId>
             <artifactId>structr-memory-driver</artifactId>
             <version>${project.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.testng</groupId>

@@ -111,6 +111,13 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	}
 
 	// ----- private methods -----
+	private static boolean isPseudoClassEntry(final String name) {
+
+		// matches "module-info.class"/"package-info.class" as well as their
+		// multi-release variants under META-INF/versions/<n>/
+		return name.endsWith("module-info.class") || name.endsWith("package-info.class");
+	}
+
 	private List<ClasspathResource> scanResources() {
 		
 		final List<ClasspathResource> modules = new LinkedList<>();
@@ -312,7 +319,10 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 									final JarEntry entry = entries.nextElement();
 									final String entryName = entry.getName();
 
-									if (entryName.endsWith(".class")) {
+									// skip JPMS pseudo-classes: module-info.class is not a loadable
+									// class (ACC_MODULE is set) and package-info.class carries no runtime
+									// type. Feeding either to Class.forName() throws, so never collect them.
+									if (entryName.endsWith(".class") && !isPseudoClassEntry(entryName)) {
 
 										// cat entry > /dev/null (necessary to get signers below)
 										IOUtils.copy(jarFile.getInputStream(entry), new ByteArrayOutputStream(65535));
@@ -369,7 +379,8 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 					String fileEntry = file.getAbsolutePath();
 
-					if (fileEntry.endsWith(".class")) {
+					// skip JPMS pseudo-classes (module-info / package-info), see loadResource()
+					if (fileEntry.endsWith(".class") && !isPseudoClassEntry(file.getName())) {
 
 						fileEntry = fileEntry.substring(0, fileEntry.length() - 6);
 						fileEntry = fileEntry.substring(fileEntry.indexOf(prefix) + prefixLen);
