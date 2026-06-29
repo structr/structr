@@ -72,6 +72,7 @@
 	</properties>
 
 	<modules>
+		<module>structr-annotation-processor</module>
 		<module>structr-db-driver-api</module>
 		<module>structr-neo4j-bolt-driver</module>
 		<module>structr-neo4j-embedded-driver</module>
@@ -700,6 +701,16 @@
 					<compilerArgs>
 						<arg>-Xlint:deprecation</arg>
 					</compilerArgs>
+					<!-- builds the META-INF/structr/documented-classes index per module
+					     (see structr-annotation-processor); the processor module itself
+					     overrides this with <proc>none</proc> to avoid a self-reference -->
+					<annotationProcessorPaths>
+						<path>
+							<groupId>org.structr</groupId>
+							<artifactId>structr-annotation-processor</artifactId>
+							<version>${project.version}</version>
+						</path>
+					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
 			<plugin>

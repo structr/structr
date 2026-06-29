@@ -18,49 +18,45 @@
  */
 package org.structr.module;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.agent.Agent;
 import org.structr.api.service.LicenseManager;
 import org.structr.api.service.Service;
 import org.structr.core.Services;
-import org.structr.docs.Documentable;
 import org.structr.docs.Documentation;
 import org.structr.docs.Documentations;
 import org.structr.schema.ConfigurationProvider;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.lang.reflect.Modifier;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.jar.Attributes;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
-import java.util.jar.Manifest;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * The module service main class.
+ *
+ * All Structr SPIs - {@link StructrModule}, {@link Service}, {@link Agent} and the
+ * database driver - are discovered via {@link ServiceLoader}, and the set of
+ * {@code @Documentation} annotated types is read from a per-module index built at
+ * compile time (see structr-annotation-processor). Neither mechanism scans the class
+ * path, so both work unchanged when Structr runs on the Java module path.
  */
 public class JarConfigurationProvider implements ConfigurationProvider {
 
 	private static final Logger logger = LoggerFactory.getLogger(JarConfigurationProvider.class.getName());
+
+	/** compile-time generated index of @Documentation annotated types, one FQCN per line */
+	private static final String DOCUMENTED_CLASSES_INDEX = "META-INF/structr/documented-classes";
 
 	private final Map<String, Class<? extends Agent>> agentClassCache      = new ConcurrentHashMap<>(100);
 	private final Map<Class, List<Documentation>> documentationAnnotations = new LinkedHashMap<>();
 	private final Map<String, StructrModule> modules                       = new ConcurrentHashMap<>(100);
 	private final Set<String> classNames                                   = new LinkedHashSet<>();
 	private final Set<String> agentPackages                                = new LinkedHashSet<>();
-	private final String fileSep                                           = System.getProperty("file.separator");
-	private final String pathSep                                           = System.getProperty("path.separator");
-	private final String fileSepEscaped                                    = fileSep.replaceAll("\\\\", "\\\\\\\\");
-	private final String testClassesDir                                    = fileSep.concat("test-classes");
-	private final String classesDir                                        = fileSep.concat("classes");
 
 	private LicenseManager licenseManager                                  = null;
 
@@ -70,23 +66,16 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 		this.licenseManager = licenseManager;
 
-		// discover StructrModules via ServiceLoader. This works on the class path
-		// (META-INF/services) and on the module path ('provides ... with'), and
-		// replaces the previous reflective class-path scan for module discovery.
+		// All Structr SPIs are discovered via ServiceLoader, which works identically on
+		// the class path (META-INF/services) and on the module path ('provides ... with').
 		loadModulesFromServiceLoader();
+		loadServicesFromServiceLoader();
+		loadAgentsFromServiceLoader();
 
-		final List<ClasspathResource> resources = scanResources();
-
-		for (final ClasspathResource resource : resources) {
-
-			try {
-
-				importResource(resource);
-
-			} catch (Throwable t) {
-				//t.printStackTrace();
-			}
-		}
+		// @Documentation annotated types are read from the per-module index built at
+		// compile time by structr-annotation-processor; this avoids a class-path scan
+		// and works on the module path.
+		loadDocumentationAnnotationsFromIndex();
 
 		loadModules(resolveModuleDependencies());
 	}
@@ -116,13 +105,6 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	}
 
 	// ----- private methods -----
-	private static boolean isPseudoClassEntry(final String name) {
-
-		// matches "module-info.class"/"package-info.class" as well as their
-		// multi-release variants under META-INF/versions/<n>/
-		return name.endsWith("module-info.class") || name.endsWith("package-info.class");
-	}
-
 	private void loadModulesFromServiceLoader() {
 
 		final Iterator<StructrModule> iterator = ServiceLoader.load(StructrModule.class).iterator();
@@ -147,23 +129,119 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		logger.info("{} modules discovered via ServiceLoader", modules.size());
 	}
 
-	private List<ClasspathResource> scanResources() {
-		
-		final List<ClasspathResource> modules = new LinkedList<>();
-		final Set<String> resourcePaths       = getResourcesToScan();
+	private void loadServicesFromServiceLoader() {
 
-		for (String resourcePath : resourcePaths) {
+		int count = 0;
+
+		for (final ServiceLoader.Provider<Service> provider : ServiceLoader.load(Service.class).stream().toList()) {
 
 			try {
-				
-				modules.add(loadResource(resourcePath));
-				
-			} catch (IOException ignore) {}
+
+				// register the class only; instantiation and lifecycle stay with Services
+				Services.getInstance().registerServiceClass(provider.type());
+				count++;
+
+			} catch (Throwable t) {
+
+				logger.warn("Unable to register Service service provider", t);
+			}
 		}
 
-		logger.info("{} JARs scanned", resourcePaths.size());
-		
-		return modules;
+		logger.info("{} services discovered via ServiceLoader", count);
+	}
+
+	private void loadAgentsFromServiceLoader() {
+
+		for (final ServiceLoader.Provider<Agent> provider : ServiceLoader.load(Agent.class).stream().toList()) {
+
+			try {
+
+				final Class<? extends Agent> clazz = provider.type();
+				final String fullName              = clazz.getName();
+
+				agentClassCache.put(clazz.getSimpleName(), clazz);
+				agentPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
+
+			} catch (Throwable t) {
+
+				logger.warn("Unable to register Agent service provider", t);
+			}
+		}
+	}
+
+	private void loadDocumentationAnnotationsFromIndex() {
+
+		final Set<String> documentedClassNames = new LinkedHashSet<>();
+
+		try {
+
+			final Enumeration<URL> indexResources = classLoader().getResources(DOCUMENTED_CLASSES_INDEX);
+
+			while (indexResources.hasMoreElements()) {
+
+				final URL indexResource = indexResources.nextElement();
+
+				try (final BufferedReader reader = new BufferedReader(new InputStreamReader(indexResource.openStream(), StandardCharsets.UTF_8))) {
+
+					String line;
+
+					while ((line = reader.readLine()) != null) {
+
+						final String className = line.trim();
+
+						if (!className.isEmpty()) {
+
+							documentedClassNames.add(className);
+						}
+					}
+
+				} catch (IOException ioex) {
+
+					logger.warn("Unable to read documentation index {}", indexResource, ioex);
+				}
+			}
+
+		} catch (IOException ioex) {
+
+			logger.warn("Unable to enumerate documentation indexes", ioex);
+		}
+
+		for (final String className : documentedClassNames) {
+
+			try {
+
+				final Class clazz = Class.forName(className);
+
+				classNames.add(className);
+
+				// repeatable / multiple annotations on the same type
+				final Documentations documentations = (Documentations) clazz.getAnnotation(Documentations.class);
+				if (documentations != null) {
+
+					documentationAnnotations.computeIfAbsent(clazz, k -> new LinkedList<>()).addAll(Arrays.asList(documentations.value()));
+				}
+
+				// single annotation
+				final Documentation documentation = (Documentation) clazz.getAnnotation(Documentation.class);
+				if (documentation != null) {
+
+					documentationAnnotations.computeIfAbsent(clazz, k -> new LinkedList<>()).add(documentation);
+				}
+
+			} catch (Throwable t) {
+
+				logger.warn("Unable to load documented class {}", className, t);
+			}
+		}
+
+		logger.info("{} documented classes loaded from index", documentationAnnotations.size());
+	}
+
+	private ClassLoader classLoader() {
+
+		final ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+
+		return contextClassLoader != null ? contextClassLoader : JarConfigurationProvider.class.getClassLoader();
 	}
 
 	private List<StructrModule> resolveModuleDependencies() {
@@ -238,223 +316,5 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 			structrModule.onLoad();
 		}
-	}
-
-	private void importResource(final ClasspathResource module) throws IOException {
-
-		final Set<String> classes = module.getClasses();
-
-		for (final String name : classes) {
-
-			String className = StringUtils.removeStart(name, ".");
-
-			classNames.add(className);
-
-			try {
-
-				// instantiate class..
-				final Class clazz    = Class.forName(className);
-				final int modifiers  = clazz.getModifiers();
-
-				// capture documentations annotation (repeatable / multiple annotations on the same target)
-				final Documentations documentations = (Documentations) clazz.getAnnotation(Documentations.class);
-				if (documentations != null) {
-
-					documentationAnnotations.computeIfAbsent(clazz, k -> new LinkedList<>()).addAll(Arrays.asList(documentations.value()));
-				}
-
-				// single documentation annotation
-				final Documentation documentation = (Documentation) clazz.getAnnotation(Documentation.class);
-				if (documentation != null) {
-
-					documentationAnnotations.computeIfAbsent(clazz, k -> new LinkedList<>()).add(documentation);
-				}
-
-				// register services
-				if (Service.class.isAssignableFrom(clazz) && !(Modifier.isAbstract(modifiers))) {
-
-					Services.getInstance().registerServiceClass(clazz);
-				}
-
-				// register agents
-				if (Agent.class.isAssignableFrom(clazz) && !(Modifier.isAbstract(modifiers))) {
-
-					final String simpleName = clazz.getSimpleName();
-					final String fullName   = clazz.getName();
-
-					agentClassCache.put(simpleName, clazz);
-					agentPackages.add(fullName.substring(0, fullName.lastIndexOf(".")));
-				}
-
-				// modules are no longer registered here: they are discovered up front
-				// via ServiceLoader (see loadModulesFromServiceLoader). The class-path
-				// scan below remains only for services, agents and @Documentation.
-
-			} catch (Throwable t) {
-				//t.printStackTrace();
-				//logger.warn("Error trying to load class {}: {}",  className, t.getMessage());
-			}
-		}
-	}
-
-	private ClasspathResource loadResource(String resource) throws IOException {
-
-		// create module
-		final ClasspathResource ret = new ClasspathResource(resource);
-		final Set<String> classes   = ret.getClasses();
-		final File file             = new File(resource);
-
-		if (file.exists()) {
-
-			if (resource.endsWith(".jar") || resource.endsWith(".war")) {
-
-				try (final JarFile jarFile = new JarFile(file, true)) {
-
-					final Manifest manifest = jarFile.getManifest();
-					if (manifest != null) {
-
-						final Attributes attrs = manifest.getAttributes("Structr");
-						if (attrs != null) {
-
-							final String name = attrs.getValue("Structr-Module-Name");
-
-							// only scan and load modules that are licensed
-							if (name != null) {
-
-								for (final Enumeration<? extends JarEntry> entries = jarFile.entries(); entries.hasMoreElements(); ) {
-
-									final JarEntry entry = entries.nextElement();
-									final String entryName = entry.getName();
-
-									// skip JPMS pseudo-classes: module-info.class is not a loadable
-									// class (ACC_MODULE is set) and package-info.class carries no runtime
-									// type. Feeding either to Class.forName() throws, so never collect them.
-									if (entryName.endsWith(".class") && !isPseudoClassEntry(entryName)) {
-
-										// cat entry > /dev/null (necessary to get signers below)
-										IOUtils.copy(jarFile.getInputStream(entry), new ByteArrayOutputStream(65535));
-
-										final String fileEntry = entry.getName().replaceAll("[/]+", ".");
-										final String fqcn = fileEntry.substring(0, fileEntry.length() - 6);
-
-										// add class entry to Module
-										classes.add(fqcn);
-									}
-								}
-							}
-						}
-					}
-				}
-
-			} else if (resource.endsWith(classesDir)) {
-
-				// this is for testing only!
-				addClassesRecursively(file, classesDir, classes);
-
-			} else if (resource.endsWith(testClassesDir)) {
-
-				// this is for testing only!
-				addClassesRecursively(file, testClassesDir, classes);
-			}
-		}
-
-		return ret;
-	}
-
-	private void addClassesRecursively(final File dir, final String prefix, final Set<String> classes) {
-
-		if (dir == null) {
-			return;
-		}
-
-		int prefixLen = prefix.length();
-		File[] files = dir.listFiles();
-
-		if (files == null) {
-			return;
-		}
-
-		for (final File file : files) {
-
-			if (file.isDirectory()) {
-
-				addClassesRecursively(file, prefix, classes);
-
-			} else {
-
-				try {
-
-					String fileEntry = file.getAbsolutePath();
-
-					// skip JPMS pseudo-classes (module-info / package-info), see loadResource()
-					if (fileEntry.endsWith(".class") && !isPseudoClassEntry(file.getName())) {
-
-						fileEntry = fileEntry.substring(0, fileEntry.length() - 6);
-						fileEntry = fileEntry.substring(fileEntry.indexOf(prefix) + prefixLen);
-						fileEntry = fileEntry.replaceAll("[".concat(fileSepEscaped).concat("]+"), ".");
-
-						if (fileEntry.startsWith(".")) {
-							fileEntry = fileEntry.substring(1);
-						}
-
-						classes.add(fileEntry);
-					}
-
-				} catch (Throwable t) {
-					// ignore
-					logger.warn("", t);
-				}
-
-			}
-
-		}
-
-	}
-
-	/**
-	 * Scans the class path and returns a Set containing all structr
-	 * modules.
-	 *
-	 * @return a Set of active module names
-	 */
-	private Set<String> getResourcesToScan() {
-
-		final String classPath    = System.getProperty("java.class.path");
-		final Set<String> modules = new TreeSet<>();
-		final Pattern pattern     = Pattern.compile(".*(structr).*(war|jar)");
-		final Matcher matcher     = pattern.matcher("");
-
-		for (final String jarPath : classPath.split("[".concat(pathSep).concat("]+"))) {
-
-			final String lowerPath = jarPath.toLowerCase();
-
-			if (lowerPath.endsWith(classesDir) || lowerPath.endsWith(testClassesDir)) {
-
-				modules.add(jarPath);
-
-			} else {
-
-				final String moduleName = lowerPath.substring(lowerPath.lastIndexOf(pathSep) + 1);
-
-				matcher.reset(moduleName);
-
-				if (matcher.matches()) {
-
-					modules.add(jarPath);
-				}
-			}
-		}
-
-		for (final String resource : Services.getInstance().getResources()) {
-
-			final String lowerResource = resource.toLowerCase();
-
-			if (lowerResource.endsWith(".jar") || lowerResource.endsWith(".war")) {
-
-				modules.add(resource);
-			}
-		}
-
-		return modules;
 	}
 }
