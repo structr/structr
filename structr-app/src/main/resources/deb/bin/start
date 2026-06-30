@@ -23,13 +23,9 @@ if [ ! -e "logs" ]; then
 
 fi
 
-if [ ! -e "structr" ]; then
-
-	echo "Unarchiving static resources..."
-
-        jar -xf structr-*.jar structr
-
-fi
+# Static UI resources are served directly from the application jar (class path); no need to
+# unpack them. To customize them locally, create a 'structr' directory in the working directory -
+# it takes precedence over the bundled resources (see HttpService).
 
 echo "Starting Structr instance '$DISPLAY_NAME' in the background."
 echo "(Takes 30-60 seconds until the server becomes available. Watch log file $LOG_FILE for 'Initialization complete' message.)"

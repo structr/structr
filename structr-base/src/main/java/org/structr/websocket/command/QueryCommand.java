@@ -48,12 +48,6 @@ public class QueryCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(QueryCommand.class.getName());
 
-	static {
-
-		StructrWebSocket.addCommand(QueryCommand.class);
-
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 

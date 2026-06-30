@@ -30,11 +30,6 @@ public class DeleteRelationshipCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(DeleteRelationshipCommand.class.getName());
 
-	static {
-
-		StructrWebSocket.addCommand(DeleteRelationshipCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

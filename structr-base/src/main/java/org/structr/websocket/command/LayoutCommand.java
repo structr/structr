@@ -40,11 +40,6 @@ import java.util.List;
  */
 public class LayoutCommand extends AbstractCommand {
 
-	static {
-
-		StructrWebSocket.addCommand(LayoutCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

@@ -47,12 +47,6 @@ public class DeleteNodeCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(DeleteNodeCommand.class.getName());
 
-	static {
-
-		StructrWebSocket.addCommand(DeleteNodeCommand.class);
-
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

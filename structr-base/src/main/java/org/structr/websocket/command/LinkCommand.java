@@ -31,11 +31,6 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public class LinkCommand extends AbstractCommand {
 
-	static {
-
-		StructrWebSocket.addCommand(LinkCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

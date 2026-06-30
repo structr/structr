@@ -62,10 +62,6 @@ public class UpdateCommand extends AbstractCommand {
 		NONE, ALL, BY_VALUE, ASK
 	}
 
-	static {
-		StructrWebSocket.addCommand(UpdateCommand.class);
-	}
-
 	private int count = 0;
 
 	@Override

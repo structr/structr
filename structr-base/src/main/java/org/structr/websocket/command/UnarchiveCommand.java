@@ -50,11 +50,6 @@ public class UnarchiveCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(UnarchiveCommand.class.getName());
 
-	static {
-
-		StructrWebSocket.addCommand(UnarchiveCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

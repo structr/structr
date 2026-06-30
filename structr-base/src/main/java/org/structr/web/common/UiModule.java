@@ -23,8 +23,12 @@ import org.structr.core.datasources.DataSources;
 import org.structr.core.function.Functions;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.UserTraitDefinition;
+import org.structr.console.shell.*;
 import org.structr.files.url.StructrURLStreamHandlerFactory;
 import org.structr.module.StructrModule;
+import org.structr.websocket.StructrWebSocket;
+import org.structr.websocket.command.*;
+import org.structr.websocket.command.dom.*;
 import org.structr.web.datasource.CypherGraphDataSource;
 import org.structr.web.datasource.FunctionDataSource;
 import org.structr.web.datasource.IdRequestParameterGraphDataSource;
@@ -428,6 +432,92 @@ public class UiModule implements StructrModule {
 		StructrTraits.registerNodeType(StructrTraits.VAR,              StructrTraits.DOM_NODE, StructrTraits.DOM_ELEMENT, StructrTraits.VAR);
 		StructrTraits.registerNodeType(StructrTraits.VIDEO,            StructrTraits.DOM_NODE, StructrTraits.DOM_ELEMENT, StructrTraits.VIDEO);
 		StructrTraits.registerNodeType(StructrTraits.WBR,              StructrTraits.DOM_NODE, StructrTraits.DOM_ELEMENT, StructrTraits.WBR);
+
+		// websocket commands (registered explicitly since the JPMS migration removed the class-path scan)
+		StructrWebSocket.addCommand(AppendChildCommand.class);
+		StructrWebSocket.addCommand(AppendMemberCommand.class);
+		StructrWebSocket.addCommand(AppendWidgetCommand.class);
+		StructrWebSocket.addCommand(AutocompleteCommand.class);
+		StructrWebSocket.addCommand(ChildrenCommand.class);
+		StructrWebSocket.addCommand(ChunkCommand.class);
+		StructrWebSocket.addCommand(ClearSchemaCommand.class);
+		StructrWebSocket.addCommand(CloneComponentCommand.class);
+		StructrWebSocket.addCommand(ClonePageCommand.class);
+		StructrWebSocket.addCommand(ConsoleCommand.class);
+		StructrWebSocket.addCommand(CreateCommand.class);
+		StructrWebSocket.addCommand(CreateComponentCommand.class);
+		StructrWebSocket.addCommand(CreateLocalWidgetCommand.class);
+		StructrWebSocket.addCommand(CreateRelationshipCommand.class);
+		StructrWebSocket.addCommand(CreateSimplePage.class);
+		StructrWebSocket.addCommand(DeleteNodeCommand.class);
+		StructrWebSocket.addCommand(DeleteNodesCommand.class);
+		StructrWebSocket.addCommand(DeleteRelationshipCommand.class);
+		StructrWebSocket.addCommand(DeleteUnattachedNodesCommand.class);
+		StructrWebSocket.addCommand(FileImportCommand.class);
+		StructrWebSocket.addCommand(GetAvailableLogFilesCommand.class);
+		StructrWebSocket.addCommand(GetByTypeCommand.class);
+		StructrWebSocket.addCommand(GetCommand.class);
+		StructrWebSocket.addCommand(GetLocalStorageCommand.class);
+		StructrWebSocket.addCommand(GetOrCreateShadowPageCommand.class);
+		StructrWebSocket.addCommand(GetProperty.class);
+		StructrWebSocket.addCommand(GetRelationshipCommand.class);
+		StructrWebSocket.addCommand(GetSchemaInfoCommand.class);
+		StructrWebSocket.addCommand(GetSuggestionsCommand.class);
+		StructrWebSocket.addCommand(GetTypeInfoCommand.class);
+		StructrWebSocket.addCommand(ImageConverterCommand.class);
+		StructrWebSocket.addCommand(ImportCommand.class);
+		StructrWebSocket.addCommand(LayoutCommand.class);
+		StructrWebSocket.addCommand(LinkCommand.class);
+		StructrWebSocket.addCommand(ListActiveElementsCommand.class);
+		StructrWebSocket.addCommand(ListCommand.class);
+		StructrWebSocket.addCommand(ListComponentsCommand.class);
+		StructrWebSocket.addCommand(ListFilesCommand.class);
+		StructrWebSocket.addCommand(ListLocalizationsCommand.class);
+		StructrWebSocket.addCommand(ListSchemaPropertiesCommand.class);
+		StructrWebSocket.addCommand(ListUnattachedNodesCommand.class);
+		StructrWebSocket.addCommand(LoginCommand.class);
+		StructrWebSocket.addCommand(LogoutCommand.class);
+		StructrWebSocket.addCommand(PatchCommand.class);
+		StructrWebSocket.addCommand(PingCommand.class);
+		StructrWebSocket.addCommand(QueryCommand.class);
+		StructrWebSocket.addCommand(RemoveCommand.class);
+		StructrWebSocket.addCommand(RemoveFromCollectionCommand.class);
+		StructrWebSocket.addCommand(ReplaceTemplateCommand.class);
+		StructrWebSocket.addCommand(ReplaceWidgetCommand.class);
+		StructrWebSocket.addCommand(SaveLocalStorageCommand.class);
+		StructrWebSocket.addCommand(SaveNodeCommand.class);
+		StructrWebSocket.addCommand(SearchCommand.class);
+		StructrWebSocket.addCommand(SearchNodesCommand.class);
+		StructrWebSocket.addCommand(ServerLogCommand.class);
+		StructrWebSocket.addCommand(SetPermissionCommand.class);
+		StructrWebSocket.addCommand(UnarchiveCommand.class);
+		StructrWebSocket.addCommand(UpdateCommand.class);
+		StructrWebSocket.addCommand(UploadCommand.class);
+		StructrWebSocket.addCommand(WrapInWidgetCommand.class);
+		StructrWebSocket.addCommand(WrappedRestCommand.class);
+
+		// websocket commands operating on the DOM
+		StructrWebSocket.addCommand(CloneNodeCommand.class);
+		StructrWebSocket.addCommand(CreateAndAppendDOMNodeCommand.class);
+		StructrWebSocket.addCommand(CreateAndInsertRelativeToDOMNodeCommand.class);
+		StructrWebSocket.addCommand(CreateAndReplaceDOMNodeCommand.class);
+		StructrWebSocket.addCommand(DOMNodeChildrenCommand.class);
+		StructrWebSocket.addCommand(InsertBeforeCommand.class);
+		StructrWebSocket.addCommand(InsertRelativeToDOMNodeCommand.class);
+		StructrWebSocket.addCommand(ReplaceDOMNodeCommand.class);
+		StructrWebSocket.addCommand(ReplaceWithCommand.class);
+		StructrWebSocket.addCommand(WrapDOMNodeCommand.class);
+		StructrWebSocket.addCommand(WrapDOMNodesCommand.class);
+
+		// admin-shell (console) commands
+		AdminConsoleCommand.registerCommand("export-data",  ExportDataConsoleCommand.class);
+		AdminConsoleCommand.registerCommand("export",       ExportConsoleCommand.class);
+		AdminConsoleCommand.registerCommand("file-import",  DirectFileImportConsoleCommand.class);
+		AdminConsoleCommand.registerCommand("help",         HelpConsoleCommand.class);
+		AdminConsoleCommand.registerCommand("import-data",  ImportDataConsoleCommand.class);
+		AdminConsoleCommand.registerCommand("import",       ImportConsoleCommand.class);
+		AdminConsoleCommand.registerCommand("init",         InitConsoleCommand.class);
+		AdminConsoleCommand.registerCommand("user",         UserConsoleCommand.class);
 	}
 
 	@Override

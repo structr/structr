@@ -38,11 +38,6 @@ public class FileImportCommand extends AbstractCommand {
 
 	private static final Property<List> importJobsProperty = new GenericProperty<>("imports");
 
-	static {
-
-		StructrWebSocket.addCommand(FileImportCommand.class);
-	}
-
 	@Override
 	public void processMessage(WebSocketMessage webSocketData) throws FrameworkException {
 

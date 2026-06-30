@@ -46,12 +46,6 @@ public class GetByTypeCommand extends AbstractCommand {
 	private static final String PROPERTIES_KEY           = "properties";
 	private static final String TYPE_KEY                 = "type";
 
-	static {
-
-		StructrWebSocket.addCommand(GetByTypeCommand.class);
-
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

@@ -48,12 +48,6 @@ public class GetSuggestionsCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(GetSuggestionsCommand.class.getName());
 
-	static {
-
-		StructrWebSocket.addCommand(GetSuggestionsCommand.class);
-
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

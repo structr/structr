@@ -46,12 +46,6 @@ public class WrappedRestCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(WrappedRestCommand.class.getName());
 
-	static {
-
-		StructrWebSocket.addCommand(WrappedRestCommand.class);
-
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 

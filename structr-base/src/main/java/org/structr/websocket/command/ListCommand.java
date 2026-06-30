@@ -48,11 +48,6 @@ public class ListCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(ListCommand.class.getName());
 
-	static {
-
-		StructrWebSocket.addCommand(ListCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 

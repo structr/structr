@@ -35,11 +35,6 @@ public class GetLocalStorageCommand extends AbstractCommand {
 
 	private static final String LOCAL_STORAGE_STRING_KEY = "localStorageString";
 
-	static {
-
-		StructrWebSocket.addCommand(GetLocalStorageCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

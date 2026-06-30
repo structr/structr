@@ -40,11 +40,6 @@ import org.w3c.dom.DOMException;
  */
 public class ReplaceTemplateCommand extends AbstractCommand {
 
-	static {
-
-		StructrWebSocket.addCommand(ReplaceTemplateCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

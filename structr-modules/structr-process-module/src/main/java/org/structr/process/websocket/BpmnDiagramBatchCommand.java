@@ -89,10 +89,6 @@ public class BpmnDiagramBatchCommand extends AbstractCommand {
 	public static final String COMMAND_NAME       = "BPMN_DIAGRAM_BATCH";
 	public static final String NOTIFICATION_NAME  = "BPMN_DIAGRAM_CHANGED";
 
-	static {
-		StructrWebSocket.addCommand(BpmnDiagramBatchCommand.class);
-	}
-
 	// Type ordering for create operations. Foreign keys point earlier -> later,
 	// so types listed earlier are created first. Anything not listed sorts to
 	// the end (insertion order is preserved within an unknown-type group).

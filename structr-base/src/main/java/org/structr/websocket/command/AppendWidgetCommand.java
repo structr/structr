@@ -39,11 +39,6 @@ public class AppendWidgetCommand extends AbstractCommand {
 
 	private static final Logger logger     = LoggerFactory.getLogger(AppendWidgetCommand.class.getName());
 
-	static {
-
-		StructrWebSocket.addCommand(AppendWidgetCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 

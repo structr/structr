@@ -37,11 +37,6 @@ public class AppendMemberCommand extends AbstractCommand {
 
 	private static final Logger logger     = LoggerFactory.getLogger(AppendMemberCommand.class.getName());
 
-	static {
-
-		StructrWebSocket.addCommand(AppendMemberCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

@@ -182,7 +182,7 @@
 
                     <!-- Partition the runtime libs for JPMS launch:
                          target/lib    = Java module path (Structr's own modules + modular third-party jars)
-                         target/lib-cp = class path "islands" - third-party jars that are JPMS-hostile
+                         target/lib-classpath = class path "islands" - third-party jars that are JPMS-hostile
                                          (split packages / duplicate or invalid automatic-module names that
                                          we cannot fix and that sit outside our control). Reached only via
                                          the ServiceLoader SPIs from the quarantined (automatic) Structr
@@ -200,8 +200,8 @@
                         </goals>
                         <configuration>
                             <target>
-                                <mkdir dir="${project.build.directory}/lib-cp"/>
-                                <move todir="${project.build.directory}/lib-cp">
+                                <mkdir dir="${project.build.directory}/lib-classpath"/>
+                                <move todir="${project.build.directory}/lib-classpath">
                                     <fileset dir="${project.build.directory}/lib">
                                         <!-- Embedded Neo4j engine + Cypher/Scala stack + its Lucene 9 shade.
                                              Keep the Bolt client (neo4j-java-driver, neo4j-bolt-connection*)
@@ -308,7 +308,7 @@
             </plugin>
 
             <!-- Copy dependencies to target/lib/ (module path); the partition step below
-                 then moves the JPMS-hostile "island" jars to target/lib-cp/ (class path).
+                 then moves the JPMS-hostile "island" jars to target/lib-classpath/ (class path).
                  Runs in prepare-package so the partition (package phase) and the
                  assembly/jdeb consumers (also package phase) see the finished split. -->
             <plugin>
@@ -612,24 +612,18 @@
                                 </data>
 
                                 <data>
-                                    <src>${basedir}/target/lib-cp</src>
+                                    <src>${basedir}/target/lib-classpath</src>
                                     <type>directory</type>
                                     <mapper>
                                         <type>perm</type>
-                                        <prefix>/usr/lib/${project.parent.artifactId}/lib-cp</prefix>
+                                        <prefix>/usr/lib/${project.parent.artifactId}/lib-classpath</prefix>
                                         <filemode>755</filemode>
                                     </mapper>
                                 </data>
 
-                                <data>
-                                    <src>${basedir}/src/main/resources/structr</src>
-                                    <type>directory</type>
-                                    <mapper>
-                                        <type>perm</type>
-                                        <prefix>/usr/lib/${project.parent.artifactId}/structr</prefix>
-                                        <filemode>755</filemode>
-                                    </mapper>
-                                </data>
+                                <!-- The static web UI (structr/) is served from the application jar
+                                     (class path), so it is not installed as an unpacked directory.
+                                     See HttpService and the dist assembly descriptor. -->
 
                                 <data>
                                     <src>${basedir}/target/deb/config</src>

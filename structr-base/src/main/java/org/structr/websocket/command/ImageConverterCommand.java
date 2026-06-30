@@ -35,11 +35,6 @@ import java.io.IOException;
  */
 public class ImageConverterCommand extends AbstractCommand {
 
-	static {
-
-		StructrWebSocket.addCommand(ImageConverterCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

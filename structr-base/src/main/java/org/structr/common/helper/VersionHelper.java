@@ -27,9 +27,14 @@ import org.structr.core.app.StructrApp;
 import org.structr.module.StructrModule;
 
 import java.io.File;
+import java.lang.module.ResolvedModule;
+import java.net.URI;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
@@ -51,45 +56,78 @@ public class VersionHelper {
 
 		classPath = System.getProperty("java.class.path");
 
-		final Pattern structrJarFilePattern = Pattern.compile("([^:;]*structr-[^:;]*\\.jar)");
+		// (1) Structr jars on the class path: the resources-only application jar
+		//     (structr-app.jar / the enterprise app jar) and any class-path islands.
+		if (classPath != null) {
 
-		final Matcher structrJarFileMatcher = structrJarFilePattern.matcher(classPath);
+			final Pattern structrJarFilePattern = Pattern.compile("([^:;]*structr-[^:;]*\\.jar)");
+			final Matcher structrJarFileMatcher  = structrJarFilePattern.matcher(classPath);
 
-		while (structrJarFileMatcher.find()) {
-			final String structrJarPath = structrJarFileMatcher.group(1);
+			while (structrJarFileMatcher.find()) {
+				readModuleManifest(new File(structrJarFileMatcher.group(1)));
+			}
+		}
 
-			try {
-				File jarFile = new File(structrJarPath);
+		// (2) Structr jars on the module path. Since the JPMS migration, Structr's own
+		//     modules live on --module-path (lib/), not the class path, so enumerate the
+		//     boot module layer and read the manifest of every structr-*.jar it resolved.
+		try {
 
-				if (jarFile.exists()) {
-					// Read manifest from the JAR file
-					try (JarFile jar = new JarFile(jarFile)) {
-						Manifest manifest = jar.getManifest();
+			for (final ResolvedModule resolvedModule : ModuleLayer.boot().configuration().modules()) {
 
-						if (manifest != null) {
-							Attributes attrs = manifest.getMainAttributes();
+				final Optional<URI> location = resolvedModule.reference().location();
+				if (location.isPresent()) {
 
-							Map<String, String> module = new HashMap<>();
-							module.put("version", attrs.getValue("Implementation-Version"));
-							module.put("date", attrs.getValue("Build-Timestamp"));
-							module.put("build", attrs.getValue("Build-Number"));
+					final Path path       = Paths.get(location.get());
+					final Path fileName   = path.getFileName();
+					final String jarName  = fileName != null ? fileName.toString() : "";
 
-							String moduleName = attrs.getValue("Implementation-Title");
-							if ("structr-app-enterprise".equals(moduleName)) {
-								components.put("structr", module);
-							} else if ("structr-app".equals(moduleName)) {
-								components.putIfAbsent("structr", module);
-							} else if (StringUtils.isNotBlank(moduleName)) {
-								components.put(moduleName, module);
-							} else {
-                                logger.warn("Missing build information in manifest for {}", jarFile.getName());
-                            }
+					if (jarName.startsWith("structr-") && jarName.endsWith(".jar")) {
+						readModuleManifest(path.toFile());
+					}
+				}
+			}
+
+		} catch (Exception e) {
+			logger.error("Error enumerating Structr modules from the module path: {}", e.getMessage());
+		}
+	}
+
+	private static void readModuleManifest(final File jarFile) {
+
+		try {
+
+			// exploded class directories (Maven dev/reactor layout) carry no manifest; skip them
+			if (jarFile.exists() && jarFile.isFile()) {
+
+				try (JarFile jar = new JarFile(jarFile)) {
+
+					final Manifest manifest = jar.getManifest();
+					if (manifest != null) {
+
+						final Attributes attrs = manifest.getMainAttributes();
+
+						final Map<String, String> module = new HashMap<>();
+						module.put("version", attrs.getValue("Implementation-Version"));
+						module.put("date", attrs.getValue("Build-Timestamp"));
+						module.put("build", attrs.getValue("Build-Number"));
+
+						final String moduleName = attrs.getValue("Implementation-Title");
+						if ("structr-app-enterprise".equals(moduleName)) {
+							components.put("structr", module);
+						} else if ("structr-app".equals(moduleName)) {
+							components.putIfAbsent("structr", module);
+						} else if (StringUtils.isNotBlank(moduleName)) {
+							components.put(moduleName, module);
+						} else {
+							logger.warn("Missing build information in manifest for {}", jarFile.getName());
 						}
 					}
 				}
-			} catch (Exception e) {
-				logger.error("Error parsing module manifest  \"{}\".", e.getMessage());
 			}
+
+		} catch (Exception e) {
+			logger.error("Error parsing module manifest \"{}\".", e.getMessage());
 		}
 	}
 

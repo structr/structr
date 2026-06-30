@@ -30,10 +30,6 @@ import org.w3c.dom.DOMException;
 
 public class AppendChildCommand extends AbstractCommand {
 
-	static {
-		StructrWebSocket.addCommand(AppendChildCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 

@@ -59,11 +59,6 @@ public class ConsoleCommand extends AbstractCommand {
 	private static final String VERSION_INFO_KEY   = "versionInfo";
 	private static final String IS_JSON_KEY        = "isJSON";
 
-	static {
-
-		StructrWebSocket.addCommand(ConsoleCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

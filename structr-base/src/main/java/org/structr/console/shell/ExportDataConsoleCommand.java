@@ -33,10 +33,6 @@ import java.util.List;
  */
 public class ExportDataConsoleCommand extends AdminConsoleCommand {
 
-	static {
-		AdminConsoleCommand.registerCommand("export-data", ExportDataConsoleCommand.class);
-	}
-
 	@Override
 	public void run(final SecurityContext securityContext, final List<String> parameters, final Writable writable) throws FrameworkException, IOException {
 

@@ -31,10 +31,6 @@ import java.util.List;
  */
 public class HelpConsoleCommand extends AdminConsoleCommand {
 
-	static {
-		AdminConsoleCommand.registerCommand("help", HelpConsoleCommand.class);
-	}
-
 	@Override
 	public void run(final SecurityContext securityContext, final List<String> parameters, final Writable writable) throws FrameworkException, IOException {
 

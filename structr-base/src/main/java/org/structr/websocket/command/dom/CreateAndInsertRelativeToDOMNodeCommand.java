@@ -30,10 +30,6 @@ import java.util.Map;
 
 public class CreateAndInsertRelativeToDOMNodeCommand extends CreateAndAppendDOMNodeCommand {
 
-	static {
-		StructrWebSocket.addCommand(CreateAndInsertRelativeToDOMNodeCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

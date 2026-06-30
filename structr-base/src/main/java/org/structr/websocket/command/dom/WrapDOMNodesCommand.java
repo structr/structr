@@ -43,11 +43,6 @@ public class WrapDOMNodesCommand extends CreateAndAppendDOMNodeCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(WrapDOMNodesCommand.class.getName());
 
-	static {
-
-		StructrWebSocket.addCommand(WrapDOMNodesCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 

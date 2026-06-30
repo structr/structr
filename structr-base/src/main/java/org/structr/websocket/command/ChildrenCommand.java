@@ -42,12 +42,6 @@ public class ChildrenCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(ChildrenCommand.class);
 
-	static {
-
-		StructrWebSocket.addCommand(ChildrenCommand.class);
-
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

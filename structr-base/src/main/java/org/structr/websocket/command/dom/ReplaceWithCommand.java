@@ -46,11 +46,6 @@ public class ReplaceWithCommand extends CreateAndAppendDOMNodeCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(ReplaceWithCommand.class.getName());
 
-	static {
-
-		StructrWebSocket.addCommand(ReplaceWithCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

@@ -52,11 +52,6 @@ public class LoginCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(LoginCommand.class.getName());
 
-	static {
-
-		StructrWebSocket.addCommand(LoginCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 
