@@ -98,7 +98,7 @@ public abstract class CsvTestBase {
 		Settings.ApplicationHost.setValue(host);
 		Settings.HttpPort.setValue(httpPort);
 
-		Settings.Servlets.setValue("JsonRestServlet WebSocketServlet HtmlServlet UploadServlet CsvServlet OpenAPIServlet");
+		Settings.Servlets.setValue("JsonRestServlet HtmlServlet UploadServlet CsvServlet OpenAPIServlet");
 
 		final Services services = Services.getInstance();
 

@@ -374,7 +374,8 @@ public class Settings {
 	public static final Setting<String> PdfCustomResponseHeaders = new TextSetting(servletsGroup,    "PdfServlet", "pdfservlet.customresponseheaders", "Strict-Transport-Security:max-age=60,X-Content-Type-Options:nosniff,X-Frame-Options:SAMEORIGIN,X-XSS-Protection:1;mode=block", "List of custom response headers that will be added to every HTTP response");
 
 	public static final Setting<String> WebsocketServletPath       = new StringSetting(servletsGroup,  "hidden", "websocketservlet.path",              "/structr/ws/*", "URL pattern for WebSockets. Do not change unless you know what you are doing.");
-	public static final Setting<String> WebsocketServletClass      = new StringSetting(servletsGroup,  "hidden", "websocketservlet.class",             "org.structr.websocket.servlet.WebSocketServlet", "FQCN of servlet class to use for WebSockets. Do not change unless you know what you are doing.");
+	// NOTE: there is no websocketservlet.class - the WebSocketServlet was removed in the Jetty 12 migration;
+	// WebSockets are now handled by Jetty's WebSocketUpgradeHandler (see HttpService), not a servlet class.
 	public static final Setting<String> WebsocketAuthenticator     = new StringSetting(servletsGroup,  "hidden", "websocketservlet.authenticator",     "org.structr.web.auth.UiAuthenticator", "FQCN of authenticator class to use for WebSockets. Do not change unless you know what you are doing.");
 	public static final Setting<String> WebsocketDefaultView       = new StringSetting(servletsGroup,  "hidden", "websocketservlet.defaultview",       "public", "Unused");
 	public static final Setting<Integer> WebsocketOutputDepth      = new IntegerSetting(servletsGroup, "WebSocketServlet", "websocketservlet.outputdepth",       3, "Maximum nesting depth of JSON output");
