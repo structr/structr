@@ -712,6 +712,21 @@
 						</path>
 					</annotationProcessorPaths>
 				</configuration>
+				<executions>
+					<!-- Compile TESTS on the class path (not the module path). The structr-base
+					     test-jar derives the same automatic module name (structr.base) as the main
+					     jar, so on the module path it is dropped ("already on the module path") and
+					     downstream modules' tests cannot see the shared test base classes
+					     (org.structr.test.rest.common.StructrRestTestBase, etc.). Tests run on the
+					     class path anyway (surefire/failsafe useModulePath=false); main compilation
+					     stays on the module path. See DEPENDENCY_MANAGEMENT.md. -->
+					<execution>
+						<id>default-testCompile</id>
+						<configuration>
+							<useModulePath>false</useModulePath>
+						</configuration>
+					</execution>
+				</executions>
 				<dependencies>
 					<!-- maven-compiler-plugin parses module-info via plexus-java/QDox to set up
 					     the module path; pin newer plexus-java + QDox so module-info parsing

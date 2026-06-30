@@ -92,5 +92,17 @@ package. When you add such a type in a module, export its package.
 ## Toolchain
 
 Java 25 (GraalVM). First build needs network once (some transitive deps use open version ranges that
-cannot resolve offline until cached); afterwards `mvn -o …` works. Tests run on the class path
-(`useModulePath=false`, already configured) — see the surefire/failsafe config in `structr-base/pom.xml`.
+cannot resolve offline until cached); afterwards `mvn -o …` works.
+
+Tests are **compiled and run on the class path** (`useModulePath=false`), while main code is compiled on
+the module path. This is required because the `structr-base` **test-jar** derives the same module name
+(`structr.base`) as the main jar, so on the module path it is dropped and downstream modules' tests
+cannot see the shared test base classes (`org.structr.test.rest.common.StructrRestTestBase`, etc.). It
+is configured in two places (no command-line flags needed):
+- **compile**: the `maven-compiler-plugin` `default-testCompile` execution in the **root `pom.xml`**
+  (`<useModulePath>false</useModulePath>`);
+- **run**: the surefire (in-memory profile) + failsafe (neo4j profile) config in `structr-base/pom.xml`
+  and the `structr-modules` parent.
+
+Note: `-DskipTests` skips test *execution* but still *compiles* tests, so the compile-side setting
+matters even for CI jobs that skip test execution.
