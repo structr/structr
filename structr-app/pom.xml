@@ -200,91 +200,18 @@
                         </goals>
                         <configuration>
                             <target>
-                                <mkdir dir="${project.build.directory}/lib-classpath"/>
-                                <move todir="${project.build.directory}/lib-classpath">
-                                    <fileset dir="${project.build.directory}/lib">
-                                        <!-- Embedded Neo4j engine + Cypher/Scala stack + its Lucene 9 shade.
-                                             Keep the Bolt client (neo4j-java-driver, neo4j-bolt-connection*)
-                                             on the module path - it is used by the explicit bolt driver. -->
-                                        <include name="neo4j-*.jar"/>
-                                        <exclude name="neo4j-java-driver-*.jar"/>
-                                        <exclude name="neo4j-bolt-connection*.jar"/>
-                                        <!-- Neo4j engine companion jars that do NOT carry the neo4j- prefix:
-                                             the embedded engine splits across the module/class-path boundary
-                                             without these (e.g. neo4j-server's CommunityAuthConfigProvider
-                                             needs server-api's AuthConfigProvider). Version-pinned to
-                                             ${neo4j.version} so the unrelated AWS / JetBrains annotations-*.jar
-                                             stay on the module path. -->
-                                        <include name="server-api-${neo4j.version}.jar"/>
-                                        <include name="annotations-${neo4j.version}.jar"/>
-                                        <include name="cypher-*.jar"/>
-                                        <include name="lucene9-shaded-*.jar"/>
-                                        <!-- Apache Lucene 10 (embedded-Neo4j transitive via neo4j-lucene-index);
-                                             lucene-queryparser hard-requires lucene-queries/sandbox which are
-                                             not on the path. No explicit module uses Lucene directly. -->
-                                        <include name="lucene-*.jar"/>
-                                        <!-- Units-of-measurement stack (GeoTools transitive, geo module);
-                                             systems-common requires systems.uom.quantity / si-quantity
-                                             requires java.measure, neither shipped. -->
-                                        <include name="indriya-*.jar"/>
-                                        <include name="si-units-*.jar"/>
-                                        <include name="si-quantity-*.jar"/>
-                                        <include name="systems-common-*.jar"/>
-                                        <include name="unit-api-*.jar"/>
-                                        <include name="uom-lib-common-*.jar"/>
-                                        <include name="scala-library-*.jar"/>
-                                        <include name="scala-reflect-*.jar"/>
-                                        <include name="scala3-library_3-*.jar"/>
-                                        <include name="scala-collection-contrib*.jar"/>
-                                        <include name="kiama_*.jar"/>
-                                        <include name="magnolia_*.jar"/>
-                                        <include name="sourcecode_*.jar"/>
-                                        <!-- Parquet (embedded-Neo4j transitive; split org.apache.parquet) -->
-                                        <include name="parquet-*.jar"/>
-                                        <!-- Netty 4.2.x belongs to the embedded engine; the rest of the
-                                             tree resolves netty 4.1.x (AWS SDK / Bolt) on the module path.
-                                             netty-transport-native-* also has an invalid automatic name. -->
-                                        <include name="netty-codec-base-*.jar"/>
-                                        <include name="netty-codec-haproxy-*.jar"/>
-                                        <include name="netty-transport-classes-kqueue-*.jar"/>
-                                        <include name="netty-transport-native-*.jar"/>
-                                        <!-- Apache MINA sshd (file-access module, quarantined) -->
-                                        <include name="sshd-*.jar"/>
-                                        <!-- Apache Pulsar client (messaging-engine module, quarantined) -->
-                                        <include name="pulsar-client*.jar"/>
-                                        <!-- Google Cloud Translate stack (translation module, quarantined) -->
-                                        <include name="google-cloud-*.jar"/>
-                                        <include name="gax-*.jar"/>
-                                        <include name="proto-google-*.jar"/>
-                                        <!-- JAI-EXT / GeoTools jt-* (geo-transformations module, quarantined) -->
-                                        <include name="jt-*.jar"/>
-                                        <!-- GraalVM modules already provided by the GraalVM JDK runtime
-                                             (shadowed system modules) -->
-                                        <include name="collections-*.jar"/>
-                                        <include name="nativeimage-*.jar"/>
-                                        <include name="word-*.jar"/>
-                                        <include name="truffle-compiler-*.jar"/>
-                                        <!-- Legacy duplicate / pre-Jakarta jars that split JDK or
-                                             jakarta.* packages. -->
-                                        <include name="validation-api-*.jar"/>
-                                        <include name="jsr305-*.jar"/>
-                                        <include name="javax.activation-api-*.jar"/>
-                                        <include name="javax.annotation-api-*.jar"/>
-                                        <include name="javax.inject-*.jar"/>
-                                        <include name="jaxb-api-*.jar"/>
-                                        <include name="jakarta.activation-api-*.jar"/>
-                                        <include name="hamcrest-core-*.jar"/>
-                                        <include name="xercesImpl-*.jar"/>
-                                        <!-- jcl-over-slf4j and commons-logging both define module
-                                             org.apache.commons.logging. Keep the *real* commons-logging on
-                                             the module path (it has the complete api + impl that
-                                             commons-configuration2 needs) and quarantine the slf4j bridge. -->
-                                        <include name="jcl-over-slf4j-*.jar"/>
-                                        <!-- Tika parsers aggregator: lists provider classes that live
-                                             in other jars, so it cannot be an automatic module. -->
-                                        <include name="tika-parsers-standard-package-*.jar"/>
-                                    </fileset>
-                                </move>
+                                <!-- Partition target/lib (flat copy-dependencies output) into the JPMS
+                                     module path (kept) and the class-path island dir (target/lib-classpath).
+                                     Shared, edition-agnostic tool: curated seed (build/island-seed.txt) +
+                                     automated detection of JPMS-hostile jars. See DEPENDENCY_MANAGEMENT.md.
+                                     The tool + seed are shipped in structr-app.jar and reused by the
+                                     enterprise build (which harvests them). -->
+                                <exec executable="${java.home}/bin/java" failonerror="true">
+                                    <arg value="${project.build.outputDirectory}/build/ModulePathPartitioner.java"/>
+                                    <arg value="${project.build.directory}/lib"/>
+                                    <arg value="${project.build.directory}/lib-classpath"/>
+                                    <arg value="${project.build.outputDirectory}/build/island-seed.txt"/>
+                                </exec>
                             </target>
                         </configuration>
                     </execution>
