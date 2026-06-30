@@ -21,6 +21,9 @@ module structr.text.search.module {
     requires structr.base;
     requires org.apache.commons.io;
 
+    // base (AgentService) reflectively instantiates this Agent impl across the module boundary
+    exports org.structr.text;
+
     provides org.structr.module.StructrModule with
         org.structr.text.TextSearchModule;
     provides org.structr.agent.Agent with

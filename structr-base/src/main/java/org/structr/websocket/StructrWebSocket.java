@@ -522,13 +522,18 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 
 		try {
 
+			// the command may live in a feature module (e.g. structr.process.module); allow base to
+			// reflectively instantiate it across the module boundary (the module exports its command
+			// package; here we add the runtime read edge). Same pattern as HttpService for servlets.
+			StructrWebSocket.class.getModule().addReads(command.getModule());
+
 			final AbstractCommand msg = (AbstractCommand) command.getDeclaredConstructor().newInstance();
 
 			commandSet.put(msg.getCommand(), command);
 
 		} catch (Throwable t) {
 
-			logger.error("Unable to add command {}", command.getName());
+			logger.error("Unable to add command {}", command.getName(), t);
 		}
 	}
 

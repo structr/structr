@@ -22,6 +22,9 @@ module structr.advanced.mail.module {
     requires jakarta.mail;
     requires org.apache.commons.io;
 
+    // base (Services) reflectively instantiates this Service impl across the module boundary
+    exports org.structr.mail.service;
+
     provides org.structr.module.StructrModule with
         org.structr.mail.AdvancedMailModule;
     provides org.structr.api.service.Service with

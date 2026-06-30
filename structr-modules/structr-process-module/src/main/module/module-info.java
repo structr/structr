@@ -20,6 +20,11 @@ module structr.process.module {
 
     requires structr.base;
 
+    // base reflectively instantiates this websocket command (StructrWebSocket) and this Service impl
+    // (Services) across the module boundary
+    exports org.structr.process.websocket;
+    exports org.structr.process.scheduler;
+
     provides org.structr.module.StructrModule with
         org.structr.process.ProcessModule;
     provides org.structr.api.service.Service with
