@@ -39,6 +39,7 @@ import org.structr.messaging.engine.entities.MessageClient;
 import org.structr.messaging.engine.entities.MessageSubscriber;
 import org.structr.messaging.engine.relation.MessageClientHASMessageSubscriber;
 import org.structr.messaging.implementation.kafka.entity.KafkaClient;
+import org.structr.messaging.implementation.mqtt.MQTTContext;
 import org.structr.messaging.implementation.mqtt.entity.MQTTClient;
 import org.structr.messaging.implementation.mqtt.function.MQTTPublishFunction;
 import org.structr.messaging.implementation.mqtt.function.MQTTSubscribeTopicFunction;
@@ -59,6 +60,10 @@ public class MessageEngineModule implements StructrModule {
 
 	@Override
 	public void onLoad() {
+
+		// start the MQTT subscription worker at boot (registered explicitly since the JPMS migration
+		// removed the class-path scan that used to force-load MQTTContext and fire its static block)
+		MQTTContext.registerInitializationCallback();
 
 		StructrTraits.registerTrait(new MessageClientHASMessageSubscriber());
 		StructrTraits.registerRelationshipType(StructrTraits.MESSAGE_CLIENT_HAS_MESSAGE_SUBSCRIBER, StructrTraits.MESSAGE_CLIENT_HAS_MESSAGE_SUBSCRIBER);
