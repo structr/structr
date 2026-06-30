@@ -38,7 +38,6 @@ import java.util.Optional;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -58,13 +57,21 @@ public class VersionHelper {
 
 		// (1) Structr jars on the class path: the resources-only application jar
 		//     (structr-app.jar / the enterprise app jar) and any class-path islands.
+		//     Split on the path separator and match on the jar's *file name* only. Matching
+		//     the raw class-path string with a regex is wrong: a parent directory containing
+		//     "structr-" (e.g. a CI build dir like /builds/structr/structr-enterprise/.m2/...)
+		//     makes every third-party jar look like a Structr jar and floods the log with
+		//     "Missing build information in manifest" warnings.
 		if (classPath != null) {
 
-			final Pattern structrJarFilePattern = Pattern.compile("([^:;]*structr-[^:;]*\\.jar)");
-			final Matcher structrJarFileMatcher  = structrJarFilePattern.matcher(classPath);
+			for (final String classPathEntry : classPath.split(Pattern.quote(File.pathSeparator))) {
 
-			while (structrJarFileMatcher.find()) {
-				readModuleManifest(new File(structrJarFileMatcher.group(1)));
+				final File jarFile   = new File(classPathEntry);
+				final String jarName = jarFile.getName();
+
+				if (jarName.startsWith("structr-") && jarName.endsWith(".jar")) {
+					readModuleManifest(jarFile);
+				}
 			}
 		}
 
