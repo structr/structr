@@ -14,6 +14,9 @@ if [ ! -d "$LOGS_DIR" ]; then
 				mkdir $LOGS_DIR
 fi
 
+# ensure the user/optional drop-in jar directory exists (class path; empty by default)
+mkdir -p plugins
+
 if [ -f "structr.conf" ]; then
 
   # Read java heap config

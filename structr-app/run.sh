@@ -27,6 +27,9 @@ if [ ! -d $LOGS_DIR ]; then
         mkdir $LOGS_DIR
 fi
 
+# ensure the user/optional drop-in jar directory exists (class path; empty by default)
+mkdir -p plugins
+
 if [ -f $PIDFILE ]; then
 	PID=`cat $PIDFILE`
 	echo "Structr seems to be running as pid $PID, pid file $PIDFILE exists, exiting."

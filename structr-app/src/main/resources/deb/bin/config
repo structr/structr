@@ -56,6 +56,9 @@ else
 	echo "Using system TZ env timezone '$TZ'"
 fi
 
+# ensure the user/optional drop-in jar directory exists (class path; empty by default)
+mkdir -p plugins
+
 RUN_OPTS="--module-path lib -cp lib-classpath/*:plugins/*:FINAL_NAME.jar --add-modules ALL-MODULE-PATH"
 JAVA_OPTS="$JAVA_AGENT_PATH -Djava.awt.headless=true -Djava.net.preferIPv4Stack=true -Djava.net.preferIPv6Addresses=false -Duser.country=US -Duser.language=en -Duser.timezone=$PROCESS_TZ -Dfile.encoding=UTF-8 -Dorg.apache.sshd.registerBouncyCastle=false -Dorg.neo4j.io.pagecache.implSingleFilePageSwapper.channelStripePower=0 -server $MEMORY_OPTS -XX:+UseNUMA -XX:+UseG1GC -XX:+UseCodeCacheFlushing $DEBUG_OPTS"
 # -m <module>/<main-class> must be the last java option, after all VM options (RUN_OPTS + JAVA_OPTS).
