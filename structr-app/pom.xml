@@ -209,6 +209,14 @@
                                         <include name="neo4j-*.jar"/>
                                         <exclude name="neo4j-java-driver-*.jar"/>
                                         <exclude name="neo4j-bolt-connection*.jar"/>
+                                        <!-- Neo4j engine companion jars that do NOT carry the neo4j- prefix:
+                                             the embedded engine splits across the module/class-path boundary
+                                             without these (e.g. neo4j-server's CommunityAuthConfigProvider
+                                             needs server-api's AuthConfigProvider). Version-pinned to
+                                             ${neo4j.version} so the unrelated AWS / JetBrains annotations-*.jar
+                                             stay on the module path. -->
+                                        <include name="server-api-${neo4j.version}.jar"/>
+                                        <include name="annotations-${neo4j.version}.jar"/>
                                         <include name="cypher-*.jar"/>
                                         <include name="lucene9-shaded-*.jar"/>
                                         <!-- Apache Lucene 10 (embedded-Neo4j transitive via neo4j-lucene-index);
