@@ -26,10 +26,8 @@ import org.apache.commons.mail.HtmlEmail;
 import org.apache.commons.mail.SimpleEmail;
 import org.structr.api.config.Settings;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 
 public abstract class MailHelper {
@@ -177,7 +175,6 @@ public abstract class MailHelper {
 		}
 
 		mail.setSubject(subject);
-
 	}
 
 	private static void configureMail(final Email mail) {
@@ -186,41 +183,39 @@ public abstract class MailHelper {
 		final int smtpPort           = Settings.SmtpPort.getValue();
 		final String smtpUser        = Settings.SmtpUser.getValue();
 		final String smtpPassword    = Settings.SmtpPassword.getValue();
-		final boolean smtpUseTLS     = Settings.SmtpTlsEnabled.getValue();
-		final boolean smtpRequireTLS = Settings.SmtpTlsRequired.getValue();
+		final boolean smtpTLSEnabled = Settings.SmtpTlsEnabled.getValue();
+		final boolean smtpTLSRequired = Settings.SmtpTlsRequired.getValue();
 
-		configureMail(mail, smtpHost, smtpPort, smtpUser, smtpPassword, smtpUseTLS, smtpRequireTLS);
+		configureMail(mail, smtpHost, smtpPort, smtpUser, smtpPassword, smtpTLSEnabled, smtpTLSRequired);
 	}
-
-
 
 	private static void configureAdvancedMail(final Email mail, final AdvancedMailContainer amc) {
 
 		if (amc.shouldUseManualConfiguration()) {
 
-			configureMail(mail, amc.getSmtpHost(), amc.getSmtpPort(), amc.getSmtpUser(), amc.getSmtpPassword(), amc.getSmtpUseTLS(), amc.getSmtpRequireTLS());
+			configureMail(mail, amc.getSmtpHost(), amc.getSmtpPort(), amc.getSmtpUser(), amc.getSmtpPassword(), amc.getSmtpTLSEnabled(), amc.getSmtpTLSRequired());
 
 		} else {
 
 			final String configurationPrefix = amc.getConfigurationPrefix();
 
-			final String smtpHost        = Settings.SmtpHost.getPrefixedValue(configurationPrefix);
-			final int smtpPort           = Settings.SmtpPort.getPrefixedValue(configurationPrefix);
-			final String smtpUser        = Settings.SmtpUser.getPrefixedValue(configurationPrefix);
-			final String smtpPassword    = Settings.SmtpPassword.getPrefixedValue(configurationPrefix);
-			final boolean smtpUseTLS     = Settings.SmtpTlsEnabled.getPrefixedValue(configurationPrefix);
-			final boolean smtpRequireTLS = Settings.SmtpTlsRequired.getPrefixedValue(configurationPrefix);
+			final String smtpHost         = Settings.SmtpHost.getPrefixedValue(configurationPrefix);
+			final int smtpPort            = Settings.SmtpPort.getPrefixedValue(configurationPrefix);
+			final String smtpUser         = Settings.SmtpUser.getPrefixedValue(configurationPrefix);
+			final String smtpPassword     = Settings.SmtpPassword.getPrefixedValue(configurationPrefix);
+			final boolean smtpTLSEnabled  = Settings.SmtpTlsEnabled.getPrefixedValue(configurationPrefix);
+			final boolean smtpTLSRequired = Settings.SmtpTlsRequired.getPrefixedValue(configurationPrefix);
 
-			configureMail(mail, smtpHost, smtpPort, smtpUser, smtpPassword, smtpUseTLS, smtpRequireTLS);
+			configureMail(mail, smtpHost, smtpPort, smtpUser, smtpPassword, smtpTLSEnabled, smtpTLSRequired);
 		}
 	}
 
-	private static void configureMail(final Email mail, final String smtpHost, final int smtpPort, final String smtpUser, final String smtpPassword, final boolean smtpUseTLS, final boolean smtpRequireTLS) {
+	private static void configureMail(final Email mail, final String smtpHost, final int smtpPort, final String smtpUser, final String smtpPassword, final boolean smtpTLSEnabled, final boolean smtpTLSRequired) {
 
 		mail.setHostName(smtpHost);
 		mail.setSmtpPort(smtpPort);
-		mail.setStartTLSEnabled(smtpUseTLS);
-		mail.setStartTLSRequired(smtpRequireTLS);
+		mail.setStartTLSEnabled(smtpTLSEnabled);
+		mail.setStartTLSRequired(smtpTLSRequired);
 		mail.setCharset(charset);
 
 		if (StringUtils.isNotBlank(smtpUser) && StringUtils.isNotBlank(smtpPassword)) {
@@ -228,28 +223,26 @@ public abstract class MailHelper {
 		}
 	}
 
-	/**
-	 * Parse the template and replace any of the keys in the replacement map by
-	 * the given values
-	 *
-	 * @param template
-	 * @param replacementMap
-	 * @return template string with included replacements
-	 */
-	public static String replacePlaceHoldersInTemplate(final String template, final Map<String, String> replacementMap) {
-
-		List<String> toReplace = new ArrayList<>();
-		List<String> replaceBy = new ArrayList<>();
-
-		for (Entry<String, String> property : replacementMap.entrySet()) {
-
-			toReplace.add(property.getKey());
-			replaceBy.add(property.getValue());
-
-		}
-
-		return StringUtils.replaceEachRepeatedly(template, toReplace.toArray(new String[toReplace.size()]), replaceBy.toArray(new String[replaceBy.size()]));
-
-	}
-
+//	/**
+//	 * Parse the template and replace any of the keys in the replacement map by
+//	 * the given values
+//	 *
+//	 * @param template
+//	 * @param replacementMap
+//	 * @return template string with included replacements
+//	 */
+//	public static String replacePlaceHoldersInTemplate(final String template, final Map<String, String> replacementMap) {
+//
+//		List<String> toReplace = new ArrayList<>();
+//		List<String> replaceBy = new ArrayList<>();
+//
+//		for (Entry<String, String> property : replacementMap.entrySet()) {
+//
+//			toReplace.add(property.getKey());
+//			replaceBy.add(property.getValue());
+//
+//		}
+//
+//		return StringUtils.replaceEachRepeatedly(template, toReplace.toArray(new String[toReplace.size()]), replaceBy.toArray(new String[replaceBy.size()]));
+//	}
 }

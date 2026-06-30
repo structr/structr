@@ -64,8 +64,8 @@ public class AdvancedMailContainer {
 	private Integer smtpPort       = null;
 	private String smtpUser        = null;
 	private String smtpPassword    = null;
-	private Boolean smtpUseTLS     = null;
-	private Boolean smtpRequireTLS = null;
+	private Boolean smtpTLSEnabled = null;
+	private Boolean smtpTLSRequired = null;
 
 	private String error           = null;
 
@@ -260,7 +260,7 @@ public class AdvancedMailContainer {
 		return useManualConfiguration;
 	}
 
-	public void setManualConfiguration(final String smtpHost, final int smtpPort, final String smtpUser, final String smtpPassword, final boolean smtpUseTLS, final boolean smtpRequireTLS) {
+	public void setManualConfiguration(final String smtpHost, final int smtpPort, final String smtpUser, final String smtpPassword, final boolean smtpTLSEnabled, final boolean smtpTLSRequired) {
 
 		useManualConfiguration = true;
 
@@ -268,8 +268,8 @@ public class AdvancedMailContainer {
 		this.smtpPort       = smtpPort;
 		this.smtpUser       = smtpUser;
 		this.smtpPassword   = smtpPassword;
-		this.smtpUseTLS     = smtpUseTLS;
-		this.smtpRequireTLS = smtpRequireTLS;
+		this.smtpTLSEnabled = smtpTLSEnabled;
+		this.smtpTLSRequired = smtpTLSRequired;
 	}
 
 	public String getSmtpHost() {
@@ -288,12 +288,12 @@ public class AdvancedMailContainer {
 		return smtpPassword;
 	}
 
-	public boolean getSmtpUseTLS() {
-		return smtpUseTLS;
+	public boolean getSmtpTLSEnabled() {
+		return smtpTLSEnabled;
 	}
 
-	public boolean getSmtpRequireTLS() {
-		return smtpRequireTLS;
+	public boolean getSmtpTLSRequired() {
+		return smtpTLSRequired;
 	}
 
 	public void setError(final Throwable ex) {
@@ -321,12 +321,12 @@ public class AdvancedMailContainer {
 
 		useManualConfiguration = false;
 
-		this.smtpHost       = null;
-		this.smtpPort       = null;
-		this.smtpUser       = null;
-		this.smtpPassword   = null;
-		this.smtpUseTLS     = null;
-		this.smtpRequireTLS = null;
+		this.smtpHost        = null;
+		this.smtpPort        = null;
+		this.smtpUser        = null;
+		this.smtpPassword    = null;
+		this.smtpTLSEnabled  = null;
+		this.smtpTLSRequired = null;
 	}
 
 	public void clearMailContainer() {
