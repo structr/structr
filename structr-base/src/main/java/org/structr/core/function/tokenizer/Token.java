@@ -44,7 +44,9 @@ public class Token {
 
 	@Override
 	public String toString() {
-		return source.getName() + ":" + row + ":" + column;
+		// source is null when a script is tokenized inline (a property value, not a
+		// source file); guard so logging a tokenizer warning never throws an NPE
+		return (source != null ? source.getName() : "<inline>") + ":" + row + ":" + column;
 	}
 
 	public String getType() {
@@ -82,7 +84,7 @@ public class Token {
 	}
 
 	public String getSource() {
-		return source.getName();
+		return source != null ? source.getName() : null;
 	}
 
 	public boolean startsWith(final String prefix) {
