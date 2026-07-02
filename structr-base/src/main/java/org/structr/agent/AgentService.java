@@ -245,6 +245,8 @@ public class AgentService extends Thread implements RunnableService {
 
 					try {
 
+						// agent may live in a feature module; allow base to reflectively instantiate it
+						AgentService.class.getModule().addReads(supportedAgentClass.getModule());
 						Agent supportedAgent     = supportedAgentClass.getDeclaredConstructor().newInstance();
 						Class supportedTaskClass = supportedAgent.getSupportedTaskType();
 
@@ -262,6 +264,7 @@ public class AgentService extends Thread implements RunnableService {
 		if (agentClass != null) {
 
 			try {
+				AgentService.class.getModule().addReads(agentClass.getModule());
 				agent = (Agent) agentClass.getDeclaredConstructor().newInstance();
 
 			} catch (Throwable ignore) {}

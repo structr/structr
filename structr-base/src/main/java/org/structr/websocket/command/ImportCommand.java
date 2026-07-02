@@ -44,11 +44,6 @@ public class ImportCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(ImportCommand.class.getName());
 
-	static {
-
-		StructrWebSocket.addCommand(ImportCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 

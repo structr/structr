@@ -53,12 +53,6 @@ public class SearchCommand extends AbstractCommand {
 	private static final String CYPHER_PARAMS_KEY = "cypherParams";
 	private static final String TYPE_KEY          = "type";
 
-	static {
-
-		StructrWebSocket.addCommand(SearchCommand.class);
-
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

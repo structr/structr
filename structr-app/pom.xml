@@ -179,6 +179,42 @@
                             <goal>run</goal>
                         </goals>
                     </execution>
+
+                    <!-- Partition the runtime libs for JPMS launch:
+                         target/lib    = Java module path (Structr's own modules + modular third-party jars)
+                         target/lib-classpath = class path "islands" - third-party jars that are JPMS-hostile
+                                         (split packages / duplicate or invalid automatic-module names that
+                                         we cannot fix and that sit outside our control). Reached only via
+                                         the ServiceLoader SPIs from the quarantined (automatic) Structr
+                                         modules, never required directly by an explicit module.
+                         The set below is derived from the JDK module-path validator
+                         (java with the validate-modules / module-path options against target/lib);
+                         keep it in sync if dependencies change (re-run that validation after upgrades).
+                         Runs in the package phase, after copy-dependencies (prepare-package) and before
+                         the assembly/jdeb consumers (package). -->
+                    <execution>
+                        <id>partition-module-path</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <!-- Partition target/lib (flat copy-dependencies output) into the JPMS
+                                     module path (kept) and the class-path island dir (target/lib-classpath).
+                                     Shared, edition-agnostic tool: curated seed (build/island-seed.txt) +
+                                     automated detection of JPMS-hostile jars. See DEPENDENCY_MANAGEMENT.md.
+                                     The tool + seed are shipped in structr-app.jar and reused by the
+                                     enterprise build (which harvests them). -->
+                                <exec executable="${java.home}/bin/java" failonerror="true">
+                                    <arg value="${project.build.outputDirectory}/build/ModulePathPartitioner.java"/>
+                                    <arg value="${project.build.directory}/lib"/>
+                                    <arg value="${project.build.directory}/lib-classpath"/>
+                                    <arg value="${project.build.outputDirectory}/build/island-seed.txt"/>
+                                </exec>
+                            </target>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
 
@@ -206,7 +242,10 @@
                 </configuration>
             </plugin>
 
-            <!-- Copy dependencies to target/lib/ -->
+            <!-- Copy dependencies to target/lib/ (module path); the partition step below
+                 then moves the JPMS-hostile "island" jars to target/lib-classpath/ (class path).
+                 Runs in prepare-package so the partition (package phase) and the
+                 assembly/jdeb consumers (also package phase) see the finished split. -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
@@ -214,7 +253,7 @@
                 <executions>
                     <execution>
                         <id>copy-dependencies</id>
-                        <phase>package</phase>
+                        <phase>prepare-package</phase>
                         <goals>
                             <goal>copy-dependencies</goal>
                         </goals>
@@ -225,6 +264,8 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <!-- (the partition-module-path antrun execution lives in the maven-antrun-plugin block above) -->
         </plugins>
     </build>
 
@@ -506,14 +547,18 @@
                                 </data>
 
                                 <data>
-                                    <src>${basedir}/src/main/resources/structr</src>
+                                    <src>${basedir}/target/lib-classpath</src>
                                     <type>directory</type>
                                     <mapper>
                                         <type>perm</type>
-                                        <prefix>/usr/lib/${project.parent.artifactId}/structr</prefix>
+                                        <prefix>/usr/lib/${project.parent.artifactId}/lib-classpath</prefix>
                                         <filemode>755</filemode>
                                     </mapper>
                                 </data>
+
+                                <!-- The static web UI (structr/) is served from the application jar
+                                     (class path), so it is not installed as an unpacked directory.
+                                     See HttpService and the dist assembly descriptor. -->
 
                                 <data>
                                     <src>${basedir}/target/deb/config</src>

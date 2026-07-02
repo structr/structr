@@ -29,11 +29,6 @@ import java.util.Arrays;
 
 public class GetOrCreateShadowPageCommand extends AbstractCommand {
 
-	static {
-
-		StructrWebSocket.addCommand(GetOrCreateShadowPageCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

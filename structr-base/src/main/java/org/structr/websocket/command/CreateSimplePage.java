@@ -35,12 +35,6 @@ public class CreateSimplePage extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(CreateSimplePage.class.getName());
 
-	static {
-
-		StructrWebSocket.addCommand(CreateSimplePage.class);
-
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

@@ -1,0 +1,6 @@
+org.structr.core.graph.NodeService
+org.structr.schema.SchemaService
+org.structr.rest.service.HttpService
+org.structr.agent.AgentService
+org.structr.cron.CronService
+org.structr.files.external.DirectoryWatchService

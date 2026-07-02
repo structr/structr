@@ -35,10 +35,6 @@ public class ClearSchemaCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(ClearSchemaCommand.class.getName());
 
-	static {
-		StructrWebSocket.addCommand(ClearSchemaCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 

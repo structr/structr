@@ -31,11 +31,6 @@ public class SaveLocalStorageCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(SaveLocalStorageCommand.class.getName());
 
-	static {
-
-		StructrWebSocket.addCommand(SaveLocalStorageCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

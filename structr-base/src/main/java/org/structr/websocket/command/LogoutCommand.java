@@ -36,12 +36,6 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public class LogoutCommand extends AbstractCommand {
 
-	static {
-
-		StructrWebSocket.addCommand(LogoutCommand.class);
-
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 

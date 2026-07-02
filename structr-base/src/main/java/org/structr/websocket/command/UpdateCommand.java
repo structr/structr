@@ -57,10 +57,6 @@ public class UpdateCommand extends AbstractCommand {
 	private static final String RECURSIVE_KEY                       = "recursive";
 	public static final String SHARED_COMPONENT_SYNC_MODE_KEY       = "syncMode";
 
-	static {
-		StructrWebSocket.addCommand(UpdateCommand.class);
-	}
-
 	private int count = 0;
 
 	@Override

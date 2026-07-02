@@ -37,11 +37,6 @@ import java.util.Arrays;
  */
 public class CreateRelationshipCommand extends AbstractCommand {
 
-	static {
-
-		StructrWebSocket.addCommand(CreateRelationshipCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

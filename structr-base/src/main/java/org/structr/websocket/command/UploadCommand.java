@@ -39,12 +39,6 @@ public class UploadCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(UploadCommand.class.getName());
 
-	static {
-
-		StructrWebSocket.addCommand(UploadCommand.class);
-
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

@@ -72,6 +72,7 @@
 	</properties>
 
 	<modules>
+		<module>structr-annotation-processor</module>
 		<module>structr-db-driver-api</module>
 		<module>structr-neo4j-bolt-driver</module>
 		<module>structr-neo4j-embedded-driver</module>
@@ -700,7 +701,70 @@
 					<compilerArgs>
 						<arg>-Xlint:deprecation</arg>
 					</compilerArgs>
+					<!-- builds the META-INF/structr/documented-classes index per module
+					     (see structr-annotation-processor); the processor module itself
+					     overrides this with <proc>none</proc> to avoid a self-reference -->
+					<annotationProcessorPaths>
+						<path>
+							<groupId>org.structr</groupId>
+							<artifactId>structr-annotation-processor</artifactId>
+							<version>${project.version}</version>
+						</path>
+					</annotationProcessorPaths>
 				</configuration>
+				<executions>
+					<!-- Compile TESTS on the class path (not the module path). The structr-base
+					     test-jar derives the same automatic module name (structr.base) as the main
+					     jar, so on the module path it is dropped ("already on the module path") and
+					     downstream modules' tests cannot see the shared test base classes
+					     (org.structr.test.rest.common.StructrRestTestBase, etc.). Tests run on the
+					     class path anyway (surefire/failsafe useModulePath=false); main compilation
+					     stays on the module path. See DEPENDENCY_MANAGEMENT.md. -->
+					<execution>
+						<id>default-testCompile</id>
+						<configuration>
+							<useModulePath>false</useModulePath>
+						</configuration>
+					</execution>
+				</executions>
+				<dependencies>
+					<!-- maven-compiler-plugin parses module-info via plexus-java/QDox to set up
+					     the module path; pin newer plexus-java + QDox so module-info parsing
+					     copes with modern Java syntax (text blocks etc.) in our modular sources. -->
+					<dependency>
+						<groupId>org.codehaus.plexus</groupId>
+						<artifactId>plexus-java</artifactId>
+						<version>1.5.2</version>
+					</dependency>
+					<dependency>
+						<groupId>com.thoughtworks.qdox</groupId>
+						<artifactId>qdox</artifactId>
+						<version>2.2.0</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+			<plugin>
+				<!-- modular modules keep module-info.java in src/main/module (its own source
+				     root) so the compiler plugin's plexus-java/QDox module descriptor parser
+				     only parses module-info.java, not the whole source tree (QDox cannot parse
+				     all modern Java syntax). Modules without that directory are unaffected. -->
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>build-helper-maven-plugin</artifactId>
+				<version>3.6.1</version>
+				<executions>
+					<execution>
+						<id>add-module-info-source</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>add-source</goal>
+						</goals>
+						<configuration>
+							<sources>
+								<source>src/main/module</source>
+							</sources>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 			<plugin>
 				<groupId>com.mycila</groupId>

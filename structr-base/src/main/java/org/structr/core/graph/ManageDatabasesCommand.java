@@ -370,11 +370,11 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 
 				if (driverClassString != null) {
 
-					databaseService = (DatabaseService) Class.forName((String) driverClassString).getDeclaredConstructor().newInstance();
+					databaseService = DatabaseService.loadByClassName((String) driverClassString);
 
 				} else {
 
-					databaseService = (DatabaseService) Class.forName("org.structr.bolt.BoltDatabaseService").getDeclaredConstructor().newInstance();
+					databaseService = DatabaseService.loadByClassName("org.structr.bolt.BoltDatabaseService");
 				}
 
 				if (databaseService == null) {
@@ -395,7 +395,7 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 					}
 				}
 
-			} catch (ClassNotFoundException|InstantiationException|IllegalAccessException | NoSuchMethodException | SecurityException | IllegalArgumentException | InvocationTargetException ex) {
+			} catch (ReflectiveOperationException | SecurityException | IllegalArgumentException ex) {
 				errorBuffer.add(new SemanticErrorToken("Driver", "driver", "driver_error"));
 			}
 		}

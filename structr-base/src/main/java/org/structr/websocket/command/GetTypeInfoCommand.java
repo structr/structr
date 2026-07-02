@@ -41,12 +41,6 @@ public class GetTypeInfoCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(GetTypeInfoCommand.class.getName());
 
-	static {
-
-		StructrWebSocket.addCommand(GetTypeInfoCommand.class);
-
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

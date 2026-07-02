@@ -39,10 +39,6 @@ import org.w3c.dom.DOMException;
  */
 public class CloneComponentCommand extends AbstractCommand {
 
-	static {
-		StructrWebSocket.addCommand(CloneComponentCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

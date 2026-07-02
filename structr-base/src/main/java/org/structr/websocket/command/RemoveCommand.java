@@ -46,11 +46,6 @@ public class RemoveCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(RemoveCommand.class.getName());
 
-	static {
-
-		StructrWebSocket.addCommand(RemoveCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

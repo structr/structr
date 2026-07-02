@@ -56,11 +56,6 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(CreateAndAppendDOMNodeCommand.class.getName());
 
-	static {
-
-		StructrWebSocket.addCommand(CreateAndAppendDOMNodeCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 

@@ -380,10 +380,38 @@ public class HttpService implements RunnableService, StatsCallback {
 				}
 			};
 
-			// locate static resources (local vs. deb fallback)
-			final String resourceBasePath = (Paths.get("src/main/resources/structr").toFile().exists() ? "src/main/resources/structr" : "structr");
+			// Locate the static UI resources. Precedence:
+			//   1. src/main/resources/structr - running from a source checkout (Maven build output)
+			//   2. ./structr (when it contains index.html) - optional filesystem override for local
+			//      development without a rebuild, or ops/enterprise customization of the served files.
+			//      The index.html sentinel is required so that an unrelated ./structr/docs directory
+			//      (used by the documentation tooling) does not hijack UI serving.
+			//   3. the 'structr' resources bundled inside the application jar, served from the class path
+			//      (the default for a packaged distribution)
 			final ResourceFactory factory = ResourceFactory.of(resourceHandler);
-			final Resource baseResource   = factory.newResource(URI.create(resourceBasePath).normalize());
+			final Path devResources       = Paths.get("src/main/resources/structr");
+			final Path localResources     = Paths.get("structr");
+			final Resource baseResource;
+
+			if (Files.isDirectory(devResources)) {
+
+				baseResource = factory.newResource(devResources);
+				logger.info("Serving static resources from development source directory {}", devResources.toAbsolutePath());
+
+			} else if (Files.isRegularFile(localResources.resolve("index.html"))) {
+
+				baseResource = factory.newResource(localResources);
+				logger.info("Serving static resources from local override directory {}", localResources.toAbsolutePath());
+
+			} else {
+
+				baseResource = factory.newClassLoaderResource("structr/");
+				logger.info("Serving static resources from the application jar (class path)");
+			}
+
+			if (baseResource == null) {
+				logger.error("Unable to locate static UI resources (no source dir, no ./structr override, and no 'structr' resources on the class path).");
+			}
 
 			resourceHandler.setDirAllowed(false);
 			resourceHandler.setWelcomeFiles("index.html");
@@ -1172,7 +1200,15 @@ public class HttpService implements RunnableService, StatsCallback {
 
 							try {
 
-								final HttpServlet servlet = (HttpServlet)Class.forName(servletClassName).getDeclaredConstructor().newInstance();
+								final Class<?> servletClass = Class.forName(servletClassName);
+
+								// Servlets may live in feature modules (e.g. structr.flow.module,
+								// structr.pdf.module) that base does not 'requires'. Add a runtime read
+								// edge so base can reflectively instantiate the servlet; the feature
+								// module exports its servlet package.
+								HttpService.class.getModule().addReads(servletClass.getModule());
+
+								final HttpServlet servlet = (HttpServlet)servletClass.getDeclaredConstructor().newInstance();
 								if (servlet instanceof HttpServiceServlet httpServiceServlet) {
 
 									final StructrHttpServiceConfig cfg = httpServiceServlet.getConfig();

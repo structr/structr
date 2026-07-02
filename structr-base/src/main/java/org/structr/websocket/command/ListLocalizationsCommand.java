@@ -48,11 +48,6 @@ public class ListLocalizationsCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(ListLocalizationsCommand.class.getName());
 
-	static {
-
-		StructrWebSocket.addCommand(ListLocalizationsCommand.class);
-	}
-
 
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {

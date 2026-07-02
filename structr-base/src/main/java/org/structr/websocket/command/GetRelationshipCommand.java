@@ -38,12 +38,6 @@ public class GetRelationshipCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(GetRelationshipCommand.class.getName());
 
-	static {
-
-		StructrWebSocket.addCommand(GetRelationshipCommand.class);
-
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

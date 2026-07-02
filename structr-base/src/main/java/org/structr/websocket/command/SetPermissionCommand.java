@@ -55,11 +55,6 @@ public class SetPermissionCommand extends AbstractCommand {
 	private static final String PERMISSIONS_KEY  = "permissions";
 	private static final String ACTION_KEY       = "action";
 
-	static {
-
-		StructrWebSocket.addCommand(SetPermissionCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

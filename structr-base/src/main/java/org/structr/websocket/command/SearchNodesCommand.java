@@ -39,10 +39,6 @@ public class SearchNodesCommand extends AbstractCommand {
 	private static final String SEARCH_FLOW_BOOL_KEY             = "searchFlow";
 	private static final String SEARCH_SCHEMA_BOOL_KEY           = "searchSchema";
 
-	static {
-		StructrWebSocket.addCommand(SearchNodesCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

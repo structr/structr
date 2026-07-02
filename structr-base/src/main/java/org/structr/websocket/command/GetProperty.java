@@ -32,12 +32,6 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public class GetProperty extends AbstractCommand {
 
-	static {
-
-		StructrWebSocket.addCommand(GetProperty.class);
-
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

@@ -50,12 +50,6 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 	private static final Property<Boolean> isSelected = new BooleanProperty("isSelected");
 	private static final Property<Boolean> isDisabled = new BooleanProperty("isDisabled");
 
-	static {
-
-		StructrWebSocket.addCommand(ListSchemaPropertiesCommand.class);
-
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

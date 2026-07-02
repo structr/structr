@@ -40,7 +40,12 @@ public abstract class MQTTContext {
 	private static final Logger logger                                 = LoggerFactory.getLogger(MQTTContext.class.getName());
 	private static final Map<String, MQTTClientConnection> connections = new HashMap<>();
 
-	static {
+	/**
+	 * Registers the boot-time initialization callback that starts the MQTT subscription worker.
+	 * Called explicitly from {@code MessageEngineModule.onLoad()} since the JPMS migration removed
+	 * the class-path scan that used to force-load this class (and fire its static initializer).
+	 */
+	public static void registerInitializationCallback() {
 
 		Services.getInstance().registerInitializationCallback(() -> {
 

@@ -43,11 +43,6 @@ public class ListUnattachedNodesCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(ListUnattachedNodesCommand.class.getName());
 
-	static {
-
-		StructrWebSocket.addCommand(ListUnattachedNodesCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

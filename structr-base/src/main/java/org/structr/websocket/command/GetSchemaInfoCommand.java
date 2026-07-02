@@ -35,11 +35,6 @@ public class GetSchemaInfoCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(GetSchemaInfoCommand.class.getName());
 
-	static {
-
-		StructrWebSocket.addCommand(GetSchemaInfoCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

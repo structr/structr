@@ -1,0 +1,4 @@
+org.structr.module.CoreModule
+org.structr.module.AdvancedScriptingModule
+org.structr.rest.common.RestModule
+org.structr.web.common.UiModule

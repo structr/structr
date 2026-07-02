@@ -44,11 +44,6 @@ public class AutocompleteCommand extends AbstractCommand {
 	private static final Logger logger                       = LoggerFactory.getLogger(AutocompleteCommand.class.getName());
 	private static final Property<List<GraphObjectMap>> list = new GenericProperty("list");
 
-	static {
-
-		StructrWebSocket.addCommand(AutocompleteCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

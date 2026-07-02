@@ -42,11 +42,6 @@ public class PatchCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(PatchCommand.class.getName());
 
-	static {
-
-		StructrWebSocket.addCommand(PatchCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

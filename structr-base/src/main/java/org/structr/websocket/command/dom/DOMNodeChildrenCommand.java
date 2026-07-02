@@ -37,11 +37,6 @@ import java.util.Set;
  */
 public class DOMNodeChildrenCommand extends AbstractCommand {
 
-	static {
-
-		StructrWebSocket.addCommand(DOMNodeChildrenCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 

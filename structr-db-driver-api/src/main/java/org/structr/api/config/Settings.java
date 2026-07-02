@@ -312,8 +312,8 @@ public class Settings {
 	public static final Setting<Integer> SmtpPort             = new IntegerSetting(smtpGroup, "SMTP Settings", "smtp.port",         25,          "SMTP server port to use when sending e-mails");
 	public static final Setting<String> SmtpUser              = new StringSetting(smtpGroup,  "SMTP Settings", "smtp.user",         "");
 	public static final Setting<String> SmtpPassword          = new StringSetting(smtpGroup,  "SMTP Settings", "smtp.password",     "");
-	public static final Setting<Boolean> SmtpTlsEnabled       = new BooleanSetting(smtpGroup, "SMTP Settings", "smtp.tls.enabled",  true,        "Whether to use TLS when sending e-mails");
-	public static final Setting<Boolean> SmtpTlsRequired      = new BooleanSetting(smtpGroup, "SMTP Settings", "smtp.tls.required", true,        "Whether TLS is required when sending e-mails");
+	public static final Setting<Boolean> SmtpTlsEnabled       = new BooleanSetting(smtpGroup, "SMTP Settings", "smtp.tls.enabled",  true,        "Attempt STARTTLS encryption if the server supports it.");
+	public static final Setting<Boolean> SmtpTlsRequired      = new BooleanSetting(smtpGroup, "SMTP Settings", "smtp.tls.required", true,        "Require STARTTLS; fail rather than send unencrypted.");
 	public static final Setting<Boolean> SmtpTesting          = new BooleanSetting(smtpGroup, "hidden",        "smtp.testing.only", false);
 
 	// advanced settings
@@ -374,7 +374,8 @@ public class Settings {
 	public static final Setting<String> PdfCustomResponseHeaders = new TextSetting(servletsGroup,    "PdfServlet", "pdfservlet.customresponseheaders", "Strict-Transport-Security:max-age=60,X-Content-Type-Options:nosniff,X-Frame-Options:SAMEORIGIN,X-XSS-Protection:1;mode=block", "List of custom response headers that will be added to every HTTP response");
 
 	public static final Setting<String> WebsocketServletPath       = new StringSetting(servletsGroup,  "hidden", "websocketservlet.path",              "/structr/ws/*", "URL pattern for WebSockets. Do not change unless you know what you are doing.");
-	public static final Setting<String> WebsocketServletClass      = new StringSetting(servletsGroup,  "hidden", "websocketservlet.class",             "org.structr.websocket.servlet.WebSocketServlet", "FQCN of servlet class to use for WebSockets. Do not change unless you know what you are doing.");
+	// NOTE: there is no websocketservlet.class - the WebSocketServlet was removed in the Jetty 12 migration;
+	// WebSockets are now handled by Jetty's WebSocketUpgradeHandler (see HttpService), not a servlet class.
 	public static final Setting<String> WebsocketAuthenticator     = new StringSetting(servletsGroup,  "hidden", "websocketservlet.authenticator",     "org.structr.web.auth.UiAuthenticator", "FQCN of authenticator class to use for WebSockets. Do not change unless you know what you are doing.");
 	public static final Setting<String> WebsocketDefaultView       = new StringSetting(servletsGroup,  "hidden", "websocketservlet.defaultview",       "public", "Unused");
 	public static final Setting<Integer> WebsocketOutputDepth      = new IntegerSetting(servletsGroup, "WebSocketServlet", "websocketservlet.outputdepth",       3, "Maximum nesting depth of JSON output");

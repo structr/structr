@@ -43,11 +43,6 @@ public class CreateLocalWidgetCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(CreateLocalWidgetCommand.class.getName());
 
-	static {
-
-		StructrWebSocket.addCommand(CreateLocalWidgetCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

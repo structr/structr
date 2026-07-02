@@ -30,10 +30,6 @@ import java.util.Map;
 
 public class InsertBeforeCommand extends AbstractCommand {
 
-	static {
-		StructrWebSocket.addCommand(InsertBeforeCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

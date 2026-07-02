@@ -40,11 +40,6 @@ public class ClonePageCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(ClonePageCommand.class.getName());
 
-	static {
-
-		StructrWebSocket.addCommand(ClonePageCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

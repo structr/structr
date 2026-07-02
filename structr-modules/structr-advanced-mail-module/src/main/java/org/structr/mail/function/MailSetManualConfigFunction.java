@@ -40,7 +40,7 @@ public class MailSetManualConfigFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("[smtpHost = 'localhost' [, smtpPort = 25 [, smtpUser = null [, smtpPassword = null [, smtpUseTLS = true [, smtpRequireTLS = true ]]]]]]");
+		return Signature.forAllScriptingLanguages("[smtpHost = 'localhost' [, smtpPort = 25 [, smtpUser = null [, smtpPassword = null [, smtpTLSEnabled = true [, smtpTLSRequired = true ]]]]]]");
 	}
 
 	@Override
@@ -52,17 +52,17 @@ public class MailSetManualConfigFunction extends AdvancedMailModuleFunction {
 			int smtpPort           = 25;
 			String smtpUser        = null;
 			String smtpPassword    = null;
-			boolean smtpUseTLS     = true;
-			boolean smtpRequireTLS = true;
+			boolean smtpTLSEnabled = true;
+			boolean smtpTLSRequired = true;
 
 			switch (sources.length) {
 				case 6:
 					if (sources[5] != null && sources[5] instanceof Boolean) {
-						smtpRequireTLS = (Boolean)sources[5];
+						smtpTLSRequired = (Boolean)sources[5];
 					}
 				case 5:
 					if (sources[4] != null && sources[4] instanceof Boolean) {
-						smtpUseTLS = (Boolean)sources[4];
+						smtpTLSEnabled = (Boolean)sources[4];
 					}
 				case 4:
 					if (sources[3] != null) {
@@ -82,7 +82,7 @@ public class MailSetManualConfigFunction extends AdvancedMailModuleFunction {
 					}
 			}
 
-			ctx.getAdvancedMailContainer().setManualConfiguration(smtpHost, smtpPort, smtpUser, smtpPassword, smtpUseTLS, smtpRequireTLS);
+			ctx.getAdvancedMailContainer().setManualConfiguration(smtpHost, smtpPort, smtpUser, smtpPassword, smtpTLSEnabled, smtpTLSRequired);
 
 			return null;
 
@@ -96,8 +96,8 @@ public class MailSetManualConfigFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${ mailSetManualConfig([smtpHost = 'localhost' [, smtpPort = 25 [, smtpUser = null [, smtpPassword = null [, smtpUseTLS = true [, smtpRequireTLS = true ]]]]]]) }"),
-			Usage.javaScript("Usage: ${{ $.mailSetManualConfig([smtpHost = 'localhost' [, smtpPort = 25 [, smtpUser = null [, smtpPassword = null [, smtpUseTLS = true [, smtpRequireTLS = true ]]]]]]) }}")
+			Usage.structrScript("Usage: ${ mailSetManualConfig([smtpHost = 'localhost' [, smtpPort = 25 [, smtpUser = null [, smtpPassword = null [, smtpTLSEnabled = true [, smtpTLSRequired = true ]]]]]]) }"),
+			Usage.javaScript("Usage: ${{ $.mailSetManualConfig([smtpHost = 'localhost' [, smtpPort = 25 [, smtpUser = null [, smtpPassword = null [, smtpTLSEnabled = true [, smtpTLSRequired = true ]]]]]]) }}")
 		);
 	}
 
@@ -126,8 +126,8 @@ public class MailSetManualConfigFunction extends AdvancedMailModuleFunction {
 				Parameter.optional("smtpPort", "SMTP port to connect use (default: `25`)"),
 				Parameter.optional("smtpUser", "username to use for authentication"),
 				Parameter.optional("smtpPassword", "password to use for authentication"),
-				Parameter.optional("smtpUseTLS", "use TLS when sending email (default: `true`)"),
-				Parameter.optional("smtpRequireTLS", "require TLS when sending emails (default: `true`)")
+				Parameter.optional("smtpTLSEnabled", "Attempt STARTTLS encryption if the server supports it. (default: `true`)"),
+				Parameter.optional("smtpTLSRequired", "Require STARTTLS; fail rather than send unencrypted (default: `true`)")
 		);
 	}
 }

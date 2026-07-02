@@ -40,10 +40,6 @@ import java.util.Map;
  */
 public class CloneNodeCommand extends AbstractCommand {
 
-	static {
-		StructrWebSocket.addCommand(CloneNodeCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

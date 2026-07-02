@@ -40,6 +40,7 @@ import org.structr.process.function.ValidateProcessTokenFunction;
 import org.structr.process.traits.definitions.*;
 import org.structr.process.traits.rels.*;
 import org.structr.process.websocket.BpmnDiagramBatchCommand;
+import org.structr.websocket.StructrWebSocket;
 
 import java.util.Set;
 
@@ -50,6 +51,9 @@ public class ProcessModule implements StructrModule {
 
 	@Override
 	public void onLoad() {
+
+		// websocket command (registered explicitly since the JPMS migration removed the class-path scan)
+		StructrWebSocket.addCommand(BpmnDiagramBatchCommand.class);
 
 		// Register relationship traits
 		StructrTraits.registerTrait(new BpmnDefinitionsHasDiagram());

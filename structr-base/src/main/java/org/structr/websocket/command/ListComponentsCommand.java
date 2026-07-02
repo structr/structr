@@ -42,11 +42,6 @@ public class ListComponentsCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(ListComponentsCommand.class.getName());
 
-	static {
-
-		StructrWebSocket.addCommand(ListComponentsCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

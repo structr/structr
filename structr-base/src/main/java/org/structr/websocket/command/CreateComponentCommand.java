@@ -37,11 +37,6 @@ import org.w3c.dom.DOMException;
  */
 public class CreateComponentCommand extends AbstractCommand {
 
-	static {
-
-		StructrWebSocket.addCommand(CreateComponentCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

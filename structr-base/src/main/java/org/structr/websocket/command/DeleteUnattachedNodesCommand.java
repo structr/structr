@@ -42,11 +42,6 @@ public class DeleteUnattachedNodesCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(DeleteUnattachedNodesCommand.class.getName());
 
-	static {
-
-		StructrWebSocket.addCommand(DeleteUnattachedNodesCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 

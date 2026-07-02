@@ -33,12 +33,6 @@ import java.util.List;
  */
 public class GetCommand extends AbstractCommand {
 
-	static {
-
-		StructrWebSocket.addCommand(GetCommand.class);
-
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

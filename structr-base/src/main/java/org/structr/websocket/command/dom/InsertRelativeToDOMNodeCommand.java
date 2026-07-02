@@ -31,10 +31,6 @@ import java.util.Map;
 
 public class InsertRelativeToDOMNodeCommand extends AbstractCommand {
 
-    static {
-        StructrWebSocket.addCommand(InsertRelativeToDOMNodeCommand.class);
-    }
-
     @Override
     public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 

@@ -1,0 +1,69 @@
+# Curated module-path / class-path-island seed (shared OSS base; editions add more via automation).
+# '<glob>' = force to class-path island ; '+<glob>' = force to stay on the module path (wins).
+
+# --- keep on module path (Bolt client; used by the explicit bolt driver) ---
++neo4j-java-driver-*.jar
++neo4j-bolt-connection*.jar
+
+# --- embedded Neo4j engine + Cypher/Scala + Lucene ---
+neo4j-*.jar
+# Neo4j engine companions that lack the neo4j- prefix (the embedded engine splits across the
+# module/class-path boundary without them). Version-agnostic: server-api is unique to Neo4j; the
+# Neo4j 'annotations' jar declares Automatic-Module-Name org.neo4j.annotations (the unrelated
+# AWS / JetBrains annotations jars derive different names, so they are NOT matched).
+server-api-*.jar
+name:org.neo4j.annotations
+cypher-*.jar
+lucene9-shaded-*.jar
+lucene-*.jar
+
+# --- units-of-measurement stack (GeoTools transitive) ---
+indriya-*.jar
+si-units-*.jar
+si-quantity-*.jar
+systems-common-*.jar
+unit-api-*.jar
+uom-lib-common-*.jar
+
+# --- Scala / Cypher support ---
+scala-library-*.jar
+scala-reflect-*.jar
+scala3-library_3-*.jar
+scala-collection-contrib*.jar
+kiama_*.jar
+magnolia_*.jar
+sourcecode_*.jar
+parquet-*.jar
+
+# --- netty 4.2.x (embedded engine); 4.1.x stays on module path (AWS/Bolt) ---
+netty-codec-base-*.jar
+netty-codec-haproxy-*.jar
+netty-transport-classes-kqueue-*.jar
+netty-transport-native-*.jar
+
+# --- quarantined feature-module deps ---
+sshd-*.jar
+pulsar-client*.jar
+google-cloud-*.jar
+gax-*.jar
+proto-google-*.jar
+jt-*.jar
+
+# --- GraalVM JDK-provided (shadowed system) modules ---
+collections-*.jar
+nativeimage-*.jar
+word-*.jar
+truffle-compiler-*.jar
+
+# --- legacy / pre-Jakarta duplicate-package jars ---
+validation-api-*.jar
+jsr305-*.jar
+javax.activation-api-*.jar
+javax.annotation-api-*.jar
+javax.inject-*.jar
+jaxb-api-*.jar
+jakarta.activation-api-*.jar
+hamcrest-core-*.jar
+xercesImpl-*.jar
+jcl-over-slf4j-*.jar
+tika-parsers-standard-package-*.jar

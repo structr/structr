@@ -812,6 +812,10 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 			logger.info("Creating {}..", serviceClass.getSimpleName());
 
+			// service may live in a feature module (e.g. file-access SSH/Ftp, mail, process); allow
+			// base to reflectively instantiate it across the module boundary
+			Services.class.getModule().addReads(serviceClass.getModule());
+
 			final Service service = (Service) serviceClass.getDeclaredConstructor().newInstance();
 			final int retryDelay  = service.getRetryDelay();
 			int retryCount        = service.getRetryCount();

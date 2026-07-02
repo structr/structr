@@ -48,11 +48,6 @@ public class ReplaceWidgetCommand extends AbstractCommand {
 
 	private static final Logger logger     = LoggerFactory.getLogger(ReplaceWidgetCommand.class.getName());
 
-	static {
-
-		StructrWebSocket.addCommand(ReplaceWidgetCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 

@@ -41,11 +41,6 @@ public class SaveNodeCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(SaveNodeCommand.class.getName());
 
-	static {
-
-		StructrWebSocket.addCommand(SaveNodeCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

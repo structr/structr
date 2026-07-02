@@ -33,11 +33,6 @@ import java.util.Map;
  */
 public class ReplaceDOMNodeCommand extends AbstractCommand {
 
-	static {
-
-		StructrWebSocket.addCommand(ReplaceDOMNodeCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

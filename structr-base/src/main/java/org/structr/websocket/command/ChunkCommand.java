@@ -43,12 +43,6 @@ public class ChunkCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(ChunkCommand.class.getName());
 
-	static {
-
-		StructrWebSocket.addCommand(ChunkCommand.class);
-
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 

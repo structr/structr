@@ -46,11 +46,6 @@ import java.util.*;
 
 public class WrapInWidgetCommand extends AbstractCommand {
 
-	static {
-
-		StructrWebSocket.addCommand(WrapInWidgetCommand.class);
-	}
-
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 

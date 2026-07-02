@@ -75,7 +75,7 @@ public class NodeService implements SingletonService {
 		final String databaseDriver = Settings.DatabaseDriver.getPrefixedValue(serviceName);
 		String errorMessage         = null;
 
-		databaseService = (DatabaseService)Class.forName(databaseDriver).getDeclaredConstructor().newInstance();
+		databaseService = DatabaseService.loadByClassName(databaseDriver);
 		if (databaseService != null) {
 
 			if (databaseService.initialize(serviceName, services.getVersion(), services.getInstanceName())) {

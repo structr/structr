@@ -37,14 +37,18 @@
 			</includes>
 		</fileSet>
 		<fileSet>
-			<directory>${assemblies.resources.path}/structr</directory>
-			<outputDirectory>structr</outputDirectory>
+			<directory>${assemblies.base.path}/lib-classpath</directory>
+			<outputDirectory>lib-classpath</outputDirectory>
 			<directoryMode>0755</directoryMode>
 			<fileMode>0644</fileMode>
 			<includes>
 				<include>**</include>
 			</includes>
 		</fileSet>
+		<!-- The static web UI (structr/) is served directly from the application jar (class path);
+		     it is intentionally NOT shipped as an unpacked directory. To customize the served files,
+		     create a 'structr/' directory containing index.html in the working directory - it takes
+		     precedence over the bundled resources (see HttpService). -->
 		<fileSet>
 			<directory>${assemblies.resources.path}/logs</directory>
 			<outputDirectory>logs</outputDirectory>

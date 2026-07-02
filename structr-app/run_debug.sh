@@ -14,6 +14,9 @@ if [ ! -d "$LOGS_DIR" ]; then
 				mkdir $LOGS_DIR
 fi
 
+# ensure the user/optional drop-in jar directory exists (class path; empty by default)
+mkdir -p plugins
+
 if [ -f "structr.conf" ]; then
 
   # Read java heap config
@@ -52,4 +55,4 @@ fi
 echo "Current directory: $(pwd)"
 # start Structr
 
-java -server -Djava.awt.headless=true -Djava.net.preferIPv4Stack=true -Djava.net.preferIPv6Addresses=false -Duser.timezone=$PROCESS_TZ -Duser.country=US -Duser.language=en -Djava.net.useSystemProxies=true -Dorg.apache.sshd.registerBouncyCastle=false -Dorg.neo4j.io.pagecache.implSingleFilePageSwapper.channelStripePower=0 -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=$SUSPEND -Dfile.encoding=utf-8 $MEMORY_OPTS -XX:+UseG1GC -XX:+UseNUMA -XX:+UseCodeCacheFlushing -cp ./target/lib/*:./plugins/*:$LATEST org.structr.Server
+java -server -Djava.awt.headless=true -Djava.net.preferIPv4Stack=true -Djava.net.preferIPv6Addresses=false -Duser.timezone=$PROCESS_TZ -Duser.country=US -Duser.language=en -Djava.net.useSystemProxies=true -Dorg.apache.sshd.registerBouncyCastle=false -Dorg.neo4j.io.pagecache.implSingleFilePageSwapper.channelStripePower=0 -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend=$SUSPEND -Dfile.encoding=utf-8 $MEMORY_OPTS -XX:+UseG1GC -XX:+UseNUMA -XX:+UseCodeCacheFlushing --module-path ./target/lib -cp ./target/lib-classpath/*:./plugins/*:$LATEST --add-modules ALL-MODULE-PATH -m structr.base/org.structr.Server
