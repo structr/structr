@@ -45,7 +45,11 @@ Classification is **curated seed + automated detection**:
 2. **Automated pass** — for every jar still on the module path, the tool quarantines it if it has an
    (1) invalid/underivable automatic-module name, (2) duplicate module name, (3) split package shared
    with another module-path jar, or (4) an unsatisfiable hard (non-`static`) `requires`. It only ever
-   *adds* to the class path and never moves a `+`-pinned jar.
+   *adds* to the class path and never moves a `+`-pinned jar. Rule (4) runs as a **fixpoint** (before
+   and after rules 2/3): quarantining a module cascades to every module-path jar that requires it, so a
+   new dependency can't silently leave a requirer orphaned. If a `+`-pinned jar is itself left with an
+   unsatisfiable `requires` (which JPMS could not resolve at boot), the build **fails loudly** so you
+   fix the seed rather than shipping a broken module path.
 
 The tool + seed are **shipped inside `structr-app.jar`** and **reused by the enterprise build**
 (`structr-app-enterprise` harvests them when it unpacks `structr-app`). The seed encodes the shared

@@ -36,7 +36,9 @@
 //   1. invalid / underivable automatic-module name
 //   2. duplicate module name across two module-path jars
 //   3. split package (a package present in two module-path jars)
-//   4. unsatisfiable HARD (non-static) requires (a modular jar needs an absent module)
+//   4. unsatisfiable HARD (non-static) requires (a modular jar needs an absent module) — run as a
+//      FIXPOINT (before and after rules 2/3) so that quarantining a module cascades to its requirers;
+//      a module-path-PINNED jar left unsatisfiable is unresolvable, so the build fails loudly.
 // Conflict offenders (2/3) = members not pinned to the module path, dropped worst-first (most packages,
 // i.e. uber jars, then by name) while a conflict remains — deterministic.
 
@@ -107,20 +109,12 @@ public class ModulePathPartitioner {
             }
         }
 
-        // rule 4: unsatisfiable hard requires
-        Set<String> present = desc.values().stream().map(ModuleDescriptor::name).collect(Collectors.toCollection(HashSet::new));
-        Set<String> system  = ModuleFinder.ofSystem().findAll().stream().map(r -> r.descriptor().name()).collect(Collectors.toSet());
-        for (var e : new ArrayList<>(desc.entrySet())) {
-            if (pinnedMp.test(e.getKey())) continue;
-            for (ModuleDescriptor.Requires r : e.getValue().requires()) {
-                if (r.modifiers().contains(ModuleDescriptor.Requires.Modifier.STATIC)) continue;
-                if (!present.contains(r.name()) && !system.contains(r.name())) {
-                    move(e.getKey(), cpDir, moved, "unsatisfiable-requires:" + r.name());
-                    desc.remove(e.getKey());
-                    break;
-                }
-            }
-        }
+        // rule 4: unsatisfiable hard requires (FIXPOINT). Moving a jar off the module path removes its
+        // module, which can orphan other module-path jars that (non-statically) require it; those must
+        // move too, transitively, or JPMS resolution fails at boot. So we iterate until stable rather
+        // than making a single pass over a stale snapshot. See quarantineUnsatisfiableRequires().
+        Set<String> system = ModuleFinder.ofSystem().findAll().stream().map(r -> r.descriptor().name()).collect(Collectors.toSet());
+        quarantineUnsatisfiableRequires(desc, cpDir, moved, pinnedMp, system);
 
         // rules 2 + 3: duplicate module name / split package
         Map<String,List<Path>> byName = new LinkedHashMap<>(), byPkg = new LinkedHashMap<>();
@@ -168,9 +162,74 @@ public class ModulePathPartitioner {
             desc.remove(jar);
         }
 
+        // rule 4 again (FIXPOINT): rules 2 & 3 above may have moved jars that other module-path modules
+        // still require; re-run the unsatisfiable-requires fixpoint so no requirer is left orphaned.
+        quarantineUnsatisfiableRequires(desc, cpDir, moved, pinnedMp, system);
+
+        // final consistency guard: a jar PINNED to the module path (via a '+' seed rule) cannot be moved,
+        // so if it is left with an unsatisfiable hard requires the module path is unresolvable and would
+        // fail at boot. Fail the build loudly instead of silently shipping it — this is exactly the
+        // "future dep addition silently orphans a required module" case we want to surface.
+        failOnUnsatisfiablePinned(desc, pinnedMp, system);
+
         System.out.println("[partitioner] quarantined " + moved.size() + " jar(s) to " + cpDir.getFileName()
                 + "; " + jars(libDir).size() + " remain on the module path");
         for (String m : moved) System.out.println("    -> " + m);
+    }
+
+    // Rule 4 as a fixpoint: repeatedly quarantine any non-pinned module-path jar whose non-static
+    // `requires` cannot be satisfied by another module-path jar or a system module, recomputing the set
+    // of present modules each round so that cascades (moving A orphans B that requires A) are caught.
+    // Terminates: each round that changes anything removes at least one jar, and moves never add modules.
+    private static void quarantineUnsatisfiableRequires(Map<Path,ModuleDescriptor> desc, Path cpDir,
+            List<String> moved, java.util.function.Predicate<Path> pinnedMp, Set<String> system) throws IOException {
+        boolean changed = true;
+        while (changed) {
+            changed = false;
+            Set<String> present = desc.values().stream().map(ModuleDescriptor::name)
+                    .collect(Collectors.toCollection(HashSet::new));
+            for (var e : new ArrayList<>(desc.entrySet())) {
+                if (!desc.containsKey(e.getKey()) || pinnedMp.test(e.getKey())) continue;
+                String missing = firstUnsatisfiedRequire(e.getValue(), present, system);
+                if (missing != null) {
+                    move(e.getKey(), cpDir, moved, "unsatisfiable-requires:" + missing);
+                    desc.remove(e.getKey());
+                    changed = true;
+                }
+            }
+        }
+    }
+
+    // Returns the name of the first non-static `requires` of d that is neither present on the module path
+    // nor a system module, or null if all hard requires are satisfiable.
+    private static String firstUnsatisfiedRequire(ModuleDescriptor d, Set<String> present, Set<String> system) {
+        for (ModuleDescriptor.Requires r : d.requires()) {
+            if (r.modifiers().contains(ModuleDescriptor.Requires.Modifier.STATIC)) continue;
+            if (!present.contains(r.name()) && !system.contains(r.name())) return r.name();
+        }
+        return null;
+    }
+
+    // A module-path-pinned jar cannot be quarantined; if one is left unsatisfiable the module path is
+    // unresolvable, so fail the build with an actionable message rather than shipping a broken partition.
+    private static void failOnUnsatisfiablePinned(Map<Path,ModuleDescriptor> desc,
+            java.util.function.Predicate<Path> pinnedMp, Set<String> system) {
+        Set<String> present = desc.values().stream().map(ModuleDescriptor::name)
+                .collect(Collectors.toCollection(HashSet::new));
+        List<String> broken = new ArrayList<>();
+        for (var e : desc.entrySet()) {
+            if (!pinnedMp.test(e.getKey())) continue;
+            String missing = firstUnsatisfiedRequire(e.getValue(), present, system);
+            if (missing != null) broken.add(e.getKey().getFileName() + " (module " + e.getValue().name()
+                    + ") requires absent module '" + missing + "'");
+        }
+        if (!broken.isEmpty()) {
+            System.err.println("[partitioner] FATAL: module-path-pinned jar(s) have unsatisfiable requires:");
+            for (String b : broken) System.err.println("    " + b);
+            System.err.println("  This would fail JPMS resolution at boot. Fix the seed: either unpin the jar "
+                    + "(let it fall to the class-path island) or add the missing module to the module path.");
+            System.exit(1);
+        }
     }
 
     private static String moduleName(Path jar) {
