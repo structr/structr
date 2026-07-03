@@ -98,6 +98,18 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 	private Services() { }
 
+	/**
+	 * Returns the current Services instance <b>without</b> creating or (re-)initializing one.
+	 * Returns {@code null} when there is no instance yet or after {@link #shutdown()} has run
+	 * (shutdown nulls the singleton). Unlike {@link #getInstance()}, this never triggers a fresh
+	 * {@code initialize()} — background threads (e.g. agents) must use this so that a stray thread
+	 * running past shutdown does not resurrect the whole service layer (and, for the embedded
+	 * database, fail fatally with "Database ... does not exist" and abort the JVM via System.exit).
+	 */
+	public static Services peekInstance() {
+		return singletonInstance;
+	}
+
 	public static Services getInstance() {
 
 		if (singletonInstance == null) {

@@ -63,7 +63,18 @@ public abstract class Agent<T> extends Thread implements StatusInfo {
 
 		do {
 
-			if (!Services.getInstance().isInitialized()) {
+			final Services services = Services.peekInstance();
+
+			// Services has been shut down (e.g. test teardown between test classes, or a normal
+			// shutdown): stop this agent instead of calling getInstance(), which would re-initialize
+			// the whole service layer on this background thread. For the embedded database that
+			// re-init fails fatally ("Database ... does not exist") and aborts the JVM via
+			// System.exit, killing e.g. the surefire/failsafe test fork.
+			if (services == null) {
+				break;
+			}
+
+			if (!services.isInitialized()) {
 
 				try { Thread.sleep(100); } catch (InterruptedException i) {}
 
@@ -90,8 +101,9 @@ public abstract class Agent<T> extends Thread implements StatusInfo {
 				ReturnValue ret = null;
 
 				// only execute process if Service layer is ready
-				// (and not shutting down right now)
-				if (Services.getInstance().isInitialized()) {
+				// (and not shutting down right now) - peek so we never re-initialize a shut-down instance
+				final Services current = Services.peekInstance();
+				if (current != null && current.isInitialized()) {
 
 					if (createEnclosingTransaction()) {
 

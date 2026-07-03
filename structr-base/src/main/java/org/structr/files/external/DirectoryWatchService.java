@@ -173,7 +173,16 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 		while (running) {
 
-			if (!Services.getInstance().isInitialized()) {
+			final Services services = Services.peekInstance();
+
+			// Services has been shut down: stop instead of calling getInstance(), which would
+			// re-initialize the whole service layer on this background thread (fatal for the
+			// embedded database -> System.exit, killing e.g. a test fork).
+			if (services == null) {
+				break;
+			}
+
+			if (!services.isInitialized()) {
 
 				try { Thread.sleep(1000); } catch (InterruptedException i) {}
 
@@ -199,7 +208,8 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 			try {
 
 				final WatchKey key = watchService.poll(100, TimeUnit.MILLISECONDS);
-				if (key != null && Services.getInstance().isInitialized()) {
+				final Services current = Services.peekInstance();
+				if (key != null && current != null && current.isInitialized()) {
 
 					final Path root;
 
