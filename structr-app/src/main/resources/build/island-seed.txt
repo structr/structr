@@ -48,6 +48,17 @@ google-cloud-*.jar
 gax-*.jar
 proto-google-*.jar
 jt-*.jar
+# Legacy Sun "JAI Image I/O Tools" (javax.media:jai_imageio, pulled in transitively by GeoTools
+# gt-process in structr-geo-transformations-module). Its META-INF/services actively registers
+# com.sun.media.imageioimpl.plugins.jpeg.CLibJPEG{Reader,Writer}Spi, whose constructors require a
+# native clib_jiio library that is not bundled. On the MODULE PATH ServiceLoader instantiates the
+# provider eagerly, the constructor throws, and the ServiceConfigurationError propagates out of
+# ImageIO's plugin scan - poisoning the whole ImageIO registry so EVERY ImageIO operation fails
+# (e.g. the barcode() function's ImageIO.write(..., "PNG", ...)). On the CLASS PATH the identical jar
+# is tolerated (the scan swallows the failing provider), so quarantine it here. GeoTools' own
+# automatic modules still read its classes via the unnamed module. (jai-imageio-core, the maintained
+# fork, has these CLib SPIs commented out and is harmless, so it is left on the module path.)
+jai_imageio-*.jar
 
 # --- GraalVM JDK-provided (shadowed system) modules ---
 collections-*.jar
