@@ -67,3 +67,12 @@ hamcrest-core-*.jar
 xercesImpl-*.jar
 jcl-over-slf4j-*.jar
 tika-parsers-standard-package-*.jar
+
+# --- first-party Structr modules: never subject our own modules to the third-party hostility
+#     rules. structr.base is the launch module (-m structr.base/org.structr.Server); if the build
+#     JDK's ModuleFinder can't read a structr module-info (e.g. built under a JDK older than the
+#     compiled --release) or a graal dep it requires is islanded, the automated pass would otherwise
+#     quarantine structr.base and boot fails with "Module structr.base not found". Pinning keeps them
+#     on the module path. (Automatic-module structr jars like the embedded driver already sit here and
+#     read the class-path neo4j engine via the unnamed module; pinning does not change that.) ---
++structr-*.jar
