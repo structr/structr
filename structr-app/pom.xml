@@ -23,6 +23,7 @@
         <skipDeb>false</skipDeb>
         <skipDocker>false</skipDocker>
         <skipDockerTestDB>true</skipDockerTestDB>
+        <skipSpiPreflight>false</skipSpiPreflight>
     </properties>
 
     <dependencies>
@@ -211,6 +212,43 @@
                                     <arg value="${project.build.directory}/lib"/>
                                     <arg value="${project.build.directory}/lib-classpath"/>
                                     <arg value="${project.build.outputDirectory}/build/island-seed.txt"/>
+                                </exec>
+                            </target>
+                        </configuration>
+                    </execution>
+                    <!-- JPMS SPI preflight: after partitioning, verify that the eagerly-scanned
+                         java.util.ServiceLoader categories (ImageIO reader/writer/stream, JDBC, charset) have NO
+                         provider that fails to instantiate on the module path. Such a provider is tolerated on the
+                         class path but fatal as an automatic module (e.g. legacy jai_imageio's "vendorName == null!"),
+                         and because those scans are eager a single bad provider breaks unrelated features at runtime
+                         (it is what broke the barcode() function). Fails the build early with the fix hint. The tool
+                         must run COMPILED with the partitioned module path (source-launch + a large module graph
+                         hangs), so we javac it first. Skip with -DskipSpiPreflight=true. See build/SpiPreflight.java. -->
+                    <execution>
+                        <id>spi-preflight</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <skip>${skipSpiPreflight}</skip>
+                            <target>
+                                <mkdir dir="${project.build.directory}/spi-preflight"/>
+                                <exec executable="${java.home}/bin/javac" failonerror="true">
+                                    <arg value="-d"/>
+                                    <arg value="${project.build.directory}/spi-preflight"/>
+                                    <arg value="${project.build.outputDirectory}/build/SpiPreflight.java"/>
+                                </exec>
+                                <exec executable="${java.home}/bin/java" failonerror="true">
+                                    <arg value="--module-path"/>
+                                    <arg value="${project.build.directory}/lib"/>
+                                    <arg value="--add-modules"/>
+                                    <arg value="ALL-MODULE-PATH"/>
+                                    <arg value="-cp"/>
+                                    <arg value="${project.build.directory}/spi-preflight${path.separator}${project.build.directory}/lib-classpath/*"/>
+                                    <arg value="SpiPreflight"/>
+                                    <arg value="${project.build.directory}/lib"/>
+                                    <arg value="${project.build.directory}/lib-classpath"/>
                                 </exec>
                             </target>
                         </configuration>

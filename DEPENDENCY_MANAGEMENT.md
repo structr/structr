@@ -74,6 +74,33 @@ not need to hand-curate their own glob lists.
 
 To see *why* a jar was moved, read the partitioner's build output (`[partitioner] … (reason)`).
 
+## SPI preflight (build gate)
+
+`structr-app/src/main/resources/build/SpiPreflight.java` runs in the `package` phase right after the
+partitioner (OSS and enterprise). It replays `java.util.ServiceLoader` for the **eagerly-scanned** SPI
+categories (`javax.imageio.spi.*`, `java.sql.Driver`, `java.nio.charset.spi.CharsetProvider`) against the
+partitioned module path and **fails the build** if any provider cannot be instantiated.
+
+Why: some jars register a `META-INF/services` provider whose constructor works on the **class path** but
+throws when the jar is an **automatic module** on the **module path**. The archetype is the legacy Sun
+`javax.media:jai_imageio` (GeoTools transitive): its `com.sun.media.imageioimpl.*` ImageIO SPIs read the
+vendor from the jar manifest, which is `null` for an automatic module → every SPI constructor throws
+`IllegalArgumentException("vendorName == null!")`. Because ImageIO scans **all** providers eagerly, one bad
+provider aborts the whole scan and breaks *unrelated* features (this is what broke the `barcode()` function's
+`ImageIO.write(..., "PNG", ...)`). The failure is invisible at build time and only bites at runtime — the
+preflight surfaces it early.
+
+On failure it names the provider and points at the fix, which is almost always: **quarantine the offending
+jar to the class-path island** by adding its glob to `island-seed.txt` (that is exactly what the
+`jai_imageio-*.jar` entry does). The tool must run *compiled* with the partitioned module path (a
+source-launch against the large module graph hangs), so the build `javac`s it first. Skip with
+`-DskipSpiPreflight=true`.
+
+To hunt more broadly by hand (all SPI categories, or the "provider class missing at runtime" case), run a
+`ServiceLoader` sweep from an unnamed-module probe launched with
+`--module-path target/lib --add-modules ALL-MODULE-PATH -cp 'target/lib-classpath/*'` and catch per-provider
+`ServiceConfigurationError`.
+
 ## Adding a Structr module
 
 - **Explicit module** (preferred): put `module-info.java` in `src/main/module/` (its own source root —
