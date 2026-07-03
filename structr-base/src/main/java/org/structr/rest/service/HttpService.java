@@ -381,7 +381,13 @@ public class HttpService implements RunnableService, StatsCallback {
 			};
 
 			// Locate the static UI resources. Precedence:
-			//   1. src/main/resources/structr - running from a source checkout (Maven build output)
+			//   1. src/main/resources/structr (when it contains index.html) - running from a source
+			//      checkout. The index.html sentinel is required: in the OSS app module this directory
+			//      holds the full UI, but in the enterprise app module it only holds a thin overlay
+			//      (README.md; the full UI is assembled into target/deb-resources/structr at build time
+			//      and exposed as the ./structr symlink by run(_debug).sh). Without the sentinel that
+			//      near-empty enterprise dir would hijack UI serving -> 403 on /structr and missing
+			//      config-servlet CSS/JS.
 			//   2. ./structr (when it contains index.html) - optional filesystem override for local
 			//      development without a rebuild, or ops/enterprise customization of the served files.
 			//      The index.html sentinel is required so that an unrelated ./structr/docs directory
@@ -393,7 +399,7 @@ public class HttpService implements RunnableService, StatsCallback {
 			final Path localResources     = Paths.get("structr");
 			final Resource baseResource;
 
-			if (Files.isDirectory(devResources)) {
+			if (Files.isRegularFile(devResources.resolve("index.html"))) {
 
 				baseResource = factory.newResource(devResources);
 				logger.info("Serving static resources from development source directory {}", devResources.toAbsolutePath());
