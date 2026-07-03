@@ -34,7 +34,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.core.auth.Authenticator;
 
-import java.lang.reflect.Field;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
@@ -88,15 +87,12 @@ public class StructrWebSocketCreator implements WebSocketCreator {
 				final ServletContextRequest contextRequest = servletChannel.getServletContextRequest();
 				final ServletApiRequest apiRequest         = contextRequest.getServletApiRequest();
 
-				// clear servletChannel so we get the real Request object
-				final Field field = apiRequest.getClass().getDeclaredField("_servletChannel");
-				field.setAccessible(true);
-				field.set(apiRequest, null);
-
-				// initialize cookies
-				apiRequest.getCookies();
-
-				webSocket.setRequest(apiRequest);
+				// The WebSocket outlives this HTTP upgrade request; Jetty recycles apiRequest once the
+				// upgrade completes. Snapshot everything we need into a detached copy now, while the
+				// source request is still valid, instead of holding on to the live (soon-to-be-recycled)
+				// object. This replaces the previous approach of reflectively nulling
+				// ServletApiRequest._servletChannel, which required an --add-opens on the Jetty servlet module.
+				webSocket.setRequest(new DetachedHttpServletRequest(apiRequest));
 			}
 
 			return webSocket;
