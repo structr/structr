@@ -65,10 +65,15 @@
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
         </dependency>
+        <!-- NOT optional: structr.base's module-info hard-requires ch.qos.logback.classic (e.g.
+             PrefixingThrowableConverter extends ch.qos.logback.classic.pattern.ThrowableProxyConverter),
+             so it must be a real transitive compile dependency. If it is marked optional the module graph
+             becomes dishonest: every downstream consumer (all structr modules + the enterprise build) has to
+             re-declare it, and if any of them misses it the module partitioner cannot resolve structr.base on
+             the module path ("requires absent module ch.qos.logback.classic"). -->
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>com.microsoft.playwright</groupId>
