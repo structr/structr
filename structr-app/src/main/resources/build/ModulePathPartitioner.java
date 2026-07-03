@@ -226,8 +226,18 @@ public class ModulePathPartitioner {
         if (!broken.isEmpty()) {
             System.err.println("[partitioner] FATAL: module-path-pinned jar(s) have unsatisfiable requires:");
             for (String b : broken) System.err.println("    " + b);
-            System.err.println("  This would fail JPMS resolution at boot. Fix the seed: either unpin the jar "
-                    + "(let it fall to the class-path island) or add the missing module to the module path.");
+            // The overwhelmingly common cause is building on the wrong JDK: the GraalVM SDK modules
+            // (org.graalvm.*, e.g. org.graalvm.polyglot which structr.base requires for scripting) are
+            // provided by GraalVM as *system* modules, so their bundled jars are quarantined here. On a
+            // non-GraalVM build JDK they are neither system-provided nor kept on the module path, so the
+            // requires become unsatisfiable. `java -version` in your shell is not enough — the Maven /
+            // IDE build must run on GraalVM 25.x.
+            if (broken.stream().anyMatch(b -> b.contains("'org.graalvm."))) {
+                System.err.println("  LIKELY CAUSE: the build is NOT running on a GraalVM JDK. Point Maven / your");
+                System.err.println("  IDE's Maven runner (JAVA_HOME) at GraalVM 25.x and rebuild (mvn clean ...).");
+            }
+            System.err.println("  Otherwise fix the seed: either unpin the jar (let it fall to the class-path");
+            System.err.println("  island) or add the missing module to the module path.");
             System.exit(1);
         }
     }

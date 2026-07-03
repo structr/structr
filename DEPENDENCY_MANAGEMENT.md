@@ -110,3 +110,24 @@ is configured in two places (no command-line flags needed):
 
 Note: `-DskipTests` skips test *execution* but still *compiles* tests, so the compile-side setting
 matters even for CI jobs that skip test execution.
+
+## Build warnings about automatic modules (expected)
+
+Structr's "Option A" migration keeps JPMS-hostile third-party jars usable by treating the non-modular
+ones as **automatic modules** on the module path. Two categories of build warning follow from that and
+are expected — they are not defects:
+
+- **`requires (transitive) directive for an automatic module`** (javac lint, in `module-info.java`):
+  `structr.base` re-exports several of these shared automatic modules via `requires transitive` so the
+  downstream Structr modules inherit them instead of each re-declaring them. We cannot add module
+  descriptors to third-party jars and the re-export is intentional, so the `requires-automatic` and
+  `requires-transitive-automatic` lint keys are silenced in the root `pom.xml` compiler config (all
+  other lint, incl. `deprecation`, stays on).
+- **`Required filename-based automodules detected: [...]. Please don't publish this project to a public
+  artifact repository!`** (a `maven-compiler-plugin` banner, not javac): printed whenever a compiled
+  module `requires` a *filename-based* automatic module (a jar with neither `module-info` nor an
+  `Automatic-Module-Name` manifest entry). It has **no plugin off-switch** and is all-or-nothing (it
+  keeps firing until *every* required dependency is a proper/named module). Removing it would mean
+  modularizing ~25 third-party jars (e.g. via `moditect` `add-module-info`) or upgrading each to a
+  modular release — disproportionate to an informational banner that only matters when consuming
+  Structr's artifacts as JPMS *library* modules (not the usage model). It is therefore accepted as-is.

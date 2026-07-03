@@ -700,6 +700,15 @@
 				 	<showDeprecation>false</showDeprecation>
 					<compilerArgs>
 						<arg>-Xlint:deprecation</arg>
+						<!-- Structr depends on many non-modular third-party jars that JPMS treats as
+						     automatic modules (filename-derived names). Several are re-exported via
+						     `requires transitive` in structr.base's module-info so the downstream Structr
+						     modules inherit these shared deps instead of each re-declaring them. javac's
+						     requires-automatic / requires-transitive-automatic lint flags that pattern,
+						     but we cannot add module descriptors to third-party jars and the transitive
+						     re-export is intentional, so silence just those two keys (deprecation and all
+						     other lint categories stay enabled). -->
+						<arg>-Xlint:-requires-automatic,-requires-transitive-automatic</arg>
 					</compilerArgs>
 					<!-- builds the META-INF/structr/documented-classes index per module
 					     (see structr-annotation-processor); the processor module itself
