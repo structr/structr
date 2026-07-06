@@ -20,6 +20,7 @@ package org.structr.web.resource;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import org.structr.api.config.Settings;
 
 import java.util.concurrent.TimeUnit;
 
@@ -50,6 +51,16 @@ final class EmailRateLimiter {
 	 */
 	static boolean allow(final String bucket, final String remoteIp, final int maxPerIpPerHour,
 	                     final String email,    final int maxPerEmailPerHour) {
+
+		// whitelisted source IPs (development) bypass both counters
+		final String whitelist = Settings.EmailRateLimitWhitelist.getValue("");
+		if (whitelist != null && !whitelist.isBlank() && remoteIp != null) {
+			for (final String ip : whitelist.split(",")) {
+				if (remoteIp.equals(ip.trim())) {
+					return true;
+				}
+			}
+		}
 
 		if (!tryIncrement(bucket + ":ip:" + remoteIp, maxPerIpPerHour)) {
 			return false;
