@@ -1286,7 +1286,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 			} catch (FrameworkException fex) {
 
-				LoggerFactory.getLogger(DOMNode.class).warn("Could not retrieve data from graph data source {} in {} {}: {}", source.getClass().getSimpleName(), thisNode.getType(), thisNode.getUuid(), fex.getMessage());
+				LoggerFactory.getLogger(DOMNode.class).error("Could not retrieve data from graph data source {} in {} {}: {}", source.getClass().getSimpleName(), thisNode.getType(), thisNode.getUuid(), fex.getMessage());
 			}
 		}
 

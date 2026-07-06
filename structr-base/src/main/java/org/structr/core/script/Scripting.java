@@ -833,7 +833,7 @@ public class Scripting {
 		exceptionPrefix.append(snippet.getName()).append(":").append(lineNumber).append(":").append(columnNumber);
 
 		// log error but don't throw exception
-		logger.warn(exceptionPrefix.toString() + ": " + message);
+		logger.error(exceptionPrefix.toString() + ": " + message);
 	}
 
 	private static void putIfNotNull(final Map<String, Object> map, final String key, final Object value) {
