@@ -20,6 +20,7 @@ let StructrWS = {
 
 	ws: undefined,
 	wsWorker: new Worker('js/websocket-worker.js'),
+	wsReady: false,
 	isAdmin: false,
 	skipNext100Code: false,
 	user: undefined,
@@ -129,6 +130,8 @@ let StructrWS = {
 	consecutiveNotLoggedIn: 0,
 	onopen: (workerMessage) => {
 
+		StructrWS.wsReady = true;
+
 		StructrWS.consecutiveNotLoggedIn = 0;
 
 		Structr.hideReconnectDialog();
@@ -144,6 +147,8 @@ let StructrWS = {
 		StructrWS.startPing();
 	},
 	onclose: (workerMessage) => {
+
+		StructrWS.wsReady = false;
 
 		// Delay reconnect dialog to prevent it popping up before page reload
 		window.setTimeout(() => {

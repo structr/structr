@@ -44,9 +44,15 @@ self.onmessage = (e) => {
 			break;
 		}
 		case 'server': {
-			try {
-				websocket.send(e.data.message);
-			} catch (e) {}
+			if (websocket) {
+				try {
+					websocket.send(e.data.message);
+				} catch (e) {
+					console.log(e);
+				}
+			} else {
+				console.log('No websocket connection available - please retry');
+			}
 			break;
 		}
 	}
