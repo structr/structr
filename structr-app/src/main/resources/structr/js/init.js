@@ -734,8 +734,6 @@ let Structr = {
 			let selectedSlideoutWasOpen = slideoutElement.hasClass('open');
 			let otherSlideouts          = allRightSlideouts.filter(s => s !== slideoutElement);
 
-			document.querySelector('.column-resizer-right')?.classList.toggle('hidden', selectedSlideoutWasOpen);
-
 			if (selectedSlideoutWasOpen === false) {
 
 				Structr.slideouts.closeRightSlideOuts(otherSlideouts, closeCallback);
@@ -756,6 +754,7 @@ let Structr = {
 
 			slideoutElement.animate({right: 0}, 100, () => {
 				callback?.();
+				document.querySelector('.column-resizer-right')?.classList.toggle('hidden', false);
 			});
 
 			slideoutElement.addClass('open');
@@ -773,6 +772,7 @@ let Structr = {
 
 					slideout.animate({ right: -slideoutWidth }, 100, () => {
 						callback?.();
+						document.querySelector('.column-resizer-right')?.classList.toggle('hidden', true);
 					}).zIndex(2);
 				}
 			}

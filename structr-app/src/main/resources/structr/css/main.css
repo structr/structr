@@ -494,7 +494,7 @@ ul#submenu.visible {
 	text-decoration: none;
 	color: var(--solid-white);
 	display: block;
-	width: calc(100% - 20px);
+	box-sizing: border-box;
 	height: 100%;
 	padding-left: 20px;
 	padding-right: 8px;

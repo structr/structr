@@ -24,7 +24,12 @@ export default defineConfig({
     use: {
         viewport: { width: 1920, height: 1080 },
         deviceScaleFactor: 2,
-        trace: 'on'
+        trace: 'on',
+        screenshot: 'only-on-failure',
+        video: 'retain-on-failure',
+
+		// no single action should take more than 10 seconds
+		actionTimeout: 10_000,
     },
 
     workers: process.env.CI ? 1 : undefined,

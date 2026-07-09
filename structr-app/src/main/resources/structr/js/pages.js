@@ -2571,6 +2571,13 @@ let _Pages = {
 				//console.log('Append parameter mapping element for', parameterMapping);
 
 				const container = document.querySelector('.em-parameter-mappings-container');
+
+				// only happens in tests where playwright is so fast that a previous update call can lead to the same parameter being added twice
+				const existingRow = container.querySelector(`.em-parameter-mapping[data-structr-id="${id}"]`);
+				if (existingRow) {
+					existingRow.remove();
+				}
+
 				container.insertAdjacentHTML('beforeend', _Pages.templates.parameterMappingRow(parameterMapping));
 				const row = container.querySelector(`.em-parameter-mapping[data-structr-id="${id}"]`);
 

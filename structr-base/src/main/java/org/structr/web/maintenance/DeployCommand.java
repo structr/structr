@@ -1900,6 +1900,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				final Map<String, Object> entry     = new TreeMap<>(new IdFirstComparator());
 				final ComponentConfiguration config = node.as(ComponentConfiguration.class);
+				final DOMNode component             = config.getComponent();
+				final DataAdapter dataAdapter       = config.getDataAdapter();
 
 				dataAdapters.add(entry);
 
@@ -1907,8 +1909,17 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				entry.put(NodeInterfaceTraitDefinition.NAME_PROPERTY,                            config.getName());
 				entry.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY,    config.isVisibleToAuthenticatedUsers());
 				entry.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,           config.isVisibleToPublicUsers());
-				entry.put(ComponentConfigurationTraitDefinition.DOM_NODE_PROPERTY,               config.getComponent().getUuid());
-				entry.put(ComponentConfigurationTraitDefinition.DATA_ADAPTER_PROPERTY,           config.getDataAdapter().getUuid());
+
+				// the related DOM node and data adapter may be missing (e.g. after the linked
+				// node was deleted); only export them if present so the export does not fail
+				if (component != null) {
+					entry.put(ComponentConfigurationTraitDefinition.DOM_NODE_PROPERTY,           component.getUuid());
+				}
+
+				if (dataAdapter != null) {
+					entry.put(ComponentConfigurationTraitDefinition.DATA_ADAPTER_PROPERTY,       dataAdapter.getUuid());
+				}
+
 				entry.put(ComponentConfigurationTraitDefinition.DISPLAY_MODE_PROPERTY,           config.getDisplayMode());
 				entry.put(ComponentConfigurationTraitDefinition.SAVE_MODE_PROPERTY,              config.getSaveMode());
 				entry.put(ComponentConfigurationTraitDefinition.SHOW_LABELS_PROPERTY,            config.showLabels());
