@@ -235,14 +235,14 @@ let _Helpers = {
 	},
 	getHTMLTreeElementDisplayName: (entity) => {
 		if (entity) {
-            // show shared components
-            if (entity?.sharedComponent?.name) {
-                if (entity.name && entity.name !== entity.sharedComponent.name) {
-                    return entity.name;
-                } else {
-                    return entity.sharedComponent.name;
-                }
-            }
+			// show shared components
+			if (entity?.sharedComponent?.name) {
+				if (entity.name && entity.name !== entity.sharedComponent.name) {
+					return entity.name;
+				} else {
+					return entity.sharedComponent.name;
+				}
+			}
 			if (!entity.name) {
 				if (entity.tag === 'option' && entity._html_value) {
 					return `${entity.tag}[value="${_Helpers.escapeForHtmlAttributes(entity._html_value)}"]`;
@@ -1393,14 +1393,18 @@ let _Console = new (function() {
 		if (StructrWS.user !== null) {
 			_consoleVisible = true;
 			_terminal.enable();
-			$('#structr-console').slideDown('fast');
+			$('#structr-console').slideDown('fast', () => {
+				$('#structr-console').addClass('console-open');
+			});
 		}
 	};
 
 	let _hideConsole = () => {
 		_consoleVisible = false;
 		_terminal?.disable();
-		$('#structr-console').slideUp('fast');
+		$('#structr-console').slideUp('fast', () => {
+			$('#structr-console').removeClass('console-open')
+		});
 	};
 
 	let _runCommand = async (command, term) => {
