@@ -2890,6 +2890,7 @@ let _Entities = {
                     _Pages.previews.updatePreviewSlideout();
                     _Entities.generalTab.updateSortableDataFields(entity);
                 });
+				_Entities.generalTab.selectButtons('#reload-behaviour-buttons', config, 'reload', [{ label: 'Partial', value: 'partial' }, { label: 'Page', value: 'page' }, { label: 'Others', value: 'others' }], false);
                 _Entities.generalTab.selectButtons('#width-buttons', config, 'columns', [{ label: '1 col', value: 1 }, { label: '2 cols', value: 2 }, { label: '3 cols', value: 3 }, { label: '4 cols', value: 4 }, { label: '5 cols', value: 5 }, { label: '6 cols', value: 6 }], true, () => _Pages.previews.updatePreviewSlideout());
 
                 _Entities.generalTab.populateInputFields(el, { entity: entity, config: config });
@@ -2944,11 +2945,13 @@ let _Entities = {
 					} else {
 						let renderTemplate = field?.[whichTemplate];
 						let color = renderTemplate?.length ? 'text-gray-555' : 'text-gray-aaa';
+						let stale = Object.keys(fields).length > 0 && !field;
 						sortable.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.configuredFieldPartial({
 							fieldName,
 							field,
 							renderTemplate,
 							color,
+							stale,
 							open: openField === fieldName
 						}));
 						let editor = document.querySelector(`.field-details-editor[data-field-name="${fieldName}"]`);
@@ -2991,6 +2994,7 @@ let _Entities = {
 							// expert settings
 							let expertSettings = _Entities.generalTab.createAppendAndReturnDetailsSummary(editor, 'Expert Settings');
 							expertSettings.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.fieldDetailInput({
+								comment: 'A script expression (e.g. <code>item.name</code>) that is evaluated and passed to the render template as the <b>value</b> keyword.<br><br>It selects the raw data the field operates on. Changing it does affect the output, but the render template expects a value shaped for this field type, so editing it here usually breaks the result. To change how the field is displayed, change or its render template.',
 								css: 'col-span-3',
 								label: 'Value Expression',
 								name: 'value',
@@ -3092,7 +3096,7 @@ let _Entities = {
 						let renderTemplate = field?.[whichTemplate];
 						let color = field[whichTemplate]?.length ? 'text-gray-555' : 'text-gray-aaa';
 						let iconClasses = (field?.source === 'adapter' ? 'delete-field-button text-gray-666 cursor-pointer' : 'text-gray-ddd');
-						let iconTitle = (field?.source === 'adapter' ? 'Remove field from adapter.' : 'Data source field cannot be removed here.');
+						let iconTitle = (field?.source === 'adapter' ? 'Remove field from adapter.' : 'This is a built-in field that cannot be removed.');
 						available.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.availableFieldPartial({
 							fieldName,
 							field,
@@ -4323,8 +4327,9 @@ let _Entities = {
                     </div>
                     
                     <div>
-                        <label class="block mb-2" for="reload-select" data-comment="Controls the reloading behaviour of this component.">Reload Behavior</label>
-                        <input type="text" id="reload-input" autocomplete="off" name="reload" data-which="config">
+                        <label class="block mb-2" for="reload-select" data-comment="Which part of the page will be reloaded when the component or its data is updated.">Reload Behavior</label>
+                        <div id="reload-behaviour-buttons" class="toggle-button-container"></div>
+                        <!--input type="text" id="reload-input" autocomplete="off" name="reload" data-which="config"-->
                     </div>
 
 
@@ -4397,12 +4402,12 @@ let _Entities = {
 			`;
             },
             configuredFieldPartial: (config) => `
-                <details class="shadow border rounded ${config.stale ? 'border-red-600' : 'border-gray-ddd'} mb-1" ${config.open ? 'open' : ''} draggable title="${config.stale ? 'This field no longer exists on the current subject type. Uncheck to remove.' : 'Click to edit details.'}">
+                <details class="shadow border rounded border-gray-ddd mb-1" ${config.open ? 'open' : ''} draggable title="${config.stale ? 'This field is no longer provided by the current data source. Uncheck to remove.' : 'Click to edit details.'}">
                     <summary class="px-2 py-2 flex items-center">
                         <div class="flex flex-grow items-center">
                             <input type="checkbox" checked data-key="${config.fieldName}">
                             <span class="${config.stale ? 'line-through text-gray-666' : ''}">${config.fieldName}</span>
-                            ${config.stale ? `<span class="ml-2" style="font-size:11px; color:#c0392b;" title="Field not present on the current subject type — likely a stale config from before a subject-type change. Uncheck the box to remove it.">⚠ stale</span>` : ''}
+                            ${config.stale ? `<span class="ml-4" style="color:#c0392b;" title="This field is no longer provided by the current data source and has no configured field of its own — the underlying schema property was likely deleted. Uncheck the box to remove it from this component.">⚠ stale</span>` : ''}
                         </div>
                         <span class="${config.color} italic font-normal cursor-pointer relative select-render-template" data-field-name="${config.fieldName}" data-field-type="${config.field?.dataType}" title="Click to change template.">${config.renderTemplate || 'Set template..'}</span>
                     </summary>
@@ -4428,7 +4433,7 @@ let _Entities = {
                     </div>
                     <div class="text-right flex items-center">
                         <span class="${config.color} italic font-normal mr-4" title="The render template used by this field.">${config.renderTemplate || ''}</span>
-                        <svg data-field-name="${config.fieldName}" data-field-id="${config.field.id}" class="${config.iconClasses}" width="16" height="16" title="${config.iconTitle}"><use href="#trashcan"></use></svg>
+                        <svg data-field-name="${config.fieldName}" data-field-id="${config.field.id}" class="${config.iconClasses}" width="16" height="16"><title>${config.iconTitle}</title><use href="#trashcan"></use></svg>
                     </div>
                 </label>
             `,

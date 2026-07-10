@@ -299,6 +299,7 @@ public class DataField extends LinkedHashMap<String, Object> {
 		field.put("propertyName", name);
 		field.put("value",        adapter.getDataKey() + "." + name);
 		field.put("label",        TitleizeFunction.titleize(CaseHelper.toUnderscore(name, false), "_"));
+		field.put("template",     "span");
 
 		// data from field definition
 		if (fieldDefinition != null) {
@@ -306,7 +307,12 @@ public class DataField extends LinkedHashMap<String, Object> {
 			field.put("isSearchable",   fieldDefinition.isIndexed());
 			field.put("required",       fieldDefinition.isRequired());
 			field.put("multiple",       fieldDefinition.isCollection());
-			field.put("template",       fieldDefinition.renderTemplate());
+
+			// don't overwrite default with null
+			if (fieldDefinition.renderTemplate() != null) {
+				field.put("template", fieldDefinition.renderTemplate());
+			}
+
 			field.put("editTemplate",   fieldDefinition.editTemplate());
 			field.put("dataType",       fieldDefinition.dataType());
 			field.put("isCollection",   fieldDefinition.isCollection());

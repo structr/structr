@@ -1784,7 +1784,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				putData(entry, WidgetTraitDefinition.IS_EXCLUSIVE_PROPERTY,                        widget.isExclusiveInParent());
 				putData(entry, WidgetTraitDefinition.SELECTORS_PROPERTY,                           widget.getSelectors());
 				putData(entry, WidgetTraitDefinition.COMPONENT_TYPE_PROPERTY,                      widget.getComponentType());
-				//putData(entry, WidgetTraitDefinition.DIMENSIONS_PROPERTY,                          widget.getDimensions());
+				putData(entry, WidgetTraitDefinition.DIMENSIONS_PROPERTY,                          widget.getDimensions());
 				putData(entry, WidgetTraitDefinition.SVG_ICON_PATH_PROPERTY,                       widget.getSvgPath());
 				putData(entry, WidgetTraitDefinition.THUMBNAIL_PATH_PROPERTY,                      widget.getThumbnailPath());
 				putData(entry, WidgetTraitDefinition.IS_PAGE_TEMPLATE_PROPERTY,                    widget.isPageTemplate());

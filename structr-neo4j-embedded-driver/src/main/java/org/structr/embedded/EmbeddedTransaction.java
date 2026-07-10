@@ -71,20 +71,23 @@ public class EmbeddedTransaction implements Transaction<String> {
 
 		clearChangeset();
 
-		if (forcedFailure || !success) {
-
-			tx.rollback();
-
-		} else {
-
-			tx.commit();
-		}
-
-		// mark this transaction as closed BEFORE trying to actually close it
-		// so that it is closed in case of a failure
 		closed = true;
 
-		tx.close();
+		try {
+
+			if (forcedFailure || !success) {
+
+				tx.rollback();
+
+			} else {
+
+				tx.commit();
+			}
+
+		} finally {
+
+			tx.close();
+		}
 	}
 
 	public boolean isClosed() {
