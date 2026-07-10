@@ -18,38 +18,75 @@
 ///
 
 // @ts-check
+import {expect, Locator, Page} from "@playwright/test";
+
 export async function initialize(playwright, createData) {
 
-    const context = await playwright.request.newContext({
-        extraHTTPHeaders: {
-            'Accept': 'application/json',
-            'X-User': 'superadmin',
-            'X-Password': process.env.SUPERUSER_PASSWORD,
-        }
-    });
+	const context = await playwright.request.newContext({
+		extraHTTPHeaders: {
+			'Accept': 'application/json',
+			'X-User': 'superadmin',
+			'X-Password': process.env.SUPERUSER_PASSWORD,
+		}
+	});
 
-    // clear database
-    await context.post(process.env.BASE_URL + '/structr/rest/maintenance/clearDatabase');
+	// clear database
+	await context.post(process.env.BASE_URL + '/structr/rest/maintenance/clearDatabase');
 
-    // create admin user
-    await context.post(process.env.BASE_URL + '/structr/rest/User', {
-        data: JSON.stringify({
-            name: 'admin',
-            password: 'admin',
-            isAdmin: true
-        })
-    });
+	// create admin user
+	await context.post(process.env.BASE_URL + '/structr/rest/User', {
+		data: JSON.stringify({
+			name: 'admin',
+			password: 'admin',
+			isAdmin: true
+		})
+	});
 
-    // create everything in createData
-    if (createData) {
+	// create everything in createData
+	if (createData) {
 
-        for (let type in createData) {
+		for (let type in createData) {
 
-            await context.post(process.env.BASE_URL + `/structr/rest/${type}`, {
-                data: JSON.stringify(createData[type]),
-            });
-        }
+			await context.post(process.env.BASE_URL + `/structr/rest/${type}`, {
+				data: JSON.stringify(createData[type]),
+			});
+		}
+	}
+
+	return context;
+}
+
+export async function goToModule(page: Page, linkId: string) {
+
+	let link = page.locator(linkId);
+
+	const isInsideSubmenu = await link.evaluate(el => el.closest('#submenu') !== null);
+
+	if (isInsideSubmenu) {
+		await page.locator('.submenu-trigger').hover();
+	}
+
+	await link.waitFor({ state: 'visible' });
+
+	// depending on module load time (and the internal delay for "isBlocked = false") this can take a moment
+	await page.waitForFunction(() => (Structr.mainMenu.isBlocked === false));
+
+	await link.click();
+}
+
+export async function waitForDialogBoxToClose(page: Page) {
+	await expect(page.locator('#dialogBox')).toHaveCount(0);
+}
+
+export async function waitUntilAttributeChangedAndReturnIt(page:Page, selector: string, attributeName: string, prevValue: string) {
+
+    if (prevValue == null) {
+        await expect(page.locator(selector)).toHaveAttribute(attributeName, /.+/);
+    } else {
+        await expect(page.locator(selector)).not.toHaveAttribute(attributeName, prevValue);
     }
 
-    return context;
+    let val = await page.locator(selector).getAttribute(attributeName);
+    // console.log(val);
+    return val;
 }

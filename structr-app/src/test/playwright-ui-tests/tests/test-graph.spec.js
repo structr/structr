@@ -17,69 +17,63 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 // @ts-check
-import {test} from '@playwright/test';
-import {initialize} from "./helpers/init";
+import {expect, test} from '@playwright/test';
+import {goToModule, initialize, mainMenuIsUnblocked} from "./helpers/init";
 import {login, logout} from "./helpers/auth";
-
-const fs = require('fs');
-
+import {createAndRenamePage} from "./helpers/pages";
 
 test.beforeAll(async ({playwright}) => {
-    await initialize(playwright);
+	await initialize(playwright);
 });
 
 test('graph', async ({page}, testInfo) => {
 
-    console.log(testInfo.title);
+	console.log(testInfo.title);
 
-    await login(page);
+	await login(page);
 
-    // Pages
-    await page.locator('#pages_').waitFor({state: 'visible'});
-    await page.locator('#pages_').click();
+	await goToModule(page, '#pages_');
 
-    // Wait for Pages UI to load all components
-    await page.waitForTimeout(1000);
-    //await page.screenshot({ path: 'screenshots/pages.png' });
+	// Create new page
+	await page.locator('#create_page').click();
+	await page.locator(`#template-tiles .page-tile:nth-child(2)`).click();
 
-    // Create new page
-    await page.locator('#create_page').click();
-    await page.waitForTimeout(1000);
-    //await page.screenshot({ path: 'screenshots/pages_create-page.png' });
-    await page.locator('#template-tiles .page-tile:nth-child(2)').click();
-    await page.waitForTimeout(2000);
+	let newPage = page.locator('.page > .node-container', { hasText: 'New Page' })
+	await expect(newPage).toBeVisible();
 
-    await page.locator('.submenu-trigger').hover();
-    await page.locator('#graph_').waitFor({state: 'visible'});
-    await page.locator('#graph_').click();
+	await goToModule(page, '#graph_');
 
-    // Wait for Graph UI to load all components
-    await page.waitForTimeout(500);
-    await page.screenshot({path: 'screenshots/graph.png'});
+	await expect(page.locator('#graph-canvas')).toBeVisible();
 
-    // Enter Cypher query to show all nodes and relationships
-    await page.getByPlaceholder('Cypher query').click();
-    await page.keyboard.type('MATCH (n)-[r]-(m) RETURN n,r,m');
-    await page.locator('#exec-cypher').click();
-    await page.waitForTimeout(1000);
-    await page.screenshot({path: 'screenshots/graph_show-nodes.png'});
+	// Wait for Graph UI to load all components
+	await page.waitForTimeout(1000);
+	await page.screenshot({path: 'screenshots/graph.png'});
 
-    const canvasNode = await page.evaluate('_Graph.graphBrowser.getNodes()[0]');
-    const x = parseFloat(canvasNode['renderer1:x']);
-    const y = parseFloat(canvasNode['renderer1:y']) + 128;
+	// Enter Cypher query to show all nodes and relationships
+	await page.getByPlaceholder('Cypher query').click();
+	await page.keyboard.type('MATCH (n)-[r]-(m) RETURN n,r,m');
+	await page.locator('#exec-cypher').click();
 
-    // Hover over first node
-    await page.mouse.move(x, y);
+	await page.waitForTimeout(1000);
+	await page.screenshot({path: 'screenshots/graph_show-nodes.png'});
 
-    await page.waitForTimeout(500);
-    await page.screenshot({path: 'screenshots/graph_node-hover.png'});
+	const canvasNode = await page.evaluate('_Graph.graphBrowser.getNodes()[0]');
+	const x = parseFloat(canvasNode['renderer1:x']);
+	const y = parseFloat(canvasNode['renderer1:y']) + 128;
 
-    // Click on first node to open properties dialog
-    await page.mouse.click(x, y);
-    await page.waitForTimeout(500);
-    await page.screenshot({path: 'screenshots/graph_node-properties-opened.png'});
+	// Hover over first node
+	await page.mouse.move(x, y);
 
-    await page.getByRole('button', {name: 'Close', exact: true}).click();
+	await page.waitForTimeout(500);
+	await page.screenshot({path: 'screenshots/graph_node-hover.png'});
 
-    await logout(page);
+	// Click on first node to open properties dialog
+	await page.mouse.click(x, y);
+
+	await page.waitForTimeout(500);
+	await page.screenshot({path: 'screenshots/graph_node-properties-opened.png'});
+
+	await page.getByRole('button', {name: 'Close', exact: true}).click();
+
+	await logout(page);
 });

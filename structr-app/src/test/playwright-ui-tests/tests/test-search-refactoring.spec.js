@@ -17,10 +17,16 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 // @ts-check
-import {test} from '@playwright/test';
+import {expect, test} from '@playwright/test';
 import {login, logout} from './helpers/auth';
-import {initialize} from "./helpers/init";
-import {createAndRenamePage, expandPageTree, getPageContainer, setNodeContent} from "./helpers/pages";
+import {goToModule, initialize} from "./helpers/init";
+import {
+	createAndRenamePage,
+	expandPageTree,
+	focusCenterPaneMonacoEditor,
+	getPageContainer,
+	setNodeContent
+} from "./helpers/pages";
 
 test.beforeAll(async ({ playwright }) => {
     await initialize(playwright, {
@@ -51,9 +57,7 @@ test('search-and-refactor-code', async ({ page }, testInfo) => {
 
 	await login(page);
 
-	// Pages
-	await page.locator('#pages_').waitFor({state: 'visible'});
-	await page.locator('#pages_').click();
+	await goToModule(page, '#pages_');
 
 	// Wait for Pages UI to load all components
 	await page.waitForTimeout(1000);
@@ -69,9 +73,6 @@ test('search-and-refactor-code', async ({ page }, testInfo) => {
 	await page.getByRole('button', { name: 'Close' }).click();
 
 	// create example page
-    await page.locator('#header #pages_').waitFor({state: 'visible'});
-    await page.locator('#header #pages_').click();
-
     await createAndRenamePage(page, 2, 'test');
 
     let pageContainer = getPageContainer(page, 'test');
@@ -84,8 +85,7 @@ test('search-and-refactor-code', async ({ page }, testInfo) => {
     await setNodeContent(page, content2, 'milestones');
 
 	// Navigate to security (to show that automatic navigation to code works)
-	await page.locator('#header #security_').waitFor({state: 'visible'});
-	await page.locator('#header #security_').click();
+	await goToModule(page, '#security_');
 
 	let globalSearchActivator = await page.locator('[popovertarget="global-search-popover"]');
 	await globalSearchActivator.click();
@@ -94,45 +94,35 @@ test('search-and-refactor-code', async ({ page }, testInfo) => {
 	await searchInput.waitFor({state: 'visible'});
 
 	await searchInput.fill(oldName);
-    await page.waitForTimeout(1000);
 
 	// wait for results
 	let relationshipResultRow = await page.getByRole('cell', { name: 'targetJsonName', exact: true });
 
 	await relationshipResultRow.click();
-    await page.waitForTimeout(1000);
 
 	// Wait for Code UI to load all components
 	await page.waitForTimeout(1000);
 
-	let input = await page.locator('input[data-attr-name="targetJsonName"]');
+	let input = page.locator('input[data-attr-name="targetJsonName"]');
 
 	// click on the backdrop to hide global search popover
 	await globalSearchActivator.click();
 
-    await page.waitForTimeout(1000);
-
 	await input.fill('');
 	await input.pressSequentially(newName);
 
-    await page.waitForTimeout(1000);
-
 	await page.locator('[id="action-button-save"]').click();
-
-	await page.waitForTimeout(1000);
 
 
 	let updateFirstOccurrenceOfTextInMonaco = async (oldText, newText) => {
 
-		await page.locator('#center-pane .monaco-editor').first().click();
+		await focusCenterPaneMonacoEditor(page);
 
-		await page.keyboard.press(process.platform === 'darwin' ? 'Meta+F' : 'Control+F');
+		await page.keyboard.press('ControlOrMeta+f');
 		await page.keyboard.type(oldText);
-		await page.keyboard.press(process.platform === 'darwin' ? 'Escape' : 'Escape');
+		await page.keyboard.press('Escape');
 		await page.keyboard.type(newText);
-		await page.keyboard.press(process.platform === 'darwin' ? 'Meta+S' : 'Control+S');
-
-		await page.waitForTimeout(1000);
+		await page.keyboard.press('ControlOrMeta+s');
 	};
 
 	/**
@@ -142,17 +132,15 @@ test('search-and-refactor-code', async ({ page }, testInfo) => {
 
 	// update search results
 	await searchInput.fill('');
+	await expect(page.locator('#global-search-results tbody tr')).toHaveCount(0);
 	await searchInput.fill(oldName);
     await page.keyboard.press('Enter');
 
-	await page.waitForTimeout(500);
-
+	await page.waitForTimeout(1000);
     await page.screenshot({ path: 'screenshots/global-search.png' });
 
 	let contentResultRow = await page.getByRole('cell', { name: 'Content', exact: true }).first();
 	await contentResultRow.click();
-
-	await page.waitForTimeout(1000);
 
 	// click on the backdrop to hide global search popover
 	await globalSearchActivator.click();
@@ -167,25 +155,19 @@ test('search-and-refactor-code', async ({ page }, testInfo) => {
 
 	// update search results
 	await searchInput.fill('');
+	await expect(page.locator('#global-search-results tbody tr')).toHaveCount(0);
 	await searchInput.fill(oldName);
-
-	await page.waitForTimeout(500);
 
     contentResultRow = await page.getByRole('cell', { name: 'Content', exact: true }).first();
 	await contentResultRow.click();
-
-	await page.waitForTimeout(1000);
 
 	// click on the backdrop to hide global search popover
 	await globalSearchActivator.click();
 
 	await updateFirstOccurrenceOfTextInMonaco(oldName, newName);
 
-
 	// show preview again
 	await page.locator('#tabs-menu-preview').click();
-
-	await page.waitForTimeout(1000);
 
 	await logout(page);
 });
