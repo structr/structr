@@ -19,7 +19,7 @@
 // @ts-check
 import {expect, test} from '@playwright/test';
 import {login, logout} from "./helpers/auth";
-import {initialize} from "./helpers/init";
+import {goToModule, initialize} from "./helpers/init";
 import {
 	collapsePageTree,
 	configureFunctionQuery,
@@ -33,7 +33,6 @@ import {
 	insertFrontendJs,
 	insertInputWithLabel,
 	resizePagesTree,
-	sendCtrlPlusA,
 	setNodeContent,
 	useContextMenu
 } from "./helpers/pages";
@@ -100,34 +99,53 @@ test.beforeAll(async ({ playwright }) => {
 	});
  });
 
-
 test('pages', async ({page}, testInfo) => {
-
-	let wait = 100;
 
 	console.log(testInfo.title);
 
 	await login(page);
 
-	// Pages
-	await page.locator('#pages_').waitFor({state: 'visible'});
-	await page.locator('#pages_').click();
+	await goToModule(page, '#pages_');
 
-	// Wait for Pages UI to load all components
-	await page.waitForTimeout(wait);
+	await expect(page.locator('#main #pages')).toBeVisible();
 
 	await resizePagesTree(page, -200);
 
 	// import widgets
 	await page.locator('#create_page').click();
-	await page.locator('#import-widget-set').click();
+	const importWidgetSetButton = page.locator('#import-widget-set');
+	await importWidgetSetButton.click();
+	await expect(importWidgetSetButton).toBeHidden();
 
-	await page.waitForTimeout(1000);
+	let createParametersAndReturnInputDropzones = async (parameters = []) => {
+
+		let dropzones = [];
+
+		let parameterMappingsContainer = page.locator('.em-parameter-mappings-container');
+
+		for (const [idx, paramName] of parameters.entries()) {
+
+			await page.locator('.em-add-parameter-mapping-button').click();
+
+			let row = parameterMappingsContainer.locator('.em-parameter-mapping').nth(idx);
+			await expect(row).toBeVisible();
+
+			await expect(parameterMappingsContainer.locator('.em-parameter-mapping')).toHaveCount(idx+1)
+
+			await row.locator('.parameter-name-input').fill(paramName);
+			await row.locator('.parameter-type-select').selectOption('User Input');
+
+			let dropzone = row.locator('.parameter-user-input');
+			await expect(dropzone).toBeVisible();
+
+			dropzones.push(dropzone);
+		}
+
+		return dropzones;
+	};
 
 	// close create page dialog again
 	await page.getByRole('button', { name: 'Close' }).click();
-
-	await page.waitForTimeout(1000);
 
 	// create projects page
 	if (runTests.includes(1)) {
@@ -159,7 +177,6 @@ test('pages', async ({page}, testInfo) => {
 
 		let buttonContainer = formContainer.getElement('Initial text for button');
 		await setNodeContent(page, buttonContainer, 'Create Project');
-		await page.waitForTimeout(wait);
 
 		// build repeater config for projects div
 		let repeaterDiv = pageContainer.getElement('div', 1);
@@ -171,54 +188,39 @@ test('pages', async ({page}, testInfo) => {
 
 		// build event action mapping for form
 		await page.locator('span').filter({hasText: 'form'}).click();
-		await page.waitForTimeout(wait);
 		await page.getByRole('link', {name: 'HTML'}).click();
-		await page.waitForTimeout(wait);
 		await page.locator('input[name="_html_method"]').fill('post');
-		await page.waitForTimeout(wait);
 		await page.getByRole('link', {name: 'General'}).click();
 		await page.locator('input[name="_html_id"]').fill('create-project-form');
-		await page.waitForTimeout(wait);
 		await page.getByRole('link', {name: 'Events'}).click();
-		await page.waitForTimeout(wait);
 		await page.getByRole('textbox', {name: 'Browser event (click, keydown'}).fill('submit');
-		await page.waitForTimeout(wait);
 		await page.keyboard.press('Tab');
-		await page.waitForTimeout(wait);
 		await page.locator('#action-select').selectOption('Create new object');
-		await page.waitForTimeout(wait);
+
+		let typeInput = page.locator('#data-type-input.combined-input-select-field');
 		await page.getByRole('textbox', {name: 'Custom type or script'}).fill('Project');
-		await page.waitForTimeout(wait);
 		await page.keyboard.press('Tab');
-		await page.waitForTimeout(wait);
-		await page.getByRole('img', {name: 'Add parameter', exact: true}).click();
-		await page.waitForTimeout(wait);
-		await page.locator('input.parameter-name-input').first().fill('name');
-		await page.waitForTimeout(wait);
-		await page.getByRole('combobox').nth(5).selectOption('User Input');
-		await page.waitForTimeout(wait);
+
+		let dropzones = await createParametersAndReturnInputDropzones([ 'name' ]);
+
 		await page.locator('span').filter({hasText: /^input$/}).hover();
-		await page.waitForTimeout(wait);
 		await page.mouse.down();
-		await page.waitForTimeout(wait);
-		await page.getByText('Drag and drop existing form').first().hover();
-		await page.waitForTimeout(wait);
+		await dropzones[0].hover();
 		await page.mouse.up();
+
 		await page.getByLabel('Behaviour on success Define').selectOption('Navigate to a new page');
 		await page.keyboard.press('Tab');
-		await page.waitForTimeout(wait);
 		await page.getByRole('textbox', {name: 'Success URL'}).fill('/project/{result.id}');
 		await page.keyboard.press('Tab');
-		await page.waitForTimeout(2000);
+
+		await page.waitForTimeout(1000);
 		await page.screenshot({path: 'screenshots/pages_create-form_event-action-mapping-configuration.png'});
 
 		await page.reload();
 
 		// click on a different element to disable highlighting for the element we want to screenshot
 		await page.locator('span').filter({hasText: 'body'}).click();
-		await page.waitForTimeout(wait);
 		await page.locator('span').filter({hasText: 'script'}).hover();
-		await page.waitForTimeout(2000);
 
 		// take a screenshot of the form element
 		await page.locator('div.node:has(b[title="form"])').nth(4).screenshot({path: 'screenshots/pages_create-form-element.png'});
@@ -241,13 +243,10 @@ test('pages', async ({page}, testInfo) => {
 
 		// change title
 		await page.locator('span').filter({hasText: '${capitalize(page.name)}'}).nth(2).click();
-		await page.waitForTimeout(wait);
 		await focusCenterPaneMonacoEditor(page);
-		await sendCtrlPlusA(page);
+		await page.keyboard.press('ControlOrMeta+a');
 		await page.keyboard.type('Edit Project "${current.name}"');
-		await page.waitForTimeout(200);
 		await page.getByRole('button', {name: 'Save'}).click();
-		await page.waitForTimeout(wait);
 
 		let divContainer = pageContainer.getElement('div');
 		await useContextMenu(page, divContainer, 'Insert HTML element', 'e-f', 'form');
@@ -269,105 +268,56 @@ test('pages', async ({page}, testInfo) => {
 
 		// click on different element before screenshotting to avoid ugly spellcheck lines in screenshot (WTF?)
 		await page.locator('input[name="_html_autofocus"]').click();
-		await page.waitForTimeout(wait);
 
-		await page.waitForTimeout(5000);
+
+		await page.waitForTimeout(1000);
 		await page.screenshot({path: 'screenshots/pages_edit-form_input-configuration.png'});
 
 		// insert button element
 		await useContextMenu(page, formContainer, 'Insert HTML element', 'b', 'button');
 		let buttonContainer = formContainer.getElement('Initial text for button');
 		await setNodeContent(page, buttonContainer, 'Save Project');
-		await page.waitForTimeout(wait);
 
 
 		// build event action mapping for form
 		await page.locator('span').filter({hasText: 'form'}).click();
-		await page.waitForTimeout(wait);
 		await page.getByRole('link', {name: 'HTML'}).click();
-		await page.waitForTimeout(wait);
 		await page.locator('input[name="_html_method"]').fill('post');
-		await page.waitForTimeout(wait);
 		await page.getByRole('link', {name: 'General'}).click();
 		await page.locator('input[name="_html_id"]').fill('save-project-form');
-		await page.waitForTimeout(wait);
 		await page.getByRole('link', {name: 'Events'}).click();
-		await page.waitForTimeout(wait);
 		await page.getByRole('textbox', {name: 'Browser event (click, keydown'}).fill('submit');
 		await page.keyboard.press('Tab');
-		await page.waitForTimeout(wait);
 		await page.locator('#action-select').selectOption('Update object');
-		await page.waitForTimeout(wait);
 		await page.getByRole('textbox', {name: 'Custom type or script'}).fill('Project');
-		await page.waitForTimeout(wait);
 		await page.keyboard.press('Tab');
-		await page.waitForTimeout(wait);
 		await page.locator('#id-expression-input').fill('${current.id}');
-		await page.waitForTimeout(wait);
 		await page.keyboard.press('Tab');
-		await page.waitForTimeout(wait);
-		await page.getByRole('img', {name: 'Add parameter', exact: true}).click();
-		await page.waitForTimeout(wait);
-		await page.getByRole('img', {name: 'Add parameter', exact: true}).click();
-		await page.waitForTimeout(wait);
-		await page.getByRole('img', {name: 'Add parameter', exact: true}).click();
-		await page.waitForTimeout(wait);
-		await page.getByRole('textbox', {name: 'Name'}).nth(2).fill('name');
-		await page.waitForTimeout(wait);
-		await page.getByRole('combobox').nth(5).selectOption('User Input');
-		await page.waitForTimeout(wait);
-		await page.getByRole('textbox', {name: 'Name'}).nth(3).fill('description');
-		await page.waitForTimeout(wait);
-		await page.getByRole('combobox').nth(6).selectOption('User Input');
-		await page.waitForTimeout(wait);
-		await page.getByRole('textbox', {name: 'Name'}).nth(4).fill('dueDate');
-		await page.waitForTimeout(wait);
-		await page.getByRole('combobox').nth(7).selectOption('User Input');
-		await page.waitForTimeout(wait);
 
-		// drag input1 to dropzone1
-		await page.locator('span').filter({hasText: 'input'}).first().hover();
-		await page.waitForTimeout(wait);
-		await page.mouse.down();
-		await page.waitForTimeout(wait);
-		await page.getByText('Drag and drop existing form').first().hover();
-		await page.waitForTimeout(wait);
-		await page.mouse.up();
+		let dropzones = await createParametersAndReturnInputDropzones([ 'name', 'description', 'dueDate' ]);
 
-		// drag input2 to dropzone2
-		await page.locator('span').filter({hasText: 'input'}).nth(1).hover();
-		await page.waitForTimeout(wait);
-		await page.mouse.down();
-		await page.waitForTimeout(wait);
-		await page.getByText('Drag and drop existing form').nth(1).hover();
-		await page.waitForTimeout(wait);
-		await page.mouse.up();
+		// drag inputs to dropzones
+		for (var i = 0; i < dropzones.length; i++) {
 
-		// drag input3 to dropzone3
-		await page.locator('span').filter({hasText: 'input'}).nth(2).hover();
-		await page.waitForTimeout(wait);
-		await page.mouse.down();
-		await page.waitForTimeout(wait);
-		await page.getByText('Drag and drop existing form').nth(2).hover();
-		await page.waitForTimeout(wait);
-		await page.mouse.up();
+			await page.locator('span').filter({hasText: 'input'}).nth(i).hover();
+			await page.mouse.down();
+			await dropzones[i].hover();
+			await page.mouse.up();
+		}
 
 		await page.getByLabel('Behaviour on success Define').selectOption('Reload the current page');
 		await page.keyboard.press('Tab');
-		await page.waitForTimeout(5000);
+
+		await page.waitForTimeout(1000);
 		await page.screenshot({path: 'screenshots/pages_edit-form_event-action-mapping-configuration.png'});
-		await page.waitForTimeout(2000);
 
 		// reload to un-select the form element
 		await page.reload();
 
 		// click on a different element to disable highlighting for the element we want to screenshot
 		await page.locator('span').filter({hasText: 'form#save-project-form'}).click();
-		await page.waitForTimeout(wait);
 		await page.locator('span').filter({hasText: 'body'}).click();
-		await page.waitForTimeout(wait);
 		await page.locator('span').filter({hasText: 'head'}).hover();
-		await page.waitForTimeout(2000);
 
 		// take a screenshot of the form element
 		await page.locator('div.node:has(b[title="form"])').nth(4).screenshot({path: 'screenshots/pages_edit-form-element.png'});
@@ -375,9 +325,7 @@ test('pages', async ({page}, testInfo) => {
 		await page.goto(process.env.BASE_URL + '/projects');
 
 		await page.locator('input[name="name"]').fill('Project #1');
-		await page.waitForTimeout(wait);
 		await page.locator('button').click();
-		await page.waitForTimeout(1000);
 
 		await expect(page.locator('h1')).toHaveText('Edit Project "Project #1"');
 
@@ -401,13 +349,10 @@ test('pages', async ({page}, testInfo) => {
 
 		// change title
 		await page.locator('span').filter({hasText: '${capitalize(page.name)}'}).nth(2).click();
-		await page.waitForTimeout(wait);
 		await focusCenterPaneMonacoEditor(page);
-		await sendCtrlPlusA(page);
+		await page.keyboard.press('ControlOrMeta+a');
 		await page.keyboard.type('Edit Project "${current.name}"');
-		await page.waitForTimeout(200);
 		await page.getByRole('button', {name: 'Save'}).click();
-		await page.waitForTimeout(wait);
 
 		// collapse some elements for screenshotting
 		let head = pageContainer.getElement('head');
@@ -453,7 +398,8 @@ test('pages', async ({page}, testInfo) => {
 
 			if (config.screenshot) {
 				await page.locator('input#name-input').click();
-				await page.waitForTimeout(5000);
+
+				await page.waitForTimeout(1000);
 				await page.screenshot({path: 'screenshots/pages_advanced-form_option-configuration.png'});
 			}
 
@@ -468,76 +414,39 @@ test('pages', async ({page}, testInfo) => {
 		await useContextMenu(page, formContainer, 'Insert HTML element', 'b', 'button');
 		let buttonContainer = formContainer.getElement('Initial text for button');
 		await setNodeContent(page, buttonContainer, 'Save Project');
-		await page.waitForTimeout(wait);
 
 
 		// build event action mapping for form
 		await page.locator('span').filter({hasText: 'form'}).click();
-		await page.waitForTimeout(wait);
 		await page.getByRole('link', {name: 'HTML'}).click();
-		await page.waitForTimeout(wait);
 		await page.locator('input[name="_html_method"]').fill('post');
-		await page.waitForTimeout(wait);
 		await page.getByRole('link', {name: 'General'}).click();
 		await page.locator('input[name="_html_id"]').fill('save-project-form');
-		await page.waitForTimeout(wait);
 		await page.getByRole('link', {name: 'Events'}).click();
-		await page.waitForTimeout(wait);
 		await page.getByRole('textbox', {name: 'Browser event (click, keydown'}).fill('submit');
 		await page.keyboard.press('Tab');
-		await page.waitForTimeout(wait);
 		await page.locator('#action-select').selectOption('Update object');
-		await page.waitForTimeout(wait);
 		await page.getByRole('textbox', {name: 'Custom type or script'}).fill('Project');
-		await page.waitForTimeout(wait);
 		await page.keyboard.press('Tab');
-		await page.waitForTimeout(wait);
 		await page.locator('#id-expression-input').fill('${current.id}');
-		await page.waitForTimeout(wait);
 		await page.keyboard.press('Tab');
-		await page.waitForTimeout(wait);
-		await page.getByRole('img', {name: 'Add parameter', exact: true}).click();
-		await page.waitForTimeout(wait);
-		await page.getByRole('img', {name: 'Add parameter', exact: true}).click();
-		await page.waitForTimeout(wait);
-		await page.getByRole('img', {name: 'Add parameter', exact: true}).click();
-		await page.waitForTimeout(wait);
-		await page.getByRole('img', {name: 'Add parameter', exact: true}).click();
-		await page.waitForTimeout(wait);
-		await page.getByRole('textbox', {name: 'Name'}).nth(2).fill('manager');
-		await page.waitForTimeout(wait);
-		await page.getByRole('combobox').nth(5).selectOption('User Input');
-		await page.waitForTimeout(wait);
-		await page.getByRole('textbox', {name: 'Name'}).nth(3).fill('client');
-		await page.waitForTimeout(wait);
-		await page.getByRole('combobox').nth(6).selectOption('User Input');
-		await page.waitForTimeout(wait);
-		await page.getByRole('textbox', {name: 'Name'}).nth(4).fill('tags');
-		await page.waitForTimeout(wait);
-		await page.getByRole('combobox').nth(7).selectOption('User Input');
-		await page.waitForTimeout(wait);
-		await page.getByRole('textbox', {name: 'Name'}).nth(5).fill('tasks');
-		await page.waitForTimeout(wait);
-		await page.getByRole('combobox').nth(8).selectOption('User Input');
-		await page.waitForTimeout(wait);
 
-		// drag inputs to dropzone
-		for (var i=0; i<4; i++) {
+		let dropzones = await createParametersAndReturnInputDropzones([ 'manager', 'client', 'tags', 'tasks' ]);
+
+		// drag inputs to dropzones
+		for (var i = 0; i < dropzones.length; i++) {
 
 			await page.locator('span').filter({hasText: 'select'}).nth(i).hover();
-			await page.waitForTimeout(wait);
 			await page.mouse.down();
-			await page.waitForTimeout(wait);
-			await page.getByText('Drag and drop existing form').nth(i).hover();
-			await page.waitForTimeout(wait);
+			await dropzones[i].hover();
 			await page.mouse.up();
 		}
 
 		await page.getByLabel('Behaviour on success Define').selectOption('Reload the current page');
 		await page.keyboard.press('Tab');
-		await page.waitForTimeout(5000);
+
+		await page.waitForTimeout(1000);
 		await page.screenshot({path: 'screenshots/pages_advanced-form_event-action-mapping-configuration.png'});
-		await page.waitForTimeout(2000);
 
 		// reload to un-select the form element
 		await page.reload();
@@ -547,13 +456,9 @@ test('pages', async ({page}, testInfo) => {
 		await h.getTextNode().hover();
 		await h.getTextNode().click();
 
-		await page.waitForTimeout(1000);
-
 		// take a screenshot of the form element (background change is necessary because playwright tries to scroll the element into view, which hovers it apparently)
 		await formContainer.locator.screenshot({path: 'screenshots/pages_advanced-form-element.png', style: '.nodeHover { background-color: transparent; }' });
-
 	}
 
 	await logout(page);
-
 });

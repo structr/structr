@@ -38,13 +38,9 @@ let _JobQueue = {
 	appDataCSVKey: 'csv-import-config',
 	timeout: undefined,
 	customTypesOnly: true,
-	schemaTypeCachePopulated: false,
-	schemaTypeCache: {
-		nodeTypes: [],
-		relTypes: [],
-		graphTypes: []
+	init: () => {
+		_JobQueue.clearSchemaTypeCache();
 	},
-	init: () => {},
 	resize: () => {},
 	onload: () => {
 
@@ -93,7 +89,6 @@ let _JobQueue = {
 		Structr.mainMenu.unblock(100);
 	},
 	unload: () => {
-		_JobQueue.schemaTypeCachePopulated = false;
 	},
 	isShowNotifications: () => {
 		return UISettings.getValueForSetting(UISettings.settingGroups['job-queue'].settings.showNotificationsKey);
@@ -477,7 +472,7 @@ let _JobQueue = {
 
 		return new Promise((resolve) => {
 
-			if (!_JobQueue.schemaTypeCachePopulated) {
+			if (_JobQueue.schemaTypeCache.nodeTypes.length === 0) {
 
 				_Helpers.getSchemaInformationPromise().then(schemaData => {
 
@@ -489,17 +484,15 @@ let _JobQueue = {
 
 							if (res.isRel) {
 
-								_JobQueue.schemaTypeCache['relTypes'].push(res);
+								_JobQueue.schemaTypeCache.relTypes.push(res);
 
 							} else {
 
-								_JobQueue.schemaTypeCache['graphTypes'].push(res);
-								_JobQueue.schemaTypeCache['nodeTypes'].push(res);
+								_JobQueue.schemaTypeCache.graphTypes.push(res);
+								_JobQueue.schemaTypeCache.nodeTypes.push(res);
 							}
 						}
 					}
-
-					_JobQueue.schemaTypeCachePopulated = true;
 
 					resolve('success');
 				});
@@ -545,7 +538,7 @@ let _JobQueue = {
 		let propertySelector   = $('#property-select');
 		let type               = targetTypeSelector.val();
 
-		// dont do anything if there is no type set
+		// don't do anything if there is no type set
 		if (!type) {
 			return;
 		}

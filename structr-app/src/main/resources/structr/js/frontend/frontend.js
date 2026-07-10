@@ -46,37 +46,37 @@ export class Frontend {
 
 	resolveData(event, target) {
 
-        let resolved = {};
-        let data = target.dataset;
+		let resolved = {};
+		let data = target.dataset;
 
-        // active input fields with a name
-        if (target.name && target.name.length > 0) {
+		// active input fields with a name
+		if (target.name && target.name.length > 0) {
 
-            resolved[target.name] = this.resolveElementValue(target);
-        }
+			resolved[target.name] = this.resolveElementValue(target);
+		}
 
-        for (const key in data) {
+		for (const key in data) {
 
-            let value = data[key];
-            if (!value) {
-                continue;
-            }
+			let value = data[key];
+			if (!value) {
+				continue;
+			}
 
-            resolved[key] = this.resolveValue(key, value, data, event, target);
-        }
+			resolved[key] = this.resolveValue(key, value, data, event, target);
+		}
 
-        // form-based approach if the event target is a form
-        if (target.tagName === 'FORM' && event.type === 'submit') {
+		// form-based approach if the event target is a form
+		if (target.tagName === 'FORM' && event.type === 'submit') {
 
-            let formData = new FormData(target);
+			let formData = new FormData(target);
 
-            for (let key of new Set(formData.keys())) {
-                let element = target.elements[key];
-                resolved[key] = this.resolveElementValue(element);
-            }
-        }
+			for (let key of new Set(formData.keys())) {
+				let element = target.elements[key];
+				resolved[key] = this.resolveElementValue(element);
+			}
+		}
 
-        return resolved;
+		return resolved;
 	}
 
 	resolveValue(key, value, data, event, target) {
@@ -224,9 +224,9 @@ export class Frontend {
 
 			} else if (element.length) {
 
-                // radionodelist?
-                return element.values().filter(v => v.checked).map(v => v.value).toArray();
-            }
+				// radionodelist?
+				return element.values().filter(v => v.checked).map(v => v.value).toArray();
+			}
 
 			return null;
 		}
@@ -496,10 +496,10 @@ export class Frontend {
 
 	reloadPartial(selector, parameters, element, dontRebind, options) {
 
-        // TODO for later: avoid reload if all new arguments are identical to the currently loaded state
+		// TODO for later: avoid reload if all new arguments are identical to the currently loaded state
 
 		let reloadTargets = document.querySelectorAll(selector);
-        let resets = [];
+		let resets = [];
 
 		if (!reloadTargets.length) {
 			console.log('Container with selector ' + selector + ' not found.');
@@ -542,27 +542,27 @@ export class Frontend {
 			}
 		}
 
-        if (options && options.updateHistory && options.updateHistory == true) {
+		if (options && options.updateHistory && options.updateHistory == true) {
 
-            const url = new URL(window.location.href);
+			const url = new URL(window.location.href);
 
-            for (let key in parameters) {
-                if (parameters[key]) {
-                    if (key === 'current') {
-                        url.pathname = url.pathname.split('/').toSpliced(2, 1, parameters[key]).join('/');
-                    } else {
-                        url.searchParams.set(key, parameters[key]);
-                    }
-                } else {
-                    url.searchParams.delete(key);
-                }
-            }
+			for (let key in parameters) {
+				if (parameters[key]) {
+					if (key === 'current') {
+						url.pathname = url.pathname.split('/').toSpliced(2, 1, parameters[key]).join('/');
+					} else {
+						url.searchParams.set(key, parameters[key]);
+					}
+				} else {
+					url.searchParams.delete(key);
+				}
+			}
 
-            for (const channel of options.resets) {
-                url.searchParams.delete(channel);
-            }
-            history.pushState({}, '', url);
-        }
+			for (const channel of options.resets) {
+				url.searchParams.delete(channel);
+			}
+			history.pushState({}, '', url);
+		}
 	}
 
 	replaceContentInContainer = (container, html) => {
@@ -587,7 +587,7 @@ export class Frontend {
 			method: 'GET',
 			credentials: 'same-origin'
 		}).then(response => {
-			if (!response.ok) { throw { status: response.status, statusText: response.statusText } };
+			if (!response.ok) { throw { status: response.status, statusText: response.statusText } }
 			return response.text();
 		}).then(html => {
 			// `replaceContentInContainer` returns undefined when the response
@@ -598,6 +598,7 @@ export class Frontend {
 			// and end up in the catch (which used to misreport as a logout).
 			let newNode = this.replaceContentInContainer(container, html);
 			if (newNode) {
+
 				// The show-hide-section "show" behaviour loads a (possibly statically
 				// hidden) partial via URL and wants it revealed once loaded. The freshly
 				// rendered node carries the template's `hidden` class, so removing it
@@ -623,6 +624,10 @@ export class Frontend {
 
 			if (!dontRebind) {
 				this.bindEvents();
+			}
+
+			if (newNode) {
+				newNode.dataset.lastRefresh = '' + new Date().getTime();
 			}
 
 		}).catch(e => {
@@ -726,23 +731,23 @@ export class Frontend {
 	 */
 	encodeRequestParameters(fromDataset, override, options) {
 
-        let searchParams = new URLSearchParams(window.location.search);
-        let params  = {};
-        let current = '';
+		let searchParams = new URLSearchParams(window.location.search);
+		let params  = {};
+		let current = '';
 
-        if (options && options.resets && options.resets.length) {
-            for (const channel of options.resets) {
-                searchParams.delete(channel);
-            }
-        }
+		if (options && options.resets && options.resets.length) {
+			for (const channel of options.resets) {
+				searchParams.delete(channel);
+			}
+		}
 
-        for (let key of new Set(searchParams.keys())) {
-            let values = searchParams.getAll(key);
-            params[key] = values.length === 1 ? values[0] : values;
-            if (params[key] === null) {
-                delete params[key];
-            }
-        }
+		for (let key of new Set(searchParams.keys())) {
+			let values = searchParams.getAll(key);
+			params[key] = values.length === 1 ? values[0] : values;
+			if (params[key] === null) {
+				delete params[key];
+			}
+		}
 
 		// current object set?
 		if (fromDataset.currentObjectId) {
@@ -780,11 +785,11 @@ export class Frontend {
 
 				} else {
 
-                    if (key === 'current') {
-                        current = '/' + value;
-                    } else {
-                        params[key] = value;
-                    }
+					if (key === 'current') {
+						current = '/' + value;
+					} else {
+						params[key] = value;
+					}
 				}
 			}
 		}
@@ -826,11 +831,11 @@ export class Frontend {
 		if (options.stopPropagation !== undefined) { stopPropagation = options.stopPropagation; }
 
 		// allow element to override preventDefault and stopPropagation
-        if (preventDefault) { event.preventDefault(); }
-        if (stopPropagation) { event.stopPropagation(); }
+		if (preventDefault) { event.preventDefault(); }
+		if (stopPropagation) { event.stopPropagation(); }
 
-        // check browser validation
-        if (target.reportValidity && !target.reportValidity()) return;
+		// check browser validation
+		if (target.reportValidity && !target.reportValidity()) return;
 
 		if (delay === 0) {
 
@@ -862,7 +867,7 @@ export class Frontend {
 			// data-structr-target attribute. This is currently only true for pagination and sorting, where
 			// data-structr-target="page" and data-page="1" (which comes from the backend), or
 			// data-structr-target="sort" and data-sort="sortKeyName".
-            // addition for filter fields: name=sortKeyName now also selects this branch
+			// addition for filter fields: name=sortKeyName now also selects this branch
 
 			this.handlePagination(event, target, options);
 
@@ -915,7 +920,7 @@ export class Frontend {
 			console.log('Selector not found: ' + selector);
 			console.log(target);
 			console.log(data);
-		 	return;
+			return;
 		}
 
 		let parameters = {};
@@ -930,10 +935,10 @@ export class Frontend {
 			orderKey = parts[1].trim();
 		}
 
-        // check for key event and Escape key to reset the search field
-        if (options && options.resetWithEsc && event && event.key && event.key === 'Escape') {
-            event.target.value = '';
-        }
+		// check for key event and Escape key to reset the search field
+		if (options && options.resetWithEsc && event && event.key && event.key === 'Escape') {
+			event.target.value = '';
+		}
 
 		let resolved        = this.resolveData(event, target);
 		parameters[sortKey] = resolved[sortKey];
@@ -966,13 +971,13 @@ export class Frontend {
 			options.updateHistory = true;
 		}
 
-        // update history
-        options.updateHistory = true;
-        options.resets = [];
+		// update history
+		options.updateHistory = true;
+		options.resets = [];
 
-        if (data.resets) {
-            options.resets = data.resets.split(' ');
-        }
+		if (data.resets) {
+			options.resets = data.resets.split(' ');
+		}
 
 		this.handleResult(target, { result: parameters }, 200, options);
 	}
@@ -1061,9 +1066,9 @@ export class Frontend {
 		this.reloadPartial('[data-structr-id="' + id + '"]', null, el, true);
 	}
 
-    handleLogout() {
-        window.alert('You have been logged out. Please log back in and reload the page.');
-    }
+	handleLogout() {
+		window.alert('You have been logged out. Please log back in and reload the page.');
+	}
 
 	bindEvents() {
 

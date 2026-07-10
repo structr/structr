@@ -18,101 +18,92 @@
  */
 // @ts-check
 import {test} from '@playwright/test';
-import {initialize} from "./helpers/init";
+import {goToModule, initialize} from "./helpers/init";
 import {login, logout} from "./helpers/auth";
 
 
 test.beforeAll(async ({playwright}) => {
-    await initialize(playwright, {
-        'SchemaNode': [
-            {name: 'Project'}
-        ]
-    });
+	await initialize(playwright, {
+		'SchemaNode': [
+			{name: 'Project'}
+		]
+	});
 });
 
 test('flows', async ({page}, testInfo) => {
 
-    console.log(testInfo.title);
+	console.log(testInfo.title);
 
-    await login(page);
+	await login(page);
 
-    // Flows
-    await page.locator('.submenu-trigger').hover();
-    await page.locator('#flows_').waitFor({state: 'visible'});
-    await page.locator('#flows_').click();
+	// Flows
+	await goToModule(page, '#flows_');
 
-    // Wait for Code UI to load all components
-    await page.waitForTimeout(1000);
-    await page.screenshot({path: 'screenshots/flows.png'});
+	// Wait for Code UI to load all components
+	await page.waitForTimeout(1000);
+	await page.screenshot({path: 'screenshots/flows.png'});
 
-    // Create new flow
-    await page.getByPlaceholder('Enter flow name').click();
-    await page.keyboard.type('testFlow');
-    await page.getByRole('button', {name: 'Create'}).click();
-    await page.waitForTimeout(1000);
-    await page.screenshot({path: 'screenshots/flows_created-flow.png'});
+	// Create new flow
+	await page.getByPlaceholder('Enter flow name').click();
+	await page.keyboard.type('testFlow');
+	await page.getByRole('button', {name: 'Create'}).click();
+	await page.waitForTimeout(1000);
+	await page.screenshot({path: 'screenshots/flows_created-flow.png'});
 
-    // Add TypeQuery node
-    await page.getByText('testFlow').click();
-    await page.locator('#nodeEditor').click({button: 'right'});
-    await page.getByText('Data Nodes').waitFor({state: 'visible'});
-    await page.getByText('Data Nodes').hover();
-    await page.waitForTimeout(100);
-    await page.getByText('DataSource', {exact: true}).hover();
-    await page.waitForTimeout(100);
-    await page.getByText('TypeQuery', {exact: true}).hover();
-    await page.waitForTimeout(100);
-    await page.getByText('TypeQuery', {exact: true}).click();
-    await page.waitForTimeout(1000);
-    await page.screenshot({path: 'screenshots/flows_added-type-query.png'});
+	// Add TypeQuery node
+	await page.getByText('testFlow').click();
+	await page.locator('#nodeEditor').click({button: 'right'});
+	await page.getByText('Data Nodes').waitFor({state: 'visible'});
+	await page.getByText('Data Nodes').hover();
+	await page.getByText('DataSource', {exact: true}).hover();
+	await page.getByText('TypeQuery', {exact: true}).hover();
+	await page.getByText('TypeQuery', {exact: true}).click();
 
-    // Select 'Project' as type and sort by name
-    await page.locator('#dataType select').selectOption({label: 'Project'});
-    await page.getByText('Sort').click();
-    await page.waitForTimeout(500);
-    await page.locator('select.query-key-select').selectOption({label: 'name'});
+	await page.screenshot({path: 'screenshots/flows_added-type-query.png'});
 
-    // Create Return node and connect TypeQuery
-    await page.locator('#nodeEditor').click({button: 'right'});
-    await page.waitForTimeout(100);
-    await page.getByText('Action Nodes').waitFor({state: 'visible'});
-    await page.getByText('Action Nodes').hover();
-    await page.waitForTimeout(100);
-    await page.getByText('Action', {exact: true}).waitFor({state: 'visible'});
-    await page.getByText('Action', {exact: true}).hover();
-    await page.waitForTimeout(100);
-    await page.getByText('Return', {exact: true}).hover();
-    await page.waitForTimeout(100);
-    await page.getByText('Return', {exact: true}).click();
-    await page.screenshot({path: 'screenshots/flows_created-return-node.png'});
+	// Select 'Project' as type and sort by name
+	await page.locator('#dataType select').selectOption({label: 'Project'});
+	await page.getByText('Sort').click();
+	await page.locator('select.query-key-select').selectOption({label: 'name'});
 
-    // Arrange nodes
-    await page.getByText('Return').hover();
-    await page.mouse.down();
-    await page.mouse.move(1100, 200);
-    await page.mouse.up();
-    await page.waitForTimeout(500);
+	// Create Return node and connect TypeQuery
+	await page.locator('#nodeEditor').click({button: 'right'});
+	await page.getByText('Action Nodes').waitFor({state: 'visible'});
+	await page.getByText('Action Nodes').hover();
+	await page.getByText('Action', {exact: true}).waitFor({state: 'visible'});
+	await page.getByText('Action', {exact: true}).hover();
+	await page.getByText('Return', {exact: true}).hover();
+	await page.getByText('Return', {exact: true}).click();
 
-    await page.getByText('TypeQuery').hover();
-    await page.mouse.down();
-    await page.mouse.move(580, 300);
-    await page.mouse.up();
-    await page.waitForTimeout(500);
-    await page.screenshot({path: 'screenshots/flows_arranged-nodes.png'});
+	await page.screenshot({path: 'screenshots/flows_created-return-node.png'});
 
-    await page.locator('.node.typequery .socket.output.dataTarget').hover();
-    await page.mouse.down();
-    await page.locator('.node.return .socket.input.dataSource').hover();
-    await page.mouse.up();
-    await page.waitForTimeout(500);
-    await page.screenshot({path: 'screenshots/flows_connected-nodes.png'});
+	// Arrange nodes
+	await page.getByText('Return').hover();
+	await page.mouse.down();
+	await page.mouse.move(1100, 200);
+	await page.mouse.up();
 
-    await page.getByRole('button', {name: 'Run'}).click();
-    await page.waitForTimeout(1000);
+	await page.getByText('TypeQuery').hover();
+	await page.mouse.down();
+	await page.mouse.move(580, 300);
+	await page.mouse.up();
 
-    await page.getByText('"result": [').waitFor({state: 'visible', timeout: 120000});
-    await page.screenshot({path: 'screenshots/flows_run-flow.png'});
-    await page.locator('#executionResult .close').click();
+	await page.screenshot({path: 'screenshots/flows_arranged-nodes.png'});
 
-    await logout(page);
+	await page.locator('.node.typequery .socket.output.dataTarget').hover();
+	await page.mouse.down();
+	await page.locator('.node.return .socket.input.dataSource').hover();
+	await page.mouse.up();
+
+	await page.screenshot({path: 'screenshots/flows_connected-nodes.png'});
+
+	await page.getByRole('button', {name: 'Run'}).click();
+
+	await page.getByText('"result": [').waitFor({state: 'visible', timeout: 10_000});
+
+	await page.screenshot({path: 'screenshots/flows_run-flow.png'});
+
+	await page.locator('#executionResult .close').click();
+
+	await logout(page);
 });

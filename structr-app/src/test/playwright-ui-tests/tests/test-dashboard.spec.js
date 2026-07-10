@@ -17,85 +17,77 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 // @ts-check
-import {test} from '@playwright/test';
-import {initialize} from "./helpers/init";
+import {expect, test} from '@playwright/test';
+import {goToModule, initialize} from "./helpers/init";
 import {login, logout} from "./helpers/auth";
 
 test.beforeAll(async ({playwright}) => {
-    await initialize(playwright);
+	await initialize(playwright);
 });
 
 test('dashboard', async ({page}, testInfo) => {
 
-    console.log(testInfo.title);
+	console.log(testInfo.title);
 
-    await login(page, true);
+	await login(page, true);
 
-    // Dashboard
-    await page.locator('#dashboard_').waitFor({state: 'visible'});
-    await page.locator('#dashboard_').click();
-    await page.locator('[href="#dashboard:me"]').waitFor({state: 'visible'});
+	await goToModule(page, '#dashboard_');
 
-    // Dashboard -> About Me
-    await page.locator('[href="#dashboard:me"]').click();
-    await page.locator('[data-module-name="me"]').waitFor({state: 'visible'});
-    await page.waitForTimeout(1000);
-    await page.screenshot({path: 'screenshots/dashboard_about-me.png'});
+	await page.locator('[href="#dashboard:me"]').waitFor({state: 'visible'});
 
-    // Dashboard -> About Structr
-    await page.locator('[href="#dashboard:about"]').click();
-    await page.locator('[data-module-name="about"]').waitFor({state: 'visible'});
+	// Dashboard -> About Me
+	await page.locator('[href="#dashboard:me"]').click();
+	await page.locator('[data-module-name="me"]').waitFor({state: 'visible'});
+	await page.screenshot({path: 'screenshots/dashboard_about-me.png'});
 
-    // Wait for HTTP Access Statistics to load
-    await page.waitForTimeout(2000);
-    await page.screenshot({path: 'screenshots/dashboard_about-structr.png'});
+	// Dashboard -> About Structr
+	await page.locator('[href="#dashboard:about"]').click();
+	await page.locator('[data-module-name="about"]').waitFor({state: 'visible'});
 
-    // Dashboard -> Deployment
-    await page.locator('[href="#dashboard:deployment"]').click();
-    await page.locator('[data-module-name="deployment"]').waitFor({state: 'visible'});
-    await page.waitForTimeout(1000);
-    await page.screenshot({path: 'screenshots/dashboard_deployment.png'});
+	// Wait for HTTP Access Statistics to load (vis.js is async and has no onLoad callback)
+	await page.waitForTimeout(2000);
+	await page.screenshot({path: 'screenshots/dashboard_about-structr.png'});
 
-    // Dashboard -> Methods
-    await page.locator('[href="#dashboard:methods"]').click();
-    await page.locator('[data-module-name="methods"]').waitFor({state: 'visible'});
-    await page.waitForTimeout(1000);
-    await page.screenshot({path: 'screenshots/dashboard_methods.png'});
+	// Dashboard -> Deployment
+	await page.locator('[href="#dashboard:deployment"]').click();
+	await page.locator('[data-module-name="deployment"]').waitFor({state: 'visible'});
+	await page.screenshot({path: 'screenshots/dashboard_deployment.png'});
 
-    // Dashboard -> Server Log
-    await page.locator('[href="#dashboard:logs"]').click();
-    await page.locator('[data-module-name="logs"]').waitFor({state: 'visible'});
-    await page.waitForTimeout(1000);
-    await page.screenshot({path: 'screenshots/dashboard_server-log.png'});
+	// Dashboard -> Methods
+	await page.locator('[href="#dashboard:methods"]').click();
+	await page.locator('[data-module-name="methods"]').waitFor({state: 'visible'});
+	await page.screenshot({path: 'screenshots/dashboard_methods.png'});
 
-    // Dashboard -> Event Log
-    await page.locator('[href="#dashboard:events"]').click();
-    await page.locator('[data-module-name="events"]').waitFor({state: 'visible'});
-    await page.waitForTimeout(1000);
-    await page.screenshot({path: 'screenshots/dashboard_event-log.png'});
+	// Dashboard -> Server Log
+	await page.locator('[href="#dashboard:logs"]').click();
+	await page.locator('[data-module-name="logs"]').waitFor({state: 'visible'});
+	await page.screenshot({path: 'screenshots/dashboard_server-log.png'});
 
-    // Dashboard -> Threads
-    await page.locator('[href="#dashboard:threads"]').click();
-    await page.locator('[data-module-name="threads"]').waitFor({state: 'visible'});
-    await page.waitForTimeout(1000);
-    await page.screenshot({path: 'screenshots/dashboard_running-threads.png'});
+	// Dashboard -> Event Log
+	await page.locator('[href="#dashboard:events"]').click();
+	await page.locator('[data-module-name="events"]').waitFor({state: 'visible'});
+	await page.screenshot({path: 'screenshots/dashboard_event-log.png'});
 
-    // Dashboard -> UI Settings
-    await page.locator('[href="#dashboard:ui"]').click();
-    await page.locator('[data-module-name="ui"]').waitFor({state: 'visible'});
-    await page.waitForTimeout(1000);
-    await page.screenshot({path: 'screenshots/dashboard_ui-config.png'});
+	// Dashboard -> Threads
+	await page.locator('[href="#dashboard:threads"]').click();
+	await page.locator('[data-module-name="threads"]').waitFor({state: 'visible'});
+	await page.screenshot({path: 'screenshots/dashboard_running-threads.png'});
 
-    // show admin console here
-    await page.locator('#terminal-icon > use').click();
-    await page.waitForTimeout(200);
-    await page.keyboard.type('$.find("Project");');
-    await page.keyboard.press('Enter');
-    await page.waitForTimeout(1000);
-    await page.screenshot({path: 'screenshots/dashboard_admin-console.png'});
-    await page.locator('#terminal-icon > use').click();
-    await page.waitForTimeout(200);
+	// Dashboard -> UI Settings
+	await page.locator('[href="#dashboard:ui"]').click();
+	await page.locator('[data-module-name="ui"]').waitFor({state: 'visible'});
+	await page.screenshot({path: 'screenshots/dashboard_ui-config.png'});
 
-    await logout(page);
+	// show admin console here
+	await page.locator('#terminal-icon > use').click();
+	let term = page.locator('#structr-console.console-open');
+	await expect(term).toBeVisible();
+	await term.click();
+	await page.keyboard.type('$.find("User")');
+	await page.keyboard.press('Enter');
+	await page.screenshot({path: 'screenshots/dashboard_admin-console.png'});
+	await page.locator('#terminal-icon > use').click();
+
+	await logout(page);
 });
 

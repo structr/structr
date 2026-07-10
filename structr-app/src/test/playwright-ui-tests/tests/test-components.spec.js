@@ -18,200 +18,229 @@
  */
 // @ts-check
 import {expect, test} from '@playwright/test';
-import {initialize} from "./helpers/init";
+import {
+	goToModule,
+	initialize,
+	waitUntilAttributeAppearsAndReturnIt,
+	waitUntilAttributeChangedAndReturnIt
+} from "./helpers/init";
 import {login, logout} from "./helpers/auth";
 import {
-    collapsePageTree,
-    configureFunctionQuery,
-    configureGeneralAttributes,
-    configureHTMLAttributes,
-    createAndRenamePage,
-    expandOrCollapseElement,
-    expandPageTree,
-    focusCenterPaneMonacoEditor,
-    getPageContainer,
-    insertFrontendJs,
-    insertInputWithLabel,
-    resizePagesTree,
-    sendCtrlPlusA,
-    setNodeContent,
-    useContextMenu,
-    resizeRightFlyout
+	createAndRenamePage,
+	expandPageTree,
+	getPageContainer,
+	resizePagesTree,
+	useContextMenu,
+	resizeRightFlyout, waitForPartialReload
 } from "./helpers/pages";
 
 test.beforeAll(async ({playwright}) => {
-    await initialize(playwright, {
-        'SchemaNode': [
-            {
-                name: 'Project',
-                schemaProperties: [
-                    {name: 'description', propertyType: 'String'},
-                    {name: 'dueDate', propertyType: 'Date', format: 'yyyy-MM-dd'},
-                ]
-            }
-        ],
-        'Project': [
-            { name: 'Project #1', dueDate: '2026-01-01', description: 'This is a project' },
-            { name: 'Project #2', dueDate: '2026-02-01', description: 'This is another project' },
-            { name: 'Project #3', dueDate: '2026-03-01', description: 'This is the third project' },
-            { name: 'Project #4', dueDate: '2026-04-01', description: 'This is the fourth project' },
-            { name: 'Project #5', dueDate: '2026-05-01', description: 'This is the fifth project' },
-        ]
-    });
+	await initialize(playwright, {
+		'SchemaNode': [
+			{
+				name: 'Project',
+				schemaProperties: [
+					{name: 'description', propertyType: 'String'},
+					{name: 'dueDate', propertyType: 'Date', format: 'yyyy-MM-dd'},
+				]
+			}
+		],
+		'Project': [
+			{ name: 'Project #1', dueDate: '2026-01-01', description: 'This is a project' },
+			{ name: 'Project #2', dueDate: '2026-02-01', description: 'This is another project' },
+			{ name: 'Project #3', dueDate: '2026-03-01', description: 'This is the third project' },
+			{ name: 'Project #4', dueDate: '2026-04-01', description: 'This is the fourth project' },
+			{ name: 'Project #5', dueDate: '2026-05-01', description: 'This is the fifth project' },
+		]
+	});
 });
 
 test('pages', async ({page}, testInfo) => {
 
-    console.log(testInfo.title);
+	console.log(testInfo.title);
 
-    await login(page);
+	let timestamp = null;
 
-    // import widgets
-    await page.locator('#pages_').waitFor({state: 'visible'});
-    await page.locator('#pages_').click();
+	await login(page);
 
-    await resizePagesTree(page, -200);
+	await goToModule(page, '#pages_');
 
-    await page.locator('#create_page').click();
-    await page.locator('#import-widget-set').click();
+	await expect(page.locator('#main #pages')).toBeVisible();
 
-    await page.waitForTimeout(1000);
+	await resizePagesTree(page, -200);
 
-    // close create page dialog again
-    await page.getByRole('button', { name: 'Close' }).click();
+	await page.locator('#create_page').click();
 
-    await createAndRenamePage(page, 4, 'projects');
+	const importWidgetSetButton = page.locator('#import-widget-set')
+	await importWidgetSetButton.click();
+	await expect(importWidgetSetButton).toBeHidden();
 
-    await expandPageTree(page, 'projects');
+	// close create page dialog again
+	await page.getByRole('button', { name: 'Close' }).click();
 
-    let pageContainer = getPageContainer(page, 'projects');
-    pageContainer.getTextNode().click();
+	await createAndRenamePage(page, 4, 'projects');
 
-    let mainContent = pageContainer.getElement('Main Content');
+	await expandPageTree(page, 'projects');
 
-    await useContextMenu(page, mainContent, 'Suggested Widgets', 'Components', 'Table');
+	let pageContainer = getPageContainer(page, 'projects');
+	pageContainer.getTextNode().click();
 
-    // make screenshot when widget form is visible
-    await page.locator('#widget-form').isVisible();
+	let mainContent = pageContainer.getElement('Main Content');
 
-    {
-        let widgetForm = page.locator('#widget-form');
+	await useContextMenu(page, mainContent, 'Suggested Widgets', 'Components', 'Table');
 
-        await widgetForm.getByText('No Data Source⏷').click();
-        await widgetForm.getByText('Use Existing Data Source').hover();
-        await widgetForm.getByText('Custom Types').hover();
-        await widgetForm.getByText('All Project Nodes').click();
-    }
+	// make screenshot when widget form is visible
+	await page.locator('#widget-form').isVisible();
 
-    await page.screenshot({path: 'screenshots/widgets_insert-table-dialog.png'});
+	{
+		let widgetForm = page.locator('#widget-form');
 
-    await page.getByRole('button', { name: 'Append Widget' }).click();
+		await widgetForm.getByText('No Data Source⏷').click();
+		await widgetForm.getByText('Use Existing Data Source').hover();
+		await widgetForm.getByText('Custom Types').hover();
+		await widgetForm.getByText('All Project Nodes').click();
+	}
 
-    let table = pageContainer.getElement('Table');
-    await table.getTextNode().click();
+	await page.screenshot({path: 'screenshots/widgets_insert-table-dialog.png'});
 
-    await page.locator('#previewTab.slideout-activator').click();
-    await page.waitForTimeout(2000);
+	await page.getByRole('button', { name: 'Append Widget' }).click();
 
-    await resizeRightFlyout(page, -400);
+	let table = pageContainer.getElement('Table');
+	await table.getTextNode().click();
 
-    await page.locator('label').filter({ hasText: 'description' }).click();
-    await page.waitForTimeout(200);
-    await page.locator('label').filter({ hasText: 'dueDate' }).click();
-    await page.waitForTimeout(200);
+	await page.locator('#previewTab.slideout-activator').click();
 
-    await page.getByText('Set template..').nth(2).click();
-    await page.getByText('formatted-date').click();
+	await resizeRightFlyout(page, -400);
 
-    await page.waitForTimeout(200);
-    await page.getByText('dueDate formatted-date ⠿').click();
+	// wait for list to fully (re)load
+	timestamp = await waitUntilAttributeChangedAndReturnIt(page, '#sortable-list', 'data-test-timestamp', timestamp);
 
-    // open "Render Template Settings"
-    await page.getByText('Render Template Settings').click();
+	await page.locator('label').filter({ hasText: 'description' }).click();
 
-    await page.locator('input[name="dateFormat"]').fill('dd.MM.yyyy');
+	// wait for list to fully (re)load
+	timestamp = await waitUntilAttributeChangedAndReturnIt(page, '#sortable-list', 'data-test-timestamp', timestamp);
 
-    await page.screenshot({path: 'screenshots/widgets_table-fields.png'});
+	await page.locator('label').filter({ hasText: 'dueDate' }).click();
 
-    await page.getByRole('button', { name: 'Controller' }).click();
-    await page.getByRole('textbox', { name: 'Selection Channel' }).fill('current');
+	// wait for list to fully (re)load
+	timestamp = await waitUntilAttributeChangedAndReturnIt(page, '#sortable-list', 'data-test-timestamp', timestamp);
 
-    // click somewhere else to save the value
-    await page.locator('#page-size-input').click();
+	await page.locator('#sortable-list .select-render-template[data-field-name="dueDate"]').getByText('Set template..').click();
+	await page.getByText('formatted-date').click();
 
-    await page.screenshot({path: 'screenshots/widgets_table_controller.png'});
+	// wait for list to fully (re)load
+	timestamp = await waitUntilAttributeChangedAndReturnIt(page, '#sortable-list', 'data-test-timestamp', timestamp);
 
-    // insert edit form
-    await useContextMenu(page, mainContent, 'Suggested Widgets', 'Components', 'Edit Form');
+	await page.getByText('dueDate formatted-date ⠿').click();
 
-    {
-        let widgetForm = page.locator('#widget-form');
+	// open "Render Template Settings"
+	await page.getByText('Render Template Settings').click();
 
-        await widgetForm.getByText('No Data Source⏷').click();
-        await widgetForm.getByText('Use Existing Data Source').hover();
-        await widgetForm.getByText('Channels').hover();
-        await widgetForm.getByText('current', {exact: true}).click();
-    }
+	await page.locator('input[name="dateFormat"]').fill('dd.MM.yyyy');
 
-    await page.getByRole('button', { name: 'Append Widget' }).click();
+	await page.screenshot({path: 'screenshots/widgets_table-fields.png'});
 
-    let editForm = pageContainer.getElement('Edit Form');
-    editForm.getTextNode().click();
+	await page.getByRole('button', { name: 'Controller' }).click();
+	await page.getByRole('textbox', { name: 'Selection Channel' }).fill('current');
 
-    await page.waitForTimeout(5000);
+	// click somewhere else to save the value
+	await page.locator('#page-size-input').click();
 
-    await page.locator('label').filter({ hasText: 'description' }).click();
-    await page.waitForTimeout(5000);
-    await page.locator('label').filter({ hasText: 'dueDate' }).click();
-    await page.waitForTimeout(5000);
+	await page.screenshot({path: 'screenshots/widgets_table_controller.png'});
 
-    await page.waitForTimeout(5000);
+	// insert edit form
+	await useContextMenu(page, mainContent, 'Suggested Widgets', 'Components', 'Edit Form');
 
-    await page.getByText('textfield').nth(1).click();
-    // wait for context menu to appear
-    await page.waitForTimeout(5000);
-    await page.getByText('textarea', { exact: true }).click();
-    await page.waitForTimeout(5000);
+	{
+		let widgetForm = page.locator('#widget-form');
 
-    // after changing the first textfield to a textarea, the next textfield to click is again the one with index 1!
-    await page.getByText('textfield').nth(1).click();
-    // wait for context menu to appear
-    await page.waitForTimeout(5000);
+		await widgetForm.getByText('No Data Source⏷').click();
+		await widgetForm.getByText('Use Existing Data Source').hover();
+		await widgetForm.getByText('Channels').hover();
+		await widgetForm.getByText('current', {exact: true}).click();
+	}
 
-    await page.getByText('datepicker').click();
+	await page.getByRole('button', { name: 'Append Widget' }).click();
 
-    // go to projects page, select a project and edit the values
-    await page.goto(process.env.BASE_URL + '/projects');
+	let editForm = pageContainer.getElement('Edit Form');
+	await editForm.getTextNode().click();
 
-    await page.getByRole('cell', { name: 'Project #1' }).click();
-    await page.getByRole('textbox', { name: 'Description' }).fill('This is a project with a new description');
-    await page.getByPlaceholder('Due Date').fill('2027-01-01');
-    await page.getByRole('button', { name: 'Save' }).click();
+	// wait for list to fully (re)load
+	timestamp = null; // important! new load, previous values would break this.
+	timestamp = await waitUntilAttributeChangedAndReturnIt(page, '#sortable-list', 'data-test-timestamp', timestamp);
 
-    await page.waitForTimeout(200);
+	await page.locator('label').filter({ hasText: 'description' }).click();
 
-    // test ascending sorting
-    await page.getByRole('columnheader', { name: 'Name' }).click();
+	// wait for list to fully (re)load
+	timestamp = await waitUntilAttributeChangedAndReturnIt(page, '#sortable-list', 'data-test-timestamp', timestamp);
 
-    await expect(await page.locator('table tr:nth-child(1) td:nth-child(1)')).toHaveText('Project #1');
-    await expect(await page.locator('table tr:nth-child(1) td:nth-child(2)')).toHaveText('This is a project with a new description');
+	await page.locator('label').filter({ hasText: 'dueDate' }).click();
 
-    await expect(await page.locator('table tr:nth-child(2) td:nth-child(1)')).toHaveText('Project #2');
-    await expect(await page.locator('table tr:nth-child(3) td:nth-child(1)')).toHaveText('Project #3');
-    await expect(await page.locator('table tr:nth-child(4) td:nth-child(1)')).toHaveText('Project #4');
-    await expect(await page.locator('table tr:nth-child(5) td:nth-child(1)')).toHaveText('Project #5');
+	// wait for list to fully (re)load
+	timestamp = await waitUntilAttributeChangedAndReturnIt(page, '#sortable-list', 'data-test-timestamp', timestamp);
 
-    // test descending sorting
-    await page.getByRole('columnheader', { name: 'Name' }).click();
+	let descriptionRenderTemplateDisplay = page.locator('#sortable-list .select-render-template[data-field-name="description"]');
+	await descriptionRenderTemplateDisplay.click();
+	let descriptionRenderTplInContextMenu = descriptionRenderTemplateDisplay.locator('.render-template-select').getByText('textarea', { exact: true });
+	await descriptionRenderTplInContextMenu.click();
 
-    await expect(await page.locator('table tr:nth-child(1) td:nth-child(1)')).toHaveText('Project #5');
-    await expect(await page.locator('table tr:nth-child(2) td:nth-child(1)')).toHaveText('Project #4');
-    await expect(await page.locator('table tr:nth-child(3) td:nth-child(1)')).toHaveText('Project #3');
-    await expect(await page.locator('table tr:nth-child(4) td:nth-child(1)')).toHaveText('Project #2');
-    await expect(await page.locator('table tr:nth-child(5) td:nth-child(1)')).toHaveText('Project #1');
+	// wait for list to fully (re)load
+	timestamp = await waitUntilAttributeChangedAndReturnIt(page, '#sortable-list', 'data-test-timestamp', timestamp);
 
-    await page.goto(process.env.BASE_URL + '/structr/');
+	let dueDateRenderTemplateDisplay = page.locator('#sortable-list .select-render-template[data-field-name="dueDate"]');
+	await dueDateRenderTemplateDisplay.click();
+	let dueDateRenderTplInContextMenu = dueDateRenderTemplateDisplay.locator('.render-template-select').getByText('datepicker', { exact: true });
+	await dueDateRenderTplInContextMenu.click();
 
-    await logout(page);
+	// wait for list to fully (re)load
+	timestamp = await waitUntilAttributeChangedAndReturnIt(page, '#sortable-list', 'data-test-timestamp', timestamp);
+
+	// go to projects page, select a project and edit the values
+	await page.goto(process.env.BASE_URL + '/projects', { waitUntil: 'domcontentloaded', timeout: 10_000 });
+
+	const componentSelector = 'structr-component[data-channel="project current"]';
+	let lastRefresh = await page.getAttribute(componentSelector, 'data-last-refresh');
+
+	await page.getByRole('cell', { name: 'Project #1' }).click();
+	await page.getByRole('textbox', { name: 'Description' }).fill('This is a project with a new description');
+	await page.getByPlaceholder('Due Date').fill('2027-01-01');
+	await page.getByRole('button', { name: 'Save' }).click();
+
+	// save itself must refresh the table
+	lastRefresh = await waitForPartialReload(page, componentSelector, lastRefresh);
+
+	await expect(await page.locator('table tr:nth-child(1) td:nth-child(2)')).toHaveText('This is a project with a new description');
+
+	// test ascending sorting
+	let nameHeaderLocator = page.getByRole('columnheader', { name: 'Name' });
+
+	await nameHeaderLocator.click();
+
+	lastRefresh = await waitForPartialReload(page, componentSelector, lastRefresh);
+
+	await expect(nameHeaderLocator).toContainClass('descending');
+
+	await expect(await page.locator('table tr:nth-child(1) td:nth-child(1)')).toHaveText('Project #1');
+	await expect(await page.locator('table tr:nth-child(1) td:nth-child(2)')).toHaveText('This is a project with a new description');
+
+	await expect(await page.locator('table tr:nth-child(2) td:nth-child(1)')).toHaveText('Project #2');
+	await expect(await page.locator('table tr:nth-child(3) td:nth-child(1)')).toHaveText('Project #3');
+	await expect(await page.locator('table tr:nth-child(4) td:nth-child(1)')).toHaveText('Project #4');
+	await expect(await page.locator('table tr:nth-child(5) td:nth-child(1)')).toHaveText('Project #5');
+
+	// test descending sorting
+	await nameHeaderLocator.click();
+
+	lastRefresh = await waitForPartialReload(page, componentSelector, lastRefresh);
+
+	await expect(await page.locator('table tr:nth-child(1) td:nth-child(1)')).toHaveText('Project #5');
+	await expect(await page.locator('table tr:nth-child(2) td:nth-child(1)')).toHaveText('Project #4');
+	await expect(await page.locator('table tr:nth-child(3) td:nth-child(1)')).toHaveText('Project #3');
+	await expect(await page.locator('table tr:nth-child(4) td:nth-child(1)')).toHaveText('Project #2');
+	await expect(await page.locator('table tr:nth-child(5) td:nth-child(1)')).toHaveText('Project #1');
+
+	await page.goto(process.env.BASE_URL + '/structr/');
+
+	await logout(page);
 });
 

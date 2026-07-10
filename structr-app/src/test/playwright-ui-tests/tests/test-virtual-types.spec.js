@@ -18,50 +18,28 @@
  */
 // @ts-check
 import {expect, test} from '@playwright/test';
-import {initialize} from "./helpers/init";
+import {goToModule, initialize} from "./helpers/init";
+import {login, logout} from "./helpers/auth";
 
 test.beforeAll(async ({playwright}) => {
-    await initialize(playwright);
+	await initialize(playwright);
 });
 
 test('virtual-types', async ({page}, testInfo) => {
 
-    console.log(testInfo.title);
+	console.log(testInfo.title);
 
-    await page.goto(process.env.BASE_URL + '/structr/');
+	await login(page);
 
-    await expect(page).toHaveTitle(/Structr/);
-    await expect(page.locator('#usernameField')).toBeVisible();
-    await expect(page.locator('#passwordField')).toBeVisible();
-    await expect(page.locator('#loginButton')).toBeVisible();
+	await goToModule(page, '#virtual-types_');
 
-    await page.waitForTimeout(1000);
+	// Wait for Code UI to load all components
+	await page.getByRole('textbox', {name: 'Enter a name for the virtual'}).fill('VirtualProject');
+	await page.getByRole('textbox', {name: 'Enter the name of the source'}).fill('Project');
+	await page.getByRole('button', {name: 'Create Virtual Type'}).click();
 
-    // Login with admin/admin
-    await page.locator('#usernameField').fill('admin');
-    await page.locator('#passwordField').fill('admin');
-    await page.waitForTimeout(500);
-    await page.locator('#loginButton').click();
-    await page.waitForTimeout(1000);
+	await page.waitForTimeout(1000);
+	await page.screenshot({path: 'screenshots/virtual-types.png'});
 
-    await page.locator('.submenu-trigger').hover();
-    await page.locator('#virtual-types_').waitFor({state: 'visible'});
-    await page.locator('#virtual-types_').click();
-
-    // Wait for Code UI to load all components
-    await page.waitForTimeout(1000);
-    await page.getByRole('textbox', {name: 'Enter a name for the virtual'}).fill('VirtualProject');
-    await page.getByRole('textbox', {name: 'Enter the name of the source'}).fill('Project');
-    await page.getByRole('button', {name: 'Create Virtual Type'}).click();
-    await page.waitForTimeout(1000);
-    await page.screenshot({path: 'screenshots/virtual-types.png'});
-
-    // Logout
-    await page.locator('.submenu-trigger').hover();
-    await page.waitForTimeout(500);
-    await page.locator('#logout_').waitFor({state: 'visible'});
-    await page.locator('#logout_').click();
-    await page.locator('#usernameField').waitFor({state: 'visible'});
-    await page.waitForTimeout(1000);
-
+	await logout(page);
 });

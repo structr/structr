@@ -185,7 +185,8 @@ let _Dashboard = {
 							zoomMin: 3600000			//   1 hour
 						};
 
-						new vis.Graph2d(httpStatisticsCell.querySelector("#statistics-diagram-container"), new vis.DataSet(items), new vis.DataSet(groupList), options);
+						let statElement = httpStatisticsCell.querySelector("#statistics-diagram-container");
+						new vis.Graph2d(statElement, new vis.DataSet(items), new vis.DataSet(groupList), options);
 
 						let selector = document.querySelector('#statistics-resolution-selector');
 
@@ -199,6 +200,10 @@ let _Dashboard = {
 						httpStatisticsCell.querySelector("#statistics-refresh-button").addEventListener('click', () => {
 							drawStatistics(interval);
 						});
+
+						window.setTimeout(() => {
+							statElement.classList.add('loaded');
+						}, 0)
 					});
 				}
 
