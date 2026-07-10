@@ -45,6 +45,9 @@ export async function initialize(playwright, createData) {
 	// create everything in createData
 	if (createData) {
 
+		// hopefully prevent "Could not compile query due to insanely frequent schema changes"
+		await new Promise(resolve => setTimeout(resolve, 1000));
+
 		for (let type in createData) {
 
 			await context.post(process.env.BASE_URL + `/structr/rest/${type}`, {
@@ -80,13 +83,13 @@ export async function waitForDialogBoxToClose(page: Page) {
 
 export async function waitUntilAttributeChangedAndReturnIt(page:Page, selector: string, attributeName: string, prevValue: string) {
 
-    if (prevValue == null) {
-        await expect(page.locator(selector)).toHaveAttribute(attributeName, /.+/);
-    } else {
-        await expect(page.locator(selector)).not.toHaveAttribute(attributeName, prevValue);
-    }
+	if (prevValue == null) {
+		await expect(page.locator(selector)).toHaveAttribute(attributeName, /.+/);
+	} else {
+		await expect(page.locator(selector)).not.toHaveAttribute(attributeName, prevValue);
+	}
 
-    let val = await page.locator(selector).getAttribute(attributeName);
-    // console.log(val);
-    return val;
+	let val = await page.locator(selector).getAttribute(attributeName);
+	// console.log(val);
+	return val;
 }
