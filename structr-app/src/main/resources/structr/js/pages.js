@@ -5382,33 +5382,39 @@ let _Pages = {
 									<option value="fire-event">Raise a custom event</option>
 								</select>
 							</div>
-							
-							<div class="hidden option-success-notifications option-success-notifications-inline-text-message">
-								<label class="block mb-2" for="success-inline-message-delay-input" data-comment="After this time periout the inline text message disappers. For no autohide input -1">Display duration (ms)</label>
-								<input type="number" id="success-inline-message-delay-input" min="-1" max="60000" placeholder="5000">
-							</div>
 
-							<div class="hidden option-success-notifications option-success-notifications-custom-dialog">
-								<label class="block mb-2" for="success-notifications-custom-dialog-input" data-comment="Define the area(s) of the current page that should be displayed as notification dialog(s) with their CSS ID selector (comma-separated list of CSS IDs with leading #).">Partial(s) to refresh on success</label>
-								<input type="text" id="success-notifications-custom-dialog-input" placeholder="Enter CSS ID(s)">
-							</div>
-
-							<div class="hidden option-success-notifications option-success-notifications-custom-dialog-linked">
-								<label class="block mb-2" for="success-notifications-custom-dialog-linked-input" data-comment="Drag an element and drop it here">Element(s) to be displayed as success notification dialogs</label>
-								<input type="hidden" id="success-notifications-custom-dialog-linked-input" value="">
-								<div class="element-dropzone success-notifications-custom-dialog-linked-dropzone">
-									<div class="info-icon h-16 flex items-center justify-center">
-										${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
-										${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
-										Drag and drop existing element here
+							<div>
+								<div class="hidden option-success-notifications option-success-notifications-inline-text-message">
+									<label class="block mb-2" for="success-inline-message-delay-input" data-comment="How long the inline message stays before it auto-hides. Enter -1 to keep it visible until the next action (never auto-hide).">Display duration (ms)</label>
+									<input type="number" id="success-inline-message-delay-input" min="-1" max="60000" placeholder="5000 (-1 = never hide)">
+								</div>
+	
+								<div class="hidden option-success-notifications option-success-notifications-custom-dialog">
+									<label class="block mb-2" for="success-notifications-custom-dialog-input" data-comment="Define the area(s) of the current page that should be displayed as notification dialog(s) with their CSS ID selector (comma-separated list of CSS IDs with leading #).">Partial(s) to refresh on success</label>
+									<input type="text" id="success-notifications-custom-dialog-input" placeholder="Enter CSS ID(s)">
+								</div>
+	
+								<div class="hidden option-success-notifications option-success-notifications-custom-dialog-linked">
+									<label class="block mb-2" for="success-notifications-custom-dialog-linked-input" data-comment="Drag an element and drop it here">Element(s) to be displayed as success notification dialogs</label>
+									<input type="hidden" id="success-notifications-custom-dialog-linked-input" value="">
+									<div class="element-dropzone success-notifications-custom-dialog-linked-dropzone">
+										<div class="info-icon h-16 flex items-center justify-center">
+											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
+											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
+											Drag and drop existing element here
+										</div>
 									</div>
+								</div>
+	
+								<div class="hidden option-success-notifications option-success-notifications-fire-event">
+									<label class="block mb-2" for="success-notifications-fire-event-input" data-comment="Define event that should be raised.">Event to raise to display success notifications</label>
+									<input type="text" id="success-notifications-fire-event-input" placeholder="Enter an event name">
 								</div>
 							</div>
 
-							<div class="hidden option-success-notifications option-success-notifications-fire-event">
-								<label class="block mb-2" for="success-notifications-fire-event-input" data-comment="Define event that should be raised.">Event to raise to display success notifications</label>
-								<input type="text" id="success-notifications-fire-event-input" placeholder="Enter an event name">
-							</div>
+						</div>
+
+						<div class="grid grid-cols-2 gap-4 mt-4">
 
 							<div>
 								<label class="block mb-2" for="failure-notifications-select" data-comment="Define what kind of notifications should be displayed on failure">Failure notifications</label>
@@ -5421,32 +5427,34 @@ let _Pages = {
 									<option value="fire-event">Raise a custom event</option>
 								</select>
 							</div>
-							
-							<div class="hidden option-failure-notifications option-failure-notifications-inline-text-message">
-								<label class="block mb-2" for="failure-inline-message-delay-input" data-comment="After this time periout the inline text message disappers. For no autohide input -1">Display duration (ms)</label>
-								<input type="number" id="failure-inline-message-delay-input" min="-1" max="60000" placeholder="5000">
-							</div>
 
-							<div class="hidden option-failure-notifications option-failure-notifications-custom-dialog">
-								<label class="block mb-2" for="failure-notifications-custom-dialog-input" data-comment="Define the area(s) of the current page that should be displayed as notification dialog(s) with their CSS ID selector (comma-separated list of CSS IDs with leading #).">Partial(s) to refresh on failure</label>
-								<input type="text" id="failure-notifications-custom-dialog-input" placeholder="Enter CSS ID(s)">
-							</div>
-
-							<div class="hidden option-failure-notifications option-failure-notifications-custom-dialog-linked">
-								<label class="block mb-2" for="failure-notifications-custom-dialog-linked-input" data-comment="Drag an element and drop it here">Element(s) to be displayed as failure notification dialogs</label>
-								<input type="hidden" id="failure-notifications-custom-dialog-linked-input" value="">
-								<div class="element-dropzone failure-notifications-custom-dialog-linked-dropzone">
-									<div class="info-icon h-16 flex items-center justify-center">
-										${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
-										${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
-										Drag and drop existing element here
+							<div>
+								<div class="hidden option-failure-notifications option-failure-notifications-inline-text-message">
+									<label class="block mb-2" for="failure-inline-message-delay-input" data-comment="How long the inline message stays before it auto-hides. Enter -1 to keep it visible until the next action (never auto-hide).">Display duration (ms)</label>
+									<input type="number" id="failure-inline-message-delay-input" min="-1" max="60000" placeholder="5000 (-1 = never hide)">
+								</div>
+	
+								<div class="hidden option-failure-notifications option-failure-notifications-custom-dialog">
+									<label class="block mb-2" for="failure-notifications-custom-dialog-input" data-comment="Define the area(s) of the current page that should be displayed as notification dialog(s) with their CSS ID selector (comma-separated list of CSS IDs with leading #).">Partial(s) to refresh on failure</label>
+									<input type="text" id="failure-notifications-custom-dialog-input" placeholder="Enter CSS ID(s)">
+								</div>
+	
+								<div class="hidden option-failure-notifications option-failure-notifications-custom-dialog-linked">
+									<label class="block mb-2" for="failure-notifications-custom-dialog-linked-input" data-comment="Drag an element and drop it here">Element(s) to be displayed as failure notification dialogs</label>
+									<input type="hidden" id="failure-notifications-custom-dialog-linked-input" value="">
+									<div class="element-dropzone failure-notifications-custom-dialog-linked-dropzone">
+										<div class="info-icon h-16 flex items-center justify-center">
+											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
+											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
+											Drag and drop existing element here
+										</div>
 									</div>
 								</div>
-							</div>
-
-							<div class="hidden option-failure-notifications option-failure-notifications-fire-event">
-								<label class="block mb-2" for="failure-notifications-fire-event-input" data-comment="Define event that should be raised.">Event to raise to display failure notifications</label>
-								<input type="text" id="failure-notifications-fire-event-input" placeholder="Enter an event name">
+	
+								<div class="hidden option-failure-notifications option-failure-notifications-fire-event">
+									<label class="block mb-2" for="failure-notifications-fire-event-input" data-comment="Define event that should be raised.">Event to raise to display failure notifications</label>
+									<input type="text" id="failure-notifications-fire-event-input" placeholder="Enter an event name">
+								</div>
 							</div>
 						</div>
 					</div>
