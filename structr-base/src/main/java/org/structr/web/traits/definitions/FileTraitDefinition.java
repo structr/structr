@@ -161,8 +161,10 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 					// a deleted single-file sync root must no longer be watched
 					StorageSyncService.handleNodeDeleted(thisFile.getUuid());
 
-					// only delete mounted files
-					if (!thisFile.isExternal()) {
+					// only delete binary content directly when the deletion is not
+					// handled by outbound synchronization, which owns the physical
+					// side of governed nodes and deletes after the commit
+					if (!thisFile.isExternal() && !StorageSyncService.isOutboundGoverned(thisFile)) {
 
 						StorageProviderFactory.getStorageProvider(thisFile).delete();
 					}

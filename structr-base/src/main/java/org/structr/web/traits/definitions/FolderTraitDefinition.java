@@ -97,6 +97,12 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 
 					// creates/updates the synchronizer if this folder directly carries a storage configuration
 					StorageSyncService.handleNodeChanged(thisFolder);
+
+					// physical directory materialization for outbound-governed subtrees
+					if (!StorageSyncService.isSyncOrigin(securityContext)) {
+
+						StorageSyncService.recordOutboundCreation(thisFolder);
+					}
 				}
 			},
 
