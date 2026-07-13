@@ -26,6 +26,7 @@ import org.structr.storage.sync.ExternalEntry;
 import org.structr.storage.sync.StorageSyncListener;
 import org.structr.storage.sync.StorageSynchronizer;
 import org.structr.storage.sync.SyncTarget;
+import org.structr.storage.sync.VirtualChangeEvent;
 
 import java.io.IOException;
 import java.nio.file.*;
@@ -109,6 +110,30 @@ public class LocalFSStorageSynchronizer implements StorageSynchronizer {
 		return new ClosingIterator(stream, entries.iterator());
 	}
 
+	/**
+	 * Applies committed Structr-side structural changes to the mounted
+	 * directory. The resulting disk changes may echo back as inbound watch
+	 * events (direction=both); those resolve onto nodes that are already at
+	 * the reported location and cause no oscillation. With outbound-only
+	 * direction no watcher runs, so there is no echo at all.
+	 */
+	@Override
+	public void onVirtualChange(final VirtualChangeEvent event) {
+
+		try {
+
+			switch (event.type()) {
+
+				case CREATED -> handleVirtualCreated(event);
+				case MOVED   -> handleVirtualMoved(event);
+				case DELETED -> handleVirtualDeleted(event);
+			}
+
+		} catch (IOException ioex) {
+			logger.warn("Unable to apply virtual change {} below {}: {}", event, mountRoot, ioex.getMessage());
+		}
+	}
+
 	@Override
 	public void close() {
 
@@ -133,6 +158,102 @@ public class LocalFSStorageSynchronizer implements StorageSynchronizer {
 	}
 
 	// ----- private methods -----
+	private void handleVirtualCreated(final VirtualChangeEvent event) throws IOException {
+
+		// file content is materialized through the storage provider's write path
+		if (event.directory()) {
+
+			Files.createDirectories(resolveWithinMount(event.relativePath()));
+		}
+	}
+
+	private void handleVirtualMoved(final VirtualChangeEvent event) throws IOException {
+
+		final Path oldPath = resolveWithinMount(event.previousRelativePath());
+		final Path newPath = resolveWithinMount(event.relativePath());
+
+		if (!Files.exists(oldPath)) {
+
+			// nothing to move - materialize directories at the new location
+			if (event.directory()) {
+				Files.createDirectories(newPath);
+			}
+
+			return;
+		}
+
+		if (newPath.getParent() != null) {
+			Files.createDirectories(newPath.getParent());
+		}
+
+		// the storage provider's write path may already have materialized an
+		// empty placeholder at the new location during the transaction (e.g.
+		// metadata updates ensure the physical file exists) - clear it, but
+		// never clobber real content
+		if (Files.exists(newPath)) {
+
+			if (Files.isDirectory(newPath) || Files.size(newPath) == 0) {
+
+				try {
+
+					Files.delete(newPath);
+
+				} catch (DirectoryNotEmptyException dnee) {
+
+					logger.warn("Not moving {} to {} below {}: a non-empty directory already exists at the target", event.previousRelativePath(), event.relativePath(), mountRoot);
+					return;
+				}
+
+			} else {
+
+				logger.warn("Not moving {} to {} below {}: a file already exists at the target", event.previousRelativePath(), event.relativePath(), mountRoot);
+				return;
+			}
+		}
+
+		// moves whole directory trees in one operation, files likewise
+		Files.move(oldPath, newPath);
+	}
+
+	private void handleVirtualDeleted(final VirtualChangeEvent event) throws IOException {
+
+		final Path path = resolveWithinMount(event.previousRelativePath());
+
+		if (event.directory()) {
+
+			// empty-directory delete only: Structr only ever deleted the nodes it
+			// reported, and recursive deletions arrive deepest-path-first, so the
+			// directory is empty in the normal case. A still-populated directory
+			// is deliberately left on disk.
+			try {
+
+				Files.deleteIfExists(path);
+
+			} catch (DirectoryNotEmptyException dnee) {
+				logger.warn("Not deleting non-empty directory {} below {}", event.previousRelativePath(), mountRoot);
+			}
+
+		} else {
+
+			Files.deleteIfExists(path);
+		}
+	}
+
+	/**
+	 * @return the given sync-root-relative path resolved against the mount
+	 * root, rejecting any path that escapes it
+	 */
+	private Path resolveWithinMount(final String relativePath) throws IOException {
+
+		final Path resolved = mountRoot.resolve(relativePath).normalize();
+
+		if (!resolved.startsWith(mountRoot)) {
+			throw new IOException("Path " + relativePath + " escapes mount root " + mountRoot);
+		}
+
+		return resolved;
+	}
+
 	private void pollLoop(final StorageSyncListener listener) {
 
 		while (!closed) {
