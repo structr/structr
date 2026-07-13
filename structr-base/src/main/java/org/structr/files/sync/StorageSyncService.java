@@ -63,6 +63,15 @@ public class StorageSyncService extends Thread implements RunnableService {
 
 	public static final String DELETE_STALE_KEY = "sync.deleteStale";
 
+	/**
+	 * SecurityContext attribute marking graph modifications that originate
+	 * from the external storage side. Lifecycle guards that reject
+	 * Structr-initiated changes to external files (e.g. renames, which
+	 * cannot be propagated to the physical storage) let sync-originated
+	 * changes pass, because the physical side has already changed.
+	 */
+	public static final String SYNC_ORIGIN_ATTRIBUTE = "storageSyncOrigin";
+
 	private static final long EVENT_DEBOUNCE_MILLIS = 2000L;
 
 	private static final Logger logger = LoggerFactory.getLogger(StorageSyncService.class);
@@ -75,6 +84,67 @@ public class StorageSyncService extends Thread implements RunnableService {
 
 		super("StorageSyncService");
 		setDaemon(true);
+	}
+
+	/**
+	 * @return a superuser SecurityContext marked as sync-originated (see
+	 * {@link #SYNC_ORIGIN_ATTRIBUTE}); all sync transactions use this.
+	 */
+	public static SecurityContext createSyncContext() {
+
+		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+
+		securityContext.setAttribute(SYNC_ORIGIN_ATTRIBUTE, true);
+
+		return securityContext;
+	}
+
+	/**
+	 * @return true if the given SecurityContext marks a modification that
+	 * originates from the external storage side
+	 */
+	public static boolean isSyncOrigin(final SecurityContext securityContext) {
+		return securityContext != null && Boolean.TRUE.equals(securityContext.getAttribute(SYNC_ORIGIN_ATTRIBUTE));
+	}
+
+	/**
+	 * Notifies a running sync service (if any) that the given file/folder
+	 * was created or modified, so its synchronizer can be created, updated
+	 * or removed. Safe to call from node lifecycle callbacks.
+	 */
+	public static void handleNodeChanged(final AbstractFile abstractFile) {
+
+		final StorageSyncService service = StructrApp.getInstance().getService(StorageSyncService.class);
+		if (service != null && service.isRunning()) {
+
+			service.attach(abstractFile);
+		}
+	}
+
+	/**
+	 * Notifies a running sync service (if any) that the node with the given
+	 * UUID was deleted, so a synchronizer watching it can be closed.
+	 */
+	public static void handleNodeDeleted(final String uuid) {
+
+		final StorageSyncService service = StructrApp.getInstance().getService(StorageSyncService.class);
+		if (service != null && service.isRunning()) {
+
+			service.detach(uuid);
+		}
+	}
+
+	/**
+	 * Notifies a running sync service (if any) that the StorageConfiguration
+	 * with the given UUID (or one of its entries) changed or was deleted.
+	 */
+	public static void handleConfigurationChanged(final String storageConfigurationUuid) {
+
+		final StorageSyncService service = StructrApp.getInstance().getService(StorageSyncService.class);
+		if (service != null && service.isRunning()) {
+
+			service.configurationChanged(storageConfigurationUuid);
+		}
 	}
 
 	/**
@@ -320,7 +390,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 
 			if (!dueEvents.isEmpty()) {
 
-				final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+				final SecurityContext securityContext = createSyncContext();
 
 				try (final Tx tx = StructrApp.getInstance(securityContext).tx(true, true, false)) {
 
@@ -444,7 +514,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 			return;
 		}
 
-		try (final Tx tx = StructrApp.getInstance().tx()) {
+		try (final Tx tx = StructrApp.getInstance(createSyncContext()).tx()) {
 
 			final ExternalFileSyncHandler handler = new ExternalFileSyncHandler(sync.target);
 			final ExternalChangeEvent event       = item.event;

@@ -27,9 +27,15 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.*;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
+import org.structr.core.traits.operations.graphobject.OnDeletion;
+import org.structr.core.traits.operations.graphobject.OnModification;
+import org.structr.files.sync.StorageSyncService;
 import org.structr.web.entity.StorageConfiguration;
 import org.structr.web.traits.wrappers.StorageConfigurationTraitWrapper;
 
@@ -73,6 +79,28 @@ public class StorageConfigurationTraitDefinition extends AbstractNodeTraitDefini
 					valid &= ValidationHelper.isValidPropertyNotNull(obj, providerProperty, errorBuffer);
 
 					return valid;
+				}
+			},
+
+			OnModification.class,
+			new OnModification() {
+
+				@Override
+				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+					// re-attach all sync roots using this configuration
+					StorageSyncService.handleConfigurationChanged(graphObject.getUuid());
+				}
+			},
+
+			OnDeletion.class,
+			new OnDeletion() {
+
+				@Override
+				public void onDeletion(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
+
+					// detach all sync roots using this configuration
+					StorageSyncService.handleConfigurationChanged(graphObject.getUuid());
 				}
 			}
 		);

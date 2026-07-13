@@ -107,7 +107,7 @@ public class MaintenanceModeCommand extends NodeServiceCommand implements Mainte
         - SSHService
         - AgentService
         - CronService
-        - DirectoryWatchService
+        - StorageSyncService
         - LDAPService
         - MailService
 

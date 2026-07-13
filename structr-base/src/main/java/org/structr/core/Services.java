@@ -168,7 +168,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 		documentables.add(new SSHServiceDocumentable());
 		documentables.add(new MailServiceDocumentable());
 		documentables.add(new CronServiceDocumentable());
-		documentables.add(new DirectoryWatchServiceDocumentable());
+		documentables.add(new StorageSyncServiceDocumentable());
 	}
 
 	/**
@@ -728,7 +728,18 @@ public class Services implements StructrServices, BroadcastReceiver {
 	}
 
 	public Class getServiceClassForName(final String serviceClassName) {
-		return registeredServiceClasses.get(serviceClassName);
+
+		final Class serviceClass = registeredServiceClasses.get(serviceClassName);
+
+		// legacy alias: DirectoryWatchService was replaced by StorageSyncService
+		if (serviceClass == null && "DirectoryWatchService".equals(serviceClassName)) {
+
+			logger.warn("DirectoryWatchService has been replaced by StorageSyncService, please update the configured.services setting in structr.conf.");
+
+			return registeredServiceClasses.get("StorageSyncService");
+		}
+
+		return serviceClass;
 	}
 
 	public ConfigurationProvider getConfigurationProvider() {
@@ -749,7 +760,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 			} catch (Throwable t) {
 
-				logger.error("Unable to instantiate configration provider of type {}: {}", configurationClass, t);
+				logger.error("Unable to instantiate configuration provider of type {}", configurationClass, t);
 			}
 		}
 

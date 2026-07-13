@@ -21,6 +21,7 @@ package org.structr.web.traits.definitions;
 import org.structr.api.config.Settings;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.files.sync.StorageSyncService;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.ValidationHelper;
@@ -99,22 +100,28 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 					final AbstractFile file = graphObject.as(AbstractFile.class);
 					if (file.isExternal()) {
 
-						// check if name changed
-						final GraphObjectMap beforeProps = modificationQueue.getModifications(file).get(new GenericProperty<>("before"));
-						if (beforeProps != null) {
+						// renames that originate from the external storage itself (via the
+						// StorageSyncService) are fine - the physical side already changed
+						// and the node merely follows
+						if (!StorageSyncService.isSyncOrigin(securityContext)) {
 
-							final String prevName = beforeProps.getProperty(new GenericProperty<>("name"));
-							if (prevName != null) {
+							// check if name changed
+							final GraphObjectMap beforeProps = modificationQueue.getModifications(file).get(new GenericProperty<>("before"));
+							if (beforeProps != null) {
 
-								throw new UnsupportedOperationException("Not implemented for new fs abstraction layer");
+								final String prevName = beforeProps.getProperty(new GenericProperty<>("name"));
+								if (prevName != null) {
 
-								/*
-								final boolean renameSuccess = file.renameMountedAbstractFile(file.getParent(), file, "", prevName);
+									throw new UnsupportedOperationException("Not implemented for new fs abstraction layer");
 
-								if (!renameSuccess) {
-									errorBuffer.add(new SemanticErrorToken("RenameFailed", AbstractFileTraitDefinition.name.jsonName(), "Renaming failed"));
+									/*
+									final boolean renameSuccess = file.renameMountedAbstractFile(file.getParent(), file, "", prevName);
+
+									if (!renameSuccess) {
+										errorBuffer.add(new SemanticErrorToken("RenameFailed", AbstractFileTraitDefinition.name.jsonName(), "Renaming failed"));
+									}
+									*/
 								}
-								*/
 							}
 						}
 

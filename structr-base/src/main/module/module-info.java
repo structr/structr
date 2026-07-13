@@ -183,7 +183,6 @@ module structr.base {
     exports org.structr.docs.ontology;
     exports org.structr.docs.ontology.parser.rule;
     exports org.structr.docs.ontology.parser.token;
-    exports org.structr.files.external;
     exports org.structr.files.sync;
     exports org.structr.files.url;
     exports org.structr.logging;
@@ -281,7 +280,6 @@ module structr.base {
         org.structr.rest.service.HttpService,
         org.structr.agent.AgentService,
         org.structr.cron.CronService,
-        org.structr.files.external.DirectoryWatchService,
         org.structr.files.sync.StorageSyncService;
 
     provides org.structr.agent.Agent with

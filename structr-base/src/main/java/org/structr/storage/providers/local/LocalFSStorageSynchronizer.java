@@ -296,6 +296,7 @@ public class LocalFSStorageSynchronizer implements StorageSynchronizer {
 
 		private final Stream<Path> stream;
 		private final Iterator<ExternalEntry> iterator;
+		private boolean exhausted = false;
 
 		private ClosingIterator(final Stream<Path> stream, final Iterator<ExternalEntry> iterator) {
 
@@ -306,9 +307,17 @@ public class LocalFSStorageSynchronizer implements StorageSynchronizer {
 		@Override
 		public boolean hasNext() {
 
+			// the underlying walk iterator must not be touched again after the
+			// stream was closed (it would throw IllegalStateException)
+			if (exhausted) {
+				return false;
+			}
+
 			final boolean hasNext = iterator.hasNext();
 
 			if (!hasNext) {
+
+				exhausted = true;
 				stream.close();
 			}
 

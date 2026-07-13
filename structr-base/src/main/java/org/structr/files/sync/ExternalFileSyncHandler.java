@@ -62,6 +62,11 @@ public class ExternalFileSyncHandler {
 	private final SyncTarget target;
 	private final Stats stats = new Stats();
 
+	// all graph access happens with a sync-originated superuser context, so
+	// lifecycle guards can distinguish external changes from user-initiated
+	// ones (see StorageSyncService.SYNC_ORIGIN_ATTRIBUTE)
+	private final App app = StructrApp.getInstance(StorageSyncService.createSyncContext());
+
 	public ExternalFileSyncHandler(final SyncTarget target) {
 		this.target = target;
 	}
@@ -129,7 +134,7 @@ public class ExternalFileSyncHandler {
 				return;
 			}
 
-			StructrApp.getInstance().delete(node);
+			app.delete(node);
 			stats.deleted++;
 		}
 	}
@@ -162,7 +167,7 @@ public class ExternalFileSyncHandler {
 
 		if (entry.hasUuid()) {
 
-			final NodeInterface node = StructrApp.getInstance().getNodeById(StructrTraits.ABSTRACT_FILE, entry.nodeUuid());
+			final NodeInterface node = app.getNodeById(StructrTraits.ABSTRACT_FILE, entry.nodeUuid());
 			if (node != null) {
 
 				if (!isGovernedByThisTarget(node.as(AbstractFile.class))) {
@@ -234,7 +239,6 @@ public class ExternalFileSyncHandler {
 		final Traits traits                        = Traits.of(StructrTraits.ABSTRACT_FILE);
 		final PropertyKey<NodeInterface> parentKey = traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY);
 		final PropertyKey<String> nameKey          = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
-		final App app                              = StructrApp.getInstance();
 
 		NodeInterface current = syncRoot;
 
@@ -248,8 +252,10 @@ public class ExternalFileSyncHandler {
 				}
 
 				// remaining folders do not exist yet and will inherit this target's
-				// configuration, so no boundary can be crossed below this point
-				final String virtualParentPath = target.syncRootPath() + "/" + parentPath;
+				// configuration, so no boundary can be crossed below this point.
+				// read the sync root's path fresh from the node - ancestors may have
+				// been renamed since the target snapshot was taken
+				final String virtualParentPath = syncRoot.as(AbstractFile.class).getPath() + "/" + parentPath;
 
 				return FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), virtualParentPath);
 			}
@@ -274,7 +280,6 @@ public class ExternalFileSyncHandler {
 		final PropertyKey<Boolean> isExternalKey   = traits.key(AbstractFileTraitDefinition.IS_EXTERNAL_PROPERTY);
 		final PropertyKey<NodeInterface> parentKey = traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY);
 		final PropertyKey<String> nameKey          = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
-		final App app                              = StructrApp.getInstance();
 
 		// kind-agnostic lookup: deletions cannot know whether the vanished entry
 		// was a file or a folder, and existing nodes may have a subtype
@@ -351,8 +356,14 @@ public class ExternalFileSyncHandler {
 	 */
 	private boolean moveTo(final NodeInterface node, final ExternalEntry entry) throws FrameworkException {
 
+		final NodeInterface syncRoot = getSyncRoot();
+		if (syncRoot == null) {
+			return false;
+		}
+
 		final AbstractFile abstractFile = node.as(AbstractFile.class);
-		final String expectedPath       = entry.relativePath().isEmpty() ? target.syncRootPath() : target.syncRootPath() + "/" + entry.relativePath();
+		final String syncRootPath       = syncRoot.as(AbstractFile.class).getPath();
+		final String expectedPath       = entry.relativePath().isEmpty() ? syncRootPath : syncRootPath + "/" + entry.relativePath();
 		final String currentPath        = abstractFile.getPath();
 
 		if (expectedPath.equals(currentPath)) {
@@ -362,11 +373,6 @@ public class ExternalFileSyncHandler {
 		if (target.syncRootUuid().equals(node.getUuid())) {
 
 			logger.warn("External storage of sync target {} reports a differing path {} for the sync root itself, not moving node {}", target.syncRootPath(), expectedPath, node.getUuid());
-			return false;
-		}
-
-		final NodeInterface syncRoot = getSyncRoot();
-		if (syncRoot == null) {
 			return false;
 		}
 
@@ -437,7 +443,7 @@ public class ExternalFileSyncHandler {
 
 	private NodeInterface getSyncRoot() throws FrameworkException {
 
-		final NodeInterface syncRoot = StructrApp.getInstance().getNodeById(StructrTraits.ABSTRACT_FILE, target.syncRootUuid());
+		final NodeInterface syncRoot = app.getNodeById(StructrTraits.ABSTRACT_FILE, target.syncRootUuid());
 		if (syncRoot == null) {
 
 			logger.warn("Sync root {} of sync target {} does not exist (anymore), skipping", target.syncRootUuid(), target.syncRootPath());

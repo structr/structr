@@ -19,13 +19,10 @@
 package org.structr.web.traits.wrappers;
 
 import org.structr.api.util.Iterables;
-import org.structr.core.Services;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.files.external.DirectoryWatchService;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
@@ -108,24 +105,5 @@ public class FolderTraitWrapper extends AbstractFileTraitWrapper implements Fold
 		}
 
 		return allChildren;
-	}
-
-	static void updateWatchService(final Folder thisFolder, final boolean mount) {
-
-		if (Services.getInstance().isConfigured(DirectoryWatchService.class)) {
-
-			final DirectoryWatchService service = StructrApp.getInstance().getService(DirectoryWatchService.class);
-			if (service != null && service.isRunning()) {
-
-				if (mount) {
-
-					service.mountFolder(thisFolder);
-
-				} else {
-
-					service.unmountFolder(thisFolder);
-				}
-			}
-		}
 	}
 }

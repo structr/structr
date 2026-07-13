@@ -3,4 +3,4 @@ org.structr.schema.SchemaService
 org.structr.rest.service.HttpService
 org.structr.agent.AgentService
 org.structr.cron.CronService
-org.structr.files.external.DirectoryWatchService
+org.structr.files.sync.StorageSyncService

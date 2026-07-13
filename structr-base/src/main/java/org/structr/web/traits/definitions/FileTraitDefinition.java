@@ -48,6 +48,7 @@ import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.operations.nodeinterface.OnNodeDeletion;
 import org.structr.core.traits.operations.propertycontainer.SetProperty;
+import org.structr.files.sync.StorageSyncService;
 import org.structr.schema.action.ActionContext;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.FileHelper;
@@ -141,6 +142,12 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 						// acknowledge all events for this node when it is modified
 						RuntimeEventLog.acknowledgeAllEventsForId(thisFile.getUuid());
 					}
+
+					// single-file sync roots: update the synchronizer when the storage configuration link changes
+					if (modificationQueue.isPropertyModified(thisFile, Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY))) {
+
+						StorageSyncService.handleNodeChanged(thisFile);
+					}
 				}
 			},
 
@@ -150,6 +157,9 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 				public void onNodeDeletion(NodeInterface nodeInterface, SecurityContext securityContext) throws FrameworkException {
 
 					final File thisFile = nodeInterface.as(File.class);
+
+					// a deleted single-file sync root must no longer be watched
+					StorageSyncService.handleNodeDeleted(thisFile.getUuid());
 
 					// only delete mounted files
 					if (!thisFile.isExternal()) {

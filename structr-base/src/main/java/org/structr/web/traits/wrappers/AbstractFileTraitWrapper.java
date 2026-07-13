@@ -33,9 +33,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
-import org.structr.files.external.DirectoryWatchService;
-import org.structr.storage.StorageProvider;
-import org.structr.storage.StorageProviderFactory;
+import org.structr.files.sync.StorageSyncService;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Folder;
@@ -124,11 +122,9 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 	@Override
 	public boolean isMounted() {
 
-		final StorageProvider provider             = StorageProviderFactory.getStorageProvider(this);
-		final boolean hasMountTarget               = provider.getConfig() != null && provider.getConfig().getConfiguration().get("mountTarget") != null;
-		final boolean watchServiceHasMountedFolder = Settings.Services.getValue("").contains("DirectoryWatchService") && StructrApp.getInstance().getService(DirectoryWatchService.class) != null && StructrApp.getInstance().getService(DirectoryWatchService.class).isMounted(getUuid());
+		final StorageSyncService service = StructrApp.getInstance().getService(StorageSyncService.class);
+		if (service != null && service.isSynchronized(getUuid())) {
 
-		if (hasMountTarget && watchServiceHasMountedFolder) {
 			return true;
 		}
 

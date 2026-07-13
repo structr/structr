@@ -19,7 +19,12 @@
 package org.structr.web.traits.definitions;
 
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.entity.Relation;
+import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
@@ -29,6 +34,10 @@ import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.core.traits.operations.graphobject.OnDeletion;
+import org.structr.core.traits.operations.graphobject.OnModification;
+import org.structr.files.sync.StorageSyncService;
+import org.structr.web.entity.StorageConfiguration;
 import org.structr.web.entity.StorageConfigurationEntry;
 import org.structr.web.traits.wrappers.StorageConfigurationEntryTraitWrapper;
 
@@ -50,7 +59,40 @@ public class StorageConfigurationEntryTraitDefinition extends AbstractNodeTraitD
 
 	@Override
 	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
-		return Map.of();
+
+		return Map.of(
+
+			OnModification.class,
+			new OnModification() {
+
+				@Override
+				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+					// entry changes do not modify the configuration node itself, so notify explicitly
+					notifyConfigurationChanged(graphObject);
+				}
+			},
+
+			OnDeletion.class,
+			new OnDeletion() {
+
+				@Override
+				public void onDeletion(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
+
+					notifyConfigurationChanged(graphObject);
+				}
+			}
+		);
+	}
+
+	// ----- private static methods -----
+	private static void notifyConfigurationChanged(final GraphObject entry) {
+
+		final StorageConfiguration configuration = entry.as(StorageConfigurationEntry.class).getConfiguration();
+		if (configuration != null) {
+
+			StorageSyncService.handleConfigurationChanged(configuration.getUuid());
+		}
 	}
 
 	@Override

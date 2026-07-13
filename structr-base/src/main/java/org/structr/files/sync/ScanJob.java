@@ -131,7 +131,7 @@ class ScanJob implements Runnable {
 	 */
 	private boolean discover(final ExternalFileSyncHandler handler, final long scanStart) {
 
-		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+		final SecurityContext securityContext = StorageSyncService.createSyncContext();
 
 		// configure security context for maximum performance
 		securityContext.disablePreventDuplicateRelationships();
@@ -205,7 +205,7 @@ class ScanJob implements Runnable {
 
 			int batchCount = 0;
 
-			try (final Tx tx = StructrApp.getInstance().tx(true, false, false)) {
+			try (final Tx tx = StructrApp.getInstance(StorageSyncService.createSyncContext()).tx(true, false, false)) {
 
 				while (it.hasNext() && batchCount++ < BATCH_SIZE) {
 
