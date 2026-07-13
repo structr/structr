@@ -61,8 +61,12 @@ public class MarkdownTableWithDetailsFormatter extends Formatter {
 			// format children
 			final List<Map<String, String>> documentables = new LinkedList<>();
 
-			for (final Concept child : concept.getChildren(Verb.Has).stream().sorted(Comparator.comparing(Concept::getName)).toList()) {
+			// iterate the parent->child LINKS (not just the child concepts): a link
+			// can carry a parent-scoped shortDescription that overrides the concept's
+			// single one, so a shared constant reads correctly under each parent topic
+			for (final Link childLink : concept.getChildLinks(Verb.Has).stream().sorted(Comparator.comparing(l -> l.getTarget().getName())).toList()) {
 
+				final Concept child             = childLink.getTarget();
 				final Documentable documentable = child.getDocumentable();
 				if (documentable != null) {
 
@@ -72,7 +76,7 @@ public class MarkdownTableWithDetailsFormatter extends Formatter {
 					documentables.add(mapOf(
 						"name", documentable.getName(),
 						"displayName", documentable.getDisplayName(false),
-						"shortDescription", documentable.getShortDescription(),
+						"shortDescription", MarkdownTableWithDetailsFormatter.coalesce(childLink.getShortDescription(), documentable.getShortDescription()),
 						"longDescription", longDescription,
 						"details", details
 					));
@@ -82,7 +86,7 @@ public class MarkdownTableWithDetailsFormatter extends Formatter {
 					documentables.add(mapOf(
 						"name", child.getName(),
 						"displayName", child.getName(),
-						"shortDescription", MarkdownTableWithDetailsFormatter.coalesce(child.getShortDescription(), (String) child.getMetadata().get("description")),
+						"shortDescription", MarkdownTableWithDetailsFormatter.coalesce(childLink.getShortDescription(), child.getShortDescription(), (String) child.getMetadata().get("description")),
 						"details", ""
 					));
 				}

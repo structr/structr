@@ -32,6 +32,11 @@ public class Link {
 	private final Concept source;
 	private final Verb verb;
 	private final Concept target;
+	// parent-scoped short description: the same concept (e.g. a shared enum
+	// constant like SOURCE_TO_TARGET) can be documented differently under each
+	// parent topic (Cascading Delete Options vs Autocreation Options), so the
+	// contextual blurb belongs on the parent->child link, not on the concept.
+	private String shortDescription;
 
 	public Link(final Concept source, final Verb verb, final Concept target) {
 		this.source = source;
@@ -80,6 +85,14 @@ public class Link {
 
 	public Concept getTarget() {
 		return target;
+	}
+
+	public String getShortDescription() {
+		return shortDescription;
+	}
+
+	public void setShortDescription(final String shortDescription) {
+		this.shortDescription = shortDescription;
 	}
 
 	public void setFormatSpecification(final FormatSpecification format) {

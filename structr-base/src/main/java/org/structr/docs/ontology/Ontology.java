@@ -528,17 +528,28 @@ public final class Ontology {
 				}
 			}
 
+			// The description is stored on the PARENT->CHILD LINK, not only on the
+			// concept: a concept shared across parents (e.g. the enum constant
+			// SOURCE_TO_TARGET, documented once for Cascading Delete Options and once
+			// for Autocreation Options) needs a different blurb per parent, and the
+			// concept can hold only one. The table renderer prefers the link's blurb.
 			if (StringUtils.isNotBlank(parent)) {
 
 				final Concept p = getOrCreateConcept(token, ConceptType.Topic, parent, true);
-				if (p != null && !p.hasChild(Verb.Has, concept)) {
+				if (p != null) {
 
-					createSymmetricLink(p, Verb.Has, concept);
+					final Link link = createSymmetricLink(p, Verb.Has, concept);
+					if (link != null && StringUtils.isNotBlank(desc)) {
+						link.setShortDescription(desc);
+					}
 				}
 
-			} else if (parentConcept != null && !parentConcept.hasChild(Verb.Has, concept)) {
+			} else if (parentConcept != null) {
 
-				createSymmetricLink(parentConcept, Verb.Has, concept);
+				final Link link = createSymmetricLink(parentConcept, Verb.Has, concept);
+				if (link != null && StringUtils.isNotBlank(desc)) {
+					link.setShortDescription(desc);
+				}
 			}
 
 			if (clazz != null) {
