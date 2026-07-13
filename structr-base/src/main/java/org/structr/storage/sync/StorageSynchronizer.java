@@ -63,6 +63,21 @@ public interface StorageSynchronizer extends AutoCloseable {
 	Iterator<ExternalEntry> enumerate(final String relativePath) throws IOException;
 
 	/**
+	 * Outbound side: called after a Structr-side structural change (create/
+	 * move/rename/delete of a file or folder governed by this target) was
+	 * committed, if the target's {@link SyncDirection} includes OUT. Called
+	 * on the sync service thread, never within a transaction -
+	 * implementations must not access graph nodes and should only use the
+	 * event payload and their {@link SyncTarget} snapshot.
+	 *
+	 * The default implementation does nothing: providers whose physical
+	 * keys do not depend on the virtual path (UUID-sharded local tree,
+	 * object stores) may simply ignore structural changes.
+	 */
+	default void onVirtualChange(final VirtualChangeEvent event) {
+	}
+
+	/**
 	 * Stop watching and release all resources. Idempotent.
 	 */
 	@Override
