@@ -47,9 +47,11 @@ import org.structr.storage.StorageProviderFactory;
 import org.structr.storage.providers.local.LocalFSStorageProvider;
 import org.structr.storage.sync.ExternalEntry;
 import org.structr.storage.sync.SyncTarget;
+import org.structr.storage.sync.VirtualChangeEvent;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
+import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
 import org.structr.web.entity.StorageConfiguration;
 import org.structr.web.entity.User;
@@ -69,6 +71,7 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BooleanSupplier;
 
 import static org.testng.AssertJUnit.*;
 
@@ -858,7 +861,589 @@ public class StorageSyncServiceTest extends StructrUiTest {
 		}
 	}
 
+	@Test
+	public void testOutboundRenameMoveDeletePropagation() {
+
+		Path root = null;
+
+		try {
+
+			root = Files.createTempDirectory("structr-outbound-test");
+
+			Files.createDirectory(root.resolve("a"));
+			writeFile(root.resolve("a/file.txt").toFile(), "outbound content");
+
+			// mount with two-way sync, no live watching (echo behavior is tested separately)
+			try (final Tx tx = app.tx()) {
+
+				final StorageConfiguration mount = StorageProviderFactory.createConfig("outboundMount", LocalFSStorageProvider.class,
+					Map.of("mountTarget", root.toString(), StorageSyncService.DIRECTION_KEY, "both"));
+
+				app.create(StructrTraits.FOLDER,
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "outbound1"),
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY), false),
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), mount)
+				);
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				fail("Unexpected exception.");
+			}
+
+			waitForNodeAtPath(StructrTraits.FILE, "/outbound1/a/file.txt");
+
+			// rename the (external) file node
+			setNodeProperty(getNodeAtPath("/outbound1/a/file.txt"), NodeInterfaceTraitDefinition.NAME_PROPERTY, "renamed.txt");
+
+			final Path rootPath = root;
+			waitFor("Physical file should have been renamed", () -> Files.exists(rootPath.resolve("a/renamed.txt")) && !Files.exists(rootPath.resolve("a/file.txt")));
+
+			// create a folder inside Structr - the physical directory must materialize
+			try (final Tx tx = app.tx()) {
+
+				app.create(StructrTraits.FOLDER,
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "b"),
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.PARENT_PROPERTY), getNodeAtPath("/outbound1"))
+				);
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				fail("Unexpected exception.");
+			}
+
+			waitFor("Physical directory should have been created", () -> Files.isDirectory(rootPath.resolve("b")));
+
+			// move the file into the new folder
+			setNodeProperty(getNodeAtPath("/outbound1/a/renamed.txt"), AbstractFileTraitDefinition.PARENT_PROPERTY, getNodeAtPath("/outbound1/b"));
+
+			waitFor("Physical file should have been moved", () -> Files.exists(rootPath.resolve("b/renamed.txt")) && !Files.exists(rootPath.resolve("a/renamed.txt")));
+
+			// rename the (external) folder - one physical directory move
+			setNodeProperty(getNodeAtPath("/outbound1/a"), NodeInterfaceTraitDefinition.NAME_PROPERTY, "a2");
+
+			waitFor("Physical directory should have been renamed", () -> Files.isDirectory(rootPath.resolve("a2")) && !Files.exists(rootPath.resolve("a")));
+
+			// delete file and folder nodes - physical entries must vanish
+			try (final Tx tx = app.tx()) {
+
+				app.delete(getNodeAtPath("/outbound1/b/renamed.txt"));
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				fail("Unexpected exception.");
+			}
+
+			waitFor("Physical file should have been deleted", () -> !Files.exists(rootPath.resolve("b/renamed.txt")));
+
+			try (final Tx tx = app.tx()) {
+
+				app.delete(getNodeAtPath("/outbound1/b"));
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				fail("Unexpected exception.");
+			}
+
+			waitFor("Physical directory should have been deleted", () -> !Files.exists(rootPath.resolve("b")));
+
+		} catch (IOException ioex) {
+
+			fail("Unexpected exception.");
+
+		} finally {
+
+			cleanupDirectory(root);
+		}
+	}
+
+	@Test
+	public void testOutboundForNonExternalNodeCreatedInStructr() {
+
+		Path root = null;
+
+		try {
+
+			root = Files.createTempDirectory("structr-outbound-created-test");
+
+			try (final Tx tx = app.tx()) {
+
+				final StorageConfiguration mount = StorageProviderFactory.createConfig("outboundCreatedMount", LocalFSStorageProvider.class,
+					Map.of("mountTarget", root.toString(), StorageSyncService.DIRECTION_KEY, "both"));
+
+				final NodeInterface folder = app.create(StructrTraits.FOLDER,
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "outbound2"),
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY), false),
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), mount)
+				);
+
+				final NodeInterface sub = app.create(StructrTraits.FOLDER,
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "sub"),
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder)
+				);
+
+				app.create(StructrTraits.FILE,
+					new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "created.txt"),
+					new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), sub)
+				);
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+				fail("Unexpected exception.");
+			}
+
+			final Path rootPath = root;
+			waitFor("Physical directory and file should have materialized", () -> Files.isDirectory(rootPath.resolve("sub")) && Files.exists(rootPath.resolve("sub/created.txt")));
+
+			// the file node is NOT external - renaming it must still move the physical file
+			try (final Tx tx = app.tx()) {
+
+				assertFalse("Node created in Structr must not be external", getNodeAtPath("/outbound2/sub/created.txt").as(File.class).isExternal());
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				fail("Unexpected exception.");
+			}
+
+			setNodeProperty(getNodeAtPath("/outbound2/sub/created.txt"), NodeInterfaceTraitDefinition.NAME_PROPERTY, "renamed.txt");
+
+			waitFor("Physical file of non-external node should follow the rename", () -> Files.exists(rootPath.resolve("sub/renamed.txt")) && !Files.exists(rootPath.resolve("sub/created.txt")));
+
+		} catch (IOException ioex) {
+
+			fail("Unexpected exception.");
+
+		} finally {
+
+			cleanupDirectory(root);
+		}
+	}
+
+	@Test
+	public void testInboundOnlyDirectionKeepsRenameGuard() {
+
+		Path root = null;
+
+		try {
+
+			root = Files.createTempDirectory("structr-inbound-guard-test");
+
+			writeFile(root.resolve("guarded.txt").toFile(), "guarded content");
+
+			// mount WITHOUT a sync.direction entry - defaults to inbound-only
+			try (final Tx tx = app.tx()) {
+
+				final StorageConfiguration mount = StorageProviderFactory.createConfig("guardMount", LocalFSStorageProvider.class, Map.of("mountTarget", root.toString()));
+
+				app.create(StructrTraits.FOLDER,
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "guarded"),
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY), false),
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), mount)
+				);
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				fail("Unexpected exception.");
+			}
+
+			waitForNodeAtPath(StructrTraits.FILE, "/guarded/guarded.txt");
+
+			// renaming an external node without outbound synchronization must still be rejected
+			try (final Tx tx = app.tx()) {
+
+				getNodeAtPath("/guarded/guarded.txt").setProperty(Traits.of(StructrTraits.ABSTRACT_FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "reject.txt");
+
+				tx.success();
+
+				fail("Renaming an external node without outbound sync should be rejected");
+
+			} catch (FrameworkException fex) {
+
+				fail("Unexpected exception type.");
+
+			} catch (UnsupportedOperationException expected) {
+			}
+
+			// and the physical file is untouched
+			assertTrue("Physical file must be untouched", Files.exists(root.resolve("guarded.txt")));
+			assertFalse("No physical file with the rejected name may exist", Files.exists(root.resolve("reject.txt")));
+
+		} catch (IOException ioex) {
+
+			fail("Unexpected exception.");
+
+		} finally {
+
+			cleanupDirectory(root);
+		}
+	}
+
+	@Test
+	public void testOutboundOnlyDirection() {
+
+		Path root = null;
+
+		try {
+
+			root = Files.createTempDirectory("structr-outbound-only-test");
+
+			writeFile(root.resolve("external.txt").toFile(), "never imported");
+
+			// outbound-only: no scans, no watching - even though both are configured
+			try (final Tx tx = app.tx()) {
+
+				final StorageConfiguration mount = StorageProviderFactory.createConfig("outboundOnlyMount", LocalFSStorageProvider.class,
+					Map.of("mountTarget", root.toString(), StorageSyncService.DIRECTION_KEY, "out"));
+
+				app.create(StructrTraits.FOLDER,
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "outboundOnly"),
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY), true),
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_SCAN_INTERVAL_PROPERTY), 2),
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), mount)
+				);
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				fail("Unexpected exception.");
+			}
+
+			// the folder must still count as synchronized (it is an outbound target)
+			try (final Tx tx = app.tx()) {
+
+				assertTrue("Outbound-only sync root should report isMounted", getNodeAtPath("/outboundOnly").as(Folder.class).isMounted());
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				fail("Unexpected exception.");
+			}
+
+			// wait past scan interval + debounce: the external file must NOT be imported
+			try { Thread.sleep(5000); } catch (InterruptedException ignore) {}
+
+			try (final Tx tx = app.tx()) {
+
+				assertNull("External file must not be imported with direction=out", app.nodeQuery(StructrTraits.FILE).name("external.txt").getFirst());
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				fail("Unexpected exception.");
+			}
+
+			// but Structr-side changes propagate out
+			try (final Tx tx = app.tx()) {
+
+				app.create(StructrTraits.FOLDER,
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "created"),
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.PARENT_PROPERTY), getNodeAtPath("/outboundOnly"))
+				);
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				fail("Unexpected exception.");
+			}
+
+			final Path rootPath = root;
+			waitFor("Physical directory should have been created", () -> Files.isDirectory(rootPath.resolve("created")));
+
+			setNodeProperty(getNodeAtPath("/outboundOnly/created"), NodeInterfaceTraitDefinition.NAME_PROPERTY, "renamed");
+
+			waitFor("Physical directory should have been renamed", () -> Files.isDirectory(rootPath.resolve("renamed")) && !Files.exists(rootPath.resolve("created")));
+
+		} catch (IOException ioex) {
+
+			fail("Unexpected exception.");
+
+		} finally {
+
+			cleanupDirectory(root);
+		}
+	}
+
+	@Test
+	public void testOutboundEchoDoesNotLoop() {
+
+		Path root = null;
+
+		try {
+
+			root = Files.createTempDirectory("structr-echo-test");
+
+			writeFile(root.resolve("echo.txt").toFile(), "echo content");
+
+			// two-way sync WITH live watching: outbound disk changes echo back as watch events
+			try (final Tx tx = app.tx()) {
+
+				final StorageConfiguration mount = StorageProviderFactory.createConfig("echoMount", LocalFSStorageProvider.class,
+					Map.of("mountTarget", root.toString(), StorageSyncService.DIRECTION_KEY, "both"));
+
+				app.create(StructrTraits.FOLDER,
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "echo"),
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY), true),
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), mount)
+				);
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				fail("Unexpected exception.");
+			}
+
+			waitForNodeAtPath(StructrTraits.FILE, "/echo/echo.txt");
+
+			setNodeProperty(getNodeAtPath("/echo/echo.txt"), NodeInterfaceTraitDefinition.NAME_PROPERTY, "echoRenamed.txt");
+
+			final Path rootPath = root;
+			waitFor("Physical file should have been renamed", () -> Files.exists(rootPath.resolve("echoRenamed.txt")) && !Files.exists(rootPath.resolve("echo.txt")));
+
+			// wait past the inbound debounce window so all echo events are processed
+			try { Thread.sleep(6000); } catch (InterruptedException ignore) {}
+
+			try (final Tx tx = app.tx()) {
+
+				assertEquals("Exactly one file node should exist after the echo settled", 1, app.nodeQuery(StructrTraits.FILE).getAsList().size());
+				assertNotNull("Renamed node should still exist", app.nodeQuery(StructrTraits.FILE).name("echoRenamed.txt").getFirst());
+				assertNull("No node with the old name may reappear", app.nodeQuery(StructrTraits.FILE).name("echo.txt").getFirst());
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				fail("Unexpected exception.");
+			}
+
+			assertTrue("Physical file must keep the new name", Files.exists(root.resolve("echoRenamed.txt")));
+			assertFalse("Physical file with the old name must not reappear", Files.exists(root.resolve("echo.txt")));
+
+		} catch (IOException ioex) {
+
+			fail("Unexpected exception.");
+
+		} finally {
+
+			cleanupDirectory(root);
+		}
+	}
+
+	@Test
+	public void testUuidKeyedProviderMayIgnoreOutboundEvents() {
+
+		RecordingStorageProvider.reset();
+
+		// no mountTarget: the recording provider always creates a synchronizer
+		try (final Tx tx = app.tx()) {
+
+			final StorageConfiguration config = StorageProviderFactory.createConfig("recordingConfig", RecordingStorageProvider.class,
+				Map.of(StorageSyncService.DIRECTION_KEY, "both"));
+
+			app.create(StructrTraits.FOLDER,
+				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "recorded"),
+				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), config)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		String childUuid = null;
+
+		try (final Tx tx = app.tx()) {
+
+			childUuid = app.create(StructrTraits.FOLDER,
+				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "x"),
+				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.PARENT_PROPERTY), getNodeAtPath("/recorded"))
+			).getUuid();
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		setNodeProperty(getNodeAtPath("/recorded/x"), NodeInterfaceTraitDefinition.NAME_PROPERTY, "y");
+
+		try (final Tx tx = app.tx()) {
+
+			app.delete(getNodeAtPath("/recorded/y"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		waitFor("Three outbound events should have been dispatched", () -> RecordingStorageProvider.RECORDED_EVENTS.size() >= 3);
+
+		final List<VirtualChangeEvent> events = RecordingStorageProvider.RECORDED_EVENTS;
+
+		assertEquals("Unexpected number of outbound events", 3, events.size());
+
+		assertEquals("First event should be the folder creation",  VirtualChangeEvent.Type.CREATED, events.get(0).type());
+		assertEquals("Invalid path of creation event",             "x", events.get(0).relativePath());
+		assertTrue("Creation event should mark a directory",       events.get(0).directory());
+		assertEquals("Invalid node uuid of creation event",        childUuid, events.get(0).nodeUuid());
+
+		assertEquals("Second event should be the rename",          VirtualChangeEvent.Type.MOVED, events.get(1).type());
+		assertEquals("Invalid old path of rename event",           "x", events.get(1).previousRelativePath());
+		assertEquals("Invalid new path of rename event",           "y", events.get(1).relativePath());
+
+		assertEquals("Third event should be the deletion",         VirtualChangeEvent.Type.DELETED, events.get(2).type());
+		assertEquals("Invalid path of deletion event",             "y", events.get(2).previousRelativePath());
+
+		// ignoring the events has no graph side effects
+		try (final Tx tx = app.tx()) {
+
+			assertNull("Deleted node must stay deleted", app.getNodeById(StructrTraits.FOLDER, childUuid));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testRolledBackTransactionSendsNoOutboundEvents() {
+
+		// recording provider target with one committed child
+		try (final Tx tx = app.tx()) {
+
+			final StorageConfiguration config = StorageProviderFactory.createConfig("rollbackConfig", RecordingStorageProvider.class,
+				Map.of(StorageSyncService.DIRECTION_KEY, "both"));
+
+			final NodeInterface folder = app.create(StructrTraits.FOLDER,
+				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "rollback"),
+				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), config)
+			);
+
+			app.create(StructrTraits.FOLDER,
+				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "child"),
+				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// the setup transaction's creation event is dispatched asynchronously -
+		// wait for it before resetting, so it cannot pollute the assertion below
+		waitFor("Setup creation event should have been dispatched", () -> !RecordingStorageProvider.RECORDED_EVENTS.isEmpty());
+
+		RecordingStorageProvider.reset();
+
+		// modify without tx.success(): the transaction rolls back (the node must
+		// be fetched within the same transaction - a nested transaction would
+		// mark the shared toplevel transaction successful)
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface child = app.nodeQuery(StructrTraits.ABSTRACT_FILE).key(Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY), "/rollback/child").getFirst();
+
+			child.setProperty(Traits.of(StructrTraits.ABSTRACT_FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "discarded");
+
+			// no tx.success()
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		try { Thread.sleep(1500); } catch (InterruptedException ignore) {}
+
+		assertTrue("Rolled-back transactions must not produce outbound events", RecordingStorageProvider.RECORDED_EVENTS.isEmpty());
+
+		// a committed rename afterwards still works and produces exactly one event
+		setNodeProperty(getNodeAtPath("/rollback/child"), NodeInterfaceTraitDefinition.NAME_PROPERTY, "committed");
+
+		waitFor("Committed rename should produce an outbound event", () -> RecordingStorageProvider.RECORDED_EVENTS.size() == 1);
+
+		final VirtualChangeEvent event = RecordingStorageProvider.RECORDED_EVENTS.get(0);
+
+		assertEquals("Invalid event type",     VirtualChangeEvent.Type.MOVED, event.type());
+		assertEquals("Invalid old path",       "child", event.previousRelativePath());
+		assertEquals("Invalid new path",       "committed", event.relativePath());
+	}
+
 	// ----- private methods -----
+	private NodeInterface getNodeAtPath(final String path) {
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface node = app.nodeQuery(StructrTraits.ABSTRACT_FILE).key(Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY), path).getFirst();
+
+			tx.success();
+
+			return node;
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception.");
+			return null;
+		}
+	}
+
+	private void waitForNodeAtPath(final String type, final String path) {
+
+		waitFor("Node at " + path + " should have been created", () -> {
+
+			try (final Tx tx = app.tx()) {
+
+				final NodeInterface node = app.nodeQuery(type).key(Traits.of(type).key(AbstractFileTraitDefinition.PATH_PROPERTY), path).getFirst();
+
+				tx.success();
+
+				return node != null;
+
+			} catch (FrameworkException fex) {
+				return false;
+			}
+		});
+	}
+
+	private void setNodeProperty(final NodeInterface node, final String keyName, final Object value) {
+
+		try (final Tx tx = app.tx()) {
+
+			node.setProperty(Traits.of(StructrTraits.ABSTRACT_FILE).key(keyName), value);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	private void waitFor(final String message, final BooleanSupplier condition) {
+
+		final long deadline = System.currentTimeMillis() + 10000;
+
+		while (System.currentTimeMillis() < deadline) {
+
+			if (condition.getAsBoolean()) {
+				return;
+			}
+
+			try { Thread.sleep(200); } catch (InterruptedException ignore) {}
+		}
+
+		fail(message);
+	}
+
 	private void createTestFile(final Path path, final String content) throws IOException {
 
 		try (final FileWriter writer = new FileWriter(path.toFile())) {
