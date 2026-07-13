@@ -103,10 +103,11 @@ public class TraitsImplementation implements Traits {
 
 	@Override
 	public <T> PropertyKey<T> key(final String name) {
-		return key(name, true);
-	}
 
-	private <T> PropertyKey<T> key(final String name, final boolean throwException) {
+		// Returns null for unknown keys (null-safe contract). Callers that resolve
+		// keys from dynamic or user-supplied names (scripting, search predicates,
+		// raw stored property keys, websocket commands, ...) rely on this. Use
+		// hasKey(name) to check existence first where a missing key is unexpected.
 
 		// use wrapper to cache null values as well
 		Wrapper<PropertyKey> wrapper = keyCache.get(name);
@@ -122,23 +123,14 @@ public class TraitsImplementation implements Traits {
 			final Map<String, PropertyKey> keys = trait.getPropertyKeys();
 			if (keys.containsKey(name)) {
 
+				// return last key, not first
 				key = keys.get(name);
 			}
 		}
 
 		keyCache.put(name, new Wrapper(key));
 
-		// return last key, not first
-		if (key != null) {
-
-			return key;
-		}
-
-		if (throwException) {
-			throw new RuntimeException("Missing property key '" + name + "' of type '" + typeName + "'.");
-		}
-
-		return null;
+		return key;
 	}
 
 	@Override
@@ -153,7 +145,7 @@ public class TraitsImplementation implements Traits {
 
 	@Override
 	public boolean hasKey(final String name) {
-		return key(name, false) != null;
+		return key(name) != null;
 	}
 
 	@Override
@@ -216,8 +208,7 @@ public class TraitsImplementation implements Traits {
 
 				for (final String keyName : names) {
 
-					// do not throw exception here
-					final PropertyKey key = key(keyName, false);
+					final PropertyKey key = key(keyName);
 					if (key != null) {
 
 						set.add(key);

@@ -349,8 +349,17 @@ public class Services implements StructrServices, BroadcastReceiver {
 		// register change handlers for various Settings
 		registerSettingsChangeHandlers();
 
-		// run migration service
-		MigrationService.execute();
+		// run migration service; a failed migration is a hard error and must abort
+		// startup rather than leaving the instance running on half-migrated data
+		try {
+
+			MigrationService.execute();
+
+		} catch (FrameworkException fex) {
+
+			logger.error("Database migration failed, aborting startup.", fex);
+			System.exit(3);
+		}
 
 		logger.info("Started Structr {}", VersionHelper.getFullVersionInfo());
 		logger.info("---------------- Initialization complete ----------------");

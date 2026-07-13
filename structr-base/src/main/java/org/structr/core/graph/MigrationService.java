@@ -176,25 +176,41 @@ public class MigrationService {
 		"LDAPUser", "PaymentItemNode", "PaymentNode", "Person"
 	);
 
-	public static void execute() {
+	public static void execute() throws FrameworkException {
 
 		//if (!Services.isTesting() && Services.getInstance().hasExclusiveDatabaseAccess()) {
 		if (Services.getInstance().hasExclusiveDatabaseAccess()) {
 
-			migrateStaticSchema();
-			migratePrincipalToPrincipalInterface();
-			migrateFolderMountTarget();
-			migrateEventActionMapping();
-			migrateActionMappingTargetsToRelationships();
-			cleanStaleActionMappingTargets();
-			migrateMailTemplates();
-			updateSharedComponentFlag();
-			if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
-				migrateRestQueryRepeaters();
-				migrateActionMappingControlsToProcess();
-				migrateVisibilityMappingForToProcess();
+			// A migration is a hard, all-or-nothing operation: if any step fails, the
+			// step's transaction rolls back and the failure must propagate loudly rather
+			// than being swallowed (which previously left the migration half-done and
+			// silently retried on every restart). Any non-FrameworkException is wrapped
+			// so the failure travels through Structr's error framework and aborts startup.
+			try {
+
+				migrateStaticSchema();
+				migratePrincipalToPrincipalInterface();
+				migrateFolderMountTarget();
+				migrateEventActionMapping();
+				migrateActionMappingTargetsToRelationships();
+				cleanStaleActionMappingTargets();
+				migrateMailTemplates();
+				updateSharedComponentFlag();
+				if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
+					migrateRestQueryRepeaters();
+					migrateActionMappingControlsToProcess();
+					migrateVisibilityMappingForToProcess();
+				}
+				warnAboutWrongNotionProperties();
+
+			} catch (FrameworkException fex) {
+
+				throw fex;
+
+			} catch (Throwable t) {
+
+				throw new FrameworkException(500, "Schema/data migration failed and was rolled back: " + t.getMessage(), t);
 			}
-			warnAboutWrongNotionProperties();
 		}
 	}
 
@@ -289,7 +305,7 @@ public class MigrationService {
 	}
 
 	// ----- private methods -----
-	private static void migrateStaticSchema() {
+	private static void migrateStaticSchema() throws FrameworkException {
 
 		final App app = StructrApp.getInstance();
 
@@ -332,14 +348,10 @@ public class MigrationService {
 			}
 
 			tx.success();
-
-		} catch (Throwable fex) {
-			logger.warn("Unable to migrate principal nodes: {}", fex.getMessage());
-			fex.printStackTrace();
 		}
 	}
 
-	private static void migratePrincipalToPrincipalInterface() {
+	private static void migratePrincipalToPrincipalInterface() throws FrameworkException {
 
 		final App app = StructrApp.getInstance();
 
@@ -352,14 +364,10 @@ public class MigrationService {
 			}
 
 			tx.success();
-
-		} catch (Throwable fex) {
-			logger.warn("Unable to migrate principal nodes: {}", fex.getMessage());
-			fex.printStackTrace();
 		}
 	}
 
-	private static void migrateEventActionMapping() {
+	private static void migrateEventActionMapping() throws FrameworkException {
 
 		final App app         = StructrApp.getInstance();
 		int structrAppJsCount = 0;
@@ -389,10 +397,6 @@ public class MigrationService {
 			}
 
 			tx.success();
-
-		} catch (FrameworkException fex) {
-			logger.warn("Unable to migrate schema relationships for event action mapping: {}", fex.getMessage());
-			fex.printStackTrace();
 		}
 
 		try (final Tx tx = app.tx()) {
@@ -516,10 +520,6 @@ public class MigrationService {
 			}
 
 			tx.success();
-
-		} catch (Throwable fex) {
-			logger.warn("Unable to migrate schema relationships for event action mapping: {}", fex.getMessage());
-			fex.printStackTrace();
 		}
 
 		if ((directionCount + eventMappingCount + structrAppJsCount) > 0) {
@@ -540,7 +540,7 @@ public class MigrationService {
 	 * are logged at debug level and leave the relationship null, matching runtime
 	 * fallback behaviour.</p>
 	 */
-	private static void migrateActionMappingTargetsToRelationships() {
+	private static void migrateActionMappingTargetsToRelationships() throws FrameworkException {
 
 		final App app   = StructrApp.getInstance();
 		int resolved    = 0;
@@ -662,10 +662,6 @@ public class MigrationService {
 			}
 
 			tx.success();
-
-		} catch (Throwable fex) {
-			logger.warn("Unable to migrate ActionMapping target relationships: {}", fex.getMessage());
-			fex.printStackTrace();
 		}
 
 		if (resolved > 0) {
@@ -707,7 +703,7 @@ public class MigrationService {
 	 *       safely decide what is stale for incomplete or legacy nodes).</li>
 	 * </ul>
 	 */
-	private static void cleanStaleActionMappingTargets() {
+	private static void cleanStaleActionMappingTargets() throws FrameworkException {
 
 		// Whitelist per action: which of {method, flow, dataType} are relevant.
 		// Note: control-process has its own dedicated properties (controlsProcess,
@@ -767,10 +763,6 @@ public class MigrationService {
 			}
 
 			tx.success();
-
-		} catch (Throwable fex) {
-			logger.warn("Unable to clean stale ActionMapping target strings: {}", fex.getMessage());
-			fex.printStackTrace();
 		}
 
 		if (cleaned > 0) {
@@ -816,7 +808,7 @@ public class MigrationService {
 		return hits;
 	}
 
-	private static void migrateMailTemplates() {
+	private static void migrateMailTemplates() throws FrameworkException {
 
 		final App app = StructrApp.getInstance();
 
@@ -845,10 +837,6 @@ public class MigrationService {
 
 
 			tx.success();
-
-		} catch (Throwable fex) {
-			logger.warn("Unable to migrate mail templates: {}", fex.getMessage());
-			fex.printStackTrace();
 		}
 	}
 
@@ -1189,7 +1177,7 @@ public class MigrationService {
 		}
 	}
 
-	private static void updateSharedComponentFlag() {
+	private static void updateSharedComponentFlag() throws FrameworkException {
 
 		final PropertyKey<Boolean> key = Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.HAS_SHARED_COMPONENT_PROPERTY);
 		final App app                  = StructrApp.getInstance();
@@ -1215,11 +1203,6 @@ public class MigrationService {
 			}
 
 			tx.success();
-
-		} catch (Throwable fex) {
-
-			logger.warn("Unable to update hasSharedComponent flag: {}", fex.getMessage());
-			fex.printStackTrace();
 		}
 
 		if (count > 0) {
@@ -1303,7 +1286,7 @@ public class MigrationService {
 		return null;
 	}
 
-	private static void warnAboutWrongNotionProperties() {
+	private static void warnAboutWrongNotionProperties() throws FrameworkException {
 
 		final PropertyKey<String> typeKey   = Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY);
 		final PropertyKey<String> formatKey = Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY);
@@ -1324,13 +1307,10 @@ public class MigrationService {
 			}
 
 			tx.success();
-
-		} catch (FrameworkException fex) {
-			logger.warn("Unable to check migration status for REST query repeaters: {}", fex.getMessage());
 		}
 	}
 
-	private static void migrateRestQueryRepeaters() {
+	private static void migrateRestQueryRepeaters() throws FrameworkException {
 
 		final App app = StructrApp.getInstance();
 
@@ -1357,9 +1337,6 @@ public class MigrationService {
 			}
 
 			tx.success();
-
-		} catch (FrameworkException fex) {
-			logger.warn("Unable to migrate REST query repeaters: {}", fex.getMessage());
 		}
 	}
 
@@ -1384,7 +1361,7 @@ public class MigrationService {
 	 *       so the author can fix it via the EAM editor.</li>
 	 * </ul></p>
 	 */
-	private static void migrateActionMappingControlsToProcess() {
+	private static void migrateActionMappingControlsToProcess() throws FrameworkException {
 
 		final App app = StructrApp.getInstance();
 		int repointed = 0;
@@ -1463,9 +1440,6 @@ public class MigrationService {
 			logger.info("MigrationService: ActionMapping CONTROLS rels: repointed={}, skipped={}.", repointed, skipped);
 
 			tx.success();
-
-		} catch (FrameworkException fex) {
-			logger.warn("Unable to migrate ActionMapping CONTROLS rels to BpmnProcess: {}", fex.getMessage());
 		}
 	}
 
@@ -1473,7 +1447,7 @@ public class MigrationService {
 	 * Repoint legacy VisibilityMapping FOR rels from BpmnDefinitions to the
 	 * matching BpmnProcess child. Mirrors {@link #migrateActionMappingControlsToProcess()}.
 	 */
-	private static void migrateVisibilityMappingForToProcess() {
+	private static void migrateVisibilityMappingForToProcess() throws FrameworkException {
 
 		final App app = StructrApp.getInstance();
 		int repointed = 0;
@@ -1548,13 +1522,10 @@ public class MigrationService {
 			logger.info("MigrationService: VisibilityMapping FOR rels: repointed={}, skipped={}.", repointed, skipped);
 
 			tx.success();
-
-		} catch (FrameworkException fex) {
-			logger.warn("Unable to migrate VisibilityMapping FOR rels to BpmnProcess: {}", fex.getMessage());
 		}
 	}
 
-	private static void migrateFolderMountTarget() {
+	private static void migrateFolderMountTarget() throws FrameworkException {
 
 		final Traits storageConfigurationTraits      = Traits.of(StructrTraits.STORAGE_CONFIGURATION);
 		final Traits storageConfigurationEntryTraits = Traits.of(StructrTraits.STORAGE_CONFIGURATION_ENTRY);
@@ -1591,9 +1562,6 @@ public class MigrationService {
 			}
 
 			tx.success();
-		} catch (Throwable t) {
-
-			logger.warn("Failed to migrate mountTarget for folders.", t);
 		}
 	}
 }
