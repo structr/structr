@@ -71,8 +71,11 @@ export class Frontend {
 			let formData = new FormData(target);
 
 			for (let key of new Set(formData.keys())) {
-				let element = target.elements[key];
-				resolved[key] = this.resolveElementValue(element);
+				// use namedItem(), not elements[key]: bracket named-access collides with the
+				// HTMLFormControlsCollection methods (item, namedItem, length), so a control
+				// named e.g. "item" would resolve to the method instead of the input element
+				let element = target.elements.namedItem(key);
+				resolved[key] = element ? this.resolveElementValue(element) : formData.get(key);
 			}
 		}
 
@@ -339,15 +342,22 @@ export class Frontend {
 				window.alert(statusText);
 				break;
 
-			case 'inline-text-message':
+			case 'inline-text-message': {
 				// Clear all notification messages
 				document.querySelectorAll('.structr-event-action-notification').forEach(el => el.remove());
 				element.insertAdjacentHTML('afterend', statusHTML);
-				window.setTimeout(() => {
-					let notificationElement = document.getElementById('notification-for-' + id);
-					if (notificationElement) { notificationElement.remove(); }
-				}, delay);
+				// a negative duration (e.g. -1) keeps the message visible until the next
+				// action clears it (no auto-hide); a blank/invalid value falls back to 5000
+				let hideAfter = parseInt(delay, 10);
+				if (!Number.isFinite(hideAfter)) { hideAfter = 5000; }
+				if (hideAfter >= 0) {
+					window.setTimeout(() => {
+						let notificationElement = document.getElementById('notification-for-' + id);
+						if (notificationElement) { notificationElement.remove(); }
+					}, hideAfter);
+				}
 				break;
+			}
 
 			case 'custom-dialog':
 				let notificationElementIds = success ? element.dataset.structrSuccessNotificationsPartial : element.dataset.structrFailureNotificationsPartial;
