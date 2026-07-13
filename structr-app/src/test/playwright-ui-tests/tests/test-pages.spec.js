@@ -17,10 +17,10 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 // @ts-check
-import {test} from '@playwright/test';
-import {initialize} from "./helpers/init";
+import {expect, test} from '@playwright/test';
+import {goToModule, initialize, waitForDialogBoxToClose} from "./helpers/init";
 import {login, logout} from "./helpers/auth";
-import {focusCenterPaneMonacoEditor, sendCtrlPlusA} from "./helpers/pages";
+import {createAndRenamePage, focusCenterPaneMonacoEditor, resizeRightFlyout} from "./helpers/pages";
 
 test.beforeAll(async ({playwright}) => {
     await initialize(playwright);
@@ -32,9 +32,7 @@ test('pages', async ({page}, testInfo) => {
 
     await login(page);
 
-    // Pages
-    await page.locator('#pages_').waitFor({state: 'visible'});
-    await page.locator('#pages_').click();
+	await goToModule(page, '#pages_');
 
     // Wait for Pages UI to load all components
     await page.waitForTimeout(1000);
@@ -45,198 +43,218 @@ test('pages', async ({page}, testInfo) => {
     await page.getByText('Enable edit features in page').click();
 
     // Open import dialog and create a screenshot
-    await page.locator('#create_page').click();
-    await page.waitForTimeout(1000);
-    await page.locator('#template-tiles .page-tile:nth-child(3)').click();
-    await page.waitForTimeout(1000);
-    await page.screenshot({path: 'screenshots/pages_import-page.png'});
-    await page.getByRole('button', {name: 'Close'}).click();
-    await page.waitForTimeout(200);
+	{
+		await page.locator('#create_page').click();
+		await page.locator('#template-tiles .page-tile:nth-child(3)').click();
+		await page.waitForTimeout(1000);
+		await page.screenshot({path: 'screenshots/pages_import-page.png'});
+		await page.getByRole('button', {name: 'Close'}).click();
+
+		await waitForDialogBoxToClose(page);
+	}
 
     // Create new page
-    await page.locator('#create_page').click();
-    await page.waitForTimeout(1000);
-    await page.screenshot({path: 'screenshots/pages_create-page.png'});
-    await page.locator('#template-tiles .page-tile:nth-child(2)').click();
-    await page.waitForTimeout(2000);
+	{
+		await page.locator('#create_page').click();
+		await page.waitForTimeout(1000);
+		await page.screenshot({path: 'screenshots/pages_create-page.png'});
+		await page.locator('#template-tiles .page-tile:nth-child(2)').click();
+
+		await waitForDialogBoxToClose(page);
+	}
 
     // Open Access Control dialog to create a screenshot
-    await page.getByRole('img', {name: 'Access Control'}).first().click();
-    await page.waitForTimeout(1000);
-    await page.screenshot({path: 'screenshots/pages_access-control-dialog.png'});
-    await page.getByRole('button', {name: 'Close'}).click();
-    await page.waitForTimeout(1000);
+	{
+		await page.getByRole('img', {name: 'Access Control'}).first().click();
+		await page.waitForTimeout(1000);
+		await page.screenshot({path: 'screenshots/pages_access-control-dialog.png'});
+		await page.getByRole('button', {name: 'Close'}).click();
+
+		await waitForDialogBoxToClose(page);
+	}
 
     await page.locator('#pagesTree .node-container:nth-child(1)').waitFor({state: 'visible'});
     await page.locator('#pagesTree .node-container:nth-child(1)').click();
     await page.getByRole('link', {name: 'General'}).click();
-    await page.waitForTimeout(1000);
     await page.locator('#name-input').fill('projects');
     await page.locator('#pagesTree').click();
-    await page.waitForTimeout(1000);
+
+	await page.waitForTimeout(1000);
     await page.screenshot({path: 'screenshots/pages_page-created.png'});
 
     await page.locator('#pagesTree .node-container:nth-child(1)').click({button: 'right'});
     await page.getByText('Expand / Collapse').waitFor({state: 'visible'});
     await page.getByText('Expand / Collapse').hover();
-    await page.waitForTimeout(1000);
     await page.getByText('Expand subtree recursively').waitFor({state: 'visible'});
     await page.getByText('Expand subtree recursively').click();
+
     await page.waitForTimeout(1000);
     await page.screenshot({path: 'screenshots/pages_page-expanded.png'});
 
     // click through the different tabs and take a screenshot of each tab
     await page.getByRole('link', {name: 'Advanced'}).click();
-    await page.waitForTimeout(200);
+	await page.waitForTimeout(200);
     await page.screenshot({path: 'screenshots/pages_page-details-advanced.png'});
-    await page.getByRole('link', {name: 'Security'}).nth(1).click();
-    await page.waitForTimeout(200);
+
+	await page.getByRole('link', {name: 'Security'}).nth(1).click();
+	await page.waitForTimeout(200);
     await page.screenshot({path: 'screenshots/pages_page-details-security.png'});
-    await page.getByRole('link', {name: 'Active Elements'}).click();
-    await page.waitForTimeout(200);
+
+	await page.getByRole('link', {name: 'Active Elements'}).click();
+	await page.waitForTimeout(200);
     await page.screenshot({path: 'screenshots/pages_page-details-active-elements.png'});
-    await page.getByRole('link', {name: 'URL Routing'}).click();
-    await page.waitForTimeout(200);
+
+	await page.getByRole('link', {name: 'URL Routing'}).click();
+	await page.waitForTimeout(200);
     await page.screenshot({path: 'screenshots/pages_page-details-url-routing.png'});
 
-    await page.getByRole('link', {name: 'Preview'}).click();
-    //await page.locator('.previewBox').waitFor({ state: 'visible' });
+	await page.getByRole('link', {name: 'Preview'}).click();
     await page.waitForTimeout(1000);
     await page.screenshot({path: 'screenshots/pages_page-preview.png'});
 
     // Drag 'Simple Table' widget onto 'Main Container'
-    await page.locator('#widgetsTab').click();
-    await page.waitForTimeout(1000);
+	{
+		await page.locator('#widgetsTab').click();
 
-    await page.pause();
+		// aka "wait until slideout is open"
+		await resizeRightFlyout(page, -10);
 
-    // create simple table widget
-    await page.locator('svg.add_widgets_icon').click();
-    await page.locator('.view-lines').first().click();
-    await page.keyboard.type("<div data-structr-meta-name=\"Simple Table Widget\" class=\"overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg\">\n" +
-        "<table class=\"min-w-full divide-y divide-gray-300\">\n" +
-        "<thead class=\"bg-gray-50\">\n" +
-        "<tr>\n" +
-        "<th scope=\"col\" class=\"py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6\">Name</th>\n" +
-        "<th scope=\"col\" class=\"px-3 py-3.5 text-left text-sm font-semibold text-gray-900\">Title</th>\n" +
-        "<th scope=\"col\" class=\"px-3 py-3.5 text-left text-sm font-semibold text-gray-900\">Email</th>\n" +
-        "<th scope=\"col\" class=\"px-3 py-3.5 text-left text-sm font-semibold text-gray-900\">Role</th>\n" +
-        "<th scope=\"col\" class=\"relative py-3.5 pl-3 pr-4 sm:pr-6\">\n" +
-        "<span class=\"sr-only\">Edit</span>\n" +
-        "</th>\n" +
-        "</tr>\n" +
-        "</thead>\n" +
-        "<tbody class=\"divide-y divide-gray-200 bg-white\">\n" +
-        "<tr>\n" +
-        "<td class=\"whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6\">Firstname Lastname</td>\n" +
-        "<td class=\"whitespace-nowrap px-3 py-4 text-sm text-gray-500\">Example Job Title</td>\n" +
-        "<td class=\"whitespace-nowrap px-3 py-4 text-sm text-gray-500\">firstname.lastname@example.com</td>\n" +
-        "<td class=\"whitespace-nowrap px-3 py-4 text-sm text-gray-500\">Example Role</td>\n" +
-        "<td class=\"relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6\">\n" +
-        "<a href=\"#\" class=\"text-gray-600 hover:text-gray-900\">Edit<span class=\"sr-only\"></span></a>\n" +
-        "</td>\n" +
-        "</tr>\n" +
-        "</tbody>\n" +
-        "</table>\n" +
-        "</div>");
+		// create simple table widget
+		await page.locator('svg.add_widgets_icon').click();
+		await page.locator('.view-lines').first().click();
+		await page.keyboard.type("<div data-structr-meta-name=\"Simple Table Widget\" class=\"overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg\">\n" +
+			"<table class=\"min-w-full divide-y divide-gray-300\">\n" +
+			"<thead class=\"bg-gray-50\">\n" +
+			"<tr>\n" +
+			"<th scope=\"col\" class=\"py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6\">Name</th>\n" +
+			"<th scope=\"col\" class=\"px-3 py-3.5 text-left text-sm font-semibold text-gray-900\">Title</th>\n" +
+			"<th scope=\"col\" class=\"px-3 py-3.5 text-left text-sm font-semibold text-gray-900\">Email</th>\n" +
+			"<th scope=\"col\" class=\"px-3 py-3.5 text-left text-sm font-semibold text-gray-900\">Role</th>\n" +
+			"<th scope=\"col\" class=\"relative py-3.5 pl-3 pr-4 sm:pr-6\">\n" +
+			"<span class=\"sr-only\">Edit</span>\n" +
+			"</th>\n" +
+			"</tr>\n" +
+			"</thead>\n" +
+			"<tbody class=\"divide-y divide-gray-200 bg-white\">\n" +
+			"<tr>\n" +
+			"<td class=\"whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6\">Firstname Lastname</td>\n" +
+			"<td class=\"whitespace-nowrap px-3 py-4 text-sm text-gray-500\">Example Job Title</td>\n" +
+			"<td class=\"whitespace-nowrap px-3 py-4 text-sm text-gray-500\">firstname.lastname@example.com</td>\n" +
+			"<td class=\"whitespace-nowrap px-3 py-4 text-sm text-gray-500\">Example Role</td>\n" +
+			"<td class=\"relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6\">\n" +
+			"<a href=\"#\" class=\"text-gray-600 hover:text-gray-900\">Edit<span class=\"sr-only\"></span></a>\n" +
+			"</td>\n" +
+			"</tr>\n" +
+			"</tbody>\n" +
+			"</table>\n" +
+			"</div>");
 
-    await page.getByRole('button', { name: 'Save and close' }).click();
-    await page.locator('#uncategorized_local_folder div').click();
-    await page.keyboard.type('Simple Table');
-    await page.keyboard.press('Tab');
+		await page.getByRole('button', {name: 'Save and close'}).click();
+		await page.locator('#uncategorized_local_folder div').click();
+		await page.keyboard.type('Simple Table');
+		await page.keyboard.press('Tab');
 
-    await page.waitForTimeout(1000);
-    await page.getByText('Simple Table', {exact: true}).hover();
-    await page.mouse.down();
-    await page.locator('#pagesTree').getByText('body', {exact: true}).hover();
-    await page.mouse.up();
-    await page.waitForTimeout(1000);
-    await page.screenshot({path: 'screenshots/pages_simple-table-added.png'});
-    await page.locator('#widgetsTab').click();
+		await page.getByText('Simple Table', {exact: true}).hover();
+		await page.mouse.down();
+		await page.locator('#pagesTree').getByText('body', {exact: true}).hover();
+		await page.mouse.up();
+
+		await page.waitForTimeout(1000);
+		await page.screenshot({path: 'screenshots/pages_simple-table-added.png'});
+
+		await page.locator('#widgetsTab').click();
+	}
 
     // Modify table to display project objects
     const preview = page.frameLocator('.previewBox iframe');
-    await preview.getByText('Title', {exact: true}).click();
-    await preview.getByText('Title', {exact: true}).fill('${localize("milestones", "table-header")}');
+	let title = preview.getByText('Title', {exact: true});
+    await title.click();
+	await expect(title).toHaveAttribute('contenteditable');
+    await title.fill('${localize("milestones", "table-header")}');
     await page.locator('#pagesTree').click();
-    await page.waitForTimeout(1000);
 
-    await preview.getByText('Firstname Lastname', {exact: true}).click();
-    await preview.getByText('Firstname Lastname', {exact: true}).fill('${project.name}');
-    await page.locator('#pagesTree').click();
-    await page.waitForTimeout(1000);
+	// saving via in-page editing triggers reload that can take longer than the next click --> change tabs quickly
+	await page.getByRole('link', {name: 'General'}).click();
+	await page.getByRole('link', {name: 'Preview'}).click();
 
-    await preview.getByText('Example Job Title', {exact: true}).click();
-    await preview.getByText('Example Job Title', {exact: true}).fill('${join(extract(project.milestones, "name"), ", ")}');
+
+	let name = preview.getByText('Firstname Lastname', {exact: true});
+    await name.click();
+	await expect(name).toHaveAttribute('contenteditable');
+    await name.fill('${project.name}');
     await page.locator('#pagesTree').click();
-    await page.waitForTimeout(1000);
+
+	// saving via in-page editing triggers reload that can take longer than the next click --> change tabs quickly
+	await page.getByRole('link', {name: 'General'}).click();
+	await page.getByRole('link', {name: 'Preview'}).click();
+
+	let milestones = preview.getByText('Example Job Title', {exact: true}) ;
+    await milestones.click();
+	await expect(milestones).toHaveAttribute('contenteditable');
+    await milestones.fill('${join(extract(project.milestones, "name"), ", ")}');
+    await page.locator('#pagesTree').click();
+
+	// saving via in-page editing triggers reload that can take longer than the next click --> change tabs quickly
+	await page.getByRole('link', {name: 'General'}).click();
+	await page.getByRole('link', {name: 'Preview'}).click();
 
     await preview.getByText('firstname.lastname@example.com', {exact: true}).click({button: 'right'});
-    await page.waitForTimeout(1000);
     await page.locator('#context-menu-dialog .context_menu_icon').click();
-    await page.waitForTimeout(1000);
     await page.locator('#context-menu-dialog').getByText('Remove Node', {exact: true}).click();
-    await page.waitForTimeout(1000);
 
     await preview.getByText('Email', {exact: true}).click({button: 'right'});
-    await page.waitForTimeout(1000);
     await page.locator('#context-menu-dialog .context_menu_icon').click();
-    await page.waitForTimeout(1000);
     await page.locator('#context-menu-dialog').getByText('Remove Node', {exact: true}).click();
-    await page.waitForTimeout(1000);
 
     await preview.getByText('Example Role', {exact: true}).click({button: 'right'});
-    await page.waitForTimeout(1000);
     await page.locator('#context-menu-dialog .context_menu_icon').click();
-    await page.waitForTimeout(1000);
     await page.locator('#context-menu-dialog').getByText('Remove Node', {exact: true}).click();
-    await page.waitForTimeout(1000);
 
     await preview.getByText('Role', {exact: true}).click({button: 'right'});
-    await page.waitForTimeout(1000);
     await page.locator('#context-menu-dialog .context_menu_icon').click();
-    await page.waitForTimeout(1000);
     await page.locator('#context-menu-dialog').getByText('Remove Node', {exact: true}).click();
-    await page.waitForTimeout(1000);
 
+	await page.waitForTimeout(1000);
     await page.screenshot({path: 'screenshots/pages_output-expression.png'});
 
     // Add repeater to display the projects
     await page.locator('#pagesTree div.node:has(> div > span > b[title="tbody"]) div.node b[title="tr"]').click();
-    await page.waitForTimeout(1000);
     await page.getByRole('link', {name: 'Repeater'}).click();
-    await page.waitForTimeout(1000);
     await page.getByText('Function Query').click();
-    await page.waitForTimeout(1000);
-    await page.locator('.monaco-editor').nth(0).click();
+	await focusCenterPaneMonacoEditor(page);
     await page.keyboard.type('find(\'Project\')');
-    await page.waitForTimeout(1000);
     await page.locator('.save-repeater-query').click();
     await page.locator('.repeater-datakey').fill('project');
-    await page.waitForTimeout(1000);
     await page.locator('.save-repeater-datakey').click();
+
+	await page.waitForTimeout(1000);
     await page.screenshot({path: 'screenshots/pages_element-details_repeater.png'});
+
     await page.getByRole('link', {name: 'Preview'}).click();
-    await page.waitForTimeout(1000);
+
+	await page.waitForTimeout(1000);
     await page.screenshot({path: 'screenshots/pages_repeater.png'});
+
     await page.getByRole('link', {name: 'General'}).click();
+
     await page.waitForTimeout(1000);
     await page.screenshot({path: 'screenshots/pages_element-details_general.png'});
+
     await page.getByRole('link', {name: 'HTML'}).click();
+
     await page.waitForTimeout(1000);
     await page.screenshot({path: 'screenshots/pages_element-details_html.png'});
+
     await page.getByRole('link', {name: 'Events'}).click();
-    await page.waitForTimeout(1000);
     await page.getByRole('textbox', {name: 'Browser event (click, keydown'}).click();
     await page.keyboard.type('click');
     await page.keyboard.press('Tab');
-    await page.waitForTimeout(200);
     await page.locator('#action-select').selectOption('Create new object');
-    await page.waitForTimeout(200);
     await page.locator('.m-2 > svg > use').first().click();
-    await page.waitForTimeout(200);
     await page.getByRole('textbox', {name: 'Name', exact: true}).fill('name');
     await page.getByRole('combobox').nth(5).selectOption('User Input');
+
+	await page.waitForTimeout(1000);
     await page.screenshot({path: 'screenshots/pages_element-details_events.png'});
 
     await logout(page);

@@ -89,7 +89,7 @@
 
     /* forms */
     .sw-label { @apply block text-xs font-medium text-sw-text-heading; }
-    .sw-input { @apply mt-1 block rounded-md text-sw-input-text bg-sw-input-bg border border-sw-input-border py-2 px-3 shadow-sm focus:border-sw-input-focus focus:outline-none focus:ring-sw-input-focus sm:text-sm; }
+    .sw-input { @apply w-full mt-1 block rounded-md text-sw-input-text bg-sw-input-bg border border-sw-input-border py-2 px-3 shadow-sm focus:border-sw-input-focus focus:outline-none focus:ring-sw-input-focus sm:text-sm; }
     .sw-checkbox { @apply m-0 mr-2 p-0 text-xs text-sw-input-text bg-sw-input-bg rounded-sm border-sw-input-border focus:border-sw-input-focus focus:outline-none focus:ring-sw-input-focus; }
 
     /* dynamic form descendants (renderFields inner elements, if class injection is not available) */

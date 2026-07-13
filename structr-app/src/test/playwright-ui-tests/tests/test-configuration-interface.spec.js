@@ -23,34 +23,29 @@ import {initialize} from "./helpers/init";
 const fs = require('fs');
 
 test.beforeAll(async ({playwright}) => {
-    await initialize(playwright);
+	await initialize(playwright);
 });
 
 test('configuration-interface', async ({page}, testInfo) => {
 
-    console.log(testInfo.title);
+	console.log(testInfo.title);
 
-    await page.goto(process.env.BASE_URL + '/structr/config');
+	await page.goto(process.env.BASE_URL + '/structr/config');
 
-    await expect(page.locator('#superuserPasswordField')).toBeVisible();
-    await expect(page.locator('#loginButton')).toBeVisible();
+	await expect(page.locator('#superuserPasswordField')).toBeVisible();
+	await expect(page.locator('#loginButton')).toBeVisible();
 
-    await page.waitForTimeout(1000);
-    await page.screenshot({path: 'screenshots/configuration-interface_login.png'});
+	await page.screenshot({path: 'screenshots/configuration-interface_login.png'});
 
-    // Login with admin/admin
-    await page.locator('#superuserNameField').fill('superadmin');
-    await page.locator('#superuserPasswordField').fill(process.env.SUPERUSER_PASSWORD);
-    await page.waitForTimeout(500);
-    await page.locator('#loginButton').click();
-    await page.waitForTimeout(1000);
+	// Login with admin/admin
+	await page.locator('#superuserNameField').fill('superadmin');
+	await page.locator('#superuserPasswordField').fill(process.env.SUPERUSER_PASSWORD);
+	await page.locator('#loginButton').click();
 
-    // Wait for Code UI to load all components
-    await page.waitForTimeout(1000);
-    await page.screenshot({path: 'screenshots/configuration-interface.png'});
+	// Wait for Code UI to load all components
+	await page.screenshot({path: 'screenshots/configuration-interface.png'});
 
-    // Logout
-    await page.locator('#logout-form button[type="submit"]').click();
-    await page.waitForTimeout(1000);
+	// Logout
+	await page.locator('#logout-form button[type="submit"]').click();
 
 });

@@ -132,7 +132,7 @@ let _Widgets = {
 		let importWidgetsButton = container.querySelector('#import-widget-set');
 		importWidgetsButton.addEventListener('click', () => {
 			let formData = new FormData();
-			formData.append('downloadUrl', 'https://gitlab.structr.com/structr/widgets/-/archive/0.0.4/widgets-0.0.4.zip');
+			formData.append('downloadUrl', 'https://gitlab.structr.com/structr/widgets/-/archive/0.1.1/widgets-0.1.1.zip');
 			formData.append('mode', 'app'); // mode "app" implies "quiet mode", i.e. no notifications
 			fetch(`${Structr.deployRoot}`, {
 				method: 'POST',

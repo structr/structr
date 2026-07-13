@@ -2592,7 +2592,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	 * component root and returns the first non-null
 	 * reloadBehaviour it finds.
 	 *
-	 * @return the item type or null
+	 * @return the reload behaviour or null
 	 */
 	public String getReloadBehaviourForComponent() {
 

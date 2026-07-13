@@ -599,8 +599,6 @@ export class Frontend {
 			let newNode = this.replaceContentInContainer(container, html);
 			if (newNode) {
 
-				newNode.dataset.lastRefresh = '' + new Date().getTime();
-
 				// The show-hide-section "show" behaviour loads a (possibly statically
 				// hidden) partial via URL and wants it revealed once loaded. The freshly
 				// rendered node carries the template's `hidden` class, so removing it
@@ -626,6 +624,10 @@ export class Frontend {
 
 			if (!dontRebind) {
 				this.bindEvents();
+			}
+
+			if (newNode) {
+				newNode.dataset.lastRefresh = '' + new Date().getTime();
 			}
 
 		}).catch(e => {

@@ -18,7 +18,8 @@
  */
 // @ts-check
 import {expect, test} from '@playwright/test';
-import {initialize} from "./helpers/init";
+import {goToModule, initialize} from "./helpers/init";
+import {login, logout} from "./helpers/auth";
 
 const fs = require('fs');
 
@@ -30,46 +31,18 @@ test('mail-templates', async ({page}, testInfo) => {
 
     console.log(testInfo.title);
 
-    //await page.setViewportSize({ width: 3840, height: 2160 });
-    await page.goto(process.env.BASE_URL + '/structr/');
-    //await page.evaluate('document.body.style.zoom="2.0"');
+	await login(page);
 
-    await expect(page).toHaveTitle(/Structr/);
-    await expect(page.locator('#usernameField')).toBeVisible();
-    await expect(page.locator('#passwordField')).toBeVisible();
-    await expect(page.locator('#loginButton')).toBeVisible();
-
-    await page.waitForTimeout(1000);
-
-    //await page.screenshot({ path: 'screenshots/login.png' });
-
-    // Login with admin/admin
-    await page.locator('#usernameField').fill('admin');
-    await page.locator('#passwordField').fill('admin');
-    await page.waitForTimeout(500);
-    await page.locator('#loginButton').click();
-    await page.waitForTimeout(1000);
-
-    await page.locator('.submenu-trigger').hover();
-    await page.locator('#mail-templates_').waitFor({state: 'visible'});
-    await page.locator('#mail-templates_').click();
+	await goToModule(page, '#mail-templates_');
 
     // Wait for Code UI to load all components
     await page.waitForTimeout(1000);
 
     await page.getByRole('button').nth(2).click();
     await page.getByText('Create default "Self-').click();
-    await page.waitForTimeout(1000);
 
+	await page.waitForTimeout(1000);
     await page.screenshot({path: 'screenshots/mail-templates.png'});
 
-
-    // Logout
-    await page.locator('.submenu-trigger').hover();
-    await page.waitForTimeout(500);
-    await page.locator('#logout_').waitFor({state: 'visible'});
-    await page.locator('#logout_').click();
-    await page.locator('#usernameField').waitFor({state: 'visible'});
-    await page.waitForTimeout(1000);
-
+    await logout(page);
 });

@@ -18,7 +18,7 @@
  */
 // @ts-check
 import {test} from '@playwright/test';
-import {initialize} from "./helpers/init";
+import {goToModule, initialize} from "./helpers/init";
 import {login, logout} from "./helpers/auth";
 
 test.beforeAll(async ({playwright}) => {
@@ -31,11 +31,8 @@ test('localization', async ({page}, testInfo) => {
 
     await login(page);
 
-    await page.locator('.submenu-trigger').hover();
-    await page.locator('#localization_').waitFor({state: 'visible'});
-    await page.locator('#localization_').click({force: true});
+	await goToModule(page, '#localization_');
 
-    // Wait for Code UI to load all components
     await page.waitForTimeout(1000);
     await page.screenshot({path: 'screenshots/localization.png'});
 
@@ -47,14 +44,13 @@ test('localization', async ({page}, testInfo) => {
     await page.keyboard.press('Tab');
     await page.keyboard.type('en,de');
     await page.getByRole('button', {name: 'Create Localization'}).click();
-    await page.waitForTimeout(500);
     await page.locator('.___localizedName').nth(0).click();
     await page.keyboard.type('Meilensteine');
-    await page.waitForTimeout(500);
     await page.locator('.___localizedName').nth(1).click();
     await page.keyboard.type('Milestones');
     await page.keyboard.press('Tab');
-    await page.waitForTimeout(1000);
+
+	await page.waitForTimeout(1000);
     await page.screenshot({path: 'screenshots/localization_created.png'});
 
     await logout(page);

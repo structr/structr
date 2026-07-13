@@ -22,38 +22,46 @@ import { expect, Page } from '@playwright/test';
 
 export async function login(page: Page, screenshot: boolean = false) {
 
-    let username = 'admin';
-    let password = 'admin';
+	let username = 'admin';
+	let password = 'admin';
 
-    await page.goto(process.env.BASE_URL + '/structr/');
+	await page.goto(process.env.BASE_URL + '/structr/');
 
-    await expect(page).toHaveTitle(/Structr/);
-    await expect(page.locator('#usernameField')).toBeVisible();
-    await expect(page.locator('#passwordField')).toBeVisible();
-    await expect(page.locator('#loginButton')).toBeVisible();
+	await expect(page).toHaveTitle(/Structr/);
 
-    await page.waitForTimeout(1000);
+	let loginForm = page.locator('#login #login-username-password');
+	await expect(loginForm).toBeVisible();
+	await expect(loginForm.locator('#usernameField')).toBeVisible();
+	await expect(loginForm.locator('#passwordField')).toBeVisible();
+	await expect(loginForm.locator('#loginButton')).toBeVisible();
 
-    // Login with given credentials
-    await page.locator('#usernameField').fill(username);
-    await page.locator('#passwordField').fill(password);
 
-    if (screenshot) {
-        await page.screenshot({path: 'screenshots/login.png', caret: 'initial'});
-    }
+	// Login with given credentials
+	await loginForm.locator('#usernameField').fill(username);
+	await loginForm.locator('#passwordField').fill(password);
 
-    await page.waitForTimeout(500);
-    await page.locator('#loginButton').click();
+	if (screenshot) {
+		await page.screenshot({path: 'screenshots/login.png', caret: 'initial'});
+	}
 
-    await page.waitForTimeout(1000);
+    // wait until websocket is ready
+    await page.waitForFunction(() => StructrWS.wsReady, {}, { timeout: 10_000 });
+
+	await loginForm.locator('#loginButton').click();
+
+	// wait until we know login succeeded
+    await page.waitForFunction(() => StructrWS.userId !== null, {}, { timeout: 10_000 });
+
+	// then allow the URLs to go through their process. if we click during that process, it gets lost
+	await page.waitForTimeout(1000);
+
+	await expect(loginForm).toHaveCount(0);
 }
 
 export async function logout(page: Page) {
 
-    await page.locator('.submenu-trigger').hover();
-    await page.waitForTimeout(500);
-    await page.locator('#logout_').waitFor({ state: 'visible' });
-    await page.locator('#logout_').click();
-    await page.locator('#usernameField').waitFor({ state: 'visible' });
-    await page.waitForTimeout(1000);
+	await page.locator('.submenu-trigger').hover();
+	await page.locator('#logout_').waitFor({ state: 'visible' });
+	await page.locator('#logout_').click();
+	await page.locator('#usernameField').waitFor({ state: 'visible' });
 }

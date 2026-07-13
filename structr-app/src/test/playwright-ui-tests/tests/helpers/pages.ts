@@ -18,7 +18,7 @@
 ///
 
 // @ts-check
-import { Page, Locator } from '@playwright/test';
+import {Page, Locator, expect} from '@playwright/test';
 
 /**
  * Access wrapper for Structr's page tree.
@@ -65,20 +65,15 @@ export class Container {
 	}
 }
 
-export async function createAndRenamePage(page: Page, whichTemplate, name, wait = 100) {
+export async function createAndRenamePage(page: Page, whichTemplate: number, name: string) {
 
 	await page.locator('#create_page').click();
-	await page.waitForTimeout(wait);
 	await page.locator(`#template-tiles .page-tile:nth-child(${whichTemplate})`).click();
-	await page.waitForTimeout(wait);
 
-	await page.getByText('New Page').click();
-	await page.waitForTimeout(wait);
+	await page.locator('.page > .node-container', { hasText: 'New Page' }).click();
 	await page.getByRole('link', {name: 'General'}).click();
-	await page.waitForTimeout(wait);
 	await page.locator('#name-input').fill(name);
 	await page.locator('#pagesTree').click();
-	await page.waitForTimeout(wait);
 }
 
 /**
@@ -87,20 +82,20 @@ export async function createAndRenamePage(page: Page, whichTemplate, name, wait 
  * @param pageName
  * @param wait
  */
-export function getPageContainer(page: Page, pageName: string, wait = 100): Container {
+export function getPageContainer(page: Page, pageName: string): Container {
 	return new Container(page.locator(`#pagesTree > div:has(div:nth-child(1) > span > b[title="${pageName}"])`));
 }
 
-export async function expandPageTree(page: Page, pageName, wait = 100) {
+export async function expandPageTree(page: Page, pageName: string) {
 
-	let pageNode = getPageContainer(page, pageName, wait);
+	let pageNode = getPageContainer(page, pageName);
 
 	await expandOrCollapseElement(page, pageNode, 'expand');
 }
 
-export async function collapsePageTree(page: Page, name, wait = 100) {
+export async function collapsePageTree(page: Page, name: string) {
 
-	let pageNode = getPageContainer(page, name, wait);
+	let pageNode = getPageContainer(page, name);
 
 	await expandOrCollapseElement(page, pageNode, 'collapse');
 }
@@ -118,9 +113,9 @@ export async function expandOrCollapseElement(page: Page, node: Container, actio
 	}
 }
 
-export async function insertFrontendJs(page: Page, pageName, wait = 100) {
+export async function insertFrontendJs(page: Page, pageName: string) {
 
-	let pageNode = getPageContainer(page, pageName, wait);
+	let pageNode = getPageContainer(page, pageName);
 
 	let head = pageNode.getElement('head');
 
@@ -128,68 +123,53 @@ export async function insertFrontendJs(page: Page, pageName, wait = 100) {
 
 	let script = head.getElement('script');
 
-	await page.waitForTimeout(wait);
 	await script.getTextNode().click();
 
-	await page.waitForTimeout(wait);
 	await page.getByRole('link', {name: 'HTML'}).click();
-	await page.waitForTimeout(wait);
 	await page.locator('input[name="_html_type"]').fill('module');
 	await page.locator('input[name="_html_src"]').fill('/structr/js/frontend/frontend.js');
 }
 
-export async function resizePagesTree(page: Page, offset: number, wait = 100) {
+export async function resizePagesTree(page: Page, offset: number) {
 
 	let resizer = page.locator('.column-resizer-left');
 
-	await resizer.isVisible();
-
-	let box = await resizer.boundingBox();
-
-	if (box && box.x) {
-
-		// resize pages tree flyout
-		await resizer.isVisible();
-		await resizer.hover();
-		await page.waitForTimeout(wait);
-		await page.mouse.down();
-		await page.waitForTimeout(wait);
-		await page.mouse.move(box.x + offset, 0, {steps: 20});
-		await page.waitForTimeout(100);
-		await page.waitForTimeout(wait);
-		await page.mouse.up();
-		await page.waitForTimeout(wait);
-
-	} else {
-
-		console.log('box was null!');
-	}
+    await moveResizer(page, resizer, offset)
 }
 
-export async function resizeRightFlyout(page: Page, offset: number, wait = 100) {
+export async function resizeRightFlyout(page: Page, offset: number) {
 
 	let resizer = page.locator('.column-resizer-right');
 
-	await resizer.isVisible();
-
-	let box = await resizer.boundingBox();
-	if (box && box.x) {
-
-		await resizer.hover();
-		await page.waitForTimeout(wait);
-		await page.mouse.down();
-		await page.waitForTimeout(wait);
-		await page.mouse.move(box.x + offset, 0, {steps: 20});
-		await page.waitForTimeout(100);
-		await page.waitForTimeout(wait);
-		await page.mouse.up();
-		await page.waitForTimeout(wait);
-	}
+    await moveResizer(page, resizer, offset)
 }
 
-export async function insertInputWithLabel(page: Page, container: Container, name: string, inputOrSelect: string, wait = 100) {
+async function moveResizer(page: Page, resizer, offset: number) {
+
+    await expect(resizer).toBeVisible();
+
+    let box = await resizer.boundingBox();
+    expect(box?.width).toBeGreaterThan(0);
+    expect(box?.height).toBeGreaterThan(0);
+
+    await resizer.hover();
+    await page.mouse.down();
+    await page.mouse.move(box.x + offset, 0, {steps: 20});
+    await page.mouse.up();
+}
+
+export async function insertInputWithLabel(page: Page, container: Container, name: string, inputOrSelect: string) {
+
+    // count how many labels there are already
+    let el = container.getTextNode();
+    let existingLblCount = await el.locator('../..').locator('span', { hasText: /^label$/ }).count()
 
 	await useContextMenu(page, container,'Insert HTML element', 'l-m', 'label');
+
+    // wait for label to appear
+    let label = el.locator('../..').locator('span', { hasText: /^label$/ }).nth(existingLblCount)
+    await expect(label).toBeVisible()
+
 	await useContextMenu(page, container.getParentContainer(), 'Expand / Collapse', 'Expand subtree recursively');
 
 	let count = await container.countElements('label');
@@ -197,7 +177,12 @@ export async function insertInputWithLabel(page: Page, container: Container, nam
 	let textContainer = labelContainer.getElement('Initial text for label');
 
 	await useContextMenu(page, textContainer, 'Wrap element in...', '... HTML element', 's', 'span');
-	await page.waitForTimeout(1000);
+
+    // wait for span to appear
+    let span = label.locator('../..').locator('span').filter({ hasText: /^span$/ })
+    await expect(span).toBeVisible()
+
+	// await page.waitForTimeout(1000);
 	await setNodeContent(page, textContainer, name);
 
 	switch (inputOrSelect) {
@@ -228,9 +213,6 @@ export async function configureHTMLAttributes(page: Page, node: Container, data:
 	for (let key in data) {
 		await page.locator(`input[name="_html_${key}"]`).fill(data[key]);
 	}
-
-	await page.waitForTimeout(wait);
-
 }
 
 export async function configureGeneralAttributes(page: Page, node: Container, data: Object, wait = 100) {
@@ -267,10 +249,16 @@ export async function configureFunctionQuery(page: Page, node: Container, query:
 export async function setNodeContent(page: Page, node: Container, content: string, wait = 100) {
 
 	await node.getTextNode().click();
-	await page.waitForTimeout(1000);
-	await sendCtrlPlusA(page);
+
+    // wait for monaco to have registered the click and be active
+    await page.waitForFunction(() => {
+        const ta = document.querySelector('.monaco-editor textarea.inputarea');
+        return document.activeElement === ta;
+    });
+
+    await node.getTextNode().press('ControlOrMeta+a');
 	await page.keyboard.type(content);
-	await page.waitForTimeout(200);
+
 	await page.getByRole('button', {name: 'Save'}).click();
 	await page.waitForTimeout(wait);
 }
@@ -318,16 +306,37 @@ export async function useContextMenu(page: Page, container: Container, level1: s
 
 export async function focusCenterPaneMonacoEditor(page: Page) {
 
-	const monaco = page.locator('#center-pane .monaco-editor');
-	await monaco.click();
-	await monaco.focus();
+	// const monaco = page.locator('#center-pane .monaco-editor');
+	// await monaco.click();
+	// await monaco.focus();
+    //
+    // // wait for monaco to have registered the click and be active
+    // await page.waitForFunction(() => {
+    //     const ta = document.querySelector('#center-pane .monaco-editor textarea.inputarea');
+    //     return document.activeElement === ta;
+    // });
+    await focusMonacoEditorInContainer(page, '#center-pane');
 }
 
-export async function sendCtrlPlusA(page: Page) {
+export async function focusMonacoEditorInContainer(page: Page, containerSelector: string) {
 
-	const controlKey = (process.platform === 'darwin') ? 'Meta' : 'Control';
+    const monaco = page.locator(`${containerSelector} .monaco-editor`);
+    await monaco.click();
+    await monaco.focus();
 
-	await page.keyboard.down(controlKey);
-	await page.keyboard.press('A');
-	await page.keyboard.up(controlKey);
+    // wait for monaco to have registered the click and be active
+    await page.waitForFunction((selector) => {
+        const ta = document.querySelector(`${selector} .monaco-editor textarea.inputarea`);
+        return document.activeElement === ta;
+    }, containerSelector);
+}
+
+export async function waitForPartialReload(page: Page, componentSelector: string, lastRefresh: any) {
+
+	await page.waitForFunction(
+		([selector, prevValue]) => document.querySelector(selector)?.getAttribute('data-last-refresh') !== prevValue,
+		[componentSelector, lastRefresh]
+	);
+
+	return await page.getAttribute(componentSelector, 'data-last-refresh');
 }
