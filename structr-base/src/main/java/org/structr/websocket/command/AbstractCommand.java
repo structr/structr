@@ -116,14 +116,20 @@ public abstract class AbstractCommand {
 
 			} else {
 
-				if (nodeId == null) {
-					logger.warn("Relationship access by UUID can take a very long time. Please examine the following stack trace and amend.");
-				}
-
 				final RelationshipInterface rel = getRelationship(id, nodeId);
 				if (rel != null) {
 
+					if (nodeId == null) {
+						logger.warn("Relationship {} accessed by UUID without a nodeId can take a very long time. Pass nodeId to use the fast path, or examine the stack trace and amend.", id);
+					}
+
 					return rel;
+
+				} else if (nodeId == null) {
+
+					// neither a node nor a relationship: almost always a stale id from a
+					// client reconnecting after a restart, so do not raise a slow-path alarm
+					logger.debug("GET for UUID {} matched neither a node nor a relationship (stale id?).", id);
 				}
 			}
 
