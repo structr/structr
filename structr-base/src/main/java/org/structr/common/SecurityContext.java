@@ -350,7 +350,18 @@ public class SecurityContext {
 
 		if (internalRequest != null) {
 
-			return internalRequest.getSession(false);
+			try {
+
+				return internalRequest.getSession(false);
+
+			} catch (final Exception e) {
+
+				// the underlying Jetty request may already be recycled (e.g. a schema
+				// reload running in the post-response tx commit on a pool thread), which
+				// makes getSession() throw an NPE; treat that as "no session" so callers
+				// fall back to the cached session id instead of failing
+				return null;
+			}
 		}
 
 		return null;
