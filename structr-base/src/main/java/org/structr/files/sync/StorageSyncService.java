@@ -62,6 +62,7 @@ import java.util.concurrent.TimeUnit;
 public class StorageSyncService extends Thread implements RunnableService {
 
 	public static final String DELETE_STALE_KEY = "sync.deleteStale";
+	public static final String DIRECTION_KEY    = SyncDirection.DIRECTION_KEY;
 
 	/**
 	 * SecurityContext attribute marking graph modifications that originate
@@ -78,7 +79,16 @@ public class StorageSyncService extends Thread implements RunnableService {
 
 	private final Map<String, ActiveSync> targets      = new LinkedHashMap<>();
 	private final Map<String, PendingEvent> eventQueue = new LinkedHashMap<>();
+	private final List<PendingOutbound> outboundQueue  = new LinkedList<>();
 	private boolean running                            = false;
+
+	// per-transaction capture state for outbound (Structr->physical) propagation:
+	// pre-move locations stashed before a parent relationship changes (the old
+	// parent is not recoverable afterwards), and the events captured during the
+	// transaction, coalesced per node. Flushed or discarded exactly once per
+	// toplevel transaction by handleTransactionFinished().
+	private static final ThreadLocal<Map<String, PreMoveLocation>> preMoveStash   = new ThreadLocal<>();
+	private static final ThreadLocal<Map<String, PendingOutbound>> capturedEvents = new ThreadLocal<>();
 
 	public StorageSyncService() {
 
@@ -105,6 +115,248 @@ public class StorageSyncService extends Thread implements RunnableService {
 	 */
 	public static boolean isSyncOrigin(final SecurityContext securityContext) {
 		return securityContext != null && Boolean.TRUE.equals(securityContext.getAttribute(SYNC_ORIGIN_ATTRIBUTE));
+	}
+
+	/**
+	 * @return the outbound-enabled sync target governing the given node
+	 * (nearest-config rule), or null if the service is not running, the node
+	 * is not governed by a sync target, or the governing target's direction
+	 * does not include OUT. Must be called within a transaction.
+	 */
+	public static OutboundTarget getOutboundTarget(final AbstractFile file) {
+
+		final StorageSyncService service = StructrApp.getInstance().getService(StorageSyncService.class);
+		if (service == null || !service.isRunning()) {
+			return null;
+		}
+
+		synchronized (service.targets) {
+
+			if (service.targets.isEmpty()) {
+				return null;
+			}
+		}
+
+		final AbstractFile supplier = StorageProviderFactory.getStorageConfigurationSupplier(file);
+		if (supplier == null) {
+			return null;
+		}
+
+		final ActiveSync sync = service.getActiveSync(supplier.getUuid());
+		if (sync == null || !sync.direction.isOutbound()) {
+			return null;
+		}
+
+		// read the sync root's path fresh from the node - ancestors may have
+		// been renamed since the target snapshot was taken
+		return new OutboundTarget(supplier.getUuid(), supplier.getPath());
+	}
+
+	/**
+	 * @return true if the given node is governed by an outbound-enabled sync
+	 * target (its structural changes are propagated to the external storage)
+	 */
+	public static boolean isOutboundGoverned(final AbstractFile file) {
+		return getOutboundTarget(file) != null;
+	}
+
+	/**
+	 * Called before a parent/parentId change is applied to the given node.
+	 * Stashes the node's current absolute path and its current governing
+	 * outbound target - the old parent is not recoverable after the
+	 * relationship changed. The first call per node and transaction wins,
+	 * preserving the original location.
+	 */
+	public static void stashPreMoveLocation(final AbstractFile file) {
+
+		final OutboundTarget target = getOutboundTarget(file);
+		if (target == null) {
+			return;
+		}
+
+		Map<String, PreMoveLocation> stash = preMoveStash.get();
+		if (stash == null) {
+
+			stash = new LinkedHashMap<>();
+			preMoveStash.set(stash);
+		}
+
+		stash.putIfAbsent(file.getUuid(), new PreMoveLocation(target, file.getPath()));
+	}
+
+	/**
+	 * Called from the AbstractFile modification callback for changes that do
+	 * not originate from the sync layer. Captures a MOVED, DELETED and/or
+	 * CREATED event depending on the node's old and new governance.
+	 *
+	 * @param previousName the node's previous name from the modification
+	 * queue's before map, or null if the name did not change
+	 * @return true if the location change is covered by outbound
+	 * synchronization (callers must not reject the rename), false otherwise
+	 */
+	public static boolean recordOutboundLocationChange(final AbstractFile file, final String previousName) {
+
+		final Map<String, PreMoveLocation> stash = preMoveStash.get();
+		final String uuid                        = file.getUuid();
+		final PreMoveLocation stashed            = stash != null ? stash.get(uuid) : null;
+
+		if (stashed == null && previousName == null) {
+
+			// no location change: the return value only matters for renames
+			return false;
+		}
+
+		final OutboundTarget newTarget = getOutboundTarget(file);
+		final OutboundTarget oldTarget = stashed != null ? stashed.target() : newTarget;
+
+		if (oldTarget == null && newTarget == null) {
+			return false;
+		}
+
+		// the sync root's physical location is defined by its configuration,
+		// not by its virtual path - no event, but the change is covered
+		if ((oldTarget != null && uuid.equals(oldTarget.syncRootUuid())) || (newTarget != null && uuid.equals(newTarget.syncRootUuid()))) {
+			return true;
+		}
+
+		final String currentPath    = file.getPath();
+		final String oldParentPath  = parentOf(stashed != null ? stashed.absolutePath() : currentPath);
+		final String oldName        = previousName != null ? previousName : file.getName();
+		final String oldAbsolute    = oldParentPath + "/" + oldName;
+		final boolean directory     = file.is(StructrTraits.FOLDER);
+		final String oldRelative    = oldTarget != null ? relativize(oldTarget, oldAbsolute) : null;
+		final String newRelative    = newTarget != null ? relativize(newTarget, currentPath) : null;
+
+		if (oldTarget != null && newTarget != null && oldTarget.syncRootUuid().equals(newTarget.syncRootUuid())) {
+
+			// moved/renamed within the same target
+			if (oldRelative != null && newRelative != null && !oldRelative.equals(newRelative)) {
+
+				capture(oldTarget.syncRootUuid(), VirtualChangeEvent.moved(uuid, directory, oldRelative, newRelative));
+			}
+
+			return true;
+		}
+
+		if (oldTarget != null && oldRelative != null) {
+
+			// moved out of the old target
+			capture(oldTarget.syncRootUuid(), VirtualChangeEvent.deleted(uuid, directory, oldRelative));
+		}
+
+		if (newTarget != null && newRelative != null) {
+
+			// moved into the new target
+			capture(newTarget.syncRootUuid(), VirtualChangeEvent.created(uuid, directory, newRelative));
+		}
+
+		return true;
+	}
+
+	/**
+	 * Called from the pre-delete callback while the node and its parent
+	 * chain are still intact. Captures a DELETED event.
+	 *
+	 * @return true if the deletion is covered by outbound synchronization
+	 * (the direct physical delete must then be skipped)
+	 */
+	public static boolean recordOutboundDeletion(final AbstractFile file) {
+
+		final OutboundTarget target = getOutboundTarget(file);
+		if (target == null) {
+			return false;
+		}
+
+		final String uuid = file.getUuid();
+
+		if (uuid.equals(target.syncRootUuid())) {
+
+			// deleting the sync root node does not delete the external storage
+			// behind it - the physical root is defined by the configuration
+			return true;
+		}
+
+		final String relativePath = relativize(target, file.getPath());
+		if (relativePath == null) {
+			return false;
+		}
+
+		capture(target.syncRootUuid(), VirtualChangeEvent.deleted(uuid, file.is(StructrTraits.FOLDER), relativePath));
+
+		return true;
+	}
+
+	/**
+	 * Called from the folder creation callback: captures a CREATED event for
+	 * new folders below an outbound-governed subtree, so path-based backends
+	 * can materialize the physical directory.
+	 */
+	public static void recordOutboundCreation(final AbstractFile file) {
+
+		final OutboundTarget target = getOutboundTarget(file);
+		if (target == null) {
+			return;
+		}
+
+		final String uuid = file.getUuid();
+
+		if (uuid.equals(target.syncRootUuid())) {
+			return;
+		}
+
+		final String relativePath = relativize(target, file.getPath());
+		if (relativePath == null) {
+			return;
+		}
+
+		capture(target.syncRootUuid(), VirtualChangeEvent.created(uuid, file.is(StructrTraits.FOLDER), relativePath));
+	}
+
+	/**
+	 * Called by TransactionCommand.finishTx for every finished toplevel
+	 * transaction: discards the capture buffer on rollback, enqueues the
+	 * captured events for asynchronous dispatch on commit. Cheap no-op when
+	 * nothing was captured.
+	 */
+	public static void handleTransactionFinished(final boolean successful) {
+
+		final Map<String, PendingOutbound> captured = capturedEvents.get();
+
+		preMoveStash.remove();
+		capturedEvents.remove();
+
+		if (!successful || captured == null || captured.isEmpty()) {
+			return;
+		}
+
+		final StorageSyncService service = StructrApp.getInstance().getService(StorageSyncService.class);
+		if (service == null || !service.isRunning()) {
+			return;
+		}
+
+		// dispatch order: CREATED and MOVED in capture order, DELETED
+		// deepest-path-first so children empty their parent directories
+		// before the directory's own deletion arrives
+		final List<PendingOutbound> ordered = new LinkedList<>();
+		final List<PendingOutbound> deleted = new LinkedList<>();
+
+		for (final PendingOutbound pending : captured.values()) {
+
+			if (VirtualChangeEvent.Type.DELETED.equals(pending.event().type())) {
+
+				deleted.add(pending);
+
+			} else {
+
+				ordered.add(pending);
+			}
+		}
+
+		deleted.sort(Comparator.comparingInt((final PendingOutbound p) -> p.event().previousRelativePath().split("/").length).reversed());
+
+		ordered.addAll(deleted);
+
+		service.enqueueOutbound(ordered);
 	}
 
 	/**
@@ -191,6 +443,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 		final Integer scanInterval   = isFolder ? abstractFile.getProperty(folderTraits.key(FolderTraitDefinition.MOUNT_SCAN_INTERVAL_PROPERTY)) : null;
 		final Long lastScanned       = isFolder ? abstractFile.getProperty(folderTraits.key(FolderTraitDefinition.MOUNT_LAST_SCANNED_PROPERTY)) : null;
 		final boolean deleteStale    = Boolean.parseBoolean(syncTarget.configuration().get(DELETE_STALE_KEY));
+		final SyncDirection direction = SyncDirection.fromConfiguration(syncTarget.configuration());
 
 		synchronized (targets) {
 
@@ -228,9 +481,16 @@ public class StorageSyncService extends Thread implements RunnableService {
 
 			logger.info("Synchronizing {} via {}..", path, synchronizer.getClass().getSimpleName());
 
-			final ActiveSync sync = new ActiveSync(syncTarget, synchronizer, scanInterval, watchContents, deleteStale);
+			final ActiveSync sync = new ActiveSync(syncTarget, synchronizer, scanInterval, watchContents, deleteStale, direction);
 
 			targets.put(uuid, sync);
+
+			// watching and scanning are inbound-only features
+			if (!direction.isInbound()) {
+
+				logger.info("Outbound-only synchronization of {}, skipping scans", path);
+				return;
+			}
 
 			if (watchContents && synchronizer.supportsWatching()) {
 
@@ -360,7 +620,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 
 				for (final ActiveSync sync : targets.values()) {
 
-					if (sync.fullScanRequested || sync.shouldScan()) {
+					if (sync.direction.isInbound() && (sync.fullScanRequested || sync.shouldScan())) {
 
 						sync.fullScanRequested = false;
 						sync.lastScanned       = System.currentTimeMillis();
@@ -410,6 +670,9 @@ public class StorageSyncService extends Thread implements RunnableService {
 					try { Thread.sleep(TimeUnit.MINUTES.toMillis(1)); } catch (InterruptedException i) {}
 				}
 			}
+
+			// propagate committed Structr-side changes to the external storages
+			dispatchOutbound();
 		}
 
 		logger.info("StorageSyncService stopped");
@@ -595,6 +858,140 @@ public class StorageSyncService extends Thread implements RunnableService {
 		}
 	}
 
+	/**
+	 * Captures an outbound event in the per-transaction buffer, coalescing
+	 * with an already-captured event of the same node so that intermediate
+	 * states that never existed externally are not propagated.
+	 */
+	private static void capture(final String syncRootUuid, final VirtualChangeEvent event) {
+
+		Map<String, PendingOutbound> captured = capturedEvents.get();
+		if (captured == null) {
+
+			captured = new LinkedHashMap<>();
+			capturedEvents.set(captured);
+		}
+
+		final String key               = syncRootUuid + "#" + event.nodeUuid();
+		final PendingOutbound existing = captured.get(key);
+
+		if (existing == null) {
+
+			captured.put(key, new PendingOutbound(syncRootUuid, event));
+			return;
+		}
+
+		final VirtualChangeEvent first = existing.event();
+
+		switch (first.type()) {
+
+			case MOVED -> {
+
+				switch (event.type()) {
+
+					// keep the original location, take the latest one
+					case MOVED   -> captured.put(key, new PendingOutbound(syncRootUuid, VirtualChangeEvent.moved(event.nodeUuid(), event.directory(), first.previousRelativePath(), event.relativePath())));
+
+					// the entry effectively vanished from its original location
+					case DELETED -> captured.put(key, new PendingOutbound(syncRootUuid, VirtualChangeEvent.deleted(event.nodeUuid(), event.directory(), first.previousRelativePath())));
+
+					case CREATED -> captured.put(key, new PendingOutbound(syncRootUuid, event));
+				}
+			}
+
+			case CREATED -> {
+
+				switch (event.type()) {
+
+					// created and moved within one transaction: only the final location exists
+					case MOVED   -> captured.put(key, new PendingOutbound(syncRootUuid, VirtualChangeEvent.created(event.nodeUuid(), event.directory(), event.relativePath())));
+
+					// created and deleted within one transaction: nothing ever existed externally
+					case DELETED -> captured.remove(key);
+
+					case CREATED -> captured.put(key, new PendingOutbound(syncRootUuid, event));
+				}
+			}
+
+			case DELETED -> captured.put(key, new PendingOutbound(syncRootUuid, event));
+		}
+	}
+
+	/**
+	 * @return the parent portion of the given absolute virtual path
+	 */
+	private static String parentOf(final String absolutePath) {
+
+		final int index = absolutePath.lastIndexOf('/');
+
+		return index > 0 ? absolutePath.substring(0, index) : "";
+	}
+
+	/**
+	 * @return the given absolute virtual path relative to the target's sync
+	 * root, "" for the root itself, or null if the path is not below the root
+	 */
+	private static String relativize(final OutboundTarget target, final String absolutePath) {
+
+		if (absolutePath == null) {
+			return null;
+		}
+
+		if (absolutePath.equals(target.syncRootPath())) {
+			return "";
+		}
+
+		final String prefix = target.syncRootPath() + "/";
+
+		return absolutePath.startsWith(prefix) ? absolutePath.substring(prefix.length()) : null;
+	}
+
+	private void enqueueOutbound(final List<PendingOutbound> events) {
+
+		synchronized (outboundQueue) {
+			outboundQueue.addAll(events);
+		}
+	}
+
+	/**
+	 * Drains the outbound queue and notifies the synchronizers of committed
+	 * virtual filesystem changes. Runs on the service thread, outside of any
+	 * transaction.
+	 */
+	private void dispatchOutbound() {
+
+		final List<PendingOutbound> due;
+
+		synchronized (outboundQueue) {
+
+			if (outboundQueue.isEmpty()) {
+				return;
+			}
+
+			due = new LinkedList<>(outboundQueue);
+			outboundQueue.clear();
+		}
+
+		for (final PendingOutbound pending : due) {
+
+			final ActiveSync sync = getActiveSync(pending.syncRootUuid());
+
+			if (sync == null || !sync.direction.isOutbound()) {
+
+				// target was detached or reconfigured while the event was queued
+				continue;
+			}
+
+			try {
+
+				sync.synchronizer.onVirtualChange(pending.event());
+
+			} catch (Throwable t) {
+				logger.warn("Error while propagating virtual change {} to {}: {}", pending.event(), sync.target.syncRootPath(), t.getMessage());
+			}
+		}
+	}
+
 	private static void closeQuietly(final StorageSynchronizer synchronizer) {
 
 		try {
@@ -644,17 +1041,19 @@ public class StorageSyncService extends Thread implements RunnableService {
 		final StorageSynchronizer synchronizer;
 		final boolean watchContents;
 		final boolean deleteStale;
+		final SyncDirection direction;
 
 		volatile boolean fullScanRequested = false;
 		private long scanInterval          = 0L;
 		long lastScanned                   = 0L;
 
-		ActiveSync(final SyncTarget target, final StorageSynchronizer synchronizer, final Integer scanInterval, final boolean watchContents, final boolean deleteStale) {
+		ActiveSync(final SyncTarget target, final StorageSynchronizer synchronizer, final Integer scanInterval, final boolean watchContents, final boolean deleteStale, final SyncDirection direction) {
 
 			this.target        = target;
 			this.synchronizer  = synchronizer;
 			this.watchContents = watchContents;
 			this.deleteStale   = deleteStale;
+			this.direction     = direction;
 			this.lastScanned   = System.currentTimeMillis();
 
 			setScanInterval(scanInterval);
@@ -668,6 +1067,23 @@ public class StorageSyncService extends Thread implements RunnableService {
 			return scanInterval > 0 && System.currentTimeMillis() > (lastScanned + scanInterval);
 		}
 	}
+
+	/**
+	 * The outbound-enabled sync target governing a node: the sync root's
+	 * UUID and its current (live) absolute virtual path.
+	 */
+	public record OutboundTarget(String syncRootUuid, String syncRootPath) {}
+
+	/**
+	 * A node's location before a parent change, stashed pre-set because the
+	 * previous parent is not recoverable from the modification queue.
+	 */
+	private record PreMoveLocation(OutboundTarget target, String absolutePath) {}
+
+	/**
+	 * A captured, committed outbound event awaiting dispatch.
+	 */
+	private record PendingOutbound(String syncRootUuid, VirtualChangeEvent event) {}
 
 	/**
 	 * A queued change event, debounced and coalesced per sync root and
