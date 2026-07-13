@@ -246,15 +246,21 @@ public class StructrApp implements App {
 			if (type != null) {
 
 				query.type(type);
-
-			} else {
-
-				logger.warn("Relationship access by UUID can take a very long time. Please examine the following stack trace and amend.");
-				Thread.dumpStack();
 			}
 
 			final RelationshipInterface entity = query.getFirst();
 			if (entity != null) {
+
+				// Warn only when an UNTYPED uuid lookup actually RESOLVED a relationship:
+				// that is the genuinely slow path worth amending (pass a type to avoid
+				// the scan). A miss (a stale/deleted id - e.g. a client replaying an old
+				// relationship reference after a reset/re-import) is just a not-found and
+				// must not spam a warning + stack trace, which was the recurring noise.
+				if (type == null) {
+
+					logger.warn("Relationship access by UUID ({}) can take a very long time. Please examine the following stack trace and amend.", uuid);
+					Thread.dumpStack();
+				}
 
 				final PropertyContainer container = entity.getPropertyContainer();
 
