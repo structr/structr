@@ -275,10 +275,13 @@ public class ExternalFileSyncHandler {
 		final PropertyKey<NodeInterface> parentKey = traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY);
 		final PropertyKey<String> nameKey          = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 		final App app                              = StructrApp.getInstance();
-		final String type                          = getTargetType(syncRoot, entry.directory());
 
-		NodeInterface node = app.nodeQuery(type).key(nameKey, entry.name()).key(parentKey, parentFolder).getFirst();
+		// kind-agnostic lookup: deletions cannot know whether the vanished entry
+		// was a file or a folder, and existing nodes may have a subtype
+		NodeInterface node = app.nodeQuery(StructrTraits.ABSTRACT_FILE).key(nameKey, entry.name()).key(parentKey, parentFolder).getFirst();
 		if (node == null && doCreate) {
+
+			final String type            = getTargetType(syncRoot, entry.directory());
 
 			final PropertyMap properties = new PropertyMap();
 
