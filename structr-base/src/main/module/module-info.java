@@ -222,6 +222,7 @@ module structr.base {
     exports org.structr.storage.providers.local;
     exports org.structr.storage.providers.memory;
     exports org.structr.storage.providers.s3;
+    exports org.structr.storage.sync;
     exports org.structr.storage.util;
     exports org.structr.util;
     exports org.structr.web;
