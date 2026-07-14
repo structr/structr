@@ -58,6 +58,7 @@
 		<maven.plugin.jar.version>3.4.2</maven.plugin.jar.version>
 		<test.forkCount>4</test.forkCount>
 		<slf4j.version>2.0.0</slf4j.version>
+		<bouncycastle.version>1.81</bouncycastle.version>
 		<tika.version>3.2.3</tika.version>
 		<pulsar.version>4.0.5</pulsar.version>
 		<elk.version>0.11.0</elk.version>
@@ -126,19 +127,33 @@
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
 				<artifactId>bcmail-jdk18on</artifactId>
-				<version>1.81</version>
+				<version>${bouncycastle.version}</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
 				<artifactId>bcprov-jdk18on</artifactId>
-				<version>1.81</version>
+				<version>${bouncycastle.version}</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
 				<artifactId>bcpkix-jdk18on</artifactId>
-				<version>1.81</version>
+				<version>${bouncycastle.version}</version>
+				<optional>true</optional>
+			</dependency>
+			<dependency>
+				<!-- bcutil owns the public org.bouncycastle.asn1 API (incl. MiscObjectIdentifiers) that
+				     bcprov/bcpkix compile against; keep it on the same version to avoid a stale split. -->
+				<groupId>org.bouncycastle</groupId>
+				<artifactId>bcutil-jdk18on</artifactId>
+				<version>${bouncycastle.version}</version>
+				<optional>true</optional>
+			</dependency>
+			<dependency>
+				<groupId>org.bouncycastle</groupId>
+				<artifactId>bcjmail-jdk18on</artifactId>
+				<version>${bouncycastle.version}</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
