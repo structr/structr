@@ -43,6 +43,7 @@ import org.structr.web.traits.definitions.FolderTraitDefinition;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -80,7 +81,8 @@ public class StorageSyncService extends Thread implements RunnableService {
 	private final Map<String, ActiveSync> targets      = new LinkedHashMap<>();
 	private final Map<String, PendingEvent> eventQueue = new LinkedHashMap<>();
 	private final List<PendingOutbound> outboundQueue  = new LinkedList<>();
-	private boolean running                            = false;
+	private final Set<Thread> scanThreads              = ConcurrentHashMap.newKeySet();
+	private volatile boolean running                   = false;
 
 	// per-transaction capture state for outbound (Structr->physical) propagation:
 	// pre-move locations stashed before a parent relationship changes (the old
@@ -125,8 +127,8 @@ public class StorageSyncService extends Thread implements RunnableService {
 	 */
 	public static OutboundTarget getOutboundTarget(final AbstractFile file) {
 
-		final StorageSyncService service = StructrApp.getInstance().getService(StorageSyncService.class);
-		if (service == null || !service.isRunning()) {
+		final StorageSyncService service = runningService();
+		if (service == null) {
 			return null;
 		}
 
@@ -329,8 +331,8 @@ public class StorageSyncService extends Thread implements RunnableService {
 			return;
 		}
 
-		final StorageSyncService service = StructrApp.getInstance().getService(StorageSyncService.class);
-		if (service == null || !service.isRunning()) {
+		final StorageSyncService service = runningService();
+		if (service == null) {
 			return;
 		}
 
@@ -366,8 +368,8 @@ public class StorageSyncService extends Thread implements RunnableService {
 	 */
 	public static void handleNodeChanged(final AbstractFile abstractFile) {
 
-		final StorageSyncService service = StructrApp.getInstance().getService(StorageSyncService.class);
-		if (service != null && service.isRunning()) {
+		final StorageSyncService service = runningService();
+		if (service != null) {
 
 			service.attach(abstractFile);
 		}
@@ -379,8 +381,8 @@ public class StorageSyncService extends Thread implements RunnableService {
 	 */
 	public static void handleNodeDeleted(final String uuid) {
 
-		final StorageSyncService service = StructrApp.getInstance().getService(StorageSyncService.class);
-		if (service != null && service.isRunning()) {
+		final StorageSyncService service = runningService();
+		if (service != null) {
 
 			service.detach(uuid);
 		}
@@ -392,11 +394,42 @@ public class StorageSyncService extends Thread implements RunnableService {
 	 */
 	public static void handleConfigurationChanged(final String storageConfigurationUuid) {
 
-		final StorageSyncService service = StructrApp.getInstance().getService(StorageSyncService.class);
-		if (service != null && service.isRunning()) {
+		final StorageSyncService service = runningService();
+		if (service != null) {
 
 			service.configurationChanged(storageConfigurationUuid);
 		}
+	}
+
+	/**
+	 * @return the running service instance, looked up without ever
+	 * re-initializing or starting the service layer (Services.getInstance()
+	 * would re-initialize after shutdown, which under the embedded database
+	 * driver calls System.exit), or null when the service layer is shut down,
+	 * not initialized, or the service is not running
+	 */
+	private static StorageSyncService runningService() {
+
+		final Services services = Services.peekInstance();
+		if (services == null || !services.isInitialized()) {
+			return null;
+		}
+
+		final StorageSyncService service = services.getServiceImplementation(StorageSyncService.class);
+
+		return (service != null && service.isRunning()) ? service : null;
+	}
+
+	/**
+	 * @return true if the service is running and the service layer is still
+	 * initialized - background work (scans) must stop touching the graph once
+	 * this returns false, to avoid re-initializing a shut-down service layer
+	 */
+	boolean isReady() {
+
+		final Services services = Services.peekInstance();
+
+		return running && services != null && services.isInitialized();
 	}
 
 	/**
@@ -514,7 +547,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 
 				sync.lastScanned = System.currentTimeMillis();
 
-				new Thread(new ScanJob(sync), "StorageSyncScan-" + uuid).start();
+				startScan(sync);
 
 			} else {
 
@@ -625,7 +658,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 						sync.fullScanRequested = false;
 						sync.lastScanned       = System.currentTimeMillis();
 
-						new Thread(new ScanJob(sync), "StorageSyncScan-" + sync.target.syncRootUuid()).start();
+						startScan(sync);
 					}
 				}
 			}
@@ -648,7 +681,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 				}
 			}
 
-			if (!dueEvents.isEmpty()) {
+			if (!dueEvents.isEmpty() && isReady()) {
 
 				final SecurityContext securityContext = createSyncContext();
 
@@ -703,7 +736,33 @@ public class StorageSyncService extends Thread implements RunnableService {
 	@Override
 	public void stopService() {
 
+		// stop first so in-flight scans bail at their next isReady() check and
+		// no new scans are started
 		running = false;
+
+		// wait (bounded) for in-flight scans to finish - a scan thread that
+		// outlived shutdown would call StructrApp.getInstance(), re-initializing
+		// the shut-down service layer (System.exit under the embedded driver)
+		final long deadline = System.currentTimeMillis() + 10_000;
+
+		for (final Thread scan : scanThreads) {
+			scan.interrupt();
+		}
+
+		for (final Thread scan : scanThreads) {
+
+			final long remaining = deadline - System.currentTimeMillis();
+			if (remaining <= 0) {
+				break;
+			}
+
+			try {
+				scan.join(remaining);
+			} catch (InterruptedException iex) {
+				Thread.currentThread().interrupt();
+				break;
+			}
+		}
 
 		synchronized (targets) {
 
@@ -713,6 +772,42 @@ public class StorageSyncService extends Thread implements RunnableService {
 
 			targets.clear();
 		}
+	}
+
+	/**
+	 * Starts a tracked scan thread for the given target, unless the service is
+	 * already stopping. Tracked threads are interrupted and joined by
+	 * stopService() so no scan touches the graph after shutdown.
+	 */
+	private void startScan(final ActiveSync sync) {
+
+		if (!running) {
+			return;
+		}
+
+		final Thread scan = new Thread(() -> {
+
+			try {
+
+				new ScanJob(this, sync).run();
+
+			} finally {
+
+				scanThreads.remove(Thread.currentThread());
+			}
+
+		}, "StorageSyncScan-" + sync.target.syncRootUuid());
+
+		scanThreads.add(scan);
+
+		// re-check after registering: if stopService ran in between, do not start
+		if (!running) {
+
+			scanThreads.remove(scan);
+			return;
+		}
+
+		scan.start();
 	}
 
 	@Override

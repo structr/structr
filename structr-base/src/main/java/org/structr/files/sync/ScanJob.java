@@ -57,17 +57,25 @@ class ScanJob implements Runnable {
 
 	private static final int BATCH_SIZE = 1000;
 
+	private final StorageSyncService service;
 	private final StorageSyncService.ActiveSync sync;
 	private final SyncTarget target;
 
-	ScanJob(final StorageSyncService.ActiveSync sync) {
+	ScanJob(final StorageSyncService service, final StorageSyncService.ActiveSync sync) {
 
-		this.sync   = sync;
-		this.target = sync.target;
+		this.service = service;
+		this.sync    = sync;
+		this.target  = sync.target;
 	}
 
 	@Override
 	public void run() {
+
+		// bail if the service layer is shutting down - touching the graph now
+		// would re-initialize it (System.exit under the embedded driver)
+		if (!service.isReady()) {
+			return;
+		}
 
 		// wait for the creating or modifying transaction to finish before we start,
 		// otherwise the sync root will not be available and no files will be created
@@ -104,6 +112,10 @@ class ScanJob implements Runnable {
 	private boolean waitForSyncRoot() {
 
 		for (int i = 0; i < 3; i++) {
+
+			if (!service.isReady()) {
+				return false;
+			}
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
@@ -143,6 +155,10 @@ class ScanJob implements Runnable {
 			final Iterator<ExternalEntry> it = sync.synchronizer.enumerate(null);
 
 			while (it.hasNext()) {
+
+				if (!service.isReady()) {
+					return false;
+				}
 
 				int batchCount = 0;
 
@@ -190,6 +206,10 @@ class ScanJob implements Runnable {
 	 */
 	private long prune(final long scanStart) {
 
+		if (!service.isReady()) {
+			return 0;
+		}
+
 		final List<String> staleUuids = new LinkedList<>();
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
@@ -212,6 +232,10 @@ class ScanJob implements Runnable {
 		long deleted              = 0;
 
 		while (it.hasNext()) {
+
+			if (!service.isReady()) {
+				break;
+			}
 
 			int batchCount = 0;
 
@@ -285,7 +309,7 @@ class ScanJob implements Runnable {
 
 	private void updateLastScanned(final long scanStart) {
 
-		if (!target.syncRootIsFolder()) {
+		if (!target.syncRootIsFolder() || !service.isReady()) {
 			return;
 		}
 
