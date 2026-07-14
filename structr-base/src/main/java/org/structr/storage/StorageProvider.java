@@ -18,6 +18,7 @@
  */
 package org.structr.storage;
 
+import org.structr.common.error.FrameworkException;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.StorageConfiguration;
 
@@ -54,7 +55,7 @@ public interface StorageProvider extends DataSource {
 
 	SeekableByteChannel getSeekableByteChannel(final Set<? extends OpenOption> options);
 
-	void moveTo(final StorageProvider newFileStorageProvider);
+	void moveTo(final StorageProvider newFileStorageProvider) throws FrameworkException;
 
 	void delete();
 

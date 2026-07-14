@@ -432,7 +432,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	// ----- private static methods -----
-	private static <T> void OnSetProperty(final org.structr.web.entity.File thisFile, final PropertyKey<T> key, T value, final boolean isCreation) {
+	private static <T> void OnSetProperty(final org.structr.web.entity.File thisFile, final PropertyKey<T> key, T value, final boolean isCreation) throws FrameworkException {
 
 		if (isCreation) {
 			return;

@@ -19,8 +19,7 @@
 package org.structr.storage;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.slf4j.LoggerFactory;
+import org.structr.common.error.FrameworkException;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.StorageConfiguration;
 
@@ -81,7 +80,7 @@ public abstract class AbstractStorageProvider implements StorageProvider {
 	}
 
 	@Override
-	public void moveTo(final StorageProvider newFileStorageProvider) {
+	public void moveTo(final StorageProvider newFileStorageProvider) throws FrameworkException {
 
 		// Either use provided destination provider or instantiate new one with a blank config
 		final StorageProvider destinationStorageProvider = newFileStorageProvider != null ? newFileStorageProvider :  StorageProviderFactory.getDefaultStorageProvider(getAbstractFile());
@@ -91,19 +90,25 @@ public abstract class AbstractStorageProvider implements StorageProvider {
 
 			try {
 
-				// Move binary content from old sp to new sp
+				// copy the binary content to the destination and confirm the write
+				// (the destination's close() is what actually persists it, e.g. the
+				// S3 upload) BEFORE removing the source, so a failed destination
+				// write leaves the source intact
 				try (final InputStream is = this.getInputStream(); final OutputStream os = destinationStorageProvider.getOutputStream()) {
 
 					IOUtils.copy(is, os);
 
-					// Clean up old binary data on previous sp
-					this.delete();
-
 					os.flush();
 				}
+
+				// destination write succeeded, now clean up the source
+				this.delete();
+
 			} catch (IOException ex) {
 
-				LoggerFactory.getLogger(AbstractStorageProvider.class).error(ExceptionUtils.getStackTrace(ex));
+				// propagate so the surrounding transaction rolls back and the graph
+				// metadata is not left pointing at storage that has no content
+				throw new FrameworkException(422, "Unable to move file contents: " + ex.getMessage());
 			}
 		}
 	}

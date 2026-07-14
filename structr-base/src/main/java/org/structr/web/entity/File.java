@@ -65,8 +65,8 @@ public interface File extends AbstractFile, DataSource {
 
 	int getNumberOrDefault(Map<String, Object> data, String key, int defaultValue);
 
-	void checkMoveBinaryContents(final NodeInterface newProvider);
-	void checkMoveBinaryContents(final Folder previousParent, final NodeInterface newParent);
+	void checkMoveBinaryContents(final NodeInterface newProvider) throws FrameworkException;
+	void checkMoveBinaryContents(final Folder previousParent, final NodeInterface newParent) throws FrameworkException;
 
 	boolean doIndexing();
 

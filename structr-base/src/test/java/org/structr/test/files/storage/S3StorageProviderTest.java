@@ -428,6 +428,86 @@ public class S3StorageProviderTest extends StructrUiTest {
 	}
 
 	@Test
+	public void testMoveToMissingBucketFailsAndPreservesSource() {
+
+		// deliberately do NOT create the bucket - the destination upload will 404
+		final String bucket  = uniqueBucket();
+		final String content = "must survive a failed move";
+		String fileUuid      = null;
+
+		try (final Tx tx = app.tx()) {
+
+			final StorageConfiguration localConfig = StorageProviderFactory.createConfig("local-" + bucket, LocalFSStorageProvider.class, Map.of());
+
+			final NodeInterface localFolder = app.create(StructrTraits.FOLDER,
+				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "localsource"),
+				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), localConfig)
+			);
+
+			createS3Folder("s3missing", bucket);
+
+			final NodeInterface file = app.create(StructrTraits.FILE,
+				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "keepme.txt"),
+				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), localFolder)
+			);
+
+			fileUuid = file.getUuid();
+
+			try (final OutputStream os = file.as(File.class).getOutputStream()) {
+
+				os.write(content.getBytes("utf-8"));
+			}
+
+			tx.success();
+
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// moving into the S3 folder whose bucket does not exist must fail the
+		// transaction, not silently commit a broken metadata change
+		boolean moveRejected = false;
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface file     = app.getNodeById(StructrTraits.FILE, fileUuid);
+			final NodeInterface s3Folder = app.nodeQuery(StructrTraits.FOLDER).key(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.PATH_PROPERTY), "/s3missing").getFirst();
+
+			file.setProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), s3Folder);
+
+			tx.success();
+
+		} catch (FrameworkException expected) {
+			moveRejected = true;
+		}
+
+		assertTrue("Moving a file to a provider with a missing bucket must be rejected", moveRejected);
+
+		// the transaction rolled back: node still under the local folder, content intact
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface file = app.getNodeById(StructrTraits.FILE, fileUuid);
+
+			assertEquals("File must still be under the original local folder", "/localsource/keepme.txt", file.as(File.class).getPath());
+
+			try (final InputStream is = file.as(File.class).getInputStream()) {
+
+				assertEquals("Source content must be preserved after a failed move", content, IOUtils.toString(is, "utf-8"));
+			}
+
+			// nothing was written to the (nonexistent) bucket
+			assertNull("No S3 object should exist after the failed move", RustFsTestSupport.head(bucket, fileUuid));
+
+			tx.success();
+
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
 	public void testClientCacheSharing() {
 
 		final String endpoint = RustFsTestSupport.getEndpoint();

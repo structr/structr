@@ -20,6 +20,7 @@ package org.structr.storage.providers.local;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.traits.StructrTraits;
 import org.structr.storage.AbstractStorageProvider;
 import org.structr.storage.StorageProvider;
@@ -140,7 +141,7 @@ public class LocalFSStorageProvider extends AbstractStorageProvider implements S
 	}
 
 	@Override
-	public void moveTo(final StorageProvider newFileStorageProvider) {
+	public void moveTo(final StorageProvider newFileStorageProvider) throws FrameworkException {
 
 		// Check if new provider is different from current one, if so use default implementation
 		if (newFileStorageProvider != null && !this.equals(newFileStorageProvider)) {
