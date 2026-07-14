@@ -76,6 +76,59 @@ public class S3StorageProviderTest extends StructrUiTest {
 	}
 
 	@Test
+	public void testReadBeforeWriteReturnsEmpty() {
+
+		final String bucket = uniqueBucket();
+
+		RustFsTestSupport.createBucket(bucket);
+
+		String fileUuid = null;
+
+		// creating a File in an S3 mount triggers AfterCreation metadata
+		// computation, which reads the (not-yet-written) object - this must
+		// not fail or log an error, but present the object as empty
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface folder = createS3Folder("s3empty", bucket);
+
+			final NodeInterface file = app.create(StructrTraits.FILE,
+				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "unwritten.txt"),
+				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder)
+			);
+
+			fileUuid = file.getUuid();
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Creating an S3-backed file without content must not fail.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final File file                = app.getNodeById(StructrTraits.FILE, fileUuid).as(File.class);
+			final StorageProvider provider = StorageProviderFactory.getStorageProvider(file);
+
+			// object was never written -> present as empty, no error
+			assertFalse("Object must not exist before the first write", ((GenericS3BucketStorageProvider)provider).exists());
+			assertEquals("Size of an unwritten object must be 0", 0L, provider.size());
+
+			try (final InputStream is = file.getInputStream()) {
+
+				assertNotNull("Reading an unwritten S3 object must not return null", is);
+				assertEquals("Reading an unwritten S3 object must yield empty content", "", IOUtils.toString(is, "utf-8"));
+			}
+
+			tx.success();
+
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			fail("Reading an unwritten S3 object must not fail.");
+		}
+	}
+
+	@Test
 	public void testStreamRoundTrip() {
 
 		final String bucket = uniqueBucket();

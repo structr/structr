@@ -161,13 +161,19 @@ public class GenericS3BucketStorageProvider extends AbstractStorageProvider impl
 
 		} catch (final InterruptedException e) {
 			Thread.currentThread().interrupt();
-			logger.error("Interrupted while getting input stream for S3 object: {}", key, e);
+			logger.warn("Interrupted while reading S3 object {}", key);
 			return null;
 		} catch (final ExecutionException e) {
-			logger.error("Failed to get input stream for S3 object: {}", key, e.getCause());
+			if (e.getCause() instanceof S3Exception s3e && s3e.statusCode() == 404) {
+				// the object does not exist yet - a newly created file has no
+				// content until its first upload; present it as empty
+				logger.debug("S3 object {} does not exist yet, returning empty content", key);
+				return new ByteArrayInputStream(new byte[0]);
+			}
+			logger.error("Unable to read S3 object {}: {}", key, S3Errors.describe(e));
 			return null;
 		} catch (final Throwable t) {
-			logger.error("Failed to get input stream for S3 object: {}", key, t);
+			logger.error("Unable to read S3 object {}: {}", key, S3Errors.describe(t));
 			return null;
 		}
 	}
@@ -196,7 +202,7 @@ public class GenericS3BucketStorageProvider extends AbstractStorageProvider impl
 			return new S3OutputStream(s3Client, bucketName, key, path, contentType);
 
 		} catch (final Throwable t) {
-			logger.error("Failed to get output stream for S3 object: {}", key, t);
+			logger.error("Unable to open output stream for S3 object {}: {}", key, S3Errors.describe(t));
 			return null;
 		}
 	}
@@ -224,7 +230,7 @@ public class GenericS3BucketStorageProvider extends AbstractStorageProvider impl
 			return new VirtualFileChannel(getAbstractFile(), channel);
 
 		} catch (Exception e) {
-			logger.error("Failed to get seekable byte channel for S3 object: {}", key, e);
+			logger.error("Unable to open channel for S3 object {}: {}", key, S3Errors.describe(e));
 			return null;
 		}
 	}
@@ -249,11 +255,9 @@ public class GenericS3BucketStorageProvider extends AbstractStorageProvider impl
 
 		} catch (final InterruptedException e) {
 			Thread.currentThread().interrupt();
-			logger.error("Interrupted while deleting S3 object: {}", key, e);
-		} catch (final ExecutionException e) {
-			logger.error("Failed to delete S3 object: {}", key, e.getCause());
+			logger.warn("Interrupted while deleting S3 object {}", key);
 		} catch (final Exception e) {
-			logger.error("Failed to delete S3 object: {}", key, e);
+			logger.error("Unable to delete S3 object {}: {}", key, S3Errors.describe(e));
 		}
 	}
 
@@ -281,19 +285,16 @@ public class GenericS3BucketStorageProvider extends AbstractStorageProvider impl
 
 		} catch (final InterruptedException e) {
 			Thread.currentThread().interrupt();
-			logger.error("Interrupted while getting size for S3 object: {}", key, e);
+			logger.warn("Interrupted while getting size of S3 object {}", key);
 			return 0;
 		} catch (final ExecutionException e) {
-			if (e.getCause() instanceof S3Exception) {
-				final S3Exception s3e = (S3Exception) e.getCause();
-				if (s3e.statusCode() == 404) {
-					return 0;
-				}
+			if (e.getCause() instanceof S3Exception s3e && s3e.statusCode() == 404) {
+				return 0;
 			}
-			logger.error("Failed to get size for S3 object: {}", key, e.getCause());
+			logger.error("Unable to get size of S3 object {}: {}", key, S3Errors.describe(e));
 			return 0;
 		} catch (final Exception e) {
-			logger.error("Failed to get size for S3 object: {}", key, e);
+			logger.error("Unable to get size of S3 object {}: {}", key, S3Errors.describe(e));
 			return 0;
 		}
 	}
@@ -323,19 +324,16 @@ public class GenericS3BucketStorageProvider extends AbstractStorageProvider impl
 
 		} catch (final InterruptedException e) {
 			Thread.currentThread().interrupt();
-			logger.error("Interrupted while getting content type for S3 object: {}", key, e);
+			logger.warn("Interrupted while getting content type of S3 object {}", key);
 			return "";
 		} catch (final ExecutionException e) {
-			if (e.getCause() instanceof S3Exception) {
-				final S3Exception s3e = (S3Exception) e.getCause();
-				if (s3e.statusCode() == 404) {
-					return contentType != null ? contentType : "";
-				}
+			if (e.getCause() instanceof S3Exception s3e && s3e.statusCode() == 404) {
+				return contentType != null ? contentType : "";
 			}
-			logger.error("Failed to get content type for S3 object: {}", key, e.getCause());
+			logger.error("Unable to get content type of S3 object {}: {}", key, S3Errors.describe(e));
 			return "";
 		} catch (final Exception e) {
-			logger.error("Failed to get content type for S3 object: {}", key, e);
+			logger.error("Unable to get content type of S3 object {}: {}", key, S3Errors.describe(e));
 			return "";
 		}
 	}
@@ -381,19 +379,16 @@ public class GenericS3BucketStorageProvider extends AbstractStorageProvider impl
 
 		} catch (final InterruptedException e) {
 			Thread.currentThread().interrupt();
-			logger.error("Interrupted while checking existence for S3 object: {}", key, e);
+			logger.warn("Interrupted while checking existence of S3 object {}", key);
 			return false;
 		} catch (final ExecutionException e) {
-			if (e.getCause() instanceof S3Exception) {
-				final S3Exception s3e = (S3Exception) e.getCause();
-				if (s3e.statusCode() == 404) {
-					return false;
-				}
+			if (e.getCause() instanceof S3Exception s3e && s3e.statusCode() == 404) {
+				return false;
 			}
-			logger.error("Failed to check existence for S3 object: {}", key, e.getCause());
+			logger.error("Unable to check existence of S3 object {}: {}", key, S3Errors.describe(e));
 			return false;
 		} catch (final Exception e) {
-			logger.error("Failed to check existence for S3 object: {}", key, e);
+			logger.error("Unable to check existence of S3 object {}: {}", key, S3Errors.describe(e));
 			return false;
 		}
 	}
@@ -450,11 +445,9 @@ public class GenericS3BucketStorageProvider extends AbstractStorageProvider impl
 
 			} catch (final InterruptedException e) {
 				Thread.currentThread().interrupt();
-				throw new IOException("Interrupted while uploading to S3: " + key, e);
-			} catch (final ExecutionException e) {
-				throw new IOException("Failed to upload to S3: " + key, e.getCause());
+				throw new IOException("Interrupted while uploading S3 object " + key);
 			} catch (final Exception e) {
-				throw new IOException("Failed to upload to S3: " + key, e);
+				throw new IOException("Unable to upload S3 object " + key + ": " + S3Errors.describe(e));
 			} finally {
 				super.close();
 			}
@@ -508,9 +501,14 @@ public class GenericS3BucketStorageProvider extends AbstractStorageProvider impl
 
 				} catch (final InterruptedException e) {
 					Thread.currentThread().interrupt();
-					throw new IOException("Interrupted while loading S3 object: " + key, e);
+					throw new IOException("Interrupted while loading S3 object " + key);
 				} catch (final ExecutionException e) {
-					throw new IOException("Failed to load S3 object: " + key, e.getCause());
+					if (e.getCause() instanceof S3Exception s3e && s3e.statusCode() == 404) {
+						// the object does not exist yet - present an empty channel
+						readBuffer = ByteBuffer.wrap(new byte[0]);
+					} else {
+						throw new IOException("Unable to load S3 object " + key + ": " + S3Errors.describe(e));
+					}
 				}
 			}
 		}
@@ -658,9 +656,9 @@ public class GenericS3BucketStorageProvider extends AbstractStorageProvider impl
 
 				} catch (final InterruptedException e) {
 					Thread.currentThread().interrupt();
-					throw new IOException("Interrupted while uploading to S3: " + key, e);
+					throw new IOException("Interrupted while uploading S3 object " + key);
 				} catch (final ExecutionException e) {
-					throw new IOException("Failed to upload to S3: " + key, e.getCause());
+					throw new IOException("Unable to upload S3 object " + key + ": " + S3Errors.describe(e));
 				}
 			}
 

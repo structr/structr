@@ -38,6 +38,7 @@ import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.web.traits.definitions.FolderTraitDefinition;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -161,6 +162,15 @@ class ScanJob implements Runnable {
 		} catch (IOException | FrameworkException ex) {
 
 			logger.warn("Unable to scan {}: {}", target.syncRootPath(), ex.getMessage());
+
+		} catch (UncheckedIOException uioe) {
+
+			// synchronizers surface expected operational failures (endpoint
+			// unreachable, bucket missing, ...) as an already-concise cause;
+			// log that, not the SDK's verbose async stack trace
+			final Throwable cause = uioe.getCause() != null ? uioe.getCause() : uioe;
+
+			logger.warn("Unable to scan {}: {}", target.syncRootPath(), cause.getMessage());
 
 		} catch (Throwable t) {
 

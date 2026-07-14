@@ -135,7 +135,7 @@ public class S3StorageSynchronizer implements StorageSynchronizer {
 			logger.warn("Interrupted while applying virtual change {} to bucket {}", event, bucketName);
 
 		} catch (Throwable t) {
-			logger.warn("Unable to apply virtual change {} to bucket {}: {}", event, bucketName, t.getMessage());
+			logger.warn("Unable to apply virtual change {} to S3 bucket '{}': {}", event, bucketName, S3Errors.describe(t));
 		}
 	}
 
@@ -306,10 +306,10 @@ public class S3StorageSynchronizer implements StorageSynchronizer {
 			} catch (InterruptedException iex) {
 
 				Thread.currentThread().interrupt();
-				throw new UncheckedIOException(new IOException("Interrupted while listing bucket " + bucketName, iex));
+				throw new UncheckedIOException(new IOException("Interrupted while listing S3 bucket '" + bucketName + "'"));
 
 			} catch (ExecutionException eex) {
-				throw new UncheckedIOException(new IOException("Unable to list bucket " + bucketName, eex.getCause()));
+				throw new UncheckedIOException(new IOException("Unable to list S3 bucket '" + bucketName + "': " + S3Errors.describe(eex)));
 			}
 		}
 
