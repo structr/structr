@@ -21,7 +21,8 @@ A file or folder is synchronized when it is directly linked to a StorageConfigur
 | Entry | Description |
 |-------|-------------|
 | `mountTarget` | Path to the directory on the server filesystem (local provider) |
-| `sync.deleteStale` | If `true`, rescans delete nodes whose backing entry vanished from the external storage |
+| `sync.direction` | Direction of synchronization: `in` (external → Structr, the default when absent), `out` (Structr → external), or `both` |
+| `sync.deleteStale` | If `true`, rescans delete nodes whose backing entry vanished from the external storage (inbound scans only) |
 
 ## Settings
 
