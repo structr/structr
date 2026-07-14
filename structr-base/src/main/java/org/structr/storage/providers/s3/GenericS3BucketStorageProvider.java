@@ -21,6 +21,9 @@ package org.structr.storage.providers.s3;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.storage.AbstractStorageProvider;
+import org.structr.storage.sync.StorageSynchronizer;
+import org.structr.storage.sync.SyncTarget;
+import org.structr.storage.sync.SynchronizableStorageProvider;
 import org.structr.storage.util.VirtualFileChannel;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.StorageConfiguration;
@@ -40,7 +43,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-public class GenericS3BucketStorageProvider extends AbstractStorageProvider {
+public class GenericS3BucketStorageProvider extends AbstractStorageProvider implements SynchronizableStorageProvider {
 
 	private static final Logger logger = LoggerFactory.getLogger(GenericS3BucketStorageProvider.class);
 
@@ -73,6 +76,32 @@ public class GenericS3BucketStorageProvider extends AbstractStorageProvider {
 			configuration.get(ACCESS_KEY_KEY),
 			configuration.get(SECRET_KEY_KEY)
 		);
+	}
+
+	@Override
+	public StorageSynchronizer createSynchronizer(final SyncTarget target) {
+
+		final Map<String, String> configuration = target.configuration();
+		final String bucket                     = configuration.get(BUCKET_NAME_KEY);
+
+		if (bucket == null) {
+
+			// nothing external to synchronize without a bucket
+			return null;
+		}
+
+		final S3AsyncClient client = S3ClientCache.getOrCreate(
+			configuration.get(ENDPOINT_KEY),
+			configuration.get(REGION_KEY),
+			configuration.get(ACCESS_KEY_KEY),
+			configuration.get(SECRET_KEY_KEY)
+		);
+
+		if (client == null) {
+			return null;
+		}
+
+		return new S3StorageSynchronizer(target, client, bucket);
 	}
 
 	/**
