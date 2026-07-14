@@ -66,7 +66,7 @@ System-type "VideoFile" has markdown-file "snippets/System Types/VideoFile.md" a
 
 
 "CronService" has markdown-file "snippets/Services/CronService.md" as description
-"DirectoryWatchService" has markdown-file "snippets/Services/DirectoryWatchService.md" as description
+"StorageSyncService" has markdown-file "snippets/Services/StorageSyncService.md" as description
 "FtpService" has markdown-file "snippets/Services/FtpService.md" as description
 "SSHService" has markdown-file "snippets/Services/SSHService.md" as description
 "MailService" has markdown-file "snippets/Services/MailService.md" as description

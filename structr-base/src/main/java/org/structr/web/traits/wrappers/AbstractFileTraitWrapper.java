@@ -33,9 +33,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
-import org.structr.files.external.DirectoryWatchService;
-import org.structr.storage.StorageProvider;
-import org.structr.storage.StorageProviderFactory;
+import org.structr.files.sync.StorageSyncService;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Folder;
@@ -124,11 +122,9 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 	@Override
 	public boolean isMounted() {
 
-		final StorageProvider provider             = StorageProviderFactory.getStorageProvider(this);
-		final boolean hasMountTarget               = provider.getConfig() != null && provider.getConfig().getConfiguration().get("mountTarget") != null;
-		final boolean watchServiceHasMountedFolder = Settings.Services.getValue("").contains("DirectoryWatchService") && StructrApp.getInstance().getService(DirectoryWatchService.class) != null && StructrApp.getInstance().getService(DirectoryWatchService.class).isMounted(getUuid());
+		final StorageSyncService service = StructrApp.getInstance().getService(StorageSyncService.class);
+		if (service != null && service.isSynchronized(getUuid())) {
 
-		if (hasMountTarget && watchServiceHasMountedFolder) {
 			return true;
 		}
 
@@ -217,64 +213,6 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 		}
 
 		return valid;
-	}
-
-	@Override
-	public boolean renameMountedAbstractFile(final Folder thisFolder, final AbstractFile file, final String path, final String previousName) {
-
-		// ToDo: Implement renameMountedAbstractFile for new fs layer
-		throw new UnsupportedOperationException("Not implemented for new fs abstraction layer");
-		/*
-		final String _mountTarget = thisFolder.getMountTarget();
-		final Folder parentFolder = thisFolder.getParent();
-
-		if (_mountTarget != null) {
-
-			final String fullOldPath         = Folder.removeDuplicateSlashes(_mountTarget + "/" + path + "/" + previousName);
-			final String fullNewPath         = Folder.removeDuplicateSlashes(_mountTarget + "/" + path + "/" + file.getProperty(File.name));
-			final java.io.File oldFileOnDisk = new java.io.File(fullOldPath);
-			final java.io.File newFileOnDisk = new java.io.File(fullNewPath);
-
-			if (newFileOnDisk.exists()) {
-
-				final Logger logger = LoggerFactory.getLogger(Folder.class);
-				logger.error("Preventing renaming file {} from {} to {} because a file with the target name already exists", file, previousName, file.getProperty(File.name));
-
-			} else if (oldFileOnDisk.exists()) {
-
-				try {
-
-					final boolean renameResult = oldFileOnDisk.renameTo(newFileOnDisk);
-
-					if (!renameResult) {
-						final Logger logger = LoggerFactory.getLogger(Folder.class);
-						logger.error("Renaming file failed {}: From {} to {}", file, previousName, file.getProperty(File.name));
-					}
-
-					return renameResult;
-
-				} catch (Throwable t) {
-
-					final Logger logger = LoggerFactory.getLogger(Folder.class);
-					logger.error("Unable to rename file {}: {}", file, t.getMessage());
-				}
-			}
-
-		} else if (parentFolder != null) {
-
-			return AbstractFile.renameMountedAbstractFile(parentFolder, file, thisFolder.getProperty(Folder.name) + "/" + path, previousName);
-
-		} else {
-
-			// this should not happen. This means a file/folder marked as "isExternal" has no mounted folder in its parents
-			final Logger logger = LoggerFactory.getLogger(Folder.class);
-			logger.error("Unable to rename file {}: Mount target not found!", file);
-
-		}
-
-		return false;
-
-		 */
 	}
 
 	// ----- private methods -----

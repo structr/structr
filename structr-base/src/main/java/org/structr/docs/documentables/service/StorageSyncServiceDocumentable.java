@@ -19,12 +19,8 @@
 package org.structr.docs.documentables.service;
 
 import org.structr.docs.DocumentableType;
-import org.structr.docs.Setting;
-import org.structr.docs.ontology.ConceptType;
 
-import java.util.List;
-
-public class DirectoryWatchServiceDocumentable extends AbstractServiceDocumentable {
+public class StorageSyncServiceDocumentable extends AbstractServiceDocumentable {
 
 	@Override
 	public DocumentableType getDocumentableType() {
@@ -33,7 +29,7 @@ public class DirectoryWatchServiceDocumentable extends AbstractServiceDocumentab
 
 	@Override
 	public String getName() {
-		return "DirectoryWatchService";
+		return "StorageSyncService";
 	}
 
 	@Override

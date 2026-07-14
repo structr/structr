@@ -29,7 +29,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.datasources.SortInfo;
 import org.structr.core.entity.DataSource;
@@ -48,7 +47,7 @@ import org.structr.core.traits.operations.datasource.DataSourceOperations;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnDeletion;
 import org.structr.core.traits.operations.graphobject.OnModification;
-import org.structr.files.external.DirectoryWatchService;
+import org.structr.files.sync.StorageSyncService;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.datasource.FieldDefinition;
 import org.structr.web.entity.Folder;
@@ -96,10 +95,13 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 
 					thisFolder.setHasParent();
 
-					// only update watch service for root folder of mounted hierarchy
-					if (thisFolder.getMountTarget() != null || !thisFolder.isMounted()) {
+					// creates/updates the synchronizer if this folder directly carries a storage configuration
+					StorageSyncService.handleNodeChanged(thisFolder);
 
-						FolderTraitDefinition.updateWatchService(thisFolder, true);
+					// physical directory materialization for outbound-governed subtrees
+					if (!StorageSyncService.isSyncOrigin(securityContext)) {
+
+						StorageSyncService.recordOutboundCreation(thisFolder);
 					}
 				}
 			},
@@ -114,11 +116,8 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 
 					thisFolder.setHasParent();
 
-					// only update watch service for root folder of mounted hierarchy
-					if (thisFolder.getMountTarget() != null || !thisFolder.isMounted()) {
-
-						FolderTraitDefinition.updateWatchService(thisFolder, true);
-					}
+					// creates, updates or removes the synchronizer depending on the folder's own storage configuration
+					StorageSyncService.handleNodeChanged(thisFolder);
 				}
 			},
 
@@ -129,7 +128,8 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 
 					final Folder thisFolder = graphObject.as(Folder.class);
 
-					FolderTraitDefinition.updateWatchService(thisFolder, false);
+					// a deleted folder must no longer be watched
+					StorageSyncService.handleNodeDeleted(thisFolder.getUuid());
 				}
 			}
 		);
@@ -329,23 +329,4 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 		return true;
 	}
 
-	// ----- private static methods -----
-	private static void updateWatchService(final Folder thisFolder, final boolean mount) {
-
-		if (Services.getInstance().isConfigured(DirectoryWatchService.class)) {
-
-			final DirectoryWatchService service = StructrApp.getInstance().getService(DirectoryWatchService.class);
-			if (service != null && service.isRunning()) {
-
-				if (mount) {
-
-					service.mountFolder(thisFolder);
-
-				} else {
-
-					service.unmountFolder(thisFolder);
-				}
-			}
-		}
-	}
 }

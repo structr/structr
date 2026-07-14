@@ -56,7 +56,6 @@ public interface AbstractFile extends NodeInterface {
 	boolean includeInFrontendExport(final boolean recursive);
 
 	boolean validateAndRenameFileOnce(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException;
-	boolean renameMountedAbstractFile (final Folder thisFolder, final AbstractFile file, final String path, final String previousName);
 
 	static java.io.File defaultGetFileOnDisk(final File fileBase, final boolean create) {
 

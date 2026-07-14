@@ -34,6 +34,7 @@ import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.StructrTransactionListener;
+import org.structr.files.sync.StorageSyncService;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
@@ -205,18 +206,25 @@ public class TransactionCommand {
 				// cleanup
 				commands.remove();
 
+				boolean committed = false;
+
 				try {
 					cmd.transaction.close();
+					committed = cmd.transaction.isSuccessful();
 
 				} finally {
 
 					// release semaphores as the transaction is now finished
 					semaphore.release(synchronizationKeys);	// careful: this can be null
 					cmd.postProcessQueue.applyProcessQueue();
+
+					// discards captured outbound storage-sync events on rollback,
+					// enqueues them for dispatch on commit
+					StorageSyncService.handleTransactionFinished(committed);
 				}
 
 				// copy transaction success status to modification queue
-				modificationQueue.setTransactionWasSuccessful(cmd.transaction.isSuccessful());
+				modificationQueue.setTransactionWasSuccessful(committed);
 
 			} else {
 

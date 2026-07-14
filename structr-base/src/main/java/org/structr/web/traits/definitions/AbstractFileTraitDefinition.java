@@ -21,6 +21,7 @@ package org.structr.web.traits.definitions;
 import org.structr.api.config.Settings;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.files.sync.StorageSyncService;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.ValidationHelper;
@@ -33,6 +34,7 @@ import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
@@ -42,6 +44,8 @@ import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
+import org.structr.core.traits.operations.nodeinterface.OnNodeDeletion;
+import org.structr.core.traits.operations.propertycontainer.SetProperty;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.property.AbstractFileIsMountedProperty;
 import org.structr.web.property.PathProperty;
@@ -97,30 +101,43 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 				public void onModification(GraphObject graphObject, SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue) throws FrameworkException {
 
 					final AbstractFile file = graphObject.as(AbstractFile.class);
-					if (file.isExternal()) {
 
-						// check if name changed
+					// changes that originate from the external storage itself (via the
+					// StorageSyncService) need no propagation - the physical side has
+					// already changed and the node merely follows
+					if (!StorageSyncService.isSyncOrigin(securityContext)) {
+
 						final GraphObjectMap beforeProps = modificationQueue.getModifications(file).get(new GenericProperty<>("before"));
-						if (beforeProps != null) {
+						final String prevName            = beforeProps != null ? beforeProps.getProperty(new GenericProperty<>("name")) : null;
 
-							final String prevName = beforeProps.getProperty(new GenericProperty<>("name"));
-							if (prevName != null) {
+						final boolean outbound = StorageSyncService.recordOutboundLocationChange(file, prevName);
 
-								throw new UnsupportedOperationException("Not implemented for new fs abstraction layer");
+						if (!outbound && file.isExternal() && prevName != null) {
 
-								/*
-								final boolean renameSuccess = file.renameMountedAbstractFile(file.getParent(), file, "", prevName);
-
-								if (!renameSuccess) {
-									errorBuffer.add(new SemanticErrorToken("RenameFailed", AbstractFileTraitDefinition.name.jsonName(), "Renaming failed"));
-								}
-								*/
-							}
+							// renaming an external file cannot be propagated to the
+							// physical storage without outbound synchronization
+							throw new UnsupportedOperationException("Not implemented for new fs abstraction layer");
 						}
+					}
 
-					} else if (Settings.UniquePaths.getValue()) {
+					if (!file.isExternal() && Settings.UniquePaths.getValue()) {
 
 						file.validateAndRenameFileOnce(securityContext, errorBuffer);
+					}
+				}
+			},
+
+			OnNodeDeletion.class,
+			new OnNodeDeletion() {
+
+				@Override
+				public void onNodeDeletion(final NodeInterface nodeInterface, final SecurityContext securityContext) throws FrameworkException {
+
+					// pre-delete: the parent chain is still intact here, so the
+					// governing sync target and the node's path can still be resolved
+					if (!StorageSyncService.isSyncOrigin(securityContext)) {
+
+						StorageSyncService.recordOutboundDeletion(nodeInterface.as(AbstractFile.class));
 					}
 				}
 			},
@@ -149,12 +166,48 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
-		return Map.of();
+
+		return Map.of(
+
+			SetProperty.class,
+			new SetProperty() {
+
+				@Override
+				public <T> Object setProperty(final GraphObject graphObject, final PropertyKey<T> key, final T value, final boolean isCreation) throws FrameworkException {
+
+					if (!isCreation) {
+
+						// the previous parent is not recoverable after the relationship
+						// changed (relationship modifications carry no property key), so
+						// the pre-move location must be captured before the setter runs
+						captureLocationBeforeParentChange(graphObject, key);
+					}
+
+					return getSuper().setProperty(graphObject, key, value, isCreation);
+				}
+			}
+		);
 	}
 
 	@Override
 	public Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories() {
 		return Map.of();
+	}
+
+	// ----- private static methods -----
+	private static void captureLocationBeforeParentChange(final GraphObject graphObject, final PropertyKey key) {
+
+		final Traits traits = graphObject.getTraits();
+
+		if (!key.equals(traits.key(PARENT_PROPERTY)) && !key.equals(traits.key(PARENT_ID_PROPERTY))) {
+			return;
+		}
+
+		if (StorageSyncService.isSyncOrigin(graphObject.getSecurityContext())) {
+			return;
+		}
+
+		StorageSyncService.stashPreMoveLocation(graphObject.as(AbstractFile.class));
 	}
 
 	@Override

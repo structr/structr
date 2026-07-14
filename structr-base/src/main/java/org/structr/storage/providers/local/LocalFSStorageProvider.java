@@ -20,9 +20,13 @@ package org.structr.storage.providers.local;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.traits.StructrTraits;
 import org.structr.storage.AbstractStorageProvider;
 import org.structr.storage.StorageProvider;
+import org.structr.storage.sync.StorageSynchronizer;
+import org.structr.storage.sync.SyncTarget;
+import org.structr.storage.sync.SynchronizableStorageProvider;
 import org.structr.storage.util.VirtualFileChannel;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.StorageConfiguration;
@@ -32,11 +36,12 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.OpenOption;
+import java.nio.file.Paths;
 import java.util.Set;
 
 import static java.nio.file.StandardOpenOption.*;
 
-public class LocalFSStorageProvider extends AbstractStorageProvider {
+public class LocalFSStorageProvider extends AbstractStorageProvider implements SynchronizableStorageProvider {
 
 	private static final Logger logger = LoggerFactory.getLogger(LocalFSStorageProvider.class);
 	private final LocalFSHelper fsHelper;
@@ -136,7 +141,7 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 	}
 
 	@Override
-	public void moveTo(final StorageProvider newFileStorageProvider) {
+	public void moveTo(final StorageProvider newFileStorageProvider) throws FrameworkException {
 
 		// Check if new provider is different from current one, if so use default implementation
 		if (newFileStorageProvider != null && !this.equals(newFileStorageProvider)) {
@@ -163,6 +168,19 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 				}
 			}
 		}
+	}
+
+	@Override
+	public StorageSynchronizer createSynchronizer(final SyncTarget target) {
+
+		final String mountTarget = target.configuration().get(LocalFSHelper.MOUNT_TARGET_KEY);
+		if (mountTarget == null) {
+
+			// the UUID-sharded default tree is Structr-owned, nothing external to sync
+			return null;
+		}
+
+		return new LocalFSStorageSynchronizer(target, Paths.get(mountTarget));
 	}
 
 	@Override

@@ -32,7 +32,7 @@ import java.nio.file.Path;
 
 public class LocalFSHelper {
 
-	private static final String MOUNT_TARGET_KEY = "mountTarget";
+	public static final String MOUNT_TARGET_KEY = "mountTarget";
 	private final StorageConfiguration config;
 
 	public LocalFSHelper(final StorageConfiguration config) {

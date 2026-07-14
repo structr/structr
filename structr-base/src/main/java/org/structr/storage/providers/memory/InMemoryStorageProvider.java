@@ -20,6 +20,7 @@ package org.structr.storage.providers.memory;
 
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel;
 import org.slf4j.LoggerFactory;
+import org.structr.common.error.FrameworkException;
 import org.structr.storage.AbstractStorageProvider;
 import org.structr.storage.StorageProvider;
 import org.structr.web.entity.AbstractFile;
@@ -79,7 +80,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 	}
 
 	@Override
-	public void moveTo(final StorageProvider newFileStorageProvider) {
+	public void moveTo(final StorageProvider newFileStorageProvider) throws FrameworkException {
 		super.moveTo(newFileStorageProvider);
 	}
 
