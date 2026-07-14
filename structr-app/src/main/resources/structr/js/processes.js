@@ -885,17 +885,24 @@ let _ProcessDiagram = {
 				});
 			}
 
+			// True while the selected element only exists in the client-side
+			// buffer (pending create, not yet saved). Server-side operations
+			// (property dialog, setPerformers, handler methods) have nothing
+			// to target until the element is persisted.
+			const isBuffered = () => {
+				if (!api.getPendingChanges) return false;
+				const pending = api.getPendingChanges();
+				return pending.creates.some(c => c.id === elementId);
+			};
+
 			const editBtn = sidePanel.querySelector('.btn-open-properties');
 			if (editBtn) {
 				editBtn.addEventListener('click', () => {
 					// Buffered (not yet persisted) elements have no server-side
 					// record yet, so the property dialog can't open them.
-					if (api.hasPendingChanges && api.getPendingChanges) {
-						const pending = api.getPendingChanges();
-						if (pending.creates.some(c => c.id === elementId)) {
-							new InfoMessage().title('Save first').text('Save your changes before opening the full property editor for this new element.').show();
-							return;
-						}
+					if (isBuffered()) {
+						new InfoMessage().title('Save first').text('Save your changes before opening the full property editor for this new element.').show();
+						return;
 					}
 					_Dialogs.custom.clickDialogCancelButton();
 					setTimeout(() => _Entities.showProperties(elem, 'ui'), 150);
@@ -927,7 +934,22 @@ let _ProcessDiagram = {
 				for (const x of b) if (!sa.has(x)) return false;
 				return true;
 			};
-			if (assigneeInput && candidatesInput) {
+			if (assigneeInput && candidatesInput && isBuffered()) {
+				// Buffered (not yet persisted) elements have no server-side
+				// record for setPerformers to target, so anything typed here
+				// would be silently dropped on save. Disable the inputs with
+				// a visible hint; the panel re-renders with enabled inputs
+				// after the save.
+				const msg = 'Save this new element before configuring performers.';
+				for (const el of [assigneeInput, candidatesInput, candidatesPicker]) {
+					if (!el) continue;
+					el.disabled = true;
+					el.title    = msg;
+				}
+				assigneeInput.closest('.pd-section')
+					?.querySelector('.pd-section-title')
+					?.insertAdjacentHTML('afterend', `<div class="pd-hint">${msg}</div>`);
+			} else if (assigneeInput && candidatesInput) {
 				const stubs = Array.isArray(elem.performers) ? elem.performers : [];
 				let initialAssignee     = '';
 				let initialCandidates   = '';
@@ -976,12 +998,11 @@ let _ProcessDiagram = {
 				}
 
 				const commitPerformers = async () => {
-					if (api.getPendingChanges) {
-						const pending = api.getPendingChanges();
-						if (pending.creates.some(c => c.id === elementId)) {
-							new InfoMessage().title('Save first').text('Save this new element before configuring performers.').show();
-							return;
-						}
+					// Backstop: the inputs are disabled while buffered, but the
+					// buffered state can also arise between render and blur.
+					if (isBuffered()) {
+						new InfoMessage().title('Save first').text('Save this new element before configuring performers.').show();
+						return;
 					}
 					const hp = assigneeInput.value.trim();
 					const po = candidatesInput.value.trim();
@@ -1121,12 +1142,6 @@ let _ProcessDiagram = {
 					: 'task';
 				if (!/^[a-z_]/.test(base)) base = 'task' + cap(base);
 				return `${base}_${phase}${cap(event)}`;
-			};
-
-			const isBuffered = () => {
-				if (!api.getPendingChanges) return false;
-				const pending = api.getPendingChanges();
-				return pending.creates.some(c => c.id === elementId);
 			};
 
 			// Open a SchemaMethod in the Code module. Shared by the handler-row
@@ -1578,6 +1593,10 @@ let _ProcessDiagram = {
 					// buffer has been flushed; the freshly-persisted state
 					// is what the server-side exporter will read.
 					refreshXml();
+					// Re-render the side panel: buffered-only restrictions
+					// (disabled performer inputs, "save first" guards) no
+					// longer apply now that the elements are persisted.
+					renderSidePanelFor(api.getSelected && api.getSelected());
 				} else {
 					new ErrorMessage().text(`Save failed: ${res.error || 'unknown error'}`).show();
 				}
