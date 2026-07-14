@@ -72,6 +72,39 @@ Pull requests should:
 
 ---
 
+## Running Tests
+
+Structr targets Java 25 (GraalVM). Tests run against one of two database backends,
+selected by Maven profile:
+
+- **In-memory (fast, no Docker):**
+  ```
+  mvn -o test -Ddatabase=in-memory -Dsurefire.failIfNoSpecifiedTests=false
+  ```
+  Add `-o` only after the first build has cached dependencies. In-memory forks are
+  memory-heavy (`-Xms8g -Xmx8g` each), so cap `-Dtest.forkCount` to fit your RAM.
+
+- **Neo4j (default profile):** `mvn verify` runs the integration tests against a
+  Dockerized Neo4j started automatically (requires Docker). Pass
+  `-DskipDockerTestDB=true` and `-Denv.testDatabaseConnection=bolt://<host>:7687`
+  to point at your own instance instead.
+
+Run a single class (fast path):
+```
+mvn -o -pl structr-base test -Ddatabase=in-memory -Dtest='StorageSyncServiceTest' -Dsurefire.failIfNoSpecifiedTests=false
+```
+
+> **Run tests through Maven, not the IDE's own runner.** Tests execute on the
+> **class path** (`useModulePath=false`); launching a test class directly from an
+> IDE runs it on the **module path** and fails with
+> `InaccessibleObjectException: ... does not "exports org.structr.test.web" ...`,
+> because test packages are intentionally not exported from `structr.base`. In
+> IntelliJ, enable *"Delegate IDE build/run actions to Maven"* (Build Tools →
+> Maven → Runner) so IDE test runs use the profile configuration above. See the
+> **Toolchain** section of `DEPENDENCY_MANAGEMENT.md` for the rationale.
+
+---
+
 ## Licensing of Contributions
 
 By submitting a contribution, you agree that your contribution may be licensed
