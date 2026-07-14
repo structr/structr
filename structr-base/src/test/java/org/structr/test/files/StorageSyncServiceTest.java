@@ -67,6 +67,7 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
@@ -1375,6 +1376,114 @@ public class StorageSyncServiceTest extends StructrUiTest {
 		assertEquals("Invalid event type",     VirtualChangeEvent.Type.MOVED, event.type());
 		assertEquals("Invalid old path",       "child", event.previousRelativePath());
 		assertEquals("Invalid new path",       "committed", event.relativePath());
+	}
+
+	@Test
+	public void testPlainNodesWithoutStorageConfigurationAreIgnored() {
+
+		// with the sync service running, files and folders that carry no
+		// StorageConfiguration (default LocalFS storage) must be handled
+		// cleanly: never treated as sync roots, never governed, and their
+		// create/rename/move/delete lifecycle must not fail
+		final String content = "plain default-storage content";
+		String fileUuid       = null;
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface parent = app.create(StructrTraits.FOLDER, "plainParent");
+
+			final NodeInterface folder = app.create(StructrTraits.FOLDER,
+				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "plainFolder"),
+				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.PARENT_PROPERTY), parent)
+			);
+
+			final NodeInterface file = app.create(StructrTraits.FILE,
+				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "plain.txt"),
+				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder)
+			);
+
+			fileUuid = file.getUuid();
+
+			try (final OutputStream os = file.as(File.class).getOutputStream()) {
+
+				os.write(content.getBytes("utf-8"));
+			}
+
+			tx.success();
+
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			fail("Creating plain nodes without a storage configuration must not fail.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final File file = getNodeAtPath("/plainParent/plainFolder/plain.txt").as(File.class);
+
+			// not synchronized, not governed, content stored in the default provider
+			assertFalse("Plain file must not report as mounted", file.isMounted());
+			assertFalse("Plain file must not be external", file.isExternal());
+			assertFalse("Plain file must not be outbound-governed", StorageSyncService.isOutboundGoverned(file));
+			assertEquals("Content round-trip through the default provider failed", content, getContent(file));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// rename - the external-file rename guard must not fire for a non-governed node
+		setNodeProperty(getNodeAtPath("/plainParent/plainFolder/plain.txt"), NodeInterfaceTraitDefinition.NAME_PROPERTY, "renamed.txt");
+
+		// move to another plain folder
+		try (final Tx tx = app.tx()) {
+
+			app.create(StructrTraits.FOLDER, "plainTarget");
+
+			getNodeAtPath("/plainParent/plainFolder/renamed.txt").setProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), getNodeAtPath("/plainTarget"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Moving a plain node without a storage configuration must not fail.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final File file = getNodeAtPath("/plainTarget/renamed.txt").as(File.class);
+
+			assertNotNull("File should have moved to the new plain folder", file);
+			assertEquals("Content must survive rename and move", content, getContent(file));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// delete - must clean up default storage without any sync involvement
+		try (final Tx tx = app.tx()) {
+
+			app.delete(getNodeAtPath("/plainTarget/renamed.txt"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Deleting a plain node without a storage configuration must not fail.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			assertNull("Deleted plain node should be gone", app.getNodeById(StructrTraits.FILE, fileUuid));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
 	}
 
 	// ----- private methods -----

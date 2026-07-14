@@ -18,6 +18,8 @@
  */
 package org.structr.storage.sync;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -41,6 +43,27 @@ public record SyncTarget(String syncRootUuid, String syncRootPath, boolean syncR
 			throw new IllegalArgumentException("SyncTarget needs a sync root UUID and path");
 		}
 
-		configuration = configuration != null ? Map.copyOf(configuration) : Map.of();
+		// immutable, order-preserving snapshot; a configuration entry may have
+		// a null value (or name) when it has been created but not yet set, so
+		// skip those instead of failing like Map.copyOf would - consumers treat
+		// an absent key exactly like an unset one
+		if (configuration == null) {
+
+			configuration = Map.of();
+
+		} else {
+
+			final Map<String, String> snapshot = new LinkedHashMap<>();
+
+			for (final Map.Entry<String, String> entry : configuration.entrySet()) {
+
+				if (entry.getKey() != null && entry.getValue() != null) {
+
+					snapshot.put(entry.getKey(), entry.getValue());
+				}
+			}
+
+			configuration = Collections.unmodifiableMap(snapshot);
+		}
 	}
 }
