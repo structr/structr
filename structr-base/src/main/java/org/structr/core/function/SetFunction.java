@@ -114,8 +114,9 @@ public class SetFunction extends CoreFunction {
 
 					} else {
 
-						// key does not exist and generic property is not desired => log warning
-						logger.warn("set(): Unknown property {}.{}, value will not be set.", type.getName(), keyName);
+						// strict mode (allowunknownkeys=false) and key does not exist: raise explicitly.
+						// Formerly enforced implicitly by Traits.key() throwing; key() is now null-safe, so keep this.
+						throw new FrameworkException(422, "Cannot set value for unknown key '" + keyName + "' on type '" + type.getName() + "' (unknown keys are not allowed)");
 					}
 				}
 

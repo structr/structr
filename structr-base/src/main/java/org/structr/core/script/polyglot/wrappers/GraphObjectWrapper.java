@@ -255,8 +255,9 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 				} else {
 
-					// key does not exist and generic property is not desired => log warning
-					logger.warn("Unknown property {}.{}, value will not be set.", node.getType(), key);
+					// strict mode (allowunknownkeys=false) and key does not exist: raise explicitly.
+					// Formerly enforced implicitly by Traits.key() throwing; key() is now null-safe, so keep this.
+					throw new FrameworkException(422, "Cannot set value for unknown key '" + key + "' on type '" + node.getType() + "' (unknown keys are not allowed)");
 				}
 
 			} catch (FrameworkException ex) {
