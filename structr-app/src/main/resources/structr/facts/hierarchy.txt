@@ -25,6 +25,7 @@ Topic "Building Applications" has markdown-file "articles/Building Applications/
 Topic "Building Applications" has markdown-file "articles/Building Applications/Navigation & Routing.md"
 Topic "Building Applications" has markdown-file "articles/Building Applications/Dynamic Content.md"
 Topic "Building Applications" has markdown-file "articles/Building Applications/Event Action Mapping.md"
+Topic "Building Applications" has markdown-file "articles/Building Applications/BPMN Process Control.md"
 Topic "Building Applications" has markdown-file "articles/Building Applications/Business Logic.md"
 Topic "Building Applications" has markdown-file "articles/Building Applications/Widgets & Components.md"
 Topic "Building Applications" has markdown-file "articles/Building Applications/Scheduled Tasks.md"
@@ -116,3 +117,4 @@ Topic "Security" has markdown-file "articles/Security/Rate Limiting.md"
 # Tutorials
 "Tutorials" has markdown-file "articles/Tutorials/Building Your First Application.md"
 "Tutorials" has markdown-file "articles/Tutorials/Building A Spatial Index.md"
+"Tutorials" has markdown-file "articles/Tutorials/Building A BPMN Process Based App.md"
