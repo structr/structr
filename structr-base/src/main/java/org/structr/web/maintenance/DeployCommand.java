@@ -853,11 +853,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		final Folder folder = node.as(Folder.class);
 
-		// ignore folders with mounted content
-		if (folder.isMounted()) {
-			return;
-		}
-
 		final Traits traits                  = Traits.of(StructrTraits.FOLDER);
 		final String name                    = folder.getName();
 		final Path path                      = target.resolve(name);
@@ -870,6 +865,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		if (!properties.isEmpty()) {
 			String folderPath = folder.getPath();
 			config.put(folderPath, properties);
+		}
+
+		// do not descend into mounted folders: their contents live in external
+		// storage and are reconstructed by the StorageSyncService, not by
+		// deployment. The folder node itself (with its stable uuid) is still
+		// exported above so the mount point - and its storage-configuration
+		// linkage, restored by the ui module deployment data - is preserved.
+		if (folder.isMounted()) {
+			return;
 		}
 
 		if (!folder.isExcludeSubtreeFromExport()) {

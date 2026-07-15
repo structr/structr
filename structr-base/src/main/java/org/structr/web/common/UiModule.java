@@ -18,7 +18,9 @@
  */
 package org.structr.web.common;
 
+import com.google.gson.Gson;
 import org.structr.api.service.LicenseManager;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.datasources.DataSources;
 import org.structr.core.function.Functions;
 import org.structr.core.traits.StructrTraits;
@@ -37,8 +39,10 @@ import org.structr.web.traits.definitions.*;
 import org.structr.web.traits.definitions.dom.*;
 import org.structr.web.traits.definitions.html.*;
 import org.structr.web.traits.relationships.*;
+import org.structr.web.maintenance.deploy.StorageConfigurationDeploymentHandler;
 
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.Set;
 
 /**
@@ -624,5 +628,21 @@ public class UiModule implements StructrModule {
 	@Override
 	public Set<String> getFeatures() {
 		return null;
+	}
+
+	// ----- deployment-specific methods -----
+	@Override
+	public boolean hasDeploymentData() {
+		return true;
+	}
+
+	@Override
+	public void exportDeploymentData(final Path target, final Gson gson) throws FrameworkException {
+		StorageConfigurationDeploymentHandler.exportDeploymentData(target, gson);
+	}
+
+	@Override
+	public void importDeploymentData(final Path source, final Gson gson) throws FrameworkException {
+		StorageConfigurationDeploymentHandler.importDeploymentData(source, gson);
 	}
 }
