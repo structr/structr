@@ -133,11 +133,10 @@ public class GetFunction extends CoreFunction {
 
 				} else {
 
-					// key does not exist and generic property is not desired => log warning
-					logger.warn("get(): Unknown property {}.{}, value will not be returned. [{}]", traits.getName(), keyName, dataObject.getUuid());
+					// strict mode (allowunknownkeys=false) and key does not exist: raise explicitly.
+					// Formerly enforced implicitly by Traits.key() throwing; key() is now null-safe, so keep this.
+					throw new FrameworkException(422, "Cannot get value for unknown key '" + keyName + "' on type '" + traits.getName() + "' (unknown keys are not allowed)");
 				}
-
-				return null;
 
 			} else {
 

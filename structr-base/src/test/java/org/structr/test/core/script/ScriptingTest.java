@@ -7863,7 +7863,7 @@ public class ScriptingTest extends StructrTest {
 
 						fail("get() for an unknown key should raise an error if unknown keys are not allowed!");
 
-					} catch (RuntimeException expected) {}
+					} catch (FrameworkException expected) {}
 
 					try {
 						Scripting.evaluate(actionContext, null, """
@@ -7875,7 +7875,7 @@ public class ScriptingTest extends StructrTest {
 							""", "testSetAndGetOfValuesForUnknownKeys");
 
 						fail("set() for an unknown key should raise an error if unknown keys are not allowed!");
-					} catch (RuntimeException expected) {}
+					} catch (FrameworkException expected) {}
 
 					Scripting.evaluate(actionContext, null, """
 							${{
@@ -7896,7 +7896,7 @@ public class ScriptingTest extends StructrTest {
 							""", "testSetAndGetOfValuesForUnknownKeys");
 
 						fail("Setting a value for an unknown key should raise an error if unknown keys are not allowed!");
-					} catch (RuntimeException expected) {
+					} catch (FrameworkException expected) {
 					}
 				}
 
