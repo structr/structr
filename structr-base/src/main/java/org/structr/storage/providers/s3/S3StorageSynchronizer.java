@@ -149,18 +149,24 @@ public class S3StorageSynchronizer implements StorageSynchronizer {
 	// ----- private methods -----
 	private void handleVirtualDeleted(final VirtualChangeEvent event) throws InterruptedException, ExecutionException {
 
+		// externally created objects live at their native key; Structr-origin
+		// objects at the node uuid
+		final String key = objectKey(event);
+
 		// mandatory: the direct provider delete is skipped for outbound-governed
 		// nodes; DeleteObject on a missing key succeeds, so no existence check
-		client.deleteObject(DeleteObjectRequest.builder().bucket(bucketName).key(event.nodeUuid()).build()).get();
+		client.deleteObject(DeleteObjectRequest.builder().bucket(bucketName).key(key).build()).get();
 
-		headCache.remove(event.nodeUuid());
+		headCache.remove(key);
 
-		logger.debug("Deleted S3 object {} after virtual deletion of {}", event.nodeUuid(), event.previousRelativePath());
+		logger.debug("Deleted S3 object {} after virtual deletion of {}", key, event.previousRelativePath());
 	}
 
 	private void handleVirtualMoved(final VirtualChangeEvent event) throws InterruptedException, ExecutionException {
 
-		final String key              = event.nodeUuid();
+		// externally created objects keep their native key (never renamed); only
+		// the "path" metadata is refreshed
+		final String key              = objectKey(event);
 		final HeadObjectResponse head = headOrNull(key);
 
 		if (head == null) {
@@ -200,6 +206,15 @@ public class S3StorageSynchronizer implements StorageSynchronizer {
 		headCache.remove(key);
 
 		logger.debug("Refreshed path metadata of S3 object {}: {} -> {}", key, event.previousRelativePath(), event.relativePath());
+	}
+
+	/**
+	 * The physical object key an outbound event acts on: externally created
+	 * objects keep their native key (persisted in the node's storageKey),
+	 * Structr-origin objects live at the node uuid.
+	 */
+	private String objectKey(final VirtualChangeEvent event) {
+		return event.nativeKey() != null ? event.nativeKey() : event.nodeUuid();
 	}
 
 	private HeadObjectResponse headOrNull(final String key) throws InterruptedException, ExecutionException {
@@ -317,10 +332,10 @@ public class S3StorageSynchronizer implements StorageSynchronizer {
 
 			final String key = object.key();
 
-			if (!Settings.isValidUuid(key)) {
+			if (key.endsWith("/")) {
 
-				// keys that are not valid node uuids can never be bound to nodes
-				logger.debug("Skipping S3 object {}: key is not a valid node uuid", key);
+				// keys ending in a slash are folder placeholder markers, not files
+				logger.debug("Skipping S3 object {}: folder placeholder marker", key);
 				return null;
 			}
 
@@ -347,15 +362,38 @@ public class S3StorageSynchronizer implements StorageSynchronizer {
 
 			final String relativePath = relativizePathMetadata(cached.path());
 
-			if (relativePath != null && !relativePath.isEmpty()) {
+			if (Settings.isValidUuid(key)) {
 
-				return ExternalEntry.byUuidAndPath(key, relativePath, false, size, lastModified).withNativeKey(key);
+				// Structr-origin object: the key is the node uuid
+				if (relativePath != null && !relativePath.isEmpty()) {
+
+					return ExternalEntry.byUuidAndPath(key, relativePath, false, size, lastModified).withNativeKey(key);
+				}
+
+				// no usable path metadata: uuid-only entries update known nodes and
+				// are ignored (with a warning) for unknown ones - correct behavior
+				// for foreign objects
+				return ExternalEntry.byUuid(key, false, size, lastModified).withNativeKey(key);
 			}
 
-			// no usable path metadata: uuid-only entries update known nodes and
-			// are ignored (with a warning) for unknown ones - correct behavior
-			// for foreign objects
-			return ExternalEntry.byUuid(key, false, size, lastModified).withNativeKey(key);
+			// externally created object: not keyed by a node uuid. The "path"
+			// metadata takes precedence when present (e.g. an object Structr
+			// wrote through a native-keyed node); otherwise the key itself is
+			// the initial relative virtual path (slashes delimit folders).
+			final String effectivePath = (relativePath != null && !relativePath.isEmpty()) ? relativePath : key;
+
+			// keys that would yield empty path segments (leading, trailing or
+			// doubled slashes) cannot map to a valid virtual path
+			for (final String segment : effectivePath.split("/")) {
+
+				if (segment.isEmpty()) {
+
+					logger.warn("Skipping S3 object {}: key does not map to a valid virtual path", key);
+					return null;
+				}
+			}
+
+			return ExternalEntry.externalFile(key, effectivePath, size, lastModified);
 		}
 	}
 }

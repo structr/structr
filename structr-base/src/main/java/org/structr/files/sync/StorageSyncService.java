@@ -226,6 +226,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 		final String oldName        = previousName != null ? previousName : file.getName();
 		final String oldAbsolute    = oldParentPath + "/" + oldName;
 		final boolean directory     = file.is(StructrTraits.FOLDER);
+		final String nativeKey      = file.getStorageKey();
 		final String oldRelative    = oldTarget != null ? relativize(oldTarget, oldAbsolute) : null;
 		final String newRelative    = newTarget != null ? relativize(newTarget, currentPath) : null;
 
@@ -234,7 +235,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 			// moved/renamed within the same target
 			if (oldRelative != null && newRelative != null && !oldRelative.equals(newRelative)) {
 
-				capture(oldTarget.syncRootUuid(), VirtualChangeEvent.moved(uuid, directory, oldRelative, newRelative));
+				capture(oldTarget.syncRootUuid(), VirtualChangeEvent.moved(uuid, directory, oldRelative, newRelative, nativeKey));
 			}
 
 			return true;
@@ -243,13 +244,13 @@ public class StorageSyncService extends Thread implements RunnableService {
 		if (oldTarget != null && oldRelative != null) {
 
 			// moved out of the old target
-			capture(oldTarget.syncRootUuid(), VirtualChangeEvent.deleted(uuid, directory, oldRelative));
+			capture(oldTarget.syncRootUuid(), VirtualChangeEvent.deleted(uuid, directory, oldRelative, nativeKey));
 		}
 
 		if (newTarget != null && newRelative != null) {
 
 			// moved into the new target
-			capture(newTarget.syncRootUuid(), VirtualChangeEvent.created(uuid, directory, newRelative));
+			capture(newTarget.syncRootUuid(), VirtualChangeEvent.created(uuid, directory, newRelative, nativeKey));
 		}
 
 		return true;
@@ -283,7 +284,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 			return false;
 		}
 
-		capture(target.syncRootUuid(), VirtualChangeEvent.deleted(uuid, file.is(StructrTraits.FOLDER), relativePath));
+		capture(target.syncRootUuid(), VirtualChangeEvent.deleted(uuid, file.is(StructrTraits.FOLDER), relativePath, file.getStorageKey()));
 
 		return true;
 	}
@@ -311,7 +312,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 			return;
 		}
 
-		capture(target.syncRootUuid(), VirtualChangeEvent.created(uuid, file.is(StructrTraits.FOLDER), relativePath));
+		capture(target.syncRootUuid(), VirtualChangeEvent.created(uuid, file.is(StructrTraits.FOLDER), relativePath, file.getStorageKey()));
 	}
 
 	/**
@@ -985,10 +986,10 @@ public class StorageSyncService extends Thread implements RunnableService {
 				switch (event.type()) {
 
 					// keep the original location, take the latest one
-					case MOVED   -> captured.put(key, new PendingOutbound(syncRootUuid, VirtualChangeEvent.moved(event.nodeUuid(), event.directory(), first.previousRelativePath(), event.relativePath())));
+					case MOVED   -> captured.put(key, new PendingOutbound(syncRootUuid, VirtualChangeEvent.moved(event.nodeUuid(), event.directory(), first.previousRelativePath(), event.relativePath(), event.nativeKey())));
 
 					// the entry effectively vanished from its original location
-					case DELETED -> captured.put(key, new PendingOutbound(syncRootUuid, VirtualChangeEvent.deleted(event.nodeUuid(), event.directory(), first.previousRelativePath())));
+					case DELETED -> captured.put(key, new PendingOutbound(syncRootUuid, VirtualChangeEvent.deleted(event.nodeUuid(), event.directory(), first.previousRelativePath(), event.nativeKey())));
 
 					case CREATED -> captured.put(key, new PendingOutbound(syncRootUuid, event));
 				}
@@ -999,7 +1000,7 @@ public class StorageSyncService extends Thread implements RunnableService {
 				switch (event.type()) {
 
 					// created and moved within one transaction: only the final location exists
-					case MOVED   -> captured.put(key, new PendingOutbound(syncRootUuid, VirtualChangeEvent.created(event.nodeUuid(), event.directory(), event.relativePath())));
+					case MOVED   -> captured.put(key, new PendingOutbound(syncRootUuid, VirtualChangeEvent.created(event.nodeUuid(), event.directory(), event.relativePath(), event.nativeKey())));
 
 					// created and deleted within one transaction: nothing ever existed externally
 					case DELETED -> captured.remove(key);

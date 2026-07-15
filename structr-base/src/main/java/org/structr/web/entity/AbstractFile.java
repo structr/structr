@@ -48,6 +48,7 @@ public interface AbstractFile extends NodeInterface {
 
 	boolean isMounted();
 	boolean isExternal();
+	String getStorageKey();
 	boolean getHasParent();
 
 	void setHasParent() throws FrameworkException;

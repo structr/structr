@@ -32,6 +32,7 @@ import org.structr.files.sync.StorageSyncService;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.storage.providers.s3.GenericS3BucketStorageProvider;
 import org.structr.test.web.StructrUiTest;
+import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.StorageConfiguration;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
@@ -124,31 +125,53 @@ public class S3StorageSyncTest extends StructrUiTest {
 	}
 
 	@Test
-	public void testNonUuidKeySkipped() {
+	public void testExternalObjectImport() {
 
 		final String bucket = uniqueBucket();
 
 		RustFsTestSupport.createBucket(bucket);
 
-		// a foreign object with a non-uuid key and a valid sibling in the same scan
+		// an externally created object with an arbitrary (non-uuid) key and NO
+		// path metadata: the key itself becomes the initial virtual path
+		final String content = "external report";
+
+		RustFsTestSupport.putObject(bucket, "docs/report.pdf", content.getBytes(), Map.of());
+
+		// a uuid-keyed object without path metadata stays indistinguishable from
+		// a Structr-origin object with a lost node and is still ignored
 		final String uuid = NodeServiceCommand.getNextUuid();
 
-		RustFsTestSupport.putObject(bucket, "not-a-uuid.txt", "foreign".getBytes(), Map.of("path", "/s3skipped/foreign.txt"));
-		RustFsTestSupport.putObject(bucket, uuid, "valid".getBytes(), Map.of("path", "/s3skipped/valid.txt"));
+		RustFsTestSupport.putObject(bucket, uuid, "orphan".getBytes(), Map.of());
 
-		mountBucket("s3skipped", bucket, "in", false);
+		mountBucket("s3ext", bucket, "in", false);
 
-		// the valid sibling imports - proving the scan completed and skipped, not aborted
-		waitForNodeAtPath(StructrTraits.FILE, "/s3skipped/valid.txt");
+		waitForNodeAtPath(StructrTraits.FILE, "/s3ext/docs/report.pdf");
 
 		try (final Tx tx = app.tx()) {
 
-			assertNull("Objects with non-uuid keys must not be imported", app.nodeQuery(StructrTraits.FILE).name("foreign.txt").getFirst());
-			assertNull("Objects with non-uuid keys must not be imported", app.nodeQuery(StructrTraits.FILE).name("not-a-uuid.txt").getFirst());
+			final NodeInterface file = getNodeAtPath("/s3ext/docs/report.pdf");
+
+			assertTrue("Imported external node should be external", file.as(File.class).isExternal());
+
+			// the native object key is persisted so the provider can address it
+			assertEquals("Imported node should persist the object key as storageKey", "docs/report.pdf", file.as(AbstractFile.class).getStorageKey());
+
+			// intermediate folder was synthesized from the key's path segments
+			assertNotNull("Intermediate folder should have been created", getNodeAtPath("/s3ext/docs"));
+
+			// content is readable through the node (provider reads by storageKey)
+			try (final InputStream is = file.as(File.class).getInputStream()) {
+
+				assertEquals("Invalid content of imported external node", content, IOUtils.toString(is, "utf-8"));
+			}
+
+			// the uuid-keyed orphan without a node or path is not imported
+			assertNull("Uuid-keyed object without a node must not be imported", app.getNodeById(StructrTraits.FILE, uuid));
 
 			tx.success();
 
-		} catch (FrameworkException fex) {
+		} catch (Exception ex) {
+			ex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
@@ -340,6 +363,182 @@ public class S3StorageSyncTest extends StructrUiTest {
 
 		assertNotNull("Object should still exist", head);
 		assertEquals("Rolled-back renames must not touch the path metadata", "/s3rollback/stable.txt", head.metadata().get("path"));
+	}
+
+	@Test
+	public void testExternalObjectChangeDetection() {
+
+		final String bucket = uniqueBucket();
+
+		RustFsTestSupport.createBucket(bucket);
+
+		RustFsTestSupport.putObject(bucket, "docs/report.pdf", "short".getBytes(), Map.of());
+
+		mountBucket("s3extchange", bucket, "in", false);
+
+		waitForNodeAtPath(StructrTraits.FILE, "/s3extchange/docs/report.pdf");
+
+		// overwrite the object out-of-band with content of a different length;
+		// only a completed rescan can pick up the new size
+		final String longer = "a considerably longer body than before";
+
+		RustFsTestSupport.putObject(bucket, "docs/report.pdf", longer.getBytes(), Map.of());
+
+		waitFor("Node size should follow the external overwrite", () -> {
+
+			try (final Tx tx = app.tx()) {
+
+				final NodeInterface node = getNodeAtPath("/s3extchange/docs/report.pdf");
+				final boolean refreshed  = node != null && Long.valueOf(longer.getBytes().length).equals(node.as(File.class).getSize());
+
+				tx.success();
+
+				return refreshed;
+
+			} catch (FrameworkException fex) {
+				return false;
+			}
+		});
+	}
+
+	@Test
+	public void testExternalObjectPruning() {
+
+		final String bucket = uniqueBucket();
+
+		RustFsTestSupport.createBucket(bucket);
+
+		RustFsTestSupport.putObject(bucket, "docs/report.pdf", "prune me".getBytes(), Map.of());
+
+		mountBucket("s3extprune", bucket, "in", true);
+
+		waitForNodeAtPath(StructrTraits.FILE, "/s3extprune/docs/report.pdf");
+
+		RustFsTestSupport.deleteObject(bucket, "docs/report.pdf");
+
+		waitFor("Node of vanished external object should be pruned", () -> getNodeAtPath("/s3extprune/docs/report.pdf") == null);
+	}
+
+	@Test
+	public void testOutboundDeleteRemovesExternalObject() {
+
+		final String bucket = uniqueBucket();
+
+		RustFsTestSupport.createBucket(bucket);
+
+		RustFsTestSupport.putObject(bucket, "docs/report.pdf", "delete me".getBytes(), Map.of());
+
+		mountBucket("s3extdelete", bucket, "both", false);
+
+		waitForNodeAtPath(StructrTraits.FILE, "/s3extdelete/docs/report.pdf");
+
+		try (final Tx tx = app.tx()) {
+
+			app.delete(getNodeAtPath("/s3extdelete/docs/report.pdf"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// the object must be deleted at its native key, not at the node uuid
+		waitFor("External object should be deleted at its native key", () -> RustFsTestSupport.head(bucket, "docs/report.pdf") == null);
+	}
+
+	@Test
+	public void testOutboundRenameKeepsExternalKey() {
+
+		final String bucket = uniqueBucket();
+
+		RustFsTestSupport.createBucket(bucket);
+
+		RustFsTestSupport.putObject(bucket, "docs/report.pdf", "renamed content".getBytes(), Map.of());
+
+		mountBucket("s3extrename", bucket, "both", false);
+
+		waitForNodeAtPath(StructrTraits.FILE, "/s3extrename/docs/report.pdf");
+
+		setNodeProperty(getNodeAtPath("/s3extrename/docs/report.pdf"), NodeInterfaceTraitDefinition.NAME_PROPERTY, "renamed.pdf");
+
+		// the object key stays stable; only the "path" metadata is refreshed
+		waitFor("Path metadata should follow the rename at the stable native key", () -> {
+
+			final HeadObjectResponse head = RustFsTestSupport.head(bucket, "docs/report.pdf");
+
+			return head != null && "/s3extrename/docs/renamed.pdf".equals(head.metadata().get("path"));
+		});
+
+		// no move-back after further scans, and the node lives at the new path only
+		try { Thread.sleep(3000); } catch (InterruptedException ignore) {}
+
+		assertNotNull("Object must remain at its original native key", RustFsTestSupport.head(bucket, "docs/report.pdf"));
+		assertNotNull("Node should exist at the renamed path", getNodeAtPath("/s3extrename/docs/renamed.pdf"));
+		assertNull("No node should remain at the old path", getNodeAtPath("/s3extrename/docs/report.pdf"));
+	}
+
+	@Test
+	public void testExternalObjectPathConflictSkipped() {
+
+		final String bucket = uniqueBucket();
+
+		RustFsTestSupport.createBucket(bucket);
+
+		mountBucket("s3conflict", bucket, "in", false);
+
+		// a Structr-origin file materializes an object at its uuid key
+		final String content = "structr origin";
+		String originUuid    = null;
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface file = app.create(StructrTraits.FILE,
+				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "report.pdf"),
+				new NodeAttribute<>(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), getNodeAtPath("/s3conflict"))
+			);
+
+			originUuid = file.getUuid();
+
+			try (final OutputStream os = file.as(File.class).getOutputStream()) {
+
+				os.write(content.getBytes("utf-8"));
+			}
+
+			tx.success();
+
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// an external object whose key maps to the very same virtual path
+		RustFsTestSupport.putObject(bucket, "report.pdf", "foreign".getBytes(), Map.of());
+
+		// let a couple of scan cycles run
+		try { Thread.sleep(5000); } catch (InterruptedException ignore) {}
+
+		final String uuid = originUuid;
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface node = getNodeAtPath("/s3conflict/report.pdf");
+
+			assertNotNull("The original Structr node should still exist", node);
+			assertEquals("The colliding external object must not hijack the existing node", uuid, node.getUuid());
+			assertNull("The existing node must not be bound to the foreign object key", node.as(AbstractFile.class).getStorageKey());
+
+			// content is unchanged (still the Structr-origin object at the uuid key)
+			try (final InputStream is = node.as(File.class).getInputStream()) {
+
+				assertEquals("Existing node content must be untouched", content, IOUtils.toString(is, "utf-8"));
+			}
+
+			tx.success();
+
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
 	}
 
 	// ----- private methods -----
