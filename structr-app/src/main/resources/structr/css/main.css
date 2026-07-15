@@ -3966,6 +3966,10 @@ ul.combined-input-select-field li:not(.nohover):hover {
 /*	min-width: 600px;*/
 /*}*/
 
+.monaco-editor .suggest-details-container {
+	z-index: 1002 !important;	/* higher than function bar */
+}
+
 .monaco-editor .suggest-details-container .suggest-details table {
     width: calc(100% - 1rem) !important;
 }
