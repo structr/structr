@@ -40,6 +40,8 @@ public class AgentService extends Thread implements RunnableService {
 
 	private static final Logger logger = LoggerFactory.getLogger(AgentService.class.getName());
 
+	private static final long AGENT_SHUTDOWN_JOIN_TIMEOUT = 5000;  // ms to wait for a worker to finish on shutdown
+
 	private final int maxAgents                          = 10;    // TODO: make configurable
 	private final Map<String, List<Agent>> runningAgents = new ConcurrentHashMap<>(10, 0.9f, 8);
 	private final Map<String, Class> agentClassCache     = new ConcurrentHashMap<>(10, 0.9f, 8);
@@ -137,7 +139,44 @@ public class AgentService extends Thread implements RunnableService {
 
 	@Override
 	public void stopService() {
+
 		run = false;
+
+		// stop and join all running agent worker threads BEFORE the service layer
+		// finishes shutting down. Otherwise a still-running agent (e.g. a
+		// FulltextIndexingAgent waiting between retries) can open a transaction
+		// after Services has nulled its singleton, causing Services.getInstance()
+		// to resurrect the entire service layer on that background thread.
+		for (final List<Agent> agents : runningAgents.values()) {
+
+			final List<Agent> snapshot;
+
+			synchronized (agents) {
+				snapshot = new ArrayList<>(agents);
+			}
+
+			// signal every worker to stop accepting tasks and interrupt it
+			for (final Agent agent : snapshot) {
+				agent.killAgent();
+			}
+
+			// wait (bounded) for each worker to finish its current task and exit
+			for (final Agent agent : snapshot) {
+
+				try {
+					agent.join(AGENT_SHUTDOWN_JOIN_TIMEOUT);
+
+				} catch (InterruptedException iex) {
+
+					Thread.currentThread().interrupt();
+					logger.warn("Interrupted while waiting for agent {} to stop", agent.getName());
+				}
+
+				if (agent.isAlive()) {
+					logger.warn("Agent {} did not stop within {} ms during shutdown", agent.getName(), AGENT_SHUTDOWN_JOIN_TIMEOUT);
+				}
+			}
+		}
 	}
 
 	@Override

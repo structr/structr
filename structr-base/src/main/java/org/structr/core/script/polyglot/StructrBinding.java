@@ -174,11 +174,11 @@ public class StructrBinding implements ProxyObject {
 
 				} catch (FrameworkException ex) {
 
-					logger.error("Unexpected exception while trying to apply get function shortcut on script binding object.", ex);
+					// propagate function errors into the script instead of swallowing them; Scripting
+					// unwraps RuntimeException(FrameworkException) back to the FrameworkException
+					throw new RuntimeException(ex);
 				}
 		}
-
-		return null;
 	}
 
 	@Override
@@ -252,7 +252,9 @@ public class StructrBinding implements ProxyObject {
 
 			} catch (FrameworkException ex) {
 
-				logger.error("Unexpected exception in StructrBinding.", ex);
+				// propagate function errors into the script instead of swallowing them; Scripting
+				// unwraps RuntimeException(FrameworkException) back to the FrameworkException
+				throw new RuntimeException(ex);
 			}
 
 			return null;

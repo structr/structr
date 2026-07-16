@@ -75,6 +75,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 	private static final long licenseCheckInterval     = TimeUnit.DAYS.toMillis(1);
 	private static long lastLicenseCheck               = System.currentTimeMillis();
 	private static Services singletonInstance          = null;
+	private static volatile boolean shutdownComplete   = false;
 	private static boolean testingModeDisabled         = false;
 	private static boolean overrideIndexManagement     = false;
 	private static boolean skipIndexConfiguration      = false;
@@ -113,6 +114,15 @@ public class Services implements StructrServices, BroadcastReceiver {
 	public static Services getInstance() {
 
 		if (singletonInstance == null) {
+
+			// once the service layer has been shut down, refuse to resurrect it.
+			// A stray background thread (e.g. a leftover agent) reaching this after
+			// shutdown would otherwise re-initialize the whole service layer on that
+			// thread, breaking transaction state and (on migration failure) aborting
+			// the JVM via System.exit. Legitimate first-time boot has the flag false.
+			if (shutdownComplete) {
+				throw new IllegalStateException("Service layer has been shut down; refusing to re-initialize it from thread '" + Thread.currentThread().getName() + "'");
+			}
 
 			singletonInstance = new Services();
 			singletonInstance.initialize();
@@ -641,6 +651,10 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 			// clear singleton instance
 			singletonInstance = null;
+
+			// prevent any stray background thread from resurrecting the service
+			// layer via getInstance() after this point (see getInstance())
+			shutdownComplete = true;
 
 			logger.info("Shutdown complete");
 
