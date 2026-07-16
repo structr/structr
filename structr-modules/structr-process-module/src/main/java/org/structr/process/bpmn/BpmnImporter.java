@@ -157,7 +157,7 @@ public class BpmnImporter {
 		// Create BpmnDefinitions (file root) -- holds metadata + container rels
 		// for processes, collaboration and DI diagrams. Per-process state lives
 		// on each BpmnProcess child.
-		final NodeInterface defNode = app.create(ProcessTraits.BPMN_DEFINITIONS, (String) null);
+		final NodeInterface defNode = app.create(ProcessTraits.BPMN_DEFINITIONS);
 		final Traits defTraits = defNode.getTraits();
 
 		defNode.setProperty(defTraits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY),                    root.getAttribute("id"));
@@ -1227,7 +1227,7 @@ public class BpmnImporter {
 			}
 		}
 
-		final NodeInterface method = app.create(StructrTraits.SCHEMA_METHOD, (String) null);
+		final NodeInterface method = app.create(StructrTraits.SCHEMA_METHOD);
 		method.setProperty(nameKey, methodName);
 		existing.add(method);
 		elemNode.setProperty(methodsKey, existing);
@@ -1358,7 +1358,7 @@ public class BpmnImporter {
 			}
 		}
 
-		final NodeInterface method = app.create(StructrTraits.SCHEMA_METHOD, (String) null);
+		final NodeInterface method = app.create(StructrTraits.SCHEMA_METHOD);
 		method.setProperty(nameKey, methodName);
 		existing.add(method);
 		procNode.setProperty(methodsKey, existing);
@@ -1547,7 +1547,7 @@ public class BpmnImporter {
 	 * stays consistent across the entire imported sub-graph.
 	 */
 	private NodeInterface createBpmnNode(final App app, final String type) throws FrameworkException {
-		final NodeInterface node = app.create(type, (String) null);
+		final NodeInterface node = app.create(type);
 		stampVersion(node);
 		return node;
 	}
@@ -1848,7 +1848,7 @@ public class BpmnImporter {
 	 * source. Used by both per-process and per-element cloning paths.
 	 */
 	private NodeInterface cloneSchemaMethod(final App app, final NodeInterface source) throws FrameworkException {
-		final NodeInterface cloned = app.create(StructrTraits.SCHEMA_METHOD, (String) null);
+		final NodeInterface cloned = app.create(StructrTraits.SCHEMA_METHOD);
 		final Traits methodTraits = Traits.of(StructrTraits.SCHEMA_METHOD);
 		copyProp(source, cloned, methodTraits, NodeInterfaceTraitDefinition.NAME_PROPERTY);
 		copyProp(source, cloned, methodTraits, SchemaMethodTraitDefinition.SOURCE_PROPERTY);

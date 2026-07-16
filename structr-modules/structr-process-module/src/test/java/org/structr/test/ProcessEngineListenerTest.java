@@ -117,6 +117,32 @@ public class ProcessEngineListenerTest extends AbstractProcessEngineTest {
 		}
 	}
 
+	@Test
+	public void testStartedFiresBeforeCompletionForAutomaticProcess() throws Exception {
+
+		// A fully-automatic process (start -> serviceTask -> end) runs straight to
+		// completion during startProcess. The 'started' listener must still observe a
+		// 'running' instance -- it must fire before the token advances to the end event,
+		// not after the process has already completed.
+		final String procUuid = importProcess("/engine-auto-listener.bpmn");
+		setMethodSource("recordStartedStatus", "{ $.create('TestOne', { name: 'started-status-' + $.this.status }); }");
+
+		final String instId;
+		try (final Tx tx = app.tx()) {
+			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
+			tx.success();
+		}
+
+		try (final Tx tx = app.tx()) {
+			assertEquals(ProcessInstanceTraitDefinition.STATUS_COMPLETED, instanceStatus(app.getNodeById(instId)));
+			// The 'started' listener saw status=running (fired before completion) ...
+			assertEquals(1, app.nodeQuery("TestOne").name("started-status-running").getAsList().size());
+			// ... not status=completed.
+			assertTrue(app.nodeQuery("TestOne").name("started-status-completed").getAsList().isEmpty());
+			tx.success();
+		}
+	}
+
 	// ------------------------------------------------------------------
 	// helpers
 	// ------------------------------------------------------------------

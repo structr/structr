@@ -26,6 +26,7 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 import static org.testng.AssertJUnit.*;
 
@@ -217,6 +218,87 @@ public class ProcessEngineHelpersTest {
 		assertEquals(3.14, ProcessEngine.convertParameterValue("3.14", ProcessParameterValueTraitDefinition.TYPE_DOUBLE));
 		// Unparseable number falls back to the raw string rather than throwing.
 		assertEquals("notanumber", ProcessEngine.convertParameterValue("notanumber", ProcessParameterValueTraitDefinition.TYPE_INTEGER));
+	}
+
+	// ==================================================================
+	// transpileForeignScript
+	// ==================================================================
+
+	// ==================================================================
+	// rewriteConditionExpression -- JUEL/bare-variable -> $.process rewriting
+	// ==================================================================
+
+	@Test
+	public void testRewriteSingleVariable() {
+		assertEquals("$.process.approved == true",
+			ProcessEngine.rewriteConditionExpression("approved == true", Set.of("approved")));
+	}
+
+	@Test
+	public void testRewriteKeepsLiteralsAndOperators() {
+		// Only the known variable 'delivery' is rewritten; the string literal 'express' is not.
+		assertEquals("$.process.delivery == 'express'",
+			ProcessEngine.rewriteConditionExpression("delivery == 'express'", Set.of("delivery")));
+	}
+
+	@Test
+	public void testRewriteMultipleVariables() {
+		final String out = ProcessEngine.rewriteConditionExpression(
+			"approved == true && amount > 100", Set.of("approved", "amount"));
+		assertEquals("$.process.approved == true && $.process.amount > 100", out);
+	}
+
+	@Test
+	public void testRewriteDoesNotDoubleRewriteAlreadyQualified() {
+		// A reference already written as $.process.x must not be rewritten again.
+		assertEquals("$.process.approved == true",
+			ProcessEngine.rewriteConditionExpression("$.process.approved == true", Set.of("approved")));
+	}
+
+	@Test
+	public void testRewriteRespectsWordBoundaries() {
+		// 'amount' must not match inside 'totalamount'.
+		assertEquals("totalamount > 1",
+			ProcessEngine.rewriteConditionExpression("totalamount > 1", Set.of("amount")));
+	}
+
+	@Test
+	public void testRewriteNoVariablesOrNullIsIdentity() {
+		assertEquals("approved == true",
+			ProcessEngine.rewriteConditionExpression("approved == true", Set.of()));
+		assertNull(ProcessEngine.rewriteConditionExpression(null, Set.of("approved")));
+	}
+
+	// ==================================================================
+	// detectScriptLanguage -- scriptFormat classification
+	// ==================================================================
+
+	@Test
+	public void testDetectForeignJavaScript() {
+		assertEquals(ProcessEngine.ScriptLanguage.FOREIGN_JAVASCRIPT, ProcessEngine.detectScriptLanguage("javascript"));
+		assertEquals(ProcessEngine.ScriptLanguage.FOREIGN_JAVASCRIPT, ProcessEngine.detectScriptLanguage("JS"));
+	}
+
+	@Test
+	public void testDetectStructrJavaScript() {
+		assertEquals(ProcessEngine.ScriptLanguage.STRUCTR_JAVASCRIPT, ProcessEngine.detectScriptLanguage("structr-javascript"));
+		assertEquals(ProcessEngine.ScriptLanguage.STRUCTR_JAVASCRIPT, ProcessEngine.detectScriptLanguage("structr-js"));
+	}
+
+	@Test
+	public void testDetectStructrScriptDefault() {
+		assertEquals(ProcessEngine.ScriptLanguage.STRUCTR_SCRIPT, ProcessEngine.detectScriptLanguage(null));
+		assertEquals(ProcessEngine.ScriptLanguage.STRUCTR_SCRIPT, ProcessEngine.detectScriptLanguage(""));
+		assertEquals(ProcessEngine.ScriptLanguage.STRUCTR_SCRIPT, ProcessEngine.detectScriptLanguage("structrscript"));
+	}
+
+	@Test
+	public void testDetectScriptLanguageKnownGaps() {
+		// Documents the (deliberately narrow, arguably too narrow) matching: a non-JS
+		// foreign format and a real JavaScript MIME type both fall through to StructrScript.
+		// These are the cases flagged as questionable and are worth revisiting.
+		assertEquals(ProcessEngine.ScriptLanguage.STRUCTR_SCRIPT, ProcessEngine.detectScriptLanguage("groovy"));
+		assertEquals(ProcessEngine.ScriptLanguage.STRUCTR_SCRIPT, ProcessEngine.detectScriptLanguage("text/javascript"));
 	}
 
 	// ==================================================================

@@ -18,6 +18,7 @@
  */
 package org.structr.process.engine;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.AccessControllable;
@@ -180,7 +181,7 @@ public class ProcessEngine {
 		}
 
 		// Create ProcessInstance
-		final NodeInterface instance = app.create(ProcessTraits.PROCESS_INSTANCE, (String) null);
+		final NodeInterface instance = app.create(ProcessTraits.PROCESS_INSTANCE);
 		final Traits instTraits = instance.getTraits();
 
 		instance.setProperty(instTraits.key(ProcessInstanceTraitDefinition.STATUS_PROPERTY), ProcessInstanceTraitDefinition.STATUS_RUNNING);
@@ -224,13 +225,16 @@ public class ProcessEngine {
 		// Create token at start event
 		final NodeInterface token = createToken(app, instance, startEvent);
 
+		// Fire 'started' before advancing the token. A fully-automatic process runs
+		// straight through to its end event during advanceToken() -- which sets the
+		// instance to 'completed' and fires 'completed' -- so firing 'started' afterwards
+		// would emit it after the process had already finished. Firing here guarantees
+		// the lifecycle order created -> started -> ... -> completed for every process,
+		// automatic or not; at this point the token sits on the (pass-through) start event.
+		fireProcessEvent(BpmnProcessListenerTraitDefinition.EVENT_STARTED, instance);
+
 		// Advance the token from the start event (start events are pass-through)
 		advanceToken(app, instance, token);
-
-		// Fire 'started' after the initial token has been placed and advanced. By this point
-		// the engine has reached the first wait state (a userTask, an intermediate catch event,
-		// or the end of the process if it advanced through to completion synchronously).
-		fireProcessEvent(BpmnProcessListenerTraitDefinition.EVENT_STARTED, instance);
 
 		return instance;
 	}
@@ -614,7 +618,7 @@ public class ProcessEngine {
 			}
 
 			final String condition = flow.getProperty(flowTraits.key(BpmnSequenceFlowTraitDefinition.CONDITION_EXPRESSION_PROPERTY));
-			if (condition != null && !condition.isEmpty()) {
+			if (StringUtils.isNotBlank(condition)) {
 				if (evaluateCondition(condition, element, instance)) {
 					selectedFlow = flow;
 					break;
@@ -719,7 +723,7 @@ public class ProcessEngine {
 				}
 
 				final String condition = flow.getProperty(flowTraits.key(BpmnSequenceFlowTraitDefinition.CONDITION_EXPRESSION_PROPERTY));
-				if (condition != null && !condition.isEmpty()) {
+				if (StringUtils.isNotBlank(condition)) {
 					if (evaluateCondition(condition, element, instance)) {
 						final NodeInterface target = flow.getProperty(flowTraits.key(BpmnSequenceFlowTraitDefinition.TARGET_ELEMENT_PROPERTY));
 						selectedTargets.add(target);
@@ -827,35 +831,23 @@ public class ProcessEngine {
 		if ("scriptTask".equals(elementType)) {
 
 			final String script = element.getProperty(elemTraits.key(BpmnElementTraitDefinition.SCRIPT_CONTENT_PROPERTY));
-			if (script != null && !script.isEmpty()) {
+			if (StringUtils.isNotBlank(script)) {
 				final String scriptFormat = getAttributeValue(element, "scriptFormat");
 
-				// Determine executable script: if the script uses a foreign format
-				// (javascript/js), transpile it to Structr-compatible code.
-				// Native Structr scripts (no format or "structrscript") run as-is.
-				final String executableScript;
-				final boolean isJavaScript;
-
-				if ("javascript".equalsIgnoreCase(scriptFormat) || "js".equalsIgnoreCase(scriptFormat)) {
-					// Foreign JavaScript (Camunda/Flowable): transpile to Structr JS
-					executableScript = transpileForeignScript(script);
-					isJavaScript = true;
-				} else if ("structr-javascript".equalsIgnoreCase(scriptFormat) || "structr-js".equalsIgnoreCase(scriptFormat)) {
-					// Structr-native JavaScript: execute as-is
-					executableScript = script;
-					isJavaScript = true;
-				} else {
-					// No format or "structrscript": execute as StructrScript
-					executableScript = script;
-					isJavaScript = false;
-				}
+				// Determine how to run the script from its declared format.
+				final ScriptLanguage language = detectScriptLanguage(scriptFormat);
+				// Foreign JavaScript (Camunda/Flowable) is transpiled to Structr JS;
+				// everything else runs its source as-is.
+				final String executableScript = (language == ScriptLanguage.FOREIGN_JAVASCRIPT)
+					? transpileForeignScript(script)
+					: script;
 
 				try {
 					final ActionContext ctx = new ActionContext(securityContext);
 					installProcessContext(ctx, instance, element);
-					final String expression = isJavaScript
-						? "${js{" + executableScript + "}}"
-						: "${" + executableScript + "}";
+					final String expression = (language == ScriptLanguage.STRUCTR_SCRIPT)
+						? "${" + executableScript + "}"
+						: "${js{" + executableScript + "}}";
 					Scripting.evaluate(ctx, element, expression, "scriptTask");
 				} catch (Exception ex) {
 					logger.warn("Script task {} failed (non-fatal): {}\n--- Original ---\n{}\n--- Transpiled ---\n{}",
@@ -868,6 +860,33 @@ public class ProcessEngine {
 		// For now, service tasks are pass-through. The service task implementation
 		// will be connected via schema methods on the BpmnElement or via
 		// extension attributes referencing Structr methods.
+	}
+
+	/**
+	 * How a script task's {@code scriptFormat} is interpreted:
+	 * <ul>
+	 *   <li>{@code FOREIGN_JAVASCRIPT} -- Camunda/Flowable JavaScript, transpiled
+	 *       to Structr JS before evaluation ({@code "javascript"} / {@code "js"}).</li>
+	 *   <li>{@code STRUCTR_JAVASCRIPT} -- Structr-native JavaScript, run as-is
+	 *       ({@code "structr-javascript"} / {@code "structr-js"}).</li>
+	 *   <li>{@code STRUCTR_SCRIPT} -- anything else (including no format), run as
+	 *       StructrScript.</li>
+	 * </ul>
+	 */
+	enum ScriptLanguage { FOREIGN_JAVASCRIPT, STRUCTR_JAVASCRIPT, STRUCTR_SCRIPT }
+
+	/**
+	 * Classify a {@code scriptFormat} attribute value. Package-private and static
+	 * so the (deliberately narrow) matching rules can be unit-tested directly.
+	 */
+	static ScriptLanguage detectScriptLanguage(final String scriptFormat) {
+		if ("javascript".equalsIgnoreCase(scriptFormat) || "js".equalsIgnoreCase(scriptFormat)) {
+			return ScriptLanguage.FOREIGN_JAVASCRIPT;
+		}
+		if ("structr-javascript".equalsIgnoreCase(scriptFormat) || "structr-js".equalsIgnoreCase(scriptFormat)) {
+			return ScriptLanguage.STRUCTR_JAVASCRIPT;
+		}
+		return ScriptLanguage.STRUCTR_SCRIPT;
 	}
 
 	/**
@@ -926,7 +945,7 @@ public class ProcessEngine {
 	private void createTaskInstance(final App app, final NodeInterface instance,
 									final NodeInterface userTaskElement) throws FrameworkException {
 
-		final NodeInterface task = app.create(ProcessTraits.TASK_INSTANCE, (String) null);
+		final NodeInterface task = app.create(ProcessTraits.TASK_INSTANCE);
 		final Traits taskTraits = task.getTraits();
 
 		task.setProperty(taskTraits.key(TaskInstanceTraitDefinition.CREATED_TIME_PROPERTY), new Date());
@@ -979,7 +998,7 @@ public class ProcessEngine {
 
 				// No typed binding: fall back to evaluating the expression.
 				final String expression = performer.getProperty(perfTraits.key(BpmnPerformerTraitDefinition.EXPRESSION_PROPERTY));
-				if (expression == null || expression.isEmpty()) {
+				if (StringUtils.isBlank(expression)) {
 					continue;
 				}
 
@@ -1901,7 +1920,7 @@ public class ProcessEngine {
 	 */
 	static Date computeFireAt(final String timerType, final String expression) {
 
-		if (expression == null || expression.isEmpty()) {
+		if (StringUtils.isBlank(expression)) {
 			return null;
 		}
 		final String body = expression.trim();
@@ -1990,7 +2009,7 @@ public class ProcessEngine {
 									  final NodeInterface instance, final NodeInterface token, final NodeInterface element,
 									  final boolean cancelActivity) throws FrameworkException {
 
-		final NodeInterface timer = app.create(ProcessTraits.PROCESS_TIMER, (String) null);
+		final NodeInterface timer = app.create(ProcessTraits.PROCESS_TIMER);
 		final Traits t = timer.getTraits();
 		timer.setProperty(t.key(ProcessTimerTraitDefinition.FIRE_AT_PROPERTY),           fireAt);
 		timer.setProperty(t.key(ProcessTimerTraitDefinition.TIMER_TYPE_PROPERTY),        timerType);
@@ -2044,7 +2063,7 @@ public class ProcessEngine {
 	 * regardless of caller permissions; the timer system is engine-managed.</p>
 	 */
 	public int cancelBoundaryTimerByBpmnId(final NodeInterface taskNode, final String boundaryBpmnId) throws FrameworkException {
-		if (taskNode == null || boundaryBpmnId == null || boundaryBpmnId.isEmpty()) return 0;
+		if (taskNode == null || StringUtils.isBlank(boundaryBpmnId)) return 0;
 
 		final App app = StructrApp.getInstance(securityContext);
 		final Traits taskTraits = taskNode.getTraits();
@@ -2458,19 +2477,37 @@ public class ProcessEngine {
 		return result;
 	}
 
-	private NodeInterface findStartEvent(final NodeInterface defNode, final Traits defTraits) throws FrameworkException {
+	/**
+	 * Find the single top-level start event that starts the process. Start events
+	 * nested inside a sub-process belong to that sub-process, not the process, so
+	 * they are ignored here. If the definition declares more than one top-level
+	 * start event the entry point is ambiguous and we fail loudly rather than
+	 * silently starting at whichever happened to be first in the collection.
+	 */
+	private NodeInterface findStartEvent(final NodeInterface procNode, final Traits procTraits) throws FrameworkException {
 
-		final Iterable<NodeInterface> elements = defNode.getProperty(defTraits.key(BpmnProcessTraitDefinition.ELEMENTS_PROPERTY));
-		if (elements != null) {
-			final Traits elemTraits = Traits.of(ProcessTraits.BPMN_ELEMENT);
-			for (final NodeInterface elem : elements) {
-				final String type = elem.getProperty(elemTraits.key(BpmnElementTraitDefinition.BPMN_ELEMENT_TYPE_PROPERTY));
-				if ("startEvent".equals(type)) {
-					return elem;
-				}
+		final Iterable<NodeInterface> elements = procNode.getProperty(procTraits.key(BpmnProcessTraitDefinition.ELEMENTS_PROPERTY));
+		if (elements == null) {
+			return null;
+		}
+
+		final Traits elemTraits = Traits.of(ProcessTraits.BPMN_ELEMENT);
+		final List<NodeInterface> startEvents = new ArrayList<>();
+
+		for (final NodeInterface elem : elements) {
+			if (!"startEvent".equals(elem.getProperty(elemTraits.key(BpmnElementTraitDefinition.BPMN_ELEMENT_TYPE_PROPERTY)))) {
+				continue;
+			}
+			if (elem.getProperty(elemTraits.key(BpmnElementTraitDefinition.PARENT_ELEMENT_PROPERTY)) == null) {
+				startEvents.add(elem);
 			}
 		}
-		return null;
+
+		if (startEvents.size() > 1) {
+			throw new FrameworkException(422, "Process definition has " + startEvents.size()
+				+ " top-level start events; a single start event is required to start an instance");
+		}
+		return startEvents.isEmpty() ? null : startEvents.get(0);
 	}
 
 	private NodeInterface findWaitingToken(final NodeInterface instance, final NodeInterface element) throws FrameworkException {
@@ -2624,7 +2661,7 @@ public class ProcessEngine {
 			final String paramName  = entry.getKey();
 			final Object paramValue = entry.getValue();
 
-			final NodeInterface pvNode = app.create(ProcessTraits.PROCESS_PARAMETER_VALUE, (String) null);
+			final NodeInterface pvNode = app.create(ProcessTraits.PROCESS_PARAMETER_VALUE);
 
 			pvNode.setProperty(pvTraits.key(ProcessParameterValueTraitDefinition.PARAMETER_NAME_PROPERTY), paramName);
 			pvNode.setProperty(pvTraits.key(ProcessParameterValueTraitDefinition.PARAMETER_TYPE_PROPERTY), inferParameterType(paramValue));
@@ -2843,16 +2880,25 @@ public class ProcessEngine {
 	 * and operators are left unchanged.
 	 */
 	private String rewriteConditionExpression(final String expression, final NodeInterface instance) throws FrameworkException {
+		return rewriteConditionExpression(expression, loadProcessVariables(instance).keySet());
+	}
 
-		final Map<String, Object> variables = loadProcessVariables(instance);
-		if (variables.isEmpty()) {
+	/**
+	 * Pure rewrite step: given the set of known process-variable names, rewrite
+	 * their bare occurrences in the expression to {@code $.process.<name>}.
+	 * Package-private and static so the JUEL-to-JavaScript rewriting can be
+	 * unit-tested without a process instance.
+	 */
+	static String rewriteConditionExpression(final String expression, final Set<String> variableNames) {
+
+		if (expression == null || variableNames == null || variableNames.isEmpty()) {
 			return expression;
 		}
 
 		String result = expression;
-		for (final String name : variables.keySet()) {
+		for (final String name : variableNames) {
 			// Replace word-boundary occurrences of the variable name with $.process.<name>
-			// Negative lookbehind for '.' prevents double-rewriting
+			// Negative lookbehind for '.' prevents double-rewriting.
 			result = result.replaceAll("(?<!\\.)\\b" + name + "\\b", "\\$.process." + name);
 		}
 
@@ -2957,7 +3003,7 @@ public class ProcessEngine {
 			final NodeInterface host = element.getProperty(element.getTraits().key(BpmnElementTraitDefinition.ATTACHED_TO_PROPERTY));
 			if (host != null) {
 				final String hostBpmnId = host.getProperty(host.getTraits().key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY));
-				if (hostBpmnId != null && !hostBpmnId.isEmpty()) return hostBpmnId;
+				if (StringUtils.isNotBlank(hostBpmnId)) return hostBpmnId;
 			}
 		} catch (Exception ex) {
 			logger.warn("Error reading attachedTo relationship: {}", ex.getMessage());

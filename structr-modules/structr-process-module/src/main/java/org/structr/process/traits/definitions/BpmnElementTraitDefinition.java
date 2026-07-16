@@ -324,7 +324,7 @@ public class BpmnElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		if (ofKind.isEmpty()) {
 			// Create a new BpmnPerformer of this kind and link via the rel.
-			final NodeInterface created = app.create(ProcessTraits.BPMN_PERFORMER, (String) null);
+			final NodeInterface created = app.create(ProcessTraits.BPMN_PERFORMER);
 			created.setProperty(perfTraits.key(BpmnPerformerTraitDefinition.KIND_PROPERTY),       kind);
 			created.setProperty(perfTraits.key(BpmnPerformerTraitDefinition.EXPRESSION_PROPERTY), hasExpr ? expression : null);
 			created.setProperty(perfTraits.key(BpmnPerformerTraitDefinition.ELEMENT_PROPERTY),    element);

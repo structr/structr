@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:structr="http://structr.org/schema/process/1.0"
+                  id="Definitions_AutoListener"
+                  targetNamespace="http://structr.org/bpmn">
+
+  <bpmn:process id="Process_AutoListener" name="Automatic Listener Process" isExecutable="true">
+
+    <bpmn:extensionElements>
+      <structr:processListener event="started" method="recordStartedStatus" phase="on" />
+    </bpmn:extensionElements>
+
+    <bpmn:startEvent   id="Start_1"   name="Start" />
+    <bpmn:serviceTask  id="Service_1" name="Auto step" />
+    <bpmn:endEvent     id="End_1"     name="Done" />
+
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_1"   targetRef="Service_1" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Service_1" targetRef="End_1" />
+
+  </bpmn:process>
+
+</bpmn:definitions>
