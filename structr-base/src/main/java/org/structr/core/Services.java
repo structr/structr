@@ -48,6 +48,7 @@ import org.structr.docs.documentables.service.*;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaService;
+import org.structr.schema.parser.ZonedDateTimePropertyGenerator;
 import org.structr.util.StructrLicenseManager;
 
 import java.io.*;
@@ -433,6 +434,20 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 		Settings.EmailValidationRegex.setChangeHandler((setting, oldValue, newValue) -> {
 			Settings.updateEmailValidationPattern();
+		});
+
+		Settings.ZonedDateTimeFormatOverride.setChangeHandler((setting, oldValue, newValue) -> {
+
+			try {
+
+				ZonedDateTimePropertyGenerator.testPattern(newValue.toString());
+
+			} catch (FrameworkException fex) {
+
+				logger.info("{}: {}", setting.getKey(), fex.getMessage());
+
+				setting.setValue(oldValue);
+			}
 		});
 	}
 
