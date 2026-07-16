@@ -881,7 +881,7 @@ public class ProcessEngine {
 	 *
 	 * Lines that cannot be transpiled are kept as-is (best effort).
 	 */
-	private String transpileForeignScript(final String script) {
+	static String transpileForeignScript(final String script) {
 
 		final StringBuilder out = new StringBuilder();
 
@@ -1899,7 +1899,7 @@ public class ProcessEngine {
 	 * @param expression the BPMN timer expression body
 	 * @return the absolute fire time, or null if unparseable / unsupported
 	 */
-	private Date computeFireAt(final String timerType, final String expression) {
+	static Date computeFireAt(final String timerType, final String expression) {
 
 		if (expression == null || expression.isEmpty()) {
 			return null;
@@ -1939,7 +1939,7 @@ public class ProcessEngine {
 	 * Supports P[nY][nM][nW][nD][T[nH][nM][nS]] with year/month treated as approximations
 	 * (year=365d, month=30d). Returns total milliseconds, or -1 if unparseable.
 	 */
-	private long parseIso8601DurationMillis(final String s) {
+	static long parseIso8601DurationMillis(final String s) {
 		if (s == null || !s.startsWith("P")) return -1;
 		long millis = 0;
 		final int tIdx = s.indexOf('T');
@@ -1959,7 +1959,7 @@ public class ProcessEngine {
 		return millis;
 	}
 
-	private long parseDurationComponent(final String s, final char unit, final long unitMillis) {
+	static long parseDurationComponent(final String s, final char unit, final long unitMillis) {
 		final int idx = s.indexOf(unit);
 		if (idx < 0) return 0;
 		// scan backwards to find the start of the number
@@ -2311,7 +2311,7 @@ public class ProcessEngine {
 	private NodeInterface createToken(final App app, final NodeInterface instance,
 									  final NodeInterface element) throws FrameworkException {
 
-		final NodeInterface token = app.create(ProcessTraits.PROCESS_TOKEN, (String) null);
+		final NodeInterface token = app.create(ProcessTraits.PROCESS_TOKEN);
 		final Traits tokenTraits = token.getTraits();
 
 		token.setProperty(tokenTraits.key(ProcessTokenTraitDefinition.STATUS_PROPERTY), ProcessTokenTraitDefinition.STATUS_ACTIVE);
@@ -2644,7 +2644,7 @@ public class ProcessEngine {
 	 * string unchanged). The non-String branches are forward-compat for
 	 * programmatic invocations that pass typed values.
 	 */
-	private String inferParameterType(final Object paramValue) {
+	static String inferParameterType(final Object paramValue) {
 		if (paramValue instanceof Boolean)                              return ProcessParameterValueTraitDefinition.TYPE_BOOLEAN;
 		if (paramValue instanceof Integer || paramValue instanceof Long) return ProcessParameterValueTraitDefinition.TYPE_INTEGER;
 		if (paramValue instanceof Double  || paramValue instanceof Float) return ProcessParameterValueTraitDefinition.TYPE_DOUBLE;
@@ -2698,7 +2698,7 @@ public class ProcessEngine {
 	 * the raw String when no type was declared (the common case for form-driven
 	 * processes) or when parsing fails.
 	 */
-	private Object convertParameterValue(final String stringValue, final String paramType) {
+	static Object convertParameterValue(final String stringValue, final String paramType) {
 
 		if (stringValue == null) return null;
 		if (paramType == null || ProcessParameterValueTraitDefinition.TYPE_STRING.equals(paramType)) {
@@ -2885,27 +2885,64 @@ public class ProcessEngine {
 	}
 
 	/**
-	 * Get an attribute value from the bpmnAttributes JSON map.
+	 * Get an attribute value from an element's bpmnAttributes JSON map.
+	 * Delegates to {@link #getJsonAttributeValue(String, String)} for the actual
+	 * parsing; this wrapper only reads the property off the node.
 	 */
 	private String getAttributeValue(final NodeInterface element, final String attrName) {
 
 		try {
 			final String json = element.getProperty(element.getTraits().key(BpmnElementTraitDefinition.BPMN_ATTRIBUTES_PROPERTY));
-			if (json != null) {
-				final int idx = json.indexOf("\"" + attrName + "\"");
-				if (idx >= 0) {
-					final int colonIdx = json.indexOf(':', idx);
-					final int startQuote = json.indexOf('"', colonIdx + 1);
-					final int endQuote = json.indexOf('"', startQuote + 1);
-					if (startQuote >= 0 && endQuote > startQuote) {
-						return json.substring(startQuote + 1, endQuote);
-					}
-				}
-			}
+			return getJsonAttributeValue(json, attrName);
 		} catch (Exception ex) {
 			logger.warn("Error reading attribute '{}': {}", attrName, ex.getMessage());
+			return null;
 		}
-		return null;
+	}
+
+	/**
+	 * Extract a single named attribute from a {@code bpmnAttributes} JSON object
+	 * string. The importer builds this JSON with Gson from a
+	 * {@code Map<String,String>}, so every value is a string; this returns that
+	 * string, or {@code null} when the JSON is {@code null} / blank / not a JSON
+	 * object, the key is absent, or the value is JSON {@code null}.
+	 *
+	 * <p>Uses a real JSON parser rather than string scanning so that values
+	 * containing quotes, colons or braces, keys that are substrings of other
+	 * keys, and keys whose name also occurs inside a value, are all handled
+	 * correctly (the previous {@code indexOf}-based extractor got these wrong).</p>
+	 *
+	 * <p>Package-private and static so it can be unit-tested in isolation.</p>
+	 */
+	static String getJsonAttributeValue(final String json, final String attrName) {
+
+		if (json == null || attrName == null) {
+			return null;
+		}
+		final String trimmed = json.trim();
+		if (trimmed.isEmpty()) {
+			return null;
+		}
+
+		final com.google.gson.JsonElement root;
+		try {
+			root = com.google.gson.JsonParser.parseString(trimmed);
+		} catch (final com.google.gson.JsonSyntaxException ex) {
+			return null;
+		}
+
+		if (root == null || !root.isJsonObject()) {
+			return null;
+		}
+
+		final com.google.gson.JsonObject obj = root.getAsJsonObject();
+		final com.google.gson.JsonElement value = obj.get(attrName);
+		if (value == null || value.isJsonNull()) {
+			return null;
+		}
+		// String values (the only kind the importer emits) and other primitives
+		// return their string form; nested objects/arrays return compact JSON.
+		return value.isJsonPrimitive() ? value.getAsString() : value.toString();
 	}
 
 	/**

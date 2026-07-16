@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  id="Definitions_SubProcess"
+                  targetNamespace="http://structr.org/bpmn">
+
+  <bpmn:process id="Process_SubProcess" name="Sub Process Test" isExecutable="true">
+
+    <bpmn:startEvent id="Start_1" name="Start" />
+
+    <bpmn:subProcess id="Sub_1" name="Embedded">
+      <bpmn:startEvent id="Sub_Start" name="Sub start" />
+      <bpmn:userTask   id="Sub_Task"  name="Do inner work" />
+      <bpmn:endEvent   id="Sub_End"   name="Sub end" />
+      <bpmn:sequenceFlow id="Sub_Flow_1" sourceRef="Sub_Start" targetRef="Sub_Task" />
+      <bpmn:sequenceFlow id="Sub_Flow_2" sourceRef="Sub_Task"  targetRef="Sub_End" />
+    </bpmn:subProcess>
+
+    <bpmn:serviceTask id="Service_After" name="After sub" />
+
+    <bpmn:endEvent id="End_1" name="Done" />
+
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_1"       targetRef="Sub_1" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Sub_1"         targetRef="Service_After" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Service_After" targetRef="End_1" />
+
+  </bpmn:process>
+
+</bpmn:definitions>

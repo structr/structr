@@ -1,0 +1,468 @@
+/*
+ * Copyright (C) 2010-2026 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package org.structr.test;
+
+import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.Tx;
+import org.structr.process.traits.definitions.BpmnProcessTraitDefinition;
+import org.structr.process.traits.definitions.ProcessInstanceTraitDefinition;
+import org.structr.process.traits.definitions.TaskInstanceTraitDefinition;
+import org.testng.annotations.Test;
+
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import static org.testng.AssertJUnit.*;
+
+/**
+ * Human-task lifecycle tests for the {@link org.structr.process.engine.ProcessEngine}:
+ * performer resolution (humanPerformer / potentialOwner / initiator fallback) and the
+ * claim / release / decline / delegate / assign / make-available / cancel / complete
+ * operations, including their authorization rules.
+ */
+public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
+
+	// ------------------------------------------------------------------
+	// Performer resolution
+	// ------------------------------------------------------------------
+
+	@Test
+	public void testHumanPerformerAssignsToInitiator() throws Exception {
+
+		final String procUuid    = importProcess("/engine-human-task.bpmn");
+		final NodeInterface init  = createUser("initiator");
+
+		final String instId;
+		try (final Tx tx = app.tx()) {
+			instId = engineAs(init).startProcess(app.getNodeById(procUuid), null).getUuid();
+			tx.success();
+		}
+
+		try (final Tx tx = app.tx()) {
+			final NodeInterface task = openTaskAt(app.getNodeById(instId), "Task_Fill");
+			assertEquals(TaskInstanceTraitDefinition.STATUS_RESERVED, taskStatus(task));
+			assertEquals(init.getUuid(), assigneeOf(task).getUuid());
+			assertEquals(TaskInstanceTraitDefinition.SET_BY_BPMN,
+				task.getProperty(task.getTraits().key(TaskInstanceTraitDefinition.ASSIGNEE_SET_BY_PROPERTY)));
+			tx.success();
+		}
+	}
+
+	@Test
+	public void testPotentialOwnerCreatesAvailableTaskWithCandidates() throws Exception {
+
+		createGroup("Reviewers");
+		final String procUuid = importProcess("/engine-candidate-task.bpmn");
+
+		final String instId;
+		try (final Tx tx = app.tx()) {
+			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
+			tx.success();
+		}
+
+		try (final Tx tx = app.tx()) {
+			final NodeInterface task = openTaskAt(app.getNodeById(instId), "Task_Review");
+			assertEquals(TaskInstanceTraitDefinition.STATUS_AVAILABLE, taskStatus(task));
+			assertTrue("the Reviewers group should be a candidate assignee",
+				candidateAssigneeIds(task).size() == 1);
+			tx.success();
+		}
+	}
+
+	@Test
+	public void testDefaultAssigneeFromInitiatorFallback() throws Exception {
+
+		// simple-approval's user task has no performers; with the flag set the task
+		// falls back to the initiator.
+		final String procUuid = importProcess("/simple-approval.bpmn");
+		try (final Tx tx = app.tx()) {
+			final NodeInterface proc = app.getNodeById(procUuid);
+			proc.setProperty(proc.getTraits().key(BpmnProcessTraitDefinition.DEFAULT_ASSIGNEE_FROM_INITIATOR_PROPERTY), true);
+			tx.success();
+		}
+
+		final NodeInterface init = createUser("initiator");
+		final String instId;
+		try (final Tx tx = app.tx()) {
+			instId = engineAs(init).startProcess(app.getNodeById(procUuid), null).getUuid();
+			tx.success();
+		}
+
+		try (final Tx tx = app.tx()) {
+			final NodeInterface task = openTaskAt(app.getNodeById(instId), "UserTask_1");
+			assertEquals(TaskInstanceTraitDefinition.STATUS_RESERVED, taskStatus(task));
+			assertEquals(init.getUuid(), assigneeOf(task).getUuid());
+			tx.success();
+		}
+	}
+
+	// ------------------------------------------------------------------
+	// Claim
+	// ------------------------------------------------------------------
+
+	@Test
+	public void testClaimByGroupMember() throws Exception {
+
+		final Ctx c = startCandidateTask();
+
+		try (final Tx tx = app.tx()) {
+			final NodeInterface task = openTaskAt(app.getNodeById(c.instId), "Task_Review");
+			engineAs(c.member).claimTask(task);
+			tx.success();
+		}
+
+		try (final Tx tx = app.tx()) {
+			final NodeInterface task = anyTaskAt(app.getNodeById(c.instId), "Task_Review");
+			assertEquals(TaskInstanceTraitDefinition.STATUS_RESERVED, taskStatus(task));
+			assertEquals(c.member.getUuid(), assigneeOf(task).getUuid());
+			assertEquals(TaskInstanceTraitDefinition.SET_BY_SELF,
+				task.getProperty(task.getTraits().key(TaskInstanceTraitDefinition.ASSIGNEE_SET_BY_PROPERTY)));
+			tx.success();
+		}
+	}
+
+	@Test
+	public void testClaimByNonMemberFails() throws Exception {
+
+		final Ctx c = startCandidateTask();
+		final NodeInterface outsider = createUser("outsider");
+
+		try (final Tx tx = app.tx()) {
+			try {
+				engineAs(outsider).claimTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"));
+				fail("expected 403 claiming as a non-candidate");
+			} catch (final FrameworkException expected) {
+				assertEquals(403, expected.getStatus());
+			}
+			tx.success();
+		}
+	}
+
+	@Test
+	public void testClaimAlreadyReservedFails() throws Exception {
+
+		final Ctx c = startCandidateTask();
+		final NodeInterface member2 = createUser("member2");
+		addToGroup(c.group, member2);
+
+		try (final Tx tx = app.tx()) {
+			engineAs(c.member).claimTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"));
+			tx.success();
+		}
+		try (final Tx tx = app.tx()) {
+			try {
+				engineAs(member2).claimTask(anyTaskAt(app.getNodeById(c.instId), "Task_Review"));
+				fail("expected 422 claiming a task that is no longer available");
+			} catch (final FrameworkException expected) {
+				assertEquals(422, expected.getStatus());
+			}
+			tx.success();
+		}
+	}
+
+	// ------------------------------------------------------------------
+	// Release
+	// ------------------------------------------------------------------
+
+	@Test
+	public void testReleaseReturnsTaskToPool() throws Exception {
+
+		final Ctx c = startCandidateTask();
+		try (final Tx tx = app.tx()) {
+			engineAs(c.member).claimTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"));
+			tx.success();
+		}
+		try (final Tx tx = app.tx()) {
+			engineAs(c.member).releaseTask(anyTaskAt(app.getNodeById(c.instId), "Task_Review"));
+			tx.success();
+		}
+		try (final Tx tx = app.tx()) {
+			final NodeInterface task = anyTaskAt(app.getNodeById(c.instId), "Task_Review");
+			assertEquals(TaskInstanceTraitDefinition.STATUS_AVAILABLE, taskStatus(task));
+			assertNull(assigneeOf(task));
+			tx.success();
+		}
+	}
+
+	@Test
+	public void testReleaseByNonAssigneeFails() throws Exception {
+
+		final Ctx c = startCandidateTask();
+		final NodeInterface member2 = createUser("member2");
+		addToGroup(c.group, member2);
+
+		try (final Tx tx = app.tx()) {
+			engineAs(c.member).claimTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"));
+			tx.success();
+		}
+		try (final Tx tx = app.tx()) {
+			try {
+				engineAs(member2).releaseTask(anyTaskAt(app.getNodeById(c.instId), "Task_Review"));
+				fail("expected 403 releasing a task held by someone else");
+			} catch (final FrameworkException expected) {
+				assertEquals(403, expected.getStatus());
+			}
+			tx.success();
+		}
+	}
+
+	// ------------------------------------------------------------------
+	// Decline
+	// ------------------------------------------------------------------
+
+	@Test
+	public void testDeclineRecordsVoteWithoutChangingStatus() throws Exception {
+
+		final Ctx c = startCandidateTask();
+		try (final Tx tx = app.tx()) {
+			engineAs(c.member).declineTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"));
+			tx.success();
+		}
+		try (final Tx tx = app.tx()) {
+			final NodeInterface task = anyTaskAt(app.getNodeById(c.instId), "Task_Review");
+			assertEquals(TaskInstanceTraitDefinition.STATUS_AVAILABLE, taskStatus(task));
+			assertTrue(declinedByIds(task).contains(c.member.getUuid()));
+			tx.success();
+		}
+	}
+
+	@Test
+	public void testClaimSupersedesPriorDecline() throws Exception {
+
+		final Ctx c = startCandidateTask();
+		try (final Tx tx = app.tx()) {
+			engineAs(c.member).declineTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"));
+			tx.success();
+		}
+		try (final Tx tx = app.tx()) {
+			engineAs(c.member).claimTask(anyTaskAt(app.getNodeById(c.instId), "Task_Review"));
+			tx.success();
+		}
+		try (final Tx tx = app.tx()) {
+			final NodeInterface task = anyTaskAt(app.getNodeById(c.instId), "Task_Review");
+			assertEquals(TaskInstanceTraitDefinition.STATUS_RESERVED, taskStatus(task));
+			assertFalse("claim should remove the caller from declinedBy",
+				declinedByIds(task).contains(c.member.getUuid()));
+			tx.success();
+		}
+	}
+
+	@Test
+	public void testDeclineByNonCandidateFails() throws Exception {
+
+		final Ctx c = startCandidateTask();
+		final NodeInterface outsider = createUser("outsider");
+		try (final Tx tx = app.tx()) {
+			try {
+				engineAs(outsider).declineTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"));
+				fail("expected 403 declining as a non-candidate");
+			} catch (final FrameworkException expected) {
+				assertEquals(403, expected.getStatus());
+			}
+			tx.success();
+		}
+	}
+
+	// ------------------------------------------------------------------
+	// Delegate
+	// ------------------------------------------------------------------
+
+	@Test
+	public void testDelegateFromAssignee() throws Exception {
+
+		final Ctx c = startCandidateTask();
+		final NodeInterface delegate = createUser("delegate");
+
+		try (final Tx tx = app.tx()) {
+			engineAs(c.member).claimTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"));
+			tx.success();
+		}
+		try (final Tx tx = app.tx()) {
+			engineAs(c.member).delegateTask(anyTaskAt(app.getNodeById(c.instId), "Task_Review"),
+				app.getNodeById(delegate.getUuid()));
+			tx.success();
+		}
+		try (final Tx tx = app.tx()) {
+			final NodeInterface task = anyTaskAt(app.getNodeById(c.instId), "Task_Review");
+			assertEquals(TaskInstanceTraitDefinition.STATUS_RESERVED, taskStatus(task));
+			assertEquals(delegate.getUuid(), assigneeOf(task).getUuid());
+			assertEquals(TaskInstanceTraitDefinition.SET_BY_DELEGATION,
+				task.getProperty(task.getTraits().key(TaskInstanceTraitDefinition.ASSIGNEE_SET_BY_PROPERTY)));
+			tx.success();
+		}
+	}
+
+	@Test
+	public void testDelegateAvailableTaskByCandidate() throws Exception {
+
+		final Ctx c = startCandidateTask();
+		final NodeInterface delegate = createUser("delegate");
+
+		try (final Tx tx = app.tx()) {
+			engineAs(c.member).delegateTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"),
+				app.getNodeById(delegate.getUuid()));
+			tx.success();
+		}
+		try (final Tx tx = app.tx()) {
+			final NodeInterface task = anyTaskAt(app.getNodeById(c.instId), "Task_Review");
+			assertEquals(TaskInstanceTraitDefinition.STATUS_RESERVED, taskStatus(task));
+			assertEquals(delegate.getUuid(), assigneeOf(task).getUuid());
+			tx.success();
+		}
+	}
+
+	// ------------------------------------------------------------------
+	// Administrative assign / make-available / cancel
+	// ------------------------------------------------------------------
+
+	@Test
+	public void testAssignTaskToArbitraryUser() throws Exception {
+
+		final Ctx c = startCandidateTask();
+		final NodeInterface other = createUser("non-candidate");
+
+		try (final Tx tx = app.tx()) {
+			engine().assignTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"),
+				app.getNodeById(other.getUuid()));
+			tx.success();
+		}
+		try (final Tx tx = app.tx()) {
+			final NodeInterface task = anyTaskAt(app.getNodeById(c.instId), "Task_Review");
+			assertEquals(TaskInstanceTraitDefinition.STATUS_RESERVED, taskStatus(task));
+			assertEquals(other.getUuid(), assigneeOf(task).getUuid());
+			assertEquals(TaskInstanceTraitDefinition.SET_BY_ADMIN,
+				task.getProperty(task.getTraits().key(TaskInstanceTraitDefinition.ASSIGNEE_SET_BY_PROPERTY)));
+			tx.success();
+		}
+	}
+
+	@Test
+	public void testMakeTaskAvailableClearsAssignee() throws Exception {
+
+		final Ctx c = startCandidateTask();
+		final NodeInterface other = createUser("non-candidate");
+
+		try (final Tx tx = app.tx()) {
+			engine().assignTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"),
+				app.getNodeById(other.getUuid()));
+			tx.success();
+		}
+		try (final Tx tx = app.tx()) {
+			engine().makeTaskAvailable(anyTaskAt(app.getNodeById(c.instId), "Task_Review"));
+			tx.success();
+		}
+		try (final Tx tx = app.tx()) {
+			final NodeInterface task = anyTaskAt(app.getNodeById(c.instId), "Task_Review");
+			assertEquals(TaskInstanceTraitDefinition.STATUS_AVAILABLE, taskStatus(task));
+			assertNull(assigneeOf(task));
+			tx.success();
+		}
+	}
+
+	@Test
+	public void testCancelTaskDoesNotAdvanceProcess() throws Exception {
+
+		final Ctx c = startCandidateTask();
+		try (final Tx tx = app.tx()) {
+			engine().cancelTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"));
+			tx.success();
+		}
+		try (final Tx tx = app.tx()) {
+			final NodeInterface inst = app.getNodeById(c.instId);
+			final NodeInterface task = anyTaskAt(inst, "Task_Review");
+			assertEquals(TaskInstanceTraitDefinition.STATUS_CANCELLED, taskStatus(task));
+			assertNotNull(task.getProperty(task.getTraits().key(TaskInstanceTraitDefinition.CANCELLED_TIME_PROPERTY)));
+			// The instance keeps running (admin must intervene explicitly), no tokens active.
+			assertEquals(ProcessInstanceTraitDefinition.STATUS_RUNNING, instanceStatus(inst));
+			assertEquals(0, tokenCount(inst, org.structr.process.traits.definitions.ProcessTokenTraitDefinition.STATUS_WAITING));
+			tx.success();
+		}
+	}
+
+	// ------------------------------------------------------------------
+	// Complete
+	// ------------------------------------------------------------------
+
+	@Test
+	public void testCompleteAfterClaimAdvancesProcess() throws Exception {
+
+		final Ctx c = startCandidateTask();
+		try (final Tx tx = app.tx()) {
+			engineAs(c.member).claimTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"));
+			tx.success();
+		}
+		try (final Tx tx = app.tx()) {
+			engineAs(c.member).completeTask(anyTaskAt(app.getNodeById(c.instId), "Task_Review"), Map.of());
+			tx.success();
+		}
+		try (final Tx tx = app.tx()) {
+			final NodeInterface inst = app.getNodeById(c.instId);
+			assertEquals(ProcessInstanceTraitDefinition.STATUS_COMPLETED, instanceStatus(inst));
+			assertEquals(TaskInstanceTraitDefinition.STATUS_COMPLETED,
+				taskStatus(anyTaskAt(inst, "Task_Review")));
+			tx.success();
+		}
+	}
+
+	// ------------------------------------------------------------------
+	// helpers
+	// ------------------------------------------------------------------
+
+	/** A started candidate-task instance with its group and one member. */
+	private static final class Ctx {
+		final String instId;
+		final NodeInterface group;
+		final NodeInterface member;
+		Ctx(final String instId, final NodeInterface group, final NodeInterface member) {
+			this.instId = instId; this.group = group; this.member = member;
+		}
+	}
+
+	private Ctx startCandidateTask() throws FrameworkException {
+		final NodeInterface group  = createGroup("Reviewers");
+		final NodeInterface member = createUser("reviewer");
+		addToGroup(group, member);
+		final String procUuid = importProcess("/engine-candidate-task.bpmn");
+
+		final String instId;
+		try (final Tx tx = app.tx()) {
+			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
+			tx.success();
+		}
+		return new Ctx(instId, group, member);
+	}
+
+	private Set<String> candidateAssigneeIds(final NodeInterface task) throws FrameworkException {
+		final Set<String> ids = new HashSet<>();
+		for (final NodeInterface n : collect(task.getProperty(task.getTraits().key(TaskInstanceTraitDefinition.CANDIDATE_ASSIGNEES_PROPERTY)))) {
+			ids.add(n.getUuid());
+		}
+		return ids;
+	}
+
+	private Set<String> declinedByIds(final NodeInterface task) throws FrameworkException {
+		final Set<String> ids = new HashSet<>();
+		for (final NodeInterface n : collect(task.getProperty(task.getTraits().key(TaskInstanceTraitDefinition.DECLINED_BY_PROPERTY)))) {
+			ids.add(n.getUuid());
+		}
+		return ids;
+	}
+}

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  id="Definitions_HumanTask"
+                  targetNamespace="http://structr.org/bpmn">
+
+  <bpmn:process id="Process_HumanTask" name="Human Task Process" isExecutable="true">
+
+    <bpmn:startEvent id="Start_1" name="Start" />
+
+    <bpmn:userTask id="Task_Fill" name="Fill form">
+      <bpmn:humanPerformer id="hp_1">
+        <bpmn:resourceAssignmentExpression>
+          <bpmn:formalExpression>${initiator}</bpmn:formalExpression>
+        </bpmn:resourceAssignmentExpression>
+      </bpmn:humanPerformer>
+    </bpmn:userTask>
+
+    <bpmn:endEvent id="End_1" name="Done" />
+
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_1" targetRef="Task_Fill" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_Fill" targetRef="End_1" />
+
+  </bpmn:process>
+
+</bpmn:definitions>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  id="Definitions_Parallel"
+                  targetNamespace="http://structr.org/bpmn">
+
+  <bpmn:process id="Process_Parallel" name="Parallel Process" isExecutable="true">
+
+    <bpmn:startEvent id="Start_1" name="Start" />
+
+    <bpmn:parallelGateway id="Fork_1" name="Fork" />
+
+    <bpmn:userTask id="Task_A" name="Task A" />
+    <bpmn:userTask id="Task_B" name="Task B" />
+
+    <bpmn:parallelGateway id="Join_1" name="Join" />
+
+    <bpmn:endEvent id="End_1" name="Done" />
+
+    <bpmn:sequenceFlow id="Flow_start"  sourceRef="Start_1" targetRef="Fork_1" />
+    <bpmn:sequenceFlow id="Flow_fork_a" sourceRef="Fork_1"  targetRef="Task_A" />
+    <bpmn:sequenceFlow id="Flow_fork_b" sourceRef="Fork_1"  targetRef="Task_B" />
+    <bpmn:sequenceFlow id="Flow_a_join" sourceRef="Task_A"  targetRef="Join_1" />
+    <bpmn:sequenceFlow id="Flow_b_join" sourceRef="Task_B"  targetRef="Join_1" />
+    <bpmn:sequenceFlow id="Flow_end"    sourceRef="Join_1"  targetRef="End_1" />
+
+  </bpmn:process>
+
+</bpmn:definitions>

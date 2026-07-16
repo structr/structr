@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  id="Definitions_BoundaryTimer"
+                  targetNamespace="http://structr.org/bpmn">
+
+  <bpmn:process id="Process_BoundaryTimer" name="Boundary Timer Process" isExecutable="true">
+
+    <bpmn:startEvent id="Start_1" name="Start" />
+
+    <bpmn:userTask id="Task_Work" name="Do the work" />
+
+    <bpmn:boundaryEvent id="Boundary_Timeout" name="Timeout" cancelActivity="true" attachedToRef="Task_Work">
+      <bpmn:timerEventDefinition id="timerdef_b1">
+        <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT1H</bpmn:timeDuration>
+      </bpmn:timerEventDefinition>
+    </bpmn:boundaryEvent>
+
+    <bpmn:serviceTask id="Service_Escalate" name="Escalate" />
+
+    <bpmn:endEvent id="End_Normal"    name="Completed normally" />
+    <bpmn:endEvent id="End_Escalated" name="Escalated" />
+
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_1"          targetRef="Task_Work" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_Work"        targetRef="End_Normal" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Boundary_Timeout" targetRef="Service_Escalate" />
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="Service_Escalate" targetRef="End_Escalated" />
+
+  </bpmn:process>
+
+</bpmn:definitions>
