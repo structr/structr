@@ -700,6 +700,34 @@
 	</dependencyManagement>
 
 	<build>
+		<pluginManagement>
+			<plugins>
+				<!-- Tests are compiled (see maven-compiler-plugin default-testCompile below) and RUN on
+				     the class path, not the module path. Pinning the versions + useModulePath=false here,
+				     for every module, makes test execution deterministic across local Maven versions
+				     (an unpinned surefire otherwise defaults to a module-path fork for modular modules,
+				     which resolves each module's full JPMS graph and fails on hostile third-party
+				     descriptors, e.g. commons-configuration2's hard `requires org.apache.commons.logging`).
+				     Per-module profiles (structr-base, structr-modules, structr-test-configuration) may
+				     still add argLine/forks/systemPropertyVariables on top. See DEPENDENCY_MANAGEMENT.md. -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>3.5.4</version>
+					<configuration>
+						<useModulePath>false</useModulePath>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-failsafe-plugin</artifactId>
+					<version>3.5.4</version>
+					<configuration>
+						<useModulePath>false</useModulePath>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
