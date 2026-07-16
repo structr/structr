@@ -1381,13 +1381,13 @@ public class ScriptingTest extends StructrTest {
 
 			// dateFormat with null
 			assertEquals("Invalid dateFormat() result with null value", "",                                           Scripting.replaceVariables(ctx, testOne, "${dateFormat(this.alwaysNull, \"yyyy\")}"));
-			assertEquals("Invalid dateFormat() result with null value", DateFormatFunction.ERROR_MESSAGE_DATE_FORMAT, Scripting.replaceVariables(ctx, testOne, "${dateFormat(\"10\", this.alwaysNull)}"));
-			assertEquals("Invalid dateFormat() result with null value", DateFormatFunction.ERROR_MESSAGE_DATE_FORMAT, Scripting.replaceVariables(ctx, testOne, "${dateFormat(this.alwaysNull, this.alwaysNull)}"));
+			assertEquals("Invalid dateFormat() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${dateFormat(\"10\", this.alwaysNull)}"));
+			assertEquals("Invalid dateFormat() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${dateFormat(this.alwaysNull, this.alwaysNull)}"));
 
 			// date_format error messages
-			assertEquals("Invalid date_format() result for wrong number of parameters", DateFormatFunction.ERROR_MESSAGE_DATE_FORMAT, Scripting.replaceVariables(ctx, testOne, "${date_format()}"));
-			assertEquals("Invalid date_format() result for wrong number of parameters", DateFormatFunction.ERROR_MESSAGE_DATE_FORMAT, Scripting.replaceVariables(ctx, testOne, "${date_format(this.aDouble)}"));
-			assertEquals("Invalid date_format() result for wrong number of parameters", DateFormatFunction.ERROR_MESSAGE_DATE_FORMAT, Scripting.replaceVariables(ctx, testOne, "${date_format(this.aDouble, this.aDouble, this.aDouble)}"));
+			assertEquals("Invalid date_format() result for wrong number of parameters", "", Scripting.replaceVariables(ctx, testOne, "${date_format()}"));
+			assertEquals("Invalid date_format() result for wrong number of parameters", "", Scripting.replaceVariables(ctx, testOne, "${date_format(this.aDouble)}"));
+			assertEquals("Invalid date_format() result for wrong number of parameters", "", Scripting.replaceVariables(ctx, testOne, "${date_format(this.aDouble, this.aDouble, this.aDouble)}"));
 
 			// parse_date
 			//assertEquals("Invalid parse_date() result", ParseDateFunction.ERROR_MESSAGE_PARSE_DATE, Scripting.replaceVariables(ctx, testOne, "${parse_date('2015-12-12')}"));

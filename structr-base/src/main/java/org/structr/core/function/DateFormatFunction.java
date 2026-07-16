@@ -18,10 +18,12 @@
  */
 package org.structr.core.function;
 
+import org.structr.api.config.Settings;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.converter.TemporalDateConverter;
+import org.structr.core.property.ZonedDateTimeProperty;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
@@ -31,8 +33,11 @@ import org.structr.schema.action.ActionContext;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class DateFormatFunction extends CoreFunction {
 
@@ -51,11 +56,6 @@ public class DateFormatFunction extends CoreFunction {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		if (sources == null || sources.length != 2 || sources[1] == null) {
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
-			return usage(ctx.isJavaScriptContext());
-		}
-
 		try {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
@@ -64,7 +64,13 @@ public class DateFormatFunction extends CoreFunction {
 
 			if (sources[0] instanceof Date) {
 
-				date = (Date)sources[0];
+				date = (Date) sources[0];
+
+			} else if (sources[0] instanceof ZonedDateTime zdt) {
+
+				final DateTimeFormatter dateTimeFormatter = ZonedDateTimeProperty.getDateTimeFormatter(sources[1].toString()).withLocale(ctx.getLocale());
+
+				return dateTimeFormatter.format(zdt);
 
 			} else if (sources[0] instanceof Number) {
 
@@ -75,6 +81,7 @@ public class DateFormatFunction extends CoreFunction {
 				date = TemporalDateConverter.convert(sources[0]);
 
 				if (date == null) {
+
 					try {
 
 						// parse with format from IS
@@ -91,15 +98,17 @@ public class DateFormatFunction extends CoreFunction {
 			// format with given pattern
 			return new SimpleDateFormat(sources[1].toString(), ctx.getLocale()).format(date);
 
-		} catch (ArgumentNullException pe) {
+		} catch (ArgumentNullException ane) {
 
-			// silently ignore null arguments
-			return null;
+			return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, "%s: Encountered null argument: %s".formatted(getDisplayName(), getParametersAsString(sources)), ane);
 
-		} catch (ArgumentCountException pe) {
+		} catch (ArgumentCountException ace) {
 
-			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
-			return usage(ctx.isJavaScriptContext());
+			return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, "%s: Wrong number of arguments: %s".formatted(getDisplayName(), getParametersAsString(sources)), ace);
+
+		} catch (Throwable t) {
+
+			return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, "%s: %s: %s".formatted(getDisplayName(), t.getMessage(), getParametersAsString(sources)), t);
 		}
 	}
 
@@ -119,42 +128,18 @@ public class DateFormatFunction extends CoreFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-				This function uses the Java SimpleDateFormat class which provides the following pattern chars:
-
-				| Letter | Date or Time Component |
-				| --- | --- |
-				| G | Era designator |
-				| y | Year |
-				| Y | Week year |
-				| M | Month in year |
-				| w | Week in year |
-				| W | Week in month |
-				| D | Day in year |
-				| d | Day in month |
-				| F | Day of week in month |
-				| E | Day name in week |
-				| u | Day number of week (1 = Monday, ..., 7 = Sunday) |
-				| a | AM/PM marker |
-				| H | Hour in day (0-23) |
-				| k | Hour in day (1-24) |
-				| K | Hour in AM/PM (0-11) |
-				| h | Hour in AM/PM (1-12) |
-				| m | Minute in hour |
-				| s | Second in minute |
-				| S | Millisecond |
-				| z | General time zone |
-				| Z | RFC 822 time zone |
-				| X | ISO 8601 time zone |
-
-				Each character can be repeated multiple times to control the output format.
-
-				| Pattern | Description |
-				| --- | --- |
-				| d | prints one or two numbers (e.g. "1", "5" or "20") |
-				| dd | prints two numbers (e.g. "01", "05" or "20") |
-				| EEE | prints the shortened name of the weekday (e.g. "Mon") |
-				| EEEE | prints the long name of the weekday (e.g. "Monday") |
-				""";
+				This function supports Date objects and ZonedDateTime objects. The tables below list the supported patterns for those types.
+				
+				### Date objects
+				
+				%s
+				
+				----
+				
+				### ZonedDateTime objects
+				
+				%s
+				""".formatted(Settings.DefaultDateFormat.getLongDescription(), Settings.ZonedDateTimeFormatOverride.getLongDescription());
 	}
 
 	@Override
@@ -177,7 +162,15 @@ public class DateFormatFunction extends CoreFunction {
 		return List.of(
 				Example.structrScript("${dateFormat(toDate(1585504800000), 'yyyy-MM-dd')}", "2020-03-29"),
 				Example.structrScript("${dateFormat(toDate(1585504800000), 'EEEE')}", "Sunday"),
-				Example.structrScript("${(setLocale('de'), dateFormat(toDate(1585504800000), 'EEEE'))}", "Sonntag")
+				Example.structrScript("${(setLocale('de'), dateFormat(toDate(1585504800000), 'EEEE'))}", "Sonntag"),
+				Example.javaScript("""
+					$.setLocale('de');
+					$.dateFormat(Temporal.ZonedDateTime.from({
+						timeZone: "Europe/Berlin",
+						year: 2026, month: 7, day: 15,
+						hour: 12, minute: 34, second: 56,
+					}), 'EEEE, HH:mm:ss');
+					""", "Mittwoch, 12:34:56")
 		);
 	}
 
