@@ -68,6 +68,10 @@ public class TestHelper {
 				"mult:" + SchemaRelationshipNodeTraitDefinition.TARGET_MULTIPLICITY_PROPERTY
 		));
 
+		requiredAttributes.put(StructrTraits.SCHEMA_PROPERTY, Arrays.asList(
+				"prop:" + SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY
+		));
+
 		// insert required attributes specified by test class
 		if (additionalRequiredAttributes != null) {
 
@@ -265,6 +269,12 @@ public class TestHelper {
 
 					body.append(key.substring(5));
 					body.append(": \"*\"");
+
+				// schema property, just use String
+				} else if (key.startsWith("prop:")) {
+
+					body.append(key.substring(5));
+					body.append(": \"String\"");
 
 				} else {
 
