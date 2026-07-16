@@ -29,20 +29,31 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.schema.parser.ZonedDateTimePropertyGenerator;
 
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 public class ZonedDateTimeProperty extends AbstractPrimitiveProperty<ZonedDateTime> {
 
 	public ZonedDateTimeProperty(final String name) {
 		super(name);
+
+		this.format = getFormatOverride();
 	}
 
 	public ZonedDateTimeProperty(final String jsonName, final String dbName) {
 		super(jsonName, dbName);
+
+		this.format = getFormatOverride();
 	}
 
 	public ZonedDateTimeProperty(final String jsonName, final String dbName, final String format) {
 		super(jsonName);
+
+		if (StringUtils.isNotBlank(format)) {
+			this.format = format;
+		} else {
+			this.format = getFormatOverride();
+		}
 	}
 
 	@Override
@@ -79,6 +90,7 @@ public class ZonedDateTimeProperty extends AbstractPrimitiveProperty<ZonedDateTi
 				if (value instanceof String) {
 
 					return ZonedDateTimePropertyGenerator.parse(value.toString(), format);
+
 				} else if (value instanceof ZonedDateTime) {
 
 					return value;
@@ -154,14 +166,12 @@ public class ZonedDateTimeProperty extends AbstractPrimitiveProperty<ZonedDateTi
 
 					if (StringUtils.isNotBlank(sourceString)) {
 
-						return ZonedDateTimePropertyGenerator.parse(sourceString);
-
+						return ZonedDateTimePropertyGenerator.parse(sourceString, format);
 					}
 
 				} else {
 
-					throw new FrameworkException(422, "Incompatible input type for zoneddatetime property " + ZonedDateTimeProperty.this.jsonName() + ": " + (source.getClass().getName()), new ZonedDateTimeFormatToken(declaringTrait.getLabel(), ZonedDateTimeProperty.this));
-
+					throw new FrameworkException(422, "Incompatible input type for ZonedDateTime property " + ZonedDateTimeProperty.this.jsonName() + ": " + (source.getClass().getName()), new ZonedDateTimeFormatToken(declaringTrait.getLabel(), ZonedDateTimeProperty.this));
 				}
 			}
 
@@ -171,9 +181,8 @@ public class ZonedDateTimeProperty extends AbstractPrimitiveProperty<ZonedDateTi
 		@Override
 		public String revert(ZonedDateTime source) throws FrameworkException {
 
-			return source.toString();
+			return source.format(getDateTimeFormatter(format));
 		}
-
 	}
 
 	// Open API
@@ -187,8 +196,29 @@ public class ZonedDateTimeProperty extends AbstractPrimitiveProperty<ZonedDateTi
 		return null;
 	}
 
-	public static String getDefaultFormat() {
-		return Settings.DefaultZonedDateTimeFormat.getValue();
+	public static String getFormatOverride() {
+		return Settings.ZonedDateTimeFormatOverride.getValue();
+	}
+
+	public static DateTimeFormatter getDateTimeFormatter(final String customPattern) {
+
+		if (StringUtils.isBlank(customPattern)) {
+
+			final String settingsPatternOverride = Settings.ZonedDateTimeFormatOverride.getValue();
+
+			if (StringUtils.isBlank(settingsPatternOverride)) {
+
+				return DateTimeFormatter.ISO_ZONED_DATE_TIME;
+
+			} else {
+
+				return DateTimeFormatter.ofPattern(settingsPatternOverride);
+			}
+
+		} else {
+
+			return DateTimeFormatter.ofPattern(customPattern);
+		}
 	}
 
 	// ----- interface Documentable -----

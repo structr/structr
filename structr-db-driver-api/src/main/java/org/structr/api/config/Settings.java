@@ -320,13 +320,90 @@ public class Settings {
 	public static final Setting<Boolean> JsonRedundancyReduction      = new BooleanSetting(advancedGroup, "JSON",   "json.redundancyreduction",       true,  "If enabled, nested nodes (which were already rendered in the current output) are rendered with limited set of attribute (id, type, name).");
 	public static final Setting<Boolean> JsonLenient                  = new BooleanSetting(advancedGroup, "JSON",   "json.lenient",                   false, "Whether to use lenient serialization, e.g. allow to serialize NaN, -Infinity, Infinity instead of just returning null. Note: as long as Javascript doesn’t support NaN etc., most of the UI will be broken");
 	public static final Setting<Integer> JsonReduceNestedObjectsDepth = new IntegerSetting(advancedGroup, "JSON",   "json.reductiondepth",            0,     "For restricted views (ui, custom, all), only a limited amount of attributes (id, type, name) are rendered for nested objects after this depth. The default is 0, meaning that on the root depth (0), all attributes are rendered and reduction starts at depth 1.<br><br>Can be overridden on a per-request basis by using the request parameter <code>" + (Settings.RequestParameterLegacyMode.getValue() ? "" : "_")  + "outputReductionDepth</code>");
-	public static final Setting<String> JsonOutputDateFormat          = new StringSetting(advancedGroup,  "JSON",   "json.output.dateformat",         "yyyy-MM-dd'T'HH:mm:ssZ", "Output format pattern for date objects in JSON");
 
 	public static final Setting<String> GeocodingProvider          = new StringSetting(advancedGroup,  "Geocoding",   "geocoding.provider",            "org.structr.common.geo.GoogleGeoCodingProvider", "Geocoding configuration");
 	public static final Setting<String> GeocodingLanguage          = new StringSetting(advancedGroup,  "Geocoding",   "geocoding.language",            "de", "Geocoding configuration");
 	public static final Setting<String> GeocodingApiKey            = new StringSetting(advancedGroup,  "Geocoding",   "geocoding.apikey",              "", "Geocoding configuration");
-	public static final Setting<String> DefaultDateFormat          = new StringSetting(advancedGroup,  "Date Format", "dateproperty.defaultformat",    "yyyy-MM-dd'T'HH:mm:ssZ", "Default ISO8601 date format pattern");
-	public static final Setting<String> DefaultZonedDateTimeFormat = new StringSetting(advancedGroup,  "ZonedDateTime Format", "zoneddatetimeproperty.defaultformat",    "yyyy-MM-dd'T'HH:mm:ssZ", "Default zoneddatetime format pattern");
+	public static final Setting<String> DefaultDateFormat          = new StringSetting(advancedGroup,  "Date Format", "dateproperty.defaultformat",    "yyyy-MM-dd'T'HH:mm:ssZ", "Default ISO8601 date format pattern. Used when serializing date properties and regular date objects and can be overridden for each schema property of type Date.").setLongDescription("""
+			The Java SimpleDateFormat class is used for formatting Date objects. It provides the following pattern characters:
+
+			| Letter | Date or Time Component |
+			| --- | --- |
+			| G | Era designator |
+			| y | Year |
+			| Y | Week year |
+			| M | Month in year |
+			| w | Week in year |
+			| W | Week in month |
+			| D | Day in year |
+			| d | Day in month |
+			| F | Day of week in month |
+			| E | Day name in week |
+			| u | Day number of week (1 = Monday, ..., 7 = Sunday) |
+			| a | AM/PM marker |
+			| H | Hour in day (0-23) |
+			| k | Hour in day (1-24) |
+			| K | Hour in AM/PM (0-11) |
+			| h | Hour in AM/PM (1-12) |
+			| m | Minute in hour |
+			| s | Second in minute |
+			| S | Millisecond |
+			| z | General time zone |
+			| Z | RFC 822 time zone |
+			| X | ISO 8601 time zone |
+
+			Each character can be repeated multiple times to control the output format.
+
+			| Pattern | Description |
+			| --- | --- |
+			| d | prints one or two numbers (e.g. "1", "5" or "20") |
+			| dd | prints two numbers (e.g. "01", "05" or "20") |
+			| EEE | prints the shortened name of the weekday (e.g. "Mon") |
+			| EEEE | prints the long name of the weekday (e.g. "Monday") |
+			""");
+	public static final Setting<String> ZonedDateTimeFormatOverride = new StringSetting(advancedGroup,  "ZonedDateTime Format Override", "zoneddatetimeproperty.format.override",    "", "Optional format pattern for ZonedDateTime properties and objects. Can be overridden for each schema property of type ZonedDateTime. If left empty, the default (and recommended) DateTimeFormatter.ISO_ZONED_DATE_TIME format will be used. Setting is being validated on write and only values that serialize/parse correctly will be accepted.").setLongDescription("""
+			The Java DateTimeFormatter class is used for formatting ZonedDateTime objects. It provides the following pattern characters:
+			(All letters 'A' to 'Z' and 'a' to 'z' are reserved as pattern letters)
+
+			| Symbol | Meaning | Presentation | Examples |
+			| --- | --- | --- | --- |
+			| G | era | text | AD; Anno Domini; A |
+			| u | year | year | 2004; 04 |
+			| y | year-of-era | year | 2004; 04 |
+			| D | day-of-year | number | 189 |
+			| M/L | month-of-year | number/text | 7; 07; Jul; July; J |
+			| d | day-of-month | number | 10 |
+			| g | modified-julian-day | number | 2451334 |
+			| Q/q | quarter-of-year | number/text | 3; 03; Q3; 3rd quarter |
+			| Y | week-based-year | year | 1996; 96 |
+			| w | week-of-week-based-year | number | 27 |
+			| W | week-of-month | number | 4 |
+			| E | day-of-week | text | Tue; Tuesday; T |
+			| e/c | localized day-of-week | number/text | 2; 02; Tue; Tuesday; T |
+			| F | aligned-week-of-month | number | 3 |
+			| a | am-pm-of-day | text | PM |
+			| B | period-of-day | text | in the morning |
+			| h | clock-hour-of-am-pm (1-12) | number | 12 |
+			| K | hour-of-am-pm (0-11) | number | 0 |
+			| k | clock-hour-of-day (1-24) | number | 24 |
+			| H | hour-of-day (0-23) | number | 0 |
+			| m | minute-of-hour | number | 30 |
+			| s | second-of-minute | number | 55 |
+			| S | fraction-of-second | fraction | 978 |
+			| A | milli-of-day | number | 1234 |
+			| n | nano-of-second | number | 987654321 |
+			| N | nano-of-day | number | 1234000000 |
+			| V | time-zone ID | zone-id | America/Los_Angeles; Z; -08:30 |
+			| v | generic time-zone name | zone-name | Pacific Time; PT |
+			| z | time-zone name | zone-name | Pacific Standard Time; PST |
+			| O | localized zone-offset | offset-O | GMT+8; GMT+08:00; UTC-08:00 |
+			| X | zone-offset 'Z' for zero | offset-X | Z; -08; -0830; -08:30; -083015; -08:30:15 |
+			| x | zone-offset | offset-x | +0000; -08; -0830; -08:30; -083015; -08:30:15 |
+			| Z | zone-offset | offset-Z | +0000; -0800; -08:00 |
+			| p | pad next | pad modifier | 1 |
+			| '' | escape for text | delimiter | ' |
+			| ' | single quote | literal |  |
+			""");
 	public static final Setting<Boolean> InheritanceDetection      = new BooleanSetting(advancedGroup, "hidden",      "importer.inheritancedetection", true);
 
 	// servlets

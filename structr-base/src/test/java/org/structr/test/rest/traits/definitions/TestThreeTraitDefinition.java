@@ -60,6 +60,8 @@ public class TestThreeTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<ZonedDateTime> zonedDateTimeProperty   = new ZonedDateTimeProperty("zonedDateTime").indexed().indexedWhenEmpty();
 		final Property<String[]>      testEnumArrayProperty   = new EnumArrayProperty("enumArrayProperty", TestEnum.class).indexed().indexedWhenEmpty();
 
+		final Property<ZonedDateTime> customZonedDateTimeProperty   = new ZonedDateTimeProperty("customZonedDateTime").format("yyyy-MM-dd HH:mm:ss '['VV']'").indexed().indexedWhenEmpty();
+
 		return newSet(
 			stringProperty,
 			stringArrayProperty,
@@ -79,7 +81,8 @@ public class TestThreeTraitDefinition extends AbstractNodeTraitDefinition {
 			oneToOneTestFour,
 			oneToOneTestFive,
 			zonedDateTimeProperty,
-			testEnumArrayProperty
+			testEnumArrayProperty,
+			customZonedDateTimeProperty
 		);
 	}
 
@@ -91,7 +94,7 @@ public class TestThreeTraitDefinition extends AbstractNodeTraitDefinition {
 			newSet(
 				"name", "stringProperty", "stringArrayProperty", "booleanProperty", "booleanArrayProperty", "doubleProperty", "doubleArrayProperty",
 				"integerProperty", "integerArrayProperty", "longProperty", "longArrayProperty", "dateProperty", "dateArrayProperty", "zonedDateTime",
-				"enumProperty", "constantBooleanProperty", "byteArrayProperty", "enumArrayProperty"
+				"enumProperty", "constantBooleanProperty", "byteArrayProperty", "enumArrayProperty", "customZonedDateTime"
 			)
 		);
 	}

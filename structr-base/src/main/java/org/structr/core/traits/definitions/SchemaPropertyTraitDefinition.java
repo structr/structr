@@ -18,6 +18,7 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -27,7 +28,6 @@ import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.Relation;
-import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
@@ -45,6 +45,7 @@ import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.wrappers.SchemaPropertyTraitWrapper;
 import org.structr.schema.ReloadSchema;
 import org.structr.schema.SchemaHelper;
+import org.structr.schema.parser.ZonedDateTimePropertyGenerator;
 
 import java.util.Map;
 import java.util.Set;
@@ -124,7 +125,7 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 
 							if (thisPropertyName.equals(otherProperty.getName()) && !otherProperty.getUuid().equals(schemaProperty.getUuid())) {
 
-								errorBuffer.add(new SemanticErrorToken(schemaProperty.getType(), "name", "already_exists").withValue(thisPropertyName).withDetail("A property with name '" + thisPropertyName + "' already exists on this type"));
+								errorBuffer.add(new SemanticErrorToken(schemaProperty.getType(), "name", "already_exists").withValue(thisPropertyName).with("propertyName", thisPropertyName).withDetail("A property with name '" + thisPropertyName + "' already exists on this type"));
 
 								// name clash on the same type: return immediately
 								return false;
@@ -135,6 +136,25 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 						// inherited from other traits) is performed in SchemaNodeTraitDefinition. The
 						// schema node is modified both when a property is added/removed and when a trait
 						// is added/removed, so validating it there covers both cases in a single location.
+					}
+
+					if (schemaProperty.getPropertyType() == SchemaHelper.Type.ZonedDateTime) {
+
+						final String customFormat = schemaProperty.getFormat();
+
+						if (!StringUtils.isBlank(customFormat)) {
+
+							try {
+
+								ZonedDateTimePropertyGenerator.testPattern(customFormat);
+
+							} catch (FrameworkException fex) {
+
+								errorBuffer.add(new SemanticErrorToken(schemaProperty.getType(), "format", "invalid").withValue(customFormat).with("propertyName", thisPropertyName).withDetail(fex.getMessage()));
+
+								return false;
+							}
+						}
 					}
 
 					return valid;
