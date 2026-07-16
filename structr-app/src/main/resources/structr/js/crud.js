@@ -1084,6 +1084,32 @@ let _Crud = {
 							return (tzDate.getTime() - utcDate.getTime()) / 6e4;
 						};
 
+						let customFormat = _Crud.helpers.getFormat(type, key);
+						console.log(customFormat)
+						let formatToUse = (_Crud.helpers.isFunctionProperty(key, type) || !customFormat) ? null : customFormat;
+
+						let convertValueToCorrectFormat = (value) => {
+
+							// add timezone corresponding to timezone identifier
+							let offset = 0;
+							let newTzId = value.match(/\[(.*)\]/);
+							if (newTzId?.length > 0) {
+								offset = getOffset(newTzId[1]);
+							}
+
+							let offsetString = $.timepicker.timezoneOffsetString(offset, true);
+
+							value = value.replaceAll('[', offsetString + '[');
+
+							let val = JSJoda.DateTimeFormatter.ISO_ZONED_DATE_TIME.parse(value);
+
+							if (formatToUse === null) {
+								return JSJoda.DateTimeFormatter.ISO_ZONED_DATE_TIME.format(val);
+							} else {
+								return JSJoda.DateTimeFormatter.ofPattern(formatToUse).format(val);
+							}
+						};
+
 						$(input).datetimepicker({
 							parse: (timeFormat, timeString, options) => {
 
@@ -1091,7 +1117,7 @@ let _Crud = {
 								fakeOptions.parse = 'loose';
 
 								// remove timezone identifier from timeString
-								let pos    = timeString.indexOf('[');
+								let pos = timeString.indexOf('[');
 								if (pos > 0) {
 									timeString = timeString.slice(0, pos);
 								}
@@ -1110,18 +1136,8 @@ let _Crud = {
 							timezoneList: Intl.supportedValuesOf('timeZone').map(lbl => { return { label: lbl, value: '[' + lbl + ']'} }),
 							onClose: function() {
 								$('#ui-datepicker-div').removeClass('is-zoned');
-								let newValue = input.value;
 
-								// add timezone corresponding to timezone identifier
-								let offset = 0;
-								let newTzId = newValue.match(/\[(.*)\]/);
-								if (newTzId?.length > 0) {
-									offset = getOffset(newTzId[1]);
-								}
-
-								let offsetString = $.timepicker.timezoneOffsetString(offset, true);
-
-								newValue = newValue.replaceAll('[', offsetString + '[');
+								let newValue = convertValueToCorrectFormat(input.value);
 
 								if (id && newValue !== oldValue) {
 
@@ -1137,27 +1153,6 @@ let _Crud = {
 						input.addEventListener('focus', (e) => {
 							$(input).datetimepicker('show');
 						});
-
-						if (oldValue) {
-							// set the picker because otherwise it fails (because we are injecting timezone identifiers where the plugin expects numbers
-							let dateStringWithoutId = oldValue;
-							let pos = oldValue.indexOf('[');
-							if (pos > 0) {
-								dateStringWithoutId = oldValue.slice(0, pos);
-							}
-
-							let baseDate = new Date(dateStringWithoutId);
-
-							// baseDate is shifted by our offset to UTC and its own offset to UTC
-							let theirOffset = getOffset(timezoneId);
-							let ouroffset   = getOffset(Intl.DateTimeFormat().resolvedOptions().timeZone);
-							let totalOffset = ouroffset - theirOffset;
-
-							// correct baseDate
-							baseDate.setMinutes(baseDate.getMinutes() - totalOffset);
-
-							$(input).datetimepicker('setDate', baseDate);
-						}
 
 						$('#ui-datepicker-div').addClass('is-zoned');
 					}
