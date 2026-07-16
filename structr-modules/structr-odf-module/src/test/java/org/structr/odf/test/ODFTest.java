@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.odf;
+package org.structr.odf.test;
 
 import io.restassured.RestAssured;
 import org.structr.core.graph.NodeAttribute;
