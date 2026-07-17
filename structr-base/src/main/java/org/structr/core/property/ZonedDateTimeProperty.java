@@ -31,6 +31,7 @@ import org.structr.schema.parser.ZonedDateTimePropertyGenerator;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class ZonedDateTimeProperty extends AbstractPrimitiveProperty<ZonedDateTime> {
 
@@ -185,16 +186,6 @@ public class ZonedDateTimeProperty extends AbstractPrimitiveProperty<ZonedDateTi
 		}
 	}
 
-	// Open API
-	@Override
-	public Object getExampleValue(final int index) {
-		return ZonedDateTime.now();
-	}
-
-	@Override
-	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
-		return null;
-	}
 
 	public static String getFormatOverride() {
 		return Settings.ZonedDateTimeFormatOverride.getValue();
@@ -219,6 +210,64 @@ public class ZonedDateTimeProperty extends AbstractPrimitiveProperty<ZonedDateTi
 
 			return DateTimeFormatter.ofPattern(customPattern);
 		}
+	}
+
+
+	// ----- OpenAPI -----
+	@Override
+	public Object getExampleValue(final int index) {
+		return getDateTimeFormatter(format).format(ZonedDateTime.now());
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+		return null;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
+
+		final Map<String, Object> map = new TreeMap<>();
+
+		map.put("type",   "string");
+		map.put("format", "zoned-date-time");
+
+		if (this.isReadOnly()) {
+			map.put("readOnly", true);
+		}
+
+		final String defaultDisplayFormat = "yyyy-MM-dd'T'HH:mm:ss\\[.SSS\\]\\(Z|±HH:mm\\)[Zone/Region]";		// technically not 100% correct - the S from [.SSS] can occur 0-9 times.
+		final String formatOverride       = Settings.ZonedDateTimeFormatOverride.getValue();
+		final String formatString         = StringUtils.isBlank(format) ? (StringUtils.isBlank(formatOverride) ? defaultDisplayFormat : formatOverride) : format;
+
+		map.put("description", """
+			ISO-8601 date-time with UTC/offset and IANA time-zone region,
+			as produced by java.time.ZonedDateTime.
+
+			Format: %s
+			""".formatted(formatString));
+		map.put("example", getExampleValue(0));
+
+		if (defaultValue != null) {
+			map.put("default", getDateTimeFormatter(format).format(defaultValue));
+		}
+
+		return map;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level) {
+
+		final Map<String, Object> map = new TreeMap<>();
+
+		map.put("type",   "string");
+		map.put("format", "zoned-date-time");
+
+		if (this.isReadOnly()) {
+			map.put("readOnly", true);
+		}
+
+		return map;
 	}
 
 	// ----- interface Documentable -----
