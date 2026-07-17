@@ -66,15 +66,7 @@ public class BpmnImporter {
 	private static final String CAMUNDA_NS = "http://camunda.org/schema/1.0/bpmn";
 	private static final String STRUCTR_NS = "http://structr.org/schema/process/1.0";
 
-	private static final Set<String> KNOWN_ELEMENT_TYPES = Set.of(
-		"startEvent", "endEvent", "intermediateThrowEvent", "intermediateCatchEvent",
-		"userTask", "serviceTask", "scriptTask", "manualTask", "task",
-		"exclusiveGateway", "parallelGateway", "inclusiveGateway", "eventBasedGateway",
-		"subProcess", "callActivity",
-		"boundaryEvent",
-		"dataObjectReference", "dataStoreReference", "dataObject",
-		"association"
-	);
+	private static final Set<String> KNOWN_ELEMENT_TYPES = BpmnElementType.knownTypeNames();
 
 	/** Event definition local names that we extract into typed properties. */
 	private static final Set<String> EVENT_DEFINITION_TYPES = Set.of(
@@ -392,7 +384,7 @@ public class BpmnImporter {
 			if ("sequenceFlow".equals(localName)) {
 				final NodeInterface flowNode = importSequenceFlow(app, procNode, parentElement, el);
 				flowMap.put(el.getAttribute("id"), flowNode);
-			} else if ("subProcess".equals(localName)) {
+			} else if (BpmnElementType.SUB_PROCESS.matches(localName)) {
 				final NodeInterface subProcNode = importElement(app, procNode, parentElement, el, localName);
 				elementMap.put(el.getAttribute("id"), subProcNode);
 				importProcessChildren(app, procNode, subProcNode, el, elementMap, flowMap);
@@ -504,7 +496,7 @@ public class BpmnImporter {
 
 			final Traits traits   = elemNode.getTraits();
 			final String elemType = elemNode.getProperty(traits.key(BpmnElementTraitDefinition.BPMN_ELEMENT_TYPE_PROPERTY));
-			if (!"boundaryEvent".equals(elemType)) continue;
+			if (!BpmnElementType.BOUNDARY_EVENT.matches(elemType)) continue;
 
 			final String json = elemNode.getProperty(traits.key(BpmnElementTraitDefinition.BPMN_ATTRIBUTES_PROPERTY));
 			if (json == null || json.isEmpty()) continue;

@@ -221,7 +221,7 @@ public class BpmnExporter {
 		// only when we already emitted it from the rel (avoids the
 		// "attribute emitted twice" XMLStreamWriter error).
 		boolean attachedToRefEmitted = false;
-		if ("boundaryEvent".equals(elemType)) {
+		if (BpmnElementType.BOUNDARY_EVENT.matches(elemType)) {
 			final NodeInterface host = elemNode.getProperty(traits.key(BpmnElementTraitDefinition.ATTACHED_TO_PROPERTY));
 			if (host != null) {
 				final String hostBpmnId = host.getProperty(host.getTraits().key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY));

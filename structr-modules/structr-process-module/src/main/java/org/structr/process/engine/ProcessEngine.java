@@ -45,6 +45,7 @@ import org.structr.core.traits.Traits;
 import org.structr.process.traits.definitions.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.process.ProcessTraits;
+import org.structr.process.bpmn.BpmnElementType;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -67,27 +68,26 @@ public class ProcessEngine {
 
 	private static final Logger logger = LoggerFactory.getLogger(ProcessEngine.class);
 
-	private final SecurityContext securityContext;
 	private final Principal caller;
 
 	/**
 	 * Construct an engine for the given caller's security context. The engine
-	 * internally runs as superuser so that newly created ProcessInstance /
-	 * ProcessToken / TaskInstance / ProcessParameterValue nodes have no owner
-	 * (engine-managed). The caller principal is remembered so the engine can
-	 * grant access where appropriate (e.g. read on the ProcessInstance to the
-	 * user who started it).
+	 * internally runs as superuser (via {@link StructrApp#getInstance()} and an
+	 * explicit {@link SecurityContext#getSuperUserInstance()} for scripts) so that
+	 * newly created ProcessInstance / ProcessToken / TaskInstance /
+	 * ProcessParameterValue nodes have no owner (engine-managed). The caller
+	 * principal is remembered so the engine can grant access where appropriate
+	 * (e.g. read on the ProcessInstance to the user who started it).
 	 */
 	public ProcessEngine(final SecurityContext callerContext) {
 		final Principal callerPrincipal = (callerContext != null) ? callerContext.getUser(false) : null;
 		// SuperUser is a singleton with no backing graph node and cannot be a grant endpoint.
 		this.caller = (callerPrincipal instanceof SuperUser) ? null : callerPrincipal;
-		this.securityContext = SecurityContext.getSuperUserInstance();
 	}
 
 	/**
-	 * Re-fetch a node through the engine's superuser-bound App so that all
-	 * subsequent property reads on it use the elevated security context.
+	 * Re-fetch a node through the engine's superuser App ({@link StructrApp#getInstance()})
+	 * so that all subsequent property reads on it use the elevated security context.
 	 *
 	 * Engine entry points are invoked with {@link NodeInterface} arguments that
 	 * carry the caller's (user) security context. Property reads through such
@@ -96,11 +96,11 @@ public class ProcessEngine {
 	 * unowned tasks, parameter values). Re-fetching via the superuser App
 	 * guarantees the engine sees the complete graph.
 	 */
-	private NodeInterface elevate(final App app, final NodeInterface node) throws FrameworkException {
+	private NodeInterface elevate(final NodeInterface node) throws FrameworkException {
 		if (node == null) {
 			return null;
 		}
-		return app.getNodeById(node.getUuid());
+		return StructrApp.getInstance().getNodeById(node.getUuid());
 	}
 
 	private void grant(final NodeInterface node, final Principal principal, final Permission... permissions) throws FrameworkException {
@@ -168,10 +168,10 @@ public class ProcessEngine {
 	 */
 	public NodeInterface startProcess(final NodeInterface callerProcNode, final NodeInterface subject, final Map<String, Object> parameters) throws FrameworkException {
 
-		final App app = StructrApp.getInstance(securityContext);
+		final App app = StructrApp.getInstance();
 		// Re-fetch under the engine's superuser context so internal traversals
 		// don't get filtered by the caller's permissions.
-		final NodeInterface procNode = elevate(app, callerProcNode);
+		final NodeInterface procNode = elevate(callerProcNode);
 		final Traits procTraits = procNode.getTraits();
 
 		// Find the start event (top-level element with bpmnElementType == "startEvent")
@@ -202,7 +202,7 @@ public class ProcessEngine {
 			// Re-fetch under superuser too: the caller may pass us a wrapper bound
 			// to their own context; the rel write would otherwise hit a permission
 			// check on the subject from the user's perspective.
-			instance.setProperty(instTraits.key(ProcessInstanceTraitDefinition.SUBJECT_PROPERTY), elevate(app, subject));
+			instance.setProperty(instTraits.key(ProcessInstanceTraitDefinition.SUBJECT_PROPERTY), elevate(subject));
 		}
 
 		// Store initial parameters (e.g. an EAM 'start' action's params).
@@ -249,8 +249,8 @@ public class ProcessEngine {
 	 */
 	public void terminateProcess(final NodeInterface callerInstanceNode) throws FrameworkException {
 
-		final App app = StructrApp.getInstance(securityContext);
-		final NodeInterface instance = elevate(app, callerInstanceNode);
+		final App app = StructrApp.getInstance();
+		final NodeInterface instance = elevate(callerInstanceNode);
 		final Traits instTraits = instance.getTraits();
 
 		final String currentStatus = instance.getProperty(instTraits.key(ProcessInstanceTraitDefinition.STATUS_PROPERTY));
@@ -289,8 +289,8 @@ public class ProcessEngine {
 	 */
 	public void suspendProcess(final NodeInterface callerInstanceNode) throws FrameworkException {
 
-		final App app = StructrApp.getInstance(securityContext);
-		final NodeInterface instance = elevate(app, callerInstanceNode);
+		final App app = StructrApp.getInstance();
+		final NodeInterface instance = elevate(callerInstanceNode);
 		final Traits instTraits = instance.getTraits();
 
 		final String currentStatus = instance.getProperty(instTraits.key(ProcessInstanceTraitDefinition.STATUS_PROPERTY));
@@ -313,8 +313,8 @@ public class ProcessEngine {
 	 */
 	public void resumeProcess(final NodeInterface callerInstanceNode) throws FrameworkException {
 
-		final App app = StructrApp.getInstance(securityContext);
-		final NodeInterface instance = elevate(app, callerInstanceNode);
+		final App app = StructrApp.getInstance();
+		final NodeInterface instance = elevate(callerInstanceNode);
 		final Traits instTraits = instance.getTraits();
 
 		final String currentStatus = instance.getProperty(instTraits.key(ProcessInstanceTraitDefinition.STATUS_PROPERTY));
@@ -338,10 +338,10 @@ public class ProcessEngine {
 	 */
 	public void completeTask(final NodeInterface callerTaskNode, final Map<String, Object> parameters) throws FrameworkException {
 
-		final App app = StructrApp.getInstance(securityContext);
+		final App app = StructrApp.getInstance();
 		// Re-fetch under superuser context: traversals to processInstance,
 		// tokens, and parameter values must not be filtered by caller perms.
-		final NodeInterface taskNode = elevate(app, callerTaskNode);
+		final NodeInterface taskNode = elevate(callerTaskNode);
 		final Traits taskTraits = taskNode.getTraits();
 
 		final String status = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.STATUS_PROPERTY));
@@ -421,9 +421,9 @@ public class ProcessEngine {
 	public void signalEvent(final NodeInterface callerInstanceNode, final String eventBpmnId,
 						   final Map<String, Object> parameters) throws FrameworkException {
 
-		final App app = StructrApp.getInstance(securityContext);
+		final App app = StructrApp.getInstance();
 		// Re-fetch under superuser context so token/element lookups are unfiltered.
-		final NodeInterface instanceNode = elevate(app, callerInstanceNode);
+		final NodeInterface instanceNode = elevate(callerInstanceNode);
 		final Traits instTraits = instanceNode.getTraits();
 
 		// Verify instance is running
@@ -444,7 +444,7 @@ public class ProcessEngine {
 
 		// Verify it is a catch event
 		final String elementType = catchElement.getProperty(elemTraits.key(BpmnElementTraitDefinition.BPMN_ELEMENT_TYPE_PROPERTY));
-		if (!"intermediateCatchEvent".equals(elementType)) {
+		if (!BpmnElementType.INTERMEDIATE_CATCH_EVENT.matches(elementType)) {
 			throw new FrameworkException(422, "Element " + eventBpmnId + " is not an intermediateCatchEvent (type: " + elementType + ")");
 		}
 
@@ -494,18 +494,18 @@ public class ProcessEngine {
 			currentElement.getProperty(elemTraits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY)),
 			elementType);
 
-		switch (elementType) {
+		switch (BpmnElementType.fromBpmnName(elementType)) {
 
-			case "startEvent":
+			case START_EVENT:
 				// Pass-through: move to the single outgoing flow target
 				completeTokenAndMoveToNext(app, instance, token, currentElement);
 				break;
 
-			case "endEvent":
+			case END_EVENT:
 				// Token reaches the end: check if inside a sub-process
 				completeToken(token, tokenTraits);
 				final NodeInterface parentElement = currentElement.getProperty(elemTraits.key(BpmnElementTraitDefinition.PARENT_ELEMENT_PROPERTY));
-				if (parentElement != null && "subProcess".equals(parentElement.getProperty(parentElement.getTraits().key(BpmnElementTraitDefinition.BPMN_ELEMENT_TYPE_PROPERTY)))) {
+				if (parentElement != null && BpmnElementType.SUB_PROCESS.matches(parentElement.getProperty(parentElement.getTraits().key(BpmnElementTraitDefinition.BPMN_ELEMENT_TYPE_PROPERTY)))) {
 					// Sub-process end: resume the parent token
 					resumeSubProcessParent(app, instance, parentElement);
 				} else {
@@ -513,40 +513,40 @@ public class ProcessEngine {
 				}
 				break;
 
-			case "userTask":
+			case USER_TASK:
 				// Create a TaskInstance, schedule any boundary timers, then put the token in waiting state.
 				createTaskInstance(app, instance, currentElement);
 				scheduleBoundaryTimers(app, instance, token, currentElement);
 				token.setProperty(tokenTraits.key(ProcessTokenTraitDefinition.STATUS_PROPERTY), ProcessTokenTraitDefinition.STATUS_WAITING);
 				break;
 
-			case "serviceTask":
-			case "scriptTask":
+			case SERVICE_TASK:
+			case SCRIPT_TASK:
 				// Execute the task logic, then advance
 				executeAutomaticTask(app, instance, currentElement, elemTraits, elementType);
 				completeTokenAndMoveToNext(app, instance, token, currentElement);
 				break;
 
-			case "manualTask":
-			case "task":
+			case MANUAL_TASK:
+			case TASK:
 				// Manual tasks and abstract tasks are pass-through for now
 				// (manual tasks are performed outside the system)
 				completeTokenAndMoveToNext(app, instance, token, currentElement);
 				break;
 
-			case "exclusiveGateway":
+			case EXCLUSIVE_GATEWAY:
 				handleExclusiveGateway(app, instance, token, currentElement);
 				break;
 
-			case "parallelGateway":
+			case PARALLEL_GATEWAY:
 				handleParallelGateway(app, instance, token, currentElement);
 				break;
 
-			case "inclusiveGateway":
+			case INCLUSIVE_GATEWAY:
 				handleInclusiveGateway(app, instance, token, currentElement);
 				break;
 
-			case "intermediateCatchEvent":
+			case INTERMEDIATE_CATCH_EVENT:
 				// Waiting for an external event -- token waits.
 				token.setProperty(tokenTraits.key(ProcessTokenTraitDefinition.STATUS_PROPERTY), ProcessTokenTraitDefinition.STATUS_WAITING);
 				// If this catch event is a timer event, schedule the timer; the
@@ -565,12 +565,12 @@ public class ProcessEngine {
 				}
 				break;
 
-			case "intermediateThrowEvent":
+			case INTERMEDIATE_THROW_EVENT:
 				// Fire-and-forget event -- pass through
 				completeTokenAndMoveToNext(app, instance, token, currentElement);
 				break;
 
-			case "subProcess":
+			case SUB_PROCESS:
 				// Enter the sub-process: find its start event and create a token there
 				handleSubProcess(app, instance, token, currentElement);
 				break;
@@ -800,7 +800,7 @@ public class ProcessEngine {
 		if (childElements != null) {
 			for (final NodeInterface child : childElements) {
 				final String childType = child.getProperty(child.getTraits().key(BpmnElementTraitDefinition.BPMN_ELEMENT_TYPE_PROPERTY));
-				if ("startEvent".equals(childType)) {
+				if (BpmnElementType.START_EVENT.matches(childType)) {
 					subStartEvent = child;
 					break;
 				}
@@ -828,7 +828,7 @@ public class ProcessEngine {
 									  final NodeInterface element, final Traits elemTraits,
 									  final String elementType) throws FrameworkException {
 
-		if ("scriptTask".equals(elementType)) {
+		if (BpmnElementType.SCRIPT_TASK.matches(elementType)) {
 
 			final String script = element.getProperty(elemTraits.key(BpmnElementTraitDefinition.SCRIPT_CONTENT_PROPERTY));
 			if (StringUtils.isNotBlank(script)) {
@@ -843,7 +843,7 @@ public class ProcessEngine {
 					: script;
 
 				try {
-					final ActionContext ctx = new ActionContext(securityContext);
+					final ActionContext ctx = new ActionContext(SecurityContext.getSuperUserInstance());
 					installProcessContext(ctx, instance, element);
 					final String expression = (language == ScriptLanguage.STRUCTR_SCRIPT)
 						? "${" + executableScript + "}"
@@ -1096,10 +1096,10 @@ public class ProcessEngine {
 			throw new FrameworkException(401, "Cannot claim task without an authenticated caller");
 		}
 
-		final App app = StructrApp.getInstance(securityContext);
+		final App app = StructrApp.getInstance();
 		// Re-fetch under superuser context so the candidateAssignees traversal
 		// reflects the engine's view of the graph, not the caller's filter.
-		final NodeInterface taskNode = elevate(app, callerTaskNode);
+		final NodeInterface taskNode = elevate(callerTaskNode);
 		final Traits taskTraits = taskNode.getTraits();
 		final String status = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.STATUS_PROPERTY));
 
@@ -1196,9 +1196,9 @@ public class ProcessEngine {
 			throw new FrameworkException(422, "assignee must not be null");
 		}
 
-		final App app = StructrApp.getInstance(securityContext);
-		final NodeInterface taskNode = elevate(app, callerTaskNode);
-		final NodeInterface assignee = elevate(app, callerAssignee);
+		final App app = StructrApp.getInstance();
+		final NodeInterface taskNode = elevate(callerTaskNode);
+		final NodeInterface assignee = elevate(callerAssignee);
 		final Traits taskTraits = taskNode.getTraits();
 
 		final String status = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.STATUS_PROPERTY));
@@ -1292,8 +1292,8 @@ public class ProcessEngine {
 			throw new FrameworkException(401, "Cannot release task without an authenticated caller");
 		}
 
-		final App app = StructrApp.getInstance(securityContext);
-		final NodeInterface taskNode = elevate(app, callerTaskNode);
+		final App app = StructrApp.getInstance();
+		final NodeInterface taskNode = elevate(callerTaskNode);
 		final Traits taskTraits = taskNode.getTraits();
 
 		final String status = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.STATUS_PROPERTY));
@@ -1331,8 +1331,8 @@ public class ProcessEngine {
 			throw new FrameworkException(401, "Cannot decline task without an authenticated caller");
 		}
 
-		final App app = StructrApp.getInstance(securityContext);
-		final NodeInterface taskNode = elevate(app, callerTaskNode);
+		final App app = StructrApp.getInstance();
+		final NodeInterface taskNode = elevate(callerTaskNode);
 		final Traits taskTraits = taskNode.getTraits();
 
 		final String status = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.STATUS_PROPERTY));
@@ -1389,9 +1389,9 @@ public class ProcessEngine {
 			throw new FrameworkException(422, "delegate must not be null");
 		}
 
-		final App app = StructrApp.getInstance(securityContext);
-		final NodeInterface taskNode = elevate(app, callerTaskNode);
-		final NodeInterface delegate = elevate(app, callerDelegate);
+		final App app = StructrApp.getInstance();
+		final NodeInterface taskNode = elevate(callerTaskNode);
+		final NodeInterface delegate = elevate(callerDelegate);
 		final Traits taskTraits = taskNode.getTraits();
 
 		final String status = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.STATUS_PROPERTY));
@@ -1450,8 +1450,8 @@ public class ProcessEngine {
 	 */
 	public void cancelTask(final NodeInterface callerTaskNode) throws FrameworkException {
 
-		final App app = StructrApp.getInstance(securityContext);
-		final NodeInterface taskNode = elevate(app, callerTaskNode);
+		final App app = StructrApp.getInstance();
+		final NodeInterface taskNode = elevate(callerTaskNode);
 		final Traits taskTraits = taskNode.getTraits();
 
 		final String status = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.STATUS_PROPERTY));
@@ -1517,8 +1517,8 @@ public class ProcessEngine {
 	 */
 	public void makeTaskAvailable(final NodeInterface callerTaskNode) throws FrameworkException {
 
-		final App app = StructrApp.getInstance(securityContext);
-		final NodeInterface taskNode = elevate(app, callerTaskNode);
+		final App app = StructrApp.getInstance();
+		final NodeInterface taskNode = elevate(callerTaskNode);
 		final Traits taskTraits = taskNode.getTraits();
 
 		final String status = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.STATUS_PROPERTY));
@@ -1648,7 +1648,7 @@ public class ProcessEngine {
 	 */
 	private void runTaskListenerMethod(final NodeInterface taskNode, final NodeInterface method,
 									   final String eventName, final Map<String, Object> submittedParams) throws FrameworkException {
-		final ActionContext ctx = new ActionContext(securityContext);
+		final ActionContext ctx = new ActionContext(SecurityContext.getSuperUserInstance());
 		final Arguments args     = buildTaskListenerArgs(taskNode, eventName, submittedParams);
 		new ScriptMethod(method.as(SchemaMethod.class)).execute(ctx, taskNode, args);
 	}
@@ -1665,12 +1665,12 @@ public class ProcessEngine {
 		final String taskId   = taskNode.getUuid();
 		final String methodId = method.getUuid();
 		TransactionCommand.queuePostProcessProcedure(() -> {
-			final App app = StructrApp.getInstance(securityContext);
+			final App app = StructrApp.getInstance();
 			try (final Tx tx = app.tx()) {
 				final NodeInterface freshTask   = app.getNodeById(taskId);
 				final NodeInterface freshMethod = app.getNodeById(methodId);
 				if (freshTask != null && freshMethod != null) {
-					final ActionContext ctx = new ActionContext(securityContext);
+					final ActionContext ctx = new ActionContext(SecurityContext.getSuperUserInstance());
 					final Arguments args     = buildTaskListenerArgs(freshTask, eventName, submittedParams);
 					new ScriptMethod(freshMethod.as(SchemaMethod.class)).execute(ctx, freshTask, args);
 				}
@@ -1803,7 +1803,7 @@ public class ProcessEngine {
 	 */
 	private void runProcessListenerMethod(final NodeInterface instance, final NodeInterface method,
 										  final String eventName) throws FrameworkException {
-		final ActionContext ctx = new ActionContext(securityContext);
+		final ActionContext ctx = new ActionContext(SecurityContext.getSuperUserInstance());
 		final Arguments args     = buildProcessListenerArgs(instance, eventName);
 		new ScriptMethod(method.as(SchemaMethod.class)).execute(ctx, instance, args);
 	}
@@ -1818,12 +1818,12 @@ public class ProcessEngine {
 		final String instanceId = instance.getUuid();
 		final String methodId   = method.getUuid();
 		TransactionCommand.queuePostProcessProcedure(() -> {
-			final App app = StructrApp.getInstance(securityContext);
+			final App app = StructrApp.getInstance();
 			try (final Tx tx = app.tx()) {
 				final NodeInterface freshInstance = app.getNodeById(instanceId);
 				final NodeInterface freshMethod   = app.getNodeById(methodId);
 				if (freshInstance != null && freshMethod != null) {
-					final ActionContext ctx = new ActionContext(securityContext);
+					final ActionContext ctx = new ActionContext(SecurityContext.getSuperUserInstance());
 					final Arguments args     = buildProcessListenerArgs(freshInstance, eventName);
 					new ScriptMethod(freshMethod.as(SchemaMethod.class)).execute(ctx, freshInstance, args);
 				}
@@ -2065,7 +2065,7 @@ public class ProcessEngine {
 	public int cancelBoundaryTimerByBpmnId(final NodeInterface taskNode, final String boundaryBpmnId) throws FrameworkException {
 		if (taskNode == null || StringUtils.isBlank(boundaryBpmnId)) return 0;
 
-		final App app = StructrApp.getInstance(securityContext);
+		final App app = StructrApp.getInstance();
 		final Traits taskTraits = taskNode.getTraits();
 		final NodeInterface instance = taskNode.getProperty(taskTraits.key(TaskInstanceTraitDefinition.PROCESS_INSTANCE_PROPERTY));
 		if (instance == null) return 0;
@@ -2113,7 +2113,7 @@ public class ProcessEngine {
 
 			// Boundary timers: element is the boundaryEvent, attached to our activity.
 			final String elemType = elem.getProperty(elem.getTraits().key(BpmnElementTraitDefinition.BPMN_ELEMENT_TYPE_PROPERTY));
-			if ("boundaryEvent".equals(elemType)) {
+			if (BpmnElementType.BOUNDARY_EVENT.matches(elemType)) {
 				final String attachedTo = getAttachedToBpmnId(elem);
 				if (attachedTo != null) {
 					final String activityBpmnId = activityElement.getProperty(activityElement.getTraits().key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY));
@@ -2140,8 +2140,8 @@ public class ProcessEngine {
 	 */
 	public void fireTimer(final NodeInterface callerTimer) throws FrameworkException {
 
-		final App app = StructrApp.getInstance(securityContext);
-		final NodeInterface timer = elevate(app, callerTimer);
+		final App app = StructrApp.getInstance();
+		final NodeInterface timer = elevate(callerTimer);
 		final Traits t = timer.getTraits();
 
 		final String status = timer.getProperty(t.key(ProcessTimerTraitDefinition.STATUS_PROPERTY));
@@ -2302,7 +2302,7 @@ public class ProcessEngine {
 		for (final NodeInterface el : elements) {
 			final Traits elemTraits = el.getTraits();
 			final String elType = el.getProperty(elemTraits.key(BpmnElementTraitDefinition.BPMN_ELEMENT_TYPE_PROPERTY));
-			if (!"boundaryEvent".equals(elType)) continue;
+			if (!BpmnElementType.BOUNDARY_EVENT.matches(elType)) continue;
 
 			final String attachedTo = getAttachedToBpmnId(el);
 			if (attachedTo == null || !attachedTo.equals(activityBpmnId)) continue;
@@ -2371,11 +2371,11 @@ public class ProcessEngine {
 			final Traits elemTraits = element.getTraits();
 			final String elementType = element.getProperty(elemTraits.key(BpmnElementTraitDefinition.BPMN_ELEMENT_TYPE_PROPERTY));
 
-			if ("endEvent".equals(elementType)) {
+			if (BpmnElementType.END_EVENT.matches(elementType)) {
 				final NodeInterface parentElement = element.getProperty(elemTraits.key(BpmnElementTraitDefinition.PARENT_ELEMENT_PROPERTY));
 				if (parentElement != null) {
 					final String parentType = parentElement.getProperty(parentElement.getTraits().key(BpmnElementTraitDefinition.BPMN_ELEMENT_TYPE_PROPERTY));
-					if ("subProcess".equals(parentType)) {
+					if (BpmnElementType.SUB_PROCESS.matches(parentType)) {
 						// Sub-process end: complete this token, resume the parent
 						completeToken(token, token.getTraits());
 						resumeSubProcessParent(app, instance, parentElement);
@@ -2495,7 +2495,7 @@ public class ProcessEngine {
 		final List<NodeInterface> startEvents = new ArrayList<>();
 
 		for (final NodeInterface elem : elements) {
-			if (!"startEvent".equals(elem.getProperty(elemTraits.key(BpmnElementTraitDefinition.BPMN_ELEMENT_TYPE_PROPERTY)))) {
+			if (!BpmnElementType.START_EVENT.matches(elem.getProperty(elemTraits.key(BpmnElementTraitDefinition.BPMN_ELEMENT_TYPE_PROPERTY)))) {
 				continue;
 			}
 			if (elem.getProperty(elemTraits.key(BpmnElementTraitDefinition.PARENT_ELEMENT_PROPERTY)) == null) {
@@ -2647,7 +2647,7 @@ public class ProcessEngine {
 		// Subject fields: convert form-string inputs to typed values via the
 		// schema's property converters, then write under engine privileges.
 		if (subject != null && !subjectFields.isEmpty()) {
-			final NodeInterface elevatedSubject = elevate(app, subject);
+			final NodeInterface elevatedSubject = elevate(subject);
 			final PropertyMap typed = PropertyMap.inputTypeToJavaType(
 				SecurityContext.getSuperUserInstance(), subject.getType(), subjectFields);
 			elevatedSubject.setProperties(SecurityContext.getSuperUserInstance(), typed);
@@ -2769,7 +2769,7 @@ public class ProcessEngine {
 
 		try {
 
-			final ActionContext ctx = new ActionContext(securityContext);
+			final ActionContext ctx = new ActionContext(SecurityContext.getSuperUserInstance());
 			installProcessContext(ctx, instance, contextElement);
 
 			final String expression;

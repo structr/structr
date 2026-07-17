@@ -19,6 +19,7 @@
 package org.structr.process.engine;
 
 import com.google.gson.Gson;
+import org.structr.process.bpmn.BpmnElementType;
 import org.structr.process.traits.definitions.ProcessParameterValueTraitDefinition;
 import org.testng.annotations.Test;
 
@@ -299,6 +300,38 @@ public class ProcessEngineHelpersTest {
 		// These are the cases flagged as questionable and are worth revisiting.
 		assertEquals(ProcessEngine.ScriptLanguage.STRUCTR_SCRIPT, ProcessEngine.detectScriptLanguage("groovy"));
 		assertEquals(ProcessEngine.ScriptLanguage.STRUCTR_SCRIPT, ProcessEngine.detectScriptLanguage("text/javascript"));
+	}
+
+	// ==================================================================
+	// BpmnElementType enum
+	// ==================================================================
+
+	@Test
+	public void testElementTypeFromBpmnName() {
+		assertEquals(BpmnElementType.USER_TASK, BpmnElementType.fromBpmnName("userTask"));
+		assertEquals(BpmnElementType.SUB_PROCESS, BpmnElementType.fromBpmnName("subProcess"));
+		assertEquals(BpmnElementType.UNKNOWN, BpmnElementType.fromBpmnName("notARealType"));
+		assertEquals(BpmnElementType.UNKNOWN, BpmnElementType.fromBpmnName(null));
+	}
+
+	@Test
+	public void testElementTypeMatches() {
+		assertTrue(BpmnElementType.USER_TASK.matches("userTask"));
+		assertFalse(BpmnElementType.USER_TASK.matches("serviceTask"));
+		// UNKNOWN has no bpmn name and matches nothing (including null).
+		assertFalse(BpmnElementType.UNKNOWN.matches(null));
+		assertFalse(BpmnElementType.UNKNOWN.matches("userTask"));
+	}
+
+	@Test
+	public void testElementTypeKnownTypeNames() {
+		assertTrue(BpmnElementType.isKnown("boundaryEvent"));
+		assertFalse(BpmnElementType.isKnown("frobnicate"));
+		assertTrue(BpmnElementType.knownTypeNames().contains("startEvent"));
+		assertTrue(BpmnElementType.knownTypeNames().contains("userTask"));
+		// UNKNOWN's null name must never leak into the known-name set: every named
+		// constant except UNKNOWN contributes exactly one non-null name.
+		assertEquals(BpmnElementType.values().length - 1, BpmnElementType.knownTypeNames().size());
 	}
 
 	// ==================================================================
