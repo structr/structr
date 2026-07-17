@@ -2569,12 +2569,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Traits traits              = Traits.of(StructrTraits.LOCALIZATION);
 			final PropertyMap additionalData = new PropertyMap();
 
-			// Question: shouldn't this be true?
-			// No! 'imported' is a flag for legacy-localization which
-			// have been imported from a legacy-system which was replaced by structr.
-			// it is a way to differentiate between new and old localization strings
-			additionalData.put(traits.key("imported"), false);
-
 			logger.info("Reading {}", localizationsMetadataFile);
 			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing localizations");
 
