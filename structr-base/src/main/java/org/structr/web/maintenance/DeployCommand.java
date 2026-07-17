@@ -1866,7 +1866,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				entry.put(LocalizationTraitDefinition.LOCALIZED_NAME_PROPERTY,                localization.getLocalizedName());
 				entry.put(LocalizationTraitDefinition.DOMAIN_PROPERTY,                        localization.getDomain());
 				entry.put(LocalizationTraitDefinition.LOCALE_PROPERTY,                        localization.getLocale());
-				entry.put(LocalizationTraitDefinition.IMPORTED_PROPERTY,                      localization.isImported());
 				entry.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, localization.isVisibleToAuthenticatedUsers());
 				entry.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        localization.isVisibleToPublicUsers());
 			}

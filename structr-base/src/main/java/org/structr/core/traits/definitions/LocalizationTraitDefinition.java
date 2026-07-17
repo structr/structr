@@ -48,7 +48,6 @@ public final class LocalizationTraitDefinition extends AbstractNodeTraitDefiniti
 	public static final String LOCALIZED_NAME_PROPERTY = "localizedName";
 	public static final String DOMAIN_PROPERTY         = "domain";
 	public static final String LOCALE_PROPERTY         = "locale";
-	public static final String IMPORTED_PROPERTY       = "imported";
 
 	public LocalizationTraitDefinition() {
 		super(StructrTraits.LOCALIZATION);
@@ -121,13 +120,11 @@ public final class LocalizationTraitDefinition extends AbstractNodeTraitDefiniti
 		final Property<String> localizedNameProperty = new StringProperty(LOCALIZED_NAME_PROPERTY).indexed().description("translated text");
 		final Property<String> domainProperty        = new StringProperty(DOMAIN_PROPERTY).indexed().description("domain in which the translation is valid");
 		final Property<String> localeProperty        = new StringProperty(LOCALE_PROPERTY).notNull().indexed().description("locale for which the translation is valid");
-		final Property<Boolean> importedProperty     = new BooleanProperty(IMPORTED_PROPERTY);
 
 		return newSet(
 			localizedNameProperty,
 			domainProperty,
-			localeProperty,
-			importedProperty
+			localeProperty
 		);
 	}
 
@@ -137,11 +134,11 @@ public final class LocalizationTraitDefinition extends AbstractNodeTraitDefiniti
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-					LOCALIZED_NAME_PROPERTY, DOMAIN_PROPERTY, LOCALE_PROPERTY, IMPORTED_PROPERTY
+					LOCALIZED_NAME_PROPERTY, DOMAIN_PROPERTY, LOCALE_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-					LOCALIZED_NAME_PROPERTY, DOMAIN_PROPERTY, LOCALE_PROPERTY, IMPORTED_PROPERTY
+					LOCALIZED_NAME_PROPERTY, DOMAIN_PROPERTY, LOCALE_PROPERTY
 			)
 		);
 	}
