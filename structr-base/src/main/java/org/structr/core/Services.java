@@ -436,11 +436,20 @@ public class Services implements StructrServices, BroadcastReceiver {
 			Settings.updateEmailValidationPattern();
 		});
 
+		Settings.DefaultDateFormat.setChangeHandler((setting, oldValue, newValue) -> {
+
+			// ensure the schema resource shows the correct format for all Date properties
+			SchemaService.reloadSchema(new ErrorBuffer(), null, true, false);
+		});
+
 		Settings.ZonedDateTimeFormatOverride.setChangeHandler((setting, oldValue, newValue) -> {
 
 			try {
 
 				ZonedDateTimePropertyGenerator.testPattern(newValue.toString());
+
+				// ensure the schema resource shows the correct format for all ZonedDateTime properties
+				SchemaService.reloadSchema(new ErrorBuffer(), null, true, false);
 
 			} catch (FrameworkException fex) {
 
