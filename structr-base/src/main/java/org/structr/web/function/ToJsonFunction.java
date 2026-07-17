@@ -18,13 +18,18 @@
  */
 package org.structr.web.function;
 
+import com.google.gson.GsonBuilder;
 import org.structr.api.config.Settings;
 import org.structr.api.util.PagingIterable;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.entity.Security;
+import org.structr.core.property.GenericProperty;
+import org.structr.core.script.Scripting;
+import org.structr.core.script.polyglot.config.ScriptConfig;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.Example;
@@ -32,9 +37,11 @@ import org.structr.docs.Parameter;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.rest.serialization.StreamingJsonWriter;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.parser.ZonedDateTimePropertyGenerator;
 
-import java.io.IOException;
 import java.io.StringWriter;
+import java.time.ZonedDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -51,75 +58,93 @@ public class ToJsonFunction extends UiCommunityFunction {
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException{
 
-		if (sources != null && sources.length >= 1 && sources.length <= 4) {
+		try {
 
-			try {
+			assertArrayHasMinLengthAndMaxLength(sources, 1, 4);
 
-				final SecurityContext securityContext = ctx.getSecurityContext();
-				final StringWriter writer             = new StringWriter();
+			final SecurityContext securityContext = ctx.getSecurityContext();
+			final StringWriter writer = new StringWriter();
 
-				final String view            = (sources.length > 1) ? sources[1].toString() : PropertyView.Public;
-				final int outputDepth        = (sources.length > 2 && sources[2] instanceof Number) ? ((Number)sources[2]).intValue() : Settings.RestOutputDepth.getValue();
-				final boolean serializeNulls = (sources.length > 3 && sources[3] instanceof Boolean) ? ((Boolean)sources[3]) : true;
+			final String view = (sources.length > 1) ? sources[1].toString() : PropertyView.Public;
+			final int outputDepth = (sources.length > 2 && sources[2] instanceof Number) ? ((Number) sources[2]).intValue() : Settings.RestOutputDepth.getValue();
+			final boolean serializeNulls = (sources.length > 3 && sources[3] instanceof Boolean) ? ((Boolean) sources[3]) : true;
 
-				final boolean returnRawResultWasEnabled = securityContext.returnRawResult();
+			final boolean returnRawResultWasEnabled = securityContext.returnRawResult();
 
-				// prevent "result" wrapper from being introduced
-				securityContext.enableReturnRawResult();
+			// prevent "result" wrapper from being introduced when we are using StreamingJsonWriter
+			securityContext.enableReturnRawResult();
 
-				final Object obj = sources[0];
+			final Object obj = sources[0];
 
-				if (obj instanceof GraphObject) {
+			switch (obj) {
+
+				case GraphObject graphObject -> {
 
 					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, Settings.JsonIndentation.getValue(), outputDepth, false, serializeNulls);
 
-					jsonStreamer.streamSingle(securityContext, writer, (GraphObject)obj);
+					jsonStreamer.streamSingle(securityContext, writer, graphObject);
+				}
 
-				} else if (obj instanceof Iterable list) {
+				case Iterable list -> {
 
 					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, Settings.JsonIndentation.getValue(), outputDepth, true, serializeNulls);
 
 					jsonStreamer.stream(securityContext, writer, new PagingIterable<>("toJson()", list), null, false);
+				}
 
-				} else if (obj instanceof Map) {
+				case Map map -> {
 
 					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, Settings.JsonIndentation.getValue(), outputDepth, false, serializeNulls);
-					final GraphObjectMap map               = new GraphObjectMap();
+					final GraphObjectMap graphObjectMap = new GraphObjectMap();
 
-					UiFunction.recursivelyConvertMapToGraphObjectMap(map, (Map)obj, outputDepth);
+					UiFunction.recursivelyConvertMapToGraphObjectMap(graphObjectMap, map, outputDepth);
 
-					jsonStreamer.stream(securityContext, writer, new PagingIterable<>("toJson()", List.of(map)), null, false);
-
-				} else if (obj instanceof String) {
-
-					return "\"" + ((String) obj).replaceAll("\"", "\\\\\"") + "\"";
-
-				} else if (obj instanceof Number) {
-
-					return obj.toString();
+					jsonStreamer.stream(securityContext, writer, new PagingIterable<>("toJson()", List.of(graphObjectMap)), null, false);
 				}
 
-				if (Boolean.FALSE.equals(returnRawResultWasEnabled)) {
-					securityContext.disableReturnRawResult();
+				case Date d -> {
+
+					// even for raw dates, keep "our" date format instead of the default JSON format
+					new GsonBuilder().setPrettyPrinting().setDateFormat(Settings.DefaultDateFormat.getValue()).create().toJson(d, writer);
 				}
 
-				return writer.getBuffer().toString();
+				case ZonedDateTime zdt -> {
 
-			} catch (Throwable t) {
+					// for raw ZonedDateTime objects, keep the default formatting (or the configured override)
+					new GsonBuilder().setPrettyPrinting().create().toJson(ZonedDateTimePropertyGenerator.format(zdt, null), writer);
+				}
 
-				logException(caller, t, sources);
+				case null, default -> {
+
+					// for everything that we do not have a special representation in structr - or special functionality attached (views), use the native JSON.stringify
+
+					final ScriptConfig scriptConfig = ScriptConfig.builder().wrapJsInMain(false).build();
+
+					final GraphObjectMap tmpGraphObject = new GraphObjectMap();
+					tmpGraphObject.setProperty(new GenericProperty("tmp"), obj);
+
+					final Object stringifyResult = Scripting.evaluate(new ActionContext(securityContext), tmpGraphObject, "${{ JSON.stringify($.this.tmp); }}", "internal_JSON_stringify", null, scriptConfig);
+
+					writer.write((String) stringifyResult);
+				}
 			}
 
-			return null;
+			if (Boolean.FALSE.equals(returnRawResultWasEnabled)) {
+				securityContext.disableReturnRawResult();
+			}
 
-		} else {
+			return writer.getBuffer().toString();
 
-			logParameterError(caller, sources, ctx.isJavaScriptContext());
+		} catch (ArgumentCountException ace) {
+
+			return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, "%s: %s".formatted(getName(), ace.getMessage()), ace);
+
+		} catch (Throwable t) {
+
+			return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, "%s: %s".formatted(getName(), t.getMessage()), t);
 		}
-
-		return usage(ctx.isJavaScriptContext());
 	}
 
 	@Override
@@ -139,9 +164,11 @@ public class ToJsonFunction extends UiCommunityFunction {
 	public String getLongDescription() {
 		return """
 			Returns a JSON string representation of the given object very similar to `JSON.stringify()` in JavaScript.
-			The output of this method will be very similar to the output of the REST server except for the response 
-			headers and the result container. The optional `view` parameter can be used to select the view representation 
-			of the entity. If no view is given, the `public` view is used. The optional `depth` parameter defines 
+			The output of this method will be very similar to the output of the REST server except for the response
+			headers and the result container.
+
+			For database objects, the optional `view` parameter can be used to select the view representation
+			of the entity. If no view is given, the `public` view is used. The optional `depth` parameter defines
 			at which depth the JSON serialization stops. If no depth is given, the default value of 3 is used.
 			""";
 	}
@@ -167,7 +194,14 @@ public class ToJsonFunction extends UiCommunityFunction {
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-				"For database objects this method is preferrable to `JSON.stringify()` because a view can be chosen. `JSON.stringify()` will only return the `id` and `type` property for nodes."
+				"For database objects this method is preferable to `JSON.stringify()` because a view can be chosen. `JSON.stringify()` will only return the `id` and `type` property for nodes.",
+				"For native JavaScript objects in a JavaScript context, it is highly encouraged to use the native JSON.stringify() function.",
+				"Due to the fact that toJson() runs in Java, `undefined` is not available and will be serialized as `null`.",
+				"In contrast to JSON.stringify, a native JavaScript `Set` will be serialized as a JSON array.",
+				"`Date` properties of nodes will be serialized using their custom format (if defined), otherwise `dateproperty.defaultformat` will be used.",
+				"JavaScript `Date` objects will be serialized using the default date format configured in `dateproperty.defaultformat` to keep date formatting aligned to when stringifying a node.",
+				"`ZonedDateTime` properties of nodes will be serialized using their custom format (if defined), otherwise `zoneddatetimeproperty.format.override` (if defined) will be used. If none of those are defined the default serialization (ISO 8601 + RFC 9557) will be used.",
+				"JavaScript `ZonedDateTime` objects will be serialized using the override format configured in `zoneddatetimeproperty.format.override` (or the default ISO 8601 + RFC 9557) to keep date formatting aligned to when stringifying a node."
 		);
 	}
 

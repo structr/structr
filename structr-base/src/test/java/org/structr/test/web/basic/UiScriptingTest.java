@@ -821,16 +821,106 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			// unprivileged call
-			final Object result1 = Scripting.evaluate(renderContext, null, "${{ Structr.toJson({ name: 'Test' }); }}",        "test1");
-			final Object result2 = Scripting.evaluate(renderContext, null, "${{ Structr.toJson([{ name: 'Test' }]); }}",      "test2");
-			final Object result3 = Scripting.evaluate(renderContext, null, "${{ Structr.toJson(Structr.find('User')[0]); }}", "test3");
-			final Object result4 = Scripting.evaluate(renderContext, null, "${{ Structr.toJson(Structr.find('User')); }}",    "test4");
+			final Object result1 = Scripting.evaluate(renderContext, null, "${{ $.toJson({ name: 'Test' }); }}",        "test1");
+			final Object result2 = Scripting.evaluate(renderContext, null, "${{ $.toJson([{ name: 'Test' }]); }}",      "test2");
+			final Object result3 = Scripting.evaluate(renderContext, null, "${{ $.toJson($.find('User')[0]); }}", "test3");
+			final Object result4 = Scripting.evaluate(renderContext, null, "${{ $.toJson($.find('User')); }}",    "test4");
 
-			assertEquals("Invalid result for Structr.toJson() on Javascript object", "{\n\t\"name\": \"Test\"\n}", result1);
-			assertEquals("Invalid result for Structr.toJson() on Javascript array",  "[\n\t{\n\t\t\"name\": \"Test\"\n\t}\n]", result2);
-			assertEquals("Invalid result for Structr.toJson() on GraphObject",       "{\n\t\"id\": \"d7b5f5008fdf4066a1b9c2a74479ba5f\",\n\t\"type\": \"User\",\n\t\"name\": \"admin\",\n\t\"isUser\": true\n}", result3);
-			assertEquals("Invalid result for Structr.toJson() on GraphObject array", "[\n\t{\n\t\t\"id\": \"d7b5f5008fdf4066a1b9c2a74479ba5f\",\n\t\t\"type\": \"User\",\n\t\t\"name\": \"admin\",\n\t\t\"isUser\": true\n\t}\n]", result4);
+			assertEquals("Invalid result for $.toJson() on Javascript object", "{\n\t\"name\": \"Test\"\n}", result1);
+			assertEquals("Invalid result for $.toJson() on Javascript array",  "[\n\t{\n\t\t\"name\": \"Test\"\n\t}\n]", result2);
+			assertEquals("Invalid result for $.toJson() on GraphObject",       "{\n\t\"id\": \"d7b5f5008fdf4066a1b9c2a74479ba5f\",\n\t\"type\": \"User\",\n\t\"name\": \"admin\",\n\t\"isUser\": true\n}", result3);
+			assertEquals("Invalid result for $.toJson() on GraphObject array", "[\n\t{\n\t\t\"id\": \"d7b5f5008fdf4066a1b9c2a74479ba5f\",\n\t\t\"type\": \"User\",\n\t\t\"name\": \"admin\",\n\t\t\"isUser\": true\n\t}\n]", result4);
+
+
+			// test parity with JSON.stringify
+			{
+				// Primitives
+				assertEquals("Invalid result for $.toJson compared to JSON.stringify. Input = (null)     ", true, Scripting.evaluate(renderContext, null, "${{ $.toJson(null)      === 'null'      ; }}",    "parityTest"));
+				assertEquals("Invalid result for $.toJson compared to JSON.stringify. Input = (true)     ", true, Scripting.evaluate(renderContext, null, "${{ $.toJson(true)      === 'true'      ; }}",    "parityTest"));
+				assertEquals("Invalid result for $.toJson compared to JSON.stringify. Input = (false)    ", true, Scripting.evaluate(renderContext, null, "${{ $.toJson(false)     === 'false'     ; }}",    "parityTest"));
+				assertEquals("Invalid result for $.toJson compared to JSON.stringify. Input = (0)        ", true, Scripting.evaluate(renderContext, null, "${{ $.toJson(0)         === '0'         ; }}",    "parityTest"));
+				assertEquals("Invalid result for $.toJson compared to JSON.stringify. Input = (-0)       ", true, Scripting.evaluate(renderContext, null, "${{ $.toJson(-0)        === '0'         ; }}",    "parityTest"));
+				assertEquals("Invalid result for $.toJson compared to JSON.stringify. Input = (42)       ", true, Scripting.evaluate(renderContext, null, "${{ $.toJson(42)        === '42'        ; }}",    "parityTest"));
+				assertEquals("Invalid result for $.toJson compared to JSON.stringify. Input = (-42)      ", true, Scripting.evaluate(renderContext, null, "${{ $.toJson(-42)       === '-42'       ; }}",    "parityTest"));
+				assertEquals("Invalid result for $.toJson compared to JSON.stringify. Input = (3.14)     ", true, Scripting.evaluate(renderContext, null, "${{ $.toJson(3.14)      === '3.14'      ; }}",    "parityTest"));
+				assertEquals("Invalid result for $.toJson compared to JSON.stringify. Input = (0.1)      ", true, Scripting.evaluate(renderContext, null, "${{ $.toJson(0.1)       === '0.1'       ; }}",    "parityTest"));
+				assertEquals("Invalid result for $.toJson compared to JSON.stringify. Input = (100.0)    ", true, Scripting.evaluate(renderContext, null, "${{ $.toJson(100.0)     === '100'       ; }}",    "parityTest"));
+				assertEquals("Invalid result for $.toJson compared to JSON.stringify. Input = (1.0)      ", true, Scripting.evaluate(renderContext, null, "${{ $.toJson(1.0)       === '1'         ; }}",    "parityTest"));
+				assertEquals("Invalid result for $.toJson compared to JSON.stringify. Input = (\"\")     ", true, Scripting.evaluate(renderContext, null, "${{ $.toJson(\"\")      === '\"\"'      ; }}",    "parityTest"));
+				assertEquals("Invalid result for $.toJson compared to JSON.stringify. Input = (\"hello\")", true, Scripting.evaluate(renderContext, null, "${{ $.toJson(\"hello\") === '\"hello\"' ; }}",    "parityTest"));
+
+				// Non-finite numbers collapse to null
+				assertEquals("Invalid result for $.toJson compared to JSON.stringify. Input = NaN      ", true, Scripting.evaluate(renderContext, null, "${{ $.toJson(NaN      )  === 'null' ; }}",    "parityTest"));
+				assertEquals("Invalid result for $.toJson compared to JSON.stringify. Input = Infinity ", true, Scripting.evaluate(renderContext, null, "${{ $.toJson(Infinity )  === 'null' ; }}",    "parityTest"));
+				assertEquals("Invalid result for $.toJson compared to JSON.stringify. Input = -Infinity", true, Scripting.evaluate(renderContext, null, "${{ $.toJson(-Infinity)  === 'null' ; }}",    "parityTest"));
+
+				// String escaping
+				assertEquals("Invalid result for $.toJson compared to JSON.stringify. Input = 'a\"b'  ", true, Scripting.evaluate(renderContext, null, "${{ $.toJson('a\"b'   )  === '\"a\\\\\"b\"'  }}",    "parityTest"));
+				assertEquals("Invalid result for $.toJson compared to JSON.stringify. Input = 'a\\b'  ", true, Scripting.evaluate(renderContext, null, "${{ $.toJson('a\\b'   )  === '\"a\\\\b\"'    }}",    "parityTest"));
+				assertEquals("Invalid result for $.toJson compared to JSON.stringify. Input = '\\n'   ", true, Scripting.evaluate(renderContext, null, "${{ $.toJson('\\n'    )  === '\"\\\\n\"'     }}",    "parityTest"));
+				assertEquals("Invalid result for $.toJson compared to JSON.stringify. Input = '\\t'   ", true, Scripting.evaluate(renderContext, null, "${{ $.toJson('\\t'    )  === '\"\\\\t\"'     }}",    "parityTest"));
+				assertEquals("Invalid result for $.toJson compared to JSON.stringify. Input = '\\r'   ", true, Scripting.evaluate(renderContext, null, "${{ $.toJson('\\r'    )  === '\"\\\\r\"'     }}",    "parityTest"));
+				assertEquals("Invalid result for $.toJson compared to JSON.stringify. Input = '\\b'   ", true, Scripting.evaluate(renderContext, null, "${{ $.toJson('\\b'    )  === '\"\\\\b\"'     }}",    "parityTest"));
+				assertEquals("Invalid result for $.toJson compared to JSON.stringify. Input = '\\f'   ", true, Scripting.evaluate(renderContext, null, "${{ $.toJson('\\f'    )  === '\"\\\\f\"'     }}",    "parityTest"));
+				assertEquals("Invalid result for $.toJson compared to JSON.stringify. Input = '/'     ", true, Scripting.evaluate(renderContext, null, "${{ $.toJson('/'      )  === '\"/\"'         }}",    "parityTest"));
+				assertEquals("Invalid result for $.toJson compared to JSON.stringify. Input = 'é'     ", true, Scripting.evaluate(renderContext, null, "${{ $.toJson('é'      )  === '\"é\"'         }}",    "parityTest"));
+				assertEquals("Invalid result for $.toJson compared to JSON.stringify. Input = '\u0000'", true, Scripting.evaluate(renderContext, null, "${{ $.toJson('\u0000')    === '\"\\\\u0000\"' }}",    "parityTest"));	// control chars without short escape
+				assertEquals("Invalid result for $.toJson compared to JSON.stringify. Input = '\u001f'", true, Scripting.evaluate(renderContext, null, "${{ $.toJson('\u001f')    === '\"\\\\u001f\"' }}",    "parityTest"));
+				assertEquals("Invalid result for $.toJson compared to JSON.stringify. Input = '\uD800'", true, Scripting.evaluate(renderContext, null, "${{ $.toJson('\uD800')    === '\"\\\\ud800\"' }}",    "parityTest"));	// lone surrogate → escaped lowercase (ES2019+)
+
+				// unicode
+				assertEquals("Invalid result for $.toJson compared to JSON.stringify. Input = '中文'", true, Scripting.evaluate(renderContext, null, "${{ $.toJson('中文')  === '\"中文\"' ; }}",    "parityTest"));
+
+				// Date object
+				assertEquals("Invalid result for $.toJson when input is a raw Date object. Should use date property format setting.", "\"2025-05-06T12:13:14+0000\"", Scripting.evaluate(renderContext, null, "${{ $.toJson(new Date(2025, 4, 6, 12, 13, 14)); }}",    "parityTest"));
+
+				// Date object with pattern config
+				try {
+
+					Settings.DefaultDateFormat.setValue("yyyy MM dd 'T' HH mm ss Z");
+					assertEquals("Invalid result for $.toJson when input is a raw Date object. Should use date property format setting.", "\"2025 05 06 T 12 13 14 +0000\"", Scripting.evaluate(renderContext, null, "${{ $.toJson(new Date(2025, 4, 6, 12, 13, 14)); }}",    "parityTest"));
+
+				} finally {
+
+					// reset setting in case test failed
+					Settings.DefaultDateFormat.setValue(Settings.DefaultDateFormat.getDefaultValue());
+				}
+
+				// ZonedDateTime object
+				assertEquals("Invalid result for $.toJson when input is a raw ZonedDateTime object. Should use default ZonedDateTime format.", "\"2026-07-15T12:34:56+02:00[Europe/Berlin]\"", Scripting.evaluate(renderContext, null, """
+					${{
+						let zdt = Temporal.ZonedDateTime.from({
+							 timeZone: "Europe/Berlin",
+							 year: 2026, month: 7, day: 15,
+							 hour: 12, minute: 34, second: 56
+						});
+
+						$.toJson(zdt);
+					}}
+					""", "parityTest"));
+
+				// ZonedDateTime object with pattern override
+				try {
+
+					Settings.ZonedDateTimeFormatOverride.setValue("yyyy MM dd 'T' HH mm ss VV");
+					assertEquals("Invalid result for $.toJson when input is a raw ZonedDateTime object. Should use ZonedDateTime override format.", "\"2026 07 15 T 12 34 56 Europe/Berlin\"", Scripting.evaluate(renderContext, null, """
+							${{
+								let zdt = Temporal.ZonedDateTime.from({
+									 timeZone: "Europe/Berlin",
+									 year: 2026, month: 7, day: 15,
+									 hour: 12, minute: 34, second: 56
+								});
+
+								$.toJson(zdt);
+							}}
+							""", "parityTest"));
+
+				} finally {
+
+					// reset setting in case tests failed
+					Settings.ZonedDateTimeFormatOverride.setValue("");
+				}
+			}
 
 			tx.success();
 
