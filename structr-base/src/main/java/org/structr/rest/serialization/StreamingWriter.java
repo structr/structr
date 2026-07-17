@@ -86,8 +86,8 @@ public abstract class StreamingWriter {
 	private boolean reduceNestedObjectsForRestrictedViews = true;
 	private int reduceNestedObjectsInRestrictedViewsDepth = Settings.JsonReduceNestedObjectsDepth.getValue();
 
-	private static DateTimeFormatter dateTimeFormatter = null;
-	private static SimpleDateFormat dateFormatter      = null;
+	private final DateTimeFormatter dateTimeFormatter;
+	private final SimpleDateFormat dateFormatter;
 
 
 	public abstract RestWriter getRestWriter(final SecurityContext securityContext, final Writer writer);
@@ -106,7 +106,6 @@ public abstract class StreamingWriter {
 		serializers.put(Iterable.class.getName(),    new IterableSerializer());
 		serializers.put(Map.class.getName(),         new MapSerializer());
 
-		// TODO: These only ever change if the corresponding settings change. We could re-create these only on-change for the settings
 		dateTimeFormatter = ZonedDateTimeProperty.getDateTimeFormatter(null);
 		dateFormatter     = new SimpleDateFormat(Settings.DefaultDateFormat.getValue(), Locale.ENGLISH);
 	}
@@ -332,6 +331,7 @@ public abstract class StreamingWriter {
 			} else if (value instanceof Date date) {
 
 				writer.value(dateFormatter.format(date));
+
 			} else {
 
 				writer.value(value.toString());
