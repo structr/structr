@@ -20,7 +20,6 @@ package org.structr.core.function;
 
 import org.structr.api.config.Settings;
 import org.structr.common.error.ArgumentCountException;
-import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.converter.TemporalDateConverter;
 import org.structr.core.property.ZonedDateTimeProperty;
@@ -58,7 +57,16 @@ public class DateFormatFunction extends CoreFunction {
 
 		try {
 
-			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
+			assertArrayHasMinLengthAndMaxLength(sources, 2, 2);
+
+			// a null date value is a normal data condition, not an error: pass it through
+			if (sources[0] == null) {
+				return null;
+			}
+
+			if (sources[1] == null) {
+				return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, "%s: Pattern must not be null: %s".formatted(getDisplayName(), getParametersAsString(sources)));
+			}
 
 			Date date = null;
 
@@ -97,10 +105,6 @@ public class DateFormatFunction extends CoreFunction {
 
 			// format with given pattern
 			return new SimpleDateFormat(sources[1].toString(), ctx.getLocale()).format(date);
-
-		} catch (ArgumentNullException ane) {
-
-			return throwExceptionIfSupportedElseLogWarningAndReturnNull(ctx, "%s: Encountered null argument: %s".formatted(getDisplayName(), getParametersAsString(sources)), ane);
 
 		} catch (ArgumentCountException ace) {
 
@@ -145,7 +149,8 @@ public class DateFormatFunction extends CoreFunction {
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-				"Some format options are locale-specific. See the examples or the `locale` keyword for information about locales."
+				"Some format options are locale-specific. See the examples or the `locale` keyword for information about locales.",
+				"If the date value is null, the function returns null. A null pattern is an error."
 		);
 	}
 

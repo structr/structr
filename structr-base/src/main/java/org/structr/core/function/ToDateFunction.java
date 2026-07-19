@@ -44,8 +44,14 @@ public class ToDateFunction extends CoreFunction {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
+		// a null value is a normal data condition, not an error: pass it through
+		if (sources != null && sources.length == 1 && sources[0] == null) {
+
+			return null;
+		}
+
 		// if source is a number, try to convert from millis
-		if (sources != null && sources.length == 1 && sources[0] != null && sources[0] instanceof Number) {
+		if (sources != null && sources.length == 1 && sources[0] instanceof Number) {
 
 			try {
 				Long timestamp = 0L;
@@ -107,6 +113,13 @@ public class ToDateFunction extends CoreFunction {
 	public List<Parameter> getParameters() {
 		return List.of(
 				Parameter.mandatory("number", "unix timestamp")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"If the value is null, the function returns null."
 		);
 	}
 
