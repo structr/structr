@@ -27,6 +27,9 @@ import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.process.ProcessTraits;
 
 import java.util.Map;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.process.entity.ProcessToken;
+import org.structr.process.traits.wrappers.ProcessTokenTraitWrapper;
 import java.util.Set;
 
 /**
@@ -51,6 +54,13 @@ public class ProcessTokenTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String STATUS_ACTIVE    = "active";
 	public static final String STATUS_COMPLETED = "completed";
 	public static final String STATUS_WAITING   = "waiting";
+
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+		return Map.of(
+			ProcessToken.class, (traits, node) -> new ProcessTokenTraitWrapper(traits, node)
+		);
+	}
 
 	public ProcessTokenTraitDefinition() {
 		super(ProcessTraits.PROCESS_TOKEN);

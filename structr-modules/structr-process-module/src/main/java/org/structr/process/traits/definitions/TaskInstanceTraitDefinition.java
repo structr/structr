@@ -40,6 +40,9 @@ import org.structr.schema.action.ActionContext;
 
 import java.util.Date;
 import java.util.Map;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.process.entity.TaskInstance;
+import org.structr.process.traits.wrappers.TaskInstanceTraitWrapper;
 import java.util.Set;
 
 /**
@@ -87,6 +90,13 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String SET_BY_ADMIN      = "admin";       // assignTask() by an admin
 	public static final String SET_BY_DELEGATION = "delegation";  // delegate() by a previous assignee or candidate
 	public static final String SET_BY_BPMN       = "bpmn";        // BPMN-declared humanPerformer at task creation
+
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+		return Map.of(
+			TaskInstance.class, (traits, node) -> new TaskInstanceTraitWrapper(traits, node)
+		);
+	}
 
 	public TaskInstanceTraitDefinition() {
 		super(ProcessTraits.TASK_INSTANCE);

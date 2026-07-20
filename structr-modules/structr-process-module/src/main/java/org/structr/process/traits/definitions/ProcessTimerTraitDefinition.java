@@ -28,6 +28,9 @@ import org.structr.process.ProcessTraits;
 
 import java.util.Date;
 import java.util.Map;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.process.entity.ProcessTimer;
+import org.structr.process.traits.wrappers.ProcessTimerTraitWrapper;
 import java.util.Set;
 
 /**
@@ -81,6 +84,13 @@ public class ProcessTimerTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String STATUS_FIRED     = "fired";
 	public static final String STATUS_CANCELLED = "cancelled";
 	public static final String STATUS_ERROR     = "error";
+
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+		return Map.of(
+			ProcessTimer.class, (traits, node) -> new ProcessTimerTraitWrapper(traits, node)
+		);
+	}
 
 	public ProcessTimerTraitDefinition() {
 		super(ProcessTraits.PROCESS_TIMER);

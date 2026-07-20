@@ -27,6 +27,9 @@ import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.process.ProcessTraits;
 
 import java.util.Map;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.process.entity.BpmnPerformer;
+import org.structr.process.traits.wrappers.BpmnPerformerTraitWrapper;
 import java.util.Set;
 
 /**
@@ -67,6 +70,13 @@ public class BpmnPerformerTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String KIND_PERFORMER         = "performer";
 	public static final String KIND_HUMAN_PERFORMER   = "humanPerformer";
 	public static final String KIND_POTENTIAL_OWNER   = "potentialOwner";
+
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+		return Map.of(
+			BpmnPerformer.class, (traits, node) -> new BpmnPerformerTraitWrapper(traits, node)
+		);
+	}
 
 	public BpmnPerformerTraitDefinition() {
 		super(ProcessTraits.BPMN_PERFORMER);

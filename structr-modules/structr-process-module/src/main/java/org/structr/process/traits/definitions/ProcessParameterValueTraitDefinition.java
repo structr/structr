@@ -28,6 +28,9 @@ import org.structr.process.ProcessTraits;
 
 import java.util.Date;
 import java.util.Map;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.process.entity.ProcessParameterValue;
+import org.structr.process.traits.wrappers.ProcessParameterValueTraitWrapper;
 import java.util.Set;
 
 /**
@@ -62,6 +65,13 @@ public class ProcessParameterValueTraitDefinition extends AbstractNodeTraitDefin
 	public static final String TYPE_INTEGER = "Integer";
 	public static final String TYPE_DOUBLE  = "Double";
 	public static final String TYPE_DATE    = "Date";
+
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+		return Map.of(
+			ProcessParameterValue.class, (traits, node) -> new ProcessParameterValueTraitWrapper(traits, node)
+		);
+	}
 
 	public ProcessParameterValueTraitDefinition() {
 		super(ProcessTraits.PROCESS_PARAMETER_VALUE);

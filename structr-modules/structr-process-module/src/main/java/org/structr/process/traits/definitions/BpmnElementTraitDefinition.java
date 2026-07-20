@@ -39,6 +39,9 @@ import org.structr.schema.action.ActionContext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.process.entity.BpmnElement;
+import org.structr.process.traits.wrappers.BpmnElementTraitWrapper;
 import java.util.Set;
 
 /**
@@ -111,6 +114,13 @@ public class BpmnElementTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String SUBJECT_FORM_VIEW_PROPERTY     = "subjectFormView";
 	public static final String SUBJECT_WRITABLE_VIEW_PROPERTY = "subjectWritableView";
 	public static final String INSTRUCTIONS_PROPERTY          = "instructions";
+
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+		return Map.of(
+			BpmnElement.class, (traits, node) -> new BpmnElementTraitWrapper(traits, node)
+		);
+	}
 
 	public BpmnElementTraitDefinition() {
 		super(ProcessTraits.BPMN_ELEMENT);

@@ -36,6 +36,9 @@ import org.structr.process.engine.ProcessEngine;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Map;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.process.entity.BpmnProcess;
+import org.structr.process.traits.wrappers.BpmnProcessTraitWrapper;
 import java.util.Set;
 
 /**
@@ -69,6 +72,13 @@ public class BpmnProcessTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String INSTANCE_PAGE_PROPERTY                    = "instancePage";
 	public static final String CONTROL_ACTIONS_PROPERTY                  = "controlActions";
 	public static final String VISIBILITY_MAPPINGS_PROPERTY              = "visibilityMappings";
+
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+		return Map.of(
+			BpmnProcess.class, (traits, node) -> new BpmnProcessTraitWrapper(traits, node)
+		);
+	}
 
 	public BpmnProcessTraitDefinition() {
 		super(ProcessTraits.BPMN_PROCESS);

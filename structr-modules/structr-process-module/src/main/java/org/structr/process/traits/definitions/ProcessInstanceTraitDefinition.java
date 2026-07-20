@@ -41,6 +41,9 @@ import org.structr.schema.action.ActionContext;
 
 import java.util.Date;
 import java.util.Map;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.process.entity.ProcessInstance;
+import org.structr.process.traits.wrappers.ProcessInstanceTraitWrapper;
 import java.util.Set;
 
 /**
@@ -83,6 +86,13 @@ public class ProcessInstanceTraitDefinition extends AbstractNodeTraitDefinition 
 	public static final String STATUS_SUSPENDED   = "suspended";
 	public static final String STATUS_TERMINATED  = "terminated";
 	public static final String STATUS_ERROR       = "error";
+
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+		return Map.of(
+			ProcessInstance.class, (traits, node) -> new ProcessInstanceTraitWrapper(traits, node)
+		);
+	}
 
 	public ProcessInstanceTraitDefinition() {
 		super(ProcessTraits.PROCESS_INSTANCE);
