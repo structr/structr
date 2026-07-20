@@ -39,9 +39,9 @@ import org.testng.annotations.BeforeMethod;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -87,10 +87,14 @@ public abstract class AbstractProcessEngineTest extends StructrUiTest {
 	}
 
 	protected String loadResource(final String path) {
+
 		try (final InputStream is = getClass().getResourceAsStream(path)) {
+
 			assertNotNull("Resource not found: " + path, is);
 			return new String(is.readAllBytes(), StandardCharsets.UTF_8);
+
 		} catch (final Exception ex) {
+
 			throw new RuntimeException("Could not load resource " + path, ex);
 		}
 	}
@@ -135,6 +139,7 @@ public abstract class AbstractProcessEngineTest extends StructrUiTest {
 		final Iterable<NodeInterface> processes = defNode.getProperty(
 			defNode.getTraits().key(BpmnDefinitionsTraitDefinition.PROCESSES_PROPERTY));
 		if (processes != null) {
+
 			for (final NodeInterface p : processes) return p;
 		}
 		return null;
@@ -144,7 +149,9 @@ public abstract class AbstractProcessEngineTest extends StructrUiTest {
 		final Traits procTraits = Traits.of(ProcessTraits.BPMN_PROCESS);
 		final Iterable<NodeInterface> elements = procNode.getProperty(procTraits.key(BpmnProcessTraitDefinition.ELEMENTS_PROPERTY));
 		if (elements != null) {
+
 			for (final NodeInterface e : elements) {
+
 				if (bpmnId.equals(e.getProperty(e.getTraits().key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY)))) {
 					return e;
 				}
@@ -174,6 +181,7 @@ public abstract class AbstractProcessEngineTest extends StructrUiTest {
 		int count = 0;
 		final Traits t = Traits.of(ProcessTraits.PROCESS_TOKEN);
 		for (final NodeInterface token : tokens(instance)) {
+
 			if (status.equals(token.getProperty(t.key(ProcessTokenTraitDefinition.STATUS_PROPERTY)))) {
 				count++;
 			}
@@ -183,13 +191,16 @@ public abstract class AbstractProcessEngineTest extends StructrUiTest {
 
 	/** The bpmnId of the element a waiting token currently sits on (first match), or null. */
 	protected List<String> waitingTokenElementIds(final NodeInterface instance) throws FrameworkException {
-		final List<String> ids = new ArrayList<>();
+		final List<String> ids = new LinkedList<>();
 		final Traits t = Traits.of(ProcessTraits.PROCESS_TOKEN);
 		for (final NodeInterface token : tokens(instance)) {
+
 			final String status = token.getProperty(t.key(ProcessTokenTraitDefinition.STATUS_PROPERTY));
 			if (ProcessTokenTraitDefinition.STATUS_WAITING.equals(status)) {
+
 				final NodeInterface el = token.getProperty(t.key(ProcessTokenTraitDefinition.AT_ELEMENT_PROPERTY));
 				if (el != null) {
+
 					ids.add(el.getProperty(el.getTraits().key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY)));
 				}
 			}
@@ -215,6 +226,7 @@ public abstract class AbstractProcessEngineTest extends StructrUiTest {
 	 */
 	protected NodeInterface openTaskAt(final NodeInterface instance, final String elementBpmnId) throws FrameworkException {
 		for (final NodeInterface task : tasks(instance)) {
+
 			final String status = taskStatus(task);
 			if (TaskInstanceTraitDefinition.STATUS_COMPLETED.equals(status)
 				|| TaskInstanceTraitDefinition.STATUS_CANCELLED.equals(status)) {
@@ -222,6 +234,7 @@ public abstract class AbstractProcessEngineTest extends StructrUiTest {
 			}
 			final NodeInterface el = task.getProperty(task.getTraits().key(TaskInstanceTraitDefinition.DEFINED_BY_PROPERTY));
 			if (el != null && elementBpmnId.equals(el.getProperty(el.getTraits().key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY)))) {
+
 				return task;
 			}
 		}
@@ -231,8 +244,10 @@ public abstract class AbstractProcessEngineTest extends StructrUiTest {
 	/** The first TaskInstance (any status) defined by the given element bpmnId. */
 	protected NodeInterface anyTaskAt(final NodeInterface instance, final String elementBpmnId) throws FrameworkException {
 		for (final NodeInterface task : tasks(instance)) {
+
 			final NodeInterface el = task.getProperty(task.getTraits().key(TaskInstanceTraitDefinition.DEFINED_BY_PROPERTY));
 			if (el != null && elementBpmnId.equals(el.getProperty(el.getTraits().key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY)))) {
+
 				return task;
 			}
 		}
@@ -250,7 +265,9 @@ public abstract class AbstractProcessEngineTest extends StructrUiTest {
 		final Iterable<NodeInterface> pvs = instance.getProperty(
 			instance.getTraits().key(ProcessInstanceTraitDefinition.PARAMETER_VALUES_PROPERTY));
 		if (pvs != null) {
+
 			for (final NodeInterface p : pvs) {
+
 				out.put(p.getProperty(pv.key(ProcessParameterValueTraitDefinition.PARAMETER_NAME_PROPERTY)),
 						p.getProperty(pv.key(ProcessParameterValueTraitDefinition.STRING_VALUE_PROPERTY)));
 			}
@@ -279,6 +296,7 @@ public abstract class AbstractProcessEngineTest extends StructrUiTest {
 
 	protected NodeInterface createUser(final String name) throws FrameworkException {
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface user = app.create(StructrTraits.USER, name);
 			tx.success();
 			return user;
@@ -287,6 +305,7 @@ public abstract class AbstractProcessEngineTest extends StructrUiTest {
 
 	protected NodeInterface createGroup(final String name) throws FrameworkException {
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface group = app.create(StructrTraits.GROUP, name);
 			tx.success();
 			return group;
@@ -295,6 +314,7 @@ public abstract class AbstractProcessEngineTest extends StructrUiTest {
 
 	protected void addToGroup(final NodeInterface group, final NodeInterface user) throws FrameworkException {
 		try (final Tx tx = app.tx()) {
+
 			group.as(Group.class).addMember(securityContext, user.as(Principal.class));
 			tx.success();
 		}
@@ -306,6 +326,7 @@ public abstract class AbstractProcessEngineTest extends StructrUiTest {
 
 	protected NodeInterface createTestSubject(final String name) throws FrameworkException {
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface subject = app.create("TestOne", name);
 			tx.success();
 			return subject;
@@ -313,8 +334,10 @@ public abstract class AbstractProcessEngineTest extends StructrUiTest {
 	}
 
 	protected List<NodeInterface> collect(final Iterable<NodeInterface> it) {
-		final List<NodeInterface> out = new ArrayList<>();
+
+		final List<NodeInterface> out = new LinkedList<>();
 		if (it != null) {
+
 			for (final NodeInterface n : it) out.add(n);
 		}
 		return out;

@@ -56,6 +56,7 @@ public class BpmnSequenceFlowTraitDefinition extends AbstractNodeTraitDefinition
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
 		return Map.of(
 			BpmnSequenceFlow.class, (traits, node) -> new BpmnSequenceFlowTraitWrapper(traits, node)
 		);

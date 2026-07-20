@@ -28,6 +28,9 @@ import org.structr.process.ProcessTraits;
 
 import java.util.Map;
 import java.util.Set;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.process.entity.BpmnMessageFlow;
+import org.structr.process.traits.wrappers.BpmnMessageFlowTraitWrapper;
 
 /**
  * Trait definition for BpmnMessageFlow -- a {@code <bpmn:messageFlow>} entry
@@ -52,6 +55,14 @@ public class BpmnMessageFlowTraitDefinition extends AbstractNodeTraitDefinition 
 
 	public BpmnMessageFlowTraitDefinition() {
 		super(ProcessTraits.BPMN_MESSAGE_FLOW);
+	}
+
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
+		return Map.of(
+			BpmnMessageFlow.class, (traits, node) -> new BpmnMessageFlowTraitWrapper(traits, node)
+		);
 	}
 
 	@Override

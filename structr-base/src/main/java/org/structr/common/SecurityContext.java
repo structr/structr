@@ -401,11 +401,13 @@ public class SecurityContext {
 
 			// update caches, we can safely assume a transaction context here
 			if (cachedUserId == null) {
+
 				this.cachedUserId   = cachedUser.getUuid();
 			}
 
 			// update caches, we can safely assume a transaction context here
 			if (cachedUserName == null) {
+
 				this.cachedUserName = cachedUser.getName();
 			}
 

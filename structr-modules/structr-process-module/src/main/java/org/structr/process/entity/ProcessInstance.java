@@ -22,7 +22,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 
 import java.util.Date;
-import java.util.List;
 
 /**
  * Typed view of a {@code ProcessInstance} node. Obtain via
@@ -47,9 +46,9 @@ public interface ProcessInstance extends NodeInterface {
 	NodeInterface getInitiator();
 	void setInitiator(NodeInterface initiator) throws FrameworkException;
 
-	List<ProcessToken> getTokens();
-	List<TaskInstance> getTasks();
-	List<ProcessParameterValue> getParameterValues();
+	Iterable<ProcessToken> getTokens();
+	Iterable<TaskInstance> getTasks();
+	Iterable<ProcessParameterValue> getParameterValues();
 
 	void setStartTime(Date startTime) throws FrameworkException;
 	Date getEndTime();

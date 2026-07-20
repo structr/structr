@@ -68,6 +68,7 @@ public class ProcessParameterValueTraitDefinition extends AbstractNodeTraitDefin
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
 		return Map.of(
 			ProcessParameterValue.class, (traits, node) -> new ProcessParameterValueTraitWrapper(traits, node)
 		);

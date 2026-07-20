@@ -54,6 +54,7 @@ public class ProcessEngineHelpersTest {
 
 	@Test
 	public void testPicksCorrectKeyAmongMany() {
+
 		final String json = "{\"a\":\"1\",\"default\":\"Flow_no\",\"z\":\"9\"}";
 		assertEquals("1",       ProcessEngine.getJsonAttributeValue(json, "a"));
 		assertEquals("Flow_no", ProcessEngine.getJsonAttributeValue(json, "default"));
@@ -62,6 +63,7 @@ public class ProcessEngineHelpersTest {
 
 	@Test
 	public void testCancelActivityFalseAsString() {
+
 		// The importer stores cancelActivity as a string; the engine compares it to "false".
 		assertEquals("false", ProcessEngine.getJsonAttributeValue("{\"cancelActivity\":\"false\"}", "cancelActivity"));
 	}
@@ -83,6 +85,7 @@ public class ProcessEngineHelpersTest {
 
 	@Test
 	public void testValueWithEscapedQuotes() {
+
 		// Built with Gson exactly as the importer would: value contains double quotes.
 		// The previous indexOf-based scanner truncated this at the first escaped quote
 		// (returning `he said \`); the JSON parser returns the full, unescaped value.
@@ -97,12 +100,14 @@ public class ProcessEngineHelpersTest {
 
 	@Test
 	public void testKeySubstringDoesNotFalseMatch() {
+
 		// "default" must NOT match the longer key "defaultFlow".
 		assertNull(ProcessEngine.getJsonAttributeValue("{\"defaultFlow\":\"x\"}", "default"));
 	}
 
 	@Test
 	public void testKeyNameOccurringInsideAValueIsIgnored() {
+
 		// The word "default" appears inside another attribute's value; only the real
 		// "default" key must be returned.
 		final String json = GSON.toJson(new LinkedHashMap<>(Map.of(
@@ -114,6 +119,7 @@ public class ProcessEngineHelpersTest {
 
 	@Test
 	public void testNonStringPrimitivesAreReturnedAsStrings() {
+
 		// Robustness: even though the importer only writes strings, a numeric or boolean
 		// value must be read correctly (the old scanner returned null for these).
 		assertEquals("42",   ProcessEngine.getJsonAttributeValue("{\"count\":42}", "count"));
@@ -122,6 +128,7 @@ public class ProcessEngineHelpersTest {
 
 	@Test
 	public void testNullBlankAndMalformedJsonReturnNull() {
+
 		assertNull(ProcessEngine.getJsonAttributeValue(null,        "x"));
 		assertNull(ProcessEngine.getJsonAttributeValue("",          "x"));
 		assertNull(ProcessEngine.getJsonAttributeValue("   ",       "x"));
@@ -146,6 +153,7 @@ public class ProcessEngineHelpersTest {
 
 	@Test
 	public void testTimerDurationHours() {
+
 		final long before = System.currentTimeMillis();
 		final Date fireAt = ProcessEngine.computeFireAt("timeDuration", "PT1H");
 		assertNotNull(fireAt);
@@ -156,6 +164,7 @@ public class ProcessEngineHelpersTest {
 
 	@Test
 	public void testTimerDurationDays() {
+
 		final long before = System.currentTimeMillis();
 		final Date fireAt = ProcessEngine.computeFireAt("timeDuration", "P1D");
 		assertNotNull(fireAt);
@@ -165,6 +174,7 @@ public class ProcessEngineHelpersTest {
 
 	@Test
 	public void testTimerDate() {
+
 		final String iso = "2999-01-01T00:00:00Z";
 		assertEquals(Date.from(Instant.parse(iso)), ProcessEngine.computeFireAt("timeDate", iso));
 	}
@@ -176,6 +186,7 @@ public class ProcessEngineHelpersTest {
 
 	@Test
 	public void testTimerInvalidOrEmptyReturnsNull() {
+
 		assertNull(ProcessEngine.computeFireAt("timeDuration", "not-a-duration"));
 		assertNull(ProcessEngine.computeFireAt("timeDate",     "not-a-date"));
 		assertNull(ProcessEngine.computeFireAt("timeDuration", ""));
@@ -185,6 +196,7 @@ public class ProcessEngineHelpersTest {
 
 	@Test
 	public void testParseIso8601DurationMillis() {
+
 		assertEquals(86_400_000L, ProcessEngine.parseIso8601DurationMillis("P1D"));
 		assertEquals(3_600_000L,  ProcessEngine.parseIso8601DurationMillis("PT1H"));
 		assertEquals(86_400_000L + 2 * 3_600_000L, ProcessEngine.parseIso8601DurationMillis("P1DT2H"));
@@ -199,6 +211,7 @@ public class ProcessEngineHelpersTest {
 
 	@Test
 	public void testInferParameterType() {
+
 		assertEquals(ProcessParameterValueTraitDefinition.TYPE_BOOLEAN, ProcessEngine.inferParameterType(Boolean.TRUE));
 		assertEquals(ProcessParameterValueTraitDefinition.TYPE_INTEGER, ProcessEngine.inferParameterType(42));
 		assertEquals(ProcessParameterValueTraitDefinition.TYPE_INTEGER, ProcessEngine.inferParameterType(42L));
@@ -211,6 +224,7 @@ public class ProcessEngineHelpersTest {
 
 	@Test
 	public void testConvertParameterValue() {
+
 		assertNull(ProcessEngine.convertParameterValue(null, ProcessParameterValueTraitDefinition.TYPE_STRING));
 		assertEquals("hello", ProcessEngine.convertParameterValue("hello", null));
 		assertEquals("hello", ProcessEngine.convertParameterValue("hello", ProcessParameterValueTraitDefinition.TYPE_STRING));
@@ -231,12 +245,14 @@ public class ProcessEngineHelpersTest {
 
 	@Test
 	public void testRewriteSingleVariable() {
+
 		assertEquals("$.process.approved == true",
 			ProcessEngine.rewriteConditionExpression("approved == true", Set.of("approved")));
 	}
 
 	@Test
 	public void testRewriteKeepsLiteralsAndOperators() {
+
 		// Only the known variable 'delivery' is rewritten; the string literal 'express' is not.
 		assertEquals("$.process.delivery == 'express'",
 			ProcessEngine.rewriteConditionExpression("delivery == 'express'", Set.of("delivery")));
@@ -244,6 +260,7 @@ public class ProcessEngineHelpersTest {
 
 	@Test
 	public void testRewriteMultipleVariables() {
+
 		final String out = ProcessEngine.rewriteConditionExpression(
 			"approved == true && amount > 100", Set.of("approved", "amount"));
 		assertEquals("$.process.approved == true && $.process.amount > 100", out);
@@ -251,6 +268,7 @@ public class ProcessEngineHelpersTest {
 
 	@Test
 	public void testRewriteDoesNotDoubleRewriteAlreadyQualified() {
+
 		// A reference already written as $.process.x must not be rewritten again.
 		assertEquals("$.process.approved == true",
 			ProcessEngine.rewriteConditionExpression("$.process.approved == true", Set.of("approved")));
@@ -258,6 +276,7 @@ public class ProcessEngineHelpersTest {
 
 	@Test
 	public void testRewriteRespectsWordBoundaries() {
+
 		// 'amount' must not match inside 'totalamount'.
 		assertEquals("totalamount > 1",
 			ProcessEngine.rewriteConditionExpression("totalamount > 1", Set.of("amount")));
@@ -265,6 +284,7 @@ public class ProcessEngineHelpersTest {
 
 	@Test
 	public void testRewriteNoVariablesOrNullIsIdentity() {
+
 		assertEquals("approved == true",
 			ProcessEngine.rewriteConditionExpression("approved == true", Set.of()));
 		assertNull(ProcessEngine.rewriteConditionExpression(null, Set.of("approved")));
@@ -276,18 +296,21 @@ public class ProcessEngineHelpersTest {
 
 	@Test
 	public void testDetectForeignJavaScript() {
+
 		assertEquals(ProcessEngine.ScriptLanguage.FOREIGN_JAVASCRIPT, ProcessEngine.detectScriptLanguage("javascript"));
 		assertEquals(ProcessEngine.ScriptLanguage.FOREIGN_JAVASCRIPT, ProcessEngine.detectScriptLanguage("JS"));
 	}
 
 	@Test
 	public void testDetectStructrJavaScript() {
+
 		assertEquals(ProcessEngine.ScriptLanguage.STRUCTR_JAVASCRIPT, ProcessEngine.detectScriptLanguage("structr-javascript"));
 		assertEquals(ProcessEngine.ScriptLanguage.STRUCTR_JAVASCRIPT, ProcessEngine.detectScriptLanguage("structr-js"));
 	}
 
 	@Test
 	public void testDetectStructrScriptDefault() {
+
 		assertEquals(ProcessEngine.ScriptLanguage.STRUCTR_SCRIPT, ProcessEngine.detectScriptLanguage(null));
 		assertEquals(ProcessEngine.ScriptLanguage.STRUCTR_SCRIPT, ProcessEngine.detectScriptLanguage(""));
 		assertEquals(ProcessEngine.ScriptLanguage.STRUCTR_SCRIPT, ProcessEngine.detectScriptLanguage("structrscript"));
@@ -295,6 +318,7 @@ public class ProcessEngineHelpersTest {
 
 	@Test
 	public void testDetectScriptLanguageKnownGaps() {
+
 		// Documents the (deliberately narrow, arguably too narrow) matching: a non-JS
 		// foreign format and a real JavaScript MIME type both fall through to StructrScript.
 		// These are the cases flagged as questionable and are worth revisiting.
@@ -308,6 +332,7 @@ public class ProcessEngineHelpersTest {
 
 	@Test
 	public void testElementTypeFromBpmnName() {
+
 		assertEquals(BpmnElementType.USER_TASK, BpmnElementType.fromBpmnName("userTask"));
 		assertEquals(BpmnElementType.SUB_PROCESS, BpmnElementType.fromBpmnName("subProcess"));
 		assertEquals(BpmnElementType.UNKNOWN, BpmnElementType.fromBpmnName("notARealType"));
@@ -316,6 +341,7 @@ public class ProcessEngineHelpersTest {
 
 	@Test
 	public void testElementTypeMatches() {
+
 		assertTrue(BpmnElementType.USER_TASK.matches("userTask"));
 		assertFalse(BpmnElementType.USER_TASK.matches("serviceTask"));
 		// UNKNOWN has no bpmn name and matches nothing (including null).
@@ -325,6 +351,7 @@ public class ProcessEngineHelpersTest {
 
 	@Test
 	public void testElementTypeKnownTypeNames() {
+
 		assertTrue(BpmnElementType.isKnown("boundaryEvent"));
 		assertFalse(BpmnElementType.isKnown("frobnicate"));
 		assertTrue(BpmnElementType.knownTypeNames().contains("startEvent"));
@@ -340,6 +367,7 @@ public class ProcessEngineHelpersTest {
 
 	@Test
 	public void testTranspileForeignScript() {
+
 		final String out = ProcessEngine.transpileForeignScript(
 			"var x = execution.getVariable(\"amount\");\nexecution.setVariable(\"approved\", true);");
 		// getVariable is rewritten to the $.process accessor ...

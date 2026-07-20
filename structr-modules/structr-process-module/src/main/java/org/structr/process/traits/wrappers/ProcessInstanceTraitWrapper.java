@@ -18,6 +18,7 @@
  */
 package org.structr.process.traits.wrappers;
 
+import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
@@ -30,9 +31,7 @@ import org.structr.process.entity.ProcessToken;
 import org.structr.process.entity.TaskInstance;
 import org.structr.process.traits.definitions.ProcessInstanceTraitDefinition;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 public class ProcessInstanceTraitWrapper extends AbstractNodeTraitWrapper implements ProcessInstance {
 
@@ -72,6 +71,7 @@ public class ProcessInstanceTraitWrapper extends AbstractNodeTraitWrapper implem
 
 	@Override
 	public BpmnProcess getProcess() {
+
 		final NodeInterface process = wrappedObject.getProperty(traits.key(ProcessInstanceTraitDefinition.PROCESS_PROPERTY));
 		return process != null ? process.as(BpmnProcess.class) : null;
 	}
@@ -102,46 +102,27 @@ public class ProcessInstanceTraitWrapper extends AbstractNodeTraitWrapper implem
 	}
 
 	@Override
-	public List<ProcessToken> getTokens() {
+	public Iterable<ProcessToken> getTokens() {
 
-		final List<ProcessToken> out                   = new ArrayList<>();
 		final PropertyKey<Iterable<NodeInterface>> key = traits.key(ProcessInstanceTraitDefinition.TOKENS_PROPERTY);
-		final Iterable<NodeInterface> tokens           = wrappedObject.getProperty(key);
 
-		if (tokens != null) {
-
-			for (final NodeInterface token : tokens) {
-
-				out.add(token.as(ProcessToken.class));
-			}
-		}
-		return out;
+		return Iterables.map(n -> n.as(ProcessToken.class), wrappedObject.getProperty(key));
 	}
 
 	@Override
-	public List<TaskInstance> getTasks() {
-		final List<TaskInstance> out = new ArrayList<>();
+	public Iterable<TaskInstance> getTasks() {
+
 		final PropertyKey<Iterable<NodeInterface>> key = traits.key(ProcessInstanceTraitDefinition.TASKS_PROPERTY);
-		final Iterable<NodeInterface> tasks = wrappedObject.getProperty(key);
-		if (tasks != null) {
-			for (final NodeInterface task : tasks) {
-				out.add(task.as(TaskInstance.class));
-			}
-		}
-		return out;
+
+		return Iterables.map(n -> n.as(TaskInstance.class), wrappedObject.getProperty(key));
 	}
 
 	@Override
-	public List<ProcessParameterValue> getParameterValues() {
-		final List<ProcessParameterValue> out = new ArrayList<>();
+	public Iterable<ProcessParameterValue> getParameterValues() {
+
 		final PropertyKey<Iterable<NodeInterface>> key = traits.key(ProcessInstanceTraitDefinition.PARAMETER_VALUES_PROPERTY);
-		final Iterable<NodeInterface> values = wrappedObject.getProperty(key);
-		if (values != null) {
-			for (final NodeInterface value : values) {
-				out.add(value.as(ProcessParameterValue.class));
-			}
-		}
-		return out;
+
+		return Iterables.map(n -> n.as(ProcessParameterValue.class), wrappedObject.getProperty(key));
 	}
 
 	@Override

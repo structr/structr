@@ -63,18 +63,21 @@ public class ProcessTimerTraitWrapper extends AbstractNodeTraitWrapper implement
 
 	@Override
 	public ProcessInstance getInstance() {
+
 		final NodeInterface instance = wrappedObject.getProperty(traits.key(ProcessTimerTraitDefinition.INSTANCE_PROPERTY));
 		return instance != null ? instance.as(ProcessInstance.class) : null;
 	}
 
 	@Override
 	public ProcessToken getToken() {
+
 		final NodeInterface token = wrappedObject.getProperty(traits.key(ProcessTimerTraitDefinition.TOKEN_PROPERTY));
 		return token != null ? token.as(ProcessToken.class) : null;
 	}
 
 	@Override
 	public BpmnElement getElement() {
+
 		final NodeInterface element = wrappedObject.getProperty(traits.key(ProcessTimerTraitDefinition.ELEMENT_PROPERTY));
 		return element != null ? element.as(BpmnElement.class) : null;
 	}

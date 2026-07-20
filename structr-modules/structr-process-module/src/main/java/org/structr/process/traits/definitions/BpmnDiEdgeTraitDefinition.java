@@ -28,6 +28,9 @@ import org.structr.process.ProcessTraits;
 
 import java.util.Map;
 import java.util.Set;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.process.entity.BpmnDiEdge;
+import org.structr.process.traits.wrappers.BpmnDiEdgeTraitWrapper;
 
 /**
  * Trait definition for BpmnDiEdge -- DI edge data for a BPMN sequence flow.
@@ -46,6 +49,14 @@ public class BpmnDiEdgeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public BpmnDiEdgeTraitDefinition() {
 		super(ProcessTraits.BPMN_DI_EDGE);
+	}
+
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
+		return Map.of(
+			BpmnDiEdge.class, (traits, node) -> new BpmnDiEdgeTraitWrapper(traits, node)
+		);
 	}
 
 	@Override

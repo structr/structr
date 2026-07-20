@@ -28,6 +28,9 @@ import org.structr.process.ProcessTraits;
 
 import java.util.Map;
 import java.util.Set;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.process.entity.BpmnParticipant;
+import org.structr.process.traits.wrappers.BpmnParticipantTraitWrapper;
 
 /**
  * Trait definition for BpmnParticipant -- a {@code <bpmn:participant>} entry
@@ -43,6 +46,14 @@ public class BpmnParticipantTraitDefinition extends AbstractNodeTraitDefinition 
 
 	public BpmnParticipantTraitDefinition() {
 		super(ProcessTraits.BPMN_PARTICIPANT);
+	}
+
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
+		return Map.of(
+			BpmnParticipant.class, (traits, node) -> new BpmnParticipantTraitWrapper(traits, node)
+		);
 	}
 
 	@Override

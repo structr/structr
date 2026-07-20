@@ -28,6 +28,9 @@ import org.structr.process.ProcessTraits;
 
 import java.util.Map;
 import java.util.Set;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.process.entity.BpmnCollaboration;
+import org.structr.process.traits.wrappers.BpmnCollaborationTraitWrapper;
 
 /**
  * Trait definition for BpmnCollaboration -- the {@code <bpmn:collaboration>}
@@ -42,6 +45,14 @@ public class BpmnCollaborationTraitDefinition extends AbstractNodeTraitDefinitio
 
 	public BpmnCollaborationTraitDefinition() {
 		super(ProcessTraits.BPMN_COLLABORATION);
+	}
+
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
+		return Map.of(
+			BpmnCollaboration.class, (traits, node) -> new BpmnCollaborationTraitWrapper(traits, node)
+		);
 	}
 
 	@Override

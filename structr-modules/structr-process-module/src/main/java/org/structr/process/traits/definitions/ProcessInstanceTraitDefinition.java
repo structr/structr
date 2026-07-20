@@ -89,6 +89,7 @@ public class ProcessInstanceTraitDefinition extends AbstractNodeTraitDefinition 
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
 		return Map.of(
 			ProcessInstance.class, (traits, node) -> new ProcessInstanceTraitWrapper(traits, node)
 		);
@@ -110,6 +111,7 @@ public class ProcessInstanceTraitDefinition extends AbstractNodeTraitDefinition 
 			// two cases stay distinct.
 			OnModification.class,
 			new OnModification() {
+
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
@@ -123,18 +125,21 @@ public class ProcessInstanceTraitDefinition extends AbstractNodeTraitDefinition 
 						final ProcessEngine engine = new ProcessEngine(securityContext);
 
 						if (STATUS_COMPLETED.equals(newStatus)) {
+
 							if (graphObject.getProperty(traits.key(END_TIME_PROPERTY)) == null) {
 								graphObject.setProperty(traits.key(END_TIME_PROPERTY), new Date());
 							}
 							engine.fireProcessEvent(BpmnProcessListenerTraitDefinition.EVENT_COMPLETED, (NodeInterface) graphObject);
 
 						} else if (STATUS_TERMINATED.equals(newStatus)) {
+
 							if (graphObject.getProperty(traits.key(END_TIME_PROPERTY)) == null) {
 								graphObject.setProperty(traits.key(END_TIME_PROPERTY), new Date());
 							}
 							engine.fireProcessEvent(BpmnProcessListenerTraitDefinition.EVENT_TERMINATED, (NodeInterface) graphObject);
 
 						} else if (STATUS_SUSPENDED.equals(newStatus)) {
+
 							engine.fireProcessEvent(BpmnProcessListenerTraitDefinition.EVENT_SUSPENDED, (NodeInterface) graphObject);
 						}
 						// 'running' transitions are handled by the engine: 'started' from startProcess,
@@ -145,8 +150,10 @@ public class ProcessInstanceTraitDefinition extends AbstractNodeTraitDefinition 
 					// target fires the subjectAttached event. Common pattern: the LeaveRequest case where
 					// the subject is created from form data after startProcess and attached post-hoc.
 					if (modificationQueue.isPropertyModified(graphObject, traits.key(SUBJECT_PROPERTY))) {
+
 						final NodeInterface newSubject = graphObject.getProperty(traits.key(SUBJECT_PROPERTY));
 						if (newSubject != null) {
+
 							final ProcessEngine engine = new ProcessEngine(securityContext);
 							engine.fireProcessEvent(BpmnProcessListenerTraitDefinition.EVENT_SUBJECT_ATTACHED, (NodeInterface) graphObject);
 						}
@@ -195,6 +202,7 @@ public class ProcessInstanceTraitDefinition extends AbstractNodeTraitDefinition 
 					final java.util.Map<String, Object> params = arguments.toMap();
 					final String eventBpmnId = (String) params.remove("eventBpmnId");
 					if (eventBpmnId == null || eventBpmnId.isEmpty()) {
+
 						throw new FrameworkException(422, "Missing required parameter: eventBpmnId");
 					}
 					engine.signalEvent((NodeInterface) entity, eventBpmnId, params.isEmpty() ? null : params);

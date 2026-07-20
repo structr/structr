@@ -20,17 +20,18 @@ package org.structr.process.entity;
 
 import org.structr.core.graph.NodeInterface;
 
-import java.util.List;
-
 /**
  * Typed view of a {@code BpmnPerformer} node (humanPerformer / potentialOwner /
  * performer). Obtain via {@code node.as(BpmnPerformer.class)}.
  */
 public interface BpmnPerformer extends NodeInterface {
 
+	String getBpmnId();
 	String getKind();
 	String getExpression();
+	String getExpressionLanguage();
+	String getPerformerName();
 
 	/** Directly-linked principals (take priority over the expression). */
-	List<NodeInterface> getPrincipals();
+	Iterable<NodeInterface> getPrincipals();
 }

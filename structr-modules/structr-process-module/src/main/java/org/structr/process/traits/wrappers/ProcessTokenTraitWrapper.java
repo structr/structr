@@ -84,6 +84,7 @@ public class ProcessTokenTraitWrapper extends AbstractNodeTraitWrapper implement
 
 	@Override
 	public ProcessInstance getProcessInstance() {
+
 		final NodeInterface instance = wrappedObject.getProperty(traits.key(ProcessTokenTraitDefinition.PROCESS_INSTANCE_PROPERTY));
 		return instance != null ? instance.as(ProcessInstance.class) : null;
 	}

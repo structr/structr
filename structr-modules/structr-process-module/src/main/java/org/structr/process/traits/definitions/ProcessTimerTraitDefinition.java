@@ -87,6 +87,7 @@ public class ProcessTimerTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
 		return Map.of(
 			ProcessTimer.class, (traits, node) -> new ProcessTimerTraitWrapper(traits, node)
 		);

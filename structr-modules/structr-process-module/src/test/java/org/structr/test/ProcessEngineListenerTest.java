@@ -55,12 +55,14 @@ public class ProcessEngineListenerTest extends AbstractProcessEngineTest {
 
 		final String instId;
 		try (final Tx tx = app.tx()) {
+
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
 			tx.success();
 		}
 
 		// 'created' (task) and 'started' (process) fired during start.
 		try (final Tx tx = app.tx()) {
+
 			assertMarker("evt-taskCreated");
 			assertMarker("evt-processStarted");
 			assertNoMarker("evt-taskCompleted");
@@ -69,12 +71,14 @@ public class ProcessEngineListenerTest extends AbstractProcessEngineTest {
 		}
 
 		try (final Tx tx = app.tx()) {
+
 			engine().completeTask(openTaskAt(app.getNodeById(instId), "Task_1"), Map.of());
 			tx.success();
 		}
 
 		// 'completed' (task) and 'completed' (process, via the OnModification hook) fired.
 		try (final Tx tx = app.tx()) {
+
 			assertEquals(ProcessInstanceTraitDefinition.STATUS_COMPLETED, instanceStatus(app.getNodeById(instId)));
 			assertMarker("evt-taskCompleted");
 			assertMarker("evt-processCompleted");
@@ -90,16 +94,21 @@ public class ProcessEngineListenerTest extends AbstractProcessEngineTest {
 
 		final String instId;
 		try (final Tx tx = app.tx()) {
+
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
 			tx.success();
 		}
 
 		// The pre-commit listener throws -> the whole completion transaction rolls back.
 		try (final Tx tx = app.tx()) {
+
 			try {
+
 				engine().completeTask(openTaskAt(app.getNodeById(instId), "Task_1"), Map.of());
 				fail("expected the vetoing listener to abort completion");
+
 			} catch (final Exception expected) {
+
 				// veto propagated as expected
 			}
 			// intentionally NOT calling tx.success() -> rollback
@@ -107,6 +116,7 @@ public class ProcessEngineListenerTest extends AbstractProcessEngineTest {
 
 		// Nothing advanced: the task is still open and the instance still running.
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface inst = app.getNodeById(instId);
 			assertEquals(ProcessInstanceTraitDefinition.STATUS_RUNNING, instanceStatus(inst));
 			final NodeInterface task = openTaskAt(inst, "Task_1");
@@ -129,11 +139,13 @@ public class ProcessEngineListenerTest extends AbstractProcessEngineTest {
 
 		final String instId;
 		try (final Tx tx = app.tx()) {
+
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
 			tx.success();
 		}
 
 		try (final Tx tx = app.tx()) {
+
 			assertEquals(ProcessInstanceTraitDefinition.STATUS_COMPLETED, instanceStatus(app.getNodeById(instId)));
 			// The 'started' listener saw status=running (fired before completion) ...
 			assertEquals(1, app.nodeQuery("TestOne").name("started-status-running").getAsList().size());
@@ -144,11 +156,181 @@ public class ProcessEngineListenerTest extends AbstractProcessEngineTest {
 	}
 
 	// ------------------------------------------------------------------
+	// Task lifecycle events (engine-task-events.bpmn)
+	// ------------------------------------------------------------------
+
+	@Test
+	public void testTaskCreatedAndAvailableEventsFire() throws Exception {
+
+		// A candidate task fires 'created' then 'available' on creation.
+		startTaskEventsInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			assertMarker("evt-taskCreated");
+			assertMarker("evt-taskAvailable");
+			tx.success();
+		}
+	}
+
+	@Test
+	public void testTaskClaimedAndAssignedEventsFire() throws Exception {
+
+		final String instId = startTaskEventsInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface member = app.nodeQuery(StructrTraits.USER).name("reviewer").getFirst();
+			engineAs(member).claimTask(openTaskAt(app.getNodeById(instId), "Task_Review"));
+			tx.success();
+		}
+		try (final Tx tx = app.tx()) {
+
+			assertMarker("evt-taskClaimed");
+			assertMarker("evt-taskAssigned");
+			tx.success();
+		}
+	}
+
+	@Test
+	public void testTaskDeclinedEventFires() throws Exception {
+
+		final String instId = startTaskEventsInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface member = app.nodeQuery(StructrTraits.USER).name("reviewer").getFirst();
+			engineAs(member).declineTask(openTaskAt(app.getNodeById(instId), "Task_Review"));
+			tx.success();
+		}
+		try (final Tx tx = app.tx()) {
+
+			assertMarker("evt-taskDeclined");
+			tx.success();
+		}
+	}
+
+	@Test
+	public void testTaskCancelledEventFires() throws Exception {
+
+		final String instId = startTaskEventsInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			engine().cancelTask(openTaskAt(app.getNodeById(instId), "Task_Review"));
+			tx.success();
+		}
+		try (final Tx tx = app.tx()) {
+
+			assertMarker("evt-taskCancelled");
+			tx.success();
+		}
+	}
+
+	// ------------------------------------------------------------------
+	// Process lifecycle events (engine-process-events.bpmn)
+	// ------------------------------------------------------------------
+
+	@Test
+	public void testProcessSubjectAttachedEventFires() throws Exception {
+
+		final String instId = startProcessEventsInstance();
+		final NodeInterface subject = createTestSubject("the-subject");
+
+		// Setting the subject relationship to a non-null target fires 'subjectAttached'
+		// via the OnModification hook.
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface inst = app.getNodeById(instId);
+			inst.setProperty(inst.getTraits().key(ProcessInstanceTraitDefinition.SUBJECT_PROPERTY),
+				app.getNodeById(subject.getUuid()));
+			tx.success();
+		}
+		try (final Tx tx = app.tx()) {
+
+			assertMarker("evt-subjectAttached");
+			tx.success();
+		}
+	}
+
+	@Test
+	public void testProcessSuspendedResumedTerminatedEventsFire() throws Exception {
+
+		final String instId = startProcessEventsInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			engine().suspendProcess(app.getNodeById(instId));
+			tx.success();
+		}
+		try (final Tx tx = app.tx()) {
+
+			assertMarker("evt-suspended");
+			engine().resumeProcess(app.getNodeById(instId));
+			tx.success();
+		}
+		try (final Tx tx = app.tx()) {
+
+			assertMarker("evt-resumed");
+			// the instance is running again -> terminate it
+			engine().terminateProcess(app.getNodeById(instId));
+			tx.success();
+		}
+		try (final Tx tx = app.tx()) {
+
+			assertMarker("evt-terminated");
+			tx.success();
+		}
+	}
+
+	// ------------------------------------------------------------------
 	// helpers
 	// ------------------------------------------------------------------
 
+	/** Import engine-task-events, wire the listener markers, create the group + member, start. */
+	private String startTaskEventsInstance() throws Exception {
+
+		final String procUuid = importProcess("/engine-task-events.bpmn");
+
+		setMethodSource("onTaskCreated",   "{ $.create('TestOne', { name: 'evt-taskCreated' }); }");
+		setMethodSource("onTaskAvailable", "{ $.create('TestOne', { name: 'evt-taskAvailable' }); }");
+		setMethodSource("onTaskClaimed",   "{ $.create('TestOne', { name: 'evt-taskClaimed' }); }");
+		setMethodSource("onTaskAssigned",  "{ $.create('TestOne', { name: 'evt-taskAssigned' }); }");
+		setMethodSource("onTaskDeclined",  "{ $.create('TestOne', { name: 'evt-taskDeclined' }); }");
+		setMethodSource("onTaskCancelled", "{ $.create('TestOne', { name: 'evt-taskCancelled' }); }");
+
+		final NodeInterface group = createGroup("Reviewers");
+		addToGroup(group, createUser("reviewer"));
+
+		try (final Tx tx = app.tx()) {
+
+			final String id = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
+			tx.success();
+			return id;
+		}
+	}
+
+	/** Import engine-process-events, wire the listener markers, start (waits at the catch event). */
+	private String startProcessEventsInstance() throws Exception {
+
+		final String procUuid = importProcess("/engine-process-events.bpmn");
+
+		setMethodSource("onSubjectAttached", "{ $.create('TestOne', { name: 'evt-subjectAttached' }); }");
+		setMethodSource("onSuspended",       "{ $.create('TestOne', { name: 'evt-suspended' }); }");
+		setMethodSource("onResumed",         "{ $.create('TestOne', { name: 'evt-resumed' }); }");
+		setMethodSource("onTerminated",      "{ $.create('TestOne', { name: 'evt-terminated' }); }");
+
+		try (final Tx tx = app.tx()) {
+
+			final String id = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
+			tx.success();
+			return id;
+		}
+	}
+
 	private void setMethodSource(final String methodName, final String source) throws Exception {
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface method = app.nodeQuery(StructrTraits.SCHEMA_METHOD).name(methodName).getFirst();
 			assertNotNull("importer should have created a SchemaMethod named " + methodName, method);
 			method.setProperty(method.getTraits().key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), source);

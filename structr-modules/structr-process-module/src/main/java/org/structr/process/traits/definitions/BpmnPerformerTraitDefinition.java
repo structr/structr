@@ -73,6 +73,7 @@ public class BpmnPerformerTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
 		return Map.of(
 			BpmnPerformer.class, (traits, node) -> new BpmnPerformerTraitWrapper(traits, node)
 		);

@@ -27,7 +27,11 @@ import org.structr.core.graph.NodeInterface;
 public interface BpmnSequenceFlow extends NodeInterface {
 
 	String getBpmnId();
+	String getBpmnName();
 	String getConditionExpression();
+	String getConditionExpressionType();
+	String getBpmnAttributes();
+	String getSourceRefId();
 	String getTargetRefId();
 
 	/** The element this flow points to, or {@code null} if unresolved. */

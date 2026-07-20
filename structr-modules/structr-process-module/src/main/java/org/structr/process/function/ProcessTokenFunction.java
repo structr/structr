@@ -77,7 +77,9 @@ public class ProcessTokenFunction extends Function<Object, Object> {
 
 				try {
 					expiryMinutes = Integer.parseInt(sources[3].toString());
+
 				} catch (NumberFormatException nfe) {
+
 					logger.warn("Invalid expiry value '{}', using default ({} minutes)", sources[3], ProcessJWTHelper.DEFAULT_EXPIRY_MINUTES);
 				}
 			}
@@ -100,6 +102,7 @@ public class ProcessTokenFunction extends Function<Object, Object> {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${process_token(processInstanceId, taskId, action [, expiryMinutes])}"),
 			Usage.javaScript("Usage: ${{$.process_token(processInstanceId, taskId, action [, expiryMinutes])}}")
@@ -113,6 +116,7 @@ public class ProcessTokenFunction extends Function<Object, Object> {
 
 	@Override
 	public String getLongDescription() {
+
 		return "Creates a signed JWT (JSON Web Token) for use in process notification links. "
 			+ "The token carries the process instance ID, task ID, and allowed action as signed claims. "
 			+ "It is tamper-proof (cryptographically signed), has a configurable expiry (default: 48 hours), "
@@ -122,6 +126,7 @@ public class ProcessTokenFunction extends Function<Object, Object> {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
 			"Requires JWT to be configured in structr.conf (security.jwt.secret must be at least 32 characters).",
 			"The token is signed with HMAC256 using the configured JWT secret.",
@@ -133,6 +138,7 @@ public class ProcessTokenFunction extends Function<Object, Object> {
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 			Parameter.mandatory("processInstanceId", "UUID of the ProcessInstance"),
 			Parameter.mandatory("taskId", "UUID of the TaskInstance (or 'view' for read-only access)"),
@@ -143,6 +149,7 @@ public class ProcessTokenFunction extends Function<Object, Object> {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.structrScript(
 				"${process_token(inst.id, task.id, 'review')}",

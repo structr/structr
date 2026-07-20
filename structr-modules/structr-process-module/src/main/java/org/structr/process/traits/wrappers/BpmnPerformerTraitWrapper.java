@@ -19,18 +19,22 @@
 package org.structr.process.traits.wrappers;
 
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.process.entity.BpmnPerformer;
+import org.structr.process.traits.definitions.BpmnBaseNodeTraitDefinition;
 import org.structr.process.traits.definitions.BpmnPerformerTraitDefinition;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class BpmnPerformerTraitWrapper extends AbstractNodeTraitWrapper implements BpmnPerformer {
 
 	public BpmnPerformerTraitWrapper(final Traits traits, final NodeInterface wrappedObject) {
 		super(traits, wrappedObject);
+	}
+
+	@Override
+	public String getBpmnId() {
+		return wrappedObject.getProperty(traits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY));
 	}
 
 	@Override
@@ -44,14 +48,20 @@ public class BpmnPerformerTraitWrapper extends AbstractNodeTraitWrapper implemen
 	}
 
 	@Override
-	public List<NodeInterface> getPrincipals() {
-		final List<NodeInterface> out = new ArrayList<>();
-		final Iterable<NodeInterface> principals = wrappedObject.getProperty(traits.key(BpmnPerformerTraitDefinition.PRINCIPALS_PROPERTY));
-		if (principals != null) {
-			for (final NodeInterface principal : principals) {
-				out.add(principal);
-			}
-		}
-		return out;
+	public String getExpressionLanguage() {
+		return wrappedObject.getProperty(traits.key(BpmnPerformerTraitDefinition.EXPRESSION_LANGUAGE_PROPERTY));
+	}
+
+	@Override
+	public String getPerformerName() {
+		return wrappedObject.getProperty(traits.key(BpmnPerformerTraitDefinition.PERFORMER_NAME_PROPERTY));
+	}
+
+	@Override
+	public Iterable<NodeInterface> getPrincipals() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(BpmnPerformerTraitDefinition.PRINCIPALS_PROPERTY);
+
+		return wrappedObject.getProperty(key);
 	}
 }

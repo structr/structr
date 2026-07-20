@@ -229,12 +229,17 @@ public class VisibilityMappingTraitDefinition extends AbstractNodeTraitDefinitio
 	 * states won't match.
 	 */
 	private static NodeInterface unwrapToProcessInstance(final NodeInterface ctx) {
-		if (ctx == null) return null;
+
+		if (ctx == null) {
+			return null;
+		}
 		final Traits traits = ctx.getTraits();
 		if (traits.contains(ProcessTraits.PROCESS_INSTANCE)) {
+
 			return ctx;
 		}
 		if (traits.contains(ProcessTraits.TASK_INSTANCE)) {
+
 			return ctx.getProperty(Traits.of(ProcessTraits.TASK_INSTANCE)
 				.key(TaskInstanceTraitDefinition.PROCESS_INSTANCE_PROPERTY));
 		}
@@ -267,10 +272,12 @@ public class VisibilityMappingTraitDefinition extends AbstractNodeTraitDefinitio
 		// having a binding that filters by initiator. The initiator key is
 		// indexed, so the query is cheap relative to the per-render evaluation.
 		if (STATE_NO_INSTANCE.equals(state)) {
+
 			if (boundProcessId == null || boundProcessId.isEmpty()) {
 				return instance == null;
 			}
 			if (currentUser == null) {
+
 				return false;
 			}
 			return !hasActiveInstanceForUser(app, currentUser, boundProcessId);
@@ -281,10 +288,12 @@ public class VisibilityMappingTraitDefinition extends AbstractNodeTraitDefinitio
 		// like no-instance, so it works on a catalog / landing page that has
 		// no ProcessInstance in render context.
 		if (STATE_HAS_ACTIVE_INSTANCE.equals(state)) {
+
 			if (boundProcessId == null || boundProcessId.isEmpty()) {
 				return instance != null;
 			}
 			if (currentUser == null) {
+
 				return false;
 			}
 			return hasActiveInstanceForUser(app, currentUser, boundProcessId);
@@ -300,14 +309,22 @@ public class VisibilityMappingTraitDefinition extends AbstractNodeTraitDefinitio
 		// Verify the VM applies to this instance: the instance's process must
 		// match the VM's bound process (compared by processId, version-immune).
 		if (boundProcessId != null && !boundProcessId.isEmpty()) {
+
 			final NodeInterface proc = instance.getProperty(instTraits.key(ProcessInstanceTraitDefinition.PROCESS_PROPERTY));
-			if (proc == null) return false;
+			if (proc == null) {
+
+				return false;
+			}
 			final String procId = proc.getProperty(proc.getTraits().key(BpmnProcessTraitDefinition.PROCESS_ID_PROPERTY));
-			if (!boundProcessId.equals(procId)) return false;
+			if (!boundProcessId.equals(procId)) {
+
+				return false;
+			}
 		}
 
 		final boolean taskScoped = state.startsWith("task-");
 		if (taskScoped && (boundStepBpmnId == null || boundStepBpmnId.isEmpty())) {
+
 			return false; // task-level state needs a bound step bpmnId
 		}
 
@@ -325,8 +342,11 @@ public class VisibilityMappingTraitDefinition extends AbstractNodeTraitDefinitio
 		switch (state) {
 
 			case STATE_TASK_AVAILABLE: {
-				if (currentUser == null) return false;
+				if (currentUser == null) {
+					return false;
+				}
 				for (final NodeInterface t : tasksAtStep(instance, instTasksKey, taskDefinedByKey, boundStepBpmnId)) {
+
 					if (TaskInstanceTraitDefinition.STATUS_AVAILABLE.equals(t.getProperty(taskStatusKey))
 							&& userIsCandidate(t, taskCandidatesKey, meAndMyGroups)) return true;
 				}
@@ -334,11 +354,19 @@ public class VisibilityMappingTraitDefinition extends AbstractNodeTraitDefinitio
 			}
 
 			case STATE_TASK_RESERVED_BY_ME: {
-				if (currentUser == null) return false;
+				if (currentUser == null) {
+					return false;
+				}
 				for (final NodeInterface t : tasksAtStep(instance, instTasksKey, taskDefinedByKey, boundStepBpmnId)) {
-					if (!TaskInstanceTraitDefinition.STATUS_RESERVED.equals(t.getProperty(taskStatusKey))) continue;
+
+					if (!TaskInstanceTraitDefinition.STATUS_RESERVED.equals(t.getProperty(taskStatusKey))) {
+						continue;
+					}
 					final NodeInterface assignee = t.getProperty(taskAssigneeKey);
-					if (assignee != null && meAndMyGroups.contains(assignee.getUuid())) return true;
+					if (assignee != null && meAndMyGroups.contains(assignee.getUuid())) {
+
+						return true;
+					}
 				}
 				return false;
 			}
@@ -347,12 +375,20 @@ public class VisibilityMappingTraitDefinition extends AbstractNodeTraitDefinitio
 				// Reserved by someone else, but I am still a candidate (this is "my pool,
 				// already claimed by a peer"). Without the candidate filter, this would
 				// light up for any reserved task at the step regardless of involvement.
-				if (currentUser == null) return false;
+				if (currentUser == null) {
+					return false;
+				}
 				for (final NodeInterface t : tasksAtStep(instance, instTasksKey, taskDefinedByKey, boundStepBpmnId)) {
-					if (!TaskInstanceTraitDefinition.STATUS_RESERVED.equals(t.getProperty(taskStatusKey))) continue;
+
+					if (!TaskInstanceTraitDefinition.STATUS_RESERVED.equals(t.getProperty(taskStatusKey))) {
+						continue;
+					}
 					final NodeInterface assignee = t.getProperty(taskAssigneeKey);
 					final boolean assigneeIsOther = assignee != null && !meAndMyGroups.contains(assignee.getUuid());
-					if (assigneeIsOther && userIsCandidate(t, taskCandidatesKey, meAndMyGroups)) return true;
+					if (assigneeIsOther && userIsCandidate(t, taskCandidatesKey, meAndMyGroups)) {
+
+						return true;
+					}
 				}
 				return false;
 			}
@@ -377,20 +413,33 @@ public class VisibilityMappingTraitDefinition extends AbstractNodeTraitDefinitio
 			case STATE_PROCESS_AWAITING_ACTION: {
 				// I started this instance, it's still running, and there's no active
 				// task waiting for me right now. "Thanks, we'll get back to you" pages.
-				if (currentUser == null) return false;
-				if (!ProcessInstanceTraitDefinition.STATUS_RUNNING.equals(instance.getProperty(instStatusKey))) return false;
+				if (currentUser == null) {
+					return false;
+				}
+				if (!ProcessInstanceTraitDefinition.STATUS_RUNNING.equals(instance.getProperty(instStatusKey))) {
+
+					return false;
+				}
 				final NodeInterface initiator = instance.getProperty(instInitiatorKey);
-				if (initiator == null || !meAndMyGroups.contains(initiator.getUuid())) return false;
+				if (initiator == null || !meAndMyGroups.contains(initiator.getUuid())) {
+
+					return false;
+				}
 				final Iterable<NodeInterface> tasks = instance.getProperty(instTasksKey);
 				if (tasks != null) {
+
 					for (final NodeInterface t : tasks) {
+
 						final String tStatus = t.getProperty(taskStatusKey);
 						if (TaskInstanceTraitDefinition.STATUS_COMPLETED.equals(tStatus)
 								|| TaskInstanceTraitDefinition.STATUS_CANCELLED.equals(tStatus)) continue;
 						final NodeInterface assignee = t.getProperty(taskAssigneeKey);
 						final boolean isMine = (assignee != null && meAndMyGroups.contains(assignee.getUuid()))
 								|| userIsCandidate(t, taskCandidatesKey, meAndMyGroups);
-						if (isMine) return false;
+						if (isMine) {
+
+							return false;
+						}
 					}
 				}
 				return true;
@@ -412,6 +461,7 @@ public class VisibilityMappingTraitDefinition extends AbstractNodeTraitDefinitio
 
 		final NodeInterface userNode = app.getNodeById(currentUser.getUuid());
 		if (userNode == null) {
+
 			return false;
 		}
 		final Traits piTraits = Traits.of(ProcessTraits.PROCESS_INSTANCE);
@@ -421,14 +471,19 @@ public class VisibilityMappingTraitDefinition extends AbstractNodeTraitDefinitio
 		final PropertyKey<String>        procIdKey   = Traits.of(ProcessTraits.BPMN_PROCESS).key(BpmnProcessTraitDefinition.PROCESS_ID_PROPERTY);
 
 		for (final NodeInterface pi : app.nodeQuery(ProcessTraits.PROCESS_INSTANCE).key(piInitKey, userNode).getResultStream()) {
+
 			final String status = pi.getProperty(piStatusKey);
 			if (!ProcessInstanceTraitDefinition.STATUS_RUNNING.equals(status)
 					&& !ProcessInstanceTraitDefinition.STATUS_SUSPENDED.equals(status)) {
 				continue;
 			}
 			final NodeInterface proc = pi.getProperty(piProcKey);
-			if (proc == null) continue;
+			if (proc == null) {
+
+				continue;
+			}
 			if (boundProcessId.equals(proc.getProperty(procIdKey))) {
+
 				return true;
 			}
 		}
@@ -440,9 +495,15 @@ public class VisibilityMappingTraitDefinition extends AbstractNodeTraitDefinitio
 										   final Set<String> meAndMyGroups) {
 
 		final Iterable<NodeInterface> candidates = task.getProperty(candidatesKey);
-		if (candidates == null) return false;
+		if (candidates == null) {
+
+			return false;
+		}
 		for (final NodeInterface c : candidates) {
-			if (c != null && meAndMyGroups.contains(c.getUuid())) return true;
+
+			if (c != null && meAndMyGroups.contains(c.getUuid())) {
+				return true;
+			}
 		}
 		return false;
 	}
@@ -459,14 +520,22 @@ public class VisibilityMappingTraitDefinition extends AbstractNodeTraitDefinitio
 													   final String stepBpmnId) {
 
 		final Iterable<NodeInterface> tasks = instance.getProperty(instTasksKey);
-		if (tasks == null) return java.util.Collections.emptyList();
-		final java.util.List<NodeInterface> matches = new java.util.ArrayList<>();
+		if (tasks == null) {
+
+			return java.util.Collections.emptyList();
+		}
+		final java.util.List<NodeInterface> matches = new java.util.LinkedList<>();
 		final PropertyKey<String> elementBpmnIdKey = Traits.of(ProcessTraits.BPMN_ELEMENT)
 			.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY);
 		for (final NodeInterface t : tasks) {
+
 			final NodeInterface definedBy = t.getProperty(taskDefinedByKey);
-			if (definedBy == null) continue;
+			if (definedBy == null) {
+
+				continue;
+			}
 			if (stepBpmnId.equals(definedBy.getProperty(elementBpmnIdKey))) {
+
 				matches.add(t);
 			}
 		}
@@ -481,7 +550,10 @@ public class VisibilityMappingTraitDefinition extends AbstractNodeTraitDefinitio
 													  final String status) {
 
 		for (final NodeInterface t : tasksAtStep(instance, instTasksKey, taskDefinedByKey, stepBpmnId)) {
-			if (status.equals(t.getProperty(taskStatusKey))) return true;
+
+			if (status.equals(t.getProperty(taskStatusKey))) {
+				return true;
+			}
 		}
 		return false;
 	}

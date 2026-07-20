@@ -57,6 +57,7 @@ public class ProcessContext implements ProxyObject {
 	public Object getMember(String key) {
 
 		return switch (key) {
+
 			case "instance"   -> instance;
 			case "element"    -> element;
 			case "definition" -> definition;
@@ -73,6 +74,7 @@ public class ProcessContext implements ProxyObject {
 	public boolean hasMember(String key) {
 
 		return switch (key) {
+
 			case "instance", "element", "definition" -> true;
 			default -> parameterValues != null && parameterValues.containsKey(key);
 		};
@@ -80,6 +82,7 @@ public class ProcessContext implements ProxyObject {
 
 	@Override
 	public void putMember(String key, Value value) {
+
 		// Process parameter writes are not yet supported through this interface.
 		// Parameters are set via task.complete({...}) or signalEvent({...}).
 	}

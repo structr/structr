@@ -28,6 +28,9 @@ import org.structr.process.ProcessTraits;
 
 import java.util.Map;
 import java.util.Set;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.process.entity.BpmnTaskListener;
+import org.structr.process.traits.wrappers.BpmnTaskListenerTraitWrapper;
 
 /**
  * Per-userTask BPMN task listener declaration. Parsed from the BPMN element's
@@ -80,6 +83,14 @@ public class BpmnTaskListenerTraitDefinition extends AbstractNodeTraitDefinition
 
 	public BpmnTaskListenerTraitDefinition() {
 		super(ProcessTraits.BPMN_TASK_LISTENER);
+	}
+
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
+		return Map.of(
+			BpmnTaskListener.class, (traits, node) -> new BpmnTaskListenerTraitWrapper(traits, node)
+		);
 	}
 
 	@Override

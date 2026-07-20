@@ -21,19 +21,23 @@ package org.structr.process.entity;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 
-import java.util.List;
-
 /**
  * Typed view of a {@code BpmnProcess} node. Obtain via
  * {@code node.as(BpmnProcess.class)}.
  */
 public interface BpmnProcess extends NodeInterface {
 
+	String getBpmnId();
+	String getProcessId();
 	String getProcessName();
+	boolean isExecutable();
 	boolean isDefaultAssigneeFromInitiator();
 
-	List<BpmnElement> getElements();
-	List<NodeInterface> getProcessListeners();
+	Iterable<BpmnElement> getElements();
+	Iterable<BpmnSequenceFlow> getSequenceFlows();
+	Iterable<BpmnLane> getLanes();
+	Iterable<NodeInterface> getMethods();
+	Iterable<BpmnProcessListener> getProcessListeners();
 
 	/** The (single) top-level element with the given bpmnId, or {@code null}. */
 	BpmnElement getElementByBpmnId(String bpmnId);

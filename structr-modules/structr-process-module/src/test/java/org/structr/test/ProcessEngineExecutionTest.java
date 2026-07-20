@@ -25,6 +25,7 @@ import org.structr.process.ProcessTraits;
 import org.structr.process.traits.definitions.*;
 import org.testng.annotations.Test;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -52,11 +53,13 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 
 		final String instId;
 		try (final Tx tx = app.tx()) {
+
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
 			tx.success();
 		}
 
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface inst = app.getNodeById(instId);
 
 			// Instance is running, waiting at the user task.
@@ -81,18 +84,21 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 
 		final String instId;
 		try (final Tx tx = app.tx()) {
+
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
 			tx.success();
 		}
 
 		// Complete the review task with approved=true -> approved branch -> end.
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface inst = app.getNodeById(instId);
 			engine().completeTask(openTaskAt(inst, "UserTask_1"), Map.of("approved", true));
 			tx.success();
 		}
 
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface inst = app.getNodeById(instId);
 			assertEquals(ProcessInstanceTraitDefinition.STATUS_COMPLETED, instanceStatus(inst));
 			// 'approved' had no matching subject (none attached) -> stored as a parameter value.
@@ -111,17 +117,20 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 
 		final String instId;
 		try (final Tx tx = app.tx()) {
+
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
 			tx.success();
 		}
 
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface inst = app.getNodeById(instId);
 			engine().completeTask(openTaskAt(inst, "UserTask_1"), Map.of("approved", false));
 			tx.success();
 		}
 
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface inst = app.getNodeById(instId);
 			assertEquals(ProcessInstanceTraitDefinition.STATUS_COMPLETED, instanceStatus(inst));
 			assertEquals("false", parameterValues(inst).get("approved"));
@@ -136,6 +145,7 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 
 		final String instId;
 		try (final Tx tx = app.tx()) {
+
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
 			tx.success();
 		}
@@ -143,11 +153,15 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 		// Completing without 'approved' leaves both conditions false and there is no
 		// default flow -> the exclusive gateway raises a 422.
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface inst = app.getNodeById(instId);
 			try {
+
 				engine().completeTask(openTaskAt(inst, "UserTask_1"), Map.of());
 				fail("expected FrameworkException when no outgoing path matches");
+
 			} catch (final FrameworkException expected) {
+
 				assertEquals(422, expected.getStatus());
 			}
 			tx.success();
@@ -160,12 +174,14 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 		final String procUuid = importProcess("/simple-approval.bpmn");
 		final String instId;
 		try (final Tx tx = app.tx()) {
+
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
 			tx.success();
 		}
 
 		final String taskId;
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface inst = app.getNodeById(instId);
 			final NodeInterface task = openTaskAt(inst, "UserTask_1");
 			taskId = task.getUuid();
@@ -174,12 +190,109 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 		}
 
 		try (final Tx tx = app.tx()) {
+
 			try {
+
 				engine().completeTask(app.getNodeById(taskId), Map.of("approved", true));
 				fail("expected FrameworkException completing an already-completed task");
+
 			} catch (final FrameworkException expected) {
+
 				assertEquals(422, expected.getStatus());
 			}
+			tx.success();
+		}
+	}
+
+	// ==================================================================
+	// Exclusive gateway: default flow + implicit XOR (engine-exclusive-default / -implicit-xor)
+	// ==================================================================
+
+	@Test
+	public void testExclusiveGatewayDefaultFlowTaken() throws Exception {
+
+		final String procUuid = importProcess("/engine-exclusive-default.bpmn");
+
+		final String instId;
+		try (final Tx tx = app.tx()) {
+
+			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
+			tx.success();
+		}
+
+		// approved=false -> the single conditional (approved==true) fails -> the
+		// gateway's declared default flow is taken -> reject branch.
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface inst = app.getNodeById(instId);
+			engine().completeTask(openTaskAt(inst, "Task_Review"), Map.of("approved", false));
+			tx.success();
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface inst = app.getNodeById(instId);
+			assertNotNull("default flow should route to the reject task", openTaskAt(inst, "Task_Reject"));
+			assertNull(anyTaskAt(inst, "Task_Approve"));
+			tx.success();
+		}
+	}
+
+	@Test
+	public void testExclusiveGatewayConditionalWinsOverDefault() throws Exception {
+
+		final String procUuid = importProcess("/engine-exclusive-default.bpmn");
+
+		final String instId;
+		try (final Tx tx = app.tx()) {
+
+			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
+			tx.success();
+		}
+
+		// approved=true -> the conditional flow matches and is preferred over the default.
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface inst = app.getNodeById(instId);
+			engine().completeTask(openTaskAt(inst, "Task_Review"), Map.of("approved", true));
+			tx.success();
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface inst = app.getNodeById(instId);
+			assertNotNull(openTaskAt(inst, "Task_Approve"));
+			assertNull(anyTaskAt(inst, "Task_Reject"));
+			tx.success();
+		}
+	}
+
+	@Test
+	public void testImplicitExclusiveGatewayRouting() throws Exception {
+
+		// A user task with two conditional outgoing flows and no gateway: the engine
+		// routes it as an implicit exclusive gateway.
+		final String procUuid = importProcess("/engine-implicit-xor.bpmn");
+
+		final String instId;
+		try (final Tx tx = app.tx()) {
+
+			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
+			tx.success();
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface inst = app.getNodeById(instId);
+			engine().completeTask(openTaskAt(inst, "Task_Decide"), Map.of("route", "a"));
+			tx.success();
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface inst = app.getNodeById(instId);
+			assertNotNull(openTaskAt(inst, "Task_A"));
+			assertNull(anyTaskAt(inst, "Task_B"));
 			tx.success();
 		}
 	}
@@ -195,12 +308,14 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 
 		final String instId;
 		try (final Tx tx = app.tx()) {
+
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
 			tx.success();
 		}
 
 		// After the fork: two parallel user tasks are open, instance still running.
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface inst = app.getNodeById(instId);
 			assertEquals(ProcessInstanceTraitDefinition.STATUS_RUNNING, instanceStatus(inst));
 			assertNotNull(openTaskAt(inst, "Task_A"));
@@ -211,11 +326,13 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 
 		// Completing the first branch leaves the join waiting.
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface inst = app.getNodeById(instId);
 			engine().completeTask(openTaskAt(inst, "Task_A"), Map.of());
 			tx.success();
 		}
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface inst = app.getNodeById(instId);
 			assertEquals(ProcessInstanceTraitDefinition.STATUS_RUNNING, instanceStatus(inst));
 			tx.success();
@@ -223,11 +340,13 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 
 		// Completing the second branch satisfies the join -> process completes.
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface inst = app.getNodeById(instId);
 			engine().completeTask(openTaskAt(inst, "Task_B"), Map.of());
 			tx.success();
 		}
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface inst = app.getNodeById(instId);
 			assertEquals(ProcessInstanceTraitDefinition.STATUS_COMPLETED, instanceStatus(inst));
 			assertEquals(0, tokenCount(inst, ProcessTokenTraitDefinition.STATUS_WAITING));
@@ -245,12 +364,14 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 		final String procUuid = importProcess("/engine-inclusive.bpmn");
 		final String instId;
 		try (final Tx tx = app.tx()) {
+
 			instId = engine().startProcess(app.getNodeById(procUuid), null,
 				Map.of("branchA", true, "branchB", true)).getUuid();
 			tx.success();
 		}
 
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface inst = app.getNodeById(instId);
 			assertNotNull("branch A taken", openTaskAt(inst, "Task_A"));
 			assertNotNull("branch B taken", openTaskAt(inst, "Task_B"));
@@ -260,11 +381,13 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 		}
 
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface inst = app.getNodeById(instId);
 			engine().completeTask(openTaskAt(inst, "Task_A"), Map.of());
 			tx.success();
 		}
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface inst = app.getNodeById(instId);
 			// join still waiting for branch B
 			assertEquals(ProcessInstanceTraitDefinition.STATUS_RUNNING, instanceStatus(inst));
@@ -272,6 +395,7 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 			tx.success();
 		}
 		try (final Tx tx = app.tx()) {
+
 			assertEquals(ProcessInstanceTraitDefinition.STATUS_COMPLETED, instanceStatus(app.getNodeById(instId)));
 			tx.success();
 		}
@@ -283,12 +407,14 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 		final String procUuid = importProcess("/engine-inclusive.bpmn");
 		final String instId;
 		try (final Tx tx = app.tx()) {
+
 			instId = engine().startProcess(app.getNodeById(procUuid), null,
 				Map.of("branchA", true, "branchB", false)).getUuid();
 			tx.success();
 		}
 
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface inst = app.getNodeById(instId);
 			assertNotNull(openTaskAt(inst, "Task_A"));
 			assertNull(openTaskAt(inst, "Task_B"));
@@ -297,6 +423,7 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 			tx.success();
 		}
 		try (final Tx tx = app.tx()) {
+
 			assertEquals(ProcessInstanceTraitDefinition.STATUS_COMPLETED, instanceStatus(app.getNodeById(instId)));
 			tx.success();
 		}
@@ -311,10 +438,12 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 		// No parameters -> neither condition matches -> the default (service) branch
 		// runs and the process completes synchronously.
 		try (final Tx tx = app.tx()) {
+
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
 			tx.success();
 		}
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface inst = app.getNodeById(instId);
 			assertEquals(ProcessInstanceTraitDefinition.STATUS_COMPLETED, instanceStatus(inst));
 			assertNull(anyTaskAt(inst, "Task_A"));
@@ -333,6 +462,7 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 		final String procUuid = importProcess("/engine-subprocess.bpmn");
 		final String instId;
 		try (final Tx tx = app.tx()) {
+
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
 			tx.success();
 		}
@@ -340,6 +470,7 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 		// Inside the sub-process: the inner user task is open, the parent token
 		// waits on the sub-process element.
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface inst = app.getNodeById(instId);
 			assertEquals(ProcessInstanceTraitDefinition.STATUS_RUNNING, instanceStatus(inst));
 			assertNotNull(openTaskAt(inst, "Sub_Task"));
@@ -351,11 +482,13 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 		// Completing the inner task ends the sub-process, resumes the parent, runs the
 		// following service task and reaches the end event.
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface inst = app.getNodeById(instId);
 			engine().completeTask(openTaskAt(inst, "Sub_Task"), Map.of());
 			tx.success();
 		}
 		try (final Tx tx = app.tx()) {
+
 			assertEquals(ProcessInstanceTraitDefinition.STATUS_COMPLETED, instanceStatus(app.getNodeById(instId)));
 			tx.success();
 		}
@@ -371,11 +504,13 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 		final String procUuid = importProcess("/engine-catch-signal.bpmn");
 		final String instId;
 		try (final Tx tx = app.tx()) {
+
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
 			tx.success();
 		}
 
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface inst = app.getNodeById(instId);
 			assertEquals(ProcessInstanceTraitDefinition.STATUS_RUNNING, instanceStatus(inst));
 			assertEquals(List.of("Catch_1"), waitingTokenElementIds(inst));
@@ -385,10 +520,12 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 
 		// Signalling the catch event resumes the token through to completion.
 		try (final Tx tx = app.tx()) {
+
 			engine().signalEvent(app.getNodeById(instId), "Catch_1", null);
 			tx.success();
 		}
 		try (final Tx tx = app.tx()) {
+
 			assertEquals(ProcessInstanceTraitDefinition.STATUS_COMPLETED, instanceStatus(app.getNodeById(instId)));
 			tx.success();
 		}
@@ -400,14 +537,19 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 		final String procUuid = importProcess("/engine-catch-signal.bpmn");
 		final String instId;
 		try (final Tx tx = app.tx()) {
+
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
 			tx.success();
 		}
 		try (final Tx tx = app.tx()) {
+
 			try {
+
 				engine().signalEvent(app.getNodeById(instId), "does_not_exist", null);
 				fail("expected FrameworkException for unknown catch event id");
+
 			} catch (final FrameworkException expected) {
+
 				assertEquals(422, expected.getStatus());
 			}
 			tx.success();
@@ -424,12 +566,14 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 		final String procUuid = importProcess("/engine-timer-intermediate.bpmn");
 		final String instId;
 		try (final Tx tx = app.tx()) {
+
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
 			tx.success();
 		}
 
 		final String timerId;
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface inst = app.getNodeById(instId);
 			assertEquals(List.of("Timer_1"), waitingTokenElementIds(inst));
 
@@ -444,10 +588,12 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 
 		// Fire the timer directly (as the ProcessTimerService would).
 		try (final Tx tx = app.tx()) {
+
 			engine().fireTimer(app.getNodeById(timerId));
 			tx.success();
 		}
 		try (final Tx tx = app.tx()) {
+
 			assertEquals(ProcessInstanceTraitDefinition.STATUS_COMPLETED, instanceStatus(app.getNodeById(instId)));
 			assertEquals(ProcessTimerTraitDefinition.STATUS_FIRED, timerStatus(app.getNodeById(timerId)));
 			tx.success();
@@ -464,12 +610,14 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 		final String procUuid = importProcess("/engine-boundary-timer.bpmn");
 		final String instId;
 		try (final Tx tx = app.tx()) {
+
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
 			tx.success();
 		}
 
 		final String timerId;
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface inst = app.getNodeById(instId);
 			assertNotNull(openTaskAt(inst, "Task_Work"));
 			final List<NodeInterface> pending = pendingTimers();
@@ -481,11 +629,13 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 		}
 
 		try (final Tx tx = app.tx()) {
+
 			engine().fireTimer(app.getNodeById(timerId));
 			tx.success();
 		}
 
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface inst = app.getNodeById(instId);
 			// interrupting: the task was cancelled and the process took the escalation path.
 			final NodeInterface task = anyTaskAt(inst, "Task_Work");
@@ -501,17 +651,20 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 		final String procUuid = importProcess("/engine-boundary-timer.bpmn");
 		final String instId;
 		try (final Tx tx = app.tx()) {
+
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
 			tx.success();
 		}
 
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface inst = app.getNodeById(instId);
 			engine().completeTask(openTaskAt(inst, "Task_Work"), Map.of());
 			tx.success();
 		}
 
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface inst = app.getNodeById(instId);
 			assertEquals(ProcessInstanceTraitDefinition.STATUS_COMPLETED, instanceStatus(inst));
 			// The boundary timer must have been cancelled when the task completed normally.
@@ -528,22 +681,26 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 		final String procUuid = importProcess("/engine-boundary-timer-reminder.bpmn");
 		final String instId;
 		try (final Tx tx = app.tx()) {
+
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
 			tx.success();
 		}
 
 		final String timerId;
 		try (final Tx tx = app.tx()) {
+
 			timerId = pendingTimers().get(0).getUuid();
 			tx.success();
 		}
 
 		// Fire the reminder: the escalation branch runs but the task stays open.
 		try (final Tx tx = app.tx()) {
+
 			engine().fireTimer(app.getNodeById(timerId));
 			tx.success();
 		}
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface inst = app.getNodeById(instId);
 			assertEquals("task must survive a non-interrupting timer",
 				TaskInstanceTraitDefinition.STATUS_CREATED, taskStatus(anyTaskAt(inst, "Task_Work")));
@@ -553,12 +710,83 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 
 		// Completing the task now finishes the process (the reminder branch already ended).
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface inst = app.getNodeById(instId);
 			engine().completeTask(openTaskAt(inst, "Task_Work"), Map.of());
 			tx.success();
 		}
 		try (final Tx tx = app.tx()) {
+
 			assertEquals(ProcessInstanceTraitDefinition.STATUS_COMPLETED, instanceStatus(app.getNodeById(instId)));
+			tx.success();
+		}
+	}
+
+	@Test
+	public void testCancelBoundaryTimerByBpmnId() throws Exception {
+
+		final String procUuid = importProcess("/engine-boundary-timer.bpmn");
+
+		final String instId;
+		try (final Tx tx = app.tx()) {
+
+			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
+			tx.success();
+		}
+
+		// Explicitly cancel the armed boundary timer by its bpmnId (e.g. what a
+		// 'claimed' listener does to stop an escalation timer).
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface task = openTaskAt(app.getNodeById(instId), "Task_Work");
+			assertEquals(1, pendingTimers().size());
+
+			final int cancelled = engine().cancelBoundaryTimerByBpmnId(task, "Boundary_Timeout");
+			assertEquals(1, cancelled);
+			// A non-matching id cancels nothing.
+			assertEquals(0, engine().cancelBoundaryTimerByBpmnId(task, "Does_Not_Exist"));
+			tx.success();
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			assertTrue("timer must be cancelled", pendingTimers().isEmpty());
+			assertEquals(ProcessTimerTraitDefinition.STATUS_CANCELLED, timerStatus(allTimers().get(0)));
+			tx.success();
+		}
+	}
+
+	@Test
+	public void testFireTimerUnsupportedTypeGoesToErrorAndStops() throws Exception {
+
+		// A timer whose type the engine does not implement must transition to a
+		// terminal 'error' status (with a message) -- NOT stay pending and re-fire.
+		final String timerId;
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface timer = app.create(ProcessTraits.PROCESS_TIMER);
+			final var t = timer.getTraits();
+			timer.setProperty(t.key(ProcessTimerTraitDefinition.STATUS_PROPERTY),     ProcessTimerTraitDefinition.STATUS_PENDING);
+			timer.setProperty(t.key(ProcessTimerTraitDefinition.TIMER_TYPE_PROPERTY), ProcessTimerTraitDefinition.TIMER_START);
+			timer.setProperty(t.key(ProcessTimerTraitDefinition.FIRE_AT_PROPERTY),    new Date());
+			timerId = timer.getUuid();
+			tx.success();
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			engine().fireTimer(app.getNodeById(timerId));
+			tx.success();
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface timer = app.getNodeById(timerId);
+			assertEquals(ProcessTimerTraitDefinition.STATUS_ERROR, timerStatus(timer));
+			assertNotNull("an error message should be recorded",
+				timer.getProperty(timer.getTraits().key(ProcessTimerTraitDefinition.ERROR_MESSAGE_PROPERTY)));
+			// Terminal status means pollAndFire (which only selects 'pending') never re-fires it.
+			assertTrue(pendingTimers().isEmpty());
 			tx.success();
 		}
 	}
@@ -573,11 +801,13 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 		final String procUuid = importProcess("/engine-script.bpmn");
 		final String instId;
 		try (final Tx tx = app.tx()) {
+
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
 			tx.success();
 		}
 
 		try (final Tx tx = app.tx()) {
+
 			assertEquals(ProcessInstanceTraitDefinition.STATUS_COMPLETED, instanceStatus(app.getNodeById(instId)));
 			final List<NodeInterface> markers = app.nodeQuery("TestOne").name("script-marker").getAsList();
 			assertEquals("script task should have created exactly one marker node", 1, markers.size());
@@ -591,11 +821,13 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 		final String procUuid = importProcess("/engine-script-error.bpmn");
 		final String instId;
 		try (final Tx tx = app.tx()) {
+
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
 			tx.success();
 		}
 
 		try (final Tx tx = app.tx()) {
+
 			// A throwing script must not abort the process.
 			assertEquals(ProcessInstanceTraitDefinition.STATUS_COMPLETED, instanceStatus(app.getNodeById(instId)));
 			tx.success();
@@ -615,12 +847,14 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 
 		final String instId;
 		try (final Tx tx = app.tx()) {
+
 			instId = engineAs(initiator).startProcess(app.getNodeById(procUuid), app.getNodeById(subject.getUuid())).getUuid();
 			tx.success();
 		}
 
 		// Complete the task with one subject field (aString) and one non-subject field (note).
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface inst = app.getNodeById(instId);
 			engine().completeTask(openTaskAt(inst, "Task_Fill"),
 				Map.of("aString", "hello world", "note", "process only"));
@@ -628,6 +862,7 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 		}
 
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface inst = app.getNodeById(instId);
 			assertEquals(ProcessInstanceTraitDefinition.STATUS_COMPLETED, instanceStatus(inst));
 
@@ -654,38 +889,47 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 		final String procUuid = importProcess("/engine-catch-signal.bpmn");
 		final String instId;
 		try (final Tx tx = app.tx()) {
+
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
 			tx.success();
 		}
 
 		try (final Tx tx = app.tx()) {
+
 			engine().suspendProcess(app.getNodeById(instId));
 			tx.success();
 		}
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface inst = app.getNodeById(instId);
 			assertEquals(ProcessInstanceTraitDefinition.STATUS_SUSPENDED, instanceStatus(inst));
 			// Signalling a suspended instance is rejected.
 			try {
+
 				engine().signalEvent(inst, "Catch_1", null);
 				fail("expected FrameworkException signalling a suspended instance");
+
 			} catch (final FrameworkException expected) {
+
 				assertEquals(422, expected.getStatus());
 			}
 			tx.success();
 		}
 
 		try (final Tx tx = app.tx()) {
+
 			engine().resumeProcess(app.getNodeById(instId));
 			tx.success();
 		}
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface inst = app.getNodeById(instId);
 			assertEquals(ProcessInstanceTraitDefinition.STATUS_RUNNING, instanceStatus(inst));
 			engine().signalEvent(inst, "Catch_1", null);
 			tx.success();
 		}
 		try (final Tx tx = app.tx()) {
+
 			assertEquals(ProcessInstanceTraitDefinition.STATUS_COMPLETED, instanceStatus(app.getNodeById(instId)));
 			tx.success();
 		}
@@ -697,15 +941,18 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 		final String procUuid = importProcess("/engine-catch-signal.bpmn");
 		final String instId;
 		try (final Tx tx = app.tx()) {
+
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
 			tx.success();
 		}
 
 		try (final Tx tx = app.tx()) {
+
 			engine().terminateProcess(app.getNodeById(instId));
 			tx.success();
 		}
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface inst = app.getNodeById(instId);
 			assertEquals(ProcessInstanceTraitDefinition.STATUS_TERMINATED, instanceStatus(inst));
 			// The previously-waiting token was consumed (marked completed) without advancing.
@@ -721,16 +968,21 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 		final String procUuid = importProcess("/engine-catch-signal.bpmn");
 		final String instId;
 		try (final Tx tx = app.tx()) {
+
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
 			tx.success();
 		}
 
 		// resume while running -> 422
 		try (final Tx tx = app.tx()) {
+
 			try {
+
 				engine().resumeProcess(app.getNodeById(instId));
 				fail("expected FrameworkException resuming a running instance");
+
 			} catch (final FrameworkException expected) {
+
 				assertEquals(422, expected.getStatus());
 			}
 			tx.success();
@@ -738,21 +990,29 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 
 		// terminate, then terminating again / suspending are rejected
 		try (final Tx tx = app.tx()) {
+
 			engine().terminateProcess(app.getNodeById(instId));
 			tx.success();
 		}
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface inst = app.getNodeById(instId);
 			try {
+
 				engine().terminateProcess(inst);
 				fail("expected FrameworkException terminating a terminated instance");
+
 			} catch (final FrameworkException expected) {
+
 				assertEquals(422, expected.getStatus());
 			}
 			try {
+
 				engine().suspendProcess(inst);
 				fail("expected FrameworkException suspending a non-running instance");
+
 			} catch (final FrameworkException expected) {
+
 				assertEquals(422, expected.getStatus());
 			}
 			tx.success();
@@ -765,6 +1025,7 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 		// A process definition with no start event cannot be started.
 		final String procUuid;
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface def  = app.create(ProcessTraits.BPMN_DEFINITIONS, "empty-def");
 			final NodeInterface proc = app.create(ProcessTraits.BPMN_PROCESS, "empty-proc");
 			proc.setProperty(proc.getTraits().key(BpmnProcessTraitDefinition.DEFINITION_PROPERTY), def);
@@ -773,10 +1034,14 @@ public class ProcessEngineExecutionTest extends AbstractProcessEngineTest {
 		}
 
 		try (final Tx tx = app.tx()) {
+
 			try {
+
 				engine().startProcess(app.getNodeById(procUuid), null);
 				fail("expected FrameworkException starting a process without a start event");
+
 			} catch (final FrameworkException expected) {
+
 				assertEquals(422, expected.getStatus());
 			}
 			tx.success();

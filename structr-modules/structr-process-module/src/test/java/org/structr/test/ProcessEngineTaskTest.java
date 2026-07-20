@@ -52,11 +52,13 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 
 		final String instId;
 		try (final Tx tx = app.tx()) {
+
 			instId = engineAs(init).startProcess(app.getNodeById(procUuid), null).getUuid();
 			tx.success();
 		}
 
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface task = openTaskAt(app.getNodeById(instId), "Task_Fill");
 			assertEquals(TaskInstanceTraitDefinition.STATUS_RESERVED, taskStatus(task));
 			assertEquals(init.getUuid(), assigneeOf(task).getUuid());
@@ -74,11 +76,13 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 
 		final String instId;
 		try (final Tx tx = app.tx()) {
+
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
 			tx.success();
 		}
 
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface task = openTaskAt(app.getNodeById(instId), "Task_Review");
 			assertEquals(TaskInstanceTraitDefinition.STATUS_AVAILABLE, taskStatus(task));
 			assertTrue("the Reviewers group should be a candidate assignee",
@@ -94,6 +98,7 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 		// falls back to the initiator.
 		final String procUuid = importProcess("/simple-approval.bpmn");
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface proc = app.getNodeById(procUuid);
 			proc.setProperty(proc.getTraits().key(BpmnProcessTraitDefinition.DEFAULT_ASSIGNEE_FROM_INITIATOR_PROPERTY), true);
 			tx.success();
@@ -102,11 +107,13 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 		final NodeInterface init = createUser("initiator");
 		final String instId;
 		try (final Tx tx = app.tx()) {
+
 			instId = engineAs(init).startProcess(app.getNodeById(procUuid), null).getUuid();
 			tx.success();
 		}
 
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface task = openTaskAt(app.getNodeById(instId), "UserTask_1");
 			assertEquals(TaskInstanceTraitDefinition.STATUS_RESERVED, taskStatus(task));
 			assertEquals(init.getUuid(), assigneeOf(task).getUuid());
@@ -124,12 +131,14 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 		final Ctx c = startCandidateTask();
 
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface task = openTaskAt(app.getNodeById(c.instId), "Task_Review");
 			engineAs(c.member).claimTask(task);
 			tx.success();
 		}
 
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface task = anyTaskAt(app.getNodeById(c.instId), "Task_Review");
 			assertEquals(TaskInstanceTraitDefinition.STATUS_RESERVED, taskStatus(task));
 			assertEquals(c.member.getUuid(), assigneeOf(task).getUuid());
@@ -146,10 +155,14 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 		final NodeInterface outsider = createUser("outsider");
 
 		try (final Tx tx = app.tx()) {
+
 			try {
+
 				engineAs(outsider).claimTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"));
 				fail("expected 403 claiming as a non-candidate");
+
 			} catch (final FrameworkException expected) {
+
 				assertEquals(403, expected.getStatus());
 			}
 			tx.success();
@@ -164,14 +177,19 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 		addToGroup(c.group, member2);
 
 		try (final Tx tx = app.tx()) {
+
 			engineAs(c.member).claimTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"));
 			tx.success();
 		}
 		try (final Tx tx = app.tx()) {
+
 			try {
+
 				engineAs(member2).claimTask(anyTaskAt(app.getNodeById(c.instId), "Task_Review"));
 				fail("expected 422 claiming a task that is no longer available");
+
 			} catch (final FrameworkException expected) {
+
 				assertEquals(422, expected.getStatus());
 			}
 			tx.success();
@@ -187,14 +205,17 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 
 		final Ctx c = startCandidateTask();
 		try (final Tx tx = app.tx()) {
+
 			engineAs(c.member).claimTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"));
 			tx.success();
 		}
 		try (final Tx tx = app.tx()) {
+
 			engineAs(c.member).releaseTask(anyTaskAt(app.getNodeById(c.instId), "Task_Review"));
 			tx.success();
 		}
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface task = anyTaskAt(app.getNodeById(c.instId), "Task_Review");
 			assertEquals(TaskInstanceTraitDefinition.STATUS_AVAILABLE, taskStatus(task));
 			assertNull(assigneeOf(task));
@@ -210,14 +231,19 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 		addToGroup(c.group, member2);
 
 		try (final Tx tx = app.tx()) {
+
 			engineAs(c.member).claimTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"));
 			tx.success();
 		}
 		try (final Tx tx = app.tx()) {
+
 			try {
+
 				engineAs(member2).releaseTask(anyTaskAt(app.getNodeById(c.instId), "Task_Review"));
 				fail("expected 403 releasing a task held by someone else");
+
 			} catch (final FrameworkException expected) {
+
 				assertEquals(403, expected.getStatus());
 			}
 			tx.success();
@@ -233,10 +259,12 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 
 		final Ctx c = startCandidateTask();
 		try (final Tx tx = app.tx()) {
+
 			engineAs(c.member).declineTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"));
 			tx.success();
 		}
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface task = anyTaskAt(app.getNodeById(c.instId), "Task_Review");
 			assertEquals(TaskInstanceTraitDefinition.STATUS_AVAILABLE, taskStatus(task));
 			assertTrue(declinedByIds(task).contains(c.member.getUuid()));
@@ -249,14 +277,17 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 
 		final Ctx c = startCandidateTask();
 		try (final Tx tx = app.tx()) {
+
 			engineAs(c.member).declineTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"));
 			tx.success();
 		}
 		try (final Tx tx = app.tx()) {
+
 			engineAs(c.member).claimTask(anyTaskAt(app.getNodeById(c.instId), "Task_Review"));
 			tx.success();
 		}
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface task = anyTaskAt(app.getNodeById(c.instId), "Task_Review");
 			assertEquals(TaskInstanceTraitDefinition.STATUS_RESERVED, taskStatus(task));
 			assertFalse("claim should remove the caller from declinedBy",
@@ -271,10 +302,14 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 		final Ctx c = startCandidateTask();
 		final NodeInterface outsider = createUser("outsider");
 		try (final Tx tx = app.tx()) {
+
 			try {
+
 				engineAs(outsider).declineTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"));
 				fail("expected 403 declining as a non-candidate");
+
 			} catch (final FrameworkException expected) {
+
 				assertEquals(403, expected.getStatus());
 			}
 			tx.success();
@@ -292,15 +327,18 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 		final NodeInterface delegate = createUser("delegate");
 
 		try (final Tx tx = app.tx()) {
+
 			engineAs(c.member).claimTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"));
 			tx.success();
 		}
 		try (final Tx tx = app.tx()) {
+
 			engineAs(c.member).delegateTask(anyTaskAt(app.getNodeById(c.instId), "Task_Review"),
 				app.getNodeById(delegate.getUuid()));
 			tx.success();
 		}
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface task = anyTaskAt(app.getNodeById(c.instId), "Task_Review");
 			assertEquals(TaskInstanceTraitDefinition.STATUS_RESERVED, taskStatus(task));
 			assertEquals(delegate.getUuid(), assigneeOf(task).getUuid());
@@ -317,11 +355,13 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 		final NodeInterface delegate = createUser("delegate");
 
 		try (final Tx tx = app.tx()) {
+
 			engineAs(c.member).delegateTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"),
 				app.getNodeById(delegate.getUuid()));
 			tx.success();
 		}
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface task = anyTaskAt(app.getNodeById(c.instId), "Task_Review");
 			assertEquals(TaskInstanceTraitDefinition.STATUS_RESERVED, taskStatus(task));
 			assertEquals(delegate.getUuid(), assigneeOf(task).getUuid());
@@ -340,11 +380,13 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 		final NodeInterface other = createUser("non-candidate");
 
 		try (final Tx tx = app.tx()) {
+
 			engine().assignTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"),
 				app.getNodeById(other.getUuid()));
 			tx.success();
 		}
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface task = anyTaskAt(app.getNodeById(c.instId), "Task_Review");
 			assertEquals(TaskInstanceTraitDefinition.STATUS_RESERVED, taskStatus(task));
 			assertEquals(other.getUuid(), assigneeOf(task).getUuid());
@@ -361,15 +403,18 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 		final NodeInterface other = createUser("non-candidate");
 
 		try (final Tx tx = app.tx()) {
+
 			engine().assignTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"),
 				app.getNodeById(other.getUuid()));
 			tx.success();
 		}
 		try (final Tx tx = app.tx()) {
+
 			engine().makeTaskAvailable(anyTaskAt(app.getNodeById(c.instId), "Task_Review"));
 			tx.success();
 		}
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface task = anyTaskAt(app.getNodeById(c.instId), "Task_Review");
 			assertEquals(TaskInstanceTraitDefinition.STATUS_AVAILABLE, taskStatus(task));
 			assertNull(assigneeOf(task));
@@ -382,10 +427,12 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 
 		final Ctx c = startCandidateTask();
 		try (final Tx tx = app.tx()) {
+
 			engine().cancelTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"));
 			tx.success();
 		}
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface inst = app.getNodeById(c.instId);
 			final NodeInterface task = anyTaskAt(inst, "Task_Review");
 			assertEquals(TaskInstanceTraitDefinition.STATUS_CANCELLED, taskStatus(task));
@@ -406,18 +453,106 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 
 		final Ctx c = startCandidateTask();
 		try (final Tx tx = app.tx()) {
+
 			engineAs(c.member).claimTask(openTaskAt(app.getNodeById(c.instId), "Task_Review"));
 			tx.success();
 		}
 		try (final Tx tx = app.tx()) {
+
 			engineAs(c.member).completeTask(anyTaskAt(app.getNodeById(c.instId), "Task_Review"), Map.of());
 			tx.success();
 		}
 		try (final Tx tx = app.tx()) {
+
 			final NodeInterface inst = app.getNodeById(c.instId);
 			assertEquals(ProcessInstanceTraitDefinition.STATUS_COMPLETED, instanceStatus(inst));
 			assertEquals(TaskInstanceTraitDefinition.STATUS_COMPLETED,
 				taskStatus(anyTaskAt(inst, "Task_Review")));
+			tx.success();
+		}
+	}
+
+	// ------------------------------------------------------------------
+	// Authorization gates on the admin JavaMethod entry points
+	//
+	// The other tests call the engine directly, which has no permission gate.
+	// These drive the actual JavaMethod entry points (via invokeMethod) to verify
+	// the accessControl checks that guard the admin operations.
+	// ------------------------------------------------------------------
+
+	@Test
+	public void testCancelMethodRequiresAccessControl() throws Exception {
+
+		final Ctx c = startCandidateTask();
+		final String taskId;
+		try (final Tx tx = app.tx()) {
+
+			taskId = openTaskAt(app.getNodeById(c.instId), "Task_Review").getUuid();
+			tx.success();
+		}
+
+		// The candidate member has read+write but NOT accessControl -> the 'cancel'
+		// method's gate rejects with 403 (a direct engine call would have allowed it).
+		try (final Tx tx = app.tx()) {
+
+			try {
+
+				invokeMethod(userContext(c.member), app.getNodeById(taskId), "cancel", Map.of(), false);
+				fail("expected 403 invoking 'cancel' without accessControl");
+
+			} catch (final FrameworkException expected) {
+
+				assertEquals(403, expected.getStatus());
+			}
+			tx.success();
+		}
+
+		// The super user holds accessControl -> the method proceeds and cancels the task.
+		try (final Tx tx = app.tx()) {
+
+			invokeMethod(securityContext, app.getNodeById(taskId), "cancel", Map.of(), false);
+			tx.success();
+		}
+		try (final Tx tx = app.tx()) {
+
+			assertEquals(TaskInstanceTraitDefinition.STATUS_CANCELLED, taskStatus(app.getNodeById(taskId)));
+			tx.success();
+		}
+	}
+
+	@Test
+	public void testMakeAvailableAndAssignTaskRequireAccessControl() throws Exception {
+
+		final Ctx c = startCandidateTask();
+		final NodeInterface other = createUser("non-admin-target");
+		final String taskId;
+		try (final Tx tx = app.tx()) {
+
+			taskId = openTaskAt(app.getNodeById(c.instId), "Task_Review").getUuid();
+			tx.success();
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			try {
+
+				invokeMethod(userContext(c.member), app.getNodeById(taskId), "makeAvailable", Map.of(), false);
+				fail("expected 403 invoking 'makeAvailable' without accessControl");
+
+			} catch (final FrameworkException expected) {
+
+				assertEquals(403, expected.getStatus());
+			}
+			try {
+
+				invokeMethod(userContext(c.member), app.getNodeById(taskId), "assignTask",
+					Map.of("assignee", other.getUuid()), false);
+				fail("expected 403 invoking 'assignTask' without accessControl");
+
+			} catch (final FrameworkException expected) {
+
+				assertEquals(403, expected.getStatus());
+			}
 			tx.success();
 		}
 	}
@@ -444,6 +579,7 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 
 		final String instId;
 		try (final Tx tx = app.tx()) {
+
 			instId = engine().startProcess(app.getNodeById(procUuid), null).getUuid();
 			tx.success();
 		}
@@ -453,6 +589,7 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 	private Set<String> candidateAssigneeIds(final NodeInterface task) throws FrameworkException {
 		final Set<String> ids = new HashSet<>();
 		for (final NodeInterface n : collect(task.getProperty(task.getTraits().key(TaskInstanceTraitDefinition.CANDIDATE_ASSIGNEES_PROPERTY)))) {
+
 			ids.add(n.getUuid());
 		}
 		return ids;
@@ -461,6 +598,7 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 	private Set<String> declinedByIds(final NodeInterface task) throws FrameworkException {
 		final Set<String> ids = new HashSet<>();
 		for (final NodeInterface n : collect(task.getProperty(task.getTraits().key(TaskInstanceTraitDefinition.DECLINED_BY_PROPERTY)))) {
+
 			ids.add(n.getUuid());
 		}
 		return ids;

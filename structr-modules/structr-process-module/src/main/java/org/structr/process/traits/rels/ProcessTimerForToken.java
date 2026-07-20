@@ -36,20 +36,77 @@ import org.structr.process.ProcessTraits;
  */
 public class ProcessTimerForToken extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	public ProcessTimerForToken() { super(ProcessTraits.PROCESS_TIMER_FOR_TOKEN); }
+	public ProcessTimerForToken() {
+		super(ProcessTraits.PROCESS_TIMER_FOR_TOKEN);
+	}
 
-	@Override public String getSourceType() { return ProcessTraits.PROCESS_TIMER; }
-	@Override public String getTargetType() { return ProcessTraits.PROCESS_TOKEN; }
-	@Override public String getRelationshipType() { return "FOR_TOKEN"; }
-	@Override public Relation.Multiplicity getSourceMultiplicity() { return Relation.Multiplicity.Many; }
-	@Override public Relation.Multiplicity getTargetMultiplicity() { return Relation.Multiplicity.One; }
-	@Override public int getCascadingDeleteFlag() { return Relation.NONE; }
-	@Override public int getAutocreationFlag() { return Relation.NONE; }
-	@Override public boolean isInternal() { return false; }
-	@Override public PropagationDirection getPropagationDirection() { return PropagationDirection.None; }
-	@Override public PropagationMode getReadPropagation() { return PropagationMode.Keep; }
-	@Override public PropagationMode getWritePropagation() { return PropagationMode.Keep; }
-	@Override public PropagationMode getDeletePropagation() { return PropagationMode.Keep; }
-	@Override public PropagationMode getAccessControlPropagation() { return PropagationMode.Keep; }
-	@Override public String getDeltaProperties() { return null; }
+	@Override
+	public String getSourceType() {
+		return ProcessTraits.PROCESS_TIMER;
+	}
+
+	@Override
+	public String getTargetType() {
+		return ProcessTraits.PROCESS_TOKEN;
+	}
+
+	@Override
+	public String getRelationshipType() {
+		return "FOR_TOKEN";
+	}
+
+	@Override
+	public Relation.Multiplicity getSourceMultiplicity() {
+		return Relation.Multiplicity.Many;
+	}
+
+	@Override
+	public Relation.Multiplicity getTargetMultiplicity() {
+		return Relation.Multiplicity.One;
+	}
+
+	@Override
+	public int getCascadingDeleteFlag() {
+		return Relation.NONE;
+	}
+
+	@Override
+	public int getAutocreationFlag() {
+		return Relation.NONE;
+	}
+
+	@Override
+	public boolean isInternal() {
+		return false;
+	}
+
+	@Override
+	public PropagationDirection getPropagationDirection() {
+		return PropagationDirection.None;
+	}
+
+	@Override
+	public PropagationMode getReadPropagation() {
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public PropagationMode getWritePropagation() {
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public PropagationMode getDeletePropagation() {
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public PropagationMode getAccessControlPropagation() {
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public String getDeltaProperties() {
+		return null;
+	}
 }

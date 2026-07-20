@@ -28,7 +28,7 @@ import org.structr.core.traits.Traits;
 import org.structr.process.ProcessTraits;
 import org.structr.process.traits.definitions.ProcessInstanceTraitDefinition;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -69,6 +69,7 @@ public final class PrincipalExpressionResolver {
 	private final NodeInterface processInstance;
 
 	public PrincipalExpressionResolver(final App app, final NodeInterface processInstance) {
+
 		this.app = app;
 		this.processInstance = processInstance;
 	}
@@ -80,22 +81,27 @@ public final class PrincipalExpressionResolver {
 	 */
 	public List<NodeInterface> resolveAll(final String expressionBody, final String contextLabel) throws FrameworkException {
 
-		final List<NodeInterface> result = new ArrayList<>();
+		final List<NodeInterface> result = new LinkedList<>();
 		if (expressionBody == null) {
+
 			return result;
 		}
 		final String trimmed = expressionBody.trim();
 		if (trimmed.isEmpty()) {
+
 			return result;
 		}
 
 		for (final String rawEntry : SPLIT_TOP_LEVEL_COMMA.split(trimmed)) {
+
 			final String entry = rawEntry.trim();
 			if (entry.isEmpty()) {
+
 				continue;
 			}
 			final NodeInterface resolved = resolveOne(entry, contextLabel);
 			if (resolved != null) {
+
 				result.add(resolved);
 			}
 		}
@@ -111,9 +117,11 @@ public final class PrincipalExpressionResolver {
 
 		// ${initiator}
 		if ("${initiator}".equals(entry)) {
+
 			final Traits instTraits = processInstance.getTraits();
 			final NodeInterface initiator = processInstance.getProperty(instTraits.key(ProcessInstanceTraitDefinition.INITIATOR_PROPERTY));
 			if (initiator == null) {
+
 				logger.warn("Expression '${{initiator}}' in {} resolved to null (process instance has no recorded initiator).", contextLabel);
 			}
 			return initiator;
@@ -122,11 +130,13 @@ public final class PrincipalExpressionResolver {
 		// user(name) / group(name)
 		final Matcher m = PRINCIPAL_FN.matcher(entry);
 		if (m.matches()) {
+
 			final String kind = m.group(1);
 			final String name = m.group(2).trim();
 			final String typeName = "user".equals(kind) ? StructrTraits.USER : StructrTraits.GROUP;
 			final NodeInterface node = app.nodeQuery(typeName).name(name).getFirst();
 			if (node == null) {
+
 				logger.warn("Expression '{}' in {} did not resolve: no {} named '{}'", entry, contextLabel, kind, name);
 			}
 			return node;

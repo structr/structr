@@ -28,6 +28,9 @@ import org.structr.process.ProcessTraits;
 
 import java.util.Map;
 import java.util.Set;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.process.entity.BpmnLane;
+import org.structr.process.traits.wrappers.BpmnLaneTraitWrapper;
 
 /**
  * Trait definition for BpmnLane: a {@code <bpmn:lane>} entry inside a
@@ -47,6 +50,14 @@ public class BpmnLaneTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public BpmnLaneTraitDefinition() {
 		super(ProcessTraits.BPMN_LANE);
+	}
+
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
+		return Map.of(
+			BpmnLane.class, (traits, node) -> new BpmnLaneTraitWrapper(traits, node)
+		);
 	}
 
 	@Override

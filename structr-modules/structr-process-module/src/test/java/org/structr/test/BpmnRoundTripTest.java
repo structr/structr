@@ -25,6 +25,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.process.bpmn.BpmnExporter;
+import org.structr.process.entity.BpmnDefinitions;
 import org.structr.process.bpmn.BpmnImporter;
 import org.structr.process.traits.definitions.*;
 import org.structr.test.web.StructrUiTest;
@@ -38,7 +39,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import static org.testng.AssertJUnit.*;
@@ -64,6 +65,7 @@ public class BpmnRoundTripTest extends StructrUiTest {
 	public void testSimpleApprovalRoundTrip() {
 
 		try {
+
 			final String exported = importAndExport("/simple-approval.bpmn");
 			final Document doc = parseXml(exported);
 
@@ -105,6 +107,7 @@ public class BpmnRoundTripTest extends StructrUiTest {
 			assertEquals(6, plane.getElementsByTagNameNS(DI_NS, "BPMNEdge").getLength());
 
 		} catch (Exception ex) {
+
 			fail("Round-trip test failed: " + ex.getMessage());
 		}
 	}
@@ -118,6 +121,7 @@ public class BpmnRoundTripTest extends StructrUiTest {
 	public void testCamundaLoanApprovalRoundTrip() {
 
 		try {
+
 			final String exported = importAndExport("/camunda-loan-approval.bpmn");
 			final Document doc = parseXml(exported);
 
@@ -149,6 +153,7 @@ public class BpmnRoundTripTest extends StructrUiTest {
 			assertEquals(2, plane.getElementsByTagNameNS(DI_NS, "BPMNEdge").getLength());
 
 		} catch (Exception ex) {
+
 			fail("Round-trip test failed: " + ex.getMessage());
 		}
 	}
@@ -162,6 +167,7 @@ public class BpmnRoundTripTest extends StructrUiTest {
 	public void testParallelSubprocessRoundTrip() {
 
 		try {
+
 			final String exported = importAndExport("/parallel-subprocess.bpmn");
 			final Document doc = parseXml(exported);
 
@@ -199,8 +205,10 @@ public class BpmnRoundTripTest extends StructrUiTest {
 			final NodeList shapes = plane.getElementsByTagNameNS(DI_NS, "BPMNShape");
 			boolean foundExpandedSubProcess = false;
 			for (int i = 0; i < shapes.getLength(); i++) {
+
 				final Element shape = (Element) shapes.item(i);
 				if ("SubProcess_Pack".equals(shape.getAttribute("bpmnElement"))) {
+
 					assertEquals("true", shape.getAttribute("isExpanded"));
 					foundExpandedSubProcess = true;
 				}
@@ -208,6 +216,7 @@ public class BpmnRoundTripTest extends StructrUiTest {
 			assertTrue("Expected isExpanded=true on sub-process shape", foundExpandedSubProcess);
 
 		} catch (Exception ex) {
+
 			fail("Round-trip test failed: " + ex.getMessage());
 		}
 	}
@@ -239,9 +248,11 @@ public class BpmnRoundTripTest extends StructrUiTest {
 				int topElemCount = 0;
 				NodeInterface subProcNode = null;
 				for (final NodeInterface e : topElements) {
+
 					topElemCount++;
 					final String type = e.getProperty(elemTraits.key(BpmnElementTraitDefinition.BPMN_ELEMENT_TYPE_PROPERTY));
 					if ("subProcess".equals(type)) {
+
 						subProcNode = e;
 					}
 				}
@@ -271,6 +282,7 @@ public class BpmnRoundTripTest extends StructrUiTest {
 
 				// Verify child elements have parentElement set to sub-process, not process
 				for (final NodeInterface c : childElems) {
+
 					final NodeInterface parent = c.getProperty(elemTraits.key(BpmnElementTraitDefinition.PARENT_ELEMENT_PROPERTY));
 					assertNotNull("Child element should have parentElement", parent);
 					assertEquals("Child element parent should be the sub-process", subProcNode.getUuid(), parent.getUuid());
@@ -286,6 +298,7 @@ public class BpmnRoundTripTest extends StructrUiTest {
 			cleanupBpmnData();
 
 		} catch (Exception ex) {
+
 			fail("Sub-process graph hierarchy test failed: " + ex.getMessage());
 		}
 	}
@@ -301,6 +314,7 @@ public class BpmnRoundTripTest extends StructrUiTest {
 	public void testEventsAndGatewaysRoundTrip() {
 
 		try {
+
 			final String exported = importAndExport("/events-and-gateways.bpmn");
 			final Document doc = parseXml(exported);
 
@@ -339,6 +353,7 @@ public class BpmnRoundTripTest extends StructrUiTest {
 			assertTrue(plane.getElementsByTagNameNS(DI_NS, "BPMNEdge").getLength() >= 12);
 
 		} catch (Exception ex) {
+
 			fail("Round-trip test failed: " + ex.getMessage());
 		}
 	}
@@ -403,6 +418,7 @@ public class BpmnRoundTripTest extends StructrUiTest {
 			cleanupBpmnData();
 
 		} catch (Exception ex) {
+
 			fail("Graph structure test failed: " + ex.getMessage());
 		}
 	}
@@ -415,6 +431,7 @@ public class BpmnRoundTripTest extends StructrUiTest {
 	public void testMethodRefAndProcessListenerRoundTrip() {
 
 		try {
+
 			final String defUuid;
 
 			// Step 1: import a simple BPMN, attach orphan SchemaMethods at process
@@ -453,9 +470,10 @@ public class BpmnRoundTripTest extends StructrUiTest {
 			// Step 2: export, parse, and verify the new emissions.
 			String exported;
 			try (final Tx tx = app.tx()) {
+
 				final NodeInterface defNode = app.getNodeById(defUuid);
 				assertNotNull(defNode);
-				exported = new BpmnExporter().exportBpmn(defNode);
+				exported = new BpmnExporter().exportBpmn(defNode.as(BpmnDefinitions.class));
 				tx.success();
 			}
 			assertNotNull(exported);
@@ -491,6 +509,7 @@ public class BpmnRoundTripTest extends StructrUiTest {
 
 			final String reimportedDefUuid;
 			try (final Tx tx = app.tx()) {
+
 				final NodeInterface reimported = new BpmnImporter(securityContext).importBpmn(exported);
 				assertNotNull(reimported);
 				reimportedDefUuid = reimported.getUuid();
@@ -498,6 +517,7 @@ public class BpmnRoundTripTest extends StructrUiTest {
 			}
 
 			try (final Tx tx = app.tx()) {
+
 				final NodeInterface defNode = app.getNodeById(reimportedDefUuid);
 				assertNotNull(defNode);
 				final NodeInterface procNode = firstProcess(defNode);
@@ -523,6 +543,7 @@ public class BpmnRoundTripTest extends StructrUiTest {
 			cleanupOrphanMethods();
 
 		} catch (Exception ex) {
+
 			fail("methodRef/processListener round-trip failed: " + ex.getMessage());
 		}
 	}
@@ -536,6 +557,7 @@ public class BpmnRoundTripTest extends StructrUiTest {
 	public void testLaneRoundTrip() {
 
 		try {
+
 			final String defUuid;
 
 			// Step 1: import the lane fixture and verify the graph wiring.
@@ -558,9 +580,16 @@ public class BpmnRoundTripTest extends StructrUiTest {
 				// Each lane has the right name and the right element count.
 				NodeInterface customerLane = null, serviceLane = null;
 				for (final NodeInterface ln : lanes) {
+
 					final String bpmnId = ln.getProperty(ln.getTraits().key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY));
-					if ("Lane_Customer".equals(bpmnId)) customerLane = ln;
-					if ("Lane_Service".equals(bpmnId))  serviceLane  = ln;
+					if ("Lane_Customer".equals(bpmnId)) {
+
+						customerLane = ln;
+					}
+					if ("Lane_Service".equals(bpmnId)) {
+
+						serviceLane  = ln;
+					}
 				}
 				assertNotNull("Lane_Customer not imported", customerLane);
 				assertNotNull("Lane_Service not imported",  serviceLane);
@@ -586,9 +615,10 @@ public class BpmnRoundTripTest extends StructrUiTest {
 			// Step 2: export and verify the laneSet block + DI shapes.
 			String exported;
 			try (final Tx tx = app.tx()) {
+
 				final NodeInterface defNode = app.getNodeById(defUuid);
 				assertNotNull(defNode);
-				exported = new BpmnExporter().exportBpmn(defNode);
+				exported = new BpmnExporter().exportBpmn(defNode.as(BpmnDefinitions.class));
 				tx.success();
 			}
 			assertNotNull(exported);
@@ -607,8 +637,14 @@ public class BpmnRoundTripTest extends StructrUiTest {
 			// Each lane carries a name and the right flowNodeRef count.
 			Element customerEl = null, serviceEl = null;
 			for (final Element ln : exportedLanes) {
-				if ("Lane_Customer".equals(ln.getAttribute("id"))) customerEl = ln;
-				if ("Lane_Service".equals(ln.getAttribute("id")))  serviceEl  = ln;
+
+				if ("Lane_Customer".equals(ln.getAttribute("id"))) {
+					customerEl = ln;
+				}
+				if ("Lane_Service".equals(ln.getAttribute("id"))) {
+
+					serviceEl  = ln;
+				}
 			}
 			assertNotNull(customerEl);
 			assertNotNull(serviceEl);
@@ -622,9 +658,11 @@ public class BpmnRoundTripTest extends StructrUiTest {
 			final NodeList shapes = plane.getElementsByTagNameNS(DI_NS, "BPMNShape");
 			int laneShapesWithHoriz = 0;
 			for (int i = 0; i < shapes.getLength(); i++) {
+
 				final Element sh = (Element) shapes.item(i);
 				final String ref = sh.getAttribute("bpmnElement");
 				if ("Lane_Customer".equals(ref) || "Lane_Service".equals(ref)) {
+
 					assertEquals("lane DI shape should be isHorizontal=true",
 						"true", sh.getAttribute("isHorizontal"));
 					laneShapesWithHoriz++;
@@ -635,6 +673,7 @@ public class BpmnRoundTripTest extends StructrUiTest {
 			cleanupBpmnData();
 
 		} catch (Exception ex) {
+
 			fail("Lane round-trip failed: " + ex.getMessage());
 		}
 	}
@@ -650,6 +689,7 @@ public class BpmnRoundTripTest extends StructrUiTest {
 	public void testBoundaryEventRoundTrip() {
 
 		try {
+
 			final String defUuid;
 
 			// Step 1: import + verify the typed attachedTo relationship.
@@ -682,6 +722,7 @@ public class BpmnRoundTripTest extends StructrUiTest {
 				// (graph is the single source of truth post-resolve).
 				final String attrsJson = boundary.getProperty(bTraits.key(BpmnElementTraitDefinition.BPMN_ATTRIBUTES_PROPERTY));
 				if (attrsJson != null) {
+
 					assertFalse("attachedToRef must be stripped from bpmnAttributes after import",
 						attrsJson.contains("attachedToRef"));
 				}
@@ -692,9 +733,10 @@ public class BpmnRoundTripTest extends StructrUiTest {
 			// Step 2: export and verify the attribute is regenerated.
 			String exported;
 			try (final Tx tx = app.tx()) {
+
 				final NodeInterface defNode = app.getNodeById(defUuid);
 				assertNotNull(defNode);
-				exported = new BpmnExporter().exportBpmn(defNode);
+				exported = new BpmnExporter().exportBpmn(defNode.as(BpmnDefinitions.class));
 				tx.success();
 			}
 			assertNotNull(exported);
@@ -721,6 +763,7 @@ public class BpmnRoundTripTest extends StructrUiTest {
 			cleanupBpmnData();
 
 		} catch (Exception ex) {
+
 			fail("Boundary round-trip failed: " + ex.getMessage());
 		}
 	}
@@ -745,7 +788,7 @@ public class BpmnRoundTripTest extends StructrUiTest {
 			assertNotNull("Import returned null for " + resourcePath, defNode);
 
 			final BpmnExporter exporter = new BpmnExporter();
-			exported = exporter.exportBpmn(defNode);
+			exported = exporter.exportBpmn(defNode.as(BpmnDefinitions.class));
 
 			assertNotNull("Export returned null for " + resourcePath, exported);
 			assertFalse("Export returned empty string for " + resourcePath, exported.isEmpty());
@@ -788,14 +831,17 @@ public class BpmnRoundTripTest extends StructrUiTest {
 	 */
 	private List<Element> getDirectChildElements(final Element parent, final String namespaceURI, final String localName) {
 
-		final List<Element> result = new ArrayList<>();
+		final List<Element> result = new LinkedList<>();
 		final NodeList children = parent.getChildNodes();
 
 		for (int i = 0; i < children.getLength(); i++) {
+
 			final org.w3c.dom.Node child = children.item(i);
 			if (child.getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
+
 				final Element childEl = (Element) child;
 				if (namespaceURI.equals(childEl.getNamespaceURI()) && localName.equals(childEl.getLocalName())) {
+
 					result.add(childEl);
 				}
 			}
@@ -815,33 +861,51 @@ public class BpmnRoundTripTest extends StructrUiTest {
 	 * if the file has none.
 	 */
 	private NodeInterface firstProcess(final NodeInterface defNode) {
+
 		final Traits defTraits = defNode.getTraits();
 		final Iterable<NodeInterface> processes = defNode.getProperty(defTraits.key(BpmnDefinitionsTraitDefinition.PROCESSES_PROPERTY));
-		if (processes == null) return null;
+		if (processes == null) {
+
+			return null;
+		}
 		for (final NodeInterface p : processes) return p;
 		return null;
 	}
 
 	/** Walk a BpmnProcess's elements for the one with the given bpmnId. */
 	private NodeInterface findElementByBpmnId(final NodeInterface procNode, final String bpmnId) {
+
 		final Traits procTraits = Traits.of(ProcessTraits.BPMN_PROCESS);
 		final Iterable<NodeInterface> elements = procNode.getProperty(procTraits.key(BpmnProcessTraitDefinition.ELEMENTS_PROPERTY));
-		if (elements == null) return null;
+		if (elements == null) {
+
+			return null;
+		}
 		for (final NodeInterface e : elements) {
+
 			final String id = e.getProperty(e.getTraits().key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY));
-			if (bpmnId.equals(id)) return e;
+			if (bpmnId.equals(id)) {
+
+				return e;
+			}
 		}
 		return null;
 	}
 
 	/** Walk a BpmnProcess's elements for the first one of the given bpmnElementType. */
 	private NodeInterface findFirstElementOfType(final NodeInterface procNode, final String bpmnElementType) {
+
 		final Traits procTraits = Traits.of(ProcessTraits.BPMN_PROCESS);
 		final Iterable<NodeInterface> elements = procNode.getProperty(procTraits.key(BpmnProcessTraitDefinition.ELEMENTS_PROPERTY));
-		if (elements == null) return null;
+		if (elements == null) {
+
+			return null;
+		}
 		for (final NodeInterface e : elements) {
+
 			final String type = e.getProperty(e.getTraits().key(BpmnElementTraitDefinition.BPMN_ELEMENT_TYPE_PROPERTY));
 			if (bpmnElementType.equals(type)) {
+
 				return e;
 			}
 		}
@@ -849,8 +913,10 @@ public class BpmnRoundTripTest extends StructrUiTest {
 	}
 
 	private List<NodeInterface> collectAll(final Iterable<NodeInterface> it) {
-		final List<NodeInterface> out = new ArrayList<>();
+
+		final List<NodeInterface> out = new LinkedList<>();
 		if (it != null) {
+
 			for (final NodeInterface n : it) out.add(n);
 		}
 		return out;
@@ -858,7 +924,9 @@ public class BpmnRoundTripTest extends StructrUiTest {
 
 	private void cleanupOrphanMethods() throws FrameworkException {
 		try (final Tx tx = app.tx()) {
+
 			for (final NodeInterface m : app.nodeQuery(StructrTraits.SCHEMA_METHOD).getAsList()) {
+
 				if (m.getProperty(m.getTraits().key(org.structr.core.traits.definitions.SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY)) == null) {
 					app.delete(m);
 				}
@@ -890,6 +958,7 @@ public class BpmnRoundTripTest extends StructrUiTest {
 			};
 
 			for (final String type : types) {
+
 				for (final NodeInterface node : app.nodeQuery(type).getAsList()) {
 					app.delete(node);
 				}

@@ -44,6 +44,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Set;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.process.entity.BpmnDefinitions;
+import org.structr.process.traits.wrappers.BpmnDefinitionsTraitWrapper;
 
 /**
  * Trait definition for BpmnDefinitions -- the {@code <bpmn:definitions>}
@@ -83,6 +86,14 @@ public class BpmnDefinitionsTraitDefinition extends AbstractNodeTraitDefinition 
 
 	public BpmnDefinitionsTraitDefinition() {
 		super(ProcessTraits.BPMN_DEFINITIONS);
+	}
+
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
+		return Map.of(
+			BpmnDefinitions.class, (traits, node) -> new BpmnDefinitionsTraitWrapper(traits, node)
+		);
 	}
 
 	@Override
@@ -130,7 +141,7 @@ public class BpmnDefinitionsTraitDefinition extends AbstractNodeTraitDefinition 
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
-					return new BpmnExporter().exportBpmn((NodeInterface) entity);
+					return new BpmnExporter().exportBpmn(((NodeInterface) entity).as(BpmnDefinitions.class));
 				}
 
 				@Override
@@ -147,6 +158,7 @@ public class BpmnDefinitionsTraitDefinition extends AbstractNodeTraitDefinition 
 					final Map<String, Object> args = arguments.toMap();
 					final Object xmlArg = args.get("xml");
 					if (!(xmlArg instanceof String) || ((String) xmlArg).isEmpty()) {
+
 						throw new FrameworkException(422, "Missing required parameter 'xml' (BPMN 2.0.2 XML string).");
 					}
 					final String xml = (String) xmlArg;
@@ -163,9 +175,12 @@ public class BpmnDefinitionsTraitDefinition extends AbstractNodeTraitDefinition 
 					// not block the import -- the actual definition is what the
 					// caller cares about.
 					try {
+
 						FileHelper.createFile(securityContext, xml.getBytes(StandardCharsets.UTF_8),
 							"application/xml", StructrTraits.FILE, filename, true);
+
 					} catch (IOException ioe) {
+
 						// Non-fatal: the importer can still run on the raw XML.
 					}
 
@@ -201,6 +216,7 @@ public class BpmnDefinitionsTraitDefinition extends AbstractNodeTraitDefinition 
 		}
 
 		if (arg instanceof Iterable<?> || arg.getClass().isArray()) {
+
 			throw new FrameworkException(422,
 				"startProcess accepts at most one 'subject' per call. " +
 				"For batch operations, loop and invoke startProcess once per subject."
@@ -215,14 +231,19 @@ public class BpmnDefinitionsTraitDefinition extends AbstractNodeTraitDefinition 
 
 		String uuid = null;
 		if (arg instanceof String) {
+
 			uuid = (String) arg;
+
 		} else if (arg instanceof Map) {
+
 			final Object idObj = ((Map<?, ?>) arg).get("id");
 			if (idObj instanceof String) {
+
 				uuid = (String) idObj;
 			}
 		}
 		if (uuid == null || uuid.isEmpty()) {
+
 			throw new FrameworkException(422,
 				"Cannot resolve subject from value of type " + arg.getClass().getName() +
 				" (expected NodeInterface, UUID string, or {id: \"<uuid>\"})"
@@ -230,6 +251,7 @@ public class BpmnDefinitionsTraitDefinition extends AbstractNodeTraitDefinition 
 		}
 		final NodeInterface node = app.getNodeById(uuid);
 		if (node == null) {
+
 			throw new FrameworkException(422, "Subject with id '" + uuid + "' not found");
 		}
 		return node;

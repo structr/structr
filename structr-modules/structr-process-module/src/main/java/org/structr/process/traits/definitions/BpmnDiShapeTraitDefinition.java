@@ -28,6 +28,9 @@ import org.structr.process.ProcessTraits;
 
 import java.util.Map;
 import java.util.Set;
+import org.structr.core.traits.NodeTraitFactory;
+import org.structr.process.entity.BpmnDiShape;
+import org.structr.process.traits.wrappers.BpmnDiShapeTraitWrapper;
 
 /**
  * Trait definition for BpmnDiShape -- DI shape data for a BPMN element.
@@ -53,6 +56,14 @@ public class BpmnDiShapeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public BpmnDiShapeTraitDefinition() {
 		super(ProcessTraits.BPMN_DI_SHAPE);
+	}
+
+	@Override
+	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
+		return Map.of(
+			BpmnDiShape.class, (traits, node) -> new BpmnDiShapeTraitWrapper(traits, node)
+		);
 	}
 
 	@Override

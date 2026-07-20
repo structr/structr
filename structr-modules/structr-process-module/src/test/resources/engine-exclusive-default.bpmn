@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  id="Definitions_ExclusiveDefault"
+                  targetNamespace="http://structr.org/bpmn">
+
+  <bpmn:process id="Process_ExclusiveDefault" name="Exclusive Default Process" isExecutable="true">
+
+    <bpmn:startEvent id="Start_1" name="Start" />
+
+    <bpmn:userTask id="Task_Review" name="Review" />
+
+    <!-- Only one conditional flow; the other is the gateway's declared default. -->
+    <bpmn:exclusiveGateway id="Gateway_1" name="Approved?" default="Flow_default" />
+
+    <bpmn:userTask id="Task_Approve" name="Approve" />
+    <bpmn:userTask id="Task_Reject"  name="Reject" />
+
+    <bpmn:endEvent id="End_Approve" name="Approved" />
+    <bpmn:endEvent id="End_Reject"  name="Rejected" />
+
+    <bpmn:sequenceFlow id="Flow_start" sourceRef="Start_1"     targetRef="Task_Review" />
+    <bpmn:sequenceFlow id="Flow_gw"    sourceRef="Task_Review"  targetRef="Gateway_1" />
+
+    <bpmn:sequenceFlow id="Flow_yes" sourceRef="Gateway_1" targetRef="Task_Approve">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${approved == true}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_default" sourceRef="Gateway_1" targetRef="Task_Reject" />
+
+    <bpmn:sequenceFlow id="Flow_a_end" sourceRef="Task_Approve" targetRef="End_Approve" />
+    <bpmn:sequenceFlow id="Flow_r_end" sourceRef="Task_Reject"  targetRef="End_Reject" />
+
+  </bpmn:process>
+
+</bpmn:definitions>

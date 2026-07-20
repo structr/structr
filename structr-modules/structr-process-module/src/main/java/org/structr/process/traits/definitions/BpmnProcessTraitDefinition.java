@@ -75,6 +75,7 @@ public class BpmnProcessTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
 		return Map.of(
 			BpmnProcess.class, (traits, node) -> new BpmnProcessTraitWrapper(traits, node)
 		);
@@ -150,15 +151,19 @@ public class BpmnProcessTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
-					final SecurityContext securityContext = actionContext.getSecurityContext();
-					final ProcessEngine engine = new ProcessEngine(securityContext);
+
+					final SecurityContext securityContext    = actionContext.getSecurityContext();
+					final ProcessEngine engine               = new ProcessEngine(securityContext);
 					final java.util.Map<String, Object> args = arguments.toMap();
-					final NodeInterface subject = BpmnDefinitionsTraitDefinition.resolveSubject(actionContext, args.get("subject"));
+					final NodeInterface subject              = BpmnDefinitionsTraitDefinition.resolveSubject(actionContext, args.get("subject"));
+
 					// Forward the remaining EAM parameters as initial process
 					// parameters: subject-matching fields populate the subject,
 					// the rest become ProcessParameterValues. Mirrors complete().
 					final java.util.Map<String, Object> params = new java.util.LinkedHashMap<>(args);
+
 					params.remove("subject");
+
 					return engine.startProcess((NodeInterface) entity, subject, params.isEmpty() ? null : params);
 				}
 

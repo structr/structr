@@ -21,8 +21,6 @@ package org.structr.process.entity;
 import org.structr.core.graph.NodeInterface;
 import org.structr.process.bpmn.BpmnElementType;
 
-import java.util.List;
-
 /**
  * Typed view of a {@code BpmnElement} node (flow node / activity / gateway /
  * event). Obtain via {@code node.as(BpmnElement.class)}. Replaces the repetitive
@@ -42,21 +40,28 @@ public interface BpmnElement extends NodeInterface {
 	/** True if this element is of the given type. */
 	boolean isType(BpmnElementType type);
 
-	List<BpmnSequenceFlow> getOutgoingFlows();
-	List<BpmnSequenceFlow> getIncomingFlows();
+	Iterable<BpmnSequenceFlow> getOutgoingFlows();
+	Iterable<BpmnSequenceFlow> getIncomingFlows();
 
 	/** The containing element (e.g. a sub-process), or {@code null} at top level. */
 	BpmnElement getParentElement();
-	List<BpmnElement> getChildElements();
+	Iterable<BpmnElement> getChildElements();
 
 	/** For boundary events: the activity this event is attached to, or {@code null}. */
 	BpmnElement getAttachedToElement();
 
 	String getScriptContent();
 	String getEventDefinitionType();
+	String getEventDefinitionId();
+	String getEventDefinitionRef();
 	String getTimerType();
 	String getTimerValue();
+	String getTimerExpressionType();
+	String getDocumentation();
+	String getBpmnAttributes();
 
-	List<NodeInterface> getPerformers();
-	List<NodeInterface> getTaskListeners();
+	Iterable<BpmnSequenceFlow> getChildFlows();
+	Iterable<BpmnPerformer> getPerformers();
+	Iterable<BpmnTaskListener> getTaskListeners();
+	Iterable<NodeInterface> getMethods();
 }

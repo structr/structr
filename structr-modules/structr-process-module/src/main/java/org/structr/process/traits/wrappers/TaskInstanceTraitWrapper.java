@@ -28,7 +28,6 @@ import org.structr.process.entity.ProcessInstance;
 import org.structr.process.entity.TaskInstance;
 import org.structr.process.traits.definitions.TaskInstanceTraitDefinition;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -99,8 +98,11 @@ public class TaskInstanceTraitWrapper extends AbstractNodeTraitWrapper implement
 	}
 
 	@Override
-	public List<NodeInterface> getCandidateAssignees() {
-		return toList(wrappedObject.getProperty(traits.key(TaskInstanceTraitDefinition.CANDIDATE_ASSIGNEES_PROPERTY)));
+	public Iterable<NodeInterface> getCandidateAssignees() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(TaskInstanceTraitDefinition.CANDIDATE_ASSIGNEES_PROPERTY);
+
+		return wrappedObject.getProperty(key);
 	}
 
 	@Override
@@ -109,8 +111,11 @@ public class TaskInstanceTraitWrapper extends AbstractNodeTraitWrapper implement
 	}
 
 	@Override
-	public List<NodeInterface> getDeclinedBy() {
-		return toList(wrappedObject.getProperty(traits.key(TaskInstanceTraitDefinition.DECLINED_BY_PROPERTY)));
+	public Iterable<NodeInterface> getDeclinedBy() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(TaskInstanceTraitDefinition.DECLINED_BY_PROPERTY);
+
+		return wrappedObject.getProperty(key);
 	}
 
 	@Override
@@ -120,6 +125,7 @@ public class TaskInstanceTraitWrapper extends AbstractNodeTraitWrapper implement
 
 	@Override
 	public ProcessInstance getProcessInstance() {
+
 		final NodeInterface instance = wrappedObject.getProperty(traits.key(TaskInstanceTraitDefinition.PROCESS_INSTANCE_PROPERTY));
 		return instance != null ? instance.as(ProcessInstance.class) : null;
 	}
@@ -131,6 +137,7 @@ public class TaskInstanceTraitWrapper extends AbstractNodeTraitWrapper implement
 
 	@Override
 	public BpmnElement getDefinedBy() {
+
 		final NodeInterface element = wrappedObject.getProperty(traits.key(TaskInstanceTraitDefinition.DEFINED_BY_PROPERTY));
 		return element != null ? element.as(BpmnElement.class) : null;
 	}
@@ -170,13 +177,4 @@ public class TaskInstanceTraitWrapper extends AbstractNodeTraitWrapper implement
 		wrappedObject.setProperty(traits.key(TaskInstanceTraitDefinition.CANCELLED_TIME_PROPERTY), time);
 	}
 
-	private List<NodeInterface> toList(final Iterable<NodeInterface> iterable) {
-		final List<NodeInterface> out = new ArrayList<>();
-		if (iterable != null) {
-			for (final NodeInterface n : iterable) {
-				out.add(n);
-			}
-		}
-		return out;
-	}
 }

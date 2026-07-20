@@ -36,44 +36,86 @@ public class BpmnElementHasChildFlow extends AbstractRelationshipTraitDefinition
 	}
 
 	@Override
-	public String getSourceType() { return ProcessTraits.BPMN_ELEMENT; }
+
+	public String getSourceType() {
+		return ProcessTraits.BPMN_ELEMENT;
+	}
 
 	@Override
-	public String getTargetType() { return ProcessTraits.BPMN_SEQUENCE_FLOW; }
+
+	public String getTargetType() {
+		return ProcessTraits.BPMN_SEQUENCE_FLOW;
+	}
 
 	@Override
-	public String getRelationshipType() { return "HAS_CHILD_FLOW"; }
+
+	public String getRelationshipType() {
+		return "HAS_CHILD_FLOW";
+	}
 
 	@Override
-	public Relation.Multiplicity getSourceMultiplicity() { return Relation.Multiplicity.One; }
+
+	public Relation.Multiplicity getSourceMultiplicity() {
+		return Relation.Multiplicity.One;
+	}
 
 	@Override
-	public Relation.Multiplicity getTargetMultiplicity() { return Relation.Multiplicity.Many; }
+
+	public Relation.Multiplicity getTargetMultiplicity() {
+		return Relation.Multiplicity.Many;
+	}
 
 	@Override
-	public int getCascadingDeleteFlag() { return Relation.SOURCE_TO_TARGET; }
+
+	public int getCascadingDeleteFlag() {
+		return Relation.SOURCE_TO_TARGET;
+	}
 
 	@Override
-	public int getAutocreationFlag() { return Relation.ALWAYS; }
+
+	public int getAutocreationFlag() {
+		return Relation.ALWAYS;
+	}
 
 	@Override
-	public boolean isInternal() { return false; }
+
+	public boolean isInternal() {
+		return false;
+	}
 
 	@Override
-	public PropagationDirection getPropagationDirection() { return PropagationDirection.Both; }
+
+	public PropagationDirection getPropagationDirection() {
+		return PropagationDirection.Both;
+	}
 
 	@Override
-	public PropagationMode getReadPropagation() { return PropagationMode.Add; }
+
+	public PropagationMode getReadPropagation() {
+		return PropagationMode.Add;
+	}
 
 	@Override
-	public PropagationMode getWritePropagation() { return PropagationMode.Keep; }
+
+	public PropagationMode getWritePropagation() {
+		return PropagationMode.Keep;
+	}
 
 	@Override
-	public PropagationMode getDeletePropagation() { return PropagationMode.Keep; }
+
+	public PropagationMode getDeletePropagation() {
+		return PropagationMode.Keep;
+	}
 
 	@Override
-	public PropagationMode getAccessControlPropagation() { return PropagationMode.Keep; }
+
+	public PropagationMode getAccessControlPropagation() {
+		return PropagationMode.Keep;
+	}
 
 	@Override
-	public String getDeltaProperties() { return null; }
+
+	public String getDeltaProperties() {
+		return null;
+	}
 }

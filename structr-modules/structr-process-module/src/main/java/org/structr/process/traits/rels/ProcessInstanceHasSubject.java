@@ -65,20 +65,77 @@ import org.structr.process.ProcessTraits;
  */
 public class ProcessInstanceHasSubject extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	public ProcessInstanceHasSubject() { super(ProcessTraits.PROCESS_INSTANCE_HAS_SUBJECT); }
+	public ProcessInstanceHasSubject() {
+		super(ProcessTraits.PROCESS_INSTANCE_HAS_SUBJECT);
+	}
 
-	@Override public String getSourceType() { return ProcessTraits.PROCESS_INSTANCE; }
-	@Override public String getTargetType() { return StructrTraits.NODE_INTERFACE; }
-	@Override public String getRelationshipType() { return "HAS_SUBJECT"; }
-	@Override public Relation.Multiplicity getSourceMultiplicity() { return Relation.Multiplicity.Many; }
-	@Override public Relation.Multiplicity getTargetMultiplicity() { return Relation.Multiplicity.One; }
-	@Override public int getCascadingDeleteFlag() { return Relation.NONE; }
-	@Override public int getAutocreationFlag() { return Relation.NONE; }
-	@Override public boolean isInternal() { return false; }
-	@Override public PropagationDirection getPropagationDirection() { return PropagationDirection.Out; }
-	@Override public PropagationMode getReadPropagation() { return PropagationMode.Add; }
-	@Override public PropagationMode getWritePropagation() { return PropagationMode.Keep; }
-	@Override public PropagationMode getDeletePropagation() { return PropagationMode.Keep; }
-	@Override public PropagationMode getAccessControlPropagation() { return PropagationMode.Keep; }
-	@Override public String getDeltaProperties() { return null; }
+	@Override
+	public String getSourceType() {
+		return ProcessTraits.PROCESS_INSTANCE;
+	}
+
+	@Override
+	public String getTargetType() {
+		return StructrTraits.NODE_INTERFACE;
+	}
+
+	@Override
+	public String getRelationshipType() {
+		return "HAS_SUBJECT";
+	}
+
+	@Override
+	public Relation.Multiplicity getSourceMultiplicity() {
+		return Relation.Multiplicity.Many;
+	}
+
+	@Override
+	public Relation.Multiplicity getTargetMultiplicity() {
+		return Relation.Multiplicity.One;
+	}
+
+	@Override
+	public int getCascadingDeleteFlag() {
+		return Relation.NONE;
+	}
+
+	@Override
+	public int getAutocreationFlag() {
+		return Relation.NONE;
+	}
+
+	@Override
+	public boolean isInternal() {
+		return false;
+	}
+
+	@Override
+	public PropagationDirection getPropagationDirection() {
+		return PropagationDirection.Out;
+	}
+
+	@Override
+	public PropagationMode getReadPropagation() {
+		return PropagationMode.Add;
+	}
+
+	@Override
+	public PropagationMode getWritePropagation() {
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public PropagationMode getDeletePropagation() {
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public PropagationMode getAccessControlPropagation() {
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public String getDeltaProperties() {
+		return null;
+	}
 }

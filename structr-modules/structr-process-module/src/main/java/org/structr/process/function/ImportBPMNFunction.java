@@ -73,6 +73,7 @@ public class ImportBPMNFunction extends Function<Object, Object> {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${import_bpmn(xml)}"),
 			Usage.javaScript("Usage: ${{$.importBpmn(xml)}}")
@@ -91,6 +92,7 @@ public class ImportBPMNFunction extends Function<Object, Object> {
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 			Parameter.mandatory("bpmnXml", "BPMN 2.0.2 XML string to import")
 		);
@@ -98,6 +100,7 @@ public class ImportBPMNFunction extends Function<Object, Object> {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.structrScript("${import_bpmn(xml)}", "Import BPMN XML and return the BpmnDefinitions node"),
 			Example.javaScript("${{let def = $.importBpmn(xml);}}", "Import BPMN XML in JavaScript")

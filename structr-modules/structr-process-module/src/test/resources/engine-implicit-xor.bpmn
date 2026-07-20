@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  id="Definitions_ImplicitXor"
+                  targetNamespace="http://structr.org/bpmn">
+
+  <bpmn:process id="Process_ImplicitXor" name="Implicit XOR Process" isExecutable="true">
+
+    <bpmn:startEvent id="Start_1" name="Start" />
+
+    <!-- A plain user task (not a gateway) with two conditional outgoing flows:
+         the engine treats this as an implicit exclusive gateway. -->
+    <bpmn:userTask id="Task_Decide" name="Decide" />
+
+    <bpmn:userTask id="Task_A" name="Route A" />
+    <bpmn:userTask id="Task_B" name="Route B" />
+
+    <bpmn:endEvent id="End_A" name="Done A" />
+    <bpmn:endEvent id="End_B" name="Done B" />
+
+    <bpmn:sequenceFlow id="Flow_start" sourceRef="Start_1" targetRef="Task_Decide" />
+
+    <bpmn:sequenceFlow id="Flow_a" sourceRef="Task_Decide" targetRef="Task_A">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${route == 'a'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_b" sourceRef="Task_Decide" targetRef="Task_B">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${route == 'b'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+
+    <bpmn:sequenceFlow id="Flow_a_end" sourceRef="Task_A" targetRef="End_A" />
+    <bpmn:sequenceFlow id="Flow_b_end" sourceRef="Task_B" targetRef="End_B" />
+
+  </bpmn:process>
+
+</bpmn:definitions>

@@ -38,12 +38,43 @@ public class VisibilityMappingATBpmnElement extends AbstractRelationshipTraitDef
 		super(ProcessTraits.VISIBILITY_MAPPING_AT_BPMN_ELEMENT);
 	}
 
-	@Override public String getSourceType() { return ProcessTraits.VISIBILITY_MAPPING; }
-	@Override public String getTargetType() { return ProcessTraits.BPMN_ELEMENT; }
-	@Override public String getRelationshipType() { return "AT"; }
-	@Override public Relation.Multiplicity getSourceMultiplicity() { return Relation.Multiplicity.Many; }
-	@Override public Relation.Multiplicity getTargetMultiplicity() { return Relation.Multiplicity.One; }
-	@Override public int getCascadingDeleteFlag() { return Relation.NONE; }
-	@Override public int getAutocreationFlag() { return Relation.NONE; }
-	@Override public boolean isInternal() { return false; }
+	@Override
+	public String getSourceType() {
+		return ProcessTraits.VISIBILITY_MAPPING;
+	}
+
+	@Override
+	public String getTargetType() {
+		return ProcessTraits.BPMN_ELEMENT;
+	}
+
+	@Override
+	public String getRelationshipType() {
+		return "AT";
+	}
+
+	@Override
+	public Relation.Multiplicity getSourceMultiplicity() {
+		return Relation.Multiplicity.Many;
+	}
+
+	@Override
+	public Relation.Multiplicity getTargetMultiplicity() {
+		return Relation.Multiplicity.One;
+	}
+
+	@Override
+	public int getCascadingDeleteFlag() {
+		return Relation.NONE;
+	}
+
+	@Override
+	public int getAutocreationFlag() {
+		return Relation.NONE;
+	}
+
+	@Override
+	public boolean isInternal() {
+		return false;
+	}
 }

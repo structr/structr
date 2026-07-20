@@ -32,20 +32,77 @@ import org.structr.process.ProcessTraits;
  */
 public class BpmnProcessHasProcessListener extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	public BpmnProcessHasProcessListener() { super(ProcessTraits.BPMN_PROCESS_HAS_PROCESS_LISTENER); }
+	public BpmnProcessHasProcessListener() {
+		super(ProcessTraits.BPMN_PROCESS_HAS_PROCESS_LISTENER);
+	}
 
-	@Override public String getSourceType() { return ProcessTraits.BPMN_PROCESS; }
-	@Override public String getTargetType() { return ProcessTraits.BPMN_PROCESS_LISTENER; }
-	@Override public String getRelationshipType() { return "HAS_PROCESS_LISTENER"; }
-	@Override public Relation.Multiplicity getSourceMultiplicity() { return Relation.Multiplicity.One; }
-	@Override public Relation.Multiplicity getTargetMultiplicity() { return Relation.Multiplicity.Many; }
-	@Override public int getCascadingDeleteFlag() { return Relation.SOURCE_TO_TARGET; }
-	@Override public int getAutocreationFlag() { return Relation.ALWAYS; }
-	@Override public boolean isInternal() { return false; }
-	@Override public PropagationDirection getPropagationDirection() { return PropagationDirection.Both; }
-	@Override public PropagationMode getReadPropagation() { return PropagationMode.Add; }
-	@Override public PropagationMode getWritePropagation() { return PropagationMode.Keep; }
-	@Override public PropagationMode getDeletePropagation() { return PropagationMode.Keep; }
-	@Override public PropagationMode getAccessControlPropagation() { return PropagationMode.Keep; }
-	@Override public String getDeltaProperties() { return null; }
+	@Override
+	public String getSourceType() {
+		return ProcessTraits.BPMN_PROCESS;
+	}
+
+	@Override
+	public String getTargetType() {
+		return ProcessTraits.BPMN_PROCESS_LISTENER;
+	}
+
+	@Override
+	public String getRelationshipType() {
+		return "HAS_PROCESS_LISTENER";
+	}
+
+	@Override
+	public Relation.Multiplicity getSourceMultiplicity() {
+		return Relation.Multiplicity.One;
+	}
+
+	@Override
+	public Relation.Multiplicity getTargetMultiplicity() {
+		return Relation.Multiplicity.Many;
+	}
+
+	@Override
+	public int getCascadingDeleteFlag() {
+		return Relation.SOURCE_TO_TARGET;
+	}
+
+	@Override
+	public int getAutocreationFlag() {
+		return Relation.ALWAYS;
+	}
+
+	@Override
+	public boolean isInternal() {
+		return false;
+	}
+
+	@Override
+	public PropagationDirection getPropagationDirection() {
+		return PropagationDirection.Both;
+	}
+
+	@Override
+	public PropagationMode getReadPropagation() {
+		return PropagationMode.Add;
+	}
+
+	@Override
+	public PropagationMode getWritePropagation() {
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public PropagationMode getDeletePropagation() {
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public PropagationMode getAccessControlPropagation() {
+		return PropagationMode.Keep;
+	}
+
+	@Override
+	public String getDeltaProperties() {
+		return null;
+	}
 }

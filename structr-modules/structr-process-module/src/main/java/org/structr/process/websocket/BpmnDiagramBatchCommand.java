@@ -37,9 +37,9 @@ import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -115,11 +115,13 @@ public class BpmnDiagramBatchCommand extends AbstractCommand {
 
 		final String definitionId = webSocketData.getNodeDataStringValue("definitionId");
 		if (definitionId == null || definitionId.isEmpty()) {
+
 			throw new FrameworkException(422, "definitionId is required");
 		}
 
 		final NodeInterface defNode = app.getNodeById(ProcessTraits.BPMN_DEFINITIONS, definitionId);
 		if (defNode == null) {
+
 			throw new FrameworkException(404, "BpmnDefinitions " + definitionId + " not found");
 		}
 
@@ -146,8 +148,10 @@ public class BpmnDiagramBatchCommand extends AbstractCommand {
 		// Apply deletes (no special ordering: relationship cleanup is handled by
 		// Structr's cascading rules per relationship-trait declaration).
 		for (final String id : rawDeletes) {
+
 			final NodeInterface node = app.getNodeById(id);
 			if (node != null) {
+
 				app.delete(node);
 			}
 		}
@@ -159,6 +163,7 @@ public class BpmnDiagramBatchCommand extends AbstractCommand {
 		notifyData.put("definitionId", definitionId);
 		final String version = defNode.getProperty(defNode.getTraits().key(BpmnBaseNodeTraitDefinition.VERSION_PROPERTY));
 		if (version != null) {
+
 			notifyData.put("version", version);
 		}
 		final String originSession = securityContext.getSessionId();
@@ -187,9 +192,11 @@ public class BpmnDiagramBatchCommand extends AbstractCommand {
 		final String type  = (String) entry.get("type");
 		final String id    = (String) entry.get("id");
 		if (type == null) {
+
 			throw new FrameworkException(422, "create entry missing 'type'");
 		}
 		if (id == null) {
+
 			throw new FrameworkException(422, "create entry missing 'id'");
 		}
 
@@ -209,15 +216,18 @@ public class BpmnDiagramBatchCommand extends AbstractCommand {
 
 		final String id = (String) entry.get("id");
 		if (id == null) {
+
 			throw new FrameworkException(422, "update entry missing 'id'");
 		}
 		final NodeInterface node = app.getNodeById(id);
 		if (node == null) {
+
 			throw new FrameworkException(404, "node " + id + " not found");
 		}
 		@SuppressWarnings("unchecked")
 		final Map<String, Object> rawProps = (Map<String, Object>) entry.get("props");
 		if (rawProps == null || rawProps.isEmpty()) {
+
 			return;
 		}
 		final PropertyMap props = PropertyMap.inputTypeToJavaType(securityContext, node.getType(), rawProps);
@@ -233,17 +243,21 @@ public class BpmnDiagramBatchCommand extends AbstractCommand {
 	 */
 	private List<Map<String, Object>> sortCreates(final List<Map<String, Object>> creates) {
 
-		final List<Map<String, Object>> byType = new ArrayList<>(creates);
+		final List<Map<String, Object>> byType = new LinkedList<>(creates);
 		byType.sort(Comparator.comparingInt(this::createOrder));
 
 		// Within BpmnElement, topo-sort by parentElement.
-		final List<Map<String, Object>> result = new ArrayList<>(byType.size());
-		final List<Map<String, Object>> elementBatch = new ArrayList<>();
+		final List<Map<String, Object>> result = new LinkedList<>();
+		final List<Map<String, Object>> elementBatch = new LinkedList<>();
 		for (final Map<String, Object> e : byType) {
+
 			if (ProcessTraits.BPMN_ELEMENT.equals(e.get("type"))) {
 				elementBatch.add(e);
+
 			} else {
+
 				if (!elementBatch.isEmpty()) {
+
 					result.addAll(topoSortElements(elementBatch));
 					elementBatch.clear();
 				}
@@ -251,12 +265,14 @@ public class BpmnDiagramBatchCommand extends AbstractCommand {
 			}
 		}
 		if (!elementBatch.isEmpty()) {
+
 			result.addAll(topoSortElements(elementBatch));
 		}
 		return result;
 	}
 
 	private int createOrder(final Map<String, Object> entry) {
+
 		final String type = (String) entry.get("type");
 		final int idx     = (type != null) ? CREATE_ORDER.indexOf(type) : -1;
 		return (idx >= 0) ? idx : Integer.MAX_VALUE;
@@ -274,24 +290,31 @@ public class BpmnDiagramBatchCommand extends AbstractCommand {
 		// Build id -> entry map for quick lookup.
 		final Map<String, Map<String, Object>> byId = new HashMap<>();
 		for (final Map<String, Object> e : batch) {
+
 			byId.put((String) e.get("id"), e);
 		}
 
-		final List<Map<String, Object>> result = new ArrayList<>(batch.size());
+		final List<Map<String, Object>> result = new LinkedList<>();
 		final java.util.Set<String> emitted    = new java.util.HashSet<>();
 
 		// Iterate up to N times; each pass emits any entry whose parent is
 		// already emitted or external. Bounded by batch size.
 		boolean progress = true;
 		while (progress) {
+
 			progress = false;
 			for (final Map<String, Object> e : batch) {
+
 				final String id = (String) e.get("id");
-				if (emitted.contains(id)) continue;
+				if (emitted.contains(id)) {
+
+					continue;
+				}
 				@SuppressWarnings("unchecked")
 				final Map<String, Object> props = (Map<String, Object>) e.get("props");
 				final Object parentRef = (props != null) ? props.get("parentElement") : null;
 				if (parentRef == null || !byId.containsKey(parentRef.toString()) || emitted.contains(parentRef.toString())) {
+
 					result.add(e);
 					emitted.add(id);
 					progress = true;
@@ -301,8 +324,10 @@ public class BpmnDiagramBatchCommand extends AbstractCommand {
 		// Anything left over indicates a cycle. Append at the end and let
 		// Structr surface the relational error rather than dropping silently.
 		for (final Map<String, Object> e : batch) {
+
 			final String id = (String) e.get("id");
 			if (!emitted.contains(id)) {
+
 				logger.warn("BPMN_DIAGRAM_BATCH: cyclic parentElement reference involving '{}' -- emitting in input order", id);
 				result.add(e);
 			}

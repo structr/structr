@@ -79,8 +79,11 @@ public enum BpmnElementType {
 	 * name is null or not one of the recognised types.
 	 */
 	public static BpmnElementType fromBpmnName(final String elementType) {
+
 		if (elementType != null) {
+
 			for (final BpmnElementType type : values()) {
+
 				if (elementType.equals(type.bpmnName)) {
 					return type;
 				}
@@ -96,6 +99,7 @@ public enum BpmnElementType {
 
 	/** The BPMN local names of all recognised types (excludes {@link #UNKNOWN}). */
 	public static Set<String> knownTypeNames() {
+
 		return Arrays.stream(values())
 			.map(BpmnElementType::bpmnName)
 			.filter(name -> name != null)

@@ -26,6 +26,7 @@ import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.process.bpmn.BpmnExporter;
+import org.structr.process.entity.BpmnDefinitions;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -53,7 +54,7 @@ public class ExportBPMNFunction extends Function<Object, Object> {
 			if (sources[0] instanceof NodeInterface defNode) {
 
 				final BpmnExporter exporter = new BpmnExporter();
-				return exporter.exportBpmn(defNode);
+				return exporter.exportBpmn(defNode.as(BpmnDefinitions.class));
 			}
 
 		} catch (IllegalArgumentException e) {
@@ -71,6 +72,7 @@ public class ExportBPMNFunction extends Function<Object, Object> {
 
 	@Override
 	public List<Usage> getUsages() {
+
 		return List.of(
 			Usage.structrScript("Usage: ${export_bpmn(node)}"),
 			Usage.javaScript("Usage: ${{S.exportBpmn(node)}}")
@@ -89,6 +91,7 @@ public class ExportBPMNFunction extends Function<Object, Object> {
 
 	@Override
 	public List<Parameter> getParameters() {
+
 		return List.of(
 			Parameter.mandatory("bpmnDefinitionsNode", "BpmnDefinitions node to export")
 		);
@@ -96,6 +99,7 @@ public class ExportBPMNFunction extends Function<Object, Object> {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
 			Example.structrScript("${export_bpmn(first(find('BpmnDefinitions')))}", "Export the first BpmnDefinitions node to XML"),
 			Example.javaScript("${{let xml = $.exportBpmn(def);}}", "Export in JavaScript")

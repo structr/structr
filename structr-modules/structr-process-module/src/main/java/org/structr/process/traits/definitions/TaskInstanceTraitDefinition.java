@@ -93,6 +93,7 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
 		return Map.of(
 			TaskInstance.class, (traits, node) -> new TaskInstanceTraitWrapper(traits, node)
 		);
@@ -162,6 +163,7 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 					// claims for themselves (potential-ownership check); an admin
 					// assigns to anyone (accessControl check on the task).
 					if (!task.isGranted(Permission.accessControl, callerContext, false)) {
+
 						throw new FrameworkException(403,
 							"Caller lacks accessControl on this task: cannot reassign. " +
 							"Use 'claim' for participant self-assignment instead."
@@ -170,6 +172,7 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 
 					final Object assigneeArg = arguments.toMap().get("assignee");
 					if (assigneeArg == null) {
+
 						throw new FrameworkException(422,
 							"assignTask requires an 'assignee' parameter (User or Group node UUID)."
 						);
@@ -232,10 +235,12 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 
 					final Object subjectTypeArg = args.remove("subjectType");
 					if (!(subjectTypeArg instanceof String) || ((String) subjectTypeArg).isBlank()) {
+
 						throw new FrameworkException(422, "completeWithSubject requires a 'subjectType' argument naming the SchemaNode type to instantiate as the process instance's subject.");
 					}
 					final String subjectType = ((String) subjectTypeArg).trim();
 					if (!Traits.exists(subjectType)) {
+
 						throw new FrameworkException(422, "completeWithSubject: unknown subjectType '" + subjectType + "' -- no SchemaNode of that name exists.");
 					}
 
@@ -259,6 +264,7 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 					final Traits taskTraits  = task.getTraits();
 					final NodeInterface instance = task.getProperty(taskTraits.key(PROCESS_INSTANCE_PROPERTY));
 					if (instance == null) {
+
 						throw new FrameworkException(422, "completeWithSubject: task has no parent ProcessInstance (data integrity error).");
 					}
 
@@ -302,6 +308,7 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 
 					final Object bpmnIdArg = arguments.toMap().get("bpmnId");
 					if (bpmnIdArg == null) {
+
 						throw new FrameworkException(422, "cancelBoundaryTimer requires a 'bpmnId' parameter (the boundary event's BPMN id, e.g. 'Boundary_Review_Escalate').");
 					}
 
@@ -356,6 +363,7 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 
 					final Object delegateArg = arguments.toMap().get("delegate");
 					if (delegateArg == null) {
+
 						throw new FrameworkException(422, "delegate requires a 'delegate' parameter (User or Group node UUID).");
 					}
 					final NodeInterface delegate = resolveAssignee(actionContext, delegateArg);
@@ -379,6 +387,7 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 					final NodeInterface task            = (NodeInterface) entity;
 
 					if (!task.isGranted(Permission.accessControl, callerContext, false)) {
+
 						throw new FrameworkException(403,
 							"Caller lacks accessControl on this task: cannot cancel."
 						);
@@ -403,6 +412,7 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 					final NodeInterface task            = (NodeInterface) entity;
 
 					if (!task.isGranted(Permission.accessControl, callerContext, false)) {
+
 						throw new FrameworkException(403,
 							"Caller lacks accessControl on this task: cannot return it to the pool."
 						);
@@ -435,24 +445,31 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 	private static NodeInterface resolveAssignee(final ActionContext actionContext, final Object arg) throws FrameworkException {
 
 		if (arg instanceof Iterable<?> || (arg != null && arg.getClass().isArray())) {
+
 			throw new FrameworkException(422,
 				"assignTask accepts a single 'assignee'. Pass exactly one User or Group, not a list."
 			);
 		}
 		if (arg instanceof NodeInterface) {
+
 			return (NodeInterface) arg;
 		}
 
 		String uuid = null;
 		if (arg instanceof String) {
+
 			uuid = (String) arg;
+
 		} else if (arg instanceof Map) {
+
 			final Object idObj = ((Map<?, ?>) arg).get("id");
 			if (idObj instanceof String) {
+
 				uuid = (String) idObj;
 			}
 		}
 		if (uuid == null || uuid.isEmpty()) {
+
 			throw new FrameworkException(422,
 				"Cannot resolve assignee from value of type " +
 				(arg != null ? arg.getClass().getName() : "null") +
@@ -462,6 +479,7 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 		final App app = StructrApp.getInstance(actionContext.getSecurityContext());
 		final NodeInterface node = app.getNodeById(uuid);
 		if (node == null) {
+
 			throw new FrameworkException(422, "Assignee with id '" + uuid + "' not found");
 		}
 		return node;

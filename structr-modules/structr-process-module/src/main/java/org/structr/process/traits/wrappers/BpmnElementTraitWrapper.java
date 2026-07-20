@@ -18,18 +18,18 @@
  */
 package org.structr.process.traits.wrappers;
 
+import org.structr.api.util.Iterables;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.process.bpmn.BpmnElementType;
 import org.structr.process.entity.BpmnElement;
+import org.structr.process.entity.BpmnPerformer;
 import org.structr.process.entity.BpmnSequenceFlow;
+import org.structr.process.entity.BpmnTaskListener;
 import org.structr.process.traits.definitions.BpmnBaseNodeTraitDefinition;
 import org.structr.process.traits.definitions.BpmnElementTraitDefinition;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class BpmnElementTraitWrapper extends AbstractNodeTraitWrapper implements BpmnElement {
 
@@ -63,13 +63,19 @@ public class BpmnElementTraitWrapper extends AbstractNodeTraitWrapper implements
 	}
 
 	@Override
-	public List<BpmnSequenceFlow> getOutgoingFlows() {
-		return flows(BpmnElementTraitDefinition.OUTGOING_FLOWS_PROPERTY);
+	public Iterable<BpmnSequenceFlow> getOutgoingFlows() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(BpmnElementTraitDefinition.OUTGOING_FLOWS_PROPERTY);
+
+		return Iterables.map(n -> n.as(BpmnSequenceFlow.class), wrappedObject.getProperty(key));
 	}
 
 	@Override
-	public List<BpmnSequenceFlow> getIncomingFlows() {
-		return flows(BpmnElementTraitDefinition.INCOMING_FLOWS_PROPERTY);
+	public Iterable<BpmnSequenceFlow> getIncomingFlows() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(BpmnElementTraitDefinition.INCOMING_FLOWS_PROPERTY);
+
+		return Iterables.map(n -> n.as(BpmnSequenceFlow.class), wrappedObject.getProperty(key));
 	}
 
 	@Override
@@ -78,8 +84,11 @@ public class BpmnElementTraitWrapper extends AbstractNodeTraitWrapper implements
 	}
 
 	@Override
-	public List<BpmnElement> getChildElements() {
-		return elements(BpmnElementTraitDefinition.CHILD_ELEMENTS_PROPERTY);
+	public Iterable<BpmnElement> getChildElements() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(BpmnElementTraitDefinition.CHILD_ELEMENTS_PROPERTY);
+
+		return Iterables.map(n -> n.as(BpmnElement.class), wrappedObject.getProperty(key));
 	}
 
 	@Override
@@ -108,52 +117,65 @@ public class BpmnElementTraitWrapper extends AbstractNodeTraitWrapper implements
 	}
 
 	@Override
-	public List<NodeInterface> getPerformers() {
-		return list(wrappedObject.getProperty(traits.key(BpmnElementTraitDefinition.PERFORMERS_PROPERTY)));
+	public String getEventDefinitionId() {
+		return wrappedObject.getProperty(traits.key(BpmnElementTraitDefinition.EVENT_DEF_ID_PROPERTY));
 	}
 
 	@Override
-	public List<NodeInterface> getTaskListeners() {
-		return list(wrappedObject.getProperty(traits.key(BpmnElementTraitDefinition.TASK_LISTENERS_PROPERTY)));
+	public String getEventDefinitionRef() {
+		return wrappedObject.getProperty(traits.key(BpmnElementTraitDefinition.EVENT_DEF_REF_PROPERTY));
+	}
+
+	@Override
+	public String getTimerExpressionType() {
+		return wrappedObject.getProperty(traits.key(BpmnElementTraitDefinition.TIMER_EXPRESSION_TYPE_PROPERTY));
+	}
+
+	@Override
+	public String getDocumentation() {
+		return wrappedObject.getProperty(traits.key(BpmnElementTraitDefinition.DOCUMENTATION_PROPERTY));
+	}
+
+	@Override
+	public String getBpmnAttributes() {
+		return wrappedObject.getProperty(traits.key(BpmnElementTraitDefinition.BPMN_ATTRIBUTES_PROPERTY));
+	}
+
+	@Override
+	public Iterable<BpmnSequenceFlow> getChildFlows() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(BpmnElementTraitDefinition.CHILD_FLOWS_PROPERTY);
+
+		return Iterables.map(n -> n.as(BpmnSequenceFlow.class), wrappedObject.getProperty(key));
+	}
+
+	@Override
+	public Iterable<BpmnPerformer> getPerformers() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(BpmnElementTraitDefinition.PERFORMERS_PROPERTY);
+
+		return Iterables.map(n -> n.as(BpmnPerformer.class), wrappedObject.getProperty(key));
+	}
+
+	@Override
+	public Iterable<BpmnTaskListener> getTaskListeners() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(BpmnElementTraitDefinition.TASK_LISTENERS_PROPERTY);
+
+		return Iterables.map(n -> n.as(BpmnTaskListener.class), wrappedObject.getProperty(key));
+	}
+
+	@Override
+	public Iterable<NodeInterface> getMethods() {
+
+		final PropertyKey<Iterable<NodeInterface>> key = traits.key(BpmnElementTraitDefinition.METHODS_PROPERTY);
+
+		return wrappedObject.getProperty(key);
 	}
 
 	// ------------------------------------------------------------------
 
-	private List<BpmnSequenceFlow> flows(final String propertyName) {
-		final List<BpmnSequenceFlow> out = new ArrayList<>();
-		final PropertyKey<Iterable<NodeInterface>> key = traits.key(propertyName);
-		final Iterable<NodeInterface> flows = wrappedObject.getProperty(key);
-		if (flows != null) {
-			for (final NodeInterface flow : flows) {
-				out.add(flow.as(BpmnSequenceFlow.class));
-			}
-		}
-		return out;
-	}
-
-	private List<BpmnElement> elements(final String propertyName) {
-		final List<BpmnElement> out = new ArrayList<>();
-		final PropertyKey<Iterable<NodeInterface>> key = traits.key(propertyName);
-		final Iterable<NodeInterface> elements = wrappedObject.getProperty(key);
-		if (elements != null) {
-			for (final NodeInterface element : elements) {
-				out.add(element.as(BpmnElement.class));
-			}
-		}
-		return out;
-	}
-
 	private BpmnElement element(final NodeInterface node) {
 		return node != null ? node.as(BpmnElement.class) : null;
-	}
-
-	private List<NodeInterface> list(final Iterable<NodeInterface> iterable) {
-		final List<NodeInterface> out = new ArrayList<>();
-		if (iterable != null) {
-			for (final NodeInterface n : iterable) {
-				out.add(n);
-			}
-		}
-		return out;
 	}
 }

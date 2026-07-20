@@ -38,8 +38,28 @@ public class BpmnSequenceFlowTraitWrapper extends AbstractNodeTraitWrapper imple
 	}
 
 	@Override
+	public String getBpmnName() {
+		return wrappedObject.getProperty(traits.key(BpmnSequenceFlowTraitDefinition.BPMN_NAME_PROPERTY));
+	}
+
+	@Override
 	public String getConditionExpression() {
 		return wrappedObject.getProperty(traits.key(BpmnSequenceFlowTraitDefinition.CONDITION_EXPRESSION_PROPERTY));
+	}
+
+	@Override
+	public String getConditionExpressionType() {
+		return wrappedObject.getProperty(traits.key(BpmnSequenceFlowTraitDefinition.CONDITION_EXPRESSION_TYPE_PROPERTY));
+	}
+
+	@Override
+	public String getBpmnAttributes() {
+		return wrappedObject.getProperty(traits.key(BpmnSequenceFlowTraitDefinition.BPMN_ATTRIBUTES_PROPERTY));
+	}
+
+	@Override
+	public String getSourceRefId() {
+		return wrappedObject.getProperty(traits.key(BpmnSequenceFlowTraitDefinition.SOURCE_REF_ID_PROPERTY));
 	}
 
 	@Override
@@ -49,6 +69,7 @@ public class BpmnSequenceFlowTraitWrapper extends AbstractNodeTraitWrapper imple
 
 	@Override
 	public BpmnElement getTargetElement() {
+
 		final NodeInterface target = wrappedObject.getProperty(traits.key(BpmnSequenceFlowTraitDefinition.TARGET_ELEMENT_PROPERTY));
 		return target != null ? target.as(BpmnElement.class) : null;
 	}

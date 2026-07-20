@@ -46,10 +46,10 @@ public interface TaskInstance extends NodeInterface {
 	String getAssigneeSetBy();
 	void setAssigneeSetBy(String setBy) throws FrameworkException;
 
-	List<NodeInterface> getCandidateAssignees();
+	Iterable<NodeInterface> getCandidateAssignees();
 	void setCandidateAssignees(List<NodeInterface> candidates) throws FrameworkException;
 
-	List<NodeInterface> getDeclinedBy();
+	Iterable<NodeInterface> getDeclinedBy();
 	void setDeclinedBy(List<NodeInterface> declinedBy) throws FrameworkException;
 
 	ProcessInstance getProcessInstance();

@@ -39,8 +39,8 @@ import org.structr.process.engine.ProcessEngine;
 import org.structr.process.traits.definitions.ProcessTimerTraitDefinition;
 import org.structr.schema.SchemaService;
 
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -75,6 +75,7 @@ public class ProcessTimerService extends Thread implements RunnableService {
 	private boolean doRun = false;
 
 	public ProcessTimerService() {
+
 		super("ProcessTimerService");
 		this.setDaemon(true);
 	}
@@ -84,6 +85,7 @@ public class ProcessTimerService extends Thread implements RunnableService {
 
 		final Services servicesInstance = Services.getInstance();
 		while (!servicesInstance.isInitialized()) {
+
 			try { Thread.sleep(1000); } catch (InterruptedException ignored) { }
 		}
 		// Small extra delay so SchemaService has finished registering ProcessTimer.
@@ -92,9 +94,12 @@ public class ProcessTimerService extends Thread implements RunnableService {
 		logger.info("ProcessTimerService started, polling every {}s", POLL_INTERVAL_SECONDS);
 
 		while (doRun) {
+
 			try {
 				pollAndFire();
+
 			} catch (Throwable t) {
+
 				logger.error("ProcessTimerService poll cycle failed: {}", t.getMessage(), t);
 			}
 			try { Thread.sleep(TimeUnit.SECONDS.toMillis(POLL_INTERVAL_SECONDS)); } catch (InterruptedException ignored) { }
@@ -109,7 +114,7 @@ public class ProcessTimerService extends Thread implements RunnableService {
 	private void pollAndFire() {
 
 		final SecurityContext superUser = SecurityContext.getSuperUserInstance();
-		final List<String> dueTimerIds = new ArrayList<>();
+		final List<String> dueTimerIds = new LinkedList<>();
 
 		// 1. Snapshot due timer IDs in one read transaction.
 		try (final Tx tx = StructrApp.getInstance(superUser).tx()) {
@@ -123,8 +128,10 @@ public class ProcessTimerService extends Thread implements RunnableService {
 				.getResultStream();
 
 			for (final NodeInterface timer : pending) {
+
 				final Date fireAt = timer.getProperty(timerTraits.key(ProcessTimerTraitDefinition.FIRE_AT_PROPERTY));
 				if (fireAt != null && !fireAt.after(now)) {
+
 					dueTimerIds.add(timer.getUuid());
 				}
 			}
@@ -132,6 +139,7 @@ public class ProcessTimerService extends Thread implements RunnableService {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			logger.warn("ProcessTimerService: error querying due timers: {}", ex.getMessage());
 			return;
 		}
@@ -155,6 +163,7 @@ public class ProcessTimerService extends Thread implements RunnableService {
 
 			final NodeInterface timer = StructrApp.getInstance(superUser).getNodeById(timerId);
 			if (timer == null) {
+
 				tx.success();
 				return;
 			}
@@ -165,6 +174,7 @@ public class ProcessTimerService extends Thread implements RunnableService {
 			tx.success();
 
 		} catch (Throwable t) {
+
 			logger.warn("ProcessTimerService: failed to fire timer {}: {}", timerId, t.getMessage());
 		}
 	}

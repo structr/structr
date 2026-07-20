@@ -36,7 +36,7 @@ import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.process.ProcessTraits;
 import org.structr.schema.action.ActionContext;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import org.structr.core.traits.NodeTraitFactory;
@@ -117,6 +117,7 @@ public class BpmnElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
+
 		return Map.of(
 			BpmnElement.class, (traits, node) -> new BpmnElementTraitWrapper(traits, node)
 		);
@@ -279,24 +280,43 @@ public class BpmnElementTraitDefinition extends AbstractNodeTraitDefinition {
 	 * right behaviour.
 	 */
 	private static List<NodeInterface> resolvePrincipalIds(final App app, final Object arg) throws FrameworkException {
-		final List<NodeInterface> out = new ArrayList<>();
-		if (arg == null) return out;
+		final List<NodeInterface> out = new LinkedList<>();
+		if (arg == null) {
+
+			return out;
+		}
 		final Iterable<?> source;
 		if (arg instanceof Iterable) {
+
 			source = (Iterable<?>) arg;
+
 		} else if (arg instanceof Object[]) {
+
 			source = java.util.Arrays.asList((Object[]) arg);
+
 		} else if (arg instanceof String) {
+
 			source = List.of((String) arg);
+
 		} else {
+
 			return out;
 		}
 		for (final Object item : source) {
-			if (!(item instanceof String)) continue;
+
+			if (!(item instanceof String)) {
+				continue;
+			}
 			final String id = ((String) item).trim();
-			if (id.isEmpty()) continue;
+			if (id.isEmpty()) {
+
+				continue;
+			}
 			final NodeInterface node = app.getNodeById(id);
-			if (node != null) out.add(node);
+			if (node != null) {
+
+				out.add(node);
+			}
 		}
 		return out;
 	}
@@ -312,13 +332,18 @@ public class BpmnElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		// Bucket existing performers by kind. Generic <performer> entries are
 		// left as-is; only the two managed kinds are reconciled.
-		final List<NodeInterface> ofKind = new ArrayList<>();
-		final List<NodeInterface> others = new ArrayList<>();
+		final List<NodeInterface> ofKind = new LinkedList<>();
+		final List<NodeInterface> others = new LinkedList<>();
 		final Iterable<NodeInterface> existing = element.getProperty(performersKey);
 		if (existing != null) {
+
 			for (final NodeInterface p : existing) {
+
 				final String pKind = p.getProperty(perfTraits.key(BpmnPerformerTraitDefinition.KIND_PROPERTY));
-				if (kind.equals(pKind)) ofKind.add(p);
+				if (kind.equals(pKind)) {
+
+					ofKind.add(p);
+				}
 				else                    others.add(p);
 			}
 		}
@@ -327,12 +352,14 @@ public class BpmnElementTraitDefinition extends AbstractNodeTraitDefinition {
 		final boolean hasPrincipals = principals != null && !principals.isEmpty();
 
 		if (!hasExpr && !hasPrincipals) {
+
 			// Remove all performers of this kind.
 			for (final NodeInterface p : ofKind) app.delete(p);
 			return;
 		}
 
 		if (ofKind.isEmpty()) {
+
 			// Create a new BpmnPerformer of this kind and link via the rel.
 			final NodeInterface created = app.create(ProcessTraits.BPMN_PERFORMER);
 			created.setProperty(perfTraits.key(BpmnPerformerTraitDefinition.KIND_PROPERTY),       kind);
@@ -346,8 +373,19 @@ public class BpmnElementTraitDefinition extends AbstractNodeTraitDefinition {
 		final NodeInterface keep = ofKind.get(0);
 		keep.setProperty(perfTraits.key(BpmnPerformerTraitDefinition.EXPRESSION_PROPERTY), hasExpr ? expression : null);
 		keep.setProperty(principalsKey, principals != null ? principals : List.of());
-		for (int i = 1; i < ofKind.size(); i++) {
-			app.delete(ofKind.get(i));
+
+		boolean first = true;
+
+		for (final NodeInterface p : ofKind) {
+
+			// Skip the survivor (first element); delete the extras. Index-free so the
+			// choice of List implementation stays O(n).
+			if (first) {
+
+				first = false;
+				continue;
+			}
+			app.delete(p);
 		}
 		// `others` is read-only here -- they remain attached untouched.
 	}
