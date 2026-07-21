@@ -231,6 +231,18 @@ form.config-form div.buttons input[type=reset] {
 	display: none;
 }
 
+.context-help-text table {
+	width: calc(100% - 1rem) !important;
+}
+
+.context-help-text table, .context-help-text tr, .context-help-text td, .context-help-text th, .context-help-text tbody, .context-help-text thead {
+	border: 1px solid var(--input-field-border);
+}
+
+.context-help-text table thead th, .context-help-text table tbody td {
+	padding: 0 4px;
+}
+
 button:hover {
 	background-color: var(--light-gray-bg-f3);
 }

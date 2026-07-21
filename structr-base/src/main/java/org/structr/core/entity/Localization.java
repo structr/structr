@@ -27,8 +27,6 @@ public interface Localization extends NodeInterface {
 	String getLocale();
 	String getDomain();
 
-	boolean isImported();
-
 	void setLocalizedName(final String localizedName) throws FrameworkException;
 	void setLocale(final String locale) throws FrameworkException;
 	void setDomain(final String domain) throws FrameworkException;

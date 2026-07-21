@@ -34,6 +34,7 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.property.ZonedDateTimeProperty;
 import org.structr.core.traits.Traits;
 import org.structr.schema.Schema;
 
@@ -53,8 +54,6 @@ import java.util.*;
 public abstract class StreamingWriter {
 
 	private static final Logger logger                       = LoggerFactory.getLogger(StreamingWriter.class.getName());
-	private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(Settings.JsonOutputDateFormat.getValue("yyyy-MM-dd'T'HH:mm:ssZ"), Locale.ENGLISH);
-	private static final SimpleDateFormat dateFormatter      = new SimpleDateFormat(Settings.JsonOutputDateFormat.getValue("yyyy-MM-dd'T'HH:mm:ssZ"), Locale.ENGLISH);
 
 	private static final Set<String> nonSerializerClasses = Set.of(
 		Object.class.getName(),
@@ -87,6 +86,10 @@ public abstract class StreamingWriter {
 	private boolean reduceNestedObjectsForRestrictedViews = true;
 	private int reduceNestedObjectsInRestrictedViewsDepth = Settings.JsonReduceNestedObjectsDepth.getValue();
 
+	private final DateTimeFormatter dateTimeFormatter;
+	private final SimpleDateFormat dateFormatter;
+
+
 	public abstract RestWriter getRestWriter(final SecurityContext securityContext, final Writer writer);
 
 	public StreamingWriter(final String propertyView, final boolean indent, final int outputNestingDepth, final boolean wrapSingleResultInArray, final boolean serializeNulls) {
@@ -103,6 +106,8 @@ public abstract class StreamingWriter {
 		serializers.put(Iterable.class.getName(),    new IterableSerializer());
 		serializers.put(Map.class.getName(),         new MapSerializer());
 
+		dateTimeFormatter = ZonedDateTimeProperty.getDateTimeFormatter(null);
+		dateFormatter     = new SimpleDateFormat(Settings.DefaultDateFormat.getValue(), Locale.ENGLISH);
 	}
 
 	public void streamSingle(final SecurityContext securityContext, final Writer output, final GraphObject obj) throws IOException {
@@ -326,6 +331,7 @@ public abstract class StreamingWriter {
 			} else if (value instanceof Date date) {
 
 				writer.value(dateFormatter.format(date));
+
 			} else {
 
 				writer.value(value.toString());

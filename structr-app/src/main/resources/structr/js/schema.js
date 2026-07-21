@@ -1886,8 +1886,10 @@ let _Schema = {
 			});
 
 			for (let error of errors) {
-				let errorInputs = [...container.querySelectorAll(`.schema-grid.local.schema-props input.property-name`)].filter(input => input.value === error.value);
-				_Helpers.blinkRed(errorInputs);
+				let rowsWithPropertyName = [...container.querySelectorAll(`.schema-grid.local.schema-props input.property-name`)].filter(input => input.value === error.propertyName).map(i => i.closest('.schema-grid-row'));
+				let matchingInputs = rowsWithPropertyName.map(row => row.querySelector(`input.property-${error.property}`)).filter(input => input.value === error.value);
+
+				_Helpers.blinkRed(matchingInputs);
 			}
 		},
 		bindRowEvents: (property, gridRow, overrides) => {

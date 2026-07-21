@@ -125,8 +125,10 @@ test('pages', async ({page}, testInfo) => {
 	// wait for list to fully (re)load
 	timestamp = await waitUntilAttributeChangedAndReturnIt(page, '#sortable-list', 'data-test-timestamp', timestamp);
 
-	await page.locator('#sortable-list .select-render-template[data-field-name="dueDate"]').getByText('Set template..').click();
-	await page.getByText('formatted-date').click();
+	let dueDateTemplateDisplay = page.locator('#sortable-list .select-render-template[data-field-name="dueDate"]');
+	await dueDateTemplateDisplay.click();
+	let dueDateTplInContextMenu = dueDateTemplateDisplay.locator('.render-template-select').getByText('formatted-date', { exact: true });
+	await dueDateTplInContextMenu.click();
 
 	// wait for list to fully (re)load
 	timestamp = await waitUntilAttributeChangedAndReturnIt(page, '#sortable-list', 'data-test-timestamp', timestamp);
