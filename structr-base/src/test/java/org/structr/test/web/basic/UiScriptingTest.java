@@ -1654,7 +1654,7 @@ public class UiScriptingTest extends StructrUiTest {
 			assertEquals("a structrscript method should favor the implicit return value instead of printed values (quirky as that might seem) AND also concatenate all implicit results", "implicitStructrScriptReturn1implicitStructrScriptReturn2", Scripting.evaluate(renderContext, null, "${{ Structr.call('testPrintImplicitReturnPrintMixedSS'); }}", "test"));
 
 			assertEquals("include() in a schema method should return the rendered output of the named node!", "-X-", Scripting.evaluate(renderContext, null, "${{ Structr.call('testIncludeJS'); }}", "test"));
-			assertEquals("include_child() should not work in a schema method because it has no children!", "", Scripting.evaluate(renderContext, null, "${{ Structr.call('testIncludeChildJS'); }}", "test"));
+			assertEquals("include_child() should not work in a schema method because it has no children!", null, Scripting.evaluate(renderContext, null, "${{ Structr.call('testIncludeChildJS'); }}", "test"));
 			assertEquals("render() in a schema method should return the rendered output of the given nodes!", "-X-", Scripting.evaluate(renderContext, null, "${{ Structr.call('testRenderJS'); }}", "test"));
 
 			tx.success();
@@ -1951,7 +1951,8 @@ public class UiScriptingTest extends StructrUiTest {
 			.header("x-user", "A")
 			.header("x-password", "test")
 			.expect()
-			.body("result", equalTo(""))
+			.body("result", Matchers.hasSize(1))
+			.body("result[0]", equalTo(null))
 			.body("result_count", equalTo(1))
 			.body("page_count", equalTo(1))
 			.statusCode(200)
@@ -2031,8 +2032,8 @@ public class UiScriptingTest extends StructrUiTest {
 			.header("x-user", "A")
 			.header("x-password", "test")
 			.expect()
-			.body("result", equalTo(""))
-			.body("result_count", equalTo(1))
+			.body("result", Matchers.hasSize(1))
+			.body("result[0]", equalTo(null))
 			.body("page_count", equalTo(1))
 			.statusCode(200)
 			.when()

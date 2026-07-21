@@ -319,7 +319,7 @@ public class Scripting {
 			return outputBuffer;
 		}
 
-		return result != null ? result : "";
+		return result;
 	}
 
 
