@@ -83,6 +83,13 @@ public abstract class CryptFunction extends AdvancedScriptingFunction {
 
 		if (secretKeyHash == null) {
 
+			// no secret configured yet: generate and persist one on first use so encrypted
+			// properties work out of the box (only reached when there is no prior encrypted data)
+			CryptFunction.setEncryptionKey(Settings.getOrGenerateEncryptionSecret());
+		}
+
+		if (secretKeyHash == null) {
+
 			throw new FrameworkException(422, "Unable to encrypt data, no secret key set.");
 		}
 

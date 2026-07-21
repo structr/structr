@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.SecureRandom;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
@@ -45,6 +46,7 @@ public class Settings {
 	private static String uuidOnlyRegex;
 	private static String uuidPartRegex;
 	private static final Logger logger         = LoggerFactory.getLogger(Settings.class);
+	private static final SecureRandom secureRandom = new SecureRandom();
 
 	private static Pattern uuidPattern;
 
@@ -1025,6 +1027,81 @@ public class Settings {
 		setting.setValue(value);
 
 		return setting;
+	}
+
+	/**
+	 * Returns the global encryption secret ({@link #GlobalSecret}), generating and persisting a strong
+	 * random one on first use if none is configured. Called from the encryption path so a secret is only
+	 * ever minted for instances that actually use encrypted properties. An already-configured value is
+	 * returned unchanged.
+	 */
+	public static synchronized String getOrGenerateEncryptionSecret() {
+
+		if (StringUtils.isBlank(GlobalSecret.getValue())) {
+
+			GlobalSecret.setValue(generateSecret());
+			logger.info("Generated a new global encryption secret ({}) because none was configured.", GlobalSecret.getKey());
+
+			persistGeneratedSecrets();
+		}
+
+		return GlobalSecret.getValue();
+	}
+
+	/**
+	 * Returns the JWT signing secret ({@link #JWTSecret}), generating and persisting a strong random one
+	 * on first use if none is configured, and pinning {@link #JWTSecretType} to "secret" so the generated
+	 * secret is the effective (and persisted) signing configuration. Only called from the "secret"-type
+	 * token-issuing path. An already-configured value is returned unchanged (a present-but-weak secret is
+	 * left as-is so the caller's strength check still rejects it).
+	 */
+	public static synchronized String getOrGenerateJWTSecret() {
+
+		if (StringUtils.isBlank(JWTSecret.getValue())) {
+
+			JWTSecret.setValue(generateSecret());
+
+			// make the "secret" choice explicit and persisted (it is already the default, so setValue alone
+			// would not mark it modified)
+			JWTSecretType.setValue("secret");
+			JWTSecretType.setIsModified(true);
+
+			logger.info("Generated a new JWT secret ({}) because none was configured.", JWTSecret.getKey());
+
+			persistGeneratedSecrets();
+		}
+
+		return JWTSecret.getValue();
+	}
+
+	/**
+	 * @return a 256-bit cryptographically-random secret, URL-safe Base64-encoded (~43 chars, &gt;= 10
+	 * distinct characters) - long and high-entropy enough for both AES key derivation and the JWT secret
+	 * strength requirements.
+	 */
+	private static String generateSecret() {
+
+		final byte[] bytes = new byte[32];
+		secureRandom.nextBytes(bytes);
+
+		return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+	}
+
+	/**
+	 * Best-effort persist of a freshly generated secret to the config file. If the file cannot be written
+	 * (read-only filesystem, config-only mode, ...) the in-memory value is still usable for this session;
+	 * it will simply be regenerated on the next restart.
+	 */
+	private static void persistGeneratedSecrets() {
+
+		try {
+
+			storeConfiguration(ConfigFileName);
+
+		} catch (Throwable t) {
+
+			logger.warn("Generated a secret but could not persist it to {}; it will be regenerated on the next restart: {}", ConfigFileName, t.getMessage());
+		}
 	}
 
 	public static void storeConfiguration(final String fileName) throws IOException {
