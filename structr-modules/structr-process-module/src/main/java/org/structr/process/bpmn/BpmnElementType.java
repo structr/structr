@@ -49,6 +49,8 @@ public enum BpmnElementType {
 	INCLUSIVE_GATEWAY("inclusiveGateway"),
 	EVENT_BASED_GATEWAY("eventBasedGateway"),
 	SUB_PROCESS("subProcess"),
+	TRANSACTION("transaction"),
+	AD_HOC_SUB_PROCESS("adHocSubProcess"),
 	CALL_ACTIVITY("callActivity"),
 	DATA_OBJECT_REFERENCE("dataObjectReference"),
 	DATA_STORE_REFERENCE("dataStoreReference"),

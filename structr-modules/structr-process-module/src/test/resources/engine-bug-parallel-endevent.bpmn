@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  id="Definitions_BugParallelEnd"
+                  targetNamespace="http://structr.org/bpmn">
+
+  <bpmn:process id="Process_BugParallelEnd" name="Parallel fork with one branch to an end event" isExecutable="true">
+
+    <bpmn:startEvent id="Start_1" name="Start" />
+
+    <bpmn:parallelGateway id="Fork_1" name="Fork" />
+
+    <!-- Branch A: fully automatic, straight to a top-level end event. -->
+    <bpmn:manualTask id="ManualTask_A" name="Auto A" />
+    <bpmn:endEvent   id="End_A" name="End A" />
+
+    <!-- Branch B: a human task that should keep the instance running. -->
+    <bpmn:userTask id="Task_B" name="Task B" />
+    <bpmn:endEvent id="End_B" name="End B" />
+
+    <bpmn:sequenceFlow id="Flow_start"  sourceRef="Start_1"      targetRef="Fork_1" />
+    <bpmn:sequenceFlow id="Flow_fork_a" sourceRef="Fork_1"       targetRef="ManualTask_A" />
+    <bpmn:sequenceFlow id="Flow_a_end"  sourceRef="ManualTask_A" targetRef="End_A" />
+    <bpmn:sequenceFlow id="Flow_fork_b" sourceRef="Fork_1"       targetRef="Task_B" />
+    <bpmn:sequenceFlow id="Flow_b_end"  sourceRef="Task_B"       targetRef="End_B" />
+
+  </bpmn:process>
+
+</bpmn:definitions>

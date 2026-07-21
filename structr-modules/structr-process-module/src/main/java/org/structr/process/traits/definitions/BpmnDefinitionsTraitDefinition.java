@@ -141,7 +141,12 @@ public class BpmnDefinitionsTraitDefinition extends AbstractNodeTraitDefinition 
 
 				@Override
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
-					return new BpmnExporter().exportBpmn(((NodeInterface) entity).as(BpmnDefinitions.class));
+
+					if (entity instanceof NodeInterface node) {
+						return new BpmnExporter().exportBpmn(node.as(BpmnDefinitions.class));
+					}
+
+					return null;
 				}
 
 				@Override
@@ -156,17 +161,16 @@ public class BpmnDefinitionsTraitDefinition extends AbstractNodeTraitDefinition 
 				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
 
 					final Map<String, Object> args = arguments.toMap();
-					final Object xmlArg = args.get("xml");
+					final Object xmlArg            = args.get("xml");
+
 					if (!(xmlArg instanceof String) || ((String) xmlArg).isEmpty()) {
 
 						throw new FrameworkException(422, "Missing required parameter 'xml' (BPMN 2.0.2 XML string).");
 					}
-					final String xml = (String) xmlArg;
-					final Object filenameArg = args.get("filename");
-					final String filename = (filenameArg instanceof String && !((String) filenameArg).isEmpty())
-						? (String) filenameArg
-						: "imported.bpmn";
 
+					final String xml                      = (String) xmlArg;
+					final Object filenameArg              = args.get("filename");
+					final String filename                 = (filenameArg instanceof String && !((String) filenameArg).isEmpty()) ? (String) filenameArg : "imported.bpmn";
 					final SecurityContext securityContext = actionContext.getSecurityContext();
 
 					// Persist the source XML in Structr's virtual file system so
@@ -176,8 +180,7 @@ public class BpmnDefinitionsTraitDefinition extends AbstractNodeTraitDefinition 
 					// caller cares about.
 					try {
 
-						FileHelper.createFile(securityContext, xml.getBytes(StandardCharsets.UTF_8),
-							"application/xml", StructrTraits.FILE, filename, true);
+						FileHelper.createFile(securityContext, xml.getBytes(StandardCharsets.UTF_8), "application/xml", StructrTraits.FILE, filename, true);
 
 					} catch (IOException ioe) {
 
@@ -185,6 +188,7 @@ public class BpmnDefinitionsTraitDefinition extends AbstractNodeTraitDefinition 
 					}
 
 					final BpmnImporter importer = new BpmnImporter(securityContext);
+
 					return importer.importBpmn(xml);
 				}
 

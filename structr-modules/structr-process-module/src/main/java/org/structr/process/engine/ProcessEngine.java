@@ -358,6 +358,13 @@ public class ProcessEngine {
 			throw new FrameworkException(422, "Task is cancelled");
 		}
 
+		// Enforce suspend: a task cannot be completed (and the token must not
+		// advance) while the owning instance is not running.
+		final ProcessInstance owningInstance = task.getProcessInstance();
+		if (owningInstance != null && !owningInstance.isRunning()) {
+			throw new FrameworkException(422, "Process instance is not running (status: " + owningInstance.getStatus() + "); cannot complete task");
+		}
+
 		// Mark task as completed
 		task.setStatus(TaskInstanceTraitDefinition.STATUS_COMPLETED);
 		task.setCompletedTime(new Date());
@@ -441,10 +448,11 @@ public class ProcessEngine {
 		}
 
 		// Find the catch event element by bpmnId
-		final Traits elemTraits = Traits.of(ProcessTraits.BPMN_ELEMENT);
-		final NodeInterface catchElement = app.nodeQuery(ProcessTraits.BPMN_ELEMENT)
-			.and().key(elemTraits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY), eventBpmnId)
-			.getFirst();
+		// Resolve the catch event WITHIN this instance's own definition version.
+		// A global lookup would return the first bpmnId match in the index (often a
+		// different, stale version) and the waiting token would not be found.
+		final Traits elemTraits          = Traits.of(ProcessTraits.BPMN_ELEMENT);
+		final NodeInterface catchElement = findElementByBpmnId(instanceNode, eventBpmnId);
 
 		if (catchElement == null) {
 			throw new FrameworkException(422, "No element found with bpmnId: " + eventBpmnId);
@@ -486,7 +494,41 @@ public class ProcessEngine {
 	 * determines the outgoing path(s), creates new tokens, and recurses for
 	 * automatic elements (events, gateways, service/script tasks).
 	 */
+	// Token advancement runs iteratively via an explicit LIFO work stack (=
+	// depth-first) so a long chain of automatic elements cannot overflow the call
+	// stack. Public entry points call advanceToken(); nested advances (gateway
+	// forks, pass-throughs, sub-processes) triggered while a drain is in progress
+	// simply enqueue onto the same stack and are processed by the outermost call.
+	// Because all sibling fork tokens are created (and enqueued) before any is
+	// stepped, a branch that reaches an end event sees its siblings still active,
+	// and an inclusive join is only reached once every sibling has arrived.
+	private final java.util.Deque<NodeInterface> tokenWorkStack = new java.util.ArrayDeque<>();
+	private boolean advancing = false;
+
 	private void advanceToken(final NodeInterface instance, final NodeInterface token) throws FrameworkException {
+
+		tokenWorkStack.addFirst(token);
+
+		if (advancing) {
+			return;
+		}
+
+		advancing = true;
+
+		try {
+
+			while (!tokenWorkStack.isEmpty()) {
+				stepToken(instance, tokenWorkStack.pollFirst());
+			}
+
+		} finally {
+
+			advancing = false;
+			tokenWorkStack.clear();
+		}
+	}
+
+	private void stepToken(final NodeInterface instance, final NodeInterface token) throws FrameworkException {
 
 		final Traits tokenTraits           = token.getTraits();
 		final NodeInterface currentElement = token.getProperty(tokenTraits.key(ProcessTokenTraitDefinition.AT_ELEMENT_PROPERTY));
@@ -514,7 +556,7 @@ public class ProcessEngine {
 				completeToken(token);
 
 				final NodeInterface parentElement = currentElement.getProperty(elemTraits.key(BpmnElementTraitDefinition.PARENT_ELEMENT_PROPERTY));
-				if (parentElement != null && BpmnElementType.SUB_PROCESS.matches(parentElement.getProperty(parentElement.getTraits().key(BpmnElementTraitDefinition.BPMN_ELEMENT_TYPE_PROPERTY)))) {
+				if (parentElement != null && isSubProcessLikeType(parentElement.getProperty(parentElement.getTraits().key(BpmnElementTraitDefinition.BPMN_ELEMENT_TYPE_PROPERTY)))) {
 
 					// Sub-process end: resume the parent token
 					resumeSubProcessParent(instance, parentElement);
@@ -585,7 +627,9 @@ public class ProcessEngine {
 				break;
 
 			case SUB_PROCESS:
-				// Enter the sub-process: find its start event and create a token there
+			case TRANSACTION:
+			case AD_HOC_SUB_PROCESS:
+				// Enter the (sub-process-like) container: find its start event and create a token there
 				handleSubProcess(instance, token, currentElement);
 				break;
 
@@ -685,19 +729,16 @@ public class ProcessEngine {
 			// JOIN: wait until tokens have arrived from all incoming paths
 			token.as(ProcessToken.class).markWaiting();
 
-			// Count how many tokens are waiting at this element
-			final int waitingCount = countTokensAtElement(instance, element);
+			// Fire only when a token has arrived on EVERY distinct incoming edge
+			// (two tokens from the SAME edge must not satisfy the join).
+			if (allIncomingEdgesDelivered(instance, element, incomingFlows)) {
 
-			if (waitingCount >= incomingFlows.size()) {
-
-				// All tokens arrived -- consume them all, create one continuing token
+				// All tokens arrived -- consume them all, then continue down EVERY outgoing flow (a gateway may both join and fork).
 				consumeAllTokensAtElement(instance, element);
 
-				if (!outgoingFlows.isEmpty()) {
-
-					final NodeInterface newToken = createToken(instance, outgoingFlows.get(0).getTargetElement());
-					advanceToken(instance, newToken);
-				}
+				for (final BpmnSequenceFlow out : outgoingFlows) {
+						advanceToken(instance, createToken(instance, out.getTargetElement()));
+					}
 			}
 
 		} else {
@@ -770,11 +811,12 @@ public class ProcessEngine {
 		} else if (incomingFlows.size() > 1) {
 
 			// JOIN: wait for all tokens that are actually in flight.
-			// Unlike a parallel join (which always waits for all incoming paths),
-			// an inclusive join only waits for paths that actually have tokens.
-			// We detect this by checking if any active/waiting tokens exist
-			// elsewhere in the process (not at this gateway). If not, all
-			// expected tokens have arrived.
+			// Unlike a parallel join (which waits for one token per incoming edge),
+			// an inclusive join only waits for paths that actually carry tokens. We
+			// detect completion by checking that no other non-completed token exists
+			// elsewhere in the process (not at this gateway). This is reliable because
+			// advanceToken drains iteratively: all sibling fork tokens are created
+			// before any is stepped, so a sibling still heading here is counted.
 			token.as(ProcessToken.class).markWaiting();
 
 			if (countActiveTokensNotAtElement(instance, element) == 0) {
@@ -782,12 +824,9 @@ public class ProcessEngine {
 				// All in-flight tokens have arrived at this gateway
 				consumeAllTokensAtElement(instance, element);
 
-				if (!outgoingFlows.isEmpty()) {
-
-					final NodeInterface newToken = createToken(instance, outgoingFlows.get(0).getTargetElement());
-
-					advanceToken(instance, newToken);
-				}
+				for (final BpmnSequenceFlow out : outgoingFlows) {
+						advanceToken(instance, createToken(instance, out.getTargetElement()));
+					}
 			}
 
 		} else {
@@ -799,6 +838,18 @@ public class ProcessEngine {
 	// -----------------------------------------------------------------------
 	// Sub-process handling
 	// -----------------------------------------------------------------------
+
+	/** True for the container element types that host their own start event (subProcess / transaction / adHocSubProcess). */
+	private static boolean isSubProcessLike(final BpmnElement e) {
+		return e != null && (e.isType(BpmnElementType.SUB_PROCESS) || e.isType(BpmnElementType.TRANSACTION) || e.isType(BpmnElementType.AD_HOC_SUB_PROCESS));
+	}
+
+	private static boolean isSubProcessLikeType(final String typeName) {
+
+		final BpmnElementType t = BpmnElementType.fromBpmnName(typeName);
+
+		return t == BpmnElementType.SUB_PROCESS || t == BpmnElementType.TRANSACTION || t == BpmnElementType.AD_HOC_SUB_PROCESS;
+	}
 
 	private void handleSubProcess(final NodeInterface instance, final NodeInterface token, final NodeInterface subProcessElement) throws FrameworkException {
 
@@ -913,7 +964,7 @@ public class ProcessEngine {
 	 *
 	 * Supported transformations:
 	 *   execution.getVariable("x")      -> $.process.x
-	 *   execution.setVariable("x", val) -> (removed, assignment sufficient)
+	 *   execution.setVariable("x", val) -> $.process.x = val
 	 *
 	 * Lines that cannot be transpiled are kept as-is (best effort).
 	 */
@@ -941,15 +992,13 @@ public class ProcessEngine {
 				continue;
 			}
 
-			// execution.setVariable("x", expr); -> drop entirely
-			// (the variable was already assigned via getVariable, and
-			// mutations on the object are in-place in JS)
-			if (trimmed.matches("execution\\.setVariable\\(.*\\);")) {
-				continue;
-			}
-
-			// execution.getVariable("x") -> $.process.x
+			// execution.setVariable("x", expr); -> $.process.x = expr; (preserve the write)
+			// execution.getVariable("x")        -> $.process.x
 			String transpiled = line;
+			transpiled = transpiled.replaceAll(
+				"execution\\.setVariable\\(\\s*[\"']([^\"']+)[\"']\\s*,\\s*(.*?)\\s*\\)\\s*;",
+				"\\$.process.$1 = $2;"
+			);
 			transpiled = transpiled.replaceAll(
 				"execution\\.getVariable\\([\"']([^\"']+)[\"']\\)",
 				"\\$.process.$1"
@@ -2048,21 +2097,30 @@ public class ProcessEngine {
 
 			if ("timeDate".equals(timerType)) {
 
-				// ISO 8601 instant
-				return Date.from(Instant.parse(body));
+				// ISO 8601 instant; if no zone/offset is given, interpret in the system zone.
+				try {
+
+					return Date.from(Instant.parse(body));
+
+				} catch (final DateTimeParseException ex) {
+
+					return Date.from(java.time.LocalDateTime.parse(body).atZone(java.time.ZoneId.systemDefault()).toInstant());
+				}
 			}
 
 			if ("timeDuration".equals(timerType)) {
 
-				// ISO 8601 duration. Java's Duration.parse handles PT-style; for P-style
-				// (P1D, P2W) we fall through to a small fallback parser.
+				// ISO 8601 duration. Only the time-only PT... form is delegated to
+				// Duration.parse; every other P-form (P1D, P1W, P1M, P1Y, ...) is routed
+				// to the small fallback parser below, which also supports the week /
+				// month / year components that Duration.parse rejects.
 				if (body.startsWith("PT")) {
 					return Date.from(Instant.now().plus(Duration.parse(body)));
 				}
 
 				// Handle "PnDTm..." forms -- split at "T" and combine day-component + time-component.
 				final long millis = parseIso8601DurationMillis(body);
-				if (millis > 0) {
+				if (millis >= 0) {
 
 					return new Date(System.currentTimeMillis() + millis);
 				}
@@ -2322,6 +2380,12 @@ public class ProcessEngine {
 		final NodeInterface token    = timer.getToken();
 		final NodeInterface element  = timer.getElement();
 
+		// Enforce suspend: do not advance a non-running instance. For a suspended
+		// instance the timer is left pending so it fires once the instance resumes.
+		if (instance != null && !instance.as(ProcessInstance.class).isRunning()) {
+			return;
+		}
+
 		try {
 
 			if (ProcessTimerTraitDefinition.TIMER_INTERMEDIATE.equals(timerType)) {
@@ -2563,6 +2627,14 @@ public class ProcessEngine {
 
 		final ProcessToken token = tokenNode.as(ProcessToken.class);
 
+		// Record the element (bpmnId) the token is leaving, so a parallel join can
+		// tell which incoming edge each waiting token arrived on.
+		final NodeInterface from = tokenNode.getProperty(token.getTraits().key(ProcessTokenTraitDefinition.AT_ELEMENT_PROPERTY));
+		if (from != null) {
+			tokenNode.setProperty(token.getTraits().key(ProcessTokenTraitDefinition.ARRIVED_FROM_BPMN_ID_PROPERTY),
+				from.getProperty(from.getTraits().key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY)));
+		}
+
 		token.setAtElement(element);
 
 		tokenNode.setProperty(token.getTraits().key("name"), tokenName(element));
@@ -2599,7 +2671,7 @@ public class ProcessEngine {
 
 				final BpmnElement parent = current.getParentElement();
 
-				if (parent != null && parent.isType(BpmnElementType.SUB_PROCESS)) {
+				if (parent != null && isSubProcessLike(parent)) {
 
 					// Sub-process end: complete this token, resume the parent
 					completeToken(token);
@@ -2684,17 +2756,52 @@ public class ProcessEngine {
 		return null;
 	}
 
-	private int countTokensAtElement(final NodeInterface instance, final NodeInterface element) throws FrameworkException {
+	/**
+	 * True when, for every incoming sequence flow of {@code element}, at least one
+	 * non-completed token is waiting at {@code element} that arrived from that
+	 * flow's source (tracked via {@code arrivedFromBpmnId}). This enforces the
+	 * parallel-join semantics of one token per distinct incoming edge, rather than
+	 * a plain total count that two tokens from the same edge could satisfy.
+	 */
+	private boolean allIncomingEdgesDelivered(final NodeInterface instance, final NodeInterface element, final List<BpmnSequenceFlow> incomingFlows) throws FrameworkException {
 
-		int count = 0;
+		final Set<String> arrivedFrom = new HashSet<>();
+		int waiting                   = 0;
+		boolean unknownArrival        = false;
 
-		for (final ProcessToken token : instance.as(ProcessInstance.class).getTokens()) {
+		for (final ProcessToken t : instance.as(ProcessInstance.class).getTokens()) {
 
-			if (!token.isCompleted() && isAtElement(token, element)) {
-				count++;
+			if (!t.isCompleted() && isAtElement(t, element)) {
+
+				waiting++;
+
+				final String from = t.getProperty(t.getTraits().key(ProcessTokenTraitDefinition.ARRIVED_FROM_BPMN_ID_PROPERTY));
+				if (from != null) {
+					arrivedFrom.add(from);
+
+				} else {
+
+					unknownArrival = true;
+				}
 			}
 		}
-		return count;
+
+		// Fallback: a token created directly at the join (e.g. a fork whose flow
+		// targets the join) has no recorded arrival edge -- use the plain count so
+		// such topologies never deadlock.
+		if (unknownArrival) {
+			return waiting >= incomingFlows.size();
+		}
+
+		for (final BpmnSequenceFlow f : incomingFlows) {
+
+			final String src = f.getSourceRefId();
+			if (src == null || !arrivedFrom.contains(src)) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/**

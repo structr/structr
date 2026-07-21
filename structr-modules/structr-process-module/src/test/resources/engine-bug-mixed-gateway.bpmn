@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  id="Definitions_BugMixedGateway"
+                  targetNamespace="http://structr.org/bpmn">
+
+  <bpmn:process id="Process_BugMixedGateway" name="Parallel gateway that both joins and forks" isExecutable="true">
+
+    <bpmn:startEvent id="Start_1" name="Start" />
+
+    <bpmn:parallelGateway id="Fork_0" name="Fork" />
+
+    <bpmn:manualTask id="ManualTask_1" name="Auto 1" />
+    <bpmn:manualTask id="ManualTask_2" name="Auto 2" />
+
+    <!-- Mixed gateway: 2 incoming (join) AND 2 outgoing (fork). -->
+    <bpmn:parallelGateway id="Mixed_1" name="Join+Fork" />
+
+    <bpmn:userTask id="Task_X" name="Task X" />
+    <bpmn:userTask id="Task_Y" name="Task Y" />
+
+    <bpmn:endEvent id="End_X" name="End X" />
+    <bpmn:endEvent id="End_Y" name="End Y" />
+
+    <bpmn:sequenceFlow id="Flow_start"  sourceRef="Start_1"      targetRef="Fork_0" />
+    <bpmn:sequenceFlow id="Flow_fork_1" sourceRef="Fork_0"       targetRef="ManualTask_1" />
+    <bpmn:sequenceFlow id="Flow_fork_2" sourceRef="Fork_0"       targetRef="ManualTask_2" />
+    <bpmn:sequenceFlow id="Flow_1_mix"  sourceRef="ManualTask_1" targetRef="Mixed_1" />
+    <bpmn:sequenceFlow id="Flow_2_mix"  sourceRef="ManualTask_2" targetRef="Mixed_1" />
+    <bpmn:sequenceFlow id="Flow_mix_x"  sourceRef="Mixed_1"      targetRef="Task_X" />
+    <bpmn:sequenceFlow id="Flow_mix_y"  sourceRef="Mixed_1"      targetRef="Task_Y" />
+    <bpmn:sequenceFlow id="Flow_x_end"  sourceRef="Task_X"       targetRef="End_X" />
+    <bpmn:sequenceFlow id="Flow_y_end"  sourceRef="Task_Y"       targetRef="End_Y" />
+
+  </bpmn:process>
+
+</bpmn:definitions>

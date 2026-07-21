@@ -49,6 +49,9 @@ public class ProcessTokenTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String AT_ELEMENT_PROPERTY            = "atElement";
 	public static final String ACCESS_TOKEN_PROPERTY          = "accessToken";
 	public static final String ACCESS_TOKEN_PRINCIPAL_PROPERTY = "accessTokenPrincipal";
+	// bpmnId of the element this token last moved FROM; lets a parallel join
+	// verify one token per distinct incoming edge (not just a total count).
+	public static final String ARRIVED_FROM_BPMN_ID_PROPERTY  = "arrivedFromBpmnId";
 
 	// Status constants
 	public static final String STATUS_ACTIVE    = "active";
@@ -75,8 +78,9 @@ public class ProcessTokenTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> atElement             = new EndNode(traitsInstance, AT_ELEMENT_PROPERTY, ProcessTraits.PROCESS_TOKEN_AT_ELEMENT);
 		final Property<String> accessToken                  = new StringProperty(ACCESS_TOKEN_PROPERTY).unique().indexed();
 		final Property<NodeInterface> accessTokenPrincipal  = new EndNode(traitsInstance, ACCESS_TOKEN_PRINCIPAL_PROPERTY, ProcessTraits.PROCESS_TOKEN_ACCESS_TOKEN_PRINCIPAL);
+		final Property<String> arrivedFromBpmnId            = new StringProperty(ARRIVED_FROM_BPMN_ID_PROPERTY);
 
-		return newSet(status, processInst, atElement, accessToken, accessTokenPrincipal);
+		return newSet(status, processInst, atElement, accessToken, accessTokenPrincipal, arrivedFromBpmnId);
 	}
 
 	@Override

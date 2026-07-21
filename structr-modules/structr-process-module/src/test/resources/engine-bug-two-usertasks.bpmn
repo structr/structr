@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  id="Definitions_BugTwoTasks"
+                  targetNamespace="http://structr.org/bpmn">
+
+  <bpmn:process id="Process_BugTwoTasks" name="Two sequential user tasks" isExecutable="true">
+
+    <bpmn:startEvent id="Start_1" name="Start" />
+    <bpmn:userTask   id="Task_A" name="Task A" />
+    <bpmn:userTask   id="Task_B" name="Task B" />
+    <bpmn:endEvent   id="End_1" name="Done" />
+
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_1" targetRef="Task_A" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_A"  targetRef="Task_B" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Task_B"  targetRef="End_1" />
+
+  </bpmn:process>
+
+</bpmn:definitions>

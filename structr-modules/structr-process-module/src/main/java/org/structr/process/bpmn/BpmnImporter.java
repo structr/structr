@@ -18,6 +18,7 @@
  */
 package org.structr.process.bpmn;
 
+import org.apache.commons.lang3.StringUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
@@ -65,7 +66,7 @@ public class BpmnImporter {
 	private static final String DC_NS      = "http://www.omg.org/spec/DD/20100524/DC";
 	private static final String OMGDI_NS   = "http://www.omg.org/spec/DD/20100524/DI";
 	private static final String XSI_NS     = "http://www.w3.org/2001/XMLSchema-instance";
-	private static final String CAMUNDA_NS = "http://camunda.org/schema/1.0/bpmn";
+	static final String CAMUNDA_NS = "http://camunda.org/schema/1.0/bpmn";
 	private static final String STRUCTR_NS = "http://structr.org/schema/process/1.0";
 
 	private static final Set<String> KNOWN_ELEMENT_TYPES = BpmnElementType.knownTypeNames();
@@ -105,9 +106,13 @@ public class BpmnImporter {
 		try {
 
 			final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+
 			factory.setNamespaceAware(true);
+			// Harden against XXE: BPMN never uses a DOCTYPE, so disallow it entirely.
+			factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+
 			final DocumentBuilder builder = factory.newDocumentBuilder();
-			final Document doc = builder.parse(inputStream);
+			final Document doc            = builder.parse(inputStream);
 
 			return importDocument(doc);
 
@@ -131,8 +136,11 @@ public class BpmnImporter {
 
 			final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			factory.setNamespaceAware(true);
+			// Harden against XXE: BPMN never uses a DOCTYPE, so disallow it entirely.
+			factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+
 			final DocumentBuilder builder = factory.newDocumentBuilder();
-			final Document doc = builder.parse(new InputSource(new StringReader(xml)));
+			final Document doc            = builder.parse(new InputSource(new StringReader(xml)));
 
 			return importDocument(doc);
 
@@ -149,7 +157,7 @@ public class BpmnImporter {
 
 	private NodeInterface importDocument(final Document doc) throws FrameworkException {
 
-		final App app = StructrApp.getInstance(securityContext);
+		final App app      = StructrApp.getInstance(securityContext);
 		final Element root = doc.getDocumentElement();
 
 		// Collect namespace declarations from root element
@@ -185,7 +193,7 @@ public class BpmnImporter {
 		// File-level display name: prefer the first process's name attribute.
 		final String firstProcessName = firstProcessEl.getAttribute("name");
 
-		defNode.setProperty(defTraits.key("name"), firstProcessName != null && !firstProcessName.isEmpty() ? firstProcessName : firstProcessId);
+		defNode.setProperty(defTraits.key("name"), StringUtils.isNotEmpty(firstProcessName) ? firstProcessName : firstProcessId);
 
 		// Top-level global definitions (message, signal, error, escalation, ...)
 		// live on BpmnDefinitions, not on any individual process.
@@ -218,8 +226,10 @@ public class BpmnImporter {
 		// BPMNShape entries. Populated by importLaneSet during process walk.
 		final Set<String> laneBpmnIds = new HashSet<>();
 
-		// Find previous BpmnProcess by processId (used for method cloning).
-		// A multi-process file with N processes does N independent lookups.
+		// Create each <bpmn:process>: its BpmnProcess node and properties, all child
+		// elements and sequence flows, lane sets, listeners and method refs. On
+		// re-import (previous version present, found via findPreviousProcess) the
+		// previous version's methods are cloned onto the new process first.
 		for (int i = 0; i < processNodes.getLength(); i++) {
 
 			final Element processEl    = (Element) processNodes.item(i);
@@ -228,15 +238,15 @@ public class BpmnImporter {
 			final NodeInterface procNode = createBpmnNode(app, ProcessTraits.BPMN_PROCESS);
 			final Traits procTraits = procNode.getTraits();
 
-			procNode.setProperty(procTraits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY),                  processIdAttr);
-			procNode.setProperty(procTraits.key(BpmnProcessTraitDefinition.PROCESS_ID_PROPERTY),                processIdAttr);
-			procNode.setProperty(procTraits.key(BpmnProcessTraitDefinition.PROCESS_NAME_PROPERTY),              processEl.getAttribute("name"));
-			procNode.setProperty(procTraits.key(BpmnProcessTraitDefinition.PROCESS_IS_EXECUTABLE_PROPERTY),     "true".equals(processEl.getAttribute("isExecutable")));
-			procNode.setProperty(procTraits.key(BpmnProcessTraitDefinition.DEFINITION_PROPERTY),                defNode);
+			procNode.setProperty(procTraits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY),              processIdAttr);
+			procNode.setProperty(procTraits.key(BpmnProcessTraitDefinition.PROCESS_ID_PROPERTY),            processIdAttr);
+			procNode.setProperty(procTraits.key(BpmnProcessTraitDefinition.PROCESS_NAME_PROPERTY),          processEl.getAttribute("name"));
+			procNode.setProperty(procTraits.key(BpmnProcessTraitDefinition.PROCESS_IS_EXECUTABLE_PROPERTY), "true".equals(processEl.getAttribute("isExecutable")));
+			procNode.setProperty(procTraits.key(BpmnProcessTraitDefinition.DEFINITION_PROPERTY),            defNode);
 
 			final String procName = processEl.getAttribute("name");
 
-			procNode.setProperty(procTraits.key("name"), procName != null && !procName.isEmpty() ? procName : processIdAttr);
+			procNode.setProperty(procTraits.key("name"), StringUtils.isNotEmpty(procName) ? procName : processIdAttr);
 
 			processMap.put(processIdAttr, procNode);
 
@@ -323,11 +333,7 @@ public class BpmnImporter {
 	 * {@code processRef}; message flows hold source/target {@code bpmnId}
 	 * strings and (when resolvable) edges to the actual {@code BpmnElement}s.
 	 */
-	private void importCollaboration(final App app, final NodeInterface defNode, final Element collabEl,
-									 final Map<String, NodeInterface> processMap,
-									 final Map<String, NodeInterface> elementMap,
-									 final Set<String> participantBpmnIds,
-									 final Set<String> messageFlowBpmnIds) throws FrameworkException {
+	private void importCollaboration(final App app, final NodeInterface defNode, final Element collabEl, final Map<String, NodeInterface> processMap, final Map<String, NodeInterface> elementMap, final Set<String> participantBpmnIds, final Set<String> messageFlowBpmnIds) throws FrameworkException {
 
 		final NodeInterface collabNode = createBpmnNode(app, ProcessTraits.BPMN_COLLABORATION);
 		final Traits collabTraits = collabNode.getTraits();
@@ -343,6 +349,7 @@ public class BpmnImporter {
 		for (int i = 0; i < children.getLength(); i++) {
 
 			final Node n = children.item(i);
+
 			if (n.getNodeType() != Node.ELEMENT_NODE) {
 
 				continue;
@@ -358,7 +365,7 @@ public class BpmnImporter {
 
 			if ("participant".equals(ln)) {
 
-				final String partBpmnId = child.getAttribute("id");
+				final String partBpmnId      = child.getAttribute("id");
 				final NodeInterface partNode = createBpmnNode(app, ProcessTraits.BPMN_PARTICIPANT);
 
 				partNode.setProperty(partTraits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY),                partBpmnId);
@@ -366,11 +373,11 @@ public class BpmnImporter {
 
 				final String pname = child.getAttribute("name");
 
-				partNode.setProperty(partTraits.key("name"), pname != null && !pname.isEmpty() ? pname : partBpmnId);
+				partNode.setProperty(partTraits.key("name"), StringUtils.isNotEmpty(pname) ? pname : partBpmnId);
 				partNode.setProperty(partTraits.key(BpmnParticipantTraitDefinition.COLLABORATION_PROPERTY),       collabNode);
 
 				final String processRef = child.getAttribute("processRef");
-				if (processRef != null && !processRef.isEmpty()) {
+				if (StringUtils.isNotEmpty(processRef)) {
 
 					final NodeInterface procNode = processMap.get(processRef);
 					if (procNode != null) {
@@ -383,13 +390,13 @@ public class BpmnImporter {
 					}
 				}
 
-				if (partBpmnId != null && !partBpmnId.isEmpty()) {
+				if (StringUtils.isNotEmpty(partBpmnId)) {
 					participantBpmnIds.add(partBpmnId);
 				}
 
 			} else if ("messageFlow".equals(ln)) {
 
-				final String mfBpmnId = child.getAttribute("id");
+				final String mfBpmnId      = child.getAttribute("id");
 				final NodeInterface mfNode = createBpmnNode(app, ProcessTraits.BPMN_MESSAGE_FLOW);
 
 				mfNode.setProperty(mfTraits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY),               mfBpmnId);
@@ -400,7 +407,7 @@ public class BpmnImporter {
 
 				final String mfName = child.getAttribute("name");
 
-				mfNode.setProperty(mfTraits.key("name"), mfName != null && !mfName.isEmpty() ? mfName : mfBpmnId);
+				mfNode.setProperty(mfTraits.key("name"), StringUtils.isNotEmpty(mfName) ? mfName : mfBpmnId);
 
 				// Resolve source / target if both elements were imported.
 				final NodeInterface src = elementMap.get(child.getAttribute("sourceRef"));
@@ -414,7 +421,7 @@ public class BpmnImporter {
 					mfNode.setProperty(mfTraits.key(BpmnMessageFlowTraitDefinition.TARGET_ELEMENT_PROPERTY), tgt);
 				}
 
-				if (mfBpmnId != null && !mfBpmnId.isEmpty()) {
+				if (StringUtils.isNotEmpty(mfBpmnId)) {
 					messageFlowBpmnIds.add(mfBpmnId);
 				}
 			}
@@ -427,15 +434,17 @@ public class BpmnImporter {
 	private void importProcessChildren(final App app, final NodeInterface procNode, final NodeInterface parentElement, final Element containerEl, final Map<String, NodeInterface> elementMap, final Map<String, NodeInterface> flowMap) throws FrameworkException {
 
 		final NodeList children = containerEl.getChildNodes();
+
 		for (int i = 0; i < children.getLength(); i++) {
 
 			final Node child = children.item(i);
+
 			if (child.getNodeType() != Node.ELEMENT_NODE) {
 
 				continue;
 			}
 
-			final Element el = (Element) child;
+			final Element el       = (Element) child;
 			final String localName = el.getLocalName();
 
 			if ("sequenceFlow".equals(localName)) {
@@ -443,7 +452,9 @@ public class BpmnImporter {
 				final NodeInterface flowNode = importSequenceFlow(app, procNode, parentElement, el);
 				flowMap.put(el.getAttribute("id"), flowNode);
 
-			} else if (BpmnElementType.SUB_PROCESS.matches(localName)) {
+			} else if (BpmnElementType.SUB_PROCESS.matches(localName)
+					|| BpmnElementType.TRANSACTION.matches(localName)
+					|| BpmnElementType.AD_HOC_SUB_PROCESS.matches(localName)) {
 
 				final NodeInterface subProcNode = importElement(app, procNode, parentElement, el, localName);
 				elementMap.put(el.getAttribute("id"), subProcNode);
@@ -477,19 +488,14 @@ public class BpmnImporter {
 	 * into a single in-memory collection -- the spec allows them but in
 	 * practice tools emit at most one.</p>
 	 */
-	private void importLaneSet(final App app, final NodeInterface procNode, final Element processEl,
-							   final Map<String, NodeInterface> elementMap,
-							   final Set<String> laneBpmnIds) throws FrameworkException {
+	private void importLaneSet(final App app, final NodeInterface procNode, final Element processEl, final Map<String, NodeInterface> elementMap, final Set<String> laneBpmnIds) throws FrameworkException {
 
-		final NodeList laneSets = processEl.getElementsByTagNameNS(BPMN_NS, "laneSet");
-		for (int i = 0; i < laneSets.getLength(); i++) {
+		// Only DIRECT-child <laneSet>/<lane> elements belong to this process; a
+		// laneSet nested inside a <subProcess> must not be flattened up here.
+		for (final Element laneSetEl : getChildrenByLocalName(processEl, "laneSet")) {
 
-			final Element laneSetEl = (Element) laneSets.item(i);
-			final NodeList lanes = laneSetEl.getElementsByTagNameNS(BPMN_NS, "lane");
+			for (final Element laneEl : getChildrenByLocalName(laneSetEl, "lane")) {
 
-			for (int j = 0; j < lanes.getLength(); j++) {
-
-				final Element laneEl         = (Element) lanes.item(j);
 				final NodeInterface laneNode = createBpmnNode(app, ProcessTraits.BPMN_LANE);
 				final Traits laneTraits      = laneNode.getTraits();
 				final String laneBpmnId      = laneEl.getAttribute("id");
@@ -498,19 +504,18 @@ public class BpmnImporter {
 				laneNode.setProperty(laneTraits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY), laneBpmnId);
 				laneNode.setProperty(laneTraits.key(BpmnLaneTraitDefinition.BPMN_NAME_PROPERTY),  laneName);
 				laneNode.setProperty(laneTraits.key(BpmnLaneTraitDefinition.PROCESS_PROPERTY),    procNode);
-				laneNode.setProperty(laneTraits.key("name"), (laneName != null && !laneName.isEmpty()) ? laneName : laneBpmnId);
+				laneNode.setProperty(laneTraits.key("name"), (StringUtils.isNotEmpty(laneName)) ? laneName : laneBpmnId);
 
-				if (laneBpmnId != null && !laneBpmnId.isEmpty()) {
+				if (StringUtils.isNotEmpty(laneBpmnId)) {
 					laneBpmnIds.add(laneBpmnId);
 				}
 
 				// Resolve <bpmn:flowNodeRef> entries -> BpmnElement nodes.
-				final NodeList refs = laneEl.getElementsByTagNameNS(BPMN_NS, "flowNodeRef");
 				final List<NodeInterface> resolved = new LinkedList<>();
 
-				for (int k = 0; k < refs.getLength(); k++) {
+				for (final Element ref : getChildrenByLocalName(laneEl, "flowNodeRef")) {
 
-					final String refId = refs.item(k).getTextContent();
+					final String refId = ref.getTextContent();
 					if (refId == null) {
 
 						continue;
@@ -574,7 +579,7 @@ public class BpmnImporter {
 			}
 
 			final String json = elem.getBpmnAttributes();
-			if (json == null || json.isEmpty()) {
+			if (StringUtils.isEmpty(json)) {
 
 				continue;
 			}
@@ -630,13 +635,13 @@ public class BpmnImporter {
 	private NodeInterface importElement(final App app, final NodeInterface procNode, final NodeInterface parentElement, final Element el, final String elementType) throws FrameworkException {
 
 		final NodeInterface elemNode = createBpmnNode(app, ProcessTraits.BPMN_ELEMENT);
-		final Traits traits = elemNode.getTraits();
+		final Traits traits          = elemNode.getTraits();
 
 		elemNode.setProperty(traits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY), el.getAttribute("id"));
 		elemNode.setProperty(traits.key(BpmnElementTraitDefinition.BPMN_ELEMENT_TYPE_PROPERTY), elementType);
 
 		final String name = el.getAttribute("name");
-		if (name != null && !name.isEmpty()) {
+		if (StringUtils.isNotEmpty(name)) {
 
 			elemNode.setProperty(traits.key(BpmnElementTraitDefinition.BPMN_NAME_PROPERTY), name);
 			elemNode.setProperty(traits.key("name"), name);
@@ -700,7 +705,7 @@ public class BpmnImporter {
 
 				// Store the id attribute
 				final String evtDefId = evtDef.getAttribute("id");
-				if (evtDefId != null && !evtDefId.isEmpty()) {
+				if (StringUtils.isNotEmpty(evtDefId)) {
 
 					elemNode.setProperty(traits.key(BpmnElementTraitDefinition.EVENT_DEF_ID_PROPERTY), evtDefId);
 				}
@@ -724,7 +729,7 @@ public class BpmnImporter {
 							elemNode.setProperty(traits.key(BpmnElementTraitDefinition.TIMER_VALUE_PROPERTY), timerEl.getTextContent().trim());
 
 							final String xsiType = timerEl.getAttributeNS(XSI_NS, "type");
-							if (xsiType != null && !xsiType.isEmpty()) {
+							if (StringUtils.isNotEmpty(xsiType)) {
 
 								elemNode.setProperty(traits.key(BpmnElementTraitDefinition.TIMER_EXPRESSION_TYPE_PROPERTY), xsiType);
 							}
@@ -739,6 +744,7 @@ public class BpmnImporter {
 
 		// Connect to definition (top-level) or parent element (sub-process child)
 		if (parentElement == null) {
+
 			elemNode.setProperty(traits.key(BpmnElementTraitDefinition.PROCESS_PROPERTY), procNode);
 
 		} else {
@@ -762,7 +768,7 @@ public class BpmnImporter {
 		flowNode.setProperty(traits.key(BpmnSequenceFlowTraitDefinition.TARGET_REF_ID_PROPERTY), el.getAttribute("targetRef"));
 
 		final String name = el.getAttribute("name");
-		if (name != null && !name.isEmpty()) {
+		if (StringUtils.isNotEmpty(name)) {
 
 			flowNode.setProperty(traits.key(BpmnSequenceFlowTraitDefinition.BPMN_NAME_PROPERTY), name);
 			flowNode.setProperty(traits.key("name"), name);
@@ -781,7 +787,7 @@ public class BpmnImporter {
 			flowNode.setProperty(traits.key(BpmnSequenceFlowTraitDefinition.CONDITION_EXPRESSION_PROPERTY), condEl.getTextContent().trim());
 
 			final String xsiType = condEl.getAttributeNS(XSI_NS, "type");
-			if (xsiType != null && !xsiType.isEmpty()) {
+			if (StringUtils.isNotEmpty(xsiType)) {
 
 				flowNode.setProperty(traits.key(BpmnSequenceFlowTraitDefinition.CONDITION_EXPRESSION_TYPE_PROPERTY), xsiType);
 			}
@@ -801,6 +807,7 @@ public class BpmnImporter {
 
 		// Connect to definition (top-level) or parent element (sub-process child)
 		if (parentElement == null) {
+
 			flowNode.setProperty(traits.key(BpmnSequenceFlowTraitDefinition.PROCESS_PROPERTY), procNode);
 
 		} else {
@@ -811,12 +818,12 @@ public class BpmnImporter {
 		return flowNode;
 	}
 
-	// --- DI import methods (unchanged) ---
+	// --- DI import methods ---
 
 	private void importDiagram(final App app, final NodeInterface defNode, final Element diagramEl, final Map<String, NodeInterface> elementMap, final Map<String, NodeInterface> flowMap, final Set<String> participantBpmnIds, final Set<String> messageFlowBpmnIds, final Set<String> laneBpmnIds) throws FrameworkException {
 
 		final NodeInterface diagramNode = createBpmnNode(app, ProcessTraits.BPMN_DI_DIAGRAM);
-		final Traits diagramTraits = diagramNode.getTraits();
+		final Traits diagramTraits      = diagramNode.getTraits();
 
 		diagramNode.setProperty(diagramTraits.key(BpmnDiDiagramTraitDefinition.DIAGRAM_ID_PROPERTY), diagramEl.getAttribute("id"));
 		diagramNode.setProperty(diagramTraits.key(BpmnDiDiagramTraitDefinition.DEFINITION_PROPERTY), defNode);
@@ -842,10 +849,7 @@ public class BpmnImporter {
 				// an imported BpmnParticipant (collaboration pool), or an
 				// imported BpmnLane (pool subdivision). Drop shapes
 				// referencing entities we didn't import.
-				if (ref == null || ref.isEmpty()
-						|| (!elementMap.containsKey(ref)
-							&& !participantBpmnIds.contains(ref)
-							&& !laneBpmnIds.contains(ref))) {
+				if (StringUtils.isEmpty(ref) || (!elementMap.containsKey(ref) && !participantBpmnIds.contains(ref) && !laneBpmnIds.contains(ref))) {
 
 					skippedShapes++;
 					continue;
@@ -867,8 +871,7 @@ public class BpmnImporter {
 				final String ref = ed.getAttribute("bpmnElement");
 
 				// Keep edges for sequence flows AND message flows.
-				if (ref == null || ref.isEmpty()
-						|| (!flowMap.containsKey(ref) && !messageFlowBpmnIds.contains(ref))) {
+				if (StringUtils.isEmpty(ref) || (!flowMap.containsKey(ref) && !messageFlowBpmnIds.contains(ref))) {
 
 					skippedEdges++;
 					continue;
@@ -886,19 +889,22 @@ public class BpmnImporter {
 	private void importDiShape(final App app, final NodeInterface diagramNode, final Element shapeEl, final Map<String, NodeInterface> elementMap) throws FrameworkException {
 
 		final NodeInterface shapeNode = createBpmnNode(app, ProcessTraits.BPMN_DI_SHAPE);
-		final Traits traits = shapeNode.getTraits();
+		final Traits traits           = shapeNode.getTraits();
 
 		shapeNode.setProperty(traits.key(BpmnDiShapeTraitDefinition.SHAPE_ID_PROPERTY), shapeEl.getAttribute("id"));
 		shapeNode.setProperty(traits.key(BpmnDiShapeTraitDefinition.BPMN_ELEMENT_REF_PROPERTY), shapeEl.getAttribute("bpmnElement"));
 		shapeNode.setProperty(traits.key("name"), shapeEl.getAttribute("bpmnElement"));
 
 		if ("true".equals(shapeEl.getAttribute("isMarkerVisible"))) {
+
 			shapeNode.setProperty(traits.key(BpmnDiShapeTraitDefinition.IS_MARKER_VISIBLE), true);
 		}
+
 		if ("true".equals(shapeEl.getAttribute("isExpanded"))) {
 
 			shapeNode.setProperty(traits.key(BpmnDiShapeTraitDefinition.IS_EXPANDED), true);
 		}
+
 		if ("true".equals(shapeEl.getAttribute("isHorizontal"))) {
 
 			shapeNode.setProperty(traits.key(BpmnDiShapeTraitDefinition.IS_HORIZONTAL), true);
@@ -909,10 +915,10 @@ public class BpmnImporter {
 
 			final Element b = (Element) boundsList.item(0);
 
-			shapeNode.setProperty(traits.key(BpmnDiShapeTraitDefinition.BOUNDS_X_PROPERTY), Double.parseDouble(b.getAttribute("x")));
-			shapeNode.setProperty(traits.key(BpmnDiShapeTraitDefinition.BOUNDS_Y_PROPERTY), Double.parseDouble(b.getAttribute("y")));
-			shapeNode.setProperty(traits.key(BpmnDiShapeTraitDefinition.BOUNDS_WIDTH_PROPERTY), Double.parseDouble(b.getAttribute("width")));
-			shapeNode.setProperty(traits.key(BpmnDiShapeTraitDefinition.BOUNDS_HEIGHT_PROPERTY), Double.parseDouble(b.getAttribute("height")));
+			shapeNode.setProperty(traits.key(BpmnDiShapeTraitDefinition.BOUNDS_X_PROPERTY), parseDoubleOrNull(b.getAttribute("x")));
+			shapeNode.setProperty(traits.key(BpmnDiShapeTraitDefinition.BOUNDS_Y_PROPERTY), parseDoubleOrNull(b.getAttribute("y")));
+			shapeNode.setProperty(traits.key(BpmnDiShapeTraitDefinition.BOUNDS_WIDTH_PROPERTY), parseDoubleOrNull(b.getAttribute("width")));
+			shapeNode.setProperty(traits.key(BpmnDiShapeTraitDefinition.BOUNDS_HEIGHT_PROPERTY), parseDoubleOrNull(b.getAttribute("height")));
 		}
 
 		final NodeList labels = shapeEl.getElementsByTagNameNS(DI_NS, "BPMNLabel");
@@ -925,7 +931,7 @@ public class BpmnImporter {
 
 			if (labelBounds.getLength() > 0) {
 
-				final Element lb = (Element) labelBounds.item(0);
+				final Element lb                = (Element) labelBounds.item(0);
 				final Map<String, String> lbMap = new LinkedHashMap<>();
 
 				lbMap.put("x", lb.getAttribute("x"));
@@ -961,13 +967,13 @@ public class BpmnImporter {
 	private void importDiEdge(final App app, final NodeInterface diagramNode, final Element edgeEl, final Map<String, NodeInterface> flowMap) throws FrameworkException {
 
 		final NodeInterface edgeNode = createBpmnNode(app, ProcessTraits.BPMN_DI_EDGE);
-		final Traits traits = edgeNode.getTraits();
+		final Traits traits          = edgeNode.getTraits();
 
 		edgeNode.setProperty(traits.key(BpmnDiEdgeTraitDefinition.EDGE_ID_PROPERTY), edgeEl.getAttribute("id"));
 		edgeNode.setProperty(traits.key(BpmnDiEdgeTraitDefinition.BPMN_ELEMENT_REF_PROPERTY), edgeEl.getAttribute("bpmnElement"));
 		edgeNode.setProperty(traits.key("name"), edgeEl.getAttribute("bpmnElement"));
 
-		final NodeList wpNodes = edgeEl.getElementsByTagNameNS(OMGDI_NS, "waypoint");
+		final NodeList wpNodes                    = edgeEl.getElementsByTagNameNS(OMGDI_NS, "waypoint");
 		final List<Map<String, String>> waypoints = new LinkedList<>();
 
 		for (int i = 0; i < wpNodes.getLength(); i++) {
@@ -986,11 +992,12 @@ public class BpmnImporter {
 		final NodeList labels = edgeEl.getElementsByTagNameNS(DI_NS, "BPMNLabel");
 		if (labels.getLength() > 0) {
 
-			final Element labelEl = (Element) labels.item(0);
+			final Element labelEl      = (Element) labels.item(0);
 			final NodeList labelBounds = labelEl.getElementsByTagNameNS(DC_NS, "Bounds");
+
 			if (labelBounds.getLength() > 0) {
 
-				final Element lb = (Element) labelBounds.item(0);
+				final Element lb                = (Element) labelBounds.item(0);
 				final Map<String, String> lbMap = new LinkedHashMap<>();
 
 				lbMap.put("x", lb.getAttribute("x"));
@@ -1026,13 +1033,13 @@ public class BpmnImporter {
 	private void importGlobalDefinition(final App app, final NodeInterface defNode, final Element el, final String definitionType) throws FrameworkException {
 
 		final NodeInterface gdNode = createBpmnNode(app, ProcessTraits.BPMN_GLOBAL_DEFINITION);
-		final Traits traits = gdNode.getTraits();
+		final Traits traits        = gdNode.getTraits();
 
 		gdNode.setProperty(traits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY), el.getAttribute("id"));
 		gdNode.setProperty(traits.key(BpmnGlobalDefinitionTraitDefinition.DEFINITION_TYPE_PROPERTY), definitionType);
 
 		final String name = el.getAttribute("name");
-		if (name != null && !name.isEmpty()) {
+		if (StringUtils.isNotEmpty(name)) {
 
 			gdNode.setProperty(traits.key(BpmnGlobalDefinitionTraitDefinition.BPMN_NAME_PROPERTY), name);
 			gdNode.setProperty(traits.key("name"), name);
@@ -1044,14 +1051,14 @@ public class BpmnImporter {
 
 		// Error-specific: errorCode
 		final String errorCode = el.getAttribute("errorCode");
-		if (errorCode != null && !errorCode.isEmpty()) {
+		if (StringUtils.isNotEmpty(errorCode)) {
 
 			gdNode.setProperty(traits.key(BpmnGlobalDefinitionTraitDefinition.ERROR_CODE_PROPERTY), errorCode);
 		}
 
 		// structureRef (used by message and error)
 		final String structureRef = el.getAttribute("structureRef");
-		if (structureRef != null && !structureRef.isEmpty()) {
+		if (StringUtils.isNotEmpty(structureRef)) {
 
 			gdNode.setProperty(traits.key(BpmnGlobalDefinitionTraitDefinition.STRUCTURE_REF_PROPERTY), structureRef);
 		}
@@ -1081,7 +1088,7 @@ public class BpmnImporter {
 		// camunda:assignee="demo"           -> humanPerformer body "user(demo)"
 		// camunda:assignee="${initiator}"   -> humanPerformer body "${initiator}" (expression preserved)
 		final String camundaAssignee = el.getAttributeNS(CAMUNDA_NS, "assignee");
-		if (camundaAssignee != null && !camundaAssignee.isEmpty()) {
+		if (StringUtils.isNotEmpty(camundaAssignee)) {
 
 			createPerformerNode(app, elemNode, BpmnPerformerTraitDefinition.KIND_HUMAN_PERFORMER, wrapAsUserIfBare(camundaAssignee), null, null, null);
 			consumedAttributeKeys.add("camunda:assignee");
@@ -1089,7 +1096,7 @@ public class BpmnImporter {
 
 		// camunda:candidateUsers="alice, bob" -> potentialOwner body "user(alice), user(bob)"
 		final String candidateUsers = el.getAttributeNS(CAMUNDA_NS, "candidateUsers");
-		if (candidateUsers != null && !candidateUsers.isEmpty()) {
+		if (StringUtils.isNotEmpty(candidateUsers)) {
 
 			createPerformerNode(app, elemNode, BpmnPerformerTraitDefinition.KIND_POTENTIAL_OWNER, csvToFunctionExpression(candidateUsers, "user"), null, null, null);
 			consumedAttributeKeys.add("camunda:candidateUsers");
@@ -1097,7 +1104,7 @@ public class BpmnImporter {
 
 		// camunda:candidateGroups="managers, hr" -> potentialOwner body "group(managers), group(hr)"
 		final String candidateGroups = el.getAttributeNS(CAMUNDA_NS, "candidateGroups");
-		if (candidateGroups != null && !candidateGroups.isEmpty()) {
+		if (StringUtils.isNotEmpty(candidateGroups)) {
 
 			createPerformerNode(app, elemNode, BpmnPerformerTraitDefinition.KIND_POTENTIAL_OWNER, csvToFunctionExpression(candidateGroups, "group"), null, null, null);
 			consumedAttributeKeys.add("camunda:candidateGroups");
@@ -1152,6 +1159,7 @@ public class BpmnImporter {
 				final String parentId = parent.getAttribute("id");
 
 				if (rae == null && hasNonWhitespaceText(performerEl)) {
+
 					logger.warn("BPMN <{}> on element '{}' contains text directly inside the element ('{}'); the standard requires it to be wrapped in <resourceAssignmentExpression><formalExpression>...</...></...>. Performer skipped.", localName, parentId, collapseWhitespace(performerEl.getTextContent()));
 
 				} else if (rae != null && formal == null && hasNonWhitespaceText(rae)) {
@@ -1174,7 +1182,7 @@ public class BpmnImporter {
 
 		final String t = el.getTextContent();
 
-		return t != null && !t.trim().isEmpty();
+		return StringUtils.isNotBlank(t);
 	}
 
 	private String collapseWhitespace(final String s) {
@@ -1189,24 +1197,59 @@ public class BpmnImporter {
 	private void createPerformerNode(final App app, final NodeInterface elemNode, final String kind, final String expression, final String language, final String performerName, final String bpmnId) throws FrameworkException {
 
 		final NodeInterface node = createBpmnNode(app, ProcessTraits.BPMN_PERFORMER);
-		final Traits t = node.getTraits();
+		final Traits traits      = node.getTraits();
 
-		node.setProperty(t.key(BpmnPerformerTraitDefinition.KIND_PROPERTY),       kind);
-		node.setProperty(t.key(BpmnPerformerTraitDefinition.EXPRESSION_PROPERTY), expression);
+		node.setProperty(traits.key(BpmnPerformerTraitDefinition.KIND_PROPERTY),       kind);
+		node.setProperty(traits.key(BpmnPerformerTraitDefinition.EXPRESSION_PROPERTY), expression);
 
 		if (language != null) {
-			node.setProperty(t.key(BpmnPerformerTraitDefinition.EXPRESSION_LANGUAGE_PROPERTY), language);
+
+			node.setProperty(traits.key(BpmnPerformerTraitDefinition.EXPRESSION_LANGUAGE_PROPERTY), language);
 		}
 
 		if (performerName != null) {
-			node.setProperty(t.key(BpmnPerformerTraitDefinition.PERFORMER_NAME_PROPERTY), performerName);
+
+			node.setProperty(traits.key(BpmnPerformerTraitDefinition.PERFORMER_NAME_PROPERTY), performerName);
 		}
 
 		if (bpmnId != null) {
-			node.setProperty(t.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY), bpmnId);
+
+			node.setProperty(traits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY), bpmnId);
 		}
 
-		node.setProperty(t.key(BpmnPerformerTraitDefinition.ELEMENT_PROPERTY), elemNode);
+		node.setProperty(traits.key(BpmnPerformerTraitDefinition.ELEMENT_PROPERTY), elemNode);
+	}
+
+	/** Split a CSV on commas that are NOT nested inside {@code (...)} or {@code {...}} (e.g. a ${...} expression). */
+	private static List<String> splitTopLevelCommas(final String s) {
+
+		final List<String> parts = new LinkedList<>();
+		int depth                = 0;
+		int start                = 0;
+
+		for (int i = 0; i < s.length(); i++) {
+
+			final char c = s.charAt(i);
+
+			if (c == '(' || c == '{') {
+				depth++;
+
+			} else if (c == ')' || c == '}') {
+
+				if (depth > 0) {
+					depth--;
+				}
+
+			} else if (c == ',' && depth == 0) {
+
+				parts.add(s.substring(start, i));
+				start = i + 1;
+			}
+		}
+
+		parts.add(s.substring(start));
+
+		return parts;
 	}
 
 	/**
@@ -1214,12 +1257,14 @@ public class BpmnImporter {
 	 * using the given function name, e.g. "user(alice), user(bob)". Entries that
 	 * are already expressions ({@code ${...}}) are preserved verbatim.
 	 */
-	private String csvToFunctionExpression(final String csv, final String fnName) {
+	static String csvToFunctionExpression(final String csv, final String fnName) {
 
 		final StringBuilder out = new StringBuilder();
 		boolean first = true;
 
-		for (final String raw : csv.split(",")) {
+		// Split on top-level commas only, so a single ${...} expression containing
+		// commas (e.g. ${fn(a,b)}) is kept intact rather than torn apart.
+		for (final String raw : splitTopLevelCommas(csv)) {
 
 			final String name = raw.trim();
 			if (name.isEmpty()) {
@@ -1228,10 +1273,12 @@ public class BpmnImporter {
 			}
 
 			if (!first) {
+
 				out.append(", ");
 			}
 
 			if (name.startsWith("${")) {
+
 				out.append(name);
 
 			} else {
@@ -1241,11 +1288,51 @@ public class BpmnImporter {
 
 			first = false;
 		}
+
 		return out.toString();
 	}
 
+	private void appendMethods(final NodeInterface node, final PropertyKey<Iterable<NodeInterface>> methodsKey, final List<NodeInterface> toAdd) throws FrameworkException {
+
+		final List<NodeInterface> merged = new LinkedList<>();
+		final Set<String> seen           = new LinkedHashSet<>();
+
+		final Iterable<NodeInterface> existing = node.getProperty(methodsKey);
+		if (existing != null) {
+
+			for (final NodeInterface m : existing) {
+
+				if (m != null && seen.add(m.getUuid())) {
+					merged.add(m);
+				}
+			}
+		}
+
+		for (final NodeInterface m : toAdd) {
+
+			if (m != null && seen.add(m.getUuid())) {
+				merged.add(m);
+			}
+		}
+
+		node.setProperty(methodsKey, merged);
+	}
+
+	private Double parseDoubleOrNull(final String s) {
+
+		if (StringUtils.isBlank(s)) {
+			return null;
+		}
+
+		try {
+			return Double.parseDouble(s.trim());
+		} catch (final NumberFormatException ex) {
+			return null;
+		}
+	}
+
 	private String nullIfEmpty(final String s) {
-		return (s == null || s.isEmpty()) ? null : s;
+		return (StringUtils.isEmpty(s)) ? null : s;
 	}
 
 	// --- Task listener parsing ---
@@ -1294,7 +1381,7 @@ public class BpmnImporter {
 			final String  ns         = listenerEl.getNamespaceURI();
 			final String rawEvent    = listenerEl.getAttribute("event");
 
-			if (rawEvent == null || rawEvent.isEmpty()) {
+			if (StringUtils.isEmpty(rawEvent)) {
 
 				logger.warn("Task listener on element '{}' has no 'event' attribute -- skipped", el.getAttribute("id"));
 				continue;
@@ -1303,7 +1390,7 @@ public class BpmnImporter {
 			final String eventName  = translateListenerEvent(rawEvent, ns);
 			final String methodName = extractListenerMethod(listenerEl, ns);
 
-			if (methodName == null || methodName.isEmpty()) {
+			if (StringUtils.isEmpty(methodName)) {
 
 				logger.warn("Task listener on element '{}' (event='{}') has no method/class/expression payload -- skipped", el.getAttribute("id"), rawEvent);
 				continue;
@@ -1325,7 +1412,7 @@ public class BpmnImporter {
 		}
 	}
 
-	private String translateListenerEvent(final String rawEvent, final String ns) {
+	static String translateListenerEvent(final String rawEvent, final String ns) {
 
 		if (CAMUNDA_NS.equals(ns)) {
 
@@ -1382,7 +1469,7 @@ public class BpmnImporter {
 		if (scriptEl != null) {
 
 			final String scriptText = scriptEl.getTextContent();
-			if (scriptText != null && !scriptText.trim().isEmpty()) {
+			if (StringUtils.isNotBlank(scriptText)) {
 
 				return scriptText.trim();
 			}
@@ -1405,6 +1492,7 @@ public class BpmnImporter {
 		node.setProperty(traits.key(BpmnTaskListenerTraitDefinition.METHOD_PROPERTY), method);
 
 		if (bpmnId != null) {
+
 			node.setProperty(traits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY), bpmnId);
 		}
 
@@ -1495,7 +1583,7 @@ public class BpmnImporter {
 			}
 
 			final String rawEvent = listenerEl.getAttribute("event");
-			if (rawEvent == null || rawEvent.isEmpty()) {
+			if (StringUtils.isEmpty(rawEvent)) {
 
 				logger.warn("Process listener on process element '{}' has no 'event' attribute; skipped", processEl.getAttribute("id"));
 				continue;
@@ -1503,7 +1591,7 @@ public class BpmnImporter {
 
 			final String eventName  = translateProcessListenerEvent(rawEvent, ns);
 			final String methodName = extractListenerMethod(listenerEl, ns);
-			if (methodName == null || methodName.isEmpty()) {
+			if (StringUtils.isEmpty(methodName)) {
 
 				logger.warn("Process listener on process element '{}' (event='{}') has no method/class/expression payload; skipped", processEl.getAttribute("id"), rawEvent);
 				continue;
@@ -1525,7 +1613,7 @@ public class BpmnImporter {
 		}
 	}
 
-	private String translateProcessListenerEvent(final String rawEvent, final String ns) {
+	static String translateProcessListenerEvent(final String rawEvent, final String ns) {
 
 		if (CAMUNDA_NS.equals(ns)) {
 
@@ -1543,9 +1631,7 @@ public class BpmnImporter {
 		return rawEvent;
 	}
 
-	private void createProcessListenerNode(final App app, final NodeInterface procNode,
-										   final String event, final String methodName, final String phase,
-										   final String bpmnId) throws FrameworkException {
+	private void createProcessListenerNode(final App app, final NodeInterface procNode, final String event, final String methodName, final String phase, final String bpmnId) throws FrameworkException {
 
 		// Ensure the handler method exists on the process, then point the
 		// listener directly at it (the engine dispatches via this rel).
@@ -1615,7 +1701,7 @@ public class BpmnImporter {
 
 		final Traits procTraits = Traits.of(ProcessTraits.BPMN_PROCESS);
 
-		procNode.setProperty(procTraits.key(BpmnProcessTraitDefinition.METHODS_PROPERTY), resolved);
+		appendMethods(procNode, procTraits.key(BpmnProcessTraitDefinition.METHODS_PROPERTY), resolved);
 	}
 
 	/**
@@ -1642,7 +1728,7 @@ public class BpmnImporter {
 
 			final Element el = (Element) n;
 			final String bpmnId = el.getAttribute("id");
-			if (bpmnId == null || bpmnId.isEmpty()) {
+			if (StringUtils.isEmpty(bpmnId)) {
 
 				continue;
 			}
@@ -1656,7 +1742,7 @@ public class BpmnImporter {
 			final List<NodeInterface> resolved = collectMethodRefs(app, el, bpmnId);
 			if (!resolved.isEmpty()) {
 
-				elemNode.setProperty(elemMethodsKey, resolved);
+				appendMethods(elemNode, elemMethodsKey, resolved);
 			}
 		}
 	}
@@ -1760,6 +1846,23 @@ public class BpmnImporter {
 
 	// --- Helper methods ---
 
+	private List<Element> getChildrenByLocalName(final Element parent, final String localName) {
+
+		final List<Element> result = new LinkedList<>();
+		final NodeList children    = parent.getChildNodes();
+
+		for (int i = 0; i < children.getLength(); i++) {
+
+			final Node child = children.item(i);
+
+			if (child.getNodeType() == Node.ELEMENT_NODE && localName.equals(child.getLocalName())) {
+				result.add((Element) child);
+			}
+		}
+
+		return result;
+	}
+
 	private Element getFirstChildByLocalName(final Element parent, final String localName) {
 
 		final NodeList children = parent.getChildNodes();
@@ -1780,7 +1883,7 @@ public class BpmnImporter {
 		for (final String attr : new String[]{"errorRef", "messageRef", "signalRef", "escalationRef", "linkName"}) {
 
 			final String val = evtDef.getAttribute(attr);
-			if (val != null && !val.isEmpty()) {
+			if (StringUtils.isNotEmpty(val)) {
 
 				return val;
 			}
@@ -1814,7 +1917,8 @@ public class BpmnImporter {
 
 			final Attr attr = (Attr) nodeAttrs.item(i);
 
-			if (!"xmlns".equals(attr.getPrefix()) && !"xmlns".equals(attr.getName())) {
+			if (!"xmlns".equals(attr.getPrefix()) && !"xmlns".equals(attr.getName())
+				&& !CAMUNDA_NS.equals(attr.getNamespaceURI())) {
 				attrs.put(attr.getName(), attr.getValue());
 			}
 		}
@@ -1865,7 +1969,7 @@ public class BpmnImporter {
 	 */
 	private void rewireExternalReferences(final App app, final String processId, final NodeInterface newDefNode, final Map<String, NodeInterface> elementMap) throws FrameworkException {
 
-		if (processId == null || processId.isEmpty()) {
+		if (StringUtils.isEmpty(processId)) {
 			return;
 		}
 
@@ -1961,7 +2065,7 @@ public class BpmnImporter {
 		// existing boundStep rel (most reliable, since the rel still points at
 		// the old element with its bpmnId), then fall back to the denormalized
 		// backup (used when the old element is gone).
-		String stepBpmnId = null;
+		String stepBpmnId           = null;
 		final NodeInterface oldStep = vm.getProperty(boundStepKey);
 		if (oldStep != null) {
 
@@ -2009,6 +2113,7 @@ public class BpmnImporter {
 			for (final NodeInterface am : app.nodeQuery(StructrTraits.ACTION_MAPPING).key(controlsProcessKey, oldProc).getResultStream()) {
 
 				if (processedAms.add(am.getUuid())) {
+
 					rewireAm(am, newProcessNode, elementMap, controlsProcessKey, targetsElementKey, controlsProcessIdKey, targetsElementBpmnIdKey, processId);
 				}
 			}
@@ -2019,21 +2124,20 @@ public class BpmnImporter {
 		for (final NodeInterface am : app.nodeQuery(StructrTraits.ACTION_MAPPING).key(controlsProcessIdKey, processId).getResultStream()) {
 
 			if (processedAms.add(am.getUuid())) {
+
 				rewireAm(am, newProcessNode, elementMap, controlsProcessKey, targetsElementKey, controlsProcessIdKey, targetsElementBpmnIdKey, processId);
 			}
 		}
 	}
 
-	private void rewireAm(final NodeInterface am, final NodeInterface newProcessNode, final Map<String, NodeInterface> elementMap,
-						  final PropertyKey<NodeInterface> controlsProcessKey, final PropertyKey<NodeInterface> targetsElementKey,
-						  final PropertyKey<String> controlsProcessIdKey, final PropertyKey<String> targetsElementBpmnIdKey,
-						  final String processId) throws FrameworkException {
+	private void rewireAm(final NodeInterface am, final NodeInterface newProcessNode, final Map<String, NodeInterface> elementMap, final PropertyKey<NodeInterface> controlsProcessKey, final PropertyKey<NodeInterface> targetsElementKey, final PropertyKey<String> controlsProcessIdKey, final PropertyKey<String> targetsElementBpmnIdKey, final String processId) throws FrameworkException {
 
 		am.setProperty(controlsProcessKey, newProcessNode);
 		am.setProperty(controlsProcessIdKey, processId);
 
-		String elemBpmnId = null;
 		final NodeInterface oldElem = am.getProperty(targetsElementKey);
+		String elemBpmnId           = null;
+
 		if (oldElem != null) {
 
 			elemBpmnId = oldElem.getProperty(Traits.of(ProcessTraits.BPMN_ELEMENT).key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY));
@@ -2062,7 +2166,7 @@ public class BpmnImporter {
 	 */
 	private NodeInterface findPreviousProcess(final App app, final String processId, final String excludeUuid) throws FrameworkException {
 
-		if (processId == null || processId.isEmpty()) {
+		if (StringUtils.isEmpty(processId)) {
 			return null;
 		}
 
@@ -2108,8 +2212,8 @@ public class BpmnImporter {
 	 * (per-process namespace) onto the new process. Old methods stay attached
 	 * to the old process.
 	 *
-	 * <p>v1 scope: clone the scalar properties (name, source, summary, codeType,
-	 * httpVerb, isPrivate, isStatic, returnRawResult). Method parameters
+	 * <p>v1 scope: clone the scalar properties (name, source, summary, description,
+	 * codeType, httpVerb, isPrivate, isStatic, returnRawResult). Method parameters
 	 * (SchemaMethodParameter relationships) are NOT cloned for now -- BPMN-bound
 	 * lifecycle methods take {@code this = TaskInstance} and don't need named
 	 * parameters in practice. Extend later if a use case requires it.</p>
@@ -2130,7 +2234,7 @@ public class BpmnImporter {
 			clonedMethods.add(cloneSchemaMethod(app, oldMethod));
 		}
 
-		newProcNode.setProperty(methodsKey, clonedMethods);
+		appendMethods(newProcNode, methodsKey, clonedMethods);
 	}
 
 	/**
@@ -2181,7 +2285,7 @@ public class BpmnImporter {
 			}
 
 			if (!clonedMethods.isEmpty()) {
-				newElem.setProperty(elemMethodsKey, clonedMethods);
+				appendMethods(newElem, elemMethodsKey, clonedMethods);
 			}
 		}
 	}
@@ -2231,7 +2335,7 @@ public class BpmnImporter {
 	 */
 	private String computeNextVersion(final App app, final String processId) throws FrameworkException {
 
-		if (processId == null || processId.isEmpty()) {
+		if (StringUtils.isEmpty(processId)) {
 			return "1";
 		}
 

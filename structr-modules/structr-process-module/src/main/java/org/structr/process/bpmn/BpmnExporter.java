@@ -97,13 +97,16 @@ public class BpmnExporter {
 
 			// Reconstruct namespace declarations
 			final String nsJson = defNode.getNamespaceDeclarations();
-			final Map<String, String> namespaces = nsJson != null ? gson.fromJson(nsJson, MAP_TYPE) : new LinkedHashMap<>();
+			final Map<String, String> namespaces = safeMap(nsJson);
 
 			ensureNamespace(namespaces, "xmlns:bpmn", BPMN_NS);
 			ensureNamespace(namespaces, "xmlns:bpmndi", DI_NS);
 			ensureNamespace(namespaces, "xmlns:dc", DC_NS);
 			ensureNamespace(namespaces, "xmlns:di", OMGDI_NS);
 			ensureNamespace(namespaces, "xmlns:structr", STRUCTR_NS);
+			// xsi is required for the xsi:type attributes emitted on conditionExpression
+			// and timer event definitions; a natively-authored graph may not declare it.
+			ensureNamespace(namespaces, "xmlns:xsi", XSI_NS);
 
 			// Register prefix -> namespace bindings on the writer BEFORE the root
 			// element is written. writeNamespace() below emits the xmlns:* attributes
@@ -267,7 +270,7 @@ public class BpmnExporter {
 		final String attrsJson = elem.getBpmnAttributes();
 		if (attrsJson != null) {
 
-			final Map<String, String> attrs = gson.fromJson(attrsJson, MAP_TYPE);
+			final Map<String, String> attrs = safeMap(attrsJson);
 
 			for (final Map.Entry<String, String> a : attrs.entrySet()) {
 
@@ -283,8 +286,17 @@ public class BpmnExporter {
 			}
 		}
 
-		// extensionElements: task listeners and method refs. BPMN spec places
-		// it as one of the first child elements of an activity.
+		// Documentation. Per the BPMN tBaseElement content model, <documentation>
+		// (0..n) must be emitted BEFORE <extensionElements> (0..1).
+		if (documentation != null) {
+
+			w.writeCharacters("\n" + spaces(indent + 2));
+			w.writeStartElement(BPMN_NS, "documentation");
+			w.writeCharacters(documentation);
+			w.writeEndElement();
+		}
+
+		// extensionElements: task listeners and method refs.
 		if (hasListeners || hasMethods) {
 
 			w.writeCharacters("\n" + spaces(indent + 2));
@@ -309,15 +321,6 @@ public class BpmnExporter {
 			}
 
 			w.writeCharacters("\n" + spaces(indent + 2));
-			w.writeEndElement();
-		}
-
-		// Documentation
-		if (documentation != null) {
-
-			w.writeCharacters("\n" + spaces(indent + 2));
-			w.writeStartElement(BPMN_NS, "documentation");
-			w.writeCharacters(documentation);
 			w.writeEndElement();
 		}
 
@@ -839,7 +842,7 @@ public class BpmnExporter {
 		final String attrsJson = flowNode.getBpmnAttributes();
 		if (attrsJson != null) {
 
-			final Map<String, String> attrs = gson.fromJson(attrsJson, MAP_TYPE);
+			final Map<String, String> attrs = safeMap(attrsJson);
 			for (final Map.Entry<String, String> a : attrs.entrySet()) {
 
 				w.writeAttribute(a.getKey(), a.getValue());
@@ -923,7 +926,7 @@ public class BpmnExporter {
 		final String diAttrsJson = shapeNode.getDiAttributes();
 		if (diAttrsJson != null) {
 
-			final Map<String, String> diAttrs = gson.fromJson(diAttrsJson, MAP_TYPE);
+			final Map<String, String> diAttrs = safeMap(diAttrsJson);
 			for (final Map.Entry<String, String> a : diAttrs.entrySet()) {
 
 				w.writeAttribute(a.getKey(), a.getValue());
@@ -941,16 +944,16 @@ public class BpmnExporter {
 		final boolean hasLabel = shapeNode.hasLabel();
 		if (labelJson != null) {
 
-			final Map<String, String> lb = gson.fromJson(labelJson, MAP_TYPE);
+			final Map<String, String> lb = safeMap(labelJson);
 
 			w.writeCharacters("\n        ");
 			w.writeStartElement(DI_NS, "BPMNLabel");
 			w.writeCharacters("\n          ");
 			w.writeEmptyElement(DC_NS, "Bounds");
-			w.writeAttribute("x", lb.get("x"));
-			w.writeAttribute("y", lb.get("y"));
-			w.writeAttribute("width", lb.get("width"));
-			w.writeAttribute("height", lb.get("height"));
+			writeAttrIfNotNull(w, "x", lb.get("x"));
+			writeAttrIfNotNull(w, "y", lb.get("y"));
+			writeAttrIfNotNull(w, "width", lb.get("width"));
+			writeAttrIfNotNull(w, "height", lb.get("height"));
 			w.writeCharacters("\n        ");
 			w.writeEndElement();
 
@@ -973,7 +976,7 @@ public class BpmnExporter {
 		final String diAttrsJson = edgeNode.getDiAttributes();
 		if (diAttrsJson != null) {
 
-			final Map<String, String> diAttrs = gson.fromJson(diAttrsJson, MAP_TYPE);
+			final Map<String, String> diAttrs = safeMap(diAttrsJson);
 			for (final Map.Entry<String, String> a : diAttrs.entrySet()) {
 
 				w.writeAttribute(a.getKey(), a.getValue());
@@ -983,7 +986,7 @@ public class BpmnExporter {
 		final String wpJson = edgeNode.getWaypoints();
 		if (wpJson != null) {
 
-			final List<Map<String, String>> waypoints = gson.fromJson(wpJson, LIST_TYPE);
+			final List<Map<String, String>> waypoints = safeList(wpJson);
 			for (final Map<String, String> wp : waypoints) {
 
 				w.writeCharacters("\n        ");
@@ -996,16 +999,16 @@ public class BpmnExporter {
 		final String labelJson = edgeNode.getLabelBounds();
 		if (labelJson != null) {
 
-			final Map<String, String> lb = gson.fromJson(labelJson, MAP_TYPE);
+			final Map<String, String> lb = safeMap(labelJson);
 
 			w.writeCharacters("\n        ");
 			w.writeStartElement(DI_NS, "BPMNLabel");
 			w.writeCharacters("\n          ");
 			w.writeEmptyElement(DC_NS, "Bounds");
-			w.writeAttribute("x", lb.get("x"));
-			w.writeAttribute("y", lb.get("y"));
-			w.writeAttribute("width", lb.get("width"));
-			w.writeAttribute("height", lb.get("height"));
+			writeAttrIfNotNull(w, "x", lb.get("x"));
+			writeAttrIfNotNull(w, "y", lb.get("y"));
+			writeAttrIfNotNull(w, "width", lb.get("width"));
+			writeAttrIfNotNull(w, "height", lb.get("height"));
 			w.writeCharacters("\n        ");
 			w.writeEndElement();
 		}
@@ -1089,6 +1092,52 @@ public class BpmnExporter {
 
 	private String spaces(final int count) {
 		return " ".repeat(count);
+	}
+
+	/**
+	 * Parse a stored JSON object into a mutable map, tolerating null / the literal
+	 * {@code "null"} / malformed JSON (returns an empty mutable map) so a single bad
+	 * attribute value can never abort the whole export.
+	 */
+	private Map<String, String> safeMap(final String json) {
+
+		if (json != null) {
+
+			try {
+
+				final Map<String, String> parsed = gson.fromJson(json, MAP_TYPE);
+				if (parsed != null) {
+					return parsed;
+				}
+
+			} catch (final Exception ex) {
+
+				logger.warn("Ignoring malformed JSON attribute value during export: {}", ex.getMessage());
+			}
+		}
+
+		return new LinkedHashMap<>();
+	}
+
+	/** List counterpart of {@link #safeMap}; empty list on null / malformed input. */
+	private List<Map<String, String>> safeList(final String json) {
+
+		if (json != null) {
+
+			try {
+
+				final List<Map<String, String>> parsed = gson.fromJson(json, LIST_TYPE);
+				if (parsed != null) {
+					return parsed;
+				}
+
+			} catch (final Exception ex) {
+
+				logger.warn("Ignoring malformed JSON list value during export: {}", ex.getMessage());
+			}
+		}
+
+		return new LinkedList<>();
 	}
 
 	private boolean hasAny(final Iterable<?> iterable) {

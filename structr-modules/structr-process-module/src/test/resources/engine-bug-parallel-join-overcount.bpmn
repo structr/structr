@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  id="Definitions_BugJoinOvercount"
+                  targetNamespace="http://structr.org/bpmn">
+
+  <bpmn:process id="Process_BugJoinOvercount" name="Parallel join over-count via same edge" isExecutable="true">
+
+    <bpmn:startEvent id="Start_1" name="Start" />
+
+    <!-- Outer fork: one branch multiplies into two tokens on the P edge,
+         the other branch parks at a user task (never delivers to the join
+         during the automatic run). -->
+    <bpmn:parallelGateway id="Fork_1" name="Outer fork" />
+
+    <!-- Inner fork: TWO outgoing flows, both to ManualTask_P, so two tokens
+         travel to the join via the single P->Join edge. -->
+    <bpmn:parallelGateway id="Fork_2" name="Inner fork" />
+
+    <bpmn:manualTask id="ManualTask_P" name="Auto P" />
+
+    <bpmn:userTask id="UserTask_Q" name="Q (waits)" />
+
+    <!-- Parallel join: two incoming edges (from P and from Q). -->
+    <bpmn:parallelGateway id="Join_1" name="Join" />
+
+    <bpmn:userTask id="Task_After" name="After Join" />
+
+    <bpmn:endEvent id="End_1" name="Done" />
+
+    <bpmn:sequenceFlow id="Flow_start"  sourceRef="Start_1"      targetRef="Fork_1" />
+    <bpmn:sequenceFlow id="Flow_f1"      sourceRef="Fork_1"      targetRef="Fork_2" />
+    <bpmn:sequenceFlow id="Flow_f2"      sourceRef="Fork_1"      targetRef="UserTask_Q" />
+    <bpmn:sequenceFlow id="Flow_g1"      sourceRef="Fork_2"      targetRef="ManualTask_P" />
+    <bpmn:sequenceFlow id="Flow_g2"      sourceRef="Fork_2"      targetRef="ManualTask_P" />
+    <bpmn:sequenceFlow id="Flow_p_join"  sourceRef="ManualTask_P" targetRef="Join_1" />
+    <bpmn:sequenceFlow id="Flow_q_join"  sourceRef="UserTask_Q"  targetRef="Join_1" />
+    <bpmn:sequenceFlow id="Flow_after"   sourceRef="Join_1"      targetRef="Task_After" />
+    <bpmn:sequenceFlow id="Flow_end"     sourceRef="Task_After"  targetRef="End_1" />
+
+  </bpmn:process>
+
+</bpmn:definitions>
