@@ -22,11 +22,13 @@ import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import java.util.Set;
 import java.util.function.BiFunction;
+import org.neo4j.function.TriFunction;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.*;
@@ -34,8 +36,10 @@ import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.Test;
 
 import java.util.List;
+import java.util.function.Function;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 
@@ -527,5 +531,282 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 				.body("result", equalTo(expected))
 				.when()
 				.post("/myTestMethod01");
+	}
+
+	@Test
+	public void test009EnsureNullValuesInArrayWork() {
+
+		createAdminUser();
+
+		try (final Tx tx = app.tx()) {
+
+			final PropertyKey<String> name   = Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+			final PropertyKey<String> source = Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY);
+
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(name, "nullTestEmptyArray"), new NodeAttribute<>(source, "{ return []; }"));
+
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(name, "nullTestArrayLen1_test1"), new NodeAttribute<>(source, "{ return [ 'test1' ]; }"));
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(name, "nullTestArrayLen1_test2"), new NodeAttribute<>(source, "{ return [ null    ]; }"));
+
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(name, "nullTestArrayLen2_test1"), new NodeAttribute<>(source, "{ return [ 'test1', 'test2' ]; }"));
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(name, "nullTestArrayLen2_test2"), new NodeAttribute<>(source, "{ return [ 'test1', null    ]; }"));
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(name, "nullTestArrayLen2_test3"), new NodeAttribute<>(source, "{ return [ null,    'test2' ]; }"));
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(name, "nullTestArrayLen2_test4"), new NodeAttribute<>(source, "{ return [ null,     null   ]; }"));
+
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(name, "nullTestArrayLen3_test1"), new NodeAttribute<>(source, "{ return [ 'test1', 'test2', 'test3' ]; }"));
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(name, "nullTestArrayLen3_test2"), new NodeAttribute<>(source, "{ return [ 'test1', null,    'test3' ]; }"));
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(name, "nullTestArrayLen3_test3"), new NodeAttribute<>(source, "{ return [ null,    'test2', 'test3' ]; }"));
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(name, "nullTestArrayLen3_test4"), new NodeAttribute<>(source, "{ return [ null,    null,    'test3' ]; }"));
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(name, "nullTestArrayLen3_test5"), new NodeAttribute<>(source, "{ return [ 'test1', 'test2',  null   ]; }"));
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(name, "nullTestArrayLen3_test6"), new NodeAttribute<>(source, "{ return [ 'test1', null,     null   ]; }"));
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(name, "nullTestArrayLen3_test7"), new NodeAttribute<>(source, "{ return [ null,    'test2',  null   ]; }"));
+			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(name, "nullTestArrayLen3_test8"), new NodeAttribute<>(source, "{ return [ null,    null,     null   ]; }"));
+
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// empty array
+		{
+			RestAssured
+					.given().contentType("application/json; charset=UTF-8").headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+					.expect().statusCode(200)
+					.body("result", hasSize(0))
+					.when().post("/nullTestEmptyArray");
+		}
+
+
+		// array with one entry
+		{
+			RestAssured
+					.given().contentType("application/json; charset=UTF-8").headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+					.expect().statusCode(200)
+					.body("result", hasSize(1))
+					.body("result[0]", equalTo("test1"))
+					.when().post("/nullTestArrayLen1_test1");
+
+			RestAssured
+					.given().contentType("application/json; charset=UTF-8").headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+					.expect().statusCode(200)
+					.body("result", hasSize(1))
+					.body("result[0]", equalTo(null))
+					.when().post("/nullTestArrayLen1_test2");
+		}
+
+
+		// array with two entries
+		{
+			RestAssured
+					.given().contentType("application/json; charset=UTF-8").headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+					.expect().statusCode(200)
+					.body("result", hasSize(2))
+					.body("result[0]", equalTo("test1"))
+					.body("result[1]", equalTo("test2"))
+					.when().post("/nullTestArrayLen2_test1");
+
+			RestAssured
+					.given().contentType("application/json; charset=UTF-8").headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+					.expect().statusCode(200)
+					.body("result", hasSize(2))
+					.body("result[0]", equalTo("test1"))
+					.body("result[1]", equalTo(null))
+					.when().post("/nullTestArrayLen2_test2");
+
+			RestAssured
+					.given().contentType("application/json; charset=UTF-8").headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+					.expect().statusCode(200)
+					.body("result", hasSize(2))
+					.body("result[0]", equalTo(null))
+					.body("result[1]", equalTo("test2"))
+					.when().post("/nullTestArrayLen2_test3");
+
+			RestAssured
+					.given().contentType("application/json; charset=UTF-8").headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+					.expect().statusCode(200)
+					.body("result", hasSize(2))
+					.body("result[0]", equalTo(null))
+					.body("result[1]", equalTo(null))
+					.when().post("/nullTestArrayLen2_test4");
+		}
+
+
+		// array with three entries
+		{
+			RestAssured
+					.given().contentType("application/json; charset=UTF-8").headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+					.expect().statusCode(200)
+					.body("result", hasSize(3))
+					.body("result[0]", equalTo("test1"))
+					.body("result[1]", equalTo("test2"))
+					.body("result[2]", equalTo("test3"))
+					.when().post("/nullTestArrayLen3_test1");
+
+			RestAssured
+					.given().contentType("application/json; charset=UTF-8").headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+					.expect().statusCode(200)
+					.body("result", hasSize(3))
+					.body("result[0]", equalTo("test1"))
+					.body("result[1]", equalTo(null))
+					.body("result[2]", equalTo("test3"))
+					.when().post("/nullTestArrayLen3_test2");
+
+			RestAssured
+					.given().contentType("application/json; charset=UTF-8").headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+					.expect().statusCode(200)
+					.body("result", hasSize(3))
+					.body("result[0]", equalTo(null))
+					.body("result[1]", equalTo("test2"))
+					.body("result[2]", equalTo("test3"))
+					.when().post("/nullTestArrayLen3_test3");
+
+			RestAssured
+					.given().contentType("application/json; charset=UTF-8").headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+					.expect().statusCode(200)
+					.body("result", hasSize(3))
+					.body("result[0]", equalTo(null))
+					.body("result[1]", equalTo(null))
+					.body("result[2]", equalTo("test3"))
+					.when().post("/nullTestArrayLen3_test4");
+
+
+			RestAssured
+					.given().contentType("application/json; charset=UTF-8").headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+					.expect().statusCode(200)
+					.body("result", hasSize(3))
+					.body("result[0]", equalTo("test1"))
+					.body("result[1]", equalTo("test2"))
+					.body("result[2]", equalTo(null))
+					.when().post("/nullTestArrayLen3_test5");
+
+			RestAssured
+					.given().contentType("application/json; charset=UTF-8").headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+					.expect().statusCode(200)
+					.body("result", hasSize(3))
+					.body("result[0]", equalTo("test1"))
+					.body("result[1]", equalTo(null))
+					.body("result[2]", equalTo(null))
+					.when().post("/nullTestArrayLen3_test6");
+
+			RestAssured
+					.given().contentType("application/json; charset=UTF-8").headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+					.expect().statusCode(200)
+					.body("result", hasSize(3))
+					.body("result[0]", equalTo(null))
+					.body("result[1]", equalTo("test2"))
+					.body("result[2]", equalTo(null))
+					.when().post("/nullTestArrayLen3_test7");
+
+			RestAssured
+					.given().contentType("application/json; charset=UTF-8").headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+					.expect().statusCode(200)
+					.body("result", hasSize(3))
+					.body("result[0]", equalTo(null))
+					.body("result[1]", equalTo(null))
+					.body("result[2]", equalTo(null))
+					.when().post("/nullTestArrayLen3_test8");
+		}
+	}
+
+	@Test
+	public void test010EnsureNullValuesInArrayInputWork() {
+
+		createAdminUser();
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(StructrTraits.SCHEMA_METHOD,
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "myTestMethod01"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ return $.methodParameters.input; }")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		final Function<String, String> toString = (String val) -> {
+
+			if (val == null) {
+				return "null";
+			}
+
+			return "'" + val + "'";
+		};
+
+
+		final Function<String, Boolean> testWithArraySizeOne = (String p1) -> {
+
+			RestAssured
+					.given()
+					.body("{ input: [%s] }".formatted(toString.apply(p1)))
+					.contentType("application/json; charset=UTF-8")
+					.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+					.expect()
+					.statusCode(200)
+					.body("result[0]", equalTo(p1))
+					.when()
+					.post("/myTestMethod01");
+
+			return true;
+		};
+
+		final BiFunction<String, String, Boolean> testWithArraySizeTwo = (String p1, String p2) -> {
+
+			RestAssured
+					.given()
+					.body("{ input: [%s, %s] }".formatted(toString.apply(p1), toString.apply(p2)))
+					.contentType("application/json; charset=UTF-8")
+					.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+					.expect()
+					.statusCode(200)
+					.body("result[0]", equalTo(p1))
+					.body("result[1]", equalTo(p2))
+					.when()
+					.post("/myTestMethod01");
+
+			return true;
+		};
+
+		final TriFunction<String, String, String, Boolean> testWithArraySizeThree = (String p1, String p2, String p3) -> {
+
+			RestAssured
+					.given()
+					.body("{ input: [%s, %s, %s] }".formatted(toString.apply(p1), toString.apply(p2),  toString.apply(p3)))
+					.contentType("application/json; charset=UTF-8")
+					.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
+					.expect()
+					.statusCode(200)
+					.body("result[0]", equalTo(p1))
+					.body("result[1]", equalTo(p2))
+					.body("result[2]", equalTo(p3))
+					.when()
+					.post("/myTestMethod01");
+
+			return true;
+		};
+
+
+		testWithArraySizeOne.apply("test");
+		testWithArraySizeOne.apply(null);
+
+
+		testWithArraySizeTwo.apply("test1", "test2");
+		testWithArraySizeTwo.apply("test1", null);
+		testWithArraySizeTwo.apply(null, "test2");
+		testWithArraySizeTwo.apply(null, null);
+
+
+		testWithArraySizeThree.apply("test1", "test2", "test3");
+		testWithArraySizeThree.apply("test1", null, "test3");
+		testWithArraySizeThree.apply(null, "test2", "test3");
+		testWithArraySizeThree.apply(null, null, "test3");
+		testWithArraySizeThree.apply("test1", "test2", null);
+		testWithArraySizeThree.apply("test1", null, null);
+		testWithArraySizeThree.apply(null, "test2", null);
+		testWithArraySizeThree.apply(null, null, null);
 	}
 }

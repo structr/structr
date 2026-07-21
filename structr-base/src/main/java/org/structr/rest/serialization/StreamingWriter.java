@@ -526,8 +526,10 @@ public abstract class StreamingWriter {
 			final int pageSize                    = parentWriter.getPageSize();
 			final int softLimit                   = securityContext.getSoftLimit(pageSize);
 			final Iterator iterator               = value.iterator();
-			final Object firstValue               = iterator.hasNext() ? iterator.next() : null;
-			final Object secondValue              = iterator.hasNext() ? iterator.next() : null;
+			final boolean hasFirstValue           = iterator.hasNext();
+			final Object firstValue               = hasFirstValue ? iterator.next() : null;
+			final boolean hasSecondValue          = iterator.hasNext();
+			final Object secondValue              = hasSecondValue ? iterator.next() : null;
 			long actualResultCount                = 0;
 
 			if (!wrapSingleResultInArray && depth == 0 && firstValue != null && secondValue == null && !(value instanceof Collection)) {
@@ -546,13 +548,13 @@ public abstract class StreamingWriter {
 				if (depth <= outputNestingDepth) {
 
 					// first value?
-					if (firstValue != null) {
+					if (hasFirstValue) {
 						serializeRoot(parentWriter, firstValue, localPropertyView, depth, visitedObjects);
 						actualResultCount++;
 					}
 
 					// second value?
-					if (secondValue != null) {
+					if (hasSecondValue) {
 
 						serializeRoot(parentWriter, secondValue, localPropertyView, depth, visitedObjects);
 						actualResultCount++;

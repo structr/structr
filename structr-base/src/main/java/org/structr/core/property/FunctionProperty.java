@@ -127,7 +127,7 @@ public class FunctionProperty<T> extends Property<T> implements Documentable {
 
 					PropertyConverter converter = null;
 
-					if (typeHint != null && result != null) {
+					if (typeHint != null) {
 
 						final Property tmp = createTempProperty(typeHint.toLowerCase(), jsonName);
 						if (tmp != null) {

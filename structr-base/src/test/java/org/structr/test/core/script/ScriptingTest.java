@@ -4859,7 +4859,7 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("", "", (Scripting.evaluate(ctx, null, "${{ $.doInNewTransaction(function() { $.error('base', 'nope', 'detail'); }, function() { $.store('test-result', 'error_handled'); }); }}", "test")));
+			assertEquals("Null return value was expected, but it was not returned.", null, (Scripting.evaluate(ctx, null, "${{ $.doInNewTransaction(function() { $.error('base', 'nope', 'detail'); }, function() { $.store('test-result', 'error_handled'); }); }}", "test")));
 			Thread.sleep(2500);
 			assertEquals("Error handler in doInNewTransaction function was not called.", "error_handled", ctx.retrieve("test-result"));
 
@@ -7596,7 +7596,7 @@ public class ScriptingTest extends StructrTest {
 
 			final ActionContext actionContext = new ActionContext(securityContext);
 
-			Assert.assertEquals(Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile.txt' }); $.getContent(file, \"UTF-8\"); }}", "test_1a"), "");
+			Assert.assertEquals(Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile.txt' }); $.getContent(file, \"UTF-8\"); }}", "test_1a"), null);
 			Assert.assertEquals(Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile.txt' }); $.setContent(file, 'test', \"UTF-8\"); $.getContent(file, \"UTF-8\"); }}", "test_1b"), "test");
 			Assert.assertEquals(Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile.txt' }); $.appendContent(file, '123', \"UTF-8\"); $.getContent(file, \"UTF-8\"); }}", "test_1c"), "test123");
 
@@ -7610,7 +7610,7 @@ public class ScriptingTest extends StructrTest {
 
 			final ActionContext actionContext = new ActionContext(securityContext);
 
-			Assert.assertEquals(Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile2.txt' }); $.getContent(file); }}", "test_2a"), "");
+			Assert.assertEquals(Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile2.txt' }); $.getContent(file); }}", "test_2a"), null);
 			Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile2.txt' }); $.appendContent(file, new Date()); }}", "test_2b");
 
 			fail("Providing a Date object (anything other than String or byte[]) to appendContent should throw an exception.");
@@ -7624,7 +7624,7 @@ public class ScriptingTest extends StructrTest {
 
 			final ActionContext actionContext = new ActionContext(securityContext);
 
-			Assert.assertEquals(Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile3.txt' }); $.getContent(file, \"UTF-8\"); }}", "test_3a"), "");
+			Assert.assertEquals(Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile3.txt' }); $.getContent(file, \"UTF-8\"); }}", "test_3a"), null);
 			Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile3.txt' }); $.setContent(file, new Date(), \"UTF-8\"); }}", "test_3b");
 
 			fail("Providing a Date object (anything other than String or byte[]) to setContent should throw an exception.");
