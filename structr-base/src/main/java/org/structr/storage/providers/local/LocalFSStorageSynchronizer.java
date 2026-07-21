@@ -335,7 +335,7 @@ public class LocalFSStorageSynchronizer implements StorageSynchronizer {
 
 			// the on-disk kind of a deleted entry is unknowable; the sync
 			// handler resolves deletions kind-agnostically by path
-			listener.onEvent(ExternalChangeEvent.deleted(new ExternalEntry(toRelativePath(path), null, false, null, null, path.toString())));
+			listener.onEvent(ExternalChangeEvent.deleted(new ExternalEntry(toRelativePath(path), null, false, null, null, path.toString(), false)));
 		}
 	}
 

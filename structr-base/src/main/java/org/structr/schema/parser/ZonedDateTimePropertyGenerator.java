@@ -25,6 +25,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.ZonedDateTimeProperty;
 import org.structr.schema.SchemaHelper;
 
+import java.time.DateTimeException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -87,43 +88,39 @@ public class ZonedDateTimePropertyGenerator extends PropertyGenerator<ZonedDateT
 	 */
 	public static ZonedDateTime parse(final String source, final String pattern) throws FrameworkException {
 
-		if (StringUtils.isBlank(pattern)) {
+		ZonedDateTime parsedDate = null;
 
-			ZonedDateTime parsedDate = null;
+		DateTimeParseException parseException = null;
 
-			DateTimeParseException parseException = null;
+		try {
+
+			parsedDate = ZonedDateTime.parse(source, ZonedDateTimeProperty.getDateTimeFormatter(pattern));
+
+		} catch (DateTimeParseException ex) {
+
+			parseException = ex;
+		}
+
+		// attempt fallback to default pattern
+		if (parsedDate == null) {
 
 			try {
 
-				parsedDate = ZonedDateTime.parse(source, DateTimeFormatter.ofPattern(ZonedDateTimeProperty.getDefaultFormat()));
+				parsedDate = ZonedDateTime.parse(source, DateTimeFormatter.ISO_ZONED_DATE_TIME);
+				// If fallback succeeds, it's safe to clear the previous exception.
+				parseException = null;
+
 			} catch (DateTimeParseException ex) {
-				parseException = ex;
+				// ignore exception for fallback parsing so that the user is presented with the exception for the given pattern (property format or override from settings)
 			}
-
-			if (parsedDate == null) {
-
-				try {
-					parsedDate = ZonedDateTime.parse(source, DateTimeFormatter.ISO_DATE_TIME);
-					// If fallback succeeds, it's safe to clear the previous exception.
-					parseException = null;
-				} catch (DateTimeParseException ex) {
-					parseException = ex;
-				}
-			}
-
-			if (parseException != null) {
-
-				throw new FrameworkException(422, ("Could not parse ZonedDateTime from source " + source + ". Cause: " + parseException.getCause()), parseException.getCause());
-			}
-
-			return parsedDate;
-
-		} else {
-
-			DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
-			return ZonedDateTime.parse(source, formatter);
 		}
 
+		if (parseException != null) {
+
+			throw new FrameworkException(422, ("Could not parse ZonedDateTime from source " + source + ". Cause: " + parseException.getLocalizedMessage()), parseException.getCause());
+		}
+
+		return parsedDate;
 	}
 
 	public static ZonedDateTime parse(final String source) throws FrameworkException {
@@ -143,16 +140,33 @@ public class ZonedDateTimePropertyGenerator extends PropertyGenerator<ZonedDateT
 
 		if (date != null) {
 
-			if (format == null || StringUtils.isBlank(format)) {
-
-				format = ZonedDateTimeProperty.getDefaultFormat();
-
-			}
-
-			return DateTimeFormatter.ofPattern(format).format(date);
+			return ZonedDateTimeProperty.getDateTimeFormatter(format).format(date);
 		}
 
 		return null;
+	}
 
+	public static void testPattern(final String pattern) throws FrameworkException {
+
+		// test pattern to see if formatting and parsing can work (not necessarily the same value because of possible precision loss, only technically formatting and parsing)
+		if (!StringUtils.isBlank(pattern)) {
+
+			final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+
+			try {
+
+				final String formatted = ZonedDateTime.now().format(formatter);
+
+				ZonedDateTime.parse(formatted, formatter);
+
+			} catch (DateTimeParseException e) {
+
+				throw new FrameworkException(422, "Unable to save ZonedDateTime pattern '%s'. Parsing a ZonedDateTime formatted via that pattern is not possible.".formatted(pattern), e);
+
+			} catch (DateTimeException e) {
+
+				throw new FrameworkException(422, "Unable to save ZonedDateTime pattern '%s'. Formatting a ZonedDateTime not possible with that pattern.".formatted(pattern), e);
+			}
+		}
 	}
 }

@@ -69,6 +69,7 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String LAST_SEEN_MOUNTED_PROPERTY          = "lastSeenMounted";
 	public static final String IS_MOUNTED_PROPERTY                 = "isMounted";
 	public static final String PATH_PROPERTY                       = "path";
+	public static final String STORAGE_KEY_PROPERTY                = "storageKey";
 
 	public AbstractFileTraitDefinition() {
 		super(StructrTraits.ABSTRACT_FILE);
@@ -231,6 +232,7 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Long> lastSeenMountedProperty               = new LongProperty(LAST_SEEN_MOUNTED_PROPERTY);
 		final Property<Boolean> isMountedProperty                  = new AbstractFileIsMountedProperty();
 		final Property<String> pathProperty                        = new PathProperty(PATH_PROPERTY).typeHint("String").indexed().description("full path of this file or folder (read-only)");
+		final Property<String> storageKeyProperty                  = new StringProperty(STORAGE_KEY_PROPERTY).indexed().description("provider-specific physical key of an externally created object bound to this node (absent for Structr-origin files)");
 
 		return Set.of(
 			storageConfigurationProperty,
@@ -242,7 +244,8 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 			nameProperty,
 			lastSeenMountedProperty,
 			isMountedProperty,
-			pathProperty
+			pathProperty,
+			storageKeyProperty
 		);
 	}
 
@@ -259,7 +262,7 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 			PropertyView.Ui,
 			newSet(
 					IS_MOUNTED_PROPERTY, IS_EXTERNAL_PROPERTY, LAST_SEEN_MOUNTED_PROPERTY, PATH_PROPERTY, PARENT_ID_PROPERTY, INCLUDE_IN_FRONTEND_EXPORT_PROPERTY,
-					PARENT_PROPERTY, HAS_PARENT_PROPERTY, STORAGE_CONFIGURATION_PROPERTY
+					PARENT_PROPERTY, HAS_PARENT_PROPERTY, STORAGE_CONFIGURATION_PROPERTY, STORAGE_KEY_PROPERTY
 			)
 		);
 	}

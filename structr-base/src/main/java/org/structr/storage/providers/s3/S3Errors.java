@@ -35,7 +35,7 @@ import java.util.Set;
  * to an end user and drown the logs when an endpoint is unreachable or a
  * bucket is missing.
  */
-final class S3Errors {
+final public class S3Errors {
 
 	private S3Errors() {
 	}
@@ -44,7 +44,7 @@ final class S3Errors {
 	 * @return a concise, single-line description of the most meaningful cause
 	 * in the given error chain
 	 */
-	static String describe(final Throwable error) {
+	public static String describe(final Throwable error) {
 
 		if (error == null) {
 			return "unknown error";

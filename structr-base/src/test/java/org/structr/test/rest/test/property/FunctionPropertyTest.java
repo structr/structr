@@ -498,7 +498,7 @@ public class FunctionPropertyTest extends StructrRestTestBase {
 					.body("result.fnDouble",  equalTo(null))
 					.body("result.fnInt",     equalTo(null))
 					.body("result.fnLong",    equalTo(null))
-					.body("result.fnString",  equalTo(""))                     // this WILL break once scripting returns real return values instead of empty string for null (just change "false" to null when this broader fix has arrived)
+					.body("result.fnString",  equalTo(null))                     // this WILL break once scripting returns real return values instead of empty string for null (just change "false" to null when this broader fix has arrived)
 				.when()
 					.get(resource + "/" + uuidForNodeWithNulls + "/all");
 	}

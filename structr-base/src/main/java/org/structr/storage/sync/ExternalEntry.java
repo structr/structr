@@ -36,9 +36,17 @@ package org.structr.storage.sync;
  * At least one of relativePath / nodeUuid must be non-null. size and
  * lastModified may be null when the backend cannot provide them cheaply; the
  * sync service then refreshes metadata unconditionally on modification
- * events. nativeKey is diagnostic only and never used for addressing.
+ * events.
+ *
+ * nativeKey is diagnostic only UNLESS bindNativeKey is true. When bindNativeKey
+ * is set, nativeKey is the provider's semantic physical identifier of an
+ * externally created object (e.g. an arbitrary S3 object key): the sync handler
+ * persists it to the resolved node's storageKey on creation, resolves the entry
+ * by it, and refuses to bind the entry to a node that carries a different (or
+ * no) storageKey. Structr-origin entries leave bindNativeKey false and keep the
+ * uuid/path addressing convention.
  */
-public record ExternalEntry(String relativePath, String nodeUuid, boolean directory, Long size, Long lastModified, String nativeKey) {
+public record ExternalEntry(String relativePath, String nodeUuid, boolean directory, Long size, Long lastModified, String nativeKey, boolean bindNativeKey) {
 
 	public ExternalEntry {
 
@@ -46,27 +54,41 @@ public record ExternalEntry(String relativePath, String nodeUuid, boolean direct
 			throw new IllegalArgumentException("ExternalEntry needs at least one of relativePath or nodeUuid");
 		}
 
+		if (bindNativeKey && nativeKey == null) {
+			throw new IllegalArgumentException("ExternalEntry with bindNativeKey needs a nativeKey");
+		}
+
 		relativePath = normalize(relativePath);
 	}
 
 	public static ExternalEntry file(final String relativePath, final Long size, final Long lastModified) {
-		return new ExternalEntry(relativePath, null, false, size, lastModified, null);
+		return new ExternalEntry(relativePath, null, false, size, lastModified, null, false);
 	}
 
 	public static ExternalEntry directory(final String relativePath, final Long lastModified) {
-		return new ExternalEntry(relativePath, null, true, null, lastModified, null);
+		return new ExternalEntry(relativePath, null, true, null, lastModified, null, false);
 	}
 
 	public static ExternalEntry byUuid(final String nodeUuid, final boolean directory, final Long size, final Long lastModified) {
-		return new ExternalEntry(null, nodeUuid, directory, size, lastModified, null);
+		return new ExternalEntry(null, nodeUuid, directory, size, lastModified, null, false);
 	}
 
 	public static ExternalEntry byUuidAndPath(final String nodeUuid, final String relativePath, final boolean directory, final Long size, final Long lastModified) {
-		return new ExternalEntry(relativePath, nodeUuid, directory, size, lastModified, null);
+		return new ExternalEntry(relativePath, nodeUuid, directory, size, lastModified, null, false);
+	}
+
+	/**
+	 * A file whose provider key is the given native key (not a Structr node
+	 * uuid) - an object created in the backend by an external source. The
+	 * relativePath places it in the virtual tree; the nativeKey is persisted
+	 * to the node so the provider can address it.
+	 */
+	public static ExternalEntry externalFile(final String nativeKey, final String relativePath, final Long size, final Long lastModified) {
+		return new ExternalEntry(relativePath, null, false, size, lastModified, nativeKey, true);
 	}
 
 	public ExternalEntry withNativeKey(final String nativeKey) {
-		return new ExternalEntry(relativePath, nodeUuid, directory, size, lastModified, nativeKey);
+		return new ExternalEntry(relativePath, nodeUuid, directory, size, lastModified, nativeKey, bindNativeKey);
 	}
 
 	public boolean hasPath() {

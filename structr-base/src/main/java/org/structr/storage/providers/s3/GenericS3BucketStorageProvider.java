@@ -127,7 +127,12 @@ public class GenericS3BucketStorageProvider extends AbstractStorageProvider impl
 		final AbstractFile file = getAbstractFile();
 
 		if (file != null) {
-			setKey(file.getUuid());
+
+			// externally created objects keep their native key (persisted on the
+			// node as storageKey); Structr-origin objects are keyed by node uuid
+			final String storageKey = file.getStorageKey();
+
+			setKey(storageKey != null ? storageKey : file.getUuid());
 			setPath(file.getPath());
 		}
 	}

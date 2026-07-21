@@ -22,6 +22,13 @@ module structr.db.driver.api {
     requires org.apache.commons.configuration2;
     requires org.apache.commons.collections4;
     requires org.apache.commons.lang3;
+	requires flexmark;
+	requires flexmark.profile.pegdown;
+	requires flexmark.util.ast;
+	requires flexmark.util.collection;
+	requires flexmark.util.data;
+	requires flexmark.util.misc;
+	requires flexmark.util.sequence;
 
     exports org.structr.api;
     exports org.structr.api.config;

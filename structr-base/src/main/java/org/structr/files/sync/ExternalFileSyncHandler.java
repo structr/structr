@@ -147,7 +147,7 @@ public class ExternalFileSyncHandler {
 	 */
 	public void handleMoved(final String fromRelativePath, final ExternalEntry to) throws FrameworkException {
 
-		final NodeInterface node = resolveByPath(new ExternalEntry(fromRelativePath, null, to.directory(), null, null, null), false);
+		final NodeInterface node = resolveByPath(new ExternalEntry(fromRelativePath, null, to.directory(), null, null, null, false), false);
 		if (node != null) {
 
 			if (moveTo(node, to)) {
@@ -164,6 +164,23 @@ public class ExternalFileSyncHandler {
 
 	// ----- private methods -----
 	private NodeInterface resolve(final ExternalEntry entry, final boolean create) throws FrameworkException {
+
+		if (entry.bindNativeKey()) {
+
+			// native-key backends: resolve by the persisted storageKey first so a
+			// scan that races a Structr-side rename updates the existing node
+			// instead of creating a duplicate at the (now stale) entry path
+			final NodeInterface bound = findByStorageKey(entry.nativeKey());
+			if (bound != null) {
+
+				// the entry path is authoritative for externally created objects
+				if (entry.hasPath()) {
+					moveTo(bound, entry);
+				}
+
+				return bound;
+			}
+		}
 
 		if (entry.hasUuid()) {
 
@@ -280,10 +297,29 @@ public class ExternalFileSyncHandler {
 		final PropertyKey<Boolean> isExternalKey   = traits.key(AbstractFileTraitDefinition.IS_EXTERNAL_PROPERTY);
 		final PropertyKey<NodeInterface> parentKey = traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY);
 		final PropertyKey<String> nameKey          = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+		final PropertyKey<String> storageKeyKey    = traits.key(AbstractFileTraitDefinition.STORAGE_KEY_PROPERTY);
 
 		// kind-agnostic lookup: deletions cannot know whether the vanished entry
 		// was a file or a folder, and existing nodes may have a subtype
 		NodeInterface node = app.nodeQuery(StructrTraits.ABSTRACT_FILE).key(nameKey, entry.name()).key(parentKey, parentFolder).getFirst();
+		if (node != null) {
+
+			// identity verification: never rebind a node whose physical identity
+			// differs from the entry's. A native-key entry only reaches this point
+			// when no node carries its storageKey (resolve() checks that first), so
+			// any node found here at the same path is a different object.
+			final String existingKey = node.as(AbstractFile.class).getStorageKey();
+			final boolean conflict   = entry.bindNativeKey() ? !entry.nativeKey().equals(existingKey) : existingKey != null;
+
+			if (conflict) {
+
+				logger.warn("Skipping entry {} (native key {}) of sync target {}: a node with a different physical identity already exists at this path", entry.relativePath(), entry.nativeKey(), target.syncRootPath());
+				stats.ignored++;
+
+				return null;
+			}
+		}
+
 		if (node == null && doCreate) {
 
 			final String type            = getTargetType(syncRoot, entry.directory());
@@ -298,6 +334,13 @@ public class ExternalFileSyncHandler {
 
 				// keep uuid-keyed backends bound to their key
 				properties.put(Traits.of(type).key(GraphObjectTraitDefinition.ID_PROPERTY), entry.nodeUuid());
+			}
+
+			if (entry.bindNativeKey()) {
+
+				// bind the externally created object's native key to the node so
+				// the provider can address it (see GenericS3BucketStorageProvider)
+				properties.put(storageKeyKey, entry.nativeKey());
 			}
 
 			node = app.create(type, properties);
@@ -428,6 +471,25 @@ public class ExternalFileSyncHandler {
 		final Long nodeDate = file.getFileModificationDate();
 
 		return nodeSize == null || nodeDate == null || !entry.size().equals(nodeSize) || !entry.lastModified().equals(nodeDate);
+	}
+
+	/**
+	 * Resolves the node an externally created object is bound to via its
+	 * persisted storageKey. Object keys are unique per bucket, so at most one
+	 * node governed by this target can carry a given key.
+	 */
+	private NodeInterface findByStorageKey(final String nativeKey) throws FrameworkException {
+
+		final PropertyKey<String> storageKeyKey = Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.STORAGE_KEY_PROPERTY);
+
+		for (final NodeInterface node : app.nodeQuery(StructrTraits.ABSTRACT_FILE).key(storageKeyKey, nativeKey).getAsList()) {
+
+			if (isGovernedByThisTarget(node.as(AbstractFile.class))) {
+				return node;
+			}
+		}
+
+		return null;
 	}
 
 	private boolean isGovernedByThisTarget(final AbstractFile file) {

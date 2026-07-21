@@ -29,20 +29,32 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.schema.parser.ZonedDateTimePropertyGenerator;
 
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class ZonedDateTimeProperty extends AbstractPrimitiveProperty<ZonedDateTime> {
 
 	public ZonedDateTimeProperty(final String name) {
 		super(name);
+
+		this.format = getFormatOverride();
 	}
 
 	public ZonedDateTimeProperty(final String jsonName, final String dbName) {
 		super(jsonName, dbName);
+
+		this.format = getFormatOverride();
 	}
 
 	public ZonedDateTimeProperty(final String jsonName, final String dbName, final String format) {
 		super(jsonName);
+
+		if (StringUtils.isNotBlank(format)) {
+			this.format = format;
+		} else {
+			this.format = getFormatOverride();
+		}
 	}
 
 	@Override
@@ -79,6 +91,7 @@ public class ZonedDateTimeProperty extends AbstractPrimitiveProperty<ZonedDateTi
 				if (value instanceof String) {
 
 					return ZonedDateTimePropertyGenerator.parse(value.toString(), format);
+
 				} else if (value instanceof ZonedDateTime) {
 
 					return value;
@@ -154,14 +167,12 @@ public class ZonedDateTimeProperty extends AbstractPrimitiveProperty<ZonedDateTi
 
 					if (StringUtils.isNotBlank(sourceString)) {
 
-						return ZonedDateTimePropertyGenerator.parse(sourceString);
-
+						return ZonedDateTimePropertyGenerator.parse(sourceString, format);
 					}
 
 				} else {
 
-					throw new FrameworkException(422, "Incompatible input type for zoneddatetime property " + ZonedDateTimeProperty.this.jsonName() + ": " + (source.getClass().getName()), new ZonedDateTimeFormatToken(declaringTrait.getLabel(), ZonedDateTimeProperty.this));
-
+					throw new FrameworkException(422, "Incompatible input type for ZonedDateTime property " + ZonedDateTimeProperty.this.jsonName() + ": " + (source.getClass().getName()), new ZonedDateTimeFormatToken(declaringTrait.getLabel(), ZonedDateTimeProperty.this));
 				}
 			}
 
@@ -171,15 +182,41 @@ public class ZonedDateTimeProperty extends AbstractPrimitiveProperty<ZonedDateTi
 		@Override
 		public String revert(ZonedDateTime source) throws FrameworkException {
 
-			return source.toString();
+			return source.format(getDateTimeFormatter(format));
 		}
-
 	}
 
-	// Open API
+
+	public static String getFormatOverride() {
+		return Settings.ZonedDateTimeFormatOverride.getValue();
+	}
+
+	public static DateTimeFormatter getDateTimeFormatter(final String customPattern) {
+
+		if (StringUtils.isBlank(customPattern)) {
+
+			final String settingsPatternOverride = Settings.ZonedDateTimeFormatOverride.getValue();
+
+			if (StringUtils.isBlank(settingsPatternOverride)) {
+
+				return DateTimeFormatter.ISO_ZONED_DATE_TIME;
+
+			} else {
+
+				return DateTimeFormatter.ofPattern(settingsPatternOverride);
+			}
+
+		} else {
+
+			return DateTimeFormatter.ofPattern(customPattern);
+		}
+	}
+
+
+	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final int index) {
-		return ZonedDateTime.now();
+		return getDateTimeFormatter(format).format(ZonedDateTime.now());
 	}
 
 	@Override
@@ -187,8 +224,50 @@ public class ZonedDateTimeProperty extends AbstractPrimitiveProperty<ZonedDateTi
 		return null;
 	}
 
-	public static String getDefaultFormat() {
-		return Settings.DefaultZonedDateTimeFormat.getValue();
+	@Override
+	public Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level) {
+
+		final Map<String, Object> map = new TreeMap<>();
+
+		map.put("type",   "string");
+		map.put("format", "zoned-date-time");
+
+		if (this.isReadOnly()) {
+			map.put("readOnly", true);
+		}
+
+		final String defaultDisplayFormat = "yyyy-MM-dd'T'HH:mm:ss\\[.SSS\\]\\(Z|±HH:mm\\)[Zone/Region]";		// technically not 100% correct - the S from [.SSS] can occur 0-9 times.
+		final String formatOverride       = Settings.ZonedDateTimeFormatOverride.getValue();
+		final String formatString         = StringUtils.isBlank(format) ? (StringUtils.isBlank(formatOverride) ? defaultDisplayFormat : formatOverride) : format;
+
+		map.put("description", """
+			ISO-8601 date-time with UTC/offset and IANA time-zone region,
+			as produced by java.time.ZonedDateTime.
+
+			Format: %s
+			""".formatted(formatString));
+		map.put("example", getExampleValue(0));
+
+		if (defaultValue != null) {
+			map.put("default", getDateTimeFormatter(format).format(defaultValue));
+		}
+
+		return map;
+	}
+
+	@Override
+	public Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level) {
+
+		final Map<String, Object> map = new TreeMap<>();
+
+		map.put("type",   "string");
+		map.put("format", "zoned-date-time");
+
+		if (this.isReadOnly()) {
+			map.put("readOnly", true);
+		}
+
+		return map;
 	}
 
 	// ----- interface Documentable -----

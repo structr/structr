@@ -50,6 +50,7 @@ import org.structr.storage.sync.SyncTarget;
 import org.structr.storage.sync.VirtualChangeEvent;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
+import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
@@ -733,6 +734,125 @@ public class StorageSyncServiceTest extends StructrUiTest {
 			try (final Tx tx = app.tx()) {
 
 				assertNull("Node should have been deleted by uuid-addressed deletion", app.getNodeById(StructrTraits.FILE, givenUuid));
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				fail("Unexpected exception.");
+			}
+
+		} catch (IOException ioex) {
+
+			fail("Unexpected exception.");
+
+		} finally {
+
+			cleanupDirectory(root);
+		}
+	}
+
+	@Test
+	public void testExternalFileEntryBinding() {
+
+		Path root = null;
+
+		try {
+
+			root = Files.createTempDirectory("structr-extkey-test");
+
+			String folderUuid = null;
+			String configUuid = null;
+
+			try (final Tx tx = app.tx()) {
+
+				final StorageConfiguration mount = StorageProviderFactory.createConfig("extKeyMount", LocalFSStorageProvider.class, Map.of("mountTarget", root.toString()));
+
+				final NodeInterface folder = app.create(StructrTraits.FOLDER,
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "mounted6"),
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.MOUNT_WATCH_CONTENTS_PROPERTY), false),
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.STORAGE_CONFIGURATION_PROPERTY), mount)
+				);
+
+				folderUuid = folder.getUuid();
+				configUuid = mount.getUuid();
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				fail("Unexpected exception.");
+			}
+
+			final SyncTarget target = new SyncTarget(folderUuid, "/mounted6", true, configUuid, Map.of("mountTarget", root.toString()));
+			final App syncApp        = StructrApp.getInstance(StorageSyncService.createSyncContext());
+
+			final String nativeKey = "docs/report.pdf";
+			final long now         = System.currentTimeMillis();
+
+			// externalFile entry: node is created, marked external, key persisted
+			String createdUuid = null;
+
+			try (final Tx tx = syncApp.tx()) {
+
+				final ExternalFileSyncHandler handler = new ExternalFileSyncHandler(target);
+				final NodeInterface node              = handler.handleDiscovered(ExternalEntry.externalFile(nativeKey, nativeKey, 10L, now), now);
+
+				assertNotNull("External object should have been imported", node);
+
+				createdUuid = node.getUuid();
+
+				assertEquals("Imported node should sit at the key-derived path", "/mounted6/docs/report.pdf", node.as(File.class).getPath());
+				assertTrue("Imported node should be external", node.as(AbstractFile.class).isExternal());
+				assertEquals("Native key should be persisted as storageKey", nativeKey, node.as(AbstractFile.class).getStorageKey());
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+				fail("Unexpected exception.");
+			}
+
+			// a subsequent scan reporting a renamed path (e.g. from refreshed
+			// "path" metadata) must re-resolve the SAME node via storageKey and
+			// move it, not create a duplicate
+			try (final Tx tx = syncApp.tx()) {
+
+				final ExternalFileSyncHandler handler = new ExternalFileSyncHandler(target);
+				final NodeInterface node              = handler.handleDiscovered(ExternalEntry.externalFile(nativeKey, "docs/renamed.pdf", 10L, now), now);
+
+				assertNotNull("Re-resolved node should not be null", node);
+				assertEquals("Re-resolution by storageKey should return the same node", createdUuid, node.getUuid());
+				assertEquals("Node should have followed the metadata rename", "/mounted6/docs/renamed.pdf", node.as(File.class).getPath());
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+				fail("Unexpected exception.");
+			}
+
+			// a different external object whose path collides with the bound
+			// node must be skipped, leaving the existing node untouched
+			try (final Tx tx = syncApp.tx()) {
+
+				final ExternalFileSyncHandler handler = new ExternalFileSyncHandler(target);
+				final NodeInterface node              = handler.handleDiscovered(ExternalEntry.externalFile("other/key.bin", "docs/renamed.pdf", 5L, now), now);
+
+				assertNull("Colliding external object must be skipped", node);
+				assertEquals("Conflict should be counted as ignored", 1L, handler.getStats().getIgnored());
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+				fail("Unexpected exception.");
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				final NodeInterface node = app.getNodeById(StructrTraits.FILE, createdUuid);
+
+				assertNotNull("Existing node should be untouched by the conflict", node);
+				assertEquals("Existing node key must be unchanged", nativeKey, node.as(AbstractFile.class).getStorageKey());
 
 				tx.success();
 

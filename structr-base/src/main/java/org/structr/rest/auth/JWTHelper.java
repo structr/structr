@@ -459,7 +459,9 @@ public class JWTHelper {
 
 	private static Map<String, String> createTokensForUserWithSecret(Principal user, Date accessTokenExpirationDate, Date refreshTokenExpirationDate, String instanceName) throws FrameworkException {
 
-		final String secret = Settings.JWTSecret.getValue();
+		// generate and persist a strong secret on first use if none is configured (a present-but-weak
+		// secret is left untouched so the strength check below still rejects it)
+		final String secret = Settings.getOrGenerateJWTSecret();
 		final String jwtIssuer = Settings.JWTIssuer.getValue();
 
 		if (secret.length() < 32) {

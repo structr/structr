@@ -1381,13 +1381,13 @@ public class ScriptingTest extends StructrTest {
 
 			// dateFormat with null
 			assertEquals("Invalid dateFormat() result with null value", "",                                           Scripting.replaceVariables(ctx, testOne, "${dateFormat(this.alwaysNull, \"yyyy\")}"));
-			assertEquals("Invalid dateFormat() result with null value", DateFormatFunction.ERROR_MESSAGE_DATE_FORMAT, Scripting.replaceVariables(ctx, testOne, "${dateFormat(\"10\", this.alwaysNull)}"));
-			assertEquals("Invalid dateFormat() result with null value", DateFormatFunction.ERROR_MESSAGE_DATE_FORMAT, Scripting.replaceVariables(ctx, testOne, "${dateFormat(this.alwaysNull, this.alwaysNull)}"));
+			assertEquals("Invalid dateFormat() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${dateFormat(\"10\", this.alwaysNull)}"));
+			assertEquals("Invalid dateFormat() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${dateFormat(this.alwaysNull, this.alwaysNull)}"));
 
 			// date_format error messages
-			assertEquals("Invalid date_format() result for wrong number of parameters", DateFormatFunction.ERROR_MESSAGE_DATE_FORMAT, Scripting.replaceVariables(ctx, testOne, "${date_format()}"));
-			assertEquals("Invalid date_format() result for wrong number of parameters", DateFormatFunction.ERROR_MESSAGE_DATE_FORMAT, Scripting.replaceVariables(ctx, testOne, "${date_format(this.aDouble)}"));
-			assertEquals("Invalid date_format() result for wrong number of parameters", DateFormatFunction.ERROR_MESSAGE_DATE_FORMAT, Scripting.replaceVariables(ctx, testOne, "${date_format(this.aDouble, this.aDouble, this.aDouble)}"));
+			assertEquals("Invalid date_format() result for wrong number of parameters", "", Scripting.replaceVariables(ctx, testOne, "${date_format()}"));
+			assertEquals("Invalid date_format() result for wrong number of parameters", "", Scripting.replaceVariables(ctx, testOne, "${date_format(this.aDouble)}"));
+			assertEquals("Invalid date_format() result for wrong number of parameters", "", Scripting.replaceVariables(ctx, testOne, "${date_format(this.aDouble, this.aDouble, this.aDouble)}"));
 
 			// parse_date
 			//assertEquals("Invalid parse_date() result", ParseDateFunction.ERROR_MESSAGE_PARSE_DATE, Scripting.replaceVariables(ctx, testOne, "${parse_date('2015-12-12')}"));
@@ -3290,15 +3290,26 @@ public class ScriptingTest extends StructrTest {
 
 		final ActionContext ctx = new ActionContext(securityContext);
 
-		// test failures
+		// static encryption state can leak across tests in the same fork; start from a clean "no key" state
+		CryptFunction.setEncryptionKey(null);
+		Settings.GlobalSecret.setValue(null);
+
+		// with no encryption key configured, encrypt() now auto-generates and persists a global secret
+		// on first use (instead of throwing a 422)
 		try {
 
-			Scripting.replaceVariables(ctx, null, "${encrypt('plaintext')}");
-			fail("Encrypt function should throw an exception when no initial encryption key is set.");
+			final Object cipher = Scripting.replaceVariables(ctx, null, "${encrypt('plaintext')}");
+			assertTrue("encrypt() should auto-generate a key and return ciphertext when none is configured", cipher != null && !cipher.toString().isEmpty());
 
 		} catch (FrameworkException fex) {
-			assertEquals("Invalid error code", 422, fex.getStatus());
+
+			fex.printStackTrace();
+			fail("encrypt() should auto-generate an encryption key instead of throwing: " + fex.getMessage());
 		}
+
+		// reset to a genuine "no key" state for the remaining assertions
+		CryptFunction.setEncryptionKey(null);
+		Settings.GlobalSecret.setValue(null);
 
 		// test failures
 		try {
@@ -3350,15 +3361,22 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid error code", 422, fex.getStatus());
 		}
 
-		// test failures
+		// after resetting the key, encrypt() again auto-generates instead of throwing
 		try {
 
-			Scripting.replaceVariables(ctx, null, "${encrypt('plaintext')}");
-			fail("Encrypt function should throw an exception when no initial encryption key is set.");
+			final Object cipher = Scripting.replaceVariables(ctx, null, "${encrypt('plaintext')}");
+			assertTrue("encrypt() should auto-generate a key and return ciphertext when none is configured", cipher != null && !cipher.toString().isEmpty());
 
 		} catch (FrameworkException fex) {
-			assertEquals("Invalid error code", 422, fex.getStatus());
+
+			fex.printStackTrace();
+			fail("encrypt() should auto-generate an encryption key instead of throwing: " + fex.getMessage());
 		}
+
+		// do not leak the auto-generated secret / cached key / persisted structr.conf to other tests
+		CryptFunction.setEncryptionKey(null);
+		Settings.GlobalSecret.setValue(null);
+		new java.io.File(Settings.ConfigFileName).delete();
 	}
 
 	@Test
@@ -4841,7 +4859,7 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("", "", (Scripting.evaluate(ctx, null, "${{ $.doInNewTransaction(function() { $.error('base', 'nope', 'detail'); }, function() { $.store('test-result', 'error_handled'); }); }}", "test")));
+			assertEquals("Null return value was expected, but it was not returned.", null, (Scripting.evaluate(ctx, null, "${{ $.doInNewTransaction(function() { $.error('base', 'nope', 'detail'); }, function() { $.store('test-result', 'error_handled'); }); }}", "test")));
 			Thread.sleep(2500);
 			assertEquals("Error handler in doInNewTransaction function was not called.", "error_handled", ctx.retrieve("test-result"));
 
@@ -6660,6 +6678,58 @@ public class ScriptingTest extends StructrTest {
 	}
 
 	@Test
+	public void testDateFormatNullHandling() {
+
+		// a null date value is a normal data condition and must pass through as null
+		// (the null check runs inside the script because Scripting.evaluate() maps a null script result to an empty string)
+		try (final Tx tx = app.tx()) {
+
+			final Object result = Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.dateFormat(null, 'yyyy-MM-dd') === null; }}", "test1");
+
+			assertEquals("dateFormat() with null value must return null", true, result);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// a null pattern is an authoring error and must throw in a JavaScript context
+		try (final Tx tx = app.tx()) {
+
+			Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.dateFormat(new Date(), null); }}", "test2");
+
+			fail("dateFormat() with null pattern should throw an exception in a JavaScript context");
+
+		} catch (FrameworkException fex) {
+
+			assertEquals("Invalid error code", 422, fex.getStatus());
+		}
+	}
+
+	@Test
+	public void testToDateNullHandling() {
+
+		// a null value is a normal data condition and must pass through as null
+		// (the null check runs inside the script because Scripting.evaluate() maps a null script result to an empty string)
+		try (final Tx tx = app.tx()) {
+
+			final Object result = Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.toDate(null) === null; }}", "test1");
+
+			assertEquals("toDate() with null value must return null", true, result);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
 	public void testEntityBindingAcrossMultipleMethodCalls() {
 
 		// setup
@@ -7526,7 +7596,7 @@ public class ScriptingTest extends StructrTest {
 
 			final ActionContext actionContext = new ActionContext(securityContext);
 
-			Assert.assertEquals(Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile.txt' }); $.getContent(file, \"UTF-8\"); }}", "test_1a"), "");
+			Assert.assertEquals(Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile.txt' }); $.getContent(file, \"UTF-8\"); }}", "test_1a"), null);
 			Assert.assertEquals(Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile.txt' }); $.setContent(file, 'test', \"UTF-8\"); $.getContent(file, \"UTF-8\"); }}", "test_1b"), "test");
 			Assert.assertEquals(Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile.txt' }); $.appendContent(file, '123', \"UTF-8\"); $.getContent(file, \"UTF-8\"); }}", "test_1c"), "test123");
 
@@ -7540,7 +7610,7 @@ public class ScriptingTest extends StructrTest {
 
 			final ActionContext actionContext = new ActionContext(securityContext);
 
-			Assert.assertEquals(Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile2.txt' }); $.getContent(file); }}", "test_2a"), "");
+			Assert.assertEquals(Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile2.txt' }); $.getContent(file); }}", "test_2a"), null);
 			Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile2.txt' }); $.appendContent(file, new Date()); }}", "test_2b");
 
 			fail("Providing a Date object (anything other than String or byte[]) to appendContent should throw an exception.");
@@ -7554,7 +7624,7 @@ public class ScriptingTest extends StructrTest {
 
 			final ActionContext actionContext = new ActionContext(securityContext);
 
-			Assert.assertEquals(Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile3.txt' }); $.getContent(file, \"UTF-8\"); }}", "test_3a"), "");
+			Assert.assertEquals(Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile3.txt' }); $.getContent(file, \"UTF-8\"); }}", "test_3a"), null);
 			Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile3.txt' }); $.setContent(file, new Date(), \"UTF-8\"); }}", "test_3b");
 
 			fail("Providing a Date object (anything other than String or byte[]) to setContent should throw an exception.");

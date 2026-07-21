@@ -56,7 +56,6 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 			.getHeader("Location");
 
 
-
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
 		.expect()
@@ -64,7 +63,6 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 			.body("result[0].dateProperty", equalTo("2013-04-05T08:43:40+0000"))
 		.when()
 			.get("/TestThree");
-
 	}
 
 	@Test

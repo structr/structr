@@ -33,8 +33,12 @@ package org.structr.storage.sync;
  * backends move the whole subtree in one operation, backends whose
  * physical keys do not depend on the virtual path simply ignore
  * structural changes.
+ *
+ * nativeKey is the node's persisted provider-specific physical key
+ * (storageKey) captured at event time, or null for uuid-keyed / Structr-origin
+ * nodes; path-based backends ignore it.
  */
-public record VirtualChangeEvent(Type type, String nodeUuid, boolean directory, String previousRelativePath, String relativePath) {
+public record VirtualChangeEvent(Type type, String nodeUuid, boolean directory, String previousRelativePath, String relativePath, String nativeKey) {
 
 	public enum Type {
 
@@ -76,15 +80,15 @@ public record VirtualChangeEvent(Type type, String nodeUuid, boolean directory, 
 		}
 	}
 
-	public static VirtualChangeEvent created(final String nodeUuid, final boolean directory, final String relativePath) {
-		return new VirtualChangeEvent(Type.CREATED, nodeUuid, directory, null, relativePath);
+	public static VirtualChangeEvent created(final String nodeUuid, final boolean directory, final String relativePath, final String nativeKey) {
+		return new VirtualChangeEvent(Type.CREATED, nodeUuid, directory, null, relativePath, nativeKey);
 	}
 
-	public static VirtualChangeEvent moved(final String nodeUuid, final boolean directory, final String previousRelativePath, final String relativePath) {
-		return new VirtualChangeEvent(Type.MOVED, nodeUuid, directory, previousRelativePath, relativePath);
+	public static VirtualChangeEvent moved(final String nodeUuid, final boolean directory, final String previousRelativePath, final String relativePath, final String nativeKey) {
+		return new VirtualChangeEvent(Type.MOVED, nodeUuid, directory, previousRelativePath, relativePath, nativeKey);
 	}
 
-	public static VirtualChangeEvent deleted(final String nodeUuid, final boolean directory, final String previousRelativePath) {
-		return new VirtualChangeEvent(Type.DELETED, nodeUuid, directory, previousRelativePath, null);
+	public static VirtualChangeEvent deleted(final String nodeUuid, final boolean directory, final String previousRelativePath, final String nativeKey) {
+		return new VirtualChangeEvent(Type.DELETED, nodeUuid, directory, previousRelativePath, null, nativeKey);
 	}
 }

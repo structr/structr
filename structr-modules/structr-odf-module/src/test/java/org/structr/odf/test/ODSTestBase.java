@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.odf;
+package org.structr.odf.test;
 
 import org.structr.core.property.StartNode;
 import org.structr.core.traits.StructrTraits;
@@ -31,7 +31,6 @@ import org.structr.odf.traits.definitions.ODSExporterTraitDefinition;
 import org.structr.odf.traits.definitions.ODTExporterTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
 
 public class ODSTestBase extends StructrUiTest {
 

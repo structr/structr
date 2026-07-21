@@ -16,8 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.storage.providers.s3;
-
+package org.structr.test.storage.providers.s3;
+import org.structr.storage.providers.s3.S3Errors;
 import org.testng.annotations.Test;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.core.exception.SdkClientException;

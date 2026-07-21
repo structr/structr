@@ -149,6 +149,11 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 	}
 
 	@Override
+	public String getStorageKey() {
+		return wrappedObject.getProperty(traits.key(AbstractFileTraitDefinition.STORAGE_KEY_PROPERTY));
+	}
+
+	@Override
 	public void setHasParent() throws FrameworkException {
 
 		synchronized (wrappedObject) {

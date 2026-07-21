@@ -46,11 +46,6 @@ public class LocalizationTraitWrapper extends AbstractNodeTraitWrapper implement
 	}
 
 	@Override
-	public boolean isImported() {
-		return wrappedObject.getProperty(traits.key(LocalizationTraitDefinition.IMPORTED_PROPERTY));
-	}
-
-	@Override
 	public void setLocalizedName(final String localizedName) throws FrameworkException {
 		wrappedObject.setProperty(traits.key(LocalizationTraitDefinition.LOCALIZED_NAME_PROPERTY), localizedName);
 	}

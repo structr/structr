@@ -87,7 +87,7 @@
 						<version>3.5.4</version>
 						<configuration>
 							<!-- run tests on the class path, not the module path: Maven's uncurated test
-							     module-path differs from the shipped lib/lib-classpath partition. See BUILD.md. -->
+							     module-path differs from the shipped lib/lib-classpath partition. See DEPENDENCY_MANAGEMENT.md. -->
 							<useModulePath>false</useModulePath>
 							<includes>
 								<include>**/*Test.java</include>
@@ -179,7 +179,7 @@
 						<artifactId>maven-surefire-plugin</artifactId>
 						<version>3.5.4</version>
 						<configuration>
-							<!-- run tests on the class path, not the module path (see BUILD.md / the
+							<!-- run tests on the class path, not the module path (see DEPENDENCY_MANAGEMENT.md / the
 							     failsafe note in the test-neo4j profile) -->
 							<useModulePath>false</useModulePath>
 							<includes>

@@ -126,14 +126,28 @@ Java 25 (GraalVM). First build needs network once (some transitive deps use open
 cannot resolve offline until cached); afterwards `mvn -o …` works.
 
 Tests are **compiled and run on the class path** (`useModulePath=false`), while main code is compiled on
-the module path. This is required because the `structr-base` **test-jar** derives the same module name
-(`structr.base`) as the main jar, so on the module path it is dropped and downstream modules' tests
-cannot see the shared test base classes (`org.structr.test.rest.common.StructrRestTestBase`, etc.). It
-is configured in two places (no command-line flags needed):
+the module path. This is required for two reasons:
+- The `structr-base` **test-jar** derives the same module name (`structr.base`) as the main jar, so on
+  the module path it is dropped and downstream modules' tests cannot see the shared test base classes
+  (`org.structr.test.rest.common.StructrRestTestBase`, etc.).
+- A module-path test fork resolves each modular test module's **full JPMS graph**, which trips over
+  JPMS-hostile third-party descriptors. For example `commons-configuration2` ships a real (multi-release)
+  `module-info` with a hard `requires org.apache.commons.logging`, so a module-path fork of a module that
+  (transitively) uses it fails at boot-layer init with `FindException: Module org.apache.commons.logging
+  not found` unless a provider of that module happens to be on the path. Running on the class path never
+  resolves those module graphs, so it sidesteps the whole class of problem.
+
+It is configured in three places (no command-line flags needed):
 - **compile**: the `maven-compiler-plugin` `default-testCompile` execution in the **root `pom.xml`**
   (`<useModulePath>false</useModulePath>`);
-- **run**: the surefire (in-memory profile) + failsafe (neo4j profile) config in `structr-base/pom.xml`
-  and the `structr-modules` parent.
+- **run (all modules)**: `maven-surefire-plugin` and `maven-failsafe-plugin` are pinned in the **root
+  `pom.xml` `<pluginManagement>`** with `<useModulePath>false</useModulePath>`. This makes *every* module
+  run tests on the class path deterministically, independent of the local Maven version — an unpinned
+  surefire otherwise defaults to a **module-path fork for modular modules** (which is exactly how the
+  `commons-configuration2` `FindException` above surfaces on some machines but not others).
+- **run (per-profile extras)**: the surefire (in-memory profile) + failsafe (neo4j profile) config in
+  `structr-base/pom.xml` and the `structr-modules` parent add argLine / fork / systemPropertyVariables
+  settings on top of the pinned defaults.
 
 Note: `-DskipTests` skips test *execution* but still *compiles* tests, so the compile-side setting
 matters even for CI jobs that skip test execution.

@@ -2392,22 +2392,46 @@ public class PropertyTest extends StructrTest {
 		final String projectType            = "Project";
 		final PropertyKey<String> encrypted = Traits.of(projectType).key("encrypted");
 
-		// test initial error when no key is set
+		// with no key configured, writing an encrypted property now auto-generates and persists a
+		// global encryption secret on first use (instead of failing with a 422)
 		try (final Tx tx = app.tx()) {
 
 			app.create(projectType,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test"),
+				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "autogen"),
 				new NodeAttribute<>(encrypted, "plaintext")
 			);
 
 			tx.success();
 
-			fail("Encrypted string property should throw an exception when no initial encryption key is set.");
-
 		} catch (FrameworkException fex) {
 
-			assertEquals("Invalid error code", 422, fex.getStatus());
+			fex.printStackTrace();
+			fail("Encrypted string property should auto-generate an encryption secret when none is set: " + fex.getMessage());
 		}
+
+		// a global encryption secret must have been generated and set
+		assertNotNull("A global encryption secret should have been auto-generated", Settings.GlobalSecret.getValue());
+		assertTrue("Auto-generated global encryption secret must not be blank", Settings.GlobalSecret.getValue().trim().length() > 0);
+
+		// reset to a clean slate (delete the auto-generated node, clear the generated secret + cached
+		// key, and remove the persisted structr.conf) so the explicit-key assertions below start from
+		// a genuine "no key" state again
+		try (final Tx tx = app.tx()) {
+
+			for (final NodeInterface node : app.nodeQuery(projectType).getAsList()) {
+				app.delete(node);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+
+		Settings.GlobalSecret.setValue(null);
+		CryptFunction.setEncryptionKey(null);
+		new java.io.File(Settings.ConfigFileName).delete();
 
 		// set encryption key
 		CryptFunction.setEncryptionKey("structr");

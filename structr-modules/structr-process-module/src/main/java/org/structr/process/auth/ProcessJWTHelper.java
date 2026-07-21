@@ -175,7 +175,9 @@ public class ProcessJWTHelper {
 
 			default:
 			case "secret":
-				final String secret = Settings.JWTSecret.getValue();
+				// generate and persist a strong secret on first use if none is configured
+				// (a present-but-weak secret is left untouched so the check below still rejects it)
+				final String secret = Settings.getOrGenerateJWTSecret();
 
 				if (secret == null || secret.length() < 32) {
 					throw new FrameworkException(500, "JWT secret is not configured or too weak (must be at least 32 characters). Configure " + Settings.JWTSecret.getKey());
