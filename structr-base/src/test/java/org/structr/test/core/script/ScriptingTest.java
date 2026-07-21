@@ -3290,15 +3290,26 @@ public class ScriptingTest extends StructrTest {
 
 		final ActionContext ctx = new ActionContext(securityContext);
 
-		// test failures
+		// static encryption state can leak across tests in the same fork; start from a clean "no key" state
+		CryptFunction.setEncryptionKey(null);
+		Settings.GlobalSecret.setValue(null);
+
+		// with no encryption key configured, encrypt() now auto-generates and persists a global secret
+		// on first use (instead of throwing a 422)
 		try {
 
-			Scripting.replaceVariables(ctx, null, "${encrypt('plaintext')}");
-			fail("Encrypt function should throw an exception when no initial encryption key is set.");
+			final Object cipher = Scripting.replaceVariables(ctx, null, "${encrypt('plaintext')}");
+			assertTrue("encrypt() should auto-generate a key and return ciphertext when none is configured", cipher != null && !cipher.toString().isEmpty());
 
 		} catch (FrameworkException fex) {
-			assertEquals("Invalid error code", 422, fex.getStatus());
+
+			fex.printStackTrace();
+			fail("encrypt() should auto-generate an encryption key instead of throwing: " + fex.getMessage());
 		}
+
+		// reset to a genuine "no key" state for the remaining assertions
+		CryptFunction.setEncryptionKey(null);
+		Settings.GlobalSecret.setValue(null);
 
 		// test failures
 		try {
@@ -3350,15 +3361,22 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid error code", 422, fex.getStatus());
 		}
 
-		// test failures
+		// after resetting the key, encrypt() again auto-generates instead of throwing
 		try {
 
-			Scripting.replaceVariables(ctx, null, "${encrypt('plaintext')}");
-			fail("Encrypt function should throw an exception when no initial encryption key is set.");
+			final Object cipher = Scripting.replaceVariables(ctx, null, "${encrypt('plaintext')}");
+			assertTrue("encrypt() should auto-generate a key and return ciphertext when none is configured", cipher != null && !cipher.toString().isEmpty());
 
 		} catch (FrameworkException fex) {
-			assertEquals("Invalid error code", 422, fex.getStatus());
+
+			fex.printStackTrace();
+			fail("encrypt() should auto-generate an encryption key instead of throwing: " + fex.getMessage());
 		}
+
+		// do not leak the auto-generated secret / cached key / persisted structr.conf to other tests
+		CryptFunction.setEncryptionKey(null);
+		Settings.GlobalSecret.setValue(null);
+		new java.io.File(Settings.ConfigFileName).delete();
 	}
 
 	@Test
