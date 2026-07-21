@@ -230,10 +230,6 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 
 			} else {
 
-				if (Settings.logMissingLocalizations.getValue()) {
-					logger.warn("Missing localization: Key: '{}' Locale: '{}' Domain: '{}'", requestedKey, fullLocale, requestedDomain);
-				}
-
 				// try fallback locale, if active ...
 				if (Settings.useFallbackLocale.getValue()) {
 
@@ -241,7 +237,7 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 					final String fullFallbackLocale = fallbackLocale.toString();
 
 					// ... and fallback locale is not empty and is different from current locale
-					if (!fullFallbackLocale.equals("") && !fullLocale.equals(fullFallbackLocale)) {
+					if (!fullFallbackLocale.isEmpty() && !fullLocale.equals(fullFallbackLocale)) {
 
 						final String fallbackValue = getLocalization(fallbackLocale, requestedKey, requestedDomain, true);
 
@@ -251,9 +247,17 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 
 						} else if (Settings.logMissingLocalizations.getValue()) {
 
-							logger.warn("Fallback localization also missing: Key: '{}' Locale: '{}' Domain: '{}'", requestedKey, fullFallbackLocale, requestedDomain);
+							logger.warn("Localization and fallback localization ({}) missing: Key: '{}' Locale: '{}' Domain: '{}'", fullFallbackLocale, requestedKey, fullLocale, requestedDomain);
 						}
+
+					} else if (Settings.logMissingLocalizations.getValue()) {
+
+						logger.warn("Missing localization (fallback does not apply because identical or empty): Key: '{}' Locale: '{}' Domain: '{}'", requestedKey, fullLocale, requestedDomain);
 					}
+
+				} else if (Settings.logMissingLocalizations.getValue()) {
+
+					logger.warn("Missing localization: Key: '{}' Locale: '{}' Domain: '{}'", requestedKey, fullLocale, requestedDomain);
 				}
 
 				if (value == null) {
@@ -364,11 +368,11 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 		if (localizations.size() > 1) {
 
 			// Ambiguous localization found
-			logger.warn("Found ambiguous localization for locale \"{}\", key \"{}\" and domain \"{}\". Please fix. Parameters: {}", new Object[] { locale, key, domain });
+			logger.warn("Found ambiguous localization for locale \"{}\", key \"{}\" and domain \"{}\". Using first value.", locale, key, domain);
 		}
 
 		// return first
-		return localizations.get(0);
+		return localizations.getFirst();
 	}
 
 	private static String getLocalizedNameFromDatabase(final String key, final String domain, final String locale) throws FrameworkException {

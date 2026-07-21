@@ -1381,13 +1381,13 @@ public class ScriptingTest extends StructrTest {
 
 			// dateFormat with null
 			assertEquals("Invalid dateFormat() result with null value", "",                                           Scripting.replaceVariables(ctx, testOne, "${dateFormat(this.alwaysNull, \"yyyy\")}"));
-			assertEquals("Invalid dateFormat() result with null value", DateFormatFunction.ERROR_MESSAGE_DATE_FORMAT, Scripting.replaceVariables(ctx, testOne, "${dateFormat(\"10\", this.alwaysNull)}"));
-			assertEquals("Invalid dateFormat() result with null value", DateFormatFunction.ERROR_MESSAGE_DATE_FORMAT, Scripting.replaceVariables(ctx, testOne, "${dateFormat(this.alwaysNull, this.alwaysNull)}"));
+			assertEquals("Invalid dateFormat() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${dateFormat(\"10\", this.alwaysNull)}"));
+			assertEquals("Invalid dateFormat() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${dateFormat(this.alwaysNull, this.alwaysNull)}"));
 
 			// date_format error messages
-			assertEquals("Invalid date_format() result for wrong number of parameters", DateFormatFunction.ERROR_MESSAGE_DATE_FORMAT, Scripting.replaceVariables(ctx, testOne, "${date_format()}"));
-			assertEquals("Invalid date_format() result for wrong number of parameters", DateFormatFunction.ERROR_MESSAGE_DATE_FORMAT, Scripting.replaceVariables(ctx, testOne, "${date_format(this.aDouble)}"));
-			assertEquals("Invalid date_format() result for wrong number of parameters", DateFormatFunction.ERROR_MESSAGE_DATE_FORMAT, Scripting.replaceVariables(ctx, testOne, "${date_format(this.aDouble, this.aDouble, this.aDouble)}"));
+			assertEquals("Invalid date_format() result for wrong number of parameters", "", Scripting.replaceVariables(ctx, testOne, "${date_format()}"));
+			assertEquals("Invalid date_format() result for wrong number of parameters", "", Scripting.replaceVariables(ctx, testOne, "${date_format(this.aDouble)}"));
+			assertEquals("Invalid date_format() result for wrong number of parameters", "", Scripting.replaceVariables(ctx, testOne, "${date_format(this.aDouble, this.aDouble, this.aDouble)}"));
 
 			// parse_date
 			//assertEquals("Invalid parse_date() result", ParseDateFunction.ERROR_MESSAGE_PARSE_DATE, Scripting.replaceVariables(ctx, testOne, "${parse_date('2015-12-12')}"));
@@ -6673,6 +6673,58 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testDateFormatNullHandling() {
+
+		// a null date value is a normal data condition and must pass through as null
+		// (the null check runs inside the script because Scripting.evaluate() maps a null script result to an empty string)
+		try (final Tx tx = app.tx()) {
+
+			final Object result = Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.dateFormat(null, 'yyyy-MM-dd') === null; }}", "test1");
+
+			assertEquals("dateFormat() with null value must return null", true, result);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// a null pattern is an authoring error and must throw in a JavaScript context
+		try (final Tx tx = app.tx()) {
+
+			Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.dateFormat(new Date(), null); }}", "test2");
+
+			fail("dateFormat() with null pattern should throw an exception in a JavaScript context");
+
+		} catch (FrameworkException fex) {
+
+			assertEquals("Invalid error code", 422, fex.getStatus());
+		}
+	}
+
+	@Test
+	public void testToDateNullHandling() {
+
+		// a null value is a normal data condition and must pass through as null
+		// (the null check runs inside the script because Scripting.evaluate() maps a null script result to an empty string)
+		try (final Tx tx = app.tx()) {
+
+			final Object result = Scripting.evaluate(new ActionContext(securityContext), null, "${{ $.toDate(null) === null; }}", "test1");
+
+			assertEquals("toDate() with null value must return null", true, result);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 	}

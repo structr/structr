@@ -138,7 +138,7 @@ let _Config = {
 				activateHash(location.hash);
 			});
 
-			_Helpers.activateCommentsInElement(document, { css: '' });
+			_Helpers.activateCommentsInElement(document, { css: '', helpElementCss: { maxWidth: '700px' } });
 
 			let anchor = (new URL(window.location.href)).hash || '#general';
 			if (!document.querySelector(anchor)) {

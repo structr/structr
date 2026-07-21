@@ -18,9 +18,18 @@
  */
 package org.structr.api.config;
 
+import com.vladsch.flexmark.html.HtmlRenderer;
+import com.vladsch.flexmark.parser.Parser;
+import com.vladsch.flexmark.profile.pegdown.Extensions;
+import com.vladsch.flexmark.profile.pegdown.PegdownOptionsAdapter;
+import com.vladsch.flexmark.util.ast.Document;
+import com.vladsch.flexmark.util.data.MutableDataSet;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.util.html.Attr;
 import org.structr.api.util.html.Tag;
+
+import java.io.StringWriter;
+import java.io.Writer;
 
 /**
  * A configuration setting with a key and a type.
@@ -124,6 +133,22 @@ public abstract class Setting<T> {
 		return longDescription;
 	}
 
+	public String getLongDescriptionAsRenderedHTML() {
+
+		final MutableDataSet options = new MutableDataSet();
+
+		options.setAll(PegdownOptionsAdapter.flexmarkOptions(false, Extensions.ALL));
+
+		final Parser parser         = Parser.builder(options).build();
+		final HtmlRenderer renderer = HtmlRenderer.builder(options).build();
+		final Document doc          = parser.parse(StringUtils.join(longDescription, "\n"));
+		final Writer writer         = new StringWriter();
+
+		renderer.render(doc, writer);
+
+		return writer.toString();
+	}
+
 	public Setting<T> getPrefixedSetting(final String prefix) {
 
 		Setting<T> prefixedSetting = Settings.getSetting(prefix, key);
@@ -207,8 +232,9 @@ public abstract class Setting<T> {
 	// ----- private methods -----
 	private String getCalculatedComment() {
 
+
 		if (getComment() != null && getLongDescription() != null) {
-			return getComment() + "<br>" + getLongDescription();
+			return getComment() + "<br>" + getLongDescriptionAsRenderedHTML();
 		}
 
 		if (getLongDescription() == null) {
