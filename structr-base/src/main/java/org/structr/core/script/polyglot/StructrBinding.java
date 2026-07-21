@@ -138,21 +138,6 @@ public class StructrBinding implements ProxyObject {
 
 			default:
 
-				// look for user-defined function with the given name
-				final AbstractMethod method = Methods.resolveMethod(null, name);
-				if (method != null) {
-
-					return method.getProxyExecutable(actionContext, null);
-				}
-
-				// look for built-in function with the given name first (because it is fast)
-				//Function<Object, Object> func = Functions.get(CaseHelper.toUnderscore(name, false));
-				Function<Object, Object> func = Functions.get(CaseHelper.toCamelCase(name));
-				if (func != null) {
-
-					return new FunctionWrapper(actionContext, entity, func);
-				}
-
 				// check if a named constant exists
 				if (actionContext.getConstant(name) != null) {
 					return wrap(actionContext, actionContext.getConstant(name));
@@ -166,6 +151,21 @@ public class StructrBinding implements ProxyObject {
 				// static type?
 				if (Traits.exists(name)) {
 					return new StaticTypeWrapper(actionContext, Traits.of(name));
+				}
+
+				// look for user-defined function with the given name
+				final AbstractMethod method = Methods.resolveMethod(null, name);
+				if (method != null) {
+
+					return method.getProxyExecutable(actionContext, null);
+				}
+
+				// look for built-in function with the given name first (because it is fast)
+				//Function<Object, Object> func = Functions.get(CaseHelper.toUnderscore(name, false));
+				Function<Object, Object> func = Functions.get(CaseHelper.toCamelCase(name));
+				if (func != null) {
+
+					return new FunctionWrapper(actionContext, entity, func);
 				}
 
 				try {
