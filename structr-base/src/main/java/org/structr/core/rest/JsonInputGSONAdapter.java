@@ -124,6 +124,9 @@ public class JsonInputGSONAdapter implements InstanceCreator<IJsonInput>, JsonSe
 
 							// create map of values
 							list.add(deserialize(element, context));
+						} else if (element.isJsonNull()) {
+
+							list.add(null);
 						}
 					}
 
