@@ -540,13 +540,13 @@ public abstract class StreamingWriter {
 				if (depth <= outputNestingDepth) {
 
 					// first value?
-					if (firstValue != null) {
+					if (firstValue != null || serializeNulls) {
 						serializeRoot(parentWriter, firstValue, localPropertyView, depth, visitedObjects);
 						actualResultCount++;
 					}
 
 					// second value?
-					if (secondValue != null) {
+					if (secondValue != null || serializeNulls) {
 
 						serializeRoot(parentWriter, secondValue, localPropertyView, depth, visitedObjects);
 						actualResultCount++;
