@@ -66,10 +66,31 @@ public class BpmnImporter {
 	private static final String DC_NS      = "http://www.omg.org/spec/DD/20100524/DC";
 	private static final String OMGDI_NS   = "http://www.omg.org/spec/DD/20100524/DI";
 	private static final String XSI_NS     = "http://www.w3.org/2001/XMLSchema-instance";
-	static final String CAMUNDA_NS = "http://camunda.org/schema/1.0/bpmn";
+	static final String CAMUNDA_NS         = "http://camunda.org/schema/1.0/bpmn";
 	private static final String STRUCTR_NS = "http://structr.org/schema/process/1.0";
 
 	private static final Set<String> KNOWN_ELEMENT_TYPES = BpmnElementType.knownTypeNames();
+
+	/**
+	 * Direct children of a {@code <process>}/{@code <subProcess>} that are
+	 * structural constructs, NOT flow-node elements, and must therefore never be
+	 * imported as a generic {@link org.structr.process.ProcessTraits#BPMN_ELEMENT}.
+	 * Some are consumed by dedicated passes ({@code laneSet}/{@code lane}/
+	 * {@code flowNodeRef} by importLaneSet; {@code extensionElements} by the
+	 * process-listener / methodRef passes); {@code incoming}/{@code outgoing} are
+	 * per-node flow-id stubs; the rest ({@code documentation}, {@code ioSpecification},
+	 * {@code property}, data/loop specs) carry no flow-node semantics. Without this
+	 * guard they would fall into the "unknown element" branch and pollute the graph
+	 * (and, being id-less, collide on the empty-string key of elementMap).
+	 */
+	private static final Set<String> NON_ELEMENT_CHILD_NAMES = Set.of(
+		"incoming", "outgoing",
+		"laneSet", "lane", "flowNodeRef",
+		"extensionElements", "documentation",
+		"ioSpecification", "property",
+		"dataInputAssociation", "dataOutputAssociation",
+		"multiInstanceLoopCharacteristics", "standardLoopCharacteristics"
+	);
 
 	/** Event definition local names that we extract into typed properties. */
 	private static final Set<String> EVENT_DEFINITION_TYPES = Set.of(
@@ -167,13 +188,13 @@ public class BpmnImporter {
 		// for processes, collaboration and DI diagrams. Per-process state lives
 		// on each BpmnProcess child.
 		final NodeInterface defNode = app.create(ProcessTraits.BPMN_DEFINITIONS);
-		final Traits defTraits = defNode.getTraits();
+		final Traits defTraits      = defNode.getTraits();
 
-		defNode.setProperty(defTraits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY),                    root.getAttribute("id"));
-		defNode.setProperty(defTraits.key(BpmnDefinitionsTraitDefinition.TARGET_NAMESPACE_PROPERTY),       root.getAttribute("targetNamespace"));
-		defNode.setProperty(defTraits.key(BpmnDefinitionsTraitDefinition.EXPORTER_PROPERTY),               root.getAttribute("exporter"));
-		defNode.setProperty(defTraits.key(BpmnDefinitionsTraitDefinition.EXPORTER_VERSION_PROPERTY),       root.getAttribute("exporterVersion"));
-		defNode.setProperty(defTraits.key(BpmnDefinitionsTraitDefinition.NAMESPACE_DECLARATIONS),          gson.toJson(namespaces));
+		defNode.setProperty(defTraits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY),             root.getAttribute("id"));
+		defNode.setProperty(defTraits.key(BpmnDefinitionsTraitDefinition.TARGET_NAMESPACE_PROPERTY), root.getAttribute("targetNamespace"));
+		defNode.setProperty(defTraits.key(BpmnDefinitionsTraitDefinition.EXPORTER_PROPERTY),         root.getAttribute("exporter"));
+		defNode.setProperty(defTraits.key(BpmnDefinitionsTraitDefinition.EXPORTER_VERSION_PROPERTY), root.getAttribute("exporterVersion"));
+		defNode.setProperty(defTraits.key(BpmnDefinitionsTraitDefinition.NAMESPACE_DECLARATIONS),    gson.toJson(namespaces));
 
 		final NodeList processNodes = root.getElementsByTagNameNS(BPMN_NS, "process");
 		if (processNodes.getLength() == 0) {
@@ -201,10 +222,11 @@ public class BpmnImporter {
 		for (int i = 0; i < rootChildren.getLength(); i++) {
 
 			final Node child = rootChildren.item(i);
+
 			if (child.getNodeType() == Node.ELEMENT_NODE) {
 
 				final Element childEl = (Element) child;
-				final String ln = childEl.getLocalName();
+				final String ln       = childEl.getLocalName();
 
 				if (!"process".equals(ln) && !"BPMNDiagram".equals(ln) && !"collaboration".equals(ln)) {
 					importGlobalDefinition(app, defNode, childEl, ln);
@@ -319,6 +341,7 @@ public class BpmnImporter {
 		// Pass the participant + messageFlow + lane bpmnId sets so the DI
 		// filter keeps shapes that visualise the collaboration / lane set.
 		final NodeList diagramNodes = root.getElementsByTagNameNS(DI_NS, "BPMNDiagram");
+
 		for (int i = 0; i < diagramNodes.getLength(); i++) {
 
 			importDiagram(app, defNode, (Element) diagramNodes.item(i), elementMap, flowMap, participantBpmnIds, messageFlowBpmnIds, laneBpmnIds);
@@ -447,28 +470,39 @@ public class BpmnImporter {
 			final Element el       = (Element) child;
 			final String localName = el.getLocalName();
 
+			// Dispatch mixes enum-based and string-literal checks on purpose:
+			// BpmnElementType models only flow-node / artifact *element types*
+			// (the things that become a BpmnElement). Names checked as enum
+			// constants / KNOWN_ELEMENT_TYPES below are exactly those types.
+			// The bare "sequenceFlow" literal is an edge, routed through flowMap
+			// via importSequenceFlow -- there is no enum member for it. Everything
+			// not a known element type and not in NON_ELEMENT_CHILD_NAMES (the
+			// structural constructs handled elsewhere or intentionally ignored)
+			// is imported as a generic BpmnElement.
 			if ("sequenceFlow".equals(localName)) {
 
 				final NodeInterface flowNode = importSequenceFlow(app, procNode, parentElement, el);
 				flowMap.put(el.getAttribute("id"), flowNode);
 
-			} else if (BpmnElementType.SUB_PROCESS.matches(localName)
-					|| BpmnElementType.TRANSACTION.matches(localName)
-					|| BpmnElementType.AD_HOC_SUB_PROCESS.matches(localName)) {
+			} else if (BpmnElementType.SUB_PROCESS.matches(localName) || BpmnElementType.TRANSACTION.matches(localName) || BpmnElementType.AD_HOC_SUB_PROCESS.matches(localName)) {
 
 				final NodeInterface subProcNode = importElement(app, procNode, parentElement, el, localName);
+
 				elementMap.put(el.getAttribute("id"), subProcNode);
 				importProcessChildren(app, procNode, subProcNode, el, elementMap, flowMap);
 
 			} else if (KNOWN_ELEMENT_TYPES.contains(localName)) {
 
 				final NodeInterface elemNode = importElement(app, procNode, parentElement, el, localName);
+
 				elementMap.put(el.getAttribute("id"), elemNode);
 
-			} else if (!"incoming".equals(localName) && !"outgoing".equals(localName) && !"laneSet".equals(localName) && !"lane".equals(localName) && !"flowNodeRef".equals(localName)) {
+			} else if (!NON_ELEMENT_CHILD_NAMES.contains(localName)) {
 
-				// Unknown element -- import as generic BpmnElement (skip incoming/outgoing
-				// flow ID stubs and laneSet/lane/flowNodeRef which are handled by importLaneSet).
+				// Unknown flow-node element -- import as generic BpmnElement.
+				// Structural children (extensionElements, documentation, lane
+				// constructs, incoming/outgoing stubs, ...) are excluded via
+				// NON_ELEMENT_CHILD_NAMES and handled by their dedicated passes.
 				final NodeInterface elemNode = importElement(app, procNode, parentElement, el, localName);
 
 				elementMap.put(el.getAttribute("id"), elemNode);
@@ -1260,7 +1294,7 @@ public class BpmnImporter {
 	static String csvToFunctionExpression(final String csv, final String fnName) {
 
 		final StringBuilder out = new StringBuilder();
-		boolean first = true;
+		boolean first           = true;
 
 		// Split on top-level commas only, so a single ${...} expression containing
 		// commas (e.g. ${fn(a,b)}) is kept intact rather than torn apart.
@@ -2255,8 +2289,10 @@ public class BpmnImporter {
 		}
 
 		final Traits elemTraits                                   = Traits.of(ProcessTraits.BPMN_ELEMENT);
+		final Traits methodTraits                                 = Traits.of(StructrTraits.SCHEMA_METHOD);
 		final PropertyKey<String> bpmnIdKey                       = elemTraits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY);
 		final PropertyKey<Iterable<NodeInterface>> elemMethodsKey = elemTraits.key(BpmnElementTraitDefinition.METHODS_PROPERTY);
+		final PropertyKey<String> methodNameKey                   = methodTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 
 		for (final NodeInterface oldElem : oldElements) {
 
@@ -2278,16 +2314,50 @@ public class BpmnImporter {
 				continue;
 			}
 
+			// The element's task listeners were already wired (during importElement)
+			// to freshly-created, still-empty handler methods on newElem. For each
+			// previous-version method, restore its body INTO that same-named stub so
+			// the listener binding is preserved; only genuinely new methods are
+			// cloned in as new nodes. Appending a fresh clone instead would leave the
+			// listener pointing at the empty stub and accumulate duplicate methods on
+			// every re-import.
 			final List<NodeInterface> clonedMethods = new LinkedList<>();
 			for (final NodeInterface oldMethod : oldElemMethods) {
 
-				clonedMethods.add(cloneSchemaMethod(app, oldMethod));
+				final String name             = oldMethod.getProperty(methodNameKey);
+				final NodeInterface existing   = (name != null) ? findMethodByName(newElem, elemMethodsKey, methodNameKey, name) : null;
+
+				if (existing != null) {
+
+					copyMethodScalars(oldMethod, existing, methodTraits);
+
+				} else {
+
+					clonedMethods.add(cloneSchemaMethod(app, oldMethod));
+				}
 			}
 
 			if (!clonedMethods.isEmpty()) {
 				appendMethods(newElem, elemMethodsKey, clonedMethods);
 			}
 		}
+	}
+
+	/** The SchemaMethod named {@code name} already attached to {@code element}, or null. */
+	private NodeInterface findMethodByName(final NodeInterface element, final PropertyKey<Iterable<NodeInterface>> methodsKey,
+										   final PropertyKey<String> nameKey, final String name) throws FrameworkException {
+
+		final Iterable<NodeInterface> methods = element.getProperty(methodsKey);
+		if (methods != null) {
+
+			for (final NodeInterface m : methods) {
+
+				if (name.equals(m.getProperty(nameKey))) {
+					return m;
+				}
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -2297,19 +2367,24 @@ public class BpmnImporter {
 	private NodeInterface cloneSchemaMethod(final App app, final NodeInterface source) throws FrameworkException {
 
 		final NodeInterface cloned = app.create(StructrTraits.SCHEMA_METHOD);
-		final Traits methodTraits = Traits.of(StructrTraits.SCHEMA_METHOD);
 
-		copyProp(source, cloned, methodTraits, NodeInterfaceTraitDefinition.NAME_PROPERTY);
-		copyProp(source, cloned, methodTraits, SchemaMethodTraitDefinition.SOURCE_PROPERTY);
-		copyProp(source, cloned, methodTraits, SchemaMethodTraitDefinition.SUMMARY_PROPERTY);
-		copyProp(source, cloned, methodTraits, SchemaMethodTraitDefinition.DESCRIPTION_PROPERTY);
-		copyProp(source, cloned, methodTraits, SchemaMethodTraitDefinition.CODE_TYPE_PROPERTY);
-		copyProp(source, cloned, methodTraits, SchemaMethodTraitDefinition.HTTP_VERB_PROPERTY);
-		copyProp(source, cloned, methodTraits, SchemaMethodTraitDefinition.IS_PRIVATE_PROPERTY);
-		copyProp(source, cloned, methodTraits, SchemaMethodTraitDefinition.IS_STATIC_PROPERTY);
-		copyProp(source, cloned, methodTraits, SchemaMethodTraitDefinition.RETURN_RAW_RESULT_PROPERTY);
+		copyMethodScalars(source, cloned, Traits.of(StructrTraits.SCHEMA_METHOD));
 
 		return cloned;
+	}
+
+	/** Copy the scalar SchemaMethod properties (name, source, flags, ...) from source to target. */
+	private void copyMethodScalars(final NodeInterface source, final NodeInterface target, final Traits methodTraits) throws FrameworkException {
+
+		copyProp(source, target, methodTraits, NodeInterfaceTraitDefinition.NAME_PROPERTY);
+		copyProp(source, target, methodTraits, SchemaMethodTraitDefinition.SOURCE_PROPERTY);
+		copyProp(source, target, methodTraits, SchemaMethodTraitDefinition.SUMMARY_PROPERTY);
+		copyProp(source, target, methodTraits, SchemaMethodTraitDefinition.DESCRIPTION_PROPERTY);
+		copyProp(source, target, methodTraits, SchemaMethodTraitDefinition.CODE_TYPE_PROPERTY);
+		copyProp(source, target, methodTraits, SchemaMethodTraitDefinition.HTTP_VERB_PROPERTY);
+		copyProp(source, target, methodTraits, SchemaMethodTraitDefinition.IS_PRIVATE_PROPERTY);
+		copyProp(source, target, methodTraits, SchemaMethodTraitDefinition.IS_STATIC_PROPERTY);
+		copyProp(source, target, methodTraits, SchemaMethodTraitDefinition.RETURN_RAW_RESULT_PROPERTY);
 	}
 
 	/**

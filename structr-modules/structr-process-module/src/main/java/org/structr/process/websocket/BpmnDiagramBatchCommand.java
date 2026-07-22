@@ -42,6 +42,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * WebSocket command that applies a batch of BPMN diagram edits in one transaction.
@@ -105,6 +106,32 @@ public class BpmnDiagramBatchCommand extends AbstractCommand {
 		ProcessTraits.BPMN_GLOBAL_DEFINITION
 	);
 
+	// Node types this command is permitted to create / update / delete. The diagram
+	// editor only ever operates on BPMN diagram-domain nodes, so restrict the batch
+	// to them: without this guard a client could create an arbitrary type (e.g. a
+	// User) or update/delete any node by id -- the type/id fields come straight from
+	// the client and app.getNodeById(id) resolves ANY node type. Membership is checked
+	// with is(...) so subtypes are covered. (Ownership scoping to the given
+	// definitionId would be a further hardening step, not done here.)
+	private static final Set<String> ALLOWED_TYPES = Set.of(
+		ProcessTraits.BPMN_DEFINITIONS,
+		ProcessTraits.BPMN_PROCESS,
+		ProcessTraits.BPMN_COLLABORATION,
+		ProcessTraits.BPMN_PARTICIPANT,
+		ProcessTraits.BPMN_MESSAGE_FLOW,
+		ProcessTraits.BPMN_LANE,
+		ProcessTraits.BPMN_ELEMENT,
+		ProcessTraits.BPMN_SEQUENCE_FLOW,
+		ProcessTraits.BPMN_DI_DIAGRAM,
+		ProcessTraits.BPMN_DI_SHAPE,
+		ProcessTraits.BPMN_DI_EDGE,
+		ProcessTraits.BPMN_GLOBAL_DEFINITION,
+		ProcessTraits.BPMN_PERFORMER,
+		ProcessTraits.BPMN_TASK_LISTENER,
+		ProcessTraits.BPMN_PROCESS_LISTENER,
+		ProcessTraits.VISIBILITY_MAPPING
+	);
+
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) throws FrameworkException {
 
@@ -152,6 +179,11 @@ public class BpmnDiagramBatchCommand extends AbstractCommand {
 			final NodeInterface node = app.getNodeById(id);
 			if (node != null) {
 
+				if (!isDiagramNode(node)) {
+
+					throw new FrameworkException(422, "node " + id + " is not a BPMN diagram node and cannot be deleted by a diagram batch");
+				}
+
 				app.delete(node);
 			}
 		}
@@ -187,6 +219,23 @@ public class BpmnDiagramBatchCommand extends AbstractCommand {
 
 	// ----- internals -----
 
+	/** True if {@code type} is a BPMN diagram-domain type this command may create. */
+	public static boolean isAllowedType(final String type) {
+		return type != null && ALLOWED_TYPES.contains(type);
+	}
+
+	/** True if {@code node} is one of the BPMN diagram-domain types this command may touch. */
+	public static boolean isDiagramNode(final NodeInterface node) {
+
+		for (final String type : ALLOWED_TYPES) {
+
+			if (node.is(type)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	private void applyCreate(final App app, final SecurityContext securityContext, final Map<String, Object> entry) throws FrameworkException {
 
 		final String type  = (String) entry.get("type");
@@ -198,6 +247,10 @@ public class BpmnDiagramBatchCommand extends AbstractCommand {
 		if (id == null) {
 
 			throw new FrameworkException(422, "create entry missing 'id'");
+		}
+		if (!isAllowedType(type)) {
+
+			throw new FrameworkException(422, "type '" + type + "' is not permitted in a diagram batch");
 		}
 
 		@SuppressWarnings("unchecked")
@@ -223,6 +276,10 @@ public class BpmnDiagramBatchCommand extends AbstractCommand {
 		if (node == null) {
 
 			throw new FrameworkException(404, "node " + id + " not found");
+		}
+		if (!isDiagramNode(node)) {
+
+			throw new FrameworkException(422, "node " + id + " is not a BPMN diagram node and cannot be updated by a diagram batch");
 		}
 		@SuppressWarnings("unchecked")
 		final Map<String, Object> rawProps = (Map<String, Object>) entry.get("props");

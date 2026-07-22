@@ -134,12 +134,25 @@ public final class PrincipalExpressionResolver {
 			final String kind = m.group(1);
 			final String name = m.group(2).trim();
 			final String typeName = "user".equals(kind) ? StructrTraits.USER : StructrTraits.GROUP;
-			final NodeInterface node = app.nodeQuery(typeName).name(name).getFirst();
-			if (node == null) {
+			final List<NodeInterface> matches = app.nodeQuery(typeName).name(name).getAsList();
+			if (matches.isEmpty()) {
 
 				logger.warn("Expression '{}' in {} did not resolve: no {} named '{}'", entry, contextLabel, kind, name);
+				return null;
 			}
-			return node;
+
+			if (matches.size() > 1) {
+
+				// Structr's 'name' is not unique. Picking the first match is
+				// non-deterministic and could route a task/authorisation to the
+				// wrong principal, so make the ambiguity visible rather than
+				// silently choosing one.
+				logger.warn("Expression '{}' in {} is ambiguous: {} {}s named '{}' exist; using the first match ({}). "
+					+ "Use a unique name or ${{initiator}} to make the assignment deterministic.",
+					entry, contextLabel, matches.size(), kind, name, matches.get(0).getUuid());
+			}
+
+			return matches.get(0);
 		}
 
 		throw new FrameworkException(422,

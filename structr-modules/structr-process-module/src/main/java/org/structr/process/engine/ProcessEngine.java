@@ -810,18 +810,27 @@ public class ProcessEngine {
 
 		} else if (incomingFlows.size() > 1) {
 
-			// JOIN: wait for all tokens that are actually in flight.
-			// Unlike a parallel join (which waits for one token per incoming edge),
-			// an inclusive join only waits for paths that actually carry tokens. We
-			// detect completion by checking that no other non-completed token exists
-			// elsewhere in the process (not at this gateway). This is reliable because
-			// advanceToken drains iteratively: all sibling fork tokens are created
-			// before any is stepped, so a sibling still heading here is counted.
+			// JOIN: an inclusive join synchronises only the branches that actually
+			// carry tokens. It fires once no OTHER in-flight token can still reach
+			// this gateway. Using reachability (rather than "no active token exists
+			// anywhere") is what makes an unrelated parallel branch -- one that will
+			// never flow into this join -- not block it; that global-count check
+			// deadlocked whenever independent concurrent work was in progress.
+			//
+			// This is reliable because advanceToken drains iteratively: all sibling
+			// fork tokens are created (with their atElement set) before any is
+			// stepped, so a sibling still heading here is seen as reachable and the
+			// join waits for it.
+			//
+			// Note: reachability follows outgoing sequence flows within the same
+			// (sub-)process scope; a token inside a sibling sub-process is treated as
+			// unable to reach a join outside it. That matches the intent here (fix the
+			// unrelated-branch deadlock) and is no worse than the previous behaviour.
 			token.as(ProcessToken.class).markWaiting();
 
-			if (countActiveTokensNotAtElement(instance, element) == 0) {
+			if (!anyActiveTokenCanReach(instance, element)) {
 
-				// All in-flight tokens have arrived at this gateway
+				// Every branch that could still deliver a token has arrived.
 				consumeAllTokensAtElement(instance, element);
 
 				for (final BpmnSequenceFlow out : outgoingFlows) {
@@ -2388,6 +2397,17 @@ public class ProcessEngine {
 
 		try {
 
+			// Claim the timer up-front: writing FIRED now acquires the database write
+			// lock on the timer node at the START of this transaction. In a clustered
+			// deployment two service instances can both read the timer as PENDING, but
+			// only one can commit the claim -- the other's transaction conflicts on the
+			// timer node and rolls back (RetryException), so the timer AND the token
+			// advancement below (which shares this transaction) fire exactly once.
+			// Single-node operation was already safe via the isPending guard; this
+			// closes the multi-node window.
+			timer.setStatus(ProcessTimerTraitDefinition.STATUS_FIRED);
+			timer.setFiredAt(new Date());
+
 			if (ProcessTimerTraitDefinition.TIMER_INTERMEDIATE.equals(timerType)) {
 				fireIntermediateTimer(instance, token, element);
 
@@ -2404,9 +2424,6 @@ public class ProcessEngine {
 
 				return;
 			}
-
-			timer.setStatus(ProcessTimerTraitDefinition.STATUS_FIRED);
-			timer.setFiredAt(new Date());
 
 		} catch (Exception ex) {
 
@@ -2714,6 +2731,15 @@ public class ProcessEngine {
 
 	private void resumeSubProcessParent(final NodeInterface instance, final NodeInterface subProcessElement) throws FrameworkException {
 
+		// A sub-process completes only when ALL of its internal tokens have been
+		// consumed. If any branch is still live inside it -- e.g. a parallel fork
+		// where one branch reached an internal end event first -- leave the parent
+		// token waiting; resuming now would abandon the still-running branch and
+		// advance the outer flow prematurely.
+		if (hasActiveTokensInsideSubProcess(instance, subProcessElement)) {
+			return;
+		}
+
 		final NodeInterface waitingToken = findWaitingToken(instance, subProcessElement);
 		if (waitingToken != null) {
 
@@ -2721,6 +2747,40 @@ public class ProcessEngine {
 
 			completeTokenAndMoveToNext(instance, waitingToken, subProcessElement);
 		}
+	}
+
+	/**
+	 * True if any non-completed token in the instance is currently sitting on an
+	 * element nested (transitively) inside {@code subProcessElement}. The parent
+	 * token itself waits <em>at</em> the sub-process element (not inside it), so it
+	 * is correctly excluded; only tokens on the sub-process's own descendants count.
+	 */
+	private boolean hasActiveTokensInsideSubProcess(final NodeInterface instance, final NodeInterface subProcessElement) throws FrameworkException {
+
+		for (final ProcessToken token : instance.as(ProcessInstance.class).getTokens()) {
+
+			if (token.isCompleted()) {
+				continue;
+			}
+
+			final NodeInterface at = token.getAtElement();
+			if (at == null) {
+				continue;
+			}
+
+			// Walk the parent-element chain upward; if we reach the sub-process,
+			// this token is executing inside it.
+			NodeInterface ancestor = at.getProperty(at.getTraits().key(BpmnElementTraitDefinition.PARENT_ELEMENT_PROPERTY));
+			while (ancestor != null) {
+
+				if (ancestor.getUuid().equals(subProcessElement.getUuid())) {
+					return true;
+				}
+				ancestor = ancestor.getProperty(ancestor.getTraits().key(BpmnElementTraitDefinition.PARENT_ELEMENT_PROPERTY));
+			}
+		}
+
+		return false;
 	}
 
 	// -----------------------------------------------------------------------
@@ -2805,21 +2865,52 @@ public class ProcessEngine {
 	}
 
 	/**
-	 * Count active or waiting tokens in this instance that are NOT at the given element.
-	 * Used by inclusive gateway join to determine if more tokens are still in flight.
+	 * True if any non-completed token (other than one already at {@code gateway})
+	 * can still reach {@code gateway} by following outgoing sequence flows. Used by
+	 * the inclusive-gateway join to decide whether more tokens may yet arrive: an
+	 * unrelated parallel branch that cannot flow into the join does not block it.
 	 */
-	private int countActiveTokensNotAtElement(final NodeInterface instance, final NodeInterface element) throws FrameworkException {
-
-		int count = 0;
+	private boolean anyActiveTokenCanReach(final NodeInterface instance, final NodeInterface gateway) throws FrameworkException {
 
 		for (final ProcessToken token : instance.as(ProcessInstance.class).getTokens()) {
 
-			if (!token.isCompleted() && !isAtElement(token, element)) {
-				count++;
+			if (token.isCompleted() || isAtElement(token, gateway)) {
+				continue;
+			}
+
+			final NodeInterface at = token.getAtElement();
+			if (at != null && canReachElement(at, gateway, new HashSet<>())) {
+				return true;
 			}
 		}
 
-		return count;
+		return false;
+	}
+
+	/**
+	 * Depth-first search along outgoing sequence flows: can {@code from} reach
+	 * {@code target}? The {@code visited} set (by UUID) makes this safe on cyclic
+	 * (looping) process graphs.
+	 */
+	private boolean canReachElement(final NodeInterface from, final NodeInterface target, final Set<String> visited) throws FrameworkException {
+
+		if (from == null || !visited.add(from.getUuid())) {
+			return false;
+		}
+
+		if (from.getUuid().equals(target.getUuid())) {
+			return true;
+		}
+
+		for (final BpmnSequenceFlow out : from.as(BpmnElement.class).getOutgoingFlows()) {
+
+			final NodeInterface next = out.getTargetElement();
+			if (next != null && canReachElement(next, target, visited)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private void consumeAllTokensAtElement(final NodeInterface instance, final NodeInterface element) throws FrameworkException {

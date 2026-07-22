@@ -185,12 +185,23 @@ public class VisibilityMappingTraitDefinition extends AbstractNodeTraitDefinitio
 					final Traits vmTraits        = mapping.getTraits();
 
 					final String state           = mapping.getProperty(vmTraits.key(VISIBLE_WHEN_PROPERTY));
-					final String boundProcessId  = mapping.getProperty(vmTraits.key(BOUND_PROCESS_ID_PROPERTY));
-					final String boundStepBpmnId = mapping.getProperty(vmTraits.key(BOUND_STEP_BPMN_ID_PROPERTY));
 
 					if (state == null || state.isEmpty()) {
 						return Boolean.FALSE;
 					}
+
+					// The boundProcess / boundStep RELATIONSHIPS are authoritative; the
+					// denormalized boundProcessId / boundStepBpmnId strings are only a
+					// fallback for when a rel has been cleared (e.g. the old anchor was
+					// deleted on re-import). Resolve the rels first and derive the ids
+					// from them, so a mapping re-pointed via generic REST/UI/scripts --
+					// which updates the rel but not the backup string -- still evaluates
+					// against the correct process / step instead of a stale string.
+					final NodeInterface boundProcess = mapping.getProperty(vmTraits.key(BOUND_PROCESS_PROPERTY));
+					final NodeInterface boundStep    = mapping.getProperty(vmTraits.key(BOUND_STEP_PROPERTY));
+
+					final String boundProcessId  = preferredBoundProcessId(boundProcess, mapping.getProperty(vmTraits.key(BOUND_PROCESS_ID_PROPERTY)));
+					final String boundStepBpmnId = preferredBoundStepBpmnId(boundStep, mapping.getProperty(vmTraits.key(BOUND_STEP_BPMN_ID_PROPERTY)));
 
 					// Resolve the context object (passed by DOMNodeTraitWrapper from the
 					// render context's data object) to a ProcessInstance:
@@ -220,6 +231,32 @@ public class VisibilityMappingTraitDefinition extends AbstractNodeTraitDefinitio
 				}
 			}
 		);
+	}
+
+	/**
+	 * The processId to evaluate against: the {@code boundProcess} relationship's
+	 * processId when present (authoritative), otherwise the denormalized
+	 * {@code boundProcessId} fallback string.
+	 */
+	public static String preferredBoundProcessId(final NodeInterface boundProcess, final String fallbackId) {
+
+		if (boundProcess != null) {
+			return boundProcess.getProperty(Traits.of(ProcessTraits.BPMN_PROCESS).key(BpmnProcessTraitDefinition.PROCESS_ID_PROPERTY));
+		}
+		return fallbackId;
+	}
+
+	/**
+	 * The step bpmnId to evaluate against: the {@code boundStep} relationship's
+	 * bpmnId when present (authoritative), otherwise the denormalized
+	 * {@code boundStepBpmnId} fallback string.
+	 */
+	public static String preferredBoundStepBpmnId(final NodeInterface boundStep, final String fallbackId) {
+
+		if (boundStep != null) {
+			return boundStep.getProperty(Traits.of(ProcessTraits.BPMN_ELEMENT).key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY));
+		}
+		return fallbackId;
 	}
 
 	/**

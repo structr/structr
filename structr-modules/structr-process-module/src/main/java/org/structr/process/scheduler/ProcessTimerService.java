@@ -72,7 +72,10 @@ public class ProcessTimerService extends Thread implements RunnableService {
 
 	private static final long POLL_INTERVAL_SECONDS = 5;
 
-	private boolean doRun = false;
+	// volatile: written by the service-manager thread (stopService/shutdown) and
+	// read by the polling thread's loop; without it the poll thread may never
+	// observe a stop request and keep firing timers after shutdown/maintenance.
+	private volatile boolean doRun = false;
 
 	public ProcessTimerService() {
 

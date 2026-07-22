@@ -1082,8 +1082,21 @@ public class BpmnExporter {
 
 		for (final Map.Entry<String, String> entry : namespaces.entrySet()) {
 
-			if (uri.equals(entry.getValue()) && entry.getKey().startsWith("xmlns:")) {
-				return entry.getKey().substring(6);
+			if (uri.equals(entry.getValue())) {
+
+				if (entry.getKey().startsWith("xmlns:")) {
+					return entry.getKey().substring(6);
+				}
+
+				if ("xmlns".equals(entry.getKey())) {
+
+					// The namespace is declared as the DEFAULT (unprefixed) namespace.
+					// Return the empty prefix so the element is written unprefixed under
+					// that default namespace; forcing a "bpmn" prefix here would emit an
+					// unbound prefix (no matching xmlns:bpmn is written), producing
+					// namespace-ill-formed XML.
+					return "";
+				}
 			}
 		}
 
