@@ -883,7 +883,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 			tx.success();
 
 		} catch (JsonSyntaxException jsx) {
-			logger.warn("", jsx);
+
+			logger.warn("{}: Input was: {}", jsx.getMessage(), input);
 			throw new FrameworkException(400, jsx.getMessage());
 		}
 
