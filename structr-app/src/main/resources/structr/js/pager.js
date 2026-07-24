@@ -113,6 +113,12 @@ let _Pager = {
 			}
 
 			return true;
+
+		} else {
+
+			_Pager.pagerType[id] = id;
+			_Pager.page[id]      = 1;
+			_Pager.pageSize[id]  = 10;
 		}
 
 		return false;
@@ -510,6 +516,38 @@ let Pager = function(id, el, rootOnly, type, view, callback, startPaused = false
 				if (filterAttribute && filterAttribute.length) {
 
 					_Pager.pagerFilters[this.id][filterAttribute] = boolFilter.checked;
+
+					_Pager.page[this.id] = 1;
+					this.updatePagerElements();
+					this.transportFunction();
+				}
+			});
+		}
+
+		let selectFilters = filterContainer.querySelectorAll('select.filter');
+
+		for (let selectFilter of selectFilters) {
+
+			let filterAttribute = selectFilter.dataset['attribute'];
+			let isReallyMultiple = (selectFilter.dataset.isMulti === 'true');
+
+			foundFilters.push(filterAttribute);
+
+			if (_Pager.pagerFilters[this.id][filterAttribute]) {
+
+				selectFilter.value = _Pager.pagerFilters[this.id][filterAttribute];
+			}
+
+			selectFilter.addEventListener('change', (e) => {
+
+				if (filterAttribute && filterAttribute.length) {
+
+					let value = selectFilter.value;
+					if (value === '') {
+						delete _Pager.pagerFilters[this.id][filterAttribute];
+					} else {
+						_Pager.pagerFilters[this.id][filterAttribute] = isReallyMultiple ? [value] : value;
+					}
 
 					_Pager.page[this.id] = 1;
 					this.updatePagerElements();

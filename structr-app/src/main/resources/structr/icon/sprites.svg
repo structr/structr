@@ -656,6 +656,17 @@
 		</symbol>
 	</g>
 
+	<symbol id="icon-site" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+		<path stroke-linecap="round" stroke-linejoin="round" d="M23.25 19.5v0.635a1.62 1.62 0 0 1 -1.615 1.615H2.25a1.5 1.5 0 0 1 -1.5 -1.5v-0.75"/>
+		<path stroke-linecap="round" stroke-linejoin="round" d="M0.75 8.25V3.865A1.62 1.62 0 0 1 2.365 2.25h19.278a1.612 1.612 0 0 1 1.607 1.607V8.25"/>
+		<path stroke-linecap="round" stroke-linejoin="round" d="M23.25 6.75H0.75"/>
+		<path stroke-linecap="round" stroke-linejoin="round" d="M8.25 11.25a3 3 0 0 0 0 6"/>
+		<path stroke-linecap="round" stroke-linejoin="round" d="M12.75 11.25a1.5 1.5 0 0 0 -1.5 1.5v3a1.5 1.5 0 1 0 3 0v-3a1.5 1.5 0 0 0 -1.5 -1.5Z"/>
+		<path stroke-linecap="round" stroke-linejoin="round" d="M21.75 17.25v-6L19.5 15l-2.25 -3.75v6"/>
+		<path d="M2.625 17.25a0.375 0.375 0 0 1 0 -0.75"/>
+		<path d="M2.625 17.25a0.375 0.375 0 0 0 0 -0.75"/>
+	</symbol>
+
 	<symbol id="history" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 		<path d="M13.5 22a9.75 9.75 0 1 0 -9.75 -9.75V13"/>
 		<path d="m0.75 9.997 3 3 3 -3"/>

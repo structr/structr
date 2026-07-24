@@ -24,7 +24,6 @@
 #pagesTree {
 	flex-grow: 1;
 	overflow: auto;
-	/*margin-top: -1rem;*/
 	padding-top: 1rem;
 }
 
@@ -39,45 +38,8 @@
 	display: inline-block;
 }
 
-#pagesPagerFilters {
-	margin-top: 0.5rem;
-}
-
-#pages-actions .dropdown-select,
-#pages-controls .icon {
-	color: var(--icon-stroke);
-}
-
-#pages-actions .dropdown-select.action {
-	color: var(--solid-white);
-	-webkit-appearance: none;
-	-moz-appearance: none;
-	appearance: none;
-	background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' fill='white'><polygon points='0,0 100,0 50,50'/></svg>");
-	background-size: .75rem;
-	background-position: calc(100% - .5rem) calc(100% - .6rem);
-	padding-right: 2rem;
-}
-
-#pages-actions .dropdown-select.action:hover {
-	color: var(--solid-white);
-	background-color: var(--dark-structr-green);
-}
-
 #add_template {
 	white-space: nowrap;
-}
-
-#pages-actions .dropdown-menu-container {
-	width: 10rem;
-}
-
-#pagesPagerFilters input[type=text] {
-	width: 7rem;
-	margin-right: .5rem;
-}
-#pagesPagerFilters input[type=text][data-attribute="category"] {
-	width: 5rem;
 }
 
 #pages .node.page {
@@ -86,6 +48,7 @@
 
 /* start dragndrop classes in pages */
 #pages .node:hover,
+#sites .node:hover,
 #componentsArea .node:hover,
 #localizations .node:not(.schema):hover {
 	cursor: pointer;

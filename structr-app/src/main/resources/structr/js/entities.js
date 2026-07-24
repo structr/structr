@@ -679,11 +679,17 @@ let _Entities = {
 			_Helpers.fastRemoveAllChildren(warnContainer);
 		}
 	},
-	listProperties: (entity, view, tabView, typeInfo, callback) => {
+	listProperties: (entity, view, tabView, typeInfo, callback, customView = []) => {
 
 		_Entities.getSchemaProperties(entity.type, view, (schemaProperties) => {
 
 			let serializableKeys     = Object.keys(schemaProperties).filter(key => schemaProperties[key].serializationDisabled !== true);
+
+			if (customView.length > 0) {
+				serializableKeys = serializableKeys.filter(key => customView.includes(key));
+				schemaProperties = Object.fromEntries(serializableKeys.map(key => [key, schemaProperties[key]]));
+			}
+
 			let filteredProperties   = serializableKeys.filter(key => !(typeInfo[key].isCollection && typeInfo[key].relatedType) );
 			let collectionProperties = serializableKeys.filter(key => typeInfo[key].isCollection && typeInfo[key].relatedType );
 
@@ -2863,6 +2869,21 @@ let _Entities = {
 
 				await _Entities.generalTab.showCustomProperties(el, entity);
 			},
+			site: async (el, entity) => {
+
+				el.html(_Entities.generalTab.templates.siteOptions({ entity: entity, page: entity }));
+
+				_Entities.generalTab.populateInputFields(el, entity);
+				_Entities.generalTab.registerSimpleInputChangeHandlers(el, entity);
+
+				_Entities.generalTab.focusInput(el);
+
+				let container = $('div#site-pages-container', el);
+
+				await _Entities.generalTab.showProperties(container, entity, ['pages']);
+
+				await _Entities.generalTab.showCustomProperties(el, entity);
+			},
 			component: async (el, entity) => {
 
 				let config = await Command.getPromise(entity.componentConfiguration.id, '', 'ui');
@@ -3387,6 +3408,7 @@ let _Entities = {
 				'LDAPGroup':        { id: 'general', title: 'LDAP Config', appendDialogForEntityToContainer: _Entities.generalTab.dialogs.ldapGroup },
 				'Option':           { id: 'general', title: 'General',     appendDialogForEntityToContainer: _Entities.generalTab.dialogs.option },
 				'Page':             { id: 'general', title: 'General',     appendDialogForEntityToContainer: _Entities.generalTab.dialogs.page },
+				'Site':             { id: 'general', title: 'General',     appendDialogForEntityToContainer: _Entities.generalTab.dialogs.site },
 				'Template':         { id: 'general', title: 'General',     appendDialogForEntityToContainer: _Entities.generalTab.dialogs.content },
 				'User':             { id: 'general', title: 'General',     appendDialogForEntityToContainer: _Entities.generalTab.dialogs.user },
 				'Component':        { id: 'general', title: 'General',     appendDialogForEntityToContainer: _Entities.generalTab.dialogs.component }
@@ -3463,6 +3485,18 @@ let _Entities = {
 
 						resolve();
 					});
+				});
+			});
+		},
+		showProperties: async (container, entity, customView = []) => {
+
+			return new Promise((resolve, reject) => {
+
+				_Schema.caches.getTypeInfo(entity.type, (typeInfo) => {
+
+					_Entities.listProperties(entity, 'all', container, typeInfo, (propertiesInfo) => {
+						resolve();
+					}, customView);
 				});
 			});
 		},
@@ -4118,6 +4152,34 @@ let _Entities = {
 								<input id="_request-parameters" type="text" value="${(LSWrapper.getItem(_Pages.requestParametersKey + config.entity.id) ? LSWrapper.getItem(_Pages.requestParametersKey + config.entity.id) : '')}">
 							</div>
 						</div>
+					</div>
+
+					${_Entities.generalTab.templates.customPropertiesPartial(config)}
+
+				</div>
+			`,
+			siteOptions: config => `
+				<div id="div-options" class="${_Entities.generalTab.templates.containerClasses(config)}">
+
+					<div class="${_Entities.generalTab.templates.gridClasses(config)}">
+
+						${_Entities.generalTab.templates.nameTile(config)}
+
+						<div>
+							<label class="block mb-2" for="hostname-input">Hostname</label>
+							<input type="text" id="hostname-input" name="hostname">
+						</div>
+
+						<div>
+							<label class="block mb-2" for="port-input">Port</label>
+							<input type="text" id="port-input" name="port">
+						</div>
+
+					</div>
+
+					<div>
+						<h3>Sites</h3>
+						<div id="site-pages-container"></div>
 					</div>
 
 					${_Entities.generalTab.templates.customPropertiesPartial(config)}

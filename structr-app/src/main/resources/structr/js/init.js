@@ -714,6 +714,9 @@ let Structr = {
 
 			for (let slideout of slideouts) {
 
+				let activator = document.querySelector(`.slideout-activator[data-for-slideout="#${slideout[0].id}"]`);
+				let subSection = activator.dataset.subSection;
+
 				let wasOpen = slideout[0].classList.contains('open');
 				slideout[0].classList.remove('open');
 
@@ -722,6 +725,7 @@ let Structr = {
 					let slideoutWidth = slideout[0].getBoundingClientRect().width;
 
 					slideout.animate({ left: -slideoutWidth }, 100, () => {
+						_Pages[subSection]?.onSlideoutClose?.();
 						callback?.();
 					}).zIndex(2);
 				}
