@@ -615,7 +615,7 @@ let _Pages = {
 				name: `Delete ${entity.type}`,
 				clickHandler: () => {
 					
-					let recursive = (isActualContentElement === false);
+					let recursive = (isActualContentElement === false && !isSite);
 					_Entities.deleteNode(entity, recursive, () => {
 						_Pages.unattachedNodes.blinkUI();
 						_Pages.unattachedNodes.reload();
