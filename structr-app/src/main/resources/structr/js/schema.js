@@ -27,7 +27,6 @@ let _Schema = {
 	undefinedRelType: 'UNDEFINED_RELATIONSHIP_TYPE',
 	initialRelType: 'UNDEFINED_RELATIONSHIP_TYPE',
 	schemaLoading: false,
-	currentNodeDialogId: null,
 	unload: () => {
 
 		document.removeEventListener('keydown', _Schema.ui.handleKeyDownForPanzoom);
@@ -233,15 +232,14 @@ let _Schema = {
 	},
 	reloadSchemaAfterRecompileNotification: () => {
 
-		if (_Schema.currentNodeDialogId !== null) {
+		if (_Schema.objStack.length > 0) {
 
 			// we break the current dialog the hard way (because if we 'click' the close button we might re-open the previous dialog
 			_Dialogs.custom.dialogCancelBaseAction();
 
-			let currentView = LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${_Schema.currentNodeDialogId}`);
-
 			_Schema.reload(() => {
-				_Schema.openEditDialog(_Schema.currentNodeDialogId, currentView);
+				let prev = _Schema.objStack.pop();
+				_Schema.openEditDialog(prev);
 			});
 
 		} else {
@@ -249,11 +247,13 @@ let _Schema = {
 			_Schema.reload();
 		}
 	},
-	openEditDialog: (id, targetView, callback) => {
+	objStack: [],
+	clearObjStack: () => {
+		_Schema.objStack = [];
+	},
+	openEditDialog: (id, targetView) => {
 
 		targetView = targetView || LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${id}`) || 'general';
-
-		_Schema.currentNodeDialogId = id;
 
 		Command.get(id, null, async (entity) => {
 
@@ -263,12 +263,13 @@ let _Schema = {
 
 			let callbackCancel = () => {
 
-				_Schema.currentNodeDialogId = null;
-
-				callback?.();
+				_Schema.clearObjStack();
 
 				_Schema.ui.jsPlumbInstance.repaintEverything();
 			};
+
+			let showBackButton = (_Schema.objStack.length > 0);
+			_Schema.objStack.push(id);
 
 			let { dialogText } = _Dialogs.custom.openDialog(title, callbackCancel, ['schema-edit-dialog']);
 
@@ -298,6 +299,22 @@ let _Schema = {
 
 			let cancelButton = _Dialogs.custom.prependCustomDialogButton(_Schema.templates.discardActionButton({ text: 'Discard All' }));
 			let saveButton   = _Dialogs.custom.prependCustomDialogButton(_Schema.templates.saveActionButton({ text: 'Save All' }));
+
+			if (showBackButton) {
+
+				let backBtn = _Dialogs.custom.prependCustomDialogButton(_Dialogs.custom.templates.backButton());
+
+				backBtn.addEventListener('click', async e => {
+
+					let okToNavigate = !_Schema.bulkDialogsGeneral.hasUnsavedChangesInTabs(mainTabs) || (await _Dialogs.confirmation.showPromise("There are unsaved changes - really go back?"));
+					if (okToNavigate) {
+
+						_Schema.objStack.pop();
+						let prev = _Schema.objStack.pop();
+						_Schema.openEditDialog(prev);
+					}
+				});
+			}
 
 			_Dialogs.custom.setDialogSaveButton(saveButton);
 
@@ -722,7 +739,7 @@ let _Schema = {
 
 			return initialPosition;
 		},
-		loadNode: (entity, mainTabs, contentDiv, targetView = 'general', callbackCancel) => {
+		loadNode: (entity, mainTabs, contentDiv, targetView = 'general', callbackCancel, overrides) => {
 
 			let tabControls       = {};
 			let generalTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'general', 'General', targetView === 'general');
@@ -735,8 +752,8 @@ let _Schema = {
 				let builtinPropsTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'builtin', 'Inherited properties', targetView === 'builtin');
 				let viewsTabContent        = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'views', 'Views', targetView === 'views');
 
-				tabControls.schemaProperties = _Schema.properties.appendLocalProperties(localPropsTabContent, entity);
-				tabControls.remoteProperties = _Schema.remoteProperties.appendRemote(remotePropsTabContent, entity, async (el) => { await _Schema.remoteProperties.asyncEditSchemaObjectLinkHandler(el, mainTabs, entity.id); });
+				tabControls.schemaProperties = _Schema.properties.appendLocalProperties(localPropsTabContent, entity, overrides);
+				tabControls.remoteProperties = _Schema.remoteProperties.appendRemote(remotePropsTabContent, entity, async (el) => { await _Schema.remoteProperties.asyncEditSchemaObjectLinkHandler(el, mainTabs); });
 				tabControls.schemaViews      = _Schema.views.appendViews(viewsTabContent, entity);
 
 				let basicTabContentContainer = generalTabContent.querySelector('.schema-details');
@@ -1520,8 +1537,6 @@ let _Schema = {
 				_Dialogs.custom.replaceDialogCloseButton(discardButton, false);
 				discardButton.addEventListener('click', () => {
 
-					_Schema.currentNodeDialogId = null;
-
 					_Schema.ui.jsPlumbInstance.repaintEverything();
 					_Schema.ui.jsPlumbInstance.detach(connection);
 
@@ -1958,17 +1973,18 @@ let _Schema = {
 
 				if (overrides && overrides.editReadWriteFunction) {
 
+					// in the code area we override this to open the property in the tree
 					overrides.editReadWriteFunction(property);
 
 				} else {
 
-					let unsavedChanges = _Schema.bulkDialogsGeneral.hasUnsavedChangesInGrid(gridRow[0].closest('.schema-grid'));
+					let containerElementForChangeDetection = gridRow[0].closest('.schema-details').querySelector('#tabs');
+					let unsavedChanges = _Schema.bulkDialogsGeneral.hasUnsavedChangesInTabs(containerElementForChangeDetection);
 
 					if (!unsavedChanges || (true === await _Dialogs.confirmation.showPromise("Really switch to code editing? There are unsaved changes which will be lost!"))) {
+
 						_Schema.properties.openCodeEditorForFunctionProperty(property.id, targetProperty, () => {
-							if (Structr.isModuleActive(_Schema)) {
-								_Schema.openEditDialog(property.schemaNode.id, 'local');
-							}
+							_Schema.clearObjStack();
 						});
 					}
 				}
@@ -1982,19 +1998,21 @@ let _Schema = {
 				readWriteButtonClickHandler('write');
 			}).prop('disabled', isProtected);
 
-			$('.edit-cypher-query', gridRow).on('click', () => {
+			$('.edit-cypher-query', gridRow).on('click', async () => {
 
 				if (overrides && overrides.editCypherProperty) {
 
+					// in the code area we override this to open the property in the tree
 					overrides.editCypherProperty(property);
 
 				} else {
 
-					let unsavedChanges = _Schema.bulkDialogsGeneral.hasUnsavedChangesInGrid(gridRow[0].closest('.schema-grid'));
+					let containerElementForChangeDetection = gridRow[0].closest('.schema-details').querySelector('#tabs');
+					let unsavedChanges = _Schema.bulkDialogsGeneral.hasUnsavedChangesInTabs(containerElementForChangeDetection);
 
-					if (!unsavedChanges || confirm("Really switch to code editing? There are unsaved changes which will be lost!")) {
+					if (!unsavedChanges || (true === await _Dialogs.confirmation.showPromise("Really switch to code editing? There are unsaved changes which will be lost!"))) {
 						_Schema.properties.openCodeEditorForCypherProperty(property.id, () => {
-							_Schema.openEditDialog(property.schemaNode.id, 'local');
+							_Schema.clearObjStack();
 						});
 					}
 				}
@@ -2192,6 +2210,25 @@ let _Schema = {
 					return !(editor.getValue() === initialText && flagCheckbox.checked === initialWrapFlag);
 				};
 
+				let showBackButton = (_Schema.objStack.length > 0);
+				_Schema.objStack.push(id);
+
+				if (showBackButton) {
+
+					let backBtn = _Dialogs.custom.prependCustomDialogButton(_Dialogs.custom.templates.backButton());
+
+					backBtn.addEventListener('click', async e => {
+
+						let okToNavigate = !isChanged() || (await _Dialogs.confirmation.showPromise("There are unsaved changes - really go back?"));
+						if (okToNavigate) {
+
+							_Schema.objStack.pop();
+							let prev = _Schema.objStack.pop();
+							_Schema.openEditDialog(prev);
+						}
+					});
+				}
+
 				flagCheckbox = wrapChoice.querySelector('input[type="checkbox"]');
 				flagCheckbox.addEventListener('change', (e) => {
 					let disabled = !isChanged();
@@ -2272,6 +2309,30 @@ let _Schema = {
 
 				let key         = 'format';
 				let initialText = entity[key] || '';
+				let editor;
+
+				let isChanged = () => {
+					return !(editor.getValue() === initialText);
+				};
+
+				let showBackButton = (_Schema.objStack.length > 0);
+				_Schema.objStack.push(id);
+
+				if (showBackButton) {
+
+					let backBtn = _Dialogs.custom.prependCustomDialogButton(_Dialogs.custom.templates.backButton());
+
+					backBtn.addEventListener('click', async e => {
+
+						let okToNavigate = !isChanged() || (await _Dialogs.confirmation.showPromise("There are unsaved changes - really go back?"));
+						if (okToNavigate) {
+
+							_Schema.objStack.pop();
+							let prev = _Schema.objStack.pop();
+							_Schema.openEditDialog(prev);
+						}
+					});
+				}
 
 				dialogText.insertAdjacentHTML('beforeend', '<div class="editor h-full"></div>');
 				dialogMeta.insertAdjacentHTML('beforeend', '<span class="editor-info"></span>');
@@ -2287,19 +2348,16 @@ let _Schema = {
 					autocomplete: false,
 					changeFn: (editor, entity) => {
 
-						let disabled = (initialText === editor.getValue());
+						let disabled = !isChanged();
 						_Helpers.disableElements(disabled, dialogSaveButton, saveAndClose);
 					},
 					saveFn: (editor, entity, close = false) => {
 
-						let text1 = initialText;
-						let text2 = editor.getValue();
-
-						if (text1 === text2) {
+						if (!isChanged()) {
 							return;
 						}
 
-						Command.setProperty(entity.id, key, text2, false, () => {
+						Command.setProperty(entity.id, key, editor.getValue(), false, () => {
 
 							_Dialogs.custom.showAndHideInfoBoxMessage('Code saved.', 'success', 2000, 200);
 							_Helpers.disableElements(true, dialogSaveButton, saveAndClose);
@@ -2318,7 +2376,7 @@ let _Schema = {
 					isAutoscriptEnv: false
 				};
 
-				let editor = _Editors.getMonacoEditor(entity, key, dialogText.querySelector('.editor'), cypherPropertyMonacoConfig);
+				editor = _Editors.getMonacoEditor(entity, key, dialogText.querySelector('.editor'), cypherPropertyMonacoConfig);
 
 				_Editors.resizeVisibleEditors();
 				Structr.resize();
@@ -2563,14 +2621,12 @@ let _Schema = {
 			'1': 'one',
 			'*': 'many'
 		},
-		asyncEditSchemaObjectLinkHandler: async (el, mainTabs, previousEntityId) => {
+		asyncEditSchemaObjectLinkHandler: async (el, mainTabs) => {
+
 			let okToNavigate = !_Schema.bulkDialogsGeneral.hasUnsavedChangesInTabs(mainTabs) || (await _Dialogs.confirmation.showPromise("There are unsaved changes - really navigate to related type?"));
 			if (okToNavigate) {
-				_Schema.openEditDialog(el.dataset['objectId'], undefined, () => {
-					window.setTimeout(() => {
-						_Schema.openEditDialog(previousEntityId);
-					}, 250);
-				});
+
+				_Schema.openEditDialog(el.dataset['objectId']);
 			}
 		},
 		appendRemote: (container, entity, editSchemaObjectLinkHandler, optionalAfterSaveCallback) => {
@@ -3839,8 +3895,6 @@ let _Schema = {
 			_Schema.methods.fetchUserDefinedMethods((methods) => {
 
 				let { dialogText } = _Dialogs.custom.openDialog('User-defined functions', () => {
-
-					_Schema.currentNodeDialogId = null;
 
 					_Schema.ui.jsPlumbInstance.repaintEverything();
 

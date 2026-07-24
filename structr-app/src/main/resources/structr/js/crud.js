@@ -1085,7 +1085,6 @@ let _Crud = {
 						};
 
 						let customFormat = _Crud.helpers.getFormat(type, key);
-						console.log(customFormat)
 						let formatToUse = (_Crud.helpers.isFunctionProperty(key, type) || !customFormat) ? null : customFormat;
 
 						let convertValueToCorrectFormat = (value) => {
@@ -1261,9 +1260,9 @@ let _Crud = {
 
 						$('#entityForm').hide();
 
-						_Dialogs.custom.hideAllButtons();
+						_Dialogs.custom.hideAllButtons(['closeButton']);
 
-						let backButton = _Dialogs.custom.appendCustomDialogButton('<button id="clear-log" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Back</button>');
+						let backButton = _Dialogs.custom.prependCustomDialogButton(_Dialogs.custom.templates.backButton());
 
 						let searchFinishedFunction = (node = null) => {
 
@@ -2690,7 +2689,11 @@ let _Crud = {
 				} else if (e.keyCode === 27) {
 
 					if (searchString.trim() === '') {
-						_Dialogs.custom.clickDialogCancelButton();
+						if (typeof callbackOverride === "function") {
+							callbackOverride();
+						} else {
+							_Dialogs.custom.clickDialogCancelButton();
+						}
 					}
 
 					_Crud.search.clearSearchResults(el);

@@ -766,9 +766,14 @@ let _Dialogs = {
 				_Dialogs.custom.elements.dialogSaveButton.click();
 			}
 		},
-		hideAllButtons: () => {
+		hideAllButtons: (excludedClasses = []) => {
+
 			for (let btn of _Dialogs.custom.getDialogBtnContainer()?.querySelectorAll('button') ?? []) {
-				btn.classList.add('hidden');
+
+				if (excludedClasses.every(c => !btn.classList.contains(c))) {
+
+					btn.classList.add('hidden');
+				}
 			}
 		},
 		showAllButtons: () => {
@@ -948,7 +953,14 @@ let _Dialogs = {
 						${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, ['mr-2', 'icon-red'])} <span>Delete object</span>
 					</div>
 				</button>
-			`
+			`,
+			backButton: config => `
+				<button class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+					<div class="flex items-center">
+						${_Icons.getSvgIcon(_Icons.iconChevronLeft, 12, 12, ['mr-2'])} <span>Back</span>
+					</div>
+				</button>
+			`,
 		}
 	}
 };

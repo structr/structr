@@ -1430,6 +1430,45 @@ let _Code = {
 				});
 			});
 		},
+		getOverridesForSchemaActions: (data) => (
+			{
+
+				editReadWriteFunction: async (property) => {
+
+					let okToNavigate = !_Code.persistence.isDirty();
+
+					if (!okToNavigate) {
+
+						if ((await _Dialogs.confirmation.showPromise("There are unsaved changes - discard?"))) {
+
+							okToNavigate = true;
+							_Code.persistence.forceNotDirty()
+						}
+					}
+
+					if (okToNavigate) {
+						_Code.tree.findAndOpenNode(data.path + '/' + property.id, true);
+					}
+				},
+				editCypherProperty: async (property) => {
+
+					let okToNavigate = !_Code.persistence.isDirty();
+
+					if (!okToNavigate) {
+
+						if ((await _Dialogs.confirmation.showPromise("There are unsaved changes - discard?"))) {
+
+							okToNavigate = true;
+							_Code.persistence.forceNotDirty()
+						}
+					}
+
+					if (okToNavigate) {
+						_Code.tree.findAndOpenNode(data.path + '/' + property.id, true);
+					}
+				}
+			}
+		),
 		displaySchemaNodeContent: (data) => {
 
 			fetch(`${Structr.rootUrl}${data.id}/schema`).then(response => {
@@ -1448,7 +1487,7 @@ let _Code = {
 				_Code.codeContents.append(_Code.templates.type({ data, type: entity }));
 
 				let targetView  = LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${entity.id}`, 'general');
-				let tabControls = _Schema.nodes.loadNode(entity, $('.tabs-container', )[0], $('.tabs-content-container', _Code.codeContents)[0], targetView);
+				let tabControls = _Schema.nodes.loadNode(entity, $('.tabs-container', )[0], $('.tabs-content-container', _Code.codeContents)[0], targetView, null, _Code.mainArea.getOverridesForSchemaActions(data));
 
 				// remove bulk edit save/discard buttons
 				for (let button of _Code.codeContents[0].querySelectorAll('.discard-all, .save-all')) {
@@ -1505,15 +1544,7 @@ let _Code = {
 
 			Command.get(data.id, null, (entity) => {
 
-				_Schema.properties.appendLocalProperties(document.querySelector('#code-contents .content-container'), entity, {
-
-					editReadWriteFunction: (property) => {
-						_Code.tree.findAndOpenNode(data.path + '/' + property.id, true);
-					},
-					editCypherProperty: (property) => {
-						_Code.tree.findAndOpenNode(data.path + '/' + property.id, true);
-					}
-				}, () => {
+				_Schema.properties.appendLocalProperties(document.querySelector('#code-contents .content-container'), entity, _Code.mainArea.getOverridesForSchemaActions(data), () => {
 					_Code.tree.refreshNode(data.path);
 				});
 

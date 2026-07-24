@@ -82,7 +82,7 @@ public class JsonInputGSONAdapter implements InstanceCreator<IJsonInput>, JsonSe
 
 			// when we arrive here, the input element was
 			// not one of the expected types => error
-			throw new JsonSyntaxException("Invalid JSON, expecting object or array");
+			throw new JsonSyntaxException("Invalid JSON, expecting object or array of objects");
 		}
 
 		return jsonInput;
@@ -163,7 +163,7 @@ public class JsonInputGSONAdapter implements InstanceCreator<IJsonInput>, JsonSe
 
 			// when we arrive here, the input element was
 			// not one of the expected types => error
-			throw new JsonSyntaxException("Invalid JSON, expecting object or array");
+			throw new JsonSyntaxException("Invalid JSON, expecting object or array of objects");
 		}
 
 		return wrapper;

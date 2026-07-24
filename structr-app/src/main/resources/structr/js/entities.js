@@ -436,11 +436,18 @@ let _Entities = {
 			}
 		});
 	},
-	showProperties: (obj, activeViewOverride, showDeleteBtn = Structr.isModuleActive(_Crud)) => {
+	objStack: [],
+	clearObjStack: () => {
+		_Entities.objStack = [];
+	},
+	showProperties: (obj, activeViewOverride = undefined, showDeleteBtn = Structr.isModuleActive(_Crud)) => {
 
 		_Entities.getSchemaProperties(obj.type, 'custom', (properties) => {
 
 			let handleGraphObject = (entity) => {
+
+				let showBackButton = (_Entities.objStack.length > 0);
+				_Entities.objStack.push({id: entity.id, type: entity.type});
 
 				let views      = ['ui'];
 				let activeView = 'ui';
@@ -450,10 +457,6 @@ let _Entities = {
 				let customPropertiesWithoutBasicProps = Object.keys(properties).filter(key => !['id', 'type', 'name'].includes(key));
 				if (customPropertiesWithoutBasicProps.length > 0) {
 					views.push('custom');
-				}
-
-				if (activeViewOverride) {
-					activeView = activeViewOverride;
 				}
 
 				_Schema.caches.getTypeInfo(entity.type, (typeInfo) => {
@@ -486,13 +489,30 @@ let _Entities = {
 						dialogTitle = `Edit properties of ${entity?.type ?? ''} node ${entity?.name ?? entity.id}`;
 					}
 
-					let { dialogText } = _Dialogs.custom.openDialog(dialogTitle);
+					activeView = activeViewOverride || LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${entity.id}`) || activeView;
+
+					let { dialogText } = _Dialogs.custom.openDialog(dialogTitle, () => {
+						_Entities.clearObjStack();
+					});
+
+					if (showBackButton) {
+
+						let backBtn = _Dialogs.custom.prependCustomDialogButton(_Dialogs.custom.templates.backButton());
+
+						backBtn.addEventListener('click', e => {
+
+							_Entities.objStack.pop();
+							let prev = _Entities.objStack.pop();
+							_Entities.showProperties(prev);
+						});
+					}
 
 					if (showDeleteBtn) {
 
 						let deleteBtn = _Dialogs.custom.appendCustomDialogButton(_Dialogs.custom.templates.deleteButton());
 
-						deleteBtn.addEventListener('click', async (e) => {
+						deleteBtn.addEventListener('click', async e => {
+
 							let deleted = await _Crud.helpers.crudAskDelete(obj.type, obj.id);
 
 							if (deleted) {
@@ -518,8 +538,6 @@ let _Entities = {
 						let tabContent = _Entities.appendPropTab(entity, mainTabs, contentEl, 'permissions', 'Security', false);
 						_Entities.accessControlDialog(entity, $(tabContent));
 					}
-
-					activeView = activeViewOverride || LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${entity.id}`) || activeView;
 
 					let requestedTabLi = mainTabs.querySelector(`#tab-${activeView}`);
 					if (requestedTabLi) {
@@ -995,8 +1013,34 @@ let _Entities = {
 							valueCell[0].appendChild(addIcon);
 
 							addIcon.addEventListener('click', () => {
-								let { dialogText } = _Dialogs.custom.openDialog(`Add ${typeInfo[key].type}`);
-								_Entities.displaySearch(id, key, typeInfo[key].type, $(dialogText), isCollection);
+
+								let { dialogText } = _Dialogs.custom.openDialog(`Add ${typeInfo[key].type}`, () => {
+									_Entities.clearObjStack();
+								});
+
+								let showBackButton = (_Entities.objStack.length > 0);
+								let backBtn = null;
+
+								if (showBackButton) {
+
+									backBtn = _Dialogs.custom.prependCustomDialogButton(_Dialogs.custom.templates.backButton());
+
+									backBtn.addEventListener('click', e => {
+
+										let prev = _Entities.objStack.pop();
+										_Entities.showProperties(prev);
+									});
+								}
+
+								_Entities.displaySearch(id, key, typeInfo[key].type, $(dialogText), isCollection, () => {
+
+									if (backBtn) {
+										backBtn.click();
+									} else {
+										_Dialogs.custom.clickDialogCancelButton();
+									}
+								});
+
 							});
 
 							if (res[key]) {
@@ -1242,7 +1286,7 @@ let _Entities = {
 			});
 		}
 	},
-	displaySearch: (id, key, type, el, isCollection) => {
+	displaySearch: (id, key, type, el, isCollection, closeHandler) => {
 
 		el.append(`
 			<div class="searchBox searchBoxDialog flex justify-end">
@@ -1309,7 +1353,7 @@ let _Entities = {
 											_Pages.refreshCenterPane(StructrModel.obj(id), location.hash);
 										}
 
-										_Dialogs.custom.clickDialogCancelButton();
+										closeHandler();
 									});
 								}
 							});
@@ -1320,13 +1364,23 @@ let _Entities = {
 				if (searchString.trim() === '*') {
 					Command.getByType(type, 1000, 1, 'name', 'asc', null, false, resultHandler);
 				} else {
-					Command.search(searchString, type, false, resultHandler);
+
+					if (_Helpers.isUUID(searchString)) {
+
+						Command.get(searchString, null, (node) => {
+							resultHandler([node]);
+						});
+
+					} else {
+
+						Command.search(searchString, type, false, resultHandler);
+					}
 				}
 
 			} else if (e.keyCode === 27) {
 
 				if (searchString.trim() === '') {
-					_Dialogs.custom.clickDialogCancelButton();
+					closeHandler();
 				}
 
 				if (_Entities.clearSearchResults(el)) {
