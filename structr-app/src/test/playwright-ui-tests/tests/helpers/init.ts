@@ -30,8 +30,13 @@ export async function initialize(playwright, createData) {
 		}
 	});
 
-	// clear database
-	await context.post(process.env.BASE_URL + '/structr/rest/maintenance/clearDatabase');
+	// clear database. Fail loudly if this does not succeed (e.g. wrong
+	// SUPERUSER_PASSWORD): a silently dirty database makes tests fail later
+	// in ways that are much harder to diagnose.
+	const clearResponse = await context.post(process.env.BASE_URL + '/structr/rest/maintenance/clearDatabase');
+	if (!clearResponse.ok()) {
+		throw new Error(`clearDatabase failed with status ${clearResponse.status()}, check SUPERUSER_PASSWORD`);
+	}
 
 	// create admin user
 	await context.post(process.env.BASE_URL + '/structr/rest/User', {
