@@ -23,6 +23,7 @@ import org.eclipse.jetty.websocket.api.Callback;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.UpgradeRequest;
 import org.eclipse.jetty.websocket.api.UpgradeResponse;
+import org.eclipse.jetty.websocket.api.exceptions.WebSocketTimeoutException;
 
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
@@ -30,6 +31,7 @@ import java.time.Duration;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 public class MockWebsocketSession implements Session {
 
@@ -129,6 +131,11 @@ public class MockWebsocketSession implements Session {
 	@Override
 	public boolean isSecure() {
 		return false;
+	}
+
+	@Override
+	public void addIdleTimeoutListener(final Predicate<WebSocketTimeoutException> listener) {
+
 	}
 
 	@Override
