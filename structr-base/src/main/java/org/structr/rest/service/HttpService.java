@@ -31,9 +31,8 @@ import org.eclipse.jetty.ee10.servlet.FilterHolder;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.ee10.servlet.SessionHandler;
-import org.eclipse.jetty.ee10.servlets.DoSFilter;
 import org.eclipse.jetty.http.*;
-import org.eclipse.jetty.http2.WindowRateControl;
+import org.eclipse.jetty.io.WindowRateControl;
 import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
 import org.eclipse.jetty.http2.server.HTTP2ServerConnectionFactory;
 import org.eclipse.jetty.rewrite.handler.RewriteHandler;
@@ -75,8 +74,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -358,6 +359,22 @@ public class HttpService implements RunnableService, StatsCallback {
 
 					final String target = Request.getPathInContext(request);
 
+					/* Static resources answer GET and HEAD; anything else has to fall through to the
+					   servlet context, which is registered after this one and is the terminal handler.
+					   Returning false here means "not handled", so the ContextHandlerCollection moves
+					   on to it.
+
+					   This is deliberate and load-bearing as of Jetty 12.1: ResourceHandler.handle now
+					   answers OPTIONS itself via Handler.optionsMethodHandled() and returns true, which
+					   ends the chain. Since this context is mapped to /structr, that swallowed every
+					   OPTIONS request to /structr/rest/*, so CORS preflight and simple OPTIONS requests
+					   never reached the REST servlet: no CORS headers, no X-Structr-Edition, just
+					   Jetty's own "Allow: GET,HEAD,OPTIONS". Up to 12.0 those requests fell through. */
+					if (!HttpMethod.GET.is(request.getMethod()) && !HttpMethod.HEAD.is(request.getMethod())) {
+
+						return false;
+					}
+
 					if (Settings.SetupWizardCompleted.getValue() == false && Settings.ConfigServletEnabled.getValue() == true && ("/".equals(target) || "/index.html".equals(target))) {
 
 						final HttpFields.Mutable headers = response.getHeaders();
@@ -509,9 +526,6 @@ public class HttpService implements RunnableService, StatsCallback {
 			logger.info("Adding servlet {} for {}", servletHolder, path);
 
 			servletContext.addServlet(servletHolder, path);
-
-			// configure per-servlet DoSFilter (no-op if disabled or main switch is off)
-			configureDoSFilter(servletContext, servletHolder.getName(), path);
 		}
 
 		// only add metrics filter if metrics servlet is enabled
@@ -546,6 +560,12 @@ public class HttpService implements RunnableService, StatsCallback {
 				securedHandler.setHandler(rewriteHandler);
 				server.setHandler(securedHandler);
 			}
+
+			// rate limiting wraps EVERYTHING, so a flood is rejected before any work is done
+			installRateLimiting(server);
+
+			// connection-level guards, which act even earlier: at TCP accept
+			installLoadShedding(server);
 		}
 
 		httpConfig = new HttpConfiguration();
@@ -575,6 +595,20 @@ public class HttpService implements RunnableService, StatsCallback {
 		final UriCompliance customUriComplianceMode = UriCompliance.RFC3986.with("Custom UriCompliance based on RFC3986 with allowed violations", allowedViolations);
 
 		httpConfig.setUriCompliance(customUriComplianceMode);
+
+		/* Take the client address from the X-Forwarded-For / Forwarded headers. This is server-wide:
+		   it determines what getRemoteAddr() returns everywhere, what is logged, and which address
+		   the rate limiter and every IP allowlist (metrics, health check, registration limits) see.
+		   Only correct when a trusted reverse proxy sets those headers: without such a proxy a client
+		   can send them itself and claim any address, evading limits and poisoning the logs - hence
+		   off by default. Behind a proxy and WITHOUT this, every client appears as the proxy. Added
+		   before httpsConfig is copied from httpConfig below, so it applies to both connectors. */
+		if (Settings.ForwardedForEnabled.getValue()) {
+
+			httpConfig.addCustomizer(new ForwardedRequestCustomizer());
+
+			logger.info("Forwarded-for handling enabled: the client address is taken from the X-Forwarded-For / Forwarded headers. Make sure Structr is only reachable through a trusted reverse proxy.");
+		}
 
 		if (StringUtils.isNotBlank(host) && httpPort > -1) {
 
@@ -997,194 +1031,214 @@ public class HttpService implements RunnableService, StatsCallback {
 	}
 
 	// ----- private methods -----
+
 	/**
-	 * Dispatches to attachDoSFilter with the correct per-servlet Setting objects based on
-	 * the servlet's short name. Only known servlets are covered; any servlet without a
-	 * matching case is left without a DoSFilter.
+	 * Wraps the server's handler chain in Jetty's {@link DoSHandler}, which limits the request
+	 * rate per client using a leaking bucket: a client may burst up to the bucket size and is then
+	 * held to the sustained rate, with over-limit requests delayed first and rejected only if the
+	 * delay queue fills up. Bursts are what makes this usable in front of a web application - a
+	 * single page load pulls many resources at once and must not be throttled for it.
+	 *
+	 * The login and token endpoints get a SECOND, much stricter handler in front, because slowing
+	 * down credential guessing needs a far lower rate than serving pages. Everything else shares
+	 * the general limit.
+	 *
+	 * Clients are identified by remote address, so this is only meaningful per client when Structr
+	 * either faces clients directly or is told to trust the forwarded-for headers of a reverse
+	 * proxy - otherwise all clients behind that proxy share one bucket.
 	 */
-	private void configureDoSFilter(final ServletContextHandler servletContext, final String servletName, final String path) {
+	private void installRateLimiting(final Server server) {
 
 		if (!Settings.RateLimiting.getValue()) {
 			return;
 		}
 
-		switch (servletName) {
+		final Handler wrapped = server.getHandler();
+		if (wrapped == null) {
+			logger.warn("Rate limiting is enabled but no handler is installed, skipping.");
+			return;
+		}
 
-			case "JsonRestServlet":
-				attachDoSFilter(servletContext, path, servletName,
-					Settings.JsonRestDosEnabled, Settings.JsonRestDosMaxRequestsPerSec, Settings.JsonRestDosDelayMs,
-					Settings.JsonRestDosMaxWaitMs, Settings.JsonRestDosThrottledRequests, Settings.JsonRestDosThrottleMs,
-					Settings.JsonRestDosMaxRequestMs, Settings.JsonRestDosMaxIdleTrackerMs, Settings.JsonRestDosInsertHeaders,
-					Settings.JsonRestDosRemotePort, Settings.JsonRestDosIpWhitelist, Settings.JsonRestDosManagedAttr,
-					Settings.JsonRestDosTooManyCode);
-				break;
+		// the stricter limit for the credential endpoints sits closest to the application, so the
+		// general limiter still sees (and counts) those requests
+		Handler current = wrapped;
+		final int authRate = Settings.RateLimitAuthRequestsPerSec.getValue();
+		if (authRate > 0) {
 
-			case "HtmlServlet":
-				attachDoSFilter(servletContext, path, servletName,
-					Settings.HtmlDosEnabled, Settings.HtmlDosMaxRequestsPerSec, Settings.HtmlDosDelayMs,
-					Settings.HtmlDosMaxWaitMs, Settings.HtmlDosThrottledRequests, Settings.HtmlDosThrottleMs,
-					Settings.HtmlDosMaxRequestMs, Settings.HtmlDosMaxIdleTrackerMs, Settings.HtmlDosInsertHeaders,
-					Settings.HtmlDosRemotePort, Settings.HtmlDosIpWhitelist, Settings.HtmlDosManagedAttr,
-					Settings.HtmlDosTooManyCode);
-				break;
+			/* Its own, deliberately SMALL bucket: the burst is what an attacker gets for free before
+			   the sustained rate bites, so reusing the general bucket of 100 here would let a hundred
+			   password guesses through at once and make the low rate pointless. */
+			final DoSHandler authLimiter = newRateLimiter(current, authRate, Settings.RateLimitAuthBucketSize.getValue());
 
-			case "CsvServlet":
-				attachDoSFilter(servletContext, path, servletName,
-					Settings.CsvDosEnabled, Settings.CsvDosMaxRequestsPerSec, Settings.CsvDosDelayMs,
-					Settings.CsvDosMaxWaitMs, Settings.CsvDosThrottledRequests, Settings.CsvDosThrottleMs,
-					Settings.CsvDosMaxRequestMs, Settings.CsvDosMaxIdleTrackerMs, Settings.CsvDosInsertHeaders,
-					Settings.CsvDosRemotePort, Settings.CsvDosIpWhitelist, Settings.CsvDosManagedAttr,
-					Settings.CsvDosTooManyCode);
-				break;
+			for (final String path : authPathSpecs()) {
+				authLimiter.includePath(path);
+			}
 
-			case "UploadServlet":
-				attachDoSFilter(servletContext, path, servletName,
-					Settings.UploadDosEnabled, Settings.UploadDosMaxRequestsPerSec, Settings.UploadDosDelayMs,
-					Settings.UploadDosMaxWaitMs, Settings.UploadDosThrottledRequests, Settings.UploadDosThrottleMs,
-					Settings.UploadDosMaxRequestMs, Settings.UploadDosMaxIdleTrackerMs, Settings.UploadDosInsertHeaders,
-					Settings.UploadDosRemotePort, Settings.UploadDosIpWhitelist, Settings.UploadDosManagedAttr,
-					Settings.UploadDosTooManyCode);
-				break;
+			current = authLimiter;
+		}
 
-			case "ProxyServlet":
-				attachDoSFilter(servletContext, path, servletName,
-					Settings.ProxyDosEnabled, Settings.ProxyDosMaxRequestsPerSec, Settings.ProxyDosDelayMs,
-					Settings.ProxyDosMaxWaitMs, Settings.ProxyDosThrottledRequests, Settings.ProxyDosThrottleMs,
-					Settings.ProxyDosMaxRequestMs, Settings.ProxyDosMaxIdleTrackerMs, Settings.ProxyDosInsertHeaders,
-					Settings.ProxyDosRemotePort, Settings.ProxyDosIpWhitelist, Settings.ProxyDosManagedAttr,
-					Settings.ProxyDosTooManyCode);
-				break;
+		final DoSHandler limiter = newRateLimiter(current, Settings.RateLimitRequestsPerSec.getValue(), Settings.RateLimitBucketSize.getValue());
 
-			case "DeploymentServlet":
-				attachDoSFilter(servletContext, path, servletName,
-					Settings.DeploymentDosEnabled, Settings.DeploymentDosMaxRequestsPerSec, Settings.DeploymentDosDelayMs,
-					Settings.DeploymentDosMaxWaitMs, Settings.DeploymentDosThrottledRequests, Settings.DeploymentDosThrottleMs,
-					Settings.DeploymentDosMaxRequestMs, Settings.DeploymentDosMaxIdleTrackerMs, Settings.DeploymentDosInsertHeaders,
-					Settings.DeploymentDosRemotePort, Settings.DeploymentDosIpWhitelist, Settings.DeploymentDosManagedAttr,
-					Settings.DeploymentDosTooManyCode);
-				break;
+		for (final String path : splitConfigList(Settings.RateLimitExcludePaths.getValue())) {
+			limiter.excludePath(path);
+		}
 
-			case "FlowServlet":
-				attachDoSFilter(servletContext, path, servletName,
-					Settings.FlowDosEnabled, Settings.FlowDosMaxRequestsPerSec, Settings.FlowDosDelayMs,
-					Settings.FlowDosMaxWaitMs, Settings.FlowDosThrottledRequests, Settings.FlowDosThrottleMs,
-					Settings.FlowDosMaxRequestMs, Settings.FlowDosMaxIdleTrackerMs, Settings.FlowDosInsertHeaders,
-					Settings.FlowDosRemotePort, Settings.FlowDosIpWhitelist, Settings.FlowDosManagedAttr,
-					Settings.FlowDosTooManyCode);
-				break;
+		server.setHandler(limiter);
 
-			case "LoginServlet":
-				attachDoSFilter(servletContext, path, servletName,
-					Settings.LoginDosEnabled, Settings.LoginDosMaxRequestsPerSec, Settings.LoginDosDelayMs,
-					Settings.LoginDosMaxWaitMs, Settings.LoginDosThrottledRequests, Settings.LoginDosThrottleMs,
-					Settings.LoginDosMaxRequestMs, Settings.LoginDosMaxIdleTrackerMs, Settings.LoginDosInsertHeaders,
-					Settings.LoginDosRemotePort, Settings.LoginDosIpWhitelist, Settings.LoginDosManagedAttr,
-					Settings.LoginDosTooManyCode);
-				break;
+		logger.info("Rate limiting enabled: {} requests/s per client (burst {}), {} requests/s on {}; exempt addresses: {}",
+			Settings.RateLimitRequestsPerSec.getValue(), Settings.RateLimitBucketSize.getValue(),
+			authRate > 0 ? String.valueOf(authRate) : "no separate limit", authPathSpecs(),
+			Settings.RateLimitExcludeAddresses.getValue());
+	}
 
-			case "LogoutServlet":
-				attachDoSFilter(servletContext, path, servletName,
-					Settings.LogoutDosEnabled, Settings.LogoutDosMaxRequestsPerSec, Settings.LogoutDosDelayMs,
-					Settings.LogoutDosMaxWaitMs, Settings.LogoutDosThrottledRequests, Settings.LogoutDosThrottleMs,
-					Settings.LogoutDosMaxRequestMs, Settings.LogoutDosMaxIdleTrackerMs, Settings.LogoutDosInsertHeaders,
-					Settings.LogoutDosRemotePort, Settings.LogoutDosIpWhitelist, Settings.LogoutDosManagedAttr,
-					Settings.LogoutDosTooManyCode);
-				break;
+	/**
+	 * Connection-level load shedding, which acts EARLIER than rate limiting: at TCP accept, before
+	 * connection setup, TLS handshake and HTTP parsing. Rate limiting works on requests and so
+	 * never sees a flood that never becomes a complete request - thousands of half-open connections,
+	 * or an accept storm - which is the gap these guards close. All are off by default, because a
+	 * cap set too low locks out legitimate users, the administrator included.
+	 */
+	private void installLoadShedding(final Server server) {
 
-			case "TokenServlet":
-				attachDoSFilter(servletContext, path, servletName,
-					Settings.TokenDosEnabled, Settings.TokenDosMaxRequestsPerSec, Settings.TokenDosDelayMs,
-					Settings.TokenDosMaxWaitMs, Settings.TokenDosThrottledRequests, Settings.TokenDosThrottleMs,
-					Settings.TokenDosMaxRequestMs, Settings.TokenDosMaxIdleTrackerMs, Settings.TokenDosInsertHeaders,
-					Settings.TokenDosRemotePort, Settings.TokenDosIpWhitelist, Settings.TokenDosManagedAttr,
-					Settings.TokenDosTooManyCode);
-				break;
+		final int maxConnections = Settings.MaxConnections.getValue();
+		if (maxConnections > 0) {
 
-			case "EventSourceServlet":
-				attachDoSFilter(servletContext, path, servletName,
-					Settings.EventSourceDosEnabled, Settings.EventSourceDosMaxRequestsPerSec, Settings.EventSourceDosDelayMs,
-					Settings.EventSourceDosMaxWaitMs, Settings.EventSourceDosThrottledRequests, Settings.EventSourceDosThrottleMs,
-					Settings.EventSourceDosMaxRequestMs, Settings.EventSourceDosMaxIdleTrackerMs, Settings.EventSourceDosInsertHeaders,
-					Settings.EventSourceDosRemotePort, Settings.EventSourceDosIpWhitelist, Settings.EventSourceDosManagedAttr,
-					Settings.EventSourceDosTooManyCode);
-				break;
+			/* NOTE: the ConnectionLimit's own idle timeout is deliberately left unset. Were it set,
+			   reaching the limit would shorten the idle timeout of every ESTABLISHED connection to
+			   free them up, which would close the administration interface's websocket. Unset, the
+			   limit only stops accepting new connections and never touches existing ones. */
+			server.addBean(new ConnectionLimit(maxConnections, server));
 
-			case "HealthCheckServlet":
-				attachDoSFilter(servletContext, path, servletName,
-					Settings.HealthCheckDosEnabled, Settings.HealthCheckDosMaxRequestsPerSec, Settings.HealthCheckDosDelayMs,
-					Settings.HealthCheckDosMaxWaitMs, Settings.HealthCheckDosThrottledRequests, Settings.HealthCheckDosThrottleMs,
-					Settings.HealthCheckDosMaxRequestMs, Settings.HealthCheckDosMaxIdleTrackerMs, Settings.HealthCheckDosInsertHeaders,
-					Settings.HealthCheckDosRemotePort, Settings.HealthCheckDosIpWhitelist, Settings.HealthCheckDosManagedAttr,
-					Settings.HealthCheckDosTooManyCode);
-				break;
+			logger.info("Connection limit enabled: at most {} simultaneous connections.", maxConnections);
+		}
 
-			case "HistogramServlet":
-				attachDoSFilter(servletContext, path, servletName,
-					Settings.HistogramDosEnabled, Settings.HistogramDosMaxRequestsPerSec, Settings.HistogramDosDelayMs,
-					Settings.HistogramDosMaxWaitMs, Settings.HistogramDosThrottledRequests, Settings.HistogramDosThrottleMs,
-					Settings.HistogramDosMaxRequestMs, Settings.HistogramDosMaxIdleTrackerMs, Settings.HistogramDosInsertHeaders,
-					Settings.HistogramDosRemotePort, Settings.HistogramDosIpWhitelist, Settings.HistogramDosManagedAttr,
-					Settings.HistogramDosTooManyCode);
-				break;
+		final int maxAcceptRate = Settings.MaxAcceptRate.getValue();
+		if (maxAcceptRate > 0) {
 
-			case "OpenAPIServlet":
-				attachDoSFilter(servletContext, path, servletName,
-					Settings.OpenAPIDosEnabled, Settings.OpenAPIDosMaxRequestsPerSec, Settings.OpenAPIDosDelayMs,
-					Settings.OpenAPIDosMaxWaitMs, Settings.OpenAPIDosThrottledRequests, Settings.OpenAPIDosThrottleMs,
-					Settings.OpenAPIDosMaxRequestMs, Settings.OpenAPIDosMaxIdleTrackerMs, Settings.OpenAPIDosInsertHeaders,
-					Settings.OpenAPIDosRemotePort, Settings.OpenAPIDosIpWhitelist, Settings.OpenAPIDosManagedAttr,
-					Settings.OpenAPIDosTooManyCode);
-				break;
+			server.addBean(new AcceptRateLimit(maxAcceptRate, 1, TimeUnit.SECONDS, server));
 
-			case "MetricsServlet":
-				attachDoSFilter(servletContext, path, servletName,
-					Settings.MetricsDosEnabled, Settings.MetricsDosMaxRequestsPerSec, Settings.MetricsDosDelayMs,
-					Settings.MetricsDosMaxWaitMs, Settings.MetricsDosThrottledRequests, Settings.MetricsDosThrottleMs,
-					Settings.MetricsDosMaxRequestMs, Settings.MetricsDosMaxIdleTrackerMs, Settings.MetricsDosInsertHeaders,
-					Settings.MetricsDosRemotePort, Settings.MetricsDosIpWhitelist, Settings.MetricsDosManagedAttr,
-					Settings.MetricsDosTooManyCode);
-				break;
+			logger.info("Accept rate limit enabled: at most {} new connections per second.", maxAcceptRate);
+		}
 
-			default:
-				logger.debug("No DoSFilter settings defined for servlet '{}', skipping filter attachment", servletName);
-				break;
+		if (Settings.LowResourcesEnabled.getValue()) {
+
+			final LowResourceMonitor monitor = new LowResourceMonitor(server);
+
+			monitor.setMonitorThreads(true);
+
+			final int maxMemory = Settings.LowResourcesMaxMemory.getValue();
+			if (maxMemory > 0) {
+				monitor.setMaxMemory(maxMemory * 1024L * 1024L);
+			}
+
+			/* This timeout is applied to EVERY connection on the connector while resources are low,
+			   established ones included, so it must stay at or above the websocket idle timeout
+			   (60s) or the administration interface's websocket and any SSE stream are closed with
+			   it. Jetty's own default of 1000ms would do precisely that, which is why Structr
+			   defaults to 60000 instead. */
+			monitor.setLowResourcesIdleTimeout(Settings.LowResourcesIdleTimeout.getValue());
+
+			// setAcceptingInLowResources(true) means "keep accepting", so the flag is inverted here
+			monitor.setAcceptingInLowResources(!Settings.LowResourcesStopAccept.getValue());
+
+			server.addBean(monitor);
+
+			logger.info("Low resource monitor enabled: idle timeout {} ms while low{}{}.",
+				Settings.LowResourcesIdleTimeout.getValue(),
+				maxMemory > 0 ? ", heap limit " + maxMemory + " MB" : ", watching the thread pool only",
+				Settings.LowResourcesStopAccept.getValue() ? ", and new connections are refused while low" : "");
 		}
 	}
 
 	/**
-	 * Attaches a Jetty DoSFilter to the given servlet path, configured from the supplied
-	 * per-servlet settings. No filter is attached if the enabled setting is false.
+	 * One rate limiter in front of the given handler: leaking bucket at the given sustained rate,
+	 * over-limit requests delayed and then rejected with the configured status. Addresses in
+	 * httpservice.ratelimiting.excludeaddresses are exempt (loopback by default, which covers
+	 * requests the server makes to itself).
 	 */
-	private void attachDoSFilter(final ServletContextHandler servletContext, final String path, final String servletName,
-		final Setting<Boolean> enabled,
-		final Setting<Integer> maxRequestsPerSec, final Setting<Integer> delayMs, final Setting<Integer> maxWaitMs,
-		final Setting<Integer> throttledRequests, final Setting<Integer> throttleMs, final Setting<Integer> maxRequestMs,
-		final Setting<Integer> maxIdleTrackerMs, final Setting<Boolean> insertHeaders,
-		final Setting<Boolean> remotePort, final Setting<String> ipWhitelist, final Setting<Boolean> managedAttr,
-		final Setting<Integer> tooManyCode) {
+	private DoSHandler newRateLimiter(final Handler next, final int requestsPerSecond, final int bucketSize) {
 
-		if (!enabled.getValue()) {
-			return;
+		final DoSHandler.Tracker.Factory trackers = new DoSHandler.LeakingBucketTrackerFactory(
+			requestsPerSecond,
+			bucketSize,
+			Duration.ofMillis(Settings.RateLimitIdleTimeout.getValue())
+		);
+
+		/* Wrapped so Structr logs the refusal itself, WITH the remote address: DoSHandler logs
+		   nothing above DEBUG, and the address is what is needed to block a source at firewall
+		   level. The logging is throttled per client - see RateLimitRejectHandler. */
+		final Request.Handler rejectHandler = new DoSHandler.DelayedRejectHandler(
+			Settings.RateLimitRejectDelay.getValue(),
+			Settings.RateLimitRejectQueueSize.getValue(),
+			new RateLimitRejectHandler(new DoSHandler.StatusRejectHandler(Settings.RateLimitRejectStatus.getValue()))
+		);
+
+		final DoSHandler limiter = new DoSHandler(next, DoSHandler.ID_FROM_REMOTE_ADDRESS, trackers, rejectHandler,
+			Settings.RateLimitMaxTrackers.getValue(), Settings.RateLimitRejectUntracked.getValue());
+
+		for (final String address : splitConfigList(Settings.RateLimitExcludeAddresses.getValue())) {
+			limiter.excludeInetAddressPattern(address);
 		}
 
-		final FilterHolder holder = new FilterHolder(DoSFilter.class);
+		return limiter;
+	}
 
-		holder.setInitParameter("maxRequestsPerSec", maxRequestsPerSec.getValue().toString());
-		holder.setInitParameter("delayMs",           delayMs.getValue().toString());
-		holder.setInitParameter("maxWaitMs",         maxWaitMs.getValue().toString());
-		holder.setInitParameter("throttledRequests", throttledRequests.getValue().toString());
-		holder.setInitParameter("throttleMs",        throttleMs.getValue().toString());
-		holder.setInitParameter("maxRequestMs",      maxRequestMs.getValue().toString());
-		holder.setInitParameter("maxIdleTrackerMs",  maxIdleTrackerMs.getValue().toString());
-		holder.setInitParameter("insertHeaders",     insertHeaders.getValue().toString());
-		holder.setInitParameter("remotePort",        remotePort.getValue().toString());
-		holder.setInitParameter("ipWhitelist",       ipWhitelist.getValue());
-		holder.setInitParameter("managedAttr",       managedAttr.getValue().toString());
-		holder.setInitParameter("tooManyCode",       tooManyCode.getValue().toString());
+	/**
+	 * Every endpoint that accepts credentials, as path specs for the stricter rate limit.
+	 *
+	 * Structr has TWO ways in, and both must be covered or the limit is decorative: the dedicated
+	 * LoginServlet and TokenServlet, AND the LoginResource / TokenResource served as REST resources
+	 * under the REST servlet path - the latter is what the backend UI and most API clients actually
+	 * call (/structr/rest/login), so covering only the servlets would leave the busiest credential
+	 * endpoint on the general limit.
+	 */
+	private List<String> authPathSpecs() {
 
-		servletContext.addFilter(holder, path, EnumSet.of(DispatcherType.REQUEST, DispatcherType.ASYNC));
+		final List<String> specs = new LinkedList<>();
 
-		logger.info("Attached DoSFilter to servlet {} at path {}", servletName, path);
+		// the dedicated servlets, whose paths are prefixes
+		for (final Setting<String> setting : List.of(Settings.LoginServletPath, Settings.TokenServletPath)) {
+
+			final String path = setting.getValue();
+			if (path != null && !path.isBlank()) {
+
+				specs.add(path.endsWith("*") ? path : path.concat("/*"));
+			}
+		}
+
+		// the REST resources, which are exact paths below the REST servlet
+		String restBase = Settings.RestServletPath.getValue();
+		if (restBase != null && !restBase.isBlank()) {
+
+			restBase = restBase.endsWith("/*") ? restBase.substring(0, restBase.length() - 2) : restBase;
+			restBase = restBase.endsWith("*")  ? restBase.substring(0, restBase.length() - 1) : restBase;
+			restBase = restBase.endsWith("/")  ? restBase.substring(0, restBase.length() - 1) : restBase;
+
+			specs.add(restBase.concat("/login"));
+			specs.add(restBase.concat("/token"));
+		}
+
+		return specs;
+	}
+
+	/** Splits a comma-separated setting into trimmed, non-empty entries. */
+	private List<String> splitConfigList(final String value) {
+
+		final List<String> result = new LinkedList<>();
+
+		if (value != null) {
+
+			for (final String part : value.split(",")) {
+
+				final String trimmed = part.trim();
+				if (!trimmed.isEmpty()) {
+
+					result.add(trimmed);
+				}
+			}
+		}
+
+		return result;
 	}
 
 	private Map<String, ServletHolder> collectServlets(final LicenseManager licenseManager) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
