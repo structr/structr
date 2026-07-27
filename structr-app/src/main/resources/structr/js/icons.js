@@ -44,6 +44,7 @@ let _Icons = {
 
 
 	iconSite:                 'icon-site',
+	iconSites:                'icon-sites',
 	iconDOMTreePage:          'dom-page',
 	iconDOMTreeElement:       'dom-block',
 	iconDOMContentElement:    'dom-content',
