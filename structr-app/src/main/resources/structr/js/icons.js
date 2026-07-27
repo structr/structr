@@ -43,6 +43,7 @@ let _Icons = {
 	iconNotificationBell:     'notification-bell',
 
 
+	iconSite:                 'icon-site',
 	iconDOMTreePage:          'dom-page',
 	iconDOMTreeElement:       'dom-block',
 	iconDOMContentElement:    'dom-content',

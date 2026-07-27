@@ -158,8 +158,10 @@ let _Pages = {
 				menuLink.onclick = (event) => _Pages.activateCenterPane(menuLink);
 			}
 
+			_Pages.sitesList.init();
+
 			// always init page tree - we never clear it
-			_Pages.pageTree.init();
+			return _Pages.pageTree.init();
 		});
 
 	},
@@ -247,6 +249,7 @@ let _Pages = {
 	getContextMenuElements: (div, entity) => {
 
 		let elements                      = [];
+		const isSite                      = (entity.type === 'Site');
 		const isPage                      = (entity.isPage === true    || entity.type === 'Page');
 		const isActualContentElement      = (entity.isContent === true && entity.type === 'Content');
 		const hasChildren                 = (entity.children && entity.children.length > 0);
@@ -284,304 +287,307 @@ let _Pages = {
 			_Dragndrop.clearTemporarilyRemovedElementUUID();
 		};
 
-		if (!isActualContentElement) {
+		if (!isSite) {
 
-			elements.push({
-				name: 'Insert HTML element',
-				elements: isPage ? ['html'] : _Elements.sortedElementGroups,
-				forcedClickHandler: handleInsertHTMLAction
-			});
-
-			elements.push({
-				name: 'Insert content element',
-				elements: isPage ? ['#template'] : ['#content', '#template'],
-				forcedClickHandler: handleInsertHTMLAction
-			});
-
-			if (_Elements.suggestedElements[entity.tag]) {
+			if (!isActualContentElement) {
 
 				elements.push({
-					name: 'Suggested HTML element',
-					elements: _Elements.suggestedElements[entity.tag],
+					name: 'Insert HTML element',
+					elements: isPage ? ['html'] : _Elements.sortedElementGroups,
 					forcedClickHandler: handleInsertHTMLAction
 				});
-			}
-		}
-
-		if (!isPage && !isActualContentElement) {
-
-			elements.push({
-				name: 'Insert div element',
-				clickHandler: () => {
-					Command.createAndAppendDOMNode(entity.pageId, entity.id, 'div', _Dragndrop.getAdditionalDataForElementCreation('div'), _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked());
-				}
-			});
-		}
-
-		_Elements.contextMenu.appendContextMenuSeparator(elements);
-
-		if (!isPage && hasParentAndParentIsNotPage) {
-
-			elements.push({
-				name: 'Insert before...',
-				elements: [
-					{
-						name: '... HTML element',
-						elements: _Elements.sortedElementGroups,
-						forcedClickHandler: handleInsertBeforeAction
-					},
-					{
-						name: '... Content element',
-						elements: ['#content', '#template'],
-						forcedClickHandler: handleInsertBeforeAction
-					},
-					{
-						name: '... div element',
-						clickHandler: () => {
-							handleInsertBeforeAction('div');
-						}
-					}
-				]
-			});
-
-			elements.push({
-				name: 'Insert after...',
-				elements: [
-					{
-						name: '... HTML element',
-						elements: _Elements.sortedElementGroups,
-						forcedClickHandler: handleInsertAfterAction
-					},
-					{
-						name: '... Content element',
-						elements: ['#content', '#template'],
-						forcedClickHandler: handleInsertAfterAction
-					},
-					{
-						name: '... div element',
-						clickHandler: () => {
-							handleInsertAfterAction('div');
-						}
-					}
-				]
-			});
-
-			_Elements.contextMenu.appendContextMenuSeparator(elements);
-		}
-
-		if (entityTypeisDivType && !hasChildren) {
-
-			elements.push({
-				icon: _Icons.getMenuSvgIcon(_Icons.iconPencilEdit),
-				name: 'Edit',
-				clickHandler: () => {
-					_Entities.editEmptyDiv(entity);
-				}
-			});
-		}
-
-		if (!isPage && hasParentAndParentIsNotPage || parentIsShadowPage) {
-
-			elements.push({
-				icon: _Icons.getMenuSvgIcon(_Icons.iconClone),
-				name: 'Clone',
-				clickHandler: () => {
-					Command.cloneNode(entity.id, parentId, true);
-				}
-			});
-
-			_Elements.contextMenu.appendContextMenuSeparator(elements);
-		}
-
-		if (!isPage && hasParentAndParentIsNotPage) {
-
-			_Elements.contextMenu.appendContextMenuSeparator(elements);
-
-			elements.push({
-				name: 'Wrap element in...',
-                id: 'wrap-element-in',
-				elements: [
-					{
-						name: '... HTML element',
-						elements: _Elements.sortedElementGroups,
-						forcedClickHandler: handleWrapInHTMLAction
-					},
-					{
-						name: '... Template element',
-						clickHandler: () => {
-							handleWrapInHTMLAction('#template');
-						}
-					},
-					{
-						name: '... div element',
-						clickHandler: () => {
-							handleWrapInHTMLAction('div');
-						}
-					}
-				]
-			});
-
-			elements.push({
-				name: 'Replace element with...',
-                id: 'replace-element-with',
-				elements: [
-					{
-						name: '... HTML element',
-						elements: _Elements.sortedElementGroups,
-						forcedClickHandler: handleReplaceWithAction
-					},
-					// {
-					// 	name: '... Template element',
-					// 	clickHandler: () => {
-					// 		handleReplaceWithAction('#template');
-					// 	}
-					// },
-					{
-						name: '... div element',
-						clickHandler: () => {
-							handleReplaceWithAction('div');
-						}
-					}
-				]
-			});
-		}
-
-		if (isPage) {
-			elements.push({
-				icon: _Icons.getMenuSvgIcon(_Icons.iconClone),
-				name: 'Clone Page',
-				clickHandler: () => {
-					Command.clonePage(entity.id);
-				}
-			});
-		}
-
-		if (!isPage) {
-
-			_Elements.contextMenu.appendContextMenuSeparator(elements);
-
-			if (currentElementIsSelected) {
 
 				elements.push({
-					name: 'Deselect element',
-					clickHandler: () => {
-						_Elements.unselectEntity();
-					}
+					name: 'Insert content element',
+					elements: isPage ? ['#template'] : ['#content', '#template'],
+					forcedClickHandler: handleInsertHTMLAction
 				});
 
-			} else {
+				if (_Elements.suggestedElements[entity.tag]) {
+
+					elements.push({
+						name: 'Suggested HTML element',
+						elements: _Elements.suggestedElements[entity.tag],
+						forcedClickHandler: handleInsertHTMLAction
+					});
+				}
+			}
+
+			if (!isPage && !isActualContentElement) {
 
 				elements.push({
-					name: 'Select element',
+					name: 'Insert div element',
 					clickHandler: () => {
-						_Elements.selectEntity(entity);
+						Command.createAndAppendDOMNode(entity.pageId, entity.id, 'div', _Dragndrop.getAdditionalDataForElementCreation('div'), _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked());
 					}
 				});
 			}
 
-			let canConvertToSharedComponent = !entity.sharedComponentId && !entity.isPage && !parentIsShadowPage;
-			if (canConvertToSharedComponent) {
+			_Elements.contextMenu.appendContextMenuSeparator(elements);
+
+			if (!isPage && hasParentAndParentIsNotPage) {
+
+				elements.push({
+					name: 'Insert before...',
+					elements: [
+						{
+							name: '... HTML element',
+							elements: _Elements.sortedElementGroups,
+							forcedClickHandler: handleInsertBeforeAction
+						},
+						{
+							name: '... Content element',
+							elements: ['#content', '#template'],
+							forcedClickHandler: handleInsertBeforeAction
+						},
+						{
+							name: '... div element',
+							clickHandler: () => {
+								handleInsertBeforeAction('div');
+							}
+						}
+					]
+				});
+
+				elements.push({
+					name: 'Insert after...',
+					elements: [
+						{
+							name: '... HTML element',
+							elements: _Elements.sortedElementGroups,
+							forcedClickHandler: handleInsertAfterAction
+						},
+						{
+							name: '... Content element',
+							elements: ['#content', '#template'],
+							forcedClickHandler: handleInsertAfterAction
+						},
+						{
+							name: '... div element',
+							clickHandler: () => {
+								handleInsertAfterAction('div');
+							}
+						}
+					]
+				});
+
+				_Elements.contextMenu.appendContextMenuSeparator(elements);
+			}
+
+			if (entityTypeisDivType && !hasChildren) {
+
+				elements.push({
+					icon: _Icons.getMenuSvgIcon(_Icons.iconPencilEdit),
+					name: 'Edit',
+					clickHandler: () => {
+						_Entities.editEmptyDiv(entity);
+					}
+				});
+			}
+
+			if (!isPage && hasParentAndParentIsNotPage || parentIsShadowPage) {
+
+				elements.push({
+					icon: _Icons.getMenuSvgIcon(_Icons.iconClone),
+					name: 'Clone',
+					clickHandler: () => {
+						Command.cloneNode(entity.id, parentId, true);
+					}
+				});
+
+				_Elements.contextMenu.appendContextMenuSeparator(elements);
+			}
+
+			if (!isPage && hasParentAndParentIsNotPage) {
 
 				_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 				elements.push({
-					name: 'Convert to Shared Component',
+					name: 'Wrap element in...',
+					id: 'wrap-element-in',
+					elements: [
+						{
+							name: '... HTML element',
+							elements: _Elements.sortedElementGroups,
+							forcedClickHandler: handleWrapInHTMLAction
+						},
+						{
+							name: '... Template element',
+							clickHandler: () => {
+								handleWrapInHTMLAction('#template');
+							}
+						},
+						{
+							name: '... div element',
+							clickHandler: () => {
+								handleWrapInHTMLAction('div');
+							}
+						}
+					]
+				});
+
+				elements.push({
+					name: 'Replace element with...',
+					id: 'replace-element-with',
+					elements: [
+						{
+							name: '... HTML element',
+							elements: _Elements.sortedElementGroups,
+							forcedClickHandler: handleReplaceWithAction
+						},
+						// {
+						// 	name: '... Template element',
+						// 	clickHandler: () => {
+						// 		handleReplaceWithAction('#template');
+						// 	}
+						// },
+						{
+							name: '... div element',
+							clickHandler: () => {
+								handleReplaceWithAction('div');
+							}
+						}
+					]
+				});
+			}
+
+			if (isPage) {
+				elements.push({
+					icon: _Icons.getMenuSvgIcon(_Icons.iconClone),
+					name: 'Clone Page',
 					clickHandler: () => {
-						Command.createComponent(entity.id);
+						Command.clonePage(entity.id);
 					}
 				});
 			}
+
+			if (!isPage) {
+
+				_Elements.contextMenu.appendContextMenuSeparator(elements);
+
+				if (currentElementIsSelected) {
+
+					elements.push({
+						name: 'Deselect element',
+						clickHandler: () => {
+							_Elements.unselectEntity();
+						}
+					});
+
+				} else {
+
+					elements.push({
+						name: 'Select element',
+						clickHandler: () => {
+							_Elements.selectEntity(entity);
+						}
+					});
+				}
+
+				let canConvertToSharedComponent = !entity.sharedComponentId && !entity.isPage && !parentIsShadowPage;
+				if (canConvertToSharedComponent) {
+
+					_Elements.contextMenu.appendContextMenuSeparator(elements);
+
+					elements.push({
+						name: 'Convert to Shared Component',
+						clickHandler: () => {
+							Command.createComponent(entity.id);
+						}
+					});
+				}
+			}
+
+			if (!isActualContentElement && anyElementIsSelected && !currentElementIsSelected) {
+
+				let isSamePage                               = _Elements.selectedEntity.pageId === entity.pageId;
+				let isThisEntityDirectParentOfSelectedEntity = (_Elements.selectedEntity.parent && _Elements.selectedEntity.parent.id === entity.id);
+				let isSelectedEntityInShadowPage             = _Elements.selectedEntity.pageId === _Pages.shadowPage.id;
+				let isSelectedEntitySharedComponent          = isSelectedEntityInShadowPage && !_Elements.selectedEntity.parent;
+
+				let isDescendantOfSelectedEntity = (possibleDescendant) => {
+					if (possibleDescendant.parent) {
+						if (possibleDescendant.parent.id === _Elements.selectedEntity.id) {
+							return true;
+						}
+						return isDescendantOfSelectedEntity(StructrModel.obj(possibleDescendant.parent.id));
+					}
+					return false;
+				};
+
+				if (isSelectedEntitySharedComponent) {
+					elements.push({
+						name: 'Link shared component here',
+						clickHandler: () => {
+							Command.cloneComponent(_Elements.selectedEntity.id, entity.id);
+							_Elements.unselectEntity();
+						}
+					});
+				}
+
+				if (!isPage || (isPage && !hasChildren && (_Elements.selectedEntity.tag === 'html' || _Elements.selectedEntity.type === 'Template'))) {
+					elements.push({
+						name: 'Clone selected element here',
+						clickHandler: () => {
+							Command.cloneNode(_Elements.selectedEntity.id, entity.id, true);
+							_Elements.unselectEntity();
+						}
+					});
+				}
+
+				if (isSamePage && !isThisEntityDirectParentOfSelectedEntity && !isSelectedEntityInShadowPage && !isDescendantOfSelectedEntity(entity)) {
+					elements.push({
+						name: 'Move selected element here',
+						clickHandler: () => {
+							Command.appendChild(_Elements.selectedEntity.id, entity.id, entity.pageId);
+							_Elements.unselectEntity();
+						}
+					});
+				}
+			}
+
+			_Elements.contextMenu.appendContextMenuSeparator(elements);
+
+			if (!isActualContentElement && hasChildren) {
+
+				let toggleChildrenExpandedState = (isCurrentlyExpanded) => {
+
+					// we reverse, because we want collapse to work from the deepest level backwards (for expand it does not make a difference)
+					let nodeDescendants = [...div.closest('.node').querySelectorAll('.node')].toReversed();
+
+					for (let childNode of nodeDescendants) {
+						if (_Entities.isExpanded(childNode) === isCurrentlyExpanded) {
+							let id = Structr.getId(childNode);
+							_Entities.toggleElement(id, childNode);
+						}
+					}
+
+					if (_Entities.isExpanded(div) === isCurrentlyExpanded) {
+						_Entities.toggleElement(entity.id, div);
+					}
+				};
+
+				elements.push({
+					name: 'Expand / Collapse',
+					elements: [
+						{
+							name: 'Expand subtree',
+							clickHandler: () => toggleChildrenExpandedState(false)
+						},
+						{
+							name: 'Expand subtree recursively',
+							clickHandler: () => _Entities.expandRecursively([entity.id])
+						},
+						{
+							name: 'Collapse subtree',
+							clickHandler: () => toggleChildrenExpandedState(true)
+						}
+					]
+				});
+			}
+
+			_Elements.contextMenu.appendContextMenuSeparator(elements);
 		}
-
-		if (!isActualContentElement && anyElementIsSelected && !currentElementIsSelected) {
-
-			let isSamePage                               = _Elements.selectedEntity.pageId === entity.pageId;
-			let isThisEntityDirectParentOfSelectedEntity = (_Elements.selectedEntity.parent && _Elements.selectedEntity.parent.id === entity.id);
-			let isSelectedEntityInShadowPage             = _Elements.selectedEntity.pageId === _Pages.shadowPage.id;
-			let isSelectedEntitySharedComponent          = isSelectedEntityInShadowPage && !_Elements.selectedEntity.parent;
-
-			let isDescendantOfSelectedEntity = (possibleDescendant) => {
-				if (possibleDescendant.parent) {
-					if (possibleDescendant.parent.id === _Elements.selectedEntity.id) {
-						return true;
-					}
-					return isDescendantOfSelectedEntity(StructrModel.obj(possibleDescendant.parent.id));
-				}
-				return false;
-			};
-
-			if (isSelectedEntitySharedComponent) {
-				elements.push({
-					name: 'Link shared component here',
-					clickHandler: () => {
-						Command.cloneComponent(_Elements.selectedEntity.id, entity.id);
-						_Elements.unselectEntity();
-					}
-				});
-			}
-
-			if (!isPage || (isPage && !hasChildren && (_Elements.selectedEntity.tag === 'html' || _Elements.selectedEntity.type === 'Template'))) {
-				elements.push({
-					name: 'Clone selected element here',
-					clickHandler: () => {
-						Command.cloneNode(_Elements.selectedEntity.id, entity.id, true);
-						_Elements.unselectEntity();
-					}
-				});
-			}
-
-			if (isSamePage && !isThisEntityDirectParentOfSelectedEntity && !isSelectedEntityInShadowPage && !isDescendantOfSelectedEntity(entity)) {
-				elements.push({
-					name: 'Move selected element here',
-					clickHandler: () => {
-						Command.appendChild(_Elements.selectedEntity.id, entity.id, entity.pageId);
-						_Elements.unselectEntity();
-					}
-				});
-			}
-		}
-
-		_Elements.contextMenu.appendContextMenuSeparator(elements);
-
-		if (!isActualContentElement && hasChildren) {
-
-			let toggleChildrenExpandedState = (isCurrentlyExpanded) => {
-
-				// we reverse, because we want collapse to work from the deepest level backwards (for expand it does not make a difference)
-				let nodeDescendants = [...div.closest('.node').querySelectorAll('.node')].toReversed();
-
-				for (let childNode of nodeDescendants) {
-					if (_Entities.isExpanded(childNode) === isCurrentlyExpanded) {
-						let id = Structr.getId(childNode);
-						_Entities.toggleElement(id, childNode);
-					}
-				}
-
-				if (_Entities.isExpanded(div) === isCurrentlyExpanded) {
-					_Entities.toggleElement(entity.id, div);
-				}
-			};
-
-			elements.push({
-				name: 'Expand / Collapse',
-				elements: [
-					{
-						name: 'Expand subtree',
-						clickHandler: () => toggleChildrenExpandedState(false)
-					},
-					{
-						name: 'Expand subtree recursively',
-						clickHandler: () => _Entities.expandRecursively([entity.id])
-					},
-					{
-						name: 'Collapse subtree',
-						clickHandler: () => toggleChildrenExpandedState(true)
-					}
-				]
-			});
-        }
-
-		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 		// DELETE AREA - ALWAYS AT THE BOTTOM
 		// allow "Remove Node" on first level children of page
@@ -601,7 +607,7 @@ let _Pages = {
 			});
 		}
 
-		if (isPage || !hasParent) {
+		if (isSite || isPage || !hasParent) {
 
 			elements.push({
 				icon: _Icons.getMenuSvgIcon(_Icons.iconTrashcan),
@@ -609,7 +615,7 @@ let _Pages = {
 				name: `Delete ${entity.type}`,
 				clickHandler: () => {
 					
-					let recursive = (isActualContentElement === false);
+					let recursive = (isActualContentElement === false && !isSite);
 					_Entities.deleteNode(entity, recursive, () => {
 						_Pages.unattachedNodes.blinkUI();
 						_Pages.unattachedNodes.reload();
@@ -753,6 +759,17 @@ let _Pages = {
 			}
 
 			switch (entity.type) {
+				case 'Site':
+					document.querySelector('a[href="#pages:html"]').closest('li').classList.add('hidden');
+					document.querySelector('a[href="#pages:editor"]').closest('li').classList.add('hidden');
+					document.querySelector('a[href="#pages:repeater"]').closest('li').classList.add('hidden');
+					document.querySelector('a[href="#pages:events"]').closest('li').classList.add('hidden');
+					document.querySelector('a[href="#pages:security"]').closest('li').classList.add('hidden');
+					document.querySelector('a[href="#pages:process"]').closest('li').classList.add('hidden');
+					document.querySelector('a[href="#pages:active"]').closest('li').classList.add('hidden');
+					document.querySelector('a[href="#pages:routing"]').closest('li').classList.add('hidden');
+					break;
+
 				case 'Page':
 					document.querySelector('a[href="#pages:html"]').closest('li').classList.add('hidden');
 					document.querySelector('a[href="#pages:editor"]').closest('li').classList.add('hidden');
@@ -866,7 +883,7 @@ let _Pages = {
 				urlHash = '#pages:editor';
 			} else if (obj.isDOMNode) {
 				urlHash = '#pages:html';
-			} else if (obj.isPage) {
+			} else if (obj.isPage || obj.type === 'Site') {
 				urlHash = '#pages:general';
 			} else {
 				urlHash = new URL(location.href).hash;
@@ -2841,14 +2858,13 @@ let _Pages = {
 				_Helpers.blinkGreen(el);
 			});
 		};
-
 	},
 
 	pageTree: {
 		clear: () => {
 			_Helpers.fastRemoveAllChildren(_Pages.pagesTree[0]);
 		},
-		init: () => {
+		init: async () => {
 
 			_Pages.pageTree.clear();
 
@@ -2859,46 +2875,60 @@ let _Pages = {
 				_Pages.pageTree.clear();
 			};
 
+			let [categoriesTitleHTML, siteOptionsHTML] = await Promise.all([
+				fetch(`${Structr.rootUrl}Page`, {
+					headers: _Helpers.getHeadersForCustomView(['category'])
+				}).then(response => {
+					if (response.ok) {
+						return response.json();
+					}
+				}).then(data => {
+
+					let categories = new Set(data.result.map(p => p.category).filter(c => c).sort());
+
+					let helpText = 'Filter pages by page category.';
+					if (categories.size > 0) {
+						helpText += 'Available categories: \n\n' + [...categories].join('\n');
+					} else {
+						helpText += '\nNo categories available - these can be set in the "General" tab of a page.';
+					}
+
+					return helpText
+				}),
+				fetch(`${Structr.rootUrl}Site/public?${Structr.getRequestParameterName('sort')}=name`).then(response => {
+					if (response.ok) {
+						return response.json();
+					}
+				}).then(data => {
+
+					let options = [
+						'<option value="">-</option>',
+						...data.result.map(s => `<option value="${s.id}">${s.name ?? s.hostname ?? s.id}</option>`)
+					];
+
+					return options.join('');
+				})
+			]);
+
 			pagerElement.insertAdjacentHTML('beforeend', `
-				<div id="pagesPagerFilters">
-					Filters: <input type="text" class="filter" data-attribute="name" placeholder="Name" title="Here you can filter the pages list by page name" autocomplete="new-password"/>
-					<input type="text" class="filter page-label category-filter" data-attribute="category" placeholder="Category">
+				<div id="pagesPagerFilters" class="mt-2 flex items-center gap-2">
+					<span>Filters:</span>
+					<select class="filter max-w-24 truncate" data-attribute="sites" data-is-multi="true" title="Site">${siteOptionsHTML}</select>
+					<input type="text" class="filter w-24" data-attribute="name" placeholder="Name" title="Here you can filter the pages list by page name" autocomplete="new-password"/>
+					<input type="text" class="filter w-20 page-label category-filter" data-attribute="category" placeholder="Category" title="${_Helpers.escapeForHtmlAttributes(categoriesTitleHTML)}">
 				</div>
 			`);
-			let filerEl = pagerElement.querySelector('#pagesPagerFilters');
-			pPager.activateFilterElements(filerEl);
+			let filterEl = pagerElement.querySelector('#pagesPagerFilters');
+			pPager.activateFilterElements(filterEl);
 			pPager.setIsPaused(false);
 			pPager.refresh();
-
-			fetch(`${Structr.rootUrl}Page`, {
-				headers: _Helpers.getHeadersForCustomView(['category'])
-			}).then(response => {
-				if (response.ok) {
-					return response.json();
-				}
-			}).then(data => {
-
-				let categories = new Set(data.result.map(p => p.category).filter(c => c).sort());
-
-				let helpText = 'Filter pages by page category.';
-				if (categories.size > 0) {
-					helpText += 'Available categories: \n\n' + [...categories].join('\n');
-				} else {
-					helpText += '\nNo categories available - these can be set in the "General" tab of a page.';
-				}
-
-				filerEl.querySelector('input.category-filter').title = helpText;
-			});
 
 			$('#import_page').on('click', (e) => {
 				e.stopPropagation();
 				_Pages.importPageDialog();
 			});
 
-			// Display 'Create Page' dialog
-			let smallTransparentGIF = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
-			let createPageButton = document.querySelector('#create_page');
-			createPageButton.addEventListener('click', (e) => {
+			document.querySelector('#create_page').addEventListener('click', (e) => {
 				e.stopPropagation();
 				_Pages.createPageDialog();
 			});
@@ -2930,7 +2960,19 @@ let _Pages = {
 					slideoutAction();
 				}
 			});
-		}
+		},
+		onSlideoutOpen: () => {
+			_Pages.pageTree.toggleCreatePageButton(true);
+		},
+		onSlideoutClose: () => {
+			_Pages.pageTree.toggleCreatePageButton(false);
+		},
+		toggleCreatePageButton: (show = true) => {
+			let button = document.querySelector('#pages-actions #create_page');
+
+			button.classList.toggle('flex', show);
+			button.classList.toggle('hidden', !show);
+		},
 	},
 	importPageDialog: async () => {
 
@@ -3009,6 +3051,7 @@ let _Pages = {
 		for (let widget of pageTemplates) {
 
 			let id = 'create-from-' + widget.id;
+			let smallTransparentGIF = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
 			let tile = _Helpers.createSingleDOMElementFromHTML(`<div id="${id}" class="page-tile"><div class="page-thumbnail-frame"><img src="${widget.newThumbnailPath ?? widget.thumbnailPath ?? smallTransparentGIF}"/><h4>${widget.name}</h4><p>${(widget.description || '')}</p></div></div>`);
 			container.append(tile);
 
@@ -3045,6 +3088,91 @@ let _Pages = {
 			});
 		}
 	},
+
+	sitesList: {
+		clear: () => {
+			_Helpers.fastRemoveAllChildren(document.querySelector('#sitesList'));
+		},
+		init: () => {
+
+			document.querySelector('#create_site').addEventListener('click', (e) => {
+				e.stopPropagation();
+				Command.create({ type: 'Site' }, (site) => {
+					StructrModel.create(site);
+				});
+			});
+
+			_Pages.sitesList.clear();
+
+			let pagerElement = document.querySelector('#sitesPager');
+			let sitesPager = _Pager.addPager('sites', pagerElement, true, 'Site', null, null, null, null, true);
+
+			sitesPager.cleanupFunction = () => {
+				_Pages.sitesList.clear();
+			};
+			sitesPager.setIsPaused(false);
+			sitesPager.refresh();
+		},
+		onSlideoutOpen: () => {
+			_Pages.pageTree.toggleCreatePageButton(false);
+			_Pages.sitesList.toggleCreateSiteButton(true);
+		},
+		onSlideoutClose: () => {
+			_Pages.sitesList.toggleCreateSiteButton(false);
+		},
+		toggleCreateSiteButton: (show = true) => {
+			let button = document.querySelector('#pages-actions #create_site');
+
+			button.classList.toggle('flex', show);
+			button.classList.toggle('hidden', !show);
+		},
+		appendSiteElement: (entity) => {
+
+			entity = StructrModel.ensureObject(entity);
+
+			let sitesListEl = document.querySelector('#sitesList');
+
+			if (!sitesListEl) return;
+
+			if (sitesListEl.querySelector('#id_' + entity.id)) {
+				return;
+			}
+
+			let pageName = (entity.name ?? entity.hostname ?? entity.id);
+
+			sitesListEl.insertAdjacentHTML('beforeend', `
+				<div id="id_${entity.id}" class="node site">
+					<div class="node-container flex items-center">
+						${_Icons.getSvgIcon(_Icons.iconSite, 16, 16, ['typeIcon', 'icon-grey'])}
+						<span class="abbr-ellipsis abbr-pages-tree-page">
+							<b title="${_Helpers.escapeForHtmlAttributes(pageName)}" class="name_">${pageName}</b>
+						</span>
+						<div class="icons-container flex items-center"></div>
+					</div>
+				</div>
+			`);
+
+			let div            = Structr.node(entity.id);
+			let nodeContainer  = $('.node-container', div);
+			let iconsContainer = $('.icons-container', div);
+
+			_Pages.registerDetailClickHandler(nodeContainer, entity);
+
+			_Entities.appendContextMenuIcon(iconsContainer[0], entity);
+
+			_Elements.contextMenu.enableContextMenuOnElement(div[0], entity);
+			_Entities.setMouseOver(div, true);
+
+			_Elements.clickOrSelectElementIfLastSelected(div, entity);
+
+			return div;
+		},
+		removeSite: (entity) => {
+
+			_Helpers.fastRemoveElement(document.querySelector('#sitesList #id_' + entity.id));
+		}
+	},
+
 	localizations: {
 		lastSelectedPageKey: 'structrLocalizationsLastSelectedPageKey_' + location.port,
 		lastUsedLocaleKey: 'structrLocalizationsLastUsedLocale_' + location.port,
@@ -3093,6 +3221,7 @@ let _Pages = {
 		},
 		onSlideoutOpen: () => {
 			_Pages.localizations.refreshPagesForLocalizationPreview();
+			_Pages.pageTree.toggleCreatePageButton(true);
 		},
 		refreshPagesForLocalizationPreview: async () => {
 
@@ -4890,6 +5019,10 @@ let _Pages = {
 				<button id="create_page" title="Create Page" class="action button btn flex items-center active:border-green">
 					${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'mr-2')} Create Page
 				</button>
+
+				<button id="create_site" title="Create Site" class="action button btn hidden items-center active:border-green">
+					${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'mr-2')} Create Site
+				</button>
 			</div>
 		`,
 		main: config => `
@@ -4906,6 +5039,13 @@ let _Pages = {
 					<div id="pagesPager"></div>
 				</div>
 				<div id="pagesTree"></div>
+			</div>
+
+			<div id="sites" class="slideOut slideOutLeft">
+				<div id="pages-controls">
+					<div id="sitesPager"></div>
+				</div>
+				<div id="sitesList" class="ml-1 mt-4"></div>
 			</div>
 
 			<div id="localizations" class="slideOut slideOutLeft">
@@ -4951,6 +5091,12 @@ let _Pages = {
 						Page Tree
 					</div>
 
+					<div class="slideout-activator left" id="sitesTab" data-for-slideout="#sites" data-sub-section="sitesList">
+						${_Icons.getSvgIcon(_Icons.iconSite, 24, 24)}
+						<br>
+						Sites
+					</div>
+					
 					<div class="slideout-activator left" id="localizationsTab" data-for-slideout="#localizations" data-sub-section="localizations">
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" width="24" height="24">
 							<g transform="matrix(1,0,0,1,0,0)">

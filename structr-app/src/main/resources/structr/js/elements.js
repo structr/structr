@@ -440,7 +440,7 @@ let _Elements = {
 
 			contextMenuElement.append(mainMenuList);
 
-			if (Structr.getActiveModule() === _Pages) {
+			if (Structr.getActiveModule() === _Pages && entity.type !== 'Site') {
 
                 // prepend suggested widgets for inserting
                 _Elements.contextMenu.getSuggestedWidgets(entity, 'insert', (widgets) => {

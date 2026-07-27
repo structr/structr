@@ -122,6 +122,10 @@ let StructrModel = {
 
 			obj = new StructrFile(data);
 
+		} else if (data.type === 'Site') {
+
+			obj = new StructrSite(data);
+
 		} else {
 
 			obj = new StructrElement(data);
@@ -142,7 +146,6 @@ let StructrModel = {
 					return obj;
 				}
 			}
-
 		}
 
 		if (refId || append === undefined || append) {
@@ -775,7 +778,6 @@ StructrCorsSetting.prototype.remove = function() {
 };
 
 
-
 /**************************************
  * Structr Page
  **************************************/
@@ -807,6 +809,38 @@ StructrPage.prototype.remove = function() {
 		_Pages.removePage(this);
 	}
 };
+
+
+/**************************************
+ * Structr Site
+ **************************************/
+
+function StructrSite(data) {
+	StructrModel.copyDataToObject(data, this);
+}
+
+StructrSite.prototype.setProperty = function(key, value, recursive, callback) {
+	Command.setProperty(this.id, key, value, recursive, callback);
+};
+
+StructrSite.prototype.append = function() {
+
+	if (Structr.isModuleActive(_Pages)) {
+		_Pages.sitesList.appendSiteElement(this)
+	}
+};
+
+StructrSite.prototype.remove = function() {
+
+	if (_Entities?.selectedObject?.id === this.id) {
+		_Pages.selectedObjectWasDeleted();
+	}
+
+	if (Structr.isModuleActive(_Pages)) {
+		_Pages.sitesList.removeSite(this);
+	}
+};
+
 
 /**************************************
  * Structr Widget
