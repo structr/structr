@@ -2340,10 +2340,14 @@ let _Entities = {
 
 					if (obj.isPage === true) {
 
-						// clear potential category filter
-						let categoryFilterEl = document.querySelector('#pagesPagerFilters .filter[data-attribute="category"]');
-						categoryFilterEl.value = '';
-						_Pager.pagerFilters['pages']['category'] = null;
+						// clear potential other filters
+						let otherFilters = ['category', 'sites'];
+						for (let filter of otherFilters) {
+
+							let sitesFilterEl = document.querySelector(`#pagesPagerFilters .filter[data-attribute="${filter}"]`);
+							sitesFilterEl.value = '';
+							_Pager.pagerFilters['pages'][filter] = null;
+						}
 
 						// filter page name
 						let nameFilterEl   = document.querySelector('#pagesPagerFilters .filter[data-attribute="name"]');
