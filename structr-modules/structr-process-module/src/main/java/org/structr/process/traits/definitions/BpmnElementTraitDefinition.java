@@ -62,6 +62,10 @@ public class BpmnElementTraitDefinition extends AbstractNodeTraitDefinition {
 	// --- Content properties (promoted from XML child elements) ---
 	public static final String DOCUMENTATION_PROPERTY       = "documentation";
 	public static final String SCRIPT_CONTENT_PROPERTY      = "scriptContent";
+	// Camunda inputOutput mappings, stored as JSON:
+	// {"inputs":[{"name":..,"source":..}],"outputs":[{"name":..,"source":..}]}.
+	// Applied around automatic-task execution (inputs before, outputs after).
+	public static final String IO_MAPPINGS_PROPERTY         = "ioMappings";
 
 	// --- Event definition properties ---
 	public static final String EVENT_DEF_TYPE_PROPERTY      = "eventDefinitionType";
@@ -138,6 +142,7 @@ public class BpmnElementTraitDefinition extends AbstractNodeTraitDefinition {
 		// Content
 		final Property<String> documentation   = new StringProperty(DOCUMENTATION_PROPERTY);
 		final Property<String> scriptContent   = new StringProperty(SCRIPT_CONTENT_PROPERTY);
+		final Property<String> ioMappings      = new StringProperty(IO_MAPPINGS_PROPERTY);
 
 		// Event definitions
 		final Property<String> eventDefType         = new StringProperty(EVENT_DEF_TYPE_PROPERTY);
@@ -192,7 +197,7 @@ public class BpmnElementTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> instructions        = new StringProperty(INSTRUCTIONS_PROPERTY);
 
 		return newSet(bpmnElementType, bpmnName, bpmnAttributes,
-			documentation, scriptContent,
+			documentation, scriptContent, ioMappings,
 			eventDefType, eventDefId, eventDefRef, timerType, timerExpressionType, timerValue,
 			process, parentElement, childElements, childFlows, outgoingFlows, incomingFlows, performers, taskListeners, methods, visibilityMappings, controlActions, boundConfigurations, diShape, lane,
 			attachedTo, attachedBoundaries,
@@ -207,7 +212,7 @@ public class BpmnElementTraitDefinition extends AbstractNodeTraitDefinition {
 				DOCUMENTATION_PROPERTY, SCRIPT_CONTENT_PROPERTY, EVENT_DEF_TYPE_PROPERTY,
 				SUBJECT_TYPE_PROPERTY, SUBJECT_FORM_VIEW_PROPERTY, SUBJECT_WRITABLE_VIEW_PROPERTY, INSTRUCTIONS_PROPERTY),
 			PropertyView.Ui, newSet(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY, BpmnBaseNodeTraitDefinition.VERSION_PROPERTY, BPMN_ELEMENT_TYPE_PROPERTY, BPMN_NAME_PROPERTY, BPMN_ATTRIBUTES_PROPERTY,
-				DOCUMENTATION_PROPERTY, SCRIPT_CONTENT_PROPERTY,
+				DOCUMENTATION_PROPERTY, SCRIPT_CONTENT_PROPERTY, IO_MAPPINGS_PROPERTY,
 				EVENT_DEF_TYPE_PROPERTY, EVENT_DEF_ID_PROPERTY, EVENT_DEF_REF_PROPERTY,
 				TIMER_TYPE_PROPERTY, TIMER_EXPRESSION_TYPE_PROPERTY, TIMER_VALUE_PROPERTY,
 				PROCESS_PROPERTY, PARENT_ELEMENT_PROPERTY, CHILD_ELEMENTS_PROPERTY, CHILD_FLOWS_PROPERTY,

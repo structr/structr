@@ -501,14 +501,19 @@ public class BpmnRoundTripTest extends StructrUiTest {
 			assertEquals(1, taskMethodRefs.size());
 			assertEquals("onApprovalCompleted", taskMethodRefs.get(0).getAttribute("name"));
 
-			// Step 3: simulate cross-system import. Delete the BPMN graph (keep
-			// the orphan SchemaMethods around, as a deployment-import would have
-			// brought them in), re-import the exported XML, and verify the
-			// HAS_METHOD links are re-established by name.
+			// Step 3: simulate cross-system import. Delete the BPMN graph -- which
+			// now takes the attached methods with it, since HAS_METHOD cascades --
+			// then create the two methods again as an unattached pair, the state a
+			// deployment import into the target system would leave behind. Re-import
+			// the exported XML and verify the HAS_METHOD links are re-established
+			// by name.
 			cleanupBpmnData();
 
 			final String reimportedDefUuid;
 			try (final Tx tx = app.tx()) {
+
+				createOrphanMethod("calculateRisk");
+				createOrphanMethod("onApprovalCompleted");
 
 				final NodeInterface reimported = new BpmnImporter(securityContext).importBpmn(exported);
 				assertNotNull(reimported);

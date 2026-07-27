@@ -27,14 +27,17 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.AbstractSchemaNodeTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.web.traits.definitions.ActionMappingTraitDefinition;
 import org.structr.process.traits.definitions.*;
+import org.structr.process.engine.ProcessEngine;
 import org.structr.process.entity.BpmnElement;
 import org.structr.process.entity.BpmnSequenceFlow;
 import org.structr.process.ProcessTraits;
@@ -46,6 +49,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Structr-native BPMN 2.0.2 XML importer. Parses BPMN XML using standard Java DOM
@@ -103,8 +108,20 @@ public class BpmnImporter {
 	/** Timer sub-element types. */
 	private static final Set<String> TIMER_SUB_TYPES = Set.of("timeDuration", "timeCycle", "timeDate");
 
+	/** A valid SchemaMethod name: starts with a lowercase letter or underscore, then word chars. */
+	private static final Pattern VALID_METHOD_NAME = Pattern.compile("[a-z_][a-zA-Z0-9_]*");
+
+	/** An {@code identifier(} token -- used to pull the invoked method name out of a JUEL/JS expression. */
+	private static final Pattern METHOD_CALL_TOKEN = Pattern.compile("([A-Za-z_][A-Za-z0-9_]*)\\s*\\(");
+
 	private final SecurityContext securityContext;
 	private final Gson gson;
+
+	// "Type#method" pairs already scaffolded during THIS import. Dedups references that
+	// occur in more than one place in the BPMN: a same-transaction nodeQuery can't reliably
+	// see a just-created sibling method, and creating a second one trips the "no two methods
+	// with the same name" validation.
+	private final Set<String> scaffoldedServiceMethods = new HashSet<>();
 
 	/**
 	 * Version stamp applied to every node created during the current import.
@@ -139,6 +156,12 @@ public class BpmnImporter {
 
 		} catch (FrameworkException fe) {
 
+			// Log the reason (message + error tokens) so it is discoverable in the
+			// server log, not only in the client. Validation failures such as a
+			// duplicate user-defined function left over from a previous import
+			// surface here; fe.toString() includes the error tokens.
+			logger.warn("BPMN import failed: {}", fe.toString());
+
 			throw fe;
 
 		} catch (Exception ex) {
@@ -166,6 +189,12 @@ public class BpmnImporter {
 			return importDocument(doc);
 
 		} catch (FrameworkException fe) {
+
+			// Log the reason (message + error tokens) so it is discoverable in the
+			// server log, not only in the client. Validation failures such as a
+			// duplicate user-defined function left over from a previous import
+			// surface here; fe.toString() includes the error tokens.
+			logger.warn("BPMN import failed: {}", fe.toString());
 
 			throw fe;
 
@@ -699,6 +728,9 @@ public class BpmnImporter {
 		// collapse to BpmnTaskListener nodes; exports always emit the structr form.
 		importTaskListeners(app, elemNode, el);
 
+		// Camunda <camunda:inputOutput> variable mappings (input/output parameters).
+		importIoMappings(elemNode, el);
+
 		// Store extra attributes as JSON (everything except id, name, and consumed camunda:* keys)
 		final Map<String, String> attrs = collectAttributes(el);
 		attrs.remove("id");
@@ -706,6 +738,35 @@ public class BpmnImporter {
 
 		for (final String consumed : consumedAttributeKeys) {
 			attrs.remove(consumed);
+		}
+
+		// Camunda service-task implementation -> executable Structr script.
+		// A camunda:expression is runnable (transpiled as foreign JS, so
+		// execution.getVariable/setVariable map onto $.process). class /
+		// delegateExpression / external (type+topic) have no Structr runtime
+		// equivalent and are left inert (kept in bpmnAttributes) with a warning.
+		final String camExpr = nullIfEmpty(el.getAttributeNS(CAMUNDA_NS, "expression"));
+		if (camExpr != null) {
+
+			String body = camExpr.trim();
+			if (body.startsWith("${") && body.endsWith("}")) {
+				body = body.substring(2, body.length() - 1).trim();
+			}
+
+			elemNode.setProperty(traits.key(BpmnElementTraitDefinition.SCRIPT_CONTENT_PROPERTY), body);
+			attrs.put("scriptFormat", "javascript"); // run via the foreign-JS path at execution time
+			scaffoldServiceClasses(app, body); // create service-class stubs for any bean/service calls
+
+		} else {
+
+			final String camClass = nullIfEmpty(el.getAttributeNS(CAMUNDA_NS, "class"));
+			final String camDeleg = nullIfEmpty(el.getAttributeNS(CAMUNDA_NS, "delegateExpression"));
+			if (camClass != null || camDeleg != null) {
+
+				logger.warn("Element '{}' has a Camunda service-task implementation ({}) with no Structr runtime equivalent; "
+					+ "imported but inert -- supply a scriptContent body to execute it.",
+					el.getAttribute("id"), camClass != null ? "class=" + camClass : "delegateExpression=" + camDeleg);
+			}
 		}
 
 		if (!attrs.isEmpty()) {
@@ -725,7 +786,9 @@ public class BpmnImporter {
 		final Element scriptEl = getFirstChildByLocalName(el, "script");
 		if (scriptEl != null) {
 
-			elemNode.setProperty(traits.key(BpmnElementTraitDefinition.SCRIPT_CONTENT_PROPERTY), scriptEl.getTextContent());
+			final String scriptBody = scriptEl.getTextContent();
+			elemNode.setProperty(traits.key(BpmnElementTraitDefinition.SCRIPT_CONTENT_PROPERTY), scriptBody);
+			scaffoldServiceClasses(app, scriptBody); // create service-class stubs for any bean/service calls
 		}
 
 		// Event definitions (timer, error, message, signal, terminate, etc.)
@@ -1534,6 +1597,110 @@ public class BpmnImporter {
 	}
 
 	/**
+	 * Scaffold a Structr service class for every Camunda bean/service call in {@code script}
+	 * (e.g. {@code notificationService.notifyReviewer(task)}). For each distinct receiver a
+	 * service-class SchemaNode ({@code isServiceClass=true}) is created if absent, and for each
+	 * referenced method a STATIC stub SchemaMethod is added if absent. Idempotent across
+	 * re-imports: existing types/methods are reused and never overwritten, so a body the user
+	 * has already implemented survives. The transpiler rewrites the call sites to
+	 * {@code $.<Type>.<method>(...)}, so the process runs against these stubs immediately.
+	 */
+	private void scaffoldServiceClasses(final App app, final String script) throws FrameworkException {
+
+		final Map<String, Map<String, Integer>> services = ProcessEngine.detectServiceCalls(script);
+		if (!services.isEmpty()) {
+			logger.info("BPMN import: detected service calls {}", services);
+		}
+		for (final Map.Entry<String, Map<String, Integer>> service : services.entrySet()) {
+
+			final NodeInterface type = ensureServiceClass(app, service.getKey());
+			for (final Map.Entry<String, Integer> method : service.getValue().entrySet()) {
+
+				ensureServiceMethod(app, type, service.getKey(), method.getKey(), method.getValue());
+			}
+		}
+	}
+
+	/** Return the service-class SchemaNode named {@code typeName}, creating it (isServiceClass=true) if absent. */
+	private NodeInterface ensureServiceClass(final App app, final String typeName) throws FrameworkException {
+
+		final Traits schemaNodeTraits     = Traits.of(StructrTraits.SCHEMA_NODE);
+		final PropertyKey<String> nameKey = schemaNodeTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+
+		final NodeInterface existing = app.nodeQuery(StructrTraits.SCHEMA_NODE).key(nameKey, typeName).getFirst();
+		if (existing != null) {
+
+			return existing;
+		}
+
+		final NodeInterface node = app.create(StructrTraits.SCHEMA_NODE);
+
+		node.setProperty(nameKey, typeName);
+		node.setProperty(schemaNodeTraits.key(AbstractSchemaNodeTraitDefinition.IS_SERVICE_CLASS_PROPERTY), true);
+
+		logger.info("BPMN import: scaffolded service class '{}' for an imported service reference", typeName);
+
+		return node;
+	}
+
+	/**
+	 * Add a stub SchemaMethod {@code methodName} to service class {@code schemaNode} if it
+	 * doesn't already exist. Bound via the {@code schemaNode} RELATIONSHIP so the method's
+	 * name-uniqueness level is the service class itself. This is essential: the uniqueness
+	 * validator (SchemaMethodTraitDefinition) groups methods by their schemaNode and treats
+	 * ALL schemaNode==null methods as one "user-defined functions" level. Binding by
+	 * staticSchemaNodeName leaves schemaNode==null, which collides with the global listener
+	 * function the importer derives from the same payload (e.g. a listener
+	 * "${notificationService.notifyReviewer(task)}" yields a global "notifyReviewer"), failing
+	 * the whole commit. With the relationship set, the stub sits under its type -- a different
+	 * level -- so there is no collision. Service-class methods are forced static by the backend.
+	 */
+	private void ensureServiceMethod(final App app, final NodeInterface schemaNode, final String typeName, final String methodName, final int argCount) throws FrameworkException {
+
+		final Traits methodTraits                      = Traits.of(StructrTraits.SCHEMA_METHOD);
+		final PropertyKey<String> nameKey              = methodTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+		final PropertyKey<NodeInterface> schemaNodeKey = methodTraits.key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY);
+		final PropertyKey<String> staticNameKey        = methodTraits.key(SchemaMethodTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY);
+		final String schemaNodeId                      = schemaNode.getUuid();
+
+		// Within this import: skip a (type, method) pair we've already scaffolded. A
+		// same-transaction query can't reliably see a just-created sibling, so this
+		// in-memory guard prevents duplicates for a service referenced in more than one place.
+		if (!scaffoldedServiceMethods.add(typeName + "#" + methodName)) {
+			return;
+		}
+
+		// Across imports: skip if a method of this name already belongs to this service class,
+		// bound via the schemaNode relationship (this version) OR staticSchemaNodeName (older
+		// versions / leftovers). Never overwrite a body the user may have implemented.
+		for (final NodeInterface m : app.nodeQuery(StructrTraits.SCHEMA_METHOD).key(nameKey, methodName).getResultStream()) {
+
+			final NodeInterface owner = m.getProperty(schemaNodeKey);
+			if (owner != null && schemaNodeId.equals(owner.getUuid())) {
+				logger.info("BPMN import: service method {}.{} already exists, skipping", typeName, methodName);
+				return;
+			}
+			if (typeName.equalsIgnoreCase(m.getProperty(staticNameKey))) {
+				logger.info("BPMN import: service method {}.{} already exists (legacy binding), skipping", typeName, methodName);
+				return;
+			}
+		}
+
+		final String stub = "{\n"
+			+ "\t// TODO: implement " + typeName + "." + methodName + " (" + argCount + " arg(s)) -- scaffolded from an imported BPMN service reference.\n"
+			+ "\t$.log('Service stub called (not implemented): " + typeName + "." + methodName + "');\n"
+			+ "\treturn null;\n"
+			+ "}";
+
+		app.create(StructrTraits.SCHEMA_METHOD,
+			new NodeAttribute<>(nameKey, methodName),
+			new NodeAttribute<>(schemaNodeKey, schemaNode),
+			new NodeAttribute<>(methodTraits.key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), stub)
+		);
+		logger.info("BPMN import: created service method {}.{}", typeName, methodName);
+	}
+
+	/**
 	 * Return the SchemaMethod named {@code methodName} attached to {@code elemNode}
 	 * (via HAS_METHOD), creating and attaching it if absent. The method is the
 	 * handler body a task listener invokes; it lives on the element so it shows
@@ -1541,9 +1708,17 @@ public class BpmnImporter {
 	 */
 	private NodeInterface ensureElementMethod(final App app, final NodeInterface elemNode, final String methodName) throws FrameworkException {
 
+		final Traits methodTraits                             = Traits.of(StructrTraits.SCHEMA_METHOD);
 		final Traits elemTraits                               = elemNode.getTraits();
 		final PropertyKey<Iterable<NodeInterface>> methodsKey = elemTraits.key(BpmnElementTraitDefinition.METHODS_PROPERTY);
-		final PropertyKey<String> nameKey                     = Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+		final PropertyKey<String> nameKey                     = methodTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+
+		// The incoming value may be a raw Camunda payload (FQCN, ${...} expression,
+		// delegateExpression or inline script) that is NOT a valid SchemaMethod name.
+		// Derive a valid identifier; when it had to be rewritten, keep the original
+		// payload as the method body so it is not lost.
+		final String safeName                                 = sanitizeMethodName(methodName);
+		scaffoldServiceClasses(app, methodName); // service-class stubs for bean/service calls in listener bodies
 		final List<NodeInterface> existing                    = new LinkedList<>();
 		final Iterable<NodeInterface> current                 = elemNode.getProperty(methodsKey);
 
@@ -1551,7 +1726,7 @@ public class BpmnImporter {
 
 			for (final NodeInterface m : current) {
 
-				if (methodName.equals(m.getProperty(nameKey))) {
+				if (safeName.equals(m.getProperty(nameKey))) {
 					return m;
 				}
 
@@ -1561,7 +1736,10 @@ public class BpmnImporter {
 
 		final NodeInterface method = app.create(StructrTraits.SCHEMA_METHOD);
 
-		method.setProperty(nameKey, methodName);
+		method.setProperty(nameKey, safeName);
+		if (!safeName.equals(methodName)) {
+			method.setProperty(methodTraits.key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), camundaListenerBody(methodName));
+		}
 		existing.add(method);
 		elemNode.setProperty(methodsKey, existing);
 
@@ -1689,11 +1867,114 @@ public class BpmnImporter {
 	 * (via HAS_METHOD), creating and attaching it if absent. Mirrors
 	 * {@link #ensureElementMethod} for process-level handler methods.
 	 */
+	/**
+	 * Coerce a listener's method payload into a valid {@code SchemaMethod} name
+	 * ({@code [a-z_][a-zA-Z0-9_]*}).
+	 *
+	 * <p>A {@code structr:taskListener method="notify"} value is already a valid
+	 * identifier and passes through unchanged. A {@code camunda:*} listener instead
+	 * carries a fully-qualified class name, a {@code ${...}} expression, a
+	 * {@code delegateExpression}, or inline script -- none of which are valid method
+	 * names. From those we derive a sensible identifier: the last invoked method name
+	 * in an expression (e.g. {@code ${svc.notifyReviewer(t)}} -> {@code notifyReviewer}),
+	 * otherwise the last dotted segment of a class / bean reference
+	 * ({@code com.acme.NotifyDelegate} -> {@code notifyDelegate}), stripped to
+	 * identifier characters and given a valid first character. Package-private and
+	 * static for unit testing.</p>
+	 */
+	static String sanitizeMethodName(final String raw) {
+
+		if (raw == null) {
+			return null;
+		}
+
+		final String s = raw.trim();
+		if (s.isEmpty()) {
+			return null;
+		}
+
+		// Common case: already a valid Structr method name (structr:taskListener method="...").
+		if (VALID_METHOD_NAME.matcher(s).matches()) {
+			return s;
+		}
+
+		// Prefer the LAST invoked method name in an expression / script.
+		String candidate = null;
+		final Matcher call = METHOD_CALL_TOKEN.matcher(s);
+		while (call.find()) {
+			candidate = call.group(1);
+		}
+
+		// Otherwise the last dotted segment of a FQCN / bean reference (minus ${ }).
+		if (candidate == null) {
+
+			String ref = s.replaceAll("^\\$\\{", "").replaceAll("\\}$", "").trim();
+			final int dot = ref.lastIndexOf('.');
+			if (dot >= 0 && dot < ref.length() - 1) {
+				ref = ref.substring(dot + 1);
+			}
+			candidate = ref;
+		}
+
+		// Keep only identifier characters.
+		candidate = candidate.replaceAll("[^A-Za-z0-9_]", "");
+		if (candidate.isEmpty()) {
+			candidate = "listener";
+		}
+
+		// Ensure a valid first character (lowercase letter or underscore).
+		final char c0 = candidate.charAt(0);
+		if (c0 >= 'A' && c0 <= 'Z') {
+			candidate = Character.toLowerCase(c0) + candidate.substring(1);
+		} else if (!((c0 >= 'a' && c0 <= 'z') || c0 == '_')) {
+			candidate = "_" + candidate;
+		}
+
+		return candidate;
+	}
+
+	/**
+	 * Turn a Camunda listener payload into a runnable Structr method body.
+	 *
+	 * <p>An expression / inline script is stripped of its {@code ${ }} wrapper,
+	 * transpiled ({@code execution.getVariable/setVariable} -> {@code $.process}) and
+	 * wrapped as a JavaScript method body ({@code { ... }}) so it runs as JS with
+	 * {@code $.process} available (the engine installs the process context when a
+	 * listener fires). A bare class / delegate-bean reference has no Structr runtime
+	 * equivalent, so it becomes an inert JS body carrying the original as a comment
+	 * for manual porting. (Camunda built-ins like {@code now()} and beans still need
+	 * porting -- this only fixes the syntax/engine and the execution.* mapping.)</p>
+	 */
+	static String camundaListenerBody(final String payload) {
+
+		String inner = payload.trim();
+		if (inner.startsWith("${") && inner.endsWith("}")) {
+			inner = inner.substring(2, inner.length() - 1).trim();
+		}
+
+		// Executable when it references execution.* or is a call; otherwise it's a
+		// class/bean reference we can't run.
+		final boolean executable = inner.contains("execution.") || inner.contains("(");
+		if (executable) {
+
+			return "{\n" + ProcessEngine.transpileForeignScript(inner) + "\n}";
+		}
+
+		final String safeComment = payload.replace("*/", "* /");
+		return "{ /* imported from Camunda listener: " + safeComment + " -- no Structr equivalent, port manually */ }";
+	}
+
 	private NodeInterface ensureProcessMethod(final App app, final NodeInterface procNode, final String methodName) throws FrameworkException {
 
+		final Traits methodTraits                             = Traits.of(StructrTraits.SCHEMA_METHOD);
 		final Traits procTraits                               = procNode.getTraits();
 		final PropertyKey<Iterable<NodeInterface>> methodsKey = procTraits.key(BpmnProcessTraitDefinition.METHODS_PROPERTY);
-		final PropertyKey<String> nameKey                     = Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+		final PropertyKey<String> nameKey                     = methodTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+
+		// See ensureElementMethod: coerce a raw Camunda payload into a valid method
+		// name and keep the original as the body when it had to be rewritten.
+		final String safeName                                 = sanitizeMethodName(methodName);
+		scaffoldServiceClasses(app, methodName); // service-class stubs for bean/service calls in listener bodies
 		final List<NodeInterface> existing                    = new LinkedList<>();
 		final Iterable<NodeInterface> current                 = procNode.getProperty(methodsKey);
 
@@ -1701,7 +1982,7 @@ public class BpmnImporter {
 
 			for (final NodeInterface m : current) {
 
-				if (methodName.equals(m.getProperty(nameKey))) {
+				if (safeName.equals(m.getProperty(nameKey))) {
 					return m;
 				}
 
@@ -1711,7 +1992,10 @@ public class BpmnImporter {
 
 		final NodeInterface method = app.create(StructrTraits.SCHEMA_METHOD);
 
-		method.setProperty(nameKey, methodName);
+		method.setProperty(nameKey, safeName);
+		if (!safeName.equals(methodName)) {
+			method.setProperty(methodTraits.key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), camundaListenerBody(methodName));
+		}
 		existing.add(method);
 		procNode.setProperty(methodsKey, existing);
 
@@ -1727,7 +2011,7 @@ public class BpmnImporter {
 	 */
 	private void importProcessMethodRefs(final App app, final NodeInterface procNode, final Element processEl) throws FrameworkException {
 
-		final List<NodeInterface> resolved = collectMethodRefs(app, processEl, processEl.getAttribute("id"));
+		final List<NodeInterface> resolved = collectMethodRefs(app, processEl, procNode, processEl.getAttribute("id"));
 		if (resolved.isEmpty()) {
 
 			return;
@@ -1773,7 +2057,7 @@ public class BpmnImporter {
 				continue;
 			}
 
-			final List<NodeInterface> resolved = collectMethodRefs(app, el, bpmnId);
+			final List<NodeInterface> resolved = collectMethodRefs(app, el, elemNode, bpmnId);
 			if (!resolved.isEmpty()) {
 
 				appendMethods(elemNode, elemMethodsKey, resolved);
@@ -1784,9 +2068,11 @@ public class BpmnImporter {
 	/**
 	 * Read {@code <structr:methodRef name="..."/>} children of {@code parent}'s
 	 * direct {@code <bpmn:extensionElements>} and resolve each name to a
-	 * SchemaMethod. The {@code ownerLabel} is used only in warning messages.
+	 * SchemaMethod. {@code owner} is the BpmnProcess / BpmnElement the resolved
+	 * methods will be attached to (see {@link #resolveMethodRef}); the
+	 * {@code ownerLabel} is used only in warning messages.
 	 */
-	private List<NodeInterface> collectMethodRefs(final App app, final Element parent, final String ownerLabel) throws FrameworkException {
+	private List<NodeInterface> collectMethodRefs(final App app, final Element parent, final NodeInterface owner, final String ownerLabel) throws FrameworkException {
 
 		final Element extEl = getFirstChildByLocalName(parent, "extensionElements");
 		if (extEl == null) {
@@ -1822,10 +2108,9 @@ public class BpmnImporter {
 				continue;
 			}
 
-			final NodeInterface method = findSchemaMethodByName(app, name);
+			final NodeInterface method = resolveMethodRef(app, name, owner, ownerLabel);
 			if (method == null) {
 
-				logger.warn("methodRef '{}' on '{}' could not be resolved -- skipped (no matching SchemaMethod in this database)", name, ownerLabel);
 				continue;
 			}
 
@@ -1836,49 +2121,135 @@ public class BpmnImporter {
 	}
 
 	/**
-	 * Look up a SchemaMethod by name. Prefers orphan methods (no schemaNode),
-	 * since BPMN-attached methods are conventionally orphans (cloned per
-	 * definition version). Falls back to a typed match if no orphan exists,
-	 * with a warning. Returns null if no SchemaMethod matches.
+	 * Resolve a {@code <structr:methodRef name="..."/>} to exactly one SchemaMethod, or to
+	 * nothing at all. The reference carries only a name (see BpmnExporter#exportMethodRef),
+	 * so resolution has to be strict: HAS_METHOD is One-to-Many, so attaching a method that
+	 * already belongs to another process/element would silently STEAL it -- ensureCardinality
+	 * drops the previous owner's relationship. The rules are therefore:
+	 *
+	 * <ul>
+	 * <li>only methods without a {@code schemaNode} are candidates -- a method owned by a
+	 *     type is class code, never a process handler;</li>
+	 * <li>a candidate already attached to a different node in the same slot ({@code bpmnProcess}
+	 *     for a process owner, {@code bpmnElement} for an element owner) is rejected, so an
+	 *     import can never take a method away from an existing process;</li>
+	 * <li>the match must be unique -- an ambiguous name resolves to nothing rather than to an
+	 *     arbitrary "first" hit.</li>
+	 * </ul>
+	 *
+	 * Anything unresolved is logged and skipped. The {@code methodRef} stays in the XML, so a
+	 * re-import after creating (or deployment-importing) the intended method links it up. Note
+	 * that re-importing a process that already exists doesn't take this path at all: methods
+	 * are cloned from the previous version by processId, which is unambiguous.
 	 */
-	private NodeInterface findSchemaMethodByName(final App app, final String name) throws FrameworkException {
+	private NodeInterface resolveMethodRef(final App app, final String name, final NodeInterface owner, final String ownerLabel) throws FrameworkException {
 
-		final Traits methodTraits                       = Traits.of(StructrTraits.SCHEMA_METHOD);
-		final PropertyKey<String> nameKey               = methodTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
-		final PropertyKey<NodeInterface> schemaNodeKey  = methodTraits.key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY);
-		final List<NodeInterface> orphans               = new LinkedList<>();
-		final List<NodeInterface> typed                 = new LinkedList<>();
+		final Traits methodTraits                      = Traits.of(StructrTraits.SCHEMA_METHOD);
+		final PropertyKey<String> nameKey              = methodTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+		final PropertyKey<NodeInterface> schemaNodeKey = methodTraits.key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY);
+		final String slotKey                           = owner != null && owner.is(ProcessTraits.BPMN_PROCESS) ? "bpmnProcess" : "bpmnElement";
+		final String ownerId                           = owner != null ? owner.getUuid() : null;
+		final List<NodeInterface> candidates           = new LinkedList<>();
+		int rejectedAsTyped                            = 0;
+		int rejectedAsForeign                          = 0;
 
 		for (final NodeInterface m : app.nodeQuery(StructrTraits.SCHEMA_METHOD).key(nameKey, name).getResultStream()) {
 
-			if (m.getProperty(schemaNodeKey) == null) {
-				orphans.add(m);
+			if (m.getProperty(schemaNodeKey) != null) {
 
-			} else {
-
-				typed.add(m);
-			}
-		}
-
-		if (!orphans.isEmpty()) {
-
-			if (orphans.size() > 1) {
-				logger.warn("Multiple orphan SchemaMethods named '{}' found; picking the first", name);
+				rejectedAsTyped++;
+				continue;
 			}
 
-			return orphans.get(0);
+			final NodeInterface currentOwner = methodTraits.hasKey(slotKey) ? m.getProperty(methodTraits.key(slotKey)) : null;
+			if (currentOwner != null && !currentOwner.getUuid().equals(ownerId)) {
+
+				rejectedAsForeign++;
+				continue;
+			}
+
+			candidates.add(m);
 		}
 
-		if (!typed.isEmpty()) {
+		if (candidates.size() == 1) {
 
-			logger.warn("No orphan SchemaMethod named '{}' found; falling back to a typed match", name);
-			return typed.get(0);
+			return candidates.get(0);
+		}
+
+		if (candidates.size() > 1) {
+
+			logger.warn("methodRef '{}' on '{}' is ambiguous -- {} unattached SchemaMethods share that name, skipped (attach the intended one manually)", name, ownerLabel, candidates.size());
+
+		} else if (rejectedAsTyped > 0 || rejectedAsForeign > 0) {
+
+			logger.warn("methodRef '{}' on '{}' could not be resolved -- skipped ({} method(s) of that name belong to a type, {} to another process element)", name, ownerLabel, rejectedAsTyped, rejectedAsForeign);
+
+		} else {
+
+			logger.warn("methodRef '{}' on '{}' could not be resolved -- skipped (no SchemaMethod of that name exists in this database)", name, ownerLabel);
 		}
 
 		return null;
 	}
 
 	// --- Helper methods ---
+
+	/**
+	 * Parse a {@code <camunda:inputOutput>} block (inside {@code <extensionElements>})
+	 * into the element's {@code ioMappings} JSON. Each {@code <camunda:inputParameter>}
+	 * / {@code <camunda:outputParameter name="x">source</...>} becomes an entry; the
+	 * source is the parameter's text (a literal or a {@code ${...}} expression). The
+	 * engine applies inputs before, and outputs after, automatic-task execution.
+	 */
+	private void importIoMappings(final NodeInterface elemNode, final Element el) throws FrameworkException {
+
+		final Element ext = getFirstChildByLocalName(el, "extensionElements");
+		if (ext == null) {
+			return;
+		}
+
+		final Element io = getFirstChildByLocalName(ext, "inputOutput");
+		if (io == null) {
+			return;
+		}
+
+		final List<Map<String, String>> inputs  = collectIoParams(io, "inputParameter");
+		final List<Map<String, String>> outputs = collectIoParams(io, "outputParameter");
+
+		if (inputs.isEmpty() && outputs.isEmpty()) {
+			return;
+		}
+
+		final Map<String, Object> mappings = new LinkedHashMap<>();
+		mappings.put("inputs", inputs);
+		mappings.put("outputs", outputs);
+
+		elemNode.setProperty(elemNode.getTraits().key(BpmnElementTraitDefinition.IO_MAPPINGS_PROPERTY), gson.toJson(mappings));
+	}
+
+	private List<Map<String, String>> collectIoParams(final Element io, final String localName) {
+
+		final List<Map<String, String>> out = new LinkedList<>();
+
+		for (final Element p : getChildrenByLocalName(io, localName)) {
+
+			final String name = p.getAttribute("name");
+			if (StringUtils.isEmpty(name)) {
+				continue;
+			}
+
+			// Simple text/expression source. Nested complex sources (camunda:map /
+			// list / script) collapse to their text content (best effort).
+			final String source = p.getTextContent() != null ? p.getTextContent().trim() : "";
+
+			final Map<String, String> entry = new LinkedHashMap<>();
+			entry.put("name", name);
+			entry.put("source", source);
+			out.add(entry);
+		}
+
+		return out;
+	}
 
 	private List<Element> getChildrenByLocalName(final Element parent, final String localName) {
 

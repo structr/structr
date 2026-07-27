@@ -25,6 +25,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.JavaMethod;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
@@ -170,6 +172,40 @@ public class BpmnProcessTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public String getDescription() {
 					return "Starts a new process instance from this BpmnProcess. Pass an optional 'subject' parameter (node UUID or node object) to attach the domain object this instance operates on. Any other parameters are stored as initial process parameters (subject-matching fields populate the subject; the rest become ProcessParameterValues). Returns the created ProcessInstance node.";
+				}
+			},
+
+			new JavaMethod("liveTokenCounts", false, false) {
+
+				@Override
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
+					// Super-user query so the overlay reflects ALL instances, not just
+					// those the current user is permitted to read.
+					final App app = StructrApp.getInstance(SecurityContext.getSuperUserInstance());
+					return ProcessEngine.computeLiveTokenCounts(app, (NodeInterface) entity);
+				}
+
+				@Override
+				public String getDescription() {
+					return "Returns a map of element bpmnId -> number of non-completed tokens currently sitting at that element, aggregated across all instances of this process. Powers the editor's live instance-count overlay.";
+				}
+			},
+
+			new JavaMethod("completedTokenCounts", false, false) {
+
+				@Override
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
+					// Super-user query so the overlay reflects ALL instances, not just
+					// those the current user is permitted to read.
+					final App app = StructrApp.getInstance(SecurityContext.getSuperUserInstance());
+					return ProcessEngine.computeCompletedTokenCounts(app, (NodeInterface) entity);
+				}
+
+				@Override
+				public String getDescription() {
+					return "Returns a map of element bpmnId -> number of completed tokens that finished at that element, aggregated across all instances of this process. Powers the editor's finished-instance-count overlay (shown alongside the live/active badge).";
 				}
 			}
 		);

@@ -59,6 +59,16 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 		this._shapes          = new Map();  // bpmnElementRef (bpmnId) -> shape JSON
 		this._edges           = new Map();  // bpmnElementRef (flow bpmnId) -> edge JSON
 
+		// Instance overlays (Camunda-Cockpit-style activity badges), aggregated across
+		// all instances and polled while mounted:
+		//   _liveCounts      bpmnId -> non-completed tokens currently sitting here ("active")
+		//   _completedCounts bpmnId -> completed tokens that finished here ("finished")
+		// fetched from BpmnProcess.liveTokenCounts / .completedTokenCounts respectively.
+		this._liveCounts      = new Map();
+		this._completedCounts = new Map();
+		this._livePollTimer   = null;
+		this._livePollMs      = 5000;
+
 		// Collaboration (multi-process) state. Optional: single-process files
 		// have no collaboration. Participants render as labelled pools and
 		// messageFlows as dashed cross-pool edges.
@@ -499,6 +509,7 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 
 	unmount() {
 		if (!this._container) return;
+		this._stopLivePolling();
 		if (this._resizeObserver) {
 			try { this._resizeObserver.disconnect(); } catch (_) {}
 			this._resizeObserver = null;
@@ -689,6 +700,74 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 
 		this.refresh();
 		this.fit();
+
+		// Kick off the live instance-count overlay (poll while mounted).
+		this._startLivePolling();
+	}
+
+	// ===== Live instance-count overlay =====
+
+	/** Begin polling per-process live token counts; repaints when they change. */
+	_startLivePolling() {
+		this._stopLivePolling();
+		this._refreshLiveCounts();
+		this._livePollTimer = setInterval(() => this._refreshLiveCounts(), this._livePollMs);
+	}
+
+	_stopLivePolling() {
+		if (this._livePollTimer) {
+			clearInterval(this._livePollTimer);
+			this._livePollTimer = null;
+		}
+	}
+
+	/**
+	 * Fetch the live (active) and completed (finished) per-element counts for every
+	 * process and merge each into its map (bpmnId -> count). Repaints only when either
+	 * set actually changed, so the poll doesn't churn the DOM. Failures are swallowed
+	 * (overlay is best-effort).
+	 */
+	async _refreshLiveCounts() {
+		if (!this._viewport || !Array.isArray(this._processes)) return;
+		try {
+			const [live, completed] = await Promise.all([
+				this._fetchCountsOverlay('liveTokenCounts'),
+				this._fetchCountsOverlay('completedTokenCounts'),
+			]);
+			// Repaint only on change to either overlay.
+			const changed = this._countsDiffer(this._liveCounts, live) || this._countsDiffer(this._completedCounts, completed);
+			this._liveCounts      = live;
+			this._completedCounts = completed;
+			if (changed) this.refresh();
+		} catch (_) { /* best-effort overlay */ }
+	}
+
+	/**
+	 * Call the given BpmnProcess count method (liveTokenCounts / completedTokenCounts)
+	 * for every process and merge the results into a single bpmnId -> count map.
+	 */
+	async _fetchCountsOverlay(method) {
+		const merged = new Map();
+		for (const p of this._processes) {
+			const res = await fetch(`${Structr.rootUrl}BpmnProcess/${p.id}/${method}`, {
+				method: 'POST', credentials: 'same-origin',
+				headers: { 'Content-Type': 'application/json' }, body: '{}'
+			});
+			if (!res.ok) continue;
+			const json   = await res.json();
+			const counts = (json && json.result) ? json.result : json;
+			if (counts && typeof counts === 'object') {
+				for (const [bpmnId, n] of Object.entries(counts)) merged.set(bpmnId, Number(n) || 0);
+			}
+		}
+		return merged;
+	}
+
+	/** True if the two bpmnId -> count maps differ in any key or value. */
+	_countsDiffer(a, b) {
+		if (a.size !== b.size) return true;
+		for (const [k, v] of b) { if (a.get(k) !== v) return true; }
+		return false;
 	}
 
 	refresh() {
@@ -2833,50 +2912,25 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 			g.appendChild(txt);
 		}
 
-		// Method-count badge: shapes whose BpmnElement has attached
-		// SchemaMethods get a small numbered marker at the top-right corner.
-		// pointer-events are off so the badge doesn't intercept clicks meant
-		// for the shape body.
-		const methodCount = Array.isArray(element?.methods) ? element.methods.length : 0;
-		if (methodCount > 0) {
-			let bx, by;
-			if (isEvent) {
-				const r   = Math.min(shape.boundsWidth, shape.boundsHeight) / 2;
-				const off = r * Math.SQRT1_2;
-				bx = cx + off;
-				by = cy - off;
-			} else if (isGateway) {
-				// Halfway along the diamond's upper-right edge.
-				bx = cx + shape.boundsWidth  / 4;
-				by = cy - shape.boundsHeight / 4;
-			} else {
-				bx = shape.boundsX + shape.boundsWidth;
-				by = shape.boundsY;
-			}
-			const badge = document.createElementNS(_BpmnDiagramCommunitySvg.SVG_NS, 'g');
-			badge.setAttribute('class', 'bpmn-method-badge');
-			badge.setAttribute('pointer-events', 'none');
-			const circ = document.createElementNS(_BpmnDiagramCommunitySvg.SVG_NS, 'circle');
-			circ.setAttribute('cx', bx);
-			circ.setAttribute('cy', by);
-			circ.setAttribute('r',  8);
-			circ.setAttribute('fill',   '#1abc9c');
-			circ.setAttribute('stroke', '#fff');
-			circ.setAttribute('stroke-width', '1.5');
-			badge.appendChild(circ);
-			const ct = document.createElementNS(_BpmnDiagramCommunitySvg.SVG_NS, 'text');
-			ct.setAttribute('x', bx);
-			ct.setAttribute('y', by);
-			ct.setAttribute('text-anchor', 'middle');
-			ct.setAttribute('dominant-baseline', 'central');
-			ct.setAttribute('font-size', '10');
-			ct.setAttribute('font-family', 'sans-serif');
-			ct.setAttribute('font-weight', 'bold');
-			ct.setAttribute('fill', '#fff');
-			ct.textContent = String(methodCount);
-			badge.appendChild(ct);
-			g.appendChild(badge);
-		}
+		// Instance-count overlay badges (Camunda-Cockpit style): a blue "active"
+		// badge (non-completed tokens currently sitting here) in the top-left
+		// corner, and a green "finished" badge (completed tokens that finished
+		// here) in the top-right corner. Both are polled and updated live.
+		const bpmnId        = element?.bpmnId;
+		const activeCount   = (this._liveCounts      && bpmnId) ? (this._liveCounts.get(bpmnId)      || 0) : 0;
+		const finishedCount = (this._completedCounts && bpmnId) ? (this._completedCounts.get(bpmnId) || 0) : 0;
+		this._renderCountBadge(g, shape, { cx, cy, isEvent, isGateway }, activeCount, {
+			corner:  'tl',
+			fill:    '#3498db',
+			cssClass:'bpmn-instance-badge bpmn-instance-badge-active',
+			tooltip: (n) => `Active instances — process instances currently at this step (${n} ${n === 1 ? 'instance' : 'instances'}). Updates automatically.`,
+		});
+		this._renderCountBadge(g, shape, { cx, cy, isEvent, isGateway }, finishedCount, {
+			corner:  'tr',
+			fill:    '#27ae60',
+			cssClass:'bpmn-instance-badge bpmn-instance-badge-finished',
+			tooltip: (n) => `Finished instances — process instances that completed this step (${n} ${n === 1 ? 'instance' : 'instances'}). Updates automatically.`,
+		});
 
 		// Pointer interaction: in editable mode, pointerdown begins a drag and
 		// pointerup decides "click vs drag" based on whether the pointer moved.
@@ -2893,6 +2947,87 @@ window._BpmnDiagramCommunitySvg = class _BpmnDiagramCommunitySvg extends window.
 		}
 
 		this._viewport.appendChild(g);
+	}
+
+	/**
+	 * Render one Camunda-Cockpit-style instance-count badge on a shape. No-op when
+	 * count <= 0. `corner` picks the anchor ('tl' top-left / 'tr' top-right); the
+	 * anchor tracks the shape kind (box corner for tasks, circle edge for events,
+	 * diamond edge midpoint for gateways). `opts` = { corner, fill, cssClass, tooltip }
+	 * where tooltip is a fn(count) -> string.
+	 */
+	_renderCountBadge(g, shape, geom, count, opts) {
+		if (!(count > 0)) return;
+
+		const { cx, cy, isEvent, isGateway } = geom;
+		const left = opts.corner === 'tl';
+
+		// Anchor point at the requested top corner.
+		let bx, by;
+		if (isEvent) {
+			const r   = Math.min(shape.boundsWidth, shape.boundsHeight) / 2;
+			const off = r * Math.SQRT1_2;
+			bx = cx + (left ? -off : off);
+			by = cy - off;
+		} else if (isGateway) {
+			// Midpoint of the diamond's upper-left / upper-right edge.
+			bx = cx + (left ? -shape.boundsWidth / 4 : shape.boundsWidth / 4);
+			by = cy - shape.boundsHeight / 4;
+		} else {
+			bx = left ? shape.boundsX : shape.boundsX + shape.boundsWidth;
+			by = shape.boundsY;
+		}
+
+		const badge = document.createElementNS(_BpmnDiagramCommunitySvg.SVG_NS, 'g');
+		badge.setAttribute('class', opts.cssClass || 'bpmn-instance-badge');
+		// Receive pointer events so the <title> tooltip shows on hover. Clicks/drags
+		// still select the shape: the delegated handler resolves the target via
+		// .closest('.bpmn-shape'), and the badge is a child of the shape group.
+		badge.setAttribute('pointer-events', 'all');
+
+		const label = count > 99 ? '99+' : String(count);
+		const r = 8;
+		if (count > 9) {
+			// Widen the marker into a pill when the number needs more room.
+			const w = label.length * 7 + 6;
+			const rect = document.createElementNS(_BpmnDiagramCommunitySvg.SVG_NS, 'rect');
+			rect.setAttribute('x', bx - w / 2);
+			rect.setAttribute('y', by - r);
+			rect.setAttribute('width',  w);
+			rect.setAttribute('height', 2 * r);
+			rect.setAttribute('rx', r);
+			rect.setAttribute('fill',   opts.fill);
+			rect.setAttribute('stroke', '#fff');
+			rect.setAttribute('stroke-width', '1.5');
+			badge.appendChild(rect);
+		} else {
+			const circ = document.createElementNS(_BpmnDiagramCommunitySvg.SVG_NS, 'circle');
+			circ.setAttribute('cx', bx);
+			circ.setAttribute('cy', by);
+			circ.setAttribute('r',  r);
+			circ.setAttribute('fill',   opts.fill);
+			circ.setAttribute('stroke', '#fff');
+			circ.setAttribute('stroke-width', '1.5');
+			badge.appendChild(circ);
+		}
+
+		const ct = document.createElementNS(_BpmnDiagramCommunitySvg.SVG_NS, 'text');
+		ct.setAttribute('x', bx);
+		ct.setAttribute('y', by);
+		ct.setAttribute('text-anchor', 'middle');
+		ct.setAttribute('dominant-baseline', 'central');
+		ct.setAttribute('font-size', '10');
+		ct.setAttribute('font-family', 'sans-serif');
+		ct.setAttribute('font-weight', 'bold');
+		ct.setAttribute('fill', '#fff');
+		ct.textContent = label;
+		badge.appendChild(ct);
+
+		const title = document.createElementNS(_BpmnDiagramCommunitySvg.SVG_NS, 'title');
+		title.textContent = opts.tooltip ? opts.tooltip(count) : label;
+		badge.appendChild(title);
+
+		g.appendChild(badge);
 	}
 
 	_renderEdge(edge) {

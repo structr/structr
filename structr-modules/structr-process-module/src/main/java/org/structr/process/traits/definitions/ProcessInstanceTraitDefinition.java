@@ -215,6 +215,22 @@ public class ProcessInstanceTraitDefinition extends AbstractNodeTraitDefinition 
 				}
 			},
 
+			new JavaMethod("getCurrentSteps", false, false) {
+
+				@Override
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+					// The BpmnElement node(s) this instance is currently at (elements of its
+					// non-completed tokens). Returns the nodes so callers can read bpmnName /
+					// bpmnElementType / bpmnId / etc. as needed.
+					return ProcessEngine.currentStepElements((NodeInterface) entity);
+				}
+
+				@Override
+				public String getDescription() {
+					return "Returns the BpmnElement node(s) this instance is currently at (the elements of its non-completed tokens). Usually one; a parallel split yields several. Empty once the instance has finished.";
+				}
+			},
+
 			new JavaMethod("terminate", false, false) {
 
 				@Override

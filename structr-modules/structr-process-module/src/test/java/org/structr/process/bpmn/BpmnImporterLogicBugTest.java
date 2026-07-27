@@ -20,14 +20,99 @@ package org.structr.process.bpmn;
 
 import org.testng.annotations.Test;
 
+import java.util.regex.Pattern;
+
+import static org.structr.process.bpmn.BpmnImporter.camundaListenerBody;
 import static org.structr.process.bpmn.BpmnImporter.csvToFunctionExpression;
+import static org.structr.process.bpmn.BpmnImporter.sanitizeMethodName;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertTrue;
 
 /**
  * FAILING reproduction for pure-logic findings in {@link BpmnImporter}. Asserts
  * intended behaviour and currently FAILS. No graph / database needed.
  */
 public class BpmnImporterLogicBugTest {
+
+	private static final Pattern VALID = Pattern.compile("[a-z_][a-zA-Z0-9_]*");
+
+	/**
+	 * A Camunda listener's {@code expression}/{@code class}/{@code delegateExpression}
+	 * payload is not a valid SchemaMethod name; importing such a document used to fail
+	 * with a "must_match" validation error. {@code sanitizeMethodName} must always
+	 * produce a valid identifier while leaving genuine method names untouched.
+	 */
+	@Test
+	public void testSanitizeMethodNameProducesValidIdentifiers() {
+
+		// Already-valid Structr method names pass through unchanged.
+		assertEquals("notify",   sanitizeMethodName("notify"));
+		assertEquals("onCreate", sanitizeMethodName("onCreate"));
+		assertEquals("_private",  sanitizeMethodName("_private"));
+
+		// Camunda expression -> last invoked method name.
+		assertEquals("notifyReviewer", sanitizeMethodName("${notificationService.notifyReviewer(task)}"));
+		assertEquals("setVariable",    sanitizeMethodName("${execution.setVariable('x', 1)}"));
+
+		// FQCN / bean reference -> last dotted segment, decapitalised.
+		assertEquals("notifyDelegate", sanitizeMethodName("com.example.NotifyDelegate"));
+		assertEquals("myListenerBean", sanitizeMethodName("${myListenerBean}"));
+
+		// Degenerate inputs still yield a valid identifier.
+		assertEquals("listener", sanitizeMethodName("${}"));
+		assertTrue("a digit-leading payload must be prefixed", VALID.matcher(sanitizeMethodName("123abc")).matches());
+
+		assertNull(sanitizeMethodName(null));
+		assertNull(sanitizeMethodName("   "));
+	}
+
+	/**
+	 * A Camunda listener payload must become a runnable Structr method body: an
+	 * expression is transpiled and wrapped as a JS body ({@code { ... }}) so it runs
+	 * as JavaScript with $.process (not StructrScript, which chokes on the ${ }); a
+	 * bare class/bean reference becomes an inert JS body.
+	 */
+	@Test
+	public void testCamundaListenerBodyProducesRunnableJs() {
+
+		// execution.setVariable -> $.process write, wrapped as a JS method body.
+		final String setVar = camundaListenerBody("${execution.setVariable('startedAt', 5)}");
+		assertTrue("must be a JS method body ({...}); got:\n" + setVar, setVar.startsWith("{") && setVar.endsWith("}"));
+		assertTrue("execution.setVariable must transpile to a $.process write; got:\n" + setVar,
+			setVar.contains("$.process.startedAt = 5"));
+
+		// A bean/service call is rewritten to a Structr service-class call: the receiver
+		// becomes a capitalized $.<Type> and the method is preserved. The importer scaffolds
+		// NotificationService with a static notifyReviewer stub so this runs.
+		final String call = camundaListenerBody("${notificationService.notifyReviewer(task)}");
+		assertTrue(call.startsWith("{") && call.endsWith("}"));
+		assertTrue("bean call should bind to a service class; got:\n" + call,
+			call.contains("$.NotificationService.notifyReviewer(task)"));
+
+		// A class / delegate reference has no Structr equivalent -> inert body.
+		final String clazz = camundaListenerBody("com.acme.NotifyDelegate");
+		assertTrue("class ref must be an inert JS body; got:\n" + clazz, clazz.startsWith("{") && clazz.endsWith("}"));
+		assertTrue(clazz.contains("no Structr equivalent"));
+	}
+
+	/** Every non-blank payload must map to something the SchemaMethod name validator accepts. */
+	@Test
+	public void testSanitizeMethodNameAlwaysMatchesPattern() {
+
+		for (final String payload : new String[] {
+			"${notificationService.notifyReviewer(task)}",
+			"com.acme.listeners.Audit$Inner",
+			"${bean}",
+			"do-a-thing!!!",
+			"42",
+			"a.b.c.d"
+		}) {
+			final String name = sanitizeMethodName(payload);
+			assertTrue("sanitized '" + payload + "' -> '" + name + "' must be a valid method name",
+				VALID.matcher(name).matches());
+		}
+	}
 
 	/**
 	 * IMP-6: {@code csvToFunctionExpression} splits on <em>every</em> comma, so a

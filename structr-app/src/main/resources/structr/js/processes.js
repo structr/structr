@@ -145,7 +145,7 @@ let _Processes = {
 	},
 
 	rest: {
-		callEntityMethod: async (type, id, method, params = {}) => {
+		callEntityMethod: async (type, id, method, params = {}, { showError = true } = {}) => {
 
 			// Static methods are routed without an instance id: POST /{type}/{method}.
 			let url = id
@@ -159,15 +159,31 @@ let _Processes = {
 					body: JSON.stringify(params)
 				});
 			} catch (e) {
-				new ErrorMessage().text(`${method} failed: ${e.message}`).show();
+				if (showError) new ErrorMessage().text(`${method} failed: ${e.message}`).show();
 				throw e;
 			}
 
 			let json = await response.json().catch(() => ({}));
 			if (!response.ok) {
-				let msg = json?.message ?? response.statusText;
-				new ErrorMessage().text(`${method} failed: ${msg}`).show();
-				throw new Error(msg);
+				// Expand the FULL Structr error envelope -- the top-level message
+				// plus the per-field errors[] details -- via the shared formatter,
+				// instead of json.message alone. Validation failures (e.g. a
+				// duplicate user-defined function left over from an earlier import)
+				// carry the actionable reason in errors[]; the bare message omits
+				// it, so that reason used to be visible only in the browser console.
+				let hasBody    = json && (json.errors?.length || json.message || json.code !== undefined);
+				let detailHtml = hasBody
+					? Structr.getErrorMessageFromResponse(json, true)
+					: _Helpers.escapeTags(response.statusText || 'Request failed');
+				if (showError) {
+					new ErrorMessage().title(`${method} failed`).text(detailHtml).show();
+				}
+				// Plain-text detail for the thrown Error; attach the raw envelope so
+				// callers can re-render it with their own context (e.g. a filename).
+				let plain = (typeof detailHtml === 'string') ? detailHtml.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]*>/g, '') : String(detailHtml);
+				let err = new Error(plain);
+				err.responseData = json;
+				throw err;
 			}
 			return json;
 		},
@@ -269,6 +285,9 @@ let _Processes = {
 						<th>Name</th>
 						<th>Version</th>
 						<th>Processes</th>
+						<th>Active Instances</th>
+						<th>Suspended</th>
+						<th>Completed</th>
 						<th>Methods</th>
 						<th>Security</th>
 						<th class="actions-col">Actions</th>
@@ -392,11 +411,21 @@ let _ProcessDefinitions = {
 				for (const f of files) {
 					try {
 						const xml = await f.text();
-						await _Processes.rest.callEntityMethod('BpmnDefinitions', null, 'importBpmn', { xml, filename: f.name });
+						// showError:false -- suppress callEntityMethod's own popup so we
+						// can surface a single, filename-scoped error below carrying the
+						// full server-side detail (message + errors[]).
+						await _Processes.rest.callEntityMethod('BpmnDefinitions', null, 'importBpmn', { xml, filename: f.name }, { showError: false });
 						imported++;
 						new SuccessMessage().text(`Imported "${f.name}".`).show();
 					} catch (err) {
-						new ErrorMessage().text(`Import of "${f.name}" failed: ${err.message}`).show();
+						if (err && err.responseData) {
+							// Full Structr error envelope: expands the errors[] details
+							// (e.g. a duplicate user-defined function name from a previous
+							// import) that json.message alone leaves out.
+							Structr.errorFromResponse(err.responseData, null, { title: `Import of "${f.name}" failed`, requiresConfirmation: true });
+						} else {
+							new ErrorMessage().title(`Import of "${f.name}" failed`).text(_Helpers.escapeTags(err.message ?? 'Unknown error')).requiresConfirmation().show();
+						}
 					}
 				}
 				if (imported > 0) _ProcessDefinitions.refresh();
@@ -502,11 +531,18 @@ let _ProcessDefinitions = {
 		// the aggregate count from the pager payload alone. Show a dash here
 		// and let the side panel surface details once the editor is open.
 		let methodsCell = '<span class="text-gray-500">—</span>';
+		// Instance counts (running / suspended / completed) across this file's
+		// processes. Not part of the pager payload, so render placeholders and
+		// patch the cells asynchronously (see updateInstanceCounts below).
+		let loadingCell = '<span class="text-gray-500">…</span>';
 		let tr = _Helpers.createSingleDOMElementFromHTML(`
 			<tr id="id_${def.id}" class="process-definition">
 				<td><a href="#" class="show-diagram-link" title="Open BPMN diagram editor">${_Helpers.escapeTags(displayName)}</a></td>
 				<td class="mono">${_Helpers.escapeTags(def.version ?? '')}</td>
 				<td>${processesCell}</td>
+				<td class="active-instances-cell mono">${loadingCell}</td>
+				<td class="suspended-instances-cell mono">${loadingCell}</td>
+				<td class="completed-instances-cell mono">${loadingCell}</td>
 				<td>${methodsCell}</td>
 				<td>${_Helpers.escapeTags(def.securityLevel ?? '')}</td>
 				<td class="actions">
@@ -577,6 +613,64 @@ let _ProcessDefinitions = {
 		});
 
 		tbody.appendChild(tr);
+
+		// Fill in the running / suspended / completed instance counts once the
+		// queries come back.
+		_ProcessDefinitions.updateInstanceCounts(processes.map(p => p?.id).filter(Boolean), tr);
+	},
+
+	/**
+	 * Count ProcessInstances in the given status across all of a definition's
+	 * BpmnProcess ids. Each process is queried with _pageSize=1 so only the
+	 * envelope's result_count is used; a failed request counts as zero rather
+	 * than breaking the total. Statuses match ProcessInstanceTraitDefinition
+	 * (running / suspended / completed / terminated / error).
+	 */
+	countInstancesByStatus: async (processIds, status) => {
+
+		const counts = await Promise.all(processIds.map(async (pid) => {
+			const res = await fetch(`${Structr.rootUrl}ProcessInstance/ui?process=${pid}&status=${status}&_pageSize=1`, { credentials: 'same-origin', cache: 'no-store' });
+			if (!res.ok) return 0;
+			const json = await res.json();
+			return json.result_count ?? (Array.isArray(json.result) ? json.result.length : 0);
+		}));
+		return counts.reduce((a, b) => a + b, 0);
+	},
+
+	/**
+	 * Populate the running / suspended / completed cells of a definition row
+	 * with plain counts. Each status is loaded independently so one failing
+	 * query only degrades its own cell.
+	 */
+	updateInstanceCounts: async (processIds, tr) => {
+
+		const activeCell    = tr.querySelector('td.active-instances-cell');
+		const suspendedCell = tr.querySelector('td.suspended-instances-cell');
+		const completedCell = tr.querySelector('td.completed-instances-cell');
+
+		const renderCount = (cell, n) => { if (cell) cell.textContent = String(n); };
+		const renderError = (cell)    => { if (cell) cell.innerHTML = '<span class="text-gray-500" title="Failed to load count">?</span>'; };
+
+		if (!processIds || processIds.length === 0) {
+			renderCount(activeCell, 0);
+			renderCount(suspendedCell, 0);
+			renderCount(completedCell, 0);
+			return;
+		}
+
+		const load = async (status, cell) => {
+			try {
+				renderCount(cell, await _ProcessDefinitions.countInstancesByStatus(processIds, status));
+			} catch (e) {
+				renderError(cell);
+			}
+		};
+
+		await Promise.all([
+			load('running',   activeCell),
+			load('suspended', suspendedCell),
+			load('completed', completedCell),
+		]);
 	}
 };
 
@@ -2100,6 +2194,18 @@ let _ProcessDiagram = {
 		`;
 
 		const headerName = esc(elem.bpmnName || elem.bpmnId || elem.id);
+		// Attached handler methods (the info the old canvas "method count" badge
+		// showed). Listed here on selection instead of on the diagram.
+		const methods = Array.isArray(elem.methods) ? elem.methods : [];
+		const methodsBlock = methods.length === 0 ? '' : `
+			<div class="pd-section">
+				<div class="pd-section-title">Methods (${methods.length})</div>
+				<ul class="pd-method-list">
+					${methods.map(m => `<li><code>${esc((m && (m.name || m.id)) || m)}</code></li>`).join('')}
+				</ul>
+			</div>
+		`;
+
 		return `
 			<h4 class="pd-heading">${headerName}</h4>
 			<div class="pd-mb-6">
@@ -2114,6 +2220,7 @@ let _ProcessDiagram = {
 			${attributesBlock}
 			${performersBlock}
 			${taskListenersBlock}
+			${methodsBlock}
 			<div class="pd-button-row">
 				<button class="action btn-open-properties">Open in editor…</button>
 				<button class="action btn-delete-element">Delete</button>

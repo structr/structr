@@ -51,6 +51,8 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * The Structr Process Engine. Executes BPMN process definitions by managing
@@ -576,8 +578,9 @@ public class ProcessEngine {
 
 			case SERVICE_TASK:
 			case SCRIPT_TASK:
-				// Execute the task logic, then advance
-				executeAutomaticTask(instance, currentElement, elemTraits, elementType);
+				// Run the body with Camunda inputOutput semantics (activity-local scope
+				// when io mappings are present), then advance.
+				runAutomaticTask(instance, currentElement, elemTraits, elementType);
 				completeTokenAndMoveToNext(instance, token, currentElement);
 				break;
 
@@ -897,44 +900,193 @@ public class ProcessEngine {
 	// Task execution
 	// -----------------------------------------------------------------------
 
-	private void executeAutomaticTask(final NodeInterface instance, final NodeInterface element, final Traits elemTraits, final String elementType) throws FrameworkException {
+	private void executeAutomaticTask(final NodeInterface instance, final NodeInterface element, final Traits elemTraits, final String elementType, final Map<String, Object> localScope) throws FrameworkException {
 
-		if (BpmnElementType.SCRIPT_TASK.matches(elementType)) {
-
-			final String script = element.getProperty(elemTraits.key(BpmnElementTraitDefinition.SCRIPT_CONTENT_PROPERTY));
-			if (StringUtils.isNotBlank(script)) {
-
-				final String scriptFormat = getAttributeValue(element, "scriptFormat");
-
-				// Determine how to run the script from its declared format.
-				final ScriptLanguage language = detectScriptLanguage(scriptFormat);
-
-				// Foreign JavaScript (Camunda/Flowable) is transpiled to Structr JS;
-				// everything else runs its source as-is.
-				final String executableScript = (language == ScriptLanguage.FOREIGN_JAVASCRIPT)
-					? transpileForeignScript(script)
-					: script;
-
-				try {
-
-					final ActionContext ctx = new ActionContext(SecurityContext.getSuperUserInstance());
-					installProcessContext(ctx, instance, element);
-					final String expression = (language == ScriptLanguage.STRUCTR_SCRIPT)
-						? "${" + executableScript + "}"
-						: "${js{" + executableScript + "}}";
-					Scripting.evaluate(ctx, element, expression, "scriptTask");
-
-				} catch (Exception ex) {
-
-					logger.warn("Script task {} failed (non-fatal): {}\n--- Original ---\n{}\n--- Transpiled ---\n{}", getBpmnId(element), ex.getMessage(), script, executableScript);
-				}
-			}
+		// Any automatic task carrying a script body runs it: a scriptTask's <script>,
+		// or a serviceTask whose implementation was mapped to scriptContent on import
+		// (a Camunda camunda:expression, or a Structr-native body). A serviceTask with
+		// no runnable body stays a pass-through. The body may set variables (via
+		// $.process.x = y or a transpiled execution.setVariable(...)): with a localScope
+		// active (io mappings) those writes stay local; otherwise they persist through
+		// the ProcessContext write sink.
+		final String script = element.getProperty(elemTraits.key(BpmnElementTraitDefinition.SCRIPT_CONTENT_PROPERTY));
+		if (StringUtils.isBlank(script)) {
+			return;
 		}
 
-		// serviceTask: could invoke a Structr method, flow, or REST call.
-		// For now, service tasks are pass-through. The service task implementation
-		// will be connected via schema methods on the BpmnElement or via
-		// extension attributes referencing Structr methods.
+		final String scriptFormat = getAttributeValue(element, "scriptFormat");
+
+		// Determine how to run the script from its declared format.
+		final ScriptLanguage language = detectScriptLanguage(scriptFormat);
+
+		// Foreign JavaScript (Camunda/Flowable) is transpiled to Structr JS;
+		// everything else runs its source as-is.
+		final String executableScript = (language == ScriptLanguage.FOREIGN_JAVASCRIPT)
+			? transpileForeignScript(script)
+			: script;
+
+		try {
+
+			final ActionContext ctx = new ActionContext(SecurityContext.getSuperUserInstance());
+			installProcessContext(ctx, instance, element, localScope);
+			final String expression = (language == ScriptLanguage.STRUCTR_SCRIPT)
+				? "${" + executableScript + "}"
+				: "${js{" + executableScript + "}}";
+			Scripting.evaluate(ctx, element, expression, "automaticTask");
+
+		} catch (Exception ex) {
+
+			logger.warn("Automatic task {} failed (non-fatal): {}\n--- Original ---\n{}\n--- Transpiled ---\n{}", getBpmnId(element), ex.getMessage(), script, executableScript);
+		}
+	}
+
+	/**
+	 * Run an automatic task with Camunda {@code inputOutput} semantics.
+	 *
+	 * <p>When the element has io mappings, the activity gets its own local variable
+	 * scope: input parameters are evaluated in the parent (process) scope and bound
+	 * as locals; the body runs against those locals (reads local-over-process, writes
+	 * stay local and do NOT persist); output parameters are then evaluated in the
+	 * local scope and their results promoted (persisted) to process scope. The local
+	 * scope is discarded afterwards, so inputs never leak, never clobber a same-named
+	 * process variable or subject field, and parallel branches don't share them.</p>
+	 *
+	 * <p>Without io mappings the body runs normally and its writes persist to process
+	 * scope (see {@link #executeAutomaticTask}).</p>
+	 *
+	 * <p>Scope is flat: outputs promote to the top-level process scope, not to an
+	 * enclosing sub-process scope (a simplification vs. Camunda's nested scopes).</p>
+	 */
+	private void runAutomaticTask(final NodeInterface instance, final NodeInterface element, final Traits elemTraits, final String elementType) throws FrameworkException {
+
+		final List<String[]> inputs  = parseIoParams(element, "inputs");
+		final List<String[]> outputs = parseIoParams(element, "outputs");
+
+		if (inputs.isEmpty() && outputs.isEmpty()) {
+
+			// No io mappings: body writes persist to process scope.
+			executeAutomaticTask(instance, element, elemTraits, elementType, null);
+			return;
+		}
+
+		// Activity-local scope.
+		final Map<String, Object> local = new LinkedHashMap<>();
+
+		// Inputs: evaluated in the parent (process) scope, bound as locals.
+		for (final String[] in : inputs) {
+			local.put(in[0], evaluateSource(in[1], element, instance, null));
+		}
+
+		// Body: reads local-over-process, writes go local (not persisted).
+		executeAutomaticTask(instance, element, elemTraits, elementType, local);
+
+		// Outputs: evaluated in the local scope, promoted (persisted) to process scope.
+		for (final String[] out : outputs) {
+
+			final Object value            = evaluateSource(out[1], element, instance, local);
+			final Map<String, Object> one = new HashMap<>();
+			one.put(out[0], value);
+			storeParameterValues(instance, element, one);
+		}
+	}
+
+	/** Parse the stored ioMappings JSON into a list of {name, source} pairs for the given side ("inputs"/"outputs"). */
+	private List<String[]> parseIoParams(final NodeInterface element, final String side) throws FrameworkException {
+
+		final List<String[]> result = new LinkedList<>();
+		final String json           = element.getProperty(element.getTraits().key(BpmnElementTraitDefinition.IO_MAPPINGS_PROPERTY));
+		if (StringUtils.isBlank(json)) {
+			return result;
+		}
+
+		final com.google.gson.JsonElement root;
+		try {
+
+			root = com.google.gson.JsonParser.parseString(json);
+
+		} catch (final com.google.gson.JsonSyntaxException ex) {
+
+			logger.warn("Malformed ioMappings on {}: {}", getBpmnIdSafe(element), ex.getMessage());
+			return result;
+		}
+
+		if (root == null || !root.isJsonObject()) {
+			return result;
+		}
+
+		final com.google.gson.JsonElement listEl = root.getAsJsonObject().get(side);
+		if (listEl == null || !listEl.isJsonArray()) {
+			return result;
+		}
+
+		for (final com.google.gson.JsonElement itemEl : listEl.getAsJsonArray()) {
+
+			if (!itemEl.isJsonObject()) {
+				continue;
+			}
+
+			final com.google.gson.JsonObject item     = itemEl.getAsJsonObject();
+			final com.google.gson.JsonElement nameEl   = item.get("name");
+			if (nameEl == null || nameEl.isJsonNull()) {
+				continue;
+			}
+
+			final com.google.gson.JsonElement srcEl = item.get("source");
+			final String source                     = (srcEl != null && !srcEl.isJsonNull()) ? srcEl.getAsString() : null;
+
+			result.add(new String[] { nameEl.getAsString(), source });
+		}
+
+		return result;
+	}
+
+	/**
+	 * Evaluate an inputOutput parameter source against a given scope: a
+	 * {@code ${...}} expression runs as JavaScript (bare names -- both process
+	 * variables and, when present, local-scope names -- rewritten to
+	 * {@code $.process.<name>}); anything else is a literal. {@code localScope} is
+	 * null for inputs (evaluated in the parent scope) and the activity's local map
+	 * for outputs (so they can read what the body produced).
+	 */
+	private Object evaluateSource(final String source, final NodeInterface element, final NodeInterface instance, final Map<String, Object> localScope) {
+
+		if (source == null || source.isBlank()) {
+			return null;
+		}
+
+		final String s = source.trim();
+		if (!(s.startsWith("${") && s.endsWith("}"))) {
+			return s; // literal
+		}
+
+		try {
+
+			final ActionContext ctx = new ActionContext(SecurityContext.getSuperUserInstance());
+			installProcessContext(ctx, instance, element, localScope);
+
+			final String inner            = s.substring(2, s.length() - 1).trim();
+			final java.util.Set<String> names = new java.util.HashSet<>(loadProcessVariables(instance).keySet());
+			if (localScope != null) {
+				names.addAll(localScope.keySet());
+			}
+			final String rewritten        = rewriteConditionExpression(inner, names);
+
+			return Scripting.evaluate(ctx, element, "${js{" + rewritten + "}}", "ioMapping");
+
+		} catch (final Exception ex) {
+
+			logger.warn("ioMapping expression '{}' on {} failed (non-fatal): {}", source, getBpmnIdSafe(element), ex.getMessage());
+			return null;
+		}
+	}
+
+	/** getBpmnId without the checked exception, for logging. */
+	private String getBpmnIdSafe(final NodeInterface element) {
+		try {
+			return getBpmnId(element);
+		} catch (final Exception ex) {
+			return "?";
+		}
 	}
 
 	/**
@@ -977,7 +1129,7 @@ public class ProcessEngine {
 	 *
 	 * Lines that cannot be transpiled are kept as-is (best effort).
 	 */
-	static String transpileForeignScript(final String script) {
+	public static String transpileForeignScript(final String script) {
 
 		final StringBuilder out = new StringBuilder();
 
@@ -1001,22 +1153,340 @@ public class ProcessEngine {
 				continue;
 			}
 
-			// execution.setVariable("x", expr); -> $.process.x = expr; (preserve the write)
-			// execution.getVariable("x")        -> $.process.x
-			String transpiled = line;
-			transpiled = transpiled.replaceAll(
-				"execution\\.setVariable\\(\\s*[\"']([^\"']+)[\"']\\s*,\\s*(.*?)\\s*\\)\\s*;",
-				"\\$.process.$1 = $2;"
-			);
+			// execution.setVariable("x", expr) -> $.process.x = expr;  (paren-depth aware,
+			// so a value containing parentheses -- e.g. now() -- survives intact)
+			// execution.getVariable("x")       -> $.process.x
+			String transpiled = rewriteSetVariable(line);
 			transpiled = transpiled.replaceAll(
 				"execution\\.getVariable\\([\"']([^\"']+)[\"']\\)",
 				"\\$.process.$1"
 			);
 
+			// Bare function calls map onto Structr's function namespace by prefixing
+			// "$." -- e.g. now() -> $.now(). Member calls, already-prefixed calls and
+			// JS keywords / built-ins are left untouched.
+			transpiled = prefixStructrFunctions(transpiled);
+
+			// Camunda bean/service calls (receiver.method(...)) bind to a Structr service
+			// class of the same (capitalized) name: notificationService.notify() ->
+			// $.NotificationService.notify(). The importer scaffolds that service class and a
+			// static stub method so the process runs; the user fills in the body.
+			transpiled = rewriteServiceCalls(transpiled);
+
 			out.append(transpiled).append("\n");
 		}
 
 		return out.toString();
+	}
+
+	/**
+	 * Rewrite every {@code execution.setVariable("name", <expr>)} call on a line to
+	 * {@code $.process.name = <expr>;}. The value expression is delimited by the
+	 * setVariable call's OWN closing parenthesis, found with a paren-depth scan
+	 * (quotes honored), so nested calls such as {@code now()} or {@code foo(bar())}
+	 * survive intact -- unlike a non-greedy regex, which stops at the first {@code )}
+	 * and corrupts the output (e.g. {@code now(;)}).
+	 */
+	static String rewriteSetVariable(final String line) {
+
+		final String marker = "execution.setVariable";
+		final StringBuilder out = new StringBuilder();
+		int i = 0;
+
+		while (true) {
+
+			final int hit = line.indexOf(marker, i);
+			if (hit < 0) {
+				out.append(line, i, line.length());
+				break;
+			}
+
+			// Must be a call: "execution.setVariable" then (optional ws) '('.
+			int p = hit + marker.length();
+			while (p < line.length() && Character.isWhitespace(line.charAt(p))) {
+				p++;
+			}
+			if (p >= line.length() || line.charAt(p) != '(') {
+				out.append(line, i, hit + marker.length());
+				i = hit + marker.length();
+				continue;
+			}
+
+			final int close = matchingParenIndex(line, p);
+			if (close < 0) {
+				// Unbalanced parentheses: keep the remainder verbatim (best effort).
+				out.append(line.substring(i));
+				break;
+			}
+
+			final String[] nv = splitFirstStringArg(line.substring(p + 1, close));
+			out.append(line, i, hit);
+			if (nv == null) {
+				// Not a ("name", value) shape we understand -- keep the original call.
+				out.append(line, hit, close + 1);
+				i = close + 1;
+			} else {
+				out.append("$.process.").append(nv[0]).append(" = ").append(nv[1].trim()).append(";");
+				i = close + 1;
+				// Absorb an existing trailing ';' so we don't emit ';;'.
+				if (i < line.length() && line.charAt(i) == ';') {
+					i++;
+				}
+			}
+		}
+
+		return out.toString();
+	}
+
+	/** Index of the ')' closing the '(' at {@code openIdx}, honoring quoted strings; -1 if unbalanced. */
+	static int matchingParenIndex(final String s, final int openIdx) {
+
+		int depth = 0;
+		char quote = 0;
+		for (int i = openIdx; i < s.length(); i++) {
+
+			final char c = s.charAt(i);
+			if (quote != 0) {
+				if (c == quote) {
+					quote = 0;
+				}
+				continue;
+			}
+			if (c == '\'' || c == '"') {
+				quote = c;
+			} else if (c == '(') {
+				depth++;
+			} else if (c == ')') {
+				depth--;
+				if (depth == 0) {
+					return i;
+				}
+			}
+		}
+		return -1;
+	}
+
+	/**
+	 * Split an argument list of the form {@code "name", <expr>} into {@code [name, expr]}.
+	 * The first argument must be a single- or double-quoted string literal (the variable
+	 * name); everything after the first top-level comma is the value. Returns null if the
+	 * shape doesn't match.
+	 */
+	static String[] splitFirstStringArg(final String args) {
+
+		final String a = args.trim();
+		if (a.isEmpty()) {
+			return null;
+		}
+
+		final char q = a.charAt(0);
+		if (q != '\'' && q != '"') {
+			return null;
+		}
+
+		final int endQuote = a.indexOf(q, 1);
+		if (endQuote < 0) {
+			return null;
+		}
+
+		final String name = a.substring(1, endQuote);
+
+		int c = endQuote + 1;
+		while (c < a.length() && Character.isWhitespace(a.charAt(c))) {
+			c++;
+		}
+		if (c >= a.length() || a.charAt(c) != ',') {
+			return null;
+		}
+
+		final String value = a.substring(c + 1).trim();
+		if (name.isEmpty() || value.isEmpty()) {
+			return null;
+		}
+
+		return new String[] { name, value };
+	}
+
+	// JS keywords and common built-ins that look like calls but must NOT be
+	// rewritten to Structr functions ($.<name>).
+	private static final Set<String> NON_STRUCTR_CALLS = Set.of(
+		"if", "else", "for", "while", "do", "switch", "case", "catch", "try", "finally",
+		"return", "function", "var", "let", "const", "new", "typeof", "instanceof",
+		"void", "delete", "in", "of", "throw", "this", "super", "yield", "await",
+		"async", "break", "continue", "with", "class", "extends", "default",
+		"true", "false", "null", "undefined",
+		"Array", "Object", "String", "Number", "Boolean", "Date", "Math", "JSON",
+		"RegExp", "Error", "Map", "Set", "Promise", "Symbol",
+		"parseInt", "parseFloat", "isNaN", "isFinite", "eval",
+		"encodeURIComponent", "decodeURIComponent", "execution"
+	);
+
+	// A bare function call: an identifier followed by '(' that is NOT a member
+	// access (preceded by '.'), NOT already prefixed ('$.'), and NOT part of a
+	// longer identifier.
+	private static final Pattern BARE_FUNCTION_CALL = Pattern.compile("(?<![\\w.$])([A-Za-z_]\\w*)\\s*\\(");
+
+	/**
+	 * Prefix bare function calls with Structr's {@code $.} namespace, e.g.
+	 * {@code now()} -> {@code $.now()}. Member calls ({@code obj.foo()}),
+	 * already-prefixed calls ({@code $.foo()}) and JS keywords / built-ins
+	 * (see {@link #NON_STRUCTR_CALLS}) are left untouched. Best effort: a name that
+	 * isn't a real Structr function becomes {@code $.<name>()} and fails at run time,
+	 * but the original source is retained in the block comment above the transpiled body.
+	 */
+	static String prefixStructrFunctions(final String line) {
+
+		final Matcher m = BARE_FUNCTION_CALL.matcher(line);
+		final StringBuffer sb = new StringBuffer();
+
+		while (m.find()) {
+
+			final String name = m.group(1);
+			final String replacement = NON_STRUCTR_CALLS.contains(name) ? m.group() : "$." + name + "(";
+			m.appendReplacement(sb, Matcher.quoteReplacement(replacement));
+		}
+		m.appendTail(sb);
+
+		return sb.toString();
+	}
+
+	// Receivers that are NOT foreign services (script context / JS built-ins) and so
+	// must never be rewritten to a $.<Type> service-class call.
+	private static final Set<String> NON_SERVICE_RECEIVERS = Set.of(
+		"$", "execution", "this", "process", "task", "Math", "JSON", "Object", "Array",
+		"String", "Number", "Boolean", "Date", "RegExp", "console", "window", "document"
+	);
+
+	// Suffixes that mark a receiver as a service/bean by naming convention. We only
+	// treat a receiver as a foreign service when it ends with one of these (on a
+	// CamelCase boundary), so an ordinary variable like `task.complete()` or
+	// `order.total()` is NOT minted into a service class. False negatives (an
+	// unconventionally-named bean) just fall back to manual handling; false positives
+	// (scaffolding a real variable) were the harmful case, so we err conservative.
+	private static final String[] SERVICE_RECEIVER_SUFFIXES = {
+		"Service", "Delegate", "Gateway", "Bean", "Client", "Manager", "Repository",
+		"Facade", "Provider", "Dao", "Api", "Connector", "Adapter", "Endpoint"
+	};
+
+	// A bean/service call: receiver.method( ... ) where receiver is a bare identifier
+	// (not itself a member access: negative lookbehind on '.', word char, '$').
+	private static final Pattern SERVICE_CALL = Pattern.compile("(?<![\\w.$])([A-Za-z_]\\w*)\\.([A-Za-z_]\\w*)\\s*\\(");
+
+	/** Upper-case the first character (service receiver -> service-class type name). */
+	static String capitalize(final String s) {
+		return (s == null || s.isEmpty()) ? s : Character.toUpperCase(s.charAt(0)) + s.substring(1);
+	}
+
+	/**
+	 * True if {@code receiver} should be treated as a foreign service/bean: not a known
+	 * script-context / built-in object, and named by a service convention (ends with one
+	 * of {@link #SERVICE_RECEIVER_SUFFIXES}). Shared by the rewrite and detection passes so
+	 * they always agree on what is a service.
+	 */
+	static boolean isForeignServiceReceiver(final String receiver) {
+
+		if (receiver == null || NON_SERVICE_RECEIVERS.contains(receiver)) {
+			return false;
+		}
+		for (final String suffix : SERVICE_RECEIVER_SUFFIXES) {
+			// Require a real prefix before the suffix so the receiver isn't just the bare word.
+			if (receiver.length() > suffix.length() && receiver.endsWith(suffix)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Rewrite Camunda bean/service calls to Structr service-class calls:
+	 * {@code notificationService.notify(x)} -> {@code $.NotificationService.notify(x)}.
+	 * Receivers in {@link #NON_SERVICE_RECEIVERS} are left alone. Idempotent: an
+	 * already-rewritten call ({@code $.Type.method(}) has '.' before the type name, so
+	 * the negative lookbehind skips it on a second pass.
+	 */
+	static String rewriteServiceCalls(final String line) {
+
+		final Matcher m = SERVICE_CALL.matcher(line);
+		final StringBuffer sb = new StringBuffer();
+
+		while (m.find()) {
+
+			final String receiver = m.group(1);
+			final String method   = m.group(2);
+			final String replacement = isForeignServiceReceiver(receiver)
+				? "$." + capitalize(receiver) + "." + method + "("
+				: m.group();
+			m.appendReplacement(sb, Matcher.quoteReplacement(replacement));
+		}
+		m.appendTail(sb);
+
+		return sb.toString();
+	}
+
+	/**
+	 * Detect the foreign bean/service calls in a script. Returns a map of
+	 * service-class name (capitalized receiver) -> method name -> argument count
+	 * (the maximum seen across call sites). Powers the importer's service-class
+	 * scaffolding. Receivers in {@link #NON_SERVICE_RECEIVERS} are ignored.
+	 */
+	public static Map<String, Map<String, Integer>> detectServiceCalls(final String script) {
+
+		final Map<String, Map<String, Integer>> result = new LinkedHashMap<>();
+		if (script == null) {
+			return result;
+		}
+
+		final Matcher m = SERVICE_CALL.matcher(script);
+		while (m.find()) {
+
+			final String receiver = m.group(1);
+			if (!isForeignServiceReceiver(receiver)) {
+				continue;
+			}
+
+			final String method = m.group(2);
+			final int open  = m.end() - 1;           // index of the '(' the match ended on
+			final int close = matchingParenIndex(script, open);
+			final int argc  = (close < 0) ? 0 : countTopLevelArgs(script.substring(open + 1, close));
+
+			result.computeIfAbsent(capitalize(receiver), k -> new LinkedHashMap<>())
+				.merge(method, argc, Math::max);
+		}
+
+		return result;
+	}
+
+	/** Count comma-separated top-level arguments (0 for an empty list), honoring nesting and quotes. */
+	static int countTopLevelArgs(final String args) {
+
+		final String a = args.trim();
+		if (a.isEmpty()) {
+			return 0;
+		}
+
+		int depth = 0;
+		int count = 1;
+		char quote = 0;
+		for (int i = 0; i < a.length(); i++) {
+
+			final char c = a.charAt(i);
+			if (quote != 0) {
+				if (c == quote) {
+					quote = 0;
+				}
+				continue;
+			}
+			if (c == '\'' || c == '"') {
+				quote = c;
+			} else if (c == '(' || c == '[' || c == '{') {
+				depth++;
+			} else if (c == ')' || c == ']' || c == '}') {
+				depth--;
+			} else if (c == ',' && depth == 0) {
+				count++;
+			}
+		}
+		return count;
 	}
 
 	private void createTaskInstance(final NodeInterface instance, final NodeInterface userTaskElement) throws FrameworkException {
@@ -1778,9 +2248,22 @@ public class ProcessEngine {
 	private void runTaskListenerMethod(final NodeInterface taskNode, final NodeInterface method, final String eventName, final Map<String, Object> submittedParams) throws FrameworkException {
 
 		final ActionContext ctx = new ActionContext(SecurityContext.getSuperUserInstance());
+		installTaskProcessContext(ctx, taskNode);
 		final Arguments args    = buildTaskListenerArgs(taskNode, eventName, submittedParams);
 
 		new ScriptMethod(method.as(SchemaMethod.class)).execute(ctx, taskNode, args);
+	}
+
+	/** Install the $.process context for a task listener: scoped to the task's instance and defining element. */
+	private void installTaskProcessContext(final ActionContext ctx, final NodeInterface taskNode) throws FrameworkException {
+
+		final NodeInterface instance = taskNode.as(TaskInstance.class).getProcessInstance();
+		if (instance == null) {
+			return;
+		}
+
+		final NodeInterface element = taskNode.getProperty(taskNode.getTraits().key(TaskInstanceTraitDefinition.DEFINED_BY_PROPERTY));
+		installProcessContext(ctx, instance, element);
 	}
 
 	/**
@@ -1806,6 +2289,7 @@ public class ProcessEngine {
 				if (freshTask != null && freshMethod != null) {
 
 					final ActionContext ctx = new ActionContext(SecurityContext.getSuperUserInstance());
+					installTaskProcessContext(ctx, freshTask);
 					final Arguments args     = buildTaskListenerArgs(freshTask, eventName, submittedParams);
 
 					new ScriptMethod(freshMethod.as(SchemaMethod.class)).execute(ctx, freshTask, args);
@@ -1972,6 +2456,7 @@ public class ProcessEngine {
 	private void runProcessListenerMethod(final NodeInterface instance, final NodeInterface method, final String eventName) throws FrameworkException {
 
 		final ActionContext ctx = new ActionContext(SecurityContext.getSuperUserInstance());
+		installProcessContext(ctx, instance, null);
 		final Arguments args     = buildProcessListenerArgs(instance, eventName);
 		new ScriptMethod(method.as(SchemaMethod.class)).execute(ctx, instance, args);
 	}
@@ -1997,6 +2482,7 @@ public class ProcessEngine {
 				if (freshInstance != null && freshMethod != null) {
 
 					final ActionContext ctx = new ActionContext(SecurityContext.getSuperUserInstance());
+					installProcessContext(ctx, freshInstance, null);
 					final Arguments args     = buildProcessListenerArgs(freshInstance, eventName);
 
 					new ScriptMethod(freshMethod.as(SchemaMethod.class)).execute(ctx, freshInstance, args);
@@ -3182,12 +3668,26 @@ public class ProcessEngine {
 	 * doesn't need to know whether {@code days} is a domain field or a PV.</p>
 	 */
 	private void installProcessContext(final ActionContext ctx, final NodeInterface instance, final NodeInterface element) throws FrameworkException {
+		installProcessContext(ctx, instance, element, null);
+	}
+
+	private void installProcessContext(final ActionContext ctx, final NodeInterface instance, final NodeInterface element,
+									   final Map<String, Object> localScope) throws FrameworkException {
 
 		final Traits instTraits             = instance.getTraits();
 		final NodeInterface definition      = instance.getProperty(instTraits.key(ProcessInstanceTraitDefinition.PROCESS_PROPERTY));
 		final Map<String, Object> variables = loadProcessVariables(instance);
 
-		ctx.setConstant("process", new ProcessContext(instance, element, definition, variables));
+		// Write sink: $.process.x = y (and transpiled execution.setVariable(...)) persist
+		// through the same auto-routing storeParameterValues used by task/start params.
+		// Ignored while a localScope is active -- there writes stay local.
+		final ProcessContext.VariableSink sink = (name, value) -> {
+			final Map<String, Object> one = new HashMap<>();
+			one.put(name, value);
+			storeParameterValues(instance, element, one);
+		};
+
+		ctx.setConstant("process", new ProcessContext(instance, element, definition, variables, sink, localScope));
 	}
 
 	/**
@@ -3279,6 +3779,121 @@ public class ProcessEngine {
 
 	private String getBpmnId(final NodeInterface element) throws FrameworkException {
 		return element.getProperty(element.getTraits().key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY));
+	}
+
+	/**
+	 * The element(s) this instance is currently at: the {@code atElement} of each of
+	 * its non-completed (waiting/active) tokens. Normally one, but a parallel split
+	 * can put an instance at several steps at once. Empty once the instance has
+	 * finished. De-duplicated by element, preserving first-seen order.
+	 *
+	 * <p>Returns the {@code BpmnElement} nodes themselves so callers stay flexible --
+	 * read {@code bpmnName}, {@code bpmnElementType}, {@code bpmnId}, etc.</p>
+	 */
+	public static List<NodeInterface> currentStepElements(final NodeInterface instance) throws FrameworkException {
+
+		final Traits tokTraits = Traits.of(ProcessTraits.PROCESS_TOKEN);
+
+		final PropertyKey<Iterable<NodeInterface>> tokensKey = instance.getTraits().key(ProcessInstanceTraitDefinition.TOKENS_PROPERTY);
+		final PropertyKey<String> statusKey                  = tokTraits.key(ProcessTokenTraitDefinition.STATUS_PROPERTY);
+		final PropertyKey<NodeInterface> atElementKey        = tokTraits.key(ProcessTokenTraitDefinition.AT_ELEMENT_PROPERTY);
+
+		final List<NodeInterface> steps      = new LinkedList<>();
+		final Set<String> seen               = new LinkedHashSet<>();
+		final Iterable<NodeInterface> tokens = instance.getProperty(tokensKey);
+
+		if (tokens != null) {
+
+			for (final NodeInterface token : tokens) {
+
+				if (ProcessTokenTraitDefinition.STATUS_COMPLETED.equals(token.getProperty(statusKey))) {
+					continue;
+				}
+
+				final NodeInterface at = token.getProperty(atElementKey);
+				if (at != null && seen.add(at.getUuid())) {
+					steps.add(at);
+				}
+			}
+		}
+
+		return steps;
+	}
+
+	/**
+	 * Count the non-completed (waiting or active) tokens currently sitting at each
+	 * element, aggregated across every instance of {@code process}. Returns a map of
+	 * element {@code bpmnId -> count}; elements with no live token are absent.
+	 *
+	 * <p>Powers the editor's live instance-count overlay (Camunda-Cockpit-style
+	 * activity badges). Callers should pass a super-user {@code app} so the count
+	 * reflects all instances, not just those the current user may read.</p>
+	 */
+	public static Map<String, Integer> computeLiveTokenCounts(final App app, final NodeInterface process) throws FrameworkException {
+		return computeTokenCountsByElement(app, process, false);
+	}
+
+	/**
+	 * Count the completed tokens that passed through each element, aggregated across
+	 * every instance of {@code process}. Returns a map of element {@code bpmnId ->
+	 * count}; elements no token has finished at are absent.
+	 *
+	 * <p>Companion to {@link #computeLiveTokenCounts}: powers the editor's "finished"
+	 * badge (Camunda-Cockpit-style historic activity-instance count), shown alongside
+	 * the live/active badge. Callers should pass a super-user {@code app} so the count
+	 * reflects all instances, not just those the current user may read.</p>
+	 */
+	public static Map<String, Integer> computeCompletedTokenCounts(final App app, final NodeInterface process) throws FrameworkException {
+		return computeTokenCountsByElement(app, process, true);
+	}
+
+	/**
+	 * Shared implementation for the live / completed per-element token counts.
+	 * When {@code completed} is false, counts tokens still sitting at an element
+	 * (status != completed); when true, counts tokens that have completed there.
+	 */
+	private static Map<String, Integer> computeTokenCountsByElement(final App app, final NodeInterface process, final boolean completed) throws FrameworkException {
+
+		final Traits piTraits  = Traits.of(ProcessTraits.PROCESS_INSTANCE);
+		final Traits tokTraits = Traits.of(ProcessTraits.PROCESS_TOKEN);
+		final Traits elTraits  = Traits.of(ProcessTraits.BPMN_ELEMENT);
+
+		final PropertyKey<NodeInterface> processKey          = piTraits.key(ProcessInstanceTraitDefinition.PROCESS_PROPERTY);
+		final PropertyKey<Iterable<NodeInterface>> tokensKey = piTraits.key(ProcessInstanceTraitDefinition.TOKENS_PROPERTY);
+		final PropertyKey<String> tokenStatusKey             = tokTraits.key(ProcessTokenTraitDefinition.STATUS_PROPERTY);
+		final PropertyKey<NodeInterface> atElementKey        = tokTraits.key(ProcessTokenTraitDefinition.AT_ELEMENT_PROPERTY);
+		final PropertyKey<String> bpmnIdKey                  = elTraits.key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY);
+
+		final Map<String, Integer> counts = new LinkedHashMap<>();
+
+		for (final NodeInterface instance : app.nodeQuery(ProcessTraits.PROCESS_INSTANCE).key(processKey, process).getResultStream()) {
+
+			final Iterable<NodeInterface> tokens = instance.getProperty(tokensKey);
+			if (tokens == null) {
+				continue;
+			}
+
+			for (final NodeInterface token : tokens) {
+
+				final boolean isCompleted = ProcessTokenTraitDefinition.STATUS_COMPLETED.equals(token.getProperty(tokenStatusKey));
+				// live overlay: only tokens still sitting somewhere; completed overlay: only finished tokens
+				if (completed != isCompleted) {
+					continue;
+				}
+
+				final NodeInterface at = token.getProperty(atElementKey);
+				if (at == null) {
+					continue;
+				}
+
+				final String bpmnId = at.getProperty(bpmnIdKey);
+				if (bpmnId != null) {
+					counts.merge(bpmnId, 1, Integer::sum);
+				}
+			}
+		}
+
+		return counts;
 	}
 
 	/**

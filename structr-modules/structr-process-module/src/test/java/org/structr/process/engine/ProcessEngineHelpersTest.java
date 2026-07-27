@@ -379,4 +379,107 @@ public class ProcessEngineHelpersTest {
 		assertFalse("setVariable call should be dropped from the transpiled body",
 			transpiledBody.contains("execution.setVariable"));
 	}
+
+	@Test
+	public void testTranspileSetVariableWithoutTrailingSemicolon() {
+
+		// A Camunda camunda:expression body ("${execution.setVariable(...)}", stripped
+		// of the ${ } wrapper) has NO trailing semicolon. It must still transpile to a
+		// $.process write, otherwise the service-task variable is never set.
+		final String out  = ProcessEngine.transpileForeignScript("execution.setVariable('approved', true)");
+		final String body = out.substring(out.indexOf("*/") + 2);
+
+		assertTrue("no-semicolon setVariable must transpile to a $.process write; got:\n" + out,
+			body.contains("$.process.approved = true"));
+		assertFalse("the original execution.setVariable call must not survive in the transpiled body",
+			body.contains("execution.setVariable"));
+	}
+
+	@Test
+	public void testTranspileSetVariableWithNestedFunctionCall() {
+
+		// Regression: a value containing parentheses (a function call) must not be
+		// truncated at the first ')'. The old non-greedy regex captured "now(" and
+		// produced the corrupted "$.process.startedAt = now(;)".
+		final String out  = ProcessEngine.transpileForeignScript("execution.setVariable('startedAt', now())");
+		final String body = out.substring(out.indexOf("*/") + 2);
+
+		assertTrue("nested-call value must survive and be prefixed; got:\n" + out,
+			body.contains("$.process.startedAt = $.now();"));
+		assertFalse("must not emit the corrupted 'now(;)' form; got:\n" + out,
+			body.contains("now(;)"));
+	}
+
+	@Test
+	public void testTranspilePrefixesBareStructrFunctions() {
+
+		final String out  = ProcessEngine.transpileForeignScript("var d = now();");
+		final String body = out.substring(out.indexOf("*/") + 2);
+		assertTrue("bare now() should become $.now(); got:\n" + out, body.contains("$.now()"));
+	}
+
+	@Test
+	public void testTranspileLeavesMemberAndKeywordCallsAlone() {
+
+		// Member calls (obj.foo()), JS control keywords (if/for/...), built-ins
+		// (parseInt) and already-prefixed calls must NOT be turned into $. calls.
+		assertFalse("member call must not be prefixed",
+			ProcessEngine.prefixStructrFunctions("obj.foo(x)").contains("$.foo"));
+		assertEquals("keyword must not be prefixed",
+			"if (x) {", ProcessEngine.prefixStructrFunctions("if (x) {"));
+		assertFalse("built-in parseInt must not be prefixed",
+			ProcessEngine.prefixStructrFunctions("parseInt(x)").contains("$.parseInt"));
+		assertEquals("already-prefixed call must be left alone",
+			"$.now()", ProcessEngine.prefixStructrFunctions("$.now()"));
+	}
+
+	@Test
+	public void testRewriteServiceCallsBindsBeansToServiceClasses() {
+
+		// receiver.method(...) -> $.Receiver.method(...); nested/arg calls preserved.
+		assertEquals("$.NotificationService.notifyReviewer(task)",
+			ProcessEngine.rewriteServiceCalls("notificationService.notifyReviewer(task)"));
+		// script-context / built-in receivers are NOT treated as services.
+		assertEquals("$.process.x = 5;", ProcessEngine.rewriteServiceCalls("$.process.x = 5;"));
+		assertEquals("Math.floor(x)", ProcessEngine.rewriteServiceCalls("Math.floor(x)"));
+		// idempotent: an already-bound call is left alone on a second pass.
+		assertEquals("$.NotificationService.notifyReviewer(task)",
+			ProcessEngine.rewriteServiceCalls("$.NotificationService.notifyReviewer(task)"));
+	}
+
+	@Test
+	public void testDetectServiceCallsCollectsReceiversMethodsAndArgCounts() {
+
+		final Map<String, Map<String, Integer>> svc = ProcessEngine.detectServiceCalls(
+			"paymentGateway.charge(amount, currency); notificationService.notify()");
+		assertEquals("two distinct services detected", 2, svc.size());
+		assertEquals("charge takes 2 args", Integer.valueOf(2), svc.get("PaymentGateway").get("charge"));
+		assertEquals("notify takes 0 args", Integer.valueOf(0), svc.get("NotificationService").get("notify"));
+		// built-in / context receivers are excluded from detection
+		assertTrue("no built-in receivers", ProcessEngine.detectServiceCalls("Math.floor(x); $.process.foo()").isEmpty());
+	}
+
+	@Test
+	public void testServiceHeuristicIgnoresPlainVariables() {
+
+		// Only service-convention names (…Service/…Delegate/…Gateway/…) are treated as
+		// services; ordinary variables and the `task` context object are left untouched.
+		assertEquals("plain variable call must not become a service class",
+			"task.complete()", ProcessEngine.rewriteServiceCalls("task.complete()"));
+		assertEquals("plain variable call must not become a service class",
+			"order.total()", ProcessEngine.rewriteServiceCalls("order.total()"));
+		assertTrue("no service detected for plain variables",
+			ProcessEngine.detectServiceCalls("task.complete(); order.total()").isEmpty());
+		// but convention-named beans still bind
+		assertEquals("$.PaymentGateway.charge(x)", ProcessEngine.rewriteServiceCalls("paymentGateway.charge(x)"));
+	}
+
+	@Test
+	public void testMatchingParenIndexHandlesNestingAndQuotes() {
+
+		// ')' inside a quoted string must not close the call.
+		final String s = "f('a)b', g())";
+		assertEquals(s.length() - 1, ProcessEngine.matchingParenIndex(s, 1));
+		assertEquals("unbalanced input returns -1", -1, ProcessEngine.matchingParenIndex("f((", 1));
+	}
 }

@@ -29,7 +29,16 @@ import org.structr.process.ProcessTraits;
 /**
  * BpmnProcess -[HAS_METHOD]-> SchemaMethod. Per-process method namespace,
  * replacing the old per-definitions namespace once the model split lands.
- * Cascading delete intentionally OFF -- methods can outlive a process.
+ *
+ * <p>HAS_METHOD means ownership, so cascading delete is ON: deleting a process
+ * deletes the methods attached to it, exactly like deleting a type deletes its
+ * methods (SchemaNodeMethodDefinition). Without it, every deleted process left
+ * its listener handlers behind as free-floating user-defined functions, and a
+ * later import could silently adopt them. Re-import doesn't lose code: a new
+ * version CLONES the previous version's methods (BpmnImporter#cloneProcessMethods)
+ * and the old version keeps its own until it is deleted. A method that should
+ * outlive the process must be referenced, not owned -- that is what the
+ * listener CALLS relationship (TARGET_TO_SOURCE) is for.</p>
  */
 public class BpmnProcessHasMethod extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
@@ -64,7 +73,7 @@ public class BpmnProcessHasMethod extends AbstractRelationshipTraitDefinition im
 
 	@Override
 	public int getCascadingDeleteFlag() {
-		return Relation.NONE;
+		return Relation.SOURCE_TO_TARGET;
 	}
 
 	@Override
