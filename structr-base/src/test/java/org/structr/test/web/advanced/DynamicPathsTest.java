@@ -73,7 +73,7 @@ public class DynamicPathsTest extends DeploymentTestBase {
 				""";
 
 	/*
-	 * From Jettty 12.1, so we test with the dynamic string.
+	 * From Jetty 12.1, so we test with the dynamic string.
 	 */
 	private String getAmbiguousEmptyURLSegmentError(final String requestURI) {
 		return String.format(ambiguousEmptyURLSegmentErrorTemplate, RestAssured.baseURI + requestURI);
