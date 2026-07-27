@@ -530,7 +530,11 @@ let StructrWS = {
 
 			let obj = StructrModel.obj(data.id);
 			if (obj) {
-				obj.remove(data.data.parentId);
+
+				let parent = StructrModel.obj(data.data.parentId);
+				if (parent.type !== 'Site') {
+					obj.remove(data.data.parentId);
+				}
 			}
 
 			StructrModel.callCallback(data.callback);

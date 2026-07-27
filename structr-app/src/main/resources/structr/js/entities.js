@@ -2871,6 +2871,10 @@ let _Entities = {
 
 				_Entities.generalTab.focusInput(el);
 
+				let container = $('div#page-sites-container', el);
+
+				await _Entities.generalTab.showProperties(container, entity, ['sites']);
+
 				await _Entities.generalTab.showCustomProperties(el, entity);
 			},
 			site: async (el, entity) => {
@@ -4158,6 +4162,11 @@ let _Entities = {
 						</div>
 					</div>
 
+					<div>
+						<h3>Sites</h3>
+						<div id="page-sites-container"></div>
+					</div>
+
 					${_Entities.generalTab.templates.customPropertiesPartial(config)}
 
 				</div>
@@ -4182,7 +4191,7 @@ let _Entities = {
 					</div>
 
 					<div>
-						<h3>Sites</h3>
+						<h3>Pages</h3>
 						<div id="site-pages-container"></div>
 					</div>
 
