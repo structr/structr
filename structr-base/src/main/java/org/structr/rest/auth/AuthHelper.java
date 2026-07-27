@@ -28,6 +28,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.common.LogThrottle;
+import org.structr.core.auth.HashHelper;
 import org.structr.core.auth.exception.*;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
@@ -60,6 +62,13 @@ public class AuthHelper {
 
 	public static final String STANDARD_ERROR_MSG = "Wrong username or password, or user is blocked. Check caps lock. Note: Username is case sensitive!";
 	private static final Logger logger            = LoggerFactory.getLogger(AuthHelper.class.getName());
+
+	/* Every failed sign-in is logged, and an attacker decides how many to attempt: unthrottled, a
+	   credential-guessing run writes one line per attempt. Keyed by the REASON, so each distinct
+	   cause is reported once per window rather than once per attempt - which also keeps attempted
+	   user names out of the log in bulk. The per-event detail is still recorded in the runtime event
+	   log, which is bounded and inspectable in the user interface. */
+	private static final LogThrottle failedLoginLog = new LogThrottle("Failed login", 1);
 
 	// Per-user lock objects for atomic failed login counter updates
 	private static final ConcurrentHashMap<String, Object> userLocks = new ConcurrentHashMap<>();
@@ -124,7 +133,9 @@ public class AuthHelper {
 			} catch (final AuthenticationException aex) {
 
 				final String keyMessage = ("name".equals(key.dbName())) ? "name" : "name OR " + key.dbName();
-				logger.info("No principal found for {} '{}'", keyMessage, value);
+				if (failedLoginLog.allow("no principal")) {
+					logger.info("No principal found for {} '{}'", keyMessage, value);
+				}
 
 			}
 
@@ -156,17 +167,29 @@ public class AuthHelper {
 
 		if (StringUtils.isEmpty(value)) {
 
-			logger.info("Empty value for key {}", key.dbName());
+			if (failedLoginLog.allow("empty value")) {
+				logger.info("Empty value for key {}", key.dbName());
+			}
 			throw new AuthenticationException(STANDARD_ERROR_MSG);
 		}
 
 		if (StringUtils.isEmpty(password)) {
 
-			logger.info("Empty password");
+			if (failedLoginLog.allow("empty password")) {
+				logger.info("Empty password");
+			}
 			throw new AuthenticationException(STANDARD_ERROR_MSG);
 		}
 
-		if (value.equals(superuserName) && java.security.MessageDigest.isEqual(password.getBytes(java.nio.charset.StandardCharsets.UTF_8), superUserPwd.getBytes(java.nio.charset.StandardCharsets.UTF_8))) {
+		/* An unconfigured superuser password must not be usable, and it must not be distinguishable
+		   from a wrong one. Without the emptiness check the comparison throws on a null password,
+		   and the resulting error response tells an attacker that the name just guessed is the
+		   superuser name, whatever it was renamed to. Treat "no password set" exactly as an empty
+		   superuser.username is treated: superuser access is off, and the name falls through to the
+		   normal principal lookup like any other unknown one. */
+		if (StringUtils.isNotEmpty(superuserName) && StringUtils.isNotEmpty(superUserPwd)
+			&& value.equals(superuserName)
+			&& java.security.MessageDigest.isEqual(password.getBytes(java.nio.charset.StandardCharsets.UTF_8), superUserPwd.getBytes(java.nio.charset.StandardCharsets.UTF_8))) {
 
 			principal = new SuperUser();
 
@@ -191,7 +214,16 @@ public class AuthHelper {
 
 				final String keyMessage = ("name".equals(key.dbName())) ? "name" : "name OR " + key.dbName();
 
-				logger.info("No principal found for {} '{}'", keyMessage, value);
+				/* Spend the same work a real password check would, so that "no such user" takes as
+				   long as "wrong password". Both answer with the identical message already, but
+				   without this the timing alone distinguishes them - an existing account pays for a
+				   full Argon2 verification while a missing one returns at once - which is enough to
+				   enumerate valid user names. */
+				HashHelper.spendVerificationTime(password);
+
+				if (failedLoginLog.allow("no principal")) {
+					logger.info("No principal found for {} '{}'", keyMessage, value);
+				}
 
 				RuntimeEventLog.failedLogin("No principal found", Map.of("keyMessage", keyMessage, "value", value));
 
@@ -201,7 +233,15 @@ public class AuthHelper {
 
 				if (principal.isBlocked()) {
 
-					logger.info("Principal {} is blocked", principal);
+					/* Same reasoning as the missing-principal branch above: refusing a blocked account
+					   must not be cheaper than checking a password, or the account is identifiable by
+					   how quickly it is turned away. This branch answers before any verification, so
+					   it has to spend that work itself. */
+					HashHelper.spendVerificationTime(password);
+
+					if (failedLoginLog.allow("blocked")) {
+						logger.info("Principal {} is blocked", principal);
+					}
 
 					RuntimeEventLog.failedLogin("Principal is blocked", Map.of("id", principal.getUuid(), "name", principal.getName()));
 
@@ -216,18 +256,24 @@ public class AuthHelper {
 					if (!passwordValid) {
 
 						AuthHelper.incrementFailedLoginAttemptsCounter(principal);
-					}
-
-					AuthHelper.checkTooManyFailedLoginAttempts(principal);
-
-					if (!passwordValid) {
 
 						RuntimeEventLog.failedLogin("Wrong password", Map.of("id", principal.getUuid(), "name", principal.getName()));
 
+						/* checkTooManyFailedLoginAttempts is deliberately NOT called here. It throws
+						   TooManyFailedLoginAttemptsException, which the login endpoints report to the
+						   caller with its own message and a "reason" header. Only an account that
+						   EXISTS has a failed-attempt counter, so giving that answer to someone who did
+						   not supply the right password confirms the account is real - precisely what
+						   the shared error message exists to hide, and cheap to exploit because the
+						   counter threshold is small and enabled by default. A caller who DOES supply
+						   the right password is told, in the branch below: having proven they know the
+						   credentials, the reason discloses nothing they could not already establish.
+						   The lockout itself is unaffected, because that branch is the only way in. */
 						throw new AuthenticationException(STANDARD_ERROR_MSG);
 
 					} else {
 
+						AuthHelper.checkTooManyFailedLoginAttempts(principal);
 						AuthHelper.handleForcePasswordChange(principal);
 						AuthHelper.resetFailedLoginAttemptsCounter(principal);
 
