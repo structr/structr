@@ -78,11 +78,11 @@
 		<path d="M2.338 3.255v17.49a1.5 1.5 0 0 0 2.209 1.322l16.323 -8.745a1.5 1.5 0 0 0 0 -2.644L4.547 1.933a1.5 1.5 0 0 0 -2.209 1.322Z"/>
 	</symbol>
 	<symbol id="stop_button" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
-		<path d="M5.25 3.75h13.5s1.5 0 1.5 1.5v13.5s0 1.5 -1.5 1.5H5.25s-1.5 0 -1.5 -1.5V5.25s0 -1.5 1.5 -1."/>
+		<path d="M5.25 3.75h13.5s1.5 0 1.5 1.5v13.5s0 1.5 -1.5 1.5H5.25s-1.5 0 -1.5 -1.5V5.25s0 -1.5 1.5 -1.5"/>
 	</symbol>
 	<symbol id="pause_button" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
-		<path d="M6.75 3.75h1.5s1.5 0 1.5 1.5v13.5s0 1.5 -1.5 1.5h-1.5s-1.5 0 -1.5 -1.5V5.25s0 -1.5 1.5 -1."/>
-		<path d="M15.75 3.75h1.5s1.5 0 1.5 1.5v13.5s0 1.5 -1.5 1.5h-1.5s-1.5 0 -1.5 -1.5V5.25s0 -1.5 1.5 -1."/>
+		<path d="M6.75 3.75h1.5s1.5 0 1.5 1.5v13.5s0 1.5 -1.5 1.5h-1.5s-1.5 0 -1.5 -1.5V5.25s0 -1.5 1.5 -1.5"/>
+		<path d="M15.75 3.75h1.5s1.5 0 1.5 1.5v13.5s0 1.5 -1.5 1.5h-1.5s-1.5 0 -1.5 -1.5V5.25s0 -1.5 1.5 -1.5"/>
 	</symbol>
 
 	<symbol id="folder-open-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
