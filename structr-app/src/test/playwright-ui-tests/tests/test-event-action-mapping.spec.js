@@ -34,7 +34,8 @@ import {
 	insertInputWithLabel,
 	resizePagesTree,
 	setNodeContent,
-	useContextMenu
+	useContextMenu,
+	createParametersAndReturnInputDropzones
 } from "./helpers/pages";
 
 let runTests = [ 1, 2, 3 ];
@@ -117,33 +118,6 @@ test('pages', async ({page}, testInfo) => {
 	await importWidgetSetButton.click();
 	await expect(importWidgetSetButton).toBeHidden();
 
-	let createParametersAndReturnInputDropzones = async (parameters = []) => {
-
-		let dropzones = [];
-
-		let parameterMappingsContainer = page.locator('.em-parameter-mappings-container');
-
-		for (const [idx, paramName] of parameters.entries()) {
-
-			await page.locator('.em-add-parameter-mapping-button').click();
-
-			let row = parameterMappingsContainer.locator('.em-parameter-mapping').nth(idx);
-			await expect(row).toBeVisible();
-
-			await expect(parameterMappingsContainer.locator('.em-parameter-mapping')).toHaveCount(idx+1)
-
-			await row.locator('.parameter-name-input').fill(paramName);
-			await row.locator('.parameter-type-select').selectOption('User Input');
-
-			let dropzone = row.locator('.parameter-user-input');
-			await expect(dropzone).toBeVisible();
-
-			dropzones.push(dropzone);
-		}
-
-		return dropzones;
-	};
-
 	// close create page dialog again
 	await page.getByRole('button', { name: 'Close' }).click();
 
@@ -201,7 +175,7 @@ test('pages', async ({page}, testInfo) => {
 		await page.getByRole('textbox', {name: 'Custom type or script'}).fill('Project');
 		await page.keyboard.press('Tab');
 
-		let dropzones = await createParametersAndReturnInputDropzones([ 'name' ]);
+		let dropzones = await createParametersAndReturnInputDropzones(page, [ 'name' ]);
 
 		await page.locator('span').filter({hasText: /^input$/}).hover();
 		await page.mouse.down();
@@ -294,7 +268,7 @@ test('pages', async ({page}, testInfo) => {
 		await page.locator('#id-expression-input').fill('${current.id}');
 		await page.keyboard.press('Tab');
 
-		let dropzones = await createParametersAndReturnInputDropzones([ 'name', 'description', 'dueDate' ]);
+		let dropzones = await createParametersAndReturnInputDropzones(page, [ 'name', 'description', 'dueDate' ]);
 
 		// drag inputs to dropzones
 		for (var i = 0; i < dropzones.length; i++) {
@@ -431,7 +405,7 @@ test('pages', async ({page}, testInfo) => {
 		await page.locator('#id-expression-input').fill('${current.id}');
 		await page.keyboard.press('Tab');
 
-		let dropzones = await createParametersAndReturnInputDropzones([ 'manager', 'client', 'tags', 'tasks' ]);
+		let dropzones = await createParametersAndReturnInputDropzones(page, [ 'manager', 'client', 'tags', 'tasks' ]);
 
 		// drag inputs to dropzones
 		for (var i = 0; i < dropzones.length; i++) {

@@ -20,7 +20,7 @@
 import {expect, test} from '@playwright/test';
 import {goToModule, initialize, waitForDialogBoxToClose} from "./helpers/init";
 import {login, logout} from "./helpers/auth";
-import {createAndRenamePage, focusCenterPaneMonacoEditor, resizeRightFlyout} from "./helpers/pages";
+import {createAndRenamePage, focusCenterPaneMonacoEditor, resizeRightFlyout, createParametersAndReturnInputDropzones} from "./helpers/pages";
 
 test.beforeAll(async ({playwright}) => {
     await initialize(playwright);
@@ -250,9 +250,8 @@ test('pages', async ({page}, testInfo) => {
     await page.keyboard.type('click');
     await page.keyboard.press('Tab');
     await page.locator('#action-select').selectOption('Create new object');
-    await page.locator('.m-2 > svg > use').first().click();
-    await page.getByRole('textbox', {name: 'Name', exact: true}).fill('name');
-    await page.getByRole('combobox').nth(5).selectOption('User Input');
+
+	await createParametersAndReturnInputDropzones(page, [ 'name' ]);
 
 	await page.waitForTimeout(1000);
     await page.screenshot({path: 'screenshots/pages_element-details_events.png'});
