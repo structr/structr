@@ -82,6 +82,66 @@ export class Frontend {
 		return resolved;
 	}
 
+	/**
+	 * If the submitted form has file inputs with selected files, upload each file to the existing
+	 * UploadServlet (/structr/upload) and resolve to a map { inputName: uuid } (an array of uuids
+	 * for a multi-file input). EAM sends its parameters as JSON and cannot carry file bytes, so the
+	 * file is uploaded first and only its uuid is passed to the action, where the server links it to
+	 * the target field/relation like any other node reference. Resolves to {} when there are no files.
+	 */
+	async uploadFormFiles(target) {
+
+		let resolved = {};
+
+		if (!target || target.tagName !== 'FORM') {
+			return resolved;
+		}
+
+		for (let input of target.querySelectorAll('input[type="file"]')) {
+
+			if (!input.name || !input.files || !input.files.length) {
+				continue;
+			}
+
+			let uuids = [];
+
+			for (let file of input.files) {
+				uuids.push(await this.uploadFile(input, file));
+			}
+
+			resolved[input.name] = (input.multiple || uuids.length > 1) ? uuids : uuids[0];
+		}
+
+		return resolved;
+	}
+
+	/**
+	 * Uploads a single file to the UploadServlet and returns the new file's uuid. Optional
+	 * overrides are authored as data-* attributes on the file input: the target folder
+	 * (data-structr-upload-parent), the file type (data-structr-upload-type) and the
+	 * visibility flags. Uploads are private to their owner by default, so a file OTHER people
+	 * must see (an avatar in a nav or list) needs data-structr-upload-visible-to-authenticated.
+	 */
+	async uploadFile(input, file) {
+
+		let formData = new FormData();
+		formData.append('file', file);
+
+		if (input.dataset.structrUploadParent) { formData.append('parent', input.dataset.structrUploadParent); }
+		if (input.dataset.structrUploadType)   { formData.append('type',   input.dataset.structrUploadType); }
+		if (input.dataset.structrUploadVisibleToPublic)        { formData.append('visibleToPublicUsers',        input.dataset.structrUploadVisibleToPublic); }
+		if (input.dataset.structrUploadVisibleToAuthenticated) { formData.append('visibleToAuthenticatedUsers', input.dataset.structrUploadVisibleToAuthenticated); }
+
+		let response = await fetch('/structr/upload', { body: formData, method: 'POST', credentials: 'same-origin' });
+		if (!response.ok) {
+			throw new Error('File upload failed with status ' + response.status);
+		}
+
+		let uuid = await response.text();
+
+		return uuid.trim();
+	}
+
 	resolveValue(key, value, data, event, target) {
 
 		// switch (key) {
@@ -188,6 +248,13 @@ export class Frontend {
 	}
 
 	resolveElementValue(element) {
+
+		if (element.nodeName === 'INPUT' && element.type === 'file') {
+
+			// file inputs carry no usable value (element.value is a fake path, not the bytes);
+			// the uploaded file's uuid is injected separately after upload to /structr/upload
+			return undefined;
+		}
 
 		if (element.nodeName === 'INPUT' && (element.type === 'checkbox' || element.type === 'radio')) {
 
@@ -896,10 +963,19 @@ export class Frontend {
 
 			this.fireEvent('start', { target: target, data: data, event: event });
 
-			fetch('/structr/rest/DOMElement/' + id + '/event', {
-				body: JSON.stringify(this.resolveData(event, target)),
-				method: 'POST',
-				credentials: 'same-origin'
+			// upload any selected files first (EAM params are JSON and cannot carry bytes), then
+			// send the action with each file input's value replaced by the uploaded file's uuid
+			this.uploadFormFiles(target)
+			.then(uploadedFiles => {
+
+				let payload = this.resolveData(event, target);
+				for (let key in uploadedFiles) { payload[key] = uploadedFiles[key]; }
+
+				return fetch('/structr/rest/DOMElement/' + id + '/event', {
+					body: JSON.stringify(payload),
+					method: 'POST',
+					credentials: 'same-origin'
+				});
 			})
 			.then(response => {
 				return response.json().then(json => ({ json: json, status: response.status, statusText: response.statusText, headers: Object.fromEntries(response.headers.entries()) }))

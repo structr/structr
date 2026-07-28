@@ -78,11 +78,11 @@
 		<path d="M2.338 3.255v17.49a1.5 1.5 0 0 0 2.209 1.322l16.323 -8.745a1.5 1.5 0 0 0 0 -2.644L4.547 1.933a1.5 1.5 0 0 0 -2.209 1.322Z"/>
 	</symbol>
 	<symbol id="stop_button" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
-		<path d="M5.25 3.75h13.5s1.5 0 1.5 1.5v13.5s0 1.5 -1.5 1.5H5.25s-1.5 0 -1.5 -1.5V5.25s0 -1.5 1.5 -1."/>
+		<path d="M5.25 3.75h13.5s1.5 0 1.5 1.5v13.5s0 1.5 -1.5 1.5H5.25s-1.5 0 -1.5 -1.5V5.25s0 -1.5 1.5 -1.5"/>
 	</symbol>
 	<symbol id="pause_button" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
-		<path d="M6.75 3.75h1.5s1.5 0 1.5 1.5v13.5s0 1.5 -1.5 1.5h-1.5s-1.5 0 -1.5 -1.5V5.25s0 -1.5 1.5 -1."/>
-		<path d="M15.75 3.75h1.5s1.5 0 1.5 1.5v13.5s0 1.5 -1.5 1.5h-1.5s-1.5 0 -1.5 -1.5V5.25s0 -1.5 1.5 -1."/>
+		<path d="M6.75 3.75h1.5s1.5 0 1.5 1.5v13.5s0 1.5 -1.5 1.5h-1.5s-1.5 0 -1.5 -1.5V5.25s0 -1.5 1.5 -1.5"/>
+		<path d="M15.75 3.75h1.5s1.5 0 1.5 1.5v13.5s0 1.5 -1.5 1.5h-1.5s-1.5 0 -1.5 -1.5V5.25s0 -1.5 1.5 -1.5"/>
 	</symbol>
 
 	<symbol id="folder-open-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
@@ -656,15 +656,26 @@
 		</symbol>
 	</g>
 
+	<symbol id="icon-sites" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+		<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M10.002 9.1c0 0.23869 -0.09487 0.46761 -0.26365 0.6364 -0.16878 0.16878 -0.3977 0.2636 -0.6364 0.2636h-7.2c-0.23869 0 -0.46761 -0.09482 -0.63639 -0.2636 -0.16879 -0.16879 -0.26361 -0.39771 -0.26361 -0.6364V1.9c0 -0.23869 0.09482 -0.46761 0.26361 -0.6364 0.16878 -0.16878 0.3977 -0.2636 0.63639 -0.2636h7.2c0.2387 0 0.46762 0.09482 0.6364 0.2636 0.16878 0.16879 0.26365 0.39771 0.26365 0.6364v7.2Z" stroke-width="1.5"></path>
+		<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M22.998 9.1c0 0.23869 -0.0948 0.46761 -0.2636 0.6364 -0.1687 0.16878 -0.3977 0.2636 -0.6364 0.2636h-7.2c-0.2386 0 -0.4676 -0.09482 -0.6363 -0.2636 -0.1688 -0.16879 -0.2637 -0.39771 -0.2637 -0.6364V1.9c0 -0.23869 0.0949 -0.46761 0.2637 -0.6364 0.1687 -0.16878 0.3977 -0.2636 0.6363 -0.2636h7.2c0.2387 0 0.4677 0.09482 0.6364 0.2636 0.1688 0.16879 0.2636 0.39771 0.2636 0.6364v7.2Z" stroke-width="1.5"></path>
+		<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M10.002 22.1c0 0.2387 -0.09487 0.4676 -0.26365 0.6364 -0.16878 0.1688 -0.3977 0.2636 -0.6364 0.2636h-7.2c-0.23869 0 -0.46761 -0.0948 -0.63639 -0.2636 -0.16879 -0.1688 -0.26361 -0.3977 -0.26361 -0.6364v-7.2c0 -0.2387 0.09482 -0.4676 0.26361 -0.6364 0.16878 -0.1688 0.3977 -0.2636 0.63639 -0.2636h7.2c0.2387 0 0.46762 0.0948 0.6364 0.2636 0.16878 0.1688 0.26365 0.3977 0.26365 0.6364v7.2Z" stroke-width="1.5"></path>
+		<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M22.998 22.1c0 0.2387 -0.0948 0.4676 -0.2636 0.6364 -0.1687 0.1688 -0.3977 0.2636 -0.6364 0.2636h-7.2c-0.2386 0 -0.4676 -0.0948 -0.6363 -0.2636 -0.1688 -0.1688 -0.2637 -0.3977 -0.2637 -0.6364v-7.2c0 -0.2387 0.0949 -0.4676 0.2637 -0.6364 0.1687 -0.1688 0.3977 -0.2636 0.6363 -0.2636h7.2c0.2387 0 0.4677 0.0948 0.6364 0.2636 0.1688 0.1688 0.2636 0.3977 0.2636 0.6364v7.2Z" stroke-width="1.5"></path>
+	</symbol>
+
 	<symbol id="icon-site" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-		<path stroke-linecap="round" stroke-linejoin="round" d="M23.25 19.5v0.635a1.62 1.62 0 0 1 -1.615 1.615H2.25a1.5 1.5 0 0 1 -1.5 -1.5v-0.75"/>
-		<path stroke-linecap="round" stroke-linejoin="round" d="M0.75 8.25V3.865A1.62 1.62 0 0 1 2.365 2.25h19.278a1.612 1.612 0 0 1 1.607 1.607V8.25"/>
-		<path stroke-linecap="round" stroke-linejoin="round" d="M23.25 6.75H0.75"/>
-		<path stroke-linecap="round" stroke-linejoin="round" d="M8.25 11.25a3 3 0 0 0 0 6"/>
-		<path stroke-linecap="round" stroke-linejoin="round" d="M12.75 11.25a1.5 1.5 0 0 0 -1.5 1.5v3a1.5 1.5 0 1 0 3 0v-3a1.5 1.5 0 0 0 -1.5 -1.5Z"/>
-		<path stroke-linecap="round" stroke-linejoin="round" d="M21.75 17.25v-6L19.5 15l-2.25 -3.75v6"/>
-		<path d="M2.625 17.25a0.375 0.375 0 0 1 0 -0.75"/>
-		<path d="M2.625 17.25a0.375 0.375 0 0 0 0 -0.75"/>
+		<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M18.0015 11.3714c0.9988 1.5589 1.4982 3.8412 1.4982 5.8036 0 2.0175 -0.5279 4.3731 -1.5836 5.9331m-1.4262 -11.7367c-0.9988 1.5589 -1.4982 3.8412 -1.4982 5.8036 0 2.0175 0.5278 4.3731 1.5835 5.9331" stroke-width="1.5"></path>
+		<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M11.8232 15.1366h10.8446" stroke-width="1.5"></path>
+		<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M11.8232 19.3596h10.8446" stroke-width="1.5"></path>
+		<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M17.2456 23.248c3.3137 0 6 -2.6862 6 -6 0 -3.3137 -2.6863 -6 -6 -6s-6 2.6863 -6 6c0 3.3138 2.6863 6 6 6" stroke-width="1.5"></path>
+		<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="M0.75 5.84839h22.5" stroke-width="1.5"></path>
+		<path stroke="currentColor" stroke-linecap="round" d="M23.25 10.253V2.25299c0 -0.82843 -0.6716 -1.499999 -1.5 -1.499999H2.25c-0.82843 0 -1.5 0.671569 -1.5 1.499999V18.753c0 0.8284 0.67157 1.5 1.5 1.5h6.5" stroke-width="1.5"></path>
+		<path stroke="currentColor" d="M4.46191 3.49561c-0.13807 0 -0.25 -0.11193 -0.25 -0.25 0 -0.13808 0.11193 -0.25 0.25 -0.25" stroke-width="1.5"></path>
+		<path stroke="currentColor" d="M4.46191 3.49561c0.13808 0 0.25 -0.11193 0.25 -0.25 0 -0.13808 -0.11192 -0.25 -0.25 -0.25" stroke-width="1.5"></path>
+		<path stroke="currentColor" d="M7.77051 3.49561c-0.13807 0 -0.25 -0.11193 -0.25 -0.25 0 -0.13808 0.11193 -0.25 0.25 -0.25" stroke-width="1.5"></path>
+		<path stroke="currentColor" d="M7.77051 3.49561c0.13807 0 0.25 -0.11193 0.25 -0.25 0 -0.13808 -0.11193 -0.25 -0.25 -0.25" stroke-width="1.5"></path>
+		<path stroke="currentColor" d="M11.0801 3.49561c-0.1381 0 -0.25 -0.11193 -0.25 -0.25 0 -0.13808 0.1119 -0.25 0.25 -0.25" stroke-width="1.5"></path>
+		<path stroke="currentColor" d="M11.0801 3.49561c0.138 0 0.25 -0.11193 0.25 -0.25 0 -0.13808 -0.112 -0.25 -0.25 -0.25" stroke-width="1.5"></path>
 	</symbol>
 
 	<symbol id="history" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">

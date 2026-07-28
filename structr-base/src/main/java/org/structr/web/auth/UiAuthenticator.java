@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
+import org.structr.common.LogThrottle;
 import org.structr.common.RequestHeaders;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -78,6 +79,12 @@ import java.util.stream.Collectors;
 public class UiAuthenticator implements Authenticator {
 
 	private static final Logger logger = LoggerFactory.getLogger(UiAuthenticator.class.getName());
+
+	/* Denied requests are logged, and a remote caller decides how many of those to send: without a
+	   ceiling, a flood of rejected requests becomes a flood of log lines. Keyed by signature and
+	   method so a repeated denial is reported once per window, with a global total that holds even
+	   when the caller varies the signature to get around the per-key count. */
+	private static final LogThrottle deniedAccessLog = new LogThrottle("Denied resource access", 1);
 
 	private static final Cache<String, Map<String,String[]>> stateParameters = CacheBuilder.newBuilder()
 		.maximumSize(1000)
@@ -349,7 +356,10 @@ public class UiAuthenticator implements Authenticator {
 				eventLogMap.put("userName", user.getName());
 			}
 
-			logger.info(errorMessage);
+			if (deniedAccessLog.allow(rawResourceSignature + " " + method)) {
+				logger.info(errorMessage);
+			}
+
 			RuntimeEventLog.resourceAccess("No permission", eventLogMap);
 
 			TransactionCommand.simpleBroadcastGenericMessage(Map.of(
@@ -464,7 +474,9 @@ public class UiAuthenticator implements Authenticator {
 		final Map eventLogMap     = (validUser ? Map.of("raw", rawResourceSignature, "method", method, "validUser", validUser, "userName", user.getName()) : Map.of("raw", rawResourceSignature, "method", method, "validUser", validUser));
 		final String errorMessage = "Found " + permissionsFound + " resource access permission" + (permissionsFound > 1 ? "s" : "") + " for " + userInfo + " and signature '" + rawResourceSignature + "' (URI: " + securityContext.getCompoundRequestURI() + "), but method '" + method + "' not allowed in any of them.";
 
-		logger.info(errorMessage);
+		if (deniedAccessLog.allow(rawResourceSignature + " " + method)) {
+			logger.info(errorMessage);
+		}
 
 		RuntimeEventLog.resourceAccess("Method not allowed", eventLogMap);
 

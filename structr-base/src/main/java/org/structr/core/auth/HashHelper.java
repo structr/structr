@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.security.SecureRandom;
 import java.util.Base64;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Password hashing utility supporting Argon2id (preferred) and legacy SHA-512.
@@ -49,6 +50,9 @@ public class HashHelper {
 	private static final Logger logger = LoggerFactory.getLogger(HashHelper.class);
 
 	private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+
+	// see getVerificationCount()
+	private static final AtomicLong VERIFICATION_COUNT = new AtomicLong();
 
 	// Argon2id parameters (OWASP 2023)
 	private static final int ARGON2_MEMORY_KB   = 65536;  // 64 MB
@@ -123,6 +127,57 @@ public class HashHelper {
 		return hash != null && hash.startsWith(ARGON2_PREFIX);
 	}
 
+	/**
+	 * Spend the same verification work as a real password check, and return false.
+	 *
+	 * Call this on a login path that has NO principal to check against, so that a failed attempt
+	 * costs the same whether or not the account exists. Without it, "no such user" returns
+	 * immediately while an existing user pays for a full Argon2 verification (64 MB, 3 iterations
+	 * here), and that difference is easily measurable: an attacker can enumerate valid user names by
+	 * timing alone, even though both cases answer with the same error message. Structr is open
+	 * source, so the shape of that difference is not a secret and must not be relied upon.
+	 *
+	 * @param password the cleartext password that was offered, may be null
+	 * @return always false, so this can be used directly in place of a verification result
+	 */
+	public static boolean spendVerificationTime(final String password) {
+
+		verifyArgon2(password != null ? password : "", getTimingReferenceHash());
+
+		return false;
+	}
+
+	/**
+	 * A hash of a random value, generated once, purely to give
+	 * {@link #spendVerificationTime(String)} something realistic to verify against. It never
+	 * matches any password, and is created lazily so that starting the server does not pay for it.
+	 */
+	private static String getTimingReferenceHash() {
+
+		String hash = timingReferenceHash;
+
+		if (hash == null) {
+
+			synchronized (HashHelper.class) {
+
+				hash = timingReferenceHash;
+
+				if (hash == null) {
+
+					final byte[] random = new byte[32];
+					SECURE_RANDOM.nextBytes(random);
+
+					hash                 = hashPassword(java.util.Base64.getEncoder().encodeToString(random));
+					timingReferenceHash  = hash;
+				}
+			}
+		}
+
+		return hash;
+	}
+
+	private static volatile String timingReferenceHash = null;
+
 	// ----- Legacy SHA-512 methods (kept for backward compatibility) -----
 
 	/**
@@ -156,9 +211,31 @@ public class HashHelper {
 		return DigestUtils.sha512Hex(password);
 	}
 
+	/**
+	 * Number of Argon2 verifications performed since the counter was last reset.
+	 *
+	 * A failed login must cost exactly one verification whatever the reason it failed, otherwise the
+	 * cheaper cases are identifiable by how fast they answer, see
+	 * {@link #spendVerificationTime(String)}. That invariant is what tests assert: counting the
+	 * operations is deterministic, while measuring elapsed time is not and would make the test flaky
+	 * enough to be ignored. Not a metric, and not synchronized beyond the atomic itself.
+	 */
+	public static long getVerificationCount() {
+		return VERIFICATION_COUNT.get();
+	}
+
+	/**
+	 * Resets {@link #getVerificationCount()}, for a test that is about to make one attempt.
+	 */
+	public static void resetVerificationCount() {
+		VERIFICATION_COUNT.set(0);
+	}
+
 	// ----- private methods -----
 
 	private static boolean verifyArgon2(final String password, final String encodedHash) {
+
+		VERIFICATION_COUNT.incrementAndGet();
 
 		try {
 

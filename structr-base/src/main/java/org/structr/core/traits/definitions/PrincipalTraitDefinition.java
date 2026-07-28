@@ -149,6 +149,16 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 
 						final boolean valid = HashHelper.verifyPassword(password, encryptedPasswordFromDatabase, principal.getSalt());
 
+						/* A login attempt must cost one password verification whatever its outcome, or
+						   the difference identifies the account. A legacy SHA-512 hash is compared in
+						   microseconds while Argon2id takes far longer, so a failed attempt against a
+						   legacy account has to make up that difference. The valid case needs nothing:
+						   the migration below re-hashes, which costs at least as much. */
+						if (!valid && !HashHelper.isArgon2Hash(encryptedPasswordFromDatabase)) {
+
+							HashHelper.spendVerificationTime(password);
+						}
+
 						// Transparent migration: re-hash legacy SHA-512 to Argon2id on successful login
 						if (valid && !HashHelper.isArgon2Hash(encryptedPasswordFromDatabase)) {
 
@@ -167,6 +177,10 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 
 						return valid;
 					}
+
+					/* An account with no stored password at all, an external one for example, would
+					   otherwise be refused instantly and stand out from every other failed attempt. */
+					HashHelper.spendVerificationTime(password);
 
 					return false;
 				}

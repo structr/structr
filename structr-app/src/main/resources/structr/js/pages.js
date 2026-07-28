@@ -5092,7 +5092,7 @@ let _Pages = {
 					</div>
 
 					<div class="slideout-activator left" id="sitesTab" data-for-slideout="#sites" data-sub-section="sitesList">
-						${_Icons.getSvgIcon(_Icons.iconSite, 24, 24)}
+						${_Icons.getSvgIcon(_Icons.iconSites, 24, 24)}
 						<br>
 						Sites
 					</div>
