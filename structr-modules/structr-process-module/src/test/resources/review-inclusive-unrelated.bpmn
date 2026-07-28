@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  id="Definitions_ReviewInclusiveUnrelated"
+                  targetNamespace="http://structr.org/bpmn">
+
+  <!--
+    A top-level parallel gateway forks into:
+      A: an inclusive fork/join sub-flow with two (unconditional) user-task branches
+      B: an independent, long-running user task that NEVER reaches the inclusive join
+    Once both inclusive branches (A1, A2) have arrived at Inc_Join, the join must
+    fire and open Task_A_After regardless of the still-open, unrelated Task_B.
+    The bug decides the join is satisfied only when NO other active token exists
+    anywhere in the instance, so Task_B's token keeps the join from ever firing
+    (deadlock).
+  -->
+  <bpmn:process id="Process_ReviewInclusiveUnrelated" name="Inclusive join with unrelated parallel branch" isExecutable="true">
+
+    <bpmn:startEvent      id="Start_1"  name="Start" />
+    <bpmn:parallelGateway id="Fork_Top" name="Top fork" />
+
+    <!-- Branch A: inclusive fork -> two user tasks -> inclusive join -> after task -->
+    <bpmn:inclusiveGateway id="Inc_Fork" name="Inclusive fork" />
+    <bpmn:userTask         id="Task_A1"  name="Inclusive A1" />
+    <bpmn:userTask         id="Task_A2"  name="Inclusive A2" />
+    <bpmn:inclusiveGateway id="Inc_Join" name="Inclusive join" />
+    <bpmn:userTask         id="Task_A_After" name="After inclusive join" />
+    <bpmn:endEvent         id="End_A"    name="End A" />
+
+    <!-- Branch B: independent user task, unrelated to the inclusive join -->
+    <bpmn:userTask id="Task_B" name="Independent task B" />
+    <bpmn:endEvent id="End_B"  name="End B" />
+
+    <bpmn:sequenceFlow id="Flow_start"    sourceRef="Start_1"  targetRef="Fork_Top" />
+
+    <bpmn:sequenceFlow id="Flow_top_a"    sourceRef="Fork_Top" targetRef="Inc_Fork" />
+    <bpmn:sequenceFlow id="Flow_top_b"    sourceRef="Fork_Top" targetRef="Task_B" />
+
+    <bpmn:sequenceFlow id="Flow_fork_a1"  sourceRef="Inc_Fork" targetRef="Task_A1" />
+    <bpmn:sequenceFlow id="Flow_fork_a2"  sourceRef="Inc_Fork" targetRef="Task_A2" />
+    <bpmn:sequenceFlow id="Flow_a1_join"  sourceRef="Task_A1"  targetRef="Inc_Join" />
+    <bpmn:sequenceFlow id="Flow_a2_join"  sourceRef="Task_A2"  targetRef="Inc_Join" />
+    <bpmn:sequenceFlow id="Flow_join_after" sourceRef="Inc_Join" targetRef="Task_A_After" />
+    <bpmn:sequenceFlow id="Flow_a_end"    sourceRef="Task_A_After" targetRef="End_A" />
+
+    <bpmn:sequenceFlow id="Flow_b_end"    sourceRef="Task_B"   targetRef="End_B" />
+
+  </bpmn:process>
+
+</bpmn:definitions>

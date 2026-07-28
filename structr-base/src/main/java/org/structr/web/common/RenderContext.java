@@ -496,6 +496,18 @@ public class RenderContext extends ActionContext {
 						}
 						return resolveClosestComponent(entity);
 
+					case "visibilityMapping":
+
+						// The VisibilityMapping governing this part of the page: the one on this
+						// node, else the closest ancestor's. Mirrors `component` -- a partial
+						// usually wants the binding of the block it sits in, not its own node --
+						// and saves scripts from walking `parent` or querying for the mapping.
+						if (entity.is(StructrTraits.DOM_NODE)) {
+
+							return entity.as(DOMNode.class).getClosestVisibilityMapping();
+						}
+						break;
+
 					case "dataSource":
 
 						// provide access to the current data source in render templates

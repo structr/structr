@@ -118,6 +118,23 @@ let _Widgets = {
 		_wPager.setIsPaused(false);
 		_wPager.refresh();
 	},
+	// Deploy the default widget set from structr.com. Extracted from
+	// createImportWidgetsButton so callers that can't host a page-tile (e.g. the
+	// process editor's side panel) trigger the same import instead of repeating
+	// the download URL. Resolves true when the deployment request was accepted.
+	importDefaultWidgetSet: async () => {
+
+		let formData = new FormData();
+		formData.append('downloadUrl', 'https://gitlab.structr.com/structr/widgets/-/archive/0.1.1/widgets-0.1.1.zip');
+		formData.append('mode', 'app'); // mode "app" implies "quiet mode", i.e. no notifications
+
+		let response = await fetch(`${Structr.deployRoot}`, {
+			method: 'POST',
+			body: formData
+		});
+
+		return response.ok;
+	},
 	createImportWidgetsButton: (container, title, callback) => {
 		let importTile = _Helpers.createSingleDOMElementFromHTML(
 			`<div id="import-widget-set" class="page-tile bg-gray-f8"><div class="h-full flex flex-column items-center" title="${title}">
@@ -130,20 +147,12 @@ let _Widgets = {
 		container.append(importTile);
 
 		let importWidgetsButton = container.querySelector('#import-widget-set');
-		importWidgetsButton.addEventListener('click', () => {
-			let formData = new FormData();
-			formData.append('downloadUrl', 'https://gitlab.structr.com/structr/widgets/-/archive/0.1.1/widgets-0.1.1.zip');
-			formData.append('mode', 'app'); // mode "app" implies "quiet mode", i.e. no notifications
-			fetch(`${Structr.deployRoot}`, {
-				method: 'POST',
-				body: formData
-			}).then(response => {
-				if (response.ok) {
-					if (callback && typeof callback === 'function') {
-						callback();
-					}
+		importWidgetsButton.addEventListener('click', async () => {
+			if (await _Widgets.importDefaultWidgetSet()) {
+				if (callback && typeof callback === 'function') {
+					callback();
 				}
-			})
+			}
 		});
 	},
 	getTreeParent: (element, treePath, suffix) => {

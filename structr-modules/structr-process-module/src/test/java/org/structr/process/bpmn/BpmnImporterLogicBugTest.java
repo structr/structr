@@ -68,6 +68,34 @@ public class BpmnImporterLogicBugTest {
 	}
 
 	/**
+	 * A call nested in an argument list describes the argument, not the action, so the
+	 * name must come from the OUTER call. Taking the textually last call turned
+	 * {@code ${execution.setVariable('startedAt', now())}} into a handler named
+	 * {@code now} -- which, having no schemaNode, landed in the user-defined function
+	 * namespace and shadowed the builtin {@code now()}.
+	 */
+	@Test
+	public void testSanitizeMethodNamePrefersTheOuterCall() {
+
+		// nested call in an argument: the outer call wins
+		assertEquals("setVariable", sanitizeMethodName("${execution.setVariable('startedAt', now())}"));
+		assertEquals("setVariable", sanitizeMethodName("${execution.setVariable('score', calc(a, b(c)))}"));
+
+		// chained calls are all at the outer level, so the final one still wins
+		assertEquals("doThing", sanitizeMethodName("${svc.get().doThing()}"));
+
+		// a paren inside a string literal must not shift the nesting level
+		assertEquals("setVariable", sanitizeMethodName("${execution.setVariable('a(b', now())}"));
+
+		// multi-statement script: the last outer-level call wins
+		assertEquals("setVariable", sanitizeMethodName("execution.setVariable(\"approved\", true); execution.setVariable(\"role\", role(x));"));
+
+		// unchanged: a single call, and a payload with no call at all
+		assertEquals("notifyReviewer", sanitizeMethodName("${notificationService.notifyReviewer(task)}"));
+		assertEquals("notifyDelegate", sanitizeMethodName("com.example.NotifyDelegate"));
+	}
+
+	/**
 	 * A Camunda listener payload must become a runnable Structr method body: an
 	 * expression is transpiled and wrapped as a JS body ({@code { ... }}) so it runs
 	 * as JavaScript with $.process (not StructrScript, which chokes on the ${ }); a

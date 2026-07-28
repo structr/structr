@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+                  id="Definitions_IoScope"
+                  targetNamespace="http://structr.org/bpmn">
+
+  <!--
+    Verifies Camunda inputOutput local-scope semantics.
+    The instance starts with process variable x = 1.
+    The service task declares:
+      input  x   = 5    (a LOCAL that shadows the process variable during the activity)
+      input  tmp = 99   (a LOCAL with a fresh name; must NOT leak to process scope)
+      output seen = ${x} (reads the LOCAL x = 5 and promotes it to process scope)
+    After the activity: process x must still be 1 (not clobbered), tmp must be absent
+    (inputs don't leak), and seen must be 5 (output saw the local shadow).
+  -->
+  <bpmn:process id="Process_IoScope" name="io local scope" isExecutable="true">
+
+    <bpmn:startEvent id="Start_1" name="Start" />
+
+    <bpmn:serviceTask id="Svc_Io" name="Local scope">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="x">5</camunda:inputParameter>
+          <camunda:inputParameter name="tmp">99</camunda:inputParameter>
+          <camunda:outputParameter name="seen">${x}</camunda:outputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+    </bpmn:serviceTask>
+
+    <bpmn:userTask id="Task_Wait" name="Wait" />
+    <bpmn:endEvent id="End_1" name="Done" />
+
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="Start_1"  targetRef="Svc_Io" />
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Svc_Io"   targetRef="Task_Wait" />
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Task_Wait" targetRef="End_1" />
+
+  </bpmn:process>
+
+</bpmn:definitions>

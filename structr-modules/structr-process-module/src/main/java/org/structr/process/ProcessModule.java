@@ -40,6 +40,7 @@ import org.structr.process.function.ValidateProcessTokenFunction;
 import org.structr.process.traits.definitions.*;
 import org.structr.process.traits.rels.*;
 import org.structr.process.websocket.BpmnDiagramBatchCommand;
+import org.structr.process.websocket.BpmnPageSkeletonCommand;
 import org.structr.websocket.StructrWebSocket;
 
 import java.util.Set;
@@ -52,8 +53,9 @@ public class ProcessModule implements StructrModule {
 	@Override
 	public void onLoad() {
 
-		// websocket command (registered explicitly since the JPMS migration removed the class-path scan)
+		// websocket commands (registered explicitly since the JPMS migration removed the class-path scan)
 		StructrWebSocket.addCommand(BpmnDiagramBatchCommand.class);
+		StructrWebSocket.addCommand(BpmnPageSkeletonCommand.class);
 
 		// Register relationship traits
 		StructrTraits.registerTrait(new BpmnDefinitionsHasDiagram());
@@ -265,11 +267,6 @@ public class ProcessModule implements StructrModule {
 
 		StructrTraits.registerNodeType(ProcessTraits.PROCESS_TIMER,           ProcessTraits.PROCESS_TIMER);
 
-		// Touch the WebSocket command class so its static initializer runs and
-		// registers the command with StructrWebSocket. Without this reference,
-		// the class is never loaded and the BPMN_DIAGRAM_BATCH command is
-		// unknown to the dispatcher.
-		BpmnDiagramBatchCommand.class.getName();
 	}
 
 	@Override

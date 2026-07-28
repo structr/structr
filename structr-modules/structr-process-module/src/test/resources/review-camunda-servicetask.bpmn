@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                  id="Definitions_CamundaServiceTask"
+                  targetNamespace="http://structr.org/bpmn">
+
+  <!--
+    A Camunda service task whose implementation is a camunda:expression that calls
+    execution.setVariable(...). On import the expression becomes a runnable
+    scriptContent (foreign-JS), and at execution time it is transpiled to a
+    $.process write that persists the variable. The following exclusive gateway
+    must then route on that variable.
+  -->
+  <bpmn:process id="Process_CamundaServiceTask" name="Camunda service task sets a variable" isExecutable="true">
+
+    <bpmn:startEvent id="Start_1" name="Start" />
+
+    <bpmn:serviceTask id="Svc_SetApproved" name="Approve"
+                      camunda:expression="${execution.setVariable('approved', true)}" />
+
+    <bpmn:exclusiveGateway id="Gate_Approved" name="Approved?" default="Flow_No" />
+
+    <bpmn:userTask id="Task_Yes" name="Create PO" />
+    <bpmn:userTask id="Task_No"  name="Rework" />
+
+    <bpmn:endEvent id="End_Yes" name="Approved" />
+    <bpmn:endEvent id="End_No"  name="Rejected" />
+
+    <bpmn:sequenceFlow id="Flow_start" sourceRef="Start_1"       targetRef="Svc_SetApproved" />
+    <bpmn:sequenceFlow id="Flow_gate"  sourceRef="Svc_SetApproved" targetRef="Gate_Approved" />
+
+    <bpmn:sequenceFlow id="Flow_Yes" name="ja" sourceRef="Gate_Approved" targetRef="Task_Yes">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${approved == true}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_No" name="nein" sourceRef="Gate_Approved" targetRef="Task_No" />
+
+    <bpmn:sequenceFlow id="Flow_yes_end" sourceRef="Task_Yes" targetRef="End_Yes" />
+    <bpmn:sequenceFlow id="Flow_no_end"  sourceRef="Task_No"  targetRef="End_No" />
+
+  </bpmn:process>
+
+</bpmn:definitions>

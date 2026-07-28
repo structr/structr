@@ -27,6 +27,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
@@ -49,7 +50,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.util.*;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -109,10 +109,11 @@ public class BpmnImporter {
 	private static final Set<String> TIMER_SUB_TYPES = Set.of("timeDuration", "timeCycle", "timeDate");
 
 	/** A valid SchemaMethod name: starts with a lowercase letter or underscore, then word chars. */
-	private static final Pattern VALID_METHOD_NAME = Pattern.compile("[a-z_][a-zA-Z0-9_]*");
+	/** The pattern the SchemaMethod validator enforces on commit -- not a copy of it, so a
+	 * change to the validator cannot silently turn into a 422 during BPMN import. */
+	private static final Pattern VALID_METHOD_NAME = Pattern.compile(SchemaMethod.schemaMethodNamePattern);
 
 	/** An {@code identifier(} token -- used to pull the invoked method name out of a JUEL/JS expression. */
-	private static final Pattern METHOD_CALL_TOKEN = Pattern.compile("([A-Za-z_][A-Za-z0-9_]*)\\s*\\(");
 
 	private final SecurityContext securityContext;
 	private final Gson gson;
@@ -1863,11 +1864,6 @@ public class BpmnImporter {
 	}
 
 	/**
-	 * Return the SchemaMethod named {@code methodName} attached to {@code procNode}
-	 * (via HAS_METHOD), creating and attaching it if absent. Mirrors
-	 * {@link #ensureElementMethod} for process-level handler methods.
-	 */
-	/**
 	 * Coerce a listener's method payload into a valid {@code SchemaMethod} name
 	 * ({@code [a-z_][a-zA-Z0-9_]*}).
 	 *
@@ -1875,12 +1871,20 @@ public class BpmnImporter {
 	 * identifier and passes through unchanged. A {@code camunda:*} listener instead
 	 * carries a fully-qualified class name, a {@code ${...}} expression, a
 	 * {@code delegateExpression}, or inline script -- none of which are valid method
-	 * names. From those we derive a sensible identifier: the last invoked method name
-	 * in an expression (e.g. {@code ${svc.notifyReviewer(t)}} -> {@code notifyReviewer}),
-	 * otherwise the last dotted segment of a class / bean reference
-	 * ({@code com.acme.NotifyDelegate} -> {@code notifyDelegate}), stripped to
+	 * names. From those we derive a sensible identifier: the last method invoked at the
+	 * OUTER level of an expression (e.g. {@code ${svc.notifyReviewer(t)}} ->
+	 * {@code notifyReviewer}), otherwise the last dotted segment of a class / bean
+	 * reference ({@code com.acme.NotifyDelegate} -> {@code notifyDelegate}), stripped to
 	 * identifier characters and given a valid first character. Package-private and
 	 * static for unit testing.</p>
+	 *
+	 * <p>"Outer level" matters as soon as a call appears in an argument:
+	 * {@code ${execution.setVariable('startedAt', now())}} describes a setVariable call,
+	 * so the name is {@code setVariable}, not the nested {@code now} -- which would also
+	 * have shadowed the builtin {@code now()} function, since handler methods have no
+	 * schemaNode and therefore live in the user-defined function namespace. Chained calls
+	 * stay at the outer level, so {@code ${svc.get().doThing()}} still yields
+	 * {@code doThing}.</p>
 	 */
 	static String sanitizeMethodName(final String raw) {
 
@@ -1898,12 +1902,11 @@ public class BpmnImporter {
 			return s;
 		}
 
-		// Prefer the LAST invoked method name in an expression / script.
-		String candidate = null;
-		final Matcher call = METHOD_CALL_TOKEN.matcher(s);
-		while (call.find()) {
-			candidate = call.group(1);
-		}
+		// Prefer the LAST invoked method name at the outer level of an expression /
+		// script; a call nested in an argument list describes the argument, not the
+		// action. lastCallName falls back to the last call at any depth when the input
+		// is unbalanced enough to have no depth-0 call at all.
+		String candidate = lastCallName(s);
 
 		// Otherwise the last dotted segment of a FQCN / bean reference (minus ${ }).
 		if (candidate == null) {
@@ -1931,6 +1934,103 @@ public class BpmnImporter {
 		}
 
 		return candidate;
+	}
+
+	/**
+	 * Return the name of the last method call at paren depth 0 in {@code s}, or null when
+	 * there is none (a bean reference, or a grouping paren with no callee). Parentheses
+	 * inside single- or double-quoted literals don't count, so an argument such as
+	 * {@code 'a(b'} cannot skew the nesting level.
+	 */
+	private static String lastCallName(final String s) {
+
+		String outer  = null;
+		String anyDepth = null;
+		int depth     = 0;
+		char quote    = 0;
+
+		for (int i = 0; i < s.length(); i++) {
+
+			final char c = s.charAt(i);
+
+			if (quote != 0) {
+
+				if (c == '\\') {
+
+					i++;
+
+				} else if (c == quote) {
+
+					quote = 0;
+				}
+
+				continue;
+			}
+
+			if (c == '\'' || c == '"') {
+
+				quote = c;
+
+			} else if (c == '(') {
+
+				final String name = identifierEndingAt(s, i);
+				if (name != null) {
+
+					anyDepth = name;
+					if (depth == 0) {
+
+						outer = name;
+					}
+				}
+
+				depth++;
+
+			} else if (c == ')' && depth > 0) {
+
+				depth--;
+			}
+		}
+
+		return outer != null ? outer : anyDepth;
+	}
+
+	/**
+	 * Return the identifier ending at {@code parenIndex} (ignoring whitespace before the
+	 * paren), or null if what precedes the paren isn't an identifier.
+	 */
+	private static String identifierEndingAt(final String s, final int parenIndex) {
+
+		int end = parenIndex;
+		while (end > 0 && Character.isWhitespace(s.charAt(end - 1))) {
+			end--;
+		}
+
+		int start = end;
+		while (start > 0) {
+
+			final char c = s.charAt(start - 1);
+			if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_') {
+
+				start--;
+
+			} else {
+
+				break;
+			}
+		}
+
+		if (start == end) {
+			return null;
+		}
+
+		// the loop above accepted [A-Za-z0-9_], so a digit is the only way the run can
+		// fail to be an identifier
+		if (Character.isDigit(s.charAt(start))) {
+
+			return null;
+		}
+
+		return s.substring(start, end);
 	}
 
 	/**
@@ -2148,8 +2248,9 @@ public class BpmnImporter {
 		final PropertyKey<String> nameKey              = methodTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 		final PropertyKey<NodeInterface> schemaNodeKey = methodTraits.key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY);
 		final String slotKey                           = owner != null && owner.is(ProcessTraits.BPMN_PROCESS) ? "bpmnProcess" : "bpmnElement";
+		final PropertyKey<NodeInterface> slotKeyProp   = methodTraits.hasKey(slotKey) ? methodTraits.key(slotKey) : null;
 		final String ownerId                           = owner != null ? owner.getUuid() : null;
-		final List<NodeInterface> candidates           = new LinkedList<>();
+		final List<NodeInterface> candidates           = new ArrayList<>();
 		int rejectedAsTyped                            = 0;
 		int rejectedAsForeign                          = 0;
 
@@ -2161,7 +2262,7 @@ public class BpmnImporter {
 				continue;
 			}
 
-			final NodeInterface currentOwner = methodTraits.hasKey(slotKey) ? m.getProperty(methodTraits.key(slotKey)) : null;
+			final NodeInterface currentOwner = slotKeyProp != null ? m.getProperty(slotKeyProp) : null;
 			if (currentOwner != null && !currentOwner.getUuid().equals(ownerId)) {
 
 				rejectedAsForeign++;

@@ -493,6 +493,66 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	}
 
 	@Override
+	public final VisibilityMapping getClosestVisibilityMapping() {
+
+		DOMNode node = this;
+
+		while (node != null) {
+
+			final VisibilityMapping mapping = firstVisibilityMappingOf(node);
+			if (mapping != null) {
+
+				return mapping;
+			}
+
+			node = node.getParent();
+		}
+
+		return null;
+	}
+
+	/**
+	 * The first VisibilityMapping attached to {@code node}, read as superuser. Shared by the
+	 * render gate and {@link #getClosestVisibilityMapping()}: mappings are configuration data
+	 * attached to the DOMNode, so the rendering user is not expected to have read access on
+	 * them. Returns null when the type is not registered (no module provides it) or nothing is
+	 * attached.
+	 */
+	private static VisibilityMapping firstVisibilityMappingOf(final DOMNode node) {
+
+		if (!Traits.exists(StructrTraits.VISIBILITY_MAPPING)) {
+
+			return null;
+		}
+
+		for (final NodeInterface raw : visibilityMappingsOf(node)) {
+
+			return raw.as(VisibilityMapping.class);
+		}
+
+		return null;
+	}
+
+	/** The VisibilityMappings attached to {@code node}, queried as superuser. */
+	private static Iterable<NodeInterface> visibilityMappingsOf(final DOMNode node) {
+
+		final App suApp                             = StructrApp.getInstance(SecurityContext.getSuperUserInstance());
+		final Traits vmTraits                       = Traits.of(StructrTraits.VISIBILITY_MAPPING);
+		final PropertyKey<NodeInterface> domNodeKey = vmTraits.key(VisibilityMapping.DOM_NODE_PROPERTY);
+
+		try {
+
+			return suApp.nodeQuery(StructrTraits.VISIBILITY_MAPPING).key(domNodeKey, node).getResultStream();
+
+		} catch (final FrameworkException fex) {
+
+			LoggerFactory.getLogger(DOMNodeTraitWrapper.class).warn("VM query failed for DOMNode '{}': {}", node.getUuid(), fex.getMessage());
+
+			return List.of();
+		}
+	}
+
+	@Override
 	public final Page getClosestPage() {
 
 		DOMNode node = this;
@@ -1096,25 +1156,20 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		final NodeInterface contextObject = (ctx instanceof NodeInterface) ? (NodeInterface) ctx : null;
 
 		// Iterate VMs as superuser: configuration data, not access-controlled per user.
-		final App suApp = StructrApp.getInstance(SecurityContext.getSuperUserInstance());
-		final Traits vmTraits = Traits.of(StructrTraits.VISIBILITY_MAPPING);
-		final PropertyKey<NodeInterface> domNodeKey = vmTraits.key(VisibilityMapping.DOM_NODE_PROPERTY);
-
+		// A failed query yields no mappings (logged in visibilityMappingsOf), which lands on
+		// the same fail-open outcome as "no mappings configured" -- render rather than
+		// black-hole every partial on the page.
 		boolean hadAny = false;
-		try {
-			for (final NodeInterface raw : suApp.nodeQuery(StructrTraits.VISIBILITY_MAPPING).key(domNodeKey, wrappedObject).getResultStream()) {
-				hadAny = true;
-				final VisibilityMapping mapping = raw.as(VisibilityMapping.class);
-				if (mapping.evaluate(securityContext, contextObject)) {
-					return true;
-				}
+
+		for (final NodeInterface raw : visibilityMappingsOf(this)) {
+
+			hadAny = true;
+
+			final VisibilityMapping mapping = raw.as(VisibilityMapping.class);
+			if (mapping.evaluate(securityContext, contextObject)) {
+
+				return true;
 			}
-		} catch (FrameworkException ex) {
-			// Querying VMs failed for some reason. Fail open (render) rather than
-			// black-hole every partial on the page.
-			LoggerFactory.getLogger(DOMNodeTraitWrapper.class)
-				.warn("VM query failed for DOMNode '{}': {}", getUuid(), ex.getMessage());
-			return true;
 		}
 
 		// Mappings exist but none matched: hide. No mappings: render (opt-in default).

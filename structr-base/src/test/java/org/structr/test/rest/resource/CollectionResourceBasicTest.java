@@ -24,6 +24,7 @@ import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.Test;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -195,4 +196,47 @@ public class CollectionResourceBasicTest extends StructrRestTestBase {
 		RestAssured.given().contentType(ct).expect().statusCode(200).body(rc, equalTo(1)).body(rn, equalTo("group4")).body(ri, equalTo(id4)).when().get("/Group/" + id4);
 		RestAssured.given().contentType(ct).expect().statusCode(200).body(rc, equalTo(1)).body(rn, equalTo("group5")).body(ri, equalTo(id5)).when().get("/Group/" + id5);
 	}
+	/**
+	 * DELETE on a collection resource must answer with an EMPTY result array. It used to answer
+	 * {@code "result": [ null ]} -- a single null element -- because the servlet wrapped the
+	 * (absent) non-graph-object result of the bare RestMethodResult that genericDelete returns.
+	 * Clients then had to filter nulls out of a result they never asked for.
+	 */
+	@Test
+	public void testDeleteOnCollectionResourceReturnsEmptyResult() {
+
+		// two objects, so the delete has something to do
+		for (int i = 0; i < 2; i++) {
+
+			RestAssured
+				.given()
+					.contentType("application/json; charset=UTF-8")
+					.body("{ \"name\": \"to-be-deleted\" }")
+				.expect()
+					.statusCode(201)
+				.when()
+					.post("/TestObject");
+		}
+
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+			.expect()
+				.statusCode(200)
+				.body("result",       hasSize(0))
+				.body("result_count", equalTo(0))
+			.when()
+				.delete("/TestObject");
+
+		// and the collection really is empty afterwards
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+			.expect()
+				.statusCode(200)
+				.body("result", hasSize(0))
+			.when()
+				.get("/TestObject");
+	}
+
 }

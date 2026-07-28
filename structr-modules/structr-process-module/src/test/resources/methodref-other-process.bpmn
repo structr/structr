@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:structr="http://structr.org/schema/process/1.0"
+                  id="Definitions_MR2" targetNamespace="http://test/mr2">
+  <bpmn:process id="Process_MR2" name="Other Process" isExecutable="true">
+    <bpmn:startEvent id="Start_2">
+      <bpmn:outgoing>Flow_21</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="UserTask_2" name="Approve">
+      <bpmn:extensionElements>
+        <structr:taskListener event="created" method="onCreate" phase="after"/>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_21</bpmn:incoming>
+      <bpmn:outgoing>Flow_22</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="End_2">
+      <bpmn:incoming>Flow_22</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_21" sourceRef="Start_2" targetRef="UserTask_2"/>
+    <bpmn:sequenceFlow id="Flow_22" sourceRef="UserTask_2" targetRef="End_2"/>
+  </bpmn:process>
+</bpmn:definitions>

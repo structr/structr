@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  id="Definitions_ReviewSubProcParallelEnd"
+                  targetNamespace="http://structr.org/bpmn">
+
+  <!--
+    A sub-process that internally forks into two branches:
+      A: fully automatic (manualTask) -> internal end event
+      B: a human task -> internal end event
+    Branch A reaches the sub-process's internal end event FIRST. The sub-process
+    must NOT be considered complete (and its parent token must NOT advance to
+    Task_After) until branch B has also finished. The bug resumes the parent on
+    the first internal end event, abandoning branch B.
+  -->
+  <bpmn:process id="Process_ReviewSubProcParallelEnd" name="Sub-process with parallel branches" isExecutable="true">
+
+    <bpmn:startEvent id="Start_1" name="Start" />
+
+    <bpmn:subProcess id="Sub_1" name="Embedded parallel">
+
+      <bpmn:startEvent      id="Sub_Start" name="Sub start" />
+      <bpmn:parallelGateway id="Sub_Fork"  name="Sub fork" />
+
+      <!-- Branch A: automatic straight to an internal end event. -->
+      <bpmn:manualTask id="Sub_ManualA" name="Auto A" />
+      <bpmn:endEvent   id="Sub_End_A"   name="Sub end A" />
+
+      <!-- Branch B: a human task that keeps the sub-process live. -->
+      <bpmn:userTask id="Sub_TaskB"  name="Inner task B" />
+      <bpmn:endEvent id="Sub_End_B"  name="Sub end B" />
+
+      <bpmn:sequenceFlow id="Sub_Flow_start" sourceRef="Sub_Start"   targetRef="Sub_Fork" />
+      <bpmn:sequenceFlow id="Sub_Flow_a"     sourceRef="Sub_Fork"    targetRef="Sub_ManualA" />
+      <bpmn:sequenceFlow id="Sub_Flow_a_end" sourceRef="Sub_ManualA" targetRef="Sub_End_A" />
+      <bpmn:sequenceFlow id="Sub_Flow_b"     sourceRef="Sub_Fork"    targetRef="Sub_TaskB" />
+      <bpmn:sequenceFlow id="Sub_Flow_b_end" sourceRef="Sub_TaskB"   targetRef="Sub_End_B" />
+
+    </bpmn:subProcess>
+
+    <!-- Observable marker for "the parent advanced past the sub-process". -->
+    <bpmn:userTask id="Task_After" name="After sub" />
+    <bpmn:endEvent id="End_1"      name="Done" />
+
+    <bpmn:sequenceFlow id="Flow_start" sourceRef="Start_1"    targetRef="Sub_1" />
+    <bpmn:sequenceFlow id="Flow_after" sourceRef="Sub_1"      targetRef="Task_After" />
+    <bpmn:sequenceFlow id="Flow_end"   sourceRef="Task_After" targetRef="End_1" />
+
+  </bpmn:process>
+
+</bpmn:definitions>

@@ -459,6 +459,7 @@ public abstract class AbstractHintProvider {
 
 	public static void addBuiltInKeywordHints(final List<Documentable> hints) {
 
+		hints.add(0, new VisibilityMappingHint());
 		hints.add(0, new ValueHint());
 		hints.add(0, new ThisHint());
 		hints.add(0, new TenantIdentifierHint());

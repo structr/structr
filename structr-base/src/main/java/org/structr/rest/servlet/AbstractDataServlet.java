@@ -126,16 +126,7 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 
 				} else {
 
-					final Object nonGraphObjectResult = result.getNonGraphObjectResult();
-
-					if (nonGraphObjectResult != null && nonGraphObjectResult instanceof Iterable) {
-
-						writeJson(securityContext, response, new PagingIterable(request.toString(), (Iterable) (nonGraphObjectResult)), baseUrl, view, outputDepth, wrapSingleResultInArray, serializeNulls);
-
-					} else {
-
-						writeJson(securityContext, response, new PagingIterable(request.toString(), Arrays.asList(nonGraphObjectResult)), baseUrl, view, outputDepth, wrapSingleResultInArray, serializeNulls);
-					}
+					writeJson(securityContext, response, new PagingIterable(request.toString(), resultIterable(result.getNonGraphObjectResult())), baseUrl, view, outputDepth, wrapSingleResultInArray, serializeNulls);
 				}
 
 			}
@@ -144,6 +135,33 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 
 			logger.warn("Unable to commit Response", t);
 		}
+	}
+
+	/**
+	 * The iterable to serialize for a {@link RestMethodResult} that carries neither content nor
+	 * a message, i.e. one whose whole payload is the non-graph-object result.
+	 *
+	 * <p>A null result means "nothing to serialize" and has to become an EMPTY iterable, not a
+	 * one-element iterable holding null. Wrapping it yielded {@code "result": [ null ]} for
+	 * every handler that returns a bare {@code RestMethodResult} -- most visibly
+	 * {@code DELETE /<Type>} (RESTCallHandler#genericDelete) and any method with no return
+	 * value.</p>
+	 *
+	 * <p>Package-private so the mapping is unit-testable without a servlet container.</p>
+	 */
+	static Iterable<Object> resultIterable(final Object nonGraphObjectResult) {
+
+		if (nonGraphObjectResult == null) {
+
+			return List.of();
+		}
+
+		if (nonGraphObjectResult instanceof Iterable) {
+
+			return (Iterable<Object>) nonGraphObjectResult;
+		}
+
+		return Arrays.asList(nonGraphObjectResult);
 	}
 
 	protected void processResult(final SecurityContext securityContext, final HttpServletRequest request, final HttpServletResponse response, final ResultStream result, final String view, final int outputDepth, final boolean wrapSingleResultInArray) throws ServletException, IOException {

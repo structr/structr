@@ -1,0 +1,491 @@
+/*
+ * Copyright (C) 2010-2026 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package org.structr.test;
+
+import org.structr.api.util.Iterables;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.process.ProcessTraits;
+import org.structr.process.bpmn.BpmnImporter;
+import org.structr.process.bpmn.BpmnPageSkeletonGenerator;
+import org.structr.process.entity.BpmnProcess;
+import org.structr.process.traits.definitions.BpmnBaseNodeTraitDefinition;
+import org.structr.process.traits.definitions.BpmnProcessTraitDefinition;
+import org.structr.process.traits.definitions.VisibilityMappingTraitDefinition;
+import org.structr.web.entity.Widget;
+import org.structr.web.entity.dom.VisibilityMapping;
+import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.traits.definitions.ActionMappingTraitDefinition;
+import org.structr.web.traits.definitions.WidgetTraitDefinition;
+import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
+import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
+import org.testng.annotations.Test;
+
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.fail;
+
+/**
+ * End-to-end behaviour of the page-skeleton generator behind the editor's "Create page
+ * skeleton" button.
+ *
+ * <p>Fixture: {@code insurance-claim.bpmn} -- start event, two userTasks, a message
+ * intermediate catch event, plus a service task, a script task, gateways, a boundary timer
+ * and end events, so both selection and exclusion are exercised.</p>
+ */
+public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
+
+	/** The human-facing steps of the fixture, in flow order: generated html id per step. */
+	private static final List<String> EXPECTED_IDS = List.of(
+		"start-claim-submitted",
+		"task-initial-review",
+		"task-manual-assessment",
+		"event-wait-for-customer-response"
+	);
+
+	/** The same steps' bpmnIds, in the same order -- what each div's mapping binds to. */
+	private static final List<String> EXPECTED_BPMN_IDS = List.of(
+		"Start_1",
+		"Task_InitialReview",
+		"Task_ManualAssessment",
+		"Event_WaitForResponse"
+	);
+
+	@Test
+	public void testSkeletonStructureAndVisibilityMappings() {
+
+		final String pageId;
+		final String procUuid;
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface defNode  = new BpmnImporter(securityContext).importBpmn(loadResource("/insurance-claim.bpmn"));
+			final NodeInterface procNode = firstProcess(defNode);
+			assertNotNull("fixture should have a process", procNode);
+
+			final BpmnPageSkeletonGenerator.Result result = BpmnPageSkeletonGenerator.createSkeleton(
+				app, securityContext, procNode.as(BpmnProcess.class), null);
+
+			assertEquals("page name should be derived from the process name", "insurance-claim-handling", result.pageName());
+			assertEquals("one div per human-facing step", EXPECTED_IDS.size(), result.stepCount());
+			assertTrue("an unbound process should get the new page bound as its instance page", result.boundAsInstancePage());
+
+			pageId   = result.pageId();
+			procUuid = procNode.getUuid();
+
+			tx.success();
+
+		} catch (final FrameworkException fex) {
+
+			fail("Unexpected failure: " + fex.getMessage());
+			return;
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface page = app.getNodeById(pageId);
+			assertNotNull("page should exist", page);
+
+			// page > html > body > wrapper
+			final List<DOMNode> pageChildren = children(page);
+			assertEquals("page should have a single html element", 1, pageChildren.size());
+
+			final List<DOMNode> htmlChildren = children(pageChildren.get(0));
+			assertEquals("html should have head and body", 2, htmlChildren.size());
+
+			final List<DOMNode> bodyChildren = children(htmlChildren.get(1));
+			assertEquals("body should hold a single process wrapper", 1, bodyChildren.size());
+
+			final DOMNode wrapper = bodyChildren.get(0);
+			assertEquals("bpmn-process", htmlClass(wrapper));
+			assertEquals("insurance-claim-handling", htmlId(wrapper));
+
+			// one empty div per human-facing step, in flow order
+			final List<DOMNode> stepDivs = children(wrapper);
+			final List<String> actualIds = new ArrayList<>();
+
+			assertEquals("one div per human-facing step", EXPECTED_IDS.size(), stepDivs.size());
+
+			for (int i = 0; i < stepDivs.size(); i++) {
+
+				final DOMNode div = stepDivs.get(i);
+
+				actualIds.add(htmlId(div));
+
+				// every step div leads with a visible heading, so a rendered-but-empty step is
+				// distinguishable from one its mapping vetoed
+				final DOMNode heading = children(div).get(0);
+				assertEquals("h2", heading.getProperty(heading.getTraits().key(DOMElementTraitDefinition.TAG_PROPERTY)));
+				assertEquals("bpmn-step-title sw-card-heading", htmlClass(heading));
+				assertEquals("bpmn-step sw-card", htmlClass(div));
+
+				// the heading reads the step's CURRENT name via localize(), so renaming the step
+				// in the editor updates the page instead of leaving a stale literal behind
+				final DOMNode headingText = children(heading).get(0);
+				final String script       = headingText.getProperty(headingText.getTraits().key(ContentTraitDefinition.CONTENT_PROPERTY));
+				// compact StructrScript, reading the binding off the visibilityMapping keyword and
+				// falling back to the literal name so the heading never renders empty
+				assertEquals("${localize(coalesce(visibilityMapping.boundStep.bpmnName, '" + div.getName() + "'))}", script);
+				assertFalse("heading must not query for the step, was: " + script, script.contains("find("));
+				assertFalse("heading must not walk the parent chain itself, was: " + script, script.contains(".parent"));
+
+				// nothing else, except on the start event, which also hosts the launch partial
+				final int expectedChildren = "start-claim-submitted".equals(htmlId(div)) ? 2 : 1;
+				assertEquals("unexpected content in step div " + htmlId(div), expectedChildren, children(div).size());
+			}
+
+			assertEquals("machine-side steps must be skipped and order must follow the flow", EXPECTED_IDS, actualIds);
+
+			// each div is bound to its own step, with the states for that step's kind
+			assertMappings(stepDivs.get(0), "Start_1", Set.of(VisibilityMappingTraitDefinition.STATE_NO_INSTANCE));
+			assertMappings(stepDivs.get(1), "Task_InitialReview", Set.of(
+				VisibilityMappingTraitDefinition.STATE_TASK_AVAILABLE,
+				VisibilityMappingTraitDefinition.STATE_TASK_RESERVED_BY_ME));
+			assertMappings(stepDivs.get(2), "Task_ManualAssessment", Set.of(
+				VisibilityMappingTraitDefinition.STATE_TASK_AVAILABLE,
+				VisibilityMappingTraitDefinition.STATE_TASK_RESERVED_BY_ME));
+			assertMappings(stepDivs.get(3), "Event_WaitForResponse", Set.of(VisibilityMappingTraitDefinition.STATE_PROCESS_AWAITING_ACTION));
+
+			// the descriptive name is the BPMN name, so the Pages tree reads like the model
+			assertEquals("Initial review", stepDivs.get(1).getName());
+
+			// binding landed on the process
+			final NodeInterface procNode = app.getNodeById(procUuid);
+			final NodeInterface bound    = procNode.getProperty(procNode.getTraits().key(BpmnProcessTraitDefinition.INSTANCE_PAGE_PROPERTY));
+			assertNotNull("instance page should be bound", bound);
+			assertEquals(pageId, bound.getUuid());
+
+			tx.success();
+
+		} catch (final FrameworkException fex) {
+
+			fail("Unexpected verification failure: " + fex.getMessage());
+		}
+	}
+
+	/**
+	 * Generating twice must not collide on the page name (page names route requests) and
+	 * must not steal an instance-page binding the user already has.
+	 */
+	@Test
+	public void testSecondRunGetsItsOwnPageAndKeepsTheExistingBinding() {
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface defNode  = new BpmnImporter(securityContext).importBpmn(loadResource("/insurance-claim.bpmn"));
+			final BpmnProcess process    = firstProcess(defNode).as(BpmnProcess.class);
+
+			final BpmnPageSkeletonGenerator.Result first  = BpmnPageSkeletonGenerator.createSkeleton(app, securityContext, process, null);
+			final BpmnPageSkeletonGenerator.Result second = BpmnPageSkeletonGenerator.createSkeleton(app, securityContext, process, null);
+
+			assertEquals("insurance-claim-handling",   first.pageName());
+			assertEquals("insurance-claim-handling-2", second.pageName());
+			assertTrue("the first run binds the instance page", first.boundAsInstancePage());
+			assertFalse("the second run must not re-bind", second.boundAsInstancePage());
+
+			final NodeInterface bound = process.getProperty(process.getTraits().key(BpmnProcessTraitDefinition.INSTANCE_PAGE_PROPERTY));
+			assertEquals("the existing binding must survive", first.pageId(), bound.getUuid());
+
+			tx.success();
+
+		} catch (final FrameworkException fex) {
+
+			fail("Unexpected failure: " + fex.getMessage());
+		}
+	}
+
+	/**
+	 * With a page-template widget chosen, the page is built from the template's source and
+	 * the step divs land in the node the template names "Main Content" -- not in a shell of
+	 * our own, and not merely appended after the template's layout.
+	 */
+	@Test
+	public void testSkeletonIsBuiltFromAPageTemplateWidget() {
+
+		final String pageId;
+
+		try (final Tx tx = app.tx()) {
+
+			// a minimal page-template widget: full page shell with a content area
+			final NodeInterface widget = app.create(StructrTraits.WIDGET, "Test Page Template");
+			widget.setProperty(widget.getTraits().key(WidgetTraitDefinition.IS_PAGE_TEMPLATE_PROPERTY), true);
+			// A widget's source names a node with the deployment instruction
+			// @structr:name(...) (DeploymentCommentHandler), which is how page templates
+			// mark their content area as "Main Content".
+			widget.setProperty(widget.getTraits().key(WidgetTraitDefinition.SOURCE_PROPERTY),
+				"<html><head><title>Template</title></head><body>"
+				+ "<header id=\"branding\"></header>"
+				+ "<!-- @structr:name(Main Content) --><main id=\"content\"></main>"
+				+ "</body></html>");
+
+			final NodeInterface defNode = new BpmnImporter(securityContext).importBpmn(loadResource("/insurance-claim.bpmn"));
+
+			pageId = BpmnPageSkeletonGenerator.createSkeleton(
+				app, securityContext, firstProcess(defNode).as(BpmnProcess.class),
+				BpmnPageSkeletonGenerator.humanFacingSteps(firstProcess(defNode).as(BpmnProcess.class)),
+				null, widget.as(Widget.class)).pageId();
+
+			tx.success();
+
+		} catch (final FrameworkException fex) {
+
+			fail("Unexpected failure: " + fex.getMessage());
+			return;
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface page = app.getNodeById(pageId);
+			final List<DOMNode> html = children(page);
+			assertEquals("the template should provide the page's single root", 1, html.size());
+
+			// the template's own markup survived untouched
+			final DOMNode body               = children(html.get(0)).get(1);
+			final List<DOMNode> bodyChildren = children(body);
+			assertEquals("body should still hold exactly the template's own children", 2, bodyChildren.size());
+			assertEquals("branding", htmlId(bodyChildren.get(0)));
+
+			// the wrapper went into the named content slot, not into the body
+			final DOMNode mainContent = bodyChildren.get(1);
+			assertEquals("content", htmlId(mainContent));
+			assertEquals("Main Content", mainContent.getName());
+
+			final List<DOMNode> slotChildren = children(mainContent);
+			assertEquals("the slot should hold the process wrapper", 1, slotChildren.size());
+
+			final DOMNode wrapper = slotChildren.get(0);
+			assertEquals("bpmn-process", htmlClass(wrapper));
+			assertEquals(EXPECTED_IDS.size(), children(wrapper).size());
+
+			tx.success();
+
+		} catch (final FrameworkException fex) {
+
+			fail("Unexpected verification failure: " + fex.getMessage());
+		}
+	}
+
+	/**
+	 * The skeleton carries a way to launch an instance: a named div with a button wired to the
+	 * start-process action mapping, nested in the start event's div (which is already the
+	 * no-instance partial) rather than duplicating that visibility rule.
+	 */
+	@Test
+	public void testStartProcessPartialIsWiredToTheProcess() {
+
+		final String pageId;
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface defNode = new BpmnImporter(securityContext).importBpmn(loadResource("/insurance-claim.bpmn"));
+
+			pageId = BpmnPageSkeletonGenerator.createSkeleton(
+				app, securityContext, firstProcess(defNode).as(BpmnProcess.class), null).pageId();
+
+			tx.success();
+
+		} catch (final FrameworkException fex) {
+
+			fail("Unexpected failure: " + fex.getMessage());
+			return;
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface page  = app.getNodeById(pageId);
+			final DOMNode wrapper     = children(children(children(page).get(0)).get(1)).get(0);
+			final DOMNode startDiv    = children(wrapper).get(0);
+
+			assertEquals("the launch partial belongs to the start event's div", "start-claim-submitted", htmlId(startDiv));
+
+			final List<DOMNode> startChildren = children(startDiv);
+			assertEquals("start event div should hold its heading plus the launch partial", 2, startChildren.size());
+
+			final DOMNode startPartial = startChildren.get(1);
+			assertEquals("Start Process", startPartial.getName());
+			assertEquals("start-process", htmlId(startPartial));
+
+			// it inherits the start event div's no-instance rule instead of duplicating it
+			final PropertyKey<Iterable<NodeInterface>> vmKey = startPartial.getTraits().key(DOMNodeTraitDefinition.VISIBILITY_MAPPINGS_PROPERTY);
+			assertTrue("nested launch partial should have no visibility mappings of its own",
+				collect(startPartial.getProperty(vmKey)).isEmpty());
+
+			final DOMNode button = children(startPartial).get(0);
+			assertEquals("button", button.getProperty(button.getTraits().key(DOMElementTraitDefinition.TAG_PROPERTY)));
+			final DOMNode label = children(button).get(0);
+			assertEquals("${localize('Start Process Insurance Claim Handling')}",
+				label.getProperty(label.getTraits().key(ContentTraitDefinition.CONTENT_PROPERTY)));
+			assertEquals("the button should carry the theme's button classes",
+				"bpmn-start-process-button sw-button sw-button-primary", htmlClass(button));
+
+			// the action mapping starts THIS process and navigates to the new instance
+			final PropertyKey<Iterable<NodeInterface>> actionsKey = button.getTraits().key(DOMElementTraitDefinition.TRIGGERED_ACTIONS_PROPERTY);
+			final List<NodeInterface> actions                    = collect(button.getProperty(actionsKey));
+			assertEquals("button should trigger exactly one action", 1, actions.size());
+
+			final NodeInterface action = actions.get(0);
+			final Traits amTraits      = action.getTraits();
+
+			assertEquals("click",            action.getProperty(amTraits.key(ActionMappingTraitDefinition.EVENT_PROPERTY)));
+			assertEquals("control-process",  action.getProperty(amTraits.key(ActionMappingTraitDefinition.ACTION_PROPERTY)));
+			assertEquals("start",            action.getProperty(amTraits.key(ActionMappingTraitDefinition.PROCESS_OPERATION_PROPERTY)));
+			assertEquals("navigate-to-url",  action.getProperty(amTraits.key(ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY)));
+			assertEquals("{result.url}",     action.getProperty(amTraits.key(ActionMappingTraitDefinition.SUCCESS_URL_PROPERTY)));
+			assertEquals("Process_ClaimHandling", action.getProperty(amTraits.key(ActionMappingTraitDefinition.CONTROLS_PROCESS_ID_PROPERTY)));
+
+			final NodeInterface controlled = action.getProperty(amTraits.key(ActionMappingTraitDefinition.CONTROLS_PROCESS_PROPERTY));
+			assertNotNull("action mapping should point at the process", controlled);
+
+			tx.success();
+
+		} catch (final FrameworkException fex) {
+
+			fail("Unexpected verification failure: " + fex.getMessage());
+		}
+	}
+
+	/**
+	 * The launch partial has to actually render on the bare page, for anyone. Its
+	 * {@code no-instance} mapping is therefore written WITHOUT a boundProcessId: with one, the
+	 * predicate becomes "the current user has no active instance of this process", which is
+	 * false for an anonymous visitor and false for a user who already started one -- in both
+	 * cases the start button silently disappears.
+	 */
+	@Test
+	public void testLaunchPartialRendersWithNoInstanceInContext() {
+
+		final String pageId;
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface defNode = new BpmnImporter(securityContext).importBpmn(loadResource("/insurance-claim.bpmn"));
+
+			pageId = BpmnPageSkeletonGenerator.createSkeleton(
+				app, securityContext, firstProcess(defNode).as(BpmnProcess.class), null).pageId();
+
+			tx.success();
+
+		} catch (final FrameworkException fex) {
+
+			fail("Unexpected failure: " + fex.getMessage());
+			return;
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface page = app.getNodeById(pageId);
+			final DOMNode wrapper    = children(children(children(page).get(0)).get(1)).get(0);
+			final DOMNode startDiv   = children(wrapper).get(0);
+
+			final PropertyKey<Iterable<NodeInterface>> vmKey = startDiv.getTraits().key(DOMNodeTraitDefinition.VISIBILITY_MAPPINGS_PROPERTY);
+			final List<NodeInterface> mappings               = collect(startDiv.getProperty(vmKey));
+			assertEquals("the start event div should carry exactly its no-instance mapping", 1, mappings.size());
+
+			final NodeInterface mapping = mappings.get(0);
+			final Traits vmTraits       = mapping.getTraits();
+
+			assertEquals(VisibilityMappingTraitDefinition.STATE_NO_INSTANCE,
+				mapping.getProperty(vmTraits.key(VisibilityMappingTraitDefinition.VISIBLE_WHEN_PROPERTY)));
+			// evaluate() derives the id from the relationship, so BOTH have to be absent for the
+			// context semantics to apply -- clearing only the string is not enough
+			assertNull("a no-instance mapping must not carry boundProcessId, or it turns into a per-user query",
+				mapping.getProperty(vmTraits.key(VisibilityMappingTraitDefinition.BOUND_PROCESS_ID_PROPERTY)));
+			assertNull("a no-instance mapping must not bind a process, or evaluate() derives the id from it",
+				mapping.getProperty(vmTraits.key(VisibilityMappingTraitDefinition.BOUND_PROCESS_PROPERTY)));
+
+			// the STEP is bound though: no predicate reads it for no-instance, and the heading
+			// script gets the step's live name from it
+			assertNotNull("a no-instance mapping should still record its step",
+				mapping.getProperty(vmTraits.key(VisibilityMappingTraitDefinition.BOUND_STEP_PROPERTY)));
+
+			// the predicate itself: no instance in render context -> render
+			assertTrue("the launch partial must be visible when the page has no instance in context",
+				mapping.as(VisibilityMapping.class).evaluate(securityContext, null));
+
+			// and a step-scoped mapping still carries the id, where it is needed to check that
+			// a context instance belongs to this process
+			final DOMNode taskDiv                       = children(wrapper).get(1);
+			final List<NodeInterface> taskMappings      = collect(taskDiv.getProperty(taskDiv.getTraits().key(DOMNodeTraitDefinition.VISIBILITY_MAPPINGS_PROPERTY)));
+			assertEquals("Process_ClaimHandling",
+				taskMappings.get(0).getProperty(vmTraits.key(VisibilityMappingTraitDefinition.BOUND_PROCESS_ID_PROPERTY)));
+
+			tx.success();
+
+		} catch (final FrameworkException fex) {
+
+			fail("Unexpected verification failure: " + fex.getMessage());
+		}
+	}
+
+	// ----- helpers -----
+
+	/** Assert the VisibilityMappings of {@code div}: bound step bpmnId and the set of states. */
+	private void assertMappings(final DOMNode div, final String expectedStepBpmnId, final Set<String> expectedStates) throws FrameworkException {
+
+		final Traits vmTraits                         = Traits.of(ProcessTraits.VISIBILITY_MAPPING);
+		final PropertyKey<String> visibleWhenKey      = vmTraits.key(VisibilityMappingTraitDefinition.VISIBLE_WHEN_PROPERTY);
+		final PropertyKey<NodeInterface> boundStepKey = vmTraits.key(VisibilityMappingTraitDefinition.BOUND_STEP_PROPERTY);
+		final PropertyKey<String> stepBpmnIdKey       = vmTraits.key(VisibilityMappingTraitDefinition.BOUND_STEP_BPMN_ID_PROPERTY);
+		final Set<String> states                      = new LinkedHashSet<>();
+
+		final Iterable<NodeInterface> mappings = div.getProperty(div.getTraits().key(DOMNodeTraitDefinition.VISIBILITY_MAPPINGS_PROPERTY));
+		assertNotNull("div " + htmlId(div) + " should have visibility mappings", mappings);
+
+		for (final NodeInterface mapping : mappings) {
+
+			states.add(mapping.getProperty(visibleWhenKey));
+
+			final NodeInterface step = mapping.getProperty(boundStepKey);
+
+			assertNotNull("mapping should be bound to a step", step);
+			assertEquals("mapping bound to the wrong step",
+				expectedStepBpmnId, step.getProperty(step.getTraits().key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY)));
+
+			// the denormalized cache the importer's rewire pass reads
+			assertEquals("boundStepBpmnId cache should match the bound step", expectedStepBpmnId, mapping.getProperty(stepBpmnIdKey));
+		}
+
+		assertEquals("states for " + htmlId(div), expectedStates, states);
+	}
+
+	private List<DOMNode> children(final NodeInterface node) {
+		return Iterables.toList(node.as(DOMNode.class).getChildren());
+	}
+
+	private String htmlId(final NodeInterface element) {
+		return element.getProperty(element.getTraits().key(DOMElementTraitDefinition._HTML_ID_PROPERTY));
+	}
+
+	private String htmlClass(final NodeInterface element) {
+		return element.getProperty(element.getTraits().key(DOMElementTraitDefinition._HTML_CLASS_PROPERTY));
+	}
+}

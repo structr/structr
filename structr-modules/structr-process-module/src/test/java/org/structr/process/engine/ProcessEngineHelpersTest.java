@@ -482,4 +482,54 @@ public class ProcessEngineHelpersTest {
 		assertEquals(s.length() - 1, ProcessEngine.matchingParenIndex(s, 1));
 		assertEquals("unbalanced input returns -1", -1, ProcessEngine.matchingParenIndex("f((", 1));
 	}
+	// ------------------------------------------------------------------
+	// ProcessEngine.stringValueOf: the persisted string form of a value
+	// ------------------------------------------------------------------
+
+	/**
+	 * JavaScript has no integer type, so a service task doing {@code $.process.amount = 25000}
+	 * hands the engine a Double. Persisting that with toString() stored "25000.0", which is
+	 * what REST clients, the UI and string comparisons then saw.
+	 */
+	@Test
+	public void testWholeValuedNumbersArePersistedWithoutFraction() {
+
+		assertEquals("25000", ProcessEngine.stringValueOf(25000.0d));
+		assertEquals("25000", ProcessEngine.stringValueOf(25000.0f));
+		assertEquals("0",     ProcessEngine.stringValueOf(0.0d));
+		assertEquals("-7",    ProcessEngine.stringValueOf(-7.0d));
+	}
+
+	/** A real fractional value keeps every digit it had. */
+	@Test
+	public void testFractionalValuesAreUntouched() {
+
+		assertEquals("0.5",      ProcessEngine.stringValueOf(0.5d));
+		assertEquals("25000.25", ProcessEngine.stringValueOf(25000.25d));
+	}
+
+	/** Non-numeric and already-integral types pass straight through. */
+	@Test
+	public void testOtherTypesPassThrough() {
+
+		assertEquals("25000", ProcessEngine.stringValueOf(25000));
+		assertEquals("25000", ProcessEngine.stringValueOf(25000L));
+		assertEquals("true",  ProcessEngine.stringValueOf(Boolean.TRUE));
+		assertEquals("text",  ProcessEngine.stringValueOf("text"));
+		assertNull(ProcessEngine.stringValueOf(null));
+	}
+
+	/**
+	 * Beyond 2^53 a double no longer represents every integer, and NaN / infinity have no
+	 * integral form at all -- those keep their own representation rather than being silently
+	 * rounded into a long.
+	 */
+	@Test
+	public void testValuesOutsideTheExactIntegerRangeAreUntouched() {
+
+		assertEquals("1.0E17", ProcessEngine.stringValueOf(1.0E17d));
+		assertEquals("NaN",    ProcessEngine.stringValueOf(Double.NaN));
+		assertEquals("Infinity", ProcessEngine.stringValueOf(Double.POSITIVE_INFINITY));
+	}
+
 }

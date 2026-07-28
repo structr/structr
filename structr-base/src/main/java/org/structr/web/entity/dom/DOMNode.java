@@ -252,6 +252,16 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 
 	Template getClosestTemplate(final Page page);
 	DOMNode getClosestComponent();
+
+	/**
+	 * The VisibilityMapping bound to this node or, failing that, to the closest ancestor that
+	 * has one -- the render-time counterpart of {@link #getClosestComponent()}. Null when no
+	 * node in the chain is bound, or when no module provides VisibilityMappings.
+	 *
+	 * <p>Read as superuser, like the render gate itself: mappings are configuration data, so a
+	 * frontend user is not expected to hold read access on them.</p>
+	 */
+	VisibilityMapping getClosestVisibilityMapping();
 	boolean isEditable();
 
 	void updateFromNode(final DOMNode otherNode) throws FrameworkException;

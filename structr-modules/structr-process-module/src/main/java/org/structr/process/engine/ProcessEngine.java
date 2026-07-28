@@ -26,9 +26,9 @@ import org.structr.common.AccessControllable;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.NamedArguments;
-import org.structr.core.api.ScriptMethod;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
@@ -40,6 +40,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
+import org.structr.core.script.polyglot.config.ScriptConfig;
 import org.structr.core.traits.Traits;
 import org.structr.process.ProcessTraits;
 import org.structr.process.bpmn.BpmnElementType;
@@ -2247,11 +2248,11 @@ public class ProcessEngine {
 	 */
 	private void runTaskListenerMethod(final NodeInterface taskNode, final NodeInterface method, final String eventName, final Map<String, Object> submittedParams) throws FrameworkException {
 
-		final ActionContext ctx = new ActionContext(SecurityContext.getSuperUserInstance());
-		installTaskProcessContext(ctx, taskNode);
 		final Arguments args    = buildTaskListenerArgs(taskNode, eventName, submittedParams);
+		final ActionContext ctx = new ActionContext(SecurityContext.getSuperUserInstance(), args.toMap());
 
-		new ScriptMethod(method.as(SchemaMethod.class)).execute(ctx, taskNode, args);
+		installTaskProcessContext(ctx, taskNode);
+		runMethodWithContext(ctx, taskNode, method, "taskListener");
 	}
 
 	/** Install the $.process context for a task listener: scoped to the task's instance and defining element. */
@@ -2288,11 +2289,11 @@ public class ProcessEngine {
 
 				if (freshTask != null && freshMethod != null) {
 
-					final ActionContext ctx = new ActionContext(SecurityContext.getSuperUserInstance());
-					installTaskProcessContext(ctx, freshTask);
-					final Arguments args     = buildTaskListenerArgs(freshTask, eventName, submittedParams);
+					final Arguments args    = buildTaskListenerArgs(freshTask, eventName, submittedParams);
+					final ActionContext ctx = new ActionContext(SecurityContext.getSuperUserInstance(), args.toMap());
 
-					new ScriptMethod(freshMethod.as(SchemaMethod.class)).execute(ctx, freshTask, args);
+					installTaskProcessContext(ctx, freshTask);
+					runMethodWithContext(ctx, freshTask, freshMethod, "taskListener");
 				}
 
 				tx.success();
@@ -2455,10 +2456,11 @@ public class ProcessEngine {
 	 */
 	private void runProcessListenerMethod(final NodeInterface instance, final NodeInterface method, final String eventName) throws FrameworkException {
 
-		final ActionContext ctx = new ActionContext(SecurityContext.getSuperUserInstance());
+		final Arguments args    = buildProcessListenerArgs(instance, eventName);
+		final ActionContext ctx = new ActionContext(SecurityContext.getSuperUserInstance(), args.toMap());
+
 		installProcessContext(ctx, instance, null);
-		final Arguments args     = buildProcessListenerArgs(instance, eventName);
-		new ScriptMethod(method.as(SchemaMethod.class)).execute(ctx, instance, args);
+		runMethodWithContext(ctx, instance, method, "processListener");
 	}
 
 	/**
@@ -2481,11 +2483,11 @@ public class ProcessEngine {
 
 				if (freshInstance != null && freshMethod != null) {
 
-					final ActionContext ctx = new ActionContext(SecurityContext.getSuperUserInstance());
-					installProcessContext(ctx, freshInstance, null);
-					final Arguments args     = buildProcessListenerArgs(freshInstance, eventName);
+					final Arguments args    = buildProcessListenerArgs(freshInstance, eventName);
+					final ActionContext ctx = new ActionContext(SecurityContext.getSuperUserInstance(), args.toMap());
 
-					new ScriptMethod(freshMethod.as(SchemaMethod.class)).execute(ctx, freshInstance, args);
+					installProcessContext(ctx, freshInstance, null);
+					runMethodWithContext(ctx, freshInstance, freshMethod, "processListener");
 				}
 
 				tx.success();
@@ -3487,7 +3489,7 @@ public class ProcessEngine {
 
 			pvNode.setProperty(pvTraits.key(ProcessParameterValueTraitDefinition.PARAMETER_NAME_PROPERTY), paramName);
 			pvNode.setProperty(pvTraits.key(ProcessParameterValueTraitDefinition.PARAMETER_TYPE_PROPERTY), inferParameterType(paramValue));
-			pvNode.setProperty(pvTraits.key(ProcessParameterValueTraitDefinition.STRING_VALUE_PROPERTY), paramValue != null ? paramValue.toString() : null);
+			pvNode.setProperty(pvTraits.key(ProcessParameterValueTraitDefinition.STRING_VALUE_PROPERTY), stringValueOf(paramValue));
 			pvNode.setProperty(pvTraits.key(ProcessParameterValueTraitDefinition.SET_AT_PROPERTY), now);
 			pvNode.setProperty(pvTraits.key(ProcessParameterValueTraitDefinition.PROCESS_INSTANCE_PROPERTY), instance);
 			pvNode.setProperty(pvTraits.key(ProcessParameterValueTraitDefinition.SET_BY_ELEMENT_PROPERTY), element);
@@ -3502,6 +3504,39 @@ public class ProcessEngine {
 	 * string unchanged). The non-String branches are forward-compat for
 	 * programmatic invocations that pass typed values.
 	 */
+	/** Largest magnitude at which a double still represents every integer exactly (2^53). */
+	private static final double MAX_EXACT_INTEGER_DOUBLE = 9007199254740992d;
+
+	/**
+	 * The string form to persist for a parameter value. A whole-valued Double / Float is
+	 * written without its fractional part: JavaScript has no integer type, so a service task
+	 * doing {@code $.process.amount = 25000} hands the engine a Double, and a plain
+	 * {@code toString()} persists "25000.0" -- which is then what REST clients, the UI and any
+	 * string comparison see. Values with an actual fractional part, and magnitudes beyond the
+	 * range where a double represents integers exactly, are left alone. Read-back is
+	 * unaffected: the value is parsed by parameterType, and "25000" parses as a Double just as
+	 * well.
+	 */
+	static String stringValueOf(final Object paramValue) {
+
+		if (paramValue == null) {
+
+			return null;
+		}
+
+		if (paramValue instanceof Double || paramValue instanceof Float) {
+
+			final double value = ((Number) paramValue).doubleValue();
+
+			if (Double.isFinite(value) && value == Math.rint(value) && Math.abs(value) <= MAX_EXACT_INTEGER_DOUBLE) {
+
+				return Long.toString((long) value);
+			}
+		}
+
+		return paramValue.toString();
+	}
+
 	static String inferParameterType(final Object paramValue) {
 
 		if (paramValue instanceof Boolean) {
@@ -3667,6 +3702,38 @@ public class ProcessEngine {
 	 * which side of the storage split the data lives on -- the BPMN author
 	 * doesn't need to know whether {@code days} is a domain field or a PV.</p>
 	 */
+	/**
+	 * Run a SchemaMethod's body against the ActionContext prepared by the caller, so the
+	 * constants installed on it -- {@code $.process} above all -- are visible to the script.
+	 *
+	 * <p>{@code ScriptMethod#execute} cannot be used for this: it forwards only
+	 * {@code actionContext.getSecurityContext()} to {@code Actions#execute}, which builds a
+	 * FRESH ActionContext. Everything installed on the context the engine just prepared is
+	 * silently dropped, so a listener body doing {@code $.process.x = y} saw {@code $.process}
+	 * as null and died with "Cannot set property 'x' of null". The automatic-task, io-mapping
+	 * and condition paths never hit this because they already call
+	 * {@code Scripting.evaluate(ctx, ...)} directly, which is what this does.</p>
+	 *
+	 * <p>{@code wrapJsInMain} is taken from the method itself, as ScriptMethod does, so
+	 * user-authored handlers keep their configured wrapping.</p>
+	 */
+	private Object runMethodWithContext(final ActionContext ctx, final GraphObject entity, final NodeInterface method, final String label) throws FrameworkException {
+
+		final SchemaMethod schemaMethod = method.as(SchemaMethod.class);
+		final String source             = schemaMethod.getSource();
+
+		if (StringUtils.isBlank(source)) {
+
+			return null; // handler declared but no body yet
+		}
+
+		final ScriptConfig scriptConfig = ScriptConfig.builder()
+			.wrapJsInMain(schemaMethod.wrapJsInMain())
+			.build();
+
+		return Scripting.evaluate(ctx, entity, "${" + source.trim() + "}", label, method.getUuid(), scriptConfig);
+	}
+
 	private void installProcessContext(final ActionContext ctx, final NodeInterface instance, final NodeInterface element) throws FrameworkException {
 		installProcessContext(ctx, instance, element, null);
 	}

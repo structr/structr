@@ -19,6 +19,8 @@
 package org.structr.process.bpmn;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -60,10 +62,35 @@ public enum BpmnElementType {
 	/** Sentinel for an element type the module does not model. */
 	UNKNOWN(null);
 
+	/**
+	 * Container types whose children hang off {@code parentElement}. Held here rather than
+	 * spelled out at each site that needs the distinction, so adding a container type (BPMN
+	 * has {@code eventSubProcess}, which the module does not model yet) is a one-line change.
+	 */
+	private static final Set<BpmnElementType> SUB_PROCESS_LIKE = Set.of(SUB_PROCESS, TRANSACTION, AD_HOC_SUB_PROCESS);
+
+	/** Name lookup for {@link #fromBpmnName}, so it neither copies values() nor scans. */
+	private static final Map<String, BpmnElementType> BY_BPMN_NAME = buildNameIndex();
+
 	private final String bpmnName;
 
 	BpmnElementType(final String bpmnName) {
 		this.bpmnName = bpmnName;
+	}
+
+	private static Map<String, BpmnElementType> buildNameIndex() {
+
+		final Map<String, BpmnElementType> index = new HashMap<>();
+
+		for (final BpmnElementType type : values()) {
+
+			if (type.bpmnName != null) {
+
+				index.put(type.bpmnName, type);
+			}
+		}
+
+		return Map.copyOf(index);
 	}
 
 	/** The BPMN XML local name for this type ({@code null} for {@link #UNKNOWN}). */
@@ -77,21 +104,26 @@ public enum BpmnElementType {
 	}
 
 	/**
+	 * True if this type is a container whose children are attached via
+	 * {@code parentElement} -- the importer recurses into these, the engine resumes a
+	 * parent token when one of their end events fires, and a traversal that only follows
+	 * sequence flows has to descend into them explicitly.
+	 */
+	public boolean isSubProcessLike() {
+		return SUB_PROCESS_LIKE.contains(this);
+	}
+
+	/**
 	 * Resolve a BPMN local name to its enum constant, or {@link #UNKNOWN} if the
 	 * name is null or not one of the recognised types.
 	 */
 	public static BpmnElementType fromBpmnName(final String elementType) {
 
-		if (elementType != null) {
-
-			for (final BpmnElementType type : values()) {
-
-				if (elementType.equals(type.bpmnName)) {
-					return type;
-				}
-			}
+		if (elementType == null) {
+			return UNKNOWN;
 		}
-		return UNKNOWN;
+
+		return BY_BPMN_NAME.getOrDefault(elementType, UNKNOWN);
 	}
 
 	/** True if the given BPMN local name is a recognised element type. */

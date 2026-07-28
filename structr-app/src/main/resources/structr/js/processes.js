@@ -1736,6 +1736,20 @@ let _ProcessDiagram = {
 	// process-wide behaviour (assignment fallback, instance-page
 	// binding). Selecting a single element to configure a process-wide
 	// option is the wrong mental model.
+	// Long-form help for the Process settings panel, rendered as info icons at wire
+	// time via the admin UI's data-comment convention (_Helpers.activateCommentsInElement).
+	// It used to sit inline as four permanently visible paragraphs, which in a ~330px
+	// panel pushed the controls themselves below the fold. Inline text is reserved for
+	// state that changes what a control does; explanations live here.
+	_processSettingsHints: {
+		panel:         'Structr-specific settings that are <strong>not part of the BPMN spec</strong>, so they are not preserved across re-imports. They control engine and routing behaviour at runtime.',
+		autoAssign:    'When a userTask has no <code>humanPerformer</code> declared, the engine reserves the task for the user who started the instance.<br><br>Useful for editor-authored processes where assignment is not wired up explicitly. Off by default so imported BPMN keeps spec semantics.',
+		instancePage:  'The page that renders an instance of this process. The Start-process EAM action navigates to <code>/&lt;page-name&gt;/&lt;instance-uuid&gt;</code>.<br><br>When unset, the URL falls back to the slugified process name.',
+		pageTemplate:  'The page-template Widget the generated page is built from — the same templates the Pages area offers under "Create New Page". Page templates come from the widget set, which has to be imported once; without one, the page is a bare <code>html/head/body</code> shell.<br><br>The step divs are appended into the template\'s <strong>Main Content</strong> node — the content area page templates mark by that name. A template without one gets them in its <code>&lt;body&gt;</code>.',
+		pageSkeleton:  'Generates a page with one empty <code>&lt;div&gt;</code> per step that needs a human — userTasks, the start event, manual tasks and message catch events — in flow order.<br><br>Each div is bound to its step by a VisibilityMapping, so it only renders when that step is actionable. Machine steps (service and script tasks, gateways) are skipped. The new page is bound above when no instance page is set yet; fill the divs in the Pages area.',
+		eventHandlers: 'Runs a method on a process lifecycle event. <code>on</code> runs pre-commit and can veto; <code>after</code> runs post-commit.'
+	},
+
 	_renderProcessSettingsPanel: (api) => {
 		const esc = (v) => v == null ? '' : _Helpers.escapeTags(String(v));
 		const procs = (api.getProcesses && api.getProcesses()) || [];
@@ -1750,10 +1764,13 @@ let _ProcessDiagram = {
 			if (Array.isArray(rel)) return rel[0]?.id ?? (typeof rel[0] === 'string' ? rel[0] : '');
 			return rel.id ?? '';
 		};
+		const hints = _ProcessDiagram._processSettingsHints;
+		const comment = (key) => `data-comment="${_Helpers.escapeForHtmlAttributes(hints[key])}"`;
 		const section = (proc) => {
 			const name = proc.processName || proc.name || proc.processId || proc.id;
 			const checked = proc.defaultAssigneeFromInitiator ? 'checked' : '';
 			const boundPageId = extractPageId(proc.instancePage);
+			const boundPageName = (proc.instancePage && proc.instancePage.name) || '';
 			return `
 				<div class="process-settings-section" data-process-id="${esc(proc.id)}" data-process-name="${esc(name)}">
 					<label class="pd-field">
@@ -1761,55 +1778,57 @@ let _ProcessDiagram = {
 						<input type="text" class="input-process-name" value="${esc(proc.processName ?? '')}" placeholder="${esc(proc.processId ?? 'Process')}">
 					</label>
 
-					<label class="pd-checkbox-label">
-						<input type="checkbox" class="chk-default-assignee-from-initiator" ${checked}>
-						<span>
+					<div class="pd-inline-row pd-mb-6">
+						<label class="pd-checkbox-label pd-mb-0">
+							<input type="checkbox" class="chk-default-assignee-from-initiator" ${checked}>
 							<span class="pd-text-12">Auto-assign tasks to the initiator</span>
-							<span class="pd-hint">
-								When a userTask has no <code>humanPerformer</code> declared, the engine
-								reserves the task for the user who started the instance. Useful for
-								editor-authored processes where assignment isn't wired up explicitly.
-								Off by default so imported BPMN keeps spec semantics.
-							</span>
-						</span>
-					</label>
+						</label>
+						<span class="pd-info" ${comment('autoAssign')}></span>
+					</div>
 
-					<label class="pd-block">
-						<span class="pd-label-block">Instance page</span>
+					<div class="pd-section">
+						<div class="pd-label-row">
+							<span>Instance page</span>
+							<span class="pd-info" ${comment('instancePage')}></span>
+						</div>
 						<select class="select-instance-page" data-bound-page-id="${esc(boundPageId)}">
 							<option value="">— No page bound —</option>
 						</select>
-						<span class="pd-hint">
-							The page that renders an instance of this process. The Start-process
-							EAM action navigates to <code>/&lt;page-name&gt;/&lt;instance-uuid&gt;</code>.
-							When unset, the URL falls back to the slugified process name.
-						</span>
-					</label>
+						<div class="pd-label-row pd-field-mt6">
+							<span>Page template</span>
+							<span class="pd-info" ${comment('pageTemplate')}></span>
+						</div>
+						<select class="select-page-template">
+							<option value="">— Loading templates… —</option>
+						</select>
+						<span class="pd-state-note no-page-templates" hidden></span>
+
+						<div class="pd-button-row">
+							<button class="action btn-create-page-skeleton" title="Generate a page with one empty div per step that requires user interaction">${boundPageName ? 'Create another page skeleton' : 'Create page skeleton'}</button>
+							<span class="pd-info" ${comment('pageSkeleton')}></span>
+						</div>
+						${boundPageName ? `<span class="pd-state-note"><strong>${esc(boundPageName)}</strong> is already bound — this adds a second page.</span>` : ''}
+					</div>
 
 					<div class="bpmn-listener-block">
 						<div class="bpmn-listener-header">
-							<div class="bpmn-listener-title">Process event handlers <span class="bpmn-process-listeners-count"></span></div>
+							<div class="bpmn-listener-title">
+								Process event handlers <span class="bpmn-process-listeners-count"></span>
+								<span class="pd-info" ${comment('eventHandlers')}></span>
+							</div>
 							<button class="action btn-add-process-listener" title="Add a handler that runs on a process lifecycle event">+ Add handler</button>
 						</div>
 						<ul class="bpmn-listener-list bpmn-process-listeners-list"></ul>
-						<div class="bpmn-listener-hint">
-							Runs a method on a process lifecycle event. <code>on</code> runs pre-commit (can veto); <code>after</code> runs post-commit.
-						</div>
 					</div>
 				</div>
 			`;
 		};
 		return `
-			<h4 class="pd-heading-lg">Process settings</h4>
-			<div class="pd-panel-intro">
-				These settings are Structr-specific and not part of the BPMN spec, so they
-				are not preserved across re-imports. They control engine and routing
-				behaviour at runtime.
+			<div class="pd-heading-row">
+				<h4 class="pd-heading">Process settings</h4>
+				<span class="pd-info" ${comment('panel')}></span>
 			</div>
 			${procs.map(section).join('')}
-			<div class="pd-panel-note">
-				Select an element on the canvas to edit its properties.
-			</div>
 		`;
 	},
 
@@ -1820,13 +1839,17 @@ let _ProcessDiagram = {
 	// once Pages have been fetched (Command.query is async); the saved
 	// selection is restored from the section's data-bound-page-id.
 	_wireProcessSettingsPanel: (sidePanel, api) => {
+		// Turn every data-comment anchor in the panel into an info icon.
+		_Helpers.activateCommentsInElement(sidePanel);
+
+		const pageOption = (id, name) => `<option value="${_Helpers.escapeForHtmlAttributes(id)}">${_Helpers.escapeTags(name)}</option>`;
 		// Populate every Page picker on this panel from a single fetch.
 		// Hidden pages (preview / partial / template containers) are
 		// excluded -- the binding is for user-facing instance pages.
 		const pageSelects = sidePanel.querySelectorAll('.select-instance-page');
 		if (pageSelects.length > 0) {
 			Command.query('Page', 1000, 1, 'name', 'asc', { hidden: false }, (pages) => {
-				const opts = (pages ?? []).map(p => `<option value="${_Helpers.escapeTags(p.id)}">${_Helpers.escapeTags(p.name ?? p.id)}</option>`).join('');
+				const opts = (pages ?? []).map(p => pageOption(p.id, p.name ?? p.id)).join('');
 				for (const sel of pageSelects) {
 					sel.insertAdjacentHTML('beforeend', opts);
 					if (sel.dataset.boundPageId) sel.value = sel.dataset.boundPageId;
@@ -1861,6 +1884,102 @@ let _ProcessDiagram = {
 					}
 				});
 			}
+			// Generate an instance-page skeleton for this process: one empty div per
+			// human-facing step, each with a VisibilityMapping bound to that step.
+			// Server-side (BPMN_PAGE_SKELETON) so page, divs and mappings land in one
+			// transaction instead of a chain of createDOMNode round trips.
+			// Generate an instance-page skeleton for this process: one empty div per
+			// human-facing step, each with a VisibilityMapping bound to that step.
+			// Server-side (BPMN_PAGE_SKELETON) so page, divs and mappings land in one
+			// transaction instead of a chain of createDOMNode round trips.
+			const skeletonBtn = section.querySelector('.btn-create-page-skeleton');
+			const templateSel = section.querySelector('.select-page-template');
+			const noTemplates = section.querySelector('.no-page-templates');
+
+			// Page templates are Widgets flagged isPageTemplate -- the same set the Pages
+			// area's "Create New Page" dialog offers. They arrive with the widget set, which
+			// has to be imported once, so an empty list is a normal first-run state and gets
+			// an import offer rather than an empty dropdown.
+			const SHELL_OPTION = '<option value="">— Bare html/head/body shell —</option>';
+
+			const loadPageTemplates = async () => {
+				if (!templateSel) return;
+				let templates = [];
+				try {
+					templates = (await _Widgets.fetchAllPageTemplateWidgets()) ?? [];
+				} catch (e) {
+					console.error('fetching page templates failed', e);
+				}
+				templateSel.innerHTML = SHELL_OPTION + templates.map(w => pageOption(w.id, w.name ?? w.id)).join('');
+				templateSel.hidden    = (templates.length === 0);
+				noTemplates.hidden    = (templates.length > 0);
+				if (templates.length === 0) {
+					noTemplates.innerHTML = 'No page templates yet — they come with the widget set. '
+						+ '<button class="btn-import-widget-set">Import widget set</button> '
+						+ 'or generate a bare page shell now.';
+					noTemplates.querySelector('.btn-import-widget-set').addEventListener('click', async (e) => {
+						e.currentTarget.disabled = true;
+						if (await _Widgets.importDefaultWidgetSet()) {
+							new SuccessMessage().text('Widget set imported.').show();
+							await loadPageTemplates();
+						} else {
+							e.currentTarget.disabled = false;
+							new ErrorMessage().text('Could not import the widget set from structr.com.').show();
+						}
+					});
+				}
+			};
+			loadPageTemplates();
+
+			if (procId && skeletonBtn) {
+				skeletonBtn.addEventListener('click', async () => {
+					// The skeleton is built from persisted state, so unsaved diagram
+					// edits (a new userTask, a renamed step) wouldn't be in it.
+					if (api.hasPendingChanges && api.hasPendingChanges()) {
+						new WarningMessage().text('Save your diagram changes first — the skeleton is generated from the saved process.').show();
+						return;
+					}
+					// Confirm rather than disable when a page is already bound: regenerating
+					// after a model change is a real use case, silently creating a second
+					// page is not.
+					const boundName = pageSel.value ? (pageSel.selectedOptions[0]?.textContent ?? '').trim() : '';
+					if (boundName) {
+						const confirmed = await _Dialogs.confirmation.showPromise(
+							`<strong>${_Helpers.escapeTags(boundName)}</strong> is already bound as the instance page of this process.<br><br>` +
+							`This creates an additional page with a numbered name. Nothing on <strong>${_Helpers.escapeTags(boundName)}</strong> ` +
+							`is changed or removed, and the binding stays as it is.<br><br>Create a second skeleton page?`
+						);
+						if (!confirmed) return;
+					}
+					skeletonBtn.disabled = true;
+					StructrWS.sendObj({
+						command: 'BPMN_PAGE_SKELETON',
+						data:    { processId: procId, templateWidgetId: templateSel?.value || null }
+					}, (resp) => {
+						skeletonBtn.disabled = false;
+						// resp === null means the server replied STATUS 422 and the websocket
+						// layer has already surfaced its message; anything else would double up.
+						if (!resp) return;
+						if (resp.ok !== true) {
+							new ErrorMessage().text('Failed to create page skeleton: ' + (resp.message || 'unknown error')).show();
+							return;
+						}
+						// This path doesn't go through api.updateProcess, so the panel is not
+						// re-rendered: reflect the new page in the picker here.
+						for (const sel of sidePanel.querySelectorAll('.select-instance-page')) {
+							sel.insertAdjacentHTML('beforeend', pageOption(resp.pageId, resp.pageName));
+						}
+						if (resp.boundAsInstancePage) {
+							pageSel.value                = resp.pageId;
+							pageSel.dataset.boundPageId  = resp.pageId;
+							skeletonBtn.textContent      = 'Create another page skeleton';
+						}
+						const bound = resp.boundAsInstancePage ? ' and bound it as the instance page' : '';
+						new SuccessMessage().text(`Created page "${_Helpers.escapeTags(resp.pageName)}" with ${resp.stepCount} step div(s)${bound}.`).show();
+					});
+				});
+			}
+
 			if (procId && pageSel) {
 				pageSel.addEventListener('change', () => {
 					try {
