@@ -65,13 +65,13 @@
 					<plugin>
 						<groupId>io.fabric8</groupId>
 						<artifactId>docker-maven-plugin</artifactId>
-                        <version>${docker.maven.plugin.version}</version>
+						<version>${docker.maven.plugin.version}</version>
 						<configuration>
 							<skip>${skipDockerTestDB}</skip>
 							<skipRun>${skipDockerTestDB}</skipRun>
-						    <autoCreateCustomNetworks>true</autoCreateCustomNetworks>
-						    <removeMode>all</removeMode>
-						    <keepContainer>false</keepContainer>
+							<autoCreateCustomNetworks>true</autoCreateCustomNetworks>
+							<removeMode>all</removeMode>
+							<keepContainer>false</keepContainer>
 						</configuration>
 						<executions>
 							<execution>
@@ -92,7 +92,7 @@
 												</ports>
 												<wait>
 													<log>(.?)Bolt enabled on(.?)</log>
-													<time>20000</time>
+													<time>30000</time>
 												</wait>
 												<env>
 													<NEO4J_AUTH>neo4j/admin123</NEO4J_AUTH>
@@ -112,7 +112,7 @@
 									<goal>stop</goal>
 								</goals>
 								<configuration>
-                                    <executeStopOnVMShutdown>true</executeStopOnVMShutdown>
+									<executeStopOnVMShutdown>true</executeStopOnVMShutdown>
 								</configuration>
 							</execution>
 						</executions>
