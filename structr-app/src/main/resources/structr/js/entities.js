@@ -3029,12 +3029,18 @@ let _Entities = {
 						let renderTemplate = field?.[whichTemplate];
 						let color = renderTemplate?.length ? 'text-gray-555' : 'text-gray-aaa';
 						let stale = Object.keys(fields).length > 0 && !field;
+						// ApplyTemplatesFunction emits "No edit template." at render time for a
+						// field with no template in the active display mode. Flag it while the
+						// user is looking at the field instead of when the page is loaded.
+						let missingTemplate = !!field && !renderTemplate?.length;
 						sortable.insertAdjacentHTML('beforeend', _Entities.generalTab.templates.configuredFieldPartial({
 							fieldName,
 							field,
 							renderTemplate,
 							color,
 							stale,
+							missingTemplate,
+							displayMode,
 							open: openField === fieldName
 						}));
 						let editor = document.querySelector(`.field-details-editor[data-field-name="${fieldName}"]`);
@@ -3067,11 +3073,19 @@ let _Entities = {
 							}));
 
 							// render template settings
-							let renderTemplateSettings = _Entities.generalTab.createAppendAndReturnDetailsSummary(editor, 'Render Template Settings');
+							let renderTemplateSettings = _Entities.generalTab.createAppendAndReturnDetailsSummary(editor, 'Render Template Settings', true);
 							renderTemplateSettings.insertAdjacentHTML('beforeend', await _Entities.generalTab.templates.fieldConfigurationInput(field, renderTemplate));
-							// remove element if no render template settings exist
 							if (renderTemplateSettings.children.length === 0) {
-								renderTemplateSettings.parentNode.remove();
+								// Say that there is nothing to configure rather than removing the
+								// section: an absent section is indistinguishable from a broken
+								// template, which is what sent people to the Value Expression.
+								renderTemplateSettings.insertAdjacentHTML('beforeend', `
+									<div class="col-span-6 text-gray-666 text-xs">
+										${renderTemplate ? `The <b>${_Helpers.escapeTags(renderTemplate)}</b> template declares no settings.` : 'No render template set for this field.'}
+									</div>
+								`);
+							} else {
+								_Helpers.activateCommentsInElement(renderTemplateSettings);
 							}
 
 							// expert settings
@@ -3141,7 +3155,9 @@ let _Entities = {
 							editor.querySelectorAll('input').forEach(input => {
 								input.addEventListener('change', async e => {
 									let data = {_fieldName: input.dataset.fieldName, _update: true};
-									data[input.name] = input.value;
+									// a checkbox's value is "on" regardless of state, so unchecking
+									// one would otherwise persist "on" as well
+									data[input.name] = (input.type === 'checkbox') ? input.checked : input.value;
 									data._destination = input.dataset.destination || 'config';
 									await fetch(`${Structr.rootUrl}DOMNode/${entity.id}/updateDataSourceField`, {
 										method: 'POST',
@@ -3720,10 +3736,11 @@ let _Entities = {
 
 			return entity;
 		},
-		createAppendAndReturnDetailsSummary: (parent, label) => {
+		createAppendAndReturnDetailsSummary: (parent, label, open = false) => {
 
 			let details = document.createElement('details');
 			details.classList.add('col-span-6');
+			details.open = open;
 
 			let summary = document.createElement('summary');
 
@@ -4538,6 +4555,7 @@ let _Entities = {
 							<input type="checkbox" checked data-key="${config.fieldName}">
 							<span class="${config.stale ? 'line-through text-gray-666' : ''}">${config.fieldName}</span>
 							${config.stale ? `<span class="ml-4" style="color:#c0392b;" title="This field is no longer provided by the current data source and has no configured field of its own — the underlying schema property was likely deleted. Uncheck the box to remove it from this component.">⚠ stale</span>` : ''}
+							${config.missingTemplate ? `<span class="ml-4" style="color:#8a6d3b;" title="This field has no ${config.displayMode === 'input' ? 'edit' : 'render'} template, so it renders as an error placeholder in ${config.displayMode === 'input' ? 'input' : 'display'} mode. Click the template name on the right to pick one.">⚠ no template</span>` : ''}
 						</div>
 						<span class="${config.color} italic font-normal cursor-pointer relative select-render-template" data-field-name="${config.fieldName}" data-field-type="${config.field?.dataType}" title="Click to change template.">${config.renderTemplate || 'Set template..'}</span>
 					</summary>
@@ -4569,28 +4587,88 @@ let _Entities = {
 			`,
 			fieldDetailInput: (config) => `
 				<div class="${config.css || ''}">
-					<label class="font-bold block mb-1 px-1" ${config.comment ? `data-comment="${config.comment}"` : ''}">${config.label}</label>
+					<label class="font-bold block mb-1 px-1" ${config.comment ? `data-comment="${config.comment}"` : ''}>${config.label}</label>
 					<input type="text" data-field-name="${config.fieldName}" data-destination="${config.destination}" autocomplete="off" name="${config.name}" value="${config.value || ''}">
 				</div>
 			`,
-			fieldDetailCheckbox: (config) => `
+			fieldDetailCheckbox: (config) => {
+				let heading = (config.heading === undefined) ? 'Options' : config.heading;
+				return `
 				<div class="${config.css || ''}">
-					<label class="font-bold block mb-1 px-1">Options</label>
-					<label class="block mb-1 px-1">
+					${heading ? `<label class="font-bold block mb-1 px-1">${heading}</label>` : ''}
+					<label class="block mb-1 px-1" ${config.comment ? `data-comment="${config.comment}"` : ''}>
 						<input type="checkbox" data-field-name="${config.fieldName}" data-destination="${config.destination}" name="${config.name}" ${config.value ? 'checked': ''}>
 						${config.label}
 					</label>
 				</div>
-			`,
+			`;
+			},
 			fieldDetailDropdown: (config) => `
 				<div class="${config.css || ''}">
-					<label class="font-bold block mb-1 px-1">${config.label}</label>
+					<label class="font-bold block mb-1 px-1" ${config.comment ? `data-comment="${config.comment}"` : ''}>${config.label}</label>
 					<select class="select2 rounded-none rounded-l" data-field-name="${config.fieldName}" data-destination="${config.destination}" name="${config.name}">
 						<option value="">None</option>
 						${config.options.map(o => `<option value="${o.value}" ${config.value === o.value ? 'selected' : ''}>${o.name}</option>`).join('\n')}
 					</select>
 				</div>
 			`,
+			/**
+			 * One input for a render template's declared parameter.
+			 *
+			 * A template's `configuration` entry may name a `type`; supported are only those
+			 * that are knowable at design time, because the type of the object a field will
+			 * render is NOT: a Node-valued property reports `dataType: "node"` and nothing
+			 * about its target type, so a property picker cannot be offered here (the
+			 * schema-property control in the Insert Widget dialog works only because a sibling
+			 * type picker feeds it). Anything type-dependent stays a named text field, and the
+			 * template is expected to tolerate a wrong or empty value at render time.
+			 */
+			typedFieldConfigInput: async (config) => {
+
+				// Two consumers with different collection conventions: the Insert Widget dialog
+				// reads .form-field[data-key], the general tab reads data-field-name +
+				// data-destination. attributeSet: 'widgets' selects the former, mirroring
+				// _Widgets.templates.dataSourcesSelector.
+				const forWidgetDialog = (config.attributeSet === 'widgets');
+
+				const options = async () => {
+					if (config.type === 'page') {
+						// the page NAME, not its id: render templates interpolate it into the URL
+						// path, e.g. href="/${field.config.detailPage}/${data.id}"
+						return (await Command.queryPromise('Page', 1000, 1, 'name', 'asc', { hidden: false }, true, null, 'id,name') ?? [])
+							.map(p => ({ name: p.name, value: p.name }));
+					}
+					// declared by the template itself: ["a","b"] or [{name,value}]
+					return (config.options ?? []).map(o => (typeof o === 'string') ? { name: o, value: o } : o);
+				};
+
+				if (forWidgetDialog) {
+
+					const id   = config.cleanedLabel ?? config.name;
+					const attrs = `class="form-field" id="${_Helpers.escapeForHtmlAttributes(id)}" data-key="${_Helpers.escapeForHtmlAttributes(config.name)}"`;
+
+					if (config.type === 'boolean') {
+						return `<div><h4 id="label-${id}">${config.label}</h4><label class="block"><input type="checkbox" ${attrs} ${config.value ? 'checked' : ''}> ${config.label}</label></div>`;
+					}
+
+					const opts = (await options()).map(o => `<option value="${_Helpers.escapeForHtmlAttributes(o.value)}" ${config.value === o.value ? 'selected' : ''}>${_Helpers.escapeTags(o.name)}</option>`).join('');
+
+					return `<div><h4 id="label-${id}">${config.label}</h4><select ${attrs}><option value="">None</option>${opts}</select></div>`;
+				}
+
+				switch (config.type) {
+
+					case 'page':
+					case 'select':
+						return _Entities.generalTab.templates.fieldDetailDropdown({ ...config, options: await options() });
+
+					case 'boolean':
+						return _Entities.generalTab.templates.fieldDetailCheckbox({ ...config, heading: '' });
+
+					default:
+						return _Entities.generalTab.templates.fieldDetailInput(config);
+				}
+			},
 			fieldConfigurationInput: async (field, templateName) => {
 				let templates = await Command.queryPromise('Widget', 1000, 1, 'name', 'asc', { isRenderTemplate: true, name: templateName }, true, null, 'id,type,name,configuration');
 				let fields = [];
@@ -4599,14 +4677,16 @@ let _Entities = {
 					if (template && template?.configuration?.length > 0) {
 						let config = JSON.parse(template.configuration);
 						for (let key in config) {
-							let label = config[key]?.label || key;
-							let value = field?.config?.[key];
-							fields.push(_Entities.generalTab.templates.fieldDetailInput({
+							let entry = config[key] ?? {};
+							fields.push(await _Entities.generalTab.templates.typedFieldConfigInput({
 								css: 'col-span-3',
 								fieldName: field.name,
 								name: key,
-								value: value,
-								label: label
+								value: field?.config?.[key],
+								label: entry.label || entry.title || key,
+								comment: entry.comment,
+								type: entry.type,
+								options: entry.options
 							}));
 						}
 					}

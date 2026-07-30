@@ -48,6 +48,7 @@ import org.structr.schema.action.Function;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.VisibilityMapping;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.event.ActionMapping;
 
@@ -495,6 +496,27 @@ public class RenderContext extends ActionContext {
 							return currentComponent;
 						}
 						return resolveClosestComponent(entity);
+
+					case "task":
+
+						// The task the enclosing partial acts on. Resolved through the closest
+						// VisibilityMapping, which knows the step this part of the page is about;
+						// the process module decides what "task" means (see
+						// VisibilityMapping#resolveTask). Null outside a process context.
+						if (entity.is(StructrTraits.DOM_NODE)) {
+
+							final VisibilityMapping taskMapping = entity.as(DOMNode.class).getClosestVisibilityMapping();
+							if (taskMapping != null) {
+
+								GraphObject taskContext = getDataObject();
+								if (taskContext == null) {
+									taskContext = getDetailsDataObject();
+								}
+
+								return taskMapping.resolveTask(getSecurityContext(), (taskContext instanceof NodeInterface) ? (NodeInterface) taskContext : null);
+							}
+						}
+						break;
 
 					case "visibilityMapping":
 

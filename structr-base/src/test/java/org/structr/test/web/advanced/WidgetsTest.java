@@ -59,6 +59,7 @@ import java.util.*;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.fail;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 
 public class WidgetsTest extends DeploymentTestBase {
@@ -876,6 +877,102 @@ public class WidgetsTest extends DeploymentTestBase {
 		data.putAll(values);
 
 		ReplaceWidgetCommand.replaceWidget(securityContext, page, nodeToReplace, null, data, false);
+	}
+
+	/**
+	 * Two tables on two pages must be configurable independently.
+	 *
+	 * <p>The Table widget's source is a {@code <structr:shared-template name="Table">}, so every
+	 * insert becomes an instance of ONE shared component. This test asks whether the
+	 * ComponentConfiguration -- which carries the fieldSet, the data source and, through the
+	 * DataAdapter's fields, each field's render-template config (detailPage, dateFormat, the
+	 * Value Expression) -- is per instance or shared along with it.</p>
+	 *
+	 * <p>If it is shared, configuring the columns of one table silently rewrites every other
+	 * table in the application, which is the behaviour this pins as wrong.</p>
+	 */
+	@Test
+	public void testComponentConfigurationIsPerInstanceNotPerSharedComponent() {
+
+		setupUserAndWidgets();
+
+		final String firstRootId;
+		final String secondRootId;
+
+		try (final Tx tx = app.tx()) {
+
+			final Page first  = Page.createNewPage(securityContext, "table-page-one");
+			final Page second = Page.createNewPage(securityContext, "table-page-two");
+
+			for (final Page page : List.of(first, second)) {
+
+				expandWidget(page, page, "Default Page");
+				expandWidget(page, "Main Content", "Table");
+			}
+
+			final DOMNode firstTable  = getDOMNode(first,  "Table");
+			final DOMNode secondTable = getDOMNode(second, "Table");
+
+			assertNotNull(firstTable,  "Table widget should have been inserted into the first page");
+			assertNotNull(secondTable, "Table widget should have been inserted into the second page");
+
+			firstRootId  = firstTable.getUuid();
+			secondRootId = secondTable.getUuid();
+
+			// document the mechanism: both inserts are instances of the same shared component
+			final DOMNode firstShared  = firstTable.getSharedComponent();
+			final DOMNode secondShared = secondTable.getSharedComponent();
+
+			if (firstShared != null && secondShared != null) {
+
+				assertEquals("both tables should be instances of the same shared component",
+					firstShared.getUuid(), secondShared.getUuid());
+			}
+
+			// configure the FIRST table only
+			final ComponentConfiguration config = firstTable.getOrCreateComponentConfiguration();
+			assertNotNull(config, "the first table should have a component configuration");
+
+			config.setFieldSet("name,status");
+
+			tx.success();
+
+		} catch (final FrameworkException fex) {
+
+			fail("Unexpected exception: " + fex.getMessage());
+			return;
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final DOMNode firstTable  = app.getNodeById(firstRootId).as(DOMNode.class);
+			final DOMNode secondTable = app.getNodeById(secondRootId).as(DOMNode.class);
+
+			assertEquals("the configured table should keep its own field set", "name,status", firstTable.getFieldSetForComponent());
+
+			// the second table must be untouched: either no field set of its own, or the
+			// widget's default -- but never the one configured on the first page
+			final String secondFieldSet = secondTable.getFieldSetForComponent();
+
+			assertFalse("configuring one table must not change a table on another page (was: " + secondFieldSet + ")",
+				"name,status".equals(secondFieldSet));
+
+			// and the two configurations must be distinct nodes
+			final ComponentConfiguration firstConfig  = firstTable.getComponentConfiguration();
+			final ComponentConfiguration secondConfig = secondTable.getComponentConfiguration();
+
+			if (firstConfig != null && secondConfig != null) {
+
+				assertFalse("each table instance needs its own ComponentConfiguration",
+					firstConfig.getUuid().equals(secondConfig.getUuid()));
+			}
+
+			tx.success();
+
+		} catch (final FrameworkException fex) {
+
+			fail("Unexpected exception: " + fex.getMessage());
+		}
 	}
 
 	protected void expandWidget(final Page page, final String targetElement, final String widgetName) throws FrameworkException {

@@ -65,6 +65,8 @@ import java.util.Set;
  */
 public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 
+	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(TaskInstanceTraitDefinition.class);
+
 	public static final String STATUS_PROPERTY              = "status";
 	public static final String ASSIGNEE_PROPERTY            = "assignee";
 	public static final String ASSIGNEE_SET_BY_PROPERTY     = "assigneeSetBy";
@@ -207,24 +209,31 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			},
 
-			// completeWithSubject: declarative replacement for the legacy
-			// `submitLeaveRequest`-style task listeners. In one round trip:
-			//   1. Create a node of `subjectType` from the supplied form
-			//      parameters (any args other than `subjectType`).
-			//   2. Wire it as the parent ProcessInstance's subject.
-			//   3. Call the existing complete() flow so token advancement,
-			//      lifecycle events and parameter persistence run unchanged.
+			// completeWithSubject: form-driven "capture the subject and complete the task", with
+			// GET-OR-CREATE semantics. In one round trip:
+			//   1. If the instance has NO subject yet: create a node of `subjectType` from the
+			//      form fields and wire it as the instance's subject.
+			//      If it ALREADY has one: leave it in place -- completeTask below updates its
+			//      matching fields via storeParameterValues.
+			//   2. Complete the task (token advancement, lifecycle events, parameter persistence).
+			//
+			// Idempotency is the point: a ProcessInstance has exactly ONE subject
+			// (ProcessInstanceHasSubject is many-to-one), so a step must never mint a second one.
+			// Whether a given step is the "create" or an "edit" of the subject is a RUNTIME fact
+			// (does the subject exist yet?), not something the page generator or widget can decide
+			// at authoring time -- so the operation decides it here. This also removes the old
+			// hazard where a second completeWithSubject overwrote the single subject reference and
+			// orphaned the first subject's data.
 			//
 			// Argument keys:
-			//   subjectType : String        - SchemaNode type name (required).
-			//                                 The EAM dispatch injects this
-			//                                 from ActionMapping.dataType.
-			//   <other>     : form fields   - become properties on the new
-			//                                 subject node AND continue to
-			//                                 the engine for parameter-value
-			//                                 persistence.
+			//   subjectType : String        - SchemaNode type name (required); used to create the
+			//                                 subject when absent. The EAM dispatch injects it from
+			//                                 ActionMapping.dataType.
+			//   <other>     : form fields   - properties on the created subject and/or, via
+			//                                 completeTask, updates to the existing one; non-matching
+			//                                 fields become process parameter values.
 			//
-			// Returns the created subject node.
+			// Returns the instance's subject (created or pre-existing).
 			new JavaMethod("completeWithSubject", false, false) {
 
 				@Override
@@ -244,50 +253,56 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 						throw new FrameworkException(422, "completeWithSubject: unknown subjectType '" + subjectType + "' -- no SchemaNode of that name exists.");
 					}
 
-					// 1. Create the subject node UNDER SU.
-					//
-					// Why SU: `app.create(...)` under the caller's context
-					// makes the caller the owner with full permissions on
-					// the new node. For process-managed subjects that's
-					// the wrong access model: the form submitter would end
-					// up with read+write+accessControl on the LeaveRequest
-					// they just filed, bypassing the engine-grant model
-					// (&#167;11.17). Creating under SU means no caller-
-					// scoped owner role is established; access flows
-					// purely through engine grants on the parent instance
-					// plus HAS_SUBJECT read propagation (see the rel
-					// trait). Net result: the submitter has read-only on
-					// their submitted LeaveRequest, reviewers gain read
-					// when they claim downstream tasks, nobody gets write
-					// unless the schema author grants it.
-					final NodeInterface task = (NodeInterface) entity;
-					final Traits taskTraits  = task.getTraits();
+					final NodeInterface task     = (NodeInterface) entity;
+					final Traits taskTraits      = task.getTraits();
 					final NodeInterface instance = task.getProperty(taskTraits.key(PROCESS_INSTANCE_PROPERTY));
 					if (instance == null) {
 
 						throw new FrameworkException(422, "completeWithSubject: task has no parent ProcessInstance (data integrity error).");
 					}
 
-					final SecurityContext suCtx = SecurityContext.getSuperUserInstance();
-					final App suApp             = StructrApp.getInstance(suCtx);
-					final org.structr.core.property.PropertyMap initialProps = args.isEmpty()
-						? new org.structr.core.property.PropertyMap()
-						: org.structr.core.property.PropertyMap.inputTypeToJavaType(suCtx, subjectType, args);
-					final NodeInterface subject = suApp.create(subjectType, initialProps);
-
-					// 2. Wire as the parent instance's subject -- also
-					//    under SU, because the user holds read-only on the
-					//    instance (engine grant from startProcess) and
-					//    can't write the SUBJECT_PROPERTY themselves.
+					final SecurityContext suCtx    = SecurityContext.getSuperUserInstance();
+					final App suApp                = StructrApp.getInstance(suCtx);
 					final NodeInterface instanceSu = suApp.getNodeById(instance.getUuid());
-					instanceSu.setProperty(instanceSu.getTraits().key(ProcessInstanceTraitDefinition.SUBJECT_PROPERTY), subject);
+					NodeInterface subject          = instanceSu.getProperty(instanceSu.getTraits().key(ProcessInstanceTraitDefinition.SUBJECT_PROPERTY));
 
-					// 3. Complete the task back under the caller's
-					//    context. This stays user-scoped so engine grants
-					//    on downstream tasks (R+W to the next assignee /
-					//    candidates) are established as part of the
-					//    caller's audited action -- the engine code path
-					//    is unchanged from a plain `complete`.
+					if (subject == null) {
+
+						// No subject yet -> create it UNDER SU and wire it.
+						//
+						// Why SU: `app.create(...)` under the caller's context makes the caller the
+						// owner with full permissions on the new node. For process-managed subjects
+						// that's the wrong access model: the form submitter would end up with
+						// read+write+accessControl on the node they just filed, bypassing the
+						// engine-grant model (&#167;11.17). Under SU no caller-scoped owner role is
+						// established; access flows purely through engine grants on the parent
+						// instance plus HAS_SUBJECT read propagation. Net: the submitter has
+						// read-only on their submitted node, reviewers gain read when they claim
+						// downstream tasks, nobody gets write unless the schema author grants it.
+						final org.structr.core.property.PropertyMap initialProps = args.isEmpty()
+							? new org.structr.core.property.PropertyMap()
+							: org.structr.core.property.PropertyMap.inputTypeToJavaType(suCtx, subjectType, args);
+						subject = suApp.create(subjectType, initialProps);
+
+						// wire as the instance's subject -- also under SU, because the user holds
+						// read-only on the instance (engine grant from startProcess) and can't write
+						// SUBJECT_PROPERTY themselves.
+						instanceSu.setProperty(instanceSu.getTraits().key(ProcessInstanceTraitDefinition.SUBJECT_PROPERTY), subject);
+
+					} else if (!subject.is(subjectType)) {
+
+						// The instance already has a subject of a different type. We do NOT replace
+						// it (that would orphan its data); completeTask below writes only the form
+						// fields that match this existing subject's schema. A process with two
+						// different subject types on one instance is a modelling error -- surface it.
+						logger.warn("completeWithSubject on task '{}': instance already has a subject of type '{}', but this step declares subjectType '{}'. Keeping the existing subject and updating its matching fields; the declared type is ignored.",
+							task.getUuid(), subject.getType(), subjectType);
+					}
+
+					// Complete the task back under the caller's context, so engine grants on
+					// downstream tasks are established as part of the caller's audited action. When
+					// the subject pre-existed, completeTask -> storeParameterValues updates its
+					// matching fields; when we just created it, those writes are a harmless re-apply.
 					final ProcessEngine engine = new ProcessEngine(securityContext);
 					engine.completeTask(task, args.isEmpty() ? null : args);
 					return subject;
@@ -295,7 +310,7 @@ public class TaskInstanceTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public String getDescription() {
-					return "Atomic 'create subject + complete task' for form-driven user tasks. Pass `subjectType` (the SchemaNode type name) and any field values; the method creates the node under SU (so the caller doesn't auto-become its owner), wires it as the parent ProcessInstance's subject, and completes the task. Replaces hand-written 'create then set subject' listeners. Subject access flows through engine grants on the instance plus HAS_SUBJECT read propagation -- the form submitter gets read-only on their submitted node, not full ownership.";
+					return "Capture the process instance's subject and complete the task, with get-or-create semantics: if the instance has no subject yet, create a node of `subjectType` from the form fields under SU (so the caller doesn't auto-become its owner) and wire it as the subject; if it already has one, update its matching fields. Either way the task is then completed. A ProcessInstance has at most one subject, so calling this on successive steps captures-then-edits the same node rather than creating duplicates. Pass `subjectType` (SchemaNode type name) and any field values.";
 				}
 			},
 

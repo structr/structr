@@ -1134,10 +1134,115 @@ let _ProcessDiagram = {
 				if (candidatesPicker) candidatesPicker.addEventListener('change', commitPerformers);
 			}
 
-			// Process / UI contract inputs (userTask only). Each input
-			// persists its own property via api.updateElement so changes
-			// ride the editor's buffer and undo stack like everything else
-			// on this panel. Empty value clears the property.
+			// Process / UI contract (userTask only): the subject type, the views that carve it up
+			// per step, and the instructions text. Every control here persists its own property
+			// through api.updateElement, so changes ride the editor's buffer and undo stack.
+
+			// Views of the selected subject type. This is how a process designer says WHICH
+			// properties a given step works on -- two steps on the same subject usually want
+			// different subsets, and a view is the existing mechanism for naming a subset. The
+			// picker is possible here (unlike render-template parameters) because the subject
+			// type is a sibling field, so the type is known at design time.
+			const formViewSelect     = sidePanel.querySelector('.input-subject-form-view');
+			const writableViewSelect = sidePanel.querySelector('.input-subject-writable-view');
+
+			const loadSubjectViews = async (typeName) => {
+
+				const selects = [formViewSelect, writableViewSelect].filter(Boolean);
+				if (selects.length === 0) return;
+
+				// reset to the placeholder plus whatever is currently stored, so a view that was
+				// renamed or deleted stays visible instead of silently clearing the property
+				for (const sel of selects) {
+					const current     = sel.dataset.current || '';
+					const placeholder = sel.querySelector('option[value=""]')?.outerHTML ?? '';
+					sel.innerHTML     = placeholder + (current ? `<option value="${_Helpers.escapeTags(current)}" selected>${_Helpers.escapeTags(current)}</option>` : '');
+				}
+
+				if (!typeName) return;
+
+				try {
+					const nodes = await Command.queryPromise('SchemaNode', 1, 1, 'name', 'asc', { name: typeName }, true, null, 'id,name');
+					if (!nodes || nodes.length === 0) return;
+
+					const views = await Command.queryPromise('SchemaView', 1000, 1, 'name', 'asc', { schemaNode: nodes[0].id }, true, null, 'id,name');
+					const names = (views ?? []).map(v => v.name).filter(Boolean);
+
+					for (const sel of selects) {
+						const current = sel.dataset.current || '';
+						sel.insertAdjacentHTML('beforeend', names
+							.filter(n => n !== current)
+							.map(n => `<option value="${_Helpers.escapeTags(n)}">${_Helpers.escapeTags(n)}</option>`).join(''));
+					}
+				} catch (e) {
+					console.error('fetching subject views failed', e);
+				}
+			};
+
+			// The contract says the writable view is a subset of the form view. Nothing enforced
+			// it, so a step could declare a writable field the form never shows. Checked on
+			// commit rather than by filtering the dropdown: the views are authored elsewhere and
+			// a warning explains the problem, whereas a silently shorter list would not.
+			const warnIfNotSubset = async () => {
+
+				const typeName = subjectTypeSelect?.value || subjectTypeSelect?.dataset.current || '';
+				const formName = formViewSelect?.value || '';
+				const writName = writableViewSelect?.value || '';
+
+				if (!typeName || !formName || !writName || formName === writName) return;
+
+				const viewFields = async (viewName) => {
+					const views = await Command.queryPromise('SchemaView', 1000, 1, 'name', 'asc', { name: viewName }, true, null, 'id,name,schemaProperties,nonGraphProperties');
+					const view  = (views ?? []).find(v => v.name === viewName);
+					if (!view) return null;
+					const own   = (view.schemaProperties ?? []).map(p => p.name).filter(Boolean);
+					const extra = (view.nonGraphProperties ?? '').split(',').map(v => v.trim()).filter(Boolean);
+					return new Set([...own, ...extra]);
+				};
+
+				try {
+					const formFields = await viewFields(formName);
+					const writFields = await viewFields(writName);
+					if (!formFields || !writFields) return;
+
+					const outside = [...writFields].filter(f => !formFields.has(f));
+					if (outside.length > 0) {
+						new WarningMessage().text(
+							`Writable view "${_Helpers.escapeTags(writName)}" contains ${outside.length} field(s) the form view "${_Helpers.escapeTags(formName)}" does not show: `
+							+ `${_Helpers.escapeTags(outside.join(', '))}. Those fields can be written but never appear.`
+						).show();
+					}
+				} catch (e) {
+					console.error('checking writable view subset failed', e);
+				}
+			};
+
+			for (const sel of [formViewSelect, writableViewSelect]) {
+				if (sel) sel.addEventListener('change', warnIfNotSubset);
+			}
+
+			// Subject types: custom schema types, service classes excluded (they hold static
+			// methods and are never instantiated, so they cannot be a task's subject). Populated
+			// here because the panel markup is built synchronously.
+			const subjectTypeSelect = sidePanel.querySelector('.input-subject-type');
+			if (subjectTypeSelect) {
+
+				// the views depend on the chosen type, so they follow it
+				subjectTypeSelect.addEventListener('change', () => loadSubjectViews(subjectTypeSelect.value));
+				loadSubjectViews(subjectTypeSelect.dataset.current || '');
+
+				fetch(`${Structr.rootUrl}_schema`).then(r => r.ok ? r.json() : null).then(json => {
+					const current = subjectTypeSelect.dataset.current || '';
+					const types   = (json?.result ?? [])
+						.filter(t => !t.isBuiltin && !t.isRel && !t.isServiceClass && t.className !== current)
+						.map(t => t.className)
+						.sort((a, b) => a.localeCompare(b));
+					subjectTypeSelect.insertAdjacentHTML('beforeend',
+						types.map(t => `<option value="${_Helpers.escapeTags(t)}">${_Helpers.escapeTags(t)}</option>`).join(''));
+				}).catch(e => console.error('fetching schema types for subject type failed', e));
+			}
+
+			// Commit wiring for the contract controls. An empty value clears the property.
 			const contractInputs = [
 				['.input-subject-type',           'subjectType'],
 				['.input-subject-form-view',      'subjectFormView'],
@@ -1161,6 +1266,9 @@ let _ProcessDiagram = {
 					}
 				};
 				el.addEventListener('blur', commit);
+				if (el.tagName === 'SELECT') {
+					el.addEventListener('change', commit);
+				}
 				el.addEventListener('keydown', (e) => {
 					// Enter commits only on single-line inputs; textareas keep Enter
 					// for newline insertion.
@@ -1954,7 +2062,10 @@ let _ProcessDiagram = {
 					skeletonBtn.disabled = true;
 					StructrWS.sendObj({
 						command: 'BPMN_PAGE_SKELETON',
-						data:    { processId: procId, templateWidgetId: templateSel?.value || null }
+						data:    {
+							processId:        procId,
+							templateWidgetId: templateSel?.value || null
+						}
 					}, (resp) => {
 						skeletonBtn.disabled = false;
 						// resp === null means the server replied STATUS 422 and the websocket
@@ -1975,7 +2086,16 @@ let _ProcessDiagram = {
 							skeletonBtn.textContent      = 'Create another page skeleton';
 						}
 						const bound = resp.boundAsInstancePage ? ' and bound it as the instance page' : '';
-						new SuccessMessage().text(`Created page "${_Helpers.escapeTags(resp.pageName)}" with ${resp.stepCount} step div(s)${bound}.`).show();
+						// Forms are inserted automatically for user-task steps that declare a
+						// subject type; report how many, and how many were skipped for lack of one.
+						let forms = '';
+						if (resp.formCount > 0) {
+							forms = `, ${resp.formCount} form(s)`;
+						}
+						if (resp.stepsMissingSubject > 0) {
+							forms += ` (${resp.stepsMissingSubject} user task(s) declare no subject type, so they got no form)`;
+						}
+						new SuccessMessage().text(`Created page "${_Helpers.escapeTags(resp.pageName)}" with ${resp.stepCount} step div(s)${forms}${bound}.`).show();
 					});
 				});
 			}
@@ -2223,15 +2343,24 @@ let _ProcessDiagram = {
 				<div class="pd-section-title">Process / UI contract</div>
 				<label class="pd-field">
 					<div class="pd-field-label">Subject type</div>
-					<input type="text" class="input-subject-type" value="${esc(elem.subjectType ?? '')}" placeholder="SchemaNode name, e.g. LeaveRequest">
+					<select class="input-subject-type" data-current="${esc(elem.subjectType ?? '')}">
+						<option value="">— No subject type —</option>
+						${elem.subjectType ? `<option value="${esc(elem.subjectType)}" selected>${esc(elem.subjectType)}</option>` : ''}
+					</select>
 				</label>
 				<label class="pd-field">
-					<div class="pd-field-label">Form view (optional)</div>
-					<input type="text" class="input-subject-form-view" value="${esc(elem.subjectFormView ?? '')}" placeholder="SchemaView name (defaults to standard view)">
+					<div class="pd-field-label">Form view — the fields this step shows</div>
+					<select class="input-subject-form-view" data-current="${esc(elem.subjectFormView ?? '')}">
+						<option value="">— All own properties (custom view) —</option>
+						${elem.subjectFormView ? `<option value="${esc(elem.subjectFormView)}" selected>${esc(elem.subjectFormView)}</option>` : ''}
+					</select>
 				</label>
 				<label class="pd-field">
 					<div class="pd-field-label">Writable view (optional, subset of form view)</div>
-					<input type="text" class="input-subject-writable-view" value="${esc(elem.subjectWritableView ?? '')}" placeholder="SchemaView name">
+					<select class="input-subject-writable-view" data-current="${esc(elem.subjectWritableView ?? '')}">
+						<option value="">— Same as form view —</option>
+						${elem.subjectWritableView ? `<option value="${esc(elem.subjectWritableView)}" selected>${esc(elem.subjectWritableView)}</option>` : ''}
+					</select>
 				</label>
 				<label class="pd-block">
 					<div class="pd-field-label">Instructions for the human user</div>

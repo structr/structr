@@ -1667,7 +1667,7 @@ let _Pages = {
 			// Tasks (participant)
 			{ value: 'claim',         label: 'Claim a task',                            group: 'Tasks',            elementType: 'userTask',               needsTarget: true  },
 			{ value: 'complete',      label: 'Complete a task',                         group: 'Tasks',            elementType: 'userTask',               needsTarget: true  },
-			{ value: 'completeWithSubject', label: 'Complete a task and create the subject', group: 'Tasks', elementType: 'userTask', needsTarget: true,  needsSubjectType: true },
+			{ value: 'completeWithSubject', label: 'Complete a task, creating or updating the subject', group: 'Tasks', elementType: 'userTask', needsTarget: true,  needsSubjectType: true },
 			{ value: 'release',       label: 'Release a task back to the pool',         group: 'Tasks',            elementType: 'userTask',               needsTarget: true  },
 			{ value: 'decline',       label: 'Decline a task (vote, reversible)',       group: 'Tasks',            elementType: 'userTask',               needsTarget: true  },
 			{ value: 'delegate',      label: 'Delegate a task to someone else',         group: 'Tasks',            elementType: 'userTask',               needsTarget: true  },

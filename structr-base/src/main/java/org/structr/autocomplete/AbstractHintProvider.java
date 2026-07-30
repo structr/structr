@@ -464,6 +464,7 @@ public abstract class AbstractHintProvider {
 		hints.add(0, new ThisHint());
 		hints.add(0, new TenantIdentifierHint());
 		hints.add(0, new TemplateHint());
+		hints.add(0, new TaskHint());
 		hints.add(0, new SessionHint());
 		hints.add(0, new RequestHint());
 		hints.add(0, new QueryStringHint());

@@ -78,19 +78,10 @@ public class BpmnPageSkeletonCommand extends AbstractCommand {
 			throw new FrameworkException(422, "This process has no steps that require user interaction, so there is nothing to scaffold.");
 		}
 
-		// Optional page-template widget. Resolved here so an unknown or non-template id is
-		// reported to the user rather than silently producing a bare page.
-		final String templateWidgetId = webSocketData.getNodeDataStringValue("templateWidgetId");
-		Widget templateWidget         = null;
-
-		if (StringUtils.isNotEmpty(templateWidgetId)) {
-
-			templateWidget = getNodeAs(templateWidgetId, Widget.class, StructrTraits.WIDGET);
-			if (templateWidget == null) {
-
-				throw new FrameworkException(422, "Page template widget " + templateWidgetId + " not found");
-			}
-		}
+		// Optional page-template widget. Resolved here so an unknown id is reported to the user
+		// rather than silently producing a bare page. The subject form is not chosen here: the
+		// generator uses the canonical Process Subject Form widget, looked up by name.
+		final Widget templateWidget = resolveWidget(webSocketData.getNodeDataStringValue("templateWidgetId"), "Page template");
 
 		final BpmnPageSkeletonGenerator.Result result = BpmnPageSkeletonGenerator.createSkeleton(
 			StructrApp.getInstance(getWebSocket().getSecurityContext()),
@@ -108,11 +99,30 @@ public class BpmnPageSkeletonCommand extends AbstractCommand {
 			.data("pageName",            result.pageName())
 			.data("stepCount",           result.stepCount())
 			.data("boundAsInstancePage", result.boundAsInstancePage())
+			.data("formCount",           result.formCount())
+			.data("stepsMissingSubject", result.stepsMissingSubject())
 			.build(), true);
 	}
 
 	@Override
 	public String getCommand() {
 		return COMMAND_NAME;
+	}
+
+	/** Resolve an optional widget id, or null when none was sent. */
+	private Widget resolveWidget(final String widgetId, final String label) throws FrameworkException {
+
+		if (StringUtils.isEmpty(widgetId)) {
+
+			return null;
+		}
+
+		final Widget widget = getNodeAs(widgetId, Widget.class, StructrTraits.WIDGET);
+		if (widget == null) {
+
+			throw new FrameworkException(422, label + " widget " + widgetId + " not found");
+		}
+
+		return widget;
 	}
 }

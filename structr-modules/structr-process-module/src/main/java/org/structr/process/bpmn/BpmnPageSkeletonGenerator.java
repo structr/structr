@@ -24,6 +24,8 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.JsonInput;
+import org.structr.core.JsonSingleInput;
 import org.structr.core.app.App;
 import org.structr.core.function.Functions;
 import org.structr.core.graph.NodeInterface;
@@ -34,14 +36,18 @@ import org.structr.process.ProcessTraits;
 import org.structr.process.entity.BpmnElement;
 import org.structr.process.entity.BpmnProcess;
 import org.structr.process.entity.BpmnSequenceFlow;
+import org.structr.process.traits.definitions.BpmnElementTraitDefinition;
 import org.structr.process.traits.definitions.BpmnProcessTraitDefinition;
 import org.structr.process.traits.definitions.VisibilityMappingTraitDefinition;
+import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.entity.Widget;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.traits.definitions.ActionMappingTraitDefinition;
+import org.structr.web.traits.definitions.ComponentConfigurationTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
+import org.structr.websocket.command.WidgetAutoVisibilityMappingHelper;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -142,6 +148,12 @@ public class BpmnPageSkeletonGenerator {
 	 */
 	private static final String MESSAGE_EVENT_DEFINITION = "messageEventDefinition";
 
+	/**
+	 * Name of the canonical form Widget inserted for a subject-bearing user task. Provided
+	 * externally in the widget set; the generator only looks it up and configures it per step.
+	 */
+	public static final String PROCESS_SUBJECT_FORM_WIDGET = "Process Subject Form";
+
 	/** What a scaffolded step div looks like: its id prefix and the states it renders in. */
 	private record StepKind(String idPrefix, Set<String> visibleWhen) {}
 
@@ -166,8 +178,16 @@ public class BpmnPageSkeletonGenerator {
 			VisibilityMappingTraitDefinition.STATE_PROCESS_AWAITING_ACTION))
 	);
 
-	/** What {@link #createSkeleton} produced, for the caller's reply and for tests. */
-	public record Result(String pageId, String pageName, int stepCount, boolean boundAsInstancePage) {}
+	/**
+	 * What {@link #createSkeleton} produced, for the caller's reply and for tests.
+	 *
+	 * @param formCount           forms inserted (0 when no form widget was chosen)
+	 * @param stepsMissingSubject user-task steps that got no form because they declare no
+	 *                            {@code subjectType} -- reported so "nothing happened" is
+	 *                            explainable instead of silent
+	 */
+	public record Result(String pageId, String pageName, int stepCount, boolean boundAsInstancePage,
+	                     int formCount, int stepsMissingSubject) {}
 
 	/**
 	 * Human-facing steps of {@code process} in flow order. Exposed so a caller can check
@@ -236,12 +256,21 @@ public class BpmnPageSkeletonGenerator {
 	 * Build the skeleton page for {@code process} from the given steps and return what was
 	 * created. Runs in the caller's transaction.
 	 *
+	 * <p>Every user-task step that declares a {@code subjectType} gets the canonical
+	 * {@value #PROCESS_SUBJECT_FORM_WIDGET} widget, looked up by name and configured for that
+	 * step (bound data source, seeded fields, a submit that completes the task). No widget is
+	 * chosen per page: the subject declaration is the opt-in, and the form is always the same
+	 * one. If the widget is not present in the database, forms are skipped and a warning is
+	 * logged.</p>
+	 *
 	 * @param requestedName  page name to use, or null to derive one from the process name
 	 * @param templateWidget page-template Widget to build the page from, or null for a bare
 	 *                       {@code html/head/body} shell
 	 */
 	public static Result createSkeleton(final App app, final SecurityContext securityContext, final BpmnProcess process,
 	                                    final List<BpmnElement> steps, final String requestedName, final Widget templateWidget) throws FrameworkException {
+
+		final Widget formWidget = findProcessSubjectForm(app);
 
 		final String processLabel = processLabel(process);
 		final String processSlug  = slug(processLabel, "process");
@@ -261,6 +290,8 @@ public class BpmnPageSkeletonGenerator {
 		final String bpmnProcessId  = StringUtils.defaultIfEmpty(process.getProcessId(), process.getUuid());
 		final Set<String> usedIds   = new HashSet<>();
 		DOMElement startEventDiv    = null;
+		int formCount               = 0;
+		int stepsMissingSubject     = 0;
 
 		for (final BpmnElement step : steps) {
 
@@ -286,6 +317,24 @@ public class BpmnPageSkeletonGenerator {
 			describe(heading, label + " (heading)", headingId, "bpmn-step-title sw-card-heading");
 			usedIds.add(headingId);
 
+			// what the modeller wrote for the human doing this step: instructions first (declared
+			// for exactly this purpose), then the BPMN <documentation> as secondary help. Both
+			// are imported and were previously dropped on the floor.
+			appendHelpText(page, div, step, htmlId, usedIds);
+
+			// the subject form: every user task that declares a subject gets the canonical form
+			if (formWidget != null && step.isType(BpmnElementType.USER_TASK)) {
+
+				if (insertSubjectForm(app, page, div, formWidget, step)) {
+
+					formCount++;
+
+				} else {
+
+					stepsMissingSubject++;
+				}
+			}
+
 			for (final String state : kind.visibleWhen()) {
 
 				createVisibilityMapping(app, div, process, step, state, bpmnProcessId);
@@ -309,10 +358,12 @@ public class BpmnPageSkeletonGenerator {
 			process.setProperty(instancePageKey, page);
 		}
 
-		logger.info("BPMN page skeleton: created page '{}' with {} step div(s) for process '{}'{}",
-			pageName, steps.size(), processLabel, bindAsInstancePage ? " (bound as instance page)" : "");
+		logger.info("BPMN page skeleton: created page '{}' with {} step div(s) and {} form(s) for process '{}'{}{}",
+			pageName, steps.size(), formCount, processLabel,
+			stepsMissingSubject > 0 ? " (" + stepsMissingSubject + " user task(s) declare no subjectType)" : "",
+			bindAsInstancePage ? " (bound as instance page)" : "");
 
-		return new Result(page.getUuid(), pageName, steps.size(), bindAsInstancePage);
+		return new Result(page.getUuid(), pageName, steps.size(), bindAsInstancePage, formCount, stepsMissingSubject);
 	}
 
 	// ----- step selection -----
@@ -435,7 +486,7 @@ public class BpmnPageSkeletonGenerator {
 
 		final DOMNode tmpParent = page.createElement("div");
 
-		Widget.expandWidget(page, tmpParent, null, new HashMap<>(Map.of("source", source)), false);
+		Widget.expandWidget(page, tmpParent, null, expansionParameters(widget), false);
 
 		for (final DOMNode root : Iterables.toList(tmpParent.getChildren())) {
 
@@ -458,6 +509,345 @@ public class BpmnPageSkeletonGenerator {
 		}
 
 		return body != null ? body : page;
+	}
+
+	/**
+	 * The canonical {@value #PROCESS_SUBJECT_FORM_WIDGET} widget, or null when it is not
+	 * installed. Looked up once per page. A null means no subject forms are inserted -- logged
+	 * once, so a missing widget is diagnosable rather than a silent absence of forms.
+	 */
+	private static Widget findProcessSubjectForm(final App app) throws FrameworkException {
+
+		final NodeInterface widget = app.nodeQuery(StructrTraits.WIDGET).name(PROCESS_SUBJECT_FORM_WIDGET).getFirst();
+
+		if (widget == null) {
+
+			logger.warn("BPMN page skeleton: widget '{}' not found; user-task steps will get no subject form. Import the widget set that provides it.", PROCESS_SUBJECT_FORM_WIDGET);
+			return null;
+		}
+
+		return widget.as(Widget.class);
+	}
+
+	/**
+	 * Insert the subject form for a user-task step, if the step declares what it operates on.
+	 *
+	 * <p>Nothing about the subject is hardcoded into the page: the form's ComponentConfiguration
+	 * is switched to {@code processBound} and bound to the step, and
+	 * {@code ComponentConfigurationTraitWrapper#getDataSourceName} then derives the data source
+	 * from the step's {@code subjectType} AT RENDER TIME. So changing the subject type on the
+	 * BPMN side updates every generated form, and a step whose subject is not declared yet
+	 * simply renders nothing rather than a broken form.</p>
+	 *
+	 * <p>The field list is seeded from the step's {@code subjectFormView} by the same helper the
+	 * interactive widget insert uses ({@code WidgetAutoVisibilityMappingHelper}), so a form
+	 * generated here and one inserted by hand start from the same fields.</p>
+	 *
+	 * @return true if a form was inserted
+	 */
+	private static boolean insertSubjectForm(final App app, final Page page, final DOMElement stepDiv,
+	                                         final Widget formWidget, final BpmnElement step) throws FrameworkException {
+
+		final Traits stepTraits = step.getTraits();
+
+		if (!stepTraits.hasKey(BpmnElementTraitDefinition.SUBJECT_TYPE_PROPERTY)) {
+
+			return false;
+		}
+
+		final String subjectType = step.getProperty(stepTraits.key(BpmnElementTraitDefinition.SUBJECT_TYPE_PROPERTY));
+		if (StringUtils.isBlank(subjectType)) {
+
+			// the process designer has not declared what this task operates on yet; a form bound
+			// to nothing would be worse than no form, so skip and say so
+			logger.info("BPMN page skeleton: step '{}' declares no subjectType, inserting no form", step.getBpmnId());
+			return false;
+		}
+
+		final String source = formWidget.getSource();
+		if (StringUtils.isBlank(source)) {
+
+			logger.warn("BPMN page skeleton: form widget '{}' has no source, skipping form for step '{}'", formWidget.getName(), step.getBpmnId());
+			return false;
+		}
+
+		// Expand through a throwaway parent and move the roots across, as AppendWidgetCommand
+		// does. The dataSource parameter fills the widget's [dataSource] placeholder; it is only
+		// the standalone fallback, since the binding below takes precedence at render time.
+		final DOMNode tmpParent              = page.createElement("div");
+		final Map<String, Object> parameters = expansionParameters(formWidget);
+
+		parameters.put("dataSource", "node:" + subjectType);
+
+		Widget.expandWidget(page, tmpParent, null, parameters, false);
+
+		DOMNode formRoot = null;
+
+		for (final DOMNode root : Iterables.toList(tmpParent.getChildren())) {
+
+			stepDiv.appendChild(root);
+
+			if (formRoot == null) {
+
+				formRoot = root;
+			}
+		}
+
+		app.delete(tmpParent);
+
+		if (formRoot == null) {
+
+			logger.warn("BPMN page skeleton: form widget '{}' expanded to nothing for step '{}'", formWidget.getName(), step.getBpmnId());
+			return false;
+		}
+
+		final ComponentConfiguration config = WidgetAutoVisibilityMappingHelper.findComponentConfiguration(formRoot);
+		if (config == null) {
+
+			logger.warn("BPMN page skeleton: form widget '{}' has no ComponentConfiguration, so it cannot be bound to step '{}'",
+				formWidget.getName(), step.getBpmnId());
+			return true;
+		}
+
+		final Traits configTraits = config.getTraits();
+
+		config.setProperty(configTraits.key(ComponentConfigurationTraitDefinition.BINDING_MODE_PROPERTY),
+			ComponentConfigurationTraitDefinition.BINDING_MODE_PROCESS_BOUND);
+
+		if (configTraits.hasKey(ComponentConfigurationTraitDefinition.BOUND_USER_TASK_PROPERTY)) {
+
+			config.setProperty(configTraits.key(ComponentConfigurationTraitDefinition.BOUND_USER_TASK_PROPERTY), step);
+		}
+
+		// field list from the step's subjectFormView; no-op when the step declares none
+		WidgetAutoVisibilityMappingHelper.seedFieldSetFromView(formRoot, step);
+
+		retargetSubmitToTask(formRoot, step, subjectType);
+
+		return true;
+	}
+
+	/**
+	 * Render the step's {@code instructions} and {@code documentation} as paragraphs above the
+	 * form, when the modeller supplied them.
+	 *
+	 * <p>{@code instructions} is declared as "free-text help shown to the human user above the
+	 * form"; {@code documentation} is the BPMN {@code <documentation>} element. Both survive the
+	 * import and had no consumer, so a process page discarded the only prose written for the
+	 * person doing the work. Text is emitted through {@code localize()} so it can be translated
+	 * without touching the page.</p>
+	 */
+	private static void appendHelpText(final Page page, final DOMElement stepDiv, final BpmnElement step,
+	                                   final String htmlId, final Set<String> usedIds) throws FrameworkException {
+
+		final Traits traits = step.getTraits();
+
+		final String instructions = traits.hasKey(BpmnElementTraitDefinition.INSTRUCTIONS_PROPERTY)
+			? step.getProperty(traits.key(BpmnElementTraitDefinition.INSTRUCTIONS_PROPERTY))
+			: null;
+
+		appendParagraph(page, stepDiv, instructions, htmlId + "-instructions", "bpmn-step-instructions", usedIds);
+		appendParagraph(page, stepDiv, step.getDocumentation(), htmlId + "-documentation", "bpmn-step-documentation sw-text-muted", usedIds);
+	}
+
+	/** One paragraph of localized static text, or nothing when the text is blank. */
+	private static void appendParagraph(final Page page, final DOMElement parent, final String text,
+	                                    final String idCandidate, final String cssClass, final Set<String> usedIds) throws FrameworkException {
+
+		if (StringUtils.isBlank(text)) {
+
+			return;
+		}
+
+		final DOMElement paragraph = page.createElement("p");
+		final String htmlId        = firstFree(idCandidate, usedIds::contains);
+
+		parent.appendChild(paragraph);
+		paragraph.appendChild(page.createTextNode("${localize('" + escapeForSingleQuotedLiteral(text.trim()) + "')}"));
+		describe(paragraph, cssClass.split(" ")[0], htmlId, cssClass);
+		usedIds.add(htmlId);
+	}
+
+	/**
+	 * Wire the form's submit to {@code completeWithSubject} for this step.
+	 *
+	 * <p>The step declares a subjectType (that is why a form was inserted), so the operation is
+	 * always {@code completeWithSubject} -- which is get-or-create: it captures the subject on
+	 * the step that first has one and edits the same subject on later steps. There is no
+	 * create-vs-edit choice for the generator to make, because that is a runtime fact the
+	 * operation resolves itself. Whatever persist verb the widget shipped ({@code create},
+	 * {@code update}, or an already process-aware {@code control-process}) is normalised to it.</p>
+	 *
+	 * <p>Per-step targeting is {@code idExpression = ${current.id}} plus {@code targetsElement =
+	 * step} -- NOT {@code ${task.id}}: idExpression is variable-replaced against the ActionMapping
+	 * node (DOMElementTraitDefinition), where {@code $.task} (which resolves only for a DOM node)
+	 * cannot. {@code ${current.id}} reads the render context's data object, the ProcessInstance on
+	 * the instance page; the runtime resolves the active task at the step via
+	 * {@code findActiveTaskForCurrentUser}. {@code targetsElementBpmnId} is set too, so the
+	 * importer's rewire pass keeps the button on the right step across re-imports. {@code dataType}
+	 * is the concrete subject type, replacing the widget's {@code ${dataSource.dataType}}
+	 * placeholder so {@code completeWithSubject} can create the subject when none exists.</p>
+	 */
+	private static int retargetSubmitToTask(final DOMNode formRoot, final BpmnElement step, final String subjectType) throws FrameworkException {
+
+		final Traits amTraits             = Traits.of(StructrTraits.ACTION_MAPPING);
+		final PropertyKey<String> actionKey = amTraits.key(ActionMappingTraitDefinition.ACTION_PROPERTY);
+		final List<DOMNode> candidates    = new ArrayList<>();
+
+		candidates.add(formRoot);
+
+		for (final NodeInterface descendant : formRoot.getAllChildNodes()) {
+
+			if (descendant.is(StructrTraits.DOM_ELEMENT)) {
+
+				candidates.add(descendant.as(DOMNode.class));
+			}
+		}
+
+		int retargeted                   = 0;
+		final List<String> seenActions   = new ArrayList<>();
+
+		for (final DOMNode candidate : candidates) {
+
+			final PropertyKey<Iterable<NodeInterface>> actionsKey = candidate.getTraits().hasKey(DOMElementTraitDefinition.TRIGGERED_ACTIONS_PROPERTY)
+				? candidate.getTraits().key(DOMElementTraitDefinition.TRIGGERED_ACTIONS_PROPERTY)
+				: null;
+
+			if (actionsKey == null) {
+				continue;
+			}
+
+			for (final NodeInterface mapping : Iterables.toList(candidate.getProperty(actionsKey))) {
+
+				// Match on the ACTION verb, not the event: a form fires its persist on the form's
+				// submit or a button's click, but the verb identifies it either way. create/update
+				// are plain-form persists; control-process is an already process-aware submit.
+				final String widgetAction = mapping.getProperty(actionKey);
+				seenActions.add(String.valueOf(widgetAction));
+
+				if (!"create".equals(widgetAction) && !"update".equals(widgetAction) && !"control-process".equals(widgetAction)) {
+					continue;
+				}
+
+				// Normalise everything to completeWithSubject on this step -- the one correct
+				// operation for a subject-bearing step, since it is idempotent (create-or-edit).
+				mapping.setProperty(actionKey, "control-process");
+				mapping.setProperty(amTraits.key(ActionMappingTraitDefinition.PROCESS_OPERATION_PROPERTY), "completeWithSubject");
+				mapping.setProperty(amTraits.key(ActionMappingTraitDefinition.ID_EXPRESSION_PROPERTY), "${current.id}");
+				mapping.setProperty(amTraits.key(ActionMappingTraitDefinition.TARGETS_ELEMENT_PROPERTY), step);
+				mapping.setProperty(amTraits.key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY), subjectType);
+
+				if (amTraits.hasKey(ActionMappingTraitDefinition.TARGETS_ELEMENT_BPMN_ID_PROPERTY)) {
+
+					mapping.setProperty(amTraits.key(ActionMappingTraitDefinition.TARGETS_ELEMENT_BPMN_ID_PROPERTY), step.getBpmnId());
+				}
+
+				retargeted++;
+
+				logger.info("BPMN page skeleton: form submit '{}' wired to completeWithSubject at step '{}'",
+					widgetAction, step.getBpmnId());
+			}
+		}
+
+		if (retargeted == 0) {
+
+			// The form was inserted but its submit still only saves the subject -- the process
+			// will not advance. Report precisely what was (and was not) found, because the cause
+			// is one of a few distinct widget-structure problems.
+			if (!seenActions.isEmpty()) {
+
+				// Action mappings exist in the form, just not a persist verb we retarget.
+				logger.warn("BPMN page skeleton: inserted a form for step '{}' but none of its action mappings is a create/update/control-process submit (found: {}); the process will not advance. The form's submit must persist the subject via 'create' or 'update', or already be a 'control-process' action.",
+					step.getBpmnId(), seenActions);
+
+			} else {
+
+				// No action mapping in the form's own subtree at all. The most common cause is a
+				// shared-template widget whose <form> lives in the shared component body rather
+				// than in a per-instance <structr:template> block -- so its submit is not part of
+				// this instance and, being shared across every form on every page, could not be
+				// configured per step even if it were reachable.
+				final DOMNode shared = formRoot.getSharedComponent();
+				final boolean submitInSharedComponent = shared != null && hasTriggeredAction(shared);
+
+				if (submitInSharedComponent) {
+
+					logger.warn("BPMN page skeleton: inserted a form for step '{}' whose submit action lives in the SHARED COMPONENT, not in a per-instance template. Per-step wiring is impossible there (it is shared across every form). Structure the widget like 'Create Form': a <structr:template src=\"...\"> instance whose children hold the <form> with the submit action.",
+						step.getBpmnId());
+
+				} else {
+
+					logger.warn("BPMN page skeleton: inserted a form for step '{}' but found no action mapping at all; the submit is likely an inline attribute that did not expand into an ActionMapping node. The process will not advance.",
+						step.getBpmnId());
+				}
+			}
+		}
+
+		return retargeted;
+	}
+
+	/** True if {@code root} or any descendant carries at least one triggered ActionMapping. */
+	private static boolean hasTriggeredAction(final DOMNode root) {
+
+		final List<DOMNode> nodes = new ArrayList<>();
+		nodes.add(root);
+		for (final NodeInterface descendant : root.getAllChildNodes()) {
+
+			if (descendant.is(StructrTraits.DOM_ELEMENT)) {
+
+				nodes.add(descendant.as(DOMNode.class));
+			}
+		}
+
+		for (final DOMNode node : nodes) {
+
+			if (!node.getTraits().hasKey(DOMElementTraitDefinition.TRIGGERED_ACTIONS_PROPERTY)) {
+				continue;
+			}
+
+			final PropertyKey<Iterable<NodeInterface>> actionsKey = node.getTraits().key(DOMElementTraitDefinition.TRIGGERED_ACTIONS_PROPERTY);
+			if (!Iterables.toList(node.getProperty(actionsKey)).isEmpty()) {
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Expansion parameters for a widget: its source plus its own {@code componentType} and
+	 * {@code dimensions}, wrapped the way {@code Widget.expandWidget} expects them (a
+	 * {@code JsonSingleInput} under the {@code config} key).
+	 *
+	 * <p>Passing the config is not optional for data-driven widgets: {@code expandWidget} copies
+	 * these onto the appended roots, and a component without a dimension fails
+	 * {@code ComponentConfiguration.checkCompatibility} the moment its configuration is created
+	 * ("Component X has no dimension"). This mirrors what AppendWidgetCommand sends from the
+	 * Insert Widget dialog.</p>
+	 */
+	private static Map<String, Object> expansionParameters(final Widget widget) {
+
+		final Map<String, Object> parameters  = new HashMap<>();
+		final JsonSingleInput singleInput     = new JsonSingleInput();
+		final JsonInput input                 = new JsonInput();
+
+		singleInput.add(input);
+
+		parameters.put("source", widget.getSource());
+		parameters.put("config", singleInput);
+
+		if (widget.getComponentType() != null) {
+
+			input.put("componentType", widget.getComponentType());
+		}
+
+		if (widget.getDimensions() != null) {
+
+			input.put("dimensions", widget.getDimensions());
+		}
+
+		return parameters;
 	}
 
 	/** Depth-first search for the first descendant matching {@code predicate}, or null. */

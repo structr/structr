@@ -797,6 +797,24 @@ let _Widgets = {
 					}
 					break;
 
+				case 'page':
+				case 'boolean':
+					// Delegated to the shared typed-input renderer so a widget's `page` or
+					// `boolean` parameter looks and behaves the same here as in a field's Render
+					// Template Settings. The type-dependent controls above (datasource,
+					// schema-*) stay here: they need siblings from this dialog.
+					form.append(await _Entities.generalTab.templates.typedFieldConfigInput({
+						attributeSet: 'widgets',
+						cleanedLabel,
+						name:         label,
+						label:        titleLabel,
+						value:        defaultValue,
+						type:         fieldType,
+						comment:      fieldConfig.comment,
+						options:      fieldConfig.options
+					}));
+					break;
+
 				case 'select':
 					let options = fieldConfig.options || ["-"];
 
@@ -1135,6 +1153,7 @@ let _Widgets = {
 					{ isSeparator: true },
 					{ name: 'Custom Types', children: await _Widgets.templates.getCustomTypesForMenu() },
 					{ name: 'System Types', children: await _Widgets.templates.getSystemTypesForMenu() },
+					...(await _Widgets.templates.getProcessSourcesForMenu()),
 					{ isSeparator: true },
 					{ name: 'Folders', children: await _Widgets.templates.getFoldersForMenu({ parent: null }, { name: 'All root folders', icon: '#database-icon', value: 'root-folders' }) },
 					{ isSeparator: true },
@@ -1225,7 +1244,10 @@ let _Widgets = {
 			return values;
 		},
 		getCustomTypesForMenu: async () => {
-			let sources = await _Widgets.templates.getFetchResult('_schema', t => !t.isBuiltin && !t.isRel);
+			// Service classes are excluded: they exist to hold static methods and are never
+			// instantiated, so "All <X> nodes" could only ever be empty. The _schema endpoint
+			// reports the flag (SchemaResource.isServiceClassProperty).
+			let sources = await _Widgets.templates.getFetchResult('_schema', t => !t.isBuiltin && !t.isRel && !t.isServiceClass);
 			sources.sort((a, b) => a.name.localeCompare(b.name));
 			let values = [];
 			for (let value of sources) {
@@ -1245,6 +1267,32 @@ let _Widgets = {
 				await _Widgets.templates.getSystemTypeOptions('Page', 'Pages'),
 				await _Widgets.templates.getSystemTypeOptions('User', 'Users'),
 			];
+		},
+		/**
+		 * Process-engine data sources, as their own group rather than mixed in with the system
+		 * types: a user building a process UI looks for "the running processes", not for a type
+		 * name. Empty (so the group disappears) where the process module is not installed.
+		 *
+		 * "Running Processes" resolves to TaskInstance deliberately -- a running process is only
+		 * actionable through its open tasks, which is what carries assignee, status and the step
+		 * it sits at.
+		 */
+		getProcessSourcesForMenu: async () => {
+
+			if (!await _Widgets.templates.typeExists('TaskInstance')) {
+				return [];
+			}
+
+			return [
+				{ isSeparator: true },
+				{ name: 'Processes', children: [
+					{ name: 'Running Processes', icon: '#database-icon', value: 'node:TaskInstance' },
+				] }
+			];
+		},
+		/** True if the schema knows this type, i.e. the module providing it is installed. */
+		typeExists: async (type) => {
+			return (await _Widgets.templates.getFetchResult('_schema', t => t.className === type)).length > 0;
 		},
 		getSystemTypeOptions: async (type, plural) => {
 			return { name: `All ${plural}`, icon: '#database-icon', value: `node:${type}` };

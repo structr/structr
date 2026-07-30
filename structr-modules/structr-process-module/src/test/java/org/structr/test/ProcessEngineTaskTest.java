@@ -19,8 +19,13 @@
 package org.structr.test;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.process.traits.definitions.BpmnProcessTraitDefinition;
 import org.structr.process.traits.definitions.ProcessInstanceTraitDefinition;
 import org.structr.process.traits.definitions.TaskInstanceTraitDefinition;
@@ -553,6 +558,99 @@ public class ProcessEngineTaskTest extends AbstractProcessEngineTest {
 
 				assertEquals(403, expected.getStatus());
 			}
+			tx.success();
+		}
+	}
+
+	// ------------------------------------------------------------------
+	// completeWithSubject: get-or-create semantics
+	// ------------------------------------------------------------------
+
+	@Test
+	public void testCompleteWithSubjectCreatesSubjectWhenAbsent() throws Exception {
+
+		createSubjectType("Claim", "title");
+
+		final NodeInterface init = createUser("initiator");
+		final String procUuid    = importProcess("/engine-human-task.bpmn");
+
+		final String instId;
+		try (final Tx tx = app.tx()) {
+			instId = engineAs(init).startProcess(app.getNodeById(procUuid), null).getUuid();
+			tx.success();
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface task = openTaskAt(app.getNodeById(instId), "Task_Fill");
+			invokeMethod(userContext(init), task, "completeWithSubject", Map.of("subjectType", "Claim", "title", "first"), false);
+			tx.success();
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface subject = subjectOf(app.getNodeById(instId));
+			assertNotNull("completeWithSubject with no existing subject must create one", subject);
+			assertTrue("created subject should be of the declared type", subject.is("Claim"));
+			assertEquals("first", subject.getProperty(subject.getTraits().key("title")));
+			assertEquals("exactly one subject node should exist", 1, app.nodeQuery("Claim").getAsList().size());
+			tx.success();
+		}
+	}
+
+	@Test
+	public void testCompleteWithSubjectUpdatesExistingSubjectInsteadOfReplacing() throws Exception {
+
+		createSubjectType("Claim", "title");
+
+		final NodeInterface init = createUser("initiator");
+		final String procUuid    = importProcess("/engine-human-task.bpmn");
+
+		final String instId;
+		final String existingSubjectId;
+		try (final Tx tx = app.tx()) {
+
+			instId = engineAs(init).startProcess(app.getNodeById(procUuid), null).getUuid();
+
+			// simulate an earlier step having already created the subject
+			final NodeInterface existing = app.create("Claim");
+			existing.setProperty(existing.getTraits().key("title"), "original");
+			final NodeInterface instance = app.getNodeById(instId);
+			instance.setProperty(instance.getTraits().key(ProcessInstanceTraitDefinition.SUBJECT_PROPERTY), existing);
+			existingSubjectId = existing.getUuid();
+
+			tx.success();
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface task = openTaskAt(app.getNodeById(instId), "Task_Fill");
+			invokeMethod(userContext(init), task, "completeWithSubject", Map.of("subjectType", "Claim", "title", "edited"), false);
+			tx.success();
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface subject = subjectOf(app.getNodeById(instId));
+			assertNotNull(subject);
+			assertEquals("the existing subject must be kept, not replaced", existingSubjectId, subject.getUuid());
+			assertEquals("its fields must be updated from the form", "edited", subject.getProperty(subject.getTraits().key("title")));
+			assertEquals("no second subject node may be created", 1, app.nodeQuery("Claim").getAsList().size());
+			tx.success();
+		}
+	}
+
+	/** Create a minimal subject SchemaNode with one String property, usable as a process subject. */
+	private void createSubjectType(final String typeName, final String propertyName) throws FrameworkException {
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface type = app.create(StructrTraits.SCHEMA_NODE, typeName);
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), propertyName),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "String"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), type)
+			);
 			tx.success();
 		}
 	}

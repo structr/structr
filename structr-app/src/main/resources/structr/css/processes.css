@@ -505,10 +505,7 @@
 }
 
 .input-performer-assignee,
-.input-performer-candidates,
-.input-subject-type,
-.input-subject-form-view,
-.input-subject-writable-view {
+.input-performer-candidates {
 	font-family: monospace;
 }
 

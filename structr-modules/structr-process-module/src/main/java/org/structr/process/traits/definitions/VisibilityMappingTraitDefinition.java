@@ -176,6 +176,84 @@ public class VisibilityMappingTraitDefinition extends AbstractNodeTraitDefinitio
 			// when the user has any historical completed instance. Engine grants drive
 			// participant access (initiator + candidates + assignees of the instance);
 			// the predicate just consults state, doesn't recompute permissions.
+			// resolveTask(contextObject): the TaskInstance this partial acts on, or null.
+			// Two cases, deliberately asymmetric:
+			//
+			//   * the context object IS a TaskInstance -- a task-list row -- return it, so the
+			//     row talks about ITS task. Deriving from the row's instance instead could
+			//     return a different task at the bound step.
+			//   * the context object is a ProcessInstance -- the process page -- derive the task
+			//     at this mapping's bound step, matched by bpmnId like every other step lookup
+			//     here, so re-imported process versions keep working.
+			//
+			// An open task (created / available / reserved) wins over a finished one, because a
+			// step re-entered by a loop leaves completed tasks behind and the actionable one is
+			// what a partial is for.
+			new JavaMethod("resolveTask", false, false) {
+
+				@Override
+				public Object execute(final ActionContext actionContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
+					final NodeInterface mapping       = (NodeInterface) entity;
+					final Traits vmTraits             = mapping.getTraits();
+					final NodeInterface contextObject = (NodeInterface) arguments.get("contextObject");
+
+					if (contextObject == null) {
+
+						return null;
+					}
+
+					if (contextObject.is(ProcessTraits.TASK_INSTANCE)) {
+
+						return contextObject;
+					}
+
+					final NodeInterface instance = unwrapToProcessInstance(contextObject);
+					if (instance == null) {
+
+						return null;
+					}
+
+					final NodeInterface boundStep = mapping.getProperty(vmTraits.key(BOUND_STEP_PROPERTY));
+					final String stepBpmnId       = preferredBoundStepBpmnId(boundStep, mapping.getProperty(vmTraits.key(BOUND_STEP_BPMN_ID_PROPERTY)));
+
+					if (stepBpmnId == null || stepBpmnId.isEmpty()) {
+
+						return null;
+					}
+
+					final Traits instTraits = instance.getTraits();
+					final Traits taskTraits = Traits.of(ProcessTraits.TASK_INSTANCE);
+
+					final PropertyKey<Iterable<NodeInterface>> instTasksKey = instTraits.key(ProcessInstanceTraitDefinition.TASKS_PROPERTY);
+					final PropertyKey<NodeInterface> taskDefinedByKey       = taskTraits.key(TaskInstanceTraitDefinition.DEFINED_BY_PROPERTY);
+					final PropertyKey<String> taskStatusKey                 = taskTraits.key(TaskInstanceTraitDefinition.STATUS_PROPERTY);
+
+					NodeInterface fallback = null;
+
+					for (final NodeInterface task : tasksAtStep(instance, instTasksKey, taskDefinedByKey, stepBpmnId)) {
+
+						final String status = task.getProperty(taskStatusKey);
+
+						if (TaskInstanceTraitDefinition.STATUS_CREATED.equals(status)
+							|| TaskInstanceTraitDefinition.STATUS_AVAILABLE.equals(status)
+							|| TaskInstanceTraitDefinition.STATUS_RESERVED.equals(status)) {
+
+							return task;
+						}
+
+						fallback = task;
+					}
+
+					return fallback;
+				}
+
+				@Override
+				public String getDescription() {
+					return "Return the TaskInstance this VisibilityMapping's partial acts on: the context object itself when that is a TaskInstance, otherwise the task at the bound step of the ProcessInstance in render context.";
+				}
+			},
+
 			new JavaMethod("evaluate", false, false) {
 
 				@Override

@@ -22,6 +22,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -36,6 +37,7 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.traits.definitions.ComponentConfigurationTraitDefinition;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -189,19 +191,28 @@ public class WidgetAutoVisibilityMappingHelper {
 	 * </ul>
 	 * </p>
 	 */
-	private static void seedFieldSetFromView(final DOMNode rootNode, final NodeInterface stepNode) throws FrameworkException {
+	public static void seedFieldSetFromView(final DOMNode rootNode, final NodeInterface stepNode) throws FrameworkException {
 
 		final Traits stepTraits = stepNode.getTraits();
-		if (!stepTraits.hasKey("subjectType") || !stepTraits.hasKey("subjectFormView")) return;
+		if (!stepTraits.hasKey("subjectType")) return;
 
 		final String subjectType = stepNode.getProperty(stepTraits.key("subjectType"));
-		final String viewName    = stepNode.getProperty(stepTraits.key("subjectFormView"));
 		if (subjectType == null || subjectType.isEmpty()) return;
-		if (viewName    == null || viewName.isEmpty())    return;
 		if (!Traits.exists(subjectType))                  return;
 
+		final String declaredView = stepTraits.hasKey("subjectFormView")
+			? stepNode.getProperty(stepTraits.key("subjectFormView"))
+			: null;
+
 		final Traits subjectTraits = Traits.of(subjectType);
-		if (!subjectTraits.getViewNames().contains(viewName)) return;
+		final String fields        = fieldsForSubject(subjectTraits, declaredView);
+
+		if (fields.isEmpty()) {
+
+			logger.warn("WidgetAutoVisibilityMappingHelper: subject type '{}' has no usable fields (tried view '{}' and 'custom'), leaving the field set alone.",
+				subjectType, declaredView);
+			return;
+		}
 
 		final ComponentConfiguration config = findComponentConfiguration(rootNode);
 		if (config == null) {
@@ -210,14 +221,51 @@ public class WidgetAutoVisibilityMappingHelper {
 			return;
 		}
 
-		final String fields = subjectTraits.getPropertyKeysForView(viewName).stream()
-			.map(PropertyKey::jsonName)
-			.collect(Collectors.joining(","));
-
 		config.setProperty(config.getTraits().key(ComponentConfigurationTraitDefinition.FIELD_SET_PROPERTY), fields);
 	}
 
-	private static ComponentConfiguration findComponentConfiguration(final DOMNode rootNode) {
+	/**
+	 * The comma-joined field list to seed for a subject type: the declared
+	 * {@code subjectFormView} when the type has it, otherwise the {@code custom} view.
+	 *
+	 * <p>{@code custom} is the right fallback because it holds exactly the schema author's own
+	 * properties -- every dynamically registered key is added to it automatically (see
+	 * {@code Trait#registerPropertyKey}). {@code ui} and {@code public} are deliberately NOT
+	 * used: they carry framework properties (owner, visibility flags, timestamps) that would
+	 * fill a generated form with fields nobody asked for.</p>
+	 *
+	 * <p>System-internal and read-only keys are dropped in either case -- a form is for editing.
+	 * An empty result leaves the field set untouched, so a subject type with no custom
+	 * properties keeps the configuration's default rather than losing it.</p>
+	 *
+	 * <p>Without this fallback a step declaring only a {@code subjectType} kept the
+	 * ComponentConfiguration's default field set of {@code name}, and the generated form showed
+	 * exactly one field.</p>
+	 */
+	private static String fieldsForSubject(final Traits subjectTraits, final String declaredView) {
+
+		final Set<String> viewNames = subjectTraits.getViewNames();
+
+		for (final String candidate : new String[] { declaredView, PropertyView.Custom }) {
+
+			if (candidate != null && !candidate.isEmpty() && viewNames.contains(candidate)) {
+
+				final String fields = subjectTraits.getPropertyKeysForView(candidate).stream()
+					.filter(key -> !key.isSystemInternal() && !key.isReadOnly())
+					.map(PropertyKey::jsonName)
+					.collect(Collectors.joining(","));
+
+				if (!fields.isEmpty()) {
+
+					return fields;
+				}
+			}
+		}
+
+		return "";
+	}
+
+	public static ComponentConfiguration findComponentConfiguration(final DOMNode rootNode) {
 
 		final ComponentConfiguration onRoot = rootNode.getComponentConfiguration();
 		if (onRoot != null) return onRoot;
