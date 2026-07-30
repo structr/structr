@@ -2344,8 +2344,8 @@ let _Entities = {
 						let otherFilters = ['category', 'sites'];
 						for (let filter of otherFilters) {
 
-							let sitesFilterEl = document.querySelector(`#pagesPagerFilters .filter[data-attribute="${filter}"]`);
-							sitesFilterEl.value = '';
+							let filterEl = document.querySelector(`#pagesPagerFilters .filter[data-attribute="${filter}"]`);
+							filterEl.value = '';
 							_Pager.pagerFilters['pages'][filter] = null;
 						}
 
@@ -2373,18 +2373,16 @@ let _Entities = {
 	ensurePagesIsActiveAndCorrectSlideoutIsOpen: async (id) => {
 
 		let obj   = await Command.getPromise(id, 'id,name,type,parent,pageId,isPage');
-		let tabId = (obj.isPage === true) ? 'pagesTab' : ((!obj.pageId) ? 'elementsTab' : 'componentsTab');
+		let tabId = (obj.isPage === true) ? 'pagesTab' : ((obj.type === 'Site') ? 'sitesTab' : ((!obj.pageId) ? 'elementsTab' : 'componentsTab'));
 
 		if (!location.hash.startsWith('#pages')) {
 
 			// set correct slideout before navigation to prevent load-behaviour
-			let lsKey = (obj.isPage === true) ? _Pages.activeTabLeftKey : _Pages.activeTabRightKey;
+			let lsKey = (obj.isPage === true || obj.type === 'Site') ? _Pages.activeTabLeftKey : _Pages.activeTabRightKey;
 			LSWrapper.setItem(lsKey, tabId);
-
-			location.hash = 'pages';
 		}
 
-		await _Helpers.waitForElement('.' + _Pages.classIndicatorEverythingReady, { childList: true, subtree: true, attributes: true });
+		await _Helpers.ensureDesiredModuleIsActive(_Pages);
 
 		let tab = await _Helpers.waitForElement('#' + tabId);
 		if (!tab.classList.contains('active')) {

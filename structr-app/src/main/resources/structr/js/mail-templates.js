@@ -74,7 +74,7 @@ let _MailTemplates = {
 				}
 			});
 
-			let response = await _MailTemplates.createMailTemplates(mtData, newMailTemplateForm);
+			let response = await _MailTemplates.createMailTemplates(mtData, namePreselect);
 		});
 
 		let createRegistrationTemplatesLink = Structr.functionBar.querySelector('#create-registration-templates');
@@ -150,6 +150,8 @@ let _MailTemplates = {
 		Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer'), _MailTemplates.mailTemplatesResizerLeftKey, 300, _MailTemplates.moveResizer);
 
 		_MailTemplates.moveResizer(LSWrapper.getItem(_MailTemplates.mailTemplatesResizerLeftKey));
+
+		_Helpers.setModuleReadyIndicator(_MailTemplates, _MailTemplates.getMailTemplatesMain());
 	},
 	getContextMenuElements: (div, entity) => {
 
@@ -193,12 +195,13 @@ let _MailTemplates = {
 
 		return elements;
 	},
+	getMailTemplatesMain: () => document.getElementById('mail-templates-main'),
 	showMain: () => {
-		document.getElementById('mail-templates-main').style.display = 'flex';
+		_MailTemplates.getMailTemplatesMain().style.display = 'flex';
 		_MailTemplates.moveResizer();
 	},
 	hideMain: () => {
-		document.getElementById('mail-templates-main').style.display = 'none';
+		_MailTemplates.getMailTemplatesMain().style.display = 'none';
 	},
 	checkMainVisibility: () => {
 
@@ -476,6 +479,34 @@ let _MailTemplates = {
 
 		} else {
 			_Helpers.blinkRed($(blinkTarget));
+		}
+	},
+	search: {
+		// search from global search widget
+		goToResult: (result, key, searchData) => {
+
+			_Helpers.ensureDesiredModuleIsActive(_MailTemplates).then(() => Command.getPromise(result.id)).then(node => {
+
+				let nameFilterEl = document.querySelector('#mail-templates-pager .filter[data-attribute="name"]');
+				nameFilterEl.value = node.name;
+				_Pager.pagerFilters['mail-templates']['name'] = node.name;
+
+				let domainFilterEl = document.querySelector('#mail-templates-pager .filter[data-attribute="locale"]');
+				domainFilterEl.value = node.locale;
+				_Pager.pagerFilters['mail-templates']['locale'] = node.locale;
+
+				let kbEvent = new KeyboardEvent('keyup', {
+					key: 'Enter',
+					code: 'Enter',
+					keyCode: 13,
+					which: 13,
+					bubbles: true,
+					cancelable: true
+				});
+				nameFilterEl.dispatchEvent(kbEvent);
+
+				_Helpers.waitForElement(`#mail-templates-table #mail-template-${node.id}`).then(element => element.click());
+			});
 		}
 	},
 

@@ -1356,7 +1356,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 			final String expectedKeysForDOMResults = "id,isDOMElement,keys,labels,name,type,values";
 
-			final List<GraphObject> results = SearchNodesCommand.executeSearch("capitalize", true, false, false);
+			final List<GraphObject> results = SearchNodesCommand.executeSearch("capitalize", List.of(SearchNodesCommand.SEARCH_CONTEXT_DOM));
 
 			assertEquals(2, results.size());
 
@@ -1382,7 +1382,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 			final String identifier = Settings.TenantIdentifier.getValue();
 			Settings.TenantIdentifier.setValue("TEST");
 
-			final List<GraphObject> resultsWithTenantIdentifier = SearchNodesCommand.executeSearch("capitalize", true, false, false);
+			final List<GraphObject> resultsWithTenantIdentifier = SearchNodesCommand.executeSearch("capitalize", List.of(SearchNodesCommand.SEARCH_CONTEXT_DOM));
 
 			assertEquals("Global search (with a tenant identifier that did not have any nodes created) should yield no results",0, resultsWithTenantIdentifier.size());
 

@@ -36,8 +36,6 @@ let _Pages = {
 	pagesResizerRightKey: 'structrPagesResizerRightKey_' + location.port,
 	functionBarSwitchKey: 'structrFunctionBarSwitchKey_' + location.port,
 
-	classIndicatorEverythingReady: 'pages-area-ready',
-
 	dropzoneDropAllowedClass: 'allow-drop',
 
 	shadowPage: undefined,
@@ -2944,7 +2942,7 @@ let _Pages = {
 				});
 			}
 
-			_Pages.pagesTree[0].classList.add(_Pages.classIndicatorEverythingReady);
+			_Helpers.setModuleReadyIndicator(_Pages, _Pages.pagesTree[0]);
 
 			window.setTimeout(() => {
 				_Pages.cleanActiveTabsFromLocalStorage();
@@ -4965,16 +4963,17 @@ let _Pages = {
 		goTo: (result, key, searchData) => {
 
 			let { id }  = result;
-			let tabName = _Pages.search.getTabForKey(key);
+			let tabName = _Pages.search.getTabForKey(key, result);
 
 			if (tabName === 'editor' || tabName === 'repeater') {
 				_Editors.highlightTextInNextEditor(searchData.queryString);
 			}
 
 			let matchingTabUrlHash = '#pages:' + tabName;
-			let link = document.querySelector(`[href="${matchingTabUrlHash}"]`)
+			let link = document.querySelector(`[href="${matchingTabUrlHash}"]`);
 
-			if (link && id === _Pages.centerPane.dataset['elementId']) {
+			let elementAlreadyBeingEdited = (link && id === _Pages.centerPane.dataset['elementId']);
+			if (elementAlreadyBeingEdited) {
 
 				_Pages.activateCenterPane(link);
 
@@ -4991,7 +4990,11 @@ let _Pages = {
 				_Pages.selectAndShowArbitraryDOMElement(id);
 			}
 		},
-		getTabForKey: (key) => {
+		getTabForKey: (key, result) => {
+
+			if (result.type === 'Site') {
+				return 'general';
+			}
 
 			if (key.startsWith('_html_') || key.startsWith('_custom_html_')) {
 				return 'html';

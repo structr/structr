@@ -24,7 +24,6 @@ import org.structr.api.DatabaseService;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.Services;
-import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -34,24 +33,28 @@ public class SearchNodesCommand extends AbstractCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(SearchNodesCommand.class.getName());
 
-	private static final String QUERY_STRING_KEY                 = "queryString";
-	private static final String SEARCH_DOM_BOOL_KEY              = "searchDOM";
-	private static final String SEARCH_FLOW_BOOL_KEY             = "searchFlow";
-	private static final String SEARCH_SCHEMA_BOOL_KEY           = "searchSchema";
+	private static final String SEARCH_STRING_KEY    = "searchString";
+	private static final String SEARCH_CONTEXTS_KEY  = "searchContexts";
+
+	public static final String SEARCH_CONTEXT_DOM            = "dom";
+	public static final String SEARCH_CONTEXT_FLOWS          = "flows";
+	public static final String SEARCH_CONTEXT_SCHEMA         = "schema";
+	public static final String SEARCH_CONTEXT_FILES          = "files";
+	public static final String SEARCH_CONTEXT_LOCALIZATIONS  = "localizations";
+	public static final String SEARCH_CONTEXT_MAIL_TEMPLATES = "mail-templates";
+
 
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
 		setDoTransactionNotifications(false);
 
-		final String queryString   = webSocketData.getNodeDataStringValue(QUERY_STRING_KEY);
-		final boolean searchDOM    = webSocketData.getNodeDataBooleanValue(SEARCH_DOM_BOOL_KEY);
-		final boolean searchFlow   = webSocketData.getNodeDataBooleanValue(SEARCH_FLOW_BOOL_KEY);
-		final boolean searchSchema = webSocketData.getNodeDataBooleanValue(SEARCH_SCHEMA_BOOL_KEY);
+		final String searchString         = webSocketData.getNodeDataStringValue(SEARCH_STRING_KEY);
+		final List<String> searchContexts = webSocketData.getNodeDataStringList(SEARCH_CONTEXTS_KEY);
 
 		try {
 
-			final List<GraphObject> result = executeSearch(queryString, searchDOM, searchSchema, searchFlow);
+			final List<GraphObject> result = executeSearch(searchString, searchContexts);
 
 			int resultCountBeforePaging = result.size();
 			webSocketData.setRawResultCount(resultCountBeforePaging);
@@ -77,16 +80,19 @@ public class SearchNodesCommand extends AbstractCommand {
 		return "SEARCH_NODES";
 	}
 
-	public static List<GraphObject> executeSearch(final String query, final boolean searchDOM, final boolean searchSchema, final boolean searchFlow) {
+	public static List<GraphObject> executeSearch(final String searchString, List<String> searchContexts) {
 
 		final DatabaseService db = Services.getInstance().getDatabaseService();
 		final Set<String> types  = new LinkedHashSet<>();
 
-		if (searchDOM)    { types.add("(n:DOMNode AND NOT n:ShadowDocument)"); }
-		if (searchFlow)   { types.add("n:FlowNode"); }
-		if (searchSchema) { types.add("(n:AbstractSchemaNode OR n:SchemaReloadingNode)"); }
+		if (searchContexts.contains(SEARCH_CONTEXT_DOM))            { types.add("((n:DOMNode or n:Site) AND NOT n:ShadowDocument)"); }
+		if (searchContexts.contains(SEARCH_CONTEXT_FLOWS))          { types.add("(n:FlowNode)"); }
+		if (searchContexts.contains(SEARCH_CONTEXT_SCHEMA))         { types.add("(n:AbstractSchemaNode OR n:SchemaReloadingNode)"); }
+		if (searchContexts.contains(SEARCH_CONTEXT_FILES))          { types.add("(n:AbstractFile)"); }
+		if (searchContexts.contains(SEARCH_CONTEXT_LOCALIZATIONS))  { types.add("(n:Localization)"); }
+		if (searchContexts.contains(SEARCH_CONTEXT_MAIL_TEMPLATES)) { types.add("(n:MailTemplate)"); }
 
-		final List<Map<String, Object>> rawResults = db.globalSearch(types, query);
+		final List<Map<String, Object>> rawResults = db.globalSearch(types, searchString);
 		final List<GraphObject> results            = new LinkedList<>();
 
 		for (final Map<String, Object> result : rawResults) {
@@ -98,8 +104,24 @@ public class SearchNodesCommand extends AbstractCommand {
 				tmp.put("isDOMElement", true);
 			}
 
+			if (labels.contains("Site")) {
+				tmp.put("isSiteElement", true);
+			}
+
 			if (labels.contains("AbstractSchemaNode") || labels.contains("SchemaReloadingNode")) {
 				tmp.put("isSchemaElement", true);
+			}
+
+			if (labels.contains("File") || labels.contains("Folder")) {
+				tmp.put("isFilesystemElement", true);
+			}
+
+			if (labels.contains("Localization")) {
+				tmp.put("isLocalizationElement", true);
+			}
+
+			if (labels.contains("MailTemplate")) {
+				tmp.put("isMailTemplateElement", true);
 			}
 
 			results.add(GraphObjectMap.fromMap(tmp));
