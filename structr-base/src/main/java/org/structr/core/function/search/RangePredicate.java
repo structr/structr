@@ -21,6 +21,7 @@ package org.structr.core.function.search;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.QueryGroup;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 
@@ -44,23 +45,8 @@ public class RangePredicate implements SearchFunctionPredicate {
 	@Override
 	public void configureQuery(final SecurityContext securityContext, final Traits type, final PropertyKey key, final QueryGroup query, final boolean exact) throws FrameworkException {
 
-		Object effectiveRangeStart = rangeStart;
-
-		if (key != null && rangeStart != null && !key.valueType().isAssignableFrom(rangeStart.getClass())) {
-			Object converted = key.inputConverter(securityContext, false).convert(rangeStart);
-			if (converted != null) {
-				effectiveRangeStart = converted;
-			};
-		}
-
-		Object effectiveRangeEnd = rangeEnd;
-
-		if (key != null && rangeEnd != null && !key.valueType().isAssignableFrom(rangeEnd.getClass())) {
-			Object converted = key.inputConverter(securityContext, false).convert(rangeEnd);
-			if (converted != null) {
-				effectiveRangeEnd = converted;
-			}
-		}
+		final Object effectiveRangeStart = convertIfNecessary(securityContext, key, rangeStart);
+		final Object effectiveRangeEnd   = convertIfNecessary(securityContext, key, rangeEnd);
 
 		/*
 		if (Operation.OR.equals(query.getOperation())) {
@@ -73,5 +59,39 @@ public class RangePredicate implements SearchFunctionPredicate {
 		 */
 			query.range(key, effectiveRangeStart, effectiveRangeEnd, includeStart, includeEnd);
 		//}
+	}
+
+	/**
+	 * Converts the given range bound into the value type of the given key, in case the
+	 * bound does not already have a compatible type. Neither a value type (e.g. generic
+	 * and cypher properties) nor an input converter is guaranteed to exist, so the bound
+	 * is passed through unchanged whenever we cannot do better.
+	 */
+	private Object convertIfNecessary(final SecurityContext securityContext, final PropertyKey key, final Object bound) throws FrameworkException {
+
+		if (key == null || bound == null) {
+
+			return bound;
+		}
+
+		final Class valueType = key.valueType();
+		if (valueType == null || valueType.isAssignableFrom(bound.getClass())) {
+
+			return bound;
+		}
+
+		final PropertyConverter converter = key.inputConverter(securityContext, false);
+		if (converter == null) {
+
+			return bound;
+		}
+
+		final Object converted = converter.convert(bound);
+		if (converted == null) {
+
+			return bound;
+		}
+
+		return converted;
 	}
 }

@@ -247,6 +247,24 @@ public class FunctionProperty<T> extends Property<T> implements Documentable {
 		return null;
 	}
 
+	private PropertyConverter getInputConverter(final SecurityContext securityContext, final boolean fromString) {
+
+		if (typeHint != null) {
+
+			PropertyConverter converter = null;
+
+			final Property tmp = createTempProperty(typeHint.toLowerCase(), jsonName);
+			if (tmp != null) {
+
+				converter = tmp.inputConverter(securityContext, fromString);
+			}
+
+			return converter;
+		}
+
+		return null;
+	}
+
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext) {
 		return getDatabaseConverter(securityContext);
@@ -259,7 +277,7 @@ public class FunctionProperty<T> extends Property<T> implements Documentable {
 
 	@Override
 	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext, boolean fromString) {
-		return getDatabaseConverter(securityContext);
+		return getInputConverter(securityContext, fromString);
 	}
 
 	@Override

@@ -35,9 +35,11 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.*;
+import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.common.StructrTest;
 import org.testng.annotations.Test;
@@ -2098,6 +2100,122 @@ public class PropertyTest extends StructrTest {
 		}
 
 	}
+
+	/** This test filters a function property by value using a range predicate.
+	 * A range predicate converts its bounds into the value type of the key it is
+	 * applied to, which requires the key to provide an input converter. StructrScript
+	 * parses every numeric literal as Double, so gt(0) hands a Double to a key whose
+	 * type hint makes it Integer, and the conversion is not optional.
+	 */
+	@Test
+	public void testFunctionPropertyRangeQueryWithTypeHint() {
+
+		// schema setup
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface test = app.create(StructrTraits.SCHEMA_NODE,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Test")
+			);
+
+			// one function property per numeric type hint, all returning the same value
+			for (final String typeHint : Set.of("Int", "Long", "Double")) {
+
+				app.create(StructrTraits.SCHEMA_PROPERTY,
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY),   test),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),           "count" + typeHint),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Function"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY), "{ return ($.this.name === 'withEvents') ? 7 : 0; }"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.INDEXED_PROPERTY),       true),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.TYPE_HINT_PROPERTY),     typeHint)
+				);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// entity setup
+		try (final Tx tx = app.tx()) {
+
+			app.create("Test", "withEvents");
+			app.create("Test", "withoutEvents");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// a type hint must yield a converter that converts into the hinted type,
+		// which is what a range predicate relies on to normalize its bounds
+		try (final Tx tx = app.tx()) {
+
+			final Traits traits = Traits.of("Test");
+
+			assertEquals("FunctionProperty with type hint Int must convert bounds into its value type",
+				Integer.valueOf(0), convertBound(traits.key("countInt"), 0.0));
+
+			assertEquals("FunctionProperty with type hint Long must convert bounds into its value type",
+				Long.valueOf(0L), convertBound(traits.key("countLong"), 0.0));
+
+			assertEquals("FunctionProperty with type hint Double must convert bounds into its value type",
+				Double.valueOf(0.0), convertBound(traits.key("countDouble"), 0.0));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// find() with a range predicate, in the StructrScript form that produces Double bounds
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ctx = new ActionContext(securityContext);
+
+			for (final String typeHint : List.of("Int", "Long", "Double")) {
+
+				final String script = "${find('Test', 'count" + typeHint + "', gt(0))}";
+				final Object result = Scripting.evaluate(ctx, null, script, "testFunctionPropertyRangeQueryWithTypeHint");
+
+				assertTrue("find() with a range predicate must return a list for " + script, result instanceof List);
+
+				final List<NodeInterface> nodes = (List)result;
+
+				assertEquals("find() with a range predicate returns wrong result count for " + script, 1, nodes.size());
+				assertEquals("find() with a range predicate returns wrong node for " + script,
+					"withEvents", nodes.get(0).getProperty(Traits.of("Test").key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	/**
+	 * Converts a query bound the way a range predicate does, so a test can assert the
+	 * conversion itself instead of only its effect on a query result.
+	 */
+	private Object convertBound(final PropertyKey key, final Object bound) throws FrameworkException {
+
+		final PropertyConverter converter = key.inputConverter(securityContext, false);
+
+		assertNotNull("Key " + key.jsonName() + " must provide an input converter to be usable in a range predicate", converter);
+
+		return converter.convert(bound);
+	}
+
 	// ----- notion property tests -----
 
 	/**
