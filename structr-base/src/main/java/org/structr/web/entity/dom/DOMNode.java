@@ -238,6 +238,13 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	Iterable<VisibilityMapping> getVisibilityMappings();
 
 	DOMNode cloneNode(final boolean deep) throws FrameworkException;
+
+	/**
+	 * Deep-clones this node but does not descend into the subtree of any node in stopAt; those nodes
+	 * are cloned as empty containers. Used to copy a page's common frame without its page-specific
+	 * content, instead of cloning everything and deleting the difference again.
+	 */
+	DOMNode cloneNode(final boolean deep, final java.util.Set<String> stopAt) throws FrameworkException;
 	DOMNode appendChild(final DOMNode domNode) throws FrameworkException;
 	DOMNode removeChild(final DOMNode newChild) throws FrameworkException;
 	DOMNode replaceChild(final DOMNode newNode, final DOMNode refNode) throws FrameworkException;

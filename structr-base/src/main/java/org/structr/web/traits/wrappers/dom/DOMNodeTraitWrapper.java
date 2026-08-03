@@ -89,17 +89,30 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	 * @return
 	 */
 	public static DOMNode cloneAndAppendChildren(final SecurityContext securityContext, final DOMNode nodeToClone, final Map<String, DOMNode> cloneMap) throws FrameworkException {
+		return cloneAndAppendChildren(securityContext, nodeToClone, cloneMap, null);
+	}
 
-		final DOMNode newNode                   = nodeToClone.cloneNode(false);
-		final Iterable<DOMNode> childrenToClone = nodeToClone.getChildren();
+	/**
+	 * @param stopAt uuids whose SUBTREE is not cloned. The node itself is, so a boundary node comes
+	 *               along as an empty container. Null clones everything.
+	 */
+	public static DOMNode cloneAndAppendChildren(final SecurityContext securityContext, final DOMNode nodeToClone, final Map<String, DOMNode> cloneMap, final Set<String> stopAt) throws FrameworkException {
+
+		final DOMNode newNode = nodeToClone.cloneNode(false);
 
 		if (cloneMap.put(nodeToClone.getUuid(), newNode) != null) {
 			throw new FrameworkException(422, "Node already cloned!");
 		}
 
-		for (final DOMNode childNodeToClone : childrenToClone) {
+		// a boundary node is cloned WITHOUT its content, so the caller does not have to clone the
+		// whole tree and delete the unwanted part again
+		if (stopAt != null && stopAt.contains(nodeToClone.getUuid())) {
+			return newNode;
+		}
 
-			newNode.appendChild(cloneAndAppendChildren(securityContext, childNodeToClone, cloneMap));
+		for (final DOMNode childNodeToClone : nodeToClone.getChildren()) {
+
+			newNode.appendChild(cloneAndAppendChildren(securityContext, childNodeToClone, cloneMap, stopAt));
 		}
 
 		return newNode;
@@ -2232,13 +2245,18 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	@Override
 	public final DOMNode cloneNode(final boolean deep) throws FrameworkException {
+		return cloneNode(deep, null);
+	}
+
+	@Override
+	public final DOMNode cloneNode(final boolean deep, final Set<String> stopAt) throws FrameworkException {
 
 		final SecurityContext securityContext = getSecurityContext();
 
 		if (deep) {
 
 			final Map<String, DOMNode> cloneMap = new LinkedHashMap<>();
-			final DOMNode clone                 = cloneAndAppendChildren(securityContext, this, cloneMap);
+			final DOMNode clone                 = cloneAndAppendChildren(securityContext, this, cloneMap, stopAt);
 			final App app                       = StructrApp.getInstance(securityContext);
 
 			// clone event action mapping as well (must be done after cloning all DOM nodes)
