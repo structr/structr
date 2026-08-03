@@ -55,7 +55,6 @@ import org.structr.web.traits.operations.*;
 import org.structr.web.traits.wrappers.dom.ContentTraitWrapper;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.Set;
 
@@ -600,10 +599,10 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 
 						String content = null;
 
-						// Convert binary data to String with charset from response
+						// Convert binary data to String with the charset of the render context
 						if (value instanceof byte[]) {
 
-							content = StringUtils.toEncodedString((byte[]) value, Charset.forName(renderContext.getResponse().getCharacterEncoding()));
+							content = StringUtils.toEncodedString((byte[]) value, renderContext.getCharset());
 
 						} else {
 

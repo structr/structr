@@ -55,6 +55,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.Map.Entry;
@@ -268,6 +269,42 @@ public class RenderContext extends ActionContext {
 
 	public HttpServletResponse getResponse() {
 		return response;
+	}
+
+	/**
+	 * Returns the charset that binary values should be decoded with when they are rendered
+	 * into the output. A render context does not always have a response: a websocket command
+	 * or a context created by include() or render() outside of a page render has none, and in
+	 * the websocket case there is no response anywhere to be had. The security context is
+	 * therefore asked next, and UTF-8 is the last resort. Since the servlets that render pages
+	 * all set UTF-8 on the response, that fallback matches what a response would have reported.
+	 */
+	public Charset getCharset() {
+
+		HttpServletResponse effectiveResponse = response;
+		if (effectiveResponse == null) {
+
+			effectiveResponse = getSecurityContext().getResponse();
+		}
+
+		if (effectiveResponse != null) {
+
+			final String encoding = effectiveResponse.getCharacterEncoding();
+			if (StringUtils.isNotBlank(encoding)) {
+
+				try {
+
+					return Charset.forName(encoding);
+
+				} catch (final IllegalArgumentException iae) {
+
+					// unknown or illegal charset name, fall back to UTF-8 below
+					LoggerFactory.getLogger(RenderContext.class).warn("Unsupported character encoding {} in response, using UTF-8 instead.", encoding);
+				}
+			}
+		}
+
+		return StandardCharsets.UTF_8;
 	}
 
 	public void increaseDepth() {
