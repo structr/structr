@@ -363,6 +363,24 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 		return jp;
 	}
 
+	/**
+	 * Returns the given member as a JsonPrimitive, or null if it is missing, an explicit
+	 * JSON null, or not a primitive. JsonObject.has() is true for a member that is present
+	 * but null, while JsonObject.getAsJsonPrimitive() casts the member, so those two do not
+	 * compose: a client sending e.g. "pageId": null would trigger a ClassCastException
+	 * instead of being treated as "no page id given".
+	 */
+	private static JsonPrimitive getPrimitive(final JsonObject root, final String key) {
+
+		final JsonElement element = root.get(key);
+
+		if (element == null || !element.isJsonPrimitive()) {
+			return null;
+		}
+
+		return element.getAsJsonPrimitive();
+	}
+
 	@Override
 	public WebSocketMessage deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 
@@ -375,66 +393,76 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 			JsonObject relData       = root.getAsJsonObject("relData");
 			JsonObject commandConfig = root.getAsJsonObject("config");
 
-			if (root.has("command")) {
+			final JsonPrimitive command = getPrimitive(root, "command");
+			if (command != null) {
 
-				webSocketData.setCommand(root.getAsJsonPrimitive("command").getAsString());
+				webSocketData.setCommand(command.getAsString());
 			}
 
-			if (root.has("id")) {
+			final JsonPrimitive id = getPrimitive(root, "id");
+			if (id != null) {
 
-				webSocketData.setId(root.getAsJsonPrimitive("id").getAsString());
+				webSocketData.setId(id.getAsString());
 			}
 
-			if (root.has("pageId")) {
+			final JsonPrimitive pageId = getPrimitive(root, "pageId");
+			if (pageId != null) {
 
-				webSocketData.setPageId(root.getAsJsonPrimitive("pageId").getAsString());
+				webSocketData.setPageId(pageId.getAsString());
 			}
 
-			if (root.has("sessionId")) {
-				JsonPrimitive sessionId = root.getAsJsonPrimitive("sessionId");
-				if (sessionId != null) {
-					webSocketData.setSessionId(sessionId.getAsString());
-				}
+			final JsonPrimitive sessionId = getPrimitive(root, "sessionId");
+			if (sessionId != null) {
+
+				webSocketData.setSessionId(sessionId.getAsString());
 			}
 
-			if (root.has("callback")) {
+			final JsonPrimitive callback = getPrimitive(root, "callback");
+			if (callback != null) {
 
-				webSocketData.setCallback(root.getAsJsonPrimitive("callback").getAsString());
+				webSocketData.setCallback(callback.getAsString());
 			}
 
-			if (root.has("button")) {
+			final JsonPrimitive button = getPrimitive(root, "button");
+			if (button != null) {
 
-				webSocketData.setButton(root.getAsJsonPrimitive("button").getAsString());
+				webSocketData.setButton(button.getAsString());
 			}
 
-			if (root.has("parent")) {
+			final JsonPrimitive parent = getPrimitive(root, "parent");
+			if (parent != null) {
 
-				webSocketData.setParent(root.getAsJsonPrimitive("parent").getAsString());
+				webSocketData.setParent(parent.getAsString());
 			}
 
-			if (root.has("view")) {
+			final JsonPrimitive view = getPrimitive(root, "view");
+			if (view != null) {
 
-				webSocketData.setView(root.getAsJsonPrimitive("view").getAsString());
+				webSocketData.setView(view.getAsString());
 			}
 
-			if (root.has("sort")) {
+			final JsonPrimitive sort = getPrimitive(root, "sort");
+			if (sort != null) {
 
-				webSocketData.setSortKey(root.getAsJsonPrimitive("sort").getAsString());
+				webSocketData.setSortKey(sort.getAsString());
 			}
 
-			if (root.has("order")) {
+			final JsonPrimitive order = getPrimitive(root, "order");
+			if (order != null) {
 
-				webSocketData.setSortOrder(root.getAsJsonPrimitive("order").getAsString());
+				webSocketData.setSortOrder(order.getAsString());
 			}
 
-			if (root.has("pageSize")) {
+			final JsonPrimitive pageSize = getPrimitive(root, "pageSize");
+			if (pageSize != null) {
 
-				webSocketData.setPageSize(root.getAsJsonPrimitive("pageSize").getAsInt());
+				webSocketData.setPageSize(pageSize.getAsInt());
 			}
 
-			if (root.has("page")) {
+			final JsonPrimitive page = getPrimitive(root, "page");
+			if (page != null) {
 
-				webSocketData.setPage(root.getAsJsonPrimitive("page").getAsInt());
+				webSocketData.setPage(page.getAsInt());
 			}
 
 			if (nodeData != null) {
