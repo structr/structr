@@ -52,6 +52,11 @@ public class LogFunction extends CoreFunction {
 		try {
 
 			final StringBuilder buf = new StringBuilder();
+
+			if (caller != null) {
+				buf.append("Caller: ").append(Scripting.formatForLogging(caller)).append(" - ");
+			}
+
 			for (final Object obj : sources) {
 
 				if (obj != null) {
