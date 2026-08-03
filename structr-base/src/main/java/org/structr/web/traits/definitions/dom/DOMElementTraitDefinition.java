@@ -2043,8 +2043,17 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 	 * read are considered. With the engine's instance-level read grant (initiator,
 	 * candidates, assignees of the instance get read on the ProcessInstance, which
 	 * propagates to all its tasks), participants see every task on the instance --
-	 * the {@code definedBy=bpmnElement} filter is what disambiguates which task to
-	 * act on. Skipping completed/cancelled returns the *active* task at this step.</p>
+	 * the step filter is what disambiguates which task to act on. Skipping
+	 * completed/cancelled returns the *active* task at this step.</p>
+	 *
+	 * <p>The step match is by {@code bpmnId}, NOT by element-node identity. This is
+	 * deliberate and must stay in lock-step with the visibility layer that decided to
+	 * render this button's step ({@code VisibilityMappingTraitDefinition#tasksAtStep},
+	 * which also matches by bpmnId): a BPMN re-import -- or, as here, a freshly
+	 * regenerated page whose action {@code targetsElement} points at the newer element
+	 * nodes -- produces distinct element nodes that share a bpmnId. An identity match
+	 * would then show the form (visibility passes on bpmnId) yet fail on submit
+	 * (identity misses), which is exactly the failure this avoids.</p>
 	 *
 	 * <p>If this returns null, the action mapping is wired to a step that has no
 	 * active task in this instance -- a common authoring mistake when one partial
@@ -2060,11 +2069,24 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		final PropertyKey<NodeInterface> definedByKey       = taskTraits.key("definedBy");
 		final PropertyKey<String> statusKey                 = taskTraits.key("status");
 
+		// Match the step by bpmnId (see javadoc): read it off the action's target element.
+		final String targetBpmnId = (bpmnElement != null && bpmnElement.getTraits().hasKey("bpmnId"))
+			? bpmnElement.getProperty(bpmnElement.getTraits().key("bpmnId"))
+			: null;
+		if (StringUtils.isBlank(targetBpmnId)) {
+			return null;
+		}
+
 		int seenButTerminal = 0;
 		for (final NodeInterface task : app.nodeQuery("TaskInstance")
 				.key(processInstanceKey, processInstance)
-				.key(definedByKey, bpmnElement)
 				.getResultStream()) {
+
+			final NodeInterface definedBy = task.getProperty(definedByKey);
+			if (definedBy == null || !definedBy.getTraits().hasKey("bpmnId")
+					|| !targetBpmnId.equals(definedBy.getProperty(definedBy.getTraits().key("bpmnId")))) {
+				continue;
+			}
 
 			final String status = task.getProperty(statusKey);
 			if (!"completed".equals(status) && !"cancelled".equals(status)) {

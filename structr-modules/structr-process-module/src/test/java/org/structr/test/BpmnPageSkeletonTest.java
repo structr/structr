@@ -165,9 +165,11 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 				assertFalse("heading must not query for the step, was: " + script, script.contains("find("));
 				assertFalse("heading must not walk the parent chain itself, was: " + script, script.contains(".parent"));
 
-				// nothing else, except on the start event, which also hosts the launch partial
-				final int expectedChildren = "start-claim-submitted".equals(htmlId(div)) ? 2 : 1;
-				assertEquals("unexpected content in step div " + htmlId(div), expectedChildren, children(div).size());
+				// no form leaked: this run creates no form widget, so no step div may carry a
+				// form (a ComponentConfiguration). Help-text paragraphs from imported
+				// <documentation> / instructions are legitimate content, so we assert the
+				// absence of a form rather than an exact child count.
+				assertNull("no step may carry a form when no form widget was chosen: " + htmlId(div), formChildOf(div));
 			}
 
 			assertEquals("machine-side steps must be skipped and order must follow the flow", EXPECTED_IDS, actualIds);
@@ -454,15 +456,17 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 	}
 
 	/**
-	 * A form widget inserted for a user task must be bound to the STEP, not to a fixed type: the
-	 * data source is then derived from the step's subjectType at render time
-	 * (ComponentConfigurationTraitWrapper#getDataSourceName), and the field list is seeded from
-	 * the step's subjectFormView. A step that declares no subject gets no form at all.
+	 * A form widget inserted for a user task must be bound to the STEP, not to a fixed type: at
+	 * render time (ComponentConfigurationTraitWrapper) the form then binds to the `current`
+	 * channel (the process instance's single subject) with the process's subjectType as its
+	 * expected data type, and the field list is seeded from the step's own subjectFormView.
+	 * Because the subject type is process-level, every user task gets a form; a non-user-task
+	 * human step does not.
 	 */
 	@Test
 	public void testSubjectFormIsBoundToTheStep() {
 
-		final String pageId;
+		final String procId;
 
 		try (final Tx tx = app.tx()) {
 
@@ -477,39 +481,43 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 
 			final NodeInterface formWidget = app.create(StructrTraits.WIDGET, BpmnPageSkeletonGenerator.PROCESS_SUBJECT_FORM_WIDGET);
 			formWidget.setProperty(formWidget.getTraits().key(WidgetTraitDefinition.SOURCE_PROPERTY),
-				"<div data-structr-meta-name=\"Test Form\"></div>");
+				"<div data-structr-meta-name=\"Test Form\" config=\"{ displayMode: 'input' }\"></div>");
+			formWidget.setProperty(formWidget.getTraits().key(WidgetTraitDefinition.DIMENSIONS_PROPERTY), 1);
 
 			final NodeInterface defNode  = new BpmnImporter(securityContext).importBpmn(loadResource("/insurance-claim.bpmn"));
 			final BpmnProcess process    = firstProcess(defNode).as(BpmnProcess.class);
 
-			// declare the subject on one user task only
+			// the subject type is process-level (one subject per instance)
+			process.setProperty(process.getTraits().key(BpmnProcessTraitDefinition.SUBJECT_TYPE_PROPERTY), "Claim");
+			// this step narrows which fields it exposes
 			final NodeInterface step = elementByBpmnId(firstProcess(defNode), "Task_InitialReview");
-			step.setProperty(step.getTraits().key(BpmnElementTraitDefinition.SUBJECT_TYPE_PROPERTY),      "Claim");
 			step.setProperty(step.getTraits().key(BpmnElementTraitDefinition.SUBJECT_FORM_VIEW_PROPERTY), "form");
 
-			pageId = BpmnPageSkeletonGenerator.createSkeleton(
-				app, securityContext, process, BpmnPageSkeletonGenerator.humanFacingSteps(process),
-				null, null).pageId();
+			procId = process.getUuid();
 
 			tx.success();
 
 		} catch (final FrameworkException fex) {
 
-			fail("Unexpected failure: " + fex.getMessage());
+			fail("Unexpected setup failure: " + fex.getMessage());
 			return;
 		}
+
+		final String pageId = generateSkeletonFor(procId);
 
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface page = app.getNodeById(pageId);
 			final DOMNode wrapper    = children(children(children(page).get(0)).get(1)).get(0);
 
-			// the step that declares a subject: heading plus the form
+			// the step that declares a subject gets a form (alongside its heading and the
+			// imported <documentation> help paragraph -- so the form is found by its
+			// ComponentConfiguration, not a fixed child index)
 			final DOMNode reviewDiv = children(wrapper).get(1);
 			assertEquals("task-initial-review", htmlId(reviewDiv));
-			assertEquals("the subject-bearing step should hold its heading and a form", 2, children(reviewDiv).size());
 
-			final DOMNode form = children(reviewDiv).get(1);
+			final DOMNode form = formChildOf(reviewDiv);
+			assertNotNull("the subject-bearing step should hold a form", form);
 			final ComponentConfiguration config = form.getComponentConfiguration();
 			assertNotNull("the inserted form should carry a component configuration", config);
 
@@ -523,16 +531,30 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 			assertNotNull("the form should be bound to the user task", boundTask);
 			assertEquals("Task_InitialReview", boundTask.getProperty(boundTask.getTraits().key(BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY)));
 
-			// derived at render time from the step, not written into the page
-			assertEquals("node:Claim", config.getDataSourceName());
+			// the form binds to the current process instance (a single subject), not a
+			// type-wide collection; the subject TYPE is the expected data type, both derived
+			// at render time and not written into the page as literals
+			assertEquals("channel:current", config.getDataSourceName());
+			assertEquals("Claim", config.getExpectedDataType());
 
 			// field list seeded from the step's form view
 			assertEquals("name", config.getFieldSet());
 
-			// the steps without a declared subject keep just their heading
+			// the subject type is process-level, so EVERY user task gets a form -- not just the
+			// one that set a form view. The second user task binds to the same process type.
 			final DOMNode assessmentDiv = children(wrapper).get(2);
 			assertEquals("task-manual-assessment", htmlId(assessmentDiv));
-			assertEquals("a step without a subject type must not get a form", 1, children(assessmentDiv).size());
+
+			final DOMNode assessmentForm = formChildOf(assessmentDiv);
+			assertNotNull("every user task gets a form when the process declares a subject type", assessmentForm);
+			assertEquals("all user-task forms bind to the current process instance",
+				"channel:current", assessmentForm.getComponentConfiguration().getDataSourceName());
+			assertEquals("all user-task forms of one process share the process-level subject type",
+				"Claim", assessmentForm.getComponentConfiguration().getExpectedDataType());
+
+			// a non-user-task human step (the message catch event) still gets no subject form
+			final DOMNode waitDiv = children(wrapper).get(3);
+			assertNull("a non-user-task human step must not get a subject form", formChildOf(waitDiv));
 
 			tx.success();
 
@@ -556,7 +578,7 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 	@Test
 	public void testSubjectFormSubmitAdvancesTheProcess() {
 
-		final String pageId;
+		final String procId;
 
 		try (final Tx tx = app.tx()) {
 
@@ -566,27 +588,28 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 			// like the real Create Form widget
 			final NodeInterface formWidget = app.create(StructrTraits.WIDGET, BpmnPageSkeletonGenerator.PROCESS_SUBJECT_FORM_WIDGET);
 			formWidget.setProperty(formWidget.getTraits().key(WidgetTraitDefinition.SOURCE_PROPERTY),
-				"<div data-structr-meta-name=\"Test Create Form\">"
+				"<div data-structr-meta-name=\"Test Create Form\" config=\"{ displayMode: 'input' }\">"
 				+ "<form data-structr-meta-triggered-actions=\"{ type:'ActionMapping', event: 'submit', action: 'create', dataType: '${dataSource.dataType}', successBehaviour: 'component-based' }\"></form>"
 				+ "</div>");
+			formWidget.setProperty(formWidget.getTraits().key(WidgetTraitDefinition.DIMENSIONS_PROPERTY), 1);
 
 			final NodeInterface defNode = new BpmnImporter(securityContext).importBpmn(loadResource("/insurance-claim.bpmn"));
 			final BpmnProcess process   = firstProcess(defNode).as(BpmnProcess.class);
-			final NodeInterface step    = elementByBpmnId(firstProcess(defNode), "Task_InitialReview");
 
-			step.setProperty(step.getTraits().key(BpmnElementTraitDefinition.SUBJECT_TYPE_PROPERTY), "Claim");
+			// subject type is process-level
+			process.setProperty(process.getTraits().key(BpmnProcessTraitDefinition.SUBJECT_TYPE_PROPERTY), "Claim");
 
-			pageId = BpmnPageSkeletonGenerator.createSkeleton(
-				app, securityContext, process, BpmnPageSkeletonGenerator.humanFacingSteps(process),
-				null, null).pageId();
+			procId = process.getUuid();
 
 			tx.success();
 
 		} catch (final FrameworkException fex) {
 
-			fail("Unexpected failure: " + fex.getMessage());
+			fail("Unexpected setup failure: " + fex.getMessage());
 			return;
 		}
+
+		final String pageId = generateSkeletonFor(procId);
 
 		try (final Tx tx = app.tx()) {
 
@@ -626,15 +649,15 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 	}
 
 	/**
-	 * A step that declares only a subjectType -- no subjectFormView -- must still get a form with
-	 * the subject's own fields, taken from the {@code custom} view (every dynamically registered
-	 * property lands there). The ComponentConfiguration's default field set is {@code name}, so
+	 * A process that declares a subjectType while a step sets no subjectFormView must still get a
+	 * form with the subject's own fields, taken from the {@code custom} view (every dynamically
+	 * registered property lands there). The ComponentConfiguration's default field set is {@code name}, so
 	 * without that fallback the generated form showed exactly one field.
 	 */
 	@Test
 	public void testSubjectFormFallsBackToTheCustomViewWhenNoFormViewIsDeclared() {
 
-		final String pageId;
+		final String procId;
 
 		try (final Tx tx = app.tx()) {
 
@@ -652,33 +675,34 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 
 			final NodeInterface formWidget = app.create(StructrTraits.WIDGET, BpmnPageSkeletonGenerator.PROCESS_SUBJECT_FORM_WIDGET);
 			formWidget.setProperty(formWidget.getTraits().key(WidgetTraitDefinition.SOURCE_PROPERTY),
-				"<div data-structr-meta-name=\"Fallback Form\"></div>");
+				"<div data-structr-meta-name=\"Fallback Form\" config=\"{ displayMode: 'input' }\"></div>");
+			formWidget.setProperty(formWidget.getTraits().key(WidgetTraitDefinition.DIMENSIONS_PROPERTY), 1);
 
 			final NodeInterface defNode = new BpmnImporter(securityContext).importBpmn(loadResource("/insurance-claim.bpmn"));
 			final BpmnProcess process   = firstProcess(defNode).as(BpmnProcess.class);
-			final NodeInterface step    = elementByBpmnId(firstProcess(defNode), "Task_InitialReview");
 
-			step.setProperty(step.getTraits().key(BpmnElementTraitDefinition.SUBJECT_TYPE_PROPERTY), "Request");
-			// deliberately no subjectFormView
+			// subject type is process-level; deliberately no per-step subjectFormView
+			process.setProperty(process.getTraits().key(BpmnProcessTraitDefinition.SUBJECT_TYPE_PROPERTY), "Request");
 
-			pageId = BpmnPageSkeletonGenerator.createSkeleton(
-				app, securityContext, process, BpmnPageSkeletonGenerator.humanFacingSteps(process),
-				null, null).pageId();
+			procId = process.getUuid();
 
 			tx.success();
 
 		} catch (final FrameworkException fex) {
 
-			fail("Unexpected failure: " + fex.getMessage());
+			fail("Unexpected setup failure: " + fex.getMessage());
 			return;
 		}
+
+		final String pageId = generateSkeletonFor(procId);
 
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface page = app.getNodeById(pageId);
 			final DOMNode wrapper    = children(children(children(page).get(0)).get(1)).get(0);
-			final DOMNode form       = children(children(wrapper).get(1)).get(1);
+			final DOMNode form       = formChildOf(children(wrapper).get(1));
 
+			assertNotNull("the inserted form should exist", form);
 			final ComponentConfiguration config = form.getComponentConfiguration();
 			assertNotNull("the inserted form should carry a component configuration", config);
 
@@ -701,7 +725,192 @@ public class BpmnPageSkeletonTest extends AbstractProcessEngineTest {
 		}
 	}
 
+	/**
+	 * The subject type is process-level, so a process that declares none must produce no forms at
+	 * all -- not even on its user tasks. This is the negative half of the process-level contract:
+	 * with per-element subjectType, a user task without one silently got no form; now the absence
+	 * is a property of the whole process.
+	 */
+	@Test
+	public void testNoProcessSubjectTypeMeansNoForms() {
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface formWidget = app.create(StructrTraits.WIDGET, BpmnPageSkeletonGenerator.PROCESS_SUBJECT_FORM_WIDGET);
+			formWidget.setProperty(formWidget.getTraits().key(WidgetTraitDefinition.SOURCE_PROPERTY),
+				"<div data-structr-meta-name=\"Test Form\" config=\"{ displayMode: 'input' }\"></div>");
+			formWidget.setProperty(formWidget.getTraits().key(WidgetTraitDefinition.DIMENSIONS_PROPERTY), 1);
+
+			final NodeInterface defNode = new BpmnImporter(securityContext).importBpmn(loadResource("/insurance-claim.bpmn"));
+			final BpmnProcess process   = firstProcess(defNode).as(BpmnProcess.class);
+			// deliberately no subjectType on the process
+
+			final BpmnPageSkeletonGenerator.Result result = BpmnPageSkeletonGenerator.createSkeleton(
+				app, securityContext, process, BpmnPageSkeletonGenerator.humanFacingSteps(process), null, null);
+
+			assertEquals("a process with no subject type must produce no forms", 0, result.formCount());
+
+			final NodeInterface page = app.getNodeById(result.pageId());
+			final DOMNode wrapper    = children(children(children(page).get(0)).get(1)).get(0);
+			final DOMNode reviewDiv  = children(wrapper).get(1);
+
+			assertEquals("task-initial-review", htmlId(reviewDiv));
+			assertNull("a user task gets no form when the process declares no subject", formChildOf(reviewDiv));
+
+			tx.success();
+
+		} catch (final FrameworkException fex) {
+
+			fail("Unexpected failure: " + fex.getMessage());
+		}
+	}
+
+	/**
+	 * Hoisting the *type* to the process must NOT flatten the per-step field selection: two user
+	 * tasks of one process, each with its own {@code subjectFormView}, must still render different
+	 * field sets -- while both bind to the single process-level subject type. This is the whole
+	 * reason the views stay on the element.
+	 */
+	@Test
+	public void testPerStepFormViewsStillDiverge() {
+
+		final String procId;
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface subject = app.create(StructrTraits.SCHEMA_NODE, "Claim");
+
+			for (final String propertyName : List.of("amount", "reason")) {
+
+				app.create(StructrTraits.SCHEMA_PROPERTY,
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), propertyName),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "String"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), subject)
+				);
+			}
+
+			// two views, one field each
+			app.create(StructrTraits.SCHEMA_VIEW,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "reviewForm"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.SCHEMA_NODE_PROPERTY), subject),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.NON_GRAPH_PROPERTIES_PROPERTY), "amount")
+			);
+			app.create(StructrTraits.SCHEMA_VIEW,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "assessForm"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.SCHEMA_NODE_PROPERTY), subject),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.NON_GRAPH_PROPERTIES_PROPERTY), "reason")
+			);
+
+			final NodeInterface formWidget = app.create(StructrTraits.WIDGET, BpmnPageSkeletonGenerator.PROCESS_SUBJECT_FORM_WIDGET);
+			formWidget.setProperty(formWidget.getTraits().key(WidgetTraitDefinition.SOURCE_PROPERTY),
+				"<div data-structr-meta-name=\"Test Form\" config=\"{ displayMode: 'input' }\"></div>");
+			formWidget.setProperty(formWidget.getTraits().key(WidgetTraitDefinition.DIMENSIONS_PROPERTY), 1);
+
+			final NodeInterface defNode = new BpmnImporter(securityContext).importBpmn(loadResource("/insurance-claim.bpmn"));
+			final BpmnProcess process   = firstProcess(defNode).as(BpmnProcess.class);
+
+			// one process-level type, two per-step field views
+			process.setProperty(process.getTraits().key(BpmnProcessTraitDefinition.SUBJECT_TYPE_PROPERTY), "Claim");
+
+			final NodeInterface review = elementByBpmnId(firstProcess(defNode), "Task_InitialReview");
+			review.setProperty(review.getTraits().key(BpmnElementTraitDefinition.SUBJECT_FORM_VIEW_PROPERTY), "reviewForm");
+
+			final NodeInterface assess = elementByBpmnId(firstProcess(defNode), "Task_ManualAssessment");
+			assess.setProperty(assess.getTraits().key(BpmnElementTraitDefinition.SUBJECT_FORM_VIEW_PROPERTY), "assessForm");
+
+			procId = process.getUuid();
+
+			tx.success();
+
+		} catch (final FrameworkException fex) {
+
+			fail("Unexpected setup failure: " + fex.getMessage());
+			return;
+		}
+
+		final String pageId = generateSkeletonFor(procId);
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface page = app.getNodeById(pageId);
+			final DOMNode wrapper    = children(children(children(page).get(0)).get(1)).get(0);
+
+			final DOMNode reviewForm = formChildOf(children(wrapper).get(1));
+			final DOMNode assessForm = formChildOf(children(wrapper).get(2));
+			assertNotNull("the review step should have a form",     reviewForm);
+			assertNotNull("the assessment step should have a form", assessForm);
+
+			final ComponentConfiguration reviewConfig = reviewForm.getComponentConfiguration();
+			final ComponentConfiguration assessConfig = assessForm.getComponentConfiguration();
+			assertNotNull("the review form should carry a configuration",     reviewConfig);
+			assertNotNull("the assessment form should carry a configuration", assessConfig);
+
+			assertEquals("the review step shows its own form view",     "amount", reviewConfig.getFieldSet());
+			assertEquals("the assessment step shows its own form view", "reason", assessConfig.getFieldSet());
+
+			// ...but both bind to the current process instance and expect the one
+			// process-level subject type
+			assertEquals("channel:current", reviewConfig.getDataSourceName());
+			assertEquals("channel:current", assessConfig.getDataSourceName());
+			assertEquals("Claim", reviewConfig.getExpectedDataType());
+			assertEquals("Claim", assessConfig.getExpectedDataType());
+
+			tx.success();
+
+		} catch (final FrameworkException fex) {
+
+			fail("Unexpected verification failure: " + fex.getMessage());
+		}
+	}
+
 	// ----- helpers -----
+
+	/**
+	 * Run the skeleton generator for the already-committed process {@code procId} in its own
+	 * transaction, returning the generated page id.
+	 *
+	 * <p>Splitting generation from setup is essential: {@code findProcessSubjectForm} does an
+	 * indexed {@code name()} lookup for the "Process Subject Form" widget, and an indexed query
+	 * does not reliably return a node created in the same, still-open transaction. Committing the
+	 * widget (and the subject schema types the field-set seeding needs) first makes the lookup
+	 * deterministic -- which also matches production, where the widget already exists.</p>
+	 */
+	private String generateSkeletonFor(final String procId) {
+
+		try (final Tx tx = app.tx()) {
+
+			final BpmnProcess process = app.getNodeById(procId).as(BpmnProcess.class);
+			final String pageId       = BpmnPageSkeletonGenerator.createSkeleton(
+				app, securityContext, process, BpmnPageSkeletonGenerator.humanFacingSteps(process),
+				null, null).pageId();
+
+			tx.success();
+			return pageId;
+
+		} catch (final FrameworkException fex) {
+
+			fail("Unexpected generation failure: " + fex.getMessage());
+			return null;
+		}
+	}
+
+	/**
+	 * The inserted form inside {@code div}: its direct child carrying a ComponentConfiguration, or
+	 * null when the div holds no form. Located by ComponentConfiguration rather than child index
+	 * because a step div legitimately also carries help-text paragraphs (imported
+	 * {@code <documentation>} / instructions), so the form is not at a fixed position.
+	 */
+	private DOMNode formChildOf(final DOMNode div) throws FrameworkException {
+
+		for (final DOMNode child : children(div)) {
+
+			if (child.getComponentConfiguration() != null) {
+
+				return child;
+			}
+		}
+		return null;
+	}
 
 	/** The first triggered ActionMapping found anywhere in {@code root}'s subtree, or null. */
 	private NodeInterface findSubmitActionMapping(final DOMNode root) throws FrameworkException {

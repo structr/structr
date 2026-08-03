@@ -45,6 +45,31 @@ let _Processes = {
 	processVersionPending: new Set(),
 
 	/**
+	 * Normalize a related "process" field to its id. The field arrives in
+	 * several shapes depending on the fetch: an object stub {id,...}, a
+	 * single-element array of those, or a bare id string. Returns null when
+	 * there is no process reference. Shared by the process-bound widget UIs
+	 * that need the owning process of a BpmnElement / bound UserTask.
+	 */
+	processRefId: (node) => {
+		const ref = node?.process;
+		if (!ref) return null;
+		if (Array.isArray(ref)) return ref[0]?.id ?? (typeof ref[0] === 'string' ? ref[0] : null);
+		return ref.id ?? (typeof ref === 'string' ? ref : null);
+	},
+
+	/**
+	 * The process-level subjectType of a BpmnProcess (or null). A process
+	 * instance has exactly one subject, so its type is a process-level fact;
+	 * the process-bound widget UIs resolve it here rather than off a step.
+	 */
+	getSubjectType: async (processId) => {
+		if (!processId) return null;
+		try { const p = await Command.getPromise(processId, 'id,subjectType', 'ui'); return p?.subjectType || null; }
+		catch (e) { console.error('getSubjectType failed', e); return null; }
+	},
+
+	/**
 	 * Fetch the version of a BpmnProcess and, when it lands, patch every
 	 * Process Instance row whose process cell needs the version suffix.
 	 * No-op if the version is already cached or the fetch is in flight.
@@ -1146,6 +1171,15 @@ let _ProcessDiagram = {
 			const formViewSelect     = sidePanel.querySelector('.input-subject-form-view');
 			const writableViewSelect = sidePanel.querySelector('.input-subject-writable-view');
 
+			// The subject type is process-level now: read it from the element's owning process so
+			// the view pickers below list the right type's views. Only fall back to "the one
+			// process" when there is exactly one -- in a multi-pool collaboration, borrowing
+			// another pool's subject type would be wrong, so show none instead.
+			const allProcesses       = (api.getProcesses?.() || []);
+			const owningProcess       = allProcesses.find(p => p.id === _Processes.processRefId(elem))
+			                          ?? (allProcesses.length === 1 ? allProcesses[0] : null);
+			const processSubjectType = owningProcess?.subjectType || '';
+
 			const loadSubjectViews = async (typeName) => {
 
 				const selects = [formViewSelect, writableViewSelect].filter(Boolean);
@@ -1185,7 +1219,7 @@ let _ProcessDiagram = {
 			// a warning explains the problem, whereas a silently shorter list would not.
 			const warnIfNotSubset = async () => {
 
-				const typeName = subjectTypeSelect?.value || subjectTypeSelect?.dataset.current || '';
+				const typeName = processSubjectType;
 				const formName = formViewSelect?.value || '';
 				const writName = writableViewSelect?.value || '';
 
@@ -1221,30 +1255,12 @@ let _ProcessDiagram = {
 				if (sel) sel.addEventListener('change', warnIfNotSubset);
 			}
 
-			// Subject types: custom schema types, service classes excluded (they hold static
-			// methods and are never instantiated, so they cannot be a task's subject). Populated
-			// here because the panel markup is built synchronously.
-			const subjectTypeSelect = sidePanel.querySelector('.input-subject-type');
-			if (subjectTypeSelect) {
-
-				// the views depend on the chosen type, so they follow it
-				subjectTypeSelect.addEventListener('change', () => loadSubjectViews(subjectTypeSelect.value));
-				loadSubjectViews(subjectTypeSelect.dataset.current || '');
-
-				fetch(`${Structr.rootUrl}_schema`).then(r => r.ok ? r.json() : null).then(json => {
-					const current = subjectTypeSelect.dataset.current || '';
-					const types   = (json?.result ?? [])
-						.filter(t => !t.isBuiltin && !t.isRel && !t.isServiceClass && t.className !== current)
-						.map(t => t.className)
-						.sort((a, b) => a.localeCompare(b));
-					subjectTypeSelect.insertAdjacentHTML('beforeend',
-						types.map(t => `<option value="${_Helpers.escapeTags(t)}">${_Helpers.escapeTags(t)}</option>`).join(''));
-				}).catch(e => console.error('fetching schema types for subject type failed', e));
-			}
+			// The subject type is process-level (set on the Process tab); the per-step view
+			// pickers just follow it. Populate them once from the owning process's type.
+			loadSubjectViews(processSubjectType);
 
 			// Commit wiring for the contract controls. An empty value clears the property.
 			const contractInputs = [
-				['.input-subject-type',           'subjectType'],
 				['.input-subject-form-view',      'subjectFormView'],
 				['.input-subject-writable-view',  'subjectWritableView'],
 				['.input-instructions',           'instructions'],
@@ -1851,6 +1867,7 @@ let _ProcessDiagram = {
 	// state that changes what a control does; explanations live here.
 	_processSettingsHints: {
 		panel:         'Structr-specific settings that are <strong>not part of the BPMN spec</strong>, so they are not preserved across re-imports. They control engine and routing behaviour at runtime.',
+		subjectType:   'The schema type of the single domain object (the "subject") this process operates on — e.g. <code>Claim</code>, <code>LeaveRequest</code>.<br><br>A process instance has <strong>one</strong> subject, so its type is a process-level fact. Individual user tasks pick <em>which fields</em> of this type they show or write (via the form / writable view on each step), but the type is chosen here once. Process-bound widgets bind to the <code>current</code> process instance and use this type as their <em>expected type</em> (which fields to render).',
 		autoAssign:    'When a userTask has no <code>humanPerformer</code> declared, the engine reserves the task for the user who started the instance.<br><br>Useful for editor-authored processes where assignment is not wired up explicitly. Off by default so imported BPMN keeps spec semantics.',
 		instancePage:  'The page that renders an instance of this process. The Start-process EAM action navigates to <code>/&lt;page-name&gt;/&lt;instance-uuid&gt;</code>.<br><br>When unset, the URL falls back to the slugified process name.',
 		pageTemplate:  'The page-template Widget the generated page is built from — the same templates the Pages area offers under "Create New Page". Page templates come from the widget set, which has to be imported once; without one, the page is a bare <code>html/head/body</code> shell.<br><br>The step divs are appended into the template\'s <strong>Main Content</strong> node — the content area page templates mark by that name. A template without one gets them in its <code>&lt;body&gt;</code>.',
@@ -1884,6 +1901,17 @@ let _ProcessDiagram = {
 					<label class="pd-field">
 						<div class="pd-field-label">Process name</div>
 						<input type="text" class="input-process-name" value="${esc(proc.processName ?? '')}" placeholder="${esc(proc.processId ?? 'Process')}">
+					</label>
+
+					<label class="pd-field">
+						<div class="pd-label-row">
+							<span>Subject type</span>
+							<span class="pd-info" ${comment('subjectType')}></span>
+						</div>
+						<select class="input-process-subject-type" data-current="${esc(proc.subjectType ?? '')}">
+							<option value="">— No subject type —</option>
+							${proc.subjectType ? `<option value="${esc(proc.subjectType)}" selected>${esc(proc.subjectType)}</option>` : ''}
+						</select>
 					</label>
 
 					<div class="pd-inline-row pd-mb-6">
@@ -1992,6 +2020,33 @@ let _ProcessDiagram = {
 					}
 				});
 			}
+			// Subject type: the process-level domain type this process operates on. Custom
+			// schema types only -- service classes are excluded (they hold static methods and
+			// are never instantiated, so they cannot be a subject). Commit clears the property
+			// on empty. Changing it drives every step's form on the next render.
+			const subjectTypeSel = section.querySelector('.input-process-subject-type');
+			if (procId && subjectTypeSel) {
+
+				const current = subjectTypeSel.dataset.current || '';
+				fetch(`${Structr.rootUrl}_schema`).then(r => r.ok ? r.json() : null).then(json => {
+					const types = (json?.result ?? [])
+						.filter(t => !t.isBuiltin && !t.isRel && !t.isServiceClass && t.className !== current)
+						.map(t => t.className)
+						.sort((a, b) => a.localeCompare(b));
+					subjectTypeSel.insertAdjacentHTML('beforeend',
+						types.map(t => `<option value="${_Helpers.escapeTags(t)}">${_Helpers.escapeTags(t)}</option>`).join(''));
+				}).catch(e => console.error('fetching schema types for subject type failed', e));
+
+				subjectTypeSel.addEventListener('change', () => {
+					try {
+						api.updateProcess(procId, { subjectType: subjectTypeSel.value || null });
+						subjectTypeSel.dataset.current = subjectTypeSel.value;
+					} catch (e) {
+						console.error('updateProcess subjectType failed', e);
+						subjectTypeSel.value = subjectTypeSel.dataset.current || '';
+					}
+				});
+			}
 			// Generate an instance-page skeleton for this process: one empty div per
 			// human-facing step, each with a VisibilityMapping bound to that step.
 			// Server-side (BPMN_PAGE_SKELETON) so page, divs and mappings land in one
@@ -2047,6 +2102,19 @@ let _ProcessDiagram = {
 						new WarningMessage().text('Save your diagram changes first — the skeleton is generated from the saved process.').show();
 						return;
 					}
+					// Pre-flight: forms are only inserted when the process declares a subject type
+					// (process-level, one subject per instance). Without one, every user-task step
+					// gets a bare div and no form -- surface that up front so "0 forms" is a choice,
+					// not a surprise. The select reflects the saved value here (no pending changes).
+					// Empty divs are still useful scaffolding, so warn-and-confirm rather than block.
+					const subjectType = (sidePanel.querySelector('.input-process-subject-type')?.value || '').trim();
+					if (!subjectType) {
+						const proceed = await _Dialogs.confirmation.showPromise(
+							`This process has <strong>no subject type</strong> set, so the generated user-task steps will get <strong>no forms</strong> — just empty step divs.<br><br>` +
+							`Set the <strong>Subject type</strong> above (and save) first to get the forms, or create the skeleton without forms now?`
+						);
+						if (!proceed) return;
+					}
 					// Confirm rather than disable when a page is already bound: regenerating
 					// after a model change is a real use case, silently creating a second
 					// page is not.
@@ -2086,14 +2154,16 @@ let _ProcessDiagram = {
 							skeletonBtn.textContent      = 'Create another page skeleton';
 						}
 						const bound = resp.boundAsInstancePage ? ' and bound it as the instance page' : '';
-						// Forms are inserted automatically for user-task steps that declare a
-						// subject type; report how many, and how many were skipped for lack of one.
+						// Forms are inserted automatically for user-task steps when the process
+						// declares a subject type (it is process-level, one subject per instance).
+						// Report how many forms landed, and -- when the process has no subject type
+						// -- how many user tasks got none as a result.
 						let forms = '';
 						if (resp.formCount > 0) {
 							forms = `, ${resp.formCount} form(s)`;
 						}
 						if (resp.stepsMissingSubject > 0) {
-							forms += ` (${resp.stepsMissingSubject} user task(s) declare no subject type, so they got no form)`;
+							forms += ` (the process declares no subject type, so its ${resp.stepsMissingSubject} user task(s) got no form — set it on the Process tab)`;
 						}
 						new SuccessMessage().text(`Created page "${_Helpers.escapeTags(resp.pageName)}" with ${resp.stepCount} step div(s)${forms}${bound}.`).show();
 					});
@@ -2331,23 +2401,21 @@ let _ProcessDiagram = {
 			</div>
 		`;
 
-		// Process / UI contract (userTask only): properties the process
-		// designer attaches to declare the contract the UI side consumes
-		// when rendering a process-bound widget. Free-text inputs for v1;
-		// can be upgraded to typed pickers (SchemaNode for subjectType,
-		// SchemaView for the two views) later. Empty values clear the
-		// property. See project_process_ui_contract_pillar.md for the
-		// design rationale.
+		// Process / UI contract (userTask only): per-step properties the process
+		// designer attaches to declare the contract the UI side consumes when
+		// rendering a process-bound widget. The subject *type* is NOT here -- it
+		// is process-level (a process has one subject), set on the Process tab.
+		// A step only narrows WHICH fields of that one type it shows / writes,
+		// via the two view pickers below (populated from the process's subject
+		// type in the wiring). Empty values clear the property. See
+		// project_process_ui_contract_pillar.md for the design rationale.
 		const contractBlock = !isUserTask ? '' : `
 			<div class="pd-section">
 				<div class="pd-section-title">Process / UI contract</div>
-				<label class="pd-field">
-					<div class="pd-field-label">Subject type</div>
-					<select class="input-subject-type" data-current="${esc(elem.subjectType ?? '')}">
-						<option value="">— No subject type —</option>
-						${elem.subjectType ? `<option value="${esc(elem.subjectType)}" selected>${esc(elem.subjectType)}</option>` : ''}
-					</select>
-				</label>
+				<div class="pd-hint pd-mb-6">
+					The subject <b>type</b> is set once for the whole process on the
+					<b>Process</b> tab. Here you choose which of its fields this step shows.
+				</div>
 				<label class="pd-field">
 					<div class="pd-field-label">Form view — the fields this step shows</div>
 					<select class="input-subject-form-view" data-current="${esc(elem.subjectFormView ?? '')}">
@@ -2367,9 +2435,9 @@ let _ProcessDiagram = {
 					<textarea class="input-instructions" rows="2" placeholder="Optional help text shown above the form">${esc(elem.instructions ?? '')}</textarea>
 				</label>
 				<div class="pd-hint">
-					Process-bound widgets read these to derive their data source
-					and field set at render time. UI designers configure layout
-					and styling on their side; the subject type leads.
+					Process-bound widgets read these to derive their field set at
+					render time. The data source comes from the process-level
+					subject type; UI designers configure layout and styling on their side.
 				</div>
 			</div>
 		`;

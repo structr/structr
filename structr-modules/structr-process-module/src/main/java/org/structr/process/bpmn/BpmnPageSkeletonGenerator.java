@@ -182,8 +182,9 @@ public class BpmnPageSkeletonGenerator {
 	 * What {@link #createSkeleton} produced, for the caller's reply and for tests.
 	 *
 	 * @param formCount           forms inserted (0 when no form widget was chosen)
-	 * @param stepsMissingSubject user-task steps that got no form because they declare no
-	 *                            {@code subjectType} -- reported so "nothing happened" is
+	 * @param stepsMissingSubject user-task steps that got no form because the process declares
+	 *                            no {@code subjectType} (a process-level fact, so this is either
+	 *                            0 or every user task) -- reported so "nothing happened" is
 	 *                            explainable instead of silent
 	 */
 	public record Result(String pageId, String pageName, int stepCount, boolean boundAsInstancePage,
@@ -256,7 +257,7 @@ public class BpmnPageSkeletonGenerator {
 	 * Build the skeleton page for {@code process} from the given steps and return what was
 	 * created. Runs in the caller's transaction.
 	 *
-	 * <p>Every user-task step that declares a {@code subjectType} gets the canonical
+	 * <p>When the process declares a {@code subjectType}, every user-task step gets the canonical
 	 * {@value #PROCESS_SUBJECT_FORM_WIDGET} widget, looked up by name and configured for that
 	 * step (bound data source, seeded fields, a submit that completes the task). No widget is
 	 * chosen per page: the subject declaration is the opt-in, and the form is always the same
@@ -288,6 +289,9 @@ public class BpmnPageSkeletonGenerator {
 
 		// boundProcessId caches the BPMN processId, which is process-level: read once.
 		final String bpmnProcessId  = StringUtils.defaultIfEmpty(process.getProcessId(), process.getUuid());
+		// The subject type is a process-level fact (one subject per instance), so every
+		// user-task form on this page operates on the same type; read it once here.
+		final String subjectType    = process.getProperty(process.getTraits().key(BpmnProcessTraitDefinition.SUBJECT_TYPE_PROPERTY));
 		final Set<String> usedIds   = new HashSet<>();
 		DOMElement startEventDiv    = null;
 		int formCount               = 0;
@@ -322,10 +326,11 @@ public class BpmnPageSkeletonGenerator {
 			// are imported and were previously dropped on the floor.
 			appendHelpText(page, div, step, htmlId, usedIds);
 
-			// the subject form: every user task that declares a subject gets the canonical form
+			// the subject form: every user task gets the canonical form when the process
+			// declares a subject type (the type is process-level, not per-step)
 			if (formWidget != null && step.isType(BpmnElementType.USER_TASK)) {
 
-				if (insertSubjectForm(app, page, div, formWidget, step)) {
+				if (insertSubjectForm(app, page, div, formWidget, step, subjectType)) {
 
 					formCount++;
 
@@ -360,7 +365,7 @@ public class BpmnPageSkeletonGenerator {
 
 		logger.info("BPMN page skeleton: created page '{}' with {} step div(s) and {} form(s) for process '{}'{}{}",
 			pageName, steps.size(), formCount, processLabel,
-			stepsMissingSubject > 0 ? " (" + stepsMissingSubject + " user task(s) declare no subjectType)" : "",
+			stepsMissingSubject > 0 ? " (process declares no subjectType, so " + stepsMissingSubject + " user task(s) got no form)" : "",
 			bindAsInstancePage ? " (bound as instance page)" : "");
 
 		return new Result(page.getUuid(), pageName, steps.size(), bindAsInstancePage, formCount, stepsMissingSubject);
@@ -533,34 +538,29 @@ public class BpmnPageSkeletonGenerator {
 	 * Insert the subject form for a user-task step, if the step declares what it operates on.
 	 *
 	 * <p>Nothing about the subject is hardcoded into the page: the form's ComponentConfiguration
-	 * is switched to {@code processBound} and bound to the step, and
-	 * {@code ComponentConfigurationTraitWrapper#getDataSourceName} then derives the data source
-	 * from the step's {@code subjectType} AT RENDER TIME. So changing the subject type on the
-	 * BPMN side updates every generated form, and a step whose subject is not declared yet
-	 * simply renders nothing rather than a broken form.</p>
+	 * is switched to {@code processBound} and bound to the step. At render time
+	 * {@code ComponentConfigurationTraitWrapper} then binds the form to the {@code current}
+	 * channel (the process instance the page is showing -- its single subject) and derives the
+	 * {@code expectedDataType} from the process's {@code subjectType}. So the form edits the one
+	 * subject rather than a type-wide collection, and changing the subject type on the BPMN side
+	 * updates every generated form's field set.</p>
 	 *
 	 * <p>The field list is seeded from the step's {@code subjectFormView} by the same helper the
 	 * interactive widget insert uses ({@code WidgetAutoVisibilityMappingHelper}), so a form
 	 * generated here and one inserted by hand start from the same fields.</p>
 	 *
+	 * @param subjectType the process-level subject type (see BpmnProcessTraitDefinition); blank
+	 *                    means the process declares no subject, so no form is inserted
 	 * @return true if a form was inserted
 	 */
 	private static boolean insertSubjectForm(final App app, final Page page, final DOMElement stepDiv,
-	                                         final Widget formWidget, final BpmnElement step) throws FrameworkException {
+	                                         final Widget formWidget, final BpmnElement step, final String subjectType) throws FrameworkException {
 
-		final Traits stepTraits = step.getTraits();
-
-		if (!stepTraits.hasKey(BpmnElementTraitDefinition.SUBJECT_TYPE_PROPERTY)) {
-
-			return false;
-		}
-
-		final String subjectType = step.getProperty(stepTraits.key(BpmnElementTraitDefinition.SUBJECT_TYPE_PROPERTY));
 		if (StringUtils.isBlank(subjectType)) {
 
-			// the process designer has not declared what this task operates on yet; a form bound
+			// the process designer has not declared what these tasks operate on yet; a form bound
 			// to nothing would be worse than no form, so skip and say so
-			logger.info("BPMN page skeleton: step '{}' declares no subjectType, inserting no form", step.getBpmnId());
+			logger.info("BPMN page skeleton: process declares no subjectType, inserting no form for step '{}'", step.getBpmnId());
 			return false;
 		}
 
@@ -574,10 +574,12 @@ public class BpmnPageSkeletonGenerator {
 		// Expand through a throwaway parent and move the roots across, as AppendWidgetCommand
 		// does. The dataSource parameter fills the widget's [dataSource] placeholder; it is only
 		// the standalone fallback, since the binding below takes precedence at render time.
+		// `channel:current` binds to the page's current details object (the process instance's
+		// single subject), not a type-wide collection -- see getDataSourceName.
 		final DOMNode tmpParent              = page.createElement("div");
 		final Map<String, Object> parameters = expansionParameters(formWidget);
 
-		parameters.put("dataSource", "node:" + subjectType);
+		parameters.put("dataSource", "channel:current");
 
 		Widget.expandWidget(page, tmpParent, null, parameters, false);
 
@@ -618,6 +620,12 @@ public class BpmnPageSkeletonGenerator {
 
 			config.setProperty(configTraits.key(ComponentConfigurationTraitDefinition.BOUND_USER_TASK_PROPERTY), step);
 		}
+
+		// Store the subject type as the expected data type: the `current` channel carries no type
+		// of its own, so the form needs it to know which fields to render. The render-time wrapper
+		// re-derives it from the process (so BPMN-side changes propagate), but persisting it here
+		// keeps the "Expected Type" input populated in the UI and serves as the fallback.
+		config.setProperty(configTraits.key(ComponentConfigurationTraitDefinition.EXPECTED_DATA_TYPE_PROPERTY), subjectType);
 
 		// field list from the step's subjectFormView; no-op when the step declares none
 		WidgetAutoVisibilityMappingHelper.seedFieldSetFromView(formRoot, step);
@@ -671,7 +679,7 @@ public class BpmnPageSkeletonGenerator {
 	/**
 	 * Wire the form's submit to {@code completeWithSubject} for this step.
 	 *
-	 * <p>The step declares a subjectType (that is why a form was inserted), so the operation is
+	 * <p>The process declares a subjectType (that is why a form was inserted), so the operation is
 	 * always {@code completeWithSubject} -- which is get-or-create: it captures the subject on
 	 * the step that first has one and edits the same subject on later steps. There is no
 	 * create-vs-edit choice for the generator to make, because that is a runtime fact the

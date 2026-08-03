@@ -35,6 +35,7 @@ import org.structr.core.traits.Traits;
 import org.structr.web.entity.ComponentConfiguration;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.traits.definitions.ComponentConfigurationTraitDefinition;
+import org.structr.web.traits.wrappers.ComponentConfigurationTraitWrapper;
 
 import java.util.Map;
 import java.util.Set;
@@ -156,7 +157,8 @@ public class WidgetAutoVisibilityMappingHelper {
 			// view-derived fields list pre-populated and can fine-tune each
 			// field via the Configured Fields UI (which lazily creates
 			// DataAdapterField nodes only when a non-default config is set).
-			// Skipped if the step does not declare a subjectType+subjectFormView.
+			// Skipped if the process has no subjectType (the step's own
+			// subjectFormView only narrows which of its fields to show).
 			if (stepNode != null) {
 				seedFieldSetFromView(rootNode, stepNode);
 			}
@@ -168,9 +170,9 @@ public class WidgetAutoVisibilityMappingHelper {
 	}
 
 	/**
-	 * Read {@code subjectType} + {@code subjectFormView} from the bound step,
-	 * resolve the view to its property keys, and write the comma-joined names
-	 * into the widget's {@code ComponentConfiguration.fieldSet}.
+	 * Read the process-level {@code subjectType} (via the step's owning process) plus the step's
+	 * own {@code subjectFormView}, resolve the view to its property keys, and write the
+	 * comma-joined names into the widget's {@code ComponentConfiguration.fieldSet}.
 	 *
 	 * <p>Per-field tuning ({@code renderTemplate}, {@code editTemplate},
 	 * {@code label}, {@code columns}, ...) stays a separate concern: a
@@ -185,7 +187,7 @@ public class WidgetAutoVisibilityMappingHelper {
 	 *
 	 * <p>Skipped silently when:
 	 * <ul>
-	 *   <li>The step has no {@code subjectType} or no {@code subjectFormView}.</li>
+	 *   <li>The step's process has no {@code subjectType}.</li>
 	 *   <li>The named view does not exist on the subject type.</li>
 	 *   <li>No ComponentConfiguration is found in the widget subtree.</li>
 	 * </ul>
@@ -194,9 +196,10 @@ public class WidgetAutoVisibilityMappingHelper {
 	public static void seedFieldSetFromView(final DOMNode rootNode, final NodeInterface stepNode) throws FrameworkException {
 
 		final Traits stepTraits = stepNode.getTraits();
-		if (!stepTraits.hasKey("subjectType")) return;
 
-		final String subjectType = stepNode.getProperty(stepTraits.key("subjectType"));
+		// The subject type is a process-level fact: read it through the step's owning
+		// BpmnProcess. The step still narrows *which fields* via its own subjectFormView.
+		final String subjectType = ComponentConfigurationTraitWrapper.subjectTypeOfOwningProcess(stepNode);
 		if (subjectType == null || subjectType.isEmpty()) return;
 		if (!Traits.exists(subjectType))                  return;
 

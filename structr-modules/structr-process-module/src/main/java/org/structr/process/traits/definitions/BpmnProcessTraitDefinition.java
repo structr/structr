@@ -74,6 +74,15 @@ public class BpmnProcessTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String INSTANCE_PAGE_PROPERTY                    = "instancePage";
 	public static final String CONTROL_ACTIONS_PROPERTY                  = "controlActions";
 	public static final String VISIBILITY_MAPPINGS_PROPERTY              = "visibilityMappings";
+	// Process / UI contract: the SchemaNode type of the single domain object
+	// (the "subject") this process operates on. A ProcessInstance has at most
+	// one subject, so its type is a process-level fact -- it cannot legitimately
+	// differ between steps. Individual UserTask elements narrow *which fields*
+	// of this type they expose via subjectFormView / subjectWritableView, but
+	// the type itself lives here. Read at render time by process-bound widgets
+	// as their expected data type; their data source is the `current` channel
+	// (the process instance's single subject), not "node:<subjectType>".
+	public static final String SUBJECT_TYPE_PROPERTY                     = "subjectType";
 
 	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
@@ -94,6 +103,7 @@ public class BpmnProcessTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String>  processName                        = new StringProperty(PROCESS_NAME_PROPERTY).indexed();
 		final Property<Boolean> processIsExecutable                = new BooleanProperty(PROCESS_IS_EXECUTABLE_PROPERTY);
 		final Property<Boolean> defaultAssigneeFromInitiator       = new BooleanProperty(DEFAULT_ASSIGNEE_FROM_INITIATOR_PROPERTY);
+		final Property<String>  subjectType                        = new StringProperty(SUBJECT_TYPE_PROPERTY).indexed();
 
 		// Parent reference: which BpmnDefinitions hosts this process.
 		final Property<NodeInterface>           definition         = new StartNode(traitsInstance, DEFINITION_PROPERTY,        ProcessTraits.BPMN_DEFINITIONS_HAS_PROCESS);
@@ -121,7 +131,7 @@ public class BpmnProcessTraitDefinition extends AbstractNodeTraitDefinition {
 		// resolve the source side when a VM's boundProcess is reassigned.
 		final Property<Iterable<NodeInterface>> visibilityMappings = new StartNodes(traitsInstance, VISIBILITY_MAPPINGS_PROPERTY, ProcessTraits.VISIBILITY_MAPPING_FOR_BPMN_PROCESS);
 
-		return newSet(processId, processName, processIsExecutable, defaultAssigneeFromInitiator,
+		return newSet(processId, processName, processIsExecutable, defaultAssigneeFromInitiator, subjectType,
 			definition, elements, sequenceFlows, methods, processListeners, lanes, participant, instancePage, controlActions, visibilityMappings);
 	}
 
@@ -132,13 +142,13 @@ public class BpmnProcessTraitDefinition extends AbstractNodeTraitDefinition {
 			PropertyView.Public, newSet(
 				BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY, BpmnBaseNodeTraitDefinition.VERSION_PROPERTY,
 				PROCESS_ID_PROPERTY, PROCESS_NAME_PROPERTY, PROCESS_IS_EXECUTABLE_PROPERTY,
-				DEFAULT_ASSIGNEE_FROM_INITIATOR_PROPERTY,
+				DEFAULT_ASSIGNEE_FROM_INITIATOR_PROPERTY, SUBJECT_TYPE_PROPERTY,
 				ELEMENTS_PROPERTY, SEQUENCE_FLOWS_PROPERTY, METHODS_PROPERTY, PROCESS_LISTENERS_PROPERTY,
 				LANES_PROPERTY),
 			PropertyView.Ui, newSet(
 				BpmnBaseNodeTraitDefinition.BPMN_ID_PROPERTY, BpmnBaseNodeTraitDefinition.VERSION_PROPERTY,
 				PROCESS_ID_PROPERTY, PROCESS_NAME_PROPERTY, PROCESS_IS_EXECUTABLE_PROPERTY,
-				DEFAULT_ASSIGNEE_FROM_INITIATOR_PROPERTY,
+				DEFAULT_ASSIGNEE_FROM_INITIATOR_PROPERTY, SUBJECT_TYPE_PROPERTY,
 				DEFINITION_PROPERTY, ELEMENTS_PROPERTY, SEQUENCE_FLOWS_PROPERTY, METHODS_PROPERTY,
 				PROCESS_LISTENERS_PROPERTY, LANES_PROPERTY, PARTICIPANT_PROPERTY, INSTANCE_PAGE_PROPERTY)
 		);

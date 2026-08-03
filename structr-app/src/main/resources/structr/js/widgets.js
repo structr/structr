@@ -690,10 +690,11 @@ let _Widgets = {
                     // on every process change. The selected value is the BpmnElement UUID, which is
                     // what ActionMapping's targetsElement EndNode rel expects.
                     //
-                    // A read-only contract summary div below the select reflects the picked task's
+                    // A read-only contract summary div below the select reflects the process's
                     // subjectType so the UI dev sees, before confirming the dialog, what schema type
-                    // the widget will render. Empty subjectType surfaces as a warning -- the form
-                    // will render no fields until the process designer sets the contract.
+                    // the widget will render. The subject type is process-level (one subject per
+                    // instance), so it is the same for every task. Empty subjectType surfaces as a
+                    // warning -- the form will render no fields until the process designer sets it.
                     form.append(`
 						<div>
 							<h4 id="label-${cleanedLabel}">${titleLabel}</h4>
@@ -705,20 +706,18 @@ let _Widgets = {
 					`);
                 {
                     let processSelectForUserTask = document.querySelector('select[data-info="select-process"]');
-                    let userTasksById = {};  // id -> task node, closed over so the change handler can read subjectType
+                    let userTasksById = {};        // id -> task node
+                    let processSubjectType = '';   // process-level, shared by all of its user tasks
 
                     const updateContractSummary = (taskId) => {
                         const el = document.querySelector(`#${cleanedLabel}-contract`);
                         if (!el) return;
                         if (!taskId) { el.innerHTML = ''; return; }
-                        const task = userTasksById[taskId];
-                        if (!task) { el.innerHTML = ''; return; }
-                        const subjectType = task.subjectType;
-                        if (subjectType) {
-                            el.innerHTML = `Subject: <b>${_Helpers.escapeTags(subjectType)}</b> (from the bound UserTask)`;
+                        if (processSubjectType) {
+                            el.innerHTML = `Subject: <b>${_Helpers.escapeTags(processSubjectType)}</b> (from the process)`;
                             el.style.color = '';
                         } else {
-                            el.innerHTML = '⚠ No subject type set on this UserTask. The form will render no fields until the process designer sets it in the BPMN editor.';
+                            el.innerHTML = '⚠ No subject type set on this process. The form will render no fields until the process designer sets it in the BPMN editor.';
                             el.style.color = '#c0392b';
                         }
                     };
@@ -728,8 +727,11 @@ let _Widgets = {
                             let s = document.querySelector(`select#${cleanedLabel}`);
                             s.innerHTML = '<option value="">--- Select user task ---</option>';
                             userTasksById = {};
+                            processSubjectType = '';
                             updateContractSummary(null);
                             if (!processId) return;
+                            // subject type is process-level: fetch it once for the chosen process
+                            _Processes.getSubjectType(processId).then((st) => { processSubjectType = st || ''; });
                             Command.query('BpmnElement', 2000, 1, 'bpmnName', 'asc', { process: processId }, elements => {
                                 const userTasks = (elements || []).filter(el => el.bpmnElementType === 'userTask');
                                 for (const t of userTasks) {

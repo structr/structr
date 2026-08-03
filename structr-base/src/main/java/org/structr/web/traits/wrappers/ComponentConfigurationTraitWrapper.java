@@ -82,35 +82,57 @@ public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper
 	@Override
 	public String getDataSourceName() {
 
-		// Process-bound mode: derive the data-source name from the bound
-		// UserTask's `subjectType` so that process-side changes to the
-		// subject propagate automatically into the rendered widget. The
-		// `boundUserTask` rel and the BpmnElement's `subjectType` property
-		// are both registered by the process module (cross-module), so
-		// they are absent when the process module is not loaded. Read by
-		// string key name to keep this wrapper module-agnostic.
+		// Process-bound mode: the widget renders the ONE subject of the process
+		// instance the page is showing -- i.e. the page's current details object
+		// (`/<page>/<instance-uuid>`), not every node of the subject type. So the
+		// data source is the `current` channel (a single object), NOT
+		// `node:<subjectType>` (which resolves to a type-wide collection and makes
+		// a single-object form fail with "data source returns a collection").
 		//
-		// Channel.forName expects the `node:TypeName` syntax for
-		// SchemaNode-backed channels (a bare type name throws "Unknown
-		// data source type"); the standalone-widget datasource picker
-		// stores values in that form, so we mirror it here.
+		// The subject *type* is not the data source; it is the expected data type
+		// (see getExpectedDataType) -- the `current` channel carries no type of its
+		// own, so the form learns which fields to render from expectedDataType.
+		//
+		// `channel:current` is the same value the standalone datasource picker
+		// stores for its "current" option (see _Widgets.dataSourcesSelector);
+		// Channel.forName routes it to a ChannelDataSource of dimension 0.
 		if (isProcessBound() && traits.hasKey(ComponentConfigurationTraitDefinition.BOUND_USER_TASK_PROPERTY)) {
 
 			final NodeInterface userTask = wrappedObject.getProperty(traits.key(ComponentConfigurationTraitDefinition.BOUND_USER_TASK_PROPERTY));
-			if (userTask != null && userTask.getTraits().hasKey("subjectType")) {
-
-				final String subjectType = userTask.getProperty(userTask.getTraits().key("subjectType"));
-				if (subjectType != null && !subjectType.isEmpty()) {
-					return "node:" + subjectType;
-				}
+			if (userTask != null) {
+				return "channel:current";
 			}
 		}
 
-		// Standalone mode, or process-bound mode with no resolvable
-		// subject yet (e.g. UserTask removed, process designer has not
-		// declared a subjectType): fall through to the raw dataSource
-		// string so existing widgets keep behaving as before.
+		// Standalone mode, or process-bound mode with a broken binding (UserTask
+		// removed): fall through to the raw dataSource string so existing widgets
+		// and manual fallbacks keep behaving as before.
 		return wrappedObject.getProperty(traits.key(ComponentConfigurationTraitDefinition.DATA_SOURCE_PROPERTY));
+	}
+
+	/**
+	 * The process-level {@code subjectType} of the BpmnProcess that owns {@code node} (any node
+	 * carrying a {@code process} relationship -- e.g. a BpmnElement / UserTask), or {@code null}.
+	 *
+	 * <p>The subject type is a process-level fact (one subject per instance), so callers hop
+	 * {@code node -> process -> subjectType}. Read by string key so this stays agnostic of the
+	 * process module's trait classes: those keys are absent when that module is not loaded, and
+	 * the guards below short-circuit cleanly in that case.</p>
+	 */
+	public static String subjectTypeOfOwningProcess(final NodeInterface node) {
+
+		if (node == null) return null;
+
+		final Traits traits = node.getTraits();
+		if (!traits.hasKey("process")) return null;
+
+		final NodeInterface process = node.getProperty(traits.key("process"));
+		if (process == null)           return null;
+
+		final Traits processTraits = process.getTraits();
+		if (!processTraits.hasKey("subjectType")) return null;
+
+		return process.getProperty(processTraits.key("subjectType"));
 	}
 
 	@Override
@@ -150,6 +172,22 @@ public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper
 
 	@Override
 	public String getExpectedDataType() {
+
+		// Process-bound mode: the expected type IS the process's subjectType (the
+		// data source is the `current` channel, which carries no type of its own --
+		// see getDataSourceName). Derived at render time so changing the subject
+		// type on the BPMN side updates every generated form's field set, matching
+		// the data-source derivation above. Falls back to the stored property when
+		// the process declares no subjectType yet (or the binding is broken).
+		if (isProcessBound() && traits.hasKey(ComponentConfigurationTraitDefinition.BOUND_USER_TASK_PROPERTY)) {
+
+			final NodeInterface userTask = wrappedObject.getProperty(traits.key(ComponentConfigurationTraitDefinition.BOUND_USER_TASK_PROPERTY));
+			final String subjectType     = subjectTypeOfOwningProcess(userTask);
+			if (subjectType != null && !subjectType.isEmpty()) {
+				return subjectType;
+			}
+		}
+
 		return wrappedObject.getProperty(traits.key(ComponentConfigurationTraitDefinition.EXPECTED_DATA_TYPE_PROPERTY));
 	}
 
