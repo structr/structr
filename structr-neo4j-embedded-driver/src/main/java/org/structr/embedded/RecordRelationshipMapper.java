@@ -61,7 +61,8 @@ class RecordRelationshipMapper implements Function<Map<String, Object>, Relation
 			tx.getNodeWrapper(node);
 		}
 
-		System.out.println("RecordRelationshipMapper: returning value with key 'n', not first value, so this might be null! Keys: " + record.keySet());
+		// "n" is the alias this driver gives the entity being queried, on the relationship
+		// side as much as the node side, so it is looked up by key and not by position
 		return (Relationship) record.get("n");
 	}
 }

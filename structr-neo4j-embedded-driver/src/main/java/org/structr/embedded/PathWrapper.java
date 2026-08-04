@@ -45,8 +45,6 @@ class PathWrapper implements Path {
 	@Override
 	public Iterator<PropertyContainer> iterator() {
 
-		System.out.println(path.length() + ": " + path);
-
 		if (path.length() > 0) {
 
 			return new SegmentIterator(path);
