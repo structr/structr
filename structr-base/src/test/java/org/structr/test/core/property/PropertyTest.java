@@ -26,6 +26,7 @@ import org.structr.api.util.Iterables;
 import org.structr.common.AccessControllable;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.function.CryptFunction;
@@ -35,6 +36,7 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.property.TypeProperty;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
@@ -2675,6 +2677,115 @@ public class PropertyTest extends StructrTest {
 			final NodeInterface node = app.nodeQuery(projectType).getFirst();
 
 			assertEquals("Invalid getProperty() result of encrypted string property with correct key", "structrtest", node.getProperty(encrypted));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+	}
+
+	// ----- type property: a value that names no type -----
+
+	/**
+	 * The value of "type" is a TYPE NAME and the write relabels the node, so a name no type answers to
+	 * has to be refused with a message that says so. It used to reach label maintenance as a null
+	 * Traits and fail with "Cannot invoke Traits.getLabels() because typeCandidate is null" - a
+	 * NullPointerException naming an internal variable, for what is simply a wrong value.
+	 *
+	 * The node must come out of the attempt untouched: it is the labels that carry a node's type, so a
+	 * half-applied type change is a node that resolves to the wrong type, or to none at all.
+	 *
+	 * The legitimate case - changing type to another EXISTING type - is covered by testModifyType()
+	 * above (TestFour -&gt; TestFive), which is the regression canary for this guard.
+	 */
+	@Test
+	public void testTypePropertyWithUnknownTypeName() {
+
+		final PropertyKey<String> typeKey = Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY);
+		String id                         = null;
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface testEntity = createTestNode("TestFour");
+			assertNotNull(testEntity);
+
+			id = testEntity.getUuid();
+
+			// system properties have to be unlocked for a type change, admin rights are not enough
+			testEntity.unlockSystemPropertiesOnce();
+
+			try {
+
+				testEntity.setProperty(typeKey, "no-such-type");
+				fail("Setting type to a name that no type answers to must be refused");
+
+			} catch (FrameworkException expected) {
+
+				assertEquals("Setting type to an unknown name must be a 422, not a server error", 422, expected.getStatus());
+				assertTrue("The message must name the problem: " + expected.getMessage(), expected.getMessage().contains("no such type"));
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface testEntity = app.getNodeById("TestFour", id);
+
+			assertNotNull("The node must still be a TestFour after the refused type change", testEntity);
+			assertEquals("The type property must be unchanged", "TestFour", testEntity.getProperty(typeKey));
+			assertTrue("The labels must be unchanged", Iterables.toSet(testEntity.getNode().getLabels()).contains("TestFour"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+	}
+
+	/**
+	 * updateLabels() is public API with callers outside TypeProperty, so it must survive a null type on
+	 * its own. Returning is the only safe answer: with removeUnused it would otherwise strip EVERY
+	 * label off the node, and a node without labels resolves to no type at all - unreachable by query
+	 * and undeletable.
+	 */
+	@Test
+	public void testUpdateLabelsWithoutAType() {
+
+		final DatabaseService graphDb = Services.getInstance().getDatabaseService();
+		String id                    = null;
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface testEntity = createTestNode("TestFour");
+			id = testEntity.getUuid();
+
+			TypeProperty.updateLabels(graphDb, testEntity, null, true);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception: " + fex.getMessage());
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface testEntity = app.getNodeById("TestFour", id);
+
+			assertNotNull("The node must still be found by its type", testEntity);
+			assertTrue("The labels must be left alone", Iterables.toSet(testEntity.getNode().getLabels()).contains("TestFour"));
 
 			tx.success();
 
