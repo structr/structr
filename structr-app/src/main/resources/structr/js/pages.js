@@ -1188,6 +1188,10 @@ let _Pages = {
 					_Pages.previews.updatePreviewSlideout(false);
 				}
 			});
+
+			element.on('dblclick', function(e) {
+				_Entities.expandRecursively([ entity.id ]);
+			})
 		}
 	},
 	appendElementElement: (entity, refNode, refNodeIsParent) => {
