@@ -620,17 +620,65 @@ public class RenderContext extends ActionContext {
 
 		if (caller instanceof NodeInterface n && (n.is(StructrTraits.TEMPLATE) || n.is(StructrTraits.CONTENT))) {
 
+			/* Printed output is written into the page buffer AT THE POINT OF THE CALL - that is what keeps
+			   print(), include_child() and print() in source order, and two tests in UiScriptingTest own
+			   that guarantee. But it used to be appended RAW, so the node's own post-processing was skipped:
+			   text/plain stopped escaping (printed user data rendered as live HTML) and newlines never
+			   became <br>, while the identical string RETURNED from the script got both. So the text still
+			   goes straight to the buffer, and now through the same post-processing the returned value gets. */
 			for (final Object obj : objects) {
 
 				if (obj != null) {
 
-					this.buffer.append(Scripting.formatToDefaultDateOrString(obj));
+					this.buffer.append(postProcessContent(Scripting.formatToDefaultDateOrString(obj)));
 				}
 			}
 
 		} else {
 
 			super.print(objects, null);
+		}
+	}
+
+	/**
+	 * How the Content or Template being rendered right now post-processes its text: escaping and the
+	 * newline-to-break conversion its content type asks for.
+	 */
+	public interface ContentPostProcessor {
+		String apply(final String text) throws FrameworkException;
+	}
+
+	private ContentPostProcessor contentPostProcessor = null;
+
+	public ContentPostProcessor getContentPostProcessor() {
+		return contentPostProcessor;
+	}
+
+	/**
+	 * Installed by the node that is about to render, and restored afterwards - rendering nests (a template
+	 * renders its children inside its own evaluation), so the previous one has to come back rather than be
+	 * cleared, or a parent's print would lose its rules after a child rendered.
+	 */
+	public void setContentPostProcessor(final ContentPostProcessor postProcessor) {
+		this.contentPostProcessor = postProcessor;
+	}
+
+	private String postProcessContent(final String text) {
+
+		if (contentPostProcessor == null) {
+			return text;
+		}
+
+		try {
+
+			return contentPostProcessor.apply(text);
+
+		} catch (FrameworkException fex) {
+
+			// output is never lost over a failed conversion; the raw text is still better than nothing
+			LoggerFactory.getLogger(RenderContext.class).warn("Could not post-process printed content: {}", fex.getMessage());
+
+			return text;
 		}
 	}
 
