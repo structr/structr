@@ -220,12 +220,13 @@ public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper
 			final DOMNode component = getComponent();
 			if (component != null) {
 
+				/* An UNSET dimension means "no constraint", not an error. dimensions is a nullable
+				   IntProperty and most shipped widgets never set one, so getDimensions answers -1 for
+				   perfectly ordinary components. Refusing them here aborted the ENTIRE deployment
+				   import over a single unconstrained component, and every other reader of this value
+				   already treats it as optional (if (dimensions >= 0)). */
 				final int componentDimension = component.getDimensions(true);
 				int effectiveDimension       = dataDimension;
-
-				if (componentDimension == -1) {
-					throw new FrameworkException(422, "Component " + component.getName() + " has no dimension.");
-				}
 
 				if (transform != null && dataDimension == 0) {
 
@@ -252,7 +253,7 @@ public class ComponentConfigurationTraitWrapper extends AbstractNodeTraitWrapper
 					}
 				}
 
-				if (effectiveDimension > componentDimension) {
+				if (componentDimension >= 0 && effectiveDimension > componentDimension) {
 
 					final StringBuilder error = new StringBuilder("Data source '");
 
