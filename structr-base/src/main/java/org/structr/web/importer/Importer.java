@@ -484,6 +484,41 @@ public class Importer {
 		return createChildNodes(startNode, parent, page, false, 0, null);
 	}
 
+	/**
+	 * The document an imported node must belong to: the one the caller named, or the one its parent is in.
+	 *
+	 * A caller importing INTO an existing element does not necessarily know the page, and the shared
+	 * component branches below used to write whatever they were handed - including null, which produces a
+	 * node no page can reach. Deployment export walks documents, so such a node is silently left out of
+	 * the export while the pages referencing it keep their reference: the next import then yields empty
+	 * page shells, and a page whose root is such a node fails to import at all.
+	 *
+	 * The walk goes up because a parent may itself have lost its document while its own parent chain is
+	 * intact, and it reads ownerDocument rather than looking for a Page ancestor, so a node being imported
+	 * into a shared-component master resolves to the ShadowDocument.
+	 */
+	private static Page documentFor(final NodeInterface parent, final Page page) {
+
+		if (page != null) {
+			return page;
+		}
+
+		DOMNode current = parent != null && parent.is(StructrTraits.DOM_NODE) ? parent.as(DOMNode.class) : null;
+
+		while (current != null) {
+
+			final Page document = current.getOwnerDocument();
+
+			if (document != null) {
+				return document;
+			}
+
+			current = current.getParent();
+		}
+
+		return null;
+	}
+
 	private DOMNode createChildNodes(final Node startNode, final NodeInterface parent, final Page page, final boolean removeHashAttribute, final int depth, final NodeInterface suppliedRoot) throws FrameworkException {
 
 		NodeInterface rootElement = suppliedRoot;
@@ -704,10 +739,24 @@ public class Importer {
 							// save previous reference
 							final DOMNode prevNode = newNode;
 
-							newNode = newNode.cloneNode(false);
+							/* An instance of a shared component is the ONE kind of node this loop creates
+							   without asking the page for it (cloneNode copies no document), so it is also
+							   the one that could be created page-less. An ordinary element below is only
+							   created "if (page != null)"; this is the same rule, resolved rather than skipped. */
+							final Page document = documentFor(parent, page);
 
-							newNode.setSharedComponent(prevNode);
-							newNode.setOwnerDocument(page);
+							if (document == null) {
+
+								logger.warn("Not importing shared component {}: neither the target element nor anything above it belongs to a document, so the instance could only be created page-less (invisible to deployment export).", src);
+								newNode = null;
+
+							} else {
+
+								newNode = newNode.cloneNode(false);
+
+								newNode.setSharedComponent(prevNode);
+								newNode.setOwnerDocument(document);
+							}
 
 						} else if (page != null) {
 
@@ -792,17 +841,27 @@ public class Importer {
 
 					if (component != null) {
 
-						newNode = component.as(DOMNode.class).cloneNode(false);
+						// same as the structr:template branch: an instance must belong to a document
+						final Page document = documentFor(parent, page);
 
-						final String _html_src = newNode.getProperty(new StringProperty("_html_src"));
-						if (!StringUtils.isEmpty(_html_src)) {
-							node.attr("src", _html_src);
+						if (document == null) {
+
+							logger.warn("Not importing component {}: neither the target element nor anything above it belongs to a document, so the instance could only be created page-less (invisible to deployment export).", src);
+
 						} else {
-							node.removeAttr("src");
-						}
 
-						newNode.setSharedComponent(component.as(DOMNode.class));
-						newNode.setOwnerDocument(page);
+							newNode = component.as(DOMNode.class).cloneNode(false);
+
+							final String _html_src = newNode.getProperty(new StringProperty("_html_src"));
+							if (!StringUtils.isEmpty(_html_src)) {
+								node.attr("src", _html_src);
+							} else {
+								node.removeAttr("src");
+							}
+
+							newNode.setSharedComponent(component.as(DOMNode.class));
+							newNode.setOwnerDocument(document);
+						}
 
 					} else {
 

@@ -27,12 +27,14 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.Widget;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.importer.Importer;
+import org.structr.websocket.command.CreateComponentCommand;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.web.traits.definitions.html.Script;
 import org.testng.annotations.Test;
@@ -551,6 +553,60 @@ public class ImporterTest extends StructrUiTest {
 
 		for (final Node child : current.childNodes()) {
 			collectNodes(target, child);
+		}
+	}
+
+	/**
+	 * A shared component reference must never be imported as a PAGE-LESS node.
+	 *
+	 * The instance is the one kind of node this importer creates without asking a page for it (cloneNode
+	 * copies no ownerDocument), while an ordinary element is only created when a page is known. So a
+	 * caller that imports into an existing element without naming the page - or into an element that has
+	 * itself lost its document, with its parent chain still intact - used to get a node no page can reach.
+	 * Deployment export walks documents, so it omits such a node while the pages referencing it keep the
+	 * reference: the next import then produces empty page shells. One app shipped 31 of 48 pages that way.
+	 */
+	@Test
+	public void testSharedComponentImportIntoAnElementWithoutAPage() {
+
+		final String source = "<structr:template src=\"Shared Block\"></structr:template>";
+
+		try (final Tx tx = app.tx()) {
+
+			// a shared component, i.e. a node owned by the hidden document
+			final Page shadow      = CreateComponentCommand.getOrCreateHiddenDocument();
+			final DOMNode master   = shadow.createElement("div");
+
+			master.setProperty(Traits.of(StructrTraits.DOM_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Shared Block");
+
+			final Page page        = Page.createSimplePage(securityContext, "host");
+			final DOMNode body     = page.getElementsByTagName("body").get(0);
+			final DOMNode target   = page.createElement("div");
+
+			body.appendChild(target);
+
+			/* the observed production state: the target lost its own document while its parent still has
+			   one. getOwnerDocument() answers null for it, and that null used to reach the importer. */
+			target.setOwnerDocument(null);
+
+
+			final Importer importer = new Importer(securityContext, source, null, null, false, false, false, false);
+
+			importer.parse(true);
+			importer.createChildNodes(target, target.getOwnerDocument(), true);
+
+			final DOMNode instance = target.getFirstChild();
+
+			assertNotNull("the shared component reference was not imported at all", instance);
+			assertNotNull("an imported shared component instance must belong to a document", instance.getOwnerDocument());
+			assertEquals("it belongs to the page its parent chain leads to", page.getUuid(), instance.getOwnerDocument().getUuid());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail(fex.getMessage());
 		}
 	}
 
