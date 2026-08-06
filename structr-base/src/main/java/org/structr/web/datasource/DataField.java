@@ -18,13 +18,19 @@
  */
 package org.structr.web.datasource;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.ChannelInput;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.CaseHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.app.QueryGroup;
+import org.structr.core.app.StructrApp;
 import org.structr.core.datasources.Channel;
 import org.structr.core.datasources.ChannelResult;
 import org.structr.core.entity.DataAdapter;
@@ -346,10 +352,95 @@ public class DataField extends LinkedHashMap<String, Object> {
 		if (augmentation != null) {
 
 			field.augment(augmentation);
+
+			// Page-typed render-template config values are stored as the page's UUID (stable across
+			// renames); resolve them to the page's current name here so template authors' URL
+			// interpolation (e.g. href="/${field.config.detailPage}/${data.id}") keeps working.
+			resolvePageConfigValues(renderContext, augmentation, field);
 		}
 
 		return field;
 
+	}
+
+	/**
+	 * Resolve any {@code page}-typed render-template config values from a stored page UUID to the
+	 * page's current name. Which config keys are page-typed is read from the render template
+	 * Widget's {@code configuration} schema ({@code {"detailPage": {"type": "page"}}}). Only values
+	 * that are a valid UUID resolving to an existing node are rewritten; legacy values stored as a
+	 * plain page name (from before UUID storage) pass through unchanged, so this is backward
+	 * compatible. Runs once per field definition (not per row), so the extra lookups are bounded.
+	 */
+	@SuppressWarnings("unchecked")
+	private static void resolvePageConfigValues(final RenderContext renderContext, final DataAdapterField augmentation, final DataField field) {
+
+		final Object configObj = field.get("config");
+		if (!(configObj instanceof Map)) {
+			return;
+		}
+
+		final Map<String, Object> config = (Map<String, Object>) configObj;
+		final String templateName         = augmentation.getRenderTemplate();
+		if (config.isEmpty() || StringUtils.isBlank(templateName)) {
+			return;
+		}
+
+		try {
+
+			final NodeInterface widget = StructrApp.getInstance(renderContext.getSecurityContext())
+				.nodeQuery("Widget").name(templateName).getFirst();
+			if (widget == null) {
+				return;
+			}
+
+			final String schemaJson = widget.getProperty(widget.getTraits().key("configuration"));
+			if (StringUtils.isBlank(schemaJson)) {
+				return;
+			}
+
+			final JsonElement parsed = JsonParser.parseString(schemaJson);
+			if (!parsed.isJsonObject()) {
+				return;
+			}
+
+			final JsonObject schema             = parsed.getAsJsonObject();
+			final Map<String, Object> resolved  = new LinkedHashMap<>(config);
+			boolean changed                     = false;
+
+			for (final String key : schema.keySet()) {
+
+				final JsonElement entry = schema.get(key);
+				if (entry == null || !entry.isJsonObject()) {
+					continue;
+				}
+
+				final JsonElement type = entry.getAsJsonObject().get("type");
+				if (type == null || !type.isJsonPrimitive() || !"page".equals(type.getAsString())) {
+					continue;
+				}
+
+				final Object value = resolved.get(key);
+				if (value instanceof String && Settings.isValidUuid((String) value)) {
+
+					final NodeInterface page = StructrApp.getInstance(renderContext.getSecurityContext()).getNodeById((String) value);
+					if (page != null) {
+
+						final String name = page.getProperty(page.getTraits().key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
+						if (StringUtils.isNotBlank(name)) {
+							resolved.put(key, name);
+							changed = true;
+						}
+					}
+				}
+			}
+
+			if (changed) {
+				field.put("config", resolved);
+			}
+
+		} catch (final Exception e) {
+			LoggerFactory.getLogger(DataField.class).warn("Could not resolve page-typed render-template config for '{}': {}", templateName, e.getMessage());
+		}
 	}
 
 	// ----- private static methods -----

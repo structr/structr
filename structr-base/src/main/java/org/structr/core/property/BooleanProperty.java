@@ -59,6 +59,12 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 	}
 
 	@Override
+	public String editTemplate() {
+		// a boolean edits as a checkbox, not the generic textfield (Property's default)
+		return "checkbox";
+	}
+
+	@Override
 	public Class valueType() {
 		return Boolean.class;
 	}

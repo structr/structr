@@ -69,6 +69,12 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 	}
 
 	@Override
+	public String editTemplate() {
+		// a date edits with the date picker, not the generic textfield (Property's default)
+		return "datepicker";
+	}
+
+	@Override
 	public Class valueType() {
 		return Date.class;
 	}
