@@ -47,6 +47,7 @@ import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.traits.definitions.*;
 import org.structr.web.traits.definitions.dom.DOMElementTraitDefinition;
+import org.structr.web.maintenance.DetachedNodes;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 
 import java.util.*;
@@ -196,6 +197,7 @@ public class MigrationService {
 				cleanStaleActionMappingTargets();
 				migrateMailTemplates();
 				updateSharedComponentFlag();
+				repairDetachedDOMNodes();
 				if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
 					migrateRestQueryRepeaters();
 					migrateActionMappingControlsToProcess();
@@ -1284,6 +1286,32 @@ public class MigrationService {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Gives DOM nodes that belong to no document one back, where that can be decided safely.
+	 *
+	 * These are not a cosmetic problem. Deployment export walks documents, so a page-less node is left
+	 * out of the export while the pages referencing it keep their references: the next import produces
+	 * empty page shells, and a page whose ROOT is such a node fails to import at all.
+	 *
+	 * They were produced by handleNewChild, which propagated the parent's ownerDocument unconditionally
+	 * and so CLEARED a child's document, and its whole subtree's, whenever the parent had none. That is
+	 * fixed, but the fix repairs nothing that already happened - hence this sweep, which runs once per
+	 * start and does nothing at all on a healthy instance.
+	 *
+	 * Deleted content (the Recycle Bin) is page-less too and is deliberately left alone; see DetachedNodes.
+	 */
+	private static void repairDetachedDOMNodes() throws FrameworkException {
+
+		final App app = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			DetachedNodes.scanAndRepair("Migration");
+
+			tx.success();
+		}
 	}
 
 	private static void warnAboutWrongNotionProperties() throws FrameworkException {

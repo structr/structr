@@ -77,6 +77,7 @@ public class MaintenanceResource extends ExactMatchEndpoint {
 		maintenanceCommandMap.put("createLabels",               BulkCreateLabelsCommand.class);
 		maintenanceCommandMap.put("createLicense",              StructrLicenseManager.CreateLicenseCommand.class);
 		maintenanceCommandMap.put("deleteSpatialIndex",         DeleteSpatialIndexCommand.class);
+		maintenanceCommandMap.put("detachedNodes",              DetachedNodesCommand.class);
 		maintenanceCommandMap.put("deployData",                 DeployDataCommand.class);
 		maintenanceCommandMap.put("deploy",                     DeployCommand.class);
 		maintenanceCommandMap.put("directFileImport",           DirectFileImportCommand.class);
