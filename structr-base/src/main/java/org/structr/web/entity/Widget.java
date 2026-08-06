@@ -180,13 +180,17 @@ public interface Widget extends NodeInterface {
 
 						newChild.setIsComponentRoot(true);
 
-						if (!attributes.isEmpty()) {
+						final ComponentConfiguration componentConfiguration = newChild.getComponentConfiguration();
+						if (componentConfiguration != null) {
 
-							final ComponentConfiguration componentConfiguration = newChild.getComponentConfiguration();
-							if (componentConfiguration != null) {
+							if (!attributes.isEmpty()) {
 
 								componentConfiguration.setFieldSet(StringUtils.join(attributes, ","));
 							}
+
+							// validate on the widget-insertion path, where the widget has just established the
+							// component's dimensions and configuration (rather than on every lifecycle modification)
+							componentConfiguration.checkCompatibility();
 						}
 					}
 

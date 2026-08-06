@@ -127,8 +127,6 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 
 						componentConfiguration.setProperty(componentTraits.key(DISPLAY_MODE_PROPERTY), "output");
 					}
-
-					componentConfiguration.checkCompatibility();
 				}
 			},
 
@@ -140,7 +138,6 @@ public class ComponentConfigurationTraitDefinition extends AbstractNodeTraitDefi
 					final ComponentConfiguration componentConfiguration = graphObject.as(ComponentConfiguration.class);
 
 					componentConfiguration.updateFieldSetForChildren();
-					componentConfiguration.checkCompatibility();
 				}
 			}
 		);

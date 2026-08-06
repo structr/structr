@@ -19,6 +19,7 @@
 package org.structr.build;
 
 import java.io.File;
+import java.io.InputStream;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import org.apache.maven.AbstractMavenLifecycleParticipant;
@@ -66,12 +67,23 @@ public class ReviewNeedReporter extends AbstractMavenLifecycleParticipant {
 			final String javaBin = System.getProperty("java.home") + File.separator + "bin" + File.separator + (windows ? "java.exe" : "java");
 			final ProcessBuilder pb = new ProcessBuilder(javaBin, script.getAbsolutePath(), "--summary", "--main-only", root.getAbsolutePath());
 
-			pb.inheritIO();
-			pb.start().waitFor();
+			// Emit the report on STDERR, never STDOUT: a build's stdout may be captured (e.g.
+			// `VERSION=$(mvn help:evaluate -q -DforceStdout)` in CI), and appending the report there
+			// corrupts that value. stderr still shows in the console/CI log.
+			pb.redirectErrorStream(true);
+
+			final Process process = pb.start();
+
+			try (final InputStream in = process.getInputStream()) {
+
+				in.transferTo(System.err);
+			}
+
+			process.waitFor();
 
 		} catch (final Exception e) {
 
-			System.out.println("[review-need] skipped (" + e.getClass().getSimpleName() + ": " + e.getMessage() + ")");
+			System.err.println("[review-need] skipped (" + e.getClass().getSimpleName() + ": " + e.getMessage() + ")");
 		}
 	}
 }
