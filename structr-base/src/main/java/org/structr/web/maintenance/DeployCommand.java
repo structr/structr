@@ -1488,13 +1488,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			putData(config, DOMNodeTraitDefinition.COMPONENT_TYPE_PROPERTY, node.as(DOMNode.class).getComponentType());
 
-			/*
 			final int dimensions = node.as(DOMNode.class).getDimensions(true);
 			if (dimensions >= 0) {
 
 				putData(config, DOMNodeTraitDefinition.DIMENSIONS_PROPERTY, dimensions);
 			}
-			*/
 
 			putData(config, DOMNodeTraitDefinition.ITEM_TYPE_PROPERTY, node.as(DOMNode.class).getItemType());
 			putData(config, DOMNodeTraitDefinition.REPEATER_TYPE_PROPERTY, node.as(DOMNode.class).getRepeaterType());
