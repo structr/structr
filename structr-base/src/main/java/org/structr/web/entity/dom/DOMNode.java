@@ -99,6 +99,14 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	 * Properties NEVER propagated to synced nodes by {@link #syncSharedComponentProperties}:
 	 * identity, audit, access flags, structural relationships, and name (which is handled
 	 * separately by {@link #syncName}). Everything else that changed is synced per the mode.
+	 *
+	 * ownerDocument belongs here for the same reason as parent and children: WHICH DOCUMENT a node
+	 * belongs to is per-instance by definition - the master lives in the ShadowDocument, each instance on
+	 * its own page. Propagating it pushed the master's document onto every instance, so editing any
+	 * property of a master moved all of its instances into the ShadowDocument - and a master that had
+	 * itself lost its document detached every one of its instances at once, which is how an app ended up
+	 * with all 32 instances of one component page-less while their parents were healthy. pageId, the
+	 * denormalised twin of this relationship, was already excluded; the relationship was not.
 	 */
 	Set<String> sharedComponentSyncBlacklist = Set.of(
 		GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY,
@@ -106,7 +114,8 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 		GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY, GraphObjectTraitDefinition.LAST_MODIFIED_BY_PROPERTY,
 		GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY,
 		NodeInterfaceTraitDefinition.NAME_PROPERTY, NodeInterfaceTraitDefinition.OWNER_PROPERTY, NodeInterfaceTraitDefinition.OWNER_ID_PROPERTY,
-		DOMNodeTraitDefinition.PAGE_ID_PROPERTY, DOMNodeTraitDefinition.PARENT_PROPERTY, DOMNodeTraitDefinition.PARENT_ID_PROPERTY,
+		DOMNodeTraitDefinition.OWNER_DOCUMENT_PROPERTY, DOMNodeTraitDefinition.PAGE_ID_PROPERTY,
+		DOMNodeTraitDefinition.PARENT_PROPERTY, DOMNodeTraitDefinition.PARENT_ID_PROPERTY,
 		DOMNodeTraitDefinition.CHILDREN_PROPERTY, DOMNodeTraitDefinition.CHILDREN_IDS_PROPERTY,
 		DOMNodeTraitDefinition.SYNCED_NODES_PROPERTY, DOMNodeTraitDefinition.SYNCED_NODES_IDS_PROPERTY,
 		DOMNodeTraitDefinition.SHARED_COMPONENT_PROPERTY, DOMNodeTraitDefinition.SHARED_COMPONENT_ID_PROPERTY,
